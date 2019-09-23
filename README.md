@@ -10,3 +10,7 @@ This repo is made up of three (3) directories:
 1. The mobile application
 2. The frontend for the main AirQo website
 3. The admin dashboard for the entire QirQo platform.
+
+## Contributing
+We invite you to help us build this platform. Please look up the [contributing guide](https://github.com/airqo-platform/AirQo-frontend/wiki) for details.
+
