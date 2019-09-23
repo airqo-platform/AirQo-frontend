@@ -9,7 +9,7 @@ The AirQo project aims to measure and quantify the scale of air pollution in and
 This repo is made up of three (3) directories:
 1. The mobile application
 2. The frontend for the main AirQo website
-3. The admin dashboard for the entire QirQo platform.
+3. The admin dashboard for the entire AirQo platform.
 
 ## Contributing
 We invite you to help us build this platform. Please look up the [contributing guide](https://github.com/airqo-platform/AirQo-frontend/wiki) for details.
