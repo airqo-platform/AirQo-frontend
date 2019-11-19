@@ -1,0 +1,12 @@
+
+
+/* This section is for crop section 
+ * For this part, donot change the id or class names, but, you can change your css attributes as you like
+ */
+.cropHolder {width: 100vw; height: 100vh; display: none;}
+#cropWrapper {position: absolute; top:0; left:0; right: 0; bottom: 0; margin: auto; width: 100vw; height: 100vh;}
+#bgCanvas {position: absolute; top:0; left:0; right: 0; bottom: 0; margin: auto;}
+#getCropped {position: absolute; top:0; left:0; right: 0; bottom: 0; margin: auto;}
+#blacksheet {position: absolute; top:0; left:0; background-color: rgba(0,0,0,0.7); right: 0; bottom: 0; margin: auto; width: 100%; height: 100%;}
+
+

@@ -1,0 +1,49 @@
+path {
+  stroke:white;
+  stroke-width: 1px;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  padding: 0;
+  margin: 0;
+  background: whitesmoke;
+}
+
+.city {
+  font: 10px sans-serif;
+  font-weight: bold;
+}
+
+.legend {
+  font-size: 12px;
+}
+.hover {
+        fill: yellow;   
+    }
+
+div.tooltip {   
+  position: absolute;           
+  text-align: center;           
+  width: 150px;                  
+  height: 25px;                 
+  padding: 2px;             
+  font-size: 20px;     
+  background: #FFFFE0;
+  border: 1px;      
+  border-radius: 15px;           
+  pointer-events: none;         
+}  
+h1, h2 {
+        position: absolute;
+        left: 20px;
+        top: 10px;
+        font-family: "Proxima Nova", Montserrat, sans-serif;
+        font-size: 2em;
+        font-weight: 100;
+        color: #005DAA; /* offical UK Kentucky blue */
+    }
+h2 {
+        top: 50px;
+        font-size: 1.6em;
+    }

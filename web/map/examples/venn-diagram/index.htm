@@ -1,0 +1,64 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>Highcharts Example</title>
+
+		<style type="text/css">
+#container {
+	min-width: 320px;
+	max-width: 600px;
+	height: 400px;
+	margin: 0 auto;
+}
+		</style>
+	</head>
+	<body>
+<script src="../../code/highcharts.js"></script>
+<script src="../../code/modules/venn.js"></script>
+<script src="../../code/modules/exporting.js"></script>
+<div id="container"></div>
+
+
+
+		<script type="text/javascript">
+Highcharts.chart('container', {
+    series: [{
+        type: 'venn',
+        name: 'The Unattainable Triangle',
+        data: [{
+            sets: ['Good'],
+            value: 2
+        }, {
+            sets: ['Fast'],
+            value: 2
+        }, {
+            sets: ['Cheap'],
+            value: 2
+        }, {
+            sets: ['Good', 'Fast'],
+            value: 1,
+            name: 'More expensive'
+        }, {
+            sets: ['Good', 'Cheap'],
+            value: 1,
+            name: 'Will take time to deliver'
+        }, {
+            sets: ['Fast', 'Cheap'],
+            value: 1,
+            name: 'Not the best quality'
+        }, {
+            sets: ['Fast', 'Cheap', 'Good'],
+            value: 1,
+            name: 'They\'re dreaming'
+        }]
+    }],
+    title: {
+        text: 'The Unattainable Triangle'
+    }
+});
+
+		</script>
+	</body>
+</html>
