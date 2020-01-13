@@ -288,14 +288,14 @@ class User extends CI_Controller
                     ),
                
 			array(
-					'db' => 'aaf_rating',
+					'db' => 'aaf_subject',
 					'dt' => 2,
 					'formatter' => function($d, $row){
                               return $d;
 					}
                     ), 
                array(
-					'db' => 'aaf_review',
+					'db' => 'aaf_body',
 					'dt' => 3,
 					'formatter' => function($d, $row){
                               return $d;

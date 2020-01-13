@@ -3,6 +3,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
 
 class AdminModel extends CI_Model
 {
+	// NDn4Djf4elCA00sB
 
 	function __construct()
 	{
@@ -29,20 +30,21 @@ class AdminModel extends CI_Model
 	// Verifying whether the password and phone number are correct
 	public function verify_user_details($email, $password)
 	{
-		$this->db->select('admin_id,admin_name,admin_username,admin_password,admin_image,admin_role,admin_email, admin_status, admin_phoneNumber');
-		$this->db->from('admins');
-		$this->db->where('admin_username', $email);
-		$this->db->where('admin_status', '1');
-		$this->db->where('admin_password', sha1($password));
-		$this->db->limit(1);
-		$query = $this->db->get();
+		// $this->db->select('*');
+		// $this->db->from('admins');
+		// $this->db->where('admin_username', $email);
+		// $this->db->where('admin_status', '1');
+		// $this->db->where('admin_password', sha1($password));
+		// $this->db->limit(1);
+		// $query = $this->db->get();
 
-		// Query and return the result row
-		if ($query->num_rows() > 0) {
-			return $query->row();
-		} else {
-			return NULL;
-		}
+		// // Query and return the result row
+		// if ($query->num_rows() > 0) {
+		// 	return $query->row();
+		// } else {
+		// 	return NULL;
+		// }
+
 		$this->db->select('*');
 		$this->db->from('admins');
 		$this->db->where('admin_username', $email);
@@ -262,6 +264,7 @@ class AdminModel extends CI_Model
 	public function list_team_members($team_id = null)
 	{
 		if ($team_id == null) {
+			$this->db->where('team_status', '1');
 			$this->db->order_by('team_id', 'DESC');
 			$query  = $this->db->get('tbl_team');
 			return $query->result_array();

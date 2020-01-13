@@ -65,7 +65,7 @@ class AirqoModel extends CI_Model
 	public function get_team_details($id = null)
 	{
 		if ($id == null) {
-			$query = $this->db->query("SELECT * FROM tbl_team ORDER BY team_id ASC");
+			$query = $this->db->query("SELECT * FROM tbl_team WHERE team_status = '1' ORDER BY team_order ASC");
 			return $query->result_array();
 		}
 		$query = $this->db->query("SELECT * FROM tbl_team WHERE team_id = '$id'");
@@ -102,6 +102,34 @@ class AirqoModel extends CI_Model
 		$query = $this->db->query("SELECT * FROM tbl_pages WHERE pg_title = 'About'");
 		return $query->row_array();
 	}
+	// work with us
+	public function get_partnerships()
+	{
+		$query = $this->db->query("SELECT * FROM tbl_pages WHERE pg_title = 'Partnerships'");
+		return $query->row_array();
+	}
+
+	// what we do
+	public function get_about()
+	{
+		$query = $this->db->query("SELECT * FROM tbl_pages WHERE pg_title = 'About'");
+		return $query->row_array();
+	}
+
+	// background
+	public function get_background()
+	{
+		$query = $this->db->query("SELECT * FROM tbl_pages WHERE pg_title = 'Background'");
+		return $query->row_array();
+	}
+
+	// vacancies
+	public function get_careers()
+	{
+		$query = $this->db->query("SELECT * FROM tbl_pages WHERE pg_title = 'Careers'");
+		return $query->row_array();
+	}
+
 	// how it works
 	public function get_app_node_details($id)
 	{

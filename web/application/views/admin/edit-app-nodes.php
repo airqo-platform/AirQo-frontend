@@ -454,6 +454,8 @@ $(".NewStory").click(function(){$("#info").toggle();});
 		Demo.init(); // init demo features
 	    TableAdvanced.init();
         });
+
+		
 </script>
 <!-- END JAVASCRIPTS -->
 </body>

@@ -102,14 +102,14 @@ $contact = $this->AirqoModel->get_contact_details(1);
 <script type="text/javascript" src="<?php echo base_url(); ?>assets/scroll animation/jquery.scrollTo.min.js"></script>
 <!-- animated scroll inntialisation -->
 <script type="text/javascript">
-    $(document).ready(function() {
-        $('#myNav').localScroll({
-            duration: 800
-        });
-        $('#myNav0').localScroll({
-            duration: 800
-        });
-    });
+    // $(document).ready(function() {
+    //     $('#myNav').localScroll({
+    //         duration: 800
+    //     });
+    //     $('#myNav0').localScroll({
+    //         duration: 800
+    //     });
+    // });
 </script>
 <script src="<?= base_url(); ?>assets/code/highcharts.js"></script>
 <script src="<?= base_url(); ?>assets/code/modules/series-label.js"></script>
@@ -136,6 +136,7 @@ $contact = $this->AirqoModel->get_contact_details(1);
             // from 12/22/15 to 1/21/16 as logged by USGS' Earthquake hazards program.
             // data: "https://docs.mapbox.com/mapbox-gl-js/assets/nodes.geojson",
             data: "https://airqo.net/apis/android/ver1/03/adongot.php",
+            // data: "<?= site_url('Apis/airqoPlaces'); ?>",
             cluster: true,
             clusterMaxZoom: 1, // Max zoom to cluster points on
             clusterRadius: 50 // Radius of each cluster when clustering points (defaults to 50)
@@ -465,7 +466,7 @@ $contact = $this->AirqoModel->get_contact_details(1);
             }
         });
 </script>
-<script src="https://code.highcharts.com/highcharts.js"></script>
+<!-- <script src="https://code.highcharts.com/highcharts.js"></script>
 <script type="text/javascript">
     Highcharts.chart('mg', {
         data: {
@@ -490,7 +491,7 @@ $contact = $this->AirqoModel->get_contact_details(1);
             }
         }
     });
-</script>
+</script> -->
 <!-- Include all compiled plugins (below), or include individual files as needed -->
 <script src="<?= base_url(); ?>assets/frontend/js/bootstrap.min.js"></script>
 </body>

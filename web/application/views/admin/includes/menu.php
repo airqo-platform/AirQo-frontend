@@ -1,7 +1,6 @@
 <style type="text/css">
      .badge {
           background-color: rgb(51, 122, 183);
-          padding: ;
      }
 </style>
 <?php
@@ -119,14 +118,6 @@ $admin_role = $this->session->userdata['logged_in']['admin_role'];
                          </a>
                     </li>
 
-                    <li class="start  <?php if ($navigation == 'news') { echo 'active'; } ?>">
-                         <a href="<?php echo site_url('Admin/news'); ?>">
-                              <i class="fa fa-book"></i>
-                              <span class="title">News</span>
-                              <span class=" <?php if ($navigation == 'news') { echo 'selected'; } ?>"></span>
-                         </a>
-                    </li>
-
                     <li class="start  <?php if ($navigation == 'contacts') { echo 'active'; } ?>">
                          <a href="<?php echo site_url('Admin/contactInformation'); ?>">
                               <i class="fa fa-mobile-phone (alias)"></i>
@@ -135,14 +126,7 @@ $admin_role = $this->session->userdata['logged_in']['admin_role'];
 
                          </a>
                     </li>
-                    <li class="start  <?php if ($navigation == 'sub') { echo 'active'; } ?>">
-                         <a href="<?php echo site_url('Admin/subscribers'); ?>">
-                              <?php $messages = $this->AdminModel->get_total(); ?>
-                              <i class="fa fa-users "></i>
-                              <span class="title">Subscribers <div class="badge pull-right"><?php echo $messages['total']; ?></div></span>
-                              <span class=" <?php if ($navigation == 'sub') { echo 'selected'; } ?>"></span>
-                         </a>
-                    </li>
+                    
                     <li class="start  <?php if ($navigation == '') { echo 'active'; } ?>">
                          <a href="<?php echo site_url('Admin/faqs'); ?>">
                               <?php $faq = $this->AdminModel->get_faqs_total(); ?>

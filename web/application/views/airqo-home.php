@@ -1,260 +1,344 @@
-<!-- start of sent email response section -->
-<style type="text/css">
-  .sent-message-response{
-    margin:40px;
-    position: absolute;
-    top: 200px;
-    left: 3%;
-    z-index: 200;
-  }
-  .sent-message-response .alert-success{
-    border-radius: 0px;
-  }
+<link rel="stylesheet" href="<?= base_url(); ?>assets/leaflet/leaflet.css">
+<link rel="stylesheet" href="<?= base_url(); ?>assets/leaflet/dist/MarkerCluster.css">
+<link rel="stylesheet" href="<?= base_url(); ?>assets/leaflet/dist/MarkerCluster.Default.css">
+<script src="<?= base_url(); ?>assets/leaflet/leaflet.js"></script>
+<!-- <script src="https://code.highcharts.com/highcharts.js"></script> -->
+<!-- <script src="https://code.highcharts.com/modules/pareto.js"></script> -->
+<script src="<?= base_url(); ?>assets/code/highcharts.js"></script>
+<script src="<?= base_url(); ?>assets/code/modules/series-label.js"></script>
+<script src="<?= base_url(); ?>assets/code/modules/exporting.js"></script>
+<script src="<?= base_url(); ?>assets/code/modules/export-data.js"></script>
+<script src="<?= base_url(); ?>assets/leaflet/leaflet.markercluster-src.js"></script>
+<!-- <script src="https://code.highcharts.com/stock/indicators/indicators.js"></script> -->
+<style>
+	.map-scroll:before {
+		content: 'Use ctrl + scroll to zoom the map';
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		z-index: 999;
+		font-size: 34px;
+	}
+	.map-scroll:after {
+		position: absolute;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		top: 0;
+		content: '';
+		background: #00000061;
+		z-index: 999;
+	}
+	/* Main container */
+	.overlay-image {
+		position: relative;
+		width: 100%;
+	}
 
+	/* Original image */
+	.overlay-image .image {
+		display: block;
+		width: 50px;
+		height: 50px;
+	}
+
+	/* Original text overlay */
+	.overlay-image .text {
+		color: #fff;
+		font-size: 12px;
+		line-height: 1.5em;
+		/* text-shadow: 1px 1px 1px #999; */
+		text-align: center;
+		position: absolute;
+		top: 50%;
+		left: 100%;
+		transform: translate(60%, -40%);
+		width: 100%;
+	}
+	.mycluster {
+			width: 40px;
+			height: 40px;
+			transform: translate3d(558px, 302px, 0px);
+			background-color: rgba(48, 103, 226, 1);
+			text-align: center;
+			font-size: 12px;
+			border-radius: 50%;
+			padding-top: 10px;
+			color: #fff;
+			outline: 5px solid rgba(48, 103, 226, 0.3);
+			-moz-outline-radius: 60%;
+		}
 </style>
-<div class="sent-message-response">
-  <div class="container">
-    <?php
-    if($this->session->flashdata('error'))
-    {
-      echo '<p class="alert alert-danger" style="text-align:center;">
-      <button class="close" data-close="alert"></button><span> '.$this->session->flashdata('error').'</span></div>';
+<!-- cards section -->
+<div class="buzen-card-section from-top" id="buzen-card-section">
+	<div class="container">
+		<div class="row">
+			<!-- Know your air header -->
+			<div class="col-md-8 col-lg-8 col-sm-8 col-xs-12">
+				<div class="buzen-header">
+					<h4 style="font-weight: 300 !important;"><b>Know your air</b></h4>
+					<h5>AirQo is the leading air quality data monitoring, analysis and modelling platform in East Africa. Collaborate with us as we use data to achieve clean air for all African cities</h5>
+				</div>
+			</div>
+			<!-- End of know your air header -->
+			<!-- Search field -->
+			<div class="col-md-4 col-lg-4 col-sm-4 col-xs-12">
+				<div class="buzen-logo" id="buzen-logo">
+					<div class="container">
+						<div class="row">
+							<div class="">
+								<form method="POST" action="#">
+									<input type="text" id="search-value" name="search" class="form-control" placeholder="Your town, City, District..." required>
+									<button class="btn btn-default " name="submit"> <i class="fa fa-search"></i> </button>
+								</form>
+								<div style="position:relative; z-index: 999;">
+									<div class="hide" id="search-results" style="position:absolute; overflow-x: hidden; height: 200px;"></div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<!-- End of search field -->
+		</div>
+	</div>
 
+	<div class="container">
+		<div class="row">
 
-    }
-    if($this->session->flashdata('msg'))
-    {
-      echo '<p class="alert alert-success" style="text-align:center;">
-      <button class="close" data-close="alert"></button><span > <i class="fa fa-check"></i> '.$this->session->flashdata('msg').'</span></div>';
-    }
-  ?>
-  </div>
-    
-</div>
-<!-- end of sent email response section -->
+			<!-- Map container -->
+			<div class="col-md-12 col-lg-12 col-sm-12 col-xs-12">
+				<div class="panel panel-default" style="padding-top: 0px !important; padding-bottom: 0px !important;">
+					<div class="buzen-map-section">
+						<div id="contact" style="position: relative; width: 100%; bottom: 0; padding-right: 0px !important; padding-left: 0px !important;" class="google-maps google-maps-responsive col-lg-12  col-sm-12 col-xs-12">
+							<div id="leafletmap" style="position: relative; width: 100%; height:480px; border:1px solid #999 !important;">
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-12 col-lg-12 col-sm-12 col-xs-12">
+				<div class="">
+					<div class="">
+						<h4>Key</h4>
+						<button style="background-color: #45e50d; color: #000;" type="button" class="btn col-md-2 col-sm-12 col-xs-12" style="margin: 1px !important;"><img src="<?= base_url(); ?>assets/images/face_good.png" class="pull-left" style="width: 20px;" /><b><small>Good<br>(0 - 12)</small></b></button>
+						<button style="background-color: #f8fe28; color: #000;" type="button" class="btn col-md-2 col-sm-12 col-xs-12" style="margin: 1px !important;"><img src="<?= base_url(); ?>assets/images/face_moderate.png" class="pull-left" style="width: 20px;" /><b><small>Moderate<br>(12.1 - 35.4)</small></b></button>
+						<button style="background-color: #ee8310; color: #fff;" type="button" class="btn col-md-2 col-sm-12 col-xs-12" style="margin: 1px !important;"><img src="<?= base_url(); ?>assets/images/face_unhealthy.png" class="pull-left" style="width: 20px;" /><b><small>Unhealthy<br>(35.6 - 55.4)</small></b></button>
+						<button style="background-color: #fe0000; color: #fff;" type="button" class="btn col-md-2 col-sm-12 col-xs-12" style="margin: 1px !important;"><img src="<?= base_url(); ?>assets/images/face_unhealthy1.png" class="pull-left" style="width: 20px;" /><b><small>Unhealthy<br>(55.5 - 150.4)</small></b></button>
+						<button style="background-color: #8639c0; color: #fff;" type="button" class="btn col-md-2 col-sm-12 col-xs-12" style="margin: 1px !important;"><img src="<?= base_url(); ?>assets/images/face_vunhealthy.png" class="pull-left" style="width: 20px;" /><b><small>Very Unhealthy<br>(150.5 - 250.4)</small></b></button>
+						<button style="background-color: #81202e; color: #fff;" type="button" class="btn col-md-2 col-sm-12 col-xs-12" style="margin: 1px !important;"><img src="<?= base_url(); ?>assets/images/face_hazardous.png" class="pull-left" style="width: 20px;" /><b><small>Hazardous<br>(250.5 - 500.4)</small></b></button>
+						<p>PM<sub>2.5</sub> - Particle Matter</p>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-12 col-lg-12 col-sm-12 col-xs-12">
+				<h4>Download AirQo now</h4>
+				<h5>know the air in locations that matter to you</h5>
+				<a href="https://itunes.apple.com/ug/app/airqo-monitoring-air-quality/id1337573091?mt=8" target="_blank">
+					<img class="left" style="width:150px;" src="<?= base_url(); ?>assets/images/appstore.png">
+				</a>
+				<a href="https://play.google.com/store/apps/details?id=com.buzen.contract.airqoapp" target="_blank">
+					<img class="right" style="width:150px;" src="<?= base_url(); ?>assets/images/playstore.png">
+				</a>
+			</div>
+			<!-- <div class="col-md-12">
+				
+				
+			</div> -->
+			<!-- End of map container -->
+		</div>
+	</div>
 
-<div class="home-image">
-  <img src="<?= base_url();?>assets/images/home/wind_vane.jpg" width="100%" height="600px">
-  <div class="right-slider">
-    <div class="row">
-      <div class="col col-lg-6 col-md-6">
-        
-      </div>
-      <div class="col col-lg-6 col-md-6">
-        <!-- carousel -->
-        <div class="carousel slide" data-ride="carousel"  data-interval="4000">
-              <!-- Indicators -->
-              <ol class="carousel-indicators">
-                <li data-target="#carousel-example-generic" data-slide-to="0" class="active"></li>
-                <li data-target="#carousel-example-generic" data-slide-to="1"></li>
-                <li data-target="#carousel-example-generic" data-slide-to="2"></li>
-              </ol>
-
-              <!-- Wrapper for slides -->
-              <div class="appstore">
-                <div class="col col-lg-6 col-md-6 pull-right">
-                  <a href="https://itunes.apple.com/ug/app/airqo-monitoring-air-quality/id1337573091?mt=8" target="_blank">
-                   <img class="left" src="<?= base_url();?>assets/images/home/appstore.png" width="150px" height="45px">
-                  </a>
-                </div>
-                <div class="col col-lg-6 col-md-6 pull-left">
-                  <a href="https://play.google.com/store/apps/details?id=com.buzen.contract.airqoapp" target="_blank">
-                   <img class="right" src="<?= base_url();?>assets/images/home/playstore.png" width="150px" height="45px">
-                  </a>
-                </div>
-              </div>
-              <div class="  car carousel-inner" role="listbox">
-                <div class="item active blue" >
-                  <div class="carousel-caption blue">
-                         <h3>Understand the state of air quality around Kampala</h3>
-                  </div>
-                </div>
-                <div class="item blue" >
-                  <div class="carousel-caption blue">
-                         <h3>Fine-grained and Real-time Air Quality Data</h3>
-                  </div>
-                </div>
-                <div class="item blue" >
-                  <div class="carousel-caption blue">
-                         <h3>Know which places to avoid around you in Kampala</h3>
-                  </div>
-                </div>
-                
-              </div>
-
-              <!-- Controls -->
-              <a class="left carousel-control" href="#carousel-example-generic" role="button" data-slide="prev">
-                <span><i class="fa fa-chevron-circle-left" aria-hidden="true"></i></span>
-                <span class="sr-only">Previous</span>
-              </a>
-              <a class="right carousel-control" href="#carousel-example-generic" role="button" data-slide="next">
-                <span><i class="fa fa-chevron-circle-right" aria-hidden="true"></i></span>
-                <span class="sr-only">Next</span>
-              </a>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-<p>&nbsp;</p>
-<div class="buzen-current-projects">
-
-  <div class="container">
-    <div class="project-big-tile">
-    <div class="row " style="padding: 0px 20px;">
-      <div class="col col-md-10 col-lg-10 col-sm-10 col-xs-10">
-        <h3 class="align-myTitle">Current Projects</h3>
-      </div>
-       <div class="col-lg-2 col-md-2 col-sm-2 col-xs-2">
-          <div class="icons">
-            <div class="row">
-               <a href="#" class="col col-sm-8 col-xs-8" title="Recent Projects"><i class="fa fa-th" id="large"></i></a>
-               <a href="<?= site_url('projects')?>" class="col col-sm-4 col-xs-4" title="See All"><i class="fa fa-external-link" id="list"></i></a>
-            </div>
-           
-          </div>
-        </div>
-    </div>
-    
-    <div class="myrow">
-      <div class="row row-centered">
-        <div class="col-lg-8 col-md-8 col-xs-12 col-sm-12 col-centered">
-           <?php
-              foreach ($projectFirst as $row) {
-            ?>
-          <a href="<?= site_url('project/'.$row['p_slug'].'');?>">
-            
-            <div class="image-section">
-              <img src="<?= base_url();?>assets/images/projects/<?=$row['p_image'];?>" width="100%" height="250px">
-            </div>                                
-            <div class="text-section">
-              <h4><?=$row['p_title'];?></h4>
-            </div>
-          </a>
-          <?php }?>
-        </div>
-         <?php
-            foreach ($projectSecond as $row) {
-          ?>
-        <div class="col-lg-4 col-md-4 col-xs-12 col-sm-12 col-centered">
-          <a href="<?= site_url('project/'.$row['p_slug'].'');?>">
-            <div class="image-section">
-              <img src="<?= base_url();?>assets/images/projects/<?=$row['p_image'];?>" width="100%" height="250px">
-            </div>
-            <div class="text-section">
-              <h4><?=$row['p_title'];?></h4>
-            </div>
-          </a>
-        </div>
-         <?php }?>
-        </div>
-      </div>
-    </div>
-  </div>
 </div>
 
-<!-- end of the buzen current projects section -->
-<p>&nbsp;</p>
-<div class="buzen-app-section">
-   <div class="container">
-     <div class="row">
-      <div class="col-lg-1 col-md-1 col-sm-12 col-xs-12"></div>
-       <div class="col-lg-5 col-md-5 col-sm-12 col-xs-12">
-         <h3>Download the app</h3>
-         <p>With over 2 million records per year of air quality data around Kampala, AirQo has the largest dataset about the state of air quality around Kampala.</p>
+<script>
+	$(window).load(function() {
+		var map = L.map('leafletmap').setView([0.328015, 32.595011], 7);
+		if (L.Browser.mobile) {
+			map.scrollWheelZoom.disable();
+			// console.log('is mobile');
+		}
 
-		<p>Our AirQo Apps provide you with real-time insights on the state of air quality around you</p>
-         <br/>
-          <div class="downloads">
-            <div class="row">
-              <div class="col col-md-6 col-lg-6">
-                <a href="https://itunes.apple.com/ug/app/airqo-monitoring-air-quality/id1337573091?mt=8" target="_blank">
-                   <img src="<?= base_url();?>assets/images/home/appstore_icon.png" height="40px" width="130px">
-                </a>
-              </div>
-              <div class="col col-md-6 col-lg-6 ">
-                 <a href="https://play.google.com/store/apps/details?id=com.buzen.contract.airqoapp" target="_blank">
-                   <img class="left" src="<?= base_url();?>assets/images/home/android_dl.png" height="40px" width="130px">
-                 </a>
-              </div>
-            </div>
-          </div>
-       </div>
-       <div class="col-lg-5 col-md-5 col-sm-12 col-xs-12">
-          <div class="myimage">
-             <img class="" src="<?= base_url();?>assets/images/home/app_shots.png" height="300px" width="400px">
-          </div>
-       </div>
-      <div class="col-lg-1 col-md-1 col-sm-12 col-xs-12"></div>
+		L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+			attribution: ''
+		}).addTo(map);
 
-     </div>
-   </div>
-</div>
-<p>&nbsp;</p>
-<div class="buzen-airqo-partners">
-  <div class="container">
-    <div class="partner-tile">
-    <div class="row">
-      <div class="col-md-3"></div>
-      <div class="col-md-6 col-lg-6">
-        <h3 style="text-align:center;">Our Partners</h3>
-         <p>The AirQo project aims to measure and quantify the scale of air pollution in and around Kampala City through the design, development and deployment of a network of low-cost air quality sensing devices mounted on either static or mobile objects.</p>
-      </div>
-      <div class="col-md-3"></div>
-    </div>
-   
-    <div class="row">
-	    <div class="col-lg-3 col-md-3 col-xs-12 col-sm-12">
-        <div class="image-class">
-          <img src="<?= base_url();?>assets/images/home/muk.jpg" height="150px" width="200px">
-        </div>
-      </div>
-      
-      <div class="col-lg-3 col-md-3 col-xs-12 col-sm-12">
-        <div class="image-class">
-          <img src="<?= base_url();?>assets/images/home/kcca.png" height="150px" width="200px">
-        </div>
-      </div>
-      <div class="col-lg-3 col-md-3 col-xs-12 col-sm-12">
-        <div class="image-class">
-          <img src="<?= base_url();?>assets/images/home/sheffield.jpg" height="150px" width="200px">
-        </div>
-      </div>
-      <div class="col-lg-3 col-md-3 col-xs-12 col-sm-12">
-        <div class="image-class">
-          <img src="<?= base_url();?>assets/images/home/development.jpg" height="150px" width="200px">
-        </div>
-      </div>
-    </div>
-	
-	<div class="row">
-	 <div class="col-lg-3 col-md-3 col-xs-12 col-sm-12">
-        <div class="image-class">
-          <img src="<?= base_url();?>assets/images/home/nema.jpg" height="150px" width="200px">
-        </div>
-      </div>
-      <div class="col-lg-3 col-md-3 col-xs-12 col-sm-12">
-        <div class="image-class">
-          <img src="<?= base_url();?>assets/images/home/observatory.jpg" height="150px" width="200px">
-        </div>
-      </div>
-      <div class="col-lg-3 col-md-3 col-xs-12 col-sm-12">
-        <div class="image-class">
-          <img src="<?= base_url();?>assets/images/home/buzen_tech.png" height="150px" width="200px">
-        </div>
-      </div>
+		$.ajax({
+			type: 'POST',
+			url: '<?= site_url("Apis/airqoPlacesCached"); ?>',
+			data: {
+				api: "<AIRQO_CONNECTION_API_KEY>"
+			},
+			dataType: 'json',
+			beforeSend: function() {
 
-      <div class="col-lg-3 col-md-3 col-xs-12 col-sm-12">
-        <div class="image-class">
-          <img src="<?= base_url();?>assets/images/home/bodabodas.jpg" height="150px" width="200px">
-        </div>
-      </div>
-    </div>
-  </div>
- </div>
-</div>
-<script type="text/javascript">
-    setTimeout(function() {
-      $('.alert').fadeOut('fast');
-    }, 3000);
+			},
+			success: function(data) {
+				var nodes = data.nodes;
+				// console.log(nodes);
+				var markers = L.markerClusterGroup();
+
+				for (let i = 0; i < nodes.length; i++) {
+					var customPopup = ' <table class="table table-striped" style="width: 300px !important;">' +
+										'<tr>' +
+											'<th>' +
+												'<b>' + nodes[i].name + '</b><br>' +
+												'<b><small>' + nodes[i].an_type + '</small></<b>' +
+											'</th>' +
+										'</tr>' +
+										'<tr>' +
+											'<td class="vcolor text-center"></td>' +
+										'</tr>' +
+										'<tr>' +
+											'<td>Last Refreshed: '+ new Date(nodes[i].time) +'<br><a href="<?= site_url('node/'); ?>'+nodes[i].churl+'">More Details</a></td>' +
+										'</tr>' +
+									'</table>';
+
+					if (nodes[i].field2 >= 0 && nodes[i].field2 <= 12) {
+						var marker = L.marker([nodes[i].lat, nodes[i].lng], {
+							icon: new L.DivIcon({
+								className: 'my-div-icon',
+								html: '<div class="overlay-image">' +
+									'<img class="image" src="<?= base_url(); ?>assets/images/marker-good.png" />' +
+									'<div class="text" style="color: #000 !important;">' + Math.round(nodes[i].field2) + '</div>' +
+									'</div>'
+							})
+						}).bindPopup(customPopup, {
+							width: 400,
+							height: 150
+						}).on('mouseover click', function(e) {
+							this.openPopup();
+							
+							$('.vcolor').html( '<table class="" style="background:rgb(35,155,86) !important; width: 100%;">'+
+												'<tr>'+
+														'<td style="padding:10px 0px 10px 10px;"><img src="<?= base_url(); ?>assets/images/face_good.png" class="img-responsive" style="width: 20px;" /></td>' +   
+														'<td style="padding:10px 0px 10px 0px;">' + nodes[i].field2 + '<br/>PM<sub>2.5</sub></td>' +   
+														'<td style="padding:10px 10px 10px 0px;">Good</td>' +   
+												'</tr>' +
+											'</table>');
+						});
+						markers.addLayer(marker);
+					} else if (nodes[i].field2 >= 12.1 && nodes[i].field2 <= 35.4) {
+						var marker = L.marker([nodes[i].lat, nodes[i].lng], {
+							icon: new L.DivIcon({
+								className: 'my-div-icon',
+								html: '<div class="overlay-image">' +
+									'<img class="image" src="<?= base_url(); ?>assets/images/marker-moderate.png" />' +
+									'<div class="text" style="color: #000 !important;">' + Math.round(nodes[i].field2) + '</div>' +
+									'</div>'
+							})
+						}).bindPopup(customPopup, {
+							width: 400,
+							height: 150
+						}).on('mouseover click', function(e) {
+							this.openPopup();
+							$('.vcolor').html( '<table class="" style="background:rgb(249,220,9) !important; width: 100%;">'+
+												'<tr>'+
+														'<td style="padding:10px 0px 10px 10px;"><img src="<?= base_url(); ?>assets/images/face_moderate.png" class="img-responsive" style="width: 20px;" /></td>' +   
+														'<td style="padding:10px 0px 10px 0px;">' + nodes[i].field2 + '<br/>PM<sub>2.5</sub></td>' +   
+														'<td style="padding:10px 0px 10px 0px;">Moderate</td>' +   
+												'</tr>' +
+											'</table>');
+						});
+						markers.addLayer(marker);
+					} else if (nodes[i].field2 >= 35.6 && nodes[i].field2 <= 55.4) {
+						var marker = L.marker([nodes[i].lat, nodes[i].lng], {
+							icon: new L.DivIcon({
+								className: 'my-div-icon',
+								html: '<div class="overlay-image">' +
+									'<img class="image" src="<?= base_url(); ?>assets/images/marker-unhealthy.png" />' +
+									'<div class="text">' + Math.round(nodes[i].field2) + '</div>' +
+									'</div>'
+							})
+						}).bindPopup(customPopup, {
+							width: 400,
+							height: 150
+						}).on('mouseover click', function(e) {
+							this.openPopup();
+							$('.vcolor').html( '<table class="" style="background:rgb(243,156,18) !important; width: 100%;">'+
+												'<tr>'+
+														'<td style="padding:10px 0px 10px 10px;"><img src="<?= base_url(); ?>assets/images/face_unhealthy.png" class="img-responsive" style="width: 20px;" /></td>' +   
+														'<td style="padding:10px 0px 10px 0px; color: #fff;">' + nodes[i].field2 + '<br/>PM<sub>2.5</sub></td>' +   
+														'<td style="padding:10px 0px 10px 0px; color: #fff;">Unhealthy</td>' +   
+												'</tr>' +
+											'</table>');
+						});
+						markers.addLayer(marker);
+					} else if (nodes[i].field2 >= 55.5 && nodes[i].field2 <= 150.4) {
+						var marker = L.marker([nodes[i].lat, nodes[i].lng], {
+							icon: new L.DivIcon({
+								className: 'my-div-icon',
+								html: '<div class="overlay-image">' +
+									'<img class="image" src="<?= base_url(); ?>assets/images/marker-unhealthy-1.png" />' +
+									'<div class="text">' + Math.round(nodes[i].field2) + '</div>' +
+									'</div>'
+							})
+						}).bindPopup(customPopup, {
+							width: 400,
+							height: 150
+						}).on('mouseover click', function(e) {
+							this.openPopup();
+							$('.vcolor').html( '<table class="" style="background:rgb(243,22,55) !important; width: 100%;">'+
+												'<tr>'+
+														'<td style="padding:10px 0px 10px 10px;"><img src="<?= base_url(); ?>assets/images/face_unhealthy1.png" class="img-responsive" style="width: 20px;" /></td>' +   
+														'<td style="padding:10px 0px 10px 0px; color: #fff;">' + nodes[i].field2 + '<br/>PM<sub>2.5</sub></td>' +   
+														'<td style="padding:10px 0px 10px 0px; color: #fff;">Unhealthy</td>' +   
+												'</tr>' +
+											'</table>');
+
+						});
+						markers.addLayer(marker);
+					} else if (nodes[i].field2 >= 150.5 && nodes[i].field2 <= 250.4) {
+						var marker = L.marker([nodes[i].lat, nodes[i].lng], {
+							icon: new L.DivIcon({
+								className: 'my-div-icon',
+								html: '<div class="overlay-image">' +
+									'<img class="image" src="<?= base_url(); ?>assets/images/marker-very-unhealthy.png" />' +
+									'<div class="text">' + Math.round(nodes[i].field2) + '</div>' +
+									'</div>'
+							})
+						}).bindPopup(customPopup, {
+							width: 400,
+							height: 150
+						}).on('mouseover click', function(e) {
+							this.openPopup();
+							$('.vcolor').html( '<table class="" style="background:rgb(124,71,181) !important; width: 100%;">'+
+												'<tr>'+
+														'<td style="padding:10px 0px 10px 10px;"><img src="<?= base_url(); ?>assets/images/face_vunhealthy.png" class="img-responsive" style="width: 20px;" /></td>' +   
+														'<td style="padding:10px 0px 10px 0px; color: #fff;">' + nodes[i].field2 + '<br/>PM<sub>2.5</sub></td>' +   
+														'<td style="padding:10px 0px 10px 0px; color: #fff;">Very Unhealthy</td>' +   
+												'</tr>' +
+											'</table>');
+						});
+						markers.addLayer(marker);
+					} else if (nodes[i].field2 >= 250.5 && nodes[i].field2 <= 500.4) {
+						var marker = L.marker([nodes[i].lat, nodes[i].lng], {
+							icon: new L.DivIcon({
+								className: 'my-div-icon',
+								html: '<div class="overlay-image">' +
+									'<img class="image" src="<?= base_url(); ?>assets/images/marker-hazardous.png" />' +
+									'<div class="text">' + Math.round(nodes[i].field2) + '</div>' +
+									'</div>'
+							})
+						}).bindPopup(customPopup, {
+							width: 400,
+							height: 150
+						}).on('mouseover click', function(e) {
+							this.openPopup();
+							$('.vcolor').html( '<table class="" style="background:rgb(147,11,21) !important; width: 100%;">'+
+												'<tr>'+
+														'<td style="padding:10px 0px 10px 10px;"><img src="<?= base_url(); ?>assets/images/face_hazardous.png" class="img-responsive" style="width: 20px;" /></td>' +   
+														'<td style="padding:10px 0px 10px 0px; color: #fff;">' + nodes[i].field2 + '<br/>PM<sub>2.5</sub></td>' +   
+														'<td style="padding:10px 0px 10px 0px; color: #fff;">Harzadous</td>' +   
+												'</tr>' +
+											'</table>');
+						});
+						markers.addLayer(marker);
+					}
+				}
+
+				map.addLayer(markers);
+			}
+		});
+	});
 </script>

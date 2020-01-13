@@ -111,11 +111,11 @@
 				     width: 200px;
 
 					}
-					.btn-default {
+					/* .btn-default {
 					    color: #fff;
 					    background-color: #006400;
 					    border-color: #ccc;
-						}
+						} */
 						.shwimg{
               	width: 100%;
               	height: 500px;
@@ -225,9 +225,9 @@
 							<br/>
 							Other Adress(es):
 							<div class="form-group col-md-12">
-								<textarea cols="20" rows="5" id="ckeditor1" name="team_otherAddress" placeholder="enter any other addresses"></textarea>
+								<textarea cols="20" rows="5" id="ckeditor1" class="summernote" name="team_otherAddress" placeholder="enter any other addresses"></textarea>
 								<script>
-									CKEDITOR.replace("ckeditor1");
+									// CKEDITOR.replace("ckeditor1");
 								</script>
 							</div>
 
@@ -382,9 +382,9 @@
 							</div>
 							Other address (es):
 							<div class="form-group col-md-12">
-								<textarea cols="10" rows="2" id="ckeditor2" name="team_otherAddress" required></textarea>
+								<textarea cols="10" rows="2" id="ckeditor2" class="summernote" name="team_otherAddress" required></textarea>
 								<script type="text/javascript">
-									CKEDITOR.replace("ckeditor2");
+									// CKEDITOR.replace("ckeditor2");
 								</script>
 							</div>
 							<div class="row">
@@ -501,6 +501,7 @@
 <script src="<?= base_url(); ?>assets/global/scripts/datatable.js"></script>
 <script src="<?= base_url(); ?>assets/admin/pages/scripts/ecommerce-products-edit.js"></script>
 <!-- END PAGE LEVEL SCRIPTS -->
+<script src="<?= base_url(); ?>assets/dist/summernote.min.js" type="text/javascript"></script>
 <!-- BEGIN PAGE LEVEL PLUGINS -->
 <script type="text/javascript" src="<?= base_url(); ?>assets/global/plugins/select2/select2.min.js"></script>
 <script type="text/javascript" src="<?= base_url(); ?>assets/global/plugins/datatables/media/js/jquery.dataTables.min.js"></script>
@@ -521,6 +522,22 @@
 		$(".addMember").hide();
 		});
 
+		$('.summernote').summernote({
+			fontNames: ['Arial', 'Arial Black', 'Comic Sans MS', 'Courier New', 'Helvetica', 'Impact', 'Tahoma', 'Times New Roman', 'Verdana', 'Lato'],
+			fontNamesIgnoreCheck: ['Lato'],
+			toolbar: [
+				['style', ['style']],
+				['font', ['bold', 'underline', 'clear']],
+				['fontsize', ['fontsize']],
+				['fontname', ['fontname']],
+				['color', ['color']],
+				['para', ['ul', 'ol', 'paragraph']],
+				['table', ['table']],
+				['insert', ['link', 'picture', 'video']],
+				['view', ['fullscreen', 'codeview', 'help']],
+			],
+			height: 400
+		});
 	</script>
 <script type="text/javascript">
 	// AUTO HIDE CONTENT SCRIPT
@@ -542,7 +559,7 @@
 $(document).ready(function(){
 //Editing Modal
 $('.edit_team').on('show.bs.modal', function (e) {
-	console.log('yiki');
+	// console.log('yiki');
 	var id = $(e.relatedTarget).data('id');
 	// console.log(id);
 	$.ajax({
@@ -566,9 +583,10 @@ $('.edit_team').on('show.bs.modal', function (e) {
 		$('#tm_facebook').val(data.t_facebook);
 		$('#tm_twitter').val(data.t_twitter);
 		$('#tm_email').val(data.t_email);
-		CKEDITOR.instances['ckeditor2'].setData(data.t_otherAdress);
+		$('#ckeditor2').summernote('code',data.t_otherAdress);
+		// CKEDITOR.instances['ckeditor2'].setData(data.t_otherAdress);
 		var url = "<?= base_url() ?>/assets/images/team/" + data.t_image;
-		console.log(url);
+		// console.log(url);
 		$('#eImg').attr('src', url);
 		}
 	});

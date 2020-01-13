@@ -39,9 +39,10 @@ if (isset($this->session->userdata['logged_in']['admin_name'])) { } else {
      <link rel="shortcut icon" href="<?= base_url(); ?>assets/images/logo.png" />
      <!-- <link rel="shortcut icon" href="<?= base_url(); ?>assets/images/logo.jpg"/> -->
 
-     <link rel="stylesheet" type="text/css" href="<?= base_url(); ?>assets/global/plugins/bootstrap-wysihtml5/bootstrap-wysihtml5.css" />
-     <link rel="stylesheet" type="text/css" href="<?= base_url(); ?>assets/global/plugins/bootstrap-markdown/css/bootstrap-markdown.min.css">
-     <link rel="stylesheet" type="text/css" href="<?= base_url(); ?>assets/global/plugins/bootstrap-summernote/summernote.css">
+     <!-- <link rel="stylesheet" type="text/css" href="<?= base_url(); ?>assets/global/plugins/bootstrap-wysihtml5/bootstrap-wysihtml5.css" /> -->
+     <!-- <link rel="stylesheet" type="text/css" href="<?= base_url(); ?>assets/global/plugins/bootstrap-markdown/css/bootstrap-markdown.min.css"> -->
+     <!-- <link rel="stylesheet" type="text/css" href="<?= base_url(); ?>assets/global/plugins/bootstrap-summernote/summernote.css"> -->
+     <link rel="stylesheet" type="text/css" href="<?= base_url(); ?>assets/dist/summernote.css">
 
      <link rel="stylesheet" type="text/css" href="<?= base_url(); ?>assets/global/plugins/select2/select2.css" />
      <link rel="stylesheet" type="text/css" href="<?= base_url(); ?>assets/global/plugins/datatables/extensions/Scroller/css/dataTables.scroller.min.css" />
@@ -59,7 +60,7 @@ if (isset($this->session->userdata['logged_in']['admin_name'])) { } else {
      <link rel="shortcut icon" href="<?= base_url(); ?>assets/images/logo.png" />
      <script src="<?= base_url(); ?>assets/gn/js/jquery.min.js"></script>
      <script src="<?php echo base_url(); ?>assets/bootstrap/js/locationpicker.jquery.min.js"></script>
-     <script src="<?= base_url(); ?>assets/ckeditor/ckeditor.js" type="text/javascript"></script>
+     <!-- <script src="<?= base_url(); ?>assets/ckeditor/ckeditor.js" type="text/javascript"></script> -->
 
      <script src="<?= base_url(); ?>assets/gn/js/cropping/cropper.min.js"></script>
 

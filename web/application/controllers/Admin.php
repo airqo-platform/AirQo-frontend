@@ -12,77 +12,117 @@ class Admin extends CI_Controller
 	 */
 	public function index()
 	{
-		$data['title'] = 'Login';
-		$this->load->view('admin/index', $data);
-	}
+		$data['title'] = "Admin Login";
+		$this->form_validation->set_rules('username', 'username', 'trim|required|xss_clean');
+		$this->form_validation->set_rules('password', 'password', 'trim|required|xss_clean');
 
-	public function login()
-	{
-		$data['title'] = 'Login';
-		$this->form_validation->set_rules('admin_password', 'Admin password', 'trim|required');
-		if ($this->form_validation->run() === false) {
-			$this->session->set_flashdata("error", "please Enter all fields");
-			$this->load->view('admin/index', $data);
+		if($this->form_validation->run() == FALSE) {
+			$this->session->set_flashdata("error", validation_errors());
+			$this->load->view("admin/index", $data);
 		} else {
-			$checkDatabase = $this->check_database();
-			if ($checkDatabase == true) {
-				$browser          = $_SERVER['HTTP_USER_AGENT'];
-				$page             = $_SERVER['PHP_SELF'];
-				$ip               = $_SERVER['REMOTE_ADDR'];
-				$from             = '';
-				$page              = $_SERVER['PHP_SELF'];
-				$loggedin_name     = $this->session->userdata['logged_in']['admin_name'];
+			//login submit
+			$username = $this->input->post("username");
+			$password = $this->input->post("password");
+			$password = sha1($password);
 
-				if (isset($_SERVER['HTTP_REFERER'])) {
-					$page  = $_SERVER['HTTP_REFERER'];
-				} else {
-					$page = 'index.php';
-				}
-				$login_data = array(
-					'login_user' => $loggedin_name,
-					'login_ipAddress' => $ip,
-					'login_userAgent' => $browser,
-					'login_date' => date('Y-m-d h:i:s'),
-					'login_status' => '0'
+			$result = $this->AdminModel->verify_user_details($username, $password);
+			if ($result != null) {
+				$sess_array = array(
+					'admin_id'          => trim($result->admin_id),
+					'admin_role'        => trim($result->admin_role),
+					'admin_email'       => trim($result->admin_email),
+					'admin_name'        => trim($result->admin_name),
+					'admin_image'       => trim($result->admin_image),
+					'admin_phoneNumber' => trim($result->admin_phoneNumber),
+					'admin_username'    => trim($result->admin_username),
+					'loggedIn'          => 1
 				);
-				//Log the login
-				$this->db->insert('tbl_logins', $login_data);
+				$this->session->set_userdata('logged_in', $sess_array);
 				redirect('a-dashboard');
 			} else {
-				$this->load->view('admin/index', $data);
+				$this->session->set_flashdata("error", "unable to login please contact administrator");
+				$this->load->view("admin/index", $data);
 			}
 		}
 	}
 
+	// public function login()
+	// {
+	// 	$data['title'] = 'Login';
+
+	// 	$this->form_validation->set_rules('admin_password', 'Admin password', 'trim|required');
+	// 	if ($this->form_validation->run() == false) 
+	// 	{
+	// 		$this->session->set_flashdata("error", "please Enter all fields");
+	// 		$this->load->view('admin/index', $data);
+	// 	} 
+	// 	else 
+	// 	{
+	// 		$email      = $this->input->post('admin_username');
+	// 		$password   = $this->input->post('admin_password');
+	// 		// $result     = $this->AdminModel->verify_user_details($email, $password);
+
+	// 		$this->db->select('*');
+	// 		$this->db->from('admins');
+	// 		$this->db->where('admin_username', $email);
+	// 		$this->db->where('admin_status', '1');
+	// 		$this->db->where('admin_password', sha1($password));
+	// 		$this->db->limit(1);
+	// 		$query = $this->db->get();
+
+			// if ($query->num_rows() > 0) {
+			// 	$result = $query->row();
+			// 	if ($result != NULL) {
+			// 		$sess_array = array(
+			// 			'admin_id'          => $result->admin_id,
+			// 			'admin_role'        => $result->admin_role,
+			// 			'admin_email'       => $result->admin_email,
+			// 			'admin_name'        => $result->admin_name,
+			// 			'admin_image'       => $result->admin_image,
+			// 			'admin_phoneNumber' => $result->admin_phoneNumber,
+			// 			'admin_username'    => $result->admin_username,
+			// 			'loggedIn'          => 1
+			// 		);
+			// 		$this->session->set_userdata('logged_in', $sess_array);
+			// 		redirect('a-dashboard');
+			// 	}
+			// } else {
+			// 	$this->session->set_flashdata("error", "Please check your user details");
+			// 	$this->load->view('admin/index', $data);
+			// }
+
+			
+	// 	}
+	// }
+
 	/**
 	 * Check database for login
 	 */
-	public function check_database()
-	{
-		$this->load->library('session');
-		$email      = $this->input->post('admin_username');
-		$password   = $this->input->post('admin_password');
-		$result     = $this->AdminModel->verify_user_details($email, $password);
+	// public function check_database()
+	// {
+	// 	$email      = $this->input->post('admin_username');
+	// 	$password   = $this->input->post('admin_password');
+	// 	$result     = $this->AdminModel->verify_user_details($email, $password);
 
-		if ($result) {
-			$sess_array = array(
-				'admin_id'          => $result->admin_id,
-				'admin_role'        => $result->admin_role,
-				'admin_email'       => $result->admin_email,
-				'admin_name'        => $result->admin_name,
-				'admin_image'       => $result->admin_image,
-				'admin_phoneNumber' => $result->admin_phoneNumber,
-				'admin_username'    => $result->admin_username,
-				'loggedIn'          => 1
-			);
-			$this->session->set_userdata('logged_in', $sess_array);
-			return true;
-		} else {
-			$this->session->set_flashdata("error", "Invalid Username or  password");
-			$this->form_validation->set_message('check_database', 'Invalid Username or Password');
-			return false;
-		}
-	}
+	// 	if ($result != NULL) {
+	// 		$sess_array = array(
+	// 			'admin_id'          => $result->admin_id,
+	// 			'admin_role'        => $result->admin_role,
+	// 			'admin_email'       => $result->admin_email,
+	// 			'admin_name'        => $result->admin_name,
+	// 			'admin_image'       => $result->admin_image,
+	// 			'admin_phoneNumber' => $result->admin_phoneNumber,
+	// 			'admin_username'    => $result->admin_username,
+	// 			'loggedIn'          => 1
+	// 		);
+	// 		$this->session->set_userdata('logged_in', $sess_array);
+	// 		return TRUE;
+	// 	} else {
+	// 		$this->session->set_flashdata("error", "Invalid Username or  password");
+	// 		$this->form_validation->set_message('check_database', 'Invalid Username or Password');
+	// 		return FALSE;
+	// 	}
+	// }
 
 	/**
 	 * Update user session
@@ -262,6 +302,7 @@ class Admin extends CI_Controller
 		$this->load->view('admin/includes/menu', $data);
 		$this->load->view('admin/about', $data);
 	}
+	
 	public function aboutDetails($pg_id)
 	{
 		if (isset($this->session->userdata['logged_in']['admin_name'])) {
@@ -780,16 +821,17 @@ class Admin extends CI_Controller
 
 	public function dashboard()
 	{
-		if (isset($this->session->userdata['logged_in']['admin_name'])) {
-			$data['navigation'] = 'dashboard';
-			$data['title'] = 'Dashboard';
-			$data['user'] = $this->session->userdata['logged_in']['admin_name'];
-			$this->load->view('admin/includes/header', $data);
-			$this->load->view('admin/includes/menu', $data);
-			$this->load->view('admin/dashboard', $data);
-		} else {
-			redirect('Admin/index');
-		}
+		$data['navigation'] = 'dashboard';
+		$data['title'] = 'Dashboard';
+		$data['user'] = $this->session->userdata['logged_in']['admin_name'];
+		$this->load->view('admin/includes/header', $data);
+		$this->load->view('admin/includes/menu', $data);
+		$this->load->view('admin/dashboard', $data);
+		// if (isset($this->session->userdata['logged_in']['admin_name'])) {
+			
+		// } else {
+		// 	redirect('Admin/index');
+		// }
 	}
 	// news starts here-----------------------------------------------------------------------------------------
 
@@ -1704,7 +1746,6 @@ class Admin extends CI_Controller
 	public function logout()
 	{
 		if (isset($this->session->userdata['logged_in']['admin_name'])) {
-			$this->load->library('session');
 			$key = $this->session->userdata['logged_in']['admin_name'];
 			$this->session->unset_userdata('logged_in', $key);
 			redirect('Admin');

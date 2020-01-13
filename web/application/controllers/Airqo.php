@@ -32,8 +32,19 @@ class Airqo extends CI_Controller
 
 		$this->logVisitedPage($data['title']);
 		$this->load->view('lib/header', $data);
-		$this->load->view('ft-home', $data);
+		$this->load->view('airqo-home', $data);
 		$this->load->view('lib/footer');
+	}
+
+	public function places()
+	{
+		$data['title'] = 'PLACES';
+		$data['contact'] = $this->AirqoModel->get_contact_details();
+	
+		$this->logVisitedPage($data['title']);
+		$this->load->view('lib/header', $data);
+		$this->load->view('airqo-places', $data);
+		$this->load->view('lib/footer', $data);
 	}
 
 	public function projects()
@@ -45,8 +56,31 @@ class Airqo extends CI_Controller
 
 		$this->load->view('lib/header', $data);
 		$this->load->view('airqo-projects', $data);
-		$this->load->view('lib/footer');
+		$this->load->view('lib/footer',$data);
 	}
+
+	public function blog()
+	{
+		$data['title'] = 'Blog';
+		$this->logVisitedPage($data['title']);
+
+		$this->load->view('lib/header',$data);
+		$this->load->view('airqo-blog',$data);
+		$this->load->view('lib/footer',$data);
+        
+	}
+
+	public function contactUs()
+	{
+		$data['title'] = 'Contact Us';
+		$this->logVisitedPage($data['title']);
+
+		$this->load->view('lib/header',$data);
+		$this->load->view('airqo-contact-us',$data);
+		$this->load->view('lib/footer');
+        
+	}
+
 
 	public function projectDetails($slug)
 	{
@@ -60,17 +94,55 @@ class Airqo extends CI_Controller
 		$this->load->view('airqo-projects-details', $data);
 		$this->load->view('lib/footer');
 	}
+	
+	public function partnerships()
+	{
+		$data['title'] = 'Partnerships';
+		$data['contact'] = $this->AirqoModel->get_contact_details();
+		$data['partnerships'] = $this->AirqoModel->get_partnerships();
+		$this->logVisitedPage($data['title']);
+
+		$this->load->view('lib/header', $data);
+		$this->load->view('airqo-partnerships', $data);
+		$this->load->view('lib/footer');
+	}
+
 	public function about()
 	{
 		$data['title'] = 'About';
 		$data['contact'] = $this->AirqoModel->get_contact_details();
-		$data['about'] = $this->AirqoModel->get_about_details();
+		$data['about'] = $this->AirqoModel->get_about();
 		$this->logVisitedPage($data['title']);
 
 		$this->load->view('lib/header', $data);
 		$this->load->view('airqo-about', $data);
 		$this->load->view('lib/footer');
 	}
+
+	public function background()
+	{
+		$data['title'] = 'Background';
+		$data['contact'] = $this->AirqoModel->get_contact_details();
+		$data['background'] = $this->AirqoModel->get_background();
+		$this->logVisitedPage($data['title']);
+
+		$this->load->view('lib/header', $data);
+		$this->load->view('airqo-background', $data);
+		$this->load->view('lib/footer');
+	}
+
+	public function careers()
+	{
+		$data['title'] = 'Careers';
+		$data['contact'] = $this->AirqoModel->get_contact_details();
+		$data['careers'] = $this->AirqoModel->get_careers();
+		$this->logVisitedPage($data['title']);
+
+		$this->load->view('lib/header', $data);
+		$this->load->view('airqo-careers', $data);
+		$this->load->view('lib/footer');
+	}
+
 	public function howItWorks()
 	{
 		$data['title'] = 'How It Works';
@@ -119,12 +191,12 @@ class Airqo extends CI_Controller
 	public function appNode($id)
 	{
 		$data['contact'] = $this->AirqoModel->get_contact_details();
-		$data['node'] = $this->AirqoModel->get_app_node_details($id);
+		$data['node'] = $this->AirqoModel->get_app_node_details($this->ApisModel->base64url_decode($id));
 		$data['title'] = $data['node']['an_name'];
 		$this->logVisitedPage($data['title']);
 
 		$this->load->view('lib/header', $data);
-		$this->load->view('airqo-app-node', $data);
+		$this->load->view('airqo-node', $data);
 		$this->load->view('lib/footer');
 	}
 	public function faqs()
@@ -294,17 +366,17 @@ class Airqo extends CI_Controller
 				$search_result = '';
 				foreach ($results as $row) {
 					$search_result .= '
-						<a href="'.site_url('node/' . $row['an_channel_id']).'" class="list-group-item list-group-item-action flex-column align-items-start" style="border-radius: 0px;">
+						<a href="'.site_url('node/' . $this->ApisModel->base64url_encode($row['an_channel_id'])).'" class="list-group-item list-group-item-action flex-column align-items-start" style="border-radius: 0px; position:relative;">
 							<div class="row">
 								<div class="col-md-12">
-									<div class="col-md-1 text-center" style="padding: 1em;">
-										<i class="fa fa-thumb-tack fa-3x" style="transform: rotate(45deg);"></i>
+									<div class="col-md-2 text-center" style="padding: 1em;">
+										<i class="fa fa-thumb-tack fa-2x" style="transform: rotate(45deg);"></i>
 									</div>
-									<div class="col-md-11">
+									<div class="col-md-10">
 										<div class="d-flex justify-content-between">
-											<h4 class="mb-1">'.$row['an_name'].'</h4>
+											<h4 class="mb-1" style="font-size: 14px;">'.$row['an_name'].'</h4>
 										</div>
-										<p class="mb-1">'.$row['an_map_address'].'</p>
+										<p class="mb-1" style="font-size: 12px;">'.$row['an_map_address'].'</p>
 									</div>
 								</div>
 							</div>

@@ -18,7 +18,12 @@ $route['news/(:any)']  = 'airqo/newsdetails/$1';
 $route['node-search']     = 'airqo/nodesearch';
 $route['projects']     = 'airqo/projects';
 $route['project/(:any)']     = 'airqo/projectdetails/$1';
-
+$route['blog']         = 'airqo/blog';
+$route['places']         = 'airqo/places';
+$route['partnerships']   = 'airqo/partnerships';
+$route['background']   = 'airqo/background';
+$route['careers']   = 'airqo/careers';
+$route['contact-us']   = 'airqo/contactUs';
 
 
 /**
@@ -51,7 +56,7 @@ $route['a-load-aqi-camera-table'] = 'User/LoadAQICameraTable';
 $route['a-aqi-approve'] = 'User/ApproveAqi';
 $route['a-aqi-decline'] = 'User/DeclineAqi';
 
-$route['a-login'] = 'Admin/login';
+$route['a-login'] = 'Admin/index';
 $route['a-dashboard'] = 'Admin/dashboard';
 $route['a-administrators'] = 'Admin/administrators';
 $route['a-check-mail'] = 'Admin/checkEmail';

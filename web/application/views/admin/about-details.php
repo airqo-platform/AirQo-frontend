@@ -73,7 +73,7 @@
 										.page-bar .btn
 										{
 											color: white !important;
-											margin-right:;
+											/* margin-right:; */
 										}
 
 										.kaboom .add .btn{
@@ -114,11 +114,11 @@
 										 width: 200px;
 
 										}
-										.btn-default {
+										/* .btn-default {
 												color: #fff;
 												background-color: #006400;
 												border-color: #ccc;
-											}
+											} */
 										.shwimg{
 											width: 100%;
 											height: 500px;
@@ -152,12 +152,10 @@
 
 										<div class="form-group">
 										<p> <b>Content:</b> </p>
-											<textarea cols="20" rows="5" id="ckeditorr" name="pg_content" placeholder=" Description">
+											<textarea cols="20" rows="5" id="ckeditorr" class="summernote" name="pg_content" placeholder=" Description">
 												'.$row['pg_content'].'
 											</textarea>
-											<script>
-											  CKEDITOR.replace("ckeditorr");
-											</script>
+											
 										</div>
 										<p>&nbsp;</p>
 										<div class="">
@@ -194,9 +192,9 @@
 												min-width: 250px !important;
 												max-width: 250px !important;
 											}
-											.outline img:hover{
+											/* .outline img:hover{
 
-											}
+											} */
 											.outline .wal{
 												margin: auto;
 											}
@@ -295,9 +293,9 @@
          <br/>
             Content:
             <div class="form-group col-md-12">
-              <textarea cols="10" rows="2" id="ckeditor1" name="pg_content" required></textarea>
+              <textarea cols="10" rows="2" id="ckeditor1" class="summernote" name="pg_content" required></textarea>
               <script type="text/javascript">
-                CKEDITOR.replace("ckeditor1");
+               //  CKEDITOR.replace("ckeditor1");
               </script>
             </div>
            <br/>  <br/><br/><br/><br/>
@@ -348,6 +346,7 @@
 <script src="<?= base_url(); ?>assets/admin/layout/scripts/demo.js" type="text/javascript"></script>
 <script src="<?= base_url(); ?>assets/global/scripts/datatable.js"></script>
 <script src="<?= base_url(); ?>assets/admin/pages/scripts/ecommerce-products-edit.js"></script>
+<script src="<?= base_url(); ?>assets/dist/summernote.min.js" type="text/javascript"></script>
 <!-- END PAGE LEVEL SCRIPTS -->
 <!-- BEGIN PAGE LEVEL PLUGINS -->
 <script type="text/javascript" src="<?= base_url(); ?>assets/global/plugins/select2/select2.min.js"></script>
@@ -360,7 +359,22 @@
 <script src="<?= base_url(); ?>assets/admin/pages/scripts/table-advanced.js"></script>
 <script src="<?= base_url(); ?>assets/gn/js/cropping/cropper.min.js"></script>
 <script type="text/javascript">
-
+	$('.summernote').summernote({
+		fontNames: ['Arial', 'Arial Black', 'Comic Sans MS', 'Courier New', 'Helvetica', 'Impact', 'Tahoma', 'Times New Roman', 'Verdana', 'Lato'],
+		fontNamesIgnoreCheck: ['Lato'],
+		toolbar: [
+			['style', ['style']],
+			['font', ['bold', 'underline', 'clear']],
+			['fontsize', ['fontsize']],
+			['fontname', ['fontname']],
+			['color', ['color']],
+			['para', ['ul', 'ol', 'paragraph']],
+			['table', ['table']],
+			['insert', ['link', 'picture', 'video']],
+			['view', ['fullscreen', 'codeview', 'help']],
+		],
+		height: 400
+	});
  //Editing Modal
         $('.edit_contact').on('show.bs.modal', function (e) {
             console.log('yiki');
@@ -378,7 +392,8 @@
                 success : function(data){
                     $('#pg_id').val(data.id);
                     $('#pg_excerts').val(data.pg_excerts);
-                    CKEDITOR.instances['ckeditor1'].setData(data.c_content);
+                    // CKEDITOR.instances['ckeditor1'].setData(data.c_content);
+				$('#ckeditor1').summernote('code',data.c_content);
                     $('#a_title').val(data.c_title);
 
                 }
