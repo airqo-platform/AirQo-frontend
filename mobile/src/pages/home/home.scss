@@ -1,0 +1,188 @@
+page-home {
+
+  .nav-image {
+    height: 6rem;
+    object-fit: cover;
+  }
+
+  .title-centered .toolbar-content {
+    order: 4;
+    // Make sure the toolbar buttons are above the title or they can't be tapped!
+    z-index: -1;
+  }
+  
+  .title-centered ion-title {
+    position: absolute;
+    top: 0.2rem;
+    left: 0;
+    padding: 0.1rem 0 0.1rem 0;
+    align-items: left;
+    width: 100%;
+    height: 100%;
+  }
+  
+  .title-centered .toolbar-title {
+    text-align: left;
+    padding: 0;
+  }
+
+  // --------------------------------------------------------------------------------------------------------------------------------------------
+
+  ion-card {
+    padding: 0 !important;
+  }
+
+  ion-grid {
+    margin: 0;
+    padding: 0;
+  }
+
+  ion-row {
+    margin: 0;
+    padding: 0;
+  }
+
+  ion-col {
+    margin: 0;
+    padding: 0;
+  }
+
+  .horizontal-node-scroll {
+    height: 18rem;
+  }
+
+  .saved-header {
+    margin-bottom: 0;
+    padding-bottom: 0;
+
+    button {
+      position: absolute;
+      margin: auto;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      width: 2rem;
+      height: 2rem;
+    }
+  }
+
+  .header-section {
+    ion-col {
+      height: 3rem;
+    }
+
+    .header-title {
+      font-size: 1.6rem;
+      font-weight: 500;
+    }
+  }
+
+  .area-section {
+    .area-type {
+      text-align: center;
+
+      .star-icon {
+        font-size: 3rem;
+      }
+    }
+
+    .title {
+      font-weight: 660;
+      font-size: 1.6rem;
+    }
+
+    .sub-title {
+      font-size: 1.6rem;
+    }
+  }
+
+  .readings-section {
+    .face {
+      margin: 0;
+      padding: 0;
+      
+      img {
+        position: absolute;
+        margin: auto;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 4rem;
+        height: 4rem;
+      }
+    }
+
+    .values {
+      text-align: center;
+
+      .number {
+        margin-bottom: 0;
+        padding: 0;
+      }
+  
+      .number-label {
+        margin-top: 0;
+        padding: 0;
+      }
+    }
+
+    .label {
+      .value-label {
+        
+      }
+    }
+  }
+
+  .footer-section {
+    margin: 0;
+    padding: 0;
+  }
+
+  .date-section {
+    padding-left: 0;
+  }
+
+  .icon-section {
+    text-align: center;
+    ion-icon {
+      position:relative;
+      top: calc(50% - 10px);
+    }
+  }
+
+
+  // --------------------------------------------------------------------------------------------------------------------------------------------
+
+  .bg-darker {
+    background: linear-gradient(rgba(0, 0, 0, 0.2));
+  }
+
+  .bg-grey {
+    background-color: #888888;
+  }
+
+  // --------------------------------------------------------------------------------------------------------------------------------------------
+  
+  .white {
+    color: color($colors, white);
+  }
+
+  .grey {
+    color: color($colors, grey);
+  }
+
+  .black {
+    color: color($colors, black);;
+  }
+
+  // --------------------------------------------------------------------------------------------------------------------------------------------
+
+  .moderate-bold {
+    font-weight: 660;
+  }
+
+  
+
+}

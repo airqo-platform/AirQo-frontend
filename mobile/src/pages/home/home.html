@@ -1,0 +1,118 @@
+<ion-header class="title-centered">
+  <ion-navbar color="blue" hideBackButton="true">
+    <ion-title>
+			<img src="assets/logos/logo-white.png" class="nav-image"/>
+    </ion-title>
+    <ion-buttons end>
+      <button color="light" ion-button icon-only (click)="goToSearchPage()">
+        <ion-icon name="search"></ion-icon>
+      </button>
+      &nbsp;
+      &nbsp;
+      <button color="light" ion-button icon-only (click)="goToFavoritesPage()">
+        <ion-icon name="star-outline"></ion-icon>
+      </button>
+      &nbsp;
+      &nbsp;
+      <button color="light" ion-button icon-only (click)="stackedMenu($event)">
+        <ion-icon name="more"></ion-icon>
+      </button>
+    </ion-buttons>
+  </ion-navbar>
+</ion-header>
+
+<ion-content>
+
+  <!-- Current Location -->
+  <ion-card *ngIf="nearest_node.lastfeeds !== undefined && nearest_node.lastfeeds !== null && nearest_node.lastfeeds.length > 0" (click)="viewDetails(nearest_node)">
+    <ion-grid>
+      <ion-row class="header-section bg-grey">
+        <ion-col class="header-title white">
+          My Location
+        </ion-col>
+      </ion-row>
+      <ion-row class="area-section">
+        <ion-col col-1 class="area-type">
+          <ion-icon name="pin" color="grey" class="star-icon"></ion-icon>
+        </ion-col>
+        <ion-col col-11>
+        <div class="title black moderate-bold">{{ nearest_node.name }}</div>
+        <div class="sub-title grey">{{ nearest_node.location }}</div>
+        </ion-col>
+      </ion-row>
+    <ion-row class="readings-section" [style.backgroundColor]="api.nodeStatus(nearest_node[0].lastfeeds.field1).color">
+        <ion-col col-3 class="face bg-darker">
+          <img [src]="api.nodeStatus(nearest_node[0].lastfeeds.field1).face"/>
+        </ion-col>
+        <ion-col col-4 class="values">
+        <p class="number moderate-bold grey">{{ nearest_node[0].lastfeeds.field1 }}</p>
+          <p class="number-label moderate-bold grey">PM2.5</p>
+        </ion-col>
+        <ion-col col-5 class="label">
+        <p text-wrap class="value-label moderate-bold grey">{{ api.nodeStatus(nearest_node[0].lastfeeds.field1).label }}</p>
+        </ion-col>
+      </ion-row>
+      <ion-row class="footer-section">
+        <ion-col col-11 text-wrap class="date-section">
+          <span class="node-refresh-date">Last Refreshed: {{ api.convertTime(nearest_node.date) }} hrs</span>
+        </ion-col>
+        <ion-col col-1 class="icon-section">
+          <ion-icon name="arrow-forward"></ion-icon>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </ion-card>
+  
+  <!-- Saved Locations -->
+
+  <ion-card>
+    <ion-grid class="saved-header">
+      <ion-row class="header-section bg-grey">
+        <ion-col col-11 class="header-title white">
+          Saved Locations
+        </ion-col>
+        <ion-col col-1>
+          <button ion-button small icon-only outline color="light" (click)="openAddFavorites()">
+            <ion-icon name="md-add" color="light"></ion-icon>
+          </button>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+    
+    <ng-container *ngFor="let node of favorite_nodes">
+      <hr/>
+      <ion-grid (click)="viewDetails(node)">
+        <ion-row nowrap class="area-section">
+          <ion-col col-1 class="area-type">
+            <ion-icon name="md-star" color="grey" class="star-icon"></ion-icon>
+          </ion-col>
+          <ion-col col-11>
+            <div class="title black moderate-bold">{{ node.name }}</div>
+          <div class="sub-title grey">{{ node.location }}</div>
+          </ion-col>
+        </ion-row>
+        <ion-row class="readings-section" [style.backgroundColor]="api.nodeStatus(node.feeds.field1).color">
+          <ion-col col-3 class="face bg-darker">
+            <img [src]="api.nodeStatus(node.feeds.field1).face"/>
+          </ion-col>
+          <ion-col col-4 class="values">
+            <p class="number moderate-bold grey">{{ node.feeds.field1 }}</p>
+            <p class="number-label moderate-bold grey">PM2.5</p>
+          </ion-col>
+          <ion-col col-5 class="label">
+            <p text-wrap class="value-label moderate-bold grey">{{ api.nodeStatus(node.feeds.field1).label }}</p>
+          </ion-col>
+        </ion-row>
+        <ion-row class="footer-section">
+          <ion-col col-11 text-wrap class="date-section">
+            <span class="node-refresh-date">Last Refreshed: {{ api.getDateWithOrdinal(node.refreshed) }}</span>
+          </ion-col>
+          <ion-col col-1 class="icon-section">
+            <ion-icon name="arrow-forward"></ion-icon>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </ng-container>
+  </ion-card>
+      
+</ion-content>
