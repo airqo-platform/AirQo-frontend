@@ -1,8 +1,8 @@
 {
   "name": "airqo",
   "version": "0.0.1",
-  "author": "Buzen Technologies",
-  "homepage": "https://buzentechnologies.com/",
+  "author": "AirQo Team",
+  "homepage": "https://airqo.net/",
   "private": true,
   "scripts": {
     "start": "ionic-app-scripts serve",
@@ -37,7 +37,7 @@
     "cordova-android": "7.1.4",
     "cordova-ios": "4.5.5",
     "cordova-plugin-apprate": "1.5.0",
-    "cordova-plugin-camera-preview": "0.11.1",
+    "cordova-plugin-camera": "4.1.0",
     "cordova-plugin-device": "^2.0.2",
     "cordova-plugin-dialogs": "2.0.2",
     "cordova-plugin-geolocation": "4.0.2",
@@ -54,6 +54,7 @@
     "ionic-angular": "3.9.5",
     "ionicons": "3.0.0",
     "jquery": "^3.4.1",
+    "leaflet": "^1.6.0",
     "rxjs": "5.5.11",
     "sw-toolbox": "3.6.0",
     "zone.js": "0.8.29"
@@ -73,9 +74,6 @@
         "ANDROID_SUPPORT_ANNOTATIONS_VERSION": "27.+"
       },
       "cordova-plugin-ionic-keyboard": {},
-      "cordova-plugin-geolocation": {
-        "GEOLOCATION_USAGE_DESCRIPTION": "To locate you so as to provide readings relevant to your area"
-      },
       "cordova-plugin-x-socialsharing": {
         "ANDROID_SUPPORT_V4_VERSION": "24.1.1+",
         "PHOTO_LIBRARY_ADD_USAGE_DESCRIPTION": "This app requires photo library access to function properly.",
@@ -84,13 +82,18 @@
       "cordova-sqlite-storage": {},
       "cordova-plugin-network-information": {},
       "cordova-plugin-apprate": {},
-      "cordova-plugin-camera-preview": {
-        "ANDROID_SUPPORT_LIBRARY_VERSION": "26+"
+      "cordova-plugin-geolocation": {
+        "GEOLOCATION_USAGE_DESCRIPTION": "To locate you so as to provide readings relevant to your area"
+      },
+      "cordova-plugin-camera": {
+        "CAMERA_USAGE_DESCRIPTION": "To submit images to AirQo",
+        "PHOTOLIBRARY_USAGE_DESCRIPTION": "To submit images to AirQo",
+        "ANDROID_SUPPORT_V4_VERSION": "27.+"
       }
     },
     "platforms": [
-      "android",
-      "ios"
+      "ios",
+      "android"
     ]
   }
 }

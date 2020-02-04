@@ -1,7 +1,7 @@
 page-node {
 
   ion-content {
-    background-color: #ffffff !important;
+    // background-color: #ffffff !important;
     background-repeat: no-repeat;
     background-size: cover;
   }
@@ -33,6 +33,27 @@ page-node {
   ion-col {
     margin: 0;
     padding: 0;
+  }
+
+  .place {
+    margin: 0.5rem;
+  }
+
+  .place p {
+    margin: 0 0 0.2rem 0;
+    padding: 0 0 0 0;
+  }
+
+  .place-name {
+    color: color($colors, dark);
+    font-size: 1.8rem;
+    font-weight: 660;
+  }
+
+  .place-location {
+    font-size: 1.5rem;
+    font-weight: 660;
+    color: color($colors, grey);
   }
 
   .node-card {
@@ -162,17 +183,25 @@ page-node {
       }
     }
 
-    .bar-canvas {
+    .bar-chart-scroll {
+      height: inherit;
       position: absolute;
       bottom: 0;
       width: 100%;
+      // border: 10px solid red;
+    }
+
+    .bar-canvas {
+      // position: absolute;
+      // bottom: 0;
+      // width: 100%;
     }
   }
 
   // --------------------------------------------------------------------------------------------------------------------------------------------
 
   .bg-darker {
-    background: linear-gradient(rgba(0, 0, 0, 0.2));
+    background: linear-gradient(rgba(0, 0, 0, 0.1));
   }
 
   .bg-grey {
@@ -199,8 +228,12 @@ page-node {
     background-color: color($colors, red);
   }
 
-  .bg-brown {
+  .bg-maroon {
     background-color: color($colors, maroon);
+  }
+
+  .bg-purple {
+    background-color: color($colors, purple);
   }
 
   .bg-black {
@@ -209,6 +242,10 @@ page-node {
 
   .white {
     color: color($colors, white);
+  }
+
+  .dirty-white {
+    color: color($colors, dirty_white);
   }
 
   .grey {

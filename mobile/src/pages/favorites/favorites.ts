@@ -62,7 +62,11 @@ export class FavoritesPage {
   // Add Place/Node from favorites list
   // --------------------------------------------------------------------------------------------------------------------
   openAddFavorites() {
-    this.modalCtrl.create(AddPlacePage).present();
+    let modal = this.modalCtrl.create(AddPlacePage);
+    modal.onDidDismiss(() => {
+      this.offlineLoadFavorites();
+    });
+    modal.present();
   }
 
 

@@ -1,3 +1,4 @@
+import { ForgotPasswordPage } from './../forgot-password/forgot-password';
 import { HomePage } from './../home/home';
 import { SignUpPage } from './../sign-up/sign-up';
 import { Component } from '@angular/core';
@@ -19,7 +20,7 @@ export class SignInPage {
   password_type: string = 'password';
   password_icon: string = 'eye-off';
 
-  sign_in_api    = 'https://test.airqo.net/Apis/airqoUserLogin';
+  sign_in_api    = 'https://airqo.net/Apis/airqoUserLogin';
 
   constructor(private navCtrl: NavController, private navParams: NavParams, private toastCtrl: ToastController, private http: HttpClient,
     private loadingCtrl: LoadingController, private storage: Storage, private alertCtrl: AlertController, private api: ApiProvider) {
@@ -132,6 +133,14 @@ export class SignInPage {
   // --------------------------------------------------------------------------------------------------------------------
   goToSignUpPage() {
     this.navCtrl.push(SignUpPage);
+  }
+
+
+  // --------------------------------------------------------------------------------------------------------------------
+  // Go To Forgot Password Page
+  // --------------------------------------------------------------------------------------------------------------------
+  goToForgotPasswordPage() {
+    this.navCtrl.push(ForgotPasswordPage);
   }
 
 }

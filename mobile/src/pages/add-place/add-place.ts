@@ -15,7 +15,7 @@ export class AddPlacePage {
   nodes: any = [];
   favorite_nodes: any = [];
 
-  get_places_nodes_list_api = 'https://test.airqo.net/Apis/airqoPlaces';
+  get_places_nodes_list_api = 'https://airqo.net/Apis/airqoPlacesCached';
   places_nodes_list_api_success: any;
 
   constructor(public navCtrl: NavController, public navParams: NavParams, private storage: Storage, private toastCtrl: ToastController, 

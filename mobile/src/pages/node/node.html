@@ -9,9 +9,16 @@
 </ion-header>
 
 <!-- <ion-content [style.backgroundImage]="api.nodeStatus(node.feeds.field1).background"> -->
-<ion-content [style.background]="'assets/bg/0.png'">
+<!-- <ion-content [style.background]="'assets/bg/0.png'"> -->
+<ion-content [ngStyle] ="{'background-image' : 'url('+ api.nodeStatus(node.feeds.field1).background +')'}">
     
  <div class="top-section">
+
+  <div class="place">
+    <p class="place-name">{{ node.name }}</p>
+    <p class="place-location">{{ node.location }}</p>
+  </div>
+
   <ion-card class="node-card">
     <ion-grid class="node bg-white">
       <ion-row class="readings-section" [style.backgroundColor]="api.nodeStatus(node.feeds.field1).color">
@@ -19,16 +26,16 @@
           <img [src]="api.nodeStatus(node.feeds.field1).face"/>
         </ion-col>
         <ion-col col-4 class="values">
-          <p class="number moderate-bold grey">{{ node.feeds.field1 }}</p>
-          <p class="number-label moderate-bold grey">PM2.5</p>
+          <p class="number moderate-bold" [style.color]="api.nodeStatus(node.feeds.field1).font_color">{{ node.feeds.field1 }}</p>
+          <p class="number-label moderate-bold" [style.color]="api.nodeStatus(node.feeds.field1).font_color">PM2.5</p>
         </ion-col>
         <ion-col col-5 class="label">
-          <p text-wrap class="value-label moderate-bold grey">{{ api.nodeStatus(node.feeds.field1).label }}</p>
+          <p text-wrap class="value-label moderate-bold" [style.color]="api.nodeStatus(node.feeds.field1).font_color">{{ api.nodeStatus(node.feeds.field1).label }}</p>
         </ion-col>
       </ion-row>
       <ion-row class="footer-section">
         <ion-col text-wrap class="date-section">
-          <span class="node-refresh-date">Last Refreshed: {{ node.refreshed }}</span>
+          <span class="node-refresh-date">Last Refreshed: {{ this.api.getReadableInternationalDateFormatFromSQLFormat(node.refreshed) }}</span>
         </ion-col>
       </ion-row>
     </ion-grid>
@@ -37,26 +44,26 @@
 
 <div class="bottom-section bg-white">
   <div class="title moderate-bold">History</div>
-  <div class="sub-title"><span class="bg-grey white date"><span class="light-bold">{{ node.refreshed }}</span> : {{ node.feeds.field1 }} PM2.5</span></div>
+  <div class="sub-title"><span class="bg-grey white date"><span class="light-bold">{{ this.api.getReadableInternationalDateFormatFromSQLFormat(node.refreshed) }}</span> : {{ node.feeds.field1 }} PM2.5</span></div>
   <ion-card class="key-card">
     <div class="key">
       <div text-wrap class="key-label bg-green white">Good</div>
       <div text-wrap class="key-label bg-yellow dark-blue">Moderate</div>
       <div text-wrap class="key-label bg-orange white">Sensitive</div>
       <div text-wrap class="key-label bg-red white">Unhealthy</div>
-      <div text-wrap class="key-label bg-brown white">V.Unhealthy</div>
-      <div text-wrap class="key-label bg-black white">Hazardous</div>
+      <div text-wrap class="key-label bg-purple white">V.Unhealthy</div>
+      <div text-wrap class="key-label bg-maroon white">Hazardous</div>
     </div>
   </ion-card>
   
-  <ion-scroll scrollX="true" zoom="true">
+  <ion-scroll class="bar-chart-scroll" scrollX="true" zoom="true">
     <div class="bar-canvas">
       <canvas #barCanvas></canvas>
     </div>
   </ion-scroll>
 </div>
 
-  <ion-fab right middle>
+  <ion-fab right middle (click)="goToKeyPage()">
     <button ion-fab color="green">KEY</button>
   </ion-fab>
 

@@ -1,3 +1,4 @@
+import { HomePage } from './../home/home';
 import { Component } from '@angular/core';
 import { NavController, NavParams, ActionSheetController, AlertController } from 'ionic-angular';
 import { SocialSharing } from '@ionic-native/social-sharing';
@@ -190,6 +191,8 @@ export class MenuPage {
             this.storage.set('user_data', null).then(() => {
               this.sign_in_or_sign_up_label = 'Sign In';
               this.login_status = false;
+
+              this.navCtrl.setRoot(HomePage);
             });
           }
         }

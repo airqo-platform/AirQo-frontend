@@ -12,7 +12,7 @@
   <p class="title" *ngIf="places_nodes_list_api_success == '100'">Select a node to add to subscriptions</p>
   <ion-list *ngIf="places_nodes_list_api_success == '100'">
     <ion-item *ngFor="let node of nodes" (click)="onlineSubscribeNode(node)">
-      <ion-icon name="pin" item-start></ion-icon>
+      <ion-icon name="pin" color="grey" item-start></ion-icon>
       <div class="area-title">{{ node.name }}</div>
       <div class="area-sub-title">{{ node.location }}</div>
     </ion-item>

@@ -19,22 +19,25 @@ export class HomePage {
 
   user: any = {};
   nearest_node: any = {};
+  lastest_nearest_node_reading: any = '0';
 
   menu_popover: any;
 
   favorite_nodes: any = [];
 
-  get_favorite_nodes_api  = 'https://test.airqo.net/Apis/airqoPlaceLatest';
+  get_favorite_nodes_api  = 'https://airqo.net/Apis/airqoPlaceLatest';
   favorite_nodes_api_success: any
   
-  get_nearest_node_api    = 'https://test.airqo.net/Apis/airqoNearest';
+  get_nearest_node_api    = 'https://airqo.net/Apis/airqoNearest';
   nearest_node_api_success: any;
+
+  get_coordinates_api    = 'https://buzentech.com/get-info.php';
 
 
   constructor(private navCtrl: NavController, private storage: Storage, private http: HttpClient, private loadingCtrl: LoadingController, 
     private alertCtrl: AlertController, private toastCtrl: ToastController, private geolocation: Geolocation, private platform: Platform, 
     private device: Device, private popoverCtrl: PopoverController, private modalCtrl: ModalController, public api: ApiProvider) {
-    this.getLocation();
+      
   }
 
 
@@ -42,14 +45,16 @@ export class HomePage {
   // Runs when the page has loaded. Fires only once
   // --------------------------------------------------------------------------------------------------------------------
   ionViewDidLoad() {
-    this.getUserInfo();
   }
 
 
   // --------------------------------------------------------------------------------------------------------------------
   // Fires everytime page loads
   // --------------------------------------------------------------------------------------------------------------------
-  ionViewDidEnter() {}
+  async ionViewDidEnter() {
+    await this.getUserInfo();
+    this.getLocation();
+  }
 
 
   // --------------------------------------------------------------------------------------------------------------------
@@ -68,8 +73,8 @@ export class HomePage {
   // --------------------------------------------------------------------------------------------------------------------
   // Offline - Load favorites list
   // --------------------------------------------------------------------------------------------------------------------
-  offlineLoadFavorites() {
-    this.storage.get('favorites').then((val) => {
+  async offlineLoadFavorites() {
+    await this.storage.get('favorites').then((val) => {
       if(val && val != null && val != '' && val.length > 0) {
         this.favorite_nodes = val;
         if(this.api.isConnected()) {
@@ -86,32 +91,50 @@ export class HomePage {
   // Get Location
   // --------------------------------------------------------------------------------------------------------------------
   getLocation() {
-    // this.platform.ready().then(() => {
-    //   this.geolocation.getCurrentPosition({enableHighAccuracy: true}).then((pos) => {
-    //     let params = {
-          // api: this.api.api_key,
-    //       lat: pos.coords.latitude,
-    //       lng: pos.coords.longitude,
-    //     };
-
-    //     this.getNearestNodeReading(params);
-    //   }).catch((error) => {
-    //     console.log('Error getting location: ', error);
-    //     this.toastCtrl.create({
-    //       message: error.message,
-    //       duration: 3000,
-    //       position: 'bottom'
-    //     }).present();
-    //   });
-    // });
-
-    let params = {
-      api: this.api.api_key,
-      lat: 0.283670,
-      lng: 32.600399,
+    let options = {
+      timeout: 20000, 
+      enableHighAccuracy: true
     };
 
-    this.getNearestNodeReading(params);
+    this.platform.ready().then(() => {
+      this.geolocation.getCurrentPosition(options).then((pos) => {
+        let params = {
+          api: this.api.api_key,
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+        };
+
+        this.getNearestNodeReading(params);
+      }).catch((error) => {
+        console.log('Error getting location: ', error);
+        this.toastCtrl.create({
+          message: error.message,
+          duration: 5000,
+          position: 'bottom'
+        }).present();
+
+        this.getCoordinatesByIP();
+      });
+    });
+  }
+
+
+  // --------------------------------------------------------------------------------------------------------------------
+  // Get Coordinates By IP Address
+  // --------------------------------------------------------------------------------------------------------------------
+  getCoordinatesByIP() {
+    this.http.get(this.get_coordinates_api).subscribe((result: any) => {
+      console.log(result);
+      if(result.success == '1'){
+        let params = {
+          api: this.api.api_key,
+          lat: result.message.lat,
+          lng: result.message.lon,
+        };
+  
+        this.getNearestNodeReading(params);
+      }
+    });
   }
 
 
@@ -120,13 +143,15 @@ export class HomePage {
   // --------------------------------------------------------------------------------------------------------------------
   getNearestNodeReading(params) {
     if(this.api.isConnected()){
+      console.info(params);
+
       let loader = this.loadingCtrl.create({
         spinner: 'ios',
         enableBackdropDismiss: false,
         dismissOnPageChange: true,
         showBackdrop: true
       });
-      
+
       loader.present().then(() => {
         this.http.post(this.get_nearest_node_api, params).subscribe((result: any) => {
           console.log(result);
@@ -134,9 +159,13 @@ export class HomePage {
   
           this.nearest_node_api_success = result.success;
           if (result.success == '100') {
-            this.nearest_node       = result;
-            this.nearest_node.date  = (new Date().toISOString());
+            this.nearest_node                   = result;
+            this.lastest_nearest_node_reading   = this.nearest_node.lastfeeds.field1;
+            this.nearest_node.date              = (new Date().toISOString());
             this.storage.set("nearest_node", this.nearest_node);
+
+            console.log(this.nearest_node);
+            console.log(this.lastest_nearest_node_reading);
           } else {
             this.alertCtrl.create({
               title: result.title,
@@ -167,7 +196,7 @@ export class HomePage {
   // --------------------------------------------------------------------------------------------------------------------
   // Online - Load Favorites Nodes Readings from online
   // --------------------------------------------------------------------------------------------------------------------
-  onlineLoadFavoritesNodesReadings(favorite_nodes) {
+  async onlineLoadFavoritesNodesReadings(favorite_nodes) {
     this.favorite_nodes = [];
 
     let loader = this.loadingCtrl.create({
@@ -176,7 +205,8 @@ export class HomePage {
       dismissOnPageChange: true,
       showBackdrop: true
     });
-    loader.present().then(() => {
+
+    await loader.present().then(() => {
       if(favorite_nodes.length > 0) {
         for(let i = 0; i < favorite_nodes.length; i++){
           let params = {
@@ -195,18 +225,21 @@ export class HomePage {
                 name: favorite_nodes[i].name,
                 location: favorite_nodes[i].location,
                 refreshed: this.api.getCurrentDateTime(),
-                feeds: result.nodes[0].lastfeeds
+                feeds: result.nodes[0].lastfeeds,
               };
               this.favorite_nodes.push(node);
 
-              if(i == favorite_nodes.length) {
-                this.storage.set("favorites_readings", this.favorite_nodes);
-              }
+              this.storage.get('favorites_readings').then((val) => {
+                if(val && val != null && val != '' && val.length > 0) {
+                  val = this.favorite_nodes;
+                  this.storage.set("favorites_readings", val);
+                }
+              });
             }
           });
         }
         loader.dismiss();
-        if(this.favorite_nodes > favorite_nodes.length){
+        if(this.favorite_nodes.length > favorite_nodes.length){
           this.favorite_nodes.length > 0? this.favorite_nodes_api_success = '100': this.favorite_nodes_api_success = null;
         }
       }
@@ -221,6 +254,7 @@ export class HomePage {
     this.storage.get('favorites_readings').then((val) => {
       if(val && val != null && val != '' && val.length > 0) {
         this.favorite_nodes = val;
+        console.log("----------------------------------------------------------------------------------------");
       }
     });
   }
@@ -238,7 +272,6 @@ export class HomePage {
   // Go To Favorites Page
   // --------------------------------------------------------------------------------------------------------------------
   goToFavoritesPage() {
-    // if(this.user.uid)
     this.navCtrl.push(FavoritesPage);
   }
 
@@ -247,7 +280,11 @@ export class HomePage {
   // Add Place/Node from favorites list
   // --------------------------------------------------------------------------------------------------------------------
   openAddFavorites() {
-    this.modalCtrl.create(AddPlacePage).present();
+    let modal = this.modalCtrl.create(AddPlacePage);
+    modal.onDidDismiss(() => {
+      this.offlineLoadFavorites();
+    });
+    modal.present();
   }
 
 
@@ -275,5 +312,4 @@ export class HomePage {
       node: node
     });
   }
-
 }

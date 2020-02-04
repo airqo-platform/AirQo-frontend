@@ -6,16 +6,15 @@
         Back
       </button>
     </ion-buttons>
-    <ion-searchbar type="text" color="light" placeholder="Search city or area" clearInput [(ngModel)]="search_key" (ionInput)="onlineSearchNodes(search_key)">
-    </ion-searchbar>
+      <ion-searchbar type="text" color="light" placeholder="Search city or area" clearInput [formControl]="textInput"></ion-searchbar>
   </ion-navbar>
 </ion-header>
 
 <ion-content padding (swipe)="closeModal()">
-  <p class="title">{{ nodes? nodes.length: '0' }}</p>
+  <!-- <p class="title">{{ nodes? nodes.length: '0' }}</p> -->
   <ion-list>
     <ion-item *ngFor="let node of nodes" (click)="viewDetails(node)">
-      <ion-icon name="pin" item-start></ion-icon>
+      <ion-icon name="pin" color="grey" item-start></ion-icon>
       <div class="area-title">{{ node.name }}</div>
       <div class="area-sub-title">{{ node.location }}</div>
     </ion-item>

@@ -1,9 +1,11 @@
-import { Component, ViewChild, ɵConsole } from '@angular/core';
+import { HomePage } from './../home/home';
+import { Component, ViewChild } from '@angular/core';
 import { NavController, NavParams, ToastController, ViewController, LoadingController, AlertController } from 'ionic-angular';
 import { Storage } from '@ionic/storage';
 import { HttpClient } from '@angular/common/http';
 import { ApiProvider } from '../../providers/api/api';
 import { Chart } from 'chart.js';
+import { KeyPage } from '../key/key';
 
 @Component({
   selector: 'page-node',
@@ -17,6 +19,7 @@ export class NodePage {
   user: any = {};
 
   node: any = {};
+  background_image: any = '';
   class: any;
   node_data: any;
 
@@ -24,13 +27,31 @@ export class NodePage {
   y_data: any;
   bar_colors: any;
 
-  single_node_api = 'https://test.airqo.net/Apis/airqoChannelFeed';
+  single_node_api = 'https://airqo.net/Apis/airqoChannelFeed';
   single_node_api_success: any;
 
   constructor(public navCtrl: NavController, public navParams: NavParams, private storage: Storage, private toastCtrl: ToastController, 
-    private viewCtrl: ViewController, private loadingCtrl: LoadingController, private http: HttpClient, 
-    private alertCtrl: AlertController, public api: ApiProvider,) {
-      this.node = this.navParams.get("node");
+    private loadingCtrl: LoadingController, private http: HttpClient, private alertCtrl: AlertController, public api: ApiProvider,) {
+      
+      if(this.navParams.get("node")){
+        this.node               = this.navParams.get("node");
+
+        if(this.node.refreshed){
+        } else if(this.node.date) {
+          this.node.refreshed = this.node.date;
+        } else {
+          this.node.refreshed = '0000-00-00 00:00:00';
+        }
+
+        if(this.node.feeds){
+        } else {
+          this.node.feeds         = {};
+          this.node.feeds.field1  = '0.00';
+        }
+        console.log(this.node);
+      } else {
+        this.navCtrl.setRoot(HomePage);
+      }
   }
   
   
@@ -71,7 +92,7 @@ export class NodePage {
   // --------------------------------------------------------------------------------------------------------------------
   // Online - Load Node Info from online
   // --------------------------------------------------------------------------------------------------------------------
-  onlineLoadNodeInfo() {
+  async onlineLoadNodeInfo() {
     let loader = this.loadingCtrl.create({
       spinner: 'ios',
       enableBackdropDismiss: false,
@@ -86,15 +107,18 @@ export class NodePage {
     
     loader.present().then(() => {
       this.http.post(this.single_node_api, params).subscribe((result: any) => {
+
         console.log(result);
         loader.dismiss(); 
 
         this.single_node_api_success = result.success;
         if (result.success == '100') {
-          this.node.refreshed = this.api.getCurrentDateTime();
-          this.node.graph_feeds = result.lastfeeds.feeds;
+          this.node.refreshed     = this.api.getCurrentDateTime();
+          this.node.feeds.field1  = result.lastfeeds.feeds[0].field1.trim();
 
-          this.getGraphData();
+          console.log(result.lastfeeds.feeds);
+
+          this.getGraphData(result.lastfeeds.feeds);
           this.offlineStoreNodeInfo();
         } else {
           this.offlineLoadNodeInfo();
@@ -140,25 +164,25 @@ export class NodePage {
   // --------------------------------------------------------------------------------------------------------------------
   // Fetch Bar Graph Data
   // --------------------------------------------------------------------------------------------------------------------
-  getGraphData() {
+  async getGraphData(graph_feeds) {
     let x_data       = [];
     let y_data       = [];
     let bar_colors   = [];
 
-    for(let i = 0; i < this.node.graph_feeds.length; i++) {
-      y_data.push(this.node.graph_feeds[i].field1.replace(/\s/g, ""));
-      x_data.push(this.api.getTimeFromISOStringDateTime(this.node.graph_feeds[i].created_at));
-      bar_colors.push(this.api.nodeStatus(this.node.graph_feeds[i].field1).color);
+    for(let i = 0; i < graph_feeds.length; i++) {
+      y_data.push(parseFloat((graph_feeds[i].field1).trim()));
+      x_data.push(this.api.getTimeFromISOStringDateTime(graph_feeds[i].created_at));
+      bar_colors.push(this.api.nodeStatus(graph_feeds[i].field1).color);
     }
 
     console.log("X - DATA: ");
-    console.log(this.x_data);
+    console.log(x_data);
 
     console.log("Y - DATA: ");
-    console.log(this.y_data);
+    console.log(y_data);
 
     console.log("COLORS - DATA: ");
-    console.log(this.bar_colors);
+    console.log(bar_colors);
 
     this.loadGraph(x_data, y_data, bar_colors);
   }
@@ -209,13 +233,21 @@ export class NodePage {
             },
             scaleLabel: {
               display: true,
-              labelString: "µg/m3 (ppm)",
+              labelString: "PM 2.5",
               fontColor: "#415c7b"
             }
           }]
         }
       }
     });
+  }
+
+
+  // --------------------------------------------------------------------------------------------------------------------
+  // Go To Key Page
+  // --------------------------------------------------------------------------------------------------------------------
+  goToKeyPage() {
+    this.navCtrl.push(KeyPage);
   }
 
 

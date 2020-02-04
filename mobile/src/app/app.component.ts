@@ -11,7 +11,7 @@ import { Device } from '@ionic-native/device';
   templateUrl: 'app.html'
 })
 export class MyApp {
-  rootPage: any = HomePage;
+  rootPage: any;
   
   constructor(app: App, platform: Platform, statusBar: StatusBar, splashScreen: SplashScreen, private storage: Storage, device: Device, 
     alertCtrl: AlertController) {
@@ -62,7 +62,11 @@ export class MyApp {
       if(val && val != null && val != '') {
         if(val !== '1') {
           this.rootPage = IntroPage;
+        } else {
+          this.rootPage = HomePage;
         }
+      } else {
+        this.rootPage = HomePage;
       }
     });
   }

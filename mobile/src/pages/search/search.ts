@@ -3,6 +3,9 @@ import { NavController, NavParams, ToastController, ViewController, LoadingContr
 import { Storage } from '@ionic/storage';
 import { Component } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { FormControl } from '@angular/forms';
+import 'rxjs/add/operator/debounceTime';
+
 import { NodePage } from '../node/node';
 
 @Component({
@@ -15,14 +18,20 @@ export class SearchPage {
 
   nodes: any = [];
 
-  search_key: any;
+  textInput = new FormControl('');
 
-  search_nodes_api  = 'https://test.airqo.net/Apis/airqoSearchPlaces';
+  search_nodes_api  = 'https://airqo.net/Apis/airqoSearchPlaces';
   search_nodes_api_success: any
   
   constructor(public navCtrl: NavController, public navParams: NavParams, private storage: Storage, private toastCtrl: ToastController, 
     private viewCtrl: ViewController, private api: ApiProvider, private loadingCtrl: LoadingController, private http: HttpClient,
     private alertCtrl: AlertController,) {
+      this.textInput
+      .valueChanges
+      .debounceTime(500)
+      .subscribe((value) => {
+        this.onlineSearchNodes(value);
+      });
   }
 
 
@@ -37,7 +46,9 @@ export class SearchPage {
   // --------------------------------------------------------------------------------------------------------------------
   // Fires everytime page loads
   // --------------------------------------------------------------------------------------------------------------------
-  ionViewDidEnter() {}
+  ionViewDidEnter() {
+    
+  }
 
 
   // --------------------------------------------------------------------------------------------------------------------

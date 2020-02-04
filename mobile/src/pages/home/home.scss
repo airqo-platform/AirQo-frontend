@@ -156,7 +156,7 @@ page-home {
   // --------------------------------------------------------------------------------------------------------------------------------------------
 
   .bg-darker {
-    background: linear-gradient(rgba(0, 0, 0, 0.2));
+    background: linear-gradient(rgba(0, 0, 0, 0.1));
   }
 
   .bg-grey {
@@ -167,6 +167,10 @@ page-home {
   
   .white {
     color: color($colors, white);
+  }
+
+  .dirty-white {
+    color: color($colors, dirty_white);
   }
 
   .grey {

@@ -19,7 +19,7 @@ export class DailyReportsPage {
 
   display_message: any;
 
-  unsubscribe_api = 'https://test.airqo.net/Apis/airqoSubscribeDailyReports';
+  unsubscribe_api = 'https://airqo.net/Apis/airqoSubscribeDailyReports';
 
   constructor(public navCtrl: NavController, public navParams: NavParams, private modalCtrl: ModalController, private toastCtrl: ToastController, 
     private alertCtrl: AlertController, private storage: Storage, private loadingCtrl: LoadingController, private api: ApiProvider,

@@ -1,3 +1,4 @@
+import { ForgotPasswordPage } from './../pages/forgot-password/forgot-password';
 import { AddNodeSubscriptionPage } from './../pages/add-node-subscription/add-node-subscription';
 import { FeedbackPage } from './../pages/feedback/feedback';
 import { DailyReportsPage } from './../pages/daily-reports/daily-reports';
@@ -31,6 +32,7 @@ import { SocialSharing } from '@ionic-native/social-sharing';
 import { ApiProvider } from '../providers/api/api';
 import { AppRate } from '@ionic-native/app-rate';
 import { CameraPreview } from '@ionic-native/camera-preview';
+import { Camera } from '@ionic-native/camera';
 
 @NgModule({
   declarations: [
@@ -47,6 +49,7 @@ import { CameraPreview } from '@ionic-native/camera-preview';
     SettingsPage,
     SignInPage,
     SignUpPage,
+    ForgotPasswordPage,
     AddPlacePage,
     DailyReportsPage,
     FeedbackPage,
@@ -73,6 +76,7 @@ import { CameraPreview } from '@ionic-native/camera-preview';
     SettingsPage,
     SignInPage,
     SignUpPage,
+    ForgotPasswordPage,
     AddPlacePage,
     DailyReportsPage,
     FeedbackPage,
@@ -81,7 +85,7 @@ import { CameraPreview } from '@ionic-native/camera-preview';
   providers: [
     StatusBar,
     SplashScreen,
-    CameraPreview,
+    Camera,
     Device,
     SQLite,
     Geolocation,
