@@ -1,0 +1,42 @@
+<ion-header no-border>
+  <ion-navbar>
+    <ion-title>News</ion-title>
+  </ion-navbar>
+</ion-header>
+
+
+<ion-content>
+
+  <ion-refresher (ionRefresh)="doRefresh($event)" [enabled]="(restProvider.show_skeleton == 0 && restProvider.show_refresh == 1) || restProvider.show_no_internet == 1">
+    <ion-refresher-content pullingIcon="arrow-round-down"
+      pullingText="Pull to refresh"
+      refreshingSpinner="dots"
+      refreshingText="Refreshing..."></ion-refresher-content>
+  </ion-refresher>
+
+  <ion-list [hidden]="restProvider.show_skeleton == 1">
+    <ion-item *ngFor="let article of news; let i = index">
+      <ion-thumbnail item-start>
+        <img [src]="article.image" onError="this.src='assets/imgs/logo.png'" />
+      </ion-thumbnail>
+      <h2 text-wrap>{{ article.title }}</h2>
+      <p>{{ article.date }}</p>
+      <button ion-button clear item-end (click)="goToDetailsPage(article)"><span>View</span></button>
+    </ion-item>
+  </ion-list>
+
+  <ion-list>
+    <ion-item class="m-n" *ngFor="let i of [0,1,2,3,4,5]" [hidden]="restProvider.show_skeleton == 0">
+      <ion-thumbnail item-start>
+        <skeleton-item height="50px"></skeleton-item>
+      </ion-thumbnail>
+      <h2 text-wrap><skeleton-item></skeleton-item></h2>
+      <p><skeleton-item width="30%"></skeleton-item></p>
+    </ion-item>
+  </ion-list>
+
+  <div class="no-internet" [hidden]="restProvider.show_no_internet == 0">
+    <p>No Internet Connection</p>
+  </div>
+
+</ion-content>

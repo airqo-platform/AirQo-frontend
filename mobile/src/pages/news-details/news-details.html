@@ -1,0 +1,19 @@
+<ion-header no-border>
+
+  <ion-navbar>
+    <ion-title>Article</ion-title>
+  </ion-navbar>
+
+</ion-header>
+
+
+<ion-content>
+
+  <img [src]="article.image" onError="this.src='assets/imgs/logo.png'" />
+  <div padding>
+    <p class="title">{{ article.title }}</p>
+    <p class="date">Published on {{ article.date }}</p>
+    <p class="content">{{ article.content }}</p>
+  </div>
+
+</ion-content>

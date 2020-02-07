@@ -1,0 +1,73 @@
+page-about {
+
+  .title {
+    font-size: 1.4em;
+    font-weight: 500;
+    color: $airqo_dark_blue;
+  }
+
+  // -----------------------------------------------------------------------------------------
+
+  .accordion-list {
+    background: color($colors, airqo_white);
+    height: 100%;
+  }
+  .section {
+    font-size: 1.3em;
+    font-weight: 300;
+    border-bottom: 1px solid color($colors, light);
+    color: $airqo_dark_blue;
+    margin-bottom: 4px;
+  }
+  .section-active {
+    background: $airqo_word_blue;
+    color: #fff;
+  }
+
+  .child {
+    background: #e8e7e6;
+    color: #000;
+    margin-bottom: 4px;
+  }
+  .child-item {
+    background: #f3f2f1;
+    padding: 10px;
+  }
+  .label {
+    margin: 0px;
+  }
+  .list {
+    margin-bottom: 4px;
+  }
+
+  // -----------------------------------------------------------------------------------------
+
+  .faq-answer {
+    text-transform: lowercase;
+    &:first-letter {
+      text-transform: uppercase;
+    }
+  }
+
+  // -----------------------------------------------------------------------------------------
+
+  .skeleton-rectangle {
+    width: 56px;
+    height: 56px;
+    border-radius: 2px;
+    @extend .animated-background;
+  }
+  .skeleton-title, .skeleton-text {
+    height: 14px;
+    border-radius: 2px;
+    margin-bottom: 8px;
+    @extend .animated-background;
+  }
+  .skeleton-text {
+    height: 8px;
+    width: 80%;
+  }
+  
+  // -----------------------------------------------------------------------------------------
+
+}

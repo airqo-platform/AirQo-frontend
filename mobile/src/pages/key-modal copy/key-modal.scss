@@ -1,0 +1,76 @@
+page-key-modal {
+
+  animation: fade-in .8s ease-in-out;
+  @keyframes fade-in {
+    0%   { opacity: 0; }
+    100% { opacity: 1; }
+  }
+
+  // -----------------------------------------------------------------------------------------
+
+
+   ion-icon {
+      font-size: 2em;
+      font-weight: 800;
+   }
+
+   table {
+      background-color: #FFFFFF;
+      color: #000;
+   }
+
+   td {
+      padding: 0 5px 10px 0;
+      color: #ffffff;
+      font-weight: 500;
+   }
+   .td-images {
+    text-align: center;
+    padding-top: 10px;
+   }
+   .td-text {
+     padding-top: 10px;
+   }
+   .face {
+      width: 3em;
+      height: 3em;
+   }
+   .image-icon {
+    margin-top: 10px;
+     width: 2em;
+     height: 2em;
+   }
+   .heading {
+      background-color: color($colors, airqo_blue);
+      color:#000000;
+      font-weight: 400;
+   }
+   .title {
+    color: #efeef2;
+    font-weight: bold;
+   }
+
+   // -----------------------------------------------------------------------------------------
+   
+   .unavailable {
+      background-color: $airqo_unavailable;
+    }
+    .good {
+      background-color: $airqo_good;
+    }
+    .moderate {
+      background-color: $airqo_moderate;
+    }
+    .unhealthy-sensitive-groups {
+      background-color: $airqo_unhealthy_sensitive_groups;
+    }
+    .unhealthy {
+      background-color: $airqo_unhealthy;
+    }
+    .very-unhealthy {
+      background-color: $airqo_very_unhealthy;
+    }
+    .hazardous {
+      background-color: $airqo_hazardous;
+    }
+}

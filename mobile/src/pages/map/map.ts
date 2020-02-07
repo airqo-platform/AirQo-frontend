@@ -1,11 +1,13 @@
-import { Component, ViewChild, ElementRef } from '@angular/core';
-import { NavController, LoadingController, ToastController, AlertController, Platform, PopoverController, ModalController } from 'ionic-angular';
+import { Component, ElementRef, ViewChild } from '@angular/core';
+import { NavController, NavParams } from 'ionic-angular';
 import { Storage } from '@ionic/storage';
-import { HttpClient } from '@angular/common/http';
-import { ApiProvider } from '../../providers/api/api';
-import leaflet from 'leaflet';
 
-import { NodePage } from '../node/node';
+import * as $ from 'jquery';
+
+import { NodeDetailsPage } from '../node-details/node-details';
+import { RestProvider } from '../../providers/rest/rest';
+
+declare var google;
 
 @Component({
   selector: 'page-map',
@@ -16,43 +18,24 @@ export class MapPage {
   @ViewChild('map') mapContainer: ElementRef;
   map: any;
 
-  user: any = {};
+  labels: string  = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  labelIndex      = 0;
 
-  nodes: any = [];
+  last_refresh_date: any;
 
-  nodes_list_api = 'https://airqo.net/Apis/airqoPlacesCached';
-  places_nodes_list_api_success: any;
+  markers: any = {};
+  refresh_date: any;
 
-  constructor(public navCtrl: NavController, private storage: Storage, private toastCtrl: ToastController, private loadingCtrl: LoadingController, 
-    private http: HttpClient, private alertCtrl: AlertController, private api: ApiProvider, private elementRef: ElementRef) {
-  }
+  constructor(public navCtrl: NavController, public restProvider: RestProvider, public navParams: NavParams, 
+    public storage: Storage){ }
 
 
   // --------------------------------------------------------------------------------------------------------------------
-  // When the view loads: 
+  // When the view loads: load the map, get the markers
   // --------------------------------------------------------------------------------------------------------------------
   ionViewDidLoad() {
-    this.getUserInfo();
     this.loadMap();
-    this.loadNodes();
-  }
-
-
-  // --------------------------------------------------------------------------------------------------------------------
-  // Fires everytime page loads
-  // --------------------------------------------------------------------------------------------------------------------
-  ionViewDidEnter() {}
-
-
-  // --------------------------------------------------------------------------------------------------------------------
-  // Get User's info
-  // --------------------------------------------------------------------------------------------------------------------
-  getUserInfo() {
-    this.storage.get('user_data').then((val) => {
-      if(val && val != null && val != '') {
-        this.user = val;
-      }
-    });
+    this.getMarkers();
   }
 
 
@@ -60,164 +43,111 @@ export class MapPage {
   // Load the map
   // --------------------------------------------------------------------------------------------------------------------
   loadMap() {
-    this.map = leaflet.map("map").setView([0.283670, 32.600399], 6);
-    leaflet.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {}).addTo(this.map);
-  }
 
+    let latLng = new google.maps.LatLng(0.28367998, 32.59309769);
 
-  // --------------------------------------------------------------------------------------------------------------------
-  // Load Nodes from online
-  // --------------------------------------------------------------------------------------------------------------------
-  loadNodes() {
-    if(this.api.isConnected()) {
-      this.onlineLoadNodes();
-    } else {
-      this.offlineLoadNodes();
+    let mapOptions = {
+      center: latLng,
+      // disableDefaultUI: true,
+      zoom: 6,
+      zoomControl : true,
+      zoomControlOptions: {
+        position: google.maps.ControlPosition.TOP_RIGHT
+      },
+      panControl : true,
+      mapTypeControl: false,
+      overviewMapControl: false,
+      streetViewControl: false,
+      rotateControl: false,
+      fullscreenControl: false,
+      scaleControl: false,
+      mapTypeId: google.maps.MapTypeId.ROADMAP
     }
+    this.map = new google.maps.Map(this.mapContainer.nativeElement, mapOptions);
   }
 
+  
+  // --------------------------------------------------------------------------------------------------------------------
+  // Get Markers from Local Storage
+  // --------------------------------------------------------------------------------------------------------------------
+  getMarkers() {
 
-  // --------------------------------------------------------------------------------------------------------------------
-  // Online - Load Nodes from online
-  // --------------------------------------------------------------------------------------------------------------------
-  onlineLoadNodes() {
-    let loader = this.loadingCtrl.create({
-      spinner: 'ios',
-      enableBackdropDismiss: false,
-      dismissOnPageChange: true,
-      showBackdrop: true
+    this.storage.get('last_refresh_date').then((val) => {
+      if(val != null) {
+        this.last_refresh_date   = this.restProvider.convertDate(val);
+      } else {
+        this.last_refresh_date   = 'Unavailable';
+      }
     });
 
-    let params = {
-      api: this.api.api_key
-    };
-    
-    loader.present().then(() => {
-      this.http.post(this.nodes_list_api, params).subscribe((result: any) => {
-        console.log(result);
-        loader.dismiss(); 
+    this.storage.get('node_list').then((val) => {
+      if(val != null) {
+        this.markers = val;
 
-        this.places_nodes_list_api_success = result.success;
-        if (result.success == '100') {
-          this.nodes = result.nodes;
-          this.offlineStoreNodes();
-        } else {
-          this.offlineLoadNodes();
-          this.alertCtrl.create({
-            title: result.title,
-            message: result.message,
-            buttons: ['Okay']
-          }).present();
+        for (let i = 0; i < this.markers.length; i++) {
+          this.addMarkerToMap(this.markers[i]);
         }
-      }, (err) => {
-        this.offlineLoadNodes();
-        loader.dismiss();
-        this.toastCtrl.create({
-          message: 'Network Error',
-          duration: 2500,
-          position: 'bottom'
-        }).present();
+      } else {
+        this.navCtrl.pop();
+      }
+    });
+  }
+
+
+  // --------------------------------------------------------------------------------------------------------------------
+  // Drop Markers on the Map
+  // --------------------------------------------------------------------------------------------------------------------
+  addMarkerToMap(marker) {
+
+    var channel   = marker.channel_id;
+    var name      = marker.name;
+    var image     = this.restProvider.nodeStatus(marker.reading).marker;
+    var label     = this.restProvider.nodeStatus(marker.reading).label;
+    var css_class = this.restProvider.nodeStatus(marker.reading).class;
+    var value     = marker.reading;
+    var lat       = marker.lat;
+    var lng       = marker.lng;
+
+    var icon = {
+      url: image,
+      scaledSize: new google.maps.Size(25, 40),
+      origin: new google.maps.Point(0,0),
+      anchor: new google.maps.Point(0, 0),
+    };
+
+    var info_window = new google.maps.InfoWindow({
+      // content: '<table class="marker"><tr><td><span class="title-marker-name">Area </span></td><td><span class="marker-name">'+ name +'</span></td></tr><tr><td><span class="title-marker-reading">Reading </span></td><td><span class="marker-reading">'+ value +'</span></td></tr><tr><td><span class="title-marker-label">Status </span></td><td><span class="marker-label '+ css_class +'">'+ label +'</span></td></tr><tr><td colspan="2" class="button-td"><button class="btn-view-node">View Node</button></td></tr></table>'
+      content: '<table class="marker"><tr><td><span class="title-marker-name">Area </span></td><td><span class="marker-name">'+ name +'</span></td></tr><tr><td><span class="title-marker-reading">Reading </span></td><td><span class="marker-reading">'+ value +'</span></td></tr><tr><td><span class="title-marker-label">Status </span></td><td><span class="marker-label '+ css_class +'">'+ label +'</span></td></tr></table>'
+    });
+
+    var position        = new google.maps.LatLng(lat, lng);
+    var location_marker = new google.maps.Marker({ position: position, title: name, animation: google.maps.Animation.DROP, icon: icon, infoWindow: info_window });
+    
+    location_marker.addListener('click', function() {
+      info_window.open(this.map, location_marker);
+    });
+
+    location_marker.setMap(this.map);
+
+    
+    google.maps.event.addListener(info_window, 'domready', () => {
+      $('.marker').click((e) => {
+        this.navCtrl.push(NodeDetailsPage, {
+          node: marker
+        });
       });
     });
   }
 
 
   // --------------------------------------------------------------------------------------------------------------------
-  // Offline - store nodes offline
+  // Go to Node Details page
   // --------------------------------------------------------------------------------------------------------------------
-  offlineStoreNodes() {
-   this.storage.set("nodes", this.nodes);
-   this.addMarkers();
-  }
-
-
-  // --------------------------------------------------------------------------------------------------------------------
-  // Offline - retrieve nodes offline
-  // --------------------------------------------------------------------------------------------------------------------
-  offlineLoadNodes() {
-    this.storage.get("nodes").then((val) => {
-      if(val != null && val != '' && val.length > 0) {
-        this.nodes = val;
-        this.addMarkers();
-      }
-    });
-  }
-
-
-  // --------------------------------------------------------------------------------------------------------------------
-  // Add markers
-  // --------------------------------------------------------------------------------------------------------------------
-  addMarkers() {
-    if(this.nodes != null && this.nodes != '' && this.nodes.length > 0) {
-
-      for(let i = 0; i < this.nodes.length; i++) {
-        if(this.nodes[i].lat && this.nodes[i].lng) {
-          let airqo_marker = leaflet.divIcon({
-            className: 'custom-airqo-icon',
-            html: '<div style="background-color: '+ this.api.nodeStatus(this.nodes[i].field2).color +'" class="marker-pin"></div><span class="marker-number">'+ Math.round(this.nodes[i].field2) +'</span>',
-            iconSize: [30, 42],
-            iconAnchor: [15, 42],
-            popupAnchor: [0, -30]
-          });
-						
-          let airqo_popup = ''+
-          '<div class="marker-popup">'+
-            '<a class="marker-popup-click" data-markerId="'+ this.nodes[i].channel_id +'">'+
-              '<div class="top-section center">'+
-                '<p class="title">'+ this.nodes[i].name + '</p>'+
-                '<p class="sub-title grey">'+ this.nodes[i].location +'</p>'+
-              '</div>'+
-              '<div class="mid-section center" style="background-color: '+ this.api.nodeStatus(this.nodes[i].field2).color +';">'+
-                '<div class="face bg-darker">'+
-                  '<img src="'+ this.api.nodeStatus(this.nodes[i].field2).face +'"/>'+
-                '</div>'+
-                '<div class="reading">'+
-                  '<p style="color: '+ this.api.nodeStatus(this.nodes[i].field2).font_color +';">'+ 
-                    this.nodes[i].field2.trim() +
-                  '<br/>PM2.5'+
-                  '</p>'+
-                '</div>'+
-                '<div class="label">'+
-                  '<p style="color: '+ this.api.nodeStatus(this.nodes[i].field2).font_color +';">'+ this.api.nodeStatus(this.nodes[i].field2).label +'</p>'+
-                '</div>'+
-              '</div>'+
-              '<div class="bottom-section">'+
-                '<p class="refresh-date grey">Last Refreshed: '+ this.api.getReadableInternationalDateFormatFromISOString(this.nodes[i].time) +'</p>'+
-              '</div>'+
-            '</a>'+
-          '</div>'
-          ;
-
-          let airqo_popup_options = {
-            className: 'custom',
-            width: 400,
-            height: 150,
-            closeButton: false,
-            autoClose: false
-          };
-
-          leaflet.marker([parseFloat(this.nodes[i].lat), parseFloat(this.nodes[i].lng)], { icon: airqo_marker }).addTo(this.map)
-          .bindPopup(airqo_popup, airqo_popup_options).on('click', function(e) {
-
-          })
-          .on('popupopen', (res) => {
-            this.elementRef.nativeElement.querySelector(".marker-popup-click").addEventListener('click', (e) => {
-              console.log(e.target.getAttribute("data-markerId"));
-              this.navCtrl.push(NodePage, {node: this.nodes[i]});
-            });
-          });
-        }
-      }
-    }
-  }
-
-
-  // --------------------------------------------------------------------------------------------------------------------
-  // View Node Details
-  // --------------------------------------------------------------------------------------------------------------------
-  viewDetails(node) {
-    this.navCtrl.push(NodePage, {
+  goToDetailsPage(node){
+    console.log("Go To The Clikced node..."+ node);
+    this.navCtrl.push(NodeDetailsPage, {
       node: node
     });
   }
+
 }

@@ -1,0 +1,48 @@
+page-news {
+
+  div.news {
+    border: 1px solid red;
+  }
+
+  img {
+    object-fit: cover;
+  }
+
+  span {
+    color: color($colors, airqo_blue);
+    font-weight: 500;
+  }
+
+  // -----------------------------------------------------------------------------------------
+
+  .ellipsis {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  p {
+    line-height: 1em;
+  }
+
+  // -----------------------------------------------------------------------------------------
+
+  .skeleton-rectangle {
+    width: 56px;
+    height: 56px;
+    border-radius: 2px;
+    @extend .animated-background;
+  }
+  .skeleton-title, .skeleton-text {
+    height: 14px;
+    border-radius: 2px;
+    margin-bottom: 8px;
+    @extend .animated-background;
+  }
+  .skeleton-text {
+    height: 8px;
+    width: 80%;
+  }
+  
+  // -----------------------------------------------------------------------------------------
+
+}

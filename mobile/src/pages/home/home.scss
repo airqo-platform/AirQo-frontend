@@ -1,192 +1,242 @@
 page-home {
 
-  .nav-image {
-    height: 6rem;
-    object-fit: cover;
+  ion-content {
+    background-color: map-get($colors, airqo_white);
   }
 
-  .title-centered .toolbar-content {
-    order: 4;
-    // Make sure the toolbar buttons are above the title or they can't be tapped!
-    z-index: -1;
+  ion-card.node-card {
+    border-radius: 8px;
   }
-  
-  .title-centered ion-title {
-    position: absolute;
-    top: 0.2rem;
-    left: 0;
-    padding: 0.1rem 0 0.1rem 0;
-    align-items: left;
+
+  skeleton-item {
     width: 100%;
-    height: 100%;
-  }
-  
-  .title-centered .toolbar-title {
-    text-align: left;
-    padding: 0;
   }
 
-  // --------------------------------------------------------------------------------------------------------------------------------------------
-
-  ion-card {
-    padding: 0 !important;
+  ion-fab {
+    position: absolute;
   }
 
-  ion-grid {
-    margin: 0;
-    padding: 0;
-  }
-
-  ion-row {
-    margin: 0;
-    padding: 0;
-  }
-
-  ion-col {
-    margin: 0;
-    padding: 0;
-  }
-
-  .horizontal-node-scroll {
-    height: 18rem;
-  }
-
-  .saved-header {
-    margin-bottom: 0;
-    padding-bottom: 0;
-
-    button {
-      position: absolute;
-      margin: auto;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      width: 2rem;
-      height: 2rem;
-    }
-  }
-
-  .header-section {
-    ion-col {
-      height: 3rem;
-    }
-
-    .header-title {
-      font-size: 1.6rem;
-      font-weight: 500;
-    }
-  }
-
-  .area-section {
-    .area-type {
-      text-align: center;
-
-      .star-icon {
-        font-size: 3rem;
-      }
-    }
-
-    .title {
-      font-weight: 660;
-      font-size: 1.6rem;
-    }
-
-    .sub-title {
-      font-size: 1.6rem;
-    }
-  }
-
-  .readings-section {
-    .face {
-      margin: 0;
-      padding: 0;
-      
-      img {
-        position: absolute;
-        margin: auto;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        width: 4rem;
-        height: 4rem;
-      }
-    }
-
-    .values {
-      text-align: center;
-
-      .number {
-        margin-bottom: 0;
-        padding: 0;
-      }
-  
-      .number-label {
-        margin-top: 0;
-        padding: 0;
-      }
-    }
-
-    .label {
-      .value-label {
-        
-      }
-    }
-  }
-
-  .footer-section {
-    margin: 0;
-    padding: 0;
-  }
-
-  .date-section {
-    padding-left: 0;
-  }
-
-  .icon-section {
+  .spinner-container {
+    width: 100%;
     text-align: center;
-    ion-icon {
-      position:relative;
-      top: calc(50% - 10px);
+    padding: 10px;
+  }
+  
+  // -----------------------------------------------------------------------------------------
+
+  .random-node {
+
+  }
+
+  .rn-top-row {
+
+  }
+
+  .rn-title {
+    text-align: center;
+  }
+
+  .rn-location {
+    font-weight: bold;
+  }
+
+  // -----------------------------------------------------------------------------------------
+
+  .nodes-content-bg {
+    background: $airqo_dirty_white;
+  }
+
+  .last-refresh-date-div {
+    text-align: center;
+  }
+  .last-refresh-date {
+    color: $airqo_dark_blue;
+    font-weight: 600;
+  }
+
+  // -----------------------------------------------------------------------------------------
+
+  .skeleton-rectangle {
+    width: 56px;
+    height: 56px;
+    border-radius: 2px;
+    @extend .animated-background;
+  }
+  .skeleton-title, .skeleton-text {
+    height: 14px;
+    border-radius: 2px;
+    margin-bottom: 8px;
+    @extend .animated-background;
+  }
+  .skeleton-text {
+    height: 8px;
+    width: 80%;
+  }
+
+  // -----------------------------------------------------------------------------------------
+
+  .title-node-reading {
+    text-align: center;
+    display: flex;
+  }
+  .title-node-label {
+    text-align: center;
+    width: auto;
+    white-space: nowrap;
+    -webkit-writing-mode: vertical-lr;
+    writing-mode: vertical-rl;
+    writing-mode: tb-lr;
+    transform: scale(-1, -1);
+    font-size: 1.5em;
+    color: map-get($colors, airqo_white);
+  }
+  .title-node-face {
+    padding: 0 0 0 0.2em;
+    p {
+      position: relative;
+      top: 30%;
+      font-size: 1.1em;
+      font-weight: 600;
+      color: map-get($colors, airqo_white);
+    }
+    span {
+       font-size: 0.8em;
+    }
+    img {
+      width: 70px;
+      height: 70px;
+      position: relative;
+      top: 40%;
+      transform: translateY(-50%);
+    }
+    @media(max-width: 372px) {
+      img {
+        width: 60px;
+        height: 60px;
+      }
+    }
+  }
+  .title-node-value {
+    position: absolute;
+    bottom: 0;
+    font-size: 2.5em;
+    color: map-get($colors, airqo_white);
+  }
+
+  // -----------------------------------------------------------------------------------------
+
+  .nodes {
+    text-align: center;
+  }
+  .avg-24 {
+    border-right: 0.5px solid $airqo_slim_border;
+  }
+  
+  .avg-current {
+    border-left: 0.5px solid $airqo_slim_border;
+  }
+  .area-title {
+    text-align: left;
+    color: $airqo_dark_blue;
+    font-size: 1.3em;
+    font-weight: 500;
+  }
+  .area-sub-title {
+    color: $airqo_faded_blue;
+    font-weight: 500;
+    padding-top: 0;
+  }
+  .node-reading-title {
+    color: $airqo_dark_blue;
+    font-weight: 500;
+  }
+  .node-reading-value {
+    color: color($colors, airqo_white);
+    font-size: 1.1em;
+    padding: 5px 0;
+    font-weight: 500;
+    border-radius: 5px;
+    padding: 4px 0;
+  }
+  .node-reading-label {
+    color: map-get($colors, airqo_white);
+    font-size: 1.1em;
+    font-weight: 500;
+    border-radius: 5px;
+    padding: 4px 0;
+  }
+  .node-reading-image {
+    margin: 0 0 -5px 0;
+    padding: 5px 0 0 0;
+    img {
+      height: 1.5em;
+      width: 1.5em;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+    }
+  }
+  .last-update-date-time {
+    text-align: center;
+    p {
+      color: $airqo_dark_blue;
+      font-weight: 300;
     }
   }
 
+  // -----------------------------------------------------------------------------------------
 
-  // --------------------------------------------------------------------------------------------------------------------------------------------
-
-  .bg-darker {
-    background: linear-gradient(rgba(0, 0, 0, 0.1));
+  .previous-readings {
+    height: 50px;
+    border: 1px solid red;
   }
 
-  .bg-grey {
-    background-color: #888888;
+  // -----------------------------------------------------------------------------------------
+
+  .fixed-node {
+    margin-top: -11%;
+    background-color: map-get($colors, airqo_white);
+    text-align: center;
+    ion-card {
+      background-color: #fdda50;
+    }
+  }
+  .fn-title {
+    font-size: 2.2em;
+    font-weight: 400;
+    color: $airqo_dark_blue;
+  }
+  .fn-sub-title {
+    font-size: 1.3em;
+    margin-top: -6%;
+    font-weight: 400;
+    color: $airqo_faded_blue;
   }
 
-  // --------------------------------------------------------------------------------------------------------------------------------------------
-  
-  .white {
-    color: color($colors, white);
+  // -----------------------------------------------------------------------------------------
+
+  .unavailable {
+    background-color: $airqo_unavailable;
+  }
+  .good {
+    background-color: $airqo_good;
+  }
+  .moderate {
+    background-color: $airqo_moderate;
+  }
+  .unhealthy-sensitive-groups {
+    background-color: $airqo_unhealthy_sensitive_groups;
+  }
+  .unhealthy {
+    background-color: $airqo_unhealthy;
+  }
+  .very-unhealthy {
+    background-color: $airqo_very_unhealthy;
+  }
+  .hazardous {
+    background-color: $airqo_hazardous;
   }
 
-  .dirty-white {
-    color: color($colors, dirty_white);
-  }
-
-  .grey {
-    color: color($colors, grey);
-  }
-
-  .black {
-    color: color($colors, black);;
-  }
-
-  // --------------------------------------------------------------------------------------------------------------------------------------------
-
-  .moderate-bold {
-    font-weight: 660;
-  }
-
-  
+  // -----------------------------------------------------------------------------------------
 
 }

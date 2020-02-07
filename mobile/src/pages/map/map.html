@@ -1,15 +1,16 @@
-<ion-header>
-
+<ion-header no-border>
   <ion-navbar>
-    <ion-title>Map</ion-title>
-    <ion-buttons end>
-      <!-- <button (click)="closeModal()" color="blue" ion-button icon-only round clear>
-        <ion-icon name="md-close"></ion-icon>
-      </button> -->
-    </ion-buttons>
+    <ion-title>AirQo Station Map</ion-title>
   </ion-navbar>
-
 </ion-header>
+
+
 <ion-content>
   <div #map id="map"></div>
 </ion-content>
+
+<ion-footer>
+  <ion-toolbar>
+    <span class="footer">Last Refreshed: {{ last_refresh_date }} EAT</span>
+  </ion-toolbar>
+</ion-footer>

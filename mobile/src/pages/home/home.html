@@ -1,119 +1,152 @@
-<ion-header class="title-centered">
-  <ion-navbar color="blue" hideBackButton="true">
-    <ion-title>
-			<img src="assets/logos/logo-white.png" class="nav-image"/>
-    </ion-title>
-    <ion-buttons end>
-      <button color="light" ion-button icon-only (click)="goToSearchPage()">
-        <ion-icon name="search"></ion-icon>
-      </button>
-      &nbsp;
-      &nbsp;
-      <button color="light" ion-button icon-only *ngIf="user.uid" (click)="goToFavoritesPage()">
-        <ion-icon name="star-outline"></ion-icon>
-      </button>
-      &nbsp;
-      &nbsp;
-      <button color="light" ion-button icon-only (click)="stackedMenu($event)">
-        <ion-icon name="more"></ion-icon>
-      </button>
-    </ion-buttons>
-  </ion-navbar>
+<ion-header no-border>
+
+  <ion-toolbar>
+    <ion-title>AirQo Stations</ion-title>
+  </ion-toolbar>
+  
+  <ion-toolbar>
+    <ion-searchbar
+      type="search"
+      animated="true"
+      autocomplete="on"
+      placeholder="Search"
+      [(ngModel)]="search_term" [formControl]="search_control" (ionInput)="onSearchInput()" 
+      [hidden]="restProvider.show_skeleton == 1 || restProvider.show_no_internet == 1">
+    </ion-searchbar>
+  </ion-toolbar>
 </ion-header>
 
-<ion-content>
-
-  <!-- Current Location -->
-  <ion-card [hidden]="lastest_nearest_node_reading == '0' || lastest_nearest_node_reading == null" (click)="viewDetails(nearest_node)">
-  <!-- <ion-card (click)="viewDetails(nearest_node)"> -->
-    <ion-grid>
-      <ion-row class="header-section bg-grey">
-        <ion-col class="header-title white">
-          My Location
-        </ion-col>
-      </ion-row>
-      <ion-row class="area-section">
-        <ion-col col-1 class="area-type">
-          <ion-icon name="pin" color="grey" class="star-icon"></ion-icon>
-        </ion-col>
-        <ion-col col-11>
-        <div class="title black moderate-bold">{{ nearest_node.name }}</div>
-        <div class="sub-title grey">{{ nearest_node.location }}</div>
-        </ion-col>
-      </ion-row>
-    <ion-row class="readings-section" [style.backgroundColor]="api.nodeStatus(lastest_nearest_node_reading).color">
-        <ion-col col-3 class="face bg-darker">
-          <img [src]="api.nodeStatus(lastest_nearest_node_reading).face"/>
-        </ion-col>
-        <ion-col col-4 class="values">
-        <p class="number moderate-bold" [style.color]="api.nodeStatus(lastest_nearest_node_reading).font_color">{{ lastest_nearest_node_reading }}</p>
-          <p class="number-label moderate-bold" [style.color]="api.nodeStatus(lastest_nearest_node_reading).font_color">PM2.5</p>
-        </ion-col>
-        <ion-col col-5 class="label">
-        <p text-wrap class="value-label moderate-bold" [style.color]="api.nodeStatus(lastest_nearest_node_reading).font_color">{{ api.nodeStatus(lastest_nearest_node_reading).label }}</p>
-        </ion-col>
-      </ion-row>
-      <ion-row class="footer-section">
-        <ion-col col-11 text-wrap class="date-section">
-          <span class="node-refresh-date">Last Refreshed: {{ api.getReadableInternationalDateFormatFromISOString(nearest_node.date) }} hrs</span>
-        </ion-col>
-        <ion-col col-1 class="icon-section">
-          <ion-icon name="arrow-forward"></ion-icon>
-        </ion-col>
-      </ion-row>
-    </ion-grid>
-  </ion-card>
+<ion-content class="{{ class.nodes_content }}">
   
-  <!-- Saved Locations -->
+  <div *ngIf="searching" class="spinner-container">
+    <ion-spinner></ion-spinner>
+  </div>
 
-  <ion-card [hidden]="user.uid == null || user.uid == '' || user.uid == undefined">
-    <ion-grid class="saved-header">
-      <ion-row class="header-section bg-grey">
-        <ion-col col-11 class="header-title white">
-          Saved Locations
-        </ion-col>
-        <ion-col col-1>
-          <button ion-button small icon-only outline color="light" *ngIf="user.uid" (click)="openAddFavorites()">
-            <ion-icon name="md-add" color="light"></ion-icon>
-          </button>
+  <ion-refresher (ionRefresh)="doRefresh($event)" 
+    [enabled]="(restProvider.show_skeleton == 0 && restProvider.show_refresh == 1) && restProvider.show_no_internet == 0">
+    <ion-refresher-content pullingIcon="arrow-round-down"
+    pullingText="Pull to refresh"
+    refreshingSpinner="dots"
+    refreshingText="Refreshing..."></ion-refresher-content>
+  </ion-refresher>
+
+  <div [hidden]="restProvider.show_skeleton == 1">
+
+    <div class="last-refresh-date-div">
+      <p class="last-refresh-date">{{ last_refresh_date_words }}</p>
+    </div>
+
+
+
+    <!-- <ion-grid class="random-node">
+      <ion-row class="rn-top-row">
+        <ion-col>
+          <p class="rn-title">Lukuli (Makindye) Area</p>
+          <p class="rn-location">Kampala, Uganda</p>
         </ion-col>
       </ion-row>
-    </ion-grid>
+      <ion-row>
+        <ion-col col-3>
+          <img src="assets/icons/happiness.png">
+        </ion-col>
+        <ion-col col-3>
+          19.50
+          <br/>
+          PM2.5
+        </ion-col>
+        <ion-col col-6>
+          Moderate
+        </ion-col>
+      </ion-row>
+      <ion-row>
+        <ion-col col-8>
+          Last Refreshed: 12-Jun-2018 at 19:29hrs
+        </ion-col>
+        <ion-col col-2>
+          <img src="assets/imgs/st-2-moderate.png">
+        </ion-col>
+      </ion-row>
+    </ion-grid> -->
+
+
     
-    <ng-container *ngFor="let node of favorite_nodes">
-      <hr/>
-      <ion-grid [hidden]="user.uid == null || user.uid == '' || user.uid == undefined" (click)="viewDetails(node)">
-        <ion-row nowrap class="area-section">
-          <ion-col col-1 class="area-type">
-            <ion-icon name="md-star" color="grey" class="star-icon"></ion-icon>
+
+    <ion-card class="node-card" *ngFor="let node of nodes; let i = index" (click)="goToDetailsPage(node)">
+      <ion-grid no-padding>
+        <ion-row>
+          <ion-col col-4 text-center class="title-node-reading {{ restProvider.nodeStatus(node.reading).class }}">
+            <p class="title-node-label" text-wrap>{{ restProvider.nodeStatus(node.reading).label }}</p>
+            <div class="title-node-face">
+              <img src="{{ restProvider.nodeStatus(node.reading).image }}">
+              <p text-wrap>{{ (node.reading | number:'1.1-2') }}<br/><span>PM2.5</span></p>
+            </div>
           </ion-col>
-          <ion-col col-11>
-            <div class="title black moderate-bold">{{ node.name }}</div>
-          <div class="sub-title grey">{{ node.location }}</div>
-          </ion-col>
-        </ion-row>
-        <ion-row class="readings-section" [style.backgroundColor]="api.nodeStatus(node.feeds.field1).color">
-          <ion-col col-3 class="face bg-darker">
-            <img [src]="api.nodeStatus(node.feeds.field1).face"/>
-          </ion-col>
-          <ion-col col-4 class="values">
-            <p class="number moderate-bold" [style.color]="api.nodeStatus(node.feeds.field1).font_color">{{ node.feeds.field1 }}</p>
-            <p class="number-label moderate-bold" [style.color]="api.nodeStatus(node.feeds.field1).font_color">PM2.5</p>
-          </ion-col>
-          <ion-col col-5 class="label">
-            <p text-wrap class="value-label moderate-bold" [style.color]="api.nodeStatus(node.feeds.field1).font_color">{{ api.nodeStatus(node.feeds.field1).label }}</p>
-          </ion-col>
-        </ion-row>
-        <ion-row class="footer-section">
-          <ion-col col-11 text-wrap class="date-section">
-            <span class="node-refresh-date">Last Refreshed: {{ api.getReadableInternationalDateFormatFromSQLFormat(node.refreshed) }}</span>
-          </ion-col>
-          <ion-col col-1 class="icon-section">
-            <ion-icon name="arrow-forward"></ion-icon>
+          <ion-col col-8>
+            <ion-row><ion-col><span class="area-title">{{ node.name }}</span></ion-col></ion-row>
+            <ion-row><ion-col><span class="area-sub-title">{{ node.address }}</span></ion-col></ion-row>
+            <ion-row class="nodes">
+              <ion-col  col-4 class="avg-24">
+                <p class="node-reading-title">24 hrs</p>
+                <p class="node-reading-value {{ restProvider.nodeStatus(node.reading2).class }}">{{ node.reading2 }}</p>
+                <p class="node-reading-image"><img src="{{ restProvider.nodeStatus(node.reading2).icon }}" /></p>
+              </ion-col>
+              <ion-col col-4 class="avg-1">
+                <p class="node-reading-title">Past hr</p>
+                <p class="node-reading-value {{ restProvider.nodeStatus(node.reading1).class }}"> {{ node.reading1 }}</p>
+                <p class="node-reading-image"><img src="{{ restProvider.nodeStatus(node.reading1).icon }}" /></p>
+              </ion-col>
+              <ion-col col-4 class="avg-current">
+                <p class="node-reading-title">Latest</p>
+                <p class="node-reading-value {{ restProvider.nodeStatus(node.reading).class }}"> {{ node.reading }} </p>
+                <p class="node-reading-image"><img src="{{ restProvider.nodeStatus(node.reading).icon }}" /></p>
+              </ion-col>
+            </ion-row>
+            <ion-row class="last-update-date-time">
+              <ion-col>
+                <p>{{ restProvider.convertDate(node.time) }} EAT</p>
+              </ion-col>
+            </ion-row>
           </ion-col>
         </ion-row>
       </ion-grid>
-    </ng-container>
+    </ion-card>
+  </div>
+
+  <ion-card class="m-n" *ngFor="let i of [0,1,2,3,4,5]" [hidden]="restProvider.show_skeleton == 0">
+    <ion-grid>
+      <ion-row>
+        <ion-col col-4>
+          <skeleton-item height="100px"></skeleton-item>
+        </ion-col>
+        <ion-col col-8>
+          <ion-row><ion-col col-8><skeleton-item></skeleton-item></ion-col></ion-row>
+          <ion-row>
+            <ion-col>
+              <br />
+              <skeleton-item></skeleton-item>
+            </ion-col>
+            <ion-col>
+              <br />
+              <skeleton-item></skeleton-item>
+            </ion-col>
+            <ion-col>
+              <br />
+              <skeleton-item></skeleton-item>
+            </ion-col>
+          </ion-row>
+          <ion-row>
+            <ion-col>
+              <br />
+              <skeleton-item></skeleton-item>
+            </ion-col>
+          </ion-row>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
   </ion-card>
-      
+
+  <div class="no-internet" [hidden]="restProvider.show_no_internet == 0">
+    <p>No Internet Connection</p>
+  </div>
+
 </ion-content>

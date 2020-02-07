@@ -23,6 +23,51 @@ $app-direction: ltr;
 // http://ionicframework.com/docs/theming/overriding-ionic-variables/
 
 
+.pop-in {
+  animation: pop-in 0.65s;
+}
+@keyframes pop-in {
+  0% {
+      transform: scale(0); 
+  }
+  45% {
+      transform: scale(0);
+  }
+  90% {
+      transform: scale(1.15);
+  }
+  100% {
+      transform: scale(1);
+  }
+}
+
+.pop-out {
+  animation: pop-out 2.5s;
+}
+@keyframes pop-out {
+  0% {
+      transform: scale(1);
+  }
+  15% {
+      transform: scale(0);
+  }
+  100% {
+      transform: scale(0);
+  }
+}
+
+.slide-up {
+  top: 1000px;
+  animation: slide_up 0.4s 0.0625s cubic-bezier(0.07, 0.65, 0, 0.96) forwards !important;
+}
+@keyframes slide_up {
+  from {
+      top: 1000px;
+  }
+  to {
+      top: 0px;
+  }
+}
 
 
 // Named Color Variables
@@ -39,37 +84,61 @@ $colors: (
   danger:           #f53d3d,
   light:            #f4f4f4,
   dark:             #222,
-  blue:             #3067e2,
-  green:            #45e50d,
-  yellow:           #f8fe28,
-  orange:           #ee8310,
-  red:              #fe0000,
-  purple:           #8639c0,
-  maroon:           #81202e,
-  black:            #000000,
-  grey:             #7a7a7a,
-  white:            #ffffff,
-  dirty_white:      #ece9e9,
+  airqo_blue:       #5f9fc9,
+  airqo_white:      #ffffff,
 );
+
+$airqo_light_blue:  #9bcfe9;
+$airqo_faded_blue:  #929fb3;
+$airqo_dark_blue:   #415c7b;
+$airqo_dirty_white: #f0eff5;
+$airqo_word_blue:   #76a2c9;
+$airqo_slim_border: #efeef2;
+
+$airqo_unavailable:                     #5d6355;
+$airqo_unavailable_dark:                #434640;
+$airqo_good:                            #abe261;
+$airqo_good_dark:                       #759e3d;
+$airqo_moderate:                        #fed74a;
+$airqo_moderate_dark:                   #c0a333;
+$airqo_unhealthy_sensitive_groups:      #ffa563;
+$airqo_unhealthy_sensitive_groups_dark: #d48144;
+$airqo_unhealthy:                       #ff7777;
+$airqo_unhealthy_dark:                  #ce3e3c;
+$airqo_very_unhealthy:                  #7c47b5;
+$airqo_very_unhealthy_dark:             #5f2d94;
+$airqo_hazardous:                       #930b15;
+$airqo_hazardous_dark:                  #65060d;
+
+$refresher-icon-color:                    $airqo_word_blue;
+$refresher-text-color:                    $airqo_word_blue;
 
 
 // App iOS Variables
 // --------------------------------------------------
-// iOS only Sass variables can go here
 
+$toolbar-ios-title-text-color:            $airqo_word_blue;
 
+$tabs-ios-tab-text-color-active:          $airqo_dark_blue;
+$tabs-ios-tab-text-color:                 $airqo_word_blue;
+$tabs-ios-tab-icon-color:                 $airqo_word_blue;
+$tabs-ios-tab-icon-color-active:          $airqo_dark_blue;
+$tabs-ios-tab-font-size: 14px;
+
+$toolbar-ios-button-font-size: 1.2em;
+$toolbar-ios-button-color: map-get($colors, airqo_blue);
 
 
 // App Material Design Variables
 // --------------------------------------------------
-// Material Design only Sass variables can go here
+
 
 
 
 
 // App Windows Variables
 // --------------------------------------------------
-// Windows only Sass variables can go here
+
 
 
 
