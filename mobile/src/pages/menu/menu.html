@@ -1,0 +1,32 @@
+<ion-content>
+  <ion-list>
+    <ion-item no-lines *ngIf="login_status" (click)="goToFavoritesPage()">
+      <ion-icon name="cloud-outline" item-start></ion-icon>
+      <span class="item">My Places</span>
+    </ion-item>
+    <ion-item no-lines (click)="goToMapPage()">
+      <ion-icon name="map-outline" item-start></ion-icon>
+      <span class="item">Map</span>
+    </ion-item>
+    <ion-item no-lines (click)="goToKeyPage()">
+      <ion-icon name="key-outline" item-start></ion-icon>
+      <span class="item">Key</span>
+    </ion-item>
+    <ion-item no-lines (click)="inviteFriends()">
+      <ion-icon name="add" item-start></ion-icon>
+      <span class="item">Invite Friends</span>
+    </ion-item>
+    <!-- <ion-item no-lines *ngIf="login_status" (click)="goToCameraPage()">
+      <ion-icon name="camera-outline" item-start></ion-icon>
+      <span class="item">AQI Camera</span>
+    </ion-item> -->
+    <ion-item no-lines *ngIf="login_status" (click)="goToSettings()">
+      <ion-icon name="settings-outline" item-start></ion-icon>
+      <span class="item">Settings</span>
+    </ion-item>
+    <ion-item no-lines (click)="checkSessionStatus()">
+      <ion-icon name="log-in" item-start></ion-icon>
+      <span class="item">{{ sign_in_or_sign_up_label }}</span>
+    </ion-item>
+  </ion-list>
+</ion-content>

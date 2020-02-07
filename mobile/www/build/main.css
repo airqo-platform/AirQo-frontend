@@ -66208,20 +66208,6 @@ page-node .bottom-section .key-card .key .key-label {
   font-weight: 450;
 }
 
-@media (min-width: 768px) {
-  page-node .bottom-section .key {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
-  }
-}
-
-@media (max-width: 767px) {
-  page-node .bottom-section .key {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-  }
-}
-
 page-node .bottom-section .bar-chart-scroll {
   height: inherit;
   position: absolute;
@@ -66296,6 +66282,20 @@ page-node .light-bold {
 
 page-node .moderate-bold {
   font-weight: 660;
+}
+
+@media (min-width: 768px) {
+  page-node .key {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
+  }
+}
+
+@media (max-width: 767px) {
+  page-node .key {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+  }
 }
 
 page-sign-in ion-grid {

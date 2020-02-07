@@ -1,0 +1,275 @@
+page-node {
+
+  ion-content {
+    // background-color: #ffffff !important;
+    background-repeat: no-repeat;
+    background-size: cover;
+  }
+
+  // --------------------------------------------------------------------------------------------------------------------------------------------
+
+  .top-section {
+    height: 45%;
+    position: relative;
+  }
+
+  .bottom-section {
+    height: 55%;
+    position: relative;
+  }
+
+  // --------------------------------------------------------------------------------------------------------------------------------------------
+
+  ion-grid {
+    margin: 0;
+    padding: 0;
+  }
+
+  ion-row {
+    margin: 0;
+    padding: 0;
+  }
+
+  ion-col {
+    margin: 0;
+    padding: 0;
+  }
+
+  .place {
+    margin: 0.5rem;
+  }
+
+  .place p {
+    margin: 0 0 0.2rem 0;
+    padding: 0 0 0 0;
+  }
+
+  .place-name {
+    color: color($colors, dark);
+    font-size: 1.8rem;
+    font-weight: 660;
+  }
+
+  .place-location {
+    font-size: 1.5rem;
+    font-weight: 660;
+    color: color($colors, grey);
+  }
+
+  .node-card {
+    position: absolute;
+    bottom: 0;
+  }
+
+  .node {
+    border-radius: 0.3rem;
+    box-shadow: 0px 2px 0px 1px #b8b8b8;
+  }
+
+  .area-section {
+    .area-type {
+      img {
+        width: 1.5rem;
+        height: 3rem;
+      }
+    }
+
+    .title {
+      font-weight: 660;
+      font-size: 1.6rem;
+    }
+
+    .sub-title {
+      font-size: 1.6rem;
+    }
+  }
+
+  .readings-section {
+    .face {
+      margin: 0;
+      padding: 0;
+      
+      img {
+        position: absolute;
+        margin: auto;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 4rem;
+        height: 4rem;
+      }
+    }
+
+    .values {
+      text-align: center;
+
+      .number {
+        margin-bottom: 0;
+        padding: 0;
+      }
+  
+      .number-label {
+        margin-top: 0;
+        padding: 0;
+      }
+    }
+  }
+
+  .footer-section {
+    margin: 0;
+    padding: 0;
+  }
+
+  .date-section {
+    padding-left: 0;
+  }
+
+  .icon-section {
+    text-align: center;
+    ion-icon {
+      position:relative;
+      top: calc(50% - 10px);
+    }
+  }
+
+  // --------------------------------------------------------------------------------------------------------------------------------------------
+
+  .bottom-section {
+    .title {
+      padding: 0.5rem;
+      font-size: 1.7rem;
+      text-align: center;
+    }
+
+    .sub-title {
+      text-align: center;
+      padding: 0.4rem;
+      
+      .date {
+        padding: 0.3rem;
+        border-radius: 0.5rem;
+      }
+    }
+
+    .key-card {
+      position: absolute;
+      top: 6rem;
+
+      .key {
+        height: 5rem;
+        padding: 0.5rem;
+        // border
+  
+        .key-label {
+          text-align: center;
+          font-size: 1.6rem;
+          font-weight: 450;
+        }
+      }
+    }
+
+    .bar-chart-scroll {
+      height: inherit;
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      // border: 10px solid red;
+    }
+
+    .bar-canvas {
+      // position: absolute;
+      // bottom: 0;
+      // width: 100%;
+    }
+  }
+
+  // --------------------------------------------------------------------------------------------------------------------------------------------
+
+  .bg-darker {
+    background: linear-gradient(rgba(0, 0, 0, 0.1));
+  }
+
+  .bg-grey {
+    background-color: #888888;
+  }
+
+  .bg-white {
+    background-color: color($colors, white);
+  }
+
+  .bg-green {
+    background-color:color($colors, green);
+  }
+
+  .bg-yellow {
+    background-color: color($colors, yellow);
+  }
+
+  .bg-orange {
+    background-color: color($colors, orange);
+  }
+
+  .bg-red {
+    background-color: color($colors, red);
+  }
+
+  .bg-maroon {
+    background-color: color($colors, maroon);
+  }
+
+  .bg-purple {
+    background-color: color($colors, purple);
+  }
+
+  .bg-black {
+    background-color: color($colors, black);
+  }
+
+  .white {
+    color: color($colors, white);
+  }
+
+  .dirty-white {
+    color: color($colors, dirty_white);
+  }
+
+  .grey {
+    color: color($colors, grey);
+  }
+
+  .black {
+    color: color($colors, black);
+  }
+
+  .dark-blue {
+    color: #2b1344;
+  }
+
+  .light-bold {
+    font-weight: 560;
+  }
+
+  .moderate-bold {
+    font-weight: 660;
+  }
+
+  // --------------------------------------------------------------------------------------------------------------------------------------------
+  // --------------------------------------------------------------------------------------------------------------------------------------------
+  // --------------------------------------------------------------------------------------------------------------------------------------------
+
+  @media (min-width: 768px) {
+    .key {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
+    }
+  }
+
+  @media (max-width: 767px) {
+    .key {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+    }
+  }
+
+}

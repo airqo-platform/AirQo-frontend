@@ -1,0 +1,29 @@
+page-camera {
+
+  .btn-camera {
+    width: 10rem;
+    height: 10rem;
+    background-color: color($colors, dirty_white) !important;
+    border-radius: 50%;
+  }
+
+  .btn-label {
+    font-size: 2rem;
+  }
+
+  .picture-section {
+    margin: 1rem;
+    // width: 15rem;
+    height: 15rem;
+    object-fit: cover;
+    text-align: center ;
+  }
+
+  // --------------------------------------------------------------------------------------------------------------------------------------------
+
+  .face {
+    width: 3rem;
+    height: 3rem;
+  }
+
+}

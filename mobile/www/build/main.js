@@ -500,10 +500,10 @@ var SearchPage = /** @class */ (function () {
                     _this.offlineStoreNodes();
                 }
                 else {
-                    _this.alertCtrl.create({
-                        title: result.title,
+                    _this.toastCtrl.create({
                         message: result.message,
-                        buttons: ['Okay']
+                        duration: 2000,
+                        position: 'bottom'
                     }).present();
                 }
             }, function (err) {
@@ -944,20 +944,28 @@ var HomePage = /** @class */ (function () {
             enableHighAccuracy: true
         };
         this.platform.ready().then(function () {
+            var loader = _this.loadingCtrl.create({
+                spinner: 'ios',
+                enableBackdropDismiss: false,
+                dismissOnPageChange: true,
+                showBackdrop: true
+            });
             _this.geolocation.getCurrentPosition(options).then(function (pos) {
                 var params = {
                     api: _this.api.api_key,
                     lat: pos.coords.latitude,
                     lng: pos.coords.longitude,
                 };
+                loader.dismiss();
                 _this.getNearestNodeReading(params);
             }).catch(function (error) {
                 console.log('Error getting location: ', error);
-                _this.toastCtrl.create({
-                    message: error.message,
-                    duration: 5000,
-                    position: 'bottom'
-                }).present();
+                loader.dismiss();
+                // this.toastCtrl.create({
+                //   message: error.message,
+                //   duration: 3000,
+                //   position: 'bottom'
+                // }).present();
                 _this.getCoordinatesByIP();
             });
         });
@@ -1363,7 +1371,7 @@ var MenuPage = /** @class */ (function () {
     };
     MenuPage = __decorate([
         Object(__WEBPACK_IMPORTED_MODULE_1__angular_core__["m" /* Component */])({
-            selector: 'page-menu',template:/*ion-inline-start:"/Users/Aine/Documents/Ionic Projects/airqo/src/pages/menu/menu.html"*/'<ion-content>\n  <ion-list>\n    <ion-item no-lines *ngIf="login_status" (click)="goToFavoritesPage()">\n      <ion-icon name="cloud-outline" item-start></ion-icon>\n      <span class="item">My Air</span>\n    </ion-item>\n    <ion-item no-lines (click)="goToMapPage()">\n      <ion-icon name="map-outline" item-start></ion-icon>\n      <span class="item">Map</span>\n    </ion-item>\n    <ion-item no-lines (click)="goToKeyPage()">\n      <ion-icon name="key-outline" item-start></ion-icon>\n      <span class="item">Key</span>\n    </ion-item>\n    <ion-item no-lines (click)="inviteFriends()">\n      <ion-icon name="add" item-start></ion-icon>\n      <span class="item">Invite Friends</span>\n    </ion-item>\n    <!-- <ion-item no-lines *ngIf="login_status" (click)="goToCameraPage()">\n      <ion-icon name="camera-outline" item-start></ion-icon>\n      <span class="item">AQI Camera</span>\n    </ion-item> -->\n    <ion-item no-lines *ngIf="login_status" (click)="goToSettings()">\n      <ion-icon name="settings-outline" item-start></ion-icon>\n      <span class="item">Settings</span>\n    </ion-item>\n    <ion-item no-lines (click)="checkSessionStatus()">\n      <ion-icon name="log-in" item-start></ion-icon>\n      <span class="item">{{ sign_in_or_sign_up_label }}</span>\n    </ion-item>\n  </ion-list>\n</ion-content>'/*ion-inline-end:"/Users/Aine/Documents/Ionic Projects/airqo/src/pages/menu/menu.html"*/,
+            selector: 'page-menu',template:/*ion-inline-start:"/Users/Aine/Documents/Ionic Projects/airqo/src/pages/menu/menu.html"*/'<ion-content>\n  <ion-list>\n    <ion-item no-lines *ngIf="login_status" (click)="goToFavoritesPage()">\n      <ion-icon name="cloud-outline" item-start></ion-icon>\n      <span class="item">My Places</span>\n    </ion-item>\n    <ion-item no-lines (click)="goToMapPage()">\n      <ion-icon name="map-outline" item-start></ion-icon>\n      <span class="item">Map</span>\n    </ion-item>\n    <ion-item no-lines (click)="goToKeyPage()">\n      <ion-icon name="key-outline" item-start></ion-icon>\n      <span class="item">Key</span>\n    </ion-item>\n    <ion-item no-lines (click)="inviteFriends()">\n      <ion-icon name="add" item-start></ion-icon>\n      <span class="item">Invite Friends</span>\n    </ion-item>\n    <!-- <ion-item no-lines *ngIf="login_status" (click)="goToCameraPage()">\n      <ion-icon name="camera-outline" item-start></ion-icon>\n      <span class="item">AQI Camera</span>\n    </ion-item> -->\n    <ion-item no-lines *ngIf="login_status" (click)="goToSettings()">\n      <ion-icon name="settings-outline" item-start></ion-icon>\n      <span class="item">Settings</span>\n    </ion-item>\n    <ion-item no-lines (click)="checkSessionStatus()">\n      <ion-icon name="log-in" item-start></ion-icon>\n      <span class="item">{{ sign_in_or_sign_up_label }}</span>\n    </ion-item>\n  </ion-list>\n</ion-content>'/*ion-inline-end:"/Users/Aine/Documents/Ionic Projects/airqo/src/pages/menu/menu.html"*/,
         }),
         __metadata("design:paramtypes", [__WEBPACK_IMPORTED_MODULE_2_ionic_angular__["i" /* NavController */], __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["j" /* NavParams */], __WEBPACK_IMPORTED_MODULE_3__ionic_native_social_sharing__["a" /* SocialSharing */],
             __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["a" /* ActionSheetController */], __WEBPACK_IMPORTED_MODULE_4__ionic_storage__["b" /* Storage */], __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["b" /* AlertController */]])
@@ -1530,7 +1538,9 @@ var MapPage = /** @class */ (function () {
                 if (this_1.nodes[i].lat && this_1.nodes[i].lng) {
                     var airqo_marker = __WEBPACK_IMPORTED_MODULE_5_leaflet___default.a.divIcon({
                         className: 'custom-airqo-icon',
-                        html: '<div style="background-color: ' + this_1.api.nodeStatus(this_1.nodes[i].field2).color + '" class="marker-pin"></div><span class="marker-number">' + Math.round(this_1.nodes[i].field2) + '</span>',
+                        html: '' +
+                            '<div style="background-color: ' + this_1.api.nodeStatus(this_1.nodes[i].field2).color + ';" class="marker-pin"></div>' +
+                            '<span class="marker-number">' + Math.round(this_1.nodes[i].field2) + '</span>',
                         iconSize: [30, 42],
                         iconAnchor: [15, 42],
                         popupAnchor: [0, -30]
@@ -2793,7 +2803,7 @@ var IntroPage = /** @class */ (function () {
     ], IntroPage.prototype, "slides", void 0);
     IntroPage = __decorate([
         Object(__WEBPACK_IMPORTED_MODULE_2__angular_core__["m" /* Component */])({
-            selector: 'page-intro',template:/*ion-inline-start:"/Users/Aine/Documents/Ionic Projects/airqo/src/pages/intro/intro.html"*/'<ion-slides>\n\n  <ion-slide class="bg-blue">\n    <ion-grid>\n      <ion-row text-center>\n        <ion-col>\n          <div class="logo-section">\n            <img src="assets/logos/logo-white-tagline.png"/>\n          </div>\n          <button (click)="nextSlide()" ion-button color="light" clear full class="btn-getting-started grid-bottom">\n            Get Started\n          </button>\n        </ion-col>\n      </ion-row>\n    </ion-grid>\n  </ion-slide>\n\n  <ion-slide class="bg-green">\n    <ion-grid>\n      <ion-row text-center>\n        <ion-col>\n          <div class="logo-section">\n            <img src="assets/logos/logo-white.png"/>\n          </div>\n          <p class="slide-sub-title">Understand the state of air quality around you in Kampala</p>\n          <button (click)="nextSlide()" ion-button color="light" clear full class="btn-getting-started grid-bottom">\n            Get Started\n          </button>\n        </ion-col>\n      </ion-row>\n    </ion-grid>\n    <!-- <div class="logo-section">\n      <img src="assets/logos/logo-white.png"/>\n    </div>\n    <p class="slide-sub-title">Understand the state of air quality around you in Kampala</p> -->\n\n    <ion-grid class="grid-bottom">\n      <ion-row>\n        <ion-col>\n          <button (click)="goToHomePage()" ion-button color="light" clear full>\n            Skip\n          </button>\n        </ion-col>\n        <ion-col>\n          <button (click)="nextSlide()" ion-button color="light" clear full>\n            Next\n          </button>\n        </ion-col>\n      </ion-row>\n    </ion-grid>\n  </ion-slide>\n\n  <ion-slide class="bg-yellow">\n    <div class="logo-section">\n      <img src="assets/logos/logo-white.png"/>\n    </div>\n    <p class="slide-sub-title">Fine-grained and Real-time Air Quality Data</p>\n\n    <ion-grid class="grid-bottom">\n      <ion-row>\n        <ion-col>\n          <button (click)="goToHomePage()" ion-button color="light" clear full>\n            Skip\n          </button>\n        </ion-col>\n        <ion-col>\n          <button (click)="nextSlide()" ion-button color="light" clear full>\n            Next\n          </button>\n        </ion-col>\n      </ion-row>\n    </ion-grid>\n  </ion-slide>\n\n  <ion-slide class="bg-black">\n    <div class="logo-section">\n      <img src="assets/logos/logo-white.png"/>\n    </div>\n    <p class="slide-sub-title">Know which places to avoid</p>\n\n    <ion-grid class="grid-bottom">\n      <ion-row>\n        <ion-col>\n          <button (click)="previousSlide()" ion-button color="light" clear full>\n            Back\n          </button>\n        </ion-col>\n        <ion-col>\n          <button (click)="goToHomePage()" ion-button color="light" clear full>\n            Done\n          </button>\n        </ion-col>\n      </ion-row>\n    </ion-grid>\n  </ion-slide>\n\n</ion-slides>\n'/*ion-inline-end:"/Users/Aine/Documents/Ionic Projects/airqo/src/pages/intro/intro.html"*/,
+            selector: 'page-intro',template:/*ion-inline-start:"/Users/Aine/Documents/Ionic Projects/airqo/src/pages/intro/intro.html"*/'<ion-slides>\n\n  <ion-slide class="bg-blue">\n    <ion-grid>\n      <ion-row text-center>\n        <ion-col>\n          <div class="logo-section">\n            <img src="assets/logos/logo-white-tagline.png"/>\n          </div>\n          <button (click)="nextSlide()" ion-button color="light" clear full class="btn-getting-started grid-bottom">\n            Get Started\n          </button>\n        </ion-col>\n      </ion-row>\n    </ion-grid>\n  </ion-slide>\n\n  <ion-slide class="bg-green">\n    <ion-grid>\n      <ion-row text-center>\n        <ion-col>\n          <div class="logo-section">\n            <img src="assets/logos/logo-white.png"/>\n          </div>\n          <p class="slide-sub-title">Know your air</p>\n          <button (click)="nextSlide()" ion-button color="light" clear full class="btn-getting-started grid-bottom">\n            Get Started\n          </button>\n        </ion-col>\n      </ion-row>\n    </ion-grid>\n    <!-- <div class="logo-section">\n      <img src="assets/logos/logo-white.png"/>\n    </div>\n    <p class="slide-sub-title">Understand the state of air quality around you in Kampala</p> -->\n\n    <ion-grid class="grid-bottom">\n      <ion-row>\n        <ion-col>\n          <button (click)="goToHomePage()" ion-button color="light" clear full>\n            Skip\n          </button>\n        </ion-col>\n        <ion-col>\n          <button (click)="nextSlide()" ion-button color="light" clear full>\n            Next\n          </button>\n        </ion-col>\n      </ion-row>\n    </ion-grid>\n  </ion-slide>\n\n  <ion-slide class="bg-yellow">\n    <div class="logo-section">\n      <img src="assets/logos/logo-white.png"/>\n    </div>\n    <p class="slide-sub-title">Fine-grained and Real-time Air Quality Data</p>\n\n    <ion-grid class="grid-bottom">\n      <ion-row>\n        <ion-col>\n          <button (click)="goToHomePage()" ion-button color="light" clear full>\n            Skip\n          </button>\n        </ion-col>\n        <ion-col>\n          <button (click)="nextSlide()" ion-button color="light" clear full>\n            Next\n          </button>\n        </ion-col>\n      </ion-row>\n    </ion-grid>\n  </ion-slide>\n\n  <ion-slide class="bg-black">\n    <div class="logo-section">\n      <img src="assets/logos/logo-white.png"/>\n    </div>\n    <p class="slide-sub-title">Know which places to avoid</p>\n\n    <ion-grid class="grid-bottom">\n      <ion-row>\n        <ion-col>\n          <button (click)="previousSlide()" ion-button color="light" clear full>\n            Back\n          </button>\n        </ion-col>\n        <ion-col>\n          <button (click)="goToHomePage()" ion-button color="light" clear full>\n            Done\n          </button>\n        </ion-col>\n      </ion-row>\n    </ion-grid>\n  </ion-slide>\n\n</ion-slides>\n'/*ion-inline-end:"/Users/Aine/Documents/Ionic Projects/airqo/src/pages/intro/intro.html"*/,
         }),
         __metadata("design:paramtypes", [__WEBPACK_IMPORTED_MODULE_3_ionic_angular__["i" /* NavController */], __WEBPACK_IMPORTED_MODULE_3_ionic_angular__["j" /* NavParams */], __WEBPACK_IMPORTED_MODULE_1__ionic_storage__["b" /* Storage */]])
     ], IntroPage);
@@ -3051,7 +3061,9 @@ var NodePage = /** @class */ (function () {
         this.user = {};
         this.node = {};
         this.background_image = '';
+        this.graphs_segments = 'history';
         this.single_node_api = 'https://airqo.net/Apis/airqoChannelFeed';
+        this.forecast_node_api = 'https://airqo.net/Apis/placeForecast';
         if (this.navParams.get("node")) {
             this.node = this.navParams.get("node");
             if (this.node.refreshed) {
@@ -3068,7 +3080,13 @@ var NodePage = /** @class */ (function () {
                 this.node.feeds = {};
                 this.node.feeds.field1 = '0.00';
             }
-            console.log(this.node);
+            if (this.node.lat && this.node.lng) {
+            }
+            else {
+                this.node.lat = this.node.feeds.field5;
+                this.node.lng = this.node.feeds.field6;
+            }
+            // console.log(this.node);
         }
         else {
             this.navCtrl.setRoot(__WEBPACK_IMPORTED_MODULE_0__home_home__["a" /* HomePage */]);
@@ -3084,13 +3102,19 @@ var NodePage = /** @class */ (function () {
     // Fires everytime page loads
     // --------------------------------------------------------------------------------------------------------------------
     NodePage.prototype.ionViewDidEnter = function () {
-        console.log(this.node);
-        if (this.api.isConnected()) {
-            this.onlineLoadNodeInfo();
-        }
-        else {
-            this.offlineLoadNodeInfo();
-        }
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                console.log(this.node);
+                if (this.api.isConnected()) {
+                    this.onlineLoadHistoryNodeInfo();
+                    // this.onlineLoadNodeForecastInfo();
+                }
+                else {
+                    // this.offlineLoadHistoryNodeInfo();
+                }
+                return [2 /*return*/];
+            });
+        });
     };
     // --------------------------------------------------------------------------------------------------------------------
     // Get User's info
@@ -3106,65 +3130,106 @@ var NodePage = /** @class */ (function () {
     // --------------------------------------------------------------------------------------------------------------------
     // Online - Load Node Info from online
     // --------------------------------------------------------------------------------------------------------------------
-    NodePage.prototype.onlineLoadNodeInfo = function () {
-        return __awaiter(this, void 0, void 0, function () {
-            var _this = this;
-            var loader, params;
-            return __generator(this, function (_a) {
-                loader = this.loadingCtrl.create({
-                    spinner: 'ios',
-                    enableBackdropDismiss: false,
-                    dismissOnPageChange: true,
-                    showBackdrop: true
-                });
-                params = {
-                    api: this.api.api_key,
-                    channel: this.node.channel_id
-                };
-                loader.present().then(function () {
-                    _this.http.post(_this.single_node_api, params).subscribe(function (result) {
-                        console.log(result);
-                        loader.dismiss();
-                        _this.single_node_api_success = result.success;
-                        if (result.success == '100') {
-                            _this.node.refreshed = _this.api.getCurrentDateTime();
-                            _this.node.feeds.field1 = result.lastfeeds.feeds[0].field1.trim();
-                            console.log(result.lastfeeds.feeds);
-                            _this.getGraphData(result.lastfeeds.feeds);
-                            _this.offlineStoreNodeInfo();
-                        }
-                        else {
-                            _this.offlineLoadNodeInfo();
-                            _this.alertCtrl.create({
-                                title: result.title,
-                                message: result.message,
-                                buttons: ['Okay']
-                            }).present();
-                        }
-                    }, function (err) {
-                        _this.offlineLoadNodeInfo();
-                        loader.dismiss();
-                        _this.toastCtrl.create({
-                            message: 'Network Error',
-                            duration: 2500,
-                            position: 'bottom'
-                        }).present();
-                    });
-                });
-                return [2 /*return*/];
+    NodePage.prototype.onlineLoadHistoryNodeInfo = function () {
+        var _this = this;
+        var loader = this.loadingCtrl.create({
+            spinner: 'ios',
+            enableBackdropDismiss: false,
+            dismissOnPageChange: true,
+            showBackdrop: true
+        });
+        var params = {
+            api: this.api.api_key,
+            channel: this.node.channel_id
+        };
+        loader.present().then(function () {
+            _this.http.post(_this.single_node_api, params).subscribe(function (result) {
+                // console.log(result);
+                loader.dismiss();
+                _this.single_node_api_success = result.success;
+                if (result.success == '100') {
+                    _this.node.refreshed = _this.api.getCurrentDateTime();
+                    _this.node.feeds.field1 = result.lastfeeds.feeds[0].field1.trim();
+                    // console.log(result.lastfeeds.feeds);
+                    _this.getHistoryGraphData(result.lastfeeds.feeds);
+                    _this.offlineStoreHistoryNodeInfo();
+                }
+                else {
+                    _this.offlineLoadHistoryNodeInfo();
+                    _this.alertCtrl.create({
+                        title: result.title,
+                        message: result.message,
+                        buttons: ['Okay']
+                    }).present();
+                }
+            }, function (err) {
+                _this.offlineLoadHistoryNodeInfo();
+                loader.dismiss();
+                _this.toastCtrl.create({
+                    message: 'Network Error',
+                    duration: 2500,
+                    position: 'bottom'
+                }).present();
+            });
+        });
+    };
+    // --------------------------------------------------------------------------------------------------------------------
+    // Online - Load Node Forecast Info from online
+    // --------------------------------------------------------------------------------------------------------------------
+    NodePage.prototype.onlineLoadNodeForecastInfo = function () {
+        var _this = this;
+        var loader = this.loadingCtrl.create({
+            spinner: 'ios',
+            enableBackdropDismiss: false,
+            dismissOnPageChange: true,
+            showBackdrop: true
+        });
+        var params = {
+            api: this.api.api_key,
+            lat: this.node.lat,
+            lng: this.node.lng
+        };
+        loader.present().then(function () {
+            _this.http.post(_this.forecast_node_api, params).subscribe(function (result) {
+                console.log("------------------------------------------------------------------------------");
+                console.log(result);
+                loader.dismiss();
+                // this.forecast_node_api_success = result.success;
+                // if (result.success == '100') {
+                //   this.node.refreshed     = this.api.getCurrentDateTime();
+                //   this.node.feeds.field1  = result.lastfeeds.feeds[0].field1.trim();
+                //   console.log(result.lastfeeds.feeds);
+                //   this.getGraphData(result.lastfeeds.feeds);
+                //   this.offlineStoreNodeInfo();
+                // } else {
+                //   this.offlineLoadNodeInfo();
+                //   this.alertCtrl.create({
+                //     title: result.title,
+                //     message: result.message,
+                //     buttons: ['Okay']
+                //   }).present();
+                // }
+            }, function (err) {
+                // this.offlineLoadNodeInfo();
+                loader.dismiss();
+                _this.toastCtrl.create({
+                    message: 'Network Error',
+                    duration: 2500,
+                    position: 'bottom'
+                }).present();
             });
         });
     };
     // --------------------------------------------------------------------------------------------------------------------
     // Offline - store node info offline
     // --------------------------------------------------------------------------------------------------------------------
-    NodePage.prototype.offlineStoreNodeInfo = function () {
+    NodePage.prototype.offlineStoreHistoryNodeInfo = function () {
         this.storage.set("node", this.node);
     };
     // --------------------------------------------------------------------------------------------------------------------
     // Offline - retrieve node info offline
     // --------------------------------------------------------------------------------------------------------------------
-    NodePage.prototype.offlineLoadNodeInfo = function () {
+    NodePage.prototype.offlineLoadHistoryNodeInfo = function () {
         var _this = this;
         this.storage.get("node").then(function (val) {
             if (val != null && val != '' && val) {
@@ -3175,34 +3240,48 @@ var NodePage = /** @class */ (function () {
     // --------------------------------------------------------------------------------------------------------------------
     // Fetch Bar Graph Data
     // --------------------------------------------------------------------------------------------------------------------
-    NodePage.prototype.getGraphData = function (graph_feeds) {
-        return __awaiter(this, void 0, void 0, function () {
-            var x_data, y_data, bar_colors, i;
-            return __generator(this, function (_a) {
-                x_data = [];
-                y_data = [];
-                bar_colors = [];
-                for (i = 0; i < graph_feeds.length; i++) {
-                    y_data.push(parseFloat((graph_feeds[i].field1).trim()));
-                    x_data.push(this.api.getTimeFromISOStringDateTime(graph_feeds[i].created_at));
-                    bar_colors.push(this.api.nodeStatus(graph_feeds[i].field1).color);
-                }
-                console.log("X - DATA: ");
-                console.log(x_data);
-                console.log("Y - DATA: ");
-                console.log(y_data);
-                console.log("COLORS - DATA: ");
-                console.log(bar_colors);
-                this.loadGraph(x_data, y_data, bar_colors);
-                return [2 /*return*/];
-            });
-        });
+    NodePage.prototype.getHistoryGraphData = function (graph_feeds) {
+        var x_data = [];
+        var y_data = [];
+        var bar_colors = [];
+        for (var i = 0; i < graph_feeds.length; i++) {
+            y_data.push(parseFloat((graph_feeds[i].field1).trim()));
+            x_data.push(this.api.getTimeFromISOStringDateTime(graph_feeds[i].created_at));
+            bar_colors.push(this.api.nodeStatus(graph_feeds[i].field1).color);
+        }
+        // console.log("X - DATA: ");
+        // console.log(x_data);
+        // console.log("Y - DATA: ");
+        // console.log(y_data);
+        // console.log("COLORS - DATA: ");
+        // console.log(bar_colors);
+        this.loadHistoryGraph(x_data, y_data, bar_colors);
+    };
+    // --------------------------------------------------------------------------------------------------------------------
+    // Fetch Forecast Bar Graph Data
+    // --------------------------------------------------------------------------------------------------------------------
+    NodePage.prototype.getForecasttGraphData = function (graph_feeds) {
+        var x_data = [];
+        var y_data = [];
+        var bar_colors = [];
+        for (var i = 0; i < graph_feeds.length; i++) {
+            y_data.push(parseFloat((graph_feeds[i].field1).trim()));
+            x_data.push(this.api.getTimeFromISOStringDateTime(graph_feeds[i].created_at));
+            bar_colors.push(this.api.nodeStatus(graph_feeds[i].field1).color);
+        }
+        // console.log("X - DATA: ");
+        // console.log(x_data);
+        // console.log("Y - DATA: ");
+        // console.log(y_data);
+        // console.log("COLORS - DATA: ");
+        // console.log(bar_colors);
+        this.loadHistoryGraph(x_data, y_data, bar_colors);
     };
     // --------------------------------------------------------------------------------------------------------------------
     // Draw Bar Graph
     // --------------------------------------------------------------------------------------------------------------------
-    NodePage.prototype.loadGraph = function (x_data, y_data, bar_colors) {
-        this.barChart = new __WEBPACK_IMPORTED_MODULE_6_chart_js__["Chart"](this.barCanvas.nativeElement, {
+    NodePage.prototype.loadHistoryGraph = function (x_data, y_data, bar_colors) {
+        this.barChartHistory = new __WEBPACK_IMPORTED_MODULE_6_chart_js__["Chart"](this.barCanvasHistory.nativeElement, {
             type: 'bar',
             data: {
                 labels: x_data,
@@ -3242,7 +3321,59 @@ var NodePage = /** @class */ (function () {
                             },
                             scaleLabel: {
                                 display: true,
-                                labelString: "PM 2.5",
+                                labelString: "µg/m3 (ppm)",
+                                fontColor: "#415c7b"
+                            }
+                        }]
+                }
+            }
+        });
+    };
+    // --------------------------------------------------------------------------------------------------------------------
+    // Draw Forecast Bar Graph
+    // --------------------------------------------------------------------------------------------------------------------
+    NodePage.prototype.loadForecastGraph = function (x_data, y_data, bar_colors) {
+        this.barChartForecast = new __WEBPACK_IMPORTED_MODULE_6_chart_js__["Chart"](this.barCanvasForecast.nativeElement, {
+            type: 'bar',
+            data: {
+                labels: x_data,
+                datasets: [{
+                        label: 'µg/m3 (ppm)',
+                        data: y_data,
+                        backgroundColor: bar_colors,
+                        borderColor: bar_colors,
+                        borderWidth: 0
+                    }]
+            },
+            options: {
+                tooltips: {
+                    "enabled": false
+                },
+                legend: {
+                    display: false,
+                },
+                scales: {
+                    xAxes: [{
+                            gridLines: {
+                                display: false,
+                            },
+                            scaleLabel: {
+                                display: true,
+                                labelString: "Time",
+                                fontColor: "#415c7b"
+                            }
+                        }],
+                    yAxes: [{
+                            ticks: {
+                                display: true,
+                                beginAtZero: true,
+                            },
+                            gridLines: {
+                                display: true,
+                            },
+                            scaleLabel: {
+                                display: true,
+                                labelString: "µg/m3 (ppm)",
                                 fontColor: "#415c7b"
                             }
                         }]
@@ -3263,17 +3394,21 @@ var NodePage = /** @class */ (function () {
         this.navCtrl.pop();
     };
     __decorate([
-        Object(__WEBPACK_IMPORTED_MODULE_1__angular_core__["_8" /* ViewChild */])('barCanvas'),
+        Object(__WEBPACK_IMPORTED_MODULE_1__angular_core__["_8" /* ViewChild */])('barCanvasHistory'),
+        __metadata("design:type", Object)
+    ], NodePage.prototype, "barCanvas", void 0);
+    __decorate([
+        Object(__WEBPACK_IMPORTED_MODULE_1__angular_core__["_8" /* ViewChild */])('barCanvasForecast'),
         __metadata("design:type", Object)
     ], NodePage.prototype, "barCanvas", void 0);
     NodePage = __decorate([
         Object(__WEBPACK_IMPORTED_MODULE_1__angular_core__["m" /* Component */])({
-            selector: 'page-node',template:/*ion-inline-start:"/Users/Aine/Documents/Ionic Projects/airqo/src/pages/node/node.html"*/'<ion-header>\n  <ion-navbar color="blue">\n    <ion-buttons end>\n      <button color="light" ion-button icon-only>\n        AIR QUALITY\n      </button>\n    </ion-buttons>\n  </ion-navbar>\n</ion-header>\n\n<!-- <ion-content [style.backgroundImage]="api.nodeStatus(node.feeds.field1).background"> -->\n<!-- <ion-content [style.background]="\'assets/bg/0.png\'"> -->\n<ion-content [ngStyle] ="{\'background-image\' : \'url(\'+ api.nodeStatus(node.feeds.field1).background +\')\'}">\n    \n <div class="top-section">\n\n  <div class="place">\n    <p class="place-name">{{ node.name }}</p>\n    <p class="place-location">{{ node.location }}</p>\n  </div>\n\n  <ion-card class="node-card">\n    <ion-grid class="node bg-white">\n      <ion-row class="readings-section" [style.backgroundColor]="api.nodeStatus(node.feeds.field1).color">\n        <ion-col col-3 class="face bg-darker">\n          <img [src]="api.nodeStatus(node.feeds.field1).face"/>\n        </ion-col>\n        <ion-col col-4 class="values">\n          <p class="number moderate-bold" [style.color]="api.nodeStatus(node.feeds.field1).font_color">{{ node.feeds.field1 }}</p>\n          <p class="number-label moderate-bold" [style.color]="api.nodeStatus(node.feeds.field1).font_color">PM2.5</p>\n        </ion-col>\n        <ion-col col-5 class="label">\n          <p text-wrap class="value-label moderate-bold" [style.color]="api.nodeStatus(node.feeds.field1).font_color">{{ api.nodeStatus(node.feeds.field1).label }}</p>\n        </ion-col>\n      </ion-row>\n      <ion-row class="footer-section">\n        <ion-col text-wrap class="date-section">\n          <span class="node-refresh-date">Last Refreshed: {{ this.api.getReadableInternationalDateFormatFromSQLFormat(node.refreshed) }}</span>\n        </ion-col>\n      </ion-row>\n    </ion-grid>\n  </ion-card>\n </div>\n\n<div class="bottom-section bg-white">\n  <div class="title moderate-bold">History</div>\n  <div class="sub-title"><span class="bg-grey white date"><span class="light-bold">{{ this.api.getReadableInternationalDateFormatFromSQLFormat(node.refreshed) }}</span> : {{ node.feeds.field1 }} PM2.5</span></div>\n  <ion-card class="key-card">\n    <div class="key">\n      <div text-wrap class="key-label bg-green white">Good</div>\n      <div text-wrap class="key-label bg-yellow dark-blue">Moderate</div>\n      <div text-wrap class="key-label bg-orange white">Sensitive</div>\n      <div text-wrap class="key-label bg-red white">Unhealthy</div>\n      <div text-wrap class="key-label bg-purple white">V.Unhealthy</div>\n      <div text-wrap class="key-label bg-maroon white">Hazardous</div>\n    </div>\n  </ion-card>\n  \n  <ion-scroll class="bar-chart-scroll" scrollX="true" zoom="true">\n    <div class="bar-canvas">\n      <canvas #barCanvas></canvas>\n    </div>\n  </ion-scroll>\n</div>\n\n  <ion-fab right middle (click)="goToKeyPage()">\n    <button ion-fab color="green">KEY</button>\n  </ion-fab>\n\n\n</ion-content>\n'/*ion-inline-end:"/Users/Aine/Documents/Ionic Projects/airqo/src/pages/node/node.html"*/,
+            selector: 'page-node',template:/*ion-inline-start:"/Users/Aine/Documents/Ionic Projects/airqo/src/pages/node/node.html"*/'<ion-header>\n  <ion-navbar color="blue">\n    <ion-buttons end>\n      <button color="light" ion-button icon-only>\n        AIR QUALITY\n      </button>\n    </ion-buttons>\n  </ion-navbar>\n</ion-header>\n\n<!-- <ion-content [style.backgroundImage]="api.nodeStatus(node.feeds.field1).background"> -->\n<!-- <ion-content [style.background]="\'assets/bg/0.png\'"> -->\n<ion-content [ngStyle] ="{\'background-image\' : \'url(\'+ api.nodeStatus(node.feeds.field1).background +\')\'}">\n    \n <div class="top-section">\n\n  <div class="place">\n    <p class="place-name">{{ node.name }}</p>\n    <p class="place-location">{{ node.location }}</p>\n  </div>\n\n  <ion-card class="node-card">\n    <ion-grid class="node bg-white">\n      <ion-row class="readings-section" [style.backgroundColor]="api.nodeStatus(node.feeds.field1).color">\n        <ion-col col-3 class="face bg-darker">\n          <img [src]="api.nodeStatus(node.feeds.field1).face"/>\n        </ion-col>\n        <ion-col col-4 class="values">\n          <p class="number moderate-bold" [style.color]="api.nodeStatus(node.feeds.field1).font_color">{{ node.feeds.field1 }}</p>\n          <p class="number-label moderate-bold" [style.color]="api.nodeStatus(node.feeds.field1).font_color">PM2.5</p>\n        </ion-col>\n        <ion-col col-5 class="label">\n          <p text-wrap class="value-label moderate-bold" [style.color]="api.nodeStatus(node.feeds.field1).font_color">{{ api.nodeStatus(node.feeds.field1).label }}</p>\n        </ion-col>\n      </ion-row>\n      <ion-row class="footer-section">\n        <ion-col text-wrap class="date-section">\n          <span class="node-refresh-date">Last Refreshed: {{ this.api.getReadableInternationalDateFormatFromSQLFormat(node.refreshed) }}</span>\n        </ion-col>\n      </ion-row>\n    </ion-grid>\n  </ion-card>\n </div>\n\n<div class="bottom-section bg-white">\n\n  <!-- <ion-card class="key-card">\n    <div class="key">\n      <div text-wrap class="key-label bg-green white">Good</div>\n      <div text-wrap class="key-label bg-yellow dark-blue">Moderate</div>\n      <div text-wrap class="key-label bg-orange white">Sensitive</div>\n      <div text-wrap class="key-label bg-red white">Unhealthy</div>\n      <div text-wrap class="key-label bg-purple white">V.Unhealthy</div>\n      <div text-wrap class="key-label bg-maroon white">Hazardous</div>\n    </div>\n  </ion-card> -->\n\n  <div padding>\n    <ion-segment [color]="api.nodeStatus(node.feeds.field1).css_color" [(ngModel)]="graphs_segments">\n      <ion-segment-button value="history">\n        History\n      </ion-segment-button>\n      <ion-segment-button value="forecast">\n        Forecast\n      </ion-segment-button>\n    </ion-segment>\n  </div>\n\n  <ion-scroll class="bar-chart-scroll" zoom="true">\n    <div [ngSwitch]="\'graphs_segments\'">\n      <div class="bar-canvas" *ngSwitchCase="\'history\'">\n        <canvas #barCanvasHistory></canvas>\n      </div>\n  \n      <div class="bar-canvas" *ngSwitchCase="\'forecast\'">\n        <!-- <canvas #barCanvasForecast></canvas> -->\n      </div>\n    </div>    \n  </ion-scroll>\n</div>\n\n  <ion-fab right middle (click)="goToKeyPage()">\n    <button ion-fab color="green">KEY</button>\n  </ion-fab>\n\n\n</ion-content>\n'/*ion-inline-end:"/Users/Aine/Documents/Ionic Projects/airqo/src/pages/node/node.html"*/,
         }),
-        __metadata("design:paramtypes", [__WEBPACK_IMPORTED_MODULE_2_ionic_angular__["i" /* NavController */], __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["j" /* NavParams */], __WEBPACK_IMPORTED_MODULE_3__ionic_storage__["b" /* Storage */], __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["n" /* ToastController */],
-            __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["g" /* LoadingController */], __WEBPACK_IMPORTED_MODULE_4__angular_common_http__["a" /* HttpClient */], __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["b" /* AlertController */], __WEBPACK_IMPORTED_MODULE_5__providers_api_api__["a" /* ApiProvider */]])
+        __metadata("design:paramtypes", [typeof (_a = typeof __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["i" /* NavController */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["i" /* NavController */]) === "function" && _a || Object, typeof (_b = typeof __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["j" /* NavParams */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["j" /* NavParams */]) === "function" && _b || Object, typeof (_c = typeof __WEBPACK_IMPORTED_MODULE_3__ionic_storage__["b" /* Storage */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_3__ionic_storage__["b" /* Storage */]) === "function" && _c || Object, typeof (_d = typeof __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["n" /* ToastController */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["n" /* ToastController */]) === "function" && _d || Object, typeof (_e = typeof __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["g" /* LoadingController */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["g" /* LoadingController */]) === "function" && _e || Object, typeof (_f = typeof __WEBPACK_IMPORTED_MODULE_4__angular_common_http__["a" /* HttpClient */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_4__angular_common_http__["a" /* HttpClient */]) === "function" && _f || Object, typeof (_g = typeof __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["b" /* AlertController */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["b" /* AlertController */]) === "function" && _g || Object, typeof (_h = typeof __WEBPACK_IMPORTED_MODULE_5__providers_api_api__["a" /* ApiProvider */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_5__providers_api_api__["a" /* ApiProvider */]) === "function" && _h || Object])
     ], NodePage);
     return NodePage;
+    var _a, _b, _c, _d, _e, _f, _g, _h;
 }());
 
 //# sourceMappingURL=node.js.map
@@ -3633,15 +3768,10 @@ var MyApp = /** @class */ (function () {
         var _this = this;
         this.storage.get('intro_page').then(function (val) {
             if (val && val != null && val != '') {
-                if (val !== '1') {
-                    _this.rootPage = __WEBPACK_IMPORTED_MODULE_1__pages_intro_intro__["a" /* IntroPage */];
-                }
-                else {
-                    _this.rootPage = __WEBPACK_IMPORTED_MODULE_0__pages_home_home__["a" /* HomePage */];
-                }
+                _this.rootPage = __WEBPACK_IMPORTED_MODULE_0__pages_home_home__["a" /* HomePage */];
             }
             else {
-                _this.rootPage = __WEBPACK_IMPORTED_MODULE_0__pages_home_home__["a" /* HomePage */];
+                _this.rootPage = __WEBPACK_IMPORTED_MODULE_1__pages_intro_intro__["a" /* IntroPage */];
             }
         });
     };
@@ -3784,7 +3914,7 @@ var FavoritesPage = /** @class */ (function () {
     };
     FavoritesPage = __decorate([
         Object(__WEBPACK_IMPORTED_MODULE_0__angular_core__["m" /* Component */])({
-            selector: 'page-favorites',template:/*ion-inline-start:"/Users/Aine/Documents/Ionic Projects/airqo/src/pages/favorites/favorites.html"*/'<ion-header>\n  <ion-navbar color="blue">\n    <ion-title>Manage Places</ion-title>\n    <ion-buttons end>\n      <button ion-button small icon-only (click)="openAddFavorites()">\n        <ion-icon name="md-add" color="light"></ion-icon>\n      </button>\n    </ion-buttons>\n  </ion-navbar>\n</ion-header>\n\n<ion-content padding>\n  <p class="title" *ngIf="nodes.length <= 0">{{ display_message }}</p>\n  <ion-list>\n    <ion-item *ngFor="let node of nodes" (click)="viewDetails(node)">\n      <ion-icon name="pin" color="grey" item-start></ion-icon>\n      <div class="area-title">{{ node.name }}</div>\n      <div class="area-sub-title">{{ node.location }}</div>\n      <ion-icon name="trash" color="danger" item-end (click)="removeFavorite($event, node)"></ion-icon>\n    </ion-item>\n  </ion-list>\n</ion-content>'/*ion-inline-end:"/Users/Aine/Documents/Ionic Projects/airqo/src/pages/favorites/favorites.html"*/,
+            selector: 'page-favorites',template:/*ion-inline-start:"/Users/Aine/Documents/Ionic Projects/airqo/src/pages/favorites/favorites.html"*/'<ion-header>\n  <ion-navbar color="blue">\n    <ion-title>My Places</ion-title>\n    <ion-buttons end>\n      <button ion-button small icon-only (click)="openAddFavorites()">\n        <ion-icon name="md-add" color="light"></ion-icon>\n      </button>\n    </ion-buttons>\n  </ion-navbar>\n</ion-header>\n\n<ion-content padding>\n  <p class="title" *ngIf="nodes.length <= 0">{{ display_message }}</p>\n  <ion-list>\n    <ion-item *ngFor="let node of nodes" (click)="viewDetails(node)">\n      <ion-icon name="pin" color="grey" item-start></ion-icon>\n      <div class="area-title">{{ node.name }}</div>\n      <div class="area-sub-title">{{ node.location }}</div>\n      <ion-icon name="trash" color="danger" item-end (click)="removeFavorite($event, node)"></ion-icon>\n    </ion-item>\n  </ion-list>\n</ion-content>'/*ion-inline-end:"/Users/Aine/Documents/Ionic Projects/airqo/src/pages/favorites/favorites.html"*/,
         }),
         __metadata("design:paramtypes", [__WEBPACK_IMPORTED_MODULE_1_ionic_angular__["i" /* NavController */], __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["j" /* NavParams */], __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["h" /* ModalController */], __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["n" /* ToastController */],
             __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["b" /* AlertController */], __WEBPACK_IMPORTED_MODULE_2__ionic_storage__["b" /* Storage */]])

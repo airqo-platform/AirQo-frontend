@@ -1,11 +1,15 @@
+import { SearchPage } from './../search/search';
+import { FavoritesPage } from './../favorites/favorites';
+import { AddPlacePage } from './../add-place/add-place';
+import { MenuPage } from './../menu/menu';
 import { Component } from '@angular/core';
-import { NavController, ModalController } from 'ionic-angular';
+import { NavController, LoadingController, ToastController, AlertController, Platform, PopoverController, ModalController } from 'ionic-angular';
 import { Storage } from '@ionic/storage';
-import { FormControl } from '@angular/forms';
-import 'rxjs/add/operator/debounceTime';
-
-import { NodeDetailsPage } from '../node-details/node-details';
-import { RestProvider } from '../../providers/rest/rest';
+import { Geolocation } from '@ionic-native/geolocation';
+import { HttpClient } from '@angular/common/http';
+import { Device } from '@ionic-native/device';
+import { NodePage } from '../node/node';
+import { ApiProvider } from '../../providers/api/api';
 
 @Component({
   selector: 'page-home',
@@ -13,150 +17,310 @@ import { RestProvider } from '../../providers/rest/rest';
 })
 export class HomePage {
 
-  class: any = {};
-  nodes: any;
-  search_nodes: any;
+  user: any = {};
+  nearest_node: any = {};
+  lastest_nearest_node_reading: any = '0';
 
-  api_url = 'http://airqo.net/apis/ios/ver3.0/nodes.php';
+  menu_popover: any;
 
-  last_refresh_date: string;
-  last_refresh_date_words: string = '';
-  last_refreshed: String;
+  favorite_nodes: any = [];
 
-  search_term: string = '';
-  search_control: FormControl;
-  searching: any = false;
+  get_favorite_nodes_api  = 'https://airqo.net/Apis/airqoPlaceLatest';
+  favorite_nodes_api_success: any
+  
+  get_nearest_node_api    = 'https://airqo.net/Apis/airqoNearest';
+  nearest_node_api_success: any;
 
-  constructor(public navCtrl: NavController, public restProvider: RestProvider, public storage: Storage,
-    public modalCtrl: ModalController) {
+  get_coordinates_api    = 'https://buzentech.com/get-info.php';
 
-    this.restProvider.show_skeleton = 1;
-    this.getNodeReadings();
-    this.restProvider.displayNetworkUpdate();
-    this.search_control = new FormControl();
+
+  constructor(private navCtrl: NavController, private storage: Storage, private http: HttpClient, private loadingCtrl: LoadingController, 
+    private alertCtrl: AlertController, private toastCtrl: ToastController, private geolocation: Geolocation, private platform: Platform, 
+    private device: Device, private popoverCtrl: PopoverController, private modalCtrl: ModalController, public api: ApiProvider) {
+      
   }
 
 
   // --------------------------------------------------------------------------------------------------------------------
-  // When the view loads: 
+  // Runs when the page has loaded. Fires only once
   // --------------------------------------------------------------------------------------------------------------------
   ionViewDidLoad() {
-    this.storage.get('node_list').then((val) => {
-      if(val && val != null && val != '') {
-        this.nodes = val;
-        this.search_nodes = val;
+  }
 
-        this.setFilteredItems();
-        this.search_control.valueChanges.debounceTime(700).subscribe(search => {
-          this.searching = false;
-          this.setFilteredItems();
-        });
+
+  // --------------------------------------------------------------------------------------------------------------------
+  // Fires everytime page loads
+  // --------------------------------------------------------------------------------------------------------------------
+  async ionViewDidEnter() {
+    await this.getUserInfo();
+    this.getLocation();
+  }
+
+
+  // --------------------------------------------------------------------------------------------------------------------
+  // Get User's info
+  // --------------------------------------------------------------------------------------------------------------------
+  getUserInfo() {
+    this.storage.get('user_data').then((val) => {
+      if(val && val != null && val != '') {
+        this.user = val;
+        this.offlineLoadFavorites();
       }
     });
   }
 
 
   // --------------------------------------------------------------------------------------------------------------------
-  // Once the array has been filtered, replace existing array
+  // Offline - Load favorites list
   // --------------------------------------------------------------------------------------------------------------------
-  setFilteredItems() {
-    this.nodes = this.filterItems(this.search_term);
-  }
-
-
-  // --------------------------------------------------------------------------------------------------------------------
-  // Filter using the array of nodes using search_term
-  // --------------------------------------------------------------------------------------------------------------------
-  filterItems(search_term) {
-    return this.search_nodes.filter((node) => {
-      return (node.name.toLowerCase().indexOf(search_term.toLowerCase()) > -1);
+  async offlineLoadFavorites() {
+    await this.storage.get('favorites').then((val) => {
+      if(val && val != null && val != '' && val.length > 0) {
+        this.favorite_nodes = val;
+        if(this.api.isConnected()) {
+          this.onlineLoadFavoritesNodesReadings(val);
+        } else {
+          this.offlineLoadFavoritesNodesReadings();
+        }
+      }
     });
   }
 
+
   // --------------------------------------------------------------------------------------------------------------------
-  // Everytime the view is entered
+  // Get Location
   // --------------------------------------------------------------------------------------------------------------------
-  ionViewCanEnter() {
-    if (this.restProvider.show_skeleton == 0) {
-      this.restProvider.show_refresh = 1;
+  getLocation() {
+    let options = {
+      timeout: 20000, 
+      enableHighAccuracy: true
+    };
+
+    this.platform.ready().then(() => {
+
+      let loader = this.loadingCtrl.create({
+        spinner: 'ios',
+        enableBackdropDismiss: false,
+        dismissOnPageChange: true,
+        showBackdrop: true
+      });
+
+      this.geolocation.getCurrentPosition(options).then((pos) => {
+        let params = {
+          api: this.api.api_key,
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+        };
+        loader.dismiss();
+
+        this.getNearestNodeReading(params);
+      }).catch((error) => {
+        console.log('Error getting location: ', error);
+        loader.dismiss();
+        
+        // this.toastCtrl.create({
+        //   message: error.message,
+        //   duration: 3000,
+        //   position: 'bottom'
+        // }).present();
+
+        this.getCoordinatesByIP();
+      });
+    });
+  }
+
+
+  // --------------------------------------------------------------------------------------------------------------------
+  // Get Coordinates By IP Address
+  // --------------------------------------------------------------------------------------------------------------------
+  getCoordinatesByIP() {
+    this.http.get(this.get_coordinates_api).subscribe((result: any) => {
+      console.log(result);
+      if(result.success == '1'){
+        let params = {
+          api: this.api.api_key,
+          lat: result.message.lat,
+          lng: result.message.lon,
+        };
+  
+        this.getNearestNodeReading(params);
+      }
+    });
+  }
+
+
+  // --------------------------------------------------------------------------------------------------------------------
+  // Get Nearest Node Reading
+  // --------------------------------------------------------------------------------------------------------------------
+  getNearestNodeReading(params) {
+    if(this.api.isConnected()){
+      console.info(params);
+
+      let loader = this.loadingCtrl.create({
+        spinner: 'ios',
+        enableBackdropDismiss: false,
+        dismissOnPageChange: true,
+        showBackdrop: true
+      });
+
+      loader.present().then(() => {
+        this.http.post(this.get_nearest_node_api, params).subscribe((result: any) => {
+          console.log(result);
+          loader.dismiss();
+  
+          this.nearest_node_api_success = result.success;
+          if (result.success == '100') {
+            this.nearest_node                   = result;
+            this.lastest_nearest_node_reading   = this.nearest_node.lastfeeds.field1;
+            this.nearest_node.date              = (new Date().toISOString());
+            this.storage.set("nearest_node", this.nearest_node);
+
+            console.log(this.nearest_node);
+            console.log(this.lastest_nearest_node_reading);
+          } else {
+            this.alertCtrl.create({
+              title: result.title,
+              message: result.message,
+              buttons: ['Okay']
+            }).present();
+          }
+        }, (err) => {
+          loader.dismiss();
+          this.toastCtrl.create({
+            message: 'Network Error',
+            duration: 2500,
+            position: 'bottom'
+          }).present();
+        });
+      });
     } else {
-      this.restProvider.show_refresh = 0;
+      this.storage.get('nearest_node').then((val) => {
+        if(val && val != null && val != '' && val.length > 0) {
+          this.nearest_node = val;
+          this.nearest_node_api_success = "100";
+        }
+      });
     }
   }
 
 
   // --------------------------------------------------------------------------------------------------------------------
-  // Get nodes list
+  // Online - Load Favorites Nodes Readings from online
   // --------------------------------------------------------------------------------------------------------------------
-  getNodeReadings() {
-    var node_list: any;
+  async onlineLoadFavoritesNodesReadings(favorite_nodes) {
+    this.favorite_nodes = [];
 
-    this.restProvider.getData(this.api_url).then(data => {
-      if (data) {
-        node_list = data;
-        this.nodes = node_list.nodes;
+    let loader = this.loadingCtrl.create({
+      spinner: 'ios',
+      enableBackdropDismiss: false,
+      dismissOnPageChange: true,
+      showBackdrop: true
+    });
 
-        var new_last_refresh_date = new Date().toISOString();
-        this.last_refresh_date = this.restProvider.convertDate(new_last_refresh_date);
-        this.last_refresh_date_words = 'Last Refreshed on ' + this.last_refresh_date + ' EAT';
+    await loader.present().then(() => {
+      if(favorite_nodes.length > 0) {
+        for(let i = 0; i < favorite_nodes.length; i++){
+          let params = {
+            api: this.api.api_key,
+            channel: favorite_nodes[i].channel_id,
+          };
+  
+          this.http.post(this.get_favorite_nodes_api, params).subscribe((result: any) => {
+            console.log(result);
+            console.log(result.nodes[0]);
+            console.log(result.nodes[0].lastfeeds);
 
-        this.storage.set('node_list', this.nodes);
-        this.storage.set('last_refresh_date', new_last_refresh_date);
+            if (result.success == '100') {
+              let node = {
+                channel_id: favorite_nodes[i].channel_id,
+                name: favorite_nodes[i].name,
+                location: favorite_nodes[i].location,
+                refreshed: this.api.getCurrentDateTime(),
+                feeds: result.nodes[0].lastfeeds,
+              };
+              this.favorite_nodes.push(node);
 
-        setTimeout(() => {
-          this.restProvider.show_skeleton = 0;
-          this.restProvider.show_refresh = 1;
-          this.class.nodes_content = "nodes-content-bg";
-        }, 500);
-        console.log(this.nodes);
-      } else {
-        this.storage.get('node_list').then((val) => {
-          if(val && val != null && val != '') {
-            this.nodes = val.nodes;
-            this.restProvider.show_skeleton = 0;
-            this.restProvider.show_refresh = 1;
-          } else {
-            this.restProvider.show_no_internet = 1;
-            this.restProvider.show_skeleton = 0;
-            this.restProvider.show_refresh = 0;
-            this.restProvider.showToast('Please check your internet connection', 'center', 5);
-          }
-        });
+              this.storage.get('favorites_readings').then((val) => {
+                if(val && val != null && val != '' && val.length > 0) {
+                  val = this.favorite_nodes;
+                  this.storage.set("favorites_readings", val);
+                }
+              });
+            }
+          });
+        }
+        loader.dismiss();
+        if(this.favorite_nodes.length > favorite_nodes.length){
+          this.favorite_nodes.length > 0? this.favorite_nodes_api_success = '100': this.favorite_nodes_api_success = null;
+        }
       }
-
     });
   }
 
 
   // --------------------------------------------------------------------------------------------------------------------
-  // Display spinner
+  // Offline - Load favorites readings
   // --------------------------------------------------------------------------------------------------------------------
-  onSearchInput() {
-    this.searching = true;
+  offlineLoadFavoritesNodesReadings() {
+    this.storage.get('favorites_readings').then((val) => {
+      if(val && val != null && val != '' && val.length > 0) {
+        this.favorite_nodes = val;
+        console.log("----------------------------------------------------------------------------------------");
+      }
+    });
   }
 
 
   // --------------------------------------------------------------------------------------------------------------------
-  // Load the 'Pull to refresh'
+  // Go To Search Page
   // --------------------------------------------------------------------------------------------------------------------
-  doRefresh(refresher) {
-    this.restProvider.show_refresh = 1;
-    this.restProvider.show_skeleton = 0;
-    this.getNodeReadings();
-
-    setTimeout(() => {
-      refresher.complete();
-    }, 10000);
+  goToSearchPage() {
+    this.modalCtrl.create(SearchPage).present();
   }
 
 
   // --------------------------------------------------------------------------------------------------------------------
-  // Go to Node Details page
+  // Go To Favorites Page
   // --------------------------------------------------------------------------------------------------------------------
-  goToDetailsPage(node) {
-    this.navCtrl.push(NodeDetailsPage, {
+  goToFavoritesPage() {
+    this.navCtrl.push(FavoritesPage);
+  }
+
+
+  // --------------------------------------------------------------------------------------------------------------------
+  // Add Place/Node from favorites list
+  // --------------------------------------------------------------------------------------------------------------------
+  openAddFavorites() {
+    let modal = this.modalCtrl.create(AddPlacePage);
+    modal.onDidDismiss(() => {
+      this.offlineLoadFavorites();
+    });
+    modal.present();
+  }
+
+
+  // --------------------------------------------------------------------------------------------------------------------
+  // Stacked Menu
+  // --------------------------------------------------------------------------------------------------------------------
+  stackedMenu(event) {
+    this.menu_popover = this.popoverCtrl.create(MenuPage).present({ev: event});
+  }
+
+
+  // --------------------------------------------------------------------------------------------------------------------
+  // Remove Menu Pop Over
+  // --------------------------------------------------------------------------------------------------------------------
+  removePopOver() {
+    // this.menu_popover.hide();    
+  }
+
+
+  // --------------------------------------------------------------------------------------------------------------------
+  // View Node Details
+  // --------------------------------------------------------------------------------------------------------------------
+  viewDetails(node) {
+    this.navCtrl.push(NodePage, {
       node: node
     });
   }
-
 }

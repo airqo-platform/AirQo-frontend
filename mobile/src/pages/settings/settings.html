@@ -1,0 +1,49 @@
+<ion-header>
+  <ion-navbar>
+    <ion-title>Settings</ion-title>
+  </ion-navbar>
+</ion-header>
+
+<ion-content>
+
+  <ion-item-group>
+    <ion-item-divider color="light">Places</ion-item-divider>
+    <ion-item (click)="goToFavoritesPage()">
+      Manage Places
+      <ion-icon name="arrow-forward" item-end></ion-icon>
+    </ion-item>
+  </ion-item-group>
+
+  <br/>
+  <br/>
+  <ion-item-group>
+    <ion-item-divider color="light">Notifications</ion-item-divider>
+    <ion-item (click)="goToDailyReportsPage()">
+      Daily Reports
+      <ion-icon name="arrow-forward" item-end></ion-icon>
+    </ion-item>
+    <!-- <ion-item>
+      Threshold Alerts
+      <ion-icon name="arrow-forward" item-end></ion-icon>
+    </ion-item> -->
+    <ion-item >
+      <ion-label>Persistent Notifications</ion-label>
+      <ion-toggle [(ngModel)]="persistent_notifications_state" (ionChange)="enableDisablePersistentNotifications()" [checked]="persistent_notifications_state"></ion-toggle>
+    </ion-item>
+  </ion-item-group>
+  
+  <br/>
+  <br/>
+  <ion-item-group>
+    <ion-item-divider color="light">Support</ion-item-divider>
+    <ion-item (click)="goToFeedbackPage()">
+      Send Us Feedback
+      <ion-icon name="arrow-forward" item-end></ion-icon>
+    </ion-item>
+    <ion-item (click)="rateApp()">
+      Rate Us
+      <ion-icon name="arrow-forward" item-end></ion-icon>
+    </ion-item>
+  </ion-item-group>
+
+</ion-content>

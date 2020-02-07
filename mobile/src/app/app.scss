@@ -16,30 +16,21 @@
 // automatically applied to the <body> element in the app.
 
 
-@media(max-width: 512px) {
-    .always-modal .modal-wrapper {
-        background-color: rgba(0, 0, 0, 0.5);
-        
-        ion-content.content{
-            top: 20%;
-            left: 10%;
-            width: 80%;
-            height: 50%;
-        }
-     }
+ion-navbar {
+  .toolbar-title {
+    margin: 0;
+    padding: 0;
+    text-align: left;
+  }
+
+  // Here is how you can center your title
+  &.toolbar {
+      // padding-left: 0;
+      // padding-top: 0;
+      // padding-bottom: 0;
+  }
+
+  html, body, ion-app, ion-content, ion-page, .nav-decor {
+    background-color: transparent !important;
+  }
 }
-
-// --------------------------------------------------
-
-.no-internet {
-  text-align: center;
-  font-size: 2em;
-  color: $airqo_word_blue;
-}
-
-// --------------------------------------------------
-ion-header ion-icon.back-button-icon.icon {
-  color: map-get($colors, airqo_blue);
-}
-
-// $toolbar-button-color: color: map-get($colors, airqo_blue);

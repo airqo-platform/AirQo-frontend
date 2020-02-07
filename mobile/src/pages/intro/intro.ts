@@ -1,12 +1,9 @@
+import { HomePage } from './../home/home';
 import { Storage } from '@ionic/storage';
 import { Component } from '@angular/core';
 import { ViewChild } from '@angular/core';
 import { NavController, NavParams } from 'ionic-angular';
 import { Slides } from 'ionic-angular';
-
-
-// import { HomePage } from '../home/home';
-import { TabsPage } from '../tabs/tabs';
 
 @Component({
   selector: 'page-intro',
@@ -16,23 +13,29 @@ export class IntroPage {
 
   @ViewChild(Slides) slides: Slides;
 
-  constructor(public navCtrl: NavController, public navParams: NavParams, public storage: Storage) {
+  constructor(private navCtrl: NavController, private navParams: NavParams, private storage: Storage) {
   }
 
 
   // --------------------------------------------------------------------------------------------------------------------
   // When the view loads
   // --------------------------------------------------------------------------------------------------------------------
-  ionViewDidLoad() {
-    console.log('ionViewDidLoad IntroPage');
+  ionViewDidLoad() { }
+
+
+  // --------------------------------------------------------------------------------------------------------------------
+  // Go To Previous Slide
+  // --------------------------------------------------------------------------------------------------------------------
+  previousSlide() {
+    this.slides.slidePrev(500);
   }
 
 
   // --------------------------------------------------------------------------------------------------------------------
   // Go To Next Slide
   // --------------------------------------------------------------------------------------------------------------------
-  nextSlide(slide) {
-    this.slides.slideTo(slide, 500);
+  nextSlide() {
+    this.slides.slideNext(500);
   }
 
 
@@ -40,8 +43,8 @@ export class IntroPage {
   // Go To HomePage
   // --------------------------------------------------------------------------------------------------------------------
   goToHomePage(){
-    this.storage.set('view_intro_page', '0');
-    this.navCtrl.push(TabsPage);
+    this.storage.set('intro_page', '1');
+    this.navCtrl.push(HomePage);
   }
 
 }

@@ -1,14 +1,13 @@
 <ion-slides>
 
-  <ion-slide>
+  <ion-slide class="bg-blue">
     <ion-grid>
       <ion-row text-center>
         <ion-col>
           <div class="logo-section">
-            <img src="assets/imgs/logo-transparent.png"/>
+            <img src="assets/logos/logo-white-tagline.png"/>
           </div>
-          <p>Understand the state of air quality around you in Kampala</p>
-          <button (click)="nextSlide(1)" ion-button color="light" clear full class="btn-getting-started grid-bottom">
+          <button (click)="nextSlide()" ion-button color="light" clear full class="btn-getting-started grid-bottom">
             Get Started
           </button>
         </ion-col>
@@ -16,7 +15,45 @@
     </ion-grid>
   </ion-slide>
 
-  <ion-slide>
+  <ion-slide class="bg-green">
+    <ion-grid>
+      <ion-row text-center>
+        <ion-col>
+          <div class="logo-section">
+            <img src="assets/logos/logo-white.png"/>
+          </div>
+          <p class="slide-sub-title">Know your air</p>
+          <button (click)="nextSlide()" ion-button color="light" clear full class="btn-getting-started grid-bottom">
+            Get Started
+          </button>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+    <!-- <div class="logo-section">
+      <img src="assets/logos/logo-white.png"/>
+    </div>
+    <p class="slide-sub-title">Understand the state of air quality around you in Kampala</p> -->
+
+    <ion-grid class="grid-bottom">
+      <ion-row>
+        <ion-col>
+          <button (click)="goToHomePage()" ion-button color="light" clear full>
+            Skip
+          </button>
+        </ion-col>
+        <ion-col>
+          <button (click)="nextSlide()" ion-button color="light" clear full>
+            Next
+          </button>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </ion-slide>
+
+  <ion-slide class="bg-yellow">
+    <div class="logo-section">
+      <img src="assets/logos/logo-white.png"/>
+    </div>
     <p class="slide-sub-title">Fine-grained and Real-time Air Quality Data</p>
 
     <ion-grid class="grid-bottom">
@@ -27,7 +64,7 @@
           </button>
         </ion-col>
         <ion-col>
-          <button (click)="nextSlide(2)" ion-button color="light" clear full>
+          <button (click)="nextSlide()" ion-button color="light" clear full>
             Next
           </button>
         </ion-col>
@@ -35,13 +72,16 @@
     </ion-grid>
   </ion-slide>
 
-  <ion-slide>
+  <ion-slide class="bg-black">
+    <div class="logo-section">
+      <img src="assets/logos/logo-white.png"/>
+    </div>
     <p class="slide-sub-title">Know which places to avoid</p>
 
     <ion-grid class="grid-bottom">
       <ion-row>
         <ion-col>
-          <button (click)="nextSlide(1)" ion-button color="light" clear full>
+          <button (click)="previousSlide()" ion-button color="light" clear full>
             Back
           </button>
         </ion-col>
