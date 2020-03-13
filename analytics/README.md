@@ -1,68 +1,32 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## Analytics
 
-## Available Scripts
+## What is Analytics
+**Analytics** is one of the many products of [AirQo](https://airqo.net) designed based on specific user need. This front-end `dir` provides the presentation logic of the platform using lastest technologies.<br /> <br /> 
+**Analytics Front-end** is based on [React](https://reactjs.org/) JavaScript library. We chose this framework to give numerous flexibilities:<br />
+- Rapid prototyping
+- Resuable components
+- Easy build, test, deploy process
+- Enforces industry standard design patterns
+- Guarantees stable code and maintenance
+- etc.
 
-In the project directory, you can run:
+## Installation and Usage 
+1. **Run app locally in development mode:** Clone and `cd` to the project directory, you can run: <br />
+`npm install` to install all the dependencies followed by `npm start`.<br />
+Open [http://localhost:3000](http://localhost:3000) to view it in the browser.<br />
+**Other useful scripts:**<br />
+`npm test` launches the test runner in the interactive watch mode.<br />
+`npm run build` builds the app for production to the `build` folder.<br />
+2. **Running on a Cloud Computing Platform (GCE, AWS, Azure)”** You will build, upload and deploy the container image to a Kubernetes cluster on [Google Cloud Engine](https://cloud.google.com/), [AWS](https://aws.amazon.com/) or [Azure](http://azure.microsoft.com/en-us/).
 
-### `npm start`
+## Features
+- State managment, Routing and Localisation
+- Consuming RESTFUL APIs based on Python Flask and MongoDB [backend](https://github.com/airqo-platform/AirQo-api/tree/master/src/analytics)
+- Container-based deployment using [Docker](https://www.docker.com/) and [Kubernetes](https://kubernetes.io/)
+- Awesome UI/UX design, high-quality code and test coverage
 
-Runs the app in the development mode.<br />
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+## Contributing
+We invite you to help us build this platform. Please look up the [contributing guide](https://github.com/airqo-platform/AirQo-frontend/wiki/Coding-Guidelines) for details.
 
-The page will reload if you make edits.<br />
-You will also see any lint errors in the console.
-
-### `npm test`
-
-Launches the test runner in the interactive watch mode.<br />
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
-
-### `npm run build`
-
-Builds the app for production to the `build` folder.<br />
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.<br />
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
-
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/code-splitting
-
-### Analyzing the Bundle Size
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size
-
-### Making a Progressive Web App
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app
-
-### Advanced Configuration
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/advanced-configuration
-
-### Deployment
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/deployment
-
-### `npm run build` fails to minify
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify
+## Issues
+Before reporting a problem, please check out the [issue guide](https://github.com/airqo-platform/AirQo-frontend/wiki/Coding-Guidelines).
