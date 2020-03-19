@@ -1,0 +1,1 @@
+contains truly generic and reusable utilities and components: hooks, generic components, utils, etc
