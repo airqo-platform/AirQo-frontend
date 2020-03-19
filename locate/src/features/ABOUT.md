@@ -1,1 +1,0 @@
-contains folders with all functionality related to a specific feature

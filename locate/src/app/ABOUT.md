@@ -1,1 +1,0 @@
-contains app wide set up and layout that depends on all the other folders
