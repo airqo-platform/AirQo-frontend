@@ -1,11 +1,3 @@
-<?php 
-if (isset($this->session->userdata['logged_in']['name']))
-      {
-            
-            redirect('App/categories'); 
-       } 
-
-?>
 	<!DOCTYPE html>
 	<html lang="en">
 	<!--<![endif]-->
@@ -58,7 +50,6 @@ if (isset($this->session->userdata['logged_in']['name']))
 		<!-- BEGIN LOGIN FORM -->
 
 		<?php echo validation_errors(); ?>
-		<!-- <form class="login-form" action="<?= site_url('App/login'); ?>" method="post"> -->
 		<?php
 		if($this->session->flashdata('flash_message_error')){
 

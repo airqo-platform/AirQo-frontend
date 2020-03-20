@@ -1,5 +1,5 @@
 <?php
-if (isset($this->session->userdata['logged_in']['admin_name'])) { } else {
+if (isset($this->session->userdata['loggedin']['adminname'])) { } else {
      redirect('Admin/index');
 }
 ?>
@@ -102,9 +102,9 @@ if (isset($this->session->userdata['logged_in']['admin_name'])) { } else {
 
                               <a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown" data-hover="dropdown" data-close-others="true">
                                    <?php
-                                   if (!empty($this->session->userdata['logged_in']['admin_image'])) {
+                                   if (!empty($this->session->userdata['loggedin']['adminimage'])) {
                                         echo '
-                                        <img alt="" class="img-circle" src="' . base_url() . 'assets/images/admins/' . $this->session->userdata['logged_in']['admin_image'] . '" style="height:30px; width:30px; object-fit:cover;"/>
+                                        <img alt="" class="img-circle" src="' . base_url() . 'assets/images/admins/' . $this->session->userdata['loggedin']['adminimage'] . '" style="height:30px; width:30px; object-fit:cover;"/>
                                         ';
                                    } else {
                                         echo '
@@ -160,7 +160,7 @@ if (isset($this->session->userdata['logged_in']['admin_name'])) { } else {
                                    <div style="font-size: 10px;" id="msgEdit"></div>
                                    <div class="form-group col-md-6">
                                         <b>Full Name:</b>
-                                        <input type="text" name="admin_name" value="<?php echo $this->session->userdata['logged_in']['admin_name']; ?>" class="form-control" placeholder="Enter full name" required />
+                                        <input type="text" name="admin_name" value="<?php echo $this->session->userdata['loggedin']['adminname']; ?>" class="form-control" placeholder="Enter full name" required />
                                    </div>
 
                                    <div class="form-group col-md-6">
@@ -170,7 +170,7 @@ if (isset($this->session->userdata['logged_in']['admin_name'])) { } else {
                                    </div>
                                    <div class="form-group col-md-6">
                                         <b>User Name:</b>
-                                        <input type="text" value="<?php echo $this->session->userdata['logged_in']['admin_username']; ?>" name="admin_username" class="form-control" placeholder="Enter user name" required />
+                                        <input type="text" value="<?php echo $this->session->userdata['loggedin']['adminusername']; ?>" name="admin_username" class="form-control" placeholder="Enter user name" required />
                                    </div>
                                    <div class="form-group col-md-6">
                                         <b>New Password:</b>
@@ -178,7 +178,7 @@ if (isset($this->session->userdata['logged_in']['admin_name'])) { } else {
                                    </div>
                                    <div class="form-group col-md-6">
                                         <b>Email:</b>
-                                        <input type="text" name="admin_email" value="<?php echo $this->session->userdata['logged_in']['admin_email']; ?>" class="form-control" placeholder="Enter email" required />
+                                        <input type="text" name="admin_email" value="<?php echo $this->session->userdata['loggedin']['adminemail']; ?>" class="form-control" placeholder="Enter email" required />
                                    </div>
                                    <div class="form-group col-md-6">
                                         <b>Confirm Password:</b>
@@ -186,17 +186,17 @@ if (isset($this->session->userdata['logged_in']['admin_name'])) { } else {
                                    </div>
                                    <div class="form-group col-md-6">
                                         <b>Phone Number:</b>
-                                        <input type="text" name="admin_phoneNumber" value="<?php echo $this->session->userdata['logged_in']['admin_phoneNumber']; ?>" class="form-control" placeholder="Enter phone number" />
+                                        <input type="text" name="admin_phoneNumber" value="<?php echo $this->session->userdata['loggedin']['adminphoneNumber']; ?>" class="form-control" placeholder="Enter phone number" />
                                    </div>
                                    <div class="form-group col-md-6">
                                         <b>Role:</b>
                                         <select class="form-control" name="admin_role">
-                                             <option value="<?= $this->session->userdata['logged_in']['admin_role']; ?>"><?= $this->session->userdata['logged_in']['admin_role']; ?></option>
+                                             <option value="<?= $this->session->userdata['loggedin']['adminrole']; ?>"><?= $this->session->userdata['loggedin']['adminrole']; ?></option>
                                         </select>
                                    </div>
                                    <div class="form-group col-md-12">
                                         <b>Previous Profile Image:</b>
-                                        <img src="<?php echo base_url() ?>assets/images/admins/<?= $this->session->userdata['logged_in']['admin_image']; ?>" src="" height="100px" width="100px" class="thumbnail" />
+                                        <img src="<?php echo base_url() ?>assets/images/admins/<?= $this->session->userdata['loggedin']['adminimage']; ?>" src="" height="100px" width="100px" class="thumbnail" />
                                         <b>New Image:</b>
                                         <input type="file" name="admin_image" class="" alt="select a new image here" />
                                    </div>

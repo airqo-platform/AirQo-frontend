@@ -381,6 +381,7 @@
 <script src="<?= base_url(); ?>assets/admin/layout/scripts/layout.js" type="text/javascript"></script>
 <script src="<?= base_url(); ?>assets/admin/layout/scripts/quick-sidebar.js" type="text/javascript"></script>
 <script src="<?= base_url(); ?>assets/admin/layout/scripts/demo.js" type="text/javascript"></script>
+<script src="<?= base_url(); ?>assets/global/scripts/loadingoverlay.min.js"></script>
 <!-- <script src="<?= base_url(); ?>assets/admin/pages/scripts/table-advanced.js"></script> -->
 <!-- <script src="<?= base_url(); ?>assets/global/scripts/loadingoverlay.min.js"></script> -->
 <!-- <script src="<?= base_url(); ?>assets/ckeditor/ckeditor.js"></script> -->
@@ -436,7 +437,7 @@ function handleFileSelect1(event) {
 };
 
 function confirmUpload() {
-	// $.LoadingOverlay("show");
+	$.LoadingOverlay("show");
 	var metadata = {
 		contentType: 'image'
 	};
@@ -455,7 +456,7 @@ function confirmUpload() {
   		// For instance, get the download URL: https://firebasestorage.googleapis.com/...
   		uploadTask.snapshot.ref.getDownloadURL().then(function(downloadURL){
 			// console.log(downloadURL);
-			// $.LoadingOverlay("hide");
+			$.LoadingOverlay("hide");
 			$('#fb_downloadURL').val(downloadURL);
 		});
 
@@ -482,7 +483,7 @@ function confirmUpload1() {
   		// For instance, get the download URL: https://firebasestorage.googleapis.com/...
   		uploadTask.snapshot.ref.getDownloadURL().then(function(downloadURL){
 			// console.log(downloadURL);
-			// $.LoadingOverlay("hide");
+			$.LoadingOverlay("hide");
 			$('#efb_downloadURL').val(downloadURL);
 		});
 

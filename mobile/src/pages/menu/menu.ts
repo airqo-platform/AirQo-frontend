@@ -3,6 +3,7 @@ import { Component } from '@angular/core';
 import { NavController, NavParams, ActionSheetController, AlertController } from 'ionic-angular';
 import { SocialSharing } from '@ionic-native/social-sharing';
 import { Storage } from '@ionic/storage';
+import { Device } from '@ionic-native/device';
 
 import { KeyPage } from './../key/key';
 import { MapPage } from './../map/map';
@@ -23,7 +24,7 @@ export class MenuPage {
 
   sign_in_or_sign_up_label: string = 'Sign In';
 
-  constructor(public navCtrl: NavController, public navParams: NavParams, private socialSharing: SocialSharing, 
+  constructor(public navCtrl: NavController, public navParams: NavParams, private socialSharing: SocialSharing, private device: Device, 
     private actionSheetCtrl: ActionSheetController, private storage: Storage, private alertCtrl: AlertController) {
       this.getUserInfo();
   }
@@ -110,7 +111,17 @@ export class MenuPage {
   // Share via WhatsApp
   // --------------------------------------------------------------------------------------------------------------------
   shareViaWhatsApp() {
-    this.socialSharing.shareViaWhatsApp("Check out AirQo app via www.airqo.net.", 'assets/logos/logo-blue.png', 'www.airqo.net').then((entries) => {
+    let link: any;
+
+    if(this.device.platform){
+      if(this.device.platform.toLowerCase() == "android"){
+        link = "https://play.google.com/store/apps/details?id=com.buzen.contract.airqoapp";
+      } else {
+        link = "https://itunes.apple.com/ug/app/airqo-monitoring-air-quality/id1337573091?mt=8";
+      }
+    }
+
+    this.socialSharing.shareViaWhatsApp("Check out the AirQo app", 'assets/logos/logo-blue.png', link).then((entries) => {
       // 
     }).catch((error) => {
       alert('Unable to Invite. ');
@@ -122,7 +133,17 @@ export class MenuPage {
   // Share via Message
   // --------------------------------------------------------------------------------------------------------------------
   shareViaMessage() {
-    this.socialSharing.share("Check out AirQo app via www.airqo.net.", "AirQo", 'assets/logos/logo-blue.png', 'www.airqo.net').then((entries) => {
+    let link: any;
+
+    if(this.device.platform){
+      if(this.device.platform.toLowerCase() == "android"){
+        link = "https://play.google.com/store/apps/details?id=com.buzen.contract.airqoapp";
+      } else {
+        link = "https://itunes.apple.com/ug/app/airqo-monitoring-air-quality/id1337573091?mt=8";
+      }
+    }
+
+    this.socialSharing.share("Check out the AirQo app", "AirQo", 'assets/logos/logo-blue.png', link).then((entries) => {
       // 
     }).catch((error) => {
       alert('Unable to Invite. ');
@@ -134,7 +155,17 @@ export class MenuPage {
   // Share via Other
   // --------------------------------------------------------------------------------------------------------------------
   shareViaOther() {
-    this.socialSharing.share("Check out AirQo app via www.airqo.net.", "AirQo", null, null).then((entries) => {
+    let link: any;
+
+    if(this.device.platform){
+      if(this.device.platform.toLowerCase() == "android"){
+        link = "https://play.google.com/store/apps/details?id=com.buzen.contract.airqoapp";
+      } else {
+        link = "https://itunes.apple.com/ug/app/airqo-monitoring-air-quality/id1337573091?mt=8";
+      }
+    }
+
+    this.socialSharing.share("Check out the AirQo app", "AirQo", null, link).then((entries) => {
       // 
     }).catch((error) => {
       alert('Unable to Invite.');

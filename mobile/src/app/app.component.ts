@@ -6,6 +6,7 @@ import { StatusBar } from '@ionic-native/status-bar';
 import { SplashScreen } from '@ionic-native/splash-screen';
 import { Storage } from '@ionic/storage';
 import { Device } from '@ionic-native/device';
+import { OneSignal } from '@ionic-native/onesignal';
 
 @Component({
   templateUrl: 'app.html'
@@ -14,12 +15,22 @@ export class MyApp {
   rootPage: any;
   
   constructor(app: App, platform: Platform, statusBar: StatusBar, splashScreen: SplashScreen, private storage: Storage, device: Device, 
-    alertCtrl: AlertController) {
+    alertCtrl: AlertController, oneSignal: OneSignal) {
     platform.ready().then(() => {
       statusBar.styleDefault();
       splashScreen.hide();
 
       if(device.platform){
+        let iosSettings = {};
+        iosSettings["kOSSettingsKeyAutoPrompt"]     = true;
+        iosSettings["kOSSettingsKeyInAppLaunchURL"] = false;
+        oneSignal.startInit('302cd33b-27ea-4035-8fd7-ba14eed9ff89', '1093508119261').iOSSettings(iosSettings);
+
+        oneSignal.inFocusDisplaying(oneSignal.OSInFocusDisplayOption.InAppAlert);
+        oneSignal.handleNotificationOpened().subscribe(() => { });
+        oneSignal.clearOneSignalNotifications();
+        oneSignal.endInit();
+
         if(device.platform.toLowerCase() == "android"){
           platform.registerBackButtonAction(() => {
             let nav = app.getActiveNavs()[0];

@@ -36,8 +36,9 @@ page-key {
    }
    .heading {
       background-color: color($colors, blue);
-      color:#000000;
+      color:#ffffff;
       font-weight: 400;
+      height: 5rem;
    }
    .title {
     color: #efeef2;
@@ -45,6 +46,10 @@ page-key {
    }
 
    // -----------------------------------------------------------------------------------------
+
+   .black {
+    color: color($colors, black);
+   }
 
   .bg-green {
     background-color: color($colors, green);;

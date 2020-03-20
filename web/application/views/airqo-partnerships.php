@@ -6,7 +6,7 @@
 			<div class="" style="margin-top: 15px; padding-left: 15px; padding-right: 15px;">
 				<div class="buzen-header">
 					<div class="row">
-						<h4><b>Partner with AirQo</b></h4>
+						<h4><b>Partnerships</b></h4>
 						<h5><?= $partnerships['pg_excerts']; ?></h5>
 					</div>
 				</div>

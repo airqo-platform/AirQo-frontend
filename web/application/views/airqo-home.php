@@ -1,6 +1,7 @@
 <link rel="stylesheet" href="<?= base_url(); ?>assets/leaflet/leaflet.css">
 <link rel="stylesheet" href="<?= base_url(); ?>assets/leaflet/dist/MarkerCluster.css">
 <link rel="stylesheet" href="<?= base_url(); ?>assets/leaflet/dist/MarkerCluster.Default.css">
+<link rel="stylesheet" href="<?= base_url(); ?>assets/leaflet/leaflet.fullscreen.css">
 <script src="<?= base_url(); ?>assets/leaflet/leaflet.js"></script>
 <!-- <script src="https://code.highcharts.com/highcharts.js"></script> -->
 <!-- <script src="https://code.highcharts.com/modules/pareto.js"></script> -->
@@ -10,6 +11,7 @@
 <script src="<?= base_url(); ?>assets/code/modules/export-data.js"></script>
 <script src="<?= base_url(); ?>assets/leaflet/leaflet.markercluster-src.js"></script>
 <!-- <script src="https://code.highcharts.com/stock/indicators/indicators.js"></script> -->
+<!-- PM Particulate Matter -->
 <style>
 	.map-scroll:before {
 		content: 'Use ctrl + scroll to zoom the map';
@@ -19,6 +21,7 @@
 		z-index: 999;
 		font-size: 34px;
 	}
+
 	.map-scroll:after {
 		position: absolute;
 		left: 0;
@@ -29,6 +32,7 @@
 		background: #00000061;
 		z-index: 999;
 	}
+
 	/* Main container */
 	.overlay-image {
 		position: relative;
@@ -55,24 +59,104 @@
 		transform: translate(60%, -40%);
 		width: 100%;
 	}
+
 	.mycluster {
-			width: 40px;
-			height: 40px;
-			transform: translate3d(558px, 302px, 0px);
-			background-color: rgba(48, 103, 226, 1);
-			text-align: center;
-			font-size: 12px;
-			border-radius: 50%;
-			padding-top: 10px;
-			color: #fff;
-			outline: 5px solid rgba(48, 103, 226, 0.3);
-			-moz-outline-radius: 60%;
+		width: 40px;
+		height: 40px;
+		transform: translate3d(558px, 302px, 0px);
+		background-color: rgba(48, 103, 226, 1);
+		text-align: center;
+		font-size: 12px;
+		border-radius: 50%;
+		padding-top: 10px;
+		color: #fff;
+		outline: 5px solid rgba(48, 103, 226, 0.3);
+		-moz-outline-radius: 60%;
+	}
+
+	/* .custom-popup .leaflet-popup-content-wrapper {
+			font-size: 16px;
+			line-height: 24px;
+			border-radius: 0px;
 		}
+
+		.custom-popup .leaflet-popup-content-wrapper a {
+			color: rgba(255, 255, 255, 0.1);
+		}
+
+		.custom-popup .leaflet-popup-tip-container {
+			width: 30px;
+			height: 15px;
+			border: 2px solid green;
+		}
+
+		.custom-popup .leaflet-popup-tip {
+			background: transparent;
+			border: none;
+			box-shadow: none;
+		} */
+
+	.marker-pin {
+		width: 30px;
+		height: 30px;
+		border-radius: 50% 50% 50% 50%;
+		position: absolute;
+		transform: rotate(-45deg);
+		/* border: 2px solid #fff; */
+		left: 50%;
+		top: 50%;
+		margin: -15px 0 0 -15px;
+	}
+
+	.marker-pin::after {
+		content: '';
+		width: 30px;
+		height: 30px;
+		margin: 0px 1px 1px 1px;
+		/* background: #fff; */
+		/* border: 2px solid #fff; */
+		position: absolute;
+		border-radius: 50%;
+	}
+
+	.custom-airqo-icon span {
+		position: absolute;
+		width: 22px;
+		font-size: 12px;
+		left: 0;
+		right: 0;
+		margin: 12px 0px 0px 4px;
+		text-align: center;
+	}
 </style>
+
+
+
 <!-- cards section -->
 <div class="buzen-card-section from-top" id="buzen-card-section">
 	<div class="container">
+
 		<div class="row">
+			<div class="modal" id="popup" tabindex="1" role="dialog" style="z-index: 999999999999;">
+				<div class="modal-dialog" role="document">
+					<div class="modal-content">
+						<div class="modal-header" style="background-color: #3067e2;">
+							<h2 class="modal-title"><img src="<?php echo base_url(); ?>assets/images/logo.png" style="width: 100px !important;"></h2>
+							<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+								<span aria-hidden="true" style="color: #fff;">&times;</span>
+							</button>
+						</div>
+						<div class="modal-body">
+							<h3 class="text-center" style="font-family: OpenSansLight;">We are launching in</h3>
+							<h2 class="text-center" style="font-family: OpenSansLight;" id="countdown"></h2>
+						</div>
+						<div class="modal-footer">
+							<a href="<?= site_url('airqo-launch'); ?>" type="button" class="btn btn-block btn-primary">View More!</a>
+							<!-- <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button> -->
+						</div>
+					</div>
+				</div>
+			</div>
 			<!-- Know your air header -->
 			<div class="col-md-8 col-lg-8 col-sm-8 col-xs-12">
 				<div class="buzen-header">
@@ -88,7 +172,7 @@
 						<div class="row">
 							<div class="">
 								<form method="POST" action="#">
-									<input type="text" id="search-value" name="search" class="form-control" placeholder="Your town, City, District..." required>
+									<input type="text" id="search-value" name="search" class="form-control" placeholder="Search your town, City, District..." required>
 									<button class="btn btn-default " name="submit"> <i class="fa fa-search"></i> </button>
 								</form>
 								<div style="position:relative; z-index: 999;">
@@ -117,29 +201,57 @@
 					</div>
 				</div>
 			</div>
+			<div>&nbsp;</div>
 			<div class="col-md-12 col-lg-12 col-sm-12 col-xs-12">
-				<div class="">
-					<div class="">
-						<h4>Key</h4>
-						<button style="background-color: #45e50d; color: #000;" type="button" class="btn col-md-2 col-sm-12 col-xs-12" style="margin: 1px !important;"><img src="<?= base_url(); ?>assets/images/face_good.png" class="pull-left" style="width: 20px;" /><b><small>Good<br>(0 - 12)</small></b></button>
-						<button style="background-color: #f8fe28; color: #000;" type="button" class="btn col-md-2 col-sm-12 col-xs-12" style="margin: 1px !important;"><img src="<?= base_url(); ?>assets/images/face_moderate.png" class="pull-left" style="width: 20px;" /><b><small>Moderate<br>(12.1 - 35.4)</small></b></button>
-						<button style="background-color: #ee8310; color: #fff;" type="button" class="btn col-md-2 col-sm-12 col-xs-12" style="margin: 1px !important;"><img src="<?= base_url(); ?>assets/images/face_unhealthy.png" class="pull-left" style="width: 20px;" /><b><small>Unhealthy<br>(35.6 - 55.4)</small></b></button>
-						<button style="background-color: #fe0000; color: #fff;" type="button" class="btn col-md-2 col-sm-12 col-xs-12" style="margin: 1px !important;"><img src="<?= base_url(); ?>assets/images/face_unhealthy1.png" class="pull-left" style="width: 20px;" /><b><small>Unhealthy<br>(55.5 - 150.4)</small></b></button>
-						<button style="background-color: #8639c0; color: #fff;" type="button" class="btn col-md-2 col-sm-12 col-xs-12" style="margin: 1px !important;"><img src="<?= base_url(); ?>assets/images/face_vunhealthy.png" class="pull-left" style="width: 20px;" /><b><small>Very Unhealthy<br>(150.5 - 250.4)</small></b></button>
-						<button style="background-color: #81202e; color: #fff;" type="button" class="btn col-md-2 col-sm-12 col-xs-12" style="margin: 1px !important;"><img src="<?= base_url(); ?>assets/images/face_hazardous.png" class="pull-left" style="width: 20px;" /><b><small>Hazardous<br>(250.5 - 500.4)</small></b></button>
-						<p>PM<sub>2.5</sub> - Particle Matter</p>
+				<div class="col-md-2 col-sm-12 col-xs-12" style="background-color: #45e50d; color: #000; text-align: center; padding: 3px;">
+					<img src="<?= base_url(); ?>assets/images/face_good.png" style="width: 20px;" />&nbsp;&nbsp;&nbsp;<b><small>Good <br><br>(0 - 12)</small></br>
+				</div>
+				<div class="col-md-2 col-sm-12 col-xs-12" style="background-color: #f8fe28; color: #000; text-align: center; padding: 3px;">
+					<img src="<?= base_url(); ?>assets/images/face_moderate.png" style="width: 20px;" />&nbsp;&nbsp;&nbsp;<b><small>Moderate<br><br />(12.1 - 35.4)</small></b>
+				</div>
+				<div class="col-md-2 col-sm-12 col-xs-12" style="background-color: #ee8310; color: #fff; text-align: center; padding: 3px;">
+					<img src="<?= base_url(); ?>assets/images/face_unhealthy.png" style="width: 20px;" />&nbsp;&nbsp;&nbsp;<b><small>Unhealthy for <br />sensitive groups<br>(35.6 - 55.4)</small></br>
+				</div>
+				<div class="col-md-2 col-sm-12 col-xs-12" style="background-color: #fe0000; color: #fff; text-align: center; padding: 3px;">
+					<img src="<?= base_url(); ?>assets/images/face_unhealthy1.png" style="width: 20px;" />&nbsp;&nbsp;&nbsp;<b><small>Unhealthy<br /><br>(55.5 - 150.4)</small></b>
+				</div>
+				<div class="col-md-2 col-sm-12 col-xs-12" style="background-color: #8639c0; color: #fff; text-align: center; padding: 3px;">
+					<img src="<?= base_url(); ?>assets/images/face_vunhealthy.png" style="width: 20px;" />&nbsp;&nbsp;&nbsp;<b><small>Very Unhealthy<br /><br>(150.5 - 250.4)</small></b>
+				</div>
+				<div class="col-md-2 col-sm-12 col-xs-12" style="background-color: #81202e; color: #fff; text-align: center; padding: 3px;">
+					<img src="<?= base_url(); ?>assets/images/face_hazardous.png" style="width: 20px;" />&nbsp;&nbsp;&nbsp;<b><small>Hazardous<br><br />(250.5 - 500.4)</small></b>
+				</div>
+				<br>
+				<br>
+				<p>PM<sub>2.5</sub> - Particulate Matter</p>
+			</div>
+
+			<div class="col-md-12 col-lg-12 col-sm-12 col-xs-12">
+				<hr>
+				<h4>AirQo is supported by</h4>
+				<hr>
+				<div class="row">
+					<div class="col-sm-12 col-md-9 col-lg-9 col-xl-9">
+						<img src="<?= base_url(); ?>assets/images/partners/googleorg.png" style="width:160px !important; padding-top: 20px;" alt="">
+						<img src="<?= base_url(); ?>assets/images/partners/embassy.png" style="width:160px !important; padding-top: 20px;" alt="">
+						<img src="<?= base_url(); ?>assets/images/partners/epsrc.png" style="width:160px !important; padding-top: 20px;" alt="">
+						<img src="<?= base_url(); ?>assets/images/partners/nfr.png" style="width:160px !important; padding-top: 20px;" alt="">
+						<img src="<?= base_url(); ?>assets/images/partners/world-bank.png" style="width:160px !important; padding-top: 0px;" alt="">
+					</div>
+
+					<div class="col-md-3">
+						<div class="row">
+							<h4><b>Download AirQo now</b></h4>
+							<h5>know the air in locations that matter to you</h5>
+							<a href="https://itunes.apple.com/ug/app/airqo-monitoring-air-quality/id1337573091?mt=8" target="_blank">
+								<img style="width: 140px !important;" src="<?= base_url(); ?>assets/images/appstore.png">
+							</a>
+							<a href="https://play.google.com/store/apps/details?id=com.buzen.contract.airqoapp" target="_blank">
+								<img style="width:140px !important;" src="<?= base_url(); ?>assets/images/playstore.png">
+							</a>
+						</div>
 					</div>
 				</div>
-			</div>
-			<div class="col-md-12 col-lg-12 col-sm-12 col-xs-12">
-				<h4>Download AirQo now</h4>
-				<h5>know the air in locations that matter to you</h5>
-				<a href="https://itunes.apple.com/ug/app/airqo-monitoring-air-quality/id1337573091?mt=8" target="_blank">
-					<img class="left" style="width:150px;" src="<?= base_url(); ?>assets/images/appstore.png">
-				</a>
-				<a href="https://play.google.com/store/apps/details?id=com.buzen.contract.airqoapp" target="_blank">
-					<img class="right" style="width:150px;" src="<?= base_url(); ?>assets/images/playstore.png">
-				</a>
 			</div>
 			<!-- <div class="col-md-12">
 				
@@ -151,12 +263,67 @@
 
 </div>
 
+<script src="<?= base_url(); ?>assets/leaflet/Leaflet.fullscreen.min.js"></script>
 <script>
+	var numberOfDays = function(date) {
+		// To set two dates to two variables 
+		var date1 = new Date(date);
+		var currentDate = new Date();
+
+		// To calculate the time difference of two dates 
+		var Difference_In_Time = currentDate.getTime() - date1.getTime();
+
+		// To calculate the no. of days between two dates 
+		var Difference_In_Days = Difference_In_Time / (1000 * 3600 * 24);
+
+		return Difference_In_Days <= 0 ? 0 : Difference_In_Days;
+
+	}
+
+	var grayNode = function(days, color) {
+		if(parseFloat(days) > 2) {
+			return '#808080';
+		}
+		return color;
+	}
+
+	var grayNodeText = function(days, color) {
+		if(parseFloat(days) > 2) {
+			return '#fff';
+		}
+		return color;
+	}
+
+	function timeSince(date) {
+		let minute = 60;
+		let hour = minute * 60;
+		let day = hour * 24;
+		let month = day * 30;
+		let year = day * 365;
+
+		let suffix = ' ago';
+
+		let elapsed = Math.floor((Date.now() - date) / 1000);
+
+		if (elapsed < minute) {
+			return 'just now';
+		}
+
+		// get an array in the form of [number, string]
+		let a = elapsed < hour && [Math.floor(elapsed / minute), 'minute'] ||
+			elapsed < day && [Math.floor(elapsed / hour), 'hour'] ||
+			elapsed < month && [Math.floor(elapsed / day), 'day'] ||
+			elapsed < year && [Math.floor(elapsed / month), 'month'] || [Math.floor(elapsed / year), 'year'];
+
+		// pluralise and append suffix
+		return a[0] + ' ' + a[1] + (a[0] === 1 ? '' : 's') + suffix;
+	}
+
 	$(window).load(function() {
 		var map = L.map('leafletmap').setView([0.328015, 32.595011], 7);
+		map.addControl(new L.Control.Fullscreen());
 		if (L.Browser.mobile) {
 			map.scrollWheelZoom.disable();
-			// console.log('is mobile');
 		}
 
 		L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -167,7 +334,7 @@
 			type: 'POST',
 			url: '<?= site_url("Apis/airqoPlacesCached"); ?>',
 			data: {
-				api: "<AIRQO_CONNECTION_API_KEY>"
+				api: "AQ_9ec70a070c75E6af14FCca86/0621d1D83"
 			},
 			dataType: 'json',
 			beforeSend: function() {
@@ -176,168 +343,176 @@
 			success: function(data) {
 				var nodes = data.nodes;
 				// console.log(nodes);
-				var markers = L.markerClusterGroup();
+				// var markers = L.markerClusterGroup();
 
 				for (let i = 0; i < nodes.length; i++) {
 					var customPopup = ' <table class="table table-striped" style="width: 300px !important;">' +
-										'<tr>' +
-											'<th>' +
-												'<b>' + nodes[i].name + '</b><br>' +
-												'<b><small>' + nodes[i].an_type + '</small></<b>' +
-											'</th>' +
-										'</tr>' +
-										'<tr>' +
-											'<td class="vcolor text-center"></td>' +
-										'</tr>' +
-										'<tr>' +
-											'<td>Last Refreshed: '+ new Date(nodes[i].time) +'<br><a href="<?= site_url('node/'); ?>'+nodes[i].churl+'">More Details</a></td>' +
-										'</tr>' +
-									'</table>';
+						'<tr>' +
+						'<th>' +
+						'<b>' + nodes[i].name + '</b><br>' +
+						'<b><small>' + nodes[i].location + '</small></<b>' +
+						'</th>' +
+						'</tr>' +
+						'<tr>' +
+						'<td class="vcolor text-center"></td>' +
+						'</tr>' +
+						'<tr>' +
+						'<td>Last Refreshed: ' + timeSince(new Date(nodes[i].time)) + '<br><a href="<?= site_url('node/'); ?>' + nodes[i].churl + '">More Details</a></td>' +
+						'</tr>' +
+						'</table>';
+
+						
 
 					if (nodes[i].field2 >= 0 && nodes[i].field2 <= 12) {
 						var marker = L.marker([nodes[i].lat, nodes[i].lng], {
 							icon: new L.DivIcon({
-								className: 'my-div-icon',
-								html: '<div class="overlay-image">' +
-									'<img class="image" src="<?= base_url(); ?>assets/images/marker-good.png" />' +
-									'<div class="text" style="color: #000 !important;">' + Math.round(nodes[i].field2) + '</div>' +
-									'</div>'
+								className: 'custom-airqo-icon',
+								html: '<div style="background-color:' + grayNode(numberOfDays(nodes[i].time), '#00e400') + ' !important;" class="marker-pin"></div><span class="marker-number" style="color: '+ grayNodeText(numberOfDays(nodes[i].time), '#000') +';"><b>' + Math.round(nodes[i].field2) + '</b></span>',
+								iconSize: [30, 42],
+								iconAnchor: [15, 42],
+								popupAnchor: [0, -30]
 							})
 						}).bindPopup(customPopup, {
 							width: 400,
-							height: 150
+							height: 150,
+							closeButton: false,
+							keepInView: true
 						}).on('mouseover click', function(e) {
 							this.openPopup();
-							
-							$('.vcolor').html( '<table class="" style="background:rgb(35,155,86) !important; width: 100%;">'+
-												'<tr>'+
-														'<td style="padding:10px 0px 10px 10px;"><img src="<?= base_url(); ?>assets/images/face_good.png" class="img-responsive" style="width: 20px;" /></td>' +   
-														'<td style="padding:10px 0px 10px 0px;">' + nodes[i].field2 + '<br/>PM<sub>2.5</sub></td>' +   
-														'<td style="padding:10px 10px 10px 0px;">Good</td>' +   
-												'</tr>' +
-											'</table>');
-						});
-						markers.addLayer(marker);
+							$('.vcolor').html('<table class="" style="background:' + grayNode(numberOfDays(nodes[i].time), '#00e400') + ' !important; width: 100%;">' +
+								'<tr>' +
+								'<td style="padding:10px 0px 10px 10px;"><img src="<?= base_url(); ?>assets/images/face_good.png" class="img-responsive" style="width: 20px;" /></td>' +
+								'<td style="padding:10px 0px 10px 0px; color: '+ grayNodeText(numberOfDays(nodes[i].time), '#000') +';">' + nodes[i].field2 + '<br/>PM<sub>2.5</sub></td>' +
+								'<td style="padding:10px 10px 10px 0px; color: '+ grayNodeText(numberOfDays(nodes[i].time), '#000') +'">Good</td>' +
+								'</tr>' +
+								'</table>');
+						}).addTo(map);
 					} else if (nodes[i].field2 >= 12.1 && nodes[i].field2 <= 35.4) {
 						var marker = L.marker([nodes[i].lat, nodes[i].lng], {
 							icon: new L.DivIcon({
-								className: 'my-div-icon',
-								html: '<div class="overlay-image">' +
-									'<img class="image" src="<?= base_url(); ?>assets/images/marker-moderate.png" />' +
-									'<div class="text" style="color: #000 !important;">' + Math.round(nodes[i].field2) + '</div>' +
-									'</div>'
+								className: 'custom-airqo-icon',
+								html: '<div style="background-color: ' + grayNode(numberOfDays(nodes[i].time), '#ffff00') + ' !important;" class="marker-pin"></div><span class="marker-number" style="color: '+ grayNodeText(numberOfDays(nodes[i].time), '#000') +';"><b>' + Math.round(nodes[i].field2) + '</b></span>',
+								iconSize: [30, 42],
+								iconAnchor: [15, 42],
+								popupAnchor: [0, -30]
 							})
 						}).bindPopup(customPopup, {
 							width: 400,
-							height: 150
+							height: 150,
+							closeButton: false,
+							keepInView: true
 						}).on('mouseover click', function(e) {
 							this.openPopup();
-							$('.vcolor').html( '<table class="" style="background:rgb(249,220,9) !important; width: 100%;">'+
-												'<tr>'+
-														'<td style="padding:10px 0px 10px 10px;"><img src="<?= base_url(); ?>assets/images/face_moderate.png" class="img-responsive" style="width: 20px;" /></td>' +   
-														'<td style="padding:10px 0px 10px 0px;">' + nodes[i].field2 + '<br/>PM<sub>2.5</sub></td>' +   
-														'<td style="padding:10px 0px 10px 0px;">Moderate</td>' +   
-												'</tr>' +
-											'</table>');
-						});
-						markers.addLayer(marker);
+							$('.vcolor').html('<table class="" style="background:' + grayNode(numberOfDays(nodes[i].time), '#ffff00') + ' !important; width: 100%;">' +
+								'<tr>' +
+								'<td style="padding:10px 0px 10px 10px;"><img src="<?= base_url(); ?>assets/images/face_moderate.png" class="img-responsive" style="width: 20px;" /></td>' +
+								'<td style="padding:10px 0px 10px 0px; color: '+ grayNodeText(numberOfDays(nodes[i].time), '#000') +';">' + nodes[i].field2 + '<br/>PM<sub>2.5</sub></td>' +
+								'<td style="padding:10px 0px 10px 0px; color: '+ grayNodeText(numberOfDays(nodes[i].time), '#000') +';">Moderate</td>' +
+								'</tr>' +
+								'</table>');
+						}).addTo(map);
 					} else if (nodes[i].field2 >= 35.6 && nodes[i].field2 <= 55.4) {
 						var marker = L.marker([nodes[i].lat, nodes[i].lng], {
 							icon: new L.DivIcon({
-								className: 'my-div-icon',
-								html: '<div class="overlay-image">' +
-									'<img class="image" src="<?= base_url(); ?>assets/images/marker-unhealthy.png" />' +
-									'<div class="text">' + Math.round(nodes[i].field2) + '</div>' +
-									'</div>'
+								className: 'custom-airqo-icon',
+								html: '<div style="background-color: ' + grayNode(numberOfDays(nodes[i].time), '#ff7e00') + ' !important;" class="marker-pin"></div><span class="marker-number" style="color: '+ grayNodeText(numberOfDays(nodes[i].time), '#fff') +';"><b>' + Math.round(nodes[i].field2) + '</b></span>',
+								iconSize: [30, 42],
+								iconAnchor: [15, 42],
+								popupAnchor: [0, -30]
 							})
 						}).bindPopup(customPopup, {
 							width: 400,
-							height: 150
+							height: 150,
+							closeButton: false,
+							keepInView: true
 						}).on('mouseover click', function(e) {
 							this.openPopup();
-							$('.vcolor').html( '<table class="" style="background:rgb(243,156,18) !important; width: 100%;">'+
-												'<tr>'+
-														'<td style="padding:10px 0px 10px 10px;"><img src="<?= base_url(); ?>assets/images/face_unhealthy.png" class="img-responsive" style="width: 20px;" /></td>' +   
-														'<td style="padding:10px 0px 10px 0px; color: #fff;">' + nodes[i].field2 + '<br/>PM<sub>2.5</sub></td>' +   
-														'<td style="padding:10px 0px 10px 0px; color: #fff;">Unhealthy</td>' +   
-												'</tr>' +
-											'</table>');
-						});
-						markers.addLayer(marker);
+							$('.vcolor').html('<table class="" style="background: ' + grayNode(numberOfDays(nodes[i].time), '#ff7e00') + ' !important; width: 100%;">' +
+								'<tr>' +
+								'<td style="padding:10px 0px 10px 10px;"><img src="<?= base_url(); ?>assets/images/face_unhealthy.png" class="img-responsive" style="width: 20px;" /></td>' +
+								'<td style="padding:10px 0px 10px 0px; color: '+ grayNodeText(numberOfDays(nodes[i].time), '#fff') +';">' + nodes[i].field2 + '<br/>PM<sub>2.5</sub></td>' +
+								'<td style="padding:10px 0px 10px 0px; color: '+ grayNodeText(numberOfDays(nodes[i].time), '#fff') +';">Unhealthy for Sensitive Groups</td>' +
+								'</tr>' +
+								'</table>');
+						}).addTo(map);
 					} else if (nodes[i].field2 >= 55.5 && nodes[i].field2 <= 150.4) {
 						var marker = L.marker([nodes[i].lat, nodes[i].lng], {
 							icon: new L.DivIcon({
-								className: 'my-div-icon',
-								html: '<div class="overlay-image">' +
-									'<img class="image" src="<?= base_url(); ?>assets/images/marker-unhealthy-1.png" />' +
-									'<div class="text">' + Math.round(nodes[i].field2) + '</div>' +
-									'</div>'
+								className: 'custom-airqo-icon',
+								html: '<div style="background-color: ' + grayNode(numberOfDays(nodes[i].time), '#ff0000') + ' !important;" class="marker-pin"></div><span class="marker-number" style="color: '+ grayNodeText(numberOfDays(nodes[i].time), '#fff') +';"><b>' + Math.round(nodes[i].field2) + '</b></span>',
+								iconSize: [30, 42],
+								iconAnchor: [15, 42],
+								popupAnchor: [0, -30]
 							})
 						}).bindPopup(customPopup, {
 							width: 400,
-							height: 150
+							height: 150,
+							closeButton: false,
+							keepInView: true
 						}).on('mouseover click', function(e) {
 							this.openPopup();
-							$('.vcolor').html( '<table class="" style="background:rgb(243,22,55) !important; width: 100%;">'+
-												'<tr>'+
-														'<td style="padding:10px 0px 10px 10px;"><img src="<?= base_url(); ?>assets/images/face_unhealthy1.png" class="img-responsive" style="width: 20px;" /></td>' +   
-														'<td style="padding:10px 0px 10px 0px; color: #fff;">' + nodes[i].field2 + '<br/>PM<sub>2.5</sub></td>' +   
-														'<td style="padding:10px 0px 10px 0px; color: #fff;">Unhealthy</td>' +   
-												'</tr>' +
-											'</table>');
+							$('.vcolor').html('<table class="" style="background:' + grayNode(numberOfDays(nodes[i].time), '#ff0000') + ' !important; width: 100%;">' +
+								'<tr>' +
+								'<td style="padding:10px 0px 10px 10px;"><img src="<?= base_url(); ?>assets/images/face_unhealthy1.png" class="img-responsive" style="width: 20px;" /></td>' +
+								'<td style="padding:10px 0px 10px 0px; color: '+ grayNodeText(numberOfDays(nodes[i].time), '#fff') +';">' + nodes[i].field2 + '<br/>PM<sub>2.5</sub></td>' +
+								'<td style="padding:10px 0px 10px 0px; color: '+ grayNodeText(numberOfDays(nodes[i].time), '#fff') +';">Unhealthy</td>' +
+								'</tr>' +
+								'</table>');
 
-						});
-						markers.addLayer(marker);
+						}).addTo(map);
 					} else if (nodes[i].field2 >= 150.5 && nodes[i].field2 <= 250.4) {
 						var marker = L.marker([nodes[i].lat, nodes[i].lng], {
 							icon: new L.DivIcon({
-								className: 'my-div-icon',
-								html: '<div class="overlay-image">' +
-									'<img class="image" src="<?= base_url(); ?>assets/images/marker-very-unhealthy.png" />' +
-									'<div class="text">' + Math.round(nodes[i].field2) + '</div>' +
-									'</div>'
+								className: 'custom-airqo-icon',
+								html: '<div style="background-color: ' + grayNode(numberOfDays(nodes[i].time), '#8f3f97') + ' !important;" class="marker-pin"></div><span class="marker-number" style="color: '+ grayNodeText(numberOfDays(nodes[i].time), '#fff') +';"><b>' + Math.round(nodes[i].field2) + '</b></span>',
+								iconSize: [30, 42],
+								iconAnchor: [15, 42],
+								popupAnchor: [0, -30]
 							})
 						}).bindPopup(customPopup, {
 							width: 400,
-							height: 150
+							height: 150,
+							closeButton: false,
+							keepInView: true
 						}).on('mouseover click', function(e) {
 							this.openPopup();
-							$('.vcolor').html( '<table class="" style="background:rgb(124,71,181) !important; width: 100%;">'+
-												'<tr>'+
-														'<td style="padding:10px 0px 10px 10px;"><img src="<?= base_url(); ?>assets/images/face_vunhealthy.png" class="img-responsive" style="width: 20px;" /></td>' +   
-														'<td style="padding:10px 0px 10px 0px; color: #fff;">' + nodes[i].field2 + '<br/>PM<sub>2.5</sub></td>' +   
-														'<td style="padding:10px 0px 10px 0px; color: #fff;">Very Unhealthy</td>' +   
-												'</tr>' +
-											'</table>');
-						});
-						markers.addLayer(marker);
+							$('.vcolor').html('<table class="" style="background: ' + grayNode(numberOfDays(nodes[i].time), '#8f3f97') + ' !important; width: 100%;">' +
+								'<tr>' +
+								'<td style="padding:10px 0px 10px 10px;"><img src="<?= base_url(); ?>assets/images/face_vunhealthy.png" class="img-responsive" style="width: 20px;" /></td>' +
+								'<td style="padding:10px 0px 10px 0px; color: '+ grayNodeText(numberOfDays(nodes[i].time), '#fff') +';">' + nodes[i].field2 + '<br/>PM<sub>2.5</sub></td>' +
+								'<td style="padding:10px 0px 10px 0px; color: '+ grayNodeText(numberOfDays(nodes[i].time), '#fff') +';">Very Unhealthy</td>' +
+								'</tr>' +
+								'</table>');
+						}).addTo(map);
 					} else if (nodes[i].field2 >= 250.5 && nodes[i].field2 <= 500.4) {
 						var marker = L.marker([nodes[i].lat, nodes[i].lng], {
 							icon: new L.DivIcon({
-								className: 'my-div-icon',
-								html: '<div class="overlay-image">' +
-									'<img class="image" src="<?= base_url(); ?>assets/images/marker-hazardous.png" />' +
-									'<div class="text">' + Math.round(nodes[i].field2) + '</div>' +
-									'</div>'
+								className: 'custom-airqo-icon',
+								html: '<div style="background-color: ' + grayNode(numberOfDays(nodes[i].time), '#7e0023') + ' !important;" class="marker-pin"></div><span class="marker-number" style="color: '+ grayNodeText(numberOfDays(nodes[i].time), '#fff') +';"><b>' + Math.round(nodes[i].field2) + '</b></span>',
+								iconSize: [30, 42],
+								iconAnchor: [15, 42],
+								popupAnchor: [0, -30]
 							})
 						}).bindPopup(customPopup, {
 							width: 400,
-							height: 150
+							height: 150,
+							closeButton: false,
+							keepInView: true
 						}).on('mouseover click', function(e) {
 							this.openPopup();
-							$('.vcolor').html( '<table class="" style="background:rgb(147,11,21) !important; width: 100%;">'+
-												'<tr>'+
-														'<td style="padding:10px 0px 10px 10px;"><img src="<?= base_url(); ?>assets/images/face_hazardous.png" class="img-responsive" style="width: 20px;" /></td>' +   
-														'<td style="padding:10px 0px 10px 0px; color: #fff;">' + nodes[i].field2 + '<br/>PM<sub>2.5</sub></td>' +   
-														'<td style="padding:10px 0px 10px 0px; color: #fff;">Harzadous</td>' +   
-												'</tr>' +
-											'</table>');
-						});
-						markers.addLayer(marker);
+							$('.vcolor').html('<table class="" style="background: ' + grayNode(numberOfDays(nodes[i].time), '#7e0023') + ' !important; width: 100%;">' +
+								'<tr>' +
+								'<td style="padding:10px 0px 10px 10px;"><img src="<?= base_url(); ?>assets/images/face_hazardous.png" class="img-responsive" style="width: 20px;" /></td>' +
+								'<td style="padding:10px 0px 10px 0px; color: '+ grayNodeText(numberOfDays(nodes[i].time), '#fff') +';">' + nodes[i].field2 + '<br/>PM<sub>2.5</sub></td>' +
+								'<td style="padding:10px 0px 10px 0px; color: '+ grayNodeText(numberOfDays(nodes[i].time), '#fff') +';">Harzadous</td>' +
+								'</tr>' +
+								'</table>');
+						}).addTo(map);
+						// markers.addLayer(marker);
 					}
 				}
 
-				map.addLayer(markers);
+				// map.addLayer(markers);
 			}
 		});
 	});

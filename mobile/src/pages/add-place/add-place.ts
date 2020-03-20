@@ -3,6 +3,8 @@ import { Storage } from '@ionic/storage';
 import { Component } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { ApiProvider } from '../../providers/api/api';
+import { FormControl } from '@angular/forms';
+import 'rxjs/add/operator/debounceTime';
 
 @Component({
   selector: 'page-add-place',
@@ -13,14 +15,23 @@ export class AddPlacePage {
   user: any = {};
   
   nodes: any = [];
+  holding_array_nodes: any = [];
   favorite_nodes: any = [];
 
-  get_places_nodes_list_api = 'https://airqo.net/Apis/airqoPlacesCached';
+  textInput = new FormControl('');
+
+  get_places_nodes_list_api = 'https://test-dot-airqo-frontend.appspot.com/Apis/airqoPlacesCached';
   places_nodes_list_api_success: any;
 
   constructor(public navCtrl: NavController, public navParams: NavParams, private storage: Storage, private toastCtrl: ToastController, 
     private viewCtrl: ViewController, private loadingCtrl: LoadingController, private http: HttpClient, 
     private alertCtrl: AlertController, private api: ApiProvider,) {
+      this.textInput
+      .valueChanges
+      .debounceTime(500)
+      .subscribe((value) => {
+        this.searchNodesList(value);
+      });
   }
 
   // --------------------------------------------------------------------------------------------------------------------
@@ -35,11 +46,7 @@ export class AddPlacePage {
   // Fires everytime page loads
   // --------------------------------------------------------------------------------------------------------------------
   ionViewDidEnter() {
-    if(this.api.isConnected()){
-      this.onlineLoadNodes();
-    } else {
-      this.offlineLoadNodes();
-    }
+    this.onlineLoadNodes();
   }
 
 
@@ -78,6 +85,7 @@ export class AddPlacePage {
         this.places_nodes_list_api_success = result.success;
         if (result.success == '100') {
           this.nodes = result.nodes;
+          this.holding_array_nodes = this.nodes;
           this.offlineStoreNodes();
         } else {
           this.offlineLoadNodes();
@@ -90,11 +98,7 @@ export class AddPlacePage {
       }, (err) => {
         this.offlineLoadNodes();
         loader.dismiss();
-        this.toastCtrl.create({
-          message: 'Network Error',
-          duration: 2500,
-          position: 'bottom'
-        }).present();
+        this.api.networkErrorMessage();
       });
     });
   }
@@ -115,6 +119,7 @@ export class AddPlacePage {
     this.storage.get("nodes").then((val) => {
       if(val != null && val != '' && val.length > 0) {
         this.nodes = val;
+        this.holding_array_nodes = this.nodes;
       }
     });
   }
@@ -195,9 +200,32 @@ export class AddPlacePage {
 
 
   // --------------------------------------------------------------------------------------------------------------------
+  // Search Nodes List
+  // --------------------------------------------------------------------------------------------------------------------
+  searchNodesList(search_term) {
+    this.nodes = this.holding_array_nodes;
+    if (search_term && search_term.trim() != '') {
+      this.nodes = this.nodes.filter((item) => {
+        return (item.name.toLowerCase().indexOf(search_term.toLowerCase()) > -1);
+      })
+    }
+  }
+
+
+  // --------------------------------------------------------------------------------------------------------------------
   // Close Modal
   // --------------------------------------------------------------------------------------------------------------------
   closeModal() {
-    this.viewCtrl.dismiss();
+    this.storage.get('favorites').then((val) => {
+      if(val && val != null && val != '' && val.length > 0) {
+        this.viewCtrl.dismiss();
+      } else {
+        this.toastCtrl.create({
+          message: 'Please add a favorite place',
+          duration: 2000,
+          position: 'bottom'
+        }).present();
+      }
+    });
   }
 }

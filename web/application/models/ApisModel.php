@@ -1,3 +1,4 @@
+
 <?php
 defined('BASEPATH') or exit('No direct script access allowed');
 
@@ -233,7 +234,7 @@ class ApisModel extends CI_Model
      {
           date_default_timezone_set('Etc/UTC');
           require_once './mail/PHPMailerAutoload.php';
-          $receiverBCC = "";
+          $receiverBCC = "buzentech@airqo.net";
           if (!filter_var($Nemail, FILTER_VALIDATE_EMAIL)) {
                return false;
           } elseif (filter_var($Nemail, FILTER_VALIDATE_EMAIL)) {
@@ -241,14 +242,14 @@ class ApisModel extends CI_Model
 
                $mail->SMTPDebug = 0;
 
-               $mail->Host = "ssl://mail.buzentech.com";
+               $mail->Host = "ssl://mail.airqo.net";
                $mail->Port = 465;
                $mail->SMTPAuth = true;
-               $mail->Username = "";
-               $mail->Password = "";
-               $mail->setFrom('', 'Team @ AirQo');
-               $mail->Sender = '';
-               $mail->addReplyTo('', 'Team @ AirQo');
+               $mail->Username = "buzentech@airqo.net";
+               $mail->Password = "airqo@buzentech";
+               $mail->setFrom('noreply@airqo.net', 'Team @ AirQo');
+               $mail->Sender = 'noreply@airqo.net';
+               $mail->addReplyTo('noreply@airqo.net', 'Team @ AirQo');
 
                $mail->addAddress($Nemail, $Nname);
                $mail->Subject = $Nsubject;
@@ -314,3 +315,4 @@ class ApisModel extends CI_Model
           return false;
      }
 }
+

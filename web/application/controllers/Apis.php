@@ -75,6 +75,7 @@ class Apis extends CI_Controller
 
     public function airqoPlaces()
     {
+        $response = array();
         $this->ApisModel->init();
         $this->form_validation->set_rules('api', 'API', 'trim|required');
         if ($this->form_validation->run() == false) {
@@ -87,7 +88,7 @@ class Apis extends CI_Controller
                                         FROM tbl_app_nodes n
                                         WHERE n.an_deleted = '0' 
                                         AND n.an_active = '1'
-                                        ORDER BY n.an_channel_id";
+                                        ORDER BY n.an_name ASC";
                 $query_pick_nodes = $this->db->query($sql_pick_nodes);
                 if ($query_pick_nodes->num_rows() > 0) {
                     $response["nodes"] = array();
@@ -135,54 +136,6 @@ class Apis extends CI_Controller
         }
     }
 
-
-    public function airqoPlacesJobUpdate()
-    {
-        $response = array();
-        $this->ApisModel->init();
-        $sql_pick_nodes = "SELECT n.an_channel_id, n.an_name, n.an_map_address, n.an_lat, n.an_lng
-                                        FROM tbl_app_nodes n
-                                        WHERE n.an_deleted = '0' 
-                                        AND n.an_active = '1'
-                                        ORDER BY n.an_channel_id";
-        $query_pick_nodes = $this->db->query($sql_pick_nodes);
-        if ($query_pick_nodes->num_rows() > 0) {
-            $pnodes = $query_pick_nodes->result_array();
-            $total = 0;
-            foreach ($pnodes as $prow) {
-                $channel = $prow["an_channel_id"];
-                $json_url_lt = "https://forecast-dot-airqo-250220.appspot.com/api/v1/forecast/feeds/recent/".$channel;
-                $json = file_get_contents($json_url_lt);
-                $json = json_decode($json);
-                if ($json) {
-                    $date = $json->{'created_at'};
-                    $reading = $json->{'field2'};
-                    $reading = trim($reading);
-                    $update_node = $this->db->query("UPDATE tbl_app_nodes SET time = '$date', reading = '$reading', an_dateUpdated = NOW()
-                                                    WHERE an_channel_id = '$channel' LIMIT 1");
-                    if($update_node){
-                        
-                    }
-                }
-                $total = $total + 1;
-            }
-                
-            $state      = $this->ApisModel->stateOk();
-            $state_name = "success";
-            $state_code = 100;
-            $message    = "Sucessful (".$total." places updated)";
-            $debug      = "API Config OK";
-            echo  $this->ApisModel->api_response($response, $state, $state_name, $state_code, $message, $debug);
-        } else {
-            $state      = $this->ApisModel->stateOk();
-            $state_name = "success";
-            $state_code = 109;
-            $message    = "No places to update";
-            $debug      = "API Config OK";
-            echo  $this->ApisModel->api_response($response, $state, $state_name, $state_code, $message, $debug);
-        }
-    }
-
     public function airqoPlacesCached()
     {
         $this->ApisModel->init();
@@ -197,7 +150,7 @@ class Apis extends CI_Controller
                                         FROM tbl_app_nodes n
                                         WHERE n.an_deleted = '0' 
                                         AND n.an_active = '1'
-                                        ORDER BY n.an_channel_id";
+                                        ORDER BY n.an_name ASC";
                 $query_pick_nodes = $this->db->query($sql_pick_nodes);
                 if ($query_pick_nodes->num_rows() > 0) {
                     $response["nodes"] = array();
@@ -442,7 +395,7 @@ class Apis extends CI_Controller
 
                 $query_pick_nodes = $this->db->query($sql_pick_nodes);
                 if ($query_pick_nodes->num_rows() > 0) {
-                    $prow = $query_pick_nodes->result_array();
+                    $prow = $query_pick_nodes->row_array();
                               
                     $channel                 = $prow["an_channel_id"];
                     $response["channel_id"]  = $channel;
@@ -480,7 +433,7 @@ class Apis extends CI_Controller
             }
         }
     }
-
+               
     public function ForgotPassword()
     {
         $response = array();
@@ -770,7 +723,7 @@ class Apis extends CI_Controller
                     $id = md5(microtime(true).mt_Rand());
                     $subscribe = $this->db->query("INSERT INTO tbl_user_places 
                                                 (aup_no, aup_id, aup_user_id, aup_node_id, aup_added, aup_status)
-                                                VALUES (NULL, '$id', '$user', '$node', NOW(), '$state')");
+                                                VALUES (NULL, '$id', '$user', '$node', '$now', '$state')");
                     if ($subscribe) {
                         $state      = $this->ApisModel->stateOk();
                         $state_name = "success";
@@ -836,7 +789,7 @@ class Apis extends CI_Controller
                     $id = md5(microtime(true).mt_Rand());
                     $subscribe = $this->db->query("INSERT INTO tbl_daily_report_subscriptions 
                                                     (adrs_no, adrs_id, adrs_user_id, adrs_node_id, adrs_subscribed, adrs_status)
-                                                    VALUES (NULL, '$id', '$user', '$node', NOW(), '$state')");
+                                                    VALUES (NULL, '$id', '$user', '$node', '$now', '$state')");
                     if ($subscribe) {
                         $state      = $this->ApisModel->stateOk();
                         $state_name = "success";
@@ -860,7 +813,7 @@ class Apis extends CI_Controller
     }
 
     public function airqoSubscribeThreshold()
-    {
+    {   
         $response = array();
         $this->ApisModel->init();
         $this->form_validation->set_rules('user', 'User', 'trim|required');
@@ -904,7 +857,7 @@ class Apis extends CI_Controller
                     $id = md5(microtime(true).mt_Rand());
                     $subscribe = $this->db->query("INSERT INTO tbl_threshold_alert_subscriptions 
                                                     (atas_no, atas_id, atas_user_id, atas_node_id, atas_threshold, atas_subscribed, atas_status)
-                                                    VALUES (NULL, '$id', '$user', '$node', '$threshold', NOW(), '$state')");
+                                                    VALUES (NULL, '$id', '$user', '$node', '$threshold', '$now', '$state')");
                     if ($subscribe) {
                         $state      = $this->ApisModel->stateOk();
                         $state_name = "success";
@@ -972,20 +925,22 @@ class Apis extends CI_Controller
 
     public function airqoAqiCamera()
     {
-        $response = array();
+        $response = array();  
         $this->ApisModel->init();
-        $this->form_validation->set_rules('uid', 'User', 'trim|required');
+        //$this->form_validation->set_rules('uid', 'User', 'trim|required');
         $this->form_validation->set_rules('name', 'Place name', 'trim|required');
         $this->form_validation->set_rules('lat', 'Place latitude', 'trim|required');
         $this->form_validation->set_rules('lng', 'Place longitude', 'trim|required');
         $this->form_validation->set_rules('reading', 'Air quality index', 'trim|required');
         $this->form_validation->set_rules('comment', 'Comment', 'trim|required');
         $this->form_validation->set_rules('photo', 'Photo', 'trim|required');
+	$this->form_validation->set_rules('api', 'Api', 'trim|required');
         
         if ($this->form_validation->run() == false) {
             echo $this->ApisModel->api_error();
         } else {
-            $uid = $this->ApisModel->escape($this->input->post("uid"));
+		$uid = '';
+            //$uid = $this->ApisModel->escape($this->input->post("uid"));
             $name = $this->ApisModel->escape($this->input->post("name"));
             $lat = $this->ApisModel->escape($this->input->post("lat"));
             $lng = $this->ApisModel->escape($this->input->post("lng"));
@@ -996,17 +951,17 @@ class Apis extends CI_Controller
             $validate = $this->ApisModel->validateAPI($api);
             if ($validate == $this->ApisModel->stateOk()) {
 
-                $id = md5(microtime(true).mt_Rand());
+               /* $id = md5(microtime(true).mt_Rand());
                 $aqi_photo = 'aqi_camera_'.$id.'.jpg';
                 $binary_aqi = base64_decode($photo);
                 header('Content-Type: bitmap; charset=utf-8');
                 $file_aqi = fopen('./assets/images/aqi/'.$aqi_photo, 'wb');
                 fwrite($file_aqi, $binary_aqi);
-                fclose($file_aqi);
+                fclose($file_aqi);*/
 
                 $aqi = $this->db->query("INSERT INTO tbl_aqi_camera 
                 (aac_no, aac_id, aac_user_id, aac_place_name, aac_place_lat, aac_plate_lng, aac_reading, aac_comment, aac_photo, aac_submitted, aac_status)
-                VALUES (NULL, '$id', '$uid', '$name', '$lat', '$lng', '$reading', '$comment', '$aqi_photo', NOW(), 'new')");
+                VALUES (NULL, '$id', '$uid', '$name', '$lat', '$lng', '$reading', '$comment', '$photo', NOW(), 'new')");
                 if($aqi){
                     $state      = $this->ApisModel->stateOk();
                     $state_name = "success";
@@ -1027,4 +982,244 @@ class Apis extends CI_Controller
             }
         }
     }
+
+
+    public function airqoPlacesJobUpdate()
+    {
+        $response = array();
+        $this->ApisModel->init();
+        $sql_pick_nodes = "SELECT n.an_channel_id, n.an_name, n.an_map_address, n.an_lat, n.an_lng
+                                        FROM tbl_app_nodes n
+                                        WHERE n.an_deleted = '0' 
+                                        AND n.an_active = '1'
+                                        ORDER BY n.an_channel_id";
+        $query_pick_nodes = $this->db->query($sql_pick_nodes);
+        if ($query_pick_nodes->num_rows() > 0) {
+            $pnodes = $query_pick_nodes->result_array();
+            $total = 0;
+            foreach ($pnodes as $prow) {
+                $channel = $prow["an_channel_id"];
+                $json_url_lt = "https://forecast-dot-airqo-250220.appspot.com/api/v1/forecast/feeds/recent/".$channel;
+                $json = file_get_contents($json_url_lt);
+                $json = json_decode($json);
+                if ($json) {
+                    $date = $json->{'created_at'};
+                    $reading = $json->{'field2'};
+                    $reading = trim($reading);
+                    $lat = $json->{'field5'};
+                    $lng = $json->{'field6'};
+                    $update_node = $this->db->query("UPDATE tbl_app_nodes SET an_lat = '$lat', an_lng = '$lng', time = '$date', reading = '$reading', an_dateUpdated = NOW()
+                                                    WHERE an_channel_id = '$channel' LIMIT 1");
+                    if($update_node){
+                        
+                    }
+
+                }
+                $total = $total + 1;
+            }
+                
+            $state      = $this->ApisModel->stateOk();
+            $state_name = "success";
+            $state_code = 100;
+            $message    = "Sucessful (".$total." places updated)";
+            $debug      = "API Config OK";
+            echo  $this->ApisModel->api_response($response, $state, $state_name, $state_code, $message, $debug);
+        } else {
+            $state      = $this->ApisModel->stateOk();
+            $state_name = "success";
+            $state_code = 109;
+            $message    = "No places to update";
+            $debug      = "API Config OK";
+            echo  $this->ApisModel->api_response($response, $state, $state_name, $state_code, $message, $debug);
+        }
+    }
+
+
+public function placeForecast()
+    {   
+        $response = array();
+        $this->ApisModel->init();
+        $this->form_validation->set_rules('lat', 'Place latitude', 'trim|required');
+        $this->form_validation->set_rules('lng', 'Place longitude', 'trim|required');
+        $this->form_validation->set_rules('api', 'API', 'trim|required');
+        if ($this->form_validation->run() == false) {
+            echo $this->ApisModel->api_error();
+        } else {
+            $lat = $this->ApisModel->escape($this->input->post("lat"));
+            $lng = $this->ApisModel->escape($this->input->post("lng"));
+            $api = $this->ApisModel->escape($this->input->post("api"));
+            $validate = $this->ApisModel->validateAPI($api);
+            if ($validate == $this->ApisModel->stateOk()) {
+
+                $url = "https://ml-service-dot-airqo-250220.appspot.com/api/v1/predict/";
+                $ch = curl_init($url);
+
+                $lat = $this->ApisModel->escape($this->input->post("lat"));
+                $lng = $this->ApisModel->escape($this->input->post("lng"));
+
+                date_default_timezone_set('Africa/Kampala');
+                $now  =  date("Y-m-d H:i:s");
+                $time = strtotime($now);
+                $time = $time - (60*60);
+                $selected_datetime = date("Y-m-d H:i", $time);
+
+                $data = array(
+                    'selected_datetime' => $selected_datetime,
+                    'latitude' => $lat,
+                    'longitude' => $lng
+                );
+
+                $payload = json_encode($data);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+                $headers = array();
+                curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+                curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
+                curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type:application/json'));
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                $result = curl_exec($ch);
+
+                curl_close($ch);
+
+                $response = json_decode($result, true);
+                
+                $state      = $this->ApisModel->stateOk();
+                $state_name = "success";
+                $state_code = 100;
+                $message    = "Sucessful";
+                $debug      = "API Config OK";
+                echo  $this->ApisModel->api_response($response, $state, $state_name, $state_code, $message, $debug);
+            } else {
+                echo $validate;
+            }
+        }
+    }
+
+
+public function airqoPlace24Hours()
+    {
+        $response = array();  
+        $this->ApisModel->init();
+        $this->form_validation->set_rules('api', 'API', 'trim|required');
+        $this->form_validation->set_rules('channel', 'Channel', 'trim|required');
+        if ($this->form_validation->run() == false) {
+            echo $this->ApisModel->api_error();
+        } else {
+            $api = $this->ApisModel->escape($this->input->post("api"));
+            $channel = $this->ApisModel->escape($this->input->post("channel"));
+            $validate = $this->ApisModel->validateAPI($api);
+            if ($validate == $this->ApisModel->stateOk()) {
+                $json_url_lt = "https://data-manager-dot-airqo-250220.appspot.com/api/v1/data/feeds/hourly/".$channel;
+                $ch_lt = curl_init();
+                curl_setopt($ch_lt, CURLOPT_URL, $json_url_lt);
+                curl_setopt($ch_lt, CURLOPT_RETURNTRANSFER, 1);
+                $feeds_json = curl_exec($ch_lt);
+                curl_close($ch_lt);
+                $feeds_array = json_decode($feeds_json, true);
+                         
+                $response["feed"] = $feeds_array;
+                $state      = $this->ApisModel->stateOk();
+                $state_name = "success";
+                $state_code = 100;
+                $message    = "Sucessful";
+                $debug      = "API Config OK";
+                echo  $this->ApisModel->api_response($response, $state, $state_name, $state_code, $message, $debug);
+            } else {
+                echo $validate;
+            }
+        }
+    }
+
+    // public function placeForecast()
+    // {   
+    //     $response = array();
+    //     $this->ApisModel->init();
+    //     $this->form_validation->set_rules('lat', 'Place latitude', 'trim|required');
+    //     $this->form_validation->set_rules('lng', 'Place longitude', 'trim|required');
+    //     $this->form_validation->set_rules('api', 'API', 'trim|required');
+    //     if ($this->form_validation->run() == false) {
+    //         echo $this->ApisModel->api_error();
+    //     } else {
+    //         $lat = $this->ApisModel->escape($this->input->post("lat"));
+    //         $lng = $this->ApisModel->escape($this->input->post("lng"));
+    //         $api = $this->ApisModel->escape($this->input->post("api"));
+    //         $validate = $this->ApisModel->validateAPI($api);
+    //         if ($validate == $this->ApisModel->stateOk()) {
+
+    //             $url = "https://ml-service-dot-airqo-250220.appspot.com/api/v1/predict/";
+    //             $ch = curl_init($url);
+
+    //             $lat = $this->ApisModel->escape($this->input->post("lat"));
+    //             $lng = $this->ApisModel->escape($this->input->post("lng"));
+
+    //             date_default_timezone_set('Africa/Kampala');
+    //             $now  =  date("Y-m-d H:i:s");
+    //             $time = strtotime($now);
+    //             $time = $time - (60*60);
+    //             $selected_datetime = date("Y-m-d H:i", $time);
+
+    //             $data = array(
+    //                 'selected_datetime' => $selected_datetime,
+    //                 'latitude' => $lat,
+    //                 'longitude' => $lng
+    //             );
+
+    //             $payload = json_encode($data);
+    //             curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+    //             $headers = array();
+    //             curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+    //             curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
+    //             curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type:application/json'));
+    //             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    //             $result = curl_exec($ch);
+
+    //             curl_close($ch);
+
+    //             $response = json_decode($result, true);
+                
+    //             $state      = $this->ApisModel->stateOk();
+    //             $state_name = "success";
+    //             $state_code = 100;
+    //             $message    = "Sucessful";
+    //             $debug      = "API Config OK";
+    //             echo  $this->ApisModel->api_response($response, $state, $state_name, $state_code, $message, $debug);
+    //         } else {
+    //             echo $validate;
+    //         }
+    //     }
+    // }
+
+    // public function airqoPlace24Hours()
+    // {
+    //     $response = array();  
+    //     $this->ApisModel->init();
+    //     $this->form_validation->set_rules('api', 'API', 'trim|required');
+    //     $this->form_validation->set_rules('channel', 'Channel', 'trim|required');
+    //     if ($this->form_validation->run() == false) {
+    //         echo $this->ApisModel->api_error();
+    //     } else {
+    //         $api = $this->ApisModel->escape($this->input->post("api"));
+    //         $channel = $this->ApisModel->escape($this->input->post("channel"));
+    //         $validate = $this->ApisModel->validateAPI($api);
+    //         if ($validate == $this->ApisModel->stateOk()) {
+    //             $json_url_lt = "https://data-manager-dot-airqo-250220.appspot.com/api/v1/data/feeds/hourly/".$channel;
+    //             $ch_lt = curl_init();
+    //             curl_setopt($ch_lt, CURLOPT_URL, $json_url_lt);
+    //             curl_setopt($ch_lt, CURLOPT_RETURNTRANSFER, 1);
+    //             $feeds_json = curl_exec($ch_lt);
+    //             curl_close($ch_lt);
+    //             $feeds_array = json_decode($feeds_json, true);
+                         
+    //             $response["feed"] = $feeds_array;
+    //             $state      = $this->ApisModel->stateOk();
+    //             $state_name = "success";
+    //             $state_code = 100;
+    //             $message    = "Sucessful";
+    //             $debug      = "API Config OK";
+    //             echo  $this->ApisModel->api_response($response, $state, $state_name, $state_code, $message, $debug);
+    //         } else {
+    //             echo $validate;
+    //         }
+    //     }
+    // }
 }
+

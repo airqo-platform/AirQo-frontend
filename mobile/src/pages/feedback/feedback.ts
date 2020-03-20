@@ -15,7 +15,7 @@ export class FeedbackPage {
   user: any = {};
   feedback: any = {};
 
-  feedback_api    = 'https://airqo.net/Apis/airqoFeedback';
+  feedback_api    = 'https://test-dot-airqo-frontend.appspot.com/Apis/airqoFeedback';
 
   constructor(private navCtrl: NavController, private storage: Storage, private http: HttpClient, private loadingCtrl: LoadingController, 
     private alertCtrl: AlertController, private toastCtrl: ToastController, public api: ApiProvider) {
@@ -49,13 +49,22 @@ export class FeedbackPage {
 
 
   // --------------------------------------------------------------------------------------------------------------------
+  // Validate Email Address
+  // --------------------------------------------------------------------------------------------------------------------
+  validateEmail(email){      
+    var emailPattern = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    return emailPattern.test(String(email).toLowerCase());
+  } 
+
+
+  // --------------------------------------------------------------------------------------------------------------------
   // Verify Feedback
   // --------------------------------------------------------------------------------------------------------------------
   verifyFeedback() {
-    if(Object.keys(this.user).length > 0) {
-      if(Object.keys(this.feedback).length > 0) {
+    if(Object.keys(this.feedback).length > 0) {
+      if(this.validateEmail(this.feedback.email)){
         let params = {
-          uid: this.user.uid,
+          email: this.feedback.email,
           subject: this.feedback.subject,
           body: this.feedback.body,
           api: this.api.api_key
@@ -63,13 +72,17 @@ export class FeedbackPage {
         this.submitFeedback(params);
       } else {
         this.alertCtrl.create({
-          title: 'Invalid Submission',
-          message: 'Please ensure you have added all the required information',
+          title: 'Invalid Email',
+          message: 'Please enter a valid email address',
           buttons: ['Okay']
         }).present();
       }
     } else {
-      this.navCtrl.push(SignInPage);
+      this.alertCtrl.create({
+        title: 'Invalid Submission',
+        message: 'Please ensure you have added all the required information',
+        buttons: ['Okay']
+      }).present();
     }
   }
 
@@ -90,6 +103,10 @@ export class FeedbackPage {
         console.log(result);
         loader.dismiss();
         if(result.success == "100"){
+          this.feedback.email     = "";
+          this.feedback.subject   = "";
+          this.feedback.body      = "";
+
           this.alertCtrl.create({
             title: result.title,
             message: result.message,
@@ -111,11 +128,7 @@ export class FeedbackPage {
         }
       }, (err) => {
         loader.dismiss();
-        this.toastCtrl.create({
-          message: 'Network Error',
-          duration: 3000,
-          position: 'bottom'
-        }).present();
+        this.api.networkErrorMessage();
       });
     });
   }

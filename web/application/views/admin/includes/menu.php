@@ -4,7 +4,7 @@
      }
 </style>
 <?php
-$admin_role = $this->session->userdata['logged_in']['admin_role'];
+$admin_role = $this->session->userdata['loggedin']['adminrole'];
 ?>
 <div class="page-container">
      <!-- BEGIN SIDEBAR -->
@@ -190,6 +190,13 @@ $admin_role = $this->session->userdata['logged_in']['admin_role'];
                               <span class=""></span>
                          </a>
                     </li>
+			<!-- <li class="start  <?php if ($navigation == 'news') { echo 'active'; } ?>">
+                         <a href="<?php echo site_url('Admin/news'); ?>">
+                              <i class="fa fa-book"></i>
+                              <span class="title">News</span>
+                              <span class=""></span>
+                         </a>
+                    </li> -->
                </ul>
                <!-- END SIDEBAR MENU -->
           </div>

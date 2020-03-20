@@ -854,6 +854,11 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 
 
 var HomePage = /** @class */ (function () {
+    // get_favorite_nodes_api  = 'https://airqo.net/Apis/airqoPlaceLatest';
+    // favorite_nodes_api_success: any
+    // get_nearest_node_api    = 'https://airqo.net/Apis/airqoNearest';
+    // nearest_node_api_success: any;
+    // get_coordinates_api    = 'https://buzentech.com/get-info.php';
     function HomePage(navCtrl, storage, http, loadingCtrl, alertCtrl, toastCtrl, geolocation, platform, device, popoverCtrl, modalCtrl, api) {
         this.navCtrl = navCtrl;
         this.storage = storage;
@@ -871,9 +876,10 @@ var HomePage = /** @class */ (function () {
         this.nearest_node = {};
         this.lastest_nearest_node_reading = '0';
         this.favorite_nodes = [];
-        this.get_favorite_nodes_api = 'https://airqo.net/Apis/airqoPlaceLatest';
-        this.get_nearest_node_api = 'https://airqo.net/Apis/airqoNearest';
-        this.get_coordinates_api = 'https://buzentech.com/get-info.php';
+        // https://test-dot-airqo-frontend.appspot.com
+        this.get_favorite_nodes_api = 'https://test-dot-airqo-frontend.appspot.com/Apis/airqoPlaceLatest';
+        this.get_nearest_node_api = 'https://test-dot-airqo-frontend.appspot.com/Apis/airqoNearest';
+        this.get_coordinates_api = 'https://test-dot-airqo-frontend.appspot.com/get-info.php';
     }
     // --------------------------------------------------------------------------------------------------------------------
     // Runs when the page has loaded. Fires only once
@@ -1160,11 +1166,10 @@ var HomePage = /** @class */ (function () {
         Object(__WEBPACK_IMPORTED_MODULE_4__angular_core__["m" /* Component */])({
             selector: 'page-home',template:/*ion-inline-start:"/Users/Aine/Documents/Ionic Projects/airqo/src/pages/home/home.html"*/'<ion-header class="title-centered">\n  <ion-navbar color="blue" hideBackButton="true">\n    <ion-title>\n			<img src="assets/logos/logo-white.png" class="nav-image"/>\n    </ion-title>\n    <ion-buttons end>\n      <button color="light" ion-button icon-only (click)="goToSearchPage()">\n        <ion-icon name="search"></ion-icon>\n      </button>\n      &nbsp;\n      &nbsp;\n      <button color="light" ion-button icon-only *ngIf="user.uid" (click)="goToFavoritesPage()">\n        <ion-icon name="star-outline"></ion-icon>\n      </button>\n      &nbsp;\n      &nbsp;\n      <button color="light" ion-button icon-only (click)="stackedMenu($event)">\n        <ion-icon name="more"></ion-icon>\n      </button>\n    </ion-buttons>\n  </ion-navbar>\n</ion-header>\n\n<ion-content>\n\n  <!-- Current Location -->\n  <ion-card [hidden]="lastest_nearest_node_reading == \'0\' || lastest_nearest_node_reading == null" (click)="viewDetails(nearest_node)">\n  <!-- <ion-card (click)="viewDetails(nearest_node)"> -->\n    <ion-grid>\n      <ion-row class="header-section bg-grey">\n        <ion-col class="header-title white">\n          My Location\n        </ion-col>\n      </ion-row>\n      <ion-row class="area-section">\n        <ion-col col-1 class="area-type">\n          <ion-icon name="pin" color="grey" class="star-icon"></ion-icon>\n        </ion-col>\n        <ion-col col-11>\n        <div class="title black moderate-bold">{{ nearest_node.name }}</div>\n        <div class="sub-title grey">{{ nearest_node.location }}</div>\n        </ion-col>\n      </ion-row>\n    <ion-row class="readings-section" [style.backgroundColor]="api.nodeStatus(lastest_nearest_node_reading).color">\n        <ion-col col-3 class="face bg-darker">\n          <img [src]="api.nodeStatus(lastest_nearest_node_reading).face"/>\n        </ion-col>\n        <ion-col col-4 class="values">\n        <p class="number moderate-bold" [style.color]="api.nodeStatus(lastest_nearest_node_reading).font_color">{{ lastest_nearest_node_reading }}</p>\n          <p class="number-label moderate-bold" [style.color]="api.nodeStatus(lastest_nearest_node_reading).font_color">PM2.5</p>\n        </ion-col>\n        <ion-col col-5 class="label">\n        <p text-wrap class="value-label moderate-bold" [style.color]="api.nodeStatus(lastest_nearest_node_reading).font_color">{{ api.nodeStatus(lastest_nearest_node_reading).label }}</p>\n        </ion-col>\n      </ion-row>\n      <ion-row class="footer-section">\n        <ion-col col-11 text-wrap class="date-section">\n          <span class="node-refresh-date">Last Refreshed: {{ api.getReadableInternationalDateFormatFromISOString(nearest_node.date) }} hrs</span>\n        </ion-col>\n        <ion-col col-1 class="icon-section">\n          <ion-icon name="arrow-forward"></ion-icon>\n        </ion-col>\n      </ion-row>\n    </ion-grid>\n  </ion-card>\n  \n  <!-- Saved Locations -->\n\n  <ion-card [hidden]="user.uid == null || user.uid == \'\' || user.uid == undefined">\n    <ion-grid class="saved-header">\n      <ion-row class="header-section bg-grey">\n        <ion-col col-11 class="header-title white">\n          Saved Locations\n        </ion-col>\n        <ion-col col-1>\n          <button ion-button small icon-only outline color="light" *ngIf="user.uid" (click)="openAddFavorites()">\n            <ion-icon name="md-add" color="light"></ion-icon>\n          </button>\n        </ion-col>\n      </ion-row>\n    </ion-grid>\n    \n    <ng-container *ngFor="let node of favorite_nodes">\n      <hr/>\n      <ion-grid [hidden]="user.uid == null || user.uid == \'\' || user.uid == undefined" (click)="viewDetails(node)">\n        <ion-row nowrap class="area-section">\n          <ion-col col-1 class="area-type">\n            <ion-icon name="md-star" color="grey" class="star-icon"></ion-icon>\n          </ion-col>\n          <ion-col col-11>\n            <div class="title black moderate-bold">{{ node.name }}</div>\n          <div class="sub-title grey">{{ node.location }}</div>\n          </ion-col>\n        </ion-row>\n        <ion-row class="readings-section" [style.backgroundColor]="api.nodeStatus(node.feeds.field1).color">\n          <ion-col col-3 class="face bg-darker">\n            <img [src]="api.nodeStatus(node.feeds.field1).face"/>\n          </ion-col>\n          <ion-col col-4 class="values">\n            <p class="number moderate-bold" [style.color]="api.nodeStatus(node.feeds.field1).font_color">{{ node.feeds.field1 }}</p>\n            <p class="number-label moderate-bold" [style.color]="api.nodeStatus(node.feeds.field1).font_color">PM2.5</p>\n          </ion-col>\n          <ion-col col-5 class="label">\n            <p text-wrap class="value-label moderate-bold" [style.color]="api.nodeStatus(node.feeds.field1).font_color">{{ api.nodeStatus(node.feeds.field1).label }}</p>\n          </ion-col>\n        </ion-row>\n        <ion-row class="footer-section">\n          <ion-col col-11 text-wrap class="date-section">\n            <span class="node-refresh-date">Last Refreshed: {{ api.getReadableInternationalDateFormatFromSQLFormat(node.refreshed) }}</span>\n          </ion-col>\n          <ion-col col-1 class="icon-section">\n            <ion-icon name="arrow-forward"></ion-icon>\n          </ion-col>\n        </ion-row>\n      </ion-grid>\n    </ng-container>\n  </ion-card>\n      \n</ion-content>'/*ion-inline-end:"/Users/Aine/Documents/Ionic Projects/airqo/src/pages/home/home.html"*/
         }),
-        __metadata("design:paramtypes", [__WEBPACK_IMPORTED_MODULE_5_ionic_angular__["i" /* NavController */], __WEBPACK_IMPORTED_MODULE_6__ionic_storage__["b" /* Storage */], __WEBPACK_IMPORTED_MODULE_8__angular_common_http__["a" /* HttpClient */], __WEBPACK_IMPORTED_MODULE_5_ionic_angular__["g" /* LoadingController */],
-            __WEBPACK_IMPORTED_MODULE_5_ionic_angular__["b" /* AlertController */], __WEBPACK_IMPORTED_MODULE_5_ionic_angular__["n" /* ToastController */], __WEBPACK_IMPORTED_MODULE_7__ionic_native_geolocation__["a" /* Geolocation */], __WEBPACK_IMPORTED_MODULE_5_ionic_angular__["k" /* Platform */],
-            __WEBPACK_IMPORTED_MODULE_9__ionic_native_device__["a" /* Device */], __WEBPACK_IMPORTED_MODULE_5_ionic_angular__["l" /* PopoverController */], __WEBPACK_IMPORTED_MODULE_5_ionic_angular__["h" /* ModalController */], __WEBPACK_IMPORTED_MODULE_11__providers_api_api__["a" /* ApiProvider */]])
+        __metadata("design:paramtypes", [typeof (_a = typeof __WEBPACK_IMPORTED_MODULE_5_ionic_angular__["i" /* NavController */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_5_ionic_angular__["i" /* NavController */]) === "function" && _a || Object, typeof (_b = typeof __WEBPACK_IMPORTED_MODULE_6__ionic_storage__["b" /* Storage */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_6__ionic_storage__["b" /* Storage */]) === "function" && _b || Object, typeof (_c = typeof __WEBPACK_IMPORTED_MODULE_8__angular_common_http__["a" /* HttpClient */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_8__angular_common_http__["a" /* HttpClient */]) === "function" && _c || Object, typeof (_d = typeof __WEBPACK_IMPORTED_MODULE_5_ionic_angular__["g" /* LoadingController */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_5_ionic_angular__["g" /* LoadingController */]) === "function" && _d || Object, typeof (_e = typeof __WEBPACK_IMPORTED_MODULE_5_ionic_angular__["b" /* AlertController */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_5_ionic_angular__["b" /* AlertController */]) === "function" && _e || Object, typeof (_f = typeof __WEBPACK_IMPORTED_MODULE_5_ionic_angular__["n" /* ToastController */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_5_ionic_angular__["n" /* ToastController */]) === "function" && _f || Object, typeof (_g = typeof __WEBPACK_IMPORTED_MODULE_7__ionic_native_geolocation__["a" /* Geolocation */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_7__ionic_native_geolocation__["a" /* Geolocation */]) === "function" && _g || Object, typeof (_h = typeof __WEBPACK_IMPORTED_MODULE_5_ionic_angular__["k" /* Platform */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_5_ionic_angular__["k" /* Platform */]) === "function" && _h || Object, typeof (_j = typeof __WEBPACK_IMPORTED_MODULE_9__ionic_native_device__["a" /* Device */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_9__ionic_native_device__["a" /* Device */]) === "function" && _j || Object, typeof (_k = typeof __WEBPACK_IMPORTED_MODULE_5_ionic_angular__["l" /* PopoverController */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_5_ionic_angular__["l" /* PopoverController */]) === "function" && _k || Object, typeof (_l = typeof __WEBPACK_IMPORTED_MODULE_5_ionic_angular__["h" /* ModalController */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_5_ionic_angular__["h" /* ModalController */]) === "function" && _l || Object, typeof (_m = typeof __WEBPACK_IMPORTED_MODULE_11__providers_api_api__["a" /* ApiProvider */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_11__providers_api_api__["a" /* ApiProvider */]) === "function" && _m || Object])
     ], HomePage);
     return HomePage;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
 }());
 
 //# sourceMappingURL=home.js.map
@@ -3107,10 +3112,10 @@ var NodePage = /** @class */ (function () {
                 console.log(this.node);
                 if (this.api.isConnected()) {
                     this.onlineLoadHistoryNodeInfo();
-                    // this.onlineLoadNodeForecastInfo();
+                    this.onlineLoadNodeForecastInfo();
                 }
                 else {
-                    // this.offlineLoadHistoryNodeInfo();
+                    this.offlineLoadHistoryNodeInfo();
                 }
                 return [2 /*return*/];
             });
@@ -3191,26 +3196,23 @@ var NodePage = /** @class */ (function () {
         };
         loader.present().then(function () {
             _this.http.post(_this.forecast_node_api, params).subscribe(function (result) {
-                console.log("------------------------------------------------------------------------------");
+                console.log("1------------------------------------------------------------------------------");
                 console.log(result);
                 loader.dismiss();
-                // this.forecast_node_api_success = result.success;
-                // if (result.success == '100') {
-                //   this.node.refreshed     = this.api.getCurrentDateTime();
-                //   this.node.feeds.field1  = result.lastfeeds.feeds[0].field1.trim();
-                //   console.log(result.lastfeeds.feeds);
-                //   this.getGraphData(result.lastfeeds.feeds);
-                //   this.offlineStoreNodeInfo();
-                // } else {
-                //   this.offlineLoadNodeInfo();
-                //   this.alertCtrl.create({
-                //     title: result.title,
-                //     message: result.message,
-                //     buttons: ['Okay']
-                //   }).present();
-                // }
+                _this.forecast_node_api_success = result.success;
+                if (result.success == '100' && result.formatted_results) {
+                    console.log("2------------------------------------------------------------------------------");
+                    console.log(result.formatted_results);
+                    // this.getForecastGraphData(result.lastfeeds.feeds);
+                }
+                else {
+                    _this.alertCtrl.create({
+                        title: result.title,
+                        message: result.message,
+                        buttons: ['Okay']
+                    }).present();
+                }
             }, function (err) {
-                // this.offlineLoadNodeInfo();
                 loader.dismiss();
                 _this.toastCtrl.create({
                     message: 'Network Error',
@@ -3260,7 +3262,7 @@ var NodePage = /** @class */ (function () {
     // --------------------------------------------------------------------------------------------------------------------
     // Fetch Forecast Bar Graph Data
     // --------------------------------------------------------------------------------------------------------------------
-    NodePage.prototype.getForecasttGraphData = function (graph_feeds) {
+    NodePage.prototype.getForecastGraphData = function (graph_feeds) {
         var x_data = [];
         var y_data = [];
         var bar_colors = [];
@@ -3275,7 +3277,7 @@ var NodePage = /** @class */ (function () {
         // console.log(y_data);
         // console.log("COLORS - DATA: ");
         // console.log(bar_colors);
-        this.loadHistoryGraph(x_data, y_data, bar_colors);
+        this.loadForecastGraph(x_data, y_data, bar_colors);
     };
     // --------------------------------------------------------------------------------------------------------------------
     // Draw Bar Graph
@@ -3395,20 +3397,20 @@ var NodePage = /** @class */ (function () {
     };
     __decorate([
         Object(__WEBPACK_IMPORTED_MODULE_1__angular_core__["_8" /* ViewChild */])('barCanvasHistory'),
-        __metadata("design:type", Object)
-    ], NodePage.prototype, "barCanvas", void 0);
+        __metadata("design:type", __WEBPACK_IMPORTED_MODULE_1__angular_core__["t" /* ElementRef */])
+    ], NodePage.prototype, "barCanvasHistory", void 0);
     __decorate([
         Object(__WEBPACK_IMPORTED_MODULE_1__angular_core__["_8" /* ViewChild */])('barCanvasForecast'),
-        __metadata("design:type", Object)
-    ], NodePage.prototype, "barCanvas", void 0);
+        __metadata("design:type", __WEBPACK_IMPORTED_MODULE_1__angular_core__["t" /* ElementRef */])
+    ], NodePage.prototype, "barCanvasForecast", void 0);
     NodePage = __decorate([
         Object(__WEBPACK_IMPORTED_MODULE_1__angular_core__["m" /* Component */])({
-            selector: 'page-node',template:/*ion-inline-start:"/Users/Aine/Documents/Ionic Projects/airqo/src/pages/node/node.html"*/'<ion-header>\n  <ion-navbar color="blue">\n    <ion-buttons end>\n      <button color="light" ion-button icon-only>\n        AIR QUALITY\n      </button>\n    </ion-buttons>\n  </ion-navbar>\n</ion-header>\n\n<!-- <ion-content [style.backgroundImage]="api.nodeStatus(node.feeds.field1).background"> -->\n<!-- <ion-content [style.background]="\'assets/bg/0.png\'"> -->\n<ion-content [ngStyle] ="{\'background-image\' : \'url(\'+ api.nodeStatus(node.feeds.field1).background +\')\'}">\n    \n <div class="top-section">\n\n  <div class="place">\n    <p class="place-name">{{ node.name }}</p>\n    <p class="place-location">{{ node.location }}</p>\n  </div>\n\n  <ion-card class="node-card">\n    <ion-grid class="node bg-white">\n      <ion-row class="readings-section" [style.backgroundColor]="api.nodeStatus(node.feeds.field1).color">\n        <ion-col col-3 class="face bg-darker">\n          <img [src]="api.nodeStatus(node.feeds.field1).face"/>\n        </ion-col>\n        <ion-col col-4 class="values">\n          <p class="number moderate-bold" [style.color]="api.nodeStatus(node.feeds.field1).font_color">{{ node.feeds.field1 }}</p>\n          <p class="number-label moderate-bold" [style.color]="api.nodeStatus(node.feeds.field1).font_color">PM2.5</p>\n        </ion-col>\n        <ion-col col-5 class="label">\n          <p text-wrap class="value-label moderate-bold" [style.color]="api.nodeStatus(node.feeds.field1).font_color">{{ api.nodeStatus(node.feeds.field1).label }}</p>\n        </ion-col>\n      </ion-row>\n      <ion-row class="footer-section">\n        <ion-col text-wrap class="date-section">\n          <span class="node-refresh-date">Last Refreshed: {{ this.api.getReadableInternationalDateFormatFromSQLFormat(node.refreshed) }}</span>\n        </ion-col>\n      </ion-row>\n    </ion-grid>\n  </ion-card>\n </div>\n\n<div class="bottom-section bg-white">\n\n  <!-- <ion-card class="key-card">\n    <div class="key">\n      <div text-wrap class="key-label bg-green white">Good</div>\n      <div text-wrap class="key-label bg-yellow dark-blue">Moderate</div>\n      <div text-wrap class="key-label bg-orange white">Sensitive</div>\n      <div text-wrap class="key-label bg-red white">Unhealthy</div>\n      <div text-wrap class="key-label bg-purple white">V.Unhealthy</div>\n      <div text-wrap class="key-label bg-maroon white">Hazardous</div>\n    </div>\n  </ion-card> -->\n\n  <div padding>\n    <ion-segment [color]="api.nodeStatus(node.feeds.field1).css_color" [(ngModel)]="graphs_segments">\n      <ion-segment-button value="history">\n        History\n      </ion-segment-button>\n      <ion-segment-button value="forecast">\n        Forecast\n      </ion-segment-button>\n    </ion-segment>\n  </div>\n\n  <ion-scroll class="bar-chart-scroll" zoom="true">\n    <div [ngSwitch]="\'graphs_segments\'">\n      <div class="bar-canvas" *ngSwitchCase="\'history\'">\n        <canvas #barCanvasHistory></canvas>\n      </div>\n  \n      <div class="bar-canvas" *ngSwitchCase="\'forecast\'">\n        <!-- <canvas #barCanvasForecast></canvas> -->\n      </div>\n    </div>    \n  </ion-scroll>\n</div>\n\n  <ion-fab right middle (click)="goToKeyPage()">\n    <button ion-fab color="green">KEY</button>\n  </ion-fab>\n\n\n</ion-content>\n'/*ion-inline-end:"/Users/Aine/Documents/Ionic Projects/airqo/src/pages/node/node.html"*/,
+            selector: 'page-node',template:/*ion-inline-start:"/Users/Aine/Documents/Ionic Projects/airqo/src/pages/node/node.html"*/'<ion-header>\n  <ion-navbar color="blue">\n    <ion-buttons end>\n      <button color="light" ion-button icon-only>\n        AIR QUALITY\n      </button>\n    </ion-buttons>\n  </ion-navbar>\n</ion-header>\n\n<!-- <ion-content [style.backgroundImage]="api.nodeStatus(node.feeds.field1).background"> -->\n<!-- <ion-content [style.background]="\'assets/bg/0.png\'"> -->\n<ion-content [ngStyle] ="{\'background-image\' : \'url(\'+ api.nodeStatus(node.feeds.field1).background +\')\'}">\n    \n <div class="top-section">\n\n  <div class="place">\n    <p class="place-name">{{ node.name }}</p>\n    <p class="place-location">{{ node.location }}</p>\n  </div>\n\n  <ion-card class="node-card">\n    <ion-grid class="node bg-white">\n      <ion-row class="readings-section" [style.backgroundColor]="api.nodeStatus(node.feeds.field1).color">\n        <ion-col col-3 class="face bg-darker">\n          <img [src]="api.nodeStatus(node.feeds.field1).face"/>\n        </ion-col>\n        <ion-col col-4 class="values">\n          <p class="number moderate-bold" [style.color]="api.nodeStatus(node.feeds.field1).font_color">{{ node.feeds.field1 }}</p>\n          <p class="number-label moderate-bold" [style.color]="api.nodeStatus(node.feeds.field1).font_color">PM2.5</p>\n        </ion-col>\n        <ion-col col-5 class="label">\n          <p text-wrap class="value-label moderate-bold" [style.color]="api.nodeStatus(node.feeds.field1).font_color">{{ api.nodeStatus(node.feeds.field1).label }}</p>\n        </ion-col>\n      </ion-row>\n      <ion-row class="footer-section">\n        <ion-col text-wrap class="date-section">\n          <span class="node-refresh-date">Last Refreshed: {{ this.api.getReadableInternationalDateFormatFromSQLFormat(node.refreshed) }}</span>\n        </ion-col>\n      </ion-row>\n    </ion-grid>\n  </ion-card>\n </div>\n\n<div class="bottom-section bg-white">\n\n  <!-- <ion-card class="key-card">\n    <div class="key">\n      <div text-wrap class="key-label bg-green white">Good</div>\n      <div text-wrap class="key-label bg-yellow dark-blue">Moderate</div>\n      <div text-wrap class="key-label bg-orange white">Sensitive</div>\n      <div text-wrap class="key-label bg-red white">Unhealthy</div>\n      <div text-wrap class="key-label bg-purple white">V.Unhealthy</div>\n      <div text-wrap class="key-label bg-maroon white">Hazardous</div>\n    </div>\n  </ion-card> -->\n\n  <div padding>\n    <ion-segment [color]="api.nodeStatus(node.feeds.field1).css_color" [(ngModel)]="graphs_segments">\n      <ion-segment-button value="history">\n        History\n      </ion-segment-button>\n      <ion-segment-button value="forecast">\n        Forecast\n      </ion-segment-button>\n    </ion-segment>\n  </div>\n\n  <div class="bar-canvas">\n    <canvas #barCanvasHistory></canvas>\n  </div>\n\n  <div class="bar-canvas">\n    <canvas #barCanvasForecast></canvas>\n  </div>\n\n  <!-- <ion-scroll class="bar-chart-scroll" zoom="true">\n    <div [ngSwitch]="\'graphs_segments\'">\n      <div class="bar-canvas" *ngSwitchCase="\'history\'">\n        <canvas #barCanvasHistory></canvas>\n      </div>\n  \n      <div class="bar-canvas" *ngSwitchCase="\'forecast\'">\n        <canvas #barCanvasForecast></canvas>\n      </div>\n    </div>    \n  </ion-scroll> -->\n</div>\n\n  <ion-fab right middle (click)="goToKeyPage()">\n    <button ion-fab color="green">KEY</button>\n  </ion-fab>\n\n\n</ion-content>\n'/*ion-inline-end:"/Users/Aine/Documents/Ionic Projects/airqo/src/pages/node/node.html"*/,
         }),
-        __metadata("design:paramtypes", [typeof (_a = typeof __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["i" /* NavController */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["i" /* NavController */]) === "function" && _a || Object, typeof (_b = typeof __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["j" /* NavParams */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["j" /* NavParams */]) === "function" && _b || Object, typeof (_c = typeof __WEBPACK_IMPORTED_MODULE_3__ionic_storage__["b" /* Storage */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_3__ionic_storage__["b" /* Storage */]) === "function" && _c || Object, typeof (_d = typeof __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["n" /* ToastController */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["n" /* ToastController */]) === "function" && _d || Object, typeof (_e = typeof __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["g" /* LoadingController */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["g" /* LoadingController */]) === "function" && _e || Object, typeof (_f = typeof __WEBPACK_IMPORTED_MODULE_4__angular_common_http__["a" /* HttpClient */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_4__angular_common_http__["a" /* HttpClient */]) === "function" && _f || Object, typeof (_g = typeof __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["b" /* AlertController */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["b" /* AlertController */]) === "function" && _g || Object, typeof (_h = typeof __WEBPACK_IMPORTED_MODULE_5__providers_api_api__["a" /* ApiProvider */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_5__providers_api_api__["a" /* ApiProvider */]) === "function" && _h || Object])
+        __metadata("design:paramtypes", [__WEBPACK_IMPORTED_MODULE_2_ionic_angular__["i" /* NavController */], __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["j" /* NavParams */], __WEBPACK_IMPORTED_MODULE_3__ionic_storage__["b" /* Storage */], __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["n" /* ToastController */],
+            __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["g" /* LoadingController */], __WEBPACK_IMPORTED_MODULE_4__angular_common_http__["a" /* HttpClient */], __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["b" /* AlertController */], __WEBPACK_IMPORTED_MODULE_5__providers_api_api__["a" /* ApiProvider */]])
     ], NodePage);
     return NodePage;
-    var _a, _b, _c, _d, _e, _f, _g, _h;
 }());
 
 //# sourceMappingURL=node.js.map

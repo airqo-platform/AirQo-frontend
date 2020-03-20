@@ -11,7 +11,7 @@ class User extends CI_Controller
      {
           $data['navigation'] = 'User Places';
           $data['title']      = 'User Places';
-          $data['user']       = $this->session->userdata['logged_in']['admin_name'];
+          $data['user']       = $this->session->userdata['loggedin']['adminname'];
           
           $this->load->view('admin/includes/header', $data);
           $this->load->view('admin/includes/menu', $data);
@@ -86,7 +86,7 @@ class User extends CI_Controller
      {
           $data['navigation'] = 'Daily Reports Subscription';
           $data['title']      = 'Daily Reports Subscription';
-          $data['user']       = $this->session->userdata['logged_in']['admin_name'];
+          $data['user']       = $this->session->userdata['loggedin']['adminname'];
           
           $this->load->view('admin/includes/header', $data);
           $this->load->view('admin/includes/menu', $data);
@@ -169,7 +169,7 @@ class User extends CI_Controller
      {
           $data['navigation'] = 'Threshold Alerts';
           $data['title']      = 'Threshold Alerts';
-          $data['user']       = $this->session->userdata['logged_in']['admin_name'];
+          $data['user']       = $this->session->userdata['loggedin']['adminname'];
           
           $this->load->view('admin/includes/header', $data);
           $this->load->view('admin/includes/menu', $data);
@@ -252,7 +252,7 @@ class User extends CI_Controller
      {
           $data['navigation'] = 'App Feedback';
           $data['title']      = 'App Feedback';
-          $data['user']       = $this->session->userdata['logged_in']['admin_name'];
+          $data['user']       = $this->session->userdata['loggedin']['adminname'];
           
           $this->load->view('admin/includes/header', $data);
           $this->load->view('admin/includes/menu', $data);
@@ -341,7 +341,7 @@ class User extends CI_Controller
      {
           $data['navigation'] = 'AQI Camera';
           $data['title']      = 'AQI Camera';
-          $data['user']       = $this->session->userdata['logged_in']['admin_name'];
+          $data['user']       = $this->session->userdata['loggedin']['adminname'];
           
           $this->load->view('admin/includes/header', $data);
           $this->load->view('admin/includes/menu', $data);
@@ -569,7 +569,7 @@ class User extends CI_Controller
      {
           $data['navigation'] = 'Get Involved';
           $data['title']      = 'Get Involved';
-          $data['user']       = $this->session->userdata['logged_in']['admin_name'];
+          $data['user']       = $this->session->userdata['loggedin']['adminname'];
           
           $this->load->view('admin/includes/header', $data);
           $this->load->view('admin/includes/menu', $data);
@@ -720,7 +720,7 @@ class User extends CI_Controller
                $objc = $this->input->post('choicec');
                $objd = $this->input->post('choiced');
                $gen_id = md5(microtime(true).mt_Rand());
-               $user_logged_in = $this->session->userdata['logged_in']['admin_name'];
+               $user_logged_in = $this->session->userdata['loggedin']['adminname'];
 
                $userData = array(
                     'agv_id' => $gen_id,
@@ -814,7 +814,7 @@ class User extends CI_Controller
                $objc = $this->input->post('choicec');
                $objd = $this->input->post('choiced');
 
-               $user_logged_in = $this->session->userdata['logged_in']['admin_name'];
+               $user_logged_in = $this->session->userdata['loggedin']['adminname'];
                $condition = array(
                     'agv_id' => $this->input->post('qid')
                );
@@ -864,7 +864,7 @@ class User extends CI_Controller
           else 
           {
                $bid = $this->input->post('qid');
-               $user_logged_in = $this->session->userdata['logged_in']['admin_name'];
+               $user_logged_in = $this->session->userdata['loggedin']['adminname'];
                $condition = array(
                     'agv_id' => $bid
                );
@@ -907,7 +907,7 @@ class User extends CI_Controller
           else 
           {
                $bid = $this->input->post('qid');
-               $user_logged_in = $this->session->userdata['logged_in']['admin_name'];
+               $user_logged_in = $this->session->userdata['loggedin']['adminname'];
                $condition = array(
                     'agv_id' => $bid
                );
@@ -950,7 +950,7 @@ class User extends CI_Controller
           else 
           {
                $bid = $this->input->post('qid');
-               $user_logged_in = $this->session->userdata['logged_in']['admin_name'];
+               $user_logged_in = $this->session->userdata['loggedin']['adminname'];
                $condition = array(
                     'agv_id' => $bid
                );

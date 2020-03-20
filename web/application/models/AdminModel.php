@@ -3,7 +3,6 @@ defined('BASEPATH') or exit('No direct script access allowed');
 
 class AdminModel extends CI_Model
 {
-	// NDn4Djf4elCA00sB
 
 	function __construct()
 	{
@@ -355,8 +354,14 @@ class AdminModel extends CI_Model
 
 	public function delete_app_node($an_id)
 	{
-		$this->db->where('an_id', $an_id);
-		if ($this->db->update('tbl_app_nodes', array('an_deleted' => '1'))) {
+		//$this->db->where('an_id', $an_id);
+		//if ($this->db->update('tbl_app_nodes', array('an_deleted' => '1'))) {
+		//	return '1';
+		//} else {
+		//	return '0';
+		//}
+
+		if ($this->db->delete('tbl_app_nodes', array('an_id' => $an_id))) {
 			return '1';
 		} else {
 			return '0';

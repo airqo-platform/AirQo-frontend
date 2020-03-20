@@ -6,7 +6,7 @@
         Back
       </button>
     </ion-buttons>
-      <ion-searchbar type="text" color="light" placeholder="Search city or area" clearInput [formControl]="textInput"></ion-searchbar>
+    <ion-searchbar type="text" color="light" placeholder="Search city or area" clearInput [formControl]="textInput"></ion-searchbar>
   </ion-navbar>
 </ion-header>
 
@@ -17,6 +17,7 @@
       <ion-icon name="pin" color="grey" item-start></ion-icon>
       <div class="area-title">{{ node.name }}</div>
       <div class="area-sub-title">{{ node.location }}</div>
+      <ion-icon name="md-star" color="primary" item-end (click)="addToFavoritesList(node, $event)"></ion-icon>
     </ion-item>
   </ion-list>
 </ion-content>

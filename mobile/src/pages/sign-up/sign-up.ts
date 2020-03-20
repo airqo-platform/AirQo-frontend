@@ -17,7 +17,7 @@ export class SignUpPage {
   password_type: string = 'password';
   password_icon: string = 'eye-off';
 
-  sign_up_api    = 'https://airqo.net/Apis/airqoSignUp';
+  sign_up_api    = 'https://test-dot-airqo-frontend.appspot.com/Apis/airqoSignUp';
 
   constructor(public navCtrl: NavController, public navParams: NavParams, private loadingCtrl: LoadingController, private http: HttpClient,
     private alertCtrl: AlertController, private storage: Storage, private api: ApiProvider) {

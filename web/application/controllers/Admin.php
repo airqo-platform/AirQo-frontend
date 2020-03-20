@@ -28,20 +28,70 @@ class Admin extends CI_Controller
 			$result = $this->AdminModel->verify_user_details($username, $password);
 			if ($result != null) {
 				$sess_array = array(
-					'admin_id'          => trim($result->admin_id),
-					'admin_role'        => trim($result->admin_role),
-					'admin_email'       => trim($result->admin_email),
-					'admin_name'        => trim($result->admin_name),
-					'admin_image'       => trim($result->admin_image),
-					'admin_phoneNumber' => trim($result->admin_phoneNumber),
-					'admin_username'    => trim($result->admin_username),
+					'adminid'          => trim($result->admin_id),
+					'adminrole'        => trim($result->admin_role),
+					'adminemail'       => trim($result->admin_email),
+					'adminname'        => trim($result->admin_name),
+					'adminimage'       => trim($result->admin_image),
+					'adminphoneNumber' => trim($result->admin_phoneNumber),
+					'adminusername'    => trim($result->admin_username),
 					'loggedIn'          => 1
 				);
-				$this->session->set_userdata('logged_in', $sess_array);
-				redirect('a-dashboard');
+				$this->session->set_userdata('loggedin', $sess_array);
+
+				// redirect('a-dashboard');
+				header('Location: a-dashboard');
+
 			} else {
 				$this->session->set_flashdata("error", "unable to login please contact administrator");
 				$this->load->view("admin/index", $data);
+			}
+		}
+	}
+	
+	public function LoginSubmit()
+	{
+		$response = array();
+		$this->form_validation->set_rules('username', 'username', 'trim|required|xss_clean');
+		$this->form_validation->set_rules('password', 'password', 'trim|required|xss_clean');
+
+		if($this->form_validation->run() == FALSE) {
+			$response['success'] = 0;
+			$response['message'] = validation_errors();
+
+			echo json_encode($response);
+		} else {
+			//login submit
+			$username = $this->input->post("username");
+			$password = $this->input->post("password");
+			$password = sha1($password);
+
+			$result = $this->AdminModel->verify_user_details($username, $password);
+			if ($result != null) {
+				$sess_array = array(
+					'adminid'          => trim($result->admin_id),
+					'adminrole'        => trim($result->admin_role),
+					'adminemail'       => trim($result->admin_email),
+					'adminname'        => trim($result->admin_name),
+					'adminimage'       => trim($result->admin_image),
+					'adminphoneNumber' => trim($result->admin_phoneNumber),
+					'adminusername'    => trim($result->admin_username),
+					'loggedIn'          => 1
+				);
+				$this->session->set_userdata('loggedin', $sess_array);
+				
+				$response['success'] = 1;
+				$response['message'] = "Login success";
+
+				echo json_encode($response);
+				// redirect('a-dashboard');
+				// header('Location: a-dashboard');
+
+			} else {
+				$response['success'] = 0;
+				$response['message'] = "unable to login please contact administrator";
+
+				echo json_encode($response);
 			}
 		}
 	}
@@ -129,22 +179,22 @@ class Admin extends CI_Controller
 	 */
 	public function updateSession()
 	{
-		$email      = $this->session->userdata['logged_in']['admin_email'];
-		$password   = $this->session->userdata['logged_in']['admin_email'];
+		$email      = $this->session->userdata['loggedin']['adminemail'];
+		$password   = $this->session->userdata['loggedin']['adminemail'];
 		$result  = $this->AdminModel->update_user_details($email, $password);
 
 		if ($result) {
 			$sess_array = array(
-				'admin_id'          => $result->admin_id,
-				'admin_role'        => $result->admin_role,
-				'admin_email'       => $result->admin_email,
-				'admin_name'        => $result->admin_name,
-				'admin_image'       => $result->admin_image,
-				'admin_password'    => $result->admin_password,
-				'admin_phoneNumber' => $result->admin_phoneNumber,
-				'admin_username'    => $result->admin_username
+				'adminid'          => $result->admin_id,
+				'adminrole'        => $result->admin_role,
+				'adminemail'       => $result->admin_email,
+				'adminname'        => $result->admin_name,
+				'adminimage'       => $result->admin_image,
+				'adminpassword'    => $result->admin_password,
+				'adminphoneNumber' => $result->admin_phoneNumber,
+				'adminusername'    => $result->admin_username
 			);
-			$this->session->set_userdata('logged_in', $sess_array);
+			$this->session->set_userdata('loggedin', $sess_array);
 			return true;
 		} else {
 			$this->session->set_flashdata("error", "Something went wrong try logging out and then in again");
@@ -269,7 +319,7 @@ class Admin extends CI_Controller
 		$data['navigation'] = 'sub';
 		$data['data']       = 'total';
 		$data['title']      = 'Subscribers';
-		$data['user']       = $this->session->userdata['logged_in']['admin_name'];
+		$data['user']       = $this->session->userdata['loggedin']['adminname'];
 		$data['total']      = $this->AdminModel->get_total();
 		$this->load->view('admin/includes/header', $data);
 		$this->load->view('admin/includes/menu', $data);
@@ -282,7 +332,7 @@ class Admin extends CI_Controller
 		$data['navigation'] = 'faqs';
 		$data['data']       = 'total';
 		$data['title']      = 'FAQS';
-		$data['user']       = $this->session->userdata['logged_in']['admin_name'];
+		$data['user']       = $this->session->userdata['loggedin']['adminname'];
 		$data['total']      = $this->AdminModel->get_faqs_total();
 		$this->load->view('admin/includes/header', $data);
 		$this->load->view('admin/includes/menu', $data);
@@ -296,7 +346,7 @@ class Admin extends CI_Controller
 		$data['navigation'] = 'about';
 		$data['data']       = 'aboutInfo';
 		$data['title']      = 'About Us';
-		$data['user']       = $this->session->userdata['logged_in']['admin_name'];
+		$data['user']       = $this->session->userdata['loggedin']['adminname'];
 		$data['aboutInfo']  = $this->AdminModel->get_about_information();
 		$this->load->view('admin/includes/header', $data);
 		$this->load->view('admin/includes/menu', $data);
@@ -305,12 +355,13 @@ class Admin extends CI_Controller
 	
 	public function aboutDetails($pg_id)
 	{
-		if (isset($this->session->userdata['logged_in']['admin_name'])) {
+		if (isset($this->session->userdata['loggedin']['adminname'])) {
 			$data['navigation'] = 'about';
 			$data['data']       = 'aboutInfo';
 			$data['title']      = 'Details';
-			$data['user']       = $this->session->userdata['logged_in']['admin_name'];
+			$data['user']       = $this->session->userdata['loggedin']['adminname'];
 			$data['aboutDetails']  = $this->AdminModel->get_about_information($pg_id);
+			$data['paged'] = $this->AdminModel->get_about($pg_id);
 			$this->load->view('admin/includes/header', $data);
 			$this->load->view('admin/includes/menu', $data);
 			$this->load->view('admin/about-details', $data);
@@ -322,19 +373,19 @@ class Admin extends CI_Controller
 
 	public function addAboutInformation()
 	{
-		if (isset($this->session->userdata['logged_in']['admin_name'])) {
+		if (isset($this->session->userdata['loggedin']['adminname'])) {
 			$this->form_validation->set_rules('pg_title', 'Title', 'required|trim');
 			if ($this->form_validation->run() === false) {
 				$data['navigation'] = 'about';
 				$data['aboutInfo']  = $this->AdminModel->get_about_information();
 				$data['title']      = 'About Information';
-				$data['user']       = $this->session->userdata['logged_in']['admin_name'];
+				$data['user']       = $this->session->userdata['loggedin']['adminname'];
 
 				$this->load->view('admin/includes/header', $data);
 				$this->load->view('admin/includes/menu', $data);
 				$this->load->view('admin/about', $data);
 			} else {
-				$admin                     =   $this->session->userdata['logged_in']['admin_name'];
+				$admin                     =   $this->session->userdata['loggedin']['adminname'];
 				$status                    =   '1';
 				$data                     =    array(
 					'pg_title'              =>   ucwords($this->input->post('pg_title')),
@@ -361,7 +412,7 @@ class Admin extends CI_Controller
 
 	public function deleteAboutInformation()
 	{
-		if (isset($this->session->userdata['logged_in']['admin_name'])) {
+		if (isset($this->session->userdata['loggedin']['adminname'])) {
 			$about_id   = $this->input->post('pg_id');
 			$about      = $this->AdminModel->delete_about_information($about_id);
 			echo $about;
@@ -371,7 +422,7 @@ class Admin extends CI_Controller
 	}
 	public function editAboutDetails()
 	{
-		if (isset($this->session->userdata['logged_in']['admin_name'])) {
+		if (isset($this->session->userdata['loggedin']['adminname'])) {
 			$data['navigation'] = 'about';
 			$response = array();
 
@@ -401,7 +452,7 @@ class Admin extends CI_Controller
 	// edit about info thru the modal in about.php
 	public function editAbout()
 	{
-		if (isset($this->session->userdata['logged_in']['admin_name'])) {
+		if (isset($this->session->userdata['loggedin']['adminname'])) {
 			$this->form_validation->set_rules('pg_title', 'Title', 'required|trim');
 			if ($this->form_validation->run() === false) {
 				$data['title'] = 'About Info';
@@ -411,7 +462,7 @@ class Admin extends CI_Controller
 				$this->load->view('admin/includes/menu', $data);
 				$this->load->view('admin/about', $data);
 			} else {
-				$admin                       =   $this->session->userdata['logged_in']['admin_name'];
+				$admin                       =   $this->session->userdata['loggedin']['adminname'];
 				$status                      =   '1';
 				$data                     =    array(
 					'pg_title'              =>   ucwords($this->input->post('pg_title')),
@@ -441,11 +492,11 @@ class Admin extends CI_Controller
 	// PROJECT SECTION STARTS HERE
 	public function projects()
 	{
-		if (isset($this->session->userdata['logged_in']['admin_name'])) {
+		if (isset($this->session->userdata['loggedin']['adminname'])) {
 			$data['navigation'] = 'projects';
 			$data['title'] = 'projects';
 			$data['projects'] = $this->AdminModel->list_projects();
-			$data['user'] = $this->session->userdata['logged_in']['admin_name'];
+			$data['user'] = $this->session->userdata['loggedin']['adminname'];
 
 			$this->load->view('admin/includes/header', $data);
 			$this->load->view('admin/includes/menu', $data);
@@ -457,14 +508,14 @@ class Admin extends CI_Controller
 
 	public function addProject()
 	{
-		if (isset($this->session->userdata['logged_in']['admin_name'])) {
+		if (isset($this->session->userdata['loggedin']['adminname'])) {
 			$this->form_validation->set_rules('p_title', 'Project title', 'trim|required');
 
 			if ($this->form_validation->run() === false) {
 				$this->session->set_flashdata('error', validation_errors());
 				redirect('Admin/projects');
 			} else {
-				$added_by = $this->session->userdata['logged_in']['admin_name'];
+				$added_by = $this->session->userdata['loggedin']['adminname'];
 				$uploaded_image = $_FILES['p_image']['tmp_name'];
 				$image_name   = '';
 				if ($uploaded_image != null) {
@@ -489,7 +540,7 @@ class Admin extends CI_Controller
 					$image_name = '';
 				}
 				$status                      = '1';
-				$added_by                    =  $this->session->userdata['logged_in']['admin_name'];
+				$added_by                    =  $this->session->userdata['loggedin']['adminname'];
 				// the slug usage
 				$slug                        = url_title(ucwords($this->input->post('p_title')), 'dash', true);
 
@@ -522,10 +573,10 @@ class Admin extends CI_Controller
 
 	public function projectDetails($p_id)
 	{
-		if (isset($this->session->userdata['logged_in']['admin_name'])) {
+		if (isset($this->session->userdata['loggedin']['adminname'])) {
 			$data['title'] = 'Project Details';
 			$data['navigation'] = 'projects';
-			$data['user'] = $this->session->userdata['logged_in']['admin_name'];
+			$data['user'] = $this->session->userdata['loggedin']['adminname'];
 
 			$data['projectDetails'] = $this->AdminModel->list_projects($p_id);
 			$this->load->view('admin/includes/header', $data);
@@ -538,7 +589,7 @@ class Admin extends CI_Controller
 
 	public function editProjectDetails()
 	{
-		if (isset($this->session->userdata['logged_in']['admin_name'])) {
+		if (isset($this->session->userdata['loggedin']['adminname'])) {
 			$response = array();
 			if ($this->input->post('p_id') == null) {
 				$response['success'] = 0;
@@ -566,13 +617,13 @@ class Admin extends CI_Controller
 	// edit project  thru the modal in projects.php
 	public function editProject()
 	{
-		if (isset($this->session->userdata['logged_in']['admin_name'])) {
+		if (isset($this->session->userdata['loggedin']['adminname'])) {
 			$this->form_validation->set_rules('p_title', 'Project title', 'required|trim');
 			if ($this->form_validation->run() === false) {
 				$this->session->set_flashdata('error', validation_errors());
 				redirect('Admin/projects');
 			} else {
-				$added_by = $this->session->userdata['logged_in']['admin_name'];
+				$added_by = $this->session->userdata['loggedin']['adminname'];
 				$uploaded_image = $_FILES['p_image']['tmp_name'];
 				$image_name   = '';
 				if ($uploaded_image != null) {
@@ -595,7 +646,7 @@ class Admin extends CI_Controller
 					imagejpeg($dst_r, './assets/images/projects/' . $image_name, $jpeg_quality);
 
 					$status = '1';
-					$updated_by = $this->session->userdata['logged_in']['admin_name'];
+					$updated_by = $this->session->userdata['loggedin']['adminname'];
 					$data                        = array(
 						'p_title'                    => ucwords($this->input->post('p_title')),
 						'p_excerts'                  => ucfirst($this->input->post('p_excerts')),
@@ -638,7 +689,7 @@ class Admin extends CI_Controller
 
 
 					$status = '1';
-					$updated_by = $this->session->userdata['logged_in']['admin_name'];
+					$updated_by = $this->session->userdata['loggedin']['adminname'];
 					$data                        = array(
 						'p_title'                    => ucwords($this->input->post('p_title')),
 						'p_excerts'                  => ucfirst($this->input->post('p_excerts')),
@@ -668,7 +719,7 @@ class Admin extends CI_Controller
 
 	public function deleteProject()
 	{
-		if (isset($this->session->userdata['logged_in']['admin_name'])) {
+		if (isset($this->session->userdata['loggedin']['adminname'])) {
 			$p_id         = $this->input->post('p_id');
 			$project      = $this->AdminModel->delete_project($p_id);
 			echo $project;
@@ -681,11 +732,11 @@ class Admin extends CI_Controller
 	// contact information starts
 	public function contactInformation()
 	{
-		if (isset($this->session->userdata['logged_in']['admin_name'])) {
+		if (isset($this->session->userdata['loggedin']['adminname'])) {
 			$data['navigation'] = 'contacts';
 			$data['data'] = 'contactInfo';
 			$data['title'] = 'Contacts';
-			$data['user'] = $this->session->userdata['logged_in']['admin_name'];
+			$data['user'] = $this->session->userdata['loggedin']['adminname'];
 			$data['contactInfo'] = $this->AdminModel->get_contact_information();
 			$this->load->view('admin/includes/header', $data);
 			$this->load->view('admin/includes/menu', $data);
@@ -697,7 +748,7 @@ class Admin extends CI_Controller
 
 	public function addContactInformation()
 	{
-		if (isset($this->session->userdata['logged_in']['admin_name'])) {
+		if (isset($this->session->userdata['loggedin']['adminname'])) {
 			$this->form_validation->set_rules('con_address', 'company address', 'required|trim');
 			$this->form_validation->set_rules('con_phoneline', 'phone Number', 'trim|required|numeric|is_unique[tbl_contact .con_phoneline]');
 
@@ -705,13 +756,13 @@ class Admin extends CI_Controller
 				$data['navigation'] = 'contacts';
 				$data['contactInfo'] = $this->AdminModel->get_contact_information();
 				$data['title'] = 'Contact Information';
-				$data['user'] = $this->session->userdata['logged_in']['admin_name'];
+				$data['user'] = $this->session->userdata['loggedin']['adminname'];
 
 				$this->load->view('admin/includes/header', $data);
 				$this->load->view('admin/includes/menu', $data);
 				$this->load->view('admin/contact-information', $data);
 			} else {
-				$admin                     = $this->session->userdata['logged_in']['admin_name'];
+				$admin                     = $this->session->userdata['loggedin']['adminname'];
 				$data                     =  array(
 					'con_address'           => ucwords($this->input->post('con_address')),
 					'con_info'              => ucfirst($this->input->post('con_info')),
@@ -742,7 +793,7 @@ class Admin extends CI_Controller
 
 	public function deleteContactInformation()
 	{
-		if (isset($this->session->userdata['logged_in']['admin_name'])) {
+		if (isset($this->session->userdata['loggedin']['adminname'])) {
 			$contact_id   = $this->input->post('con_id');
 			$contact      = $this->AdminModel->delete_contact_information($contact_id);
 			echo $contact;
@@ -752,7 +803,7 @@ class Admin extends CI_Controller
 	}
 	public function editContactDetails()
 	{
-		if (isset($this->session->userdata['logged_in']['admin_name'])) {
+		if (isset($this->session->userdata['loggedin']['adminname'])) {
 			$data['navigation'] = 'contacts';
 			$response = array();
 
@@ -783,7 +834,7 @@ class Admin extends CI_Controller
 	// editcontacts thru the modal in contact-information.php
 	public function editContact()
 	{
-		if (isset($this->session->userdata['logged_in']['admin_name'])) {
+		if (isset($this->session->userdata['loggedin']['adminname'])) {
 			$this->form_validation->set_rules('con_address', 'Adrress', 'required|trim');
 			if ($this->form_validation->run() === false) {
 				$data['title'] = 'Contact Info';
@@ -793,7 +844,7 @@ class Admin extends CI_Controller
 				$this->load->view('admin/includes/menu', $data);
 				$this->load->view('admin/contact-information', $data);
 			} else {
-				$admin                      = $this->session->userdata['logged_in']['admin_name'];
+				$admin                      = $this->session->userdata['loggedin']['adminname'];
 				$data                     =  array(
 					'con_address'           => ucwords($this->input->post('con_address')),
 					'con_info'              => ucfirst($this->input->post('con_info')),
@@ -823,11 +874,11 @@ class Admin extends CI_Controller
 	{
 		$data['navigation'] = 'dashboard';
 		$data['title'] = 'Dashboard';
-		$data['user'] = $this->session->userdata['logged_in']['admin_name'];
+		$data['user'] = $this->session->userdata['loggedin']['adminname'];
 		$this->load->view('admin/includes/header', $data);
 		$this->load->view('admin/includes/menu', $data);
 		$this->load->view('admin/dashboard', $data);
-		// if (isset($this->session->userdata['logged_in']['admin_name'])) {
+		// if (isset($this->session->userdata['loggedin']['adminname'])) {
 			
 		// } else {
 		// 	redirect('Admin/index');
@@ -837,11 +888,11 @@ class Admin extends CI_Controller
 
 	public function news()
 	{
-		if (isset($this->session->userdata['logged_in']['admin_name'])) {
+		if (isset($this->session->userdata['loggedin']['adminname'])) {
 			$data['navigation'] = 'news';
 			$data['title']      = 'News Publications';
 			$data['news']       = $this->AdminModel->list_news();
-			$data['user']       = $this->session->userdata['logged_in']['admin_name'];
+			$data['user']       = $this->session->userdata['loggedin']['adminname'];
 
 			$this->load->view('admin/includes/header', $data);
 			$this->load->view('admin/includes/menu', $data);
@@ -852,11 +903,11 @@ class Admin extends CI_Controller
 	}
 	public function newsDetails($news_id)
 	{
-		if (isset($this->session->userdata['logged_in']['admin_name'])) {
+		if (isset($this->session->userdata['loggedin']['adminname'])) {
 			$data['navigation']        = 'news ';
 			$data['title']             = 'News Details';
 			$data['newsDetails']       = $this->AdminModel->list_news($news_id);
-			$data['user']              = $this->session->userdata['logged_in']['admin_name'];
+			$data['user']              = $this->session->userdata['loggedin']['adminname'];
 
 			$this->load->view('admin/includes/header', $data);
 			$this->load->view('admin/includes/menu', $data);
@@ -868,13 +919,13 @@ class Admin extends CI_Controller
 
 	public function addnews()
 	{
-		if (isset($this->session->userdata['logged_in']['admin_name'])) {
+		if (isset($this->session->userdata['loggedin']['adminname'])) {
 			$this->form_validation->set_rules('news_title', 'Title', 'trim|required');
 			if ($this->form_validation->run() === false) {
 				$this->session->set_flashdata('error', validation_errors());
 				redirect('Admin/news');
 			} else {
-				$added_by = $this->session->userdata['logged_in']['admin_name'];
+				$added_by = $this->session->userdata['loggedin']['adminname'];
 				$uploaded_image = $_FILES['news_image']['tmp_name'];
 				$image_name   = '';
 				if ($uploaded_image != null) {
@@ -930,7 +981,7 @@ class Admin extends CI_Controller
 
 	public function editNewsDetails()
 	{
-		if (isset($this->session->userdata['logged_in']['admin_name'])) {
+		if (isset($this->session->userdata['loggedin']['adminname'])) {
 			$response = array();
 			if ($this->input->post('news_id') == null) {
 				$response['success'] = 0;
@@ -958,13 +1009,13 @@ class Admin extends CI_Controller
 	// edit news thru the modal in news.php
 	public function editNews()
 	{
-		if (isset($this->session->userdata['logged_in']['admin_name'])) {
+		if (isset($this->session->userdata['loggedin']['adminname'])) {
 			$this->form_validation->set_rules('news_title', 'News Title', 'required|trim');
 			if ($this->form_validation->run() === false) {
 				$this->session->set_flashdata('error', validation_errors());
 				redirect('Admin/news');
 			} else {
-				$updated_by = $this->session->userdata['logged_in']['admin_name'];
+				$updated_by = $this->session->userdata['loggedin']['adminname'];
 				$uploaded_image = $_FILES['news_image']['tmp_name'];
 				$image_name   = '';
 				if ($uploaded_image != null) {
@@ -1027,7 +1078,7 @@ class Admin extends CI_Controller
 
 
 					$status                       = '1';
-					$updated_by                   = $this->session->userdata['logged_in']['admin_name'];
+					$updated_by                   = $this->session->userdata['loggedin']['adminname'];
 					$data                        = array(
 						'news_title'               => ucwords($this->input->post('news_title')),
 						'news_excerts'             => ucfirst($this->input->post('news_excerts')),
@@ -1057,7 +1108,7 @@ class Admin extends CI_Controller
 
 	public function deleteNews()
 	{
-		if (isset($this->session->userdata['logged_in']['admin_name'])) {
+		if (isset($this->session->userdata['loggedin']['adminname'])) {
 			$news_id      = $this->input->post('news_id');
 			$news         = $this->AdminModel->delete_news($news_id);
 			echo $news;
@@ -1070,11 +1121,11 @@ class Admin extends CI_Controller
 	// TEAM SECTION STARTS HERE
 	public function team()
 	{
-		if (isset($this->session->userdata['logged_in']['admin_name'])) {
+		if (isset($this->session->userdata['loggedin']['adminname'])) {
 			$data['navigation'] = 'team';
 			$data['title'] = 'Team Members';
 			$data['team_members'] = $this->AdminModel->list_team_members();
-			$data['user'] = $this->session->userdata['logged_in']['admin_name'];
+			$data['user'] = $this->session->userdata['loggedin']['adminname'];
 
 			$this->load->view('admin/includes/header', $data);
 			$this->load->view('admin/includes/menu', $data);
@@ -1086,7 +1137,7 @@ class Admin extends CI_Controller
 
 	public function addMember()
 	{
-		if (isset($this->session->userdata['logged_in']['admin_name'])) {
+		if (isset($this->session->userdata['loggedin']['adminname'])) {
 			$this->form_validation->set_rules('team_title', 'Team member title', 'trim|required');
 			$this->form_validation->set_rules('team_name', 'Team member name', 'trim|required');
 
@@ -1094,33 +1145,12 @@ class Admin extends CI_Controller
 				$this->session->set_flashdata('error', validation_errors());
 				redirect('Admin/team');
 			} else {
-				$uploaded_image = $_FILES['team_image']['tmp_name'];
-				$image_name   = '';
-				if ($uploaded_image != null) {
-					$targ_w     = intval($this->input->post('dataWidth1'));
-					$targ_h     = intval($this->input->post('dataHeight1'));
-					$jpeg_quality   = 90;
-					$src      = $uploaded_image;
-					$imgtype        = $_FILES['team_image']['type'];
-					if ($imgtype == 'image/jpeg') {
-						$img_r         = imagecreatefromjpeg($src);
-					} elseif ($imgtype == 'image/png') {
-						$img_r         = imagecreatefrompng($src);
-					} elseif ($imgtype == 'image/gif') {
-						$img_r         = imagecreatefromgif($src);
-					}
-					$dst_r      = ImageCreateTrueColor($targ_w, $targ_h);
-					imagecopyresampled($dst_r, $img_r, 0, 0, intval($this->input->post('dataX1')), intval($this->input->post('dataY1')), $targ_w, $targ_h, intval($this->input->post('dataWidth1')), intval($this->input->post('dataHeight1')));
-					header('Content-type: image/jpeg');
-					$image_name = "team_" . date('YmdHis') . rand(0000, 9999) . ".jpg";
-					imagejpeg($dst_r, './assets/images/team/' . $image_name, $jpeg_quality);
-				} else {
-					$image_name = '';
-				}
+				
 
 				$status = '1';
-				$added_by = $this->session->userdata['logged_in']['admin_name'];
+				$added_by = $this->session->userdata['loggedin']['adminname'];
 				$data                          = array(
+					'team_position'             => $this->input->post('team_position'),
 					'team_title'                => ucwords($this->input->post('team_title')),
 					'team_name'                 => ucwords($this->input->post('team_name')),
 					'team_phoneline'            => $this->input->post('team_phoneline'),
@@ -1131,7 +1161,7 @@ class Admin extends CI_Controller
 					'team_status'               => $status,
 					'team_addedBy'              => $added_by,
 					'team_createdDate'          => date('Y-m-d h:i:s'),
-					'team_image'                => $image_name
+					'team_image'                => $this->input->post('imagelink')
 				);
 				$send = $this->AdminModel->add_member($data);
 
@@ -1151,10 +1181,10 @@ class Admin extends CI_Controller
 
 	public function teamDetails($tm_id)
 	{
-		if (isset($this->session->userdata['logged_in']['admin_name'])) {
+		if (isset($this->session->userdata['loggedin']['adminname'])) {
 			$data['title'] = 'Team details';
 			$data['navigation'] = 'team';
-			$data['user'] = $this->session->userdata['logged_in']['admin_name'];
+			$data['user'] = $this->session->userdata['loggedin']['adminname'];
 
 			$data['memberDetails'] = $this->AdminModel->list_team_members($tm_id);
 			$this->load->view('admin/includes/header', $data);
@@ -1167,7 +1197,7 @@ class Admin extends CI_Controller
 
 	public function editTeamDetails()
 	{
-		if (isset($this->session->userdata['logged_in']['admin_name'])) {
+		if (isset($this->session->userdata['loggedin']['adminname'])) {
 			$response = array();
 			if ($this->input->post('team_id') == null) {
 				$response['success'] = 0;
@@ -1189,6 +1219,7 @@ class Admin extends CI_Controller
 				$response['t_twitter']       = $team['team_twitter'];
 				$response['t_email']         = $team['team_emailAddress'];
 				$response['t_image']         = $team['team_image'];
+				$response['t_position']      = $team['team_position'];
 				echo json_encode($response);
 			}
 		} else {
@@ -1199,84 +1230,40 @@ class Admin extends CI_Controller
 	// editteam thru the modal in team.php
 	public function editTeam()
 	{
-		if (isset($this->session->userdata['logged_in']['admin_name'])) {
+		if (isset($this->session->userdata['loggedin']['adminname'])) {
 			$this->form_validation->set_rules('team_title', 'Title', 'required|trim');
 			if ($this->form_validation->run() === false) {
 				$this->session->set_flashdata('error', validation_errors());
 				redirect('Admin/team');
 			} else {
-				$added_by = $this->session->userdata['logged_in']['admin_name'];
-				$uploaded_image = $_FILES['team_image']['tmp_name'];
-				$image_name   = '';
-				if ($uploaded_image != null) {
-					$targ_w     = intval($this->input->post('dataWidth'));
-					$targ_h     = intval($this->input->post('dataHeight'));
-					$jpeg_quality   = 90;
-					$src      = $uploaded_image;
-					$imgtype        = $_FILES['team_image']['type'];
-					if ($imgtype == 'image/jpeg') {
-						$img_r         = imagecreatefromjpeg($src);
-					} elseif ($imgtype == 'image/png') {
-						$img_r         = imagecreatefrompng($src);
-					} elseif ($imgtype == 'image/gif') {
-						$img_r         = imagecreatefromgif($src);
-					}
-					$dst_r      = ImageCreateTrueColor($targ_w, $targ_h);
-					imagecopyresampled($dst_r, $img_r, 0, 0, intval($this->input->post('dataX')), intval($this->input->post('dataY')), $targ_w, $targ_h, intval($this->input->post('dataWidth')), intval($this->input->post('dataHeight')));
-					header('Content-type: image/jpeg');
-					$image_name = "team_" . date('YmdHis') . rand(0000, 9999) . ".jpg";
-					imagejpeg($dst_r, './assets/images/team/' . $image_name, $jpeg_quality);
+				$added_by = $this->session->userdata['loggedin']['adminname'];
+				
+				$status = '1';
+				$data                          = array(
+					'team_position'             => $this->input->post('team_position'),
+					'team_title'                => ucwords($this->input->post('team_title')),
+					'team_name'                 => ucwords($this->input->post('team_name')),
+					'team_phoneline'            => $this->input->post('team_phoneline'),
+					'team_otherAddress'         => ucfirst($this->input->post('team_otherAddress')),
+					'team_facebook'             => ucfirst($this->input->post('team_facebook')),
+					'team_twitter'              => ucfirst($this->input->post('team_twitter')),
+					'team_emailAddress'         => ucfirst($this->input->post('team_emailAddress')),
+					'team_status'               => $status,
+					'team_updatedBy'            => $added_by,
+					'team_updateDate'           => date('Y-m-d h:i:s'),
+					'team_image'                => $this->input->post('imagelink')
+				);
+				$id   = $this->input->post('team_id');
+				$send = $this->AdminModel->update_team($data, $id);
 
-					$status = '1';
-					$data                          = array(
-						'team_title'                => ucwords($this->input->post('team_title')),
-						'team_name'                 => ucwords($this->input->post('team_name')),
-						'team_phoneline'            => $this->input->post('team_phoneline'),
-						'team_otherAddress'         => ucfirst($this->input->post('team_otherAddress')),
-						'team_facebook'             => ucfirst($this->input->post('team_facebook')),
-						'team_twitter'              => ucfirst($this->input->post('team_twitter')),
-						'team_emailAddress'         => ucfirst($this->input->post('team_emailAddress')),
-						'team_status'               => $status,
-						'team_updatedBy'            => $added_by,
-						'team_updateDate'           => date('Y-m-d h:i:s'),
-						'team_image'                => $image_name
-					);
-					$id   = $this->input->post('team_id');
-					$send = $this->AdminModel->update_team($data, $id);
-
-					if ($send) {
-						$this->session->set_flashdata("msg", "A Team member has been updated Succesfully.!!");
-						redirect('Admin/team');
-					} else {
-						$this->session->set_flashdata("error", "Oops! something went wrong,Please Contact sytem Developer.!");
-						redirect('Admin/team');
-					}
+				if ($send) {
+					$this->session->set_flashdata("msg", "A Team member has been updated Succesfully.!!");
+					redirect('Admin/team');
 				} else {
-					$added_by = $this->session->userdata['logged_in']['admin_name'];
-					$status = '1';
-					$data                          = array(
-						'team_title'                => ucwords($this->input->post('team_title')),
-						'team_name'                 => ucwords($this->input->post('team_name')),
-						'team_phoneline'            => $this->input->post('team_phoneline'),
-						'team_otherAddress'         => ucfirst($this->input->post('team_otherAddress')),
-						'team_facebook'             => ucfirst($this->input->post('team_facebook')),
-						'team_twitter'              => ucfirst($this->input->post('team_twitter')),
-						'team_emailAddress'         => ucfirst($this->input->post('team_emailAddress')),
-						'team_status'               => $status,
-						'team_updatedBy'            => $added_by,
-						'team_updateDate'           => date('Y-m-d h:i:s')
-					);
-					$id   = $this->input->post('team_id');
-					$send = $this->AdminModel->update_team($data, $id);
-
-					if ($send) {
-						$this->session->set_flashdata("msg", "A Team member has been updated Succesfully.!!");
-						redirect('Admin/team');
-					} else {
-						$this->session->set_flashdata("error", "Oops! something went wrong,Please Contact sytem Developer.!");
-						redirect('Admin/team');
-					}
+					$this->session->set_flashdata("error", "Oops! something went wrong,Please Contact sytem Developer.!");
+					redirect('Admin/team');
 				}
+				
 			}
 		} else {
 			redirect('Admin/index');
@@ -1285,7 +1272,7 @@ class Admin extends CI_Controller
 
 	public function deleteTeamMember()
 	{
-		if (isset($this->session->userdata['logged_in']['admin_name'])) {
+		if (isset($this->session->userdata['loggedin']['adminname'])) {
 			$team_id   = $this->input->post('team_id');
 			$team      = $this->AdminModel->delete_team_member($team_id);
 			echo $team;
@@ -1297,10 +1284,10 @@ class Admin extends CI_Controller
 
 	public function siteVisitors()
 	{
-		if (isset($this->session->userdata['logged_in']['admin_name'])) {
+		if (isset($this->session->userdata['loggedin']['adminname'])) {
 			$data['navigation'] = 'statistics';
 			$data['title'] = 'Site Visitors';
-			$data['user'] = $this->session->userdata['logged_in']['admin_name'];
+			$data['user'] = $this->session->userdata['loggedin']['adminname'];
 			$data['site_stats'] = $this->AdminModel->get_site_stats();
 			$this->load->view('admin/includes/header', $data);
 			$this->load->view('admin/includes/menu', $data);
@@ -1312,10 +1299,10 @@ class Admin extends CI_Controller
 
 	public function siteLogins()
 	{
-		if (isset($this->session->userdata['logged_in']['admin_name'])) {
+		if (isset($this->session->userdata['loggedin']['adminname'])) {
 			$data['navigation'] = 'statistics';
 			$data['title']  = 'Site Logins';
-			$data['user']   = $this->session->userdata['logged_in']['admin_name'];
+			$data['user']   = $this->session->userdata['loggedin']['adminname'];
 			$data['logins'] = $this->AdminModel->get_logins();
 			$this->load->view('admin/includes/header', $data);
 			$this->load->view('admin/includes/menu', $data);
@@ -1327,11 +1314,11 @@ class Admin extends CI_Controller
 
 	public function siteVistedPages()
 	{
-		if (isset($this->session->userdata['logged_in']['admin_name'])) {
+		if (isset($this->session->userdata['loggedin']['adminname'])) {
 			$data['site_stats'] = $this->AdminModel->get_site_stats();
 			$data['navigation'] = 'statistics';
 			$data['title'] = 'Visited Pages';
-			$data['user'] = $this->session->userdata['logged_in']['admin_name'];
+			$data['user'] = $this->session->userdata['loggedin']['adminname'];
 
 			$this->load->view('admin/includes/header', $data);
 			$this->load->view('admin/includes/menu', $data);
@@ -1343,11 +1330,11 @@ class Admin extends CI_Controller
 
 	public function administrators()
 	{
-		if (isset($this->session->userdata['logged_in']['admin_name'])) {
+		if (isset($this->session->userdata['loggedin']['adminname'])) {
 			$data['navigation'] = 'admin';
 			$data['title'] = 'Admins';
-			$data['user'] = $this->session->userdata['logged_in']['admin_name'];
-			$data['administrator'] = $this->session->userdata['logged_in']['admin_id'];
+			$data['user'] = $this->session->userdata['loggedin']['adminname'];
+			$data['administrator'] = $this->session->userdata['loggedin']['adminid'];
 
 			$data['admin'] = $this->AdminModel->list_administrators();
 			$this->load->view('admin/includes/header', $data);
@@ -1361,10 +1348,10 @@ class Admin extends CI_Controller
 
 	public function appNodes()
 	{
-		if (isset($this->session->userdata['logged_in']['admin_name'])) {
+		if (isset($this->session->userdata['loggedin']['adminname'])) {
 			$data['navigation'] = 'nodes';
 			$data['title'] = 'Airqo App Nodes';
-			$data['user'] = $this->session->userdata['logged_in']['admin_name'];
+			$data['user'] = $this->session->userdata['loggedin']['adminname'];
 			$data['nodes'] = $this->AdminModel->list_nodes();
 			$this->load->view('admin/includes/header', $data);
 			$this->load->view('admin/includes/menu', $data);
@@ -1374,12 +1361,139 @@ class Admin extends CI_Controller
 		}
 	}
 
+	public function LoadNodesTable()
+	{
+		$table 		= 'tbl_app_nodes';
+          $primaryKey 	= 'an_id';
+          $whereAll	     = "an_deleted != ''";
+          
+
+		$columns 		= array(
+			array(
+					'db' => 'aac_no',
+					'dt' => 0,
+					'formatter' => function($d, $row){
+                              return $d;
+					}
+                    ),
+               array(
+					'db' => 'aac_node_id',
+					'dt' => 1,
+					'formatter' => function($d, $row){
+                              $node = $this->AdminModel->get_app_nodes($d);
+                              if($node != null) {
+                                   return $node['an_name'];
+                              }
+                              return '';
+					}
+                    ),
+               array(
+					'db' => 'aac_user_id',
+					'dt' => 2,
+					'formatter' => function($d, $row){
+                              $user = $this->UserModel->get_user($d);
+                              if($user != null) {
+                                   return $user['au_name'];
+                              }
+                              return '';
+					}
+                    ),
+               
+			array(
+					'db' => 'aac_place_name',
+					'dt' => 3,
+					'formatter' => function($d, $row){
+                              return date('F j, Y g:i a', strtotime($d));
+					}
+                    ), 
+               array(
+					'db' => 'aac_place_lng',
+					'dt' => 4,
+					'formatter' => function($d, $row){
+                              return $d;
+					}
+                    ),
+               array(
+					'db' => 'aac_place_lat',
+					'dt' => 4,
+					'formatter' => function($d, $row){
+                              return 'Lat: ' . $d . ' Lng: ' . $row['aac_place_lng'];
+					}
+                    ),
+               array(
+					'db' => 'aac_reading',
+					'dt' => 5,
+					'formatter' => function($d, $row){
+                              return date('F j, Y g:i a', strtotime($d));
+					}
+                    ),
+               array(
+					'db' => 'aac_photo',
+					'dt' => 6,
+					'formatter' => function($d, $row){
+                              return '<img src="'.$d.'" width="100"/>';
+					}
+                    ),
+               array(
+					'db' => 'acc_comment',
+					'dt' => 7,
+					'formatter' => function($d, $row){
+                              return date('F j, Y g:i a', strtotime($d));
+					}
+                    ),
+               array(
+					'db' => 'aac_status',
+					'dt' => 8,
+					'formatter' => function($d, $row){
+                              if($d == 'new') {
+                                   return '<button class="btn btn-xs btn-warning">New</button>';
+                              } else if($d == 'approved') {
+                                   return '<button class="btn btn-xs btn-success">Approved</button>';
+                              } else if($d == 'declined') {
+                                   return '<button class="btn btn-xs btn-danger">Declined</button>';
+                              }
+					}
+                    ),
+               array(
+					'db' => 'aac_id',
+					'dt' => 9,
+					'formatter' => function($d, $row){
+                              $action_buttons = '';
+                              if($row['aac_status'] == 'new') {
+                                   $action_buttons .= '<button class="btn btn-xs btn-block btn-success open-approve" data-id="'.$row['aac_id'].'" data-name="this aqi camera" data-toggle="modal" data-target="#approveModal"><i class="fa fa-check"></i> Approve</button>';
+                                   $action_buttons .= '<button class="btn btn-xs btn-block btn-danger open-decline" data-id="'.$row['aac_id'].'" data-name="this aci camera" data-toggle="modal" data-target="#declineModal"><i class="fa fa-close"></i> Decline</button>';
+                              } else if($row['aac_status'] == 'approved') {
+                                   $action_buttons .= '<button class="btn btn-xs btn-success">Approved</button>';
+                              } else if($row['aac_status'] == 'declined') {
+                                   $action_buttons .= '<button class="btn btn-xs btn-success">Approved</button>';
+                              }
+
+                              return $action_buttons;
+					}
+                    )
+		);
+
+		// SQL server connection information
+		$sql_details = array(
+			'user' => $this->db->username,
+			'pass' => $this->db->password,
+			'db'   => $this->db->database,
+			'host' => $this->db->hostname
+		);
+
+		$whereResult = '';
+
+		echo json_encode(
+			SSP::complex ( $_POST, $sql_details, $table, $primaryKey, $columns, $whereResult, $whereAll)
+		);
+	}
+
 	public function appNodeDetails($an_id)
 	{
-		if (isset($this->session->userdata['logged_in']['admin_name'])) {
+		if (isset($this->session->userdata['loggedin']['adminname'])) {
 			$data['navigation']  = 'nodes';
 			$data['title']        = 'Airqo App Nodes';
-			$data['user']         = $this->session->userdata['logged_in']['admin_name'];
+			$data['user']         = $this->session->userdata['loggedin']['adminname'];
 			$data['nodesDetails'] = $this->AdminModel->list_nodes($an_id);
 			$this->load->view('admin/includes/header', $data);
 			$this->load->view('admin/includes/menu', $data);
@@ -1391,7 +1505,7 @@ class Admin extends CI_Controller
 
 	public function deleteAppNode()
 	{
-		if (isset($this->session->userdata['logged_in']['admin_name'])) {
+		if (isset($this->session->userdata['loggedin']['adminname'])) {
 			$data['navigation'] = 'nodes';
 			$an_id              = $this->input->post('an_id');
 			$node               = $this->AdminModel->delete_app_node($an_id);
@@ -1458,17 +1572,17 @@ class Admin extends CI_Controller
 
 	public function createAppNode()
 	{
-		if (isset($this->session->userdata['logged_in']['admin_name'])) {
+		if (isset($this->session->userdata['loggedin']['adminname'])) {
 			$data['navigation'] = 'nodes';
 			$this->form_validation->set_rules('an_name', 'Name', 'required|trim');
 			if ($this->form_validation->run() === false) {
 				$data['title'] = 'Airqo App Nodes';
-				$data['user'] = $this->session->userdata['logged_in']['admin_name'];
+				$data['user'] = $this->session->userdata['loggedin']['adminname'];
 				$this->load->view('admin/includes/header', $data);
 				$this->load->view('admin/includes/menu', $data);
 				$this->load->view('admin/app-nodes', $data);
 			} else {
-				$added_by            = $this->session->userdata['logged_in']['admin_name'];
+				$added_by            = $this->session->userdata['loggedin']['adminname'];
 				$data                = array(
 					'an_name'            => ucwords($this->input->post('an_name')),
 					'time1'              => $this->input->post('time1'),
@@ -1507,7 +1621,7 @@ class Admin extends CI_Controller
 
 	public function editAppNodesView($an_id)
 	{
-		if (isset($this->session->userdata['logged_in']['admin_name'])) {
+		if (isset($this->session->userdata['loggedin']['adminname'])) {
 			$data['title']        = 'Airqo App Nodes';
 			$data['navigation']   = 'nodes';
 			$data['appnodes']     = $this->AdminModel->get_app_nodes($an_id);
@@ -1524,7 +1638,7 @@ class Admin extends CI_Controller
 
 	public function editAppNodesDetails()
 	{
-		if (isset($this->session->userdata['logged_in']['admin_name'])) {
+		if (isset($this->session->userdata['loggedin']['adminname'])) {
 			$response = array();
 
 			if ($this->input->post('an_id') == null) {
@@ -1560,19 +1674,19 @@ class Admin extends CI_Controller
 
 	public function editAppNodes()
 	{
-		if (isset($this->session->userdata['logged_in']['admin_name'])) {
+		if (isset($this->session->userdata['loggedin']['adminname'])) {
 			$data['navigation'] = 'nodes';
 			$this->form_validation->set_rules('an_name', 'Name', 'required|trim');
 
 			if ($this->form_validation->run() === false) {
 				$data['title']     = 'Airqo App Nodes';
-				$data['user']         = $this->session->userdata['logged_in']['admin_name'];
+				$data['user']         = $this->session->userdata['loggedin']['adminname'];
 
 				$this->load->view('admin/includes/header', $data);
 				$this->load->view('admin/includes/menu', $data);
 				$this->load->view('admin/app-nodes', $data);
 			} else {
-				$added_by                   = $this->session->userdata['logged_in']['admin_name'];
+				$added_by                   = $this->session->userdata['loggedin']['adminname'];
 				$data                    = array(
 					'an_name'            => ucwords($this->input->post('an_name')),
 					'an_channel_id'      => $this->input->post('an_channel_id'),
@@ -1609,7 +1723,7 @@ class Admin extends CI_Controller
 
 	public function editAccount()
 	{
-		if (isset($this->session->userdata['logged_in']['admin_name'])) {
+		if (isset($this->session->userdata['loggedin']['adminname'])) {
 			$data['title'] = 'Login';
 			$this->form_validation->set_rules('admin_name', 'Admin name', 'trim|required');
 			$this->form_validation->set_rules('new_password', 'New Password', 'trim|min_length[3]');
@@ -1619,7 +1733,7 @@ class Admin extends CI_Controller
 				$this->session->set_flashdata("error", " The system couldn't update your account because of the Invalid entries, please provide valid information");
 				redirect('a-dashboard');
 			} else {
-				$id = $this->session->userdata['logged_in']['admin_id'];
+				$id = $this->session->userdata['loggedin']['adminid'];
 				$old = $this->AdminModel->get_old_password($id);
 				$old_check = sha1($this->input->post('current_password'));
 
@@ -1638,7 +1752,7 @@ class Admin extends CI_Controller
 					$this->upload->initialize($config);
 
 					if (!$this->upload->do_upload($img)) {
-						$file = $this->session->userdata['logged_in']['admin_image'];
+						$file = $this->session->userdata['loggedin']['adminimage'];
 
 						$status = '1';
 						if (!$this->input->post('new_password')) {
@@ -1669,7 +1783,7 @@ class Admin extends CI_Controller
 								'admin_status'      =>  $status
 							);
 						}
-						$id = $this->session->userdata['logged_in']['admin_id'];
+						$id = $this->session->userdata['loggedin']['adminid'];
 						$edited = $this->AdminModel->update_account($update_data, $id);
 						if ($edited) {
 							$this->session->set_flashdata("success", "Sucessful updated your account, you can now log in.!!");
@@ -1718,7 +1832,7 @@ class Admin extends CI_Controller
 							);
 						}
 
-						$id = $this->session->userdata['logged_in']['admin_id'];
+						$id = $this->session->userdata['loggedin']['adminid'];
 						$edited = $this->AdminModel->update_account($update_data, $id);
 						if ($edited) {
 							$this->session->set_flashdata("success", "Sucessful updated your account,<br> you can now log in.!!");
@@ -1745,9 +1859,9 @@ class Admin extends CI_Controller
 
 	public function logout()
 	{
-		if (isset($this->session->userdata['logged_in']['admin_name'])) {
-			$key = $this->session->userdata['logged_in']['admin_name'];
-			$this->session->unset_userdata('logged_in', $key);
+		if (isset($this->session->userdata['loggedin']['adminname'])) {
+			$key = $this->session->userdata['loggedin']['adminname'];
+			$this->session->unset_userdata('loggedin', $key);
 			redirect('Admin');
 		} else {
 			redirect('Admin/index');
@@ -1756,7 +1870,7 @@ class Admin extends CI_Controller
 
 	public function checkEmail()
 	{
-		// if (isset($this->session->userdata['logged_in']['admin_name']))
+		// if (isset($this->session->userdata['loggedin']['adminname']))
 		// {
 
 		$response  = array();
@@ -1789,7 +1903,7 @@ class Admin extends CI_Controller
 
 	public function SendForgotPasswordEmail()
 	{
-		// if (isset($this->session->userdata['logged_in']['admin_name']))
+		// if (isset($this->session->userdata['loggedin']['adminname']))
 		// {
 		$response  = array();
 		$chars     = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";

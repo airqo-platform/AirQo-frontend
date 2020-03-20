@@ -9,6 +9,38 @@
 <script src="<?php echo base_url(); ?>assets/bootstrap/js/wow.min.js"></script>
 <script>
 	new WOW().init();
+	//$('#popup').modal('show');
+</script>
+
+<script>
+// Set the date we're counting down to
+var countDownDate = new Date("Feb 26, 2020 12:00:00").getTime();
+
+// Update the count down every 1 second
+var x = setInterval(function() {
+
+  // Get today's date and time
+  var now = new Date().getTime();
+
+  // Find the distance between now and the count down date
+  var distance = countDownDate - now;
+
+  // Time calculations for days, hours, minutes and seconds
+  var days = Math.floor(distance / (1000 * 60 * 60 * 24));
+  var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+  var seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+  // Display the result in the element with id="demo"
+  document.getElementById("countdown").innerHTML = days + "d " + hours + "h "
+  + minutes + "m " + seconds + "s ";
+
+  // If the count down is finished, write some text
+  if (distance < 0) {
+    clearInterval(x);
+    document.getElementById("countdown").innerHTML = "We are Live";
+  }
+}, 1000);
 </script>
 
 <!-- animated scroll -->
@@ -80,10 +112,10 @@
 		<div class="row">
 			<div class="col-md-3 col-lg-3">
 				<h4>AirQo</h4>
-
-				<p>Software Systems Centre, <br />Level 3, Block B, College <br /> of Computing and Information Sciences</p>
+				<p>Software Systems Centre, <br />Level 3, Block B, College <br /> of Computing and Information Sciences <br />Kampala, Uganda</p>
 				<p><br /></p>
-
+				<a href="https://web.facebook.com/AirQo/" target="_blank"><i class="fa fa-facebook-square fa-2x" style="color: #fff;"></i></i></a>
+				<a href="https://twitter.com/AirQoProject" target="_blank"><i class="fa fa-twitter-square fa-2x" style="color: #fff;"></i></i></a>
 			</div>
 
 			<div class="col-md-6 col-lg-6 col-sm-12 col-xs-12" style="padding-top: 0px !important; padding-left: 0px !important; padding-right: 0px !important; padding-bottom: 30px !important; z-index: 1;">
@@ -121,23 +153,23 @@
 					}
 				</style>
 				<div id="mc_embed_signup">
-				<form action="https://airqo.us4.list-manage.com/subscribe/post?u=0dbb373a20484114777d7590a&amp;id=865133b4d7" method="post" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" class="validate" target="_blank" novalidate>
-					<div id="mc_embed_signup_scroll">
-					<p style="color: #fff !important;">Recieve our Latest updates via email</p>
-					<div class="mc-field-group">
-						<input style="width: 100% !important;" type="email" value="" name="EMAIL" class="required email" id="mce-EMAIL" placeholder="Email address">
-					</div>
-					<div id="mce-responses" class="clear">
-						<div class="response" id="mce-error-response" style="display:none">
+					<form action="https://airqo.us4.list-manage.com/subscribe/post?u=0dbb373a20484114777d7590a&amp;id=865133b4d7" method="post" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" class="validate" target="_blank" novalidate>
+						<div id="mc_embed_signup_scroll">
+							<p style="color: #fff !important;">Recieve our Latest updates via email</p>
+							<div class="mc-field-group">
+								<input style="width: 100% !important;" type="email" value="" name="EMAIL" class="required email" id="mce-EMAIL" placeholder="Email address">
+							</div>
+							<div id="mce-responses" class="clear">
+								<div class="response" id="mce-error-response" style="display:none">
+								</div>
+								<div class="response" id="mce-success-response" style="display:none">
+								</div>
+							</div>
+							<!-- auto fill -->
+							<div style="position: absolute; left: -5000px;" aria-hidden="true"><input type="text" name="b_0dbb373a20484114777d7590a_865133b4d7" tabindex="-1" value=""></div>
+							<div class="clear"><input type="submit" value="Subscribe" name="subscribe" id="mc-embedded-subscribe" class="button"></div>
 						</div>
-						<div class="response" id="mce-success-response" style="display:none">
-						</div>
-					</div> 
-					<!-- auto fill -->
-					<div style="position: absolute; left: -5000px;" aria-hidden="true"><input type="text" name="b_0dbb373a20484114777d7590a_865133b4d7" tabindex="-1" value=""></div>
-					<div class="clear"><input type="submit" value="Subscribe" name="subscribe" id="mc-embedded-subscribe" class="button"></div>
-					</div>
-				</form>
+					</form>
 				</div>
 				<!--End mc_embed_signup-->
 			</div>
@@ -155,9 +187,6 @@
 		</div>
 	</div>
 </div>
-<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-<!-- <script src="js/jquery-1.11.1.min.js"></script> -->
-<!-- <script src="<?= site_url(); ?>/assets/js/jquery-3.4.1.min.js"></script> -->
 <script src="js/BackToTop.js"></script>
 <script>
 	// Select all links with hashes
@@ -196,9 +225,6 @@
 			}
 		});
 </script>
-
-<!-- Optional JavaScript -->
-
 <!-- animated scroll inntialisation -->
 <script type="text/javascript">
 	$(document).ready(function() {
@@ -210,23 +236,6 @@
 		});
 	});
 </script>
-
-<!-- <table class="table table-striped">
-	<tr>
-		<th>
-			<h3>Node Name</h3>
-			<h6>Node Location</h6>
-		</th>
-	</tr>
-	<tr class="vcolor">
-		<td></td>
-	</tr>
-	<tr>
-		<td>
-			<div id="chart-container" style="position:absolute; width:300px;"></div>
-		</td>
-	</tr>
-</table> -->
 
 <script type="text/javascript">
 	$("#myNavbar").click(function() {

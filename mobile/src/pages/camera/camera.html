@@ -9,20 +9,24 @@
     <button class="btn-camera" (click)="openCamera()" [hidden]="ac_submission.preview">
       <!-- <ion-icon name="camera"></ion-icon> -->
       <p class="btn-label">
-        <ion-icon name="add"></ion-icon>
-        <br/>
+        <!-- <ion-icon name="add"></ion-icon> -->
         Add Image
       </p>
     </button>
-    <img [src]="ac_submission.preview" *ngIf="ac_submission.preview" />
+    <img [src]="ac_submission.preview" class="preview-image" *ngIf="ac_submission.preview" />
   </div>
 
   <ion-list>
     <ion-item>
-      <ion-range min="1" max="500" pin="true" snaps="true" [color]="api.nodeStatus(ac_submission.reading).std_color" [(ngModel)]="ac_submission.reading">
+      <ion-range min="1" max="500" pin="true" snaps="true" [color]="api.nodeStatus(ac_submission.reading).standard_color" [(ngModel)]="ac_submission.reading">
         <ion-label range-left small>{{ ac_submission.reading }}</ion-label>
         <img range-right [src]="api.nodeStatus(ac_submission.reading).dark_face" class="face" />
       </ion-range>
+    </ion-item>
+
+    <ion-item>
+      <ion-label stacked>Email</ion-label>
+      <ion-input type="text" [(ngModel)]="ac_submission.email" placeholder="Enter email"></ion-input>
     </ion-item>
 
     <ion-item>
@@ -37,7 +41,7 @@
   </ion-list>
   
   <div padding>
-    <button ion-button block>Submit</button>
+    <button ion-button block (click)="onlineAqiCameraSubmit()">Submit</button>
   </div>
 
 

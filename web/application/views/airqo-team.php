@@ -22,7 +22,7 @@
 									?>
 									<div class="col-md-3">
 										<div class="card" style="padding-bottom: 2em; min-height: 420px;">
-											<a href="#" data-toggle="modal" data-target=".member<?= $row['team_id']; ?>" data-id="<?= $row['team_id']; ?>"><img src="<?= base_url(); ?>assets/images/team/<?= $row['team_image']; ?>" class="thumbnail" width="250" height="250" style="object-fit: cover;" alt=""></a>
+											<a href="#" data-toggle="modal" data-target=".member<?= $row['team_id']; ?>" data-id="<?= $row['team_id']; ?>"><img src="<?= $row['team_image']; ?>" class="thumbnail" width="250" height="250" style="object-fit: cover;" alt=""></a>
 											<div class="card-body">
 												<h5 class="card-title"><b><?= $row['team_name']; ?></b></h5>
 												<p class="card-text"><?= $row['team_title']; ?></p>
@@ -53,7 +53,7 @@
 												</div>
 												<div class="modal-body" style="padding:1px; border-radius:0px;">
 												<div>
-													<img src="' . base_url() . 'assets/images/team/' . $row['team_image'] . '" style="width:100%; height:450px; object-fit:cover;">
+													<img src="' . $row['team_image'] . '" style="width:100%; height:450px; object-fit:cover;">
 												</div>
 												<div class="text-section">
 													<table class="table table-striped">
@@ -69,12 +69,9 @@
 															<th>Email</th>
 															<td>' . $row['team_emailAddress'] . '</td>
 														</tr>
+														
 														<tr>
-															<th>Contact</th>
-															<td>' . $row['team_phoneline'] . '</td>
-														</tr>
-														<tr>
-															<th>Address</th>
+															<th>Profile Information</th>
 															<td>' . $row['team_otherAddress'] . '</td>
 														</tr>
 													</table>

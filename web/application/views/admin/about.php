@@ -121,7 +121,7 @@
 					if (isset($_POST['submit'])) {
 						if ($this->form_validation->run() === FALSE) {
 							echo '<div class="alert alert-danger">
-            <button class="close" data-close="alert"></button><span>' . validation_errors() . '</span></div>';
+            					<button class="close" data-close="alert"></button><span>' . validation_errors() . '</span></div>';
 						}
 					}
 					if ($this->session->flashdata('error')) {
@@ -170,7 +170,7 @@
 												<td>
 													<a href="<?php echo base_url('Admin/aboutDetails/'); ?><?= $row['pg_id']; ?>" type="submit" class="btn btn-primary" id="actionbtn1"> View </a>
 													<br />
-													<a data-toggle="modal" data-target=".edit_contact" class="btn btn-warning" data-id="<?= $row['pg_id']; ?>" id="actionbtn2">Edit</a>
+													<a data-toggle="modal" data-target="#EditContentModal" class="btn btn-warning edit-open" data-id="<?= $row['pg_id']; ?>" id="actionbtn2">Edit</a>
 													<br />
 													<button data-id="<?php echo $row['pg_id']; ?>" class="btn btn-danger actionbtn3 delete-btn" data-toggle="confirmation" data-placement="left" data-singleton="true" type="submit">Delete</button>
 												</td>
@@ -282,7 +282,7 @@
 
 <!-- THE EDIT MODAL -->
 <div class="buzenAcc_edit">
-	<div class="modal fade edit_contact" id="" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+	<div class="modal fade edit_contact" id="EditContentModal" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
 		<div class="modal-dialog">
 			<div class="modal-content">
 				<div class="modal-header">
@@ -377,7 +377,6 @@
 <script src="<?= base_url(); ?>assets/admin/pages/scripts/table-advanced.js"></script>
 <script src="<?= base_url(); ?>assets/gn/js/cropping/cropper.min.js"></script>
 <script type="text/javascript">
-
 	$('.summernote').summernote({
 		fontNames: ['Arial', 'Arial Black', 'Comic Sans MS', 'Courier New', 'Helvetica', 'Impact', 'Tahoma', 'Times New Roman', 'Verdana', 'Lato'],
 		fontNamesIgnoreCheck: ['Lato'],
@@ -395,9 +394,32 @@
 		height: 400
 	});
 	//Editing Modal
-	$('.edit_contact').on('show.bs.modal', function(e) {
-		console.log('yiki');
-		var id = $(e.relatedTarget).data('id');
+	// $('.edit_contact').on('show.bs.modal', function(e) {
+	// 	console.log('yiki');
+	// 	var id = $(e.relatedTarget).data('id');
+		// $.ajax({
+		// 	type: 'post',
+		// 	url: '<?= site_url("Admin/editAboutDetails"); ?>',
+		// 	data: {
+		// 		pg_id: id
+		// 	},
+		// 	cache: false,
+		// 	dataType: 'json',
+		// 	beforeSend: function() {},
+		// 	success: function(data) {
+		// 		$('#pg_id').val(data.id);
+		// 		$('#pg_excerts').val(data.pg_excerts);
+		// 		// CKEDITOR.instances['ckeditor1'].setData(data.c_content);
+		// 		$('#ckeditor1').summernote('code', data.c_content);
+		// 		$('#a_title').val(data.c_title);
+
+		// 	}
+		// });
+	// });
+
+	$(document).on("click", ".edit-open", function() {
+		var id = $(this).data('id');
+		//get category details
 		$.ajax({
 			type: 'post',
 			url: '<?= site_url("Admin/editAboutDetails"); ?>',
@@ -411,7 +433,7 @@
 				$('#pg_id').val(data.id);
 				$('#pg_excerts').val(data.pg_excerts);
 				// CKEDITOR.instances['ckeditor1'].setData(data.c_content);
-				$('#ckeditor1').summernote('code',data.c_content);
+				$('#ckeditor1').summernote('code', data.c_content);
 				$('#a_title').val(data.c_title);
 
 			}

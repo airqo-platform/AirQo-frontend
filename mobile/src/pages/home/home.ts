@@ -1,19 +1,20 @@
-import { SearchPage } from './../search/search';
-import { FavoritesPage } from './../favorites/favorites';
-import { AddPlacePage } from './../add-place/add-place';
-import { MenuPage } from './../menu/menu';
 import { Component } from '@angular/core';
 import { NavController, LoadingController, ToastController, AlertController, Platform, PopoverController, ModalController } from 'ionic-angular';
 import { Storage } from '@ionic/storage';
 import { Geolocation } from '@ionic-native/geolocation';
 import { HttpClient } from '@angular/common/http';
 import { Device } from '@ionic-native/device';
-import { NodePage } from '../node/node';
 import { ApiProvider } from '../../providers/api/api';
+
+import { NodePage } from '../node/node';
+import { SearchPage } from './../search/search';
+import { FavoritesPage } from './../favorites/favorites';
+import { AddPlacePage } from './../add-place/add-place';
+import { MenuPage } from './../menu/menu';
 
 @Component({
   selector: 'page-home',
-  templateUrl: 'home.html'
+  templateUrl: 'home.html',
 })
 export class HomePage {
 
@@ -25,10 +26,10 @@ export class HomePage {
 
   favorite_nodes: any = [];
 
-  get_favorite_nodes_api  = 'https://airqo.net/Apis/airqoPlaceLatest';
+  get_favorite_nodes_api  = 'https://test-dot-airqo-frontend.appspot.com/Apis/airqoPlaceLatest';
   favorite_nodes_api_success: any
   
-  get_nearest_node_api    = 'https://airqo.net/Apis/airqoNearest';
+  get_nearest_node_api    = 'https://test-dot-airqo-frontend.appspot.com/Apis/airqoNearest';
   nearest_node_api_success: any;
 
   get_coordinates_api    = 'https://buzentech.com/get-info.php';
@@ -45,6 +46,9 @@ export class HomePage {
   // Runs when the page has loaded. Fires only once
   // --------------------------------------------------------------------------------------------------------------------
   ionViewDidLoad() {
+    if(this.api.isConnected()){
+      this.getLocation();
+    }
   }
 
 
@@ -52,36 +56,28 @@ export class HomePage {
   // Fires everytime page loads
   // --------------------------------------------------------------------------------------------------------------------
   async ionViewDidEnter() {
-    await this.getUserInfo();
-    this.getLocation();
-  }
-
-
-  // --------------------------------------------------------------------------------------------------------------------
-  // Get User's info
-  // --------------------------------------------------------------------------------------------------------------------
-  getUserInfo() {
-    this.storage.get('user_data').then((val) => {
-      if(val && val != null && val != '') {
-        this.user = val;
-        this.offlineLoadFavorites();
-      }
-    });
+    await this.offlineLoadFavorites(null);
   }
 
 
   // --------------------------------------------------------------------------------------------------------------------
   // Offline - Load favorites list
   // --------------------------------------------------------------------------------------------------------------------
-  async offlineLoadFavorites() {
-    await this.storage.get('favorites').then((val) => {
+  offlineLoadFavorites(refresher) {
+    this.storage.get('favorites').then((val) => {
       if(val && val != null && val != '' && val.length > 0) {
         this.favorite_nodes = val;
         if(this.api.isConnected()) {
-          this.onlineLoadFavoritesNodesReadings(val);
+          this.onlineLoadFavoritesNodesReadings(val, refresher);
         } else {
+          if(refresher){
+            refresher.complete();
+          }
+          this.api.offlineMessage();
           this.offlineLoadFavoritesNodesReadings();
         }
+      } else {
+        this.openAddFavorites();
       }
     });
   }
@@ -117,13 +113,6 @@ export class HomePage {
       }).catch((error) => {
         console.log('Error getting location: ', error);
         loader.dismiss();
-        
-        // this.toastCtrl.create({
-        //   message: error.message,
-        //   duration: 3000,
-        //   position: 'bottom'
-        // }).present();
-
         this.getCoordinatesByIP();
       });
     });
@@ -177,20 +166,10 @@ export class HomePage {
 
             console.log(this.nearest_node);
             console.log(this.lastest_nearest_node_reading);
-          } else {
-            this.alertCtrl.create({
-              title: result.title,
-              message: result.message,
-              buttons: ['Okay']
-            }).present();
           }
         }, (err) => {
           loader.dismiss();
-          this.toastCtrl.create({
-            message: 'Network Error',
-            duration: 2500,
-            position: 'bottom'
-          }).present();
+          this.api.networkErrorMessage();
         });
       });
     } else {
@@ -207,54 +186,46 @@ export class HomePage {
   // --------------------------------------------------------------------------------------------------------------------
   // Online - Load Favorites Nodes Readings from online
   // --------------------------------------------------------------------------------------------------------------------
-  async onlineLoadFavoritesNodesReadings(favorite_nodes) {
+  async onlineLoadFavoritesNodesReadings(favorite_nodes, refresher) {
     this.favorite_nodes = [];
 
-    let loader = this.loadingCtrl.create({
-      spinner: 'ios',
-      enableBackdropDismiss: false,
-      dismissOnPageChange: true,
-      showBackdrop: true
-    });
+    if(favorite_nodes.length > 0) {
+      for(let i = 0; i < favorite_nodes.length; i++){
+        let params = {
+          api: this.api.api_key,
+          channel: favorite_nodes[i].channel_id,
+        };
 
-    await loader.present().then(() => {
-      if(favorite_nodes.length > 0) {
-        for(let i = 0; i < favorite_nodes.length; i++){
-          let params = {
-            api: this.api.api_key,
-            channel: favorite_nodes[i].channel_id,
-          };
-  
-          this.http.post(this.get_favorite_nodes_api, params).subscribe((result: any) => {
-            console.log(result);
-            console.log(result.nodes[0]);
-            console.log(result.nodes[0].lastfeeds);
+        this.http.post(this.get_favorite_nodes_api, params).subscribe((result: any) => {
+          console.log(favorite_nodes[i].name);
+          console.log(result);
+          console.log(result.nodes[0].lastfeeds);
 
-            if (result.success == '100') {
-              let node = {
-                channel_id: favorite_nodes[i].channel_id,
-                name: favorite_nodes[i].name,
-                location: favorite_nodes[i].location,
-                refreshed: this.api.getCurrentDateTime(),
-                feeds: result.nodes[0].lastfeeds,
-              };
-              this.favorite_nodes.push(node);
-
-              this.storage.get('favorites_readings').then((val) => {
-                if(val && val != null && val != '' && val.length > 0) {
-                  val = this.favorite_nodes;
-                  this.storage.set("favorites_readings", val);
-                }
-              });
-            }
-          });
-        }
-        loader.dismiss();
-        if(this.favorite_nodes.length > favorite_nodes.length){
-          this.favorite_nodes.length > 0? this.favorite_nodes_api_success = '100': this.favorite_nodes_api_success = null;
+          if (result.success == '100') {
+            let node = {
+              channel_id: favorite_nodes[i].channel_id,
+              name: favorite_nodes[i].name,
+              location: favorite_nodes[i].location,
+              refreshed: result.nodes[0].lastfeeds.created_at,
+              field1: result.nodes[0].lastfeeds.field1,
+              feeds: result.nodes[0].lastfeeds,
+            };
+            this.favorite_nodes.push(node);
+            this.storage.set("favorites_readings", this.favorite_nodes);
+          }
+        });
+      }
+      if(refresher){
+        refresher.complete();
+      }
+      if(this.favorite_nodes.length > favorite_nodes.length){
+        if(this.favorite_nodes.length > 0){
+          this.favorite_nodes_api_success = '100';
+        } else {
+          this.favorite_nodes_api_success = null
         }
       }
-    });
+    }
   }
 
 
@@ -265,7 +236,7 @@ export class HomePage {
     this.storage.get('favorites_readings').then((val) => {
       if(val && val != null && val != '' && val.length > 0) {
         this.favorite_nodes = val;
-        console.log("----------------------------------------------------------------------------------------");
+        console.log(this.favorite_nodes);
       }
     });
   }
@@ -275,7 +246,11 @@ export class HomePage {
   // Go To Search Page
   // --------------------------------------------------------------------------------------------------------------------
   goToSearchPage() {
-    this.modalCtrl.create(SearchPage).present();
+    let modal = this.modalCtrl.create(SearchPage);
+    modal.onDidDismiss(() => {
+      this.offlineLoadFavorites(null);
+    });
+    modal.present();
   }
 
 
@@ -293,7 +268,7 @@ export class HomePage {
   openAddFavorites() {
     let modal = this.modalCtrl.create(AddPlacePage);
     modal.onDidDismiss(() => {
-      this.offlineLoadFavorites();
+      this.offlineLoadFavorites(null);
     });
     modal.present();
   }

@@ -20,7 +20,7 @@ export class MapPage {
 
   nodes: any = [];
 
-  nodes_list_api = 'https://airqo.net/Apis/airqoPlacesCached';
+  nodes_list_api = 'https://test-dot-airqo-frontend.appspot.com/Apis/airqoPlacesCached';
   places_nodes_list_api_success: any;
 
   constructor(public navCtrl: NavController, private storage: Storage, private toastCtrl: ToastController, private loadingCtrl: LoadingController, 
@@ -31,9 +31,8 @@ export class MapPage {
   // --------------------------------------------------------------------------------------------------------------------
   // When the view loads: 
   // --------------------------------------------------------------------------------------------------------------------
-  ionViewDidLoad() {
-    this.getUserInfo();
-    this.loadMap();
+  async ionViewDidLoad() {
+    await this.loadMap();
     this.loadNodes();
   }
 
@@ -45,23 +44,11 @@ export class MapPage {
 
 
   // --------------------------------------------------------------------------------------------------------------------
-  // Get User's info
-  // --------------------------------------------------------------------------------------------------------------------
-  getUserInfo() {
-    this.storage.get('user_data').then((val) => {
-      if(val && val != null && val != '') {
-        this.user = val;
-      }
-    });
-  }
-
-
-  // --------------------------------------------------------------------------------------------------------------------
   // Load the map
   // --------------------------------------------------------------------------------------------------------------------
   loadMap() {
     this.map = leaflet.map("map").setView([0.283670, 32.600399], 6);
-    leaflet.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {}).addTo(this.map);
+    leaflet.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {}).addTo(this.map);
   }
 
 
@@ -72,6 +59,7 @@ export class MapPage {
     if(this.api.isConnected()) {
       this.onlineLoadNodes();
     } else {
+      this.api.offlineMessage();
       this.offlineLoadNodes();
     }
   }
@@ -112,11 +100,7 @@ export class MapPage {
       }, (err) => {
         this.offlineLoadNodes();
         loader.dismiss();
-        this.toastCtrl.create({
-          message: 'Network Error',
-          duration: 2500,
-          position: 'bottom'
-        }).present();
+        this.api.networkErrorMessage();
       });
     });
   }
@@ -125,17 +109,17 @@ export class MapPage {
   // --------------------------------------------------------------------------------------------------------------------
   // Offline - store nodes offline
   // --------------------------------------------------------------------------------------------------------------------
-  offlineStoreNodes() {
-   this.storage.set("nodes", this.nodes);
-   this.addMarkers();
+  async offlineStoreNodes() {
+   await this.storage.set("nodes", this.nodes);
+   await this.addMarkers();
   }
 
 
   // --------------------------------------------------------------------------------------------------------------------
   // Offline - retrieve nodes offline
   // --------------------------------------------------------------------------------------------------------------------
-  offlineLoadNodes() {
-    this.storage.get("nodes").then((val) => {
+  async offlineLoadNodes() {
+    await this.storage.get("nodes").then((val) => {
       if(val != null && val != '' && val.length > 0) {
         this.nodes = val;
         this.addMarkers();
@@ -155,8 +139,8 @@ export class MapPage {
           let airqo_marker = leaflet.divIcon({
             className: 'custom-airqo-icon',
             html: ''+
-              '<div style="background-color: '+ this.api.nodeStatus(this.nodes[i].field2).color +';" class="marker-pin"></div>'+
-              '<span class="marker-number">'+ Math.round(this.nodes[i].field2) +'</span>',
+              '<div style="background-color: '+ this.api.nodeStatus(this.nodes[i].field2, this.nodes[i].time).color +';" class="marker-pin"></div>'+
+              '<span class="marker-number" style="color: '+ this.api.nodeStatus(this.nodes[i].field2, this.nodes[i].time).font_color +';">'+ Math.round(this.nodes[i].field2) +'</span>',
             iconSize: [30, 42],
             iconAnchor: [15, 42],
             popupAnchor: [0, -30]
@@ -169,22 +153,22 @@ export class MapPage {
                 '<p class="title">'+ this.nodes[i].name + '</p>'+
                 '<p class="sub-title grey">'+ this.nodes[i].location +'</p>'+
               '</div>'+
-              '<div class="mid-section center" style="background-color: '+ this.api.nodeStatus(this.nodes[i].field2).color +';">'+
+              '<div class="mid-section center" style="background-color: '+ this.api.nodeStatus(this.nodes[i].field2, this.nodes[i].time).color +';">'+
                 '<div class="face bg-darker">'+
-                  '<img src="'+ this.api.nodeStatus(this.nodes[i].field2).face +'"/>'+
+                  '<img src="'+ this.api.nodeStatus(this.nodes[i].field2, this.nodes[i].time).face +'"/>'+
                 '</div>'+
                 '<div class="reading">'+
-                  '<p style="color: '+ this.api.nodeStatus(this.nodes[i].field2).font_color +';">'+ 
+                  '<p style="color: '+ this.api.nodeStatus(this.nodes[i].field2, this.nodes[i].time).font_color +';">'+ 
                     this.nodes[i].field2.trim() +
-                  '<br/>PM2.5'+
+                  '<br/>PM<sub>2.5</sub>'+
                   '</p>'+
                 '</div>'+
                 '<div class="label">'+
-                  '<p style="color: '+ this.api.nodeStatus(this.nodes[i].field2).font_color +';">'+ this.api.nodeStatus(this.nodes[i].field2).label +'</p>'+
+                  '<p style="color: '+ this.api.nodeStatus(this.nodes[i].field2, this.nodes[i].time).font_color +';">'+ this.api.nodeStatus(this.nodes[i].field2, this.nodes[i].time).label +'</p>'+
                 '</div>'+
               '</div>'+
               '<div class="bottom-section">'+
-                '<p class="refresh-date grey">Last Refreshed: '+ this.api.getReadableInternationalDateFormatFromISOString(this.nodes[i].time) +'</p>'+
+                '<p class="refresh-date grey">Last Refreshed: '+ this.api.ago(this.api.getReadableInternationalDateFormatFromISOString(this.nodes[i].time)) +'</p>'+
               '</div>'+
             '</a>'+
           '</div>'

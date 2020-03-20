@@ -15,6 +15,11 @@
   <ion-list>
 
     <ion-item>
+      <ion-label stacked>Email</ion-label>
+      <ion-input type="email" [(ngModel)]="feedback.email" placeholder="Email Address"></ion-input>
+    </ion-item>
+
+    <ion-item>
       <ion-label stacked>Subject</ion-label>
       <ion-input type="text" [(ngModel)]="feedback.subject" placeholder="Enter subject here"></ion-input>
     </ion-item>

@@ -1,6 +1,6 @@
 import { HomePage } from './../home/home';
-import { Component, ViewChild } from '@angular/core';
-import { NavController, NavParams, ToastController, ViewController, LoadingController, AlertController } from 'ionic-angular';
+import { Component, ViewChild, ElementRef } from '@angular/core';
+import { NavController, NavParams, ToastController, LoadingController, AlertController } from 'ionic-angular';
 import { Storage } from '@ionic/storage';
 import { HttpClient } from '@angular/common/http';
 import { ApiProvider } from '../../providers/api/api';
@@ -13,10 +13,10 @@ import { KeyPage } from '../key/key';
 })
 export class NodePage {
 
-  @ViewChild('barCanvasHistory') barCanvas;
+  @ViewChild('barCanvasHistory') barCanvasHistory: ElementRef;
+  @ViewChild('barCanvasForecast') barCanvasForecast: ElementRef;
+  
   barChartHistory: any;
-
-  @ViewChild('barCanvasForecast') barCanvas;
   barChartForecast: any;
   
   user: any = {};
@@ -26,17 +26,15 @@ export class NodePage {
   class: any;
   node_data: any;
 
-  x_data: any;
-  y_data: any;
-  bar_colors: any;
+  is_favorite: boolean = true;
 
   graphs_segments: any = 'history';
 
-  single_node_api = 'https://airqo.net/Apis/airqoChannelFeed';
-  single_node_api_success: any;
+  history_node_api = 'https://test-dot-airqo-frontend.appspot.com/Apis/airqoPlace24Hours';
+  history_node_api_success: boolean = true;
 
-  forecast_node_api = 'https://airqo.net/Apis/placeForecast';
-  forecast_node_api_success: any;
+  forecast_node_api = 'https://test-dot-airqo-frontend.appspot.com/Apis/placeForecast';
+  forecast_node_api_success: boolean = true;
 
   constructor(public navCtrl: NavController, public navParams: NavParams, private storage: Storage, private toastCtrl: ToastController, 
     private loadingCtrl: LoadingController, private http: HttpClient, private alertCtrl: AlertController, public api: ApiProvider,) {
@@ -44,14 +42,10 @@ export class NodePage {
       if(this.navParams.get("node")){
         this.node               = this.navParams.get("node");
 
-        if(this.node.refreshed){
-        } else if(this.node.date) {
-          this.node.refreshed = this.node.date;
-        } else {
-          this.node.refreshed = '0000-00-00 00:00:00';
-        }
-
         if(this.node.feeds){
+          if(this.api.isISOFormat(this.node.feeds.created_at)){
+            this.node.refreshed = null;
+          }
         } else {
           this.node.feeds         = {};
           this.node.feeds.field1  = '0.00';
@@ -62,8 +56,6 @@ export class NodePage {
           this.node.lat  = this.node.feeds.field5;
           this.node.lng  = this.node.feeds.field6;
         }
-
-        // console.log(this.node);
       } else {
         this.navCtrl.setRoot(HomePage);
       }
@@ -73,8 +65,15 @@ export class NodePage {
   // --------------------------------------------------------------------------------------------------------------------
   // Runs when the page has loaded. Fires only once
   // --------------------------------------------------------------------------------------------------------------------
-  ionViewDidLoad() {
-    this.getUserInfo();
+  async ionViewDidLoad() {
+    if(this.api.isConnected()){
+      await this.onlineLoadHistoryNodeInfo();
+      await this.onlineLoadNodeForecastInfo();
+    } else {
+      this.api.offlineMessage();
+      await this.offlineLoadHistoryNodeInfo();
+      await this.offlineLoadForecastNodeInfo();
+    }
   }
 
 
@@ -82,26 +81,8 @@ export class NodePage {
   // Fires everytime page loads
   // --------------------------------------------------------------------------------------------------------------------
   async ionViewDidEnter() {
+    this.isNodeFavorite(this.node);
     console.log(this.node);
-
-    if(this.api.isConnected()){
-      this.onlineLoadHistoryNodeInfo();
-      // this.onlineLoadNodeForecastInfo();
-    } else {
-      // this.offlineLoadHistoryNodeInfo();
-    }
-  }
-
-
-  // --------------------------------------------------------------------------------------------------------------------
-  // Get User's info
-  // --------------------------------------------------------------------------------------------------------------------
-  getUserInfo() {
-    this.storage.get('user_data').then((val) => {
-      if(val && val != null && val != '') {
-        this.user = val;
-      }
-    });
   }
 
 
@@ -120,38 +101,47 @@ export class NodePage {
       api: this.api.api_key,
       channel: this.node.channel_id
     };
-    
+
     loader.present().then(() => {
-      this.http.post(this.single_node_api, params).subscribe((result: any) => {
+      this.http.post(this.history_node_api, params).subscribe((result: any) => {
+        console.log(result);
 
-        // console.log(result);
-        loader.dismiss(); 
+        if(result.success == '100' && result.feed.hourly_results){
+          if(result.feed.hourly_results.length > 0){
+            this.history_node_api_success = true;
+            this.node.refreshed     = result.feed.hourly_results[0].time;
+            this.node.feeds.field1  = result.feed.hourly_results[0].pm2_5;
 
-        this.single_node_api_success = result.success;
-        if (result.success == '100') {
-          this.node.refreshed     = this.api.getCurrentDateTime();
-          this.node.feeds.field1  = result.lastfeeds.feeds[0].field1.trim();
-
-          // console.log(result.lastfeeds.feeds);
-
-          this.getHistoryGraphData(result.lastfeeds.feeds);
-          this.offlineStoreHistoryNodeInfo();
+            this.offlineStoreHistoryStoreNodeInfo(result.feed.hourly_results, this.node);
+            this.getHistoryGraphData(result.feed.hourly_results);
+          }
+          loader.dismiss();
         } else {
-          this.offlineLoadHistoryNodeInfo();
-          this.alertCtrl.create({
-            title: result.title,
-            message: result.message,
-            buttons: ['Okay']
+
+          this.toastCtrl.create({
+            message: 'History information not available',
+            duration: 3000,
+            position: 'bottom',
+            showCloseButton: true,
           }).present();
+
+          // this.storage.get("history").then((val) => {
+          //   if(val && val != null && val != '' && val.length > 0) {
+
+          //   } else {
+          //     this.history_node_api_success = false;
+          //     loader.dismiss();
+          //     this.toastCtrl.create({
+          //       message: 'History information not available',
+          //       duration: 3500,
+          //       position: 'bottom'
+          //     }).present();
+          //   }
+          // });
         }
       }, (err) => {
-        this.offlineLoadHistoryNodeInfo();
-        loader.dismiss();
-        this.toastCtrl.create({
-          message: 'Network Error',
-          duration: 2500,
-          position: 'bottom'
-        }).present();
+        this.history_node_api_success = false;
+        this.api.networkErrorMessage();
       });
     });
   }
@@ -176,180 +166,132 @@ export class NodePage {
     
     loader.present().then(() => {
       this.http.post(this.forecast_node_api, params).subscribe((result: any) => {
-
-        console.log("------------------------------------------------------------------------------");
         console.log(result);
-        loader.dismiss();
 
-        // this.forecast_node_api_success = result.success;
-        // if (result.success == '100') {
-        //   this.node.refreshed     = this.api.getCurrentDateTime();
-        //   this.node.feeds.field1  = result.lastfeeds.feeds[0].field1.trim();
-
-        //   console.log(result.lastfeeds.feeds);
-
-        //   this.getGraphData(result.lastfeeds.feeds);
-        //   this.offlineStoreNodeInfo();
-        // } else {
-        //   this.offlineLoadNodeInfo();
-        //   this.alertCtrl.create({
-        //     title: result.title,
-        //     message: result.message,
-        //     buttons: ['Okay']
-        //   }).present();
-        // }
+        if((result.success == '100') && result.formatted_results) {
+          if(result.formatted_results.predictions.length > 0){
+            this.forecast_node_api_success = true;
+            console.log(result.formatted_results.predictions);
+            
+            this.offlineStoreForecastStoreNodeInfo(result.formatted_results.predictions);
+            this.getForecastGraphData(result.formatted_results.predictions);
+          }
+          loader.dismiss();
+        } else {
+          this.forecast_node_api_success = false;
+          loader.dismiss();
+          this.toastCtrl.create({
+            message: 'Forecast information not available',
+            duration: 3000,
+            position: 'bottom',
+            showCloseButton: true,
+          }).present();
+        }
       }, (err) => {
-        // this.offlineLoadNodeInfo();
+        this.forecast_node_api_success = false;
         loader.dismiss();
-        this.toastCtrl.create({
-          message: 'Network Error',
-          duration: 2500,
-          position: 'bottom'
-        }).present();
+        this.api.networkErrorMessage();
       });
     });
   }
 
 
   // --------------------------------------------------------------------------------------------------------------------
-  // Offline - store node info offline
-  // --------------------------------------------------------------------------------------------------------------------
-  offlineStoreHistoryNodeInfo() {
-   this.storage.set("node", this.node);
-  }
-
-
-  // --------------------------------------------------------------------------------------------------------------------
-  // Offline - retrieve node info offline
-  // --------------------------------------------------------------------------------------------------------------------
-  offlineLoadHistoryNodeInfo() {
-    this.storage.get("node").then((val) => {
-      if(val != null && val != '' && val) {
-        this.node = val;
-      }
-    });
-  }
-
-
-  // --------------------------------------------------------------------------------------------------------------------
-  // Fetch Bar Graph Data
+  // Draw History Graph
   // --------------------------------------------------------------------------------------------------------------------
   getHistoryGraphData(graph_feeds) {
-    let x_data       = [];
-    let y_data       = [];
-    let bar_colors   = [];
+    if(graph_feeds.length > 0) {
+      let x_data       = [];
+      let y_data       = [];
+      let bar_colors   = [];
 
-    for(let i = 0; i < graph_feeds.length; i++) {
-      y_data.push(parseFloat((graph_feeds[i].field1).trim()));
-      x_data.push(this.api.getTimeFromISOStringDateTime(graph_feeds[i].created_at));
-      bar_colors.push(this.api.nodeStatus(graph_feeds[i].field1).color);
-    }
-
-    // console.log("X - DATA: ");
-    // console.log(x_data);
-
-    // console.log("Y - DATA: ");
-    // console.log(y_data);
-
-    // console.log("COLORS - DATA: ");
-    // console.log(bar_colors);
-
-    this.loadHistoryGraph(x_data, y_data, bar_colors);
-  }
-
-
-  // --------------------------------------------------------------------------------------------------------------------
-  // Fetch Forecast Bar Graph Data
-  // --------------------------------------------------------------------------------------------------------------------
-  getForecasttGraphData(graph_feeds) {
-    let x_data       = [];
-    let y_data       = [];
-    let bar_colors   = [];
-
-    for(let i = 0; i < graph_feeds.length; i++) {
-      y_data.push(parseFloat((graph_feeds[i].field1).trim()));
-      x_data.push(this.api.getTimeFromISOStringDateTime(graph_feeds[i].created_at));
-      bar_colors.push(this.api.nodeStatus(graph_feeds[i].field1).color);
-    }
-
-    // console.log("X - DATA: ");
-    // console.log(x_data);
-
-    // console.log("Y - DATA: ");
-    // console.log(y_data);
-
-    // console.log("COLORS - DATA: ");
-    // console.log(bar_colors);
-
-    this.loadHistoryGraph(x_data, y_data, bar_colors);
-  }
-
-
-  // --------------------------------------------------------------------------------------------------------------------
-  // Draw Bar Graph
-  // --------------------------------------------------------------------------------------------------------------------
-  loadHistoryGraph(x_data, y_data, bar_colors){
-    this.barChartHistory = new Chart(this.barCanvasHistory.nativeElement, {
-      type: 'bar',
-      data: {
-        labels: x_data,
-        datasets: [{
-          label: 'µg/m3 (ppm)',
-          data: y_data,
-          backgroundColor: bar_colors,
-          borderColor: bar_colors,
-          borderWidth: 0
-        }]
-      },
-      options: {
-        tooltips: {
-          "enabled": false
-        },
-        legend: {
-          display: false,
-        },
-        scales: {
-          xAxes: [{
-            gridLines: {
-              display: false,
-            },
-            scaleLabel: {
-              display: true,
-              labelString: "Time",
-              fontColor: "#415c7b"
-            }
-          }],
-          yAxes: [{
-            ticks: {
-              display: true,
-              beginAtZero: true,
-              // stepSize: 1
-            },
-            gridLines: {
-              display: true,
-            },
-            scaleLabel: {
-              display: true,
-              labelString: "µg/m3 (ppm)",
-              fontColor: "#415c7b"
-            }
-          }]
-        }
+      graph_feeds     = graph_feeds.slice(0, 48);
+      graph_feeds.reverse();
+      for(let i = 0; i < graph_feeds.length; i++) {
+        y_data.push(parseFloat(graph_feeds[i].pm2_5));
+        x_data.push(this.api.graphTime(graph_feeds[i].time));
+        bar_colors.push(this.api.nodeStatus(graph_feeds[i].pm2_5, null).color);
       }
-    });
+
+      this.barChartHistory = new Chart(this.barCanvasHistory.nativeElement, {
+        type: 'bar',
+        data: {
+          labels: x_data,
+          datasets: [{
+            label: "PM2.5 (µg/m3)",
+            data: y_data,
+            backgroundColor: bar_colors,
+            borderColor: bar_colors,
+            borderWidth: 0
+          }]
+        },
+        options: {
+          tooltips: {
+            "enabled": true
+          },
+          legend: {
+            display: false,
+          },
+          scales: {
+            xAxes: [{
+              ticks: {
+                autoSkip: false,
+                maxRotation: 90,
+                minRotation: 90,
+              },
+              gridLines: {
+                display: false,
+              },
+              scaleLabel: {
+                display: true,
+                labelString: "Time",
+                fontColor: "#415c7b"
+              }
+            }],
+            yAxes: [{
+              ticks: {
+                display: true,
+                beginAtZero: true,
+                // stepSize: 1
+              },
+              gridLines: {
+                display: true,
+              },
+              scaleLabel: {
+                display: true,
+                labelString: "PM2.5 (µg/m3)",
+                fontColor: "#415c7b"
+              }
+            }]
+          }
+        }
+      });
+    }
   }
 
 
   // --------------------------------------------------------------------------------------------------------------------
-  // Draw Forecast Bar Graph
+  // Draw Forecast Graph
   // --------------------------------------------------------------------------------------------------------------------
-  loadForecastGraph(x_data, y_data, bar_colors){
+  getForecastGraphData(graph_feeds) {
+    if(graph_feeds.length > 0) {
+      let x_data       = [];
+    let y_data       = [];
+    let bar_colors   = [];
+
+    graph_feeds     = graph_feeds.slice(0, 24);
+    for(let i = 0; i < graph_feeds.length; i++) {
+      y_data.push(parseFloat(graph_feeds[i].prediction_value));
+      x_data.push(this.api.graphTime(graph_feeds[i].prediction_time));
+      bar_colors.push(this.api.nodeStatus(graph_feeds[i].prediction_value, null).color);
+    }
+
     this.barChartForecast = new Chart(this.barCanvasForecast.nativeElement, {
       type: 'bar',
       data: {
         labels: x_data,
         datasets: [{
-          label: 'µg/m3 (ppm)',
+          label: "PM2.5 (µg/m3)",
           data: y_data,
           backgroundColor: bar_colors,
           borderColor: bar_colors,
@@ -358,13 +300,16 @@ export class NodePage {
       },
       options: {
         tooltips: {
-          "enabled": false
+          "enabled": true
         },
         legend: {
           display: false,
         },
         scales: {
           xAxes: [{
+            ticks: {
+              autoSkip : false,
+            },
             gridLines: {
               display: false,
             },
@@ -385,13 +330,194 @@ export class NodePage {
             },
             scaleLabel: {
               display: true,
-              labelString: "µg/m3 (ppm)",
+              labelString: "PM2.5 (µg/m3)",
               fontColor: "#415c7b"
             }
           }]
         }
       }
     });
+    }
+  }
+
+
+  // --------------------------------------------------------------------------------------------------------------------
+  // Offline - store node history info offline
+  // --------------------------------------------------------------------------------------------------------------------
+  offlineStoreHistoryStoreNodeInfo(history_array, node) {
+    this.storage.get("history").then((val) => {
+      let __node_history  = [];
+
+      let history_data    = {
+        channel_id: this.node.channel_id,
+        node: node,
+        history: history_array
+      };
+
+      if(val != null && val != '' && val && val.length > 0) {
+        if(val.filter(item => item.channel_id === this.node.channel_id).length != 0){
+          for(let i = 0; i < val.length; i++){
+            if(val[i].channel_id == this.node.channel_id) {
+              val[i].history = history_array;
+              break;
+            }
+          }
+        } else {
+          val.push(history_data);
+        }
+        __node_history = val;
+        this.storage.set('history', __node_history);
+      } else {
+        __node_history.push(history_data);
+        this.storage.set('history', __node_history);
+      }
+    });
+  }
+
+
+  // --------------------------------------------------------------------------------------------------------------------
+  // Offline - store node forecast info offline
+  // --------------------------------------------------------------------------------------------------------------------
+  offlineStoreForecastStoreNodeInfo(forecast_array) {
+    this.storage.get("forecast").then((val) => {
+      let __node_forecast  = [];
+
+      let forecast_data    = {
+        channel_id: this.node.channel_id,
+        forecast: forecast_array
+      };
+
+      if(val != null && val != '' && val && val.length > 0) {
+        if(val.filter(item => item.channel_id === this.node.channel_id).length != 0){
+          for(let i = 0; i < val.length; i++){
+            if(val[i].channel_id == this.node.channel_id) {
+              val[i].forecast = forecast_array;
+              break;
+            }
+          }
+        } else {
+          val.push(forecast_data);
+        }
+        __node_forecast = val;
+        this.storage.set('forecast', __node_forecast);
+      } else {
+        __node_forecast.push(forecast_data);
+        this.storage.set('forecast', __node_forecast);
+      }
+    });
+   }
+
+
+  // --------------------------------------------------------------------------------------------------------------------
+  // Offline - retrieve node history info offline
+  // --------------------------------------------------------------------------------------------------------------------
+  offlineLoadHistoryNodeInfo() {
+    this.storage.get("history").then((val) => {
+      if(val != null && val != '' && val) {
+        for(let i = 0; i < val.length; i++){
+          if(val[i].channel_id == this.node.channel_id) {
+            this.node = val[i].node;
+            this.getHistoryGraphData(val[i].history);
+            break;
+          }
+        }
+      }
+    });
+  }
+
+
+  // --------------------------------------------------------------------------------------------------------------------
+  // Offline - retrieve node forecast info offline
+  // --------------------------------------------------------------------------------------------------------------------
+  offlineLoadForecastNodeInfo() {
+    this.storage.get("forecast").then((val) => {
+      if(val != null && val != '' && val) {
+        for(let i = 0; i < val.length; i++){
+          if(val[i].channel_id == this.node.channel_id) {
+            this.getForecastGraphData(val[i].forecast);
+            break;
+          }
+        }
+      }
+    });
+  }
+
+
+  // --------------------------------------------------------------------------------------------------------------------
+  // Add Node to favorites list
+  // --------------------------------------------------------------------------------------------------------------------
+  addToFavoritesList(node) {
+    this.alertCtrl.create({
+      title: 'ADD TO FAVORITES',
+      message: 'Add node to favorites?',
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel',
+          handler: () => {}
+        },
+        {
+          text: 'Add',
+          handler: () => {
+            this.storage.get('favorites').then((val) => {
+              let nodes = [];
+              if(val && val != null && val != '' && val.length > 0) {
+                if(val.filter(item => item.channel_id === node.channel_id).length != 0){
+                  this.is_favorite = false;
+                  this.toastCtrl.create({
+                    message: 'Place already added',
+                    duration: 2000,
+                    position: 'bottom'
+                  }).present();
+                } else {
+                  val.push(node);
+                  this.storage.set('favorites', val);
+                  this.is_favorite = true;
+        
+                  this.toastCtrl.create({
+                    message: 'Added',
+                    duration: 2000,
+                    position: 'bottom'
+                  }).present();
+                }
+              } else {
+                nodes.push(node);
+                this.storage.set('favorites', nodes);
+                this.is_favorite = true;
+        
+                this.toastCtrl.create({
+                  message: 'Added',
+                  duration: 2000,
+                  position: 'bottom'
+                }).present();
+              }
+            });
+          }
+        }
+      ]
+    }).present();
+  }
+
+
+  // --------------------------------------------------------------------------------------------------------------------
+  // Check if node exists in favorites list
+  // --------------------------------------------------------------------------------------------------------------------
+  async isNodeFavorite(node) {
+    if(node.channel_id) {
+      await this.storage.get('favorites').then((val) => {
+        if(val && val != null && val != '' && val.length > 0) {
+          if(val.filter(item => item.channel_id === node.channel_id).length != 0){
+            this.is_favorite =  true;
+          } else {
+            this.is_favorite =  false;
+          }
+        } else {
+          this.is_favorite =  false;
+        }
+      });
+    } else {
+      this.is_favorite =  true;
+    }
   }
 
 

@@ -1,5 +1,5 @@
 <?php
-if (isset($this->session->userdata['logged_in']['admin_name'])) {
+if (isset($this->session->userdata['loggedin']['adminname'])) {
 	redirect('a-dashboard');
 }
 ?>
@@ -53,7 +53,7 @@ if (isset($this->session->userdata['logged_in']['admin_name'])) {
 	<!-- END SIDEBAR TOGGLER BUTTON -->
 	<div class="content" style="margin-top:10em;">
 		<!-- BEGIN LOGIN FORM -->
-		<form class="llform" action="<?= site_url('a-login'); ?>" method="post">
+		<form class="llform" id="loginairqo" method="post">
 			<!-- BEGIN LOGO -->
 			<div class="logo" style="margin-top:1em;">
 				<a href="#" style="padding:20px; border-radius: 5px;">
@@ -71,7 +71,7 @@ if (isset($this->session->userdata['logged_in']['admin_name'])) {
 					<button class="close" data-close="alert"></button><span>' . $this->session->flashdata('success') . '</span></div>';
 			}
 			?>
-
+			<div id="logintext"></div>
 			<div class="form-group">
 				<!--ie8, ie9 does not support html5 placeholder, so we just show field title for that-->
 
@@ -148,7 +148,28 @@ if (isset($this->session->userdata['logged_in']['admin_name'])) {
 	<script src="<?= base_url(); ?>assets/admin/pages/scripts/components-pickers.js"></script>
 	<!-- END PAGE LEVEL SCRIPTS -->
 	<script>
+
 		$(document).ready(function() {
+			$('#loginairqo').submit(function (e) { 
+				e.preventDefault();
+				var formData = $('#loginairqo').serialize();
+				$.ajax({
+					type: "POST",
+					url: '<?= site_url("a-login-submit"); ?>',
+					data: formData,
+					dataType: "json",
+					success: function (response) {
+						var success = response.success;
+						if(success == 1){
+							//proceed to redirect
+							$('#logintext').html('<div class="alert green">'+ response.message +'</div>');
+							document.location = '<?= site_url("a-dashboard"); ?>';
+						} else {
+							$('#logintext').html('<div class="alert alert-danger">'+ response.message +'</div>');
+						}
+					}
+				});
+			});
 			$('#forgotPasswordForm').submit(function(e) {
 				e.preventDefault();
 				var email = $('#forgotP_email').val();
@@ -213,62 +234,62 @@ if (isset($this->session->userdata['logged_in']['admin_name'])) {
 
 			var handleLogin = function() {
 
-				$('.llform').validate({
-					errorElement: 'span', //default input error message container
-					errorClass: 'help-block', // default input error message class
-					focusInvalid: false, // do not focus the last invalid input
-					rules: {
-						username: {
-							required: true
-						},
-						password: {
-							required: true
-						},
-						remember: {
-							required: false
-						}
-					},
+				// $('.llform').validate({
+				// 	errorElement: 'span', //default input error message container
+				// 	errorClass: 'help-block', // default input error message class
+				// 	focusInvalid: false, // do not focus the last invalid input
+				// 	rules: {
+				// 		username: {
+				// 			required: true
+				// 		},
+				// 		password: {
+				// 			required: true
+				// 		},
+				// 		remember: {
+				// 			required: false
+				// 		}
+				// 	},
 
-					messages: {
-						username: {
-							required: "Username is required."
-						},
-						password: {
-							required: "Password is required."
-						}
-					},
+				// 	messages: {
+				// 		username: {
+				// 			required: "Username is required."
+				// 		},
+				// 		password: {
+				// 			required: "Password is required."
+				// 		}
+				// 	},
 
-					invalidHandler: function(event, validator) { //display error alert on form submit
-						$('.alert-danger', $('.llform')).show();
-					},
+				// 	invalidHandler: function(event, validator) { //display error alert on form submit
+				// 		$('.alert-danger', $('.llform')).show();
+				// 	},
 
-					highlight: function(element) { // hightlight error inputs
-						$(element)
-							.closest('.form-group').addClass('has-error'); // set error class to the control group
-					},
+				// 	highlight: function(element) { // hightlight error inputs
+				// 		$(element)
+				// 			.closest('.form-group').addClass('has-error'); // set error class to the control group
+				// 	},
 
-					success: function(label) {
-						label.closest('.form-group').removeClass('has-error');
-						label.remove();
-					},
+				// 	success: function(label) {
+				// 		label.closest('.form-group').removeClass('has-error');
+				// 		label.remove();
+				// 	},
 
-					errorPlacement: function(error, element) {
-						error.insertAfter(element.closest('.input-icon'));
-					},
+				// 	errorPlacement: function(error, element) {
+				// 		error.insertAfter(element.closest('.input-icon'));
+				// 	},
 
-					submitHandler: function(form) {
-						form.submit(); // form validation success, call ajax form submit
-					}
-				});
+				// 	submitHandler: function(form) {
+				// 		form.submit(); // form validation success, call ajax form submit
+				// 	}
+				// });
 
-				$('.llform input').keypress(function(e) {
-					if (e.which == 13) {
-						if ($('.llform').validate().form()) {
-							$('.llform').submit(); //form validation success, call ajax form submit
-						}
-						return false;
-					}
-				});
+				// $('.llform input').keypress(function(e) {
+				// 	if (e.which == 13) {
+				// 		if ($('.llform').validate().form()) {
+				// 			$('.llform').submit(); //form validation success, call ajax form submit
+				// 		}
+				// 		return false;
+				// 	}
+				// });
 			}
 
 			var handleForgetPassword = function() {

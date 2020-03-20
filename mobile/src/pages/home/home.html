@@ -9,7 +9,7 @@
       </button>
       &nbsp;
       &nbsp;
-      <button color="light" ion-button icon-only *ngIf="user.uid" (click)="goToFavoritesPage()">
+      <button color="light" ion-button icon-only (click)="goToFavoritesPage()">
         <ion-icon name="star-outline"></ion-icon>
       </button>
       &nbsp;
@@ -23,9 +23,15 @@
 
 <ion-content>
 
+  <ion-refresher pullMin="65" (ionRefresh)="getLocation(); offlineLoadFavorites($event)">
+    <ion-refresher-content pullingIcon="arrow-round-down"
+    pullingText="Pull to refresh"
+    refreshingSpinner="dots"
+    refreshingText="Refreshing..."></ion-refresher-content>
+  </ion-refresher>
+
   <!-- Current Location -->
   <ion-card [hidden]="lastest_nearest_node_reading == '0' || lastest_nearest_node_reading == null" (click)="viewDetails(nearest_node)">
-  <!-- <ion-card (click)="viewDetails(nearest_node)"> -->
     <ion-grid>
       <ion-row class="header-section bg-grey">
         <ion-col class="header-title white">
@@ -41,21 +47,21 @@
         <div class="sub-title grey">{{ nearest_node.location }}</div>
         </ion-col>
       </ion-row>
-    <ion-row class="readings-section" [style.backgroundColor]="api.nodeStatus(lastest_nearest_node_reading).color">
+    <ion-row class="readings-section" [style.backgroundColor]="api.nodeStatus(lastest_nearest_node_reading, nearest_node.date).color">
         <ion-col col-3 class="face bg-darker">
-          <img [src]="api.nodeStatus(lastest_nearest_node_reading).face"/>
+          <img [src]="api.nodeStatus(lastest_nearest_node_reading, nearest_node.date).face"/>
         </ion-col>
         <ion-col col-4 class="values">
-        <p class="number moderate-bold" [style.color]="api.nodeStatus(lastest_nearest_node_reading).font_color">{{ lastest_nearest_node_reading }}</p>
-          <p class="number-label moderate-bold" [style.color]="api.nodeStatus(lastest_nearest_node_reading).font_color">PM2.5</p>
+        <p class="number moderate-bold" [style.color]="api.nodeStatus(lastest_nearest_node_reading, nearest_node.date).font_color">{{ lastest_nearest_node_reading }}</p>
+          <p class="number-label moderate-bold" [style.color]="api.nodeStatus(lastest_nearest_node_reading, nearest_node.date).font_color">PM<sub>2.5</sub></p>
         </ion-col>
         <ion-col col-5 class="label">
-        <p text-wrap class="value-label moderate-bold" [style.color]="api.nodeStatus(lastest_nearest_node_reading).font_color">{{ api.nodeStatus(lastest_nearest_node_reading).label }}</p>
+        <p text-wrap class="value-label moderate-bold" [style.color]="api.nodeStatus(lastest_nearest_node_reading, nearest_node.date).font_color">{{ api.nodeStatus(lastest_nearest_node_reading, nearest_node.date).label }}</p>
         </ion-col>
       </ion-row>
       <ion-row class="footer-section">
         <ion-col col-11 text-wrap class="date-section">
-          <span class="node-refresh-date">Last Refreshed: {{ api.getReadableInternationalDateFormatFromISOString(nearest_node.date) }} hrs</span>
+          <span class="node-refresh-date">Last Refreshed: {{ api.ago(api.getReadableInternationalDateFormatFromISOString(nearest_node.date)) }}</span>
         </ion-col>
         <ion-col col-1 class="icon-section">
           <ion-icon name="arrow-forward"></ion-icon>
@@ -65,15 +71,14 @@
   </ion-card>
   
   <!-- Saved Locations -->
-
-  <ion-card [hidden]="user.uid == null || user.uid == '' || user.uid == undefined">
+  <ion-card>
     <ion-grid class="saved-header">
       <ion-row class="header-section bg-grey">
         <ion-col col-11 class="header-title white">
           Saved Locations
         </ion-col>
         <ion-col col-1>
-          <button ion-button small icon-only outline color="light" *ngIf="user.uid" (click)="openAddFavorites()">
+          <button ion-button small icon-only outline color="light" (click)="openAddFavorites()">
             <ion-icon name="md-add" color="light"></ion-icon>
           </button>
         </ion-col>
@@ -82,7 +87,7 @@
     
     <ng-container *ngFor="let node of favorite_nodes">
       <hr/>
-      <ion-grid [hidden]="user.uid == null || user.uid == '' || user.uid == undefined" (click)="viewDetails(node)">
+      <ion-grid (click)="viewDetails(node)">
         <ion-row nowrap class="area-section">
           <ion-col col-1 class="area-type">
             <ion-icon name="md-star" color="grey" class="star-icon"></ion-icon>
@@ -92,21 +97,21 @@
           <div class="sub-title grey">{{ node.location }}</div>
           </ion-col>
         </ion-row>
-        <ion-row class="readings-section" [style.backgroundColor]="api.nodeStatus(node.feeds.field1).color">
+        <ion-row class="readings-section" [style.backgroundColor]="api.nodeStatus(node.field1, node.refreshed).color">
           <ion-col col-3 class="face bg-darker">
-            <img [src]="api.nodeStatus(node.feeds.field1).face"/>
+            <img [src]="api.nodeStatus(node.field1, node.refreshed).face"/>
           </ion-col>
           <ion-col col-4 class="values">
-            <p class="number moderate-bold" [style.color]="api.nodeStatus(node.feeds.field1).font_color">{{ node.feeds.field1 }}</p>
-            <p class="number-label moderate-bold" [style.color]="api.nodeStatus(node.feeds.field1).font_color">PM2.5</p>
+            <p class="number moderate-bold" [style.color]="api.nodeStatus(node.field1, node.refreshed).font_color">{{ node.field1 }}</p>
+            <p class="number-label moderate-bold" [style.color]="api.nodeStatus(node.field1, node.refreshed).font_color">PM<sub>2.5</sub></p>
           </ion-col>
           <ion-col col-5 class="label">
-            <p text-wrap class="value-label moderate-bold" [style.color]="api.nodeStatus(node.feeds.field1).font_color">{{ api.nodeStatus(node.feeds.field1).label }}</p>
+            <p text-wrap class="value-label moderate-bold" [style.color]="api.nodeStatus(node.field1, node.refreshed).font_color">{{ api.nodeStatus(node.field1, node.refreshed).label }}</p>
           </ion-col>
         </ion-row>
         <ion-row class="footer-section">
           <ion-col col-11 text-wrap class="date-section">
-            <span class="node-refresh-date">Last Refreshed: {{ api.getReadableInternationalDateFormatFromSQLFormat(node.refreshed) }}</span>
+            <span class="node-refresh-date">Last Refreshed: {{ api.ago(api.getReadableInternationalDateFormatFromISOString(node.refreshed)) }}</span>
           </ion-col>
           <ion-col col-1 class="icon-section">
             <ion-icon name="arrow-forward"></ion-icon>

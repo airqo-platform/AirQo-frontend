@@ -20,7 +20,7 @@ export class SearchPage {
 
   textInput = new FormControl('');
 
-  search_nodes_api  = 'https://airqo.net/Apis/airqoSearchPlaces';
+  search_nodes_api  = 'https://test-dot-airqo-frontend.appspot.com/Apis/airqoSearchPlaces';
   search_nodes_api_success: any
   
   constructor(public navCtrl: NavController, public navParams: NavParams, private storage: Storage, private toastCtrl: ToastController, 
@@ -28,7 +28,7 @@ export class SearchPage {
     private alertCtrl: AlertController,) {
       this.textInput
       .valueChanges
-      .debounceTime(500)
+      .debounceTime(1000)
       .subscribe((value) => {
         this.onlineSearchNodes(value);
       });
@@ -60,6 +60,79 @@ export class SearchPage {
         this.user = val;
       }
     });
+  }
+
+
+  // --------------------------------------------------------------------------------------------------------------------
+  // Add Node to favorites list
+  // --------------------------------------------------------------------------------------------------------------------
+  addToFavoritesList(node, $event) {
+    $event.stopPropagation();
+    $event.preventDefault();
+
+    this.alertCtrl.create({
+      title: 'ADD TO FAVORITES',
+      message: 'Add node to favorites?',
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel',
+          handler: () => {}
+        },
+        {
+          text: 'Add',
+          handler: () => {
+            this.storage.get('favorites').then((val) => {
+              let nodes = [];
+              if(val && val != null && val != '' && val.length > 0) {
+                if(val.filter(item => item.channel_id === node.channel_id).length != 0){
+                  this.toastCtrl.create({
+                    message: 'Place already added',
+                    duration: 2000,
+                    position: 'bottom'
+                  }).present();
+                  this.removeSingleNodeFromList(node);
+                } else {
+                  val.push(node);
+                  this.storage.set('favorites', val);
+                  this.removeSingleNodeFromList(node);
+        
+                  this.toastCtrl.create({
+                    message: 'Added',
+                    duration: 2000,
+                    position: 'bottom'
+                  }).present();
+                }
+              } else {
+                nodes.push(node);
+                this.storage.set('favorites', nodes);
+                this.removeSingleNodeFromList(node);
+        
+                this.toastCtrl.create({
+                  message: 'Added',
+                  duration: 2000,
+                  position: 'bottom'
+                }).present();
+              }
+            });
+          }
+        }
+      ]
+    }).present();
+  }
+
+
+  // --------------------------------------------------------------------------------------------------------------------
+  // Remove single node from list
+  // --------------------------------------------------------------------------------------------------------------------
+  removeSingleNodeFromList(node) {
+    if(this.nodes.filter(item => item.channel_id === node.channel_id).length != 0){
+      for(let i = 0; i < this.nodes.length; i++) {
+        if(this.nodes[i].channel_id == node.channel_id) {
+          this.nodes.splice(i, 1);
+        }
+      }
+    }
   }
 
 
@@ -97,11 +170,7 @@ export class SearchPage {
         }
       }, (err) => {
         loader.dismiss();
-        this.toastCtrl.create({
-          message: 'Network Error',
-          duration: 2500,
-          position: 'bottom'
-        }).present();
+        this.api.networkErrorMessage();
       });
     });
   }

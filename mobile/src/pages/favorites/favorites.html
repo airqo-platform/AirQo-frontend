@@ -13,7 +13,7 @@
   <p class="title" *ngIf="nodes.length <= 0">{{ display_message }}</p>
   <ion-list>
     <ion-item *ngFor="let node of nodes" (click)="viewDetails(node)">
-      <ion-icon name="pin" color="grey" item-start></ion-icon>
+      <ion-icon name="md-star" color="grey" item-start></ion-icon>
       <div class="area-title">{{ node.name }}</div>
       <div class="area-sub-title">{{ node.location }}</div>
       <ion-icon name="trash" color="danger" item-end (click)="removeFavorite($event, node)"></ion-icon>

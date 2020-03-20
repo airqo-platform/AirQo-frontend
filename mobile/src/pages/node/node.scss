@@ -6,6 +6,10 @@ page-node {
     background-size: cover;
   }
 
+  .fixed-content{
+    background: transparent;
+  }
+
   // --------------------------------------------------------------------------------------------------------------------------------------------
 
   .top-section {
@@ -16,6 +20,12 @@ page-node {
   .bottom-section {
     height: 55%;
     position: relative;
+  }
+
+  // --------------------------------------------------------------------------------------------------------------------------------------------
+
+  .no-data {
+    text-align: center;
   }
 
   // --------------------------------------------------------------------------------------------------------------------------------------------
@@ -154,27 +164,20 @@ page-node {
 
     .key-card {
       position: absolute;
-      top: 6rem;
-
-      .key {
-        height: 5rem;
-        padding: 0.5rem;
-        // border
-  
-        .key-label {
-          text-align: center;
-          font-size: 1.6rem;
-          font-weight: 450;
-        }
-      }
+      bottom: 6rem;
     }
 
-    .bar-chart-scroll {
-      height: inherit;
-      position: absolute;
-      bottom: 0;
-      width: 100%;
-      // border: 10px solid red;
+    .key {
+      height: 5rem;
+      padding: 0.5rem;
+      // border
+    }
+
+    .key-label {
+      text-align: center;
+      font-size: 1.6rem;
+      font-weight: 450;
+      height: 5rem;
     }
 
     .bar-canvas {
@@ -184,6 +187,58 @@ page-node {
     }
   }
 
+  // --------------------------------------------------------------------------------------------------------------------------------------------
+
+  .scroll-chart {
+    overflow-x: scroll !important;
+  }
+
+  .chartAreaWrapper {
+    width: 1000px;
+    overflow-x: scroll !important;
+  }
+
+  #historyChart {
+    width: 100% !important;
+    object-fit: contain;
+  }
+
+  #forecastChart {
+    width: 100% !important;
+    // height: inherit;
+    object-fit: contain;
+    // border: 2px solid red;
+  }
+
+  // #container {
+  //   position: absolute;  
+  //   left: 0;
+  //   top: 0;
+  //   margin-top: 15%;
+  //   width: 100%;
+  //   height: 350px;
+  //   overflow-x: hidden;
+  //   border: 2px solid red;
+  // }
+
+  // #scrollArea {
+  //   width: 150%;
+  //   // height: 350px;
+  //   overflow-x: scroll;
+  // }
+
+  // #chartAreaWrapper {
+  //   width: 1200px;
+  //   // height: 350px;
+  // }
+  
+  // #myChart {
+  //   width: 150%;
+  //   // height: 400px;
+  //   // height: 55%;
+  //   // height: 350px;
+  // }
+  
   // --------------------------------------------------------------------------------------------------------------------------------------------
 
   .bg-darker {
@@ -262,6 +317,16 @@ page-node {
     .key {
       display: grid;
       grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
+    }
+
+    .top-section {
+      height: 20%;
+      position: relative;
+    }
+  
+    .bottom-section {
+      height: 80%;
+      position: relative;
     }
   }
 

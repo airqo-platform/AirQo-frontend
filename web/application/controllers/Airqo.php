@@ -81,6 +81,18 @@ class Airqo extends CI_Controller
         
 	}
 
+	public function launch()
+	{
+		$data['title'] = 'Airqo Launch Event';
+		$data['launchevent'] = $this->AirqoModel->get_launch();
+		$this->logVisitedPage($data['title']);
+
+		$this->load->view('lib/header',$data);
+		$this->load->view('airqo-launch',$data);
+		$this->load->view('lib/footer');
+        
+	}
+
 
 	public function projectDetails($slug)
 	{
