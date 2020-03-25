@@ -4,7 +4,8 @@ import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/styles';
 import { Card, CardContent, Grid, Typography, Avatar } from '@material-ui/core';
 import ArrowDownwardIcon from '@material-ui/icons/ArrowDownward';
-import MoneyIcon from '@material-ui/icons/Money';
+// import MoneyIcon from '@material-ui/icons/Money';
+import SentimentSatisfiedSharpIcon from '@material-ui/icons/SentimentSatisfiedSharp';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -23,8 +24,8 @@ const useStyles = makeStyles(theme => ({
     width: 32
   },
   icon: {
-    height: 20,
-    width: 20
+    height: 30,
+    width: 30
   },
   difference: {
     marginTop: theme.spacing(2),
@@ -37,28 +38,37 @@ const useStyles = makeStyles(theme => ({
   differenceValue: {
     color: theme.palette.error.dark,
     marginRight: theme.spacing(1)
-  }
+  },
 }));
 
 const Pm25Levels = props => {
-  const { className, pm25level, ...rest } = props;
+  const { className, pm25level, pm25levelText, background, pm25levelColor, ...rest } = props;
 
   const classes = useStyles();
+  const pm25BgColor = {
+    backgroundColor: background,
+    padding: 10,
+    height: 100,
+  }
+  const pm25_levelColor = {
+    color: pm25levelColor,
+    marginTop: 0,
+  }
 
   return (
     <Card
       {...rest}
       className={clsx(classes.root, className)}
     >
-      <CardContent>
+      <CardContent style = {pm25BgColor}>
         <Grid
           container
           justify="space-between"
         >
           <Grid item>
-            <Avatar className={classes.avatar}>
-              <MoneyIcon className={classes.icon} />
-            </Avatar>
+            {/* <Avatar className={classes.avatar}> */}
+              <SentimentSatisfiedSharpIcon className={classes.icon} style={pm25_levelColor} />
+            {/* </Avatar> */}
           </Grid>
         </Grid>
         <div className={classes.difference}>        
@@ -66,7 +76,8 @@ const Pm25Levels = props => {
             className={classes.caption}
             variant="caption"
           >
-            {pm25level}
+            <p style={pm25_levelColor}> {pm25level} </p>
+            <p style={pm25_levelColor}> {pm25levelText} </p>
           </Typography>
         </div>
       </CardContent>
@@ -76,7 +87,10 @@ const Pm25Levels = props => {
 
 Pm25Levels.propTypes = {
   className: PropTypes.string,
-  pm25level: PropTypes.string
+  pm25level: PropTypes.string,
+  pm25levelText: PropTypes.string,
+  background: PropTypes.string,
+  Pm25levelColor: PropTypes.string
 };
 
 export default Pm25Levels;
