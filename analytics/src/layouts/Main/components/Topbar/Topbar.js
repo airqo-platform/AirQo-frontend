@@ -30,7 +30,14 @@ const Topbar = props => {
     'height': '4em',
     'width': '4em',
     'borderRadius': '50%',
-    'paddingTop': '.2em'
+    'paddingTop': '.2em',
+    'marginRight': '.4em'
+  }
+  const airqo_logo_style = {
+    'height': '4em',
+    'width': '4em',
+    'paddingTop': '.2em',
+    'marginRight': '.4em'
   }
 
   return (
@@ -43,7 +50,21 @@ const Topbar = props => {
           <img
             alt="Logo"
             style = {logo_style}
-            src="/images/logos/kcca-logo.jpg"
+            src="/images/logos/kcca_logo.jpg"
+          />
+        </RouterLink>
+        <RouterLink to="/">
+          <img
+            alt="airqo.net"
+            style={airqo_logo_style}
+            src="/images/logos/airqo_logo.png"
+          />
+        </RouterLink>
+        <RouterLink to="/">
+          <img
+            alt="mak.ac.ug"
+            style={logo_style}
+            src="/images/logos/mak_logo.jpg"
           />
         </RouterLink>
         <div className={classes.flexGrow} />
