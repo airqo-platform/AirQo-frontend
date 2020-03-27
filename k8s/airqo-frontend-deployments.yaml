@@ -1,0 +1,39 @@
+###################################################################
+# Start analytics backend microserive deployment and provisioning
+###################################################################
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: airqo-analytics-frontend
+  namespace: staging
+  labels:
+    app: airqo-analytics-frontend
+spec:
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: airqo-analytics-frontend
+    spec:
+      containers:
+        - name: airqo-analytics-frontend
+          image: us.gcr.io/airqo-250220/airqo-analytics-frontend:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 5000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: airqo-analytics-frontend-svc
+  namespace: staging
+spec:
+  selector:
+    app: airqo-analytics-frontend
+  ports:
+    - protocol: TCP
+      port: 5000
+      targetPort: 5000
+      nodePort: 30005
+  type: NodePort
