@@ -28,7 +28,7 @@ const Graphs = () => {
           xl={8}
           xs={12}
         >
-        <Display />
+          <Display />
         </Grid>
         <Grid
           item
@@ -37,7 +37,7 @@ const Graphs = () => {
           xl={4}
           xs={12}
         >
-        <Filters />
+          <Filters />
         </Grid>
       </Grid>
     </div>
