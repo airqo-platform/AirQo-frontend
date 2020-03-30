@@ -7,12 +7,8 @@ import { Map as LeafletMap, TileLayer, Marker, Popup } from 'react-leaflet';
 import {
   Card,
   CardContent,
-  Grid,
-  Typography,
-  Avatar,
-  LinearProgress
 } from '@material-ui/core';
-import InsertChartIcon from '@material-ui/icons/InsertChartOutlined';
+// import InsertChartIcon from '@material-ui/icons/InsertChartOutlined';
 
 const useStyles = makeStyles(theme => ({
   root: {

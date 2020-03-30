@@ -1,6 +1,6 @@
 import React from 'react';
 import { makeStyles } from '@material-ui/styles';
-import { Grid, Card } from '@material-ui/core';
+import { Grid } from '@material-ui/core';
 
 import { Pm25Levels, Map} from './components';
 
