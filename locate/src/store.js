@@ -5,7 +5,9 @@ import rootReducer from "./redux/Join/reducers";
 const initialState = {};
 const middleware = [thunk];
 const store = createStore(
-  rootReducer
+  rootReducer,
+  initialState,
+  applyMiddleware(...middleware)
   //   () => [],
   //   initialState,
   //   applyMiddleware(...middleware)
