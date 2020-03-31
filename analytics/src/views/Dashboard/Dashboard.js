@@ -22,12 +22,32 @@ const Dashboard = props => {
   const classes = useStyles();
   const { className, ...rest } = props;
 
-  const [devices,setDevices] = useState([]);
-  const [device_labels,setLabels ] = useState([]);
+  const [locations,setLocations] = useState([]);
+  const [deviceLabels,setLabels ] = useState([]);
+
+  useEffect(() => {
+    fetch('http://127.0.0.1:5000/api/v1/monitoringsite/historical/daily/devices')
+      .then(res => res.json())
+      .then((locationsData) => {
+        setLocations(locationsData.results)
+      })
+      .catch(console.log)
+  },[]);
 
  
-
- 
+  const locationsGraphData = {
+    labels: locations.labels,
+    datasets: [
+      {
+        label: 'PM2.5',
+        data: locations.average_pm25_values,
+        fill: false,          // Don't fill area under the line
+        borderColor: 'green'  // Line color
+      }
+    ]
+  }
+  
+   
   const data = {
     labels: [
       'Location 1', 'Location 2', 
@@ -65,10 +85,10 @@ const Dashboard = props => {
           xs={12}
         >
           <header className="App-header">
-            <h1>Chart for past 28 days aggregate mean</h1>
+            <h1>Past 28 days aggregate mean</h1>
           </header>
           <article className="canvas-container">
-            <Line data={data} options={options}/>
+            <Line data={locationsGraphData} options={options}/>
           </article>
       </Grid>
 
