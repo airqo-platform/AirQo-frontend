@@ -14,7 +14,7 @@ class Navbar extends Component {
               className="col s5 brand-logo center black-text"
             >
               <i className="material-icons">code</i>
-              AirQo Locate
+              AirQo Analytics
             </Link>
           </div>
         </nav>

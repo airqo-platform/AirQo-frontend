@@ -16,8 +16,8 @@ class Dashboard extends Component {
             <h4>
               {/* <b>Hey there,</b> {user.name.split(" ")[0]} */}
               <p className="flow-text grey-text text-darken-1">
-                You are logged into AirQo Locate{" "}
-                <span style={{ fontFamily: "monospace" }}>AirQo Locate</span>{" "}
+                You are logged into{" "}
+                <span style={{ fontFamily: "monospace" }}>AirQo Analytics</span>{" "}
                 app 👏
               </p>
             </h4>

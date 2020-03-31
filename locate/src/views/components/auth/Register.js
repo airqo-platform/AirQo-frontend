@@ -42,7 +42,7 @@ class Register extends Component {
     e.preventDefault();
     const newUser = {
       firstName: this.state.firstName,
-      lastName: this.state.secondName,
+      lastName: this.state.lastName,
       email: this.state.email,
       privilege: this.state.privilege,
       userName: this.state.userName,
@@ -64,7 +64,7 @@ class Register extends Component {
             </Link>
             <div className="col s12" style={{ paddingLeft: "11.250px" }}>
               <h4>
-                <b>Register</b> below
+                <b>Join</b> below
               </h4>
               <p className="grey-text text-darken-1">
                 Already have an account? <Link to="/login">Log in</Link>
@@ -76,7 +76,7 @@ class Register extends Component {
                   onChange={this.onChange}
                   value={this.state.firstName}
                   error={errors.firstName}
-                  id="fistName"
+                  id="firstName"
                   type="text"
                   className={classnames("", {
                     invalid: errors.firstName
@@ -177,7 +177,7 @@ class Register extends Component {
                   type="submit"
                   className="btn btn-large waves-effect waves-light hoverable blue accent-3"
                 >
-                  Sign up
+                  Submit
                 </button>
               </div>
             </form>
@@ -190,8 +190,8 @@ class Register extends Component {
 
 Register.propTypes = {
   registerUser: PropTypes.func.isRequired,
-  auth: PropTypes.object.isRequired,
-  errors: PropTypes.object.isRequired
+  auth: PropTypes.string.isRequired,
+  errors: PropTypes.string.isRequired
 };
 
 //get our state from Redux and map it to Props to use inside components.
