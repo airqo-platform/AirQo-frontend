@@ -55,6 +55,7 @@ const Filters = props => {
           container
           justify="space-between"
         >
+          {/* 
           <Grid item>
             <Typography
               className={classes.title}
@@ -65,7 +66,9 @@ const Filters = props => {
               Filters
             </Typography>
           </Grid>
+          */}
         </Grid>
+        
         {/*  <div >
               {< form class="form-style-graph" action ="">
                 <p>Please enter valid parameters.</p>

@@ -1,8 +1,12 @@
 import React from 'react';
 import { makeStyles } from '@material-ui/styles';
-import { Grid, Card } from '@material-ui/core';
+import { Grid, Card, CardContent } from '@material-ui/core';
+import { Line } from 'react-chartjs-2';
+import clsx from 'clsx';
+import PropTypes from 'prop-types';
+import { Pm25Levels, Map,Filters } from './components';
+import { useEffect, useState } from 'react';
 
-import { Pm25Levels, Map} from './components';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -13,8 +17,39 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-const Dashboard = () => {
+
+const Dashboard = props => {
   const classes = useStyles();
+  const { className, ...rest } = props;
+
+  const [devices,setDevices] = useState([]);
+  const [device_labels,setLabels ] = useState([]);
+
+ 
+
+ 
+  const data = {
+    labels: [
+      'Location 1', 'Location 2', 
+      'Location 3', 'Location 4', 
+      'Location 5', 'Location 6', 
+      'Location 7', 'Location 8', 
+      'Location 9', 'Location 10', 
+      'Location 11', 'Location 12'
+    ],
+    datasets: [
+      {
+        label: 'PM2.5',
+        data: [22,19,27,23,22,24,17,25,23,24,20,19],
+        fill: false,          // Don't fill area under the line
+        borderColor: 'green'  // Line color
+      }
+    ]
+  }
+  
+  const options = {
+    maintainAspectRatio: false	// Don't maintain w/h ratio
+  }
 
   return (
     <div className={classes.root}>
@@ -24,13 +59,176 @@ const Dashboard = () => {
       >
         <Grid
           item
+          lg={6}
+          sm={6}
+          xl={12}
+          xs={12}
+        >
+          <header className="App-header">
+            <h1>Chart for past 28 days aggregate mean</h1>
+          </header>
+          <article className="canvas-container">
+            <Line data={data} options={options}/>
+          </article>
+      </Grid>
+
+      <Grid
+          item
+          lg={6}
+          sm={6}
+          xl={12}
+          xs={12}
+        >
+        <header className="App-header">
+            <h1>PM 2.5 for the past hour</h1>
+        </header>
+        <Map />
+      </Grid>
+        
+
+        <Grid
+          item
           lg={12}
           sm={12}
           xl={12}
           xs={12}
         >
-          <Map />
+             <Card
+      {...rest}
+      className={clsx(classes.root, className)}
+    >
+      <CardContent>
+      <header className="App-header"><h1>Customisable Historical Chart One</h1> </header>
+      <Grid
+        container
+        spacing={0.1}
+      >
+      <Grid
+          item
+          lg={4}
+          sm={4}
+          xl={4}
+          xs={12}
+        >
+          <Filters />
         </Grid>
+        <Grid
+          item
+          lg={8}
+          sm={8}
+          xl={12}
+          xs={12}
+        >
+            
+
+            <article className="canvas-container">
+            <Line data={data} options={options}/>
+          </article>
+          </Grid>
+          </Grid>
+      </CardContent>
+
+      </Card>
+      </Grid>
+
+        
+
+        <Grid
+          item
+          lg={12}
+          sm={12}
+          xl={12}
+          xs={12}
+        >
+             <Card
+      {...rest}
+      className={clsx(classes.root, className)}
+    >
+      <CardContent>
+      <header className="App-header"><h1>Customisable Historical Chart Two</h1> </header>
+      <Grid
+        container
+        spacing={0.1}
+      >
+      <Grid
+          item
+          lg={4}
+          sm={4}
+          xl={4}
+          xs={12}
+        >
+          <Filters />
+        </Grid>
+        <Grid
+          item
+          lg={8}
+          sm={8}
+          xl={12}
+          xs={12}
+        >
+            
+
+            <article className="canvas-container">
+            <Line data={data} options={options}/>
+          </article>
+          </Grid>
+          </Grid>
+      </CardContent>
+
+      </Card>
+      </Grid>
+
+
+      <Grid
+          item
+          lg={6}
+          sm={6}
+          xl={12}
+          xs={12}
+        >
+          <Card
+            {...rest}
+            className={clsx(classes.root, className)}
+          >
+            <CardContent>
+      <header className="App-header">
+            <h1> Historical Chart One</h1> </header>
+
+            <article className="canvas-container">
+            <Line data={data} options={options}/>
+          </article>
+      </CardContent>
+
+          </Card>
+          
+        </Grid>
+
+        <Grid
+          item
+          lg={6}
+          sm={6}
+          xl={12}
+          xs={12}
+        >
+          <Card
+            {...rest}
+            className={clsx(classes.root, className)}
+          >
+            <CardContent>
+      <header className="App-header">
+            <h1>Historical Chart One</h1> </header>
+
+            <article className="canvas-container">
+            <Line data={data} options={options}/>
+          </article>
+      </CardContent>
+
+          </Card>
+          
+        </Grid>
+
+
+
         <Grid
           item
           lg={2}
