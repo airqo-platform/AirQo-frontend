@@ -9,7 +9,7 @@ class Login extends Component {
   constructor() {
     super();
     this.state = {
-      email: "",
+      userName: "",
       password: "",
       errors: {}
     };
@@ -39,7 +39,7 @@ class Login extends Component {
   onSubmit = e => {
     e.preventDefault();
     const userData = {
-      email: this.state.email,
+      userName: this.state.userName,
       password: this.state.password
     };
     console.log(userData);
@@ -68,18 +68,18 @@ class Login extends Component {
               <div className="input-field col s12">
                 <input
                   onChange={this.onChange}
-                  value={this.state.email}
-                  error={errors.email}
-                  id="email"
-                  type="email"
+                  value={this.state.userName}
+                  error={errors.userName}
+                  id="userName"
+                  type="text"
                   className={classnames("", {
-                    invalid: errors.email || errors.emailnotfound
+                    invalid: errors.userName || errors.credentialsnotfound
                   })}
                 />
-                <label htmlFor="email">Email</label>
+                <label htmlFor="userName">Username</label>
                 <span className="red-text">
-                  {errors.email}
-                  {errors.emailnotfound}
+                  {errors.userName}
+                  {errors.credentialsnotfound}
                 </span>
               </div>
               <div className="input-field col s12">
@@ -122,8 +122,8 @@ class Login extends Component {
 }
 Login.propTypes = {
   loginUser: PropTypes.func.isRequired,
-  auth: PropTypes.object.isRequired,
-  errors: PropTypes.object.isRequired
+  auth: PropTypes.string.isRequired,
+  errors: PropTypes.string.isRequired
 };
 const mapStateToProps = state => ({
   auth: state.auth,

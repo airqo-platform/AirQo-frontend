@@ -9,8 +9,11 @@ class Register extends Component {
   constructor() {
     super();
     this.state = {
-      name: "",
+      firstName: "",
+      lastName: "",
       email: "",
+      userName: "",
+      privilege: "",
       password: "",
       password2: "",
       errors: {}
@@ -38,8 +41,11 @@ class Register extends Component {
   onSubmit = e => {
     e.preventDefault();
     const newUser = {
-      name: this.state.name,
+      firstName: this.state.firstName,
+      lastName: this.state.secondName,
       email: this.state.email,
+      privilege: this.state.privilege,
+      userName: this.state.userName,
       password: this.state.password,
       password2: this.state.password2
     };
@@ -68,16 +74,44 @@ class Register extends Component {
               <div className="input-field col s12">
                 <input
                   onChange={this.onChange}
-                  value={this.state.name}
-                  error={errors.name}
-                  id="name"
+                  value={this.state.firstName}
+                  error={errors.firstName}
+                  id="fistName"
                   type="text"
                   className={classnames("", {
-                    invalid: errors.name
+                    invalid: errors.firstName
                   })}
                 />
-                <label htmlFor="name">Name</label>
-                <span className="red-text">{errors.name}</span>
+                <label htmlFor="firstName">First Name</label>
+                <span className="red-text">{errors.firstName}</span>
+              </div>
+              <div className="input-field col s12">
+                <input
+                  onChange={this.onChange}
+                  value={this.state.lastName}
+                  error={errors.lastName}
+                  id="lastName"
+                  type="text"
+                  className={classnames("", {
+                    invalid: errors.lastName
+                  })}
+                />
+                <label htmlFor="lastName">Last Name</label>
+                <span className="red-text">{errors.lastName}</span>
+              </div>
+              <div className="input-field col s12">
+                <input
+                  onChange={this.onChange}
+                  value={this.state.userName}
+                  error={errors.userName}
+                  id="userName"
+                  type="text"
+                  className={classnames("", {
+                    invalid: errors.userName
+                  })}
+                />
+                <label htmlFor="userName">Username</label>
+                <span className="red-text">{errors.userName}</span>
               </div>
               <div className="input-field col s12">
                 <input
@@ -92,6 +126,20 @@ class Register extends Component {
                 />
                 <label htmlFor="email">Email</label>
                 <span className="red-text">{errors.email}</span>
+              </div>
+              <div className="input-field col s12">
+                <input
+                  onChange={this.onChange}
+                  value={this.state.privilege}
+                  error={errors.privilege}
+                  id="privilege"
+                  type="text"
+                  className={classnames("", {
+                    invalid: errors.privilege
+                  })}
+                />
+                <label htmlFor="privilege">Privilege</label>
+                <span className="red-text">{errors.privilege}</span>
               </div>
               <div className="input-field col s12">
                 <input
