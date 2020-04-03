@@ -58,7 +58,7 @@ class Login extends Component {
             </Link>
             <div className="col s12" style={{ paddingLeft: "11.250px" }}>
               <h4>
-                <b>Login</b> below
+                <b>Login</b>
               </h4>
               <p className="grey-text text-darken-1">
                 Don't have an account? <Link to="/register">Register</Link>
@@ -114,6 +114,10 @@ class Login extends Component {
                 </button>
               </div>
             </form>
+            <div></div>
+            <div className="col s12" style={{ paddingTop: "20px" }}>
+              <Link to="/forgot"> Forgotten Password?</Link>
+            </div>
           </div>
         </div>
       </div>

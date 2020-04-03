@@ -4,6 +4,28 @@ import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { registerUser } from "../../../redux/Join/actions";
 import classnames from "classnames";
+import CustomInput from "../CustomInput/CustomInput";
+import InputLabel from "@material-ui/core/InputLabel";
+import Autocomplete from "@material-ui/lab/Autocomplete";
+import TextField from "@material-ui/core/TextField";
+import FormControlLabel from "@material-ui/core/FormControlLabel";
+import Checkbox from "@material-ui/core/Checkbox";
+
+const privileges = [
+  { title: "school" },
+  { title: "media" },
+  { title: "institution" },
+  { title: "university" },
+  { title: "private" },
+  { title: "host" },
+  { title: "research" },
+  { title: "public" },
+  { title: "policy" }
+];
+const defaultProps = {
+  options: privileges,
+  getOptionLabel: option => option.title
+};
 
 class Register extends Component {
   constructor() {
@@ -64,7 +86,7 @@ class Register extends Component {
             </Link>
             <div className="col s12" style={{ paddingLeft: "11.250px" }}>
               <h4>
-                <b>Join</b> below
+                <b>Join</b>
               </h4>
               <p className="grey-text text-darken-1">
                 Already have an account? <Link to="/login">Log in</Link>
@@ -130,20 +152,6 @@ class Register extends Component {
               <div className="input-field col s12">
                 <input
                   onChange={this.onChange}
-                  value={this.state.privilege}
-                  error={errors.privilege}
-                  id="privilege"
-                  type="text"
-                  className={classnames("", {
-                    invalid: errors.privilege
-                  })}
-                />
-                <label htmlFor="privilege">Privilege</label>
-                <span className="red-text">{errors.privilege}</span>
-              </div>
-              <div className="input-field col s12">
-                <input
-                  onChange={this.onChange}
                   value={this.state.password}
                   error={errors.password}
                   id="password"
@@ -165,6 +173,19 @@ class Register extends Component {
                 />
                 <label htmlFor="password2">Confirm Password</label>
                 <span className="red-text">{errors.password2}</span>
+              </div>
+              <div>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={this.state.checkedB}
+                      onChange={this.onChange}
+                      name="checkedB"
+                      color="primary"
+                    />
+                  }
+                  label="Agree to our terms and conditions?"
+                />
               </div>
               <div className="col s12" style={{ paddingLeft: "11.250px" }}>
                 <button
