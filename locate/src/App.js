@@ -11,7 +11,10 @@ import store from "./store";
 
 import Navbar from "./views/components/Navbars/Navbar";
 import Landing from "./views/layouts/Landing";
+import Admin from "./views/layouts/Admin";
 import Register from "./views/components/auth/Register";
+import ForgotPassword from "./views/components/auth/ForgotPassword";
+import ResetPassword from "./views/components/auth/ResetPassword";
 import Login from "./views/components/auth/Login";
 import PrivateRoute from "./views/components/PrivateRoute/PrivateRoute";
 import Dashboard from "./views/components/Dashboard/Dashboard";
@@ -45,6 +48,8 @@ class App extends Component {
             <Route exact path="/" component={Landing} />
             <Route exact path="/register" component={Register} />
             <Route exact path="/login" component={Login} />
+            <Route exact path="/forgot" component={ForgotPassword} />
+            <Route exact path="/reset" component={ResetPassword} />
             <Switch>
               <PrivateRoute exact path="/dashboard" component={Dashboard} />
             </Switch>
