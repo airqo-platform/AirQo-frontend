@@ -1,6 +1,6 @@
 import React, { Fragment } from 'react';
 import { makeStyles } from '@material-ui/styles';
-import { Grid, Typography as MuiTypography } from '@material-ui/core';
+import { Grid } from '@material-ui/core';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -14,7 +14,7 @@ const Reports = () => {
   return (
     <div className={classes.root}>
       <Grid
-        container
+        // container
         spacing={1}
       >
         <p>Content goes here</p>
