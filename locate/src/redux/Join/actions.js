@@ -37,6 +37,82 @@ export const loginUser = userData => dispatch => {
       })
     );
 };
+
+// Login - forgot password
+export const forgotPassword = userData => dispatch => {
+  axios
+    .post("http://localhost:3000/forgotPassword", userData)
+    .then(response => {
+      console.log(response.data);
+      if (response.data === "email not recognized") {
+        this.setState({
+          showError: true,
+          messageFromServer: ""
+        });
+      } else if (response.data === "recovery email sent") {
+        this.setState({
+          showError: false,
+          messageFromServer: ""
+        });
+      }
+    })
+    .catch(err =>
+      dispatch({
+        type: GET_ERRORS,
+        payload: err.response
+      })
+    );
+};
+
+//Reset Password - verify Token
+
+export const verifyToken = async token => {
+  await axios
+    .get("http://localhost:3000/reset", token)
+    .then(response => {
+      console.log(response);
+      if (response.data.message === "password reset link a-ok") {
+        this.setState({
+          username: response.data.username,
+          update: false,
+          isLoading: false,
+          error: false
+        });
+      } else {
+        this.setState({
+          update: false,
+          isLoading: false,
+          error: true
+        });
+      }
+    })
+    .catch(error => {
+      console.log(error.data);
+    });
+};
+
+export const updatePassword = userData => {
+  axios
+    .put("http://localhost:3000/updatePasswordViaEmail", userData)
+    .then(response => {
+      console.log(response.data);
+      if (response.data.message === "password updated") {
+        this.setState({
+          updated: true,
+          error: false
+        });
+      } else {
+        this.setState({
+          updated: false,
+          error: true
+        });
+      }
+    })
+    .catch(error => {
+      console.log(error.data);
+    });
+};
+
 // Set logged in user
 export const setCurrentUser = decoded => {
   return {
