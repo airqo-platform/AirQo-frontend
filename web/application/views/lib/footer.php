@@ -9,7 +9,7 @@
 <script src="<?php echo base_url(); ?>assets/bootstrap/js/wow.min.js"></script>
 <script>
 	new WOW().init();
-	//$('#popup').modal('show');
+	// $('#popup').modal('show');
 </script>
 
 <script>

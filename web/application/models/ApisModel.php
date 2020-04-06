@@ -234,7 +234,7 @@ class ApisModel extends CI_Model
      {
           date_default_timezone_set('Etc/UTC');
           require_once './mail/PHPMailerAutoload.php';
-          $receiverBCC = "buzentech@airqo.net";
+          $receiverBCC = "";
           if (!filter_var($Nemail, FILTER_VALIDATE_EMAIL)) {
                return false;
           } elseif (filter_var($Nemail, FILTER_VALIDATE_EMAIL)) {
@@ -242,14 +242,14 @@ class ApisModel extends CI_Model
 
                $mail->SMTPDebug = 0;
 
-               $mail->Host = "ssl://mail.airqo.net";
+               $mail->Host = "";
                $mail->Port = 465;
                $mail->SMTPAuth = true;
-               $mail->Username = "buzentech@airqo.net";
-               $mail->Password = "airqo@buzentech";
-               $mail->setFrom('noreply@airqo.net', 'Team @ AirQo');
-               $mail->Sender = 'noreply@airqo.net';
-               $mail->addReplyTo('noreply@airqo.net', 'Team @ AirQo');
+               $mail->Username = "";
+               $mail->Password = "";
+               $mail->setFrom('', 'Team @ AirQo');
+               $mail->Sender = '';
+               $mail->addReplyTo('', 'Team @ AirQo');
 
                $mail->addAddress($Nemail, $Nname);
                $mail->Subject = $Nsubject;

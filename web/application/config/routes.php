@@ -24,6 +24,8 @@ $route['partnerships']   = 'airqo/partnerships';
 $route['background']   = 'airqo/background';
 $route['careers']   = 'airqo/careers';
 $route['contact-us']   = 'airqo/contactUs';
+$route['airqo-launch']   = 'airqo/launch';
+
 
 
 /**
@@ -57,6 +59,7 @@ $route['a-aqi-approve'] = 'User/ApproveAqi';
 $route['a-aqi-decline'] = 'User/DeclineAqi';
 
 $route['a-login'] = 'Admin/index';
+$route['a-login-submit'] = 'Admin/LoginSubmit';
 $route['a-dashboard'] = 'Admin/dashboard';
 $route['a-administrators'] = 'Admin/administrators';
 $route['a-check-mail'] = 'Admin/checkEmail';

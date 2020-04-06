@@ -45,14 +45,14 @@
 	<link href="<?php echo base_url(); ?>assets/bootstrap/css/font-awesome.min.css" rel="stylesheet">
 	<script src="<?php echo base_url(); ?>assets/bootstrap/js/jquery-2.1.4.min.js"></script>
 	<!-- Global site tag (gtag.js) - Google Analytics -->
-	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-156033287-1"></script>
+	<!-- <script async src="https://www.googletagmanager.com/gtag/js?id=UA-156033287-1"></script>
 	<script>
 		window.dataLayer = window.dataLayer || [];
 		function gtag(){dataLayer.push(arguments);}
 		gtag('js', new Date());
 
 		gtag('config', 'UA-156033287-1');
-	</script>
+	</script> -->
 </head>
 
 

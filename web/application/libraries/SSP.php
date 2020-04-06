@@ -378,8 +378,8 @@ class SSP {
 	{
 		try {
 			$db = @new PDO(
-				// "mysql:host={$sql_details['host']};dbname={$sql_details['db']};charset=utf8",
-				"mysql:host=localhost;unix_socket={$sql_details['host']};dbname={$sql_details['db']};charset=utf8",
+				"mysql:host={$sql_details['host']};dbname={$sql_details['db']};charset=utf8",
+				// "mysql:host=localhost;unix_socket={$sql_details['host']};dbname={$sql_details['db']};charset=utf8",
 				$sql_details['user'],
 				$sql_details['pass'],
 				array( PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION )

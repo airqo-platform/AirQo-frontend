@@ -1403,7 +1403,7 @@ class Admin extends CI_Controller
 					'db' => 'aac_place_name',
 					'dt' => 3,
 					'formatter' => function($d, $row){
-                              return date('F j, Y g:i a', strtotime($d));
+                              return $d;
 					}
                     ), 
                array(
@@ -1424,7 +1424,7 @@ class Admin extends CI_Controller
 					'db' => 'aac_reading',
 					'dt' => 5,
 					'formatter' => function($d, $row){
-                              return date('F j, Y g:i a', strtotime($d));
+                              return $d;
 					}
                     ),
                array(
