@@ -27,7 +27,7 @@ const styles = {
     margin: "0",
     fontSize: "14px",
     marginTop: "0",
-    marginBottom: "0"
+    marginBottom: "0",
   },
   cardTitleWhite: {
     color: "#FFFFFF",
@@ -36,28 +36,11 @@ const styles = {
     fontWeight: "300",
     fontFamily: "'Roboto', 'Helvetica', 'Arial', sans-serif",
     marginBottom: "3px",
-    textDecoration: "none"
-  }
+    textDecoration: "none",
+  },
 };
 
 const useStyles = makeStyles(styles);
-
-const locations = [
-  { title: "location 1" },
-  { title: "location 2" },
-  { title: "location 3" },
-  { title: "location 4" },
-  { title: "location 5" },
-  { title: "location 6" },
-  { title: "location 7" },
-  { title: "location 8" },
-  { title: "location 9" }
-];
-
-const defaultProps = {
-  options: locations,
-  getOptionLabel: option => option.title
-};
 
 function withMyHook(Component) {
   return function WrappedComponent(props) {
@@ -67,7 +50,7 @@ function withMyHook(Component) {
 }
 
 class Dashboard extends Component {
-  onLogoutClick = e => {
+  onLogoutClick = (e) => {
     e.preventDefault();
     this.props.logoutUser();
   };
@@ -76,80 +59,15 @@ class Dashboard extends Component {
     const { user } = this.props.auth;
     return (
       <div style={{ height: "75vh" }} className="container valign-wrapper">
-        <Box
-          display="flex"
-          flexDirection="row"
-          p={1}
-          m={1}
-          bgcolor="background.paper"
-        >
-          <Box p={1}>
-            <Autocomplete
-              {...defaultProps}
-              id="region"
-              debug
-              renderInput={params => (
-                <TextField
-                  {...params}
-                  label="Filter by Region"
-                  margin="normal"
-                />
-              )}
-            />
-          </Box>
-          <Box p={1}>
-            <Autocomplete
-              {...defaultProps}
-              id="district"
-              debug
-              renderInput={params => (
-                <TextField
-                  {...params}
-                  label="Filter by District"
-                  margin="normal"
-                />
-              )}
-            />
-          </Box>
-
-          <Box p={1}>
-            <Autocomplete
-              {...defaultProps}
-              id="district"
-              debug
-              renderInput={params => (
-                <TextField
-                  {...params}
-                  label="Filter by County"
-                  margin="normal"
-                />
-              )}
-            />
-          </Box>
-
-          <Box p={1}>
-            <Autocomplete
-              {...defaultProps}
-              id="parish"
-              debug
-              renderInput={params => (
-                <TextField
-                  {...params}
-                  label="Filter by Parish"
-                  margin="normal"
-                />
-              )}
-            />
-          </Box>
-        </Box>
-
         <div className="row">
           <div className="col s12 center-align">
             <h4>
               {/* <b>Hey there,</b> {user.name.split(" ")[0]} */}
               <p className="flow-text grey-text text-darken-1">
-                You are logged into{" "}
-                <span style={{ fontFamily: "monospace" }}>AirQo Locate</span>{" "}
+                You are logged into{"  "}
+                <span style={{ fontFamily: "monospace" }}>
+                  AirQo Network Manager
+                </span>{" "}
                 app 👏
               </p>
             </h4>
@@ -158,7 +76,7 @@ class Dashboard extends Component {
                 width: "150px",
                 borderRadius: "3px",
                 letterSpacing: "1.5px",
-                marginTop: "1rem"
+                marginTop: "1rem",
               }}
               onClick={this.onLogoutClick}
               className="btn btn-large waves-effect waves-light hoverable blue accent-3"
@@ -173,9 +91,9 @@ class Dashboard extends Component {
 }
 Dashboard.propTypes = {
   logoutUser: PropTypes.func.isRequired,
-  auth: PropTypes.object.isRequired
+  auth: PropTypes.object.isRequired,
 };
-const mapStateToProps = state => ({
-  auth: state.auth
+const mapStateToProps = (state) => ({
+  auth: state.auth,
 });
 export default connect(mapStateToProps, { logoutUser })(withMyHook(Dashboard));
