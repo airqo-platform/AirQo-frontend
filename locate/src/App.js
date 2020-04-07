@@ -1,6 +1,11 @@
 import React, { Component } from "react";
 import "./App.css";
-import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Route,
+  Switch,
+  Redirect,
+} from "react-router-dom";
 
 import jwt_decode from "jwt-decode";
 import setAuthToken from "./utils/setAuthToken";
@@ -8,6 +13,8 @@ import { setCurrentUser, logoutUser } from "./redux/Join/actions";
 
 import { Provider } from "react-redux";
 import store from "./store";
+import { ThemeProvider } from "@material-ui/styles";
+import theme from "./assets/theme";
 
 import Navbar from "./views/components/Navbars/Navbar";
 import Landing from "./views/layouts/Landing";
@@ -15,6 +22,10 @@ import Admin from "./views/layouts/Admin";
 import Register from "./views/components/auth/Register";
 import ForgotPassword from "./views/components/auth/ForgotPassword";
 import ResetPassword from "./views/components/auth/ResetPassword";
+import {
+  Main as MainLayout,
+  Minimal as MinimalLayout,
+} from "../src/views/layouts/";
 import Login from "./views/components/auth/Login";
 import PrivateRoute from "./views/components/PrivateRoute/PrivateRoute";
 import Dashboard from "./views/components/Dashboard/Dashboard";
@@ -42,19 +53,26 @@ class App extends Component {
   render() {
     return (
       <Provider store={store}>
-        <Router>
-          <div className="App">
-            <Navbar />
-            <Route exact path="/" component={Landing} />
-            <Route exact path="/register" component={Register} />
-            <Route exact path="/login" component={Login} />
-            <Route exact path="/forgot" component={ForgotPassword} />
-            <Route exact path="/reset" component={ResetPassword} />
-            <Switch>
-              <PrivateRoute exact path="/dashboard" component={Dashboard} />
-            </Switch>
-          </div>
-        </Router>
+        <ThemeProvider theme={theme}>
+          <Router>
+            <div className="App">
+              <Navbar />
+              <Route exact path="/" component={Landing} />
+              <Route exact path="/register" component={Register} />
+              <Route exact path="/login" component={Login} />
+              <Route exact path="/forgot" component={ForgotPassword} />
+              <Route exact path="/reset" component={ResetPassword} />
+              <Switch>
+                <PrivateRoute
+                  exact
+                  path="/dashboard"
+                  component={Dashboard}
+                  layout={MainLayout}
+                />
+              </Switch>
+            </div>
+          </Router>
+        </ThemeProvider>
       </Provider>
     );
   }
