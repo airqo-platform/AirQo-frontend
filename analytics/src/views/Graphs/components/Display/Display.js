@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState, Component } from 'react';
 import clsx from 'clsx';
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/styles';
 import { Card, CardContent, Grid, Typography, Avatar } from '@material-ui/core';
 import ArrowUpwardIcon from '@material-ui/icons/ArrowUpward';
 import PeopleIcon from '@material-ui/icons/PeopleOutlined';
+import { Pie } from 'react-chartjs-2';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -89,5 +90,34 @@ const Display = props => {
 Display.propTypes = {
   className: PropTypes.string
 };
+
+class PieChartComponent extends Component{
+  constructor(props){
+    super(props)
+    this.state = {
+      labels: ['Good', 'Moderate', 'UH4SG', 'Unhealthy', 'Very Unhealthy', 'Hazardous', 'Other'],
+      datasets: [{
+        data: [100, 200, 300, 150, 320, 40, 2],
+        backgroundColor: ['green', 'yellow', 'orange', 'red', 'purple', 'maroon', 'grey']
+      }]
+    }
+  }
+
+  render(){
+    return (
+      <div>
+        <h1> Piechart showing air quality distribution</h1>
+        <Pie 
+           data ={{
+             labels: this.state.labels,
+             datasets: this.state.datasets
+           }}
+           height = '50%'
+        />
+        <br/>
+      </div>
+    )
+  }
+}
 
 export default Display;

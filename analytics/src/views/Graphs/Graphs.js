@@ -46,37 +46,6 @@ const Graphs = () => {
   );
 };
 
-class PieChartComponent extends Component{
-  constructor(props){
-    super(props)
-    this.state = {
-      labels: ['Good', 'Moderate', 'UH4SG', 'Unhealthy', 'Very Unhealthy', 'Hazardous', 'Other'],
-      datasets: [{
-        data: [100, 200, 300, 150, 320, 40, 2],
-        backgroundColor: ['green', 'yellow', 'orange', 'red', 'purple', 'maroon', 'grey']
-      }]
-    }
-  }
 
-  render(){
-    return (
-      <div>
-        <h1> Piechart showing air quality distribution</h1>
-        <Pie 
-           data ={{
-             labels: this.state.labels,
-             datasets: this.state.datasets
-           }}
-           height = '50%'
-        />
-        <br/>
-      </div>
-    )
-  }
-}
-
-export default PieChartComponent;
-//export default Graphs;
-
-
+export default Graphs;
 //module.exports = App;                              
