@@ -1,9 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { makeStyles } from '@material-ui/styles';
+import { makeStyles, withStyles } from '@material-ui/styles';
 import { Card, CardContent, Grid, Typography } from '@material-ui/core';
 import {reduxForm, formReducer, Field} from 'redux-form';
-import { withStyles } from "@material-ui/styles";
 
 
 const useStyles = makeStyles(theme => ({
