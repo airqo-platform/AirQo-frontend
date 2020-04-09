@@ -1,0 +1,1 @@
+system wide static resources
