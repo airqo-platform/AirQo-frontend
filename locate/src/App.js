@@ -24,11 +24,13 @@ import ForgotPassword from "./views/components/auth/ForgotPassword";
 import ResetPassword from "./views/components/auth/ResetPassword";
 import {
   Main as MainLayout,
+  Maps as MapLayout,
   Minimal as MinimalLayout,
 } from "../src/views/layouts/";
 import Login from "./views/components/auth/Login";
 import PrivateRoute from "./views/components/PrivateRoute/PrivateRoute";
 import Dashboard from "./views/components/Dashboard/Dashboard";
+import Map from "./views/components/Map/Map";
 
 // Check for token to keep user logged in
 if (localStorage.jwtToken) {
@@ -68,6 +70,12 @@ class App extends Component {
                   path="/dashboard"
                   component={Dashboard}
                   layout={MainLayout}
+                />
+                <PrivateRoute
+                  exact
+                  path="/locate"
+                  component={Map}
+                  layout={MapLayout}
                 />
               </Switch>
             </div>
