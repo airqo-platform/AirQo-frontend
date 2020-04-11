@@ -6,6 +6,7 @@ import { Card, CardContent, Grid, Typography, Avatar } from '@material-ui/core';
 import ArrowUpwardIcon from '@material-ui/icons/ArrowUpward';
 import PeopleIcon from '@material-ui/icons/PeopleOutlined';
 import { Pie } from 'react-chartjs-2';
+import { ActionHome } from 'material-ui/svg-icons';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -91,7 +92,7 @@ Display.propTypes = {
   className: PropTypes.string
 };
 
-class PieChartComponent extends Component{
+/*class PieChartComponent extends Component{
   constructor(props){
     super(props)
     this.state = {
@@ -118,6 +119,154 @@ class PieChartComponent extends Component{
       </div>
     )
   }
+}*/
+
+
+/*
+var dataPoints =[];
+class BarChart extends Component {
+ 
+	render() {	
+		const options = {
+			theme: "light2",
+			title: {
+				text: "Stock Price of NIFTY 50"
+			},
+			axisY: {
+				title: "Price in USD",
+				prefix: "$",
+				includeZero: false
+			},
+			data: [{
+				type: "line",
+				xValueFormatString: "MMM YYYY",
+				yValueFormatString: "$#,##0.00",
+				dataPoints: dataPoints
+			}]
+		}
+		return (
+		<div>
+			<CanvasJSChart options = {options} 
+				 onRef={ref => this.chart = ref}
+			/>
+			//{You can get reference to the chart instance as shown above using onRef. This allows you to access all chart properties and methods}
+		</div>
+		);
+	}
+	
+	componentDidMount(){
+		var chart = this.chart;
+		fetch('http://127.0.0.1:5000/api/v1/device/graph')
+		.then(function(response) {
+			return response.json();
+		})
+		.then(function(data) {
+			for (var i = 0; i < data.length; i++) {
+				dataPoints.push({
+					x: new Date(data[i].x),
+					y: data[i].y
+				});
+			}
+			chart.render();
+		});
+	}
+}*/
+ 
+//module.exports = App;      
+
+/*class Graph extends Component {
+  
+  state = { 
+    loading: true,
+    myData: null 
+  };
+
+  async componentDidMount(){
+    const url = 'http://127.0.0.1:5000/api/v1/device/graph'
+    //const response = await fetch(url)
+    //const data = await response.json()
+    //this.setState({myData:data, loading:false})
+    //console.log(data[0])
+    fetch(url)
+    .then (res => res.json())
+    .then(
+      (result) => {
+        this.setState({
+          loading: false,
+          myData: result
+        });
+      }
+    )
+  }
+  render() {
+      return (
+        <div> 
+           {myData.map(myData => <div> {myData.time} </div>)}
+        </div>
+        )}
+     
+          //<ReactFC {...this.state.pieConfigs}/>
+  }
+*/
+
+
+
+export default class Home extends React.Component {
+
+  constructor(props) {
+    super(props);
+    this.state = {
+      error: null,
+      isLoaded: false,
+      myData: []
+    };
+  }
+
+  componentDidMount() {
+    fetch('http://127.0.0.1:5000/api/v1/device/graph')
+      .then(res => res.json())
+      .then(
+        (result) => {
+          this.setState({
+            isLoaded: true,
+            myData: result
+          });
+        },
+        // error handler
+        (error) => {
+          this.setState({
+            isLoaded: true,
+            error
+          });
+        }
+      )
+  }
+
+  render() {
+
+    const { error, isLoaded, myData } = this.state;
+
+    if (error) {
+      return (
+        <div className="col">
+          Error: {error.message}
+        </div>
+      );
+    } else if (!isLoaded) {
+      return (
+        <div className="col">
+          Loading...
+        </div>
+      );
+    } else {
+      return (
+        <div className="col">
+          <h1>Bar Chart</h1>
+          {myData.map(record => <div>{record.time}</div>)}
+          {myData.map(record => <div>{record.characteristics.pm2_5ConcMass.value}</div>)}
+        </div>
+      );
+    }
+  }
 }
 
-export default Display;

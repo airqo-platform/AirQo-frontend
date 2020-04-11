@@ -34,6 +34,7 @@
     "canvasjs": "^1.8.3",
     "chart.js": "^2.8.0",
     "clsx": "^1.0.4",
+    "cors": "^2.8.5",
     "history": "^4.9.0",
     "leaflet": "^1.6.0",
     "material-ui": "^0.20.2",

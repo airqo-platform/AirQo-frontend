@@ -42,6 +42,7 @@ const useStyles = makeStyles(theme => ({
 
 let FiltersForm = props => {
   const { className, handleSubmit, pristine, reset, submitting, ...rest }  = props;
+  //const { className, pristine, reset, submitting, ...rest }  = props;
   const classes = useStyles();
 
   return <form onSubmit={handleSubmit} className="form">
@@ -81,9 +82,9 @@ let FiltersForm = props => {
         <div className="select">
         <Field class="field-select" name="chart_type" component="select">
           <option />
-            <option value="beginner">Line Graph</option>
-            <option value="intermediate">Bar Graph</option>
-            <option value="expert">Pie Chart</option>
+            <option value="line graph">Line Graph</option>
+            <option value="bar graph">Bar Graph</option>
+            <option value="pie chart">Pie Chart</option>
         </Field>
         </div>
       </div>
@@ -130,7 +131,6 @@ FiltersForm.propTypes = {
   className: PropTypes.string
 };
 
-
 FiltersForm = reduxForm({
   form: 'filters',
 })(FiltersForm);
@@ -140,6 +140,16 @@ class App extends React.Component{
   handleFilters = values => {
     console.log(values);
 };
+
+/*handleFilters(event){
+  //event.preventDefault();
+  const data = new FormData(event.target);
+  fetch('http://127.0.0.1:5000/api/v1/device/graph', {
+    method: 'POST',
+    body:data
+    //body: JSON.stringify(this.state)
+  });
+}*/
   render(){
     return (
       <card>
