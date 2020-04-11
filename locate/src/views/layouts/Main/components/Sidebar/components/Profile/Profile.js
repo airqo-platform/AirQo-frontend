@@ -1,9 +1,10 @@
 import React from "react";
-import { Link as RouterLink } from "react-router-dom";
+import { Link as RouterLink, withRouter } from "react-router-dom";
 import clsx from "clsx";
 import PropTypes from "prop-types";
 import { makeStyles } from "@material-ui/styles";
 import { Avatar, Typography } from "@material-ui/core";
+import { connect } from "react-redux";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -26,31 +27,32 @@ const Profile = (props) => {
 
   const classes = useStyles();
 
-  const user = {
-    name: "Joel",
-    avatar: "/images/avatars/avatar.png",
-    bio: "Manager",
-  };
-
+  const { user } = props.auth;
+  const avatar = user.firstName.charAt(0);
   return (
     <div {...rest} className={clsx(classes.root, className)}>
       <Avatar
         alt="Person"
         className={classes.avatar}
         component={RouterLink}
-        src={user.avatar}
+        src={avatar}
         to="/settings"
       />
       <Typography className={classes.name} variant="h4">
-        {user.name}
+        {user.firstName}
       </Typography>
-      <Typography variant="body2">{user.bio}</Typography>
+      <Typography variant="body2">{user.lastName}</Typography>
     </div>
   );
 };
 
 Profile.propTypes = {
   className: PropTypes.string,
+  auth: PropTypes.object.isRequired,
 };
 
-export default Profile;
+const mapStateToProps = (state) => ({
+  auth: state.auth,
+});
+
+export default connect(mapStateToProps, {})(withRouter(Profile));
