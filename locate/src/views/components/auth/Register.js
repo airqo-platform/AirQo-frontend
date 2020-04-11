@@ -20,11 +20,11 @@ const privileges = [
   { title: "host" },
   { title: "research" },
   { title: "public" },
-  { title: "policy" }
+  { title: "policy" },
 ];
 const defaultProps = {
   options: privileges,
-  getOptionLabel: option => option.title
+  getOptionLabel: (option) => option.title,
 };
 
 class Register extends Component {
@@ -38,7 +38,7 @@ class Register extends Component {
       privilege: "",
       password: "",
       password2: "",
-      errors: {}
+      errors: {},
     };
   }
 
@@ -52,15 +52,15 @@ class Register extends Component {
   componentWillReceiveProps(nextProps) {
     if (nextProps.errors) {
       this.setState({
-        errors: nextProps.errors
+        errors: nextProps.errors,
       });
     }
   }
 
-  onChange = e => {
+  onChange = (e) => {
     this.setState({ [e.target.id]: e.target.value });
   };
-  onSubmit = e => {
+  onSubmit = (e) => {
     e.preventDefault();
     const newUser = {
       firstName: this.state.firstName,
@@ -69,7 +69,7 @@ class Register extends Component {
       privilege: this.state.privilege,
       userName: this.state.userName,
       password: this.state.password,
-      password2: this.state.password2
+      password2: this.state.password2,
     };
     console.log(newUser);
     this.props.registerUser(newUser, this.props.history);
@@ -101,7 +101,7 @@ class Register extends Component {
                   id="firstName"
                   type="text"
                   className={classnames("", {
-                    invalid: errors.firstName
+                    invalid: errors.firstName,
                   })}
                 />
                 <label htmlFor="firstName">First Name</label>
@@ -115,7 +115,7 @@ class Register extends Component {
                   id="lastName"
                   type="text"
                   className={classnames("", {
-                    invalid: errors.lastName
+                    invalid: errors.lastName,
                   })}
                 />
                 <label htmlFor="lastName">Last Name</label>
@@ -129,7 +129,7 @@ class Register extends Component {
                   id="userName"
                   type="text"
                   className={classnames("", {
-                    invalid: errors.userName
+                    invalid: errors.userName,
                   })}
                 />
                 <label htmlFor="userName">Username</label>
@@ -143,7 +143,7 @@ class Register extends Component {
                   id="email"
                   type="email"
                   className={classnames("", {
-                    invalid: errors.email
+                    invalid: errors.email,
                   })}
                 />
                 <label htmlFor="email">Email</label>
@@ -168,7 +168,7 @@ class Register extends Component {
                   id="password2"
                   type="password"
                   className={classnames("", {
-                    invalid: errors.password2
+                    invalid: errors.password2,
                   })}
                 />
                 <label htmlFor="password2">Confirm Password</label>
@@ -193,7 +193,7 @@ class Register extends Component {
                     width: "150px",
                     borderRadius: "3px",
                     letterSpacing: "1.5px",
-                    marginTop: "1rem"
+                    marginTop: "1rem",
                   }}
                   type="submit"
                   className="btn btn-large waves-effect waves-light hoverable blue accent-3"
@@ -211,14 +211,14 @@ class Register extends Component {
 
 Register.propTypes = {
   registerUser: PropTypes.func.isRequired,
-  auth: PropTypes.string.isRequired,
-  errors: PropTypes.string.isRequired
+  auth: PropTypes.object.isRequired,
+  errors: PropTypes.object.isRequired,
 };
 
 //get our state from Redux and map it to Props to use inside components.
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
   auth: state.auth,
-  errors: state.errors
+  errors: state.errors,
 });
 
 export default connect(mapStateToProps, { registerUser })(withRouter(Register));
