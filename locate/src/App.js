@@ -29,6 +29,7 @@ import {
 import Login from "./views/components/auth/Login";
 import PrivateRoute from "./views/components/PrivateRoute/PrivateRoute";
 import Dashboard from "./views/components/Dashboard/Dashboard";
+import Table from "./views/components/DeviceRegistry";
 
 // Check for token to keep user logged in
 if (localStorage.jwtToken) {
@@ -67,6 +68,12 @@ class App extends Component {
                   exact
                   path="/dashboard"
                   component={Dashboard}
+                  layout={MainLayout}
+                />
+                <PrivateRoute
+                  exact
+                  path="/registry"
+                  component={Table}
                   layout={MainLayout}
                 />
               </Switch>
