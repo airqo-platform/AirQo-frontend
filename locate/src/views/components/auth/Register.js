@@ -4,38 +4,17 @@ import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { registerUser } from "../../../redux/Join/actions";
 import classnames from "classnames";
-import CustomInput from "../CustomInput/CustomInput";
-import InputLabel from "@material-ui/core/InputLabel";
-import Autocomplete from "@material-ui/lab/Autocomplete";
-import TextField from "@material-ui/core/TextField";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
 import Checkbox from "@material-ui/core/Checkbox";
 
-const privileges = [
-  { title: "school" },
-  { title: "media" },
-  { title: "institution" },
-  { title: "university" },
-  { title: "private" },
-  { title: "host" },
-  { title: "research" },
-  { title: "public" },
-  { title: "policy" },
-];
-const defaultProps = {
-  options: privileges,
-  getOptionLabel: (option) => option.title,
-};
-
 class Register extends Component {
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
     this.state = {
       firstName: "",
       lastName: "",
       email: "",
       userName: "",
-      privilege: "",
       password: "",
       password2: "",
       errors: {},
@@ -66,7 +45,6 @@ class Register extends Component {
       firstName: this.state.firstName,
       lastName: this.state.lastName,
       email: this.state.email,
-      privilege: this.state.privilege,
       userName: this.state.userName,
       password: this.state.password,
       password2: this.state.password2,
