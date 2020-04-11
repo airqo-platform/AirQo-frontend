@@ -50,12 +50,12 @@ const Dashboard = props => {
    
   const data = {
     labels: [
-      'Location 1', 'Location 2', 
-      'Location 3', 'Location 4', 
-      'Location 5', 'Location 6', 
-      'Location 7', 'Location 8', 
-      'Location 9', 'Location 10', 
-      'Location 11', 'Location 12'
+      '10/04/2018', '10/05/2018', 
+      '10/06/2018', '10/07/2018', 
+      '10/08/2018', '10/09/2018', 
+      '10/10/2018', '10/11/2018', 
+      '10/12/2018', '10/13/2018', 
+      '10/14/2018', '10/15/2018'
     ],
     datasets: [
       {
@@ -66,8 +66,40 @@ const Dashboard = props => {
       }
     ]
   }
+
+  const options2 = {
+    scales: {
+      yAxes: [{
+        scaleLabel: {
+          display: true,
+          labelString: 'PM2.5'
+        }
+      }],
+      xAxes: [{
+        scaleLabel: {
+          display: true,
+          labelString: 'Locations'
+        }
+      }],
+    } ,    
+    maintainAspectRatio: false	// Don't maintain w/h ratio
+  }
   
   const options = {
+    scales: {
+      yAxes: [{
+        scaleLabel: {
+          display: true,
+          labelString: 'PM2.5'
+        }
+      }],
+      xAxes: [{
+        scaleLabel: {
+          display: true,
+          labelString: 'Date'
+        }
+      }],
+    } ,    
     maintainAspectRatio: false	// Don't maintain w/h ratio
   }
 
@@ -88,7 +120,7 @@ const Dashboard = props => {
             <h1>Past 28 days aggregate mean</h1>
           </header>
           <article className="canvas-container">
-            <Line data={locationsGraphData} options={options}/>
+            <Line data={locationsGraphData} options={options2}/>
           </article>
       </Grid>
 
