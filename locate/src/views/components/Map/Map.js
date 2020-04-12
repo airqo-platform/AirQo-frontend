@@ -68,7 +68,7 @@ class Maps extends React.Component {
 
 Maps.propTypes = {
   mapRenderDefaults: propTypes.func.isRequired,
-  mapDefaults: propTypes.array.isRequired,
+  mapDefaults: propTypes.object.isRequired,
 };
 
 const mapStateToProps = (state) => ({
