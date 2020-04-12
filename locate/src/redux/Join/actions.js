@@ -6,7 +6,13 @@ import { GET_ERRORS, SET_CURRENT_USER, USER_LOADING } from "./types";
 export const registerUser = (userData, history) => (dispatch) => {
   axios
     .post("http://localhost:3000/api/v1/users/register", userData)
-    .then((res) => history.push("/login")) // re-direct to login on successful register
+    .then((res) => {
+      try {
+        history.push("/login");
+      } catch (e) {
+        console.log(e);
+      }
+    }) // re-direct to login on successful register
     .catch((err) =>
       dispatch({
         type: GET_ERRORS,

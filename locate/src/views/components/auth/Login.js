@@ -11,7 +11,7 @@ class Login extends Component {
     this.state = {
       userName: "",
       password: "",
-      errors: {}
+      errors: {},
     };
   }
 
@@ -28,19 +28,19 @@ class Login extends Component {
     }
     if (nextProps.errors) {
       this.setState({
-        errors: nextProps.errors
+        errors: nextProps.errors,
       });
     }
   }
 
-  onChange = e => {
+  onChange = (e) => {
     this.setState({ [e.target.id]: e.target.value });
   };
-  onSubmit = e => {
+  onSubmit = (e) => {
     e.preventDefault();
     const userData = {
       userName: this.state.userName,
-      password: this.state.password
+      password: this.state.password,
     };
     console.log(userData);
     this.props.loginUser(userData);
@@ -73,7 +73,7 @@ class Login extends Component {
                   id="userName"
                   type="text"
                   className={classnames("", {
-                    invalid: errors.userName || errors.credentialsnotfound
+                    invalid: errors.userName || errors.credentialsnotfound,
                   })}
                 />
                 <label htmlFor="userName">Username</label>
@@ -90,7 +90,7 @@ class Login extends Component {
                   id="password"
                   type="password"
                   className={classnames("", {
-                    invalid: errors.password || errors.passwordincorrect
+                    invalid: errors.password || errors.passwordincorrect,
                   })}
                 />
                 <label htmlFor="password">Password</label>
@@ -105,7 +105,7 @@ class Login extends Component {
                     width: "150px",
                     borderRadius: "3px",
                     letterSpacing: "1.5px",
-                    marginTop: "1rem"
+                    marginTop: "1rem",
                   }}
                   type="submit"
                   className="btn btn-large waves-effect waves-light hoverable blue accent-3"
@@ -126,11 +126,11 @@ class Login extends Component {
 }
 Login.propTypes = {
   loginUser: PropTypes.func.isRequired,
-  auth: PropTypes.string.isRequired,
-  errors: PropTypes.string.isRequired
+  auth: PropTypes.object.isRequired,
+  errors: PropTypes.object.isRequired,
 };
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
   auth: state.auth,
-  errors: state.errors
+  errors: state.errors,
 });
 export default connect(mapStateToProps, { loginUser })(Login);
