@@ -5,8 +5,9 @@ import { makeStyles } from '@material-ui/styles';
 import { Card, CardContent, Grid, Typography, Avatar } from '@material-ui/core';
 import ArrowUpwardIcon from '@material-ui/icons/ArrowUpward';
 import PeopleIcon from '@material-ui/icons/PeopleOutlined';
-import { Pie } from 'react-chartjs-2';
+import { Pie, Bar } from 'react-chartjs-2';
 import { ActionHome } from 'material-ui/svg-icons';
+import axios from 'axios';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -44,9 +45,7 @@ const useStyles = makeStyles(theme => ({
 
 const Display = props => {
   const { className, ...rest } = props;
-
   const classes = useStyles();
-
   return (
     <Card
       {...rest}
@@ -68,21 +67,6 @@ const Display = props => {
             </Typography>
           </Grid>
         </Grid>
-        {/* <div className={classes.difference}>
-          <ArrowUpwardIcon className={classes.differenceIcon} />
-          <Typography
-            className={classes.differenceValue}
-            variant="body2"
-          >
-            16%
-          </Typography>
-          <Typography
-            className={classes.caption}
-            variant="caption"
-          >
-            Since last month
-          </Typography>
-        </div> */}
       </CardContent>
     </Card>
   );
@@ -92,181 +76,69 @@ Display.propTypes = {
   className: PropTypes.string
 };
 
-/*class PieChartComponent extends Component{
-  constructor(props){
-    super(props)
-    this.state = {
-      labels: ['Good', 'Moderate', 'UH4SG', 'Unhealthy', 'Very Unhealthy', 'Hazardous', 'Other'],
-      datasets: [{
-        data: [100, 200, 300, 150, 320, 40, 2],
-        backgroundColor: ['green', 'yellow', 'orange', 'red', 'purple', 'maroon', 'grey']
-      }]
-    }
-  }
+export default Display;
 
-  render(){
-    return (
-      <div>
-        <h1> Piechart showing air quality distribution</h1>
-        <Pie 
-           data ={{
-             labels: this.state.labels,
-             datasets: this.state.datasets
-           }}
-           height = '50%'
-        />
-        <br/>
-      </div>
-    )
-  }
-}*/
-
-
-/*
-var dataPoints =[];
-class BarChart extends Component {
- 
-	render() {	
-		const options = {
-			theme: "light2",
-			title: {
-				text: "Stock Price of NIFTY 50"
-			},
-			axisY: {
-				title: "Price in USD",
-				prefix: "$",
-				includeZero: false
-			},
-			data: [{
-				type: "line",
-				xValueFormatString: "MMM YYYY",
-				yValueFormatString: "$#,##0.00",
-				dataPoints: dataPoints
-			}]
-		}
-		return (
-		<div>
-			<CanvasJSChart options = {options} 
-				 onRef={ref => this.chart = ref}
-			/>
-			//{You can get reference to the chart instance as shown above using onRef. This allows you to access all chart properties and methods}
-		</div>
-		);
-	}
-	
-	componentDidMount(){
-		var chart = this.chart;
-		fetch('http://127.0.0.1:5000/api/v1/device/graph')
-		.then(function(response) {
-			return response.json();
-		})
-		.then(function(data) {
-			for (var i = 0; i < data.length; i++) {
-				dataPoints.push({
-					x: new Date(data[i].x),
-					y: data[i].y
-				});
-			}
-			chart.render();
-		});
-	}
-}*/
- 
-//module.exports = App;      
-
-/*class Graph extends Component {
-  
-  state = { 
-    loading: true,
-    myData: null 
-  };
-
-  async componentDidMount(){
-    const url = 'http://127.0.0.1:5000/api/v1/device/graph'
-    //const response = await fetch(url)
-    //const data = await response.json()
-    //this.setState({myData:data, loading:false})
-    //console.log(data[0])
-    fetch(url)
-    .then (res => res.json())
-    .then(
-      (result) => {
-        this.setState({
-          loading: false,
-          myData: result
-        });
+/*export default class BarChartComponent extends Component
+{
+   constructor(props) {
+      super(props);
+      this.state = {
+        Data: {},
+        //isLoaded: false
       }
-    )
-  }
-  render() {
-      return (
-        <div> 
-           {myData.map(myData => <div> {myData.time} </div>)}
-        </div>
-        )}
-     
-          //<ReactFC {...this.state.pieConfigs}/>
-  }
-*/
-
-
-
-export default class Home extends React.Component {
-
-  constructor(props) {
-    super(props);
-    this.state = {
-      error: null,
-      isLoaded: false,
-      myData: []
-    };
-  }
-
-  componentDidMount() {
-    fetch('http://127.0.0.1:5000/api/v1/device/graph')
-      .then(res => res.json())
-      .then(
-        (result) => {
-          this.setState({
-            isLoaded: true,
-            myData: result
+    }
+       
+    componentDidMount() {
+      axios.get('http://127.0.0.1:5000/api/v1/device/graph')
+        .then(res => {
+          const myData = res.data;
+          let time = [];
+          let pm_concentration = [];
+          myData.forEach(element => {
+            time.push(element.time);
+            pm_concentration.push(element.characteristics.pm2_5ConcMass.value);
           });
-        },
-        // error handler
-        (error) => {
-          this.setState({
-            isLoaded: true,
-            error
-          });
-        }
-      )
-  }
-
-  render() {
-
-    const { error, isLoaded, myData } = this.state;
-
-    if (error) {
-      return (
-        <div className="col">
-          Error: {error.message}
-        </div>
-      );
-    } else if (!isLoaded) {
+          this.setState({ 
+            //isLoaded: true,
+            Data: {
+              labels: time,
+              datasets:[
+                 {
+                    label:'PM Concentration over allocated time period',
+                    data: pm_concentration,
+                    backgroundColor: 'rgba(75, 192, 192, 1)',
+                    borderColor: 'rgba(0,0,0,1)'
+                    /*backgroundColor:[
+                     'rgba(255,105,145,0.6)',
+                     'rgba(155,100,210,0.6)',
+                     'rgba(90,178,255,0.6)',
+                     'rgba(240,134,67,0.6)',
+                     'rgba(120,120,120,0.6)',
+                     'rgba(250,55,197,0.6)'
+                  ]
+                 }
+              ]
+           }
+           });
+        })
+    }
+ render()
+   {
+    /*if (!isLoaded) {
       return (
         <div className="col">
           Loading...
         </div>
       );
-    } else {
-      return (
-        <div className="col">
-          <h1>Bar Chart</h1>
-          {myData.map(record => <div>{record.time}</div>)}
-          {myData.map(record => <div>{record.characteristics.pm2_5ConcMass.value}</div>)}
-        </div>
-      );
-    }
-  }
-}
+    } 
+    else {
+      return(
+        <div>
+        <Bar
+          data={this.state.Data}
+          options={{maintainAspectRatio: true}}/>
+     </div>
+      )
+   }
+} */
 
