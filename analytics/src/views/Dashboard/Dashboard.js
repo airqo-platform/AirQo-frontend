@@ -20,10 +20,10 @@ const useStyles = makeStyles(theme => ({
 
 const Dashboard = props => {
   const classes = useStyles();
-  const { className, ...rest } = props;
-
+  const { className, staticContext, ...rest } = props;
+ 
   const [locations,setLocations] = useState([]);
-  const [deviceLabels,setLabels ] = useState([]);
+  //const [deviceLabels,setLabels ] = useState([]);
 
   useEffect(() => {
     fetch('http://127.0.0.1:5000/api/v1/monitoringsite/historical/daily/devices')
@@ -113,29 +113,137 @@ const Dashboard = props => {
           item
           lg={6}
           sm={6}
-          xl={12}
+          xl={6}
           xs={12}
         >
           <header className="App-header">
             <h1>Past 28 days aggregate mean</h1>
           </header>
           <article className="canvas-container">
-            <Line data={locationsGraphData} options={options2}/>
+            <Line 
+              data={locationsGraphData} 
+              options={options2}
+            />
           </article>
-      </Grid>
+        </Grid>
 
-      <Grid
+        <Grid
           item
           lg={6}
           sm={6}
-          xl={12}
+          xl={6}
           xs={12}
         >
-        <header className="App-header">
+          <header className="App-header">
             <h1>PM 2.5 for the past hour</h1>
-        </header>
-        <Map />
-      </Grid>
+          </header>
+          <Grid 
+            container            
+          >
+            <Grid
+              item
+              lg={12}
+              sm={12}
+              xl={12}
+              xs={12}
+            >
+              <Map />
+            </Grid>
+            
+            <Grid
+              item
+              lg={2}
+              sm={4}
+              xl={2}
+              xs={12}
+            >
+              <Pm25Levels
+                background="#45e50d"
+                pm25level="Good"
+                pm25levelText = "(0 - 12)"
+                
+              />
+            </Grid>
+            <Grid
+              item
+              lg={2}
+              sm={4}
+              xl={2}
+              xs={12}
+            >
+              <Pm25Levels
+                background="#f8fe28"
+                pm25level="Moderate"
+                pm25levelText="(12.1 - 35.4)"
+                
+              />
+            </Grid>
+
+            <Grid
+              item
+              lg={2}
+              sm={4}
+              xl={2}
+              xs={12}
+            >
+              <Pm25Levels
+                background="#ee8310"
+                pm25level="Unhealthy for sensitive groups"
+                pm25levelColor="#FFFFFF"
+                pm25levelText="(35.6 - 55.4)"            
+                
+              />
+            </Grid>
+            <Grid
+              item
+              lg={2}
+              sm={4}
+              xl={2}
+              xs={12}
+            >
+              <Pm25Levels
+                background="#fe0000"
+                pm25level="Unhealthy"
+                pm25levelColor="#FFFFFF"
+                pm25levelText="(55.5 - 150.4)"            
+                
+              />
+            </Grid>
+            <Grid
+              item
+              lg={2}
+              sm={4}
+              xl={2}
+              xs={12}
+            >
+              <Pm25Levels
+                background="#8639c0"
+                pm25level="Very unhealthy"
+                pm25levelColor="#FFFFFF"
+                pm25levelText="(150.5 - 250.4)"           
+                
+              />
+            </Grid>
+            <Grid
+              item
+              lg={2}
+              sm={4}
+              xl={2}
+              xs={12}
+            >
+              <Pm25Levels
+                background="#81202e"
+                pm25level="Hazardous"
+                pm25levelColor="#FFFFFF"
+                pm25levelText="(250.5 - 500.4)"           
+                
+              />
+            </Grid>
+            <p className={classes.differenceIcon}>PM <sub>2.5</sub> - Particulate Matter</p>
+          </Grid>
+
+        </Grid>
+        
         
 
         <Grid
@@ -145,43 +253,46 @@ const Dashboard = props => {
           xl={12}
           xs={12}
         >
-             <Card
-      {...rest}
-      className={clsx(classes.root, className)}
-    >
-      <CardContent>
-      <header className="App-header"><h1>Customisable Historical Chart One</h1> </header>
-      <Grid
-        container
-        spacing={0.1}
-      >
-      <Grid
-          item
-          lg={4}
-          sm={4}
-          xl={4}
-          xs={12}
-        >
-          <Filters />
-        </Grid>
-        <Grid
-          item
-          lg={8}
-          sm={8}
-          xl={12}
-          xs={12}
-        >
+          <Card
+            {...rest}
+            className={clsx(classes.root, className)}
+          >
+            <CardContent>
+              <header className="App-header"><h1>Customisable Historical Chart One</h1> </header>
+              <Grid
+                container
+                spacing={1}
+              >
+                <Grid
+                  item
+                  lg={4}
+                  sm={4}
+                  xl={4}
+                  xs={12}
+                >
+                  <Filters />
+                </Grid>
+                <Grid
+                  item
+                  lg={8}
+                  sm={8}
+                  xl={8}
+                  xs={12}
+                >
             
 
-            <article className="canvas-container">
-            <Line data={data} options={options}/>
-          </article>
-          </Grid>
-          </Grid>
-      </CardContent>
+                  <article className="canvas-container">
+                    <Line 
+                      data={data}
+                      options={options}
+                    />
+                  </article>
+                </Grid>
+              </Grid>
+            </CardContent>
 
-      </Card>
-      </Grid>
+          </Card>
+        </Grid>
 
         
 
@@ -192,46 +303,49 @@ const Dashboard = props => {
           xl={12}
           xs={12}
         >
-             <Card
-      {...rest}
-      className={clsx(classes.root, className)}
-    >
-      <CardContent>
-      <header className="App-header"><h1>Customisable Historical Chart Two</h1> </header>
-      <Grid
-        container
-        spacing={0.1}
-      >
-      <Grid
-          item
-          lg={4}
-          sm={4}
-          xl={4}
-          xs={12}
-        >
-          <Filters />
+          <Card
+            {...rest}
+            className={clsx(classes.root, className)}
+          >
+            <CardContent>
+              <header className="App-header"><h1>Customisable Historical Chart Two</h1> </header>
+              <Grid
+                container
+                spacing={1}
+              >
+                <Grid
+                  item
+                  lg={4}
+                  sm={4}
+                  xl={4}
+                  xs={12}
+                >
+                  <Filters />
+                </Grid>
+                <Grid
+                  item
+                  lg={8}
+                  sm={8}
+                  xl={8}
+                  xs={12}
+                >
+                    
+
+                  <article className="canvas-container">
+                    <Line 
+                      data={data} 
+                      options={options}
+                    />
+                  </article>
+                </Grid>
+              </Grid>
+            </CardContent>
+
+          </Card>
         </Grid>
+
+
         <Grid
-          item
-          lg={8}
-          sm={8}
-          xl={12}
-          xs={12}
-        >
-            
-
-            <article className="canvas-container">
-            <Line data={data} options={options}/>
-          </article>
-          </Grid>
-          </Grid>
-      </CardContent>
-
-      </Card>
-      </Grid>
-
-
-      <Grid
           item
           lg={6}
           sm={6}
@@ -243,13 +357,17 @@ const Dashboard = props => {
             className={clsx(classes.root, className)}
           >
             <CardContent>
-      <header className="App-header">
-            <h1> Historical Chart One</h1> </header>
+              <header className="App-header">
+                <h1> Historical Chart One</h1> 
+              </header>
 
-            <article className="canvas-container">
-            <Line data={data} options={options}/>
-          </article>
-      </CardContent>
+              <article className="canvas-container">
+                <Line 
+                  data={data} 
+                  options={options}
+                />
+              </article>
+            </CardContent>
 
           </Card>
           
@@ -267,13 +385,16 @@ const Dashboard = props => {
             className={clsx(classes.root, className)}
           >
             <CardContent>
-      <header className="App-header">
-            <h1>Historical Chart One</h1> </header>
+              <header className="App-header">
+                <h1>Historical Chart One</h1> </header>
 
-            <article className="canvas-container">
-            <Line data={data} options={options}/>
-          </article>
-      </CardContent>
+              <article className="canvas-container">
+                <Line 
+                  data={data} 
+                  options={options}
+                />
+              </article>
+            </CardContent>
 
           </Card>
           
@@ -281,92 +402,17 @@ const Dashboard = props => {
 
 
 
-        <Grid
-          item
-          lg={2}
-          sm={4}
-          xl={2}
-          xs={12}
-        >
-          <Pm25Levels
-            pm25level="Good"
-            pm25levelText = "(0 - 12)"
-            background="#45e50d"
-          />
-        </Grid>
-        <Grid
-          item
-          lg={2}
-          sm={4}
-          xl={2}
-          xs={12}
-        >
-          <Pm25Levels
-            pm25level="Moderate"
-            pm25levelText="(12.1 - 35.4)"
-            background="#f8fe28"
-          />
-        </Grid>
-        <Grid
-          item
-          lg={2}
-          sm={4}
-          xl={2}
-          xs={12}
-        >
-          <Pm25Levels
-            pm25level="Unhealthy for sensitive groups"
-            pm25levelText="(35.6 - 55.4)"
-            background="#ee8310"
-            pm25levelColor="#FFFFFF"
-          />
-        </Grid>
-        <Grid
-          item
-          lg={2}
-          sm={4}
-          xl={2}
-          xs={12}
-        >
-          <Pm25Levels
-            pm25level="Unhealthy"
-            pm25levelText="(55.5 - 150.4)"
-            background="#fe0000"
-            pm25levelColor="#FFFFFF"
-          />
-        </Grid>
-        <Grid
-          item
-          lg={2}
-          sm={4}
-          xl={2}
-          xs={12}
-        >
-          <Pm25Levels
-            pm25level="Very unhealthy"
-            pm25levelText="(150.5 - 250.4)"
-            background="#8639c0"
-            pm25levelColor="#FFFFFF"
-          />
-        </Grid>
-        <Grid
-          item
-          lg={2}
-          sm={4}
-          xl={2}
-          xs={12}
-        >
-          <Pm25Levels
-            pm25level="Hazardous"
-            pm25levelText="(250.5 - 500.4)"
-            background="#81202e"
-            pm25levelColor="#FFFFFF"
-          />
-        </Grid>
-        <p className={classes.differenceIcon}>PM <sub>2.5</sub> - Particulate Matter</p>
+        
       </Grid>
     </div>
   );
 };
+
+
+Dashboard.propTypes = {
+  className: PropTypes.string
+};
+
+
 
 export default Dashboard;

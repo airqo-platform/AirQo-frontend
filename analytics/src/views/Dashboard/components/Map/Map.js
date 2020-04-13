@@ -2,17 +2,13 @@ import React from 'react';
 import clsx from 'clsx';
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/styles';
-import { Map as LeafletMap, TileLayer, Marker, Popup, CircleMarker } from 'react-leaflet';
+import { Map as LeafletMap, TileLayer, Popup, CircleMarker } from 'react-leaflet';
 
 import {
   Card,
-  CardContent,
-  Grid,
-  Typography,
-  Avatar,
-  LinearProgress
+  CardContent, 
 } from '@material-ui/core';
-import InsertChartIcon from '@material-ui/icons/InsertChartOutlined';
+//import InsertChartIcon from '@material-ui/icons/InsertChartOutlined';
 import { useEffect, useState } from 'react';
 
 const useStyles = makeStyles(theme => ({
@@ -64,36 +60,41 @@ const Map = props => {
     >
       <CardContent>
         <LeafletMap
+          animate
+          attributionControl
           center={[0.3341424,32.5600613]}
+          doubleClickZoom
+          dragging
+          easeLinearity={0.35}
+          scrollWheelZoom
           zoom={12}
           // maxZoom={20}
-          attributionControl={true}
-          zoomControl={true}
-          doubleClickZoom={true}
-          scrollWheelZoom={true}
-          dragging={true}
-          animate={true}
-          easeLinearity={0.35}
+          
+          zoomControl        
+          
         >
-        <TileLayer
-          url='http://{s}.tile.osm.org/{z}/{x}/{y}.png'
-        />
+          <TileLayer
+            url="http://{s}.tile.osm.org/{z}/{x}/{y}.png"
+          />
            
         
         
-            {contacts.map((contact) => (
+          {contacts.map((contact) => (
             <CircleMarker 
-              key={contact._id.$oid}
               center={[contact.Latitude,contact.Longitude]}
-              fill="true"
               color="red"
+              fill="true"
+              key={contact._id.$oid}
+              
+              
+              
               radius={8}
             >
-            <Popup>
+              <Popup>
                 {contact.Division} {contact.SiteName}
-            </Popup>
+              </Popup>
             </CircleMarker>         
-        ))}
+          ))}
             
 
         </LeafletMap>

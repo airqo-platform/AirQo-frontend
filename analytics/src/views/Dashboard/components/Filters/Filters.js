@@ -2,9 +2,9 @@ import React from 'react';
 import clsx from 'clsx';
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/styles';
-import { Card, CardContent, Grid, Typography, Avatar } from '@material-ui/core';
-import ArrowUpwardIcon from '@material-ui/icons/ArrowUpward';
-import PeopleIcon from '@material-ui/icons/PeopleOutlined';
+import { Card, CardContent, Grid } from '@material-ui/core';
+//import ArrowUpwardIcon from '@material-ui/icons/ArrowUpward';
+//import PeopleIcon from '@material-ui/icons/PeopleOutlined';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -70,7 +70,7 @@ const Filters = props => {
         </Grid>
         
         {/*  <div >
-              {< form class="form-style-graph" action ="">
+              {< form className="form-style-graph" action ="">
                 <p>Please enter valid parameters.</p>
                 <br/>
 
@@ -114,58 +114,62 @@ const Filters = props => {
                 </select>
                 <br/> <br/> <br/>
 
-                <div class="wrapper">
+                <div className="wrapper">
                  <button class type="submit">Generate Graph</button>
                 </div>
                 
                  </form >  }
         </div> */}
 
-<form>
-<ul class="form-style-graph">
-    <li>
-      <label>Location <span class="required">*</span></label><input type="search" name="location" class="" placeholder="location" /> </li>
-    <li>
-        <label>Start Date</label>
-        <input type="date" name="start_date" class="field-divided" /> <input type="time" name="start_time" class="field-divided" />
-    </li>
+        <form>
+          <ul className="form-style-graph">
+            <li>
+              <label>Location <span className="required">*</span></label>
+              <input type="search" name="location" className="" 
+                placeholder="location" 
+              /> 
+            </li>
+            <li>
+              <label>Start Date</label>
+              <input type="date" name="start_date" className="field-divided" /> <input type="time" name="start_time" className="field-divided" />
+            </li>
 
-    <li>
-        <label>End Date</label>
-        <input type="date" name="end_date" class="field-divided" /> <input type="time" name="end_time" class="field-divided" />
-    </li>
+            <li>
+              <label>End Date</label>
+              <input type="date" name="end_date" className="field-divided" /> <input type="time" name="end_time" className="field-divided" />
+            </li>
 
-    <li>
-        <label>Chart Type</label>
-        <select name="chart_type" class="field-select"> required
-        <option value="Line">Line</option>
-        <option value="Bar">Bar</option>
-        <option value="Bar">Pie</option>
-        </select>
-    </li>
+            <li>
+              <label>Chart Type</label>
+              <select name="chart_type" className="field-select"> required
+                <option value="Line">Line</option>
+                <option value="Bar">Bar</option>
+                <option value="Bar">Pie</option>
+              </select>
+            </li>
 
-    <li>
-        <label>Frequency</label>
-        <select name="frequency" class="field-select" required>
-        <option value="Hourly">Hourly</option>
-        <option value="Daily">Daily</option>
-        <option value="Monthly">Monthly</option>
-        </select>
-    </li>
+            <li>
+              <label>Frequency</label>
+              <select name="frequency" className="field-select" required>
+                <option value="Hourly">Hourly</option>
+                <option value="Daily">Daily</option>
+                <option value="Monthly">Monthly</option>
+              </select>
+            </li>
 
-    <li>
-        <label>Pollutant</label>
-        <select name="pollutant" class="field-select" required>
-        <option value="PM 2.5">PM 2.5</option>
-        <option value="PM 10">PM 10</option>
-        </select>
-    </li>
-    
-    <li>
-        <input type="submit" value="Generate Graph" />
-    </li>
-</ul>
-</form>
+            <li>
+              <label>Pollutant</label>
+              <select name="pollutant" className="field-select" required>
+                <option value="PM 2.5">PM 2.5</option>
+                <option value="PM 10">PM 10</option>
+              </select>
+            </li>
+            
+            <li>
+              <input type="submit" value="Generate Graph" />
+            </li>
+          </ul>
+        </form>
             
 
       </CardContent>
