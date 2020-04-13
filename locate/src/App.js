@@ -24,11 +24,13 @@ import ForgotPassword from "./views/components/auth/ForgotPassword";
 import ResetPassword from "./views/components/auth/ResetPassword";
 import {
   Main as MainLayout,
+  Maps as MapLayout,
   Minimal as MinimalLayout,
 } from "../src/views/layouts/";
 import Login from "./views/components/auth/Login";
 import PrivateRoute from "./views/components/PrivateRoute/PrivateRoute";
 import Dashboard from "./views/components/Dashboard/Dashboard";
+import Map from "./views/components/Map";
 import Table from "./views/components/DeviceRegistry";
 
 // Check for token to keep user logged in
@@ -72,6 +74,12 @@ class App extends Component {
                 />
                 <PrivateRoute
                   exact
+                  path="/locate"
+                  component={Map}
+                  layout={MapLayout}
+                />
+                <PrivateRoute
+                  extact
                   path="/registry"
                   component={Table}
                   layout={MainLayout}
