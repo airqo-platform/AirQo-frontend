@@ -3,7 +3,7 @@ import clsx from 'clsx';
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/styles';
 import { Map as LeafletMap, TileLayer, Popup, CircleMarker } from 'react-leaflet';
-
+import {Link } from 'react-router-dom';
 import {
   Card,
   CardContent, 
@@ -45,13 +45,13 @@ const Map = props => {
   const [contacts,setContacts ] = useState([]);
 
   useEffect(() => {
-    fetch('http://127.0.0.1:5000/api/v1/monitoringsites/?organisation_name=KCCA')
+    fetch('http://127.0.0.1:5000/api/v1/dashboard/monitoringsites?organisation_name=KCCA')
       .then(res => res.json())
       .then((contactData) => {
         setContacts(contactData.airquality_monitoring_sites)
       })
       .catch(console.log)
-  },[]);
+  });
 
   return (
     <Card
@@ -84,14 +84,19 @@ const Map = props => {
               center={[contact.Latitude,contact.Longitude]}
               color="red"
               fill="true"
-              key={contact._id.$oid}
+              key={contact._id}
               
               
               
               radius={8}
             >
               <Popup>
-                {contact.Division} {contact.SiteName}
+                <h2>{contact.Parish} - {contact.Division} Division</h2> 
+                <h1> {contact.Last_Hour_PM25_Value == 0?'':contact.Last_Hour_PM25_Value}</h1>                 
+                
+               
+                <Link to="/graph/4">More Details</Link>
+                
               </Popup>
             </CircleMarker>         
           ))}

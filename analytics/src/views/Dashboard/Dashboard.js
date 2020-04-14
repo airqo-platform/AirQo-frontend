@@ -6,7 +6,9 @@ import clsx from 'clsx';
 import PropTypes from 'prop-types';
 import { Pm25Levels, Map,Filters } from './components';
 import { useEffect, useState } from 'react';
-
+import 'chartjs-plugin-annotation';
+//import Select from 'react-select';
+ 
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -23,8 +25,7 @@ const Dashboard = props => {
   const { className, staticContext, ...rest } = props;
  
   const [locations,setLocations] = useState([]);
-  //const [deviceLabels,setLabels ] = useState([]);
-
+  
   useEffect(() => {
     fetch('http://127.0.0.1:5000/api/v1/monitoringsite/historical/daily/devices')
       .then(res => res.json())
@@ -47,7 +48,10 @@ const Dashboard = props => {
     ]
   }
   
-   
+
+
+
+
   const data = {
     labels: [
       '10/04/2018', '10/05/2018', 
@@ -73,6 +77,10 @@ const Dashboard = props => {
         scaleLabel: {
           display: true,
           labelString: 'PM2.5'
+        },
+        ticks: {
+          //beginAtZero: true,
+          suggestedMin:20
         }
       }],
       xAxes: [{
@@ -81,7 +89,23 @@ const Dashboard = props => {
           labelString: 'Locations'
         }
       }],
-    } ,    
+    } ,  
+    
+    annotation: {
+      annotations: [{
+        type: 'line',
+        mode: 'horizontal',
+        scaleID: 'y-axis-0',
+        value: 25,
+        borderColor: 'rgb(75, 192, 192)',
+        borderWidth: 2,
+        label: {
+          enabled: true,
+          content: 'WHO LIMIT',
+          //backgroundColor: '',
+        }
+      }]
+    },
     maintainAspectRatio: false	// Don't maintain w/h ratio
   }
   
@@ -117,7 +141,7 @@ const Dashboard = props => {
           xs={12}
         >
           <header className="App-header">
-            <h1>Past 28 days aggregate mean</h1>
+            <h1>Past 28 days aggregated mean</h1>
           </header>
           <article className="canvas-container">
             <Line 
