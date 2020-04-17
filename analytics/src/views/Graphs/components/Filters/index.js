@@ -6,7 +6,7 @@ import { reducer as formReducer } from 'redux-form';
 import App  from './Filters';
 import * as serviceWorker from 'serviceWorker';
 
-const rootReducer = combineReducers({
+/*const rootReducer = combineReducers({
   form: formReducer,
 });
 
@@ -20,7 +20,7 @@ ReactDOM.render(
   );
 
 
-serviceWorker.unregister(); 
+serviceWorker.unregister(); */
 
 export { default } from './Filters';
 

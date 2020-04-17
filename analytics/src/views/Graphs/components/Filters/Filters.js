@@ -83,18 +83,18 @@ class Filters extends Component {
       frequency: this.state.frequency,
       pollutant: this.state.pollutant
     };
-    console.log(newGraph);
+    //console.log(newGraph);
     const url = 'http://127.0.0.1:5000/api/v1/device/graph'
-    const data = new FormData(e.target);
+    //const data = new FormData(e.target);
   
-    //var data = new FormData(e.target);
-    //for (var [key, value] of data.entries()) { 
-      //console.log(key, value);
-     //}
+    var data = new FormData(e.target);
+    for (var [key, value] of data.entries()) { 
+      console.log(key, value);
+     }
     fetch(url, {
       method: 'POST',
-      body: data
-      //body: JSON.stringify(this.state)
+      //body: data
+      body: JSON.stringify(this.state)
     });
   };
 
@@ -373,7 +373,8 @@ export default class Filters extends React.Component {
   }
 } */
 
-/*let FiltersForm = props => {
+/*
+let FiltersForm = props => {
   const { className, handleSubmit, pristine, reset, submitting, ...rest }  = props;
   //const { className, pristine, reset, submitting, ...rest }  = props;
   const classes = useStyles();
@@ -470,17 +471,18 @@ FiltersForm = reduxForm({
 
 
 class App extends React.Component{
-  handleFilters = values => {
+ /* handleFilters = values => {
     console.log(values);
 };
 
-/*handleFilters(event){
+handleFilters(event){
   //event.preventDefault();
+  console.log(event)
   const data = new FormData(event.target);
   fetch('http://127.0.0.1:5000/api/v1/device/graph', {
     method: 'POST',
-    body:data
-    //body: JSON.stringify(this.state)
+    //body:data
+    body: JSON.stringify(this.state)
   });
 }
   render(){
