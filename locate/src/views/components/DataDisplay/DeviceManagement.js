@@ -98,7 +98,7 @@ export default function DeviceManagement() {
       <GridContainer>
         <GridItem xs={12} sm={12} md={4}>
           <Card chart>
-            <CardHeader color="primary">
+            <CardHeader color="info">
               <ChartistGraph
                 className="ct-chart"
                 data={dailySalesChart.data}
@@ -154,7 +154,7 @@ export default function DeviceManagement() {
         </GridItem>
         <GridItem xs={12} sm={12} md={4}>
           <Card chart>
-            <CardHeader color="primary">
+            <CardHeader color="info">
               <ChartistGraph
                 className="ct-chart"
                 data={OnlineStatusChart.data}

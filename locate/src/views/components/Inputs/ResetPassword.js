@@ -9,7 +9,10 @@ import { connect } from "react-redux";
 import { verifyToken, updatePassword } from "../../../redux/Join/actions";
 import { Link, withRouter } from "react-router-dom";
 import classnames from "classnames";
-
+import errorPage from "./Conditionals/Error";
+import loadingPage from "./Conditionals/IsLoading";
+import updatedPage from "./Conditionals/Updated";
+import constants from "../../../config/constants";
 const loading = {
   margin: "1em",
   fontSize: "24px",
@@ -37,19 +40,47 @@ class ResetPassword extends Component {
   //extract token and DATE from URL params and
   //passes it back to server's reset route for verification
   async componentDidMount() {
-    console.log(this.props.match.params.token);
+    // console.log(this.props.match.params.token);
+    // const {
+    //   match: {
+    //     params: { token },
+    //   },
+    // } = this.props;
+
+    // const tokenValue = {
+    //   params: {
+    //     resetPasswordToken: token,
+    //   },
+    // };
+    // this.props.verifyToken(tokenValue);
     const {
       match: {
         params: { token },
       },
     } = this.props;
-
-    const tokenValue = {
-      params: {
-        resetPasswordToken: token,
-      },
-    };
-    this.props.verifyToken(tokenValue);
+    try {
+      const response = await axios.get(constants.VERIFY_TOKEN_URI, {
+        params: {
+          resetPasswordToken: token,
+        },
+      });
+      // console.log(response);
+      if (response.data.message === "password reset link a-ok") {
+        this.setState({
+          username: response.data.username,
+          updated: false,
+          isLoading: false,
+          error: false,
+        });
+      }
+    } catch (error) {
+      console.log(error.response.data);
+      this.setState({
+        updated: false,
+        isLoading: false,
+        error: true,
+      });
+    }
   }
 
   onChange = (e) => {
@@ -60,23 +91,88 @@ class ResetPassword extends Component {
 
   //if the user is authenticated and allowed to reset their password.
   //update password while logged into the app, as well
-  onSubmit = (e) => {
-    e.preventDefault();
+  onSubmit = async (e) => {
+    // console.log("we are here 1");
+    // e.preventDefault();
+    // const {
+    //   match: {
+    //     params: { token },
+    //   },
+    // } = this.props;
+    // console.log("we are here 2");
+    // const userData = {
+    //   userName: this.state.userName,
+    //   password: this.state.password,
+    //   resetPasswordToken: token,
+    // };
+    // console.log("we are here 3");
+    // this.props.updatePassword(userData);
+
+    const { userName, password } = this.state;
     const {
       match: {
         params: { token },
       },
     } = this.props;
-    const userData = {
-      username: this.state.username,
-      password: this.state.password,
-      resetPasswordToken: token,
-    };
-    this.props.updatePassword(userData);
+    try {
+      const response = await axios.put(constants.UPDATE_PWD_URI, {
+        userName,
+        password,
+        resetPasswordToken: token,
+      });
+      console.log(response.data);
+      if (response.data.message === "password updated") {
+        this.setState({
+          updated: true,
+          error: false,
+        });
+      } else {
+        this.setState({
+          updated: false,
+          error: true,
+        });
+      }
+    } catch (error) {
+      console.log(error.response.data);
+    }
   };
 
   render() {
-    const { errors } = this.state;
+    // const { errors } = this.state;
+    const { password, error, isLoading, updated, errors } = this.state;
+
+    if (error) {
+      return (
+        <div>
+          <div style={loading}>
+            <h4>Problem resetting password. Please send another reset link.</h4>
+            <Link to="/" className="btn-flat waves-effect">
+              <i className="material-icons left">keyboard_backspace</i> Back to
+              home
+            </Link>
+            <div className="col s12" style={{ paddingLeft: "11.250px" }}>
+              <h4>
+                <b>Reset Password Error</b>
+              </h4>
+              <p className="grey-text text-darken-1">
+                Don't have an account? <Link to="/register">Register</Link>
+              </p>
+            </div>
+            <div className="col s12" style={{ paddingTop: "20px" }}>
+              <Link to="/forgot"> Forgotten Password?</Link>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    if (isLoading) {
+      return (
+        <div>
+          <div style={loading}>Loading User Data...</div>
+        </div>
+      );
+    }
 
     return (
       <div className="container">
@@ -92,7 +188,6 @@ class ResetPassword extends Component {
               </h4>
             </div>
             <form noValidate onSubmit={this.onSubmit}>
-              å
               <div className="input-field col s12">
                 <input
                   onChange={this.onChange}
@@ -140,6 +235,21 @@ class ResetPassword extends Component {
                 <Link to="/forgot"> Forgotten Password?</Link>
               </div>
             </form>
+            {updated && (
+              <div>
+                <Link to="/" className="btn-flat waves-effect">
+                  <i className="material-icons left">keyboard_backspace</i> Back
+                  to home
+                </Link>
+                <p>
+                  Your password has been successfully reset, please try logging
+                  in again.
+                </p>
+                <p className="grey-text text-darken-1">
+                  Already have an account? <Link to="/login">Log in</Link>
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>
