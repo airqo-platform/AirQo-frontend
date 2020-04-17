@@ -2,7 +2,16 @@ import React from 'react';
 import clsx from 'clsx';
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/styles';
-import { Card, CardContent, Grid } from '@material-ui/core';
+import { Card, CardContent, Grid,Button} from '@material-ui/core';
+import Select from 'react-select';
+import { useEffect, useState } from 'react';
+import DateFnsUtils from '@date-io/date-fns';
+import {
+  MuiPickersUtilsProvider,
+  KeyboardTimePicker,
+  KeyboardDatePicker,
+} from '@material-ui/pickers';
+import axios from 'axios'
 //import ArrowUpwardIcon from '@material-ui/icons/ArrowUpward';
 //import PeopleIcon from '@material-ui/icons/PeopleOutlined';
 
@@ -37,13 +46,113 @@ const useStyles = makeStyles(theme => ({
   differenceValue: {
     color: theme.palette.success.dark,
     marginRight: theme.spacing(1)
-  }
+  },
+
+  formControl: {
+    margin: theme.spacing(3),
+  },
 }));
 
 const Filters = props => {
   const { className, ...rest } = props;
 
   const classes = useStyles();
+
+  
+  const [selectedDate, setSelectedStartDate] = useState(new Date('2020-04-16T21:11:54'));
+
+  const handleDateChange = (date) => {
+    setSelectedStartDate(date);
+  };
+
+  const [selectedEndDate, setSelectedEndDate] = useState(new Date('2020-04-16T21:11:54'));
+
+  const handleEndDateChange = (date) => {
+    setSelectedEndDate(date);
+  };
+
+  const [filterLocations,setFilterLocations] = useState([]);
+  
+  useEffect(() => {
+    fetch('http://127.0.0.1:5000/api/v1/dashboard/monitoringsites/locations?organisation_name=KCCA')
+      .then(res => res.json())
+      .then((filterLocationsData) => {
+        setFilterLocations(filterLocationsData.airquality_monitoring_sites)
+      })
+      .catch(console.log)
+  },[]);
+ 
+  const filterLocationsOptions = filterLocations
+  
+  const [values, setReactSelectValue] = useState({ selectedOption: [] });
+
+  const handleMultiChange = selectedOption => {
+    //setValue('reactSelect', selectedOption);
+    setReactSelectValue({ selectedOption });
+  }
+
+  const chartTypeOptions = [
+    { value: 'line', label: 'Line' },
+    { value: 'bar', label: 'Bar' },
+    { value: 'pie', label: 'Pie' }
+  ];
+
+  const [selectedChart, setSelectedChartType] =  useState({value: 'line' });
+
+  const handleChartTypeChange = selectedChartType => {
+    setSelectedChartType(selectedChartType);
+  };
+
+  const frequencyOptions = [
+    { value: 'hourly', label: 'Hourly' },
+    { value: 'daily', label: 'Daily' },
+    { value: 'monthly', label: 'Monthly' }
+  ];
+
+  const [selectedFrequency, setSelectedFrequency] =  useState({value: 'daily' });
+
+  const handleFrequencyChange = selectedFrequencyOption => {
+    setSelectedFrequency(selectedFrequencyOption);
+  };
+
+  const pollutantOptions = [
+    { value: 'PM 2.5', label: 'PM 2.5' },
+    { value: 'PM 10', label: 'PM 10' },
+    { value: 'NO2', label: 'NO2' }
+  ];
+
+  const [selectedPollutant, setSelectedPollutant] =  useState({value: 'PM 2.5' });
+
+  const handlePollutantChange = selectedPollutantOption => {
+    setSelectedPollutant(selectedPollutantOption);
+  };
+
+  let  handleSubmit = (e) => {
+    e.preventDefault();
+    
+    let filter ={ 
+      locations: values.selectedOption,
+      startDate:  selectedDate,
+      endDate:  selectedEndDate,
+      chartType:  selectedChart.value,
+      frequency:  selectedFrequency.value,
+      pollutant: selectedPollutant.value,
+      organisation_name: 'KCCA'     
+    }
+    console.log(JSON.stringify(filter));
+
+    axios.post(
+      'http://127.0.0.1:5000/api/v1/dashboard/customisedchart', 
+      JSON.stringify(filter),
+      { headers: { 'Content-Type': 'application/json' } }
+    ).then(res=> {
+      console.log(res.data)
+      
+    }).catch(
+      console.log
+    )
+    
+  }
 
   return (
     <Card
@@ -69,110 +178,137 @@ const Filters = props => {
           */}
         </Grid>
 
-        <div>
-          
-        </div>
         
-        {/*  <div >
-              {< form className="form-style-graph" action ="">
-                <p>Please enter valid parameters.</p>
-                <br/>
+        
+        <form onSubmit={handleSubmit}>
+          
+          <div className={classes.formControl}>
+            <label className="reactSelectLabel">Location(s)</label>
+            <Select
+              className="reactSelect"
+              name="location"
+              placeholder="Location(s)"
+              value={values.selectedOption}
+              options={filterLocationsOptions}
+              onChange={handleMultiChange}
+              isMulti
+            />
+          </div>
 
-                <label for="location"><b>Location:</b></label>
-                <input type="search" placeholder="Choose Location" name="location" required/>
-                <br/><br/> <br/>
+          <div className={classes.formControl}> 
+            <MuiPickersUtilsProvider utils={DateFnsUtils}>
+              <Grid 
+                container 
+                justify="space-around"
+              >
+                <KeyboardDatePicker
+                  disableToolbar
+                  variant="inline"
+                  format="MM/dd/yyyy"
+                  margin="normal"
+                  id="date-picker-inline"
+                  label="Start Date"
+                  value={selectedDate}
+                  onChange={handleDateChange}
+                  KeyboardButtonProps={{
+                    'aria-label': 'change date',
+                  }}
+                />                
+                <KeyboardTimePicker
+                  disableToolbar
+                  variant="inline"
+                  margin="normal"
+                  id="time-picker"
+                  label="Time Picker "
+                  value={selectedDate}
+                  onChange={handleDateChange}
+                  KeyboardButtonProps={{
+                    'aria-label': 'change time',
+                  }}
+                />
+              </Grid>
+            </MuiPickersUtilsProvider>
+          </div>
 
-                <label for="start_date"><b>Start Date:</b></label>
-                <input type="date" placeholder="Enter Date" name="start_date" />
-                
-                <label for="time"><b>Start Time :</b></label>
-                <input type="time" name="time"/>
-                <br/><br/> <br/>
+          <div className={classes.formControl}>
+            <MuiPickersUtilsProvider utils={DateFnsUtils}>
+              <Grid 
+                container 
+                justify="space-around"
+              >
+                <KeyboardDatePicker
+                  disableToolbar
+                  variant="inline"
+                  format="MM/dd/yyyy"
+                  margin="normal"
+                  id="date-picker-inline"
+                  label="End Date"
+                  value={selectedEndDate}
+                  onChange={handleEndDateChange}
+                  KeyboardButtonProps={{
+                    'aria-label': 'change end date',
+                  }}
+                />                
+                <KeyboardTimePicker
+                  disableToolbar
+                  variant="inline"
+                  margin="normal"
+                  id="time-picker"
+                  label="Time Picker "
+                  value={selectedEndDate}
+                  onChange={handleEndDateChange}
+                  KeyboardButtonProps={{
+                    'aria-label': 'change end time',
+                  }}
+                />
+              </Grid>
+            </MuiPickersUtilsProvider>
+          </div>
 
-                <label for="end_date"><b>End Date:</b></label>
-                <input type="date" placeholder="Enter Date" name="end_date" />
-                
-                <label for="time"><b>End Time :</b></label>
-                <input type="time" name="time"/>
-                <br/><br/> <br/>
+          <div className={classes.formControl}>
+            <label className="reactSelectLabel">Chart Type</label>
+            <Select
+              className="reactSelect"
+              name="chart-type"
+              placeholder="Chart Type"
+              value={selectedChart}
+              options={chartTypeOptions}
+              onChange={handleChartTypeChange}              
+            />
+          </div>
 
-                <label for="chart type"><b>Chart Type:</b></label>
-                <select id="chartTypeSelect">
-                  <option>Line</option>
-                  <option>Bar</option>
-                  <option>Pie</option>
-                </select>
-                <br/> <br/> <br/>
+          <div className={classes.formControl}>
+            <label className="reactSelectLabel">Frequency</label>
+            <Select
+              className="reactSelect"
+              name="chart-type"
+              placeholder="Frequency"
+              value={selectedFrequency}
+              options={frequencyOptions}
+              onChange={handleFrequencyChange}              
+            />
+          </div>
 
-                <label for="frequency"><b>Frequency:</b></label>
-                <select id="frequencySelect" required>
-                  <option>Hourly</option>
-                  <option>Daily</option>
-                </select>
-                <br/> <br/> <br/>
+          <div className={classes.formControl}>
+            <label className="reactSelectLabel">Pollutant</label>
+            <Select
+              className="reactSelect"
+              name="pollutant"
+              placeholder="Pollutant"
+              value={selectedPollutant}
+              options={pollutantOptions}
+              onChange={handlePollutantChange}              
+            />
+          </div>
 
-                <label for="pollutant"><b>Pollutant:</b></label>
-                <select id="pollutantSelect" required>
-                  <option>PM 2.5</option>
-                  <option>PM 10</option>
-                </select>
-                <br/> <br/> <br/>
-
-                <div className="wrapper">
-                 <button class type="submit">Generate Graph</button>
-                </div>
-                
-                 </form >  }
-        </div> */}
-
-        <form>
-          <ul className="form-style-graph">
-            <li>
-              <label>Location <span className="required">*</span></label>
-              <input type="search" name="location" className="" 
-                placeholder="location" 
-              /> 
-            </li>
-            <li>
-              <label>Start Date</label>
-              <input type="date" name="start_date" className="field-divided" /> <input type="time" name="start_time" className="field-divided" />
-            </li>
-
-            <li>
-              <label>End Date</label>
-              <input type="date" name="end_date" className="field-divided" /> <input type="time" name="end_time" className="field-divided" />
-            </li>
-
-            <li>
-              <label>Chart Type</label>
-              <select name="chart_type" className="field-select"> required
-                <option value="Line">Line</option>
-                <option value="Bar">Bar</option>
-                <option value="Bar">Pie</option>
-              </select>
-            </li>
-
-            <li>
-              <label>Frequency</label>
-              <select name="frequency" className="field-select" required>
-                <option value="Hourly">Hourly</option>
-                <option value="Daily">Daily</option>
-                <option value="Monthly">Monthly</option>
-              </select>
-            </li>
-
-            <li>
-              <label>Pollutant</label>
-              <select name="pollutant" className="field-select" required>
-                <option value="PM 2.5">PM 2.5</option>
-                <option value="PM 10">PM 10</option>
-              </select>
-            </li>
-            
-            <li>
-              <input type="submit" value="Generate Graph" />
-            </li>
-          </ul>
+          <div className={classes.formControl}>
+            <Button 
+              variant="contained" 
+              color="primary"              
+              type="submit"
+            > Generate Graph
+            </Button>
+          </div>       
         </form>
             
 

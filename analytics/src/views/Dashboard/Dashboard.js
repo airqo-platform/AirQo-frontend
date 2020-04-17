@@ -25,7 +25,7 @@ const Dashboard = props => {
   const { className, staticContext, ...rest } = props;
  
   const [locations,setLocations] = useState([]);
-  
+
   useEffect(() => {
     fetch('http://127.0.0.1:5000/api/v1/monitoringsite/historical/daily/devices')
       .then(res => res.json())
@@ -40,7 +40,7 @@ const Dashboard = props => {
     labels: locations.labels,
     datasets: [
       {
-        label: 'PM2.5',
+        label: 'PM2.5(µg/m3)',
         data: locations.average_pm25_values,
         fill: false,          // Don't fill area under the line
         borderColor: 'green'  // Line color
@@ -63,7 +63,7 @@ const Dashboard = props => {
     ],
     datasets: [
       {
-        label: 'PM2.5',
+        label: 'PM2.5(µg/m3)',
         data: [22,19,27,23,22,24,17,25,23,24,20,19],
         fill: false,          // Don't fill area under the line
         borderColor: 'green'  // Line color
@@ -76,7 +76,7 @@ const Dashboard = props => {
       yAxes: [{
         scaleLabel: {
           display: true,
-          labelString: 'PM2.5'
+          labelString: 'PM2.5(µg/m3)'
         },
         ticks: {
           //beginAtZero: true,
@@ -114,7 +114,7 @@ const Dashboard = props => {
       yAxes: [{
         scaleLabel: {
           display: true,
-          labelString: 'PM2.5'
+          labelString: 'PM2.5(µg/m3)'
         }
       }],
       xAxes: [{

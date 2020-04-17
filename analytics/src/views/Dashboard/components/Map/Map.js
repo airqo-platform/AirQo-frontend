@@ -51,7 +51,7 @@ const Map = props => {
         setContacts(contactData.airquality_monitoring_sites)
       })
       .catch(console.log)
-  });
+  },[]);
 
   return (
     <Card
