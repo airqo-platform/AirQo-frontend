@@ -13,6 +13,7 @@ import { useEffect, useState } from 'react';
 import DateFnsUtils from '@date-io/date-fns';
 import {MuiPickersUtilsProvider, KeyboardTimePicker, KeyboardDatePicker} from '@material-ui/pickers';
 import axios from 'axios'
+import { Pie, Bar, Line } from 'react-chartjs-2';
 
 
 const useStyles = makeStyles(theme => ({
@@ -57,6 +58,8 @@ const Filters = props => {
   const { className, ...rest } = props;
 
   const classes = useStyles();
+  const [times, setTimes] =useState([]);
+  const [pollutionValues, setPollutionValues] = useState([]);
 
   const [selectedDate, setSelectedStartDate] = useState(new Date('2020-04-16T21:11:54'));
 
@@ -144,8 +147,19 @@ const Filters = props => {
       'http://127.0.0.1:5000/api/v1/device/graph', 
       JSON.stringify(filter),
       { headers: { 'Content-Type': 'application/json' } }
-    ).then(res=> {
-      console.log(res.data)
+    )
+    .then(
+      res=>{
+        console.log(res.data);
+        const myData = res.data;
+        let myTimes = [];
+        let myValues = [];
+        myData.forEach(element => {
+          myTimes.push(element.time);
+          myValues.push(element.pm2_5ConcMass.value);
+        });
+        setTimes(myTimes);
+        setPollutionValues(myValues)
 
     }).catch(
       console.log
@@ -314,4 +328,63 @@ const Filters = props => {
 Filters.propTypes = {
   className: PropTypes.string
 };
+
+
+class BarGraph extends React.Component{
+  render(){
+    return(
+        <div>
+        <Bar
+          data={ 
+            {
+              //labels: times,
+              datasets:[
+                 {
+                    label:'Bar Graph showing Air Quality over time',
+                    //data: pollutionValues,
+                    backgroundColor: 'rgba(75, 192, 192, 1)',
+                    borderColor: 'rgba(0,0,0,1)'
+                   /* backgroundColor:[
+                     'rgba(255,105,145,0.6)',
+                     'rgba(155,100,210,0.6)',
+                     'rgba(90,178,255,0.6)',
+                     'rgba(240,134,67,0.6)',
+                     'rgba(120,120,120,0.6)',
+                     'rgba(250,55,197,0.6)'
+                  ]*/
+                 }
+              ]
+           }
+
+          }
+          options={{
+            title:{
+              display:true,
+              text: 'Air quality data over time',
+            },
+            legend:{
+              display: true,
+              position: 'right'
+            },
+            maintainAspectRatio: true
+            }}/>
+     </div>
+      )
+      /*<div>
+        <Bar
+          data:{ state },
+          options:{{
+            title:{
+              display:true,
+              text: 'Air quality data over time',
+            },
+            legend:{
+              display: true,
+              position: 'right'
+            }
+          }}
+          />
+      </div>*/
+  }
+}
 export default Filters;

@@ -5,7 +5,7 @@
   "licence": "MIT",
   "version": "0.1.0",
   "private": false,
-  "proxy": "http://localhost:5000",
+  "proxy": "http://127.0.0.1:5000",
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
@@ -79,6 +79,5 @@
     "prettier-eslint": "^8.8.2",
     "prettier-eslint-cli": "^4.7.1",
     "typescript": "^3.5.1"
-  },
-  "proxy": "http://localhost:5000"
+  }
 }
