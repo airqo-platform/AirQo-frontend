@@ -43,7 +43,7 @@ const useStyles = makeStyles(theme => ({
   }
 }));
 
-const Display = props => {
+/* const Display = props => {
   const { className, ...rest } = props;
   const classes = useStyles();
   return (
@@ -76,9 +76,9 @@ Display.propTypes = {
   className: PropTypes.string
 };
 
-export default Display;
+export default Display;*/
 
-/*export default class BarChartComponent extends Component
+export default class BarChartComponent extends Component
 {
    constructor(props) {
       super(props);
@@ -115,7 +115,7 @@ export default Display;
                      'rgba(240,134,67,0.6)',
                      'rgba(120,120,120,0.6)',
                      'rgba(250,55,197,0.6)'
-                  ]
+                  ]*/
                  }
               ]
            }
@@ -131,7 +131,7 @@ export default Display;
         </div>
       );
     } 
-    else {
+    else {*/
       return(
         <div>
         <Bar
@@ -140,5 +140,6 @@ export default Display;
      </div>
       )
    }
-} */
+} 
+
 
