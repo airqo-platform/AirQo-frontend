@@ -60,27 +60,6 @@ const state = {
   ]
 }
 
-export default class BarGraph extends React.Component{
-  render(){
-    return(
-        <div>
-        <Bar
-          data={ state}
-          options={{
-            title:{
-              display:true,
-              text: 'Air quality data over time',
-            },
-            legend:{
-              display: true,
-              position: 'right'
-            },
-            maintainAspectRatio: true
-            }}/>
-     </div>
-      )
-    }
-  }
       /*<div>
         <Bar
           data:{ state },
@@ -99,7 +78,7 @@ export default class BarGraph extends React.Component{
   }
 }*/
 
-/*const Display = props => {
+const Display = props => {
   const { className, ...rest } = props;
   const classes = useStyles();
   return (
@@ -132,8 +111,8 @@ Display.propTypes = {
   className: PropTypes.string
 };
 
-export default Display;
-
+//export default Display;
+/*
 class BarChart extends Component
 {
    constructor(props) {

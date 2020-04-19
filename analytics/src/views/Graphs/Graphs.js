@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { makeStyles } from '@material-ui/styles';
-import { Display, Filters } from './components';
+//import { Display, Filters } from './components';
 import { Pie, Bar, Line } from 'react-chartjs-2';
 import PropTypes from 'prop-types';
 import { Card, CardContent, Grid, Typography, Button } from '@material-ui/core';
@@ -16,7 +16,35 @@ const useStyles = makeStyles(theme => ({
   },
   content: {
     marginTop: theme.spacing(2)
-  }
+  },
+  title: {
+    fontWeight: 700
+  },
+  avatar: {
+    backgroundColor: theme.palette.success.main,
+    height: 56,
+    width: 56
+  },
+  icon: {
+    height: 32,
+    width: 32
+  },
+  difference: {
+    marginTop: theme.spacing(2),
+    display: 'flex',
+    alignItems: 'center'
+  },
+  differenceIcon: {
+    color: theme.palette.success.dark
+  },
+  differenceValue: {
+    color: theme.palette.success.dark,
+    marginRight: theme.spacing(1)
+  },
+
+  formControl: {
+    margin: theme.spacing(3),
+  },
 }));
 
 /*const Graphs = () => {
@@ -147,24 +175,29 @@ const Graphs = props => {
     )
     .then(
       res=>{
-        console.log(res.data);
         const myData = res.data;
-        if ('time' in myData){
-          let myTimes = [];
-          let myValues = [];
-          myData.forEach(element => {
-            myTimes.push(element.time);
-            myValues.push(element.pm2_5ConcMass.value);
-          });
-          setTimes(myTimes);
-          setPollutionValues(myValues)
-        }
-        else{
+        console.log(myData);
+        if (typeof myData[0] == 'number'){
           let myValues = [];
           myData.forEach(element => {
             myValues.push(element);
           });
           setPollutionValues(myValues)
+        }
+
+        else if (typeof myData[0]== 'object'){
+          let myTimes = [];
+          let myValues = [];
+          myData.forEach(element => {
+            myTimes.push(element.time);
+            myValues.push(element.characteristics.pm2_5ConcMass.value);
+          });
+          setTimes(myTimes);
+          setPollutionValues(myValues)
+        }
+
+        else{
+          //pass
         }
 
     }).catch(
@@ -173,8 +206,7 @@ const Graphs = props => {
   }
 
   
-
-  if (selectedChart=='line'){
+  if (selectedChart.value=='line'){
     return(
       <div className={classes.root}>
         <Grid
@@ -379,7 +411,7 @@ const Graphs = props => {
     )
 
   }
-  else if (selectedChart=='pie'){
+  else if (selectedChart.value=='pie'){
 
     return(
       <div className={classes.root}>
@@ -802,18 +834,7 @@ const Graphs = props => {
           container
           justify="space-between"
         >
-          {/* 
-          <Grid item>
-            <Typography
-              className={classes.title}
-              color="textSecondary"
-              gutterBottom
-              variant="body2"
-            >
-              Filters
-            </Typography>
-          </Grid>
-          */}
+          {}
         </Grid>
 
         <form onSubmit={handleSubmit}>
@@ -951,69 +972,8 @@ const Graphs = props => {
     </Card>
   );
 };
-Filters.propTypes = {
+Graphs.propTypes = {
   className: PropTypes.string
 };
 
-
-class BarGraph extends React.Component{
-  render(){
-    return(
-        <div>
-        <Bar
-          data={ 
-            {
-              //labels: times,
-              datasets:[
-                 {
-                    label:'Bar Graph showing Air Quality over time',
-                    //data: pollutionValues,
-                    backgroundColor: 'rgba(75, 192, 192, 1)',
-                    borderColor: 'rgba(0,0,0,1)'
-                   /* backgroundColor:[
-                     'rgba(255,105,145,0.6)',
-                     'rgba(155,100,210,0.6)',
-                     'rgba(90,178,255,0.6)',
-                     'rgba(240,134,67,0.6)',
-                     'rgba(120,120,120,0.6)',
-                     'rgba(250,55,197,0.6)'
-                  ]*/
-                 }
-              ]
-           }
-
-          }
-          options={{
-            title:{
-              display:true,
-              text: 'Air quality data over time',
-            },
-            legend:{
-              display: true,
-              position: 'right'
-            },
-            maintainAspectRatio: true
-            }}/>
-     </div>
-      )
-      /*<div>
-        <Bar
-          data:{ state },
-          options:{{
-            title:{
-              display:true,
-              text: 'Air quality data over time',
-            },
-            legend:{
-              display: true,
-              position: 'right'
-            }
-          }}
-          />
-      </div>*/
-  }
-}
-
-
 export default Graphs;
-//module.exports = App;                              
