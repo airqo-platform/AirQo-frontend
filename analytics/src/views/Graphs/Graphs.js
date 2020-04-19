@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { makeStyles } from '@material-ui/styles';
-//import { Display, Filters } from './components';
 import { Pie, Bar, Line } from 'react-chartjs-2';
 import PropTypes from 'prop-types';
-import { Card, CardContent, Grid, Typography, Button } from '@material-ui/core';
+import { Card, CardContent, Grid, Button } from '@material-ui/core';
 import clsx from 'clsx';
 import Select from 'react-select';
 import DateFnsUtils from '@date-io/date-fns';
@@ -47,44 +46,13 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-/*const Graphs = () => {
-  const classes = useStyles();
-
-  return (
-    <div className={classes.root}>
-      <Grid
-        container
-        spacing={0.1}
-      >
-        <Grid
-          item
-          lg={8}
-          sm={8}
-          xl={8}
-          xs={12}
-        >
-        <Display />
-        </Grid>
-        <Grid
-          item
-          lg={4}
-          sm={4}
-          xl={4}
-          xs={12}
-        >
-        <Filters />
-        </Grid>
-      </Grid>
-    </div>
-  );
-};*/
-
 const Graphs = props => {
   const { className, ...rest } = props;
 
   const classes = useStyles();
   const [times, setTimes] =useState([]);
   const [pollutionValues, setPollutionValues] = useState([]);
+  const [backgroundColors, setBackgroundColors] = useState([]);
 
   const [selectedDate, setSelectedStartDate] = useState(new Date('2020-04-16T21:11:54'));
 
@@ -188,14 +156,27 @@ const Graphs = props => {
         else if (typeof myData[0]== 'object'){
           let myTimes = [];
           let myValues = [];
+          let myColors = [];
           myData.forEach(element => {
             myTimes.push(element.time);
-            myValues.push(element.characteristics.pm2_5ConcMass.value);
+            myColors.push(element.backgroundColor)
+            if (element.hasOwnProperty('characteristics') && element.characteristics.hasOwnProperty('pm2_5ConcMass')){
+              myValues.push(element.characteristics.pm2_5ConcMass.value);
+            }
+            else if (element.hasOwnProperty('characteristics') && element.characteristics.hasOwnProperty('pm10ConcMass')){
+              myValues.push(element.characteristics.pm10ConcMass.value);
+            }
+            else if (element.hasOwnProperty('characteristics') && element.characteristics.hasOwnProperty('no2Conc')){
+              myValues.push(element.characteristics.no2Conc.value);
+            }
+            else{
+              console.log('none of the above');
+            }
           });
           setTimes(myTimes);
-          setPollutionValues(myValues)
+          setPollutionValues(myValues);
+          setBackgroundColors(myColors)
         }
-
         else{
           //pass
         }
@@ -227,24 +208,26 @@ const Graphs = props => {
               labels: times,
               datasets:[
                  {
-                    label:'Line Graph showing Air Quality over time',
+                    label:'Air Quality over time',
                     data: pollutionValues,
-                    backgroundColor: 'rgba(75, 192, 192, 1)',
-                    borderColor: 'rgba(0,0,0,1)'
+                    backgroundColor: backgroundColors,
+                    borderColor: 'rgba(0,0,0,1)',
+                    borderWidth: 1
                  }
               ]
            }
           }
           options={{
-            title:{
+            /*title:{
               display:true,
               text: 'Air quality data over time',
             },
             legend:{
               display: true,
-              position: 'right'
-            },
-            maintainAspectRatio: true
+              //position: 'right'
+            },*/
+            maintainAspectRatio: true,
+            responsive: true
             }}/>
           </div>
           </Grid>
@@ -440,15 +423,16 @@ const Graphs = props => {
           }
           }
           options={{
-            title:{
+            /*title:{
               display:true,
               text: 'Air quality data over time',
             },
             legend:{
               display: true,
               position: 'right'
-            },
-            maintainAspectRatio: true
+            },*/
+            maintainAspectRatio: true,
+            responsive: true
             }}/>
           </div>
           </Grid>
@@ -638,24 +622,26 @@ const Graphs = props => {
               labels: times,
               datasets:[
                  {
-                    label:'Bar Graph showing Air Quality over time',
+                    label:'Air Quality over time',
                     data: pollutionValues,
-                    backgroundColor: 'rgba(75, 192, 192, 1)',
-                    borderColor: 'rgba(0,0,0,1)'
+                    backgroundColor: backgroundColors,
+                    borderColor: 'rgba(0,0,0,1)',   
+                    borderWidth: 1
                  }
               ]
            }
           }
           options={{
-            title:{
+           /* title:{
               display:true,
               text: 'Air quality data over time',
             },
             legend:{
               display: true,
               position: 'right'
-            },
-            maintainAspectRatio: true
+            },*/
+            maintainAspectRatio: true,
+            responsive: true
             }}/>
           </div>
           </Grid>
@@ -822,8 +808,9 @@ const Graphs = props => {
     )
 
   }
+}
 
-
+/*
   return (
     <Card
       {...rest}
@@ -971,7 +958,7 @@ const Graphs = props => {
 </CardContent>
     </Card>
   );
-};
+};*/
 Graphs.propTypes = {
   className: PropTypes.string
 };

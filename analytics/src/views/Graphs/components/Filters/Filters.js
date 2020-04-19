@@ -2,18 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { makeStyles, withStyles } from '@material-ui/styles';
 import { Card, CardContent, Grid, Typography, Button } from '@material-ui/core';
-import {reduxForm, Field} from 'redux-form';
-import { createStore, combineReducers } from 'redux';
-import { reducer as formReducer } from 'redux-form';
-import classnames from "classnames";
-import { connect } from "react-redux";
 import clsx from 'clsx';
-import Select from 'react-select';
-import { useEffect, useState } from 'react';
-import DateFnsUtils from '@date-io/date-fns';
-import {MuiPickersUtilsProvider, KeyboardTimePicker, KeyboardDatePicker} from '@material-ui/pickers';
-import axios from 'axios'
-import { Pie, Bar, Line } from 'react-chartjs-2';
 
 
 const useStyles = makeStyles(theme => ({
@@ -86,4 +75,4 @@ const Filters = props => {
 Filters.propTypes = {
   className: PropTypes.string
 };
-//export default Filters;
+export default Filters;
