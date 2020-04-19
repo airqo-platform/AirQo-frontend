@@ -28,5 +28,5 @@ yarn-error.log*
  /analytics/debug.log
 /.vscode
  .vscode/
- debug.log
-
+debug.log
+ 

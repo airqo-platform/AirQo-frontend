@@ -4,7 +4,7 @@ import { Grid, Card, CardContent } from '@material-ui/core';
 import { Line } from 'react-chartjs-2';
 import clsx from 'clsx';
 import PropTypes from 'prop-types';
-import { Pm25Levels, Map,Filters } from './components';
+import { Pm25Levels, Map,CustomisableChart } from './components';
 import { useEffect, useState } from 'react';
 import 'chartjs-plugin-annotation';
 //import Select from 'react-select';
@@ -283,36 +283,7 @@ const Dashboard = props => {
           >
             <CardContent>
               <header className="App-header"><h1>Customisable Historical Chart One</h1> </header>
-              <Grid
-                container
-                spacing={1}
-              >
-                <Grid
-                  item
-                  lg={4}
-                  sm={4}
-                  xl={4}
-                  xs={12}
-                >
-                  <Filters />
-                </Grid>
-                <Grid
-                  item
-                  lg={8}
-                  sm={8}
-                  xl={8}
-                  xs={12}
-                >
-            
-
-                  <article className="canvas-container">
-                    <Line 
-                      data={data}
-                      options={options}
-                    />
-                  </article>
-                </Grid>
-              </Grid>
+              <CustomisableChart/>
             </CardContent>
 
           </Card>
@@ -339,28 +310,23 @@ const Dashboard = props => {
               >
                 <Grid
                   item
-                  lg={4}
-                  sm={4}
-                  xl={4}
+                  lg={6}
+                  sm={6}
+                  xl={6}
                   xs={12}
                 >
-                  <Filters />
+                  <CustomisableChart/>
                 </Grid>
                 <Grid
                   item
-                  lg={8}
-                  sm={8}
-                  xl={8}
+                  lg={6}
+                  sm={6}
+                  xl={6}
                   xs={12}
                 >
                     
-
-                  <article className="canvas-container">
-                    <Line 
-                      data={data} 
-                      options={options}
-                    />
-                  </article>
+                  <CustomisableChart/>
+                  
                 </Grid>
               </Grid>
             </CardContent>
