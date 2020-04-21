@@ -64,6 +64,7 @@ const Sidebar = (props) => {
       title: "Device Management",
       href: "/manager",
       icon: <ManageIcon />,
+      collapse: true,
     },
     {
       title: "Device Registry",

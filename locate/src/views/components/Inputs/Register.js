@@ -179,6 +179,11 @@ class Register extends Component {
                   Submit
                 </button>
               </div>
+
+              <div></div>
+              <div className="col s12" style={{ paddingTop: "20px" }}>
+                <Link to="/analytics"> Join Analytics?</Link>
+              </div>
             </form>
           </div>
         </div>
