@@ -91,6 +91,9 @@ export default function DeviceRegistry() {
             }, 600);
           }),
       }}
+      options={{
+        actionsColumnIndex: -1,
+      }}
     />
   );
 }

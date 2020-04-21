@@ -8,9 +8,11 @@ import { connect } from "react-redux";
 import { forgotPassword } from "../../../redux/Join/actions";
 import { Link, withRouter } from "react-router-dom";
 import classnames from "classnames";
+import { verifyToken } from "../../../redux/Join/utils";
+import constants from "../../../config/constants";
 
 const title = {
-  pageTitle: "Forgot Password Screen"
+  pageTitle: "Forgot Password Screen",
 };
 
 class ForgotPassword extends Component {
@@ -21,22 +23,29 @@ class ForgotPassword extends Component {
       email: "",
       showError: false,
       messageFromServer: "",
-      errors: {}
+      errors: {},
     };
   }
 
-  onChange = e => {
+  async componentDidMount() {}
+
+  onChange = (e) => {
     this.setState({
-      [e.target.id]: e.target.value
+      [e.target.id]: e.target.value,
     });
   };
 
-  onSubmit = e => {
+  onSubmit = (e) => {
     e.preventDefault();
+    const { email } = this.state;
     const userData = {
-      email: this.state.email
+      email,
     };
+
     this.props.forgotPassword(userData);
+    this.setState({
+      email: "",
+    });
   };
 
   render() {
@@ -67,7 +76,7 @@ class ForgotPassword extends Component {
                   id="email"
                   type="email"
                   className={classnames("", {
-                    invalid: errors.email || errors.emailnotfound
+                    invalid: errors.email || errors.emailnotfound,
                   })}
                 />
                 <label htmlFor="email">Email</label>
@@ -82,7 +91,7 @@ class ForgotPassword extends Component {
                     width: "150px",
                     borderRadius: "3px",
                     letterSpacing: "1.5px",
-                    marginTop: "1rem"
+                    marginTop: "1rem",
                   }}
                   type="submit"
                   className="btn btn-large waves-effect waves-light hoverable blue accent-3"
@@ -100,11 +109,11 @@ class ForgotPassword extends Component {
 
 ForgotPassword.propTypes = {
   forgotPassword: PropTypes.func.isRequired,
-  errors: PropTypes.object.isRequired
+  errors: PropTypes.object.isRequired,
 };
 
-const mapSateToProps = state => ({
-  errors: state.errors
+const mapSateToProps = (state) => ({
+  errors: state.errors,
 });
 
 export default connect(mapSateToProps, { forgotPassword })(ForgotPassword);

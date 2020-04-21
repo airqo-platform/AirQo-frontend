@@ -5,6 +5,7 @@ import PropTypes from "prop-types";
 import { makeStyles } from "@material-ui/styles";
 import { Avatar, Typography } from "@material-ui/core";
 import { connect } from "react-redux";
+import avatar from "assets/img/faces/profile-placeholder.jpg";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -28,7 +29,7 @@ const Profile = (props) => {
   const classes = useStyles();
 
   const { user } = props.auth;
-  const avatar = user.firstName.charAt(0);
+
   return (
     <div {...rest} className={clsx(classes.root, className)}>
       <Avatar
