@@ -6,6 +6,8 @@ const constants = {
   REGISTER_USER_URI: "http://localhost:3000/api/v1/users/registerUser",
   REGISTER_CANDIDATE_URI:
     "http://localhost:3000/api/v1/users/registerCandidate",
+  REGISTER_CANDIDATE_URI:
+    "http://localhost:3000/api/v1/users/registerCandidate",
   REJECT_USER_URI: "http://localhost:3000/api/v1/users/deny",
   ACCEPT_USER_URI: "http://localhost:3000/api/v1/users/accept",
   GET_USERS_URI: "http://localhost:3000/api/v1/users/",

@@ -1,6 +1,7 @@
 import axios from "axios";
 import setAuthToken from "../../utils/setAuthToken";
 import jwt_decode from "jwt-decode";
+import { Route, Redirect } from "react-router-dom";
 import {
   GET_ERRORS,
   SET_CURRENT_USER,
@@ -14,6 +15,25 @@ import constants from "../../config/constants";
 export const registerUser = (userData, history) => (dispatch) => {
   axios
     .post(constants.REGISTER_USER_URI, userData)
+    .then((res) => {
+      try {
+        history.push("/login");
+      } catch (e) {
+        console.log(e);
+      }
+    }) // re-direct to login on successful register
+    .catch((err) =>
+      dispatch({
+        type: GET_ERRORS,
+        payload: err.response.data,
+      })
+    );
+};
+
+// Register User
+export const registerCandidate = (userData, history) => (dispatch) => {
+  axios
+    .post(constants.REGISTER_CANDIDATE_URI, userData)
     .then((res) => {
       try {
         history.push("/login");

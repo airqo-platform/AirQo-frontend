@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import { Link, withRouter } from "react-router-dom";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
-import { registerUser } from "../../../redux/Join/actions";
+import { registerUser, registerCandidate } from "../../../redux/Join/actions";
 import classnames from "classnames";
 import CustomInput from "../CustomInput/CustomInput";
 import InputLabel from "@material-ui/core/InputLabel";
@@ -10,21 +10,11 @@ import Autocomplete from "@material-ui/lab/Autocomplete";
 import TextField from "@material-ui/core/TextField";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
 import Checkbox from "@material-ui/core/Checkbox";
+import countries from "../../../utils/countries";
 
-const privileges = [
-  { title: "school" },
-  { title: "media" },
-  { title: "institution" },
-  { title: "university" },
-  { title: "private" },
-  { title: "host" },
-  { title: "research" },
-  { title: "public" },
-  { title: "policy" },
-];
 const defaultProps = {
-  options: privileges,
-  getOptionLabel: (option) => option.title,
+  options: countries.array,
+  getOptionLabel: (option) => option.label,
 };
 
 class Register extends Component {
@@ -35,9 +25,10 @@ class Register extends Component {
       lastName: "",
       email: "",
       userName: "",
-      privilege: "",
-      password: "",
-      password2: "",
+      country: "",
+      phoneNumber: "",
+      jobTitle: "",
+      desc: "",
       errors: {},
     };
   }
@@ -66,13 +57,15 @@ class Register extends Component {
       firstName: this.state.firstName,
       lastName: this.state.lastName,
       email: this.state.email,
-      privilege: this.state.privilege,
-      userName: this.state.userName,
-      password: this.state.password,
-      password2: this.state.password2,
+      company: this.state.company,
+      jobTitle: this.state.jobTitle,
+      phoneNumber: this.state.phoneNumber,
+      country: this.state.country,
+      desc: this.state.desc,
+      errors: {},
     };
     console.log(newUser);
-    this.props.registerUser(newUser, this.props.history);
+    this.props.registerCandidate(newUser, this.props.history);
   };
   render() {
     const { errors } = this.state;
@@ -121,6 +114,37 @@ class Register extends Component {
                 <label htmlFor="lastName">Last Name</label>
                 <span className="red-text">{errors.lastName}</span>
               </div>
+
+              <div className="input-field col s12">
+                <input
+                  onChange={this.onChange}
+                  value={this.state.jobTitle}
+                  error={errors.jobTitle}
+                  id="jobTitle"
+                  type="text"
+                  className={classnames("", {
+                    invalid: errors.jobTitle,
+                  })}
+                />
+                <label htmlFor="jobTitle">Job Title</label>
+                <span className="red-text">{errors.jobTitle}</span>
+              </div>
+
+              <div className="input-field col s12">
+                <input
+                  onChange={this.onChange}
+                  value={this.state.company}
+                  error={errors.company}
+                  id="company"
+                  type="text"
+                  className={classnames("", {
+                    invalid: errors.company,
+                  })}
+                />
+                <label htmlFor="jobTitle">company</label>
+                <span className="red-text">{errors.company}</span>
+              </div>
+
               <div className="input-field col s12">
                 <input
                   onChange={this.onChange}
@@ -137,7 +161,28 @@ class Register extends Component {
               </div>
 
               <div className="input-field col s12">
-                <InputLabel style={{ color: "#AAAAAA" }}>
+                <input
+                  onChange={this.onChange}
+                  value={this.state.phoneNumber}
+                  error={errors.phoneNumber}
+                  id="phoneNumber"
+                  type="tel"
+                  className={classnames("", {
+                    invalid: errors.phoneNumber,
+                  })}
+                />
+                <label htmlFor="email">Phone Number</label>
+                <span className="red-text">{errors.phoneNumber}</span>
+              </div>
+
+              <div className="input-field col s12">
+                <InputLabel
+                  style={{ color: "#AAAAAA" }}
+                  id="desc"
+                  onChange={this.onChange}
+                  value={this.state.desc}
+                  error={errors.desc}
+                >
                   Brief Description
                 </InputLabel>
                 <CustomInput
@@ -151,15 +196,22 @@ class Register extends Component {
                   }}
                 />
               </div>
-
-              <Autocomplete
-                {...defaultProps}
-                id="privilege"
-                clearOnEscape
-                renderInput={(params) => (
-                  <TextField {...params} label="Category" margin="normal" />
-                )}
-              />
+              <div className="input-field col s12">
+                <Autocomplete
+                  {...defaultProps}
+                  clearOnEscape
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="Country"
+                      margin="normal"
+                      onChange={this.onChange}
+                      value={this.state.country}
+                      error={errors.country}
+                    />
+                  )}
+                />
+              </div>
               <div>
                 <FormControlLabel
                   control={
@@ -196,7 +248,7 @@ class Register extends Component {
 }
 
 Register.propTypes = {
-  registerUser: PropTypes.func.isRequired,
+  registerCandidate: PropTypes.func.isRequired,
   auth: PropTypes.object.isRequired,
   errors: PropTypes.object.isRequired,
 };
@@ -207,4 +259,6 @@ const mapStateToProps = (state) => ({
   errors: state.errors,
 });
 
-export default connect(mapStateToProps, { registerUser })(withRouter(Register));
+export default connect(mapStateToProps, { registerCandidate })(
+  withRouter(Register)
+);

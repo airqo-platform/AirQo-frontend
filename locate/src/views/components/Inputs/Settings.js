@@ -27,7 +27,7 @@ export default function Settings() {
   return (
     <div>
       <GridContainer>
-        <GridItem xs={12} sm={12} md={12}>
+        <GridItem xs={12} sm={12} md={6}>
           <CustomTabs
             title="Options:"
             headerColor="primary"
@@ -48,7 +48,7 @@ export default function Settings() {
                 tabIcon: Code,
                 tabContent: (
                   <TasksWithoutEdits
-                    checkedIndexes={[0]}
+                    checkedIndexes={[0, 3]}
                     tasksIndexes={[0, 1, 2]}
                     tasks={social}
                   />
