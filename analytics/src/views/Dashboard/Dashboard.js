@@ -1,13 +1,15 @@
 import React from 'react';
 import { makeStyles } from '@material-ui/styles';
-import { Grid, Card, CardContent } from '@material-ui/core';
-import { Line } from 'react-chartjs-2';
+import { Grid, Card, CardContent, CardHeader, Button, Divider, CardActions } from '@material-ui/core';
+import { Line,Bar } from 'react-chartjs-2';
 import clsx from 'clsx';
 import PropTypes from 'prop-types';
-import { Pm25Levels, Map,CustomisableChart } from './components';
+import { Pm25Levels, Map,CustomisableChart, PollutantCategory, TotalProfit } from './components';
 import { useEffect, useState } from 'react';
 import 'chartjs-plugin-annotation';
-//import Select from 'react-select';
+import palette from 'theme/palette';
+import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
+import ArrowRightIcon from '@material-ui/icons/ArrowRight';
  
 
 const useStyles = makeStyles(theme => ({
@@ -17,6 +19,13 @@ const useStyles = makeStyles(theme => ({
   differenceIcon: {
     color: theme.palette.text.secondary,
   },
+  chartContainer: {
+    height: 400,
+    position: 'relative'
+  },
+  actions: {
+    justifyContent: 'flex-end'
+  }
 }));
 
 
@@ -43,14 +52,12 @@ const Dashboard = props => {
         label: 'PM2.5(µg/m3)',
         data: locations.average_pm25_values,
         fill: false,          // Don't fill area under the line
-        borderColor: 'green'  // Line color
+        borderColor: palette.primary.main , // Line color
+        backgroundColor: palette.primary.main,
       }
     ]
   }
   
-
-
-
 
   const data = {
     labels: [
@@ -66,7 +73,7 @@ const Dashboard = props => {
         label: 'PM2.5(µg/m3)',
         data: [22,19,27,23,22,24,17,25,23,24,20,19],
         fill: false,          // Don't fill area under the line
-        borderColor: 'green'  // Line color
+        borderColor:  palette.primary.main,  // Line color
       }
     ]
   }
@@ -127,12 +134,132 @@ const Dashboard = props => {
     maintainAspectRatio: false	// Don't maintain w/h ratio
   }
 
+  
+  const options_main= {
+    annotation: {
+      annotations: [{
+        type: 'line',
+        mode: 'horizontal',
+        scaleID: 'y-axis-0',
+        value: 25,
+        borderColor: palette.text.secondary,
+        borderWidth: 2,
+        label: {
+          enabled: false,
+          content: 'WHO LIMIT',
+          backgroundColor: palette.white,
+          titleFontColor: palette.text.primary,
+          bodyFontColor: palette.text.primary,
+        },
+        
+      }]
+    },
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: false,
+    legend: { display: true },
+    cornerRadius: 0,
+    tooltips: {
+      enabled: true,
+      mode: 'index',
+      intersect: false,
+      borderWidth: 1,
+      borderColor: palette.divider,
+      backgroundColor: palette.white,
+      titleFontColor: palette.text.primary,
+      bodyFontColor: palette.text.secondary,
+      footerFontColor: palette.text.secondary
+    },
+    layout: { padding: 0 },
+    scales: {
+      xAxes: [
+        {
+          barThickness: 12,
+          maxBarThickness: 10,
+          barPercentage: 0.5,
+          categoryPercentage: 0.5,
+          ticks: {
+            fontColor: palette.text.secondary
+          },
+          gridLines: {
+            display: false,
+            drawBorder: false
+          },
+          scaleLabel: {
+            display: true,
+            labelString: 'Locations'
+          }
+
+        }
+      ],
+      yAxes: [
+        {
+          ticks: {
+            fontColor: palette.text.secondary,
+            beginAtZero: true,
+            min: 0
+          },
+          gridLines: {
+            borderDash: [2],
+            borderDashOffset: [2],
+            color: palette.divider,
+            drawBorder: false,
+            zeroLineBorderDash: [2],
+            zeroLineBorderDashOffset: [2],
+            zeroLineColor: palette.divider
+          },
+          scaleLabel: {
+            display: true,
+            labelString: 'PM2.5(µg/m3)'
+          }
+        }
+      ]
+    }
+  };
+
   return (
     <div className={classes.root}>
       <Grid
         container
-        spacing={0}
+        spacing={4}
       >
+        <Grid
+          item
+          lg={3}
+          sm={6}
+          xl={3}
+          xs={12}
+        >
+          <PollutantCategory />
+        </Grid>
+        <Grid
+          item
+          lg={3}
+          sm={6}
+          xl={3}
+          xs={12}
+        >
+          <PollutantCategory />
+        </Grid>
+
+        <Grid
+          item
+          lg={3}
+          sm={6}
+          xl={3}
+          xs={12}
+        >
+          <TotalProfit />
+        </Grid>
+        <Grid
+          item
+          lg={3}
+          sm={6}
+          xl={3}
+          xs={12}
+        >
+          <TotalProfit />
+        </Grid>
         <Grid
           item
           lg={6}
@@ -140,15 +267,41 @@ const Dashboard = props => {
           xl={6}
           xs={12}
         >
-          <header className="App-header">
-            <h1>Past 28 days aggregated mean</h1>
-          </header>
-          <article className="canvas-container">
-            <Line 
-              data={locationsGraphData} 
-              options={options2}
+          <Card
+            {...rest}
+            className={clsx(classes.root, className)}
+          >
+            <CardHeader
+              action={
+                <Button
+                  size="small"
+                  variant="text"
+                >
+                  Last 28 days <ArrowDropDownIcon />
+                </Button>
+              }
+              title="Aggregated Average PM2.5"
             />
-          </article>
+            <Divider />
+            <CardContent>
+              <div className={classes.chartContainer}>
+                <Bar
+                  data={locationsGraphData}
+                  options={options_main}
+                />
+              </div>
+            </CardContent>
+            <Divider />
+            <CardActions className={classes.actions}>
+              <Button
+                color="primary"
+                size="small"
+                variant="text"
+              >
+                Overview <ArrowRightIcon />
+              </Button>
+            </CardActions>
+          </Card>          
         </Grid>
 
         <Grid
@@ -158,22 +311,25 @@ const Dashboard = props => {
           xl={6}
           xs={12}
         >
-          <header className="App-header">
-            <h1>PM 2.5 for the past hour</h1>
-          </header>
-          <Grid 
-            container            
+         
+          <Grid
+            item
+            lg={12}
+            sm={12}
+            xl={12}
+            xs={12}
           >
-            <Grid
-              item
-              lg={12}
-              sm={12}
-              xl={12}
-              xs={12}
-            >
-              <Map />
-            </Grid>
-            
+            <Map />
+          </Grid>
+          
+          <Divider />
+        
+          <Grid
+            container
+            spacing={0}
+          >
+
+          
             <Grid
               item
               lg={2}
@@ -218,6 +374,7 @@ const Dashboard = props => {
                 
               />
             </Grid>
+
             <Grid
               item
               lg={2}
@@ -263,11 +420,12 @@ const Dashboard = props => {
                 
               />
             </Grid>
-            <p className={classes.differenceIcon}>PM <sub>2.5</sub> - Particulate Matter</p>
+            <p>
+              PM <sub>2.5</sub> - Particulate Matter 
+            </p>
+                
           </Grid>
-
         </Grid>
-        
         
 
         <Grid
@@ -354,7 +512,7 @@ const Dashboard = props => {
               <article className="canvas-container">
                 <Line 
                   data={data} 
-                  options={options}
+                  options={options_main}
                 />
               </article>
             </CardContent>

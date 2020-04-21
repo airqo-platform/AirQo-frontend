@@ -138,7 +138,8 @@ const CustomisableChart = props => {
     axios.get('http://127.0.0.1:5000/api/v1/dashboard/customisedchart/random')
       .then(res => res.data)
       .then((customisedChartData) => {
-        setCustomisedGraphData(customisedChartData.results)
+        setCustomisedGraphData(customisedChartData)
+        console.log(customisedChartData)
       })
       .catch(console.log)
   },[]);
@@ -164,39 +165,33 @@ const CustomisableChart = props => {
       { headers: { 'Content-Type': 'application/json' } }
     ).then(res => res.data)
       .then((customisedChartData) => {
-        setCustomisedGraphData(customisedChartData.results)    
+        setCustomisedGraphData(customisedChartData)    
 
       }).catch(
         console.log
       )    
   }
 
-
+ 
   const customisedGraphData = {
+    chart_type: customGraphData.results? customGraphData.results[0].chart_type:null,
+    labels:  customGraphData.results? customGraphData.results[0].chart_data.labels:null, 
+    
+    datasets: customGraphData.datasets
+  }
+
+  const customisedGraphDatax = {
     chart_type: customGraphData[0]? customGraphData[0].chart_type:null,
     labels:  customGraphData[0]? customGraphData[0].chart_data.labels:null, 
+    
     datasets: [
       {
         label: customGraphData[0]? customGraphData[0].parish +' '+ customGraphData[0].pollutant : null,
         data: customGraphData[0]?customGraphData[0].chart_data.pollutant_values:null, 
         fill: false,         
-        borderColor: 'blue',  // Line color
+        borderColor: 'blue',  
         backgroundColor:'blue'
-      },
-      /*
-      ...(customGraphData[1] && {
-        label: customGraphData[1]?customGraphData[1].chart_data.parish + customGraphData[1].chart_data.location_code: null,
-        data: customGraphData[1]?customGraphData[1].chart_data.pollutant_values:null, 
-        fill: customGraphData[1]?false: null,         
-        borderColor: customGraphData[1]? 'blue' : null
-      })
-      /*
-      customGraphData.map((graph_data) => ({
-        label: graph_data.chart_data.parish + graph_data.chart_data.location_code,
-        data:  graph_data.chart_data.pollutant_values, 
-        fill: false,         
-        borderColor: customGraphData[1]?'blue' :''
-      }))*/
+      }     
 
     ]
   }

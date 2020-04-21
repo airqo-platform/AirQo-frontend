@@ -7,6 +7,8 @@ import {Link } from 'react-router-dom';
 import {
   Card,
   CardContent, 
+  CardHeader,
+  Divider,Button
 } from '@material-ui/core';
 //import InsertChartIcon from '@material-ui/icons/InsertChartOutlined';
 import { useEffect, useState } from 'react';
@@ -58,6 +60,19 @@ const Map = props => {
       {...rest}
       className={clsx(classes.root, className)}
     >
+      <CardHeader
+        action={
+          <Button
+            size="small"
+            variant="text"
+          >
+            Previous Hour 
+          </Button>
+        }
+        title="PM 2.5 Accross the Network"
+      />
+      <Divider />
+            
       <CardContent>
         <LeafletMap
           animate
