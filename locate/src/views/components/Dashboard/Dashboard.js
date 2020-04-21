@@ -1,45 +1,21 @@
-import React, { Component } from "react";
+import React from "react";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { logoutUser } from "../../../redux/Join/actions";
-import TextField from "@material-ui/core/TextField";
-import Autocomplete from "@material-ui/lab/Autocomplete";
 import GridContainer from "../Grid/GridContainer.js";
 import GridItem from "../Grid/GridItem.js";
-import CustomInput from "../CustomInput/CustomInput.js";
-import { Link, withRouter } from "react-router-dom";
+import NavPills from "../NavPills/NavPills.js";
 
 import { makeStyles } from "@material-ui/core/styles";
-import InputLabel from "@material-ui/core/InputLabel";
+import DevicesIcon from "@material-ui/icons/Devices";
+import AddBoxIcon from "@material-ui/icons/AddBox";
+import PaymentIcon from "@material-ui/icons/Payment";
+import CompassCalibrationIcon from "@material-ui/icons/CompassCalibration";
+import AddLocationIcon from "@material-ui/icons/AddLocation";
 
-// core components
-import Button from "../CustomButtons/Button.js";
-import Card from "../Card/Card";
-import CardHeader from "../Card/CardHeader.js";
-import CardAvatar from "../Card/CardAvatar.js";
-import CardBody from "../Card/CardBody.js";
-import CardFooter from "../Card/CardFooter.js";
+import Schedule from "@material-ui/icons/Schedule";
 
-import Box from "@material-ui/core/Box";
-
-const styles = {
-  cardCategoryWhite: {
-    color: "rgba(255,255,255,.62)",
-    margin: "0",
-    fontSize: "14px",
-    marginTop: "0",
-    marginBottom: "0",
-  },
-  cardTitleWhite: {
-    color: "#FFFFFF",
-    marginTop: "0px",
-    minHeight: "auto",
-    fontWeight: "300",
-    fontFamily: "'Roboto', 'Helvetica', 'Arial', sans-serif",
-    marginBottom: "3px",
-    textDecoration: "none",
-  },
-};
+import styles from "assets/jss/material-kit-react/views/componentsSections/pillsStyle.js";
 
 const useStyles = makeStyles(styles);
 
@@ -50,45 +26,127 @@ function withMyHook(Component) {
   };
 }
 
-class Dashboard extends Component {
-  onLogoutClick = (e) => {
-    e.preventDefault();
-    this.props.logoutUser();
-  };
-
-  render() {
-    const { user } = this.props.auth;
-    return (
-      <div style={{ height: "75vh" }} className="container valign-wrapper">
-        <div className="row">
-          <div className="col s12 center-align">
-            <h4>
-              <b>Hi</b> {user.firstName}
-              <p className="flow-text grey-text text-darken-1">
-                <span style={{ fontFamily: "monospace" }}>
-                  AirQo Network Manager
-                </span>{" "}
-                App 👏
-              </p>
-            </h4>
-            <button
-              style={{
-                width: "150px",
-                borderRadius: "3px",
-                letterSpacing: "1.5px",
-                marginTop: "1rem",
-              }}
-              onClick={this.onLogoutClick}
-              className="btn btn-large waves-effect waves-light hoverable blue accent-3"
-            >
-              Logout
-            </button>
-          </div>
-        </div>
+function Dashboard(props) {
+  const { user } = props.auth;
+  const classes = useStyles();
+  return (
+    <div className={classes.section}>
+      <div className={classes.container}>
+        <GridContainer>
+          <GridItem xs={12} sm={12} md={12} lg={6}>
+            <NavPills
+              color="primary"
+              tabs={[
+                {
+                  tabButton: "Locate",
+                  tabIcon: AddLocationIcon,
+                  tabContent: (
+                    <span>
+                      <p>
+                        Is an essential tool for the growing network. After
+                        specifying the broad region in which devices are to be
+                        located eg a specific town or district, \users can
+                        specify the location of existing devices,‘must-have’
+                        locations. The tool can then recommend final locations
+                        based on either the number of devices available or the
+                        accuracy required across the network. Locations can then
+                        be added to scheduling for deployment in the required
+                        timeframe.
+                      </p>
+                    </span>
+                  ),
+                },
+                {
+                  tabButton: "Scheduling",
+                  tabIcon: Schedule,
+                  tabContent: (
+                    <span>
+                      <p>
+                        As networks grow networks become more difficult to
+                        manage with ongoing and emergency maintenance combined
+                        with collocation and deployment activities all competing
+                        for time. The scheduling tool will provide the manager
+                        and their team with a customisable plan of action that
+                        takes into account routine works, issues arising and
+                        changing priorities
+                      </p>
+                    </span>
+                  ),
+                },
+                {
+                  tabButton: "Device Management",
+                  tabIcon: DevicesIcon,
+                  tabContent: (
+                    <span>
+                      <p>
+                        Device Management offers a range of integrated tools for
+                        use by air quality monitoring network managers. It
+                        enables real time monitoring of the network and
+                        facilitates expansion, maintenance and troubleshooting.
+                        Its ultimate goal to efficiently maximise network uptime
+                        given resources available. It also enables accurate
+                        logging of maintenance tasks such as cleaning, replacing
+                        components and general troubleshooting.
+                      </p>
+                    </span>
+                  ),
+                },
+                {
+                  tabButton: "Device Registry",
+                  tabIcon: AddBoxIcon,
+                  tabContent: (
+                    <span>
+                      <p>
+                        this feature provides an easy interface for registering
+                        new devices, new locations and their features on the
+                        network. Activities can be provisioned in advance and
+                        then finalised once deployment or activity has taken
+                        place.
+                      </p>
+                    </span>
+                  ),
+                },
+                {
+                  tabButton: "Incentives",
+                  tabIcon: PaymentIcon,
+                  tabContent: (
+                    <span>
+                      <p>
+                        This tool is a means of recording and rewarding hosts,
+                        boda drivers and other support teams for their work. It
+                        will capture the work that has been done on a monthly
+                        basis and coordinate distribution of funds via mobile
+                        money. As well as paying standing charges it can also
+                        manage one off incentives and compensate hosts for
+                        electricity costs incurred etc.
+                      </p>
+                    </span>
+                  ),
+                },
+                {
+                  tabButton: "Collocation",
+                  tabIcon: CompassCalibrationIcon,
+                  tabContent: (
+                    <span>
+                      <p>
+                        This feature allows collocation activities to be
+                        planned, executed and results reported using times,
+                        device names and locations. Following initial trials
+                        collocation records can automatically feed into the
+                        calibration algorithm
+                      </p>
+                    </span>
+                  ),
+                },
+              ]}
+            />
+          </GridItem>
+        </GridContainer>
       </div>
-    );
-  }
+    </div>
+  );
 }
+
 Dashboard.propTypes = {
   logoutUser: PropTypes.func.isRequired,
   auth: PropTypes.object.isRequired,
