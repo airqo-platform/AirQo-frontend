@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { makeStyles } from '@material-ui/styles';
 import { Grid} from '@material-ui/core';
 import { Display, Filters } from './components';
+import axios from 'axios';
 
 const useStyles = makeStyles(theme => ({
   root: {
