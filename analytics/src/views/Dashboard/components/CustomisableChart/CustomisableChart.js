@@ -12,48 +12,23 @@ import {
   KeyboardDatePicker,
 } from '@material-ui/pickers';
 import axios from 'axios';
-//import { Line } from 'react-chartjs-2';
 import 'chartjs-plugin-annotation';
 import {CustomDisplayChart} from '../index'
-//import ArrowUpwardIcon from '@material-ui/icons/ArrowUpward';
-//import PeopleIcon from '@material-ui/icons/PeopleOutlined';
+import palette from 'theme/palette';
+
+
 
 const useStyles = makeStyles(theme => ({
   root: {
     height: '100%'
   },
-  content: {
-    alignItems: 'center',
-    display: 'flex'
-  },
-  title: {
-    fontWeight: 700
-  },
+  
   avatar: {
     backgroundColor: theme.palette.success.main,
     height: 56,
     width: 56
   },
-  icon: {
-    height: 32,
-    width: 32
-  },
-  difference: {
-    marginTop: theme.spacing(2),
-    display: 'flex',
-    alignItems: 'center'
-  },
-  differenceIcon: {
-    color: theme.palette.success.dark
-  },
-  differenceValue: {
-    color: theme.palette.success.dark,
-    marginRight: theme.spacing(1)
-  },
-
-  formControl: {
-    margin: theme.spacing(3),
-  },
+  
 }));
 
 
@@ -102,7 +77,7 @@ const CustomisableChart = props => {
     { value: 'pie', label: 'Pie' }
   ];
 
-  const [selectedChart, setSelectedChartType] =  useState({value: 'line' });
+  const [selectedChart, setSelectedChartType] =  useState();
 
   const handleChartTypeChange = selectedChartType => {
     setSelectedChartType(selectedChartType);
@@ -114,7 +89,7 @@ const CustomisableChart = props => {
     { value: 'monthly', label: 'Monthly' }
   ];
 
-  const [selectedFrequency, setSelectedFrequency] =  useState({value: 'daily' });
+  const [selectedFrequency, setSelectedFrequency] =  useState();
 
   const handleFrequencyChange = selectedFrequencyOption => {
     setSelectedFrequency(selectedFrequencyOption);
@@ -126,7 +101,7 @@ const CustomisableChart = props => {
     { value: 'NO2', label: 'NO2' }
   ];
 
-  const [selectedPollutant, setSelectedPollutant] =  useState({value: 'PM 2.5' });
+  const [selectedPollutant, setSelectedPollutant] =  useState();
 
   const handlePollutantChange = selectedPollutantOption => {
     setSelectedPollutant(selectedPollutantOption);
@@ -180,40 +155,91 @@ const CustomisableChart = props => {
     datasets: customGraphData.datasets
   }
 
-  const customisedGraphDatax = {
-    chart_type: customGraphData[0]? customGraphData[0].chart_type:null,
-    labels:  customGraphData[0]? customGraphData[0].chart_data.labels:null, 
-    
-    datasets: [
-      {
-        label: customGraphData[0]? customGraphData[0].parish +' '+ customGraphData[0].pollutant : null,
-        data: customGraphData[0]?customGraphData[0].chart_data.pollutant_values:null, 
-        fill: false,         
-        borderColor: 'blue',  
-        backgroundColor:'blue'
-      }     
-
-    ]
-  }
-  
-
-  const options = {
+   
+  const options= {
+    annotation: {
+      annotations: [{
+        type: 'line',
+        mode: 'horizontal',
+        scaleID: 'y-axis-0',
+        value: 25,
+        borderColor: palette.text.secondary,
+        borderWidth: 2,
+        label: {
+          enabled: true,
+          content: 'WHO LIMIT',
+          //backgroundColor: palette.white,
+          titleFontColor: palette.text.primary,
+          bodyFontColor: palette.text.primary,
+          position:'right'
+        },
+        
+      }]
+    },
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: false,
+    legend: { display: true },
+    cornerRadius: 0,
+    tooltips: {
+      enabled: true,
+      mode: 'index',
+      intersect: false,
+      borderWidth: 1,
+      borderColor: palette.divider,
+      backgroundColor: palette.white,
+      titleFontColor: palette.text.primary,
+      bodyFontColor: palette.text.secondary,
+      footerFontColor: palette.text.secondary
+    },
+    layout: { padding: 0 },
     scales: {
-      yAxes: [{
-        scaleLabel: {
-          display: true,
-          labelString: 'PM2.5(µg/m3)'
+      xAxes: [
+        {
+          barThickness: 12,
+          maxBarThickness: 10,
+          barPercentage: 0.5,
+          categoryPercentage: 0.5,
+          ticks: {
+            fontColor: palette.text.secondary
+          },
+          gridLines: {
+            display: false,
+            drawBorder: false
+          },
+          scaleLabel: {
+            display: true,
+            labelString: 'Date'
+          }
+
         }
-      }],
-      xAxes: [{
-        scaleLabel: {
-          display: true,
-          labelString: 'Date'
+      ],
+      yAxes: [
+        {
+          ticks: {
+            fontColor: palette.text.secondary,
+            beginAtZero: true,
+            min: 0
+          },
+          gridLines: {
+            borderDash: [2],
+            borderDashOffset: [2],
+            color: palette.divider,
+            drawBorder: false,
+            zeroLineBorderDash: [2],
+            zeroLineBorderDashOffset: [2],
+            zeroLineColor: palette.divider
+          },
+          scaleLabel: {
+            display: true,
+            labelString: 'PM2.5(µg/m3)'
+          }
         }
-      }],
-    } ,    
-    maintainAspectRatio: false	// Don't maintain w/h ratio
-  }
+      ]
+    }
+  };
+
+  
   
   return (
     <Card
@@ -221,176 +247,16 @@ const CustomisableChart = props => {
       className={clsx(classes.root, className)}
     >
       <CardContent>
-        <Grid
-          container
-          justify="space-between"
-        >
-          {/* 
-          <Grid item>
-            <Typography
-              className={classes.title}
-              color="textSecondary"
-              gutterBottom
-              variant="body2"
-            >
-              Filters
-            </Typography>
-          </Grid>
-          */}
-        </Grid>
-        
+                
         <Grid
           container
           spacing={1}
         >
-        
           <Grid
             item
-            lg={4}
-            sm={4}
-            xl={4}
-            xs={12}
-          >
-        
-        
-            <form onSubmit={handleSubmit}>
-              
-              <div className={classes.formControl}>
-                <label className="reactSelectLabel">Location(s)</label>
-                <Select
-                  className="reactSelect"
-                  name="location"
-                  placeholder="Location(s)"
-                  value={values.selectedOption}
-                  options={filterLocationsOptions}
-                  onChange={handleMultiChange}
-                  isMulti
-                />
-              </div>
-
-              <div className={classes.formControl}> 
-                <MuiPickersUtilsProvider utils={DateFnsUtils}>
-                  <Grid 
-                    container 
-                    justify="space-around"
-                  >
-                    <KeyboardDatePicker
-                      disableToolbar
-                      variant="inline"
-                      format="MM/dd/yyyy"
-                      margin="normal"
-                      id="date-picker-inline"
-                      label="Start Date"
-                      value={selectedDate}
-                      onChange={handleDateChange}
-                      KeyboardButtonProps={{
-                        'aria-label': 'change date',
-                      }}
-                    />                
-                    <KeyboardTimePicker
-                      disableToolbar
-                      variant="inline"
-                      margin="normal"
-                      id="time-picker"
-                      label="Time Picker "
-                      value={selectedDate}
-                      onChange={handleDateChange}
-                      KeyboardButtonProps={{
-                        'aria-label': 'change time',
-                      }}
-                    />
-                  </Grid>
-                </MuiPickersUtilsProvider>
-              </div>
-
-              <div className={classes.formControl}>
-                <MuiPickersUtilsProvider utils={DateFnsUtils}>
-                  <Grid 
-                    container 
-                    justify="space-around"
-                  >
-                    <KeyboardDatePicker
-                      disableToolbar
-                      variant="inline"
-                      format="MM/dd/yyyy"
-                      margin="normal"
-                      id="date-picker-inline"
-                      label="End Date"
-                      value={selectedEndDate}
-                      onChange={handleEndDateChange}
-                      KeyboardButtonProps={{
-                        'aria-label': 'change end date',
-                      }}
-                    />                
-                    <KeyboardTimePicker
-                      disableToolbar
-                      variant="inline"
-                      margin="normal"
-                      id="time-picker"
-                      label="Time Picker "
-                      value={selectedEndDate}
-                      onChange={handleEndDateChange}
-                      KeyboardButtonProps={{
-                        'aria-label': 'change end time',
-                      }}
-                    />
-                  </Grid>
-                </MuiPickersUtilsProvider>
-              </div>
-
-              <div className={classes.formControl}>
-                <label className="reactSelectLabel">Chart Type</label>
-                <Select
-                  className="reactSelect"
-                  name="chart-type"
-                  placeholder="Chart Type"
-                  value={selectedChart}
-                  options={chartTypeOptions}
-                  onChange={handleChartTypeChange}              
-                />
-              </div>
-
-              <div className={classes.formControl}>
-                <label className="reactSelectLabel">Frequency</label>
-                <Select
-                  className="reactSelect"
-                  name="chart-type"
-                  placeholder="Frequency"
-                  value={selectedFrequency}
-                  options={frequencyOptions}
-                  onChange={handleFrequencyChange}              
-                />
-              </div>
-
-              <div className={classes.formControl}>
-                <label className="reactSelectLabel">Pollutant</label>
-                <Select
-                  className="reactSelect"
-                  name="pollutant"
-                  placeholder="Pollutant"
-                  value={selectedPollutant}
-                  options={pollutantOptions}
-                  onChange={handlePollutantChange}              
-                />
-              </div>
-
-              <div className={classes.formControl}>
-                <Button 
-                  variant="contained" 
-                  color="primary"              
-                  type="submit"
-                > Generate Graph
-                </Button>
-              </div>       
-            </form>            
-        
-                 
-          </Grid>
-          <Grid
-            item
-            lg={8}
-            sm={8}
-            xl={8}
+            lg={12}
+            sm={12}
+            xl={12}
             xs={12}
           >           
            
@@ -403,6 +269,221 @@ const CustomisableChart = props => {
             />
             
           </Grid>
+        
+          <Grid
+            item
+            lg={12}
+            sm={12}
+            xl={12}
+            xs={12}
+            
+          >        
+            
+            <form onSubmit={handleSubmit}>             
+              
+              <Grid
+                container
+                spacing={1}
+              >             
+                <Grid
+                  item
+                  md={3}
+                  xs={6}
+                >
+                  <Select
+                    fullWidth
+                    className="reactSelect"
+                    name="location"
+                    placeholder="Location(s)"
+                    value={values.selectedOption}
+                    options={filterLocationsOptions}
+                    onChange={handleMultiChange}
+                    isMulti
+                    variant="outlined"
+                    margin="dense"
+                    required
+                  />
+                </Grid>
+
+                <Grid
+                  item
+                  md={3}
+                  xs={6}
+                >                
+                  <Select
+                    fullWidth
+                    label="Chart Type"
+                    className="reactSelect"
+                    name="chart-type"
+                    placeholder="Chart Type"
+                    value={selectedChart}
+                    options={chartTypeOptions}
+                    onChange={handleChartTypeChange}    
+                    variant="outlined"
+                    margin="dense" 
+                    required         
+                  />
+                </Grid>
+                
+                <Grid
+                  item
+                  md={3}
+                  xs={6}
+                >     
+                  <Select
+                    fullWidth
+                    label ="Frequency"
+                    className=""
+                    name="chart-frequency"
+                    placeholder="Frequency"
+                    value={selectedFrequency}
+                    options={frequencyOptions}
+                    onChange={handleFrequencyChange}
+                    variant="outlined"
+                    margin="dense"   
+                    required           
+                  />
+                </Grid>
+                <Grid
+                  item
+                  md={3}
+                  xs={6}
+                >     
+                  <Select
+                    fullWidth
+                    label="Pollutant"
+                    className=""
+                    name="pollutant"
+                    placeholder="Pollutant"
+                    value={selectedPollutant}
+                    options={pollutantOptions}
+                    onChange={handlePollutantChange}
+                    variant="outlined"
+                    margin="dense"  
+                    required            
+                  />
+                </Grid>
+
+                <Grid
+                  item
+                  md={12}
+                  xs={12}
+                >
+                  <MuiPickersUtilsProvider utils={DateFnsUtils}>
+                    <Grid 
+                      container 
+                      spacing={1}
+                    >
+                      <Grid
+                        item
+                        lg={3}
+                        md={3}
+                        sm={6}
+                        xl={3}
+                        xs={12}
+                      >
+                        <KeyboardDatePicker                     
+                          disableToolbar
+                          variant="inline"
+                          format="MM/dd/yyyy"
+                          margin="normal"
+                          id="date-picker-inline"
+                          label="Start Date"
+                          value={selectedDate}
+                          onChange={handleDateChange}
+                          KeyboardButtonProps={{
+                            'aria-label': 'change date',
+                          }}
+                          required
+                        />  
+                      </Grid>  
+                      <Grid
+                        item
+                        lg={3}
+                        md={3}
+                        sm={6}
+                        xl={3}
+                        xs={12}
+                      >            
+                        <KeyboardTimePicker                     
+                          disableToolbar
+                          variant="inline"
+                          margin="normal"
+                          id="time-picker"
+                          label="Start Time Picker "
+                          value={selectedDate}
+                          onChange={handleDateChange}
+                          KeyboardButtonProps={{
+                            'aria-label': 'change time',
+                          }}  
+                          required                    
+                        />
+                      </Grid>
+
+                      <Grid
+                        item
+                        lg={3}
+                        md={3}
+                        sm={6}
+                        xl={3}
+                        xs={12}
+                      >
+                        <KeyboardDatePicker                      
+                          disableToolbar
+                          variant="inline"
+                          format="MM/dd/yyyy"
+                          margin="normal"
+                          id="date-picker-inline"
+                          label="End Date"
+                          value={selectedEndDate}
+                          onChange={handleEndDateChange}
+                          KeyboardButtonProps={{
+                            'aria-label': 'change end date',
+                          }}
+                          required
+                        /> 
+                      </Grid> 
+                      <Grid
+                        item
+                        lg={3}
+                        md={3}
+                        sm={6}
+                        xl={3}
+                        xs={12}
+                      >              
+                        <KeyboardTimePicker                      
+                          disableToolbar
+                          variant="inline"
+                          margin="normal"
+                          id="time-picker"
+                          label="End Time Picker "
+                          value={selectedEndDate}
+                          onChange={handleEndDateChange}
+                          KeyboardButtonProps={{
+                            'aria-label': 'change end time',
+                          }}
+                          required
+                        />
+                      </Grid>
+                    </Grid>
+                  </MuiPickersUtilsProvider>
+                </Grid>             
+             
+                
+             
+                <Button 
+                  variant="contained" 
+                  color="primary"              
+                  type="submit"
+                > Generate Graph
+                </Button>
+                
+              </Grid>
+            </form>            
+        
+                 
+          </Grid>
+          
         </Grid>
 
       </CardContent>

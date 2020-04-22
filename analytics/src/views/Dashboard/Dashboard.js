@@ -145,11 +145,12 @@ const Dashboard = props => {
         borderColor: palette.text.secondary,
         borderWidth: 2,
         label: {
-          enabled: false,
+          enabled: true,
           content: 'WHO LIMIT',
-          backgroundColor: palette.white,
+          //backgroundColor: palette.white,
           titleFontColor: palette.text.primary,
           bodyFontColor: palette.text.primary,
+          position:'right'
         },
         
       }]
@@ -429,22 +430,47 @@ const Dashboard = props => {
         
 
         <Grid
-          item
-          lg={12}
-          sm={12}
-          xl={12}
+          item          
+          lg={8}
+          md={12}
+          xl={9}
           xs={12}
         >
           <Card
             {...rest}
             className={clsx(classes.root, className)}
           >
+            <CardHeader
+              action={
+                <Button
+                  size="small"
+                  variant="text"
+                >
+                  Last 7 days <ArrowDropDownIcon />
+                </Button>
+              }
+              title="Customisable Historical Chart One"
+            />
+            <Divider />
             <CardContent>
-              <header className="App-header"><h1>Customisable Historical Chart One</h1> </header>
-              <CustomisableChart/>
+              <div className={classes.chartContainerx}>
+                    
+                <CustomisableChart/>
+              </div>
+                  
             </CardContent>
+            
 
           </Card>
+        </Grid>
+        <Grid
+          item
+          lg={4}
+          md={6}
+          xl={3}
+          xs={12}
+        >
+          <PollutantCategory/>
         </Grid>
 
         
