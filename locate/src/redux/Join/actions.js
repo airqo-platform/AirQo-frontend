@@ -84,17 +84,6 @@ export const forgotPassword = (userData) => async (dispatch) => {
         type: RECOVERY_EMAIL_REQUEST,
         payload: response.data,
       });
-      // if (response.data === "email not recognized") {
-      //   this.setState({
-      //     showError: true,
-      //     messageFromServer: "",
-      //   });
-      // } else if (response.data === "recovery email sent") {
-      //   this.setState({
-      //     showError: false,
-      //     messageFromServer: "",
-      //   });
-      // }
     })
     .catch((err) =>
       dispatch({

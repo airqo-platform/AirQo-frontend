@@ -1,17 +1,12 @@
 import React, { Component } from "react";
 import axios from "axios";
 
-import TextField from "@material-ui/core/TextField";
-
 //new imports
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { verifyToken, updatePassword } from "../../../redux/Join/actions";
 import { Link, withRouter } from "react-router-dom";
 import classnames from "classnames";
-import errorPage from "./Conditionals/Error";
-import loadingPage from "./Conditionals/IsLoading";
-import updatedPage from "./Conditionals/Updated";
 import constants from "../../../config/constants";
 const loading = {
   margin: "1em",
@@ -27,7 +22,7 @@ class ResetPassword extends Component {
     super();
 
     this.state = {
-      username: "",
+      userName: "",
       password: "",
       confirmPassword: "",
       update: false,
@@ -40,19 +35,6 @@ class ResetPassword extends Component {
   //extract token and DATE from URL params and
   //passes it back to server's reset route for verification
   async componentDidMount() {
-    // console.log(this.props.match.params.token);
-    // const {
-    //   match: {
-    //     params: { token },
-    //   },
-    // } = this.props;
-
-    // const tokenValue = {
-    //   params: {
-    //     resetPasswordToken: token,
-    //   },
-    // };
-    // this.props.verifyToken(tokenValue);
     const {
       match: {
         params: { token },
@@ -67,7 +49,7 @@ class ResetPassword extends Component {
       // console.log(response);
       if (response.data.message === "password reset link a-ok") {
         this.setState({
-          username: response.data.username,
+          userName: response.data.userName,
           updated: false,
           isLoading: false,
           error: false,
@@ -92,22 +74,6 @@ class ResetPassword extends Component {
   //if the user is authenticated and allowed to reset their password.
   //update password while logged into the app, as well
   onSubmit = async (e) => {
-    // console.log("we are here 1");
-    // e.preventDefault();
-    // const {
-    //   match: {
-    //     params: { token },
-    //   },
-    // } = this.props;
-    // console.log("we are here 2");
-    // const userData = {
-    //   userName: this.state.userName,
-    //   password: this.state.password,
-    //   resetPasswordToken: token,
-    // };
-    // console.log("we are here 3");
-    // this.props.updatePassword(userData);
-
     const { userName, password } = this.state;
     const {
       match: {
