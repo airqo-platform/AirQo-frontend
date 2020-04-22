@@ -7,7 +7,6 @@ import {
   SET_CURRENT_USER,
   USER_LOADING,
   RESET_PWD_SUCCESS,
-  DEACTIVATE_USER_REQUEST,
   RECOVERY_EMAIL_REQUEST,
 } from "./types";
 import constants from "../../config/constants";
