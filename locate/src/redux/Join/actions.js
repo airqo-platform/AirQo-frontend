@@ -87,7 +87,7 @@ export const forgotPassword = (userData) => async (dispatch) => {
     .catch((err) =>
       dispatch({
         type: GET_ERRORS,
-        payload: err.response,
+        payload: err.response.data,
       })
     );
 };
