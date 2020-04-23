@@ -4,7 +4,7 @@ import { Grid, Card, CardContent, CardHeader, Button, Divider, CardActions } fro
 import { Line,Bar } from 'react-chartjs-2';
 import clsx from 'clsx';
 import PropTypes from 'prop-types';
-import { Pm25Levels, Map,CustomisableChart, PollutantCategory, TotalProfit } from './components';
+import { Pm25Levels, Map, CustomisableChart, PollutantCategory, TotalProfit } from './components';
 import { useEffect, useState } from 'react';
 import 'chartjs-plugin-annotation';
 import palette from 'theme/palette';
@@ -78,43 +78,7 @@ const Dashboard = props => {
     ]
   }
 
-  const options2 = {
-    scales: {
-      yAxes: [{
-        scaleLabel: {
-          display: true,
-          labelString: 'PM2.5(µg/m3)'
-        },
-        ticks: {
-          //beginAtZero: true,
-          suggestedMin:20
-        }
-      }],
-      xAxes: [{
-        scaleLabel: {
-          display: true,
-          labelString: 'Locations'
-        }
-      }],
-    } ,  
-    
-    annotation: {
-      annotations: [{
-        type: 'line',
-        mode: 'horizontal',
-        scaleID: 'y-axis-0',
-        value: 25,
-        borderColor: 'rgb(75, 192, 192)',
-        borderWidth: 2,
-        label: {
-          enabled: true,
-          content: 'WHO LIMIT',
-          //backgroundColor: '',
-        }
-      }]
-    },
-    maintainAspectRatio: false	// Don't maintain w/h ratio
-  }
+  
   
   const options = {
     scales: {
@@ -199,6 +163,7 @@ const Dashboard = props => {
             fontColor: palette.text.secondary,
             beginAtZero: true,
             min: 0
+            //suggestedMin:20
           },
           gridLines: {
             borderDash: [2],
