@@ -2,10 +2,11 @@ import axios from "axios";
 import setAuthToken from "../../utils/setAuthToken";
 import jwt_decode from "jwt-decode";
 import { GET_ERRORS, SET_CURRENT_USER, USER_LOADING } from "./types";
+import constants from "../../config/constants";
 // Register User
 export const registerUser = (userData, history) => (dispatch) => {
   axios
-    .post("http://localhost:3000/api/v1/users/register", userData)
+    .post(constants.REGISTER_USER_URI, userData)
     .then((res) => {
       try {
         history.push("/login");
@@ -23,7 +24,7 @@ export const registerUser = (userData, history) => (dispatch) => {
 // Login - get user token
 export const loginUser = (userData) => (dispatch) => {
   axios
-    .post("http://localhost:3000/api/v1/users/loginUser", userData)
+    .post(constants.LOGIN_USER_URI, userData)
     .then((res) => {
       // Save to localStorage
       // Set token to localStorage
@@ -47,7 +48,7 @@ export const loginUser = (userData) => (dispatch) => {
 // Login - forgot password
 export const forgotPassword = (userData) => (dispatch) => {
   axios
-    .post("http://localhost:3000/api/v1/users/forgotPassword", userData)
+    .post(constants.FORGOT_PWD_URI, userData)
     .then((response) => {
       console.log(response.data);
       if (response.data === "email not recognized") {
@@ -74,7 +75,7 @@ export const forgotPassword = (userData) => (dispatch) => {
 
 export const verifyToken = async (token) => {
   await axios
-    .get("http://localhost:3000/api/v1/users/reset", token)
+    .get(constants.VERIFY_TOKEN_URI, token)
     .then((response) => {
       console.log(response);
       if (response.data.message === "password reset link a-ok") {
@@ -99,7 +100,7 @@ export const verifyToken = async (token) => {
 
 export const updatePassword = (userData) => {
   axios
-    .put("http://localhost:3000/api/v1/users/updatePasswordViaEmail", userData)
+    .put(constants.UPDATE_PWD_URI, userData)
     .then((response) => {
       console.log(response.data);
       if (response.data.message === "password updated") {
