@@ -10,9 +10,9 @@ import {
   CardHeader,
   Divider,Button
 } from '@material-ui/core';
-//import InsertChartIcon from '@material-ui/icons/InsertChartOutlined';
 import { useEffect, useState } from 'react';
-
+import FullscreenControl from 'react-leaflet-fullscreen';
+import 'react-leaflet-fullscreen/dist/styles.css'
 const useStyles = makeStyles(theme => ({
   root: {
     height: '100%'
@@ -90,8 +90,7 @@ const Map = props => {
         >
           <TileLayer
             url="http://{s}.tile.osm.org/{z}/{x}/{y}.png"
-          />
-           
+          />           
         
         
           {contacts.map((contact) => (
@@ -114,9 +113,9 @@ const Map = props => {
                 
               </Popup>
             </CircleMarker>         
-          ))}
-            
+          ))}          
 
+          <FullscreenControl position="topright" />
         </LeafletMap>
         
       </CardContent>
