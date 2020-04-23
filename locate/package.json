@@ -15,6 +15,7 @@
     "axios": "^0.19.2",
     "classnames": "^2.2.6",
     "clsx": "^1.1.0",
+    "geojson-validation": "^1.0.1",
     "is-empty": "^1.2.0",
     "jwt-decode": "^2.2.0",
     "leaflet": "^1.6.0",

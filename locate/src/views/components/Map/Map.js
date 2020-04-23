@@ -35,7 +35,7 @@ class Maps extends React.Component {
       console.log(JSON.stringify(layer.toGeoJSON()));
 
       axios.post(
-        'http://127.0.0.1:4000/api/v1/map/parishes',
+        'http://127.0.0.1:4000/api/v1/map/parishes/trial',
         JSON.stringify(layer.toGeoJSON()),
         {headers:{'Content-Type':'application/json'}},
       )
@@ -45,8 +45,11 @@ class Maps extends React.Component {
           console.log(myData)
           
           let myPolygons = [];
+
+          try{          
     
           myData.forEach(element => {
+            if (element["properties.district"]){
             myPolygons.push({
               "type": "Feature",
               "properties": {
@@ -54,13 +57,32 @@ class Maps extends React.Component {
                 "subcounty": element["properties.subcounty"],
                 "parish": element["properties.parish"],
                 "color": element["color"],
-                "fill_color": element["fill_color"]
+                "fill_color": element["fill_color"],
+                "type": element.type
               },
               "geometry": {
                 "type": "Polygon",
                 "coordinates": element["geometry.coordinates"]
               }
             });
+          }
+          else{
+              myPolygons.push({
+                "type": "Feature",
+                "properties": {
+                  "district":element.properties.district,
+                  "subcounty": element.properties.subcounty,
+                  "parish": element.properties.parish,
+                  "color": element.color,
+                  "fill_color": element.fill_color,
+                  "type": element.type
+                },
+                "geometry": {
+                  "type": "Polygon",
+                  "coordinates": element.geometry.coordinates
+                }
+              });
+          }
             
           });
 
@@ -68,7 +90,10 @@ class Maps extends React.Component {
             polygons: myPolygons
           })
 
-          
+        }
+        catch(error){
+        console.log('An error occured. Please try again')
+        } 
         }
       )
     }
@@ -124,7 +149,8 @@ class Maps extends React.Component {
           onEachFeature: function (feature, layer) {
             let popup_string = "<b>DISTRICT: </b>"+feature['properties']['district']+ 
             "<br/><b>SUBCOUNTY: </b>"+feature['properties']['subcounty']+
-            "<br/><b>PARISH: </b>"+feature['properties']['parish']
+            "<br/><b>PARISH: </b>"+feature['properties']['parish']+
+            "<br/><b>TYPE: </b>"+feature['properties']['type']
             layer.bindPopup(popup_string)
             layer.on('mouseover', function (e) {
               this.openPopup();
@@ -133,7 +159,7 @@ class Maps extends React.Component {
               this.closePopup()
           });
         },
-        style: {fillColor: this.state.polygons[i]['properties']['fill_color'], color: this.state.polygons[i]['properties']['color'], opacity:10},
+        style: {fillColor: this.state.polygons[i]['properties']['fill_color'], color: this.state.polygons[i]['properties']['color'], opacity:100},
       
       });
 
