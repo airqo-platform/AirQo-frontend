@@ -12,6 +12,7 @@ import {
   Account as AccountView,
   Settings as SettingsView,
   NotFound as NotFoundView,
+  Download as Download,
   Graphs
 } from '../views';
 
@@ -58,6 +59,12 @@ const Routes = () => {
         exact
         layout={MainLayout}
         path="/settings"
+      />
+      <RouteWithLayout
+        component={Download}
+        exact
+        layout={MainLayout}
+        path="/download"
       />
       <RouteWithLayout
         component={NotFoundView}

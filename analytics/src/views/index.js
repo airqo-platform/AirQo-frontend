@@ -5,3 +5,5 @@ export { default as Graphs } from './Graphs';
 export { default as Settings } from './Settings';
 export { default as Reports } from './Reports';
 export { default as UserList } from './UserList';
+export { default as Download } from './Download';
+

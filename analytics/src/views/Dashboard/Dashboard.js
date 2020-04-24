@@ -3,7 +3,6 @@ import { makeStyles } from '@material-ui/styles';
 import { Grid } from '@material-ui/core';
 
 import { Pm25Levels, Map} from './components';
-
 const useStyles = makeStyles(theme => ({
   root: {
     padding: theme.spacing(4)
