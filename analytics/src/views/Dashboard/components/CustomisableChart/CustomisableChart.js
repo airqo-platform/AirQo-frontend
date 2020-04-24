@@ -2,7 +2,8 @@ import React from 'react';
 import clsx from 'clsx';
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/styles';
-import { Card, CardContent, Grid,Button} from '@material-ui/core';
+import { Card, CardContent, Grid,Button, ExpansionPanel, 
+  ExpansionPanelSummary,ExpansionPanelDetails} from '@material-ui/core';
 import Select from 'react-select';
 import { useEffect, useState } from 'react';
 import DateFnsUtils from '@date-io/date-fns';
@@ -15,7 +16,8 @@ import axios from 'axios';
 import 'chartjs-plugin-annotation';
 import {CustomDisplayChart} from '../index'
 import palette from 'theme/palette';
-
+import Typography from '@material-ui/core/Typography';
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 
 
 const useStyles = makeStyles(theme => ({
@@ -39,13 +41,13 @@ const CustomisableChart = props => {
   const classes = useStyles();
 
   
-  const [selectedDate, setSelectedStartDate] = useState(new Date('2020-04-16T21:11:54'));
+  const [selectedDate, setSelectedStartDate] = useState(new Date());
 
   const handleDateChange = (date) => {
     setSelectedStartDate(date);
   };
 
-  const [selectedEndDate, setSelectedEndDate] = useState(new Date('2020-04-16T21:11:54'));
+  const [selectedEndDate, setSelectedEndDate] = useState(new Date());
 
   const handleEndDateChange = (date) => {
     setSelectedEndDate(date);
@@ -278,209 +280,218 @@ const CustomisableChart = props => {
             xs={12}
             
           >        
-            
-            <form onSubmit={handleSubmit}>             
-              
-              <Grid
-                container
-                spacing={1}
-              >             
-                <Grid
-                  item
-                  md={3}
-                  xs={6}
-                >
-                  <Select
-                    fullWidth
-                    className="reactSelect"
-                    name="location"
-                    placeholder="Location(s)"
-                    value={values.selectedOption}
-                    options={filterLocationsOptions}
-                    onChange={handleMultiChange}
-                    isMulti
-                    variant="outlined"
-                    margin="dense"
-                    required
-                  />
-                </Grid>
-
-                <Grid
-                  item
-                  md={3}
-                  xs={6}
-                >                
-                  <Select
-                    fullWidth
-                    label="Chart Type"
-                    className="reactSelect"
-                    name="chart-type"
-                    placeholder="Chart Type"
-                    value={selectedChart}
-                    options={chartTypeOptions}
-                    onChange={handleChartTypeChange}    
-                    variant="outlined"
-                    margin="dense" 
-                    required         
-                  />
-                </Grid>
-                
-                <Grid
-                  item
-                  md={3}
-                  xs={6}
-                >     
-                  <Select
-                    fullWidth
-                    label ="Frequency"
-                    className=""
-                    name="chart-frequency"
-                    placeholder="Frequency"
-                    value={selectedFrequency}
-                    options={frequencyOptions}
-                    onChange={handleFrequencyChange}
-                    variant="outlined"
-                    margin="dense"   
-                    required           
-                  />
-                </Grid>
-                <Grid
-                  item
-                  md={3}
-                  xs={6}
-                >     
-                  <Select
-                    fullWidth
-                    label="Pollutant"
-                    className=""
-                    name="pollutant"
-                    placeholder="Pollutant"
-                    value={selectedPollutant}
-                    options={pollutantOptions}
-                    onChange={handlePollutantChange}
-                    variant="outlined"
-                    margin="dense"  
-                    required            
-                  />
-                </Grid>
-
-                <Grid
-                  item
-                  md={12}
-                  xs={12}
-                >
-                  <MuiPickersUtilsProvider utils={DateFnsUtils}>
-                    <Grid 
-                      container 
-                      spacing={1}
+            <ExpansionPanel>
+              <ExpansionPanelSummary
+                expandIcon={<ExpandMoreIcon />}
+                aria-controls="panel1a-content"
+                id="panel1a-header"
+              >
+                Customise
+              </ExpansionPanelSummary>
+              <ExpansionPanelDetails>
+                <form onSubmit={handleSubmit}>             
+                  
+                  <Grid
+                    container
+                    spacing={1}
+                  >             
+                    <Grid
+                      item
+                      md={3}
+                      xs={6}
                     >
-                      <Grid
-                        item
-                        lg={3}
-                        md={3}
-                        sm={6}
-                        xl={3}
-                        xs={12}
-                      >
-                        <KeyboardDatePicker                     
-                          disableToolbar
-                          variant="inline"
-                          format="MM/dd/yyyy"
-                          margin="normal"
-                          id="date-picker-inline"
-                          label="Start Date"
-                          value={selectedDate}
-                          onChange={handleDateChange}
-                          KeyboardButtonProps={{
-                            'aria-label': 'change date',
-                          }}
-                          required
-                        />  
-                      </Grid>  
-                      <Grid
-                        item
-                        lg={3}
-                        md={3}
-                        sm={6}
-                        xl={3}
-                        xs={12}
-                      >            
-                        <KeyboardTimePicker                     
-                          disableToolbar
-                          variant="inline"
-                          margin="normal"
-                          id="time-picker"
-                          label="Start Time Picker "
-                          value={selectedDate}
-                          onChange={handleDateChange}
-                          KeyboardButtonProps={{
-                            'aria-label': 'change time',
-                          }}  
-                          required                    
-                        />
-                      </Grid>
-
-                      <Grid
-                        item
-                        lg={3}
-                        md={3}
-                        sm={6}
-                        xl={3}
-                        xs={12}
-                      >
-                        <KeyboardDatePicker                      
-                          disableToolbar
-                          variant="inline"
-                          format="MM/dd/yyyy"
-                          margin="normal"
-                          id="date-picker-inline"
-                          label="End Date"
-                          value={selectedEndDate}
-                          onChange={handleEndDateChange}
-                          KeyboardButtonProps={{
-                            'aria-label': 'change end date',
-                          }}
-                          required
-                        /> 
-                      </Grid> 
-                      <Grid
-                        item
-                        lg={3}
-                        md={3}
-                        sm={6}
-                        xl={3}
-                        xs={12}
-                      >              
-                        <KeyboardTimePicker                      
-                          disableToolbar
-                          variant="inline"
-                          margin="normal"
-                          id="time-picker"
-                          label="End Time Picker "
-                          value={selectedEndDate}
-                          onChange={handleEndDateChange}
-                          KeyboardButtonProps={{
-                            'aria-label': 'change end time',
-                          }}
-                          required
-                        />
-                      </Grid>
+                      <Select
+                        fullWidth
+                        className="reactSelect"
+                        name="location"
+                        placeholder="Location(s)"
+                        value={values.selectedOption}
+                        options={filterLocationsOptions}
+                        onChange={handleMultiChange}
+                        isMulti
+                        variant="outlined"
+                        margin="dense"
+                        required
+                      />
                     </Grid>
-                  </MuiPickersUtilsProvider>
-                </Grid>             
-             
+
+                    <Grid
+                      item
+                      md={3}
+                      xs={6}
+                    >                
+                      <Select
+                        fullWidth
+                        label="Chart Type"
+                        className="reactSelect"
+                        name="chart-type"
+                        placeholder="Chart Type"
+                        value={selectedChart}
+                        options={chartTypeOptions}
+                        onChange={handleChartTypeChange}    
+                        variant="outlined"
+                        margin="dense" 
+                        required         
+                      />
+                    </Grid>
+                    
+                    <Grid
+                      item
+                      md={3}
+                      xs={6}
+                    >     
+                      <Select
+                        fullWidth
+                        label ="Frequency"
+                        className=""
+                        name="chart-frequency"
+                        placeholder="Frequency"
+                        value={selectedFrequency}
+                        options={frequencyOptions}
+                        onChange={handleFrequencyChange}
+                        variant="outlined"
+                        margin="dense"   
+                        required           
+                      />
+                    </Grid>
+                    <Grid
+                      item
+                      md={3}
+                      xs={6}
+                    >     
+                      <Select
+                        fullWidth
+                        label="Pollutant"
+                        className=""
+                        name="pollutant"
+                        placeholder="Pollutant"
+                        value={selectedPollutant}
+                        options={pollutantOptions}
+                        onChange={handlePollutantChange}
+                        variant="outlined"
+                        margin="dense"  
+                        required            
+                      />
+                    </Grid>
+
+                    <Grid
+                      item
+                      md={12}
+                      xs={12}
+                    >
+                      <MuiPickersUtilsProvider utils={DateFnsUtils}>
+                        <Grid 
+                          container 
+                          spacing={1}
+                        >
+                          <Grid
+                            item
+                            lg={3}
+                            md={3}
+                            sm={6}
+                            xl={3}
+                            xs={12}
+                          >
+                            <KeyboardDatePicker                     
+                              disableToolbar
+                              variant="inline"
+                              format="MM/dd/yyyy"
+                              margin="normal"
+                              id="date-picker-inline"
+                              label="Start Date"
+                              value={selectedDate}
+                              onChange={handleDateChange}
+                              KeyboardButtonProps={{
+                                'aria-label': 'change date',
+                              }}
+                              required
+                            />  
+                          </Grid>  
+                          <Grid
+                            item
+                            lg={3}
+                            md={3}
+                            sm={6}
+                            xl={3}
+                            xs={12}
+                          >            
+                            <KeyboardTimePicker                     
+                              disableToolbar
+                              variant="inline"
+                              margin="normal"
+                              id="time-picker"
+                              label="Start Time Picker "
+                              value={selectedDate}
+                              onChange={handleDateChange}
+                              KeyboardButtonProps={{
+                                'aria-label': 'change time',
+                              }}  
+                              required                    
+                            />
+                          </Grid>
+
+                          <Grid
+                            item
+                            lg={3}
+                            md={3}
+                            sm={6}
+                            xl={3}
+                            xs={12}
+                          >
+                            <KeyboardDatePicker                      
+                              disableToolbar
+                              variant="inline"
+                              format="MM/dd/yyyy"
+                              margin="normal"
+                              id="date-picker-inline"
+                              label="End Date"
+                              value={selectedEndDate}
+                              onChange={handleEndDateChange}
+                              KeyboardButtonProps={{
+                                'aria-label': 'change end date',
+                              }}
+                              required
+                            /> 
+                          </Grid> 
+                          <Grid
+                            item
+                            lg={3}
+                            md={3}
+                            sm={6}
+                            xl={3}
+                            xs={12}
+                          >              
+                            <KeyboardTimePicker                      
+                              disableToolbar
+                              variant="inline"
+                              margin="normal"
+                              id="time-picker"
+                              label="End Time Picker "
+                              value={selectedEndDate}
+                              onChange={handleEndDateChange}
+                              KeyboardButtonProps={{
+                                'aria-label': 'change end time',
+                              }}
+                              required
+                            />
+                          </Grid>
+                        </Grid>
+                      </MuiPickersUtilsProvider>
+                    </Grid>             
                 
-             
-                <Button 
-                  variant="contained" 
-                  color="primary"              
-                  type="submit"
-                > Generate Graph
-                </Button>
+                    
                 
-              </Grid>
-            </form>            
-        
+                    <Button 
+                      variant="contained" 
+                      color="primary"              
+                      type="submit"
+                    > Generate Graph
+                    </Button>
+                    
+                  </Grid>
+                </form>            
+              </ExpansionPanelDetails>
+            </ExpansionPanel>
                  
           </Grid>
           
