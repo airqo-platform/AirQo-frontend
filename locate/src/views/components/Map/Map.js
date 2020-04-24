@@ -6,14 +6,18 @@ import {Map, FeatureGroup, LayerGroup, TileLayer, Marker, Popup} from "react-lea
 import { EditControl } from "react-leaflet-draw";
 import axios from "axios";
 import L from 'leaflet';
-import { ElementClass } from "enzyme";
+import LoadingSpinner from './loadingSpinner';
+import LoadingOverlay from 'react-loading-overlay';
+import BounceLoader from 'react-spinners/BounceLoader'
+
 
 class Maps extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       polygons: [],
-      markers: [[0.32, 32.598]]
+      markers: [[0.32, 32.598]],
+      loading: false
      }
     };
   
@@ -36,6 +40,8 @@ class Maps extends React.Component {
       //var geojson = layer.toGeoJSON();
       console.log(JSON.stringify(layer.toGeoJSON()));
 
+      this.setState({loading: true})
+
       axios.post(
         'http://127.0.0.1:4000/api/v1/map/parishes',
         JSON.stringify(layer.toGeoJSON()),
@@ -45,6 +51,7 @@ class Maps extends React.Component {
         res => {
           const myData = res.data;
           console.log(myData)
+          this.setState({loading: false})
           
           let myPolygons = [];
 
@@ -105,16 +112,20 @@ class Maps extends React.Component {
   };
 
 render() {
+
     return (
+      
       <Map
         center={[this.props.mapDefaults.lat, this.props.mapDefaults.lng]}
         zoom={this.props.mapDefaults.zoom}
       >
+        
         <TileLayer
           attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
           url="http://{s}.tile.osm.org/{z}/{x}/{y}.png"
         />
-           
+        
+               
         <LayerGroup>}
            {this.state.polygons.map(location => (
           <Marker
@@ -147,8 +158,8 @@ render() {
             </Popup>
           </Marker>
         ))}
-      </LayerGroup>
-      
+       </LayerGroup> 
+       
         
         <FeatureGroup ref={ (reactFGref) => {this._onFeatureGroupReady(reactFGref);} }> 
           <EditControl
@@ -170,6 +181,9 @@ render() {
           </FeatureGroup>
       </Map>
     );
+      
+  
+
   }
 
   _onFeatureGroupReady = (ref) => {
@@ -179,8 +193,6 @@ render() {
     this._editableFG = ref; 
     if(this.state.polygons) {
       for (var i = 0; i < this.state.polygons.length; i++) {
-
-        //let leafletGeoJSON = new L.GeoJSON(this.state.polygons[i]);console.log(leafletGeoJSON);
 
        try{
         let leafletGeoJSON = new L.GeoJSON(this.state.polygons[i], {
@@ -206,7 +218,6 @@ render() {
        console.log('An error occured and some polygons may not have been shown!')
       }
     }
-    //console.log(toString(count)+' invalid polygons in results')
   }
     else {
         console.log('No polygons');           
