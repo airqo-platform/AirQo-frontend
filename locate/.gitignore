@@ -7,7 +7,6 @@
 node_modules
 /coverage
 .env
-/locate_env
 
 # production
 /build
