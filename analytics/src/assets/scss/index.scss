@@ -15,6 +15,7 @@ body {
   height: 100%;
 }
 
+
 a {
   text-decoration: none;
 }
@@ -46,6 +47,7 @@ a {
 .form-style-graph input[type=date],
 .form-style-graph input[type=search],
 .form-style-graph input[type=time],
+.form-style-graph input[type=input],
  
 select{
 	box-sizing: border-box;
@@ -70,6 +72,12 @@ select{
 }
 .form-style-graph .field-select{
 	width: 100%;
+}
+.form-style-graph .field-button{
+  background: #4B99AD;
+	padding: 8px 15px 8px 15px;
+	border: none;
+	color: #fff;
 }
 .form-style-graph input[type=submit], .form-style-graph input[type=button]{
 	background: #4B99AD;

@@ -1,11 +1,8 @@
-import React from 'react';
+import React, { useState, Component } from 'react';
 import clsx from 'clsx';
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/styles';
 import { Card, CardContent, Grid, Typography, Avatar } from '@material-ui/core';
-import ArrowUpwardIcon from '@material-ui/icons/ArrowUpward';
-import PeopleIcon from '@material-ui/icons/PeopleOutlined';
-import { Line } from 'react-chartjs-2';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -43,9 +40,7 @@ const useStyles = makeStyles(theme => ({
 
 const Display = props => {
   const { className, ...rest } = props;
-
   const classes = useStyles();
-
   return (
     <Card
       {...rest}
@@ -67,23 +62,6 @@ const Display = props => {
             </Typography>
           </Grid>
         </Grid>
-        { /* <div class="chart">
-            <h3>Daily PM2.5 Concentration Levels for Lubaga</h3>
-            <div class="chart-wrap vertical">
-                <h2 class="title">Bar Chart HTML Example:  Using Only HTML And CSS</h2>
-  
-              <div class="grid">
-                <div class="bar"  data-name="Jan" title="Jan Blog 85%"></div>
-                <div class="bar"  data-name="Feb" title="Feb 23%"></div>
-                <div class="bar"  data-name="Mar" title="Mar 7%"></div>
-                <div class="bar"  data-name="Apr" title="Apr 38%"></div>
-                <div class="bar"  data-name="May" title="May 35%"></div>
-                <div class="bar"  data-name="June" title="June 30%"></div>
-                <div class="bar"  data-name="July" title="July 5%"></div>
-                <div class="bar"  data-name="Aug" title="Aug 20%"></div>    
-              </div>
-            </div>
-  </div> */ }
       </CardContent>
     </Card>
   );
