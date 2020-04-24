@@ -455,10 +455,6 @@ const Graphs = props => {
           container
           justify="space-between"
         >
-<<<<<<< HEAD
-          <Display />
-=======
->>>>>>> analytics-graph-frontend
         </Grid>
 
       <form onSubmit={handleSubmit}>
@@ -668,10 +664,6 @@ const Graphs = props => {
           container
           justify="space-between"
         >
-<<<<<<< HEAD
-          <Filters />
-=======
->>>>>>> analytics-graph-frontend
         </Grid>
 
       <form onSubmit={handleSubmit}>
