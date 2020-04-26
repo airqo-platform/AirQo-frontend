@@ -237,16 +237,8 @@ const Dashboard = props => {
             {...rest}
             className={clsx(classes.root, className)}
           >
-            <CardHeader
-              action={
-                <Button
-                  size="small"
-                  variant="text"
-                >
-                  Last 28 days <ArrowDropDownIcon />
-                </Button>
-              }
-              title="Aggregated Average PM2.5"
+            <CardHeader              
+              title="Aggregated Average PM2.5 for the Last 28 Days"
             />
             <Divider />
             <CardContent>

@@ -16,7 +16,7 @@ import axios from 'axios';
 import 'chartjs-plugin-annotation';
 import {CustomDisplayChart} from '../index'
 import palette from 'theme/palette';
-import Typography from '@material-ui/core/Typography';
+//import Typography from '@material-ui/core/Typography';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 
 
@@ -420,7 +420,7 @@ const CustomisableChart = props => {
                               variant="inline"
                               margin="normal"
                               id="time-picker"
-                              label="Start Time Picker "
+                              label="Start Time "
                               value={selectedDate}
                               onChange={handleDateChange}
                               KeyboardButtonProps={{
@@ -466,7 +466,7 @@ const CustomisableChart = props => {
                               variant="inline"
                               margin="normal"
                               id="time-picker"
-                              label="End Time Picker "
+                              label="End Time "
                               value={selectedEndDate}
                               onChange={handleEndDateChange}
                               KeyboardButtonProps={{
