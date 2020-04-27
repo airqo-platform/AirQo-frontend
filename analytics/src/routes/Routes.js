@@ -12,7 +12,8 @@ import {
   Account as AccountView,
   Settings as SettingsView,
   NotFound as NotFoundView,
-  Graphs
+  Graphs,
+  ReportTemplate as ReportTemplateView
 } from '../views';
 
 const Routes = () => {
@@ -46,6 +47,12 @@ const Routes = () => {
         exact
         layout={MainLayout}
         path="/reports"
+      />
+      <RouteWithLayout
+        component={ReportTemplateView}
+        exact
+        layout={MainLayout}
+        path="/report_template"
       />
       <RouteWithLayout
         component={AccountView}
