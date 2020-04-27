@@ -30,12 +30,12 @@ const Routes = () => {
         from="/"
         to="/login"
       />
-    <PrivateRoute
-                  exact
-                  path="/dashboard"
-                  component={DashboardView}
-                  layout={MainLayout}
-                />
+      <PrivateRoute
+        exact
+        path="/dashboard"
+        component={DashboardView}
+        layout={MainLayout}
+      />
 
       <PrivateRoute
         component={UserListView}
@@ -88,14 +88,14 @@ const Routes = () => {
         exact path="/landing"
       />
       <Route 
-      exact path="/login" 
-      component={Login} />
+        exact path="/login" 
+        component={Login} />
       <Route 
-     exact path="/forgot" 
-      component={ForgotPassword} />
-      <RouteWithLayout 
-       exact path="/reset" 
-      component={ResetPassword} />
+        exact path="/forgot" 
+        component={ForgotPassword} />
+      <Route 
+        exact path="/reset" 
+        component={ResetPassword} />
       <Redirect to="/not-found" />
     </Switch>
   );
