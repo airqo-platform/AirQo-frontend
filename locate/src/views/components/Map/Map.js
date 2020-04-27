@@ -6,13 +6,12 @@ import {Map, FeatureGroup, LayerGroup, TileLayer, Marker, Popup} from "react-lea
 import { EditControl } from "react-leaflet-draw";
 import axios from "axios";
 import L from 'leaflet';
-import LoadingSpinner from './loadingSpinner';
-import LoadingOverlay from 'react-loading-overlay';
-//import BounceLoader from 'react-spinners/BounceLoader';
-//import {Spinner} from 'spin.js';
-//import ReactSpinner from 'react-spinjs';
+import { ElementClass } from "enzyme";
+import FullscreenControl from "react-leaflet-fullscreen";
+import "react-leaflet-fullscreen/dist/styles.css";
+import MapMenu from "./MapMenu";
 
-
+let geoJsonPolygon;
 
 class Maps extends React.Component {
   constructor(props) {
@@ -20,7 +19,7 @@ class Maps extends React.Component {
     this.state = {
       polygons: [],
       markers: [[0.32, 32.598]],
-      loading: false
+      plan: {}
      }
     };
   
@@ -41,9 +40,10 @@ class Maps extends React.Component {
       ///const points = layer._latlngs;
 
       //var geojson = layer.toGeoJSON();
+      geoJsonPolygon = layer.toGeoJSON();
+      const polygon = geoJsonPolygon.geometry["coordinates"];
       console.log(JSON.stringify(layer.toGeoJSON()));
-
-      this.setState({loading: true})
+      this.setState({ plan: geoJsonPolygon });
 
       axios.post(
         'http://127.0.0.1:4000/api/v1/map/parishes',
@@ -54,7 +54,6 @@ class Maps extends React.Component {
         res => {
           const myData = res.data;
           console.log(myData)
-          this.setState({loading: false})
           
           let myPolygons = [];
 
@@ -115,22 +114,21 @@ class Maps extends React.Component {
   };
 
 render() {
-  if (!this.state.loading){
-
     return (
-      
-      
+      <>
+      {/* Adding MapMenu */}
+      <MapMenu geojson={this.state.plan} />
       <Map
         center={[this.props.mapDefaults.lat, this.props.mapDefaults.lng]}
         zoom={this.props.mapDefaults.zoom}
       >
-        
         <TileLayer
           attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
           url="http://{s}.tile.osm.org/{z}/{x}/{y}.png"
         />
-        
-               
+
+        <FullscreenControl position="topright" />
+           
         <LayerGroup>}
            {this.state.polygons.map(location => (
           <Marker
@@ -163,105 +161,30 @@ render() {
             </Popup>
           </Marker>
         ))}
-       </LayerGroup> 
-       
-        
-        <FeatureGroup ref={ (reactFGref) => {this._onFeatureGroupReady(reactFGref);} }> 
-          <EditControl
-            position="topleft"
-            onEdited={this._onEdited}
-            onCreated={this._onCreated}
-            onDeleted={this._onDeleted}
-            onMounted={this._onMounted}
-            onEditStart={this._onEditStart}
-            onEditStop={this._onEditStop}
-            onDeleteStart={this._onDeleteStart}
-            onDeleteStop={this._onDeleteStop} 
-            draw={{
-              rectangle: false,
-              circle: false,
-              circlemarker: false,
-            }}
-          />
-          </FeatureGroup>
-      </Map>
-    );
-
-  }
-  else{
-    return(
-
-      <Map
-        center={[this.props.mapDefaults.lat, this.props.mapDefaults.lng]}
-        zoom={this.props.mapDefaults.zoom}
-      >
-        
-        <TileLayer
-          attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-          url="http://{s}.tile.osm.org/{z}/{x}/{y}.png"
-        />
-        
-               
-        <LayerGroup>}
-           {this.state.polygons.map(location => (
-          <Marker
-            key={location.parish}
-            position={{ lat: location.properties.lat, lng: location.properties.long }}
-            icon = {new L.Icon({
-              iconUrl: 'https://cdn.rawgit.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-'+location.properties.color+'.png',
-              shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-              iconSize: [25, 41],
-              iconAnchor: [12, 41],
-              popupAnchor: [1, -34],
-              shadowSize: [41, 41]
-            })}
-            onMouseOver={(e) => {
-              e.target.openPopup();
-            }}
-            onMouseOut={(e) => {
-              e.target.closePopup();
-            }}
-          >
-            <Popup>
-              <span>
-              <span>
-                <b>DISTRICT: </b>{location.properties.district}, <br /> 
-                <b>SUBCOUNTY: </b>{location.properties.subcounty}, <br/>
-                <b>PARISH: </b>{location.properties.parish}, <br/>
-                <b>TYPE: </b>{location.properties.type}
-            </span>
-              </span>
-            </Popup>
-          </Marker>
-        ))}
-       </LayerGroup> 
-       
-        
-        <FeatureGroup ref={ (reactFGref) => {this._onFeatureGroupReady(reactFGref);} }> 
-          <EditControl
-            position="topleft"
-            onEdited={this._onEdited}
-            onCreated={this._onCreated}
-            onDeleted={this._onDeleted}
-            onMounted={this._onMounted}
-            onEditStart={this._onEditStart}
-            onEditStop={this._onEditStop}
-            onDeleteStart={this._onDeleteStart}
-            onDeleteStop={this._onDeleteStop} 
-            draw={{
-              rectangle: false,
-              circle: false,
-              circlemarker: false,
-            }}
-          />
-          </FeatureGroup>
-      </Map>
-
-    );
-  }
+      </LayerGroup>
       
-  
-
+        
+        <FeatureGroup ref={ (reactFGref) => {this._onFeatureGroupReady(reactFGref);} }> 
+          <EditControl
+            position="topleft"
+            onEdited={this._onEdited}
+            onCreated={this._onCreated}
+            onDeleted={this._onDeleted}
+            onMounted={this._onMounted}
+            onEditStart={this._onEditStart}
+            onEditStop={this._onEditStop}
+            onDeleteStart={this._onDeleteStart}
+            onDeleteStop={this._onDeleteStop} 
+            draw={{
+              rectangle: false,
+              circle: false,
+              circlemarker: false,
+            }}
+          />
+          </FeatureGroup>
+      </Map>
+      </>
+    );
   }
 
   _onFeatureGroupReady = (ref) => {
@@ -271,6 +194,8 @@ render() {
     this._editableFG = ref; 
     if(this.state.polygons) {
       for (var i = 0; i < this.state.polygons.length; i++) {
+
+        //let leafletGeoJSON = new L.GeoJSON(this.state.polygons[i]);console.log(leafletGeoJSON);
 
        try{
         let leafletGeoJSON = new L.GeoJSON(this.state.polygons[i], {
@@ -296,6 +221,7 @@ render() {
        console.log('An error occured and some polygons may not have been shown!')
       }
     }
+    //console.log(toString(count)+' invalid polygons in results')
   }
     else {
         console.log('No polygons');           
