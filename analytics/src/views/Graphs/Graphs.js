@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { makeStyles } from '@material-ui/styles';
 import { Pie, Bar, Line } from 'react-chartjs-2';
 import PropTypes from 'prop-types';
-import { Card, CardContent, Grid, Button } from '@material-ui/core';
+import { Card, CardContent, Grid, Button,Typography } from '@material-ui/core';
 import clsx from 'clsx';
 import Select from 'react-select';
 import DateFnsUtils from '@date-io/date-fns';
@@ -55,13 +55,13 @@ const Graphs = props => {
   const [pollutionValues, setPollutionValues] = useState([]);
   const [backgroundColors, setBackgroundColors] = useState([]);
 
-  const [selectedDate, setSelectedStartDate] = useState(new Date('2020-04-16T21:11:54'));
+  const [selectedDate, setSelectedStartDate] = useState(new Date());
 
   const handleDateChange = (date) => {
     setSelectedStartDate(date);
   };
 
-  const [selectedEndDate, setSelectedEndDate] = useState(new Date('2020-04-16T21:11:54'));
+  const [selectedEndDate, setSelectedEndDate] = useState(new Date());
 
   const handleEndDateChange = (date) => {
     setSelectedEndDate(date);
@@ -83,7 +83,6 @@ const Graphs = props => {
   const [values, setReactSelectValue] = useState({ selectedOption: [] });
 
   const handleMultiChange = selectedOption => {
-    //setValue('reactSelect', selectedOption);
     setReactSelectValue({ selectedOption });
   }
 
@@ -193,7 +192,7 @@ const Graphs = props => {
       <div className={classes.root}>
         <Grid
         container
-        spacing = {0.1}
+        spacing = {1}
         >
           <Grid
           item
@@ -202,7 +201,27 @@ const Graphs = props => {
           xl={8}
           xs={12}
           >
-          <div>
+          
+          <Card
+      {...rest}
+      className={clsx(classes.root, className)}
+    >
+      <CardContent>
+        <Grid
+          container
+          justify="space-between"
+        >
+          <Grid item>
+            <Typography
+              className={classes.title}
+              color="textSecondary"
+              gutterBottom
+              variant="body2"
+            >
+              Display Graph
+            </Typography>
+          </Grid>
+        
           <Line
           data= {
               {
@@ -230,7 +249,10 @@ const Graphs = props => {
             maintainAspectRatio: true,
             responsive: true
             }}/>
-          </div>
+         
+         </Grid>
+      </CardContent>
+    </Card>
           </Grid>
 
           <Grid
@@ -401,7 +423,7 @@ const Graphs = props => {
       <div className={classes.root}>
         <Grid
         container
-        spacing = {0.1}
+        spacing = {1}
         >
           <Grid
           item
@@ -410,7 +432,25 @@ const Graphs = props => {
           xl={8}
           xs={12}
           >
-          <div>
+          <Card
+      {...rest}
+      className={clsx(classes.root, className)}
+    >
+      <CardContent>
+        <Grid
+          container
+          justify="space-between"
+        >
+          <Grid item>
+            <Typography
+              className={classes.title}
+              color="textSecondary"
+              gutterBottom
+              variant="body2"
+            >
+              Display Graph
+            </Typography>
+          </Grid>
           <Pie
           data= {
             {
@@ -435,7 +475,9 @@ const Graphs = props => {
             maintainAspectRatio: true,
             responsive: true
             }}/>
-          </div>
+          </Grid>
+      </CardContent>
+    </Card>
           </Grid>
 
           <Grid
@@ -607,7 +649,7 @@ const Graphs = props => {
       <div className={classes.root}>
         <Grid
         container
-        spacing = {0.1}
+        spacing = {1}
         >
           <Grid
           item

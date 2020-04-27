@@ -326,7 +326,7 @@ const Dashboard = props => {
             >
               <Pm25Levels
                 background="#ee8310"
-                pm25level="Unhealthy for sensitive groups"
+                pm25level="UHFSG" //nhealthy for sensitive groups
                 pm25levelColor="#FFFFFF"
                 pm25levelText="(35.6 - 55.4)"            
                 

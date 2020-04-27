@@ -99,3 +99,19 @@ select{
 .canvas-container {
   height: 60vh;
 }
+
+.markertext {
+	all: revert;
+	color: black;
+	font-size:12px;
+	font-weight: 700;
+	background-color: none;
+	border-color: none;
+	background: none;
+	border: none;
+	box-shadow: none;
+	margin: 0px;
+	cursor: none;
+	direction: 'center';
+	fill: false;
+  }

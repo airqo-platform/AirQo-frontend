@@ -2,7 +2,7 @@ import React from 'react';
 import clsx from 'clsx';
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/styles';
-import { Map as LeafletMap, TileLayer, Popup, CircleMarker } from 'react-leaflet';
+import { Map as LeafletMap, TileLayer, Popup, CircleMarker,Tooltip } from 'react-leaflet';
 import {Link } from 'react-router-dom';
 import {
   Card,
@@ -55,6 +55,16 @@ const Map = props => {
       .catch(console.log)
   },[]);
 
+  let getColor = (aqi) =>{
+    return aqi > 250.4  ? '#81202e' :
+      aqi > 150.4  ? '#8639c0' :
+        aqi > 55.4   ? '#fe0023' :
+          aqi > 35.4   ? '#ee8327' :
+            aqi > 12   ? '#f8fe39' :
+              aqi > 0   ? '#44e527' :
+                '#808080';
+  }
+
   return (
     <Card
       {...rest}
@@ -88,14 +98,22 @@ const Map = props => {
           {contacts.map((contact) => (
             <CircleMarker 
               center={[contact.Latitude,contact.Longitude]}
-              color="red"
+              color={getColor(contact.Last_Hour_PM25_Value == 0?'':contact.Last_Hour_PM25_Value)}
               fill="true"
-              key={contact._id}
-              
-              
-              
-              radius={8}
+              key={contact._id} 
+              clickable="true"           
+              radius={16}
+              fillOpacity={1}
             >
+              <Tooltip 
+                direction='center' 
+                offset={[-8, -2]} 
+                opacity={1} 
+                permanent 
+                className='markertext'
+              >
+                <span>{contact.Last_Hour_PM25_Value == 0?'':contact.Last_Hour_PM25_Value}</span>
+              </Tooltip>
               <Popup>
                 <h2>{contact.Parish} - {contact.Division} Division</h2> 
                 <h1> {contact.Last_Hour_PM25_Value == 0?'':contact.Last_Hour_PM25_Value}</h1>                 
