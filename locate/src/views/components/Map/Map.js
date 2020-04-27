@@ -8,7 +8,10 @@ import axios from "axios";
 import L from 'leaflet';
 import LoadingSpinner from './loadingSpinner';
 import LoadingOverlay from 'react-loading-overlay';
-import BounceLoader from 'react-spinners/BounceLoader'
+//import BounceLoader from 'react-spinners/BounceLoader';
+//import {Spinner} from 'spin.js';
+//import ReactSpinner from 'react-spinjs';
+
 
 
 class Maps extends React.Component {
@@ -112,8 +115,10 @@ class Maps extends React.Component {
   };
 
 render() {
+  if (!this.state.loading){
 
     return (
+      
       
       <Map
         center={[this.props.mapDefaults.lat, this.props.mapDefaults.lng]}
@@ -181,6 +186,79 @@ render() {
           </FeatureGroup>
       </Map>
     );
+
+  }
+  else{
+    return(
+
+      <Map
+        center={[this.props.mapDefaults.lat, this.props.mapDefaults.lng]}
+        zoom={this.props.mapDefaults.zoom}
+      >
+        
+        <TileLayer
+          attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+          url="http://{s}.tile.osm.org/{z}/{x}/{y}.png"
+        />
+        
+               
+        <LayerGroup>}
+           {this.state.polygons.map(location => (
+          <Marker
+            key={location.parish}
+            position={{ lat: location.properties.lat, lng: location.properties.long }}
+            icon = {new L.Icon({
+              iconUrl: 'https://cdn.rawgit.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-'+location.properties.color+'.png',
+              shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+              iconSize: [25, 41],
+              iconAnchor: [12, 41],
+              popupAnchor: [1, -34],
+              shadowSize: [41, 41]
+            })}
+            onMouseOver={(e) => {
+              e.target.openPopup();
+            }}
+            onMouseOut={(e) => {
+              e.target.closePopup();
+            }}
+          >
+            <Popup>
+              <span>
+              <span>
+                <b>DISTRICT: </b>{location.properties.district}, <br /> 
+                <b>SUBCOUNTY: </b>{location.properties.subcounty}, <br/>
+                <b>PARISH: </b>{location.properties.parish}, <br/>
+                <b>TYPE: </b>{location.properties.type}
+            </span>
+              </span>
+            </Popup>
+          </Marker>
+        ))}
+       </LayerGroup> 
+       
+        
+        <FeatureGroup ref={ (reactFGref) => {this._onFeatureGroupReady(reactFGref);} }> 
+          <EditControl
+            position="topleft"
+            onEdited={this._onEdited}
+            onCreated={this._onCreated}
+            onDeleted={this._onDeleted}
+            onMounted={this._onMounted}
+            onEditStart={this._onEditStart}
+            onEditStop={this._onEditStop}
+            onDeleteStart={this._onDeleteStart}
+            onDeleteStop={this._onDeleteStop} 
+            draw={{
+              rectangle: false,
+              circle: false,
+              circlemarker: false,
+            }}
+          />
+          </FeatureGroup>
+      </Map>
+
+    );
+  }
       
   
 
