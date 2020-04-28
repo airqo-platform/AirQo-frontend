@@ -36,6 +36,7 @@ const Dashboard = props => {
   const [locations,setLocations] = useState([]);
 
   useEffect(() => {
+    //fetch('https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/monitoringsite/historical/daily/devices')
     fetch('http://127.0.0.1:5000/api/v1/monitoringsite/historical/daily/devices')
       .then(res => res.json())
       .then((locationsData) => {
@@ -191,40 +192,78 @@ const Dashboard = props => {
       >
         <Grid
           item
-          lg={3}
+          lg={2}
           sm={6}
-          xl={3}
+          xl={2}
           xs={12}
         >
-          <PollutantCategory />
-        </Grid>
-        <Grid
-          item
-          lg={3}
-          sm={6}
-          xl={3}
-          xs={12}
-        >
-          <PollutantCategory />
+          <PollutantCategory
+            pm25level="GOOD"
+            pm25levelCount="08"
+          />
         </Grid>
 
         <Grid
           item
-          lg={3}
+          lg={2}
           sm={6}
-          xl={3}
+          xl={2}
           xs={12}
         >
-          <TotalProfit />
+          <PollutantCategory
+            pm25level="MODERATE"
+            pm25levelCount="05"
+          />
         </Grid>
         <Grid
           item
-          lg={3}
+          lg={2}
           sm={6}
-          xl={3}
+          xl={2}
           xs={12}
         >
-          <TotalProfit />
+          <PollutantCategory
+            pm25level="UHFSG"
+            pm25levelCount="07"
+          />
+        </Grid>
+
+        <Grid
+          item
+          lg={2}
+          sm={6}
+          xl={2}
+          xs={12}
+        >
+          <PollutantCategory
+            pm25level="UNHEALTHY"
+            pm25levelCount="07"
+          />
+        </Grid>
+
+        <Grid
+          item
+          lg={2}
+          sm={6}
+          xl={2}
+          xs={12}
+        >
+          <PollutantCategory
+            pm25level="V.UNHEALTHY"
+            pm25levelCount="07"
+          />
+        </Grid>
+        <Grid
+          item
+          lg={2}
+          sm={6}
+          xl={2}
+          xs={12}
+        >
+          <PollutantCategory
+            pm25level="HAZARDOUS"
+            pm25levelCount="07"
+          />
         </Grid>
         <Grid
           item
@@ -425,32 +464,27 @@ const Dashboard = props => {
 
         
 
-        <Grid
-          item
-          lg={12}
-          sm={12}
-          xl={12}
-          xs={12}
-        >
-          <Card
-            {...rest}
-            className={clsx(classes.root, className)}
-          >
-            <CardContent>
-              <header className="App-header"><h1>Customisable Historical Chart Two</h1> </header>
-              <Grid
-                container
-                spacing={1}
-              >
-                <Grid
+        
+           <Grid
                   item
                   lg={6}
                   sm={6}
                   xl={6}
                   xs={12}
                 >
+                  <Card
+            {...rest}
+            className={clsx(classes.root, className)}
+          >
+            <CardHeader              
+              title="Customisable Historical Chart Two"
+            />
+            <Divider />
+            <CardContent>
                   <CustomisableChart/>
-                </Grid>
+                  </CardContent>
+            </Card>
+            </Grid>
                 <Grid
                   item
                   lg={6}
@@ -459,14 +493,21 @@ const Dashboard = props => {
                   xs={12}
                 >
                     
+                    <Card
+            {...rest}
+            className={clsx(classes.root, className)}
+          >
+            <CardHeader              
+              title="Customisable Historical Chart Two"
+            />
+            <Divider />
+            <CardContent>
                   <CustomisableChart/>
+                  </CardContent>
+                  </Card>
                   
                 </Grid>
-              </Grid>
-            </CardContent>
-
-          </Card>
-        </Grid>
+                         
 
 
         <Grid
@@ -480,10 +521,12 @@ const Dashboard = props => {
             {...rest}
             className={clsx(classes.root, className)}
           >
-            <CardContent>
-              <header className="App-header">
-                <h1> Historical Chart One</h1> 
-              </header>
+            <CardHeader
+              
+              title="Historical Chart One"
+            />
+            <Divider />
+            <CardContent>             
 
               <article className="canvas-container">
                 <Line 
@@ -508,16 +551,14 @@ const Dashboard = props => {
             {...rest}
             className={clsx(classes.root, className)}
           >
+            <CardHeader
+              
+              title="Historical Chart Two"
+            />
+            <Divider />
             <CardContent>
-              <header className="App-header">
-                <h1>Historical Chart One</h1> </header>
-
-              <article className="canvas-container">
-                <Line 
-                  data={data} 
-                  options={options}
-                />
-              </article>
+              <CustomisableChart/>
+              
             </CardContent>
 
           </Card>

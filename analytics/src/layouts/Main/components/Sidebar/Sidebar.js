@@ -54,7 +54,7 @@ const Sidebar = props => {
     },
     {
       title: 'Custom Reports',
-      href: '/reports',
+      href: '/report',
       icon: <TimelineIcon />
     },
 

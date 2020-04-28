@@ -47,6 +47,7 @@ const Map = props => {
   const [contacts,setContacts ] = useState([]);
 
   useEffect(() => {
+    //fetch('https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/monitoringsites?organisation_name=KCCA')
     fetch('http://127.0.0.1:5000/api/v1/dashboard/monitoringsites?organisation_name=KCCA')
       .then(res => res.json())
       .then((contactData) => {
@@ -116,7 +117,12 @@ const Map = props => {
               </Tooltip>
               <Popup>
                 <h2>{contact.Parish} - {contact.Division} Division</h2> 
-                <h1> {contact.Last_Hour_PM25_Value == 0?'':contact.Last_Hour_PM25_Value}</h1>                 
+                <h4>{contact.LocationCode}</h4>
+
+                <h1> {contact.Last_Hour_PM25_Value == 0?'':contact.Last_Hour_PM25_Value}</h1> 
+                <span>Last Refreshed: {contact.LastHour} (UTC)</span>
+                <Divider/>
+
                 
                
                 <Link to="/graph/4">More Details</Link>

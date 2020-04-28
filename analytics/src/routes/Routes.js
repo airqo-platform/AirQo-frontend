@@ -14,7 +14,8 @@ import {
   Settings as SettingsView,
   NotFound as NotFoundView,
   Graphs,
-  Download
+  Download,
+  ReportTemplate
 } from '../views';
 
 import Landing from "../views/layouts/Landing";
@@ -75,13 +76,21 @@ const Routes = () => {
             path="/download"
           />
       
-      
+      <PrivateRoute
+        component={ReportTemplate}
+        exact
+        layout={MainLayout}
+        path="/report"
+      />
+
       <PrivateRoute
         component={NotFoundView}
         exact
         layout={MinimalLayout}
         path="/not-found"
       />
+
+
   
       <Route
         component={Landing}
