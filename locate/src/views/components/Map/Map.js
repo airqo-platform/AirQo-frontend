@@ -54,7 +54,7 @@ class Maps extends React.Component {
       plan: {},
       // from LOCATE FORM
       numberOfDevices: 0,
-      mustHaveCoord: [],
+      mustHaveCoord: "",
       btnSubmit: false,
       //newly added - passed to the model endpoint
       geoJSONDATA: "",
