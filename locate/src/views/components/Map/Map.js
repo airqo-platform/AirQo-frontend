@@ -34,11 +34,13 @@ import InboxIcon from "@material-ui/icons/MoveToInbox";
 import SaveIcon from "@material-ui/icons/Save";
 import ExpandLess from "@material-ui/icons/ExpandLess";
 import ExpandMore from "@material-ui/icons/ExpandMore";
-import StarBorder from "@material-ui/icons/StarBorder";
 import Dialog from "@material-ui/core/Dialog";
 import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogContentText from "@material-ui/core/DialogContentText";
+import CloseIcon from "@material-ui/icons/Close";
+import UpdateIcon from "@material-ui/icons/Update";
+
 // -- End --
 
 let geoJsonPolygon;
@@ -57,12 +59,17 @@ class Maps extends React.Component {
       btnSubmit: false,
       //newly added - passed to the model endpoint
       geoJSONDATA: "",
-      // added from locateSave
+      // added from locateSave -- helps with saving data and dialog boxes
       open: false,
       openSave: false,
       openConfirm: false,
-      savedPlan: {},
-      space_name: ""
+      savedPlan: [],
+      space_name: "",
+
+      // states for opening and updating saved
+      selected_name: "",
+      selected_plan: {},
+      isPlanSelected: false
     };
     //from locate
     this.changeHandler = this.changeHandler.bind(this);
@@ -73,9 +80,15 @@ class Maps extends React.Component {
     this.handleSaveClose = this.handleSaveClose.bind(this);
     this.changeHandler = this.changeHandler.bind(this);
     this.handleConfirmClose = this.handleConfirmClose.bind(this);
+
+    // select previously saved data, update, delete
+    this.onSelectPrevSpace = this.onSelectPrevSpace.bind(this);
+    this.onUpdatePlanSpace = this.onUpdatePlanSpace.bind(this);
+    this.onDeletePlanSpace = this.onDeletePlanSpace.bind(this);
+    this.onCancelUpdatePlanSpace = this.onCancelUpdatePlanSpace.bind(this);
   }
   // Retrieve previously saved planning space by this current user
-  // added from save planning space
+  // added from locateSave
   componentDidMount() {
     axios
       .get(
@@ -83,7 +96,8 @@ class Maps extends React.Component {
           this.props.auth.user._id
       )
       .then(res => {
-        this.setState({ savedPlan: res.data[0] });
+        this.setState({ savedPlan: res.data });
+        console.log(res.data);
         //console.log(this.state, "current user: ", this.props.auth.user._id);
       })
       .catch(e => {
@@ -117,6 +131,7 @@ class Maps extends React.Component {
       })
       .catch(e => console.log(e));
   };
+
   // This deals with save planing space dialog box
   handleSaveClick = () => {
     this.setState(prevState => ({ openSave: !prevState.openSave }));
@@ -141,6 +156,31 @@ class Maps extends React.Component {
   };
   //--End-----------------------------------------------------------
 
+  // ---------selected previously saved space
+  onSelectPrevSpace = (name, shape) => {
+    // we update some states
+    this.setState({ isPlanSelected: true });
+    this.setState({ selected_name: name });
+    this.setState({ selected_plan: shape });
+  };
+  // update saved space
+  onUpdatePlanSpace = () => {
+    console.log("onUpdate: ", this.state.selected_name);
+  };
+
+  onCancelUpdatePlanSpace = () => {
+    // we reset some states
+    this.setState({ isPlanSelected: false });
+    this.setState({ selected_name: "" });
+    this.setState({ selected_plan: {} });
+  };
+
+  // Delete previously saved space
+  onDeletePlanSpace = name => {
+    console.log("onDelete :", name);
+  };
+  //----end-----------------------
+
   // From LocateForm
   changeHandler = e => {
     this.setState({ [e.target.name]: e.target.value });
@@ -158,29 +198,6 @@ class Maps extends React.Component {
     e.preventDefault();
     //functionality after submitting form.
     // make api call
-    // axios
-    //   .post(
-    //     `http://localhost:4000/api/v1/map/parishes`,
-    //     {
-    //       sensor_number: parseInt(this.state.numberOfDevices, 10),
-    //       polygon: this.props.plan.geometry["coordinates"]
-    //     },
-    //     {
-    //       headers: {
-    //         "Content-Type": "application/json"
-    //       }
-    //     }
-    //   )
-    //   .then(res => {
-    //     console.log(res);
-    //     console.log(
-    //       "Must have: ",
-    //       this.state.mustHaveCoord == "" ? "None" : this.state.mustHaveCoord
-    //     );
-    //     //this.setState(prevState => ({ openConfirm: !prevState.openConfirm })); //
-    //     console.log(this.state, this.props.plan);
-    //   })
-    //   .catch(e => console.log(e));
 
     axios
       .post(
@@ -248,6 +265,21 @@ class Maps extends React.Component {
   //--End----------------------------------------------------------
 
   _onEditStop = e => {
+    let type = e.layerType;
+    let layer = e.layer;
+
+    if (type === "polygon") {
+      if (this.state.isPlanSelected == true) {
+        // when we are working with previously saved plan
+        this.setState({ plan: layer.toGeoJSON() });
+        this.setState({ selected_plan: layer.toGeoJSON() });
+        this.setState({ geoJSONDATA: JSON.stringify(layer.toGeoJSON()) });
+      } else {
+        // otherwise
+        this.setState({ plan: layer.toGeoJSON() });
+        this.setState({ geoJSONDATA: JSON.stringify(layer.toGeoJSON()) });
+      }
+    }
     console.log("_onEditStop", e);
   };
 
@@ -261,10 +293,6 @@ class Maps extends React.Component {
     if (type === "polygon") {
       // here you got the polygon points
       ///const points = layer._latlngs;
-
-      //var geojson = layer.toGeoJSON();
-      //geoJsonPolygon = layer.toGeoJSON();
-      //const polygon = geoJsonPolygon.geometry["coordinates"];
       console.log(JSON.stringify(layer.toGeoJSON()));
       this.setState({ plan: layer.toGeoJSON() });
 
@@ -285,7 +313,7 @@ class Maps extends React.Component {
       position: "absolute",
       height: "auto",
       width: 250,
-      opacity: 0.9
+      opacity: 0.8
       //marginTop: "7em"
     };
     //--end--
@@ -299,8 +327,12 @@ class Maps extends React.Component {
       position: "absolute",
       height: "auto",
       width: 250,
-      opacity: 0.6,
-      top: "20em"
+      opacity: 0.8,
+      top: "21em"
+    };
+    const btnStyles = {
+      color: "red",
+      fontWeight: ".3em"
     };
 
     return (
@@ -312,6 +344,7 @@ class Maps extends React.Component {
           <form noValidate autoComplete="off" onSubmit={this.submitHandler}>
             <Divider />
             <TextField
+              type="number"
               name="numberOfDevices"
               label="Number of Devices"
               placeholder="No. of devices"
@@ -334,7 +367,7 @@ class Maps extends React.Component {
               <Button
                 type="submit"
                 name="submit"
-                disabled={this.state.btnSubmit == false ? "true" : ""}
+                disabled={this.state.btnSubmit === false ? "true" : ""}
                 color="secondary"
                 variant="contained"
                 size="small"
@@ -348,41 +381,87 @@ class Maps extends React.Component {
 
         {/* Locate Save Menu */}
         <div>
-          <List
-            component="nav"
-            aria-labelledby="nested-list-subheader"
-            style={savePlan}
-          >
-            <ListItem button>
-              <ListItemIcon>
-                <SaveIcon />
-              </ListItemIcon>
-              <ListItemText primary="Save" onClick={this.handleSaveClick} />
-            </ListItem>
-            <ListItem button onClick={this.handleClick}>
-              <ListItemIcon>
-                <InboxIcon />
-              </ListItemIcon>
-              <ListItemText primary="Open" />
-              {this.state.open ? <ExpandLess /> : <ExpandMore />}
-            </ListItem>
-            <Collapse in={this.state.open} timeout="auto" unmountOnExit>
-              <List component="div" disablePadding>
-                <ListItem button style={nested}>
-                  <ListItemIcon>
-                    <StarBorder />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={
-                      this.state.savedPlan == null
-                        ? ""
-                        : this.state.savedPlan.space_name
-                    }
-                  />
-                </ListItem>
-              </List>
-            </Collapse>
-          </List>
+          {/* Update planning space controls */}
+          {this.state.isPlanSelected == true ? (
+            <List
+              component="nav"
+              aria-labelledby="nested-list-subheader"
+              style={savePlan}
+            >
+              <ListItem button>
+                <ListItemIcon>
+                  <UpdateIcon />
+                </ListItemIcon>
+                <ListItemText
+                  primary="Update"
+                  onClick={this.onUpdatePlanSpace}
+                />
+              </ListItem>
+              <ListItem button>
+                <ListItemIcon>
+                  <CloseIcon style={btnStyles} />
+                </ListItemIcon>
+                <ListItemText
+                  primary="Cancel"
+                  onClick={this.onCancelUpdatePlanSpace}
+                />
+              </ListItem>
+            </List>
+          ) : (
+            //save new placing space , list saved planning space
+            <List
+              component="nav"
+              aria-labelledby="nested-list-subheader"
+              style={savePlan}
+            >
+              <ListItem
+                button
+                disabled={
+                  Object.keys(this.state.plan).length === 0 ? "true" : ""
+                }
+              >
+                <ListItemIcon>
+                  <SaveIcon />
+                </ListItemIcon>
+                <ListItemText primary="Save" onClick={this.handleSaveClick} />
+              </ListItem>
+              <ListItem button onClick={this.handleClick}>
+                <ListItemIcon>
+                  <InboxIcon />
+                </ListItemIcon>
+                <ListItemText primary="Open" />
+                {this.state.open ? <ExpandLess /> : <ExpandMore />}
+              </ListItem>
+              <Collapse in={this.state.open} timeout="auto" unmountOnExit>
+                <List component="div" disablePadding>
+                  {this.state.savedPlan != null
+                    ? this.state.savedPlan.map(s => (
+                        <ListItem key={s._id} button style={nested}>
+                          <ListItemText
+                            primary={s.space_name}
+                            onClick={this.onSelectPrevSpace.bind(
+                              this,
+                              s.space_name,
+                              s.plan
+                            )}
+                          />
+                          <Button
+                            variant="contained"
+                            size="small"
+                            onClick={this.onDeletePlanSpace.bind(
+                              this,
+                              s.space_name
+                            )}
+                          >
+                            <CloseIcon style={btnStyles} />
+                          </Button>
+                        </ListItem>
+                      ))
+                    : ""}
+                </List>
+              </Collapse>
+            </List>
+          )}
 
           {/* Dialog for save locate data */}
           <Dialog
@@ -508,6 +587,7 @@ class Maps extends React.Component {
             }}
           >
             <EditControl
+              ref="mapEditControl"
               position="topright"
               onEdited={this._onEdited}
               onCreated={this._onCreated}
@@ -575,6 +655,18 @@ class Maps extends React.Component {
       //console.log(toString(count)+' invalid polygons in results')
     } else {
       console.log("No polygons");
+    }
+    //Opening previously saved data
+    if (this.state.isPlanSelected == true) {
+      // populate the leaflet FeatureGroup with the geoJson layers
+
+      let savedLeafletGeoJSON = new L.GeoJSON(this.state.selected_plan);
+      let savedLeafletFG = ref.leafletElement;
+      savedLeafletGeoJSON.eachLayer(layer => {
+        savedLeafletFG.addLayer(layer);
+      });
+    } else {
+      // Lets clear the planning splace
     }
   };
 }
