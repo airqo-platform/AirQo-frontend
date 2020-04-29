@@ -1,3 +1,5 @@
+//--- This functionality has been moved to Map.js ----
+
 import React from "react";
 import List from "@material-ui/core/List";
 import ListItem from "@material-ui/core/ListItem";
