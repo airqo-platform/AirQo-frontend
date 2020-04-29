@@ -173,7 +173,20 @@ class Maps extends React.Component {
     this.setState({ isPlanSelected: false });
     this.setState({ selected_name: "" });
     this.setState({ selected_plan: {} });
+
+    return this.removeAllEditControlLayers;
   };
+  removeAllEditControlLayers() {
+    var layerContainer = this.refs.mapEditControl.options.edit.featureGroup,
+      layers = layerContainer._layers,
+      layer_ids = Object.keys(layers),
+      layer;
+
+    layer_ids.forEach(id => {
+      layer = layers[id];
+      layerContainer.removeLayer(layer);
+    });
+  }
 
   // Delete previously saved space
   onDeletePlanSpace = name => {
