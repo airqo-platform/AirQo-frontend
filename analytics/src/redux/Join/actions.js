@@ -1,14 +1,7 @@
 import axios from "axios";
 import setAuthToken from "../../utils/setAuthToken";
 import jwt_decode from "jwt-decode";
-import { Route, Redirect } from "react-router-dom";
-import {
-  GET_ERRORS,
-  SET_CURRENT_USER,
-  USER_LOADING,
-  RESET_PWD_SUCCESS,
-  RECOVERY_EMAIL_REQUEST,
-} from "./types";
+import { GET_ERRORS, SET_CURRENT_USER, USER_LOADING } from "./types";
 import constants from "../../config/constants";
 // Register User
 export const registerUser = (userData, history) => (dispatch) => {
@@ -28,26 +21,6 @@ export const registerUser = (userData, history) => (dispatch) => {
       })
     );
 };
-
-// Register User
-export const registerCandidate = (userData, history) => (dispatch) => {
-  axios
-    .post(constants.REGISTER_CANDIDATE_URI, userData)
-    .then((res) => {
-      try {
-        history.push("/login");
-      } catch (e) {
-        console.log(e);
-      }
-    }) // re-direct to login on successful register
-    .catch((err) =>
-      dispatch({
-        type: GET_ERRORS,
-        payload: err.response.data,
-      })
-    );
-};
-
 // Login - get user token
 export const loginUser = (userData) => (dispatch) => {
   axios
@@ -67,49 +40,64 @@ export const loginUser = (userData) => (dispatch) => {
     .catch((err) =>
       dispatch({
         type: GET_ERRORS,
-        payload: err.response.data,
+        payload: err.response,
       })
     );
 };
 
 // Login - forgot password
-export const forgotPassword = (userData) => async (dispatch) => {
-  console.dir(userData);
-  await axios
+export const forgotPassword = (userData) => (dispatch) => {
+  axios
     .post(constants.FORGOT_PWD_URI, userData)
     .then((response) => {
       console.log(response.data);
-      dispatch({
-        type: RECOVERY_EMAIL_REQUEST,
-        payload: response.data,
-      });
+      if (response.data === "email not recognized") {
+        this.setState({
+          showError: true,
+          messageFromServer: "",
+        });
+      } else if (response.data === "recovery email sent") {
+        this.setState({
+          showError: false,
+          messageFromServer: "",
+        });
+      }
     })
     .catch((err) =>
       dispatch({
         type: GET_ERRORS,
-        payload: err.response.data,
+        payload: err.response,
       })
     );
 };
 
-export const verifyToken = (token) => async (dispatch) => {
+//Reset Password - verify Token
+
+export const verifyToken = async (token) => {
   await axios
     .get(constants.VERIFY_TOKEN_URI, token)
     .then((response) => {
-      dispatch({
-        type: RESET_PWD_SUCCESS,
-        payload: response.data,
-      });
+      console.log(response);
+      if (response.data.message === "password reset link a-ok") {
+        this.setState({
+          username: response.data.username,
+          update: false,
+          isLoading: false,
+          error: false,
+        });
+      } else {
+        this.setState({
+          update: false,
+          isLoading: false,
+          error: true,
+        });
+      }
     })
     .catch((error) => {
-      dispatch({
-        type: GET_ERRORS,
-        payload: error.response,
-      });
+      console.log(error.data);
     });
 };
 
-//update password
 export const updatePassword = (userData) => {
   axios
     .put(constants.UPDATE_PWD_URI, userData)
@@ -129,54 +117,6 @@ export const updatePassword = (userData) => {
     })
     .catch((error) => {
       console.log(error.data);
-    });
-};
-
-//deactivate join request
-export const rejectUser = (data) => (dispatch) => {
-  axios
-    .post(constants.REJECT_USER_URI, data)
-    .then((response) => {
-      //just console log
-      console.log("the reject response" + response);
-    })
-    .catch((error) => {
-      dispatch({
-        type: GET_ERRORS,
-        payload: error.response,
-      });
-    });
-};
-
-//activate join request
-export const acceptUser = (data) => (dispatch) => {
-  axios
-    .post(constants.ACCEPT_USER_URI, data)
-    .then((response) => {
-      //just console log
-      console.log("the accept user response" + response);
-    })
-    .catch((error) => {
-      dispatch({
-        type: GET_ERRORS,
-        payload: error.response,
-      });
-    });
-};
-
-//get all users
-export const getUsers = (data) => (dispatch) => {
-  axios
-    .get(constants.GET_USERS_URI, data)
-    .then((response) => {
-      //just console log
-      console.log("the accept user response" + response);
-    })
-    .catch((error) => {
-      dispatch({
-        type: GET_ERRORS,
-        payload: error.response,
-      });
     });
 };
 
