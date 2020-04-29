@@ -66,21 +66,23 @@ const Display = props => {
             </Typography>
           </Grid>
         </Grid>
-        {/* <div className={classes.difference}>
-          <ArrowUpwardIcon className={classes.differenceIcon} />
-          <Typography
-            className={classes.differenceValue}
-            variant="body2"
-          >
-            16%
-          </Typography>
-          <Typography
-            className={classes.caption}
-            variant="caption"
-          >
-            Since last month
-          </Typography>
-        </div> */}
+        { /* <div class="chart">
+            <h3>Daily PM2.5 Concentration Levels for Lubaga</h3>
+            <div class="chart-wrap vertical">
+                <h2 class="title">Bar Chart HTML Example:  Using Only HTML And CSS</h2>
+  
+              <div class="grid">
+                <div class="bar"  data-name="Jan" title="Jan Blog 85%"></div>
+                <div class="bar"  data-name="Feb" title="Feb 23%"></div>
+                <div class="bar"  data-name="Mar" title="Mar 7%"></div>
+                <div class="bar"  data-name="Apr" title="Apr 38%"></div>
+                <div class="bar"  data-name="May" title="May 35%"></div>
+                <div class="bar"  data-name="June" title="June 30%"></div>
+                <div class="bar"  data-name="July" title="July 5%"></div>
+                <div class="bar"  data-name="Aug" title="Aug 20%"></div>    
+              </div>
+            </div>
+  </div> */ }
       </CardContent>
     </Card>
   );
