@@ -184,7 +184,7 @@ const Graphs = props => {
     }).catch(
       console.log
     )
-  }
+  }}
 
   
   if (selectedChart.value=='line'){
