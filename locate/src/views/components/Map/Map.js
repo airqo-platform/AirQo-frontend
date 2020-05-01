@@ -9,7 +9,7 @@ import {
   LayerGroup,
   TileLayer,
   Marker,
-  Popup
+  Popup,
 } from "react-leaflet";
 import { EditControl } from "react-leaflet-draw";
 import axios from "axios";
@@ -69,7 +69,8 @@ class Maps extends React.Component {
       // states for opening and updating saved
       selected_name: "",
       selected_plan: {},
-      isPlanSelected: false
+      isPlanSelected: false,
+      isUpdateCancel: false,
     };
     //from locate
     this.changeHandler = this.changeHandler.bind(this);
@@ -95,12 +96,12 @@ class Maps extends React.Component {
         `http://localhost:4000/api/v1/map/getlocatemap/` +
           this.props.auth.user._id
       )
-      .then(res => {
+      .then((res) => {
         this.setState({ savedPlan: res.data });
         console.log(res.data);
         //console.log(this.state, "current user: ", this.props.auth.user._id);
       })
-      .catch(e => {
+      .catch((e) => {
         console.log(e);
       });
   }
@@ -108,7 +109,7 @@ class Maps extends React.Component {
   // save planning space
   savePlanningSpace = () => {
     // head the save planning space dialog
-    this.setState(prevState => ({ openSave: !prevState.openSave }));
+    this.setState((prevState) => ({ openSave: !prevState.openSave }));
     // make api call
     console.log("plan: ", this.state.plan);
     axios
@@ -117,42 +118,42 @@ class Maps extends React.Component {
         {
           user_id: this.props.auth.user._id,
           space_name: this.state.space_name,
-          plan: this.state.plan
+          plan: this.state.plan,
         },
         {
           headers: {
-            "Content-Type": "application/json"
-          }
+            "Content-Type": "application/json",
+          },
         }
       )
-      .then(res => {
+      .then((res) => {
         console.log(res);
-        this.setState(prevState => ({ openConfirm: !prevState.openConfirm })); //
+        this.setState((prevState) => ({ openConfirm: !prevState.openConfirm })); //
       })
-      .catch(e => console.log(e));
+      .catch((e) => console.log(e));
   };
 
   // This deals with save planing space dialog box
   handleSaveClick = () => {
-    this.setState(prevState => ({ openSave: !prevState.openSave }));
+    this.setState((prevState) => ({ openSave: !prevState.openSave }));
   };
   handleSaveClose = () => {
-    this.setState(prevState => ({ openSave: !prevState.openSave }));
+    this.setState((prevState) => ({ openSave: !prevState.openSave }));
     //console.log(this.state, this.props.plan, this.props.user_id);
   };
   // hooks the planning space textfield input
-  changeHandler = e => {
+  changeHandler = (e) => {
     this.setState({ [e.target.name]: e.target.value });
   };
 
   // Handles saved space confirmation feedback
   handleConfirmClose = () => {
-    this.setState(prevState => ({ openConfirm: !prevState.openConfirm }));
+    this.setState((prevState) => ({ openConfirm: !prevState.openConfirm }));
   };
 
   // load previously saved space
   handleClick = () => {
-    this.setState(prevState => ({ open: !prevState.open }));
+    this.setState((prevState) => ({ open: !prevState.open }));
   };
   //--End-----------------------------------------------------------
 
@@ -169,33 +170,18 @@ class Maps extends React.Component {
   };
 
   onCancelUpdatePlanSpace = () => {
-    // we reset some states
-    this.setState({ isPlanSelected: false });
-    this.setState({ selected_name: "" });
-    this.setState({ selected_plan: {} });
-
-    return this.removeAllEditControlLayers;
+    // monitor cancel button:
+    this.setState({ isUpdateCancel: true });
   };
-  removeAllEditControlLayers() {
-    var layerContainer = this.refs.mapEditControl.options.edit.featureGroup,
-      layers = layerContainer._layers,
-      layer_ids = Object.keys(layers),
-      layer;
-
-    layer_ids.forEach(id => {
-      layer = layers[id];
-      layerContainer.removeLayer(layer);
-    });
-  }
 
   // Delete previously saved space
-  onDeletePlanSpace = name => {
+  onDeletePlanSpace = (name) => {
     console.log("onDelete :", name);
   };
   //----end-----------------------
 
   // From LocateForm
-  changeHandler = e => {
+  changeHandler = (e) => {
     this.setState({ [e.target.name]: e.target.value });
     // toggle submit button ON and OFF
     if (e.target.name == "numberOfDevices") {
@@ -207,7 +193,7 @@ class Maps extends React.Component {
     }
   };
 
-  submitHandler = e => {
+  submitHandler = (e) => {
     e.preventDefault();
     //functionality after submitting form.
     // make api call
@@ -217,17 +203,17 @@ class Maps extends React.Component {
         "http://127.0.0.1:4000/api/v1/map/parishes",
         this.state.geoJSONDATA,
         {
-          headers: { "Content-Type": "application/json" }
+          headers: { "Content-Type": "application/json" },
         }
       )
-      .then(res => {
+      .then((res) => {
         const myData = res.data;
         console.log(myData);
 
         let myPolygons = [];
 
         try {
-          myData.forEach(element => {
+          myData.forEach((element) => {
             if (element["properties.district"]) {
               myPolygons.push({
                 type: "Feature",
@@ -239,12 +225,12 @@ class Maps extends React.Component {
                   long: element["properties.long"],
                   color: element["color"],
                   fill_color: element["fill_color"],
-                  type: element.type
+                  type: element.type,
                 },
                 geometry: {
                   type: "Polygon",
-                  coordinates: element["geometry.coordinates"]
-                }
+                  coordinates: element["geometry.coordinates"],
+                },
               });
             } else {
               myPolygons.push({
@@ -257,18 +243,18 @@ class Maps extends React.Component {
                   long: element.properties.long,
                   color: element.color,
                   fill_color: element.fill_color,
-                  type: element.type
+                  type: element.type,
                 },
                 geometry: {
                   type: "Polygon",
-                  coordinates: element.geometry.coordinates
-                }
+                  coordinates: element.geometry.coordinates,
+                },
               });
             }
           });
 
           this.setState({
-            polygons: myPolygons
+            polygons: myPolygons,
           });
         } catch (error) {
           console.log("An error occured. Please try again");
@@ -277,7 +263,7 @@ class Maps extends React.Component {
   };
   //--End----------------------------------------------------------
 
-  _onEditStop = e => {
+  _onEditStop = (e) => {
     let type = e.layerType;
     let layer = e.layer;
 
@@ -296,7 +282,7 @@ class Maps extends React.Component {
     console.log("_onEditStop", e);
   };
 
-  _onCreated = e => {
+  _onCreated = (e) => {
     let type = e.layerType;
     let layer = e.layer;
     if (type === "marker") {
@@ -326,13 +312,13 @@ class Maps extends React.Component {
       position: "absolute",
       height: "auto",
       width: 250,
-      opacity: 0.8
+      opacity: 0.8,
       //marginTop: "7em"
     };
     //--end--
     // Save planning styles
     const nested = {
-      paddingLeft: "2em"
+      paddingLeft: "2em",
     };
     const savePlan = {
       backgroundColor: "#FFF",
@@ -341,11 +327,11 @@ class Maps extends React.Component {
       height: "auto",
       width: 250,
       opacity: 0.8,
-      top: "21em"
+      top: "21em",
     };
     const btnStyles = {
       color: "red",
-      fontWeight: ".3em"
+      fontWeight: ".3em",
     };
 
     return (
@@ -448,7 +434,7 @@ class Maps extends React.Component {
               <Collapse in={this.state.open} timeout="auto" unmountOnExit>
                 <List component="div" disablePadding>
                   {this.state.savedPlan != null
-                    ? this.state.savedPlan.map(s => (
+                    ? this.state.savedPlan.map((s) => (
                         <ListItem key={s._id} button style={nested}>
                           <ListItemText
                             primary={s.space_name}
@@ -548,12 +534,12 @@ class Maps extends React.Component {
 
           <LayerGroup>
             }
-            {this.state.polygons.map(location => (
+            {this.state.polygons.map((location) => (
               <Marker
                 key={location.parish}
                 position={{
                   lat: location.properties.lat,
-                  lng: location.properties.long
+                  lng: location.properties.long,
                 }}
                 icon={
                   new L.Icon({
@@ -566,13 +552,13 @@ class Maps extends React.Component {
                     iconSize: [25, 41],
                     iconAnchor: [12, 41],
                     popupAnchor: [1, -34],
-                    shadowSize: [41, 41]
+                    shadowSize: [41, 41],
                   })
                 }
-                onMouseOver={e => {
+                onMouseOver={(e) => {
                   e.target.openPopup();
                 }}
-                onMouseOut={e => {
+                onMouseOut={(e) => {
                   e.target.closePopup();
                 }}
               >
@@ -595,7 +581,7 @@ class Maps extends React.Component {
           </LayerGroup>
 
           <FeatureGroup
-            ref={reactFGref => {
+            ref={(reactFGref) => {
               this._onFeatureGroupReady(reactFGref);
             }}
           >
@@ -613,7 +599,7 @@ class Maps extends React.Component {
               draw={{
                 rectangle: false,
                 circle: false,
-                circlemarker: false
+                circlemarker: false,
               }}
             />
           </FeatureGroup>
@@ -622,7 +608,7 @@ class Maps extends React.Component {
     );
   }
 
-  _onFeatureGroupReady = ref => {
+  _onFeatureGroupReady = (ref) => {
     if (ref === null) {
       return;
     }
@@ -633,7 +619,7 @@ class Maps extends React.Component {
 
         try {
           let leafletGeoJSON = new L.GeoJSON(this.state.polygons[i], {
-            onEachFeature: function(feature, layer) {
+            onEachFeature: function (feature, layer) {
               let popup_string =
                 "<b>DISTRICT: </b>" +
                 feature["properties"]["district"] +
@@ -644,21 +630,21 @@ class Maps extends React.Component {
                 "<br/><b>TYPE: </b>" +
                 feature["properties"]["type"];
               layer.bindPopup(popup_string);
-              layer.on("mouseover", function(e) {
+              layer.on("mouseover", function (e) {
                 this.openPopup();
               });
-              layer.on("mouseout", function(e) {
+              layer.on("mouseout", function (e) {
                 this.closePopup();
               });
             },
             style: {
               fillColor: this.state.polygons[i]["properties"]["fill_color"],
               color: this.state.polygons[i]["properties"]["color"],
-              opacity: 100
-            }
+              opacity: 100,
+            },
           });
           let leafletFG = this._editableFG.leafletElement;
-          leafletGeoJSON.eachLayer(layer => leafletFG.addLayer(layer));
+          leafletGeoJSON.eachLayer((layer) => leafletFG.addLayer(layer));
         } catch (error) {
           console.log(
             "An error occured and some polygons may not have been shown!"
@@ -670,16 +656,29 @@ class Maps extends React.Component {
       console.log("No polygons");
     }
     //Opening previously saved data
-    if (this.state.isPlanSelected == true) {
+    if (
+      this.state.isPlanSelected == true &&
+      this.state.isUpdateCancel == false
+    ) {
       // populate the leaflet FeatureGroup with the geoJson layers
 
-      let savedLeafletGeoJSON = new L.GeoJSON(this.state.selected_plan);
-      let savedLeafletFG = ref.leafletElement;
-      savedLeafletGeoJSON.eachLayer(layer => {
+      var savedLeafletGeoJSON = new L.GeoJSON(this.state.selected_plan);
+      var savedLeafletFG = ref.leafletElement;
+      savedLeafletGeoJSON.eachLayer((layer) => {
         savedLeafletFG.addLayer(layer);
       });
-    } else {
-      // Lets clear the planning splace
+      // } else {
+      //   if (
+      //     this.state.isPlanSelected == true &&
+      //     this.state.isUpdateCancel == true
+      //   ) {
+      //     draw.deleteAll().getAll();
+
+      //     this.setState({ isPlanSelected: false });
+      //     this.setState({ selected_name: "" });
+      //     this.setState({ selected_plan: {} });
+      //     this.setState({ isUpdateCancel: false });
+      //   }
     }
   };
 }
@@ -687,12 +686,12 @@ class Maps extends React.Component {
 Maps.propTypes = {
   mapRenderDefaults: PropTypes.func.isRequired,
   mapDefaults: PropTypes.object.isRequired,
-  auth: PropTypes.object.isRequired
+  auth: PropTypes.object.isRequired,
 };
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
   mapDefaults: state.mapDefaults.initMap,
-  auth: state.auth
+  auth: state.auth,
 });
 
 export default connect(mapStateToProps, { mapRenderDefaults })(Maps);
