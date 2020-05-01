@@ -49,12 +49,13 @@ class Maps extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
+      api_data: {},
       polygons: [],
       markers: [[0.32, 32.598]],
       // gets the shapefile format to save (polygon drawn within the planning space)
       plan: {},
       // from LOCATE FORM
-      numberOfDevices: "",
+      numberOfDevices: 0,
       mustHaveCoord: "",
       btnSubmit: false,
       //newly added - passed to the model endpoint
@@ -146,6 +147,7 @@ class Maps extends React.Component {
     this.setState({ [e.target.name]: e.target.value });
   };
 
+
   // Handles saved space confirmation feedback
   handleConfirmClose = () => {
     this.setState((prevState) => ({ openConfirm: !prevState.openConfirm }));
@@ -185,7 +187,7 @@ class Maps extends React.Component {
     this.setState({ [e.target.name]: e.target.value });
     // toggle submit button ON and OFF
     if (e.target.name == "numberOfDevices") {
-      if (e.target.value != "") {
+      if (e.target.value != 0 && (/^\d+$/.test(e.target.value))){
         this.setState({ btnSubmit: true });
       } else {
         this.setState({ btnSubmit: false });
@@ -198,10 +200,45 @@ class Maps extends React.Component {
     //functionality after submitting form.
     // make api call
 
+    // axios
+    //   .post(
+    //     `http://localhost:4000/api/v1/map/parishes`,
+    //     {
+    //       sensor_number: parseInt(this.state.numberOfDevices, 10),
+    //       polygon: this.props.plan.geometry["coordinates"]
+    //     },
+    //     {
+    //       headers: {
+    //         "Content-Type": "application/json"
+    //       }
+    //     }
+    //   )
+    //   .then(res => {
+    //     console.log(res);
+    //     console.log(
+    //       "Must have: ",
+    //       this.state.mustHaveCoord == "" ? "None" : this.state.mustHaveCoord
+    //     );
+    //     //this.setState(prevState => ({ openConfirm: !prevState.openConfirm })); //
+    //     console.log(this.state, this.props.plan);
+    //   })
+    //   .catch(e => console.log(e));
+    
+    
+    
+   // console.log(this.state.numberOfDevices);
+    //console.log(this.state.mustHaveCoord);
+    //console.log(this.state.plan);
+    let api_data = {
+      "sensor_number": this.state.numberOfDevices,
+      "must_have_coordinates": this.state.mustHaveCoord,
+      "polygon": this.state.plan
+    }
+    console.log(api_data);
     axios
       .post(
         "http://127.0.0.1:4000/api/v1/map/parishes",
-        this.state.geoJSONDATA,
+        api_data,
         {
           headers: { "Content-Type": "application/json" },
         }
@@ -293,6 +330,7 @@ class Maps extends React.Component {
       // here you got the polygon points
       ///const points = layer._latlngs;
       console.log(JSON.stringify(layer.toGeoJSON()));
+      //console.log(JSON.stringify(layer.toGeoJSON()));
       this.setState({ plan: layer.toGeoJSON() });
 
       //newly added
@@ -346,12 +384,14 @@ class Maps extends React.Component {
               type="number"
               name="numberOfDevices"
               label="Number of Devices"
+              keyboardType='numeric'
               placeholder="No. of devices"
               required
               value={numberOfDevices}
               onChange={this.changeHandler}
               fullWidth
               margin="normal"
+              
             />
             <TextField
               name="mustHaveCoord"
