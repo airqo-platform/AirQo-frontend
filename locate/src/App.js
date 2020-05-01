@@ -19,19 +19,25 @@ import theme from "./assets/theme";
 import Navbar from "./views/components/Navbars/Navbar";
 import Landing from "./views/layouts/Landing";
 import Admin from "./views/layouts/Admin";
-import Register from "./views/components/auth/Register";
-import ForgotPassword from "./views/components/auth/ForgotPassword";
-import ResetPassword from "./views/components/auth/ResetPassword";
+import Register from "./views/components/Inputs/Register";
+import ForgotPassword from "./views/components/Inputs/ForgotPassword";
+import ResetPassword from "./views/components/Inputs/ResetPassword";
+import RegisterAnalytics from "./views/components/Inputs/RegisterAnalytics";
 import {
   Main as MainLayout,
   Maps as MapLayout,
   Minimal as MinimalLayout,
 } from "../src/views/layouts/";
-import Login from "./views/components/auth/Login";
+import Login from "./views/components/Inputs/Login";
+import Profile from "./views/components/Inputs/UserProfile";
+import Settings from "./views/components/Inputs/Settings";
 import PrivateRoute from "./views/components/PrivateRoute/PrivateRoute";
 import Dashboard from "./views/components/Dashboard/Dashboard";
 import Map from "./views/components/Map";
-import Table from "./views/components/DeviceRegistry";
+import Devices from "./views/components/DataDisplay/Devices";
+import Users from "./views/components/DataDisplay/Users";
+import Manager from "./views/components/DataDisplay/DeviceManagement";
+import Incentives from "./views/components/DataDisplay/Incentives";
 
 // Check for token to keep user logged in
 if (localStorage.jwtToken) {
@@ -59,12 +65,12 @@ class App extends Component {
         <ThemeProvider theme={theme}>
           <Router>
             <div className="App">
-              <Navbar />
               <Route exact path="/" component={Landing} />
               <Route exact path="/register" component={Register} />
               <Route exact path="/login" component={Login} />
               <Route exact path="/forgot" component={ForgotPassword} />
-              <Route exact path="/reset" component={ResetPassword} />
+              <Route exact path="/reset/:token" component={ResetPassword} />
+              <Route exact path="/analytics" component={RegisterAnalytics} />
               <Switch>
                 <PrivateRoute
                   exact
@@ -76,12 +82,45 @@ class App extends Component {
                   exact
                   path="/locate"
                   component={Map}
-                  layout={MapLayout}
+                  layout={MainLayout}
                 />
                 <PrivateRoute
                   extact
                   path="/registry"
-                  component={Table}
+                  component={Devices}
+                  layout={MainLayout}
+                />
+                <PrivateRoute
+                  exact
+                  path="/admin/users"
+                  component={Users}
+                  layout={MainLayout}
+                />
+                <PrivateRoute
+                  exact
+                  path="/account"
+                  component={Profile}
+                  layout={MainLayout}
+                />
+
+                <PrivateRoute
+                  exact
+                  path="/settings"
+                  component={Settings}
+                  layout={MainLayout}
+                />
+
+                <PrivateRoute
+                  exact
+                  path="/manager"
+                  component={Manager}
+                  layout={MainLayout}
+                />
+
+                <PrivateRoute
+                  exact
+                  path="/incentives"
+                  component={Incentives}
                   layout={MainLayout}
                 />
               </Switch>

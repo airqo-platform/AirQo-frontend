@@ -3,6 +3,9 @@ import clsx from 'clsx';
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/styles';
 import { Map as LeafletMap, TileLayer, Marker, Popup } from 'react-leaflet';
+import FullscreenControl from 'react-leaflet-fullscreen';
+import 'react-leaflet-fullscreen/dist/styles.css'
+
 
 import {
   Card,
@@ -67,6 +70,8 @@ const Map = props => {
             Makerere University.
           </Popup>
         </Marker>
+
+        <FullscreenControl position="topright" />
         </LeafletMap>
         
       </CardContent>
