@@ -17,11 +17,13 @@ import L from "leaflet";
 import { ElementClass } from "enzyme";
 import FullscreenControl from "react-leaflet-fullscreen";
 import "react-leaflet-fullscreen/dist/styles.css";
-import MapMenu from "./MapMenu";
+// import MapMenu from "./MapMenu";
 // From locate MAP
 import Button from "@material-ui/core/Button";
 import TextField from "@material-ui/core/TextField";
 import { CardActions, Divider } from "@material-ui/core";
+import Card from "../Card/Card.js";
+import CardBody from "../Card/CardBody.js";
 //--End--
 
 // From Locate Save
@@ -147,7 +149,6 @@ class Maps extends React.Component {
     this.setState({ [e.target.name]: e.target.value });
   };
 
-
   // Handles saved space confirmation feedback
   handleConfirmClose = () => {
     this.setState((prevState) => ({ openConfirm: !prevState.openConfirm }));
@@ -187,7 +188,7 @@ class Maps extends React.Component {
     this.setState({ [e.target.name]: e.target.value });
     // toggle submit button ON and OFF
     if (e.target.name == "numberOfDevices") {
-      if (e.target.value != 0 && (/^\d+$/.test(e.target.value))){
+      if (e.target.value != 0 && /^\d+$/.test(e.target.value)) {
         this.setState({ btnSubmit: true });
       } else {
         this.setState({ btnSubmit: false });
@@ -223,26 +224,20 @@ class Maps extends React.Component {
     //     console.log(this.state, this.props.plan);
     //   })
     //   .catch(e => console.log(e));
-    
-    
-    
-   // console.log(this.state.numberOfDevices);
+
+    // console.log(this.state.numberOfDevices);
     //console.log(this.state.mustHaveCoord);
     //console.log(this.state.plan);
     let api_data = {
-      "sensor_number": this.state.numberOfDevices,
-      "must_have_coordinates": this.state.mustHaveCoord,
-      "polygon": this.state.plan
-    }
+      sensor_number: this.state.numberOfDevices,
+      must_have_coordinates: this.state.mustHaveCoord,
+      polygon: this.state.plan,
+    };
     console.log(api_data);
     axios
-      .post(
-        "http://127.0.0.1:4000/api/v1/map/parishes",
-        api_data,
-        {
-          headers: { "Content-Type": "application/json" },
-        }
-      )
+      .post("http://127.0.0.1:4000/api/v1/map/parishes", api_data, {
+        headers: { "Content-Type": "application/json" },
+      })
       .then((res) => {
         const myData = res.data;
         console.log(myData);
@@ -371,9 +366,8 @@ class Maps extends React.Component {
       color: "red",
       fontWeight: ".3em",
     };
-
     return (
-      <>
+      <div>
         {/* Adding MapMenu */}
         {/* <MapMenu geojson={this.state.plan} /> */}
         {/* Adding Locate Form */}
@@ -384,14 +378,13 @@ class Maps extends React.Component {
               type="number"
               name="numberOfDevices"
               label="Number of Devices"
-              keyboardType='numeric'
+              keyboardType="numeric"
               placeholder="No. of devices"
               required
               value={numberOfDevices}
               onChange={this.changeHandler}
               fullWidth
               margin="normal"
-              
             />
             <TextField
               name="mustHaveCoord"
@@ -644,8 +637,9 @@ class Maps extends React.Component {
             />
           </FeatureGroup>
         </Map>
-      </>
+      </div>
     );
+    // --- End of render function ---
   }
 
   _onFeatureGroupReady = (ref) => {
