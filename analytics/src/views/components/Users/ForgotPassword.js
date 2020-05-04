@@ -27,7 +27,7 @@ class ForgotPassword extends Component {
     };
   }
 
-  async componentDidMount() {}
+  async componentDidMount() { }
 
   onChange = (e) => {
     this.setState({
@@ -114,3 +114,5 @@ const mapSateToProps = (state) => ({
 });
 
 export default connect(mapSateToProps, { forgotPassword })(ForgotPassword);
+
+//
