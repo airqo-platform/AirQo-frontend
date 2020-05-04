@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
+import { withRouter } from 'react-router-dom';
 import clsx from 'clsx';
 import { makeStyles } from '@material-ui/styles';
+import { connect } from "react-redux";
+import { updatePassword } from "../../../../redux/Join/actions";
 import {
   Card,
   CardHeader,
@@ -33,12 +36,29 @@ const Password = props => {
     });
   };
 
+  const { user } = props.auth;
+
+  const onSubmit = (e) => {
+    e.preventDefault();
+    const userData = {
+      id: user._id,
+      password: values.password,
+      password2: values.confirm
+    };
+
+    props.updatePassword(userData);
+    setValues({
+      password: "",
+      confirm: ""
+    });
+  };
+
   return (
     <Card
       {...rest}
       className={clsx(classes.root, className)}
     >
-      <form>
+      <form noValidate onSubmit={onSubmit}>
         <CardHeader
           subheader="Update password"
           title="Password"
@@ -79,8 +99,17 @@ const Password = props => {
   );
 };
 
+
 Password.propTypes = {
-  className: PropTypes.string
+  className: PropTypes.string,
+  auth: PropTypes.object.isRequired,
+  actorState: PropTypes.object.isRequired,
+  updatePassword: PropTypes.func.isRequired,
 };
 
-export default Password;
+const mapStateToProps = (state) => ({
+  auth: state.auth,
+  actorState: state.actorState
+});
+
+export default connect(mapStateToProps, { updatePassword })(withRouter(Password));
