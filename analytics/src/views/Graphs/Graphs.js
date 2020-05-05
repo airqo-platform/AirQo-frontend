@@ -8,6 +8,7 @@ import Select from 'react-select';
 import DateFnsUtils from '@date-io/date-fns';
 import {MuiPickersUtilsProvider, KeyboardTimePicker, KeyboardDatePicker} from '@material-ui/pickers';
 import axios from 'axios';
+import LoadingSpinner from './loadingSpinner';
 
 
 const useStyles = makeStyles(theme => ({
@@ -54,6 +55,11 @@ const Graphs = props => {
   const [times, setTimes] =useState([]);
   const [pollutionValues, setPollutionValues] = useState([]);
   const [backgroundColors, setBackgroundColors] = useState([]);
+
+  const [myChartType, setMyChartType] = useState({value: ""});
+  const [myPollutant, setMyPollutant] = useState({value: ""});
+  const [loading, setLoading] = useState({value: false})
+
 
   const [selectedDate, setSelectedStartDate] = useState(new Date());
 
@@ -123,8 +129,32 @@ const Graphs = props => {
     setSelectedPollutant(selectedPollutantOption);
   };
 
+  function appendLeadingZeroes(n){
+    if(n <= 9){
+      return "0" + n;
+    }
+    return n
+  }
+
+  function generateLabel(pollutant){
+    let superString="3";
+    if (pollutant=='PM 2.5'){
+      //return "PM 2.5 (µg/m3)"
+      return "PM 2.5 Concentration"
+    }
+    else if (pollutant=='PM 10'){
+      //return "PM 10 (µg/m3)"
+      return "PM 10 Concentration"
+    }
+    else{
+      return "NO2 Concentration"
+    }
+
+  }
+
   let  handleSubmit = (e) => {
     e.preventDefault();
+    setLoading(true);
 
     let filter ={ 
       locations: values.selectedOption,
@@ -147,6 +177,9 @@ const Graphs = props => {
       res=>{
         const myData = res.data;
         console.log(myData);
+        setLoading(false)
+        setMyChartType(selectedChart.value);
+        setMyPollutant(selectedPollutant.value);
         if (typeof myData[0] == 'number'){
           let myValues = [];
           myData.forEach(element => {
@@ -160,7 +193,11 @@ const Graphs = props => {
           let myValues = [];
           let myColors = [];
           myData.forEach(element => {
-            myTimes.push(element.time);
+            var newTime = new Date(element.time);
+            var finalTime = newTime.getFullYear()+'-'+appendLeadingZeroes(newTime.getMonth()+1)+'-'+appendLeadingZeroes(newTime.getDate())+
+            ' '+appendLeadingZeroes(newTime.getHours())+':'+ appendLeadingZeroes(newTime.getMinutes())+':'+appendLeadingZeroes(newTime.getSeconds());
+            myTimes.push(finalTime);
+            
             myColors.push(element.backgroundColor)
             if (element.hasOwnProperty('characteristics') && element.characteristics.hasOwnProperty('pm2_5ConcMass')){
               myValues.push(element.characteristics.pm2_5ConcMass.value);
@@ -189,7 +226,7 @@ const Graphs = props => {
   }
 
   
-  if (selectedChart.value=='line'){
+  if (myChartType=='line'){
     return(
       <div className={classes.root}>
         <Grid
@@ -203,34 +240,16 @@ const Graphs = props => {
           xl={8}
           xs={12}
           >
-          
-          <Card
-      {...rest}
-      className={clsx(classes.root, className)}
-    >
-      <CardContent>
-        <Grid
-          container
-          justify="space-between"
-        >
-          <Grid item>
-            <Typography
-              className={classes.title}
-              color="textSecondary"
-              gutterBottom
-              variant="body2"
-            >
-              Display Graph
-            </Typography>
-          </Grid>
-        
+
+          <div>
+          {loading ? <LoadingSpinner /> : 
           <Line
           data= {
               {
               labels: times,
               datasets:[
                  {
-                    label:'Air Quality over time',
+                    label:myPollutant,
                     data: pollutionValues,
                     backgroundColor: backgroundColors,
                     borderColor: 'rgba(0,0,0,1)',
@@ -240,21 +259,57 @@ const Graphs = props => {
            }
           }
           options={{
-            /*title:{
+            title:{
               display:true,
-              text: 'Air quality data over time',
+              text: 'Line graph showing '+myPollutant+' data over the specified period',
+              fontColor: "black",
+              fontSize: 18,
+              fontWeight: 0
             },
-            legend:{
+
+            scales: {
+              yAxes: [{
+                scaleLabel: {
+                  display: true,
+                  labelString: generateLabel(myPollutant),
+                  fontWeight:4,
+                  fontColor: "black",
+                  fontSize:20,
+                  padding: 10
+                },
+                ticks: {
+                  fontColor:"black"                 
+                  },
+                gridLines:{
+                  lineWidth: 5
+                }
+              }],
+              xAxes: [{
+                scaleLabel: {
+                  display: true,
+                  labelString: 'Time',
+                  fontWeight:4,
+                  fontColor: "black",
+                  fontSize: 20,
+                  padding: 6
+                },
+                ticks: {
+                  fontColor:"black"                 
+                  },
+                gridLines:{
+                  lineWidth: 5
+                }
+
+              }],
+            },
+            /*legend:{
               display: true,
               //position: 'right'
             },*/
             maintainAspectRatio: true,
             responsive: true
-            }}/>
-         
-         </Grid>
-      </CardContent>
-    </Card>
+            }}/>}
+          </div>
           </Grid>
 
           <Grid
@@ -419,7 +474,7 @@ const Graphs = props => {
     )
 
   }
-  else if (selectedChart.value=='pie'){
+  else if (myChartType=='pie'){
 
     return(
       <div className={classes.root}>
@@ -434,52 +489,40 @@ const Graphs = props => {
           xl={8}
           xs={12}
           >
-          <Card
-      {...rest}
-      className={clsx(classes.root, className)}
-    >
-      <CardContent>
-        <Grid
-          container
-          justify="space-between"
-        >
-          <Grid item>
-            <Typography
-              className={classes.title}
-              color="textSecondary"
-              gutterBottom
-              variant="body2"
-            >
-              Display Graph
-            </Typography>
-          </Grid>
+
+           <div>
+          {loading ? <LoadingSpinner /> : 
           <Pie
           data= {
             {
               labels: ['Good', 'Moderate', 'UH4SG', 'Unhealthy', 'Very Unhealthy', 'Hazardous', 'Other'],
               datasets: [{
-                label: 'Air Quality',
+                label: myPollutant,
                 data: pollutionValues, 
-                backgroundColor: ['Green', 'Yellow', 'Orange', 'Red','Purple', 'Maroon', 'Grey']
+                backgroundColor: ['Green', 'Yellow', 'Orange', 'Red','Purple', 'Maroon', 'Grey'],
+                hoverBackgroundColor: ['rgba(15,128,0,0.5)', 'rgba(255,235,10,0.5)', 'rgba(251,117,14,0.5)', 'rgba(251,14,14,0.5)',
+                'rgba(102,0,128,0.5)', 'rgba(128,0,0,0.5)', 'rgba(77,77,77,0.5)'],
+                hoverBorderWidth: 8
               }
             ]
           }
           }
           options={{
-            /*title:{
+            title:{
               display:true,
-              text: 'Air quality data over time',
+              text: 'Pie Chart showing '+ myPollutant+ ' data over the specified period',
+              fontColor: "black",
+              fontSize: 20,
+              fontWeight: 5
             },
-            legend:{
+            /*legend:{
               display: true,
               position: 'right'
             },*/
             maintainAspectRatio: true,
             responsive: true
-            }}/>
-          </Grid>
-      </CardContent>
-    </Card>
+            }}/>}
+          </div>
           </Grid>
 
           <Grid
@@ -642,9 +685,257 @@ const Graphs = props => {
         </Grid>
       </div>
     )
+}
 
+else if (myChartType=='bar'){
 
-  }
+  return(
+    <div className={classes.root}>
+      <Grid
+      container
+      spacing = {0.1}
+      >
+        <Grid
+        item
+        lg={8}
+        sm={8}
+        xl={8}
+        xs={12}
+        >
+        <div>
+        {loading ? <LoadingSpinner /> : 
+        <Bar
+        data= {
+            {
+            labels: times,
+            datasets:[
+               {
+                  label:myPollutant,
+                  data: pollutionValues,
+                  backgroundColor: backgroundColors,
+                  borderColor: 'rgba(0,0,0,1)',   
+                  borderWidth: 1
+               }
+            ]
+         }
+        }
+        options={{
+          title:{
+            display:true,
+            text: 'Bar graph showing '+myPollutant+ ' data over the specified period',
+            fontColor: "black",
+            fontSize: 20,
+            fontWeight:5
+          },
+
+          scales: {
+            yAxes: [{
+              scaleLabel: {
+                display: true,
+                labelString: generateLabel(myPollutant),
+                fontWeight:4,
+                fontColor: "black",
+                fontSize:20,
+                padding: 10
+              },
+              ticks: {
+                fontColor:"black"                 
+                },
+              gridLines:{
+                lineWidth: 5
+              }
+            }],
+            xAxes: [{
+              scaleLabel: {
+                display: true,
+                labelString: 'Time',
+                fontWeight:4,
+                fontColor: "black",
+                fontSize: 20,
+                padding: 6
+              },
+              ticks: {
+                fontColor:"black"                 
+                },
+              gridLines:{
+                lineWidth: 5
+              }
+
+            }],
+          },
+         /* legend:{
+            display: true,
+            position: 'right'
+          },*/
+          maintainAspectRatio: true,
+          responsive: true
+          }}/>}
+        </div>
+        </Grid>
+
+        <Grid
+        item
+        lg={4}
+        sm={4}
+        xl={4}
+        xs={12}
+        >
+        <div>
+  <Card
+    {...rest}
+    className={clsx(classes.root, className)}
+  >
+    <CardContent>
+      <Grid
+        container
+        justify="space-between"
+      >
+      </Grid>
+
+    <form onSubmit={handleSubmit}>
+
+<div className={classes.formControl}>
+<label className="reactSelectLabel">Location(s)</label>
+<Select
+  className="reactSelect"
+  name="location"
+  placeholder="Location(s)"
+  value={values.selectedOption}
+  options={filterLocationsOptions}
+  onChange={handleMultiChange}
+  isMulti
+/>
+</div>
+
+<div className={classes.formControl}> 
+<MuiPickersUtilsProvider utils={DateFnsUtils}>
+  <Grid 
+    container 
+    justify="space-around"
+  >
+    <KeyboardDatePicker
+      disableToolbar
+      variant="inline"
+      format="yyyy-MM-dd"
+      margin="normal"
+      id="date-picker-inline"
+      label="Start Date"
+      value={selectedDate}
+      onChange={handleDateChange}
+      KeyboardButtonProps={{
+        'aria-label': 'change date',
+      }}
+    />                
+    <KeyboardTimePicker
+      disableToolbar
+      variant="inline"
+      margin="normal"
+      id="time-picker"
+      label="Time Picker "
+      value={selectedDate}
+      onChange={handleDateChange}
+      KeyboardButtonProps={{
+        'aria-label': 'change time',
+      }}
+    />
+  </Grid>
+</MuiPickersUtilsProvider>
+</div>
+
+<div className={classes.formControl}>
+<MuiPickersUtilsProvider utils={DateFnsUtils}>
+  <Grid 
+    container 
+    justify="space-around"
+  >
+    <KeyboardDatePicker
+      disableToolbar
+      variant="inline"
+      format="yyyy-MM-dd"
+      margin="normal"
+      id="date-picker-inline"
+      label="End Date"
+      value={selectedEndDate}
+      onChange={handleEndDateChange}
+      KeyboardButtonProps={{
+        'aria-label': 'change end date',
+      }}
+    />                
+    <KeyboardTimePicker
+      disableToolbar
+      variant="inline"
+      margin="normal"
+      id="time-picker"
+      label="Time Picker "
+      value={selectedEndDate}
+      onChange={handleEndDateChange}
+      KeyboardButtonProps={{
+        'aria-label': 'change end time',
+      }}
+    />
+  </Grid>
+</MuiPickersUtilsProvider>
+</div>
+
+<div className={classes.formControl}>
+<label className="reactSelectLabel">Chart Type</label>
+<Select
+  className="reactSelect"
+  name="chart-type"
+  placeholder="Chart Type"
+  value={selectedChart}
+  options={chartTypeOptions}
+  onChange={handleChartTypeChange}              
+/>
+</div>
+
+<div className={classes.formControl}>
+<label className="reactSelectLabel">Frequency</label>
+<Select
+  className="reactSelect"
+  name="chart-type"
+  placeholder="Frequency"
+  value={selectedFrequency}
+  options={frequencyOptions}
+  onChange={handleFrequencyChange}              
+/>
+</div>
+
+<div className={classes.formControl}>
+<label className="reactSelectLabel">Pollutant</label>
+<Select
+  className="reactSelect"
+  name="pollutant"
+  placeholder="Pollutant"
+  value={selectedPollutant}
+  options={pollutantOptions}
+  onChange={handlePollutantChange}              
+/>
+</div>
+
+<div className={classes.formControl}>
+<Button 
+  variant="contained" 
+  color="primary"              
+  type="submit"
+> Generate Graph
+</Button>
+</div>       
+</form>
+
+</CardContent>
+  </Card>
+
+  </div>
+
+  </Grid>
+
+      </Grid>
+    </div>
+  )
+
+}
+
   else{
 
     return(
@@ -660,35 +951,74 @@ const Graphs = props => {
           xl={8}
           xs={12}
           >
-          <div>
-          <Bar
-          data= {
-              {
-              labels: times,
-              datasets:[
-                 {
-                    label:'Air Quality over time',
-                    data: pollutionValues,
-                    backgroundColor: backgroundColors,
-                    borderColor: 'rgba(0,0,0,1)',   
-                    borderWidth: 1
-                 }
-              ]
-           }
-          }
-          options={{
-           /* title:{
-              display:true,
-              text: 'Air quality data over time',
-            },
-            legend:{
-              display: true,
-              position: 'right'
-            },*/
-            maintainAspectRatio: true,
-            responsive: true
-            }}/>
-          </div>
+         
+        <div>
+        <Bar
+        data= {
+            {
+            labels: times,
+            datasets:[
+               {
+                  label:'PM 2.5',
+                  data: pollutionValues,
+                  backgroundColor: backgroundColors,
+                  borderColor: 'rgba(0,0,0,1)',   
+                  borderWidth: 1
+               }
+            ]
+         }
+        }
+        options={{
+          title:{
+            display:true,
+            text: 'Bar graph showing PM 2.5 data over the specified period',
+            fontColor: "black",
+            fontWeight: 5,
+            fontSize: 20
+          },
+          scales: {
+            yAxes: [{
+              scaleLabel: {
+                display: true,
+                labelString: generateLabel(myPollutant),
+                fontWeight:4,
+                fontColor: "black",
+                fontSize:20,
+                padding: 10
+              },
+              ticks: {
+                fontColor:"black"                 
+                },
+              gridLines:{
+                lineWidth: 5
+              }
+            }],
+            xAxes: [{
+              scaleLabel: {
+                display: true,
+                labelString: 'Time',
+                fontWeight:4,
+                fontColor: "black",
+                fontSize: 20,
+                padding: 6
+              },
+              ticks: {
+                fontColor:"black"                 
+                },
+              gridLines:{
+                lineWidth: 5
+              }
+
+            }],
+          },
+         /* legend:{
+            display: true,
+            position: 'right'
+          },*/
+          maintainAspectRatio: true,
+          responsive: true
+          }}/>
+        </div>
           </Grid>
 
           <Grid
@@ -855,155 +1185,7 @@ const Graphs = props => {
   }
 }
 
-/*
-  return (
-    <Card
-      {...rest}
-      className={clsx(classes.root, className)}
-    >
-      <CardContent>
-        <Grid
-          container
-          justify="space-between"
-        >
-          {}
-        </Grid>
 
-        <form onSubmit={handleSubmit}>
-
-<div className={classes.formControl}>
-  <label className="reactSelectLabel">Location(s)</label>
-  <Select
-    className="reactSelect"
-    name="location"
-    placeholder="Location(s)"
-    value={values.selectedOption}
-    options={filterLocationsOptions}
-    onChange={handleMultiChange}
-    isMulti
-  />
-</div>
-
-<div className={classes.formControl}> 
-  <MuiPickersUtilsProvider utils={DateFnsUtils}>
-    <Grid 
-      container 
-      justify="space-around"
-    >
-      <KeyboardDatePicker
-        disableToolbar
-        variant="inline"
-        format="yyyy-MM-dd"
-        margin="normal"
-        id="date-picker-inline"
-        label="Start Date"
-        value={selectedDate}
-        onChange={handleDateChange}
-        KeyboardButtonProps={{
-          'aria-label': 'change date',
-        }}
-      />                
-      <KeyboardTimePicker
-        disableToolbar
-        variant="inline"
-        margin="normal"
-        id="time-picker"
-        label="Time Picker "
-        value={selectedDate}
-        onChange={handleDateChange}
-        KeyboardButtonProps={{
-          'aria-label': 'change time',
-        }}
-      />
-    </Grid>
-  </MuiPickersUtilsProvider>
-</div>
-
-<div className={classes.formControl}>
-  <MuiPickersUtilsProvider utils={DateFnsUtils}>
-    <Grid 
-      container 
-      justify="space-around"
-    >
-      <KeyboardDatePicker
-        disableToolbar
-        variant="inline"
-        format="yyyy-MM-dd"
-        margin="normal"
-        id="date-picker-inline"
-        label="End Date"
-        value={selectedEndDate}
-        onChange={handleEndDateChange}
-        KeyboardButtonProps={{
-          'aria-label': 'change end date',
-        }}
-      />                
-      <KeyboardTimePicker
-        disableToolbar
-        variant="inline"
-        margin="normal"
-        id="time-picker"
-        label="Time Picker "
-        value={selectedEndDate}
-        onChange={handleEndDateChange}
-        KeyboardButtonProps={{
-          'aria-label': 'change end time',
-        }}
-      />
-    </Grid>
-  </MuiPickersUtilsProvider>
-</div>
-
-<div className={classes.formControl}>
-  <label className="reactSelectLabel">Chart Type</label>
-  <Select
-    className="reactSelect"
-    name="chart-type"
-    placeholder="Chart Type"
-    value={selectedChart}
-    options={chartTypeOptions}
-    onChange={handleChartTypeChange}              
-  />
-</div>
-
-<div className={classes.formControl}>
-  <label className="reactSelectLabel">Frequency</label>
-  <Select
-    className="reactSelect"
-    name="chart-type"
-    placeholder="Frequency"
-    value={selectedFrequency}
-    options={frequencyOptions}
-    onChange={handleFrequencyChange}              
-  />
-</div>
-
-<div className={classes.formControl}>
-  <label className="reactSelectLabel">Pollutant</label>
-  <Select
-    className="reactSelect"
-    name="pollutant"
-    placeholder="Pollutant"
-    value={selectedPollutant}
-    options={pollutantOptions}
-    onChange={handlePollutantChange}              
-  />
-</div>
-
-<div className={classes.formControl}>
-  <Button 
-    variant="contained" 
-    color="primary"              
-    type="submit"
-  > Generate Graph
-  </Button>
-</div>       
-</form>
-
-</CardContent>
-    </Card>
-  );
-};*/
 Graphs.propTypes = {
   className: PropTypes.string
 };
