@@ -13,7 +13,9 @@ import {
   Account as AccountView,
   Settings as SettingsView,
   NotFound as NotFoundView,
-  Graphs
+  Graphs,
+  Download,
+  ReportTemplate
 } from '../views';
 
 import Landing from "../views/layouts/Landing";
@@ -29,12 +31,12 @@ const Routes = () => {
         from="/"
         to="/login"
       />
-    <PrivateRoute
-                  exact
-                  path="/dashboard"
-                  component={DashboardView}
-                  layout={MainLayout}
-                />
+      <PrivateRoute
+        exact
+        path="/dashboard"
+        component={DashboardView}
+        layout={MainLayout}
+      />
 
       <PrivateRoute
         component={UserListView}
@@ -66,26 +68,43 @@ const Routes = () => {
         layout={MainLayout}
         path="/settings"
       />
+
+    <PrivateRoute
+            component={Download}
+            exact
+            layout={MainLayout}
+            path="/download"
+          />
+      
+      <PrivateRoute
+        component={ReportTemplate}
+        exact
+        layout={MainLayout}
+        path="/report"
+      />
+
       <PrivateRoute
         component={NotFoundView}
         exact
         layout={MinimalLayout}
         path="/not-found"
       />
+
+
   
       <Route
         component={Landing}
         exact path="/landing"
       />
       <Route 
-      exact path="/login" 
-      component={Login} />
+        exact path="/login" 
+        component={Login} />
       <Route 
-     exact path="/forgot" 
-      component={ForgotPassword} />
-      <RouteWithLayout 
-       exact path="/reset" 
-      component={ResetPassword} />
+        exact path="/forgot" 
+        component={ForgotPassword} />
+      <Route 
+        exact path="/reset" 
+        component={ResetPassword} />
       <Redirect to="/not-found" />
     </Switch>
   );

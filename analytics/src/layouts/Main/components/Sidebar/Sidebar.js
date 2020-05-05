@@ -9,6 +9,7 @@ import BarChartIcon from '@material-ui/icons/BarChart';
 import TimelineIcon from '@material-ui/icons/Timeline';
 import AccountBoxIcon from '@material-ui/icons/AccountBox';
 import SettingsIcon from '@material-ui/icons/Settings';
+import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
 
 import { Profile, SidebarNav} from './components';
 
@@ -53,8 +54,14 @@ const Sidebar = props => {
     },
     {
       title: 'Custom Reports',
-      href: '/reports',
+      href: '/report',
       icon: <TimelineIcon />
+    },
+
+    {
+      title: 'Data Download',
+      href: '/download',
+      icon: <CloudDownloadIcon />
     }
   ];
   const userManagementPages = [

@@ -25,4 +25,8 @@ yarn-debug.log*
 yarn-error.log*
 .eslintrc
 .editorconfig
-
+ /analytics/debug.log
+/.vscode
+ .vscode/
+debug.log
+ 

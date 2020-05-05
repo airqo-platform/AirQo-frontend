@@ -1,8 +1,10 @@
-import React, { useState, Component } from 'react';
+import React from 'react';
 import clsx from 'clsx';
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/styles';
 import { Card, CardContent, Grid, Typography, Avatar } from '@material-ui/core';
+import ArrowUpwardIcon from '@material-ui/icons/ArrowUpward';
+import PeopleIcon from '@material-ui/icons/PeopleOutlined';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -38,9 +40,11 @@ const useStyles = makeStyles(theme => ({
   }
 }));
 
-const Display = props => {
-  const { className, ...rest } = props;
+const TotalUsers = props => {
+  const { className, pm25level, pm25levelCount, ...rest } = props;
+
   const classes = useStyles();
+
   return (
     <Card
       {...rest}
@@ -58,17 +62,38 @@ const Display = props => {
               gutterBottom
               variant="body2"
             >
-              Display Graph
+              {pm25level}
             </Typography>
+            <Typography variant="h3">{pm25levelCount}</Typography>
+          </Grid>
+          <Grid item>
+            <Avatar className={classes.avatar}>
+              <PeopleIcon className={classes.icon} />
+            </Avatar>
           </Grid>
         </Grid>
+        <div className={classes.difference}>
+          <ArrowUpwardIcon className={classes.differenceIcon} />
+          <Typography
+            className={classes.differenceValue}
+            variant="body2"
+          >
+            16%
+          </Typography>
+          <Typography
+            className={classes.caption}
+            variant="caption"
+          >
+            Since last month
+          </Typography>
+        </div>
       </CardContent>
     </Card>
   );
 };
 
-Display.propTypes = {
+TotalUsers.propTypes = {
   className: PropTypes.string
 };
 
-export default Display;
+export default TotalUsers;
