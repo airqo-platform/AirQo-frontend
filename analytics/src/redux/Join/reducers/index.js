@@ -5,5 +5,5 @@ import userReducer from "./userReducer";
 export default combineReducers({
     auth: authReducer,
     errors: errorReducer,
-    actorState: userReducer
+    userState: userReducer
 });
