@@ -80,7 +80,8 @@ class Maps extends React.Component {
     this.submitHandler = this.submitHandler.bind(this);
     //from locateSave
     this.handleClick = this.handleClick.bind(this);
-    this.handleSaveClick = this.handleSaveClick.bind(this);
+    this.onSaveClicked = this.onSaveClicked.bind(this);
+    this.onOpenClicked = this.onOpenClicked.bind(this);
     this.handleSaveClose = this.handleSaveClose.bind(this);
     this.changeHandler = this.changeHandler.bind(this);
     this.handleConfirmClose = this.handleConfirmClose.bind(this);
@@ -93,7 +94,7 @@ class Maps extends React.Component {
   }
   // Retrieve previously saved planning space by this current user
   // added from locateSave
-  componentDidMount() {
+  onOpenClicked = () => {
     axios
       .get(
         `http://localhost:4000/api/v1/map/getlocatemap/` +
@@ -107,7 +108,7 @@ class Maps extends React.Component {
       .catch((e) => {
         console.log(e);
       });
-  }
+  };
 
   // save planning space
   savePlanningSpace = () => {
@@ -137,7 +138,7 @@ class Maps extends React.Component {
   };
 
   // This deals with save planing space dialog box
-  handleSaveClick = () => {
+  onSaveClicked = () => {
     this.setState((prevState) => ({ openSave: !prevState.openSave }));
   };
   handleSaveClose = () => {
@@ -455,13 +456,13 @@ class Maps extends React.Component {
                 <ListItemIcon>
                   <SaveIcon />
                 </ListItemIcon>
-                <ListItemText primary="Save" onClick={this.handleSaveClick} />
+                <ListItemText primary="Save" onClick={this.onSaveClicked} />
               </ListItem>
               <ListItem button onClick={this.handleClick}>
                 <ListItemIcon>
                   <InboxIcon />
                 </ListItemIcon>
-                <ListItemText primary="Open" />
+                <ListItemText primary="Open" onClick={this.onOpenClicked} />
                 {this.state.open ? <ExpandLess /> : <ExpandMore />}
               </ListItem>
               <Collapse in={this.state.open} timeout="auto" unmountOnExit>
