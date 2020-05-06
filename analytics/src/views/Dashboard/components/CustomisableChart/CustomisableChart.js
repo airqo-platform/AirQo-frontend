@@ -40,8 +40,12 @@ const CustomisableChart = props => {
 
   const classes = useStyles();
 
+  var startDate = new Date();
+  startDate.setMonth(startDate.getMonth() - 1);
+  startDate.setHours(0,0,0,0);
+
   
-  const [selectedDate, setSelectedStartDate] = useState(new Date());
+  const [selectedDate, setSelectedStartDate] = useState(startDate);
 
   const handleDateChange = (date) => {
     setSelectedStartDate(date);
@@ -110,6 +114,13 @@ const CustomisableChart = props => {
     setSelectedPollutant(selectedPollutantOption);
   };
 
+  function appendLeadingZeroes(n){
+    if(n <= 9){
+      return "0" + n;
+    }
+    return n
+  }
+
   const [customGraphData, setCustomisedGraphData] = useState([]);
 
   useEffect(() => {
@@ -119,7 +130,8 @@ const CustomisableChart = props => {
       .then(res => res.data)
       .then((customisedChartData) => {
         setCustomisedGraphData(customisedChartData)
-        console.log(customisedChartData)
+        //console.log('customisedChartData');  //var newTime = new Date(element.time)
+        //console.log(typeof new Date(customisedChartData.results[0].chart_data.labels[1]));
       })
       .catch(console.log)
   },[]);
@@ -147,13 +159,21 @@ const CustomisableChart = props => {
     ).then(res => res.data)
       .then((customisedChartData) => {
         setCustomisedGraphData(customisedChartData)    
+        console.log(customisedChartData)
 
       }).catch(
         console.log
       )    
   }
 
- 
+  if (customGraphData.results){
+    for (var i=0; i<customGraphData.results[0].chart_data.labels.length; i++){
+      let newTime = new Date (customGraphData.results[0].chart_data.labels[i]);
+      customGraphData.results[0].chart_data.labels[i] = newTime.getFullYear()+'-'+appendLeadingZeroes(newTime.getMonth()+1)+'-'+appendLeadingZeroes(newTime.getDate())+
+      ' '+appendLeadingZeroes(newTime.getHours())+':'+ appendLeadingZeroes(newTime.getMinutes())+':'+appendLeadingZeroes(newTime.getSeconds());
+    }
+    }
+
   const customisedGraphData = {
     chart_type: customGraphData.results? customGraphData.results[0].chart_type:null,
     labels:  customGraphData.results? customGraphData.results[0].chart_data.labels:null, 

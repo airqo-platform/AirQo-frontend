@@ -60,8 +60,12 @@ const Graphs = props => {
   const [myPollutant, setMyPollutant] = useState({value: ""});
   const [loading, setLoading] = useState({value: false})
 
+  var startDate = new Date();
+  startDate.setMonth(startDate.getMonth() - 1);
+  startDate.setHours(0,0,0,0);
 
-  const [selectedDate, setSelectedStartDate] = useState(new Date());
+
+  const [selectedDate, setSelectedStartDate] = useState(startDate);
 
   const handleDateChange = (date) => {
     setSelectedStartDate(date);
@@ -139,12 +143,12 @@ const Graphs = props => {
   function generateLabel(pollutant){
     let superString="3";
     if (pollutant=='PM 2.5'){
-      //return "PM 2.5 (µg/m3)"
-      return "PM 2.5 Concentration"
+      return "PM 2.5 (µg/m3)"
+      //return "PM 2.5 Concentration"
     }
     else if (pollutant=='PM 10'){
-      //return "PM 10 (µg/m3)"
-      return "PM 10 Concentration"
+      return "PM 10 (µg/m3)"
+      //return "PM 10 Concentration"
     }
     else{
       return "NO2 Concentration"
@@ -959,7 +963,7 @@ else if (myChartType=='bar'){
             labels: times,
             datasets:[
                {
-                  label:'PM 2.5',
+                  label:'PM2.5(µg/m3)',
                   data: pollutionValues,
                   backgroundColor: backgroundColors,
                   borderColor: 'rgba(0,0,0,1)',   
