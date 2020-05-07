@@ -9,7 +9,7 @@ import { useEffect, useState } from 'react';
 import 'chartjs-plugin-annotation';
 import palette from 'theme/palette';
 import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
-import ArrowRightIcon from '@material-ui/icons/ArrowRight';     
+import ArrowRightIcon from '@material-ui/icons/ArrowRight';
  
 
 const useStyles = makeStyles(theme => ({
@@ -295,7 +295,7 @@ const Dashboard = props => {
           xl={7}
           xs={12}
         >
-          
+                 
          
           <Grid
             item
@@ -320,21 +320,8 @@ const Dashboard = props => {
         >
           
           <div className={classes.chartContainerx}>
-          <Card
-            {...rest}
-            className={clsx(classes.chartCard)}
-          >
-            <CardHeader              
-              title="Mean Daily PM2.5 for Past 28 Days"
-            />
-            <Divider />
-            <CardContent>
-              <div className={classes.chartContainer}>
-                <ExceedancesChart/>
-              </div>
-            </CardContent>
-            
-          </Card>     
+                
+            <ExceedancesChart/>
           </div>                  
                                  
         </Grid>

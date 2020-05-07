@@ -2,10 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { makeStyles } from '@material-ui/styles';
 import { Bar } from 'react-chartjs-2';
 import PropTypes from 'prop-types';
-import { Card, CardContent, Grid, Button} from '@material-ui/core';
+import { Card, CardContent, CardHeader, CardActions, Divider,Grid, Button, Dialog,
+DialogActions, DialogContent, DialogTitle, IconButton } from '@material-ui/core';
+import {MoreHoriz} from '@material-ui/icons';
 import clsx from 'clsx';
 import axios from 'axios';
 import LoadingSpinner from '../../../Graphs/loadingSpinner';
+import Select from 'react-select';
 
 
 const useStyles = makeStyles(theme => ({
@@ -38,6 +41,10 @@ const ExceedancesChart = props => {
     const [exceedanceValues, setExceedanceValues] = useState([]);
     const [customChartTitle, setCustomChartTitle] = useState('PM 2.5 Exceedances over the past 28 days');
     const [exceedancesData, setExceedancesData] = useState([]);
+    const[myStandard, setMyStandard] = useState({value: ""});
+    const[myPollutant, setMyPollutant] = useState({value: ""});
+    
+
     
     const [standard, setStandard] = useState('WHO');
     const standardOptions = [
@@ -90,112 +97,65 @@ const ExceedancesChart = props => {
         })
         .catch(console.log)
     },[]);*/
-  
-    
-    /*let  handleSubmit = (e) => {
-      e.preventDefault();
-      
-      let filter ={ 
-        locations: values.selectedOption,
-        startDate:  selectedDate,
-        endDate:  selectedEndDate,
-        chartType:  selectedChart.value,
-        frequency:  selectedFrequency.value,
-        pollutant: selectedPollutant.value,
-        organisation_name: 'KCCA'     
+
+    function generateTitle(pollutant, standard){
+      if (!pollutant){
+        pollutant = 'PM 2.5'
       }
-      //console.log(JSON.stringify(filter));
+      if (!standard){
+        standard = 'WHO'
+      }
+
+      let title = pollutant + " Exceedances over the past 28 days based on "+standard
+      return title
+    }
   
-      axios.post(
-        'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/customisedchart',      
-        //'http://127.0.0.1:5000/api/v1/dashboard/customisedchart', 
-        JSON.stringify(filter),
-        { headers: { 'Content-Type': 'application/json' } }
-      ).then(res => res.data)
-        .then((customisedChartData) => {
-          setCustomisedGraphData(customisedChartData)    
-          console.log(customisedChartData)
-  
-          setCustomChartTitle(customisedChartData.custom_chart_title)
-        }).catch(
-          console.log
-        )    
-    }*/
     let  handleSubmit = (e) => {
         e.preventDefault();
         setLoading(true);
     
         let filter ={ 
-          locations: values.selectedOption,
-          startDate:  selectedDate,
-          endDate:  selectedEndDate,
-          chartType:  selectedChart.value,
-          frequency:  selectedFrequency.value,
-          pollutant: selectedPollutant.value,
-          organisation_name: 'KCCA'     
+          pollutant: pollutant.value,
+          standard: standard.value
+        
         }
-        console.log(JSON.stringify(filter));
+        let filter_string = JSON.stringify(filter);
+        console.log(filter_string);
     
         axios.post(
           //'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/device/graph',
           'http://127.0.0.1:5000//api/v1/dashboard/exceedances', 
-          JSON.stringify(filter),
+          filter_string,
           { headers: { 'Content-Type': 'application/json' } }
         )
         .then(
           res=>{
             const myData = res.data;
             console.log(myData);
-            console.log(myData[0])
-            setLoading(false)
-            //setMyStandard(selectedChart.value);
-            //setMyPollutant(selectedPollutant.value);
-            /*if (typeof myData[0] == 'number'){
-              let myValues = [];
-              myData.forEach(element => {
-                myValues.push(element);
-              });
-              setPollutionValues(myValues)
-            }*/
-    
-            /*else if (typeof myData[0]== 'object'){
-              let myTimes = [];
-              let myValues = [];
-              let myColors = [];
-              myData.forEach(element => {
-                var newTime = new Date(element.time);
-                var finalTime = newTime.getFullYear()+'-'+appendLeadingZeroes(newTime.getMonth()+1)+'-'+appendLeadingZeroes(newTime.getDate())+
-                ' '+appendLeadingZeroes(newTime.getHours())+':'+ appendLeadingZeroes(newTime.getMinutes())+':'+appendLeadingZeroes(newTime.getSeconds());
-                myTimes.push(finalTime);
-                
-                myColors.push(element.backgroundColor)
-                if (element.hasOwnProperty('characteristics') && element.characteristics.hasOwnProperty('pm2_5ConcMass')){
-                  myValues.push(element.characteristics.pm2_5ConcMass.value);
-                }
-                else if (element.hasOwnProperty('characteristics') && element.characteristics.hasOwnProperty('pm10ConcMass')){
-                  myValues.push(element.characteristics.pm10ConcMass.value);
-                }
-                else if (element.hasOwnProperty('characteristics') && element.characteristics.hasOwnProperty('no2Conc')){
-                  myValues.push(element.characteristics.no2Conc.value);
-                }
-                else{
-                  console.log('none of the above');
-                }
-              });
-              setTimes(myTimes);
-              setPollutionValues(myValues);
-              setBackgroundColors(myColors)
-            }
-            else{
-              //pass
-            }*/
+            setLoading(false);
+            setMyStandard(standard.value);
+            setMyPollutant(pollutant.value);
+            let myValues = [];
+            let myLocations = [];
+            myData.forEach(element => {
+              myLocations.push(element['location']);
+              if (standard.value=='AQI'){
+                myValues.push(element['UH4SG']+element['Unhealthy']+element['VeryUnhealthy']+element['Hazardous']);
+              }
+              else{
+                myValues.push(element['exceedances']);
+              }
+            });
+            //console.log('myLocations')
+            //console.log(myLocations)
+            setLocations(myLocations);
+            setExceedanceValues(myValues);
+            setCustomChartTitle(pollutant.value+ ' exceedances over the past 28 days based on '+standard.value)
     
         }).catch(
           console.log
         )
       }
-  
-    
     
     return (
       <Card
@@ -232,12 +192,12 @@ const ExceedancesChart = props => {
         <Bar
         data= {
             {
-            labels: times,
+            labels: locations,
             datasets:[
                {
-                  label:myPollutant,
-                  data: pollutionValues,
-                  backgroundColor: backgroundColors,
+                  label:'Exceedances',
+                  data: exceedanceValues,
+                  backgroundColor: 'red',
                   borderColor: 'rgba(0,0,0,1)',   
                   borderWidth: 1
                }
@@ -245,45 +205,48 @@ const ExceedancesChart = props => {
          }
         }
         options={{
-          title:{
+         /* title:{
             display:true,
-            text: 'Bar graph showing '+myPollutant+ ' data over the specified period',
+            text: generateTitle(myPollutant, myStandard),
             fontColor: "black",
             fontSize: 20,
             fontWeight:5
-          },
+          },*/
 
           scales: {
             yAxes: [{
               scaleLabel: {
                 display: true,
-                labelString: generateLabel(myPollutant),
+                labelString: 'Exceedances',
                 fontWeight:4,
                 fontColor: "black",
-                fontSize:20,
+                fontSize:15,
                 padding: 10
               },
               ticks: {
                 fontColor:"black"                 
                 },
               gridLines:{
-                lineWidth: 5
+                lineWidth: 1,
+                display: false
+                //color: "rgba(0, 0, 0, 0)",
               }
             }],
             xAxes: [{
               scaleLabel: {
                 display: true,
-                labelString: 'Time',
+                labelString: 'Locations',
                 fontWeight:4,
                 fontColor: "black",
-                fontSize: 20,
+                fontSize: 15,
                 padding: 6
               },
               ticks: {
                 fontColor:"black"                 
                 },
               gridLines:{
-                lineWidth: 5
+                lineWidth: 1,
+                //display:false
               }
 
             }],
@@ -308,81 +271,85 @@ const ExceedancesChart = props => {
               
             > 
               <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
-                <DialogTitle id="form-dialog-title">Customise Chart by Selecting the Various Options</DialogTitle>
-                <Divider/>
-                <DialogContent>
+              <DialogTitle id="form-dialog-title">Customise Chart by Selecting the Various Options</DialogTitle>
+              <Divider/>
+              <DialogContent>
+                
+                <form 
+                  onSubmit={handleSubmit} 
+                  id="customisable-form"
+                >             
                   
-                  <form 
-                    onSubmit={handleSubmit} 
-                    id="customisable-form"
+                  <Grid
+                    container
+                    spacing={2}
                   >             
+
+                    <Grid
+                      item
+                      md={6}
+                      xs={12}
+                    >                
+                      <Select
+                        fullWidth
+                        label="Pollutant"
+                        className=""
+                        name="pollutant"
+                        placeholder="Pollutant"
+                        value={pollutant}
+                        options={pollutantOptions}
+                        onChange={handlePollutantChange}
+                        variant="outlined"
+                        margin="dense"  
+                        required            
+                      />
+                    </Grid>
                     
                     <Grid
-                      container
-                      spacing={2}
-                    >             
-                      <Grid
-                        item
-                        md={12}
-                        xs={12}
-                      >
-                        <Select
-                          fullWidth
-                          className="reactSelect"
-                          name="pollutant"
-                          placeholder="Pollutant(s)"
-                          value={pollutant}
-                          options={pollutantOptions}
-                          onChange={handlePollutantChange}
-                          isMulti
-                          variant="outlined"
-                          margin="dense"
-                        />
-                      </Grid>
-  
-                      <Grid
-                        item
-                        md={4}
-                        xs={12}
-                      >                
-                        <Select
-                          fullWidth
-                          label="standard"
-                          className="reactSelect"
-                          name="standard"
-                          placeholder="Standard"
-                          value={standard}
-                          options={standardOptions}
-                          onChange={handleStandardChange}    
-                          variant="outlined"
-                          margin="dense"        
-                        />
-                      </Grid>          
-                    
+                      item
+                      md={6}
+                      xs={12}
+                    >     
+                      <Select
+                        fullWidth
+                        label ="Standard"
+                        className=""
+                        name="standard"
+                        placeholder="Standard"
+                        value={standard}
+                        options={standardOptions}
+                        onChange={handleStandardChange}
+                        variant="outlined"
+                        margin="dense"   
+                        required           
+                      />
                     </Grid>
-                  </form>            
-                
-                </DialogContent>
-                <Divider/>
-                <DialogActions>
-                  <Button 
-                    onClick={handleClose} 
-                    color="primary"
-                    variant="outlined"
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    variant="outlined" 
-                    onClick={handleClose} 
-                    color="primary"                  
-                    type="submit"        
-                    form="customisable-form"
-                  >
-                    Customise
-                  </Button>
-                </DialogActions>
-              </Dialog>                          
+                    
+                  
+                  </Grid>
+                </form>            
+              
+              </DialogContent>
+              <Divider/>
+              <DialogActions>
+                <Button 
+                  onClick={handleClose} 
+                  color="primary"
+                  variant="outlined"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="outlined" 
+                  onClick={handleClose} 
+                  color="primary"                  
+                  type="submit"        //set the buttom type is submit
+                  form="customisable-form"
+                >
+                  Customise
+                </Button>
+              </DialogActions>
+            </Dialog>                   
             </Grid>
             
           </Grid>

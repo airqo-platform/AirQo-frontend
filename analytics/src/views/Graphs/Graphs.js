@@ -278,7 +278,7 @@ const Graphs = props => {
                   labelString: generateLabel(myPollutant),
                   fontWeight:4,
                   fontColor: "black",
-                  fontSize:20,
+                  fontSize:15,
                   padding: 10
                 },
                 ticks: {
@@ -739,7 +739,7 @@ else if (myChartType=='bar'){
                 labelString: generateLabel(myPollutant),
                 fontWeight:4,
                 fontColor: "black",
-                fontSize:20,
+                fontSize:15,
                 padding: 10
               },
               ticks: {
@@ -984,10 +984,10 @@ else if (myChartType=='bar'){
             yAxes: [{
               scaleLabel: {
                 display: true,
-                labelString: generateLabel(myPollutant),
+                labelString: 'PM2.5(µg/m3)',
                 fontWeight:4,
                 fontColor: "black",
-                fontSize:20,
+                fontSize:15,
                 padding: 10
               },
               ticks: {
