@@ -16,11 +16,14 @@ const useStyles = makeStyles(theme => ({
   root: {
     padding: theme.spacing(4)
   },
+  chartCard:{
+
+  },
   differenceIcon: {
     color: theme.palette.text.secondary,
   },
   chartContainer: {
-    height: 400,
+    height: 200,
     position: 'relative'
   },
   actions: {
@@ -33,14 +36,16 @@ const Dashboard = props => {
   const classes = useStyles();
   const { className, staticContext, ...rest } = props;
  
+  const [backgroundColors, setBackgroundColors] = useState([]);
   const [locations,setLocations] = useState([]);
 
   useEffect(() => {
-    fetch('https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/monitoringsite/historical/daily/devices')
-    //fetch('http://127.0.0.1:5000/api/v1/monitoringsite/historical/daily/devices')
+    //fetch('https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/monitoringsite/historical/daily/devices')
+    fetch('http://127.0.0.1:5000/api/v1/dashboard/historical/daily/devices')
       .then(res => res.json())
-      .then((locationsData) => {
-        setLocations(locationsData.results)
+      .then((locationsData) => {        
+        setLocations(locationsData.results);
+        
       })
       .catch(console.log)
   },[]);
@@ -54,7 +59,7 @@ const Dashboard = props => {
         data: locations.average_pm25_values,
         fill: false,          // Don't fill area under the line
         borderColor: palette.primary.main , // Line color
-        backgroundColor: palette.primary.main,
+        backgroundColor: locations.background_colors //palette.primary.main,
       }
     ]
   }
@@ -81,25 +86,7 @@ const Dashboard = props => {
 
   
   
-  const options = {
-    scales: {
-      yAxes: [{
-        scaleLabel: {
-          display: true,
-          labelString: 'PM2.5(µg/m3)'
-        }
-      }],
-      xAxes: [{
-        scaleLabel: {
-          display: true,
-          labelString: 'Date'
-        }
-      }],
-    } ,    
-    maintainAspectRatio: false	// Don't maintain w/h ratio
-  }
-
-  
+   
   const options_main= {
     annotation: {
       annotations: [{
@@ -123,7 +110,7 @@ const Dashboard = props => {
     responsive: true,
     maintainAspectRatio: false,
     animation: false,
-    legend: { display: true },
+    legend: { display: false },
     cornerRadius: 0,
     tooltips: {
       enabled: true,
@@ -134,7 +121,13 @@ const Dashboard = props => {
       backgroundColor: palette.white,
       titleFontColor: palette.text.primary,
       bodyFontColor: palette.text.secondary,
-      footerFontColor: palette.text.secondary
+      footerFontColor: palette.text.secondary,
+      callbacks: {
+        //title: (items, data) => data.labels[items[0].index],
+        //afterTitle: (items, data) =>
+        //return data['labels'][tooltipItem[0]['index']]
+        //label: (item, data) => data.datasets[item.datasetIndex].data[item.index]
+      }
     },
     layout: { padding: 0 },
     scales: {
@@ -145,7 +138,8 @@ const Dashboard = props => {
           barPercentage: 0.5,
           categoryPercentage: 0.5,
           ticks: {
-            fontColor: palette.text.secondary
+            fontColor: palette.text.secondary,
+            //fontSize:10
           },
           gridLines: {
             display: false,
@@ -267,17 +261,18 @@ const Dashboard = props => {
         </Grid>
         <Grid
           item
-          lg={6}
-          sm={6}
-          xl={6}
+          lg={5}
+          md={5}
+          sm={12}
+          xl={5}
           xs={12}
         >
           <Card
             {...rest}
-            className={clsx(classes.root, className)}
+            className={clsx(classes.chartCard)}
           >
             <CardHeader              
-              title="Aggregated Average PM2.5 for the Last 28 Days"
+              title="Mean Daily PM2.5 for Past 28 Days"
             />
             <Divider />
             <CardContent>
@@ -288,7 +283,9 @@ const Dashboard = props => {
                 />
               </div>
             </CardContent>
+            {/*
             <Divider />
+             
             <CardActions className={classes.actions}>
               <Button
                 color="primary"
@@ -298,14 +295,16 @@ const Dashboard = props => {
                 Overview <ArrowRightIcon />
               </Button>
             </CardActions>
+            */}
           </Card>          
         </Grid>
 
         <Grid
           item
-          lg={6}
-          sm={6}
-          xl={6}
+          lg={7}
+          md={7}
+          sm={12}
+          xl={7}
           xs={12}
         >
          
@@ -318,7 +317,7 @@ const Dashboard = props => {
           >
             <Map />
           </Grid>
-          
+          {/* 
           <Divider />
         
           <Grid
@@ -422,40 +421,30 @@ const Dashboard = props => {
             </p>
                 
           </Grid>
+          */}
         </Grid>
         
 
         <Grid
           item          
           lg={8}
-          md={12}
+          md={8}
+          sm={12}
           xl={9}
           xs={12}
         >
-          <Card
-            {...rest}
-            className={clsx(classes.root, className)}
-          >
-            <CardHeader
-              
-              title="Customisable Historical Chart One"
-            />
-            <Divider />
-            <CardContent>
-              <div className={classes.chartContainerx}>
-                    
-                <CustomisableChart/>
-              </div>
-                  
-            </CardContent>
-            
-
-          </Card>
+          
+          <div className={classes.chartContainerx}>
+                
+            <CustomisableChart/>
+          </div>                  
+                                 
         </Grid>
         <Grid
           item
           lg={4}
-          md={6}
+          md={4}
+          sm={12}
           xl={3}
           xs={12}
         >
@@ -463,49 +452,29 @@ const Dashboard = props => {
         </Grid>
 
         
-
-        
-           <Grid
-                  item
-                  lg={6}
-                  sm={6}
-                  xl={6}
-                  xs={12}
-                >
-                  <Card
-            {...rest}
-            className={clsx(classes.root, className)}
-          >
-            <CardHeader              
-              title="Customisable Historical Chart Two"
-            />
-            <Divider />
-            <CardContent>
-                  <CustomisableChart/>
-                  </CardContent>
-            </Card>
-            </Grid>
+    <Grid
+          item
+          lg={6}
+          sm={12}
+          xl={6}
+          xs={12}
+        >
+          
+          <CustomisableChart/>
+          
+    </Grid>
                 <Grid
                   item
                   lg={6}
-                  sm={6}
+                  md={6}
+                  sm={12}
                   xl={6}
                   xs={12}
                 >
                     
-                    <Card
-            {...rest}
-            className={clsx(classes.root, className)}
-          >
-            <CardHeader              
-              title="Customisable Historical Chart Two"
-            />
-            <Divider />
-            <CardContent>
+                    
                   <CustomisableChart/>
-                  </CardContent>
-                  </Card>
-                  
+                 
                 </Grid>
                          
 
@@ -513,8 +482,9 @@ const Dashboard = props => {
         <Grid
           item
           lg={6}
-          sm={6}
-          xl={12}
+          md={6}
+          sm={12}
+          xl={6}
           xs={12}
         >
           <Card
@@ -543,8 +513,9 @@ const Dashboard = props => {
         <Grid
           item
           lg={6}
-          sm={6}
-          xl={12}
+          md={6}
+          sm={12}
+          xl={6}
           xs={12}
         >
           <Card

@@ -2,8 +2,9 @@ import React from 'react';
 import clsx from 'clsx';
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/styles';
-import { Card, CardContent, Grid,Button, ExpansionPanel, 
-  ExpansionPanelSummary,ExpansionPanelDetails} from '@material-ui/core';
+import { Card, CardContent,CardHeader, CardActions,Divider,  Grid,Button, Dialog,
+   DialogActions,DialogContent, DialogTitle, IconButton} from '@material-ui/core';
+
 import Select from 'react-select';
 import { useEffect, useState } from 'react';
 import DateFnsUtils from '@date-io/date-fns';
@@ -16,8 +17,8 @@ import axios from 'axios';
 import 'chartjs-plugin-annotation';
 import {CustomDisplayChart} from '../index'
 import palette from 'theme/palette';
-//import Typography from '@material-ui/core/Typography';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+import Typography from '@material-ui/core/Typography';
+import {MoreHoriz} from '@material-ui/icons';
 
 
 const useStyles = makeStyles(theme => ({
@@ -40,7 +41,17 @@ const CustomisableChart = props => {
 
   const classes = useStyles();
 
-  
+  const [open, setOpen] = React.useState(false);
+
+  const handleClickOpen = () => {
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+  };
+
+  const [customChartTitle, setCustomChartTitle] = useState('Custom Chart Title');
   const [selectedDate, setSelectedStartDate] = useState(new Date());
 
   const handleDateChange = (date) => {
@@ -56,8 +67,8 @@ const CustomisableChart = props => {
   const [filterLocations,setFilterLocations] = useState([]);
   
   useEffect(() => {
-    fetch('https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/monitoringsites/locations?organisation_name=KCCA')
-    //fetch('http://127.0.0.1:5000/api/v1/dashboard/monitoringsites/locations?organisation_name=KCCA')
+    //fetch('https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/monitoringsites/locations?organisation_name=KCCA')
+    fetch('http://127.0.0.1:5000/api/v1/dashboard/monitoringsites/locations?organisation_name=KCCA')
       .then(res => res.json())
       .then((filterLocationsData) => {
         setFilterLocations(filterLocationsData.airquality_monitoring_sites)
@@ -114,12 +125,12 @@ const CustomisableChart = props => {
 
   useEffect(() => {
     
-    axios.get('https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/customisedchart/random')
-    //axios.get('http://127.0.0.1:5000/api/v1/dashboard/customisedchart/random')
+    //axios.get('https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/customisedchart/random')
+    axios.get('http://127.0.0.1:5000/api/v1/dashboard/customisedchart/random')
       .then(res => res.data)
       .then((customisedChartData) => {
         setCustomisedGraphData(customisedChartData)
-        console.log(customisedChartData)
+        setCustomChartTitle(customisedChartData.custom_chart_title)
       })
       .catch(console.log)
   },[]);
@@ -140,14 +151,14 @@ const CustomisableChart = props => {
     //console.log(JSON.stringify(filter));
 
     axios.post(
-      'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/customisedchart',      
-      //'http://127.0.0.1:5000/api/v1/dashboard/customisedchart', 
+      //'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/customisedchart',      
+      'http://127.0.0.1:5000/api/v1/dashboard/customisedchart', 
       JSON.stringify(filter),
       { headers: { 'Content-Type': 'application/json' } }
     ).then(res => res.data)
       .then((customisedChartData) => {
         setCustomisedGraphData(customisedChartData)    
-
+        setCustomChartTitle(customisedChartData.custom_chart_title)
       }).catch(
         console.log
       )    
@@ -161,7 +172,7 @@ const CustomisableChart = props => {
     datasets: customGraphData.datasets
   }
 
-   
+  let customChartTitlex =  customGraphData.results? customGraphData.results[0].custom_chart_title:'Customisable Historical Chart';
   const options= {
     annotation: {
       annotations: [{
@@ -252,6 +263,17 @@ const CustomisableChart = props => {
       {...rest}
       className={clsx(classes.root, className)}
     >
+      <CardHeader  
+        action={
+          <IconButton size="small" color="primary" onClick={handleClickOpen}>
+            <MoreHoriz />
+          </IconButton>
+        }      
+        
+        title= {customChartTitle}
+        style={{ textAlign: 'center' }}
+      />
+      <Divider />
       <CardContent>
                 
         <Grid
@@ -265,9 +287,7 @@ const CustomisableChart = props => {
             xl={12}
             xs={12}
           >           
-           
             
-             
             <CustomDisplayChart 
               chart_type={customisedGraphData.chart_type} 
               customisedGraphData={customisedGraphData}
@@ -283,26 +303,25 @@ const CustomisableChart = props => {
             xl={12}
             xs={12}
             
-          >        
-            <ExpansionPanel>
-              <ExpansionPanelSummary
-                expandIcon={<ExpandMoreIcon />}
-                aria-controls="panel1a-content"
-                id="panel1a-header"
-              >
-                Customise
-              </ExpansionPanelSummary>
-              <ExpansionPanelDetails>
-                <form onSubmit={handleSubmit}>             
+          > 
+            <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
+              <DialogTitle id="form-dialog-title">Customise Chart by Selecting the Various Options</DialogTitle>
+              <Divider/>
+              <DialogContent>
+                
+                <form 
+                  onSubmit={handleSubmit} 
+                  id="customisable-form"
+                >             
                   
                   <Grid
                     container
-                    spacing={1}
+                    spacing={2}
                   >             
                     <Grid
                       item
-                      md={3}
-                      xs={6}
+                      md={12}
+                      xs={12}
                     >
                       <Select
                         fullWidth
@@ -321,8 +340,8 @@ const CustomisableChart = props => {
 
                     <Grid
                       item
-                      md={3}
-                      xs={6}
+                      md={4}
+                      xs={12}
                     >                
                       <Select
                         fullWidth
@@ -341,8 +360,8 @@ const CustomisableChart = props => {
                     
                     <Grid
                       item
-                      md={3}
-                      xs={6}
+                      md={4}
+                      xs={12}
                     >     
                       <Select
                         fullWidth
@@ -360,8 +379,8 @@ const CustomisableChart = props => {
                     </Grid>
                     <Grid
                       item
-                      md={3}
-                      xs={6}
+                      md={4}
+                      xs={12}
                     >     
                       <Select
                         fullWidth
@@ -390,10 +409,10 @@ const CustomisableChart = props => {
                         >
                           <Grid
                             item
-                            lg={3}
-                            md={3}
+                            lg={6}
+                            md={6}
                             sm={6}
-                            xl={3}
+                            xl={6}
                             xs={12}
                           >
                             <KeyboardDatePicker                     
@@ -413,10 +432,10 @@ const CustomisableChart = props => {
                           </Grid>  
                           <Grid
                             item
-                            lg={3}
-                            md={3}
+                            lg={6}
+                            md={6}
                             sm={6}
-                            xl={3}
+                            xl={6}
                             xs={12}
                           >            
                             <KeyboardTimePicker                     
@@ -436,10 +455,10 @@ const CustomisableChart = props => {
 
                           <Grid
                             item
-                            lg={3}
-                            md={3}
+                            lg={6}
+                            md={6}
                             sm={6}
-                            xl={3}
+                            xl={6}
                             xs={12}
                           >
                             <KeyboardDatePicker                      
@@ -459,10 +478,10 @@ const CustomisableChart = props => {
                           </Grid> 
                           <Grid
                             item
-                            lg={3}
-                            md={3}
+                            lg={6}
+                            md={6}
                             sm={6}
-                            xl={3}
+                            xl={6}
                             xs={12}
                           >              
                             <KeyboardTimePicker                      
@@ -481,21 +500,34 @@ const CustomisableChart = props => {
                           </Grid>
                         </Grid>
                       </MuiPickersUtilsProvider>
-                    </Grid>             
+                    </Grid>           
                 
-                    
-                
-                    <Button 
-                      variant="contained" 
-                      color="primary"              
-                      type="submit"
-                    > Generate Graph
-                    </Button>
-                    
+                  
                   </Grid>
                 </form>            
-              </ExpansionPanelDetails>
-            </ExpansionPanel>
+              
+              </DialogContent>
+              <Divider/>
+              <DialogActions>
+                <Button 
+                  onClick={handleClose} 
+                  color="primary"
+                  variant="outlined"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="outlined" 
+                  onClick={handleClose} 
+                  color="primary"                  
+                  type="submit"        //set the buttom type is submit
+                  form="customisable-form"
+                >
+                  Customise
+                </Button>
+              </DialogActions>
+            </Dialog>       
+            
                  
           </Grid>
           

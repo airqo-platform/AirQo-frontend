@@ -72,7 +72,7 @@ const Map = props => {
       className={clsx(classes.root, className)}
     >
       <CardHeader        
-        title="PM 2.5 Accross the Network for the Previous Hour "
+        title="Mean PM2.5 by Location for Past 60 Minutes"
       />
       <Divider />
             
