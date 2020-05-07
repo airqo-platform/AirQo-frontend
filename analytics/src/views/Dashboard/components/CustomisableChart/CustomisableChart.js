@@ -1,10 +1,9 @@
 import React from 'react';
 import clsx from 'clsx';
 import PropTypes from 'prop-types';
-import { makeStyles } from '@material-ui/styles';
+import { makeStyles,withStyles } from '@material-ui/styles';
 import { Card, CardContent,CardHeader, CardActions,Divider,  Grid,Button, Dialog,
-   DialogActions,DialogContent, DialogTitle, IconButton} from '@material-ui/core';
-
+  DialogActions,DialogContent,  IconButton} from '@material-ui/core';
 import Select from 'react-select';
 import { useEffect, useState } from 'react';
 import DateFnsUtils from '@date-io/date-fns';
@@ -18,8 +17,8 @@ import 'chartjs-plugin-annotation';
 import {CustomDisplayChart} from '../index'
 import palette from 'theme/palette';
 import Typography from '@material-ui/core/Typography';
-import {MoreHoriz} from '@material-ui/icons';
-
+import {MoreHoriz, Close} from '@material-ui/icons';
+import MuiDialogTitle from '@material-ui/core/DialogTitle';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -31,9 +30,36 @@ const useStyles = makeStyles(theme => ({
     height: 56,
     width: 56
   },
-  
+
+    
 }));
 
+const styles = (theme) => ({
+  root: {
+    margin: 0,
+    padding: theme.spacing(2),
+  },
+  closeButton: {
+    position: 'absolute',
+    right: theme.spacing(1),
+    top: theme.spacing(1),
+    color: theme.palette.grey[500],
+  },
+});
+
+const DialogTitle = withStyles(styles)((props) => {
+  const { children, classes, onClose, ...other } = props;
+  return (
+    <MuiDialogTitle disableTypography className={classes.root} {...other}>
+      <Typography variant="h6">{children}</Typography>
+      {onClose ? (
+        <IconButton aria-label="close" className={classes.closeButton} onClick={onClose}>
+          <Close />
+        </IconButton>
+      ) : null}
+    </MuiDialogTitle>
+  );
+});
 
 
 const CustomisableChart = props => {
@@ -305,7 +331,12 @@ const CustomisableChart = props => {
             
           > 
             <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
-              <DialogTitle id="form-dialog-title">Customise Chart by Selecting the Various Options</DialogTitle>
+              <DialogTitle 
+                id="form-dialog-title"
+                onClose={handleClose}
+              >
+                Customise Chart by Selecting the Various Options
+              </DialogTitle>
               <Divider/>
               <DialogContent>
                 
