@@ -58,7 +58,7 @@ const CustomisableChart = props => {
   };
 
   const [customChartTitle, setCustomChartTitle] = useState('Custom Chart Title');
-  const [selectedDate, setSelectedStartDate] = useState(new Date());
+  
 
   const handleDateChange = (date) => {
     setSelectedStartDate(date);
@@ -138,8 +138,8 @@ const CustomisableChart = props => {
 
   useEffect(() => {
     
-    //axios.get('https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/customisedchart/random')
-    axios.get('http://127.0.0.1:5000/api/v1/dashboard/customisedchart/random')
+    axios.get('https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/customisedchart/random')
+    //axios.get('http://127.0.0.1:5000/api/v1/dashboard/customisedchart/random')
       .then(res => res.data)
       .then((customisedChartData) => {
         setCustomisedGraphData(customisedChartData)
@@ -166,8 +166,8 @@ const CustomisableChart = props => {
     //console.log(JSON.stringify(filter));
 
     axios.post(
-      //'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/customisedchart',      
-      'http://127.0.0.1:5000/api/v1/dashboard/customisedchart', 
+      'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/customisedchart',      
+      //'http://127.0.0.1:5000/api/v1/dashboard/customisedchart', 
       JSON.stringify(filter),
       { headers: { 'Content-Type': 'application/json' } }
     ).then(res => res.data)

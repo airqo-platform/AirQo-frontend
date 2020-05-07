@@ -4,12 +4,12 @@ import { Grid, Card, CardContent, CardHeader, Button, Divider, CardActions } fro
 import { Line,Bar } from 'react-chartjs-2';
 import clsx from 'clsx';
 import PropTypes from 'prop-types';
-import { Pm25Levels, Map, CustomisableChart, PollutantCategory, TotalProfit } from './components';
+import { Pm25Levels, Map, CustomisableChart, PollutantCategory, ExceedancesChart, TotalProfit } from './components';
 import { useEffect, useState } from 'react';
 import 'chartjs-plugin-annotation';
 import palette from 'theme/palette';
 import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
-import ArrowRightIcon from '@material-ui/icons/ArrowRight';
+import ArrowRightIcon from '@material-ui/icons/ArrowRight';     
  
 
 const useStyles = makeStyles(theme => ({
@@ -40,8 +40,8 @@ const Dashboard = props => {
   const [locations,setLocations] = useState([]);
 
   useEffect(() => {
-    //fetch('https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/monitoringsite/historical/daily/devices')
-    fetch('http://127.0.0.1:5000/api/v1/dashboard/historical/daily/devices')
+    fetch('https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/monitoringsite/historical/daily/devices')
+    //fetch('http://127.0.0.1:5000/api/v1/dashboard/historical/daily/devices')
       .then(res => res.json())
       .then((locationsData) => {        
         setLocations(locationsData.results);
@@ -283,19 +283,7 @@ const Dashboard = props => {
                 />
               </div>
             </CardContent>
-            {/*
-            <Divider />
-             
-            <CardActions className={classes.actions}>
-              <Button
-                color="primary"
-                size="small"
-                variant="text"
-              >
-                Overview <ArrowRightIcon />
-              </Button>
-            </CardActions>
-            */}
+            
           </Card>          
         </Grid>
 
@@ -307,6 +295,7 @@ const Dashboard = props => {
           xl={7}
           xs={12}
         >
+          
          
           <Grid
             item
@@ -317,111 +306,7 @@ const Dashboard = props => {
           >
             <Map />
           </Grid>
-          {/* 
-          <Divider />
-        
-          <Grid
-            container
-            spacing={0}
-          >
-
           
-            <Grid
-              item
-              lg={2}
-              sm={4}
-              xl={2}
-              xs={12}
-            >
-              <Pm25Levels
-                background="#45e50d"
-                pm25level="Good"
-                pm25levelText = "(0 - 12)"
-                
-              />
-            </Grid>
-            <Grid
-              item
-              lg={2}
-              sm={4}
-              xl={2}
-              xs={12}
-            >
-              <Pm25Levels
-                background="#f8fe28"
-                pm25level="Moderate"
-                pm25levelText="(12.1 - 35.4)"
-                
-              />
-            </Grid>
-
-            <Grid
-              item
-              lg={2}
-              sm={4}
-              xl={2}
-              xs={12}
-            >
-              <Pm25Levels
-                background="#ee8310"
-                pm25level="UHFSG" //nhealthy for sensitive groups
-                pm25levelColor="#FFFFFF"
-                pm25levelText="(35.6 - 55.4)"            
-                
-              />
-            </Grid>
-
-            <Grid
-              item
-              lg={2}
-              sm={4}
-              xl={2}
-              xs={12}
-            >
-              <Pm25Levels
-                background="#fe0000"
-                pm25level="Unhealthy"
-                pm25levelColor="#FFFFFF"
-                pm25levelText="(55.5 - 150.4)"            
-                
-              />
-            </Grid>
-            <Grid
-              item
-              lg={2}
-              sm={4}
-              xl={2}
-              xs={12}
-            >
-              <Pm25Levels
-                background="#8639c0"
-                pm25level="Very unhealthy"
-                pm25levelColor="#FFFFFF"
-                pm25levelText="(150.5 - 250.4)"           
-                
-              />
-            </Grid>
-            <Grid
-              item
-              lg={2}
-              sm={4}
-              xl={2}
-              xs={12}
-            >
-              <Pm25Levels
-                background="#81202e"
-                pm25level="Hazardous"
-                pm25levelColor="#FFFFFF"
-                pm25levelText="(250.5 - 500.4)"           
-                
-              />
-            </Grid>
-            <p>
-              PM <sub>2.5</sub> - Particulate Matter 
-            </p>
-                
-          </Grid>
-          */}
         </Grid>
         
 
@@ -435,8 +320,21 @@ const Dashboard = props => {
         >
           
           <div className={classes.chartContainerx}>
-                
-            <CustomisableChart/>
+          <Card
+            {...rest}
+            className={clsx(classes.chartCard)}
+          >
+            <CardHeader              
+              title="Mean Daily PM2.5 for Past 28 Days"
+            />
+            <Divider />
+            <CardContent>
+              <div className={classes.chartContainer}>
+                <ExceedancesChart/>
+              </div>
+            </CardContent>
+            
+          </Card>     
           </div>                  
                                  
         </Grid>
