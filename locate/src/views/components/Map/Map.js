@@ -2,6 +2,7 @@ import React from "react";
 import { connect } from "react-redux";
 import { mapRenderDefaults } from "../../../redux/Maps/actions";
 import PropTypes from "prop-types";
+import constants from "../../../config/constants.js";
 
 import {
   Map,
@@ -96,10 +97,7 @@ class Maps extends React.Component {
   // added from locateSave
   onOpenClicked = () => {
     axios
-      .get(
-        `http://localhost:4000/api/v1/map/getlocatemap/` +
-          this.props.auth.user._id
-      )
+      .get(constants.GET_LOCATE_MAP + this.props.auth.user._id)
       .then((res) => {
         this.setState({ savedPlan: res.data });
         console.log(res.data);
@@ -115,10 +113,10 @@ class Maps extends React.Component {
     // head the save planning space dialog
     this.setState((prevState) => ({ openSave: !prevState.openSave }));
     // make api call
-    console.log("plan: ", this.state.plan);
+    // console.log("plan: ", this.state.plan);
     axios
       .post(
-        `http://localhost:4000/api/v1/map/savelocatemap`,
+        constants.SAVE_LOCATE_MAP,
         {
           user_id: this.props.auth.user._id,
           space_name: this.state.space_name,
@@ -199,36 +197,6 @@ class Maps extends React.Component {
 
   submitHandler = (e) => {
     e.preventDefault();
-    //functionality after submitting form.
-    // make api call
-
-    // axios
-    //   .post(
-    //     `http://localhost:4000/api/v1/map/parishes`,
-    //     {
-    //       sensor_number: parseInt(this.state.numberOfDevices, 10),
-    //       polygon: this.props.plan.geometry["coordinates"]
-    //     },
-    //     {
-    //       headers: {
-    //         "Content-Type": "application/json"
-    //       }
-    //     }
-    //   )
-    //   .then(res => {
-    //     console.log(res);
-    //     console.log(
-    //       "Must have: ",
-    //       this.state.mustHaveCoord == "" ? "None" : this.state.mustHaveCoord
-    //     );
-    //     //this.setState(prevState => ({ openConfirm: !prevState.openConfirm })); //
-    //     console.log(this.state, this.props.plan);
-    //   })
-    //   .catch(e => console.log(e));
-
-    // console.log(this.state.numberOfDevices);
-    //console.log(this.state.mustHaveCoord);
-    //console.log(this.state.plan);
     let api_data = {
       sensor_number: this.state.numberOfDevices,
       must_have_coordinates: this.state.mustHaveCoord,
