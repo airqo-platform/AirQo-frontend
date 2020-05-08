@@ -38,7 +38,53 @@ const ExceedancesChart = props => {
     const [open, setOpen] = React.useState(false);
 
     const [locations, setLocations] =useState([]);
+
+    /*useEffect(() => {
+
+      axios.get('http://127.0.0.1:5000//api/v1/dashboard/exceedance_locations')
+      .then(res => res.data)
+      .then(
+        res=>{
+          const myData = res.data;
+          console.log(myData);
+          setLocations(myData);
+          console.log('initial locations');
+          console.log(locations);
+      }).catch(
+        console.log
+      )
+    },[]);*/
+
     const [exceedanceValues, setExceedanceValues] = useState([]);
+    useEffect(() => {
+      let effectFilter ={ 
+        pollutant: 'PM 2.5',
+        standard: 'WHO'
+      }
+      console.log(JSON.stringify(effectFilter));
+
+      axios.post(
+        'http://127.0.0.1:5000//api/v1/dashboard/exceedances', 
+        JSON.stringify(effectFilter),
+        { headers: { 'Content-Type': 'application/json' } }
+      )
+      .then(
+        res=>{
+          const myData = res.data;
+          console.log(myData);
+          let myValues = [];
+          let myLocations = [];
+          myData.forEach(element => {
+              myValues.push(element['exceedances']);
+              myLocations.push(element['location']);
+          });
+          setExceedanceValues(myValues);
+          setLocations(myLocations);
+      }).catch(
+        console.log
+      )
+    },[]);
+
     const [customChartTitle, setCustomChartTitle] = useState('PM 2.5 Exceedances over the past 28 days');
     const [exceedancesData, setExceedancesData] = useState([]);
     const[myStandard, setMyStandard] = useState({value: ""});

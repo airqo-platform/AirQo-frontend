@@ -143,8 +143,6 @@ const CustomisableChart = props => {
       .then(res => res.data)
       .then((customisedChartData) => {
         setCustomisedGraphData(customisedChartData)
-        //console.log('customisedChartData');  //var newTime = new Date(element.time)
-        //console.log(typeof new Date(customisedChartData.results[0].chart_data.labels[1]));
         setCustomChartTitle(customisedChartData.custom_chart_title)
       })
       .catch(console.log)

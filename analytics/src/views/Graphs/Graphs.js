@@ -56,6 +56,53 @@ const Graphs = props => {
   const [pollutionValues, setPollutionValues] = useState([]);
   const [backgroundColors, setBackgroundColors] = useState([]);
 
+  useEffect(() => {
+    let date = new Date();
+    console.log(date);
+    let month = date.getMonth()-1;
+    console.log(month);
+    let newDate = date.setMonth(month);
+    console.log(newDate);
+    let effectFilter ={ 
+      location: 'Luzira',
+      startDate: date.setMonth(date.getMonth() - 1),
+      endDate:  date,
+      chartType:  'Bar',
+      frequency:  'Daily',
+      pollutant: 'PM 2.5',
+      organisation_name: 'KCCA' 
+    }
+    console.log(JSON.stringify(effectFilter));
+
+    axios.post(
+      //'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/device/graph',
+      'http://127.0.0.1:5000/api/v1/device/graph', 
+      JSON.stringify(effectFilter),
+      { headers: { 'Content-Type': 'application/json' } }
+    )
+    .then(
+      res=>{
+        const myData = res.data;
+        console.log(myData);
+        let myValues = [];
+        let myTimes = [];
+        let myColors = [];
+        myData.forEach(element => {
+          var newTime = new Date(element.time);
+          var finalTime = newTime.getFullYear()+'-'+appendLeadingZeroes(newTime.getMonth()+1)+'-'+appendLeadingZeroes(newTime.getDate())+
+          ' '+appendLeadingZeroes(newTime.getHours())+':'+ appendLeadingZeroes(newTime.getMinutes())+':'+appendLeadingZeroes(newTime.getSeconds());
+          myTimes.push(finalTime);
+          myColors.push(element.backgroundColor)
+          myValues.push(element.characteristics.pm2_5ConcMass.value);
+          });
+          setTimes(myTimes);
+          setPollutionValues(myValues);
+          setBackgroundColors(myColors)
+    }).catch(
+      console.log
+    )
+  },[]);
+
   const [myChartType, setMyChartType] = useState({value: ""});
   const [myPollutant, setMyPollutant] = useState({value: ""});
   const [loading, setLoading] = useState({value: false})
