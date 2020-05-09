@@ -14,7 +14,7 @@ import {
 } from "react-leaflet";
 import { EditControl } from "react-leaflet-draw";
 import axios from "axios";
-import L from "leaflet";
+import L, { marker } from "leaflet";
 import { ElementClass } from "enzyme";
 import FullscreenControl from "react-leaflet-fullscreen";
 import "react-leaflet-fullscreen/dist/styles.css";
@@ -57,9 +57,10 @@ class Maps extends React.Component {
       markers: [[0.32, 32.598]],
       // gets the shapefile format to save (polygon drawn within the planning space)
       plan: {},
-      // from LOCATE FORM
+      // State: locate form
       numberOfDevices: 0,
       mustHaveCoord: "",
+      // activates/deactivates locate submit button accordingly
       btnSubmit: false,
       //newly added - passed to the model endpoint
       geoJSONDATA: "",
@@ -67,24 +68,24 @@ class Maps extends React.Component {
       open: false,
       openSave: false,
       openConfirm: false,
-      savedPlan: [],
+      savedPlan: [], // stores previously saved data
       space_name: "",
 
-      // states for opening and updating saved
+      // states for opening and updating previously saved data
       selected_name: "",
       selected_plan: {},
       isPlanSelected: false,
       isUpdateCancel: false,
+      isAlreadyOpened: 0, // prevents the map from loading more than once on every state change
     };
-    //from locate
+
+    //from locate save
     this.changeHandler = this.changeHandler.bind(this);
     this.submitHandler = this.submitHandler.bind(this);
-    //from locateSave
     this.handleClick = this.handleClick.bind(this);
     this.onSaveClicked = this.onSaveClicked.bind(this);
     this.onOpenClicked = this.onOpenClicked.bind(this);
     this.handleSaveClose = this.handleSaveClose.bind(this);
-    this.changeHandler = this.changeHandler.bind(this);
     this.handleConfirmClose = this.handleConfirmClose.bind(this);
 
     // select previously saved data, update, delete
@@ -163,6 +164,7 @@ class Maps extends React.Component {
   onSelectPrevSpace = (name, shape) => {
     // we update some states
     this.setState({ isPlanSelected: true });
+    this.setState({ isUpdateCancel: false });
     this.setState({ selected_name: name });
     this.setState({ selected_plan: shape });
   };
@@ -174,6 +176,10 @@ class Maps extends React.Component {
   onCancelUpdatePlanSpace = () => {
     // monitor cancel button:
     this.setState({ isUpdateCancel: true });
+    this.setState({ isPlanSelected: false });
+    this.setState({ isAlreadyOpened: 0 });
+    // this.setState({ selected_name: "" });
+    // this.setState({ selected_plan: {} });
   };
 
   // Delete previously saved space
@@ -209,7 +215,7 @@ class Maps extends React.Component {
     };
     console.log(api_data);
     axios
-      .post("http://127.0.0.1:4000/api/v1/map/parishes", api_data, {
+      .post(constants.RUN_LOCATE_MODEL, api_data, {
         headers: { "Content-Type": "application/json" },
       })
       .then((res) => {
@@ -305,7 +311,7 @@ class Maps extends React.Component {
       //newly added
       this.setState({ geoJSONDATA: JSON.stringify(layer.toGeoJSON()) });
 
-      //this code has been moved to submitHandler
+      //the code here has been moved to submitHandler
     }
   };
 
@@ -597,7 +603,6 @@ class Maps extends React.Component {
             }}
           >
             <EditControl
-              ref="mapEditControl"
               position="topright"
               onEdited={this._onEdited}
               onCreated={this._onCreated}
@@ -668,10 +673,7 @@ class Maps extends React.Component {
       console.log("No polygons");
     }
     //Opening previously saved data
-    if (
-      this.state.isPlanSelected == true &&
-      this.state.isUpdateCancel == false
-    ) {
+    if (this.state.isPlanSelected && this.state.isAlreadyOpened == 0) {
       // populate the leaflet FeatureGroup with the geoJson layers
 
       var savedLeafletGeoJSON = new L.GeoJSON(this.state.selected_plan);
@@ -679,19 +681,37 @@ class Maps extends React.Component {
       savedLeafletGeoJSON.eachLayer((layer) => {
         savedLeafletFG.addLayer(layer);
       });
-      // } else {
-      //   if (
-      //     this.state.isPlanSelected == true &&
-      //     this.state.isUpdateCancel == true
-      //   ) {
-      //     draw.deleteAll().getAll();
-
-      //     this.setState({ isPlanSelected: false });
-      //     this.setState({ selected_name: "" });
-      //     this.setState({ selected_plan: {} });
-      //     this.setState({ isUpdateCancel: false });
-      //   }
+      // prevent the map from opening twice on every state change
+      this.setState({ isAlreadyOpened: 1 });
     }
+
+    if (this.state.isUpdateCancel) {
+      var savedLeafletFG = ref.leafletElement;
+      savedLeafletFG.eachLayer(function (layer) {
+        layer.remove();
+        //marker.remove();
+      });
+      // L.Map.eachLayer((layer) => {
+      //   savedLeafletFG.removeLayer(layer);
+      // });
+      //draw.deleteAll().getAll();
+      this.setState({ isPlanSelected: false });
+      this.setState({ selected_name: "" });
+      this.setState({ selected_plan: {} });
+      this.setState({ isUpdateCancel: false });
+    }
+    //   } else {
+    //     if (
+    //       this.state.isPlanSelected == true &&
+    //       this.state.isUpdateCancel == true
+    //     ) {
+    //       draw.deleteAll().getAll();
+
+    //       this.setState({ isPlanSelected: false });
+    //       this.setState({ selected_name: "" });
+    //       this.setState({ selected_plan: {} });
+    //       this.setState({ isUpdateCancel: false });
+    //     }
   };
 }
 
