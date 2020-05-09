@@ -200,7 +200,12 @@ class Maps extends React.Component {
     let api_data = {
       sensor_number: this.state.numberOfDevices,
       must_have_coordinates: this.state.mustHaveCoord,
-      polygon: this.state.plan,
+      // checking if the user selected a previously saved plan
+      // if true, use its geoGjson data, otherwise use the selected plan
+      polygon:
+        this.state.isPlanSelected == true
+          ? this.state.selected_plan
+          : this.state.plan,
     };
     console.log(api_data);
     axios
@@ -317,11 +322,12 @@ class Maps extends React.Component {
       opacity: 0.8,
       //marginTop: "7em"
     };
-    //--end--
+
     // Save planning styles
     const nested = {
       paddingLeft: "2em",
     };
+    // styling the save planning space menu
     const savePlan = {
       backgroundColor: "#FFF",
       zIndex: 999,
@@ -331,6 +337,7 @@ class Maps extends React.Component {
       opacity: 0.8,
       top: "21em",
     };
+    // styling the delete planning space buttons
     const btnStyles = {
       color: "red",
       fontWeight: ".3em",
@@ -378,7 +385,7 @@ class Maps extends React.Component {
             </CardActions>
           </form>
         </div>
-        {/* End of Locate Form Menu */}
+        {/* End of Locate Form Menu - Number of Devices and 'Must have locations */}
 
         {/* Locate Save Menu */}
         <div>
@@ -435,6 +442,7 @@ class Maps extends React.Component {
               </ListItem>
               <Collapse in={this.state.open} timeout="auto" unmountOnExit>
                 <List component="div" disablePadding>
+                  {/* check of previously saved plan was successfully returned from the db */}
                   {this.state.savedPlan != null
                     ? this.state.savedPlan.map((s) => (
                         <ListItem key={s._id} button style={nested}>
@@ -523,6 +531,7 @@ class Maps extends React.Component {
         </div>
         {/* End of Locate Save Menu */}
 
+        {/* Map component starts here */}
         <Map
           center={[this.props.mapDefaults.lat, this.props.mapDefaults.lng]}
           zoom={this.props.mapDefaults.zoom}
