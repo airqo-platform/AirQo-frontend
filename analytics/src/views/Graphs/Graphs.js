@@ -71,17 +71,20 @@ const Graphs = props => {
       pollutant: 'PM 2.5',
       organisation_name: 'KCCA' 
     }
+    setLoading(true);
 
     axios.post(
       //'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/device/graph',
       'http://127.0.0.1:5000/api/v1/device/graph', 
       JSON.stringify(effectFilter),
       { headers: { 'Content-Type': 'application/json' } }
+      
     )
     .then(
       res=>{
         const myData = res.data;
         console.log(myData);
+        setLoading(false);
         let myValues = [];
         let myTimes = [];
         let myColors = [];
@@ -103,6 +106,7 @@ const Graphs = props => {
 
   const [myChartType, setMyChartType] = useState({value: ""});
   const [myPollutant, setMyPollutant] = useState({value: ""});
+  const [myLocation, setMyLocation] = useState({value:""})
   const [loading, setLoading] = useState({value: false})
 
   var startDate = new Date();
@@ -184,6 +188,86 @@ const Graphs = props => {
     setSelectedPollutant(selectedPollutantOption);
   };
 
+  function generateAnnotations(pollutant){
+    var annotations;
+    if(pollutant == 'PM 2.5'){
+      annotations = [{
+        type: 'line',
+        mode: 'horizontal',
+        scaleID: 'y-axis-0',
+        value: 0,
+        borderColor: 'green',
+        borderWidth: 2, 
+      },
+      {
+        type: 'line',
+        mode: 'horizontal',
+        scaleID: 'y-axis-0',
+        value: 12.1,
+        borderColor: 'yellow',
+        borderWidth: 2,
+      },
+      {
+        type: 'line',
+        mode: 'horizontal',
+        scaleID: 'y-axis-0',
+        value: 35.5,
+        borderColor: 'orange',
+        borderWidth: 2,
+      },
+
+      {
+        type: 'line',
+        mode: 'horizontal',
+        scaleID: 'y-axis-0',
+        value: 55.5,
+        borderColor: 'red',
+        borderWidth: 2,
+      },
+      {
+        type: 'line',
+        mode: 'horizontal',
+        scaleID: 'y-axis-0',
+        value: 150.5,
+        borderColor: 'purple',
+        borderWidth: 2,
+      },
+    ]
+     
+    }
+    else if (pollutant == 'PM 10'){
+      annotations = [{
+        type: 'line',
+        mode: 'horizontal',
+        scaleID: 'y-axis-0',
+        value: 0,
+        borderColor: 'green',
+        borderWidth: 2, 
+      },
+      {
+        type: 'line',
+        mode: 'horizontal',
+        scaleID: 'y-axis-0',
+        value: 55,
+        borderColor: 'yellow',
+        borderWidth: 2,
+      },
+    ]
+    }
+    else{
+      annotations = [{
+        type: 'line',
+        mode: 'horizontal',
+        scaleID: 'y-axis-0',
+        value: 0,
+        borderColor: 'green',
+        borderWidth: 2, 
+      },
+    ]
+    }
+    return annotations;
+  }
+
   function appendLeadingZeroes(n){
     if(n <= 9){
       return "0" + n;
@@ -235,6 +319,7 @@ const Graphs = props => {
         setLoading(false)
         setMyChartType(selectedChart.value);
         setMyPollutant(selectedPollutant.value);
+        setMyLocation(selectedLocation.label);
         if (typeof myData[0] == 'number'){
           let myValues = [];
           myData.forEach(element => {
@@ -320,80 +405,13 @@ const Graphs = props => {
           options={{
             title:{
               display:true,
-              text: 'Line graph showing '+myPollutant+' data over the specified period',
+              text: 'Line graph showing '+myPollutant+' data in '+myLocation,
               fontColor: "black",
               fontSize: 18,
               fontWeight: 0
             },
             annotation: {
-              annotations: [{
-                type: 'line',
-                mode: 'horizontal',
-                scaleID: 'y-axis-0',
-                value: 0,
-                borderColor: 'green',
-                borderWidth: 2,
-                /*label: {
-                  enabled: true,
-                  content: 'Good',
-                  position:'right'
-                },*/
-                
-              },
-              {
-                type: 'line',
-                mode: 'horizontal',
-                scaleID: 'y-axis-0',
-                value: 12.1,
-                borderColor: 'yellow',
-                borderWidth: 2,
-                /*label: {
-                  enabled: true,
-                  content: 'Moderate',
-                  position:'right'
-                }*/
-              },
-              {
-                type: 'line',
-                mode: 'horizontal',
-                scaleID: 'y-axis-0',
-                value: 35.5,
-                borderColor: 'orange',
-                borderWidth: 2,
-                /*label: {
-                  enabled: true,
-                  content: 'UH4SG',
-                  position:'right'
-                }*/
-              },
-
-              {
-                type: 'line',
-                mode: 'horizontal',
-                scaleID: 'y-axis-0',
-                value: 55.5,
-                borderColor: 'red',
-                borderWidth: 2,
-                /*label: {
-                  enabled: true,
-                  content: 'Unhealthy',
-                  position:'right'
-                }*/
-              },
-              {
-                type: 'line',
-                mode: 'horizontal',
-                scaleID: 'y-axis-0',
-                value: 15.5,
-                borderColor: 'purple',
-                borderWidth: 2,
-                /*label: {
-                  enabled: true,
-                  content: 'Very Unhealthy',
-                  position:'right'
-                }*/
-              },
-            ]
+              annotations: generateAnnotations(myPollutant)
             },
 
             scales: {
@@ -638,7 +656,7 @@ const Graphs = props => {
           options={{
             title:{
               display:true,
-              text: 'Pie Chart showing '+ myPollutant+ ' data over the specified period',
+              text: 'Pie Chart showing '+ myPollutant+ ' data in '+myLocation,
               fontColor: "black",
               fontSize: 20,
               fontWeight: 5
@@ -849,7 +867,7 @@ else if (myChartType=='bar'){
         options={{
           title:{
             display:true,
-            text: 'Bar graph showing '+myPollutant+ ' data over the specified period',
+            text: 'Bar graph showing '+myPollutant+ ' data in '+myLocation,
             fontColor: "black",
             fontSize: 20,
             fontWeight:5
@@ -1097,7 +1115,7 @@ else if (myChartType=='bar'){
         options={{
           title:{
             display:true,
-            text: 'Bar graph showing PM 2.5 data over the specified period',
+            text: 'Bar graph showing PM 2.5 data at KCCA',
             fontColor: "black",
             fontWeight: 5,
             fontSize: 20
