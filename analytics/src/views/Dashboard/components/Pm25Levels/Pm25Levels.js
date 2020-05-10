@@ -22,8 +22,8 @@ const useStyles = makeStyles(theme => ({
     width: 32
   },
   icon: {
-    height: 30,
-    width: 30
+    height: 20,
+    width: 20
   },
   difference: {
     marginTop: theme.spacing(2),
@@ -45,7 +45,7 @@ const Pm25Levels = props => {
   const classes = useStyles();
   const pm25BgColor = {
     backgroundColor: background,
-    padding: 10,
+    padding: 0,
     height: 100,
   }
   const pm25_levelColor = {

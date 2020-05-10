@@ -198,7 +198,7 @@ const Dashboard = props => {
           xs={12}
         >
           <PollutantCategory
-            pm25level="GOOD"
+            pm25level="Good"
             pm25levelCount="08"
           />
         </Grid>
@@ -209,9 +209,10 @@ const Dashboard = props => {
           sm={6}
           xl={2}
           xs={12}
+          
         >
           <PollutantCategory
-            pm25level="MODERATE"
+            pm25level="Moderate"
             pm25levelCount="05"
           />
         </Grid>
@@ -223,7 +224,7 @@ const Dashboard = props => {
           xs={12}
         >
           <PollutantCategory
-            pm25level="UHFSG"
+            pm25level="Unhealthy for sensitive groups"
             pm25levelCount="07"
           />
         </Grid>
@@ -236,7 +237,7 @@ const Dashboard = props => {
           xs={12}
         >
           <PollutantCategory
-            pm25level="UNHEALTHY"
+            pm25level="Unhealthy"
             pm25levelCount="07"
           />
         </Grid>
@@ -249,7 +250,7 @@ const Dashboard = props => {
           xs={12}
         >
           <PollutantCategory
-            pm25level="V.UNHEALTHY"
+            pm25level="Very Unhealthy"
             pm25levelCount="07"
           />
         </Grid>
@@ -261,7 +262,7 @@ const Dashboard = props => {
           xs={12}
         >
           <PollutantCategory
-            pm25level="HAZARDOUS"
+            pm25level="Hazardous"
             pm25levelCount="07"
           />
         </Grid>
