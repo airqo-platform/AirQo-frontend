@@ -9,6 +9,7 @@ import DateFnsUtils from '@date-io/date-fns';
 import {MuiPickersUtilsProvider, KeyboardTimePicker, KeyboardDatePicker} from '@material-ui/pickers';
 import axios from 'axios';
 import LoadingSpinner from './loadingSpinner';
+import 'chartjs-plugin-annotation';
 
 
 const useStyles = makeStyles(theme => ({
@@ -57,22 +58,19 @@ const Graphs = props => {
   const [backgroundColors, setBackgroundColors] = useState([]);
 
   useEffect(() => {
-    let date = new Date();
-    console.log(date);
-    let month = date.getMonth()-1;
-    console.log(month);
-    let newDate = date.setMonth(month);
-    console.log(newDate);
+    let startdate = new Date();
+    startdate.setMonth(startdate.getMonth() - 1);
+    startdate.setHours(0,0,0,0);
+  
     let effectFilter ={ 
-      location: 'Luzira',
-      startDate: date.setMonth(date.getMonth() - 1),
-      endDate:  date,
-      chartType:  'Bar',
-      frequency:  'Daily',
+      location: 'Civic Centre',
+      startDate: startdate,
+      endDate:  new Date(),
+      chartType:  'bar',
+      frequency:  'daily',
       pollutant: 'PM 2.5',
       organisation_name: 'KCCA' 
     }
-    console.log(JSON.stringify(effectFilter));
 
     axios.post(
       //'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/device/graph',
@@ -132,17 +130,23 @@ const Graphs = props => {
       .then(res => res.json())
       .then((filterLocationsData) => {
         setFilterLocations(filterLocationsData.airquality_monitoring_sites)
+        //console.log(filterLocationsData)
       })
       .catch(console.log)
   },[]);
 
   const filterLocationsOptions = filterLocations
 
-  const [values, setReactSelectValue] = useState({ selectedOption: [] });
+  //const [values, setReactSelectValue] = useState({ selectedOption: [] });
 
-  const handleMultiChange = selectedOption => {
-    setReactSelectValue({ selectedOption });
-  }
+  //const handleMultiChange = selectedOption => {
+   // setReactSelectValue({ selectedOption });
+  //}
+
+  const [selectedLocation, setSelectedLocation] = useState({value: 'Civic Centre'})
+  const handleLocationChange = selectedLocation => {
+    setSelectedLocation(selectedLocation);
+  };
 
   const chartTypeOptions = [
     { value: 'line', label: 'Line' },
@@ -208,7 +212,7 @@ const Graphs = props => {
     setLoading(true);
 
     let filter ={ 
-      locations: values.selectedOption,
+      location: selectedLocation.label,
       startDate:  selectedDate,
       endDate:  selectedEndDate,
       chartType:  selectedChart.value,
@@ -219,8 +223,8 @@ const Graphs = props => {
     console.log(JSON.stringify(filter));
 
     axios.post(
-      'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/device/graph',
-      //'http://127.0.0.1:5000/api/v1/device/graph', 
+      //'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/device/graph',
+      'http://127.0.0.1:5000/api/v1/device/graph', 
       JSON.stringify(filter),
       { headers: { 'Content-Type': 'application/json' } }
     )
@@ -303,8 +307,12 @@ const Graphs = props => {
                     label:myPollutant,
                     data: pollutionValues,
                     backgroundColor: backgroundColors,
-                    borderColor: 'rgba(0,0,0,1)',
-                    borderWidth: 1
+                    borderColor: 'blue',
+                    borderWidth: 1,
+                    fill: false,
+                    pointStyle: 'star',
+                    pointRadius: 3
+                  
                  }
               ]
            }
@@ -316,6 +324,76 @@ const Graphs = props => {
               fontColor: "black",
               fontSize: 18,
               fontWeight: 0
+            },
+            annotation: {
+              annotations: [{
+                type: 'line',
+                mode: 'horizontal',
+                scaleID: 'y-axis-0',
+                value: 0,
+                borderColor: 'green',
+                borderWidth: 2,
+                /*label: {
+                  enabled: true,
+                  content: 'Good',
+                  position:'right'
+                },*/
+                
+              },
+              {
+                type: 'line',
+                mode: 'horizontal',
+                scaleID: 'y-axis-0',
+                value: 12.1,
+                borderColor: 'yellow',
+                borderWidth: 2,
+                /*label: {
+                  enabled: true,
+                  content: 'Moderate',
+                  position:'right'
+                }*/
+              },
+              {
+                type: 'line',
+                mode: 'horizontal',
+                scaleID: 'y-axis-0',
+                value: 35.5,
+                borderColor: 'orange',
+                borderWidth: 2,
+                /*label: {
+                  enabled: true,
+                  content: 'UH4SG',
+                  position:'right'
+                }*/
+              },
+
+              {
+                type: 'line',
+                mode: 'horizontal',
+                scaleID: 'y-axis-0',
+                value: 55.5,
+                borderColor: 'red',
+                borderWidth: 2,
+                /*label: {
+                  enabled: true,
+                  content: 'Unhealthy',
+                  position:'right'
+                }*/
+              },
+              {
+                type: 'line',
+                mode: 'horizontal',
+                scaleID: 'y-axis-0',
+                value: 15.5,
+                borderColor: 'purple',
+                borderWidth: 2,
+                /*label: {
+                  enabled: true,
+                  content: 'Very Unhealthy',
+                  position:'right'
+                }*/
+              },
+            ]
             },
 
             scales: {
@@ -332,7 +410,7 @@ const Graphs = props => {
                   fontColor:"black"                 
                   },
                 gridLines:{
-                  lineWidth: 5
+                  lineWidth: 1
                 }
               }],
               xAxes: [{
@@ -348,7 +426,7 @@ const Graphs = props => {
                   fontColor:"black"                 
                   },
                 gridLines:{
-                  lineWidth: 5
+                  lineWidth: 1
                 }
 
               }],
@@ -385,15 +463,14 @@ const Graphs = props => {
       <form onSubmit={handleSubmit}>
 
 <div className={classes.formControl}>
-  <label className="reactSelectLabel">Location(s)</label>
+  <label className="reactSelectLabel">Location</label>
   <Select
     className="reactSelect"
     name="location"
-    placeholder="Location(s)"
-    value={values.selectedOption}
+    placeholder="Location"
+    value={selectedLocation}
     options={filterLocationsOptions}
-    onChange={handleMultiChange}
-    isMulti
+    onChange={handleLocationChange}
   />
 </div>
 
@@ -598,15 +675,14 @@ const Graphs = props => {
       <form onSubmit={handleSubmit}>
 
 <div className={classes.formControl}>
-  <label className="reactSelectLabel">Location(s)</label>
+  <label className="reactSelectLabel">Location</label>
   <Select
     className="reactSelect"
     name="location"
-    placeholder="Location(s)"
-    value={values.selectedOption}
+    placeholder="Location"
+    value={selectedLocation}
     options={filterLocationsOptions}
-    onChange={handleMultiChange}
-    isMulti
+    onChange={handleLocationChange}
   />
 </div>
 
@@ -793,7 +869,7 @@ else if (myChartType=='bar'){
                 fontColor:"black"                 
                 },
               gridLines:{
-                lineWidth: 5
+                lineWidth: 1
               }
             }],
             xAxes: [{
@@ -809,7 +885,7 @@ else if (myChartType=='bar'){
                 fontColor:"black"                 
                 },
               gridLines:{
-                lineWidth: 5
+                lineWidth: 1
               }
 
             }],
@@ -846,15 +922,14 @@ else if (myChartType=='bar'){
     <form onSubmit={handleSubmit}>
 
 <div className={classes.formControl}>
-<label className="reactSelectLabel">Location(s)</label>
+<label className="reactSelectLabel">Location</label>
 <Select
   className="reactSelect"
   name="location"
-  placeholder="Location(s)"
-  value={values.selectedOption}
+  placeholder="Location"
+  value={selectedLocation}
   options={filterLocationsOptions}
-  onChange={handleMultiChange}
-  isMulti
+  onChange={handleLocationChange}
 />
 </div>
 
@@ -1041,7 +1116,7 @@ else if (myChartType=='bar'){
                 fontColor:"black"                 
                 },
               gridLines:{
-                lineWidth: 5
+                lineWidth: 1
               }
             }],
             xAxes: [{
@@ -1057,7 +1132,7 @@ else if (myChartType=='bar'){
                 fontColor:"black"                 
                 },
               gridLines:{
-                lineWidth: 5
+                lineWidth: 1
               }
 
             }],
@@ -1094,15 +1169,14 @@ else if (myChartType=='bar'){
       <form onSubmit={handleSubmit}>
 
 <div className={classes.formControl}>
-  <label className="reactSelectLabel">Location(s)</label>
+  <label className="reactSelectLabel">Location</label>
   <Select
     className="reactSelect"
     name="location"
-    placeholder="Location(s)"
-    value={values.selectedOption}
+    placeholder="Location"
+    value={selectedLocation}
     options={filterLocationsOptions}
-    onChange={handleMultiChange}
-    isMulti
+    onChange={handleLocationChange}
   />
 </div>
 
