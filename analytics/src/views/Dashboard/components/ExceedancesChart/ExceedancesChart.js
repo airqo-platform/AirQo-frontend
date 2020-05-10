@@ -55,6 +55,11 @@ const ExceedancesChart = props => {
       )
     },[]);*/
 
+    const [UH4SGValues, setUH4SGValues] = useState([]);
+    const [unhealthyValues, setUnhealthyValues] = useState([]);
+    const [veryUnhealthyValues, setVeryUnhealthyValues] = useState([]);
+    const [hazardousValues, setHazardousValues] = useState([]);
+
     const [exceedanceValues, setExceedanceValues] = useState([]);
     useEffect(() => {
       let effectFilter ={ 
@@ -62,6 +67,7 @@ const ExceedancesChart = props => {
         standard: 'WHO'
       }
       console.log(JSON.stringify(effectFilter));
+      setLoading(true);
 
       axios.post(
         'http://127.0.0.1:5000//api/v1/dashboard/exceedances', 
@@ -71,6 +77,7 @@ const ExceedancesChart = props => {
       .then(
         res=>{
           const myData = res.data;
+          setLoading(false);
           console.log(myData);
           let myValues = [];
           let myLocations = [];
@@ -156,6 +163,54 @@ const ExceedancesChart = props => {
       return title
     }
   
+    function generateExceedanceData(standard){
+      var datasets;
+      if (standard== 'WHO'){
+        datasets =[
+             {
+                label:'Exceedances',
+                data: exceedanceValues,
+                backgroundColor: 'red',
+                borderColor: 'rgba(0,0,0,1)',   
+                borderWidth: 1
+             }]
+            }
+            else{
+              datasets =[
+                {
+                   label:'UH4SG',
+                   data: UH4SGValues,
+                   backgroundColor: 'orange',
+                   borderColor: 'rgba(0,0,0,1)',   
+                   borderWidth: 1
+                },
+                {
+                  label:'Unhealthy',
+                  data: unhealthyValues,
+                  backgroundColor: 'red',
+                  borderColor: 'rgba(0,0,0,1)',   
+                  borderWidth: 1
+               },
+               {
+                label:'Very Unhealthy',
+                data: veryUnhealthyValues,
+                backgroundColor: 'purple',
+                borderColor: 'rgba(0,0,0,1)',   
+                borderWidth: 1
+             },
+             {
+              label:'Hazardous',
+              data: hazardousValues,
+              backgroundColor: 'maroon',
+              borderColor: 'rgba(0,0,0,1)',   
+              borderWidth: 1
+           }]
+
+            }
+            return datasets
+          }
+
+
     let  handleSubmit = (e) => {
         e.preventDefault();
         setLoading(true);
@@ -182,11 +237,19 @@ const ExceedancesChart = props => {
             setMyStandard(standard.value);
             setMyPollutant(pollutant.value);
             let myValues = [];
+            let myUH4SGValues = [];
+            let myUnhealthyValues = [];
+            let myVeryUnhealthyValues = [];
+            let myHazardousValues = [];
             let myLocations = [];
             myData.forEach(element => {
               myLocations.push(element['location']);
               if (standard.value=='AQI'){
-                myValues.push(element['UH4SG']+element['Unhealthy']+element['VeryUnhealthy']+element['Hazardous']);
+                myUH4SGValues.push(element['UH4SG']);
+                myUnhealthyValues.push(element['Unhealthy']);
+                myVeryUnhealthyValues.push(element['VeryUnhealthy'])
+                myHazardousValues.push(element['Hazardous'])
+                //myValues.push(element['UH4SG']+element['Unhealthy']+element['VeryUnhealthy']+element['Hazardous']);
               }
               else{
                 myValues.push(element['exceedances']);
@@ -196,6 +259,10 @@ const ExceedancesChart = props => {
             //console.log(myLocations)
             setLocations(myLocations);
             setExceedanceValues(myValues);
+            setUH4SGValues(myUH4SGValues);
+            setUnhealthyValues(myUnhealthyValues);
+            setVeryUnhealthyValues(myVeryUnhealthyValues);
+            setHazardousValues(myHazardousValues);
             setCustomChartTitle(pollutant.value+ ' exceedances over the past 28 days based on '+standard.value)
     
         }).catch(
@@ -239,7 +306,7 @@ const ExceedancesChart = props => {
         data= {
             {
             labels: locations,
-            datasets:[
+            /*datasets:[
                {
                   label:'Exceedances',
                   data: exceedanceValues,
@@ -247,7 +314,8 @@ const ExceedancesChart = props => {
                   borderColor: 'rgba(0,0,0,1)',   
                   borderWidth: 1
                }
-            ]
+            ]*/
+            datasets: generateExceedanceData(standard)
          }
         }
         options={{
@@ -261,6 +329,7 @@ const ExceedancesChart = props => {
 
           scales: {
             yAxes: [{
+              stacked: true,
               scaleLabel: {
                 display: true,
                 labelString: 'Exceedances',
@@ -279,6 +348,7 @@ const ExceedancesChart = props => {
               }
             }],
             xAxes: [{
+              stacked:true,
               scaleLabel: {
                 display: true,
                 labelString: 'Locations',
