@@ -40,7 +40,8 @@ const useStyles = makeStyles(theme => ({
   },
   progress: {
     marginTop: theme.spacing(3)
-  }
+  },
+
 }));
 
 const Map = props => {
@@ -51,7 +52,7 @@ const Map = props => {
   const [contacts,setContacts ] = useState([]);
 
   useEffect(() => {
-   fetch('https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/monitoringsites?organisation_name=KCCA')
+    fetch('https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/monitoringsites?organisation_name=KCCA')
     //fetch('http://127.0.0.1:5000/api/v1/dashboard/monitoringsites?organisation_name=KCCA')
       .then(res => res.json())
       .then((contactData) => {
@@ -68,6 +69,16 @@ const Map = props => {
             aqi > 12   ? '#f8fe39' :
               aqi > 0   ? '#44e527' :
                 '#808080';
+  }
+
+  let getPm25CategoryColorClass = (aqi) =>{
+    return aqi > 250.4  ? 'pm25Harzadous' :
+      aqi > 150.4  ? 'pm25VeryUnHealthy' :
+        aqi > 55.4   ? 'pm25UnHealthy' :
+          aqi > 35.4   ? 'pm25UH4SG' :
+            aqi > 12   ? 'pm25Moderate' :
+              aqi > 0   ? 'pm25Good' :
+                'pm25UnCategorised';
   }
 
   return (
@@ -99,7 +110,7 @@ const Map = props => {
             url="http://{s}.tile.osm.org/{z}/{x}/{y}.png"
           />           
           {contacts.map((contact) => (
-
+            
             <Marker 
               position={[contact.Latitude,contact.Longitude]}
               color = {getColor(contact.Last_Hour_PM25_Value == 0?'':contact.Last_Hour_PM25_Value)}
@@ -108,9 +119,9 @@ const Map = props => {
               clickable="true"  
               icon={
                 L.divIcon({
-                html:ReactDOMServer.renderToString (`${contact.Last_Hour_PM25_Value == 0?'':contact.Last_Hour_PM25_Value}`),
+                html:`${contact.Last_Hour_PM25_Value == 0?'':contact.Last_Hour_PM25_Value}`,
                 iconSize: 35,
-                className: 'leaflet-marker-icon',
+                className: `leaflet-marker-icon ${getPm25CategoryColorClass(contact.Last_Hour_PM25_Value)}`,
                  })}
               >
               
