@@ -2,7 +2,7 @@ import React from 'react';
 import clsx from 'clsx';
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/styles';
-import { Map as LeafletMap, TileLayer, Popup, CircleMarker,Tooltip } from 'react-leaflet';
+import { Map as LeafletMap, TileLayer, Popup, Marker} from 'react-leaflet';
 import {Link } from 'react-router-dom';
 import {
   Card,
@@ -13,6 +13,10 @@ import {
 import { useEffect, useState } from 'react';
 import FullscreenControl from 'react-leaflet-fullscreen';
 import 'react-leaflet-fullscreen/dist/styles.css'
+import L from 'leaflet';
+import ReactDOMServer from 'react-dom/server';
+
+
 const useStyles = makeStyles(theme => ({
   root: {
     height: '100%'
@@ -47,7 +51,7 @@ const Map = props => {
   const [contacts,setContacts ] = useState([]);
 
   useEffect(() => {
-    fetch('https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/monitoringsites?organisation_name=KCCA')
+   fetch('https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/monitoringsites?organisation_name=KCCA')
     //fetch('http://127.0.0.1:5000/api/v1/dashboard/monitoringsites?organisation_name=KCCA')
       .then(res => res.json())
       .then((contactData) => {
@@ -94,27 +98,22 @@ const Map = props => {
           <TileLayer
             url="http://{s}.tile.osm.org/{z}/{x}/{y}.png"
           />           
-        
-        
           {contacts.map((contact) => (
-            <CircleMarker 
-              center={[contact.Latitude,contact.Longitude]}
-              color={getColor(contact.Last_Hour_PM25_Value == 0?'':contact.Last_Hour_PM25_Value)}
+
+            <Marker 
+              position={[contact.Latitude,contact.Longitude]}
+              color = {getColor(contact.Last_Hour_PM25_Value == 0?'':contact.Last_Hour_PM25_Value)}
               fill="true"
               key={contact._id} 
-              clickable="true"           
-              radius={16}
-              fillOpacity={1}
-            >
-              <Tooltip 
-                direction='center' 
-                offset={[-8, -2]} 
-                opacity={1} 
-                permanent 
-                className='markertext'
+              clickable="true"  
+              icon={
+                L.divIcon({
+                html:ReactDOMServer.renderToString (`${contact.Last_Hour_PM25_Value == 0?'':contact.Last_Hour_PM25_Value}`),
+                iconSize: 35,
+                className: 'leaflet-marker-icon',
+                 })}
               >
-                <span>{contact.Last_Hour_PM25_Value == 0?'':contact.Last_Hour_PM25_Value}</span>
-              </Tooltip>
+              
               <Popup>
                 <h2>{contact.Parish} - {contact.Division} Division</h2> 
                 <h4>{contact.LocationCode}</h4>
@@ -122,24 +121,20 @@ const Map = props => {
                 <h1> {contact.Last_Hour_PM25_Value == 0?'':contact.Last_Hour_PM25_Value}</h1> 
                 <span>Last Refreshed: {contact.LastHour} (UTC)</span>
                 <Divider/>
-
-                
-               
+             
                 <Link to="/graph/4">More Details</Link>
                 
               </Popup>
-            </CircleMarker>         
-          ))}          
+            </Marker>   
+          ))}    
+      
+            <FullscreenControl position="topright" />
 
-          <FullscreenControl position="topright" />
         </LeafletMap>
         
       </CardContent>
 
     </Card>
-
-    
-
 
   );
 };

@@ -115,3 +115,17 @@ select{
 	direction: 'center';
 	fill: false;
   }
+
+  .leaflet-marker-icon {
+	color: #000;
+	font-size: 12px;
+	line-height: 35px;
+	text-align: center;
+	vertical-align: bottom;
+	box-shadow: 2px 1px 4px rgba(0,0,0,0.2);
+	border-radius: 30px;
+	border-width: 3px;
+	opacity: 1;
+	background: yellow;
+	border: 2px solid yellow;
+}
