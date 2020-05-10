@@ -15,7 +15,6 @@ import FullscreenControl from 'react-leaflet-fullscreen';
 import 'react-leaflet-fullscreen/dist/styles.css'
 import L from 'leaflet';
 
-
 const useStyles = makeStyles(theme => ({
   root: {
     height: '100%'
@@ -107,7 +106,7 @@ const Map = props => {
               clickable="true"  
               icon={
                 L.divIcon({
-                html:`${getColor(contact.Last_Hour_PM25_Value == 0?'':contact.Last_Hour_PM25_Value)}`,
+               
                 iconSize: 35,
                 className: 'leaflet-marker-icon',
                  })}
