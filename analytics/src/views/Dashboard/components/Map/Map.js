@@ -58,14 +58,14 @@ const Map = props => {
       .catch(console.log)
   },[]);
 
-  let getColor = (aqi) =>{
-    return aqi > 250.4  ? '#81202e' :
-      aqi > 150.4  ? '#8639c0' :
-        aqi > 55.4   ? '#fe0023' :
-          aqi > 35.4   ? '#ee8327' :
-            aqi > 12   ? '#f8fe39' :
-              aqi > 0   ? '#44e527' :
-                '#808080';
+  let getPm25CategoryColorClass = (aqi) =>{
+    return aqi > 250.4  ? 'pm25Harzadous' :
+      aqi > 150.4  ? 'pm25VeryUnHealthy' :
+        aqi > 55.4   ? 'pm25UnHealthy' :
+          aqi > 35.4   ? 'pm25UH4SG' :
+            aqi > 12   ? 'pm25Moderate' :
+              aqi > 0   ? 'pm25Good' :
+                'pm25UnCategorised';
   }
 
   return (
@@ -100,15 +100,14 @@ const Map = props => {
 
             <Marker 
               position={[contact.Latitude,contact.Longitude]}
-              color = {getColor(contact.Last_Hour_PM25_Value == 0?'':contact.Last_Hour_PM25_Value)}
               fill="true"
               key={contact._id} 
               clickable="true"  
               icon={
                 L.divIcon({
-               
+                html:`${contact.Last_Hour_PM25_Value == 0?'':contact.Last_Hour_PM25_Value}`,
                 iconSize: 35,
-                className: 'leaflet-marker-icon',
+                className:`leaflet-marker-icon ${getPm25CategoryColorClass(contact.Last_Hour_PM25_Value)}`
                  })}
               >
               
