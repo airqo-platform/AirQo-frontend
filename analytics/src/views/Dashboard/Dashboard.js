@@ -4,7 +4,7 @@ import { Grid, Card, CardContent, CardHeader, Button, Divider, CardActions } fro
 import { Line,Bar } from 'react-chartjs-2';
 import clsx from 'clsx';
 import PropTypes from 'prop-types';
-import { Pm25Levels, Map, CustomisableChart, PollutantCategory, TotalProfit } from './components';
+import {Pm25Levels, Map, CustomisableChart, PollutantCategory, TotalProfit } from './components';
 import { useEffect, useState } from 'react';
 import 'chartjs-plugin-annotation';
 import palette from 'theme/palette';
@@ -85,8 +85,6 @@ const Dashboard = props => {
   }
 
   
-  
-   
   const options_main= {
     annotation: {
       annotations: [{

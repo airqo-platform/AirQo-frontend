@@ -67,7 +67,7 @@ const CustomisableChart = props => {
 
   const classes = useStyles();
 
-  const [open, setOpen] = React.useState(false);
+  const [open, setOpen] = useState(false);
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -198,7 +198,7 @@ const CustomisableChart = props => {
     datasets: customGraphData.datasets
   }
 
-  let customChartTitlex =  customGraphData.results? customGraphData.results[0].custom_chart_title:'Customisable Historical Chart';
+  
   const options= {
     annotation: {
       annotations: [{

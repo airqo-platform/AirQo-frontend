@@ -90,7 +90,12 @@ const Routes = () => {
         path="/not-found"
       />
 
-
+      <PrivateRoute
+        component={Graphs}
+        exact
+        layout={MainLayout}
+        path="/location/:locationname"
+      />
   
       <Route
         component={Landing}

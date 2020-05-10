@@ -125,7 +125,7 @@ const Map = props => {
 
                 
                
-                <Link to="/graph/4">More Details</Link>
+                <Link to={`/location/${contact.Parish}`}>More Details</Link>
                 
               </Popup>
             </CircleMarker>         

@@ -8,7 +8,7 @@ import Select from 'react-select';
 import DateFnsUtils from '@date-io/date-fns';
 import {MuiPickersUtilsProvider, KeyboardTimePicker, KeyboardDatePicker} from '@material-ui/pickers';
 import axios from 'axios';
-
+import { useParams } from 'react-router-dom';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -49,7 +49,7 @@ const useStyles = makeStyles(theme => ({
 
 const Graphs = props => {
   const { className, ...rest } = props;
-
+  let params = useParams();
   const classes = useStyles();
   const [times, setTimes] =useState([]);
   const [pollutionValues, setPollutionValues] = useState([]);
@@ -220,7 +220,7 @@ const Graphs = props => {
               gutterBottom
               variant="body2"
             >
-              Display Graph
+               {params.locationname}
             </Typography>
           </Grid>
         
