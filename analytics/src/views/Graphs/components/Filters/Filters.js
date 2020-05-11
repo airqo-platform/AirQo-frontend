@@ -66,21 +66,105 @@ const Filters = props => {
             </Typography>
           </Grid>
         </Grid>
-        {/* <div className={classes.difference}>
-          <ArrowUpwardIcon className={classes.differenceIcon} />
-          <Typography
-            className={classes.differenceValue}
-            variant="body2"
-          >
-            16%
-          </Typography>
-          <Typography
-            className={classes.caption}
-            variant="caption"
-          >
-            Since last month
-          </Typography>
+        {/*  <div >
+              {< form class="form-style-graph" action ="">
+                <p>Please enter valid parameters.</p>
+                <br/>
+
+                <label for="location"><b>Location:</b></label>
+                <input type="search" placeholder="Choose Location" name="location" required/>
+                <br/><br/> <br/>
+
+                <label for="start_date"><b>Start Date:</b></label>
+                <input type="date" placeholder="Enter Date" name="start_date" />
+                
+                <label for="time"><b>Start Time :</b></label>
+                <input type="time" name="time"/>
+                <br/><br/> <br/>
+
+                <label for="end_date"><b>End Date:</b></label>
+                <input type="date" placeholder="Enter Date" name="end_date" />
+                
+                <label for="time"><b>End Time :</b></label>
+                <input type="time" name="time"/>
+                <br/><br/> <br/>
+
+                <label for="chart type"><b>Chart Type:</b></label>
+                <select id="chartTypeSelect">
+                  <option>Line</option>
+                  <option>Bar</option>
+                  <option>Pie</option>
+                </select>
+                <br/> <br/> <br/>
+
+                <label for="frequency"><b>Frequency:</b></label>
+                <select id="frequencySelect" required>
+                  <option>Hourly</option>
+                  <option>Daily</option>
+                </select>
+                <br/> <br/> <br/>
+
+                <label for="pollutant"><b>Pollutant:</b></label>
+                <select id="pollutantSelect" required>
+                  <option>PM 2.5</option>
+                  <option>PM 10</option>
+                </select>
+                <br/> <br/> <br/>
+
+                <div class="wrapper">
+                 <button class type="submit">Generate Graph</button>
+                </div>
+                
+                 </form >  }
         </div> */}
+
+<form>
+<ul class="form-style-graph">
+    <li>
+      <label>Location <span class="required">*</span></label><input type="search" name="location" class="" placeholder="location" /> </li>
+    <li>
+        <label>Start Date</label>
+        <input type="date" name="start_date" class="field-divided" /> <input type="time" name="start_time" class="field-divided" />
+    </li>
+
+    <li>
+        <label>End Date</label>
+        <input type="date" name="end_date" class="field-divided" /> <input type="time" name="end_time" class="field-divided" />
+    </li>
+
+    <li>
+        <label>Chart Type</label>
+        <select name="chart_type" class="field-select"> required
+        <option value="Line">Line</option>
+        <option value="Bar">Bar</option>
+        <option value="Bar">Pie</option>
+        </select>
+    </li>
+
+    <li>
+        <label>Frequency</label>
+        <select name="frequency" class="field-select" required>
+        <option value="Hourly">Hourly</option>
+        <option value="Daily">Daily</option>
+        <option value="Monthly">Monthly</option>
+        </select>
+    </li>
+
+    <li>
+        <label>Pollutant</label>
+        <select name="pollutant" class="field-select" required>
+        <option value="PM 2.5">PM 2.5</option>
+        <option value="PM 10">PM 10</option>
+        </select>
+    </li>
+    
+    <li>
+        <input type="submit" value="Generate Graph" />
+    </li>
+</ul>
+</form>
+            
+
       </CardContent>
     </Card>
   );
