@@ -3,7 +3,8 @@ import {
     USER_LOADING,
     UPDATE_PASSWORD_REQUEST,
     UPDATE_PASSWORD_FAILED,
-    UPDATE_PASSWORD_SUCCESS
+    UPDATE_PASSWORD_SUCCESS,
+    REGISTRATION_SUCCESS
 } from "../types";
 
 const isEmpty = require("is-empty");
@@ -12,7 +13,8 @@ const initialState = {
     isAuthenticated: false,
     user: {},
     loading: false,
-    passwordUpdated: false
+    passwordUpdated: false,
+    newUser: false
 };
 
 export default function(state = initialState, action) {
@@ -34,6 +36,12 @@ export default function(state = initialState, action) {
                 passwordUpdated: true,
                 user: action.payload
             }
+        case REGISTRATION_SUCCESS:
+            return {
+                ...state,
+                newUser: true
+            }
+
         default:
             return state;
     }

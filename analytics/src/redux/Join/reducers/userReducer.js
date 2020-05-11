@@ -19,23 +19,32 @@ import {
     HIDE_CONFIRM_DIALOG,
     CONFIRM_USER_REQUEST,
     CONFIRM_USER_SUCCESS,
-    CONFIRM_USER_FAILED
+    CONFIRM_USER_FAILED,
+    SHOW_CONFIRM_DIALOG,
+    SET_DEFAULTS_REQUEST,
+    SET_DEFAULTS_SUCCESS,
+    SET_DEFAULTS_FAILED
 } from "../types";
 
 const isEmpty = require("is-empty");
 
 const initialState = {
-    actors: [],
-    actor: null,
+    users: [],
+    collaborators: [],
+    user: null,
     isFetching: false,
     error: null,
     successMsg: null,
     showDeleteDialog: false,
-    actorToDelete: null,
+    userToDelete: null,
     showEditDialog: false,
-    actorToEdit: null,
-    newActor: null,
-    showAddActor: false
+    userToEdit: null,
+    newUser: null,
+    showAddUser: false,
+    userToConfirm: null,
+    showConfirmModal: null,
+    userToDefault: null,
+    userDefaults: null
 };
 
 export default function(state = initialState, action) {
@@ -43,322 +52,355 @@ export default function(state = initialState, action) {
         case GET_USERS_REQUEST:
             return {
                 ...state,
-                actors: [],
-                actor: null,
+                users: [],
+                user: null,
                 isFetching: true,
                 error: null,
                 successMsg: null,
                 showDeleteDialog: false,
-                actorToDelete: null,
+                userToDelete: null,
                 showEditDialog: false,
-                actorToEdit: null
+                userToEdit: null
             };
         case GET_USERS_SUCCESS:
             return {
                 ...state,
-                actors: action.users,
-                actor: null,
+                users: action.users,
+                user: null,
                 isFetching: false,
                 error: null,
                 successMsg: action.message,
                 showDeleteDialog: false,
-                actorToDelete: null,
+                userToDelete: null,
                 showEditDialog: false,
-                actorToEdit: null
+                userToEdit: null
             };
         case GET_USERS_FAILED:
             return {
                 ...state,
-                actors: [],
-                actor: null,
+                users: [],
+                user: null,
                 isFetching: false,
                 error: action.error,
                 successMsg: null,
                 showDeleteDialog: false,
-                actorToDelete: null,
+                userToDelete: null,
                 showEditDialog: false,
-                actorToEdit: null
+                userToEdit: null
             };
         case REGISTER_USER_REQUEST:
             return {
                 ...state,
-                actors: state.actors,
-                actor: null,
+                users: state.users,
+                user: null,
                 isFetching: true,
                 error: null,
                 successMsg: null,
                 showDeleteDialog: false,
-                actorToDelete: null,
+                userToDelete: null,
                 showEditDialog: false,
-                actorToEdit: null,
-                newActor: action.user
+                userToEdit: null,
+                newUser: action.user
             };
         case REGISTER_USER_FAILED:
             return {
                 ...state,
-                actors: state.actors,
-                actor: null,
+                users: state.users,
+                user: null,
                 isFetching: true,
                 error: action.error,
                 successMsg: null,
                 showDeleteDialog: false,
-                actorToDelete: null,
+                userToDelete: null,
                 showEditDialog: false,
-                actorToEdit: null,
-                newActor: null
+                userToEdit: null,
+                newUser: null
             };
         case REGISTER_USER_SUCCESS:
             return {
                 ...state,
-                actors: [...state.actors, action.payload.user],
-                actor: null,
+                users: [...state.users, action.payload.user],
+                user: null,
                 isFetching: false,
                 error: null,
                 successMsg: action.message,
                 showDeleteDialog: false,
-                actorToDelete: null,
+                userToDelete: null,
                 showEditDialog: false,
-                actorToEdit: null,
-                newActor: action.user
+                userToEdit: null,
+                newUser: action.user
             };
         case SHOW_EDIT_DIALOG:
             return {
                 ...state,
-                actors: state.actors,
-                actor: null,
+                users: state.users,
+                user: null,
                 isFetching: false,
                 error: null,
                 successMsg: null,
                 showDeleteDialog: false,
-                actorToDelete: null,
+                userToDelete: null,
                 showEditDialog: true,
-                actorToEdit: action.user,
-                newActor: null
+                userToEdit: action.user,
+                newUser: null
             };
 
         case HIDE_EDIT_DIALOG:
             return {
                 ...state,
-                actors: state.actors,
-                actor: null,
+                users: state.users,
+                user: null,
                 isFetching: false,
                 error: null,
                 successMsg: null,
                 showDeleteDialog: false,
-                actorToDelete: null,
+                userToDelete: null,
                 showEditDialog: false,
-                actorToEdit: null,
-                newActor: null
+                userToEdit: null,
+                newUser: null
             };
         case EDIT_USER_REQUEST:
             return {
                 ...state,
-                actors: state.actors,
-                actor: null,
+                users: state.users,
+                user: null,
                 isFetching: false,
                 error: null,
                 successMsg: null,
                 showDeleteDialog: false,
-                actorToDelete: null,
+                userToDelete: null,
                 showEditDialog: true,
-                actorToEdit: action.userToEdit,
-                newActor: null
+                userToEdit: action.userToEdit,
+                newUser: null
             };
 
         case EDIT_USER_SUCCESS:
-            const updatedActors = state.actors.map(actor => {
-                if (actor._id !== action.payload.userToEdit._id) {
+            const updatedUsers = state.users.map(user => {
+                if (user._id !== action.payload.userToEdit._id) {
                     //this is not the item of interest
-                    return actor;
+                    return user;
                 }
                 //this is the one whose updated value we want...
-                return {...actor, ...action.userToEdit };
+                return {...user, ...action.userToEdit };
             });
             return {
                 ...state,
-                actors: updatedActors,
-                actor: null,
+                users: updatedUsers,
+                user: null,
                 isFetching: false,
                 error: null,
                 successMsg: action.message,
                 showDeleteDialog: false,
-                actorToDelete: null,
+                userToDelete: null,
                 showEditDialog: true,
-                actorToEdit: action.userToEdit,
-                newActor: null
+                userToEdit: action.userToEdit,
+                newUser: null
             };
 
         case EDIT_USER_FAILED:
             return {
                 ...state,
-                actors: state.actors,
-                actor: null,
+                users: state.users,
+                user: null,
                 isFetching: false,
                 error: action.error,
                 successMsg: null,
                 showDeleteDialog: false,
-                actorToDelete: null,
+                userToDelete: null,
                 showEditDialog: true,
-                actorToEdit: action.userToEdit,
-                newActor: null
+                userToEdit: action.userToEdit,
+                newUser: null
             };
         case SHOW_DELETE_DIALOG:
             return {
                 ...state,
-                actors: state.actors,
-                actor: null,
+                users: state.users,
+                user: null,
                 isFetching: false,
                 error: action.error,
                 successMsg: null,
                 showDeleteDialog: true,
-                actorToDelete: action.user,
+                userToDelete: action.user,
                 showEditDialog: false,
-                actorToEdit: null,
-                newActor: null
+                userToEdit: null,
+                newUser: null
             };
 
         case HIDE_DELETE_DIALOG:
             return {
                 ...state,
-                actors: state.actors,
-                actor: null,
+                users: state.users,
+                user: null,
                 isFetching: false,
                 error: action.error,
                 successMsg: null,
                 showDeleteDialog: false,
-                actorToDelete: null,
+                userToDelete: null,
                 showEditDialog: false,
-                actorToEdit: null,
-                newActor: null
+                userToEdit: null,
+                newUser: null
             };
 
         case DELETE_USER_REQUEST:
             return {
                 ...state,
-                actors: state.actors,
-                actor: null,
+                users: state.users,
+                user: null,
                 isFetching: false,
                 error: null,
                 successMsg: null,
                 showDeleteDialog: true,
-                actorToDelete: action.userToDelete,
+                userToDelete: action.userToDelete,
                 showEditDialog: false,
-                actorToEdit: null,
-                newActor: null
+                userToEdit: null,
+                newUser: null
             };
 
         case DELETE_USER_SUCCESS:
-            const filteredActors = state.actors.filter(
-                actor => actor._id !== state.userToDelete._id
+            const filteredUsers = state.users.filter(
+                user => user._id !== state.userToDelete._id
             );
             return {
                 ...state,
-                actors: filteredActors,
-                actor: null,
+                users: filteredUsers,
+                user: null,
                 isFetching: false,
                 error: null,
                 successMsg: action.message,
                 showDeleteDialog: false,
-                actorToDelete: action.userToDelete,
+                userToDelete: action.userToDelete,
                 showEditDialog: false,
-                actorToEdit: null,
-                newActor: null
+                userToEdit: null,
+                newUser: null
             };
 
         case DELETE_USER_FAILED:
             return {
                 ...state,
-                actors: state.actors,
-                actor: null,
+                users: state.users,
+                user: null,
                 isFetching: false,
                 error: action.error,
                 successMsg: null,
                 showDeleteDialog: true,
-                actorToDelete: action.userToDelete,
+                userToDelete: action.userToDelete,
                 showEditDialog: false,
-                actorToEdit: null,
-                newActor: null
+                userToEdit: null,
+                newUser: null
             };
         case TOGGLE_REGISTER_USER:
             return {
                 ...state,
-                showAddActor: !state.showAddActor
+                showAddUser: !state.showAddUser
             };
 
             //confirm
         case SHOW_CONFIRM_DIALOG:
             return {
-                ...currentState,
-                products: currentState.products,
-                product: null,
+                ...state,
+                users: state.users,
+                user: null,
                 isFetching: false,
                 error: action.error,
                 successMsg: null,
                 showDeleteModal: true,
-                productToDelete: action.product,
+                userToDelete: action.user,
                 showEditModal: false,
-                productToEdit: null,
-                newTodo: null
+                userToEdit: null,
+                newUser: null
             }
         case HIDE_CONFIRM_DIALOG:
             return {
-                ...currentState,
-                products: currentState.products,
-                product: null,
+                ...state,
+                users: state.users,
+                user: null,
                 isFetching: false,
                 error: action.error,
                 successMsg: null,
                 showDeleteModal: false,
-                productToDelete: null,
+                userToDelete: null,
                 showEditModal: false,
-                productToEdit: null,
-                newTodo: null
+                userToEdit: null,
+                newUser: null
             }
         case CONFIRM_USER_REQUEST:
             return {
-                ...currentState,
-                products: currentState.products,
-                product: null,
+                ...state,
+                users: state.users,
+                user: null,
                 isFetching: false,
                 error: null,
                 successMsg: null,
                 showDeleteModal: true,
-                productToDelete: action.productToConfirm,
+                userToDelete: action.userToConfirm,
                 showEditModal: false,
-                productToEdit: null,
-                newTodo: null
+                userToEdit: null,
+                newUser: null
             }
         case CONFIRM_USER_SUCCESS:
             return {
-                ...currentState,
-                products: currentState.products,
-                product: null,
+                ...state,
+                users: state.users,
+                user: null,
                 isFetching: false,
                 error: null,
                 successMsg: action.message,
                 showDeleteModal: true,
-                productToDelete: action.productToConfirm,
+                userToDelete: action.userToConfirm,
                 showEditModal: false,
-                productToEdit: null,
-                newTodo: null
+                userToEdit: null,
+                newUser: null
             }
         case CONFIRM_USER_FAILED:
             return {
-                ...currentState,
-                products: currentState.products,
-                product: null,
+                ...state,
+                users: state.users,
+                user: null,
                 isFetching: false,
                 error: action.error,
                 successMsg: null,
                 showDeleteModal: true,
-                productToDelete: action.productToConfirm,
+                userToDelete: action.userToConfirm,
                 showEditModal: false,
-                productToEdit: null,
-                newTodo: null
+                userToEdit: null,
+                newUser: null
             }
 
-
-
+            //set defaults
+        case SET_DEFAULTS_REQUEST:
+            return {
+                ...state,
+                userToDefault: action.userToDefault,
+                userDefaults: false,
+            }
+        case SET_DEFAULTS_SUCCESS:
+            return {
+                ...state,
+                users: state.users,
+                user: null,
+                isFetching: false,
+                error: null,
+                successMsg: action.message,
+                showDeleteModal: true,
+                userToDelete: action.userToConfirm,
+                showEditModal: false,
+                userToEdit: null,
+                newUser: null
+            }
+        case SET_DEFAULTS_FAILED:
+            return {
+                ...state,
+                users: state.users,
+                user: null,
+                isFetching: false,
+                error: action.error,
+                successMsg: null,
+                showDeleteModal: true,
+                userToDelete: action.userToConfirm,
+                showEditModal: false,
+                userToEdit: null,
+                newUser: null
+            }
 
         default:
             return state;

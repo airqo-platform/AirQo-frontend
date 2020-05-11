@@ -1,6 +1,7 @@
 const devConfig = {
     VERIFY_TOKEN_URI: "http://localhost:3000/api/v1/users/reset",
     UPDATE_PWD_URI: "http://localhost:3000/api/v1/users/updatePasswordViaEmail",
+    UPDATE_PWD_IN_URI: "http://localhost:3000/api/v1/users/updatePassword",
     FORGOT_PWD_URI: "http://localhost:3000/api/v1/users/forgotPassword",
     LOGIN_USER_URI: "http://localhost:3000/api/v1/users/loginUser",
     REGISTER_USER_URI: "http://localhost:3000/api/v1/users/registerUser",
@@ -12,6 +13,7 @@ const devConfig = {
 const testConfig = {
     VERIFY_TOKEN_URI: "http://localhost:3000/api/v1/users/reset",
     UPDATE_PWD_URI: "http://localhost:3000/api/v1/users/updatePasswordViaEmail",
+    UPDATE_PWD_IN_URI: "http://localhost:3000/api/v1/users/updatePassword",
     FORGOT_PWD_URI: "http://localhost:3000/api/v1/users/forgotPassword",
     LOGIN_USER_URI: "http://localhost:3000/api/v1/users/loginUser",
     REGISTER_USER_URI: "http://localhost:3000/api/v1/users/registerUser",
@@ -24,6 +26,7 @@ const testConfig = {
 const stageConfig = {
     VERIFY_TOKEN_URI: "https://airqo-250220.uc.r.appspot.com/api/v1/users/reset",
     UPDATE_PWD_URI: "https://airqo-250220.uc.r.appspot.com/api/v1/users/updatePasswordViaEmail",
+    UPDATE_PWD_IN_URI: "https://airqo-250220.uc.r.appspot.com/api/v1/users/updatePassword",
     FORGOT_PWD_URI: "https://airqo-250220.uc.r.appspot.com/api/v1/users/forgotPassword",
     LOGIN_USER_URI: "https://airqo-250220.uc.r.appspot.com/api/v1/users/loginUser",
     REGISTER_USER_URI: "https://airqo-250220.uc.r.appspot.com/api/v1/users/registerUser",
@@ -35,6 +38,7 @@ const stageConfig = {
 const prodConfig = {
     VERIFY_TOKEN_URI: "https://airqo-250220.uc.r.appspot.com/api/v1/users/reset",
     UPDATE_PWD_URI: "https://airqo-250220.uc.r.appspot.com/api/v1/users/updatePasswordViaEmail",
+    UPDATE_PWD_IN_URI: "https://airqo-250220.uc.r.appspot.com/api/v1/users/updatePassword",
     FORGOT_PWD_URI: "https://airqo-250220.uc.r.appspot.com/api/v1/users/forgotPassword",
     LOGIN_USER_URI: "https://airqo-250220.uc.r.appspot.com/api/v1/users/loginUser",
     REGISTER_USER_URI: "https://airqo-250220.uc.r.appspot.com/api/v1/users/registerUser",
@@ -51,7 +55,7 @@ const defaultConfig = {
 function envConfig(env) {
     switch (env) {
         case "development":
-            return stageConfig;
+            return devConfig;
         case "test":
             return stageConfig;
         case "stage":

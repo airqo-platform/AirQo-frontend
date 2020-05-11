@@ -1,7 +1,39 @@
 import axios from "axios";
 import setAuthToken from "../../utils/setAuthToken";
 import jwt_decode from "jwt-decode";
-import { GET_ERRORS, SET_CURRENT_USER, USER_LOADING, GET_USERS_REQUEST, GET_USERS_SUCCESS, GET_USERS_FAILED, REGISTER_USER_REQUEST, REGISTER_USER_SUCCESS, REGISTER_USER_FAILED, SHOW_EDIT_DIALOG, HIDE_EDIT_DIALOG, EDIT_USER_REQUEST, EDIT_USER_SUCCESS, EDIT_USER_FAILED, SHOW_DELETE_DIALOG, HIDE_DELETE_DIALOG, DELETE_USER_REQUEST, DELETE_USER_SUCCESS, DELETE_USER_FAILED, TOGGLE_REGISTER_USER, UPDATE_PASSWORD_SUCCESS, UPDATE_PASSWORD_FAILED, HIDE_CONFIRM_DIALOG, CONFIRM_USER_REQUEST, CONFIRM_USER_SUCCESS, CONFIRM_USER_FAILED } from "./types";
+import {
+    GET_ERRORS,
+    SET_CURRENT_USER,
+    USER_LOADING,
+    GET_USERS_REQUEST,
+    GET_USERS_SUCCESS,
+    GET_USERS_FAILED,
+    REGISTER_USER_REQUEST,
+    REGISTER_USER_SUCCESS,
+    SHOW_CONFIRM_DIALOG,
+    REGISTER_USER_FAILED,
+    SHOW_EDIT_DIALOG,
+    HIDE_EDIT_DIALOG,
+    EDIT_USER_REQUEST,
+    EDIT_USER_SUCCESS,
+    EDIT_USER_FAILED,
+    SHOW_DELETE_DIALOG,
+    HIDE_DELETE_DIALOG,
+    DELETE_USER_REQUEST,
+    DELETE_USER_SUCCESS,
+    DELETE_USER_FAILED,
+    TOGGLE_REGISTER_USER,
+    UPDATE_PASSWORD_SUCCESS,
+    UPDATE_PASSWORD_FAILED,
+    HIDE_CONFIRM_DIALOG,
+    CONFIRM_USER_REQUEST,
+    CONFIRM_USER_SUCCESS,
+    CONFIRM_USER_FAILED,
+    SET_DEFAULTS_REQUEST,
+    SET_DEFAULTS_SUCCESS,
+    SET_DEFAULTS_FAILED,
+    REGISTRATION_SUCCESS
+} from "./types";
 import constants from "../../config/constants";
 
 //fetch users
@@ -208,10 +240,11 @@ export const toggleAddUser = () => {
 // Register User
 export const registerUser = (userData, history) => (dispatch) => {
     axios
-        .post(constants.REGISTER_USER_URI, userData)
+        .post(constants.REGISTER_CANDIDATE_URI, userData)
         .then((res) => {
             try {
-                history.push("/login");
+                history.push("/landing");
+                registrationSuccess(res.data);
             } catch (e) {
                 console.log(e);
             }
@@ -223,8 +256,21 @@ export const registerUser = (userData, history) => (dispatch) => {
             })
         );
 };
+
+
+
+export const registrationSuccess = (data) => {
+
+    return {
+        type: REGISTRATION_SUCCESS,
+        payload: data.savedData
+    }
+}
+
+
 // Login - get user token
 export const loginUser = (userData) => (dispatch) => {
+    console.log("the login URL " + constants.LOGIN_USER_URI);
     axios
         .post(constants.LOGIN_USER_URI, userData)
         .then((res) => {
@@ -370,7 +416,7 @@ export const hideConfirmModal = () => {
 
 export const confirmUser = (userToConfirm) => (dispatch) => {
     dispatch(confirmUserRequest(userToConfirm));
-    return axios.post(apiUrl, userToConfirm)
+    return axios.post("http://localhost:3000/api/v1/users/", userToConfirm)
         .then(response => {
             if (response) {
                 dispatch(confirmUserSuccess(response.data.user, response.data.message));
@@ -405,5 +451,45 @@ export const confirmUserFailed = (error) => {
         type: CONFIRM_USER_FAILED,
         error
 
+    }
+}
+
+//setting defaults
+export const setDefaults = (values) => (dispatch) => {
+    dispatch(setDefaultsRequest(values));
+    return axios.post("http://localhost:3000/api/v1/users/", values)
+        .then(response => {
+            if (response) {
+                dispatch(setDefaultsSuccess(response.data.user, response.data.message));
+            } else {
+                dispatch(setDefaultsFailed(response.data.message));
+            }
+        })
+        .catch(e => {
+            dispatch(confirmUserFailed(e));
+        })
+}
+
+export const setDefaultsRequest = (values) => {
+    return {
+        type: SET_DEFAULTS_REQUEST,
+        userToDefault: values.id,
+        userDefaults: values
+    }
+}
+
+export const setDefaultsSuccess = (message) => {
+
+    return {
+        type: SET_DEFAULTS_SUCCESS,
+        userToDefault: null,
+        message: message
+    }
+}
+
+export const setDefaultsFailed = (error) => {
+    return {
+        type: SET_DEFAULTS_FAILED,
+        error
     }
 }
