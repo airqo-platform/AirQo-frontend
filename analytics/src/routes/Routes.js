@@ -1,9 +1,14 @@
 import React from 'react';
+import { IndexRoute } from 'react-router';
 import { Switch, Redirect, Route } from 'react-router-dom';
 
 import { RouteWithLayout } from '../components';
-import { Main as MainLayout, Minimal as MinimalLayout} from '../layouts';
+import { Main as MainLayout, Minimal as MinimalLayout } from '../layouts';
 import PrivateRoute from "../views/components/PrivateRoute/PrivateRoute.js";
+import Register from "../views/components/Users/RegisterAnalytics";
+
+import Users from '../views/components/Users/Users';
+import AddUser from '../views/components/Users/containers/AddUser';
 
 import {
   Dashboard as DashboardView,
@@ -17,9 +22,10 @@ import {
 } from '../views';
 
 import Landing from "../views/layouts/Landing";
-import ForgotPassword from "../views/components/input/ForgotPassword";
-import ResetPassword from "../views/components/input/ResetPassword";
-import Login from "../views/components/input/Login";
+import ForgotPassword from "../views/components/Users/ForgotPassword";
+import ResetPassword from "../views/components/Users/ResetPassword";
+import Login from "../views/components/Users/Login";
+import ListUsers from "../views/components/Users/ListUserComponent";
 
 const Routes = () => {
   return (
@@ -27,14 +33,14 @@ const Routes = () => {
       <Redirect
         exact
         from="/"
-        to="/login"
+        to="/landing"
       />
-    <PrivateRoute
-                  exact
-                  path="/dashboard"
-                  component={DashboardView}
-                  layout={MainLayout}
-                />
+      <PrivateRoute
+        exact
+        path="/dashboard"
+        component={DashboardView}
+        layout={MainLayout}
+      />
 
       <PrivateRoute
         component={UserListView}
@@ -42,6 +48,15 @@ const Routes = () => {
         layout={MainLayout}
         path="/admin/users"
       />
+
+
+      <PrivateRoute
+        component={AddUser}
+        exact
+        layout={MainLayout}
+        path="/add/users"
+      />
+
       <PrivateRoute
         component={Graphs}
         exact
@@ -72,20 +87,33 @@ const Routes = () => {
         layout={MinimalLayout}
         path="/not-found"
       />
-  
+
       <Route
         component={Landing}
         exact path="/landing"
       />
+      <Route
+        exact path="/login"
+        component={Login} />
+      <Route
+        exact path="/forgot"
+        component={ForgotPassword} />
+
       <Route 
-      exact path="/login" 
-      component={Login} />
-      <Route 
-     exact path="/forgot" 
-      component={ForgotPassword} />
-      <RouteWithLayout 
-       exact path="/reset" 
-      component={ResetPassword} />
+      exact path="/register" 
+      component={Register} />
+    
+    <Route 
+    exact path="/reset/:token" 
+    component={ResetPassword} />
+
+      {/* <RouteWithLayout path="/add/users" component={AddUser}>
+        <Route exact path="/users" component={Users} />
+      </RouteWithLayout> */}
+
+      <RouteWithLayout
+        exact path="/reset"
+        component={ResetPassword} />
       <Redirect to="/not-found" />
     </Switch>
   );
