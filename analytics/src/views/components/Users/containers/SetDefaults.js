@@ -1,8 +1,7 @@
 // ./react-redux-client/src/containers/App.js
 import { connect } from "react-redux";
-import AddUser from "../../../UserList/components/UsersToolbar/UsersToolbar";
+import SetDefaults from "../SetDefaults";
 import * as userActions from "../../../../redux/Join/actions";
-
 
 // map state from store to props
 const mapStateToProps = state => {
@@ -16,9 +15,8 @@ const mapStateToProps = state => {
 const mapDispatchToProps = dispatch => {
     return {
         //you can now say this.props.mappedAppActions
-        mappedToggleAddUser: () => dispatch(userActions.toggleAddUser()),
-        mappedAddUser: user => dispatch(userActions.addNewUser(user))
+        mappedSetDefaults: user => dispatch(userActions.setDefaults(user))
     };
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(AddUser);
+export default connect(mapStateToProps, mapDispatchToProps)(SetDefaults);

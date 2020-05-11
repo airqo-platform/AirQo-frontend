@@ -1,5 +1,11 @@
 import React from "react";
-import { FormGroup, ControlLabel, FormControl, Button } from "react-bootstrap";
+
+import {
+ Button,
+ FormGroup,
+ FormControlLabel,
+ FormControl
+} from '@material-ui/core';
 
 const UserEditForm = props => {
   return (
@@ -7,43 +13,63 @@ const UserEditForm = props => {
       <div className="row">
         <div className="col-md-12">
           <FormGroup>
-            <ControlLabel>userName: </ControlLabel>
-            <FormControl
-              type="text" placeholder="Enter userName"
-              name="userName" defaultValue={props.productData.userName}
-            />
+            <FormControlLabel>userName: </FormControlLabel>
+            <FormControl>
+            <Input 
+            defaultValue={props.userData.userName} 
+            placeholder="Enter userName"
+            inputProps={{ 'aria-label': 'description' }}
+            name="userName"
+            type="text">
+            </Input>
+          </FormControl>
           </FormGroup>
         </div>
         <div className="col-md-12">
           <FormGroup>
-            <ControlLabel>firstName: </ControlLabel>
-            <FormControl
-              type="text" placeholder="Enter firstName"
-              name="firstName" defaultValue={props.productData.firstName}
-            />
+            <FormControlLabel>firstName: </FormControlLabel>
+            <FormControl>
+            <Input 
+            defaultValue={props.userData.firstName} 
+            placeholder="Enter firstName"
+            inputProps={{ 'aria-label': 'description' }}
+            name="firstName"
+            type="text">
+            </Input>
+            </FormControl>
           </FormGroup>
         </div>
         <div className="col-md-12">
           <FormGroup>
-            <ControlLabel>lastName: </ControlLabel>
-            <FormControl
-              type="text" placeholder="Enter lastName"
-              name="lastName" defaultValue={props.productData.lastName}
-            />
+            <FormControlLabel>lastName: </FormControlLabel>
+            <FormControl>
+            <Input 
+            defaultValue={props.userData.lastName} 
+            placeholder="Enter lastName"
+            inputProps={{ 'aria-label': 'description' }}
+            name="lastName"
+            type="text">
+            </Input>
+              </FormControl>
           </FormGroup>
         </div>
         <div className="col-md-12">
           <FormGroup>
-            <ControlLabel>email: </ControlLabel>
-            <FormControl
-              type="email" placeholder="Enter email"
-              name="email" defaultValue={props.productData.email}
-            />
+            <FormControlLabel>email: </FormControlLabel>
+            <FormControl>
+                  <Input 
+            defaultValue={props.userData.email} 
+            placeholder="Enter email"
+            inputProps={{ 'aria-label': 'description' }}
+            name="email"
+            type="email">
+            </Input>
+              </FormControl>
           </FormGroup>
         </div>
       </div>
       <FormGroup>
-        <Button type="submit" bsStyle="success" bsSize="large" block>Submit</Button>
+        <Button type="submit" variant="contained" size="large" block>Submit</Button>
       </FormGroup>
     </form>
   );

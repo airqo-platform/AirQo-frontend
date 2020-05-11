@@ -17,10 +17,23 @@ import {
   TableRow,
   Typography,
   TablePagination,
-  Button
+  Button,
+  Modal,
+  Dialog,
+  Switch,
+  Alert,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  TextField
 } from '@material-ui/core';
 
+import {Check, CheckCircleOutline} from '@material-ui/icons';
+
+import { connect } from "react-redux";
 import { getInitials } from 'helpers';
+import { showEditDialog } from 'redux/Join/actions';
+import UserEditForm from 'views/components/Users/UserEditForm';
 
 const useStyles = makeStyles(theme => ({
   root: {},
@@ -42,11 +55,79 @@ const useStyles = makeStyles(theme => ({
   }
 }));
 
+function withMyHook(Component) {
+  return function WrappedComponent(props) {
+    const classes = useStyles();
+    return <Component {...props} classes={classes} />;
+  };
+}
+
 const UsersTable = props => {
-  const { className, users, ...rest } = props;
+  //the props
+  //need to get the ones from the state
+
+  const { className,mappeduserState, ...rest } = props;
+  const userState = mappeduserState;
+const users =  userState.actors;
+const collaborators= userState.collaborators;
+const editUser = userState.actorToEdit;
+
+  //the methods:
+
+  const showEditDialog = (userToEdit) => {
+    props.mappedshowEditDialog(userToEdit);
+  }
+
+  const hideEditDialog = ()=> {
+    props.mappedhideEditDialog();
+  }
+
+  const submitEditUser = (e)=> {
+    e.preventDefault();
+    const editForm = document.getElementById("EditUserForm");
+    const userData = this.props.mappeduserState;
+    if (editForm.userName.value !== "") {
+      const data = new FormData();
+      data.append('id', userData.userToEdit._id);
+      data.append('userName', editForm.userName.value);
+      data.append('firstName', editForm.firstName.value);
+      data.append('lastName', editForm.lastName.value);
+      data.append('email', editForm.email.value);
+      this.props.mappedEditUser(data);
+    } else {
+      return;
+    }
+  }
+
+  const showDeleteDialog = (userToDelete)=> {
+    props.mappedShowDeleteDialog(userToDelete);
+  }
+
+  const hideDeleteDialog = ()=> {
+    props.mappedHideDeleteDialog();
+  }
+
+  const cofirmDeleteUser = () => {
+    props.mappedConfirmDeleteUser(this.props.mappeduserState.userToDelete);
+  }
+
+  const showConfirmDialog = (userToConfirm) => {
+    props.mappedShowConfirmDialog(userToConfirm);
+  }
+
+ const  hideConfirmDialog = () => {
+    props.mappedhideConfirmDialog();
+  }
+
+  const approveConfirmUser = () => {
+    props.mappedApproveConfirmUser(this.props.mappeduserState.userToConfirm);
+  }
+
+  const componentWillMount = () => {
+    props.fetchUsers();
+  }
 
   const classes = useStyles();
-
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [page, setPage] = useState(0);
@@ -98,6 +179,14 @@ const UsersTable = props => {
       {...rest}
       className={clsx(classes.root, className)}
     >
+      {!users && userState.isFetching && <p>Loading users...</p>}
+      {users.length <=0 && !productState.isFetching && <p>No Users Available. And A User to List here</p>}
+      
+        {/* for the users */}
+        {/* check if this is an super admin or an admin */}
+        {/* if super admin, use User Table, if just admin, use Collaborator Table */}
+        {/* To use the different tables, it will just have to be different APIs */}
+
       <CardContent className={classes.content}>
         <PerfectScrollbar>
           <div className={classes.inner}>
@@ -115,26 +204,27 @@ const UsersTable = props => {
                       onChange={handleSelectAll}
                     />
                   </TableCell>
-                  <TableCell>Name</TableCell>
-                  <TableCell>Email</TableCell>
-                  <TableCell>Created At</TableCell>
-                  <TableCell>Last Login</TableCell>
+                  <TableCell>First Name</TableCell>
+                  <TableCell>Last Name</TableCell>
+                  <TableCell>email</TableCell>
+                  <TableCell>Username</TableCell>
                   <TableCell>Action</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
+                {/* this is where we iterate the users array */}
                 {users.slice(0, rowsPerPage).map(user => (
                   <TableRow
                     className={classes.tableRow}
                     hover
                     key={user.id}
-                    selected={selectedUsers.indexOf(user.id) !== -1}
+                    selected={selectedUsers.indexOf(user.firstName) !== -1}
                   >
                     <TableCell padding="checkbox">
                       <Checkbox
-                        checked={selectedUsers.indexOf(user.id) !== -1}
+                        checked={selectedUsers.indexOf(user._id) !== -1}
                         color="primary"
-                        onChange={event => handleSelectOne(event, user.id)}
+                        onChange={event => handleSelectOne(event, user._id)}
                         value="true"
                       />
                     </TableCell>
@@ -144,23 +234,26 @@ const UsersTable = props => {
                           className={classes.avatar}
                           src={user.avatarUrl}
                         >
-                          {getInitials(user.name)}
+                          {getInitials( `${user.firstName+" "+user.lastName}`)}
                         </Avatar>
-                        <Typography variant="body1">{user.name}</Typography>
+                        <Typography variant="body1"> {user.firstName+" "+user.lastName}</Typography>
                       </div>
                     </TableCell>
                     <TableCell>{user.email}</TableCell>
-                    <TableCell>
+                    {/* <TableCell>
                       {moment(user.createdAt).format('DD/MM/YYYY')}
+                    </TableCell> */}
+                    <TableCell>
+                      {user.userName}
                     </TableCell>
                     <TableCell>
-                      {moment(user.createdAt).format('DD/MM/YYYY')}
-                    </TableCell>
-                    <TableCell>
-                      <Button color="primary">Update</Button> | <Button>Delete</Button>
+                      <Button color="primary" onClick={()=> showEditDialog(user)}>Update</Button> | 
+                      <Button onClick={showDeleteDialog(user)}>Delete</Button> | 
+                      <Button onClick={showConfirmDialog}>Confirm</Button>
                     </TableCell>
                   </TableRow>
                 ))}
+                {/* the map ends here */}
               </TableBody>
             </Table>
           </div>
@@ -177,13 +270,75 @@ const UsersTable = props => {
           rowsPerPageOptions={[5, 10, 25]}
         />
       </CardActions>
+
+{/* the edit dialog */}
+<Dialog
+open={userState.showEditDialog}
+onClose={hideEditDialog}
+aria-labelledby="form-dialog-title"
+>
+  <DialogTitle></DialogTitle>
+  <DialogContent></DialogContent>
+  <DialogContent>
+<DialogContentText>Edit the user's details</DialogContentText>
+
+{
+editUser &&
+  <UserEditForm
+userData={editUser}
+editUser={submitEditUser}
+/>
+}
+
+{
+editUser && userState.isFetching && 
+<Alert 
+  icon={<Check fontSize="inherit"/>}
+  severity="success">
+Updating....
+</Alert>
+}
+
+{
+editUser && !userState.isFetching && useState.error && 
+<Alert severity="error">
+<AlertTitle>Failed</AlertTitle>
+<strong> {userState.error} </strong>
+</Alert>
+}
+
+{
+  editUser && !userState.isFetching && userState.successMsg && 
+  <Alert severity="success">
+<AlertTitle>
+  Success
+</AlertTitle>
+<strong>{editUser.firstName}</strong> {userState.successMsg}
+  </Alert>
+}
+  </DialogContent>
+  <DialogActions>
+    <Button onClick={hideEditDialog} color="primary">
+cancel
+    </Button>
+  </DialogActions>
+
+</Dialog>
+
+
     </Card>
   );
 };
 
 UsersTable.propTypes = {
   className: PropTypes.string,
-  users: PropTypes.array.isRequired
+  users: PropTypes.array.isRequired,
+  auth: PropTypes.object.isRequired,
 };
 
-export default UsersTable;
+const mapStateToProps = (state) => ({
+  auth: state.auth,
+});
+
+export default connect(mapStateToProps, {})(withMyHook(UsersTable));
+///afwe

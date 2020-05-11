@@ -103,13 +103,13 @@ const Password = props => {
 Password.propTypes = {
   className: PropTypes.string,
   auth: PropTypes.object.isRequired,
-  actorState: PropTypes.object.isRequired,
+  userState: PropTypes.object.isRequired,
   updatePassword: PropTypes.func.isRequired,
 };
 
 const mapStateToProps = (state) => ({
   auth: state.auth,
-  actorState: state.actorState
+  userState: state.userState
 });
 
 export default connect(mapStateToProps, { updatePassword })(withRouter(Password));
