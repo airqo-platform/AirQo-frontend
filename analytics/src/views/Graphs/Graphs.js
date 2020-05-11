@@ -56,6 +56,7 @@ const Graphs = props => {
   const [times, setTimes] =useState([]);
   const [pollutionValues, setPollutionValues] = useState([]);
   const [backgroundColors, setBackgroundColors] = useState([]);
+  const [loading, setLoading] = useState({value: false})
 
   useEffect(() => {
     let startdate = new Date();
@@ -107,7 +108,7 @@ const Graphs = props => {
   const [myChartType, setMyChartType] = useState({value: ""});
   const [myPollutant, setMyPollutant] = useState({value: ""});
   const [myLocation, setMyLocation] = useState({value:""})
-  const [loading, setLoading] = useState({value: false})
+  
 
   var startDate = new Date();
   startDate.setMonth(startDate.getMonth() - 1);
@@ -489,6 +490,7 @@ const Graphs = props => {
     value={selectedLocation}
     options={filterLocationsOptions}
     onChange={handleLocationChange}
+    required
   />
 </div>
 
@@ -720,6 +722,7 @@ const Graphs = props => {
     value={selectedLocation}
     options={filterLocationsOptions}
     onChange={handleLocationChange}
+    required
   />
 </div>
 
@@ -967,6 +970,7 @@ else if (myChartType=='bar'){
   value={selectedLocation}
   options={filterLocationsOptions}
   onChange={handleLocationChange}
+  required
 />
 </div>
 
@@ -1214,6 +1218,7 @@ else if (myChartType=='bar'){
     value={selectedLocation}
     options={filterLocationsOptions}
     onChange={handleLocationChange}
+    required
   />
 </div>
 

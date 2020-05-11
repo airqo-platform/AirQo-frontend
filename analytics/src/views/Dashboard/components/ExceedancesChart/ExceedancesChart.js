@@ -10,8 +10,27 @@ import axios from 'axios';
 import LoadingSpinner from '../../../Graphs/loadingSpinner';
 import Select from 'react-select';
 
-
 const useStyles = makeStyles(theme => ({
+  root: {
+    height: '100%'
+  },
+  
+  avatar: {
+    backgroundColor: theme.palette.success.main,
+    height: 56,
+    width: 56
+  },
+
+  dialogPaper: {
+    minHeight: '50vh',
+    maxHeight: '50vh',
+},
+  
+  
+}));
+
+
+/*const useStyles = makeStyles(theme => ({
     root: {
       padding: theme.spacing(4)
     },
@@ -28,7 +47,7 @@ const useStyles = makeStyles(theme => ({
     actions: {
       justifyContent: 'flex-end'
     }
-  }));
+  }));*/
 
 const ExceedancesChart = props => {
     const { className, ...rest } = props;
@@ -36,6 +55,7 @@ const ExceedancesChart = props => {
     const classes = useStyles();
     const [loading, setLoading] = useState(false);
     const [open, setOpen] = React.useState(false);
+    //const [scroll, setScroll] = React.useState('paper');
 
     const [locations, setLocations] =useState([]);
 
@@ -121,6 +141,10 @@ const ExceedancesChart = props => {
     const handleClickOpen = () => {
       setOpen(true);
     };
+    /*const handleClickOpen = (scrollType) => () => {
+      setOpen(true);
+      setScroll(scrollType);
+    };*/
   
     const handleClose = () => {
       setOpen(false);
@@ -386,7 +410,12 @@ const ExceedancesChart = props => {
               xs={12}
               
             > 
-              <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
+              <Dialog 
+              //className={classes.dialogPaper}> 
+              classes={{ paper: classes.dialogPaper }}
+              open={open}  
+              onClose={handleClose} 
+              aria-labelledby="form-dialog-title">
               <DialogTitle id="form-dialog-title">Customise Chart by Selecting the Various Options</DialogTitle>
               <Divider/>
               <DialogContent>
@@ -394,18 +423,16 @@ const ExceedancesChart = props => {
                 <form 
                   onSubmit={handleSubmit} 
                   id="customisable-form"
-                >             
-                  
+                >              
                   <Grid
                     container
                     spacing={2}
-                  >             
-
+                  >            
                     <Grid
                       item
                       md={6}
                       xs={12}
-                    >                
+                  >              
                       <Select
                         fullWidth
                         label="Pollutant"
@@ -425,7 +452,7 @@ const ExceedancesChart = props => {
                       item
                       md={6}
                       xs={12}
-                    >     
+                    >    
                       <Select
                         fullWidth
                         label ="Standard"
@@ -442,7 +469,7 @@ const ExceedancesChart = props => {
                     </Grid>
                     
                   
-                  </Grid>
+                    </Grid>
                 </form>            
               
               </DialogContent>
@@ -459,7 +486,7 @@ const ExceedancesChart = props => {
                   variant="outlined" 
                   onClick={handleClose} 
                   color="primary"                  
-                  type="submit"        //set the buttom type is submit
+                  type="submit"       
                   form="customisable-form"
                 >
                   Customise
