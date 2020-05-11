@@ -13,10 +13,11 @@ const constants = {
   REJECT_USER_URI: "https://airqo-250220.uc.r.appspot.com/api/v1/users/deny",
   ACCEPT_USER_URI: "https://airqo-250220.uc.r.appspot.com/api/v1/users/accept",
   GET_USERS_URI: "https://airqo-250220.uc.r.appspot.com/api/v1/users/",
+  RUN_LOCATE_MODEL: "http://127.0.0.1:4000/api/v1/map/parishes",
   SAVE_LOCATE_MAP: "http://localhost:4000/api/v1/map/savelocatemap",
   GET_LOCATE_MAP: "http://localhost:4000/api/v1/map/getlocatemap/",
-  RUN_LOCATE_MODEL: "http://127.0.0.1:4000/api/v1/map/parishes",
-  DELETE_LOCATE_MAP: "http://127.0.0.1:4000/api/v1/map/deletelocatemap/",
+  UPDATE_LOCATE_MAP: "http://localhost:4000/api/v1/map/updatelocatemap/",
+  DELETE_LOCATE_MAP: "http://localhost:4000/api/v1/map/deletelocatemap/",
 };
 
 export default constants;

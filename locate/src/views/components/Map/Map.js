@@ -67,7 +67,7 @@ class Maps extends React.Component {
       // added from locateSave -- helps with saving data and dialog boxes
       open: false,
       openSave: false,
-      openConfirm: false,
+      confirmDialog: false,
       savedPlan: [], // stores previously saved data
       space_name: "",
 
@@ -77,6 +77,9 @@ class Maps extends React.Component {
       isPlanSelected: false,
       isUpdateCancel: false,
       isAlreadyOpened: 0, // prevents the map from loading more than once on every state change
+
+      // handle all the popup msg
+      confirmDialogMsg: "",
     };
 
     //from locate save
@@ -111,7 +114,7 @@ class Maps extends React.Component {
 
   // save planning space
   savePlanningSpace = () => {
-    // head the save planning space dialog
+    // open the save planning space dialog
     this.setState((prevState) => ({ openSave: !prevState.openSave }));
     // make api call
     // console.log("plan: ", this.state.plan);
@@ -131,7 +134,10 @@ class Maps extends React.Component {
       )
       .then((res) => {
         console.log(res);
-        this.setState((prevState) => ({ openConfirm: !prevState.openConfirm })); //
+        this.setState({ confirmDialogMsg: res.data.message });
+        this.setState((prevState) => ({
+          confirmDialog: !prevState.confirmDialog,
+        })); //
       })
       .catch((e) => console.log(e));
   };
@@ -151,7 +157,7 @@ class Maps extends React.Component {
 
   // Handles saved space confirmation feedback
   handleConfirmClose = () => {
-    this.setState((prevState) => ({ openConfirm: !prevState.openConfirm }));
+    this.setState((prevState) => ({ confirmDialog: !prevState.confirmDialog }));
   };
 
   // load previously saved space
@@ -171,6 +177,26 @@ class Maps extends React.Component {
   // update saved space
   onUpdatePlanSpace = () => {
     console.log("onUpdate: ", this.state.selected_name);
+    axios
+      .post(
+        constants.UPDATE_LOCATE_MAP + this.state.selected_name,
+        {
+          plan: this.state.selected_plan,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      )
+      .then((res) => {
+        console.log(res.data);
+        this.setState({ confirmDialogMsg: res.data.message });
+        this.setState((prevState) => ({
+          confirmDialog: !prevState.confirmDialog,
+        })); //
+      })
+      .catch((e) => console.log(e));
   };
 
   onCancelUpdatePlanSpace = () => {
@@ -189,7 +215,10 @@ class Maps extends React.Component {
       .delete(constants.DELETE_LOCATE_MAP + name)
       .then((res) => {
         console.log(res.data);
-        //console.log(this.state, "current user: ", this.props.auth.user._id);
+        this.setState({ confirmDialogMsg: res.data.message });
+        this.setState((prevState) => ({
+          confirmDialog: !prevState.confirmDialog,
+        })); //
       })
       .catch((e) => {
         console.log(e);
@@ -284,25 +313,24 @@ class Maps extends React.Component {
   };
   //--End----------------------------------------------------------
 
-  _onEditStop = (e) => {
-    let type = e.layerType;
-    let layer = e.layer;
+  _onEdited = (e) => {
+    //let type = e.layerType;
+    let layer = e.layers;
 
-    if (type === "polygon") {
-      if (this.state.isPlanSelected == true) {
-        // when we are working with previously saved plan
-        this.setState({ plan: layer.toGeoJSON() });
-        this.setState({ selected_plan: layer.toGeoJSON() });
-        this.setState({ geoJSONDATA: JSON.stringify(layer.toGeoJSON()) });
-        console.log("edit saved plan: ", JSON.stringify(layer.toGeoJSON()));
-      } else {
-        // otherwise
-        this.setState({ plan: layer.toGeoJSON() });
-        this.setState({ geoJSONDATA: JSON.stringify(layer.toGeoJSON()) });
-        console.log("edit new plan: ", JSON.stringify(layer.toGeoJSON()));
-      }
+    if (this.state.isPlanSelected == true) {
+      // when we are working with previously saved plan
+      this.setState({ plan: layer.toGeoJSON() });
+      this.setState({ selected_plan: layer.toGeoJSON() });
+      this.setState({ geoJSONDATA: JSON.stringify(layer.toGeoJSON()) });
+      console.log("edit saved plan: ", JSON.stringify(layer.toGeoJSON()));
+    } else {
+      // otherwise
+      this.setState({ plan: layer.toGeoJSON() });
+      this.setState({ geoJSONDATA: JSON.stringify(layer.toGeoJSON()) });
+      console.log("edit new plan: ", JSON.stringify(layer.toGeoJSON()));
     }
-    console.log("_onEditStop", e);
+
+    //console.log("_onEdited", type, JSON.stringify(layer.toGeoJSON()));
   };
 
   _onCreated = (e) => {
@@ -526,7 +554,7 @@ class Maps extends React.Component {
 
           {/* Dialog for confirming saved location data  */}
           <Dialog
-            open={this.state.openConfirm}
+            open={this.state.confirmDialog}
             onClose={this.handleConfirmClose}
             aria-labelledby="alert-dialog-title"
             aria-describedby="alert-dialog-description"
@@ -536,7 +564,7 @@ class Maps extends React.Component {
         </DialogTitle> */}
             <DialogContent>
               <DialogContentText id="alert-dialog-description">
-                Locate Planning Space has been saved successfully
+                {this.state.confirmDialogMsg}
               </DialogContentText>
             </DialogContent>
             <DialogActions>
@@ -711,18 +739,6 @@ class Maps extends React.Component {
       this.setState({ selected_plan: {} });
       this.setState({ isUpdateCancel: false });
     }
-    //   } else {
-    //     if (
-    //       this.state.isPlanSelected == true &&
-    //       this.state.isUpdateCancel == true
-    //     ) {
-    //       draw.deleteAll().getAll();
-
-    //       this.setState({ isPlanSelected: false });
-    //       this.setState({ selected_name: "" });
-    //       this.setState({ selected_plan: {} });
-    //       this.setState({ isUpdateCancel: false });
-    //     }
   };
 }
 
