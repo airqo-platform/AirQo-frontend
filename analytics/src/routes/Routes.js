@@ -15,7 +15,9 @@ import {
   NotFound as NotFoundView,
   Graphs,
   Download,
-  ReportTemplate
+  ReportTemplate,
+  LocationList as LocationListView,
+  SignUp as SignUpView,
 } from '../views';
 
 import Landing from "../views/layouts/Landing";
@@ -96,7 +98,14 @@ const Routes = () => {
         layout={MainLayout}
         path="/location/:locationname"
       />
-  
+
+      <PrivateRoute
+        component={LocationListView}
+        exact
+        layout={MainLayout}
+        path="/locations"
+      />
+ 
       <Route
         component={Landing}
         exact path="/landing"
@@ -110,7 +119,15 @@ const Routes = () => {
       <Route 
         exact path="/reset" 
         component={ResetPassword} />
+
+      <RouteWithLayout
+        component={SignUpView}
+        exact
+        layout={MinimalLayout}
+        path="/sign-up"
+      />
       <Redirect to="/not-found" />
+      
     </Switch>
   );
 };
