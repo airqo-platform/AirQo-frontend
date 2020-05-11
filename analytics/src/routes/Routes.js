@@ -1,8 +1,9 @@
 import React from 'react';
-import { Switch, Redirect } from 'react-router-dom';
+import { Switch, Redirect, Route } from 'react-router-dom';
 
 import { RouteWithLayout } from '../components';
-import { Main as MainLayout, Minimal as MinimalLayout} from '../layouts';
+import { Main as MainLayout, Minimal as MinimalLayout } from '../layouts';
+import PrivateRoute from '../views/components/PrivateRoute/PrivateRoute.js';
 
 import {
   Dashboard as DashboardView,
@@ -16,33 +17,39 @@ import {
   ReportTemplate as ReportTemplateView
 } from '../views';
 
+import Landing from '../views/layouts/Landing';
+import ForgotPassword from '../views/components/input/ForgotPassword';
+import ResetPassword from '../views/components/input/ResetPassword';
+import Login from '../views/components/input/Login';
+
 const Routes = () => {
   return (
     <Switch>
       <Redirect
         exact
         from="/"
-        to="/dashboard"
+        to="/login"
       />
-      <RouteWithLayout
+      <PrivateRoute
         component={DashboardView}
         exact
         layout={MainLayout}
         path="/dashboard"
       />
-      <RouteWithLayout
+
+      <PrivateRoute
         component={UserListView}
         exact
         layout={MainLayout}
         path="/admin/users"
       />
-      <RouteWithLayout
+      <PrivateRoute
         component={Graphs}
         exact
         layout={MainLayout}
         path="/graphs"
       />
-      <RouteWithLayout
+      <PrivateRoute
         component={ReportView}
         exact
         layout={MainLayout}
@@ -54,23 +61,44 @@ const Routes = () => {
         layout={MainLayout}
         path="/report_template"
       />
-      <RouteWithLayout
+      <PrivateRoute
         component={AccountView}
         exact
         layout={MainLayout}
         path="/account"
       />
-      <RouteWithLayout
+      <PrivateRoute
         component={SettingsView}
         exact
         layout={MainLayout}
         path="/settings"
       />
-      <RouteWithLayout
+      <PrivateRoute
         component={NotFoundView}
         exact
         layout={MinimalLayout}
         path="/not-found"
+      />
+
+      <Route
+        component={Landing}
+        exact
+        path="/landing"
+      />
+      <Route
+        component={Login}
+        exact
+        path="/login"
+      />
+      <Route
+        component={ForgotPassword}
+        exact
+        path="/forgot"
+      />
+      <RouteWithLayout
+        component={ResetPassword}
+        exact
+        path="/reset"
       />
       <Redirect to="/not-found" />
     </Switch>

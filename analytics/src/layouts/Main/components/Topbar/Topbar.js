@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, Component } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 import clsx from 'clsx';
 import PropTypes from 'prop-types';
-import { makeStyles } from '@material-ui/styles';
+import { connect } from "react-redux";
+import { makeStyles } from '@material-ui/core/styles';
 import { AppBar, Toolbar, Badge, Hidden, IconButton } from '@material-ui/core';
 import MenuIcon from '@material-ui/icons/Menu';
 import NotificationsIcon from '@material-ui/icons/NotificationsOutlined';
 import InputIcon from '@material-ui/icons/Input';
+import { logoutUser } from "../../../../redux/Join/actions";
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -20,8 +22,20 @@ const useStyles = makeStyles(theme => ({
   }
 }));
 
+function withMyHook(Component) {
+  return function WrappedComponent(props) {
+    const classes = useStyles();
+    return <Component {...props} classes={classes} />;
+  };
+}
+
+
+
 const Topbar = props => {
+  const divProps = Object.assign({}, props);
+  delete divProps.layout;
   const { className, onSidebarOpen, ...rest } = props;
+  const { user } = props.auth;
 
   const classes = useStyles();
 
@@ -39,6 +53,12 @@ const Topbar = props => {
     'paddingTop': '.2em',
     'marginRight': '.4em'
   }
+  const onLogoutClick = (e) => {
+    e.preventDefault();
+    props.logoutUser();
+  };
+ 
+  
 
   return (
     <AppBar
@@ -81,6 +101,7 @@ const Topbar = props => {
           <IconButton
             className={classes.signOutButton}
             color="inherit"
+            onClick={onLogoutClick}
           >
             <InputIcon />
           </IconButton>
@@ -88,7 +109,7 @@ const Topbar = props => {
         <Hidden lgUp>
           <IconButton
             color="inherit"
-            onClick={onSidebarOpen}
+            onClick={props.onLogoutClick}
           >
             <MenuIcon />
           </IconButton>
@@ -100,7 +121,14 @@ const Topbar = props => {
 
 Topbar.propTypes = {
   className: PropTypes.string,
-  onSidebarOpen: PropTypes.func
+  onSidebarOpen: PropTypes.func,
+  logoutUser: PropTypes.func.isRequired,
+  auth: PropTypes.object.isRequired,
 };
 
-export default Topbar;
+const mapStateToProps = (state) => ({
+  auth: state.auth,
+});
+
+export default connect(mapStateToProps, { logoutUser })(withMyHook(Topbar));
+
