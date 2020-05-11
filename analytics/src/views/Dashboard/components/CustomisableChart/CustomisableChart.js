@@ -67,6 +67,12 @@ const CustomisableChart = props => {
 
   const classes = useStyles();
 
+  var startDate = new Date();
+  startDate.setMonth(startDate.getMonth() - 1);
+  startDate.setHours(0,0,0,0);
+
+  
+  const [selectedDate, setSelectedStartDate] = useState(startDate);
   const [open, setOpen] = useState(false);
 
   const handleClickOpen = () => {
@@ -78,7 +84,7 @@ const CustomisableChart = props => {
   };
 
   const [customChartTitle, setCustomChartTitle] = useState('Custom Chart Title');
-  const [selectedDate, setSelectedStartDate] = useState(new Date());
+  
 
   const handleDateChange = (date) => {
     setSelectedStartDate(date);
@@ -147,12 +153,19 @@ const CustomisableChart = props => {
     setSelectedPollutant(selectedPollutantOption);
   };
 
+  function appendLeadingZeroes(n){
+    if(n <= 9){
+      return "0" + n;
+    }
+    return n
+  }
+
   const [customGraphData, setCustomisedGraphData] = useState([]);
 
   useEffect(() => {
     
-    //axios.get('https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/customisedchart/random')
-    axios.get('http://127.0.0.1:5000/api/v1/dashboard/customisedchart/random')
+    axios.get('https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/customisedchart/random')
+    //axios.get('http://127.0.0.1:5000/api/v1/dashboard/customisedchart/random')
       .then(res => res.data)
       .then((customisedChartData) => {
         setCustomisedGraphData(customisedChartData)
@@ -177,20 +190,29 @@ const CustomisableChart = props => {
     //console.log(JSON.stringify(filter));
 
     axios.post(
-      //'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/customisedchart',      
-      'http://127.0.0.1:5000/api/v1/dashboard/customisedchart', 
+      'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/customisedchart',      
+      //'http://127.0.0.1:5000/api/v1/dashboard/customisedchart', 
       JSON.stringify(filter),
       { headers: { 'Content-Type': 'application/json' } }
     ).then(res => res.data)
       .then((customisedChartData) => {
         setCustomisedGraphData(customisedChartData)    
+        console.log(customisedChartData)
+
         setCustomChartTitle(customisedChartData.custom_chart_title)
       }).catch(
         console.log
       )    
   }
 
- 
+  if (customGraphData.results){
+    for (var i=0; i<customGraphData.results[0].chart_data.labels.length; i++){
+      let newTime = new Date (customGraphData.results[0].chart_data.labels[i]);
+      customGraphData.results[0].chart_data.labels[i] = newTime.getFullYear()+'-'+appendLeadingZeroes(newTime.getMonth()+1)+'-'+appendLeadingZeroes(newTime.getDate())+
+      ' '+appendLeadingZeroes(newTime.getHours())+':'+ appendLeadingZeroes(newTime.getMinutes())+':'+appendLeadingZeroes(newTime.getSeconds());
+    }
+    }
+
   const customisedGraphData = {
     chart_type: customGraphData.results? customGraphData.results[0].chart_type:null,
     labels:  customGraphData.results? customGraphData.results[0].chart_data.labels:null, 

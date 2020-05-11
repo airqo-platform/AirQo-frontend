@@ -2,17 +2,13 @@ import React from 'react';
 import clsx from 'clsx';
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/styles';
-import { Map as LeafletMap, TileLayer, Popup, CircleMarker,Tooltip } from 'react-leaflet';
+import { Map as LeafletMap, TileLayer, Popup, CircleMarker, GeoJSON, Tooltip, FeatureGroup, LayersControl } from 'react-leaflet';
 import {Link } from 'react-router-dom';
-import {
-  Card,
-  CardContent, 
-  CardHeader,
-  Divider
-} from '@material-ui/core';
+import {Card, CardContent, CardHeader, Divider} from '@material-ui/core';
 import { useEffect, useState } from 'react';
 import FullscreenControl from 'react-leaflet-fullscreen';
-import 'react-leaflet-fullscreen/dist/styles.css'
+import 'react-leaflet-fullscreen/dist/styles.css';
+
 const useStyles = makeStyles(theme => ({
   root: {
     height: '100%'
@@ -38,6 +34,7 @@ const useStyles = makeStyles(theme => ({
     marginTop: theme.spacing(3)
   }
 }));
+const { BaseLayer, Overlay } = LayersControl;
 
 const Map = props => {
   const { className, ...rest } = props;
@@ -66,6 +63,9 @@ const Map = props => {
                 '#808080';
   }
 
+  
+      
+
   return (
     <Card
       {...rest}
@@ -93,7 +93,10 @@ const Map = props => {
         >
           <TileLayer
             url="http://{s}.tile.osm.org/{z}/{x}/{y}.png"
-          />           
+          />  
+         
+
+          
         
         
           {contacts.map((contact) => (
@@ -138,11 +141,9 @@ const Map = props => {
 
     </Card>
 
-    
-
-
   );
 };
+
 
 Map.propTypes = {
   className: PropTypes.string
