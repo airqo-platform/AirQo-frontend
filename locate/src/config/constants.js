@@ -16,6 +16,7 @@ const constants = {
   SAVE_LOCATE_MAP: "http://localhost:4000/api/v1/map/savelocatemap",
   GET_LOCATE_MAP: "http://localhost:4000/api/v1/map/getlocatemap/",
   RUN_LOCATE_MODEL: "http://127.0.0.1:4000/api/v1/map/parishes",
+  DELETE_LOCATE_MAP: "http://127.0.0.1:4000/api/v1/map/deletelocatemap/",
 };
 
 export default constants;

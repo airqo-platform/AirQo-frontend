@@ -185,6 +185,15 @@ class Maps extends React.Component {
   // Delete previously saved space
   onDeletePlanSpace = (name) => {
     console.log("onDelete :", name);
+    axios
+      .delete(constants.DELETE_LOCATE_MAP + name)
+      .then((res) => {
+        console.log(res.data);
+        //console.log(this.state, "current user: ", this.props.auth.user._id);
+      })
+      .catch((e) => {
+        console.log(e);
+      });
   };
   //----end-----------------------
 
@@ -285,10 +294,12 @@ class Maps extends React.Component {
         this.setState({ plan: layer.toGeoJSON() });
         this.setState({ selected_plan: layer.toGeoJSON() });
         this.setState({ geoJSONDATA: JSON.stringify(layer.toGeoJSON()) });
+        console.log("edit saved plan: ", JSON.stringify(layer.toGeoJSON()));
       } else {
         // otherwise
         this.setState({ plan: layer.toGeoJSON() });
         this.setState({ geoJSONDATA: JSON.stringify(layer.toGeoJSON()) });
+        console.log("edit new plan: ", JSON.stringify(layer.toGeoJSON()));
       }
     }
     console.log("_onEditStop", e);
