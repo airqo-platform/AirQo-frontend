@@ -40,8 +40,8 @@ const Dashboard = props => {
   const [locations,setLocations] = useState([]);
 
   useEffect(() => {
-    fetch('https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/monitoringsite/historical/daily/devices')
-    //fetch('http://127.0.0.1:5000/api/v1/dashboard/historical/daily/devices')
+    //fetch('https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/monitoringsite/historical/daily/devices')
+    fetch('http://127.0.0.1:5000/api/v1/dashboard/historical/daily/devices')
       .then(res => res.json())
       .then((locationsData) => {        
         setLocations(locationsData.results);
@@ -264,25 +264,47 @@ const Dashboard = props => {
           sm={12}
           xl={5}
           xs={12}
+          container
+          spacing={2}
         >
-          <Card
-            {...rest}
-            className={clsx(classes.chartCard)}
+          <Grid
+            item
+            lg={12}
+            md={12}
+            sm={12}
+            xl={12}
+            xs={12}
           >
-            <CardHeader              
-              title="Mean Daily PM2.5 for Past 28 Days"
-            />
-            <Divider />
-            <CardContent>
-              <div className={classes.chartContainer}>
-                <Bar
-                  data={locationsGraphData}
-                  options={options_main}
-                />
-              </div>
-            </CardContent>
-            
-          </Card>          
+            <Card
+              {...rest}
+              className={clsx(classes.chartCard)}
+            >
+              <CardHeader              
+                title="Mean Daily PM2.5 for Past 28 Days"
+              />
+              <Divider />
+              <CardContent>
+                <div className={classes.chartContainer}>
+                  <Bar
+                    data={locationsGraphData}
+                    options={options_main}
+                  />
+                </div>
+              </CardContent>
+              
+            </Card>  
+          </Grid> 
+          <Grid
+            item
+            lg={12}
+            md={12}
+            sm={12}
+            xl={12}
+            xs={12}
+          >
+            <ExceedancesChart  className={clsx(classes.chartCard)}/>  
+
+          </Grid>      
         </Grid>
 
         <Grid
@@ -310,17 +332,14 @@ const Dashboard = props => {
 
         <Grid
           item          
-          lg={8}
-          md={8}
+          lg={4}
+          md={4}
           sm={12}
-          xl={9}
+          xl={4}
           xs={12}
         >
           
-          <div className={classes.chartContainerx}>
-                
-            <ExceedancesChart/>
-          </div>                  
+          <CustomisableChart className={clsx(classes.chartCard)}/>            
                                  
         </Grid>
         <Grid
@@ -328,99 +347,41 @@ const Dashboard = props => {
           lg={4}
           md={4}
           sm={12}
-          xl={3}
+          xl={4}
           xs={12}
         >
-          <PollutantCategory/>
+           <CustomisableChart className={clsx(classes.chartCard)}/>   
         </Grid>
 
         
     <Grid
-          item
-          lg={6}
-          sm={12}
-          xl={6}
-          xs={12}
+           item
+           lg={4}
+           md={4}
+           sm={12}
+           xl={4}
+           xs={12}
         >
           
-          <CustomisableChart/>
+          <CustomisableChart className={clsx(classes.chartCard)}/>
           
     </Grid>
+    {/** 
                 <Grid
-                  item
-                  lg={6}
-                  md={6}
-                  sm={12}
-                  xl={6}
-                  xs={12}
+                   item
+                   lg={4}
+                   md={4}
+                   sm={12}
+                   xl={4}
+                   xs={12}
                 >
                     
                     
-                  <CustomisableChart/>
+                  <CustomisableChart className={clsx(classes.chartCard)}/>
                  
                 </Grid>
                          
-
-
-        <Grid
-          item
-          lg={6}
-          md={6}
-          sm={12}
-          xl={6}
-          xs={12}
-        >
-          <Card
-            {...rest}
-            className={clsx(classes.root, className)}
-          >
-            <CardHeader
-              
-              title="Historical Chart One"
-            />
-            <Divider />
-            <CardContent>             
-
-              <article className="canvas-container">
-                <Line 
-                  data={data} 
-                  options={options_main}
-                />
-              </article>
-            </CardContent>
-
-          </Card>
-          
-        </Grid>
-
-        <Grid
-          item
-          lg={6}
-          md={6}
-          sm={12}
-          xl={6}
-          xs={12}
-        >
-          <Card
-            {...rest}
-            className={clsx(classes.root, className)}
-          >
-            <CardHeader
-              
-              title="Historical Chart Two"
-            />
-            <Divider />
-            <CardContent>
-              <CustomisableChart/>
-              
-            </CardContent>
-
-          </Card>
-          
-        </Grid>
-
-
-
+*/}
         
       </Grid>
     </div>

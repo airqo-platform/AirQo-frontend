@@ -384,103 +384,114 @@ const Graphs = props => {
           >
           
           <Card
-      {...rest}
-      className={clsx(classes.root, className)}
-    >
-      <CardContent>
-        <Grid
-          container
-          justify="space-between"
-        >
-          <Grid item>
-            <Typography
-              className={classes.title}
-              color="textSecondary"
-              gutterBottom
-              variant="body2"
-            >
-               {params.locationname}
-            </Typography>
-          </Grid>
-        
-
-          <div>
-          {loading ? <LoadingSpinner /> : 
-          <Line
-          data= {
-              {
-              labels: times,
-              datasets:[
-                 {
-                    label:myPollutant,
-                    data: pollutionValues,
-                    backgroundColor: backgroundColors,
-                    borderColor: 'blue',
-                    borderWidth: 1,
-                    fill: false,
-                    pointStyle: 'star',
-                    pointRadius: 3
-                  
-                 }
-              ]
-           }
-          }
-          options={{
-            title:{
-              display:true,
-              text: 'Line graph showing '+myPollutant+' data in '+myLocation,
-              fontColor: "black",
-              fontSize: 18,
-              fontWeight: 0
-            },
-            annotation: {
-              annotations: generateAnnotations(myPollutant)
-            },
-
-            scales: {
-              yAxes: [{
-                scaleLabel: {
-                  display: true,
-                  labelString: generateLabel(myPollutant),
-                  fontWeight:4,
+            {...rest}
+            className={clsx(classes.root, className)}
+          >
+            <CardContent>
+              <Grid
+                container
+                justify="space-between"
+              >
+              <Grid item>
+                <Typography
+                  className={classes.title}
+                  color="textSecondary"
+                  gutterBottom
+                  variant="body2"
+                >
+                  {params.locationname}
+                </Typography>
+              </Grid>           
+              <Grid
+              item
+              lg={12}
+              sm={12}
+              xl={12}
+              xs={12}
+              >
+              <div>
+              {loading ? <LoadingSpinner /> : 
+              <Line
+              data= {
+                  {
+                  labels: times,
+                  datasets:[
+                    {
+                        label:myPollutant,
+                        data: pollutionValues,
+                        backgroundColor: backgroundColors,
+                        borderColor: 'blue',
+                        borderWidth: 1,
+                        fill: false,
+                        pointStyle: 'star',
+                        pointRadius: 3
+                      
+                    }
+                  ]
+              }
+              }
+              options={{
+                title:{
+                  display:true,
+                  text: 'Line graph showing '+myPollutant+' data in '+myLocation,
                   fontColor: "black",
-                  fontSize:15,
-                  padding: 10
+                  fontSize: 18,
+                  fontWeight: 0
                 },
-                ticks: {
-                  fontColor:"black"                 
-                  },
-                gridLines:{
-                  lineWidth: 1
-                }
-              }],
-              xAxes: [{
-                scaleLabel: {
-                  display: true,
-                  labelString: 'Time',
-                  fontWeight:4,
-                  fontColor: "black",
-                  fontSize: 20,
-                  padding: 6
+                annotation: {
+                  annotations: generateAnnotations(myPollutant)
                 },
-                ticks: {
-                  fontColor:"black"                 
-                  },
-                gridLines:{
-                  lineWidth: 1
-                }
 
-              }],
-            },
-            /*legend:{
-              display: true,
-              //position: 'right'
-            },*/
-            maintainAspectRatio: true,
-            responsive: true
-            }}/>}
-          </div>
+                scales: {
+                  yAxes: [{
+                    scaleLabel: {
+                      display: true,
+                      labelString: generateLabel(myPollutant),
+                      fontWeight:4,
+                      fontColor: "black",
+                      fontSize:15,
+                      padding: 10
+                    },
+                    ticks: {
+                      fontColor:"black"                 
+                      },
+                    gridLines:{
+                      lineWidth: 1
+                    }
+                  }],
+                  xAxes: [{
+                    scaleLabel: {
+                      display: true,
+                      labelString: 'Time',
+                      fontWeight:4,
+                      fontColor: "black",
+                      fontSize: 20,
+                      padding: 6
+                    },
+                    ticks: {
+                      fontColor:"black"                 
+                      },
+                    gridLines:{
+                      lineWidth: 1
+                    }
+
+                  }],
+                },
+                /*legend:{
+                  display: true,
+                  //position: 'right'
+                },*/
+                maintainAspectRatio: true,
+                responsive: true
+                }}
+              />}
+              </div>
+              </Grid>
           </Grid>
+          </CardContent>
+    </Card>
+        </Grid>
+
 
           <Grid
           item
@@ -503,143 +514,143 @@ const Graphs = props => {
 
       <form onSubmit={handleSubmit}>
 
-<div className={classes.formControl}>
-  <label className="reactSelectLabel">Location</label>
-  <Select
-    className="reactSelect"
-    name="location"
-    placeholder="Location"
-    value={selectedLocation}
-    options={filterLocationsOptions}
-    onChange={handleLocationChange}
-    required
-  />
-</div>
+      <div className={classes.formControl}>
+        <label className="reactSelectLabel">Location</label>
+        <Select
+          className="reactSelect"
+          name="location"
+          placeholder="Location"
+          value={selectedLocation}
+          options={filterLocationsOptions}
+          onChange={handleLocationChange}
+          required
+        />
+      </div>
 
-<div className={classes.formControl}> 
-  <MuiPickersUtilsProvider utils={DateFnsUtils}>
-    <Grid 
-      container 
-      justify="space-around"
-    >
-      <KeyboardDatePicker
-        disableToolbar
-        variant="inline"
-        format="yyyy-MM-dd"
-        margin="normal"
-        id="date-picker-inline"
-        label="Start Date"
-        value={selectedDate}
-        onChange={handleDateChange}
-        KeyboardButtonProps={{
-          'aria-label': 'change date',
-        }}
-      />                
-      <KeyboardTimePicker
-        disableToolbar
-        variant="inline"
-        margin="normal"
-        id="time-picker"
-        label="Time Picker "
-        value={selectedDate}
-        onChange={handleDateChange}
-        KeyboardButtonProps={{
-          'aria-label': 'change time',
-        }}
-      />
-    </Grid>
-  </MuiPickersUtilsProvider>
-</div>
+      <div className={classes.formControl}> 
+        <MuiPickersUtilsProvider utils={DateFnsUtils}>
+          <Grid 
+            container 
+            justify="space-around"
+          >
+            <KeyboardDatePicker
+              disableToolbar
+              variant="inline"
+              format="yyyy-MM-dd"
+              margin="normal"
+              id="date-picker-inline"
+              label="Start Date"
+              value={selectedDate}
+              onChange={handleDateChange}
+              KeyboardButtonProps={{
+                'aria-label': 'change date',
+              }}
+            />                
+            <KeyboardTimePicker
+              disableToolbar
+              variant="inline"
+              margin="normal"
+              id="time-picker"
+              label="Time Picker "
+              value={selectedDate}
+              onChange={handleDateChange}
+              KeyboardButtonProps={{
+                'aria-label': 'change time',
+              }}
+            />
+          </Grid>
+        </MuiPickersUtilsProvider>
+      </div>
 
-<div className={classes.formControl}>
-  <MuiPickersUtilsProvider utils={DateFnsUtils}>
-    <Grid 
-      container 
-      justify="space-around"
-    >
-      <KeyboardDatePicker
-        disableToolbar
-        variant="inline"
-        format="yyyy-MM-dd"
-        margin="normal"
-        id="date-picker-inline"
-        label="End Date"
-        value={selectedEndDate}
-        onChange={handleEndDateChange}
-        KeyboardButtonProps={{
-          'aria-label': 'change end date',
-        }}
-      />                
-      <KeyboardTimePicker
-        disableToolbar
-        variant="inline"
-        margin="normal"
-        id="time-picker"
-        label="Time Picker "
-        value={selectedEndDate}
-        onChange={handleEndDateChange}
-        KeyboardButtonProps={{
-          'aria-label': 'change end time',
-        }}
-      />
-    </Grid>
-  </MuiPickersUtilsProvider>
-</div>
+      <div className={classes.formControl}>
+        <MuiPickersUtilsProvider utils={DateFnsUtils}>
+          <Grid 
+            container 
+            justify="space-around"
+          >
+            <KeyboardDatePicker
+              disableToolbar
+              variant="inline"
+              format="yyyy-MM-dd"
+              margin="normal"
+              id="date-picker-inline"
+              label="End Date"
+              value={selectedEndDate}
+              onChange={handleEndDateChange}
+              KeyboardButtonProps={{
+                'aria-label': 'change end date',
+              }}
+            />                
+            <KeyboardTimePicker
+              disableToolbar
+              variant="inline"
+              margin="normal"
+              id="time-picker"
+              label="Time Picker "
+              value={selectedEndDate}
+              onChange={handleEndDateChange}
+              KeyboardButtonProps={{
+                'aria-label': 'change end time',
+              }}
+            />
+          </Grid>
+        </MuiPickersUtilsProvider>
+      </div>
 
-<div className={classes.formControl}>
-  <label className="reactSelectLabel">Chart Type</label>
-  <Select
-    className="reactSelect"
-    name="chart-type"
-    placeholder="Chart Type"
-    value={selectedChart}
-    options={chartTypeOptions}
-    onChange={handleChartTypeChange}              
-  />
-</div>
+      <div className={classes.formControl}>
+        <label className="reactSelectLabel">Chart Type</label>
+        <Select
+          className="reactSelect"
+          name="chart-type"
+          placeholder="Chart Type"
+          value={selectedChart}
+          options={chartTypeOptions}
+          onChange={handleChartTypeChange}              
+        />
+      </div>
 
-<div className={classes.formControl}>
-  <label className="reactSelectLabel">Frequency</label>
-  <Select
-    className="reactSelect"
-    name="chart-type"
-    placeholder="Frequency"
-    value={selectedFrequency}
-    options={frequencyOptions}
-    onChange={handleFrequencyChange}              
-  />
-</div>
+      <div className={classes.formControl}>
+        <label className="reactSelectLabel">Frequency</label>
+        <Select
+          className="reactSelect"
+          name="chart-type"
+          placeholder="Frequency"
+          value={selectedFrequency}
+          options={frequencyOptions}
+          onChange={handleFrequencyChange}              
+        />
+      </div>
 
-<div className={classes.formControl}>
-  <label className="reactSelectLabel">Pollutant</label>
-  <Select
-    className="reactSelect"
-    name="pollutant"
-    placeholder="Pollutant"
-    value={selectedPollutant}
-    options={pollutantOptions}
-    onChange={handlePollutantChange}              
-  />
-</div>
+      <div className={classes.formControl}>
+        <label className="reactSelectLabel">Pollutant</label>
+        <Select
+          className="reactSelect"
+          name="pollutant"
+          placeholder="Pollutant"
+          value={selectedPollutant}
+          options={pollutantOptions}
+          onChange={handlePollutantChange}              
+        />
+      </div>
 
-<div className={classes.formControl}>
-  <Button 
-    variant="contained" 
-    color="primary"              
-    type="submit"
-  > Generate Graph
-  </Button>
-</div>       
-</form>
+      <div className={classes.formControl}>
+        <Button 
+          variant="contained" 
+          color="primary"              
+          type="submit"
+        > Generate Graph
+        </Button>
+      </div>       
+      </form>
 
-</CardContent>
+    </CardContent>
     </Card>
 
     </div>
 
     </Grid>
-
-        </Grid>
+   
+      </Grid>
       </div>
     )
 
@@ -970,152 +981,152 @@ else if (myChartType=='bar'){
         xs={12}
         >
         <div>
-  <Card
-    {...rest}
-    className={clsx(classes.root, className)}
-  >
-    <CardContent>
-      <Grid
-        container
-        justify="space-between"
-      >
-      </Grid>
+        <Card
+          {...rest}
+          className={clsx(classes.root, className)}
+        >
+          <CardContent>
+            <Grid
+              container
+              justify="space-between"
+            >
+            </Grid>
 
-    <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit}>
 
-<div className={classes.formControl}>
-<label className="reactSelectLabel">Location</label>
-<Select
-  className="reactSelect"
-  name="location"
-  placeholder="Location"
-  value={selectedLocation}
-  options={filterLocationsOptions}
-  onChange={handleLocationChange}
-  required
-/>
-</div>
+        <div className={classes.formControl}>
+        <label className="reactSelectLabel">Location</label>
+        <Select
+        className="reactSelect"
+        name="location"
+        placeholder="Location"
+        value={selectedLocation}
+        options={filterLocationsOptions}
+        onChange={handleLocationChange}
+        required
+        />
+        </div>
 
-<div className={classes.formControl}> 
-<MuiPickersUtilsProvider utils={DateFnsUtils}>
-  <Grid 
-    container 
-    justify="space-around"
-  >
-    <KeyboardDatePicker
-      disableToolbar
-      variant="inline"
-      format="yyyy-MM-dd"
-      margin="normal"
-      id="date-picker-inline"
-      label="Start Date"
-      value={selectedDate}
-      onChange={handleDateChange}
-      KeyboardButtonProps={{
-        'aria-label': 'change date',
-      }}
-    />                
-    <KeyboardTimePicker
-      disableToolbar
-      variant="inline"
-      margin="normal"
-      id="time-picker"
-      label="Time Picker "
-      value={selectedDate}
-      onChange={handleDateChange}
-      KeyboardButtonProps={{
-        'aria-label': 'change time',
-      }}
-    />
-  </Grid>
-</MuiPickersUtilsProvider>
-</div>
+        <div className={classes.formControl}> 
+        <MuiPickersUtilsProvider utils={DateFnsUtils}>
+        <Grid 
+          container 
+          justify="space-around"
+        >
+          <KeyboardDatePicker
+            disableToolbar
+            variant="inline"
+            format="yyyy-MM-dd"
+            margin="normal"
+            id="date-picker-inline"
+            label="Start Date"
+            value={selectedDate}
+            onChange={handleDateChange}
+            KeyboardButtonProps={{
+              'aria-label': 'change date',
+            }}
+          />                
+          <KeyboardTimePicker
+            disableToolbar
+            variant="inline"
+            margin="normal"
+            id="time-picker"
+            label="Time Picker "
+            value={selectedDate}
+            onChange={handleDateChange}
+            KeyboardButtonProps={{
+              'aria-label': 'change time',
+            }}
+          />
+        </Grid>
+        </MuiPickersUtilsProvider>
+        </div>
 
-<div className={classes.formControl}>
-<MuiPickersUtilsProvider utils={DateFnsUtils}>
-  <Grid 
-    container 
-    justify="space-around"
-  >
-    <KeyboardDatePicker
-      disableToolbar
-      variant="inline"
-      format="yyyy-MM-dd"
-      margin="normal"
-      id="date-picker-inline"
-      label="End Date"
-      value={selectedEndDate}
-      onChange={handleEndDateChange}
-      KeyboardButtonProps={{
-        'aria-label': 'change end date',
-      }}
-    />                
-    <KeyboardTimePicker
-      disableToolbar
-      variant="inline"
-      margin="normal"
-      id="time-picker"
-      label="Time Picker "
-      value={selectedEndDate}
-      onChange={handleEndDateChange}
-      KeyboardButtonProps={{
-        'aria-label': 'change end time',
-      }}
-    />
-  </Grid>
-</MuiPickersUtilsProvider>
-</div>
+        <div className={classes.formControl}>
+        <MuiPickersUtilsProvider utils={DateFnsUtils}>
+        <Grid 
+          container 
+          justify="space-around"
+        >
+          <KeyboardDatePicker
+            disableToolbar
+            variant="inline"
+            format="yyyy-MM-dd"
+            margin="normal"
+            id="date-picker-inline"
+            label="End Date"
+            value={selectedEndDate}
+            onChange={handleEndDateChange}
+            KeyboardButtonProps={{
+              'aria-label': 'change end date',
+            }}
+          />                
+          <KeyboardTimePicker
+            disableToolbar
+            variant="inline"
+            margin="normal"
+            id="time-picker"
+            label="Time Picker "
+            value={selectedEndDate}
+            onChange={handleEndDateChange}
+            KeyboardButtonProps={{
+              'aria-label': 'change end time',
+            }}
+          />
+        </Grid>
+        </MuiPickersUtilsProvider>
+        </div>
 
-<div className={classes.formControl}>
-<label className="reactSelectLabel">Chart Type</label>
-<Select
-  className="reactSelect"
-  name="chart-type"
-  placeholder="Chart Type"
-  value={selectedChart}
-  options={chartTypeOptions}
-  onChange={handleChartTypeChange}              
-/>
-</div>
+        <div className={classes.formControl}>
+        <label className="reactSelectLabel">Chart Type</label>
+        <Select
+        className="reactSelect"
+        name="chart-type"
+        placeholder="Chart Type"
+        value={selectedChart}
+        options={chartTypeOptions}
+        onChange={handleChartTypeChange}              
+        />
+        </div>
 
-<div className={classes.formControl}>
-<label className="reactSelectLabel">Frequency</label>
-<Select
-  className="reactSelect"
-  name="chart-type"
-  placeholder="Frequency"
-  value={selectedFrequency}
-  options={frequencyOptions}
-  onChange={handleFrequencyChange}              
-/>
-</div>
+        <div className={classes.formControl}>
+        <label className="reactSelectLabel">Frequency</label>
+        <Select
+        className="reactSelect"
+        name="chart-type"
+        placeholder="Frequency"
+        value={selectedFrequency}
+        options={frequencyOptions}
+        onChange={handleFrequencyChange}              
+        />
+        </div>
 
-<div className={classes.formControl}>
-<label className="reactSelectLabel">Pollutant</label>
-<Select
-  className="reactSelect"
-  name="pollutant"
-  placeholder="Pollutant"
-  value={selectedPollutant}
-  options={pollutantOptions}
-  onChange={handlePollutantChange}              
-/>
-</div>
+        <div className={classes.formControl}>
+        <label className="reactSelectLabel">Pollutant</label>
+        <Select
+        className="reactSelect"
+        name="pollutant"
+        placeholder="Pollutant"
+        value={selectedPollutant}
+        options={pollutantOptions}
+        onChange={handlePollutantChange}              
+        />
+        </div>
 
-<div className={classes.formControl}>
-<Button 
-  variant="contained" 
-  color="primary"              
-  type="submit"
-> Generate Graph
-</Button>
-</div>       
-</form>
+        <div className={classes.formControl}>
+        <Button 
+        variant="contained" 
+        color="primary"              
+        type="submit"
+        > Generate Graph
+        </Button>
+        </div>       
+        </form>
 
-</CardContent>
-  </Card>
+        </CardContent>
+        </Card>
 
-  </div>
+        </div>
 
   </Grid>
 

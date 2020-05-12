@@ -164,8 +164,8 @@ const CustomisableChart = props => {
 
   useEffect(() => {
     
-    axios.get('https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/customisedchart/random')
-    //axios.get('http://127.0.0.1:5000/api/v1/dashboard/customisedchart/random')
+    //axios.get('https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/customisedchart/random')
+    axios.get('http://127.0.0.1:5000/api/v1/dashboard/customisedchart/random')
       .then(res => res.data)
       .then((customisedChartData) => {
         setCustomisedGraphData(customisedChartData)
@@ -190,8 +190,8 @@ const CustomisableChart = props => {
     //console.log(JSON.stringify(filter));
 
     axios.post(
-      'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/customisedchart',      
-      //'http://127.0.0.1:5000/api/v1/dashboard/customisedchart', 
+      //'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/customisedchart',      
+      'http://127.0.0.1:5000/api/v1/dashboard/customisedchart', 
       JSON.stringify(filter),
       { headers: { 'Content-Type': 'application/json' } }
     ).then(res => res.data)
@@ -205,13 +205,13 @@ const CustomisableChart = props => {
       )    
   }
 
-  if (customGraphData.results){
+  if (customGraphData.results  && customGraphData.results[0].chart_type !== 'pie' && customGraphData.results[0].frequency !== 'monthly'){
     for (var i=0; i<customGraphData.results[0].chart_data.labels.length; i++){
       let newTime = new Date (customGraphData.results[0].chart_data.labels[i]);
       customGraphData.results[0].chart_data.labels[i] = newTime.getFullYear()+'-'+appendLeadingZeroes(newTime.getMonth()+1)+'-'+appendLeadingZeroes(newTime.getDate())+
-      ' '+appendLeadingZeroes(newTime.getHours())+':'+ appendLeadingZeroes(newTime.getMinutes())+':'+appendLeadingZeroes(newTime.getSeconds());
+      ' '+appendLeadingZeroes(newTime.getHours())+':'+ appendLeadingZeroes(newTime.getMinutes());
     }
-    }
+  }
 
   const customisedGraphData = {
     chart_type: customGraphData.results? customGraphData.results[0].chart_type:null,
@@ -220,7 +220,7 @@ const CustomisableChart = props => {
     datasets: customGraphData.datasets
   }
 
-  
+   
   const options= {
     annotation: {
       annotations: [{
@@ -229,7 +229,7 @@ const CustomisableChart = props => {
         scaleID: 'y-axis-0',
         value: 25,
         borderColor: palette.text.secondary,
-        borderWidth: 2,
+        borderWidth: 1,
         label: {
           enabled: true,
           content: 'WHO LIMIT',
@@ -255,7 +255,21 @@ const CustomisableChart = props => {
       backgroundColor: palette.white,
       titleFontColor: palette.text.primary,
       bodyFontColor: palette.text.secondary,
-      footerFontColor: palette.text.secondary
+      footerFontColor: palette.text.secondary, 
+      callbacks: customisedGraphData.chart_type==='pie'?{        
+        label: function(tooltipItem, data) {
+        let allData = data.datasets[tooltipItem.datasetIndex].data;
+        let tooltipLabel = data.labels[tooltipItem.index];
+        let tooltipData = allData[tooltipItem.index];
+        let total = 0;
+        for (let i in allData) {
+          total += allData[i];
+        }        
+        let tooltipPercentage = Math.round((tooltipData / total) * 100);   
+        console.log(tooltipPercentage)     
+        return tooltipLabel + ': ' + tooltipPercentage + '%';
+        
+      }}: {}
     },
     layout: { padding: 0 },
     scales: {
@@ -309,7 +323,7 @@ const CustomisableChart = props => {
   return (
     <Card
       {...rest}
-      className={clsx(classes.root, className)}
+      className={ className}
     >
       <CardHeader  
         action={
