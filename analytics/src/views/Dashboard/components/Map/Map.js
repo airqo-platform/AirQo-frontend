@@ -2,12 +2,15 @@ import React from 'react';
 import clsx from 'clsx';
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/styles';
-import { Map as LeafletMap, TileLayer, Popup, CircleMarker, GeoJSON, Tooltip, FeatureGroup, LayersControl } from 'react-leaflet';
+import { Map as LeafletMap, TileLayer, Popup, Marker} from 'react-leaflet';
 import {Link } from 'react-router-dom';
 import {Card, CardContent, CardHeader, Divider} from '@material-ui/core';
 import { useEffect, useState } from 'react';
 import FullscreenControl from 'react-leaflet-fullscreen';
-import 'react-leaflet-fullscreen/dist/styles.css';
+import 'react-leaflet-fullscreen/dist/styles.css'
+import L from 'leaflet';
+import ReactDOMServer from 'react-dom/server';
+
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -32,7 +35,8 @@ const useStyles = makeStyles(theme => ({
   },
   progress: {
     marginTop: theme.spacing(3)
-  }
+  },
+
 }));
 const { BaseLayer, Overlay } = LayersControl;
 
@@ -63,8 +67,15 @@ const Map = props => {
                 '#808080';
   }
 
-  
-      
+  let getPm25CategoryColorClass = (aqi) =>{
+    return aqi > 250.4  ? 'pm25Harzadous' :
+      aqi > 150.4  ? 'pm25VeryUnHealthy' :
+        aqi > 55.4   ? 'pm25UnHealthy' :
+          aqi > 35.4   ? 'pm25UH4SG' :
+            aqi > 12   ? 'pm25Moderate' :
+              aqi > 0   ? 'pm25Good' :
+                'pm25UnCategorised';
+  }
 
   return (
     <Card
@@ -93,31 +104,23 @@ const Map = props => {
         >
           <TileLayer
             url="http://{s}.tile.osm.org/{z}/{x}/{y}.png"
-          />  
-         
-
-          
-        
-        
+          />           
           {contacts.map((contact) => (
-            <CircleMarker 
-              center={[contact.Latitude,contact.Longitude]}
-              color={getColor(contact.Last_Hour_PM25_Value == 0?'':contact.Last_Hour_PM25_Value)}
+            
+            <Marker 
+              position={[contact.Latitude,contact.Longitude]}
+              color = {getColor(contact.Last_Hour_PM25_Value == 0?'':contact.Last_Hour_PM25_Value)}
               fill="true"
               key={contact._id} 
-              clickable="true"           
-              radius={16}
-              fillOpacity={1}
-            >
-              <Tooltip 
-                direction='center' 
-                offset={[-8, -2]} 
-                opacity={1} 
-                permanent 
-                className='markertext'
+              clickable="true"  
+              icon={
+                L.divIcon({
+                html:`${contact.Last_Hour_PM25_Value == 0?'':contact.Last_Hour_PM25_Value}`,
+                iconSize: 35,
+                className: `leaflet-marker-icon ${getPm25CategoryColorClass(contact.Last_Hour_PM25_Value)}`,
+                 })}
               >
-                <span>{contact.Last_Hour_PM25_Value == 0?'':contact.Last_Hour_PM25_Value}</span>
-              </Tooltip>
+              
               <Popup>
                 <h2>{contact.Parish} - {contact.Division} Division</h2> 
                 <h4>{contact.LocationCode}</h4>
@@ -131,10 +134,11 @@ const Map = props => {
                 <Link to={`/location/${contact.Parish}`}>More Details</Link>
                 
               </Popup>
-            </CircleMarker>         
-          ))}          
+            </Marker>   
+          ))}    
+      
+            <FullscreenControl position="topright" />
 
-          <FullscreenControl position="topright" />
         </LeafletMap>
         
       </CardContent>

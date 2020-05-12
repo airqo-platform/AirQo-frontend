@@ -218,10 +218,6 @@ const Download = (props) => {
     
   }  
 
-<<<<<<< HEAD
-
-=======
->>>>>>> analytics-download-csv
   return (
     <div className={classes.root}>
       <Grid
