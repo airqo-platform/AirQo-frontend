@@ -9,7 +9,6 @@ import {
 import jwt_decode from "jwt-decode";
 import setAuthToken from "./utils/setAuthToken";
 import { setCurrentUser, logoutUser } from "./redux/Join/actions";
-
 import { Provider } from "react-redux"
 import store from "./store";
 
@@ -28,7 +27,6 @@ import Routes from './routes/Routes';
 import IdleTimer from 'react-idle-timer'
 import Login from "./views/components/Users/Login";
 import PrivateRoute from "./views/components/PrivateRoute/PrivateRoute";
-import { logoutUser } from "../../../../redux/Join/actions";
 import { connect } from "react-redux";
 
 const browserHistory = createBrowserHistory();
@@ -61,7 +59,7 @@ if (localStorage.jwtToken) {
     }
 }
 
-export default class App extends Component {
+class App extends Component {
 
     constructor(props){
 super(props)
@@ -105,7 +103,7 @@ _onIdle(e){
     console.log('user is idle', e)
     console.log('last active', this.idleTimer.getLastActiveTime());
     if (this.idleTimer.getRemainingTime == 0){
-        props.logoutUser();
+        this.props.logoutUser();
     }
     /***
      * basing on the value the remaining time, I can get to logout the individual like a real boss

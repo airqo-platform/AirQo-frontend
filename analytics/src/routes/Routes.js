@@ -7,7 +7,7 @@ import { Main as MainLayout, Minimal as MinimalLayout } from '../layouts';
 import PrivateRoute from "../views/components/PrivateRoute/PrivateRoute.js";
 import Register from "../views/components/Users/RegisterAnalytics";
 
-import Users from '../views/components/Users/Users';
+// import Users from '../views/components/Users/Users';
 import AddUser from '../views/components/Users/containers/AddUser';
 
 import {
@@ -25,7 +25,7 @@ import Landing from "../views/layouts/Landing";
 import ForgotPassword from "../views/components/Users/ForgotPassword";
 import ResetPassword from "../views/components/Users/ResetPassword";
 import Login from "../views/components/Users/Login";
-import ListUsers from "../views/components/Users/ListUserComponent";
+// import ListUsers from "../views/components/Users/ListUserComponent";
 
 const Routes = () => {
   return (

@@ -54,7 +54,7 @@ const UsersToolbar = props => {
   const onChange = (e) => {
     this.setState({ [e.target.id]: e.target.value });
   };
-  const onSubmit = () =>{
+  const onSubmit = (e) =>{
     e.preventDefault();
     const userData = {
       userName: userState.userName,
@@ -167,5 +167,3 @@ UsersToolbar.propTypes = {
 };
 
 export default UsersToolbar;
-
-// AFASEFWE

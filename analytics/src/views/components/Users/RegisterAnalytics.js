@@ -11,21 +11,21 @@ import FormControlLabel from "@material-ui/core/FormControlLabel";
 import Checkbox from "@material-ui/core/Checkbox";
 import countries from "../../../utils/countries";
 import { Alert, AlertTitle } from '@material-ui/lab';
-import {makeStyles, InputLabel } from '@material-ui/core'
+import {withStyles, InputLabel } from '@material-ui/core'
 
 const defaultProps = {
   options: countries.array,
   getOptionLabel: (option) => option.label,
 };
 
-const useStyles = makeStyles((theme) => ({
+const styles = (theme) => ({
   root: {
     width: '100%',
     '& > * + *': {
       marginTop: theme.spacing(2),
     },
   },
-}));
+});
 
 class Register extends Component {
   constructor() {
@@ -278,5 +278,5 @@ const mapStateToProps = (state) => ({
 });
 
 export default connect(mapStateToProps, { registerUser })(
-  withRouter(withStyles(Register))
+  withRouter(withStyles(styles, {withTheme:true})(Register))
 );

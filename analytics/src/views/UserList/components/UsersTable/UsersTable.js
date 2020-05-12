@@ -21,12 +21,14 @@ import {
   Modal,
   Dialog,
   Switch,
-  Alert,
   DialogTitle,
   DialogContent,
   DialogContentText,
-  TextField
+  TextField,
+  DialogActions
 } from '@material-ui/core';
+
+import { Alert, AlertTitle } from '@material-ui/lab';
 
 import {Check, CheckCircleOutline} from '@material-ui/icons';
 
@@ -180,7 +182,7 @@ const editUser = userState.actorToEdit;
       className={clsx(classes.root, className)}
     >
       {!users && userState.isFetching && <p>Loading users...</p>}
-      {users.length <=0 && !productState.isFetching && <p>No Users Available. And A User to List here</p>}
+      {users.length <=0 && !userState.isFetching && <p>No Users Available. And A User to List here</p>}
       
         {/* for the users */}
         {/* check if this is an super admin or an admin */}
