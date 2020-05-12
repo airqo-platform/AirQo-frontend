@@ -8,7 +8,8 @@ import DateFnsUtils from '@date-io/date-fns';
 import {MuiPickersUtilsProvider, KeyboardTimePicker, KeyboardDatePicker} from '@material-ui/pickers';
 import axios from 'axios';
 import {PollutantCategory} from '../Dashboard/components'
-
+import CsvDownloader from 'react-csv-downloader';
+import jsonexport from 'jsonexport'
 const useStyles = makeStyles(theme => ({
   root: {
     padding: theme.spacing(4)
@@ -123,7 +124,92 @@ const Download = (props) => {
       .then((customisedDownloadData) => {
         // setCustomisedDownloadData(customisedDownloadData)    
         //download the returned data
-        console.log(customisedDownloadData)
+        console.log((JSON.stringify(customisedDownloadData)))
+    if(selectedType.value ==="JSON"){
+    let filename = "export.json";
+    let contentType = "application/json;charset=utf-8;";
+    if (window.navigator && window.navigator.msSaveOrOpenBlob) {
+      var blob = new Blob([decodeURIComponent(encodeURI(JSON.stringify(customisedDownloadData)))], { type: contentType });
+      navigator.msSaveOrOpenBlob(blob, filename);
+    } else {
+      var a = document.createElement('a');
+      a.download = filename;
+      a.href = 'data:' + contentType + ',' + encodeURIComponent(JSON.stringify(customisedDownloadData));
+      a.target = '_blank';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+  }
+  else{
+
+/*jsonexport(customisedDownloadData,function(err, csv){
+    if(err) return console.log(err);
+    var filename ="Analyticsexpt.csv"
+    var link = document.createElement('a');
+  link.setAttribute('href', 'data:text/csv;charset=utf-8,%EF%BB%BF' + encodeURIComponent(csv));
+  link.setAttribute('download', filename);
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link); 
+});*/
+              console.log(customisedDownloadData.results)
+            let csvData =[]
+              customisedDownloadData.results.forEach(element=>{
+                console.log(element['division'])
+                csvData.push({
+                  label:element.datasets.label,
+                  DateTime:element.chart_data.labels,
+                  pollutant:element.chart_data.pollutant_values,
+                  Division:element.division,
+                  parish:element.parish
+                 
+              })})
+              console.log(csvData)
+              let toCsv =[]
+ /*             csvData.forEach(element=>{
+              if(element['datasets.label']){      
+                toCsv.push({
+                  label:element['datasets.label'],
+                  DateTime:element['chart_data.labels'],
+                  pollutant:element['chart_data.pollutant_values'],
+                  Division:element['division'],
+                  parish:element['parish']
+                })
+            
+                }else{
+                            
+                toCsv.push({
+                  label:element.datasets.label,
+                  DateTime:element.chart_data.labels,
+                  pollutant:element.chart_data.pollutant_values,
+                  Division:element.division,
+                  parish:element.parish
+                })
+                }
+                  })*/
+  /*     let filename = "analyexport.json";
+    let contentType = "application/json;charset=utf-8;";
+      var a = document.createElement('a');
+      a.download = filename;
+      a.href = 'data:' + contentType + ',' + encodeURIComponent(JSON.stringify(csvData));
+      a.target = '_blank';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);*/
+              jsonexport(csvData,function(err, csv){
+    if(err) return console.log(err);
+    var filename ="Analyticsexpt.csv"
+    var link = document.createElement('a');
+  link.setAttribute('href', 'data:text/csv;charset=utf-8,%EF%BB%BF' + encodeURIComponent(csv));
+  link.setAttribute('download', filename);
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link); 
+});
+  }
 
       }).catch(
         console.log
@@ -132,7 +218,10 @@ const Download = (props) => {
     
   }  
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> analytics-download-csv
   return (
     <div className={classes.root}>
       <Grid
@@ -423,4 +512,5 @@ const Download = (props) => {
 Download.propTypes = {
   className: PropTypes.string
 };
+
 export default Download;

@@ -5,6 +5,7 @@
   "licence": "MIT",
   "version": "0.1.0",
   "private": false,
+  "proxy": "http://localhost:5000",
   "scripts": {
     "start": "serve -s build",
     "prestart": "npm install -g serve",
@@ -79,7 +80,10 @@
     "underscore": "^1.9.1",
     "uuid": "^3.3.2",
     "validate.js": "^0.13.1",
-    "yarn": "^1.22.4"
+    "yarn": "^1.22.4",
+    "react-csv-downloader": "^1.8.0",
+    "jsonexport": "^2.4.1",
+    "linkref": "^1.1.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.8.4",
@@ -99,6 +103,5 @@
     "enzyme-adapter-react-16": "^1.15.2",
     "enzyme-to-json": "^3.4.4",
     "eslint-config-prettier": "^6.10.1"
-  },
-  "proxy": "http://localhost:5000"
+  }
 }
