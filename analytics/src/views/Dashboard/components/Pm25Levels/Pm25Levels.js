@@ -26,7 +26,7 @@ const useStyles = makeStyles(theme => ({
     width: 20
   },
   difference: {
-    marginTop: theme.spacing(2),
+    marginTop: theme.spacing(0.3),
     display: 'flex',
     alignItems: 'center'
   },
@@ -45,8 +45,8 @@ const Pm25Levels = props => {
   const classes = useStyles();
   const pm25BgColor = {
     backgroundColor: background,
-    padding: 0,
-    height: 100,
+    padding: 5,
+    height: 35,
   }
   const pm25_levelColor = {
     color: pm25levelColor,
@@ -59,16 +59,16 @@ const Pm25Levels = props => {
       className={clsx(classes.root, className)}
     >
       <CardContent style = {pm25BgColor}>
-        <Grid
+        {/* <Grid
           container
           justify="space-between"
         >
           <Grid item>
             {/* <Avatar className={classes.avatar}> */}
-              <SentimentSatisfiedSharpIcon className={classes.icon} style={pm25_levelColor} />
+              {/* <SentimentSatisfiedSharpIcon className={classes.icon} style={pm25_levelColor} /> */}
             {/* </Avatar> */}
-          </Grid>
-        </Grid>
+          {/* </Grid>
+        </Grid> */} 
         <div className={classes.difference}>        
           <Typography
             className={classes.caption}

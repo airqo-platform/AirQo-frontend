@@ -12,12 +12,16 @@ import {
 } from '@material-ui/core';
 import { useEffect, useState } from 'react';
 import FullscreenControl from 'react-leaflet-fullscreen';
-import 'react-leaflet-fullscreen/dist/styles.css'
+import 'react-leaflet-fullscreen/dist/styles.css';
 import L from 'leaflet';
+// import Legend from "./Legend";
 
 const useStyles = makeStyles(theme => ({
   root: {
-    height: '100%'
+    height: '100%',
+    padding: '0',
+	  margin: 0,
+	  border: 0,  
   },
   content: {
     alignItems: 'center',
@@ -127,9 +131,12 @@ const Map = props => {
       
             <FullscreenControl position="topright" />
 
+            {/* <Legend/> */}
+
         </LeafletMap>
         
       </CardContent>
+  
 
     </Card>
 
