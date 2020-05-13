@@ -29,8 +29,8 @@ const LocationList = () => {
   const [locations,setLocations ] = useState([]);
 
   useEffect(() => {
-    //fetch('https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/monitoringsites?organisation_name=KCCA')
-    fetch('http://127.0.0.1:5000/api/v1/dashboard/monitoringsites?organisation_name=KCCA')
+    fetch('https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/monitoringsites?organisation_name=KCCA')
+    //fetch('http://127.0.0.1:5000/api/v1/dashboard/monitoringsites?organisation_name=KCCA')
       .then(res => res.json())
       .then((locationData) => {
         setLocations(locationData.airquality_monitoring_sites)

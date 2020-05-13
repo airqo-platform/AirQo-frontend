@@ -90,7 +90,8 @@ const ExceedancesChart = props => {
       setLoading(true);
 
       axios.post(
-        'http://127.0.0.1:5000//api/v1/dashboard/exceedances', 
+        'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/exceedances',
+        //'http://127.0.0.1:5000//api/v1/dashboard/exceedances', 
         JSON.stringify(effectFilter),
         { headers: { 'Content-Type': 'application/json' } }
       )
@@ -248,8 +249,8 @@ const ExceedancesChart = props => {
         console.log(filter_string);
     
         axios.post(
-          //'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/device/graph',
-          'http://127.0.0.1:5000//api/v1/dashboard/exceedances', 
+          'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/exceedances',
+          //'http://127.0.0.1:5000//api/v1/dashboard/exceedances', 
           filter_string,
           { headers: { 'Content-Type': 'application/json' } }
         )
@@ -329,27 +330,12 @@ const ExceedancesChart = props => {
         <Bar
         data= {
             {
-            labels: locations,
-            /*datasets:[
-               {
-                  label:'Exceedances',
-                  data: exceedanceValues,
-                  backgroundColor: 'red',
-                  borderColor: 'rgba(0,0,0,1)',   
-                  borderWidth: 1
-               }
-            ]*/
+            labels: locations,           
             datasets: generateExceedanceData(standard)
          }
         }
         options={{
-         /* title:{
-            display:true,
-            text: generateTitle(myPollutant, myStandard),
-            fontColor: "black",
-            fontSize: 20,
-            fontWeight:5
-          },*/
+        
 
           scales: {
             yAxes: [{
@@ -368,7 +354,7 @@ const ExceedancesChart = props => {
               gridLines:{
                 lineWidth: 1,
                 display: false
-                //color: "rgba(0, 0, 0, 0)",
+               
               }
             }],
             xAxes: [{
@@ -386,15 +372,12 @@ const ExceedancesChart = props => {
                 },
               gridLines:{
                 lineWidth: 1,
-                //display:false
+                
               }
 
             }],
           },
-         /* legend:{
-            display: true,
-            position: 'right'
-          },*/
+        
           maintainAspectRatio: true,
           responsive: true
           }}/>}
@@ -411,7 +394,7 @@ const ExceedancesChart = props => {
               
             > 
               <Dialog 
-              //className={classes.dialogPaper}> 
+              
               classes={{ paper: classes.dialogPaper }}
               open={open}  
               onClose={handleClose} 

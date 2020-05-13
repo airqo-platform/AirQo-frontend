@@ -76,8 +76,8 @@ const Graphs = props => {
     setLoading(true);
 
     axios.post(
-      //'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/device/graph',
-      'http://127.0.0.1:5000/api/v1/device/graph', 
+      'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/device/graph',
+      //'http://127.0.0.1:5000/api/v1/device/graph', 
       JSON.stringify(effectFilter),
       { headers: { 'Content-Type': 'application/json' } }
       
@@ -309,8 +309,8 @@ const Graphs = props => {
     console.log(JSON.stringify(filter));
 
     axios.post(
-      //'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/device/graph',
-      'http://127.0.0.1:5000/api/v1/device/graph', 
+      'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/device/graph',
+      //'http://127.0.0.1:5000/api/v1/device/graph', 
       JSON.stringify(filter),
       { headers: { 'Content-Type': 'application/json' } }
     )
@@ -477,10 +477,7 @@ const Graphs = props => {
 
                   }],
                 },
-                /*legend:{
-                  display: true,
-                  //position: 'right'
-                },*/
+                
                 maintainAspectRatio: true,
                 responsive: true
                 }}
@@ -715,10 +712,7 @@ const Graphs = props => {
                 }
               }
             },
-            /*legend:{
-              display: true,
-              position: 'right'
-            },*/
+            
             maintainAspectRatio: true,
             responsive: true
             }}/>}
@@ -963,10 +957,7 @@ else if (myChartType=='bar'){
 
             }],
           },
-         /* legend:{
-            display: true,
-            position: 'right'
-          },*/
+        
           maintainAspectRatio: true,
           responsive: true
           }}/>}
@@ -1211,10 +1202,7 @@ else if (myChartType=='bar'){
 
             }],
           },
-         /* legend:{
-            display: true,
-            position: 'right'
-          },*/
+         
           maintainAspectRatio: true,
           responsive: true
           }}/>

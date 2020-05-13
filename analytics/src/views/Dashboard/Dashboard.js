@@ -40,8 +40,8 @@ const Dashboard = props => {
   const [locations,setLocations] = useState([]);
 
   useEffect(() => {
-    //fetch('https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/monitoringsite/historical/daily/devices')
-    fetch('http://127.0.0.1:5000/api/v1/dashboard/historical/daily/devices')
+    fetch('https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/monitoringsite/historical/daily/devices')
+    //fetch('http://127.0.0.1:5000/api/v1/dashboard/historical/daily/devices')
       .then(res => res.json())
       .then((locationsData) => {        
         setLocations(locationsData.results);
@@ -366,22 +366,7 @@ const Dashboard = props => {
           <CustomisableChart className={clsx(classes.chartCard)}/>
           
     </Grid>
-    {/** 
-                <Grid
-                   item
-                   lg={4}
-                   md={4}
-                   sm={12}
-                   xl={4}
-                   xs={12}
-                >
-                    
-                    
-                  <CustomisableChart className={clsx(classes.chartCard)}/>
-                 
-                </Grid>
-                         
-*/}
+   
         
       </Grid>
     </div>

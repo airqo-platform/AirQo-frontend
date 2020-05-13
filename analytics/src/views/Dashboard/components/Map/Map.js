@@ -38,7 +38,7 @@ const useStyles = makeStyles(theme => ({
   },
 
 }));
-const { BaseLayer, Overlay } = LayersControl;
+//const { BaseLayer, Overlay } = LayersControl;
 
 const Map = props => {
   const { className, ...rest } = props;
@@ -97,7 +97,7 @@ const Map = props => {
           easeLinearity={0.35}
           scrollWheelZoom
           zoom={12}
-          // maxZoom={20}
+         
           
           zoomControl        
           
