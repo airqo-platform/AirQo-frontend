@@ -7,8 +7,8 @@ import clsx from 'clsx';
 import DateFnsUtils from '@date-io/date-fns';
 import {MuiPickersUtilsProvider, KeyboardTimePicker, KeyboardDatePicker} from '@material-ui/pickers';
 import axios from 'axios';
-import {PollutantCategory} from '../Dashboard/components'
-import CsvDownloader from 'react-csv-downloader';
+//import {PollutantCategory} from '../Dashboard/components'
+//import CsvDownloader from 'react-csv-downloader';
 import jsonexport from 'jsonexport'
 const useStyles = makeStyles(theme => ({
   root: {
@@ -125,9 +125,9 @@ const Download = (props) => {
         // setCustomisedDownloadData(customisedDownloadData)    
         //download the returned data
         console.log((JSON.stringify(customisedDownloadData)))
-    if(selectedType.value ==="JSON"){
-    let filename = "export.json";
-    let contentType = "application/json;charset=utf-8;";
+    if(selectedType.value ==='JSON'){
+    let filename = 'export.json';
+    let contentType = 'application/json;charset=utf-8;';
     if (window.navigator && window.navigator.msSaveOrOpenBlob) {
       var blob = new Blob([decodeURIComponent(encodeURI(JSON.stringify(customisedDownloadData)))], { type: contentType });
       navigator.msSaveOrOpenBlob(blob, filename);
@@ -159,7 +159,7 @@ const Download = (props) => {
  
               jsonexport(csvData,function(err, csv){
     if(err){ console.log(err);}
-    var filename ="Analyticsexpt.csv"
+    var filename ='Analyticsexpt.csv'
     var link = document.createElement('a');
   link.setAttribute('href', 'data:text/csv;charset=utf-8,%EF%BB%BF' + encodeURIComponent(csv));
   link.setAttribute('download', filename);
@@ -173,7 +173,6 @@ const Download = (props) => {
       }).catch(
         console.log
       )  
-
     
   }  
 

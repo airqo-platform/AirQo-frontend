@@ -115,8 +115,8 @@ const ExceedancesChart = props => {
 
     const [customChartTitle, setCustomChartTitle] = useState('PM 2.5 Exceedances over the past 28 days');
     const [exceedancesData, setExceedancesData] = useState([]);
-    const[myStandard, setMyStandard] = useState({value: ""});
-    const[myPollutant, setMyPollutant] = useState({value: ""});
+    const[myStandard, setMyStandard] = useState({value: ''});
+    const[myPollutant, setMyPollutant] = useState({value: ''});
     
 
     
@@ -184,7 +184,7 @@ const ExceedancesChart = props => {
         standard = 'WHO'
       }
 
-      let title = pollutant + " Exceedances over the past 28 days based on "+standard
+      let title = pollutant + ' Exceedances over the past 28 days based on '+standard
       return title
     }
   
@@ -344,12 +344,12 @@ const ExceedancesChart = props => {
                 display: true,
                 labelString: 'Exceedances',
                 fontWeight:4,
-                fontColor: "black",
+                fontColor: 'black',
                 fontSize:15,
                 padding: 10
               },
               ticks: {
-                fontColor:"black"                 
+                fontColor:'black'                 
                 },
               gridLines:{
                 lineWidth: 1,
@@ -363,12 +363,12 @@ const ExceedancesChart = props => {
                 display: true,
                 labelString: 'Locations',
                 fontWeight:4,
-                fontColor: "black",
+                fontColor: 'black',
                 fontSize: 15,
                 padding: 6
               },
               ticks: {
-                fontColor:"black"                 
+                fontColor:'black'                 
                 },
               gridLines:{
                 lineWidth: 1,

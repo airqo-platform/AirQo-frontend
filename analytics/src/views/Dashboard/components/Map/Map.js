@@ -137,7 +137,7 @@ const Map = props => {
             </Marker>   
           ))}    
       
-            <FullscreenControl position="topright" />
+          <FullscreenControl position="topright" />
 
         </LeafletMap>
         

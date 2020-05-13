@@ -106,9 +106,9 @@ const Graphs = props => {
     )
   },[]);
 
-  const [myChartType, setMyChartType] = useState({value: ""});
-  const [myPollutant, setMyPollutant] = useState({value: ""});
-  const [myLocation, setMyLocation] = useState({value:""})
+  const [myChartType, setMyChartType] = useState({value: ''});
+  const [myPollutant, setMyPollutant] = useState({value: ''});
+  const [myLocation, setMyLocation] = useState({value:''})
   
 
   var startDate = new Date();
@@ -272,23 +272,23 @@ const Graphs = props => {
 
   function appendLeadingZeroes(n){
     if(n <= 9){
-      return "0" + n;
+      return '0'+ n;
     }
     return n
   }
 
   function generateLabel(pollutant){
-    let superString="3";
+    let superString='3';
     if (pollutant=='PM 2.5'){
-      return "PM 2.5 (µg/m3)"
+      return 'PM 2.5 (µg/m3)'
       //return "PM 2.5 Concentration"
     }
     else if (pollutant=='PM 10'){
-      return "PM 10 (µg/m3)"
+      return 'PM 10 (µg/m3)'
       //return "PM 10 Concentration"
     }
     else{
-      return "NO2 Concentration"
+      return 'NO2 Concentration'
     }
 
   }
@@ -434,7 +434,7 @@ const Graphs = props => {
                 title:{
                   display:true,
                   text: 'Line graph showing '+myPollutant+' data in '+myLocation,
-                  fontColor: "black",
+                  fontColor: 'black',
                   fontSize: 18,
                   fontWeight: 0
                 },
@@ -448,12 +448,12 @@ const Graphs = props => {
                       display: true,
                       labelString: generateLabel(myPollutant),
                       fontWeight:4,
-                      fontColor: "black",
+                      fontColor: 'black',
                       fontSize:15,
                       padding: 10
                     },
                     ticks: {
-                      fontColor:"black"                 
+                      fontColor:'black'                 
                       },
                     gridLines:{
                       lineWidth: 1
@@ -464,12 +464,12 @@ const Graphs = props => {
                       display: true,
                       labelString: 'Time',
                       fontWeight:4,
-                      fontColor: "black",
+                      fontColor: 'black',
                       fontSize: 20,
                       padding: 6
                     },
                     ticks: {
-                      fontColor:"black"                 
+                      fontColor:'black'                
                       },
                     gridLines:{
                       lineWidth: 1
@@ -691,7 +691,7 @@ const Graphs = props => {
             title:{
               display:true,
               text: 'Pie Chart showing '+ myPollutant+ ' data in '+myLocation,
-              fontColor: "black",
+              fontColor: 'black',
               fontSize: 20,
               fontWeight: 5
             },
@@ -917,7 +917,7 @@ else if (myChartType=='bar'){
           title:{
             display:true,
             text: 'Bar graph showing '+myPollutant+ ' data in '+myLocation,
-            fontColor: "black",
+            fontColor: 'black',
             fontSize: 20,
             fontWeight:5
           },
@@ -928,12 +928,12 @@ else if (myChartType=='bar'){
                 display: true,
                 labelString: generateLabel(myPollutant),
                 fontWeight:4,
-                fontColor: "black",
+                fontColor: 'black',
                 fontSize:15,
                 padding: 10
               },
               ticks: {
-                fontColor:"black"                 
+                fontColor:'black'                 
                 },
               gridLines:{
                 lineWidth: 1
@@ -944,12 +944,12 @@ else if (myChartType=='bar'){
                 display: true,
                 labelString: 'Time',
                 fontWeight:4,
-                fontColor: "black",
+                fontColor: 'black',
                 fontSize: 20,
                 padding: 6
               },
               ticks: {
-                fontColor:"black"                 
+                fontColor:'black'                 
                 },
               gridLines:{
                 lineWidth: 1
@@ -1163,7 +1163,7 @@ else if (myChartType=='bar'){
           title:{
             display:true,
             text: 'Bar graph showing PM 2.5 data at KCCA',
-            fontColor: "black",
+            fontColor: 'black',
             fontWeight: 5,
             fontSize: 20
           },
@@ -1173,12 +1173,12 @@ else if (myChartType=='bar'){
                 display: true,
                 labelString: 'PM2.5(µg/m3)',
                 fontWeight:4,
-                fontColor: "black",
+                fontColor: 'black',
                 fontSize:15,
                 padding: 10
               },
               ticks: {
-                fontColor:"black"                 
+                fontColor:'black'                 
                 },
               gridLines:{
                 lineWidth: 1
@@ -1189,12 +1189,12 @@ else if (myChartType=='bar'){
                 display: true,
                 labelString: 'Time',
                 fontWeight:4,
-                fontColor: "black",
+                fontColor: 'black',
                 fontSize: 20,
                 padding: 6
               },
               ticks: {
-                fontColor:"black"                 
+                fontColor:'black'                 
                 },
               gridLines:{
                 lineWidth: 1
