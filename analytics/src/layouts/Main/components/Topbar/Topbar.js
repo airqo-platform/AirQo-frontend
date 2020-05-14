@@ -49,8 +49,8 @@ const Topbar = props => {
     marginRight: '.4em'
   };
   const mak_logo_style = {
-    height: '3.3em',
-    width: '4em',
+    height: '4em',
+    width: '5em',
     borderRadius: '15%',
     paddingTop: '.2em',
     marginRight: '.4em'
@@ -90,7 +90,7 @@ const Topbar = props => {
           <img
             alt="mak.ac.ug"
             style={mak_logo_style}
-            src="/images/logos/mak_logo.jpg"
+            src="/images/logos/mak-logo-png.png"
           />
         </RouterLink>
         <div className={classes.flexGrow} />
