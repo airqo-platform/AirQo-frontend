@@ -66,24 +66,6 @@ const Dashboard = props => {
   }
   
 
-  const data = {
-    labels: [
-      '10/04/2018', '10/05/2018', 
-      '10/06/2018', '10/07/2018', 
-      '10/08/2018', '10/09/2018', 
-      '10/10/2018', '10/11/2018', 
-      '10/12/2018', '10/13/2018', 
-      '10/14/2018', '10/15/2018'
-    ],
-    datasets: [
-      {
-        label: 'PM2.5(µg/m3)',
-        data: [22,19,27,23,22,24,17,25,23,24,20,19],
-        fill: false,          // Don't fill area under the line
-        borderColor:  palette.primary.main,  // Line color
-      }
-    ]
-  }
 
   
   const options_main= {
@@ -97,7 +79,7 @@ const Dashboard = props => {
         borderWidth: 2,
         label: {
           enabled: true,
-          content: 'WHO LIMIT',
+          content: 'WHO AQG',
           //backgroundColor: palette.white,
           titleFontColor: palette.text.primary,
           bodyFontColor: palette.text.primary,
@@ -192,10 +174,10 @@ const Dashboard = props => {
         >
           <PollutantCategory
             pm25level="Good"
-            pm25levelCount="08"
+            pm25levelCount="04"
+            iconClass="pm25Good"
           />
-        </Grid>
-
+        </Grid>       
         <Grid
           item
           lg={2}
@@ -207,6 +189,7 @@ const Dashboard = props => {
           <PollutantCategory
             pm25level="Moderate"
             pm25levelCount="05"
+            iconClass="pm25Moderate"
           />
         </Grid>
         <Grid
@@ -217,8 +200,9 @@ const Dashboard = props => {
           xs={12}
         >
           <PollutantCategory
-            pm25level="Unhealthy for sensitive groups"
+            pm25level="UHFSG"
             pm25levelCount="07"
+            iconClass="pm25UH4SG"
           />
         </Grid>
 
@@ -231,7 +215,8 @@ const Dashboard = props => {
         >
           <PollutantCategory
             pm25level="Unhealthy"
-            pm25levelCount="07"
+            pm25levelCount="06"
+            iconClass="pm25UnHealthy"
           />
         </Grid>
 
@@ -244,7 +229,8 @@ const Dashboard = props => {
         >
           <PollutantCategory
             pm25level="Very Unhealthy"
-            pm25levelCount="07"
+            pm25levelCount="02"
+            iconClass="pm25VeryUnHealthy"
           />
         </Grid>
         <Grid
@@ -256,7 +242,8 @@ const Dashboard = props => {
         >
           <PollutantCategory
             pm25level="Hazardous"
-            pm25levelCount="07"
+            pm25levelCount="01"
+            iconClass="pm25Harzadous"
           />
         </Grid>
         <Grid
@@ -304,7 +291,10 @@ const Dashboard = props => {
             xl={12}
             xs={12}
           >
-            <ExceedancesChart  className={clsx(classes.chartCard)}/>  
+            <ExceedancesChart  
+              className={clsx(classes.chartCard)} 
+              chartContainer={classes.chartContainer}
+            />  
 
           </Grid>      
         </Grid>

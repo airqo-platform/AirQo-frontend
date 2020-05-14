@@ -141,28 +141,29 @@ select{
 .pm25Good {
 	background:#45e50d;
 	border: 2px solid #45e50d;
+	background-color:#45e50d !important;
   }
 
  .pm25Moderate {
-	background:#f8fe28;
+	background:#f8fe28 !important;
 	border: 2px solid #f8fe28;
   }
  .pm25UH4SG {
-	background:#ee8310;
+	background:#ee8310 !important;
 	border: 2px solid #ee8310;
 
   }
   .pm25UnHealthy {
-	background:#fe0000;
+	background:#fe0000 !important;
 	border: 2px solid #fe0000;
   }
   .pm25VeryUnHealthy {
-	background:#8639c0;
+	background:#8639c0 !important;
 	border: 2px solid #8639c0;
 
   }
   .pm25Harzadous{
-	background:#81202e;
+	background:#81202e !important;
 	border: 2px solid #81202e;
 	
   }

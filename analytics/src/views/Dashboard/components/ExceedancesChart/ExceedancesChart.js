@@ -51,7 +51,7 @@ const useStyles = makeStyles(theme => ({
   }));*/
 
 const ExceedancesChart = props => {
-  const { className, ...rest } = props;
+  const { className, chartContainer, ...rest } = props;
   
   const classes = useStyles();
   const [loading, setLoading] = useState(false);
@@ -98,7 +98,7 @@ const ExceedancesChart = props => {
       )
   },[]);
 
-  const [customChartTitle, setCustomChartTitle] = useState('PM 2.5 Exceedances over the past 28 days');
+  const [customChartTitle, setCustomChartTitle] = useState('PM 2.5 Exceedances Over the Past 28 Days Based on WHO');
   const [exceedancesData, setExceedancesData] = useState([]);
   const[myStandard, setMyStandard] = useState({value: ''});
   const[myPollutant, setMyPollutant] = useState({value: ''});
@@ -141,7 +141,7 @@ const ExceedancesChart = props => {
       standard = 'WHO'
     }
 
-    let title = pollutant + ' Exceedances over the past 28 days based on '+standard
+    let title = pollutant + ' Exceedances Over the Past 28 Days Based on '+standard
     return title
   }
 
@@ -244,7 +244,7 @@ const ExceedancesChart = props => {
           setUnhealthyValues(myUnhealthyValues);
           setVeryUnhealthyValues(myVeryUnhealthyValues);
           setHazardousValues(myHazardousValues);
-          setCustomChartTitle(pollutant.value+ ' exceedances over the past 28 days based on '+standard.value)
+          setCustomChartTitle(pollutant.value+ ' Exceedances Over the Past 28 Days Based on '+standard.value)
   
       }).catch(
         console.log
@@ -281,7 +281,7 @@ const ExceedancesChart = props => {
               xs={12}
             >           
               
-        <div>
+        <div className={chartContainer}>
        
         <Bar
         data= {
@@ -315,36 +315,46 @@ const ExceedancesChart = props => {
                 padding: 10
               },
               ticks: {
-                fontColor:'black'                 
+                fontColor: palette.text.secondary,
+                beginAtZero: true,
+                min: 0                 
                 },
               gridLines:{
-                lineWidth: 1,
-                display: false
+                borderDash: [2],
+            borderDashOffset: [2],
+            color: palette.divider,
+            drawBorder: false,
+            zeroLineBorderDash: [2],
+            zeroLineBorderDashOffset: [2],
+            zeroLineColor: palette.divider
                
               }
             }],
             xAxes: [{
+              barThickness: 12,
+              maxBarThickness: 10,
+              barPercentage: 0.5,
+              categoryPercentage: 0.5,
               stacked:true,
               scaleLabel: {
                 display: true,
-                labelString: 'Locations',
-                fontWeight:4,
-                fontColor: 'black',
-                fontSize: 15,
-                padding: 6
+                labelString: 'Locations',                
+                               
               },
               ticks: {
                 fontColor:'black'                 
                 },
               gridLines:{
-                lineWidth: 1,
+                display: false,
+                drawBorder: false
+                
                 
               }
 
             }],
           },
         
-          maintainAspectRatio: true,
+          maintainAspectRatio: false,
           responsive: true
           }}/>
         </div>

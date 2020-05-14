@@ -160,12 +160,15 @@ const CustomisableChart = props => {
     return n
   }
 
+  const [customisedGraphLabel, setCustomisedGraphLabel] = useState('PM2.5(µg/m3)');
+  const [displayAnnotation, setDisplayAnnotation] = useState(true);
+
   const [customGraphData, setCustomisedGraphData] = useState([]);
 
   useEffect(() => {
     
-    axios.get('https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/customisedchart/random')
-    //axios.get('http://127.0.0.1:5000/api/v1/dashboard/customisedchart/random')
+    //axios.get('https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/customisedchart/random')
+    axios.get('http://127.0.0.1:5000/api/v1/dashboard/customisedchart/random')
       .then(res => res.data)
       .then((customisedChartData) => {
         setCustomisedGraphData(customisedChartData)
@@ -190,8 +193,8 @@ const CustomisableChart = props => {
     //console.log(JSON.stringify(filter));
 
     axios.post(
-      'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/customisedchart',      
-      //'http://127.0.0.1:5000/api/v1/dashboard/customisedchart', 
+      //'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/customisedchart',      
+      'http://127.0.0.1:5000/api/v1/dashboard/customisedchart', 
       JSON.stringify(filter),
       { headers: { 'Content-Type': 'application/json' } }
     ).then(res => res.data)
@@ -200,6 +203,10 @@ const CustomisableChart = props => {
         console.log(customisedChartData)
 
         setCustomChartTitle(customisedChartData.custom_chart_title)
+        setCustomisedGraphLabel(customisedChartData.results?customisedChartData.results[0].pollutant:'')
+        console.log(customisedChartData.results[0].pollutant)
+        setDisplayAnnotation(customisedChartData.results && customisedChartData.results[0].pollutant==='PM 2.5'?true:false)
+
       }).catch(
         console.log
       )    
@@ -216,14 +223,13 @@ const CustomisableChart = props => {
   const customisedGraphData = {
     chart_type: customGraphData.results? customGraphData.results[0].chart_type:null,
     labels:  customGraphData.results? customGraphData.results[0].chart_data.labels:null, 
-    
     datasets: customGraphData.datasets
   }
 
-   
+  
   const options= {
     annotation: {
-      annotations: [{
+      annotations:displayAnnotation === true? [{
         type: 'line',
         mode: 'horizontal',
         scaleID: 'y-axis-0',
@@ -232,14 +238,14 @@ const CustomisableChart = props => {
         borderWidth: 1,
         label: {
           enabled: true,
-          content: 'WHO LIMIT',
+          content: 'WHO AQG',
           //backgroundColor: palette.white,
           titleFontColor: palette.text.primary,
           bodyFontColor: palette.text.primary,
           position:'right'
         },
         
-      }]
+      }]:[]
     },
     responsive: true,
     maintainAspectRatio: false,
@@ -311,7 +317,7 @@ const CustomisableChart = props => {
           },
           scaleLabel: {
             display: true,
-            labelString: 'PM2.5(µg/m3)'
+            labelString: customisedGraphLabel
           }
         }
       ]
