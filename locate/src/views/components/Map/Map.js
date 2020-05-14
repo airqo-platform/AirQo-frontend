@@ -3,6 +3,7 @@ import { connect } from "react-redux";
 import { mapRenderDefaults } from "../../../redux/Maps/actions";
 import PropTypes from "prop-types";
 import constants from "../../../config/constants.js";
+import Select from 'react-select';
 
 import {
   Map,
@@ -43,10 +44,23 @@ import DialogContent from "@material-ui/core/DialogContent";
 import DialogContentText from "@material-ui/core/DialogContentText";
 import CloseIcon from "@material-ui/icons/Close";
 import UpdateIcon from "@material-ui/icons/Update";
+//import Select from '@material-ui/core/Select';
+
+//download csv and pdf
+import jsPDF from 'jspdf'
+import 'jspdf-autotable'
+import jsonexport from 'jsonexport'
+
 
 // -- End --
 
 let geoJsonPolygon;
+
+const typeOptions = [
+  {value: '', label:'choose download option'},
+  { value: 'CSV', label: 'CSV'},
+  { value: 'PDF', label: 'PDF'},
+];
 
 class Maps extends React.Component {
   constructor(props) {
@@ -80,6 +94,7 @@ class Maps extends React.Component {
 
       // handle all the popup msg
       confirmDialogMsg: "",
+      selectedOption: {value:' ',label:''},
     };
 
     //from locate save
@@ -90,6 +105,7 @@ class Maps extends React.Component {
     this.onOpenClicked = this.onOpenClicked.bind(this);
     this.handleSaveClose = this.handleSaveClose.bind(this);
     this.handleConfirmClose = this.handleConfirmClose.bind(this);
+    this.handleDownloadChange = this.handleDownloadChange.bind(this);
 
     // select previously saved data, update, delete
     this.onSelectPrevSpace = this.onSelectPrevSpace.bind(this);
@@ -154,6 +170,11 @@ class Maps extends React.Component {
   changeHandler = (e) => {
     this.setState({ [e.target.name]: e.target.value });
   };
+  //handles download input
+  handleDownloadChange = (selected) => {
+    this.setState( {selectedOption:selected});
+    //console.log(`Option selected:`, selected)
+  }
 
   // Handles saved space confirmation feedback
   handleConfirmClose = () => {
@@ -306,6 +327,55 @@ class Maps extends React.Component {
           this.setState({
             polygons: myPolygons,
           });
+        {/*download files*/}
+         let toCsv =[]
+         if(this.state.selectedOption.value ==="CSV"){
+         
+          myData.forEach(element => {
+              toCsv.push({
+              type: "Feature",
+              properties: {
+            district: element["properties.district"],
+                subcounty: element["properties.subcounty"],
+                parish: element["properties.parish"],
+                lat: element["properties.lat"],
+                long: element["properties.long"],
+              }
+            });
+          });
+          jsonexport(toCsv,function(err, csv){
+            if(err) return console.log(err);
+            var filename ="parish_recommendations.csv"
+            var link = document.createElement('a');
+          link.setAttribute('href', 'data:text/csv;charset=utf-8,%EF%BB%BF' + encodeURIComponent(csv));
+          link.setAttribute('download', filename);
+          link.style.visibility = 'hidden';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link); 
+      });
+    }
+    else{
+      var doc = new jsPDF('p', 'pt','a4');
+     var rows = [];  
+      var header = function (data) {
+                        doc.setFontSize(18);
+                        doc.setTextColor(40);
+                        doc.setFontStyle('normal');
+    //doc.addImage(headerImgData, 'JPEG', data.settings.margin.left, 20, 50, 50);
+                        doc.text("RECOMMENDED PARISHES", data.settings.margin.left, 50);
+                    }; 
+    var col =['type','District','Subcounty','Parish','lat','long']
+      myPolygons.forEach(element => {      
+            var temp = [element.type,element.properties.district,element.properties.subcounty,element.properties.parish,element.properties.lat,element.properties.long];
+            rows.push(temp);
+     });     
+    doc.autoTable(col, rows, {margin: {top: 80}, beforePageContent: header});
+    doc.save('parish_recommendations.pdf');
+    }
+       
+       
+       
         } catch (error) {
           console.log("An error occured. Please try again");
         }
@@ -380,7 +450,7 @@ class Maps extends React.Component {
       height: "auto",
       width: 250,
       opacity: 0.8,
-      top: "21em",
+      top: "30em",
     };
     // styling the delete planning space buttons
     const btnStyles = {
@@ -416,6 +486,12 @@ class Maps extends React.Component {
               fullWidth
               margin="normal"
             />
+             <Select 
+             options = {typeOptions} 
+             value ={this.state.selectedOption}
+             onChange ={this.handleDownloadChange} 
+             placeholder= {"choose download option"}
+             />
             <CardActions>
               <Button
                 type="submit"
