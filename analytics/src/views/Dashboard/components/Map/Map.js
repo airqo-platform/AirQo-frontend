@@ -7,14 +7,16 @@ import {Link } from 'react-router-dom';
 import {Card, CardContent, CardHeader, Divider} from '@material-ui/core';
 import { useEffect, useState } from 'react';
 import FullscreenControl from 'react-leaflet-fullscreen';
-import 'react-leaflet-fullscreen/dist/styles.css'
+import 'react-leaflet-fullscreen/dist/styles.css';
 import L from 'leaflet';
-import ReactDOMServer from 'react-dom/server';
-
+// import Legend from "./Legend";
 
 const useStyles = makeStyles(theme => ({
   root: {
-    height: '100%'
+    height: '100%',
+    padding: '0',
+	  margin: 0,
+	  border: 0,  
   },
   content: {
     alignItems: 'center',
@@ -35,8 +37,7 @@ const useStyles = makeStyles(theme => ({
   },
   progress: {
     marginTop: theme.spacing(3)
-  },
-
+  }
 }));
 //const { BaseLayer, Overlay } = LayersControl;
 
@@ -48,7 +49,7 @@ const Map = props => {
   const [contacts,setContacts ] = useState([]);
 
   useEffect(() => {
-    fetch('https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/monitoringsites?organisation_name=KCCA')
+   fetch('https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/monitoringsites?organisation_name=KCCA')
     //fetch('http://127.0.0.1:5000/api/v1/dashboard/monitoringsites?organisation_name=KCCA')
       .then(res => res.json())
       .then((contactData) => {
@@ -56,16 +57,6 @@ const Map = props => {
       })
       .catch(console.log)
   },[]);
-
-  let getColor = (aqi) =>{
-    return aqi > 250.4  ? '#81202e' :
-      aqi > 150.4  ? '#8639c0' :
-        aqi > 55.4   ? '#fe0023' :
-          aqi > 35.4   ? '#ee8327' :
-            aqi > 12   ? '#f8fe39' :
-              aqi > 0   ? '#44e527' :
-                '#808080';
-  }
 
   let getPm25CategoryColorClass = (aqi) =>{
     return aqi > 250.4  ? 'pm25Harzadous' :
@@ -106,10 +97,9 @@ const Map = props => {
             url="http://{s}.tile.osm.org/{z}/{x}/{y}.png"
           />           
           {contacts.map((contact) => (
-            
+
             <Marker 
               position={[contact.Latitude,contact.Longitude]}
-              color = {getColor(contact.Last_Hour_PM25_Value == 0?'':contact.Last_Hour_PM25_Value)}
               fill="true"
               key={contact._id} 
               clickable="true"  
@@ -117,7 +107,7 @@ const Map = props => {
                 L.divIcon({
                 html:`${contact.Last_Hour_PM25_Value == 0?'':contact.Last_Hour_PM25_Value}`,
                 iconSize: 35,
-                className: `leaflet-marker-icon ${getPm25CategoryColorClass(contact.Last_Hour_PM25_Value)}`,
+                className:`leaflet-marker-icon ${getPm25CategoryColorClass(contact.Last_Hour_PM25_Value)}`
                  })}
               >
               
@@ -139,9 +129,12 @@ const Map = props => {
       
           <FullscreenControl position="topright" />
 
+            {/* <Legend/> */}
+
         </LeafletMap>
         
       </CardContent>
+  
 
     </Card>
 

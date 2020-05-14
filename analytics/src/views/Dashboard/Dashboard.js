@@ -10,6 +10,7 @@ import 'chartjs-plugin-annotation';
 import palette from 'theme/palette';
 import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
 import ArrowRightIcon from '@material-ui/icons/ArrowRight';
+//import Legend from './components/Map/Legend'
  
 
 const useStyles = makeStyles(theme => ({
@@ -190,7 +191,7 @@ const Dashboard = props => {
           xs={12}
         >
           <PollutantCategory
-            pm25level="GOOD"
+            pm25level="Good"
             pm25levelCount="08"
           />
         </Grid>
@@ -201,9 +202,10 @@ const Dashboard = props => {
           sm={6}
           xl={2}
           xs={12}
+          
         >
           <PollutantCategory
-            pm25level="MODERATE"
+            pm25level="Moderate"
             pm25levelCount="05"
           />
         </Grid>
@@ -215,7 +217,7 @@ const Dashboard = props => {
           xs={12}
         >
           <PollutantCategory
-            pm25level="UHFSG"
+            pm25level="Unhealthy for sensitive groups"
             pm25levelCount="07"
           />
         </Grid>
@@ -228,7 +230,7 @@ const Dashboard = props => {
           xs={12}
         >
           <PollutantCategory
-            pm25level="UNHEALTHY"
+            pm25level="Unhealthy"
             pm25levelCount="07"
           />
         </Grid>
@@ -241,7 +243,7 @@ const Dashboard = props => {
           xs={12}
         >
           <PollutantCategory
-            pm25level="V.UNHEALTHY"
+            pm25level="Very Unhealthy"
             pm25levelCount="07"
           />
         </Grid>
@@ -253,7 +255,7 @@ const Dashboard = props => {
           xs={12}
         >
           <PollutantCategory
-            pm25level="HAZARDOUS"
+            pm25level="Hazardous"
             pm25levelCount="07"
           />
         </Grid>
@@ -314,6 +316,7 @@ const Dashboard = props => {
           sm={12}
           xl={6}
           xs={12}
+          
         >
                  
          
@@ -324,9 +327,113 @@ const Dashboard = props => {
             xl={12}
             xs={12}
           >
-            <Map />
-          </Grid>
+            <Map/>
+          </Grid>         
+               
+
+
+          <Grid
+            container
+            spacing={0}
+            className='MapCardContent'
+          >
+
           
+            <Grid
+              item
+              lg={2}
+              sm={4}
+              xl={2}
+              xs={12}
+            >
+             
+              <Pm25Levels background="#45e50d" 
+                pm25level="Good"
+                //pm25levelText = "(0 - 12)"
+                
+              />
+            </Grid>
+            <Grid
+              item
+              lg={2}
+              sm={4}
+              xl={2}
+              xs={12}
+            >
+              <Pm25Levels
+                background="#f8fe28"
+                pm25level="Moderate"
+                //pm25levelText="(12.1 - 35.4)"
+                
+              />
+            </Grid>
+
+            <Grid
+              item
+              lg={2}
+              sm={4}
+              xl={2}
+              xs={12}
+            >
+              <Pm25Levels
+                background="#ee8310"
+                pm25level="Unhealthy for sensitive groups" //Unhealthy for sensitive groups
+                pm25levelColor="#FFFFFF"
+                //pm25levelText="(35.6 - 55.4)"            
+                
+              />
+            </Grid>
+
+            <Grid
+              item
+              lg={2}
+              sm={4}
+              xl={2}
+              xs={12}
+            >
+              <Pm25Levels
+                background="#fe0000"
+                pm25level="Unhealthy"
+                pm25levelColor="#FFFFFF"
+                //pm25levelText="(55.5 - 150.4)"            
+                
+              />
+            </Grid>
+            <Grid
+              item
+              lg={2}
+              sm={4}
+              xl={2}
+              xs={12}
+            >
+              <Pm25Levels
+                background="#8639c0"
+                pm25level="Very unhealthy"
+                pm25levelColor="#FFFFFF"
+                //pm25levelText="(150.5 - 250.4)"           
+                
+              />
+            </Grid>
+            <Grid
+              item
+              lg={2}
+              sm={4}
+              xl={2}
+              xs={12}
+            >
+              <Pm25Levels
+                background="#81202e"
+                pm25level="Hazardous"
+                pm25levelColor="#FFFFFF"
+                //pm25levelText="(250.5 - 500.4)"           
+                
+              />
+            </Grid> 
+             {/* <p>
+              PM <sub>2.5</sub> - Particulate Matter 
+            </p> */}
+                
+          </Grid> 
         </Grid>
         
 
