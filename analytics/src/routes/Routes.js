@@ -14,7 +14,10 @@ import {
   Settings as SettingsView,
   NotFound as NotFoundView,
   Graphs,
-  ReportTemplate as ReportTemplateView
+  Download,
+  ReportTemplate,
+  LocationList as LocationListView,
+  SignUp as SignUpView,
 } from '../views';
 
 import Landing from '../views/layouts/Landing';
@@ -31,10 +34,10 @@ const Routes = () => {
         to="/login"
       />
       <PrivateRoute
-        component={DashboardView}
         exact
-        layout={MainLayout}
         path="/dashboard"
+        component={DashboardView}
+        layout={MainLayout}
       />
 
       <PrivateRoute
@@ -55,12 +58,6 @@ const Routes = () => {
         layout={MainLayout}
         path="/reports"
       />
-      <RouteWithLayout
-        component={ReportTemplateView}
-        exact
-        layout={MainLayout}
-        path="/report_template"
-      />
       <PrivateRoute
         component={AccountView}
         exact
@@ -73,6 +70,21 @@ const Routes = () => {
         layout={MainLayout}
         path="/settings"
       />
+
+    <PrivateRoute
+            component={Download}
+            exact
+            layout={MainLayout}
+            path="/download"
+          />
+      
+      <PrivateRoute
+        component={ReportTemplate}
+        exact
+        layout={MainLayout}
+        path="/report"
+      />
+
       <PrivateRoute
         component={NotFoundView}
         exact
@@ -80,6 +92,20 @@ const Routes = () => {
         path="/not-found"
       />
 
+      <PrivateRoute
+        component={Graphs}
+        exact
+        layout={MainLayout}
+        path="/location/:locationname"
+      />
+
+      <PrivateRoute
+        component={LocationListView}
+        exact
+        layout={MainLayout}
+        path="/locations"
+      />
+ 
       <Route
         component={Landing}
         exact
@@ -100,7 +126,24 @@ const Routes = () => {
         exact
         path="/reset"
       />
+      <Route 
+        exact path="/login" 
+        component={Login} />
+      <Route 
+        exact path="/forgot" 
+        component={ForgotPassword} />
+      <Route 
+        exact path="/reset" 
+        component={ResetPassword} />
+
+      <RouteWithLayout
+        component={SignUpView}
+        exact
+        layout={MinimalLayout}
+        path="/sign-up"
+      />
       <Redirect to="/not-found" />
+      
     </Switch>
   );
 };
