@@ -11,7 +11,7 @@ import {
     KeyboardDatePicker,
 } from '@material-ui/pickers';
 import Grid from '@material-ui/core/Grid';
-import DateFnsUtils from '@date-io/date-fns';
+// import DateFnsUtils from '@date-io/date-fns';
 import TextField from '@material-ui/core/TextField';
 
 
@@ -54,7 +54,7 @@ export default function SimpleSelect() {
 
     return (
         <div>
-            <MuiPickersUtilsProvider utils={DateFnsUtils}>
+         
                 <Grid container justify="space-around">
                     <KeyboardDatePicker
                         margin="normal"
@@ -79,7 +79,6 @@ export default function SimpleSelect() {
                         }}
                     />
                 </Grid>
-            </MuiPickersUtilsProvider>
             <FormControl variant="outlined" className={classes.formControl}>
                 <InputLabel id="demo-simple-select-outlined-label">Location</InputLabel>
                 <Select
@@ -87,7 +86,7 @@ export default function SimpleSelect() {
                     id="demo-simple-select-outlined"
                     value={age}
                     onChange={handleChange}
-                    label="Age"
+                    label="Location"
                 >
                     <MenuItem value="">
                         <em>None</em>
@@ -104,7 +103,7 @@ export default function SimpleSelect() {
                     id="demo-simple-select-outlined"
                     value={age}
                     onChange={handleChange}
-                    label="Age"
+                    label="Pollutant"
                 >
                     <MenuItem value="">
                         <em>None</em>
