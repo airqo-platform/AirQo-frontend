@@ -6,7 +6,7 @@ const CustomDisplayChart = props => {
   return (
     <article className="canvas-container">
       {(function() {
-        console.log(props.chart_type)
+        
         switch (props.chart_type) {
           case 'line':
             return <Line 
