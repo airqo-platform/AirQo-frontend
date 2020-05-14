@@ -65,7 +65,7 @@ const Graphs = props => {
     startdate.setHours(0,0,0,0);
   
     let effectFilter ={ 
-      location: 'Civic Centre',
+      location: params.locationname,
       startDate: startdate,
       endDate:  new Date(),
       chartType:  'bar',
@@ -108,7 +108,7 @@ const Graphs = props => {
 
   const [myChartType, setMyChartType] = useState({value: ''});
   const [myPollutant, setMyPollutant] = useState({value: ''});
-  const [myLocation, setMyLocation] = useState({value:''})
+  const [myLocation, setMyLocation] = useState(params.locationname)
   
 
   var startDate = new Date();
@@ -667,6 +667,32 @@ const Graphs = props => {
           xl={8}
           xs={12}
           >
+           <Card
+            {...rest}
+            className={clsx(classes.root, className)}
+          >
+            <CardContent>
+              <Grid
+                container
+                justify="space-between"
+              >
+              <Grid item>
+                <Typography
+                  className={classes.title}
+                  color="textSecondary"
+                  gutterBottom
+                  variant="body2"
+                >
+                  {params.locationname}
+                </Typography>
+              </Grid>           
+              <Grid
+              item
+              lg={12}
+              sm={12}
+              xl={12}
+              xs={12}
+              >
 
            <div>
           {loading ? <LoadingSpinner /> : 
@@ -718,6 +744,10 @@ const Graphs = props => {
             }}/>}
           </div>
           </Grid>
+          </Grid>
+          </CardContent>
+    </Card>
+        </Grid>
 
           <Grid
           item
@@ -896,6 +926,32 @@ else if (myChartType=='bar'){
         xl={8}
         xs={12}
         >
+         <Card
+            {...rest}
+            className={clsx(classes.root, className)}
+          >
+            <CardContent>
+              <Grid
+                container
+                justify="space-between"
+              >
+              <Grid item>
+                <Typography
+                  className={classes.title}
+                  color="textSecondary"
+                  gutterBottom
+                  variant="body2"
+                >
+                  {params.locationname}
+                </Typography>
+              </Grid>           
+              <Grid
+              item
+              lg={12}
+              sm={12}
+              xl={12}
+              xs={12}
+              >
         <div>
         {loading ? <LoadingSpinner /> : 
         <Bar
@@ -963,7 +1019,10 @@ else if (myChartType=='bar'){
           }}/>}
         </div>
         </Grid>
-
+          </Grid>
+          </CardContent>
+    </Card>
+        </Grid>
         <Grid
         item
         lg={4}
@@ -1142,6 +1201,32 @@ else if (myChartType=='bar'){
           xl={8}
           xs={12}
           >
+          <Card
+            {...rest}
+            className={clsx(classes.root, className)}
+          >
+            <CardContent>
+              <Grid
+                container
+                justify="space-between"
+              >
+              <Grid item>
+                <Typography
+                  className={classes.title}
+                  color="textSecondary"
+                  gutterBottom
+                  variant="body2"
+                >
+                  {params.locationname}
+                </Typography>
+              </Grid>           
+              <Grid
+              item
+              lg={12}
+              sm={12}
+              xl={12}
+              xs={12}
+              >
          
         <div>
         <Bar
@@ -1162,7 +1247,7 @@ else if (myChartType=='bar'){
         options={{
           title:{
             display:true,
-            text: 'Bar graph showing PM 2.5 data at KCCA',
+            text: 'Bar graph showing PM 2.5 data at '+ myLocation,
             fontColor: 'black',
             fontWeight: 5,
             fontSize: 20
@@ -1207,8 +1292,11 @@ else if (myChartType=='bar'){
           responsive: true
           }}/>
         </div>
+        </Grid>
           </Grid>
-
+          </CardContent>
+    </Card>
+        </Grid>
           <Grid
           item
           lg={4}
