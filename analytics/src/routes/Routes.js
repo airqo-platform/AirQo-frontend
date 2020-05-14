@@ -24,6 +24,7 @@ import {
 import Landing from "../views/layouts/Landing";
 import ForgotPassword from "../views/components/Users/ForgotPassword";
 import ResetPassword from "../views/components/Users/ResetPassword";
+import Defaults from "../views/components/Users/SetDefaults";
 import Login from "../views/components/Users/Login";
 // import ListUsers from "../views/components/Users/ListUserComponent";
 
@@ -80,6 +81,12 @@ const Routes = () => {
         exact
         layout={MainLayout}
         path="/settings"
+      />
+       <PrivateRoute
+        component={Defaults}
+        exact
+        layout={MainLayout}
+        path="/defaults"
       />
       <PrivateRoute
         component={NotFoundView}

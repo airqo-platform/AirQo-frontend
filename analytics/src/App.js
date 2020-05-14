@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import "./App.css";
 import {
-    BrowserRouter as Router,
+    Router,
     Route,
     Switch,
     Redirect,
@@ -60,46 +60,22 @@ if (localStorage.jwtToken) {
 }
 
 class App extends Component {
+    constructor(){
+super()
 
-    constructor(props){
-super(props)
-this.idleTimer=null;
-this.onAction = this._onAction.bind(this);
-this.onActive = this._onActive.bind(this);
-this.onIdle = this._onIdle.bind(this);
      }
 
-    render() {
-        return (
-            <Provider store={store}>
-                <ThemeProvider theme={theme}>
-                    <Router history={browserHistory}>
-                        <div className="App">
-                        <IdleTimer
-          ref={ref => { this.idleTimer = ref }}
-          element={document}
-          onActive={this.onActive}
-          onIdle={this.onIdle}
-          onAction={this.onAction}
-          debounce={250}
-          timeout={1000 * 60 * 15} />
-                            <Routes />
-                        </div>
-                    </Router>
-                </ThemeProvider>
-            </Provider>
-        );
-    }
+idleTimer=null;
 
-_inAction(e) {
+_inAction=(e)=> {
     console.log('user did something', e);
 }
-_onActive(e){
+_onActive=(e)=>{
     console.log('user is active', e)
     console.log('time remaining', this.idleTimer.getRemainingTime());
 }
 
-_onIdle(e){
+_onIdle=(e)=>{
     console.log('user is idle', e)
     console.log('last active', this.idleTimer.getLastActiveTime());
     if (this.idleTimer.getRemainingTime == 0){
@@ -109,6 +85,22 @@ _onIdle(e){
      * basing on the value the remaining time, I can get to logout the individual like a real boss
      */
 }
+    render() {
+        return (
+                <ThemeProvider theme={theme}>
+                    <Router history={browserHistory}>
+                        <IdleTimer
+          ref={ref => { this.idleTimer = ref }}
+          element={document}
+          onActive={this._onActive}
+          onIdle={this._onIdle}
+          onAction={this._inAction}
+          debounce={250}
+          timeout={1000 * 60 * 15} />
+                    </Router>
+                </ThemeProvider>
+        );
+    }
 }
 
 //let me first map the states to the props
