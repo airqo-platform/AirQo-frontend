@@ -62,40 +62,48 @@ const typeOptions = [
   { value: 'PDF', label: 'PDF'},
 ];
 
+const initialState = {
+  api_data: {},
+  polygons: [],
+  markers: [[0.32, 32.598]],
+  // gets the shapefile format to save (polygon drawn within the planning space)
+  plan: {},
+  // State: locate form
+  numberOfDevices: 0,
+  mustHaveCoord: "",
+  // activates/deactivates locate submit button accordingly
+  btnSubmit: false,
+  // activates/deactivates clear planning space button accordingly
+  btnClear:false,
+
+  //for conditional rendering of clear button
+  clear:true,      
+
+  //newly added - passed to the model endpoint
+  geoJSONDATA: "",
+  // added from locateSave -- helps with saving data and dialog boxes
+  open: false,
+  openSave: false,
+  confirmDialog: false,
+  savedPlan: [], // stores previously saved data
+  space_name: "",
+
+  // states for opening and updating previously saved data
+  selected_name: "",
+  selected_plan: {},
+  isPlanSelected: false,
+  isUpdateCancel: false,
+  isAlreadyOpened: 0, // prevents the map from loading more than once on every state change
+
+  // handle all the popup msg
+  confirmDialogMsg: "",
+  selectedOption: {value:' ',label:''},
+}
+
 class Maps extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {
-      api_data: {},
-      polygons: [],
-      markers: [[0.32, 32.598]],
-      // gets the shapefile format to save (polygon drawn within the planning space)
-      plan: {},
-      // State: locate form
-      numberOfDevices: 0,
-      mustHaveCoord: "",
-      // activates/deactivates locate submit button accordingly
-      btnSubmit: false,
-      //newly added - passed to the model endpoint
-      geoJSONDATA: "",
-      // added from locateSave -- helps with saving data and dialog boxes
-      open: false,
-      openSave: false,
-      confirmDialog: false,
-      savedPlan: [], // stores previously saved data
-      space_name: "",
-
-      // states for opening and updating previously saved data
-      selected_name: "",
-      selected_plan: {},
-      isPlanSelected: false,
-      isUpdateCancel: false,
-      isAlreadyOpened: 0, // prevents the map from loading more than once on every state change
-
-      // handle all the popup msg
-      confirmDialogMsg: "",
-      selectedOption: {value:' ',label:''},
-    };
+    this.state = initialState;
 
     //from locate save
     this.changeHandler = this.changeHandler.bind(this);
@@ -106,6 +114,7 @@ class Maps extends React.Component {
     this.handleSaveClose = this.handleSaveClose.bind(this);
     this.handleConfirmClose = this.handleConfirmClose.bind(this);
     this.handleDownloadChange = this.handleDownloadChange.bind(this);
+    this.handleClear = this.handleClear.bind(this);
 
     // select previously saved data, update, delete
     this.onSelectPrevSpace = this.onSelectPrevSpace.bind(this);
@@ -174,6 +183,14 @@ class Maps extends React.Component {
   handleDownloadChange = (selected) => {
     this.setState( {selectedOption:selected});
     //console.log(`Option selected:`, selected)
+  }
+
+  handleClear=()=>{
+    this.setState(initialState);
+    let leafletFG = this._editableFG.leafletElement;
+    leafletFG.eachLayer(function (layer) { layer.remove(); 
+    })
+
   }
 
   // Handles saved space confirmation feedback
@@ -326,6 +343,7 @@ class Maps extends React.Component {
 
           this.setState({
             polygons: myPolygons,
+            btnClear:true,
           });
         {/*download files*/}
          let toCsv =[]
@@ -356,7 +374,7 @@ class Maps extends React.Component {
       });
     }
     else{
-      var doc = new jsPDF('p', 'pt','a4');
+    var doc = new jsPDF('p', 'pt','a4');
      var rows = [];  
       var header = function (data) {
                         doc.setFontSize(18);
@@ -411,17 +429,21 @@ class Maps extends React.Component {
       console.log("_onCreated: marker created", e);
     }
     if (type === "polygon") {
-      // here you got the polygon points
-      ///const points = layer._latlngs;
-      console.log(JSON.stringify(layer.toGeoJSON()));
-      //console.log(JSON.stringify(layer.toGeoJSON()));
-      this.setState({ plan: layer.toGeoJSON() });
+          // here you got the polygon points
+          ///const points = layer._latlngs;
+          console.log(JSON.stringify(layer.toGeoJSON()));
+          //console.log(JSON.stringify(layer.toGeoJSON()));
+          this.setState({ plan: layer.toGeoJSON() });
+          //newly added
+          this.setState({ geoJSONDATA: JSON.stringify(layer.toGeoJSON()) });
+          if (this.state.clear){
+            this.setState({ geoJSONDATA: "" }); 
+          }
+      }
+      if (this.state.clear){
+        this.setState({ geoJSONDATA: "" }); 
+      }
 
-      //newly added
-      this.setState({ geoJSONDATA: JSON.stringify(layer.toGeoJSON()) });
-
-      //the code here has been moved to submitHandler
-    }
   };
 
   render() {
@@ -502,6 +524,17 @@ class Maps extends React.Component {
                 size="small"
               >
                 Submit
+              </Button>
+              <Button
+                type="button"
+                name="clear"
+                disabled={this.state.btnClear === false ? "true" : ""}
+                onClick={this.handleClear}
+                color="secondary"
+                variant="contained"
+                size="small"
+              >
+                Clear Space
               </Button>
             </CardActions>
           </form>
@@ -665,7 +698,7 @@ class Maps extends React.Component {
           <FullscreenControl position="topright" />
 
           <LayerGroup>
-            }
+            
             {this.state.polygons.map((location) => (
               <Marker
                 key={location.parish}
@@ -717,7 +750,8 @@ class Maps extends React.Component {
               this._onFeatureGroupReady(reactFGref);
             }}
           >
-            <EditControl
+            <EditControl 
+              ref="edit"
               position="topright"
               onEdited={this._onEdited}
               onCreated={this._onCreated}
@@ -777,6 +811,8 @@ class Maps extends React.Component {
           });
           let leafletFG = this._editableFG.leafletElement;
           leafletGeoJSON.eachLayer((layer) => leafletFG.addLayer(layer));
+
+
         } catch (error) {
           console.log(
             "An error occured and some polygons may not have been shown!"
