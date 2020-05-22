@@ -11,6 +11,14 @@ import axios from 'axios';
 import { useParams } from 'react-router-dom';
 import LoadingSpinner from './loadingSpinner';
 import 'chartjs-plugin-annotation';
+import html2canvas from "html2canvas";
+import { Done } from '@material-ui/icons';
+//import * as jsPDF from 'jspdf';
+//import domtoimage from 'dom-to-image';
+
+
+
+const pdfConverter = require("jspdf");
 
 
 const useStyles = makeStyles(theme => ({
@@ -161,6 +169,7 @@ const Graphs = props => {
   ];
 
   const [selectedChart, setSelectedChartType] =  useState({value: 'line' });
+  const [downloadBtn, setDownloadBtn] = useState(false);
 
   const handleChartTypeChange = selectedChartType => {
     setSelectedChartType(selectedChartType);
@@ -293,6 +302,63 @@ const Graphs = props => {
 
   }
 
+  /*let exportPdf =() => {
+    const div = document.getElementById('pie');
+    const options = { background: 'white', height: 845, width: 595 };
+    domtoimage.toPng(div, options).then((dataUrl) => {
+        //Initialize JSPDF
+        const doc = new jsPDF('p', 'mm', 'a4');
+        //Add image Url to PDF
+        doc.addImage(dataUrl, 'PNG', 0, 0, 210, 340);
+        doc.save('pdfDocument.pdf');
+    });
+}*/
+
+  let handleDownloadPie = () => {
+    //var url_base64jp = document.getElementById("mychart").toDataURL("image/jpg");
+    //let input = window.document.getElementById("pie");
+    let input = window.document.getElementsByClassName("chart")[0];
+    html2canvas(input).then(canvas => {
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new pdfConverter("l", "pt");
+      pdf.addImage(imgData, "JPEG", 0, 0, canvas.width, canvas.height);
+      //pdf.addImage(imgData, "png", input.offsetLeft, input.offsetTop, input.clientWidth, input.clientHeight);
+      //pdf.addImage(imgData, "png", 0, 0, input.clientWidth, input.clientHeight);
+      pdf.save("chart.pdf");
+      //setDownloadBtn(false);
+});
+  }
+  
+  let done = () => {
+    //pass
+  }
+
+
+
+
+  let handleDownload = (e) => {
+    const but = e.target;
+    but.style.display = "none";
+    let input = window.document.getElementsByClassName("Pie")[0];
+    //let input = document.getElementById("mychart");
+
+    html2canvas(input).then(canvas => {
+      const img = canvas.toDataURL("image/png");
+      const pdf = new pdfConverter("l", "pt");
+      pdf.addImage(
+        img,
+        "png",
+        input.offsetLeft,
+        input.offsetTop,
+        input.clientWidth,
+        input.clientHeight
+      );
+      pdf.save("chart.pdf");
+      but.style.display = "block";
+    });
+
+  }
+
   let  handleSubmit = (e) => {
     e.preventDefault();
     setLoading(true);
@@ -327,7 +393,8 @@ const Graphs = props => {
           myData.forEach(element => {
             myValues.push(element);
           });
-          setPollutionValues(myValues)
+          setPollutionValues(myValues);
+          setDownloadBtn(true);
         }
 
         else if (typeof myData[0]== 'object'){
@@ -356,7 +423,8 @@ const Graphs = props => {
           });
           setTimes(myTimes);
           setPollutionValues(myValues);
-          setBackgroundColors(myColors)
+          setBackgroundColors(myColors);
+          setDownloadBtn(true);
         }
         else{
           //pass
@@ -409,9 +477,10 @@ const Graphs = props => {
               xl={12}
               xs={12}
               >
-              <div>
-              {loading ? <LoadingSpinner /> : 
+             <div className="chart">
               <Line
+              id = "line"
+              height={200}
               data= {
                   {
                   labels: times,
@@ -431,6 +500,10 @@ const Graphs = props => {
               }
               }
               options={{
+                //onAnimationComplete: handleDownloadPie,
+                animation:{
+                  onComplete : done
+                },
                 title:{
                   display:true,
                   text: 'Line graph showing '+myPollutant+' data in '+myLocation,
@@ -481,7 +554,7 @@ const Graphs = props => {
                 maintainAspectRatio: true,
                 responsive: true
                 }}
-              />}
+              /> 
               </div>
               </Grid>
           </Grid>
@@ -635,7 +708,17 @@ const Graphs = props => {
           variant="contained" 
           color="primary"              
           type="submit"
-        > Generate Graph
+        > Submit
+        </Button>
+        <Button 
+          variant="contained" 
+          color="primary"              
+          type="button"
+          disabled={downloadBtn === false ? "true" : ""}
+          //onclick = {handleDownload}
+          //onClick={(e) => handleDownload(e)}
+          onClick={() => handleDownloadPie()}
+        > Download
         </Button>
       </div>       
       </form>
@@ -694,9 +777,10 @@ const Graphs = props => {
               xs={12}
               >
 
-           <div>
-          {loading ? <LoadingSpinner /> : 
+         <div className="chart">
           <Pie
+          id="pie"
+          height={200}
           data= {
             {
               labels: ['Good', 'Moderate', 'UH4SG', 'Unhealthy', 'Very Unhealthy', 'Hazardous', 'Other'],
@@ -714,6 +798,11 @@ const Graphs = props => {
           options={
             
             {
+              bezierCurve : false,
+              //onAnimationComplete: handleDownloadPie,
+            animation:{
+                onComplete : done
+              },
             title:{
               display:true,
               text: 'Pie Chart showing '+ myPollutant+ ' data in '+myLocation,
@@ -741,7 +830,7 @@ const Graphs = props => {
             
             maintainAspectRatio: true,
             responsive: true
-            }}/>}
+            }}/>
           </div>
           </Grid>
           </Grid>
@@ -894,7 +983,19 @@ const Graphs = props => {
     variant="contained" 
     color="primary"              
     type="submit"
-  > Generate Graph
+  > Submit
+  </Button>
+  <Button 
+    variant="contained" 
+    color="primary"              
+    type="button"
+    disabled={downloadBtn === false ? "true" : ""}
+    //onClick={(e) => handleDownload(e)}
+    onClick={() => handleDownloadPie()}
+    //onClick = {handleDownloadPie()}
+    //onClick={() => handleDownload()}
+    //onClick={(e) => this.handleDownload(e)}
+    > Download
   </Button>
 </div>       
 </form>
@@ -952,9 +1053,10 @@ else if (myChartType=='bar'){
               xl={12}
               xs={12}
               >
-        <div>
-        {loading ? <LoadingSpinner /> : 
+        <div className="chart">
         <Bar
+        height={200}
+        id = "bar"
         data= {
             {
             labels: times,
@@ -970,6 +1072,10 @@ else if (myChartType=='bar'){
          }
         }
         options={{
+          //onAnimationComplete: handleDownloadPie,
+          animation:{
+            onComplete : done
+          },
           title:{
             display:true,
             text: 'Bar graph showing '+myPollutant+ ' data in '+myLocation,
@@ -1016,7 +1122,7 @@ else if (myChartType=='bar'){
         
           maintainAspectRatio: true,
           responsive: true
-          }}/>}
+          }}/>
         </div>
         </Grid>
           </Grid>
@@ -1168,7 +1274,17 @@ else if (myChartType=='bar'){
         variant="contained" 
         color="primary"              
         type="submit"
-        > Generate Graph
+        > Submit
+        </Button>
+        <Button 
+          variant="contained" 
+          color="primary"              
+          type="button"
+          disabled={downloadBtn === false ? "true" : ""}
+          //onclick = {handleDownload}
+          //onClick={(e) => handleDownload(e)}
+          onClick={() => handleDownloadPie()}
+        > Download
         </Button>
         </div>       
         </form>
@@ -1228,8 +1344,10 @@ else if (myChartType=='bar'){
               xs={12}
               >
          
-        <div>
+        <div className="chart">
         <Bar
+        height={200}
+        id ="default"
         data= {
             {
             labels: times,
@@ -1245,6 +1363,10 @@ else if (myChartType=='bar'){
          }
         }
         options={{
+          //onAnimationComplete: handleDownloadPie,
+          animation:{
+            onComplete : done
+          },
           title:{
             display:true,
             text: 'Bar graph showing PM 2.5 data at '+ myLocation,
@@ -1442,7 +1564,17 @@ else if (myChartType=='bar'){
     variant="contained" 
     color="primary"              
     type="submit"
-  > Generate Graph
+  > Submit
+  </Button>
+  <Button 
+    variant="contained" 
+    color="primary"              
+    type="button"
+    disabled={downloadBtn === false ? "true" : ""}
+    //onclick = {handleDownload}
+    //onClick={(e) => handleDownload(e)}
+    onClick={() => handleDownloadPie()}
+    > Download
   </Button>
 </div>       
 </form>

@@ -54,7 +54,7 @@ const ExceedancesChart = props => {
   const { className, chartContainer, ...rest } = props;
   
   const classes = useStyles();
-  const [loading, setLoading] = useState(false);
+ // const [loading, setLoading] = useState(false);
   const [open, setOpen] = React.useState(false);
   //const [scroll, setScroll] = React.useState('paper');
 
@@ -69,10 +69,10 @@ const ExceedancesChart = props => {
   useEffect(() => {
     let effectFilter ={ 
       pollutant: 'PM 2.5',
-      standard: 'WHO'
+      standard: 'AQI'
     }
     console.log(JSON.stringify(effectFilter));
-    setLoading(true);
+    //setLoading(true);
 
     axios.post(
       'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/exceedances',
@@ -83,22 +83,35 @@ const ExceedancesChart = props => {
       .then(
         res=>{
           const myData = res.data;
-          setLoading(false);
+          //setLoading(false);
           console.log(myData);
+          setMyStandard(standard.value);
+          setMyPollutant(pollutant.value);
           let myValues = [];
+          let myUH4SGValues = [];
+          let myUnhealthyValues = [];
+          let myVeryUnhealthyValues = [];
+          let myHazardousValues = [];
           let myLocations = [];
+          
           myData.forEach(element => {
-            myValues.push(element['exceedances']);
             myLocations.push(element['location']);
+            myUH4SGValues.push(element['UH4SG']);
+            myUnhealthyValues.push(element['Unhealthy']);
+            myVeryUnhealthyValues.push(element['VeryUnhealthy']);
+            myHazardousValues.push(element['Hazardous']);
           });
-          setExceedanceValues(myValues);
-          setLocations(myLocations);
+            setLocations(myLocations);
+            setUH4SGValues(myUH4SGValues);
+            setUnhealthyValues(myUnhealthyValues);
+            setVeryUnhealthyValues(myVeryUnhealthyValues);
+            setHazardousValues(myHazardousValues);
         }).catch(
         console.log
       )
   },[]);
 
-  const [customChartTitle, setCustomChartTitle] = useState('PM 2.5 Exceedances Over the Past 28 Days Based on WHO');
+  const [customChartTitle, setCustomChartTitle] = useState('PM 2.5 Exceedances Over the Past 28 Days Based on AQI');
   const [exceedancesData, setExceedancesData] = useState([]);
   const[myStandard, setMyStandard] = useState({value: ''});
   const[myPollutant, setMyPollutant] = useState({value: ''});
@@ -147,7 +160,7 @@ const ExceedancesChart = props => {
 
   function generateExceedanceData(standard){
     var datasets;
-    if (standard== 'WHO'){
+    if (standard=== 'WHO'){
       datasets =[
         {
           label:'Exceedances',
@@ -195,7 +208,7 @@ const ExceedancesChart = props => {
 
   let  handleSubmit = (e) => {
       e.preventDefault();
-      setLoading(true);
+      //setLoading(true);
   
       let filter ={ 
         pollutant: pollutant.value,
@@ -215,7 +228,7 @@ const ExceedancesChart = props => {
         res=>{
           const myData = res.data;
           console.log(myData);
-          setLoading(false);
+          //setLoading(false);
           setMyStandard(standard.value);
           setMyPollutant(pollutant.value);
           let myValues = [];
@@ -224,26 +237,33 @@ const ExceedancesChart = props => {
           let myVeryUnhealthyValues = [];
           let myHazardousValues = [];
           let myLocations = [];
-          myData.forEach(element => {
-            myLocations.push(element['location']);
-            if (standard.value=='AQI'){
+          //setLocations(myLocations);
+          //myData.forEach(element => {
+            //myLocations.push(element['location']);
+          
+    
+          if (standard.value === 'AQI'){
+            myData.forEach(element => {
+              myLocations.push(element['location']);
               myUH4SGValues.push(element['UH4SG']);
               myUnhealthyValues.push(element['Unhealthy']);
-              myVeryUnhealthyValues.push(element['VeryUnhealthy'])
-              myHazardousValues.push(element['Hazardous'])
-              
+              myVeryUnhealthyValues.push(element['VeryUnhealthy']);
+              myHazardousValues.push(element['Hazardous']);
+            });
+              setLocations(myLocations);
+              setUH4SGValues(myUH4SGValues);
+              setUnhealthyValues(myUnhealthyValues);
+              setVeryUnhealthyValues(myVeryUnhealthyValues);
+              setHazardousValues(myHazardousValues);
             }
-            else{
+          else{
+            myData.forEach(element => {
+              myLocations.push(element['location']);
               myValues.push(element['exceedances']);
-            }
-          });
-          
-          setLocations(myLocations);
-          setExceedanceValues(myValues);
-          setUH4SGValues(myUH4SGValues);
-          setUnhealthyValues(myUnhealthyValues);
-          setVeryUnhealthyValues(myVeryUnhealthyValues);
-          setHazardousValues(myHazardousValues);
+            });
+            setLocations(myLocations);
+            setExceedanceValues(myValues);
+          }
           setCustomChartTitle(pollutant.value+ ' Exceedances Over the Past 28 Days Based on '+standard.value)
   
       }).catch(
@@ -287,7 +307,7 @@ const ExceedancesChart = props => {
         data= {
             {
             labels: locations,           
-            datasets: generateExceedanceData(standard)
+            datasets: generateExceedanceData(myStandard)
          }
         }
         options={{
@@ -338,7 +358,11 @@ const ExceedancesChart = props => {
               stacked:true,
               scaleLabel: {
                 display: true,
-                labelString: 'Locations',                
+                labelString: 'Locations', 
+                fontWeight:4,
+                fontColor: 'black',
+                fontSize:15,
+                padding: 10               
                                
               },
               ticks: {
