@@ -1,3 +1,4 @@
+/* eslint-disable */
 import React, { Component } from 'react';
 import "./App.css";
 import {
@@ -88,7 +89,7 @@ _onIdle=(e)=>{
     render() {
         return (
                 <ThemeProvider theme={theme}>
-                    <Router history={browserHistory}>
+                    
                         <IdleTimer
           ref={ref => { this.idleTimer = ref }}
           element={document}
@@ -97,7 +98,12 @@ _onIdle=(e)=>{
           onAction={this._inAction}
           debounce={250}
           timeout={1000 * 60 * 15} />
-                    </Router>
+          <Router history={browserHistory}>
+              <div className="App">
+                  <Routes/>
+              </div>
+          </Router>
+          
                 </ThemeProvider>
         );
     }
