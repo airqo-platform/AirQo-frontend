@@ -22,7 +22,6 @@ import {
     DELETE_USER_REQUEST,
     DELETE_USER_SUCCESS,
     DELETE_USER_FAILED,
-    TOGGLE_REGISTER_USER,
     UPDATE_PASSWORD_SUCCESS,
     UPDATE_PASSWORD_FAILED,
     HIDE_CONFIRM_DIALOG,
@@ -32,28 +31,50 @@ import {
     SET_DEFAULTS_REQUEST,
     SET_DEFAULTS_SUCCESS,
     SET_DEFAULTS_FAILED,
-    REGISTRATION_SUCCESS
+    REGISTRATION_SUCCESS,
+    SHOW_REGISTER_USER,
+    HIDE_REGISTER_USER
 } from "./types";
 import constants from "../../config/constants";
 
-//fetch users
+/***************************fetching users ********************************* */
 export const fetchUsers = () => {
+
     return (dispatch) => {
         dispatch(fetchUsersRequest());
-        //returns a promise
-        return axios
-            .get(constants.GET_USERS_URI)
-            .then(res => {
-                try {
-                    const { users, message } = res.data;
-                    dispatch(fetchUsersSuccess(users, message))
-                } catch (e) {
-                    console.log(e);
-                }
-            }).catch(error => {
-                dispatch(fetchUsersFailed(error));
-            })
-    }
+        // Returns a promise
+        console.log("we are now fetching users using the action for fetching ");
+        return fetch(constants.GET_USERS_URI).then((response) => {
+            if (response.ok) {
+                response.json().then((data) => {
+                    dispatch(fetchUsersSuccess(data.users, data.message));
+                });
+            } else {
+                response.json().then((error) => {
+                    dispatch(fetchUsersFailed(error));
+                });
+            }
+        });
+    };
+
+    // return (dispatch) => {
+    //     dispatch(fetchUsersRequest());
+    //     //returns a promise
+    //     return axios
+    //         .get(constants.GET_USERS_URI)
+    //         .then(res => {
+    //             try {
+    //                 const { users, message } = res.data;
+    //                 console.log('sending these users: ');
+    //                 console.log(users);
+    //                 dispatch(fetchUsersSuccess(users, message))
+    //             } catch (e) {
+    //                 console.log(e);
+    //             }
+    //         }).catch(error => {
+    //             dispatch(fetchUsersFailed(error));
+    //         })
+    // }
 }
 
 export const fetchUsersRequest = () => {
@@ -63,6 +84,8 @@ export const fetchUsersRequest = () => {
 }
 
 export const fetchUsersSuccess = (users, message) => {
+    console.log("these are the users we are sending: ");
+    console.dir(users);
     return {
         type: GET_USERS_SUCCESS,
         users: users,
@@ -78,6 +101,8 @@ export const fetchUsersFailed = (error) => {
     }
 }
 
+
+/********************* Add a new user ***********************************/
 export const addNewUser = (user) => {
     return (dispatch) => {
         dispatch(addNewUserRequest(user));
@@ -118,6 +143,22 @@ export const addNewUserRequestFailed = (error) => {
         error
     }
 }
+
+
+export const showAddDialog = userToAdd => {
+    return {
+        type: SHOW_REGISTER_USER,
+        user: userToAdd
+    }
+}
+
+export const hideAddDialog = () => {
+    return {
+        type: HIDE_REGISTER_USER
+    }
+}
+
+/********************* Edit a user ***********************************/
 
 export const showEditDialog = userToEdit => {
     return {
@@ -177,6 +218,9 @@ export const editUserFailed = (error) => {
     };
 };
 
+
+/********************* Delete a user ***********************************/
+
 export const deleteUserDialog = (userToDelete) => {
     return {
         type: SHOW_DELETE_DIALOG,
@@ -231,13 +275,8 @@ export const deleteUserFailed = (error) => {
     };
 };
 
-export const toggleAddUser = () => {
-    return {
-        type: TOGGLE_REGISTER_USER
-    }
-}
 
-// Register User
+/************************* Register a new User  *****************************/
 export const registerUser = (userData, history) => (dispatch) => {
     axios
         .post(constants.REGISTER_CANDIDATE_URI, userData)
@@ -268,7 +307,7 @@ export const registrationSuccess = (data) => {
 }
 
 
-// Login - get user token
+/************************* Login a new User  *********************************/
 export const loginUser = (userData) => (dispatch) => {
     console.log("the login URL " + constants.LOGIN_USER_URI);
     axios
@@ -400,15 +439,15 @@ export const logoutUser = () => (dispatch) => {
     dispatch(setCurrentUser({}));
 };
 
-//confirming users
-export const confirmUserModal = (userToConfirm, message) => {
+/*********************************** confirming users************************************/
+export const confirmUserDialog = (userToConfirm, message) => {
     return {
         type: SHOW_CONFIRM_DIALOG,
         user: userToConfirm
     }
 }
 
-export const hideConfirmModal = () => {
+export const hideConfirmDialog = () => {
     return {
         type: HIDE_CONFIRM_DIALOG,
     };
@@ -454,7 +493,8 @@ export const confirmUserFailed = (error) => {
     }
 }
 
-//setting defaults
+
+//*********************************** setting defaults ************************************/
 export const setDefaults = (values) => (dispatch) => {
     dispatch(setDefaultsRequest(values));
     return axios.post("http://localhost:3000/api/v1/users/", values)

@@ -1,12 +1,18 @@
+/* eslint-disable */
 import { connect } from "react-redux";
 import * as userActions from "../../../../redux/Join/actions";
-import Users from "../Users";
+import UserList from "../../../UserList/UserList";
+import UsersTable from "../../../UserList/components/UsersTable/UsersTable";
+import mockData from '../../../UserList/data';
+import UsersToolBar from "../../../UserList/components/UsersToolbar/UsersToolbar"
 
 // map state from store to props
 const mapStateToProps = (state, ownProps) => {
     return {
         //you can now say this.props.mappedAppSate
-        mappeduserState: state.userState
+        mappeduserState: state.userState,
+        auth: state.auth,
+        errors: state.errors,
     };
 };
 
@@ -26,8 +32,25 @@ const mapDispatchToProps = dispatch => {
 
         mappedShowConfirmDialog: (userToConfirm) => dispatch(userActions.confirmUserDialog(userToConfirm)),
         mappedHideConfirmDialog: () => dispatch(userActions.hideConfirmDialog()),
-        mappedApproveConfirmUser: (userToConfirm) => dispatch(userActions.confirmUser(userToConfirm))
+        mappedApproveConfirmUser: (userToConfirm) => dispatch(userActions.confirmUser(userToConfirm)),
+
+        mappedAddUser: userToAdd => dispatch(userActions.addNewUser(userToAdd)),
+        mappedShowAddDialog: () => dispatch(userActions.showAddDialog()),
+        mappedHideAddDialog: () => dispatch(userActions.hideAddDialog())
     };
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(Users);
+const containerCreator = connect(mapStateToProps, mapDispatchToProps);
+
+// const components = [UserList, UsersTable];
+
+const connectedUserList = containerCreator(UserList);
+
+const connectedUsersTable = containerCreator(UsersTable);
+
+const connectedUsersToolbar = containerCreator(UsersToolBar);
+
+export { connectedUserList, connectedUsersTable, connectedUsersToolbar };
+// export default containerCreator(UserList);
+
+// export default connect(mapStateToProps, mapDispatchToProps)(UserList)

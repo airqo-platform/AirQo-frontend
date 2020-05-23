@@ -1,3 +1,4 @@
+/* eslint-disable */
 import {
     GET_USERS_REQUEST,
     GET_USERS_SUCCESS,
@@ -42,13 +43,15 @@ const initialState = {
     newUser: null,
     showAddUser: false,
     userToConfirm: null,
-    showConfirmModal: null,
+    showConfirmDialog: null,
     userToDefault: null,
-    userDefaults: null
+    userDefaults: {},
+    showAddUser: false,
 };
 
 export default function(state = initialState, action) {
     switch (action.type) {
+        /************************* fetch users ****************************************** */
         case GET_USERS_REQUEST:
             return {
                 ...state,
@@ -88,6 +91,7 @@ export default function(state = initialState, action) {
                 showEditDialog: false,
                 userToEdit: null
             };
+            /************************* Add/register user ****************************************** */
         case REGISTER_USER_REQUEST:
             return {
                 ...state,
@@ -100,7 +104,8 @@ export default function(state = initialState, action) {
                 userToDelete: null,
                 showEditDialog: false,
                 userToEdit: null,
-                newUser: action.user
+                newUser: action.user,
+
             };
         case REGISTER_USER_FAILED:
             return {
@@ -130,6 +135,7 @@ export default function(state = initialState, action) {
                 userToEdit: null,
                 newUser: action.user
             };
+            /************************* edit user ****************************************** */
         case SHOW_EDIT_DIALOG:
             return {
                 ...state,
@@ -211,6 +217,7 @@ export default function(state = initialState, action) {
                 userToEdit: action.userToEdit,
                 newUser: null
             };
+            /************************* delete user ****************************************** */
         case SHOW_DELETE_DIALOG:
             return {
                 ...state,
@@ -294,7 +301,7 @@ export default function(state = initialState, action) {
                 showAddUser: !state.showAddUser
             };
 
-            //confirm
+            /************************* confirm user ****************************************** */
         case SHOW_CONFIRM_DIALOG:
             return {
                 ...state,
@@ -303,9 +310,9 @@ export default function(state = initialState, action) {
                 isFetching: false,
                 error: action.error,
                 successMsg: null,
-                showDeleteModal: true,
+                showDeleteDialog: false,
                 userToDelete: action.user,
-                showEditModal: false,
+                showEditDialog: false,
                 userToEdit: null,
                 newUser: null
             }
@@ -317,9 +324,9 @@ export default function(state = initialState, action) {
                 isFetching: false,
                 error: action.error,
                 successMsg: null,
-                showDeleteModal: false,
+                showDeleteDialog: false,
                 userToDelete: null,
-                showEditModal: false,
+                showEditDialog: false,
                 userToEdit: null,
                 newUser: null
             }
@@ -331,9 +338,9 @@ export default function(state = initialState, action) {
                 isFetching: false,
                 error: null,
                 successMsg: null,
-                showDeleteModal: true,
+                showDeleteDialog: true,
                 userToDelete: action.userToConfirm,
-                showEditModal: false,
+                showEditDialog: false,
                 userToEdit: null,
                 newUser: null
             }
@@ -345,9 +352,9 @@ export default function(state = initialState, action) {
                 isFetching: false,
                 error: null,
                 successMsg: action.message,
-                showDeleteModal: true,
+                showDeleteDialog: true,
                 userToDelete: action.userToConfirm,
-                showEditModal: false,
+                showEditDialog: false,
                 userToEdit: null,
                 newUser: null
             }
@@ -359,9 +366,9 @@ export default function(state = initialState, action) {
                 isFetching: false,
                 error: action.error,
                 successMsg: null,
-                showDeleteModal: true,
+                showDeleteDialog: true,
                 userToDelete: action.userToConfirm,
-                showEditModal: false,
+                showEditDialog: false,
                 userToEdit: null,
                 newUser: null
             }
@@ -381,9 +388,9 @@ export default function(state = initialState, action) {
                 isFetching: false,
                 error: null,
                 successMsg: action.message,
-                showDeleteModal: true,
+                showDeleteDialog: true,
                 userToDelete: action.userToConfirm,
-                showEditModal: false,
+                showEditDialog: false,
                 userToEdit: null,
                 newUser: null
             }
@@ -395,9 +402,9 @@ export default function(state = initialState, action) {
                 isFetching: false,
                 error: action.error,
                 successMsg: null,
-                showDeleteModal: true,
+                showDeleteDialog: true,
                 userToDelete: action.userToConfirm,
-                showEditModal: false,
+                showEditDialog: false,
                 userToEdit: null,
                 newUser: null
             }

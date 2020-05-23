@@ -1,3 +1,4 @@
+/* eslint-disable */
 import {
     SET_CURRENT_USER,
     USER_LOADING,
@@ -14,7 +15,7 @@ const initialState = {
     user: {},
     loading: false,
     passwordUpdated: false,
-    newUser: false
+    newUser: {}
 };
 
 export default function(state = initialState, action) {
