@@ -1,3 +1,4 @@
+/* eslint-disable */
 const devConfig = {
     VERIFY_TOKEN_URI: "http://localhost:3000/api/v1/users/reset",
     UPDATE_PWD_URI: "http://localhost:3000/api/v1/users/updatePasswordViaEmail",
