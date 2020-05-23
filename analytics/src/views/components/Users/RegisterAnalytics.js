@@ -1,3 +1,4 @@
+/* eslint-disable */
 import React, { Component } from "react";
 import { Link, withRouter } from "react-router-dom";
 import PropTypes from "prop-types";
@@ -190,10 +191,6 @@ class Register extends Component {
               <div className="input-field col s12">
                 <InputLabel
                   style={{ color: "#AAAAAA" }}
-                  id="desc"
-                  onChange={this.onChange}
-                  value={this.state.desc}
-                  error={errors.desc}
                 >
                   Brief Description
                 </InputLabel>
@@ -206,6 +203,10 @@ class Register extends Component {
                     multiline: true,
                     rows: 5,
                   }}
+                  id="desc"
+                  onChange={this.onChange}
+                  value={this.state.desc}
+                  error={errors.desc}
                 />
               </div>
               <div className="input-field col s12">
@@ -215,6 +216,7 @@ class Register extends Component {
                   renderInput={(params) => (
                     <TextField
                       {...params}
+                      id="country"
                       label="Country"
                       margin="normal"
                       onChange={this.onChange}

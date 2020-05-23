@@ -16,7 +16,7 @@ const mapStateToProps = state => {
 const mapDispatchToProps = dispatch => {
     return {
         //you can now say this.props.mappedAppActions
-        mappedToggleAddUser: () => dispatch(userActions.toggleAddUser()),
+        mappedshowAddDialog: () => dispatch(userActions.showAddDialog()),
         mappedAddUser: user => dispatch(userActions.addNewUser(user))
     };
 };
