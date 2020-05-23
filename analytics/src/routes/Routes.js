@@ -1,4 +1,5 @@
 import React from 'react';
+/* eslint-disable */
 import { IndexRoute } from 'react-router';
 import { Switch, Redirect, Route } from 'react-router-dom';
 
@@ -9,6 +10,7 @@ import Register from "../views/components/Users/RegisterAnalytics";
 
 // import Users from '../views/components/Users/Users';
 import AddUser from '../views/components/Users/containers/AddUser';
+import {connectedUserList} from '../views/components/Users/containers/Users';
 
 import {
   Dashboard as DashboardView,
@@ -44,12 +46,11 @@ const Routes = () => {
       />
 
       <PrivateRoute
-        component={UserListView}
+        component={connectedUserList}
         exact
         layout={MainLayout}
         path="/admin/users"
       />
-
 
       <PrivateRoute
         component={AddUser}
@@ -94,7 +95,6 @@ const Routes = () => {
         layout={MinimalLayout}
         path="/not-found"
       />
-
       <Route
         component={Landing}
         exact path="/landing"

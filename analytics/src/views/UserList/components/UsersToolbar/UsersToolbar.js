@@ -1,3 +1,4 @@
+/* eslint-disable */
 import React from 'react';
 import PropTypes from 'prop-types';
 import clsx from 'clsx';
@@ -33,11 +34,15 @@ const useStyles = makeStyles(theme => ({
   }
 }));
 
-
 /***func starts here....... */
 const UsersToolbar = props => {
-  const { className,mappedAppState, ...rest } = props;
-  const userState = mappedAppState;
+  const { className,mappeduserState, ...rest } = props;
+
+  console.log('the mapped state for UsersToolsbar is here:')
+  console.dir(mappeduserState);
+  
+  const userState = mappeduserState;
+  const newUser = userState.newUser;
 
   const [open, setOpen] = React.useState(false);
 
@@ -45,24 +50,30 @@ const UsersToolbar = props => {
 
   const handleClickOpen = () => {
     setOpen(true);
+    //I also need to trigger something here which enables updates the newUser state variable
+    //update the user action for opening the dialog box of adding a new user.
+    //I could now update the state using actions
+    props.mappedShowAddDialog();
   };
 
   const handleClose = () => {
     setOpen(false);
+    props.mappedHideAddDialog();
   };
 
   const onChange = (e) => {
     this.setState({ [e.target.id]: e.target.value });
   };
+
   const onSubmit = (e) =>{
     e.preventDefault();
     const userData = {
-      userName: userState.userName,
-      firstName: userState.firstName,
-      lastName: userState.lastName,
-      email: userState.email,
-      password: userState.password,
-      password2: userState.password2
+      userName: userState.newUser.userName,
+      firstName: userState.newUser.firstName,
+      lastName: userState.newUser.lastName,
+      email: userState.newUser.email,
+      password: userState.newUser.password,
+      password2: userState.newUser.password2
     };
     console.log(userData);
     props.mappedAddUser(userData);
@@ -84,15 +95,15 @@ const UsersToolbar = props => {
             Add User
       </Button>
           <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
+
             <DialogTitle id="form-dialog-title">Add User</DialogTitle>
             <DialogContent>
               <TextField
                 autoFocus
                 margin="dense"
                 id="email"
-                label="Email Address"
+                name="Email Address"
                 type="email"
-                value={userState.newUser.email}
                 onChange={onChange}
                 fullWidth
               />
@@ -100,9 +111,8 @@ const UsersToolbar = props => {
                 autoFocus
                 margin="dense"
                 id="userName"
-                label="userName"
+                name="userName"
                 type="text"
-                value={userState.newUser.userName}
                 onChange={onChange}
                 fullWidth
               />
@@ -110,9 +120,8 @@ const UsersToolbar = props => {
                 autoFocus
                 margin="dense"
                 id="firstName"
-                label="firstName"
+                name="firstName"
                 type="firstName"
-                value={userState.newUser.firstName}
                 onChange={onChange}
                 fullWidth
               />
@@ -120,9 +129,8 @@ const UsersToolbar = props => {
                 autoFocus
                 margin="dense"
                 id="lastName"
-                label="lastName"
+                name="lastName"
                 type="lastName"
-                value={userState.newUser.lastName}
                 onChange={onChange}
                 fullWidth
               />
@@ -130,9 +138,8 @@ const UsersToolbar = props => {
                 autoFocus
                 margin="dense"
                 id="password"
-                label="password"
+                name="password"
                 type="password"
-                value={userState.newUser.password}
                 onChange={onChange}
                 fullWidth
               />
@@ -140,9 +147,8 @@ const UsersToolbar = props => {
                 autoFocus
                 margin="dense"
                 id="password2"
-                label="password2"
+                name="password2"
                 type="password2"
-                value={userState.newUser.password2}
                 onChange={onChange}
                 fullWidth
               />

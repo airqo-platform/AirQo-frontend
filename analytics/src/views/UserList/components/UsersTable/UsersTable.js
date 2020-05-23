@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+/* eslint-disable */
+import React, { useState, useEffect } from 'react';
 import clsx from 'clsx';
 import PropTypes from 'prop-types';
 import moment from 'moment';
@@ -64,15 +65,23 @@ function withMyHook(Component) {
   };
 }
 
+
 const UsersTable = props => {
   //the props
   //need to get the ones from the state
+  /***
+   * if we are to take the prop value which was provided at UserList:
+   * 
+   */
 
   const { className,mappeduserState, ...rest } = props;
-  const userState = mappeduserState;
-const users =  userState.actors;
-const collaborators= userState.collaborators;
-const editUser = userState.actorToEdit;
+
+  console.log('the mapped user state for UsersTable is here:')
+  console.dir(mappeduserState);
+
+const users =  mappeduserState.users;
+const collaborators = mappeduserState.collaborators;
+const editUser = mappeduserState.actorToEdit;
 
   //the methods:
 
@@ -125,9 +134,10 @@ const editUser = userState.actorToEdit;
     props.mappedApproveConfirmUser(this.props.mappeduserState.userToConfirm);
   }
 
-  const componentWillMount = () => {
-    props.fetchUsers();
-  }
+  // const componentWillMount = () => {
+  //   props.fetchUsers();
+  // }
+
 
   const classes = useStyles();
   const [selectedUsers, setSelectedUsers] = useState([]);
@@ -135,12 +145,11 @@ const editUser = userState.actorToEdit;
   const [page, setPage] = useState(0);
 
   const handleSelectAll = event => {
-    const { users } = props;
 
     let selectedUsers;
 
     if (event.target.checked) {
-      selectedUsers = users.map(user => user.id);
+      selectedUsers = users.map(user => user._id);
     } else {
       selectedUsers = [];
     }
@@ -176,13 +185,24 @@ const editUser = userState.actorToEdit;
     setRowsPerPage(event.target.value);
   };
 
+/**************************** the life cycle methods *******************************/
+// useEffect(()=>{
+//   //this is called when the component is mounted
+// props.fetchUsers();
+// return ()=>{
+//   //this will be called on component unmount
+// }
+// });
+
   return (
     <Card
       {...rest}
       className={clsx(classes.root, className)}
     >
-      {!users && userState.isFetching && <p>Loading users...</p>}
-      {users.length <=0 && !userState.isFetching && <p>No Users Available. And A User to List here</p>}
+
+      {/*************************** list all the users **********************************************/}
+      {!users && props.mappeduserState.isFetching && <p>Loading users...</p>}
+      {users.length <=0 && !props.mappeduserState.isFetching && <p>No Users Available. And A User to List here</p>}
       
         {/* for the users */}
         {/* check if this is an super admin or an admin */}
@@ -206,8 +226,7 @@ const editUser = userState.actorToEdit;
                       onChange={handleSelectAll}
                     />
                   </TableCell>
-                  <TableCell>First Name</TableCell>
-                  <TableCell>Last Name</TableCell>
+                  <TableCell>Full Name</TableCell>
                   <TableCell>email</TableCell>
                   <TableCell>Username</TableCell>
                   <TableCell>Action</TableCell>
@@ -250,8 +269,8 @@ const editUser = userState.actorToEdit;
                     </TableCell>
                     <TableCell>
                       <Button color="primary" onClick={()=> showEditDialog(user)}>Update</Button> | 
-                      <Button onClick={showDeleteDialog(user)}>Delete</Button> | 
-                      <Button onClick={showConfirmDialog}>Confirm</Button>
+                      <Button onClick={()=>showDeleteDialog(user)}>Delete</Button> | 
+                      <Button onClick={()=>showConfirmDialog(user)}>Confirm</Button>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -273,12 +292,12 @@ const editUser = userState.actorToEdit;
         />
       </CardActions>
 
-{/* the edit dialog */}
+{/*************************** the edit dialog **********************************************/}
 <Dialog
-open={userState.showEditDialog}
+open={props.mappeduserState.showEditDialog}
 onClose={hideEditDialog}
-aria-labelledby="form-dialog-title"
->
+aria-labelledby="form-dialog-title">
+
   <DialogTitle></DialogTitle>
   <DialogContent></DialogContent>
   <DialogContent>
@@ -302,7 +321,7 @@ Updating....
 }
 
 {
-editUser && !userState.isFetching && useState.error && 
+editUser && !props.mappeduserState.isFetching && props.mappeduserState.error && 
 <Alert severity="error">
 <AlertTitle>Failed</AlertTitle>
 <strong> {userState.error} </strong>
@@ -310,12 +329,12 @@ editUser && !userState.isFetching && useState.error &&
 }
 
 {
-  editUser && !userState.isFetching && userState.successMsg && 
+  editUser && !props.mappeduserState.isFetching && props.mappeduserState.successMsg && 
   <Alert severity="success">
 <AlertTitle>
   Success
 </AlertTitle>
-<strong>{editUser.firstName}</strong> {userState.successMsg}
+<strong>{editUser.firstName}</strong> {props.mappeduserState.successMsg}
   </Alert>
 }
   </DialogContent>
@@ -324,10 +343,7 @@ editUser && !userState.isFetching && useState.error &&
 cancel
     </Button>
   </DialogActions>
-
 </Dialog>
-
-
     </Card>
   );
 };
@@ -336,11 +352,7 @@ UsersTable.propTypes = {
   className: PropTypes.string,
   users: PropTypes.array.isRequired,
   auth: PropTypes.object.isRequired,
+  fetchUsers: PropTypes.func.isRequired
 };
 
-const mapStateToProps = (state) => ({
-  auth: state.auth,
-});
-
-export default connect(mapStateToProps, {})(withMyHook(UsersTable));
-///afwe
+export default UsersTable
