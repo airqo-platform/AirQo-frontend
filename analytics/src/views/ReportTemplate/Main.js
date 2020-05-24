@@ -13,6 +13,7 @@ import CloudDownloadIcon from "@material-ui/icons/CloudDownload";
 import { Editor } from "react-draft-wysiwyg";
 import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css";
 import "../../assets/scss/report.css";
+import axios from "axios";
 
 // function uploadImageCallBack(file) {
 //   return new Promise((resolve, reject) => {
@@ -48,7 +49,12 @@ class Main extends Component {
     });
   };
 
-  componentDidMount() {}
+  componentDidMount() {
+    axios
+      .get("127.0.0.1:4000/api/v1/report/get_default_report_template")
+      .then(console.log(response.data))
+      .catch();
+  }
 
   uploadImageCallBack = (file) => {
     return new Promise((resolve, reject) => {
