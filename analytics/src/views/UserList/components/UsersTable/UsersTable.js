@@ -307,7 +307,7 @@ Updating....
 }
 
 {
-editUser && !props.mappeduserState.isFetching && props.mappeduserState.error && 
+editUser && !mappeduserState.isFetching && mappeduserState.error && 
 <Alert severity="error">
 <AlertTitle>Failed</AlertTitle>
 <strong> {userState.error} </strong>
@@ -315,12 +315,12 @@ editUser && !props.mappeduserState.isFetching && props.mappeduserState.error &&
 }
 
 {
-  editUser && !props.mappeduserState.isFetching && props.mappeduserState.successMsg && 
+  editUser && !mappeduserState.isFetching && mappeduserState.successMsg && 
   <Alert severity="success">
 <AlertTitle>
   Success
 </AlertTitle>
-<strong>{editUser.firstName}</strong> {props.mappeduserState.successMsg}
+<strong>{editUser.firstName}</strong> {mappeduserState.successMsg}
   </Alert>
 }
   </DialogContent>

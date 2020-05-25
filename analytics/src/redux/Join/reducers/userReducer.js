@@ -182,7 +182,7 @@ export default function(state = initialState, action) {
 
         case EDIT_USER_SUCCESS:
             const updatedUsers = state.users.map(user => {
-                if (user._id !== action.payload.userToEdit._id) {
+                if (user._id !== action.userToEdit._id) {
                     //this is not the item of interest
                     return user;
                 }
