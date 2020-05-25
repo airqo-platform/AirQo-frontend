@@ -29,4 +29,5 @@ yarn-error.log*
 /.vscode
  .vscode/
 debug.log
+._dockerfile.txt
  

@@ -2,8 +2,8 @@ import React from 'react';
 import { Switch, Redirect, Route } from 'react-router-dom';
 
 import { RouteWithLayout } from '../components';
-import { Main as MainLayout, Minimal as MinimalLayout} from '../layouts';
-import PrivateRoute from "../views/components/PrivateRoute/PrivateRoute.js";
+import { Main as MainLayout, Minimal as MinimalLayout } from '../layouts';
+import PrivateRoute from '../views/components/PrivateRoute/PrivateRoute.js';
 
 import {
   Dashboard as DashboardView,
@@ -21,10 +21,10 @@ import {
   Documentation,
 } from '../views';
 
-import Landing from "../views/layouts/Landing";
-import ForgotPassword from "../views/components/input/ForgotPassword";
-import ResetPassword from "../views/components/input/ResetPassword";
-import Login from "../views/components/input/Login";
+import Landing from '../views/layouts/Landing';
+import ForgotPassword from '../views/components/input/ForgotPassword';
+import ResetPassword from '../views/components/input/ResetPassword';
+import Login from '../views/components/input/Login';
 
 const Routes = () => {
   return (
@@ -116,7 +116,23 @@ const Routes = () => {
 
       <Route
         component={Landing}
-        exact path="/landing"
+        exact
+        path="/landing"
+      />
+      <Route
+        component={Login}
+        exact
+        path="/login"
+      />
+      <Route
+        component={ForgotPassword}
+        exact
+        path="/forgot"
+      />
+      <RouteWithLayout
+        component={ResetPassword}
+        exact
+        path="/reset"
       />
       <Route 
         exact path="/login" 
