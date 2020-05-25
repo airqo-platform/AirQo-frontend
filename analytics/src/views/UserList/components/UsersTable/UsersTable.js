@@ -96,7 +96,7 @@ const editUser = mappeduserState.userToEdit;
   const submitEditUser = (e)=> {
     e.preventDefault();
     const editForm = document.getElementById("EditUserForm");
-    const userData = this.props.mappeduserState;
+    const userData = props.mappeduserState;
     if (editForm.userName.value !== "") {
       const data = new FormData();
       data.append('id', userData.userToEdit._id);
@@ -104,7 +104,7 @@ const editUser = mappeduserState.userToEdit;
       data.append('firstName', editForm.firstName.value);
       data.append('lastName', editForm.lastName.value);
       data.append('email', editForm.email.value);
-      this.props.mappedEditUser(data);
+      props.mappedEditUser(data);
     } else {
       return;
     }

@@ -82,7 +82,7 @@ const UserEditForm = props => {
         </div>
       </div>
       <FormGroup>
-        <Button type="submit" variant="contained" size="large" block>Submit</Button>
+        <Button type="submit" variant="contained" size="large" >Submit</Button>
       </FormGroup>
     </form>
   );
