@@ -38,6 +38,7 @@ class Main extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      rawState: {},
       editorState: EditorState.createEmpty(),
     };
   }
@@ -51,9 +52,19 @@ class Main extends Component {
 
   componentDidMount() {
     axios
-      .get("127.0.0.1:4000/api/v1/report/get_default_report_template")
-      .then(console.log(response.data))
-      .catch();
+      .get("http://127.0.0.1:4000/api/v1/report/get_default_report_template")
+      .then((res) => {
+        let result = res.data[0];
+        //this.props.rawState = result.report_body
+        this.setState({ rawState: result.report_body });
+        //this.setState({ editorState: EditorState.createWithContent(
+        //convertFromRaw(JSON.parse(result.report_body))
+        //)})
+        console.log(result.report_body);
+      })
+      .catch((e) => {
+        console.log(e);
+      });
   }
 
   uploadImageCallBack = (file) => {
@@ -84,10 +95,10 @@ class Main extends Component {
       textAlign: "justify",
     };
 
-    const rawState = JSON.stringify(
-      convertToRaw(editorState.getCurrentContent())
-    );
-    console.log(rawState);
+    // const rawState = JSON.stringify(
+    //   convertToRaw(editorState.getCurrentContent())
+    // );
+    // console.log(rawState);
     return (
       <>
         <div>
