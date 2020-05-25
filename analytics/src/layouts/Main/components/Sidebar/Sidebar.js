@@ -11,6 +11,7 @@ import AccountBoxIcon from '@material-ui/icons/AccountBox';
 import SettingsIcon from '@material-ui/icons/Settings';
 import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
 import LocationOnIcon from '@material-ui/icons/LocationOn';
+import HelpOutlineIcon from '@material-ui/icons/HelpOutline';
 
 import { Profile, SidebarNav} from './components';
 
@@ -69,6 +70,12 @@ const Sidebar = props => {
       title: 'Data Download',
       href: '/download',
       icon: <CloudDownloadIcon />
+    },
+
+    {
+      title: 'Documentation',
+      href: '/documentation',
+      icon: <HelpOutlineIcon />
     }
   ];
   const userManagementPages = [

@@ -532,7 +532,7 @@ const Graphs = props => {
           >
             <KeyboardDatePicker
               disableToolbar
-              variant="inline"
+              variant="dialog"
               format="yyyy-MM-dd"
               margin="normal"
               id="date-picker-inline"
@@ -542,10 +542,10 @@ const Graphs = props => {
               KeyboardButtonProps={{
                 'aria-label': 'change date',
               }}
+              disableFuture
             />                
-            <KeyboardTimePicker
-              disableToolbar
-              variant="inline"
+            <KeyboardTimePicker              
+              variant="dialog"
               margin="normal"
               id="time-picker"
               label="Time Picker "
@@ -567,7 +567,7 @@ const Graphs = props => {
           >
             <KeyboardDatePicker
               disableToolbar
-              variant="inline"
+              variant="dialog"
               format="yyyy-MM-dd"
               margin="normal"
               id="date-picker-inline"
@@ -577,10 +577,10 @@ const Graphs = props => {
               KeyboardButtonProps={{
                 'aria-label': 'change end date',
               }}
+              disableFuture
             />                
-            <KeyboardTimePicker
-              disableToolbar
-              variant="inline"
+            <KeyboardTimePicker              
+              variant="dialog"
               margin="normal"
               id="time-picker"
               label="Time Picker "
@@ -801,9 +801,10 @@ const Graphs = props => {
         KeyboardButtonProps={{
           'aria-label': 'change date',
         }}
+        disableFuture
       />                
       <KeyboardTimePicker
-        disableToolbar
+        
         variant="inline"
         margin="normal"
         id="time-picker"
@@ -836,9 +837,10 @@ const Graphs = props => {
         KeyboardButtonProps={{
           'aria-label': 'change end date',
         }}
+        disableFuture
       />                
       <KeyboardTimePicker
-        disableToolbar
+        
         variant="inline"
         margin="normal"
         id="time-picker"
@@ -1075,9 +1077,10 @@ else if (myChartType=='bar'){
             KeyboardButtonProps={{
               'aria-label': 'change date',
             }}
+            disableFuture
           />                
           <KeyboardTimePicker
-            disableToolbar
+            
             variant="inline"
             margin="normal"
             id="time-picker"
@@ -1110,9 +1113,10 @@ else if (myChartType=='bar'){
             KeyboardButtonProps={{
               'aria-label': 'change end date',
             }}
+            disableFuture
           />                
           <KeyboardTimePicker
-            disableToolbar
+            
             variant="inline"
             margin="normal"
             id="time-picker"
@@ -1349,9 +1353,10 @@ else if (myChartType=='bar'){
         KeyboardButtonProps={{
           'aria-label': 'change date',
         }}
+        disableFuture
       />                
       <KeyboardTimePicker
-        disableToolbar
+        
         variant="inline"
         margin="normal"
         id="time-picker"
@@ -1384,9 +1389,10 @@ else if (myChartType=='bar'){
         KeyboardButtonProps={{
           'aria-label': 'change end date',
         }}
+        disableFuture
       />                
       <KeyboardTimePicker
-        disableToolbar
+        
         variant="inline"
         margin="normal"
         id="time-picker"

@@ -84,7 +84,7 @@ const TotalUsers = props => {
             className={classes.caption}
             variant="caption"
           >
-            Since last month
+            Since last hour
           </Typography>
         </div>
       </CardContent>

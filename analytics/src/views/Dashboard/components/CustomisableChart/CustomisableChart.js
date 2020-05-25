@@ -19,6 +19,7 @@ import palette from 'theme/palette';
 import Typography from '@material-ui/core/Typography';
 import {MoreHoriz, Close} from '@material-ui/icons';
 import MuiDialogTitle from '@material-ui/core/DialogTitle';
+import validate from 'validate.js';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -62,10 +63,49 @@ const DialogTitle = withStyles(styles)((props) => {
 });
 
 
+const schema = {
+  location: {
+    presence: { allowEmpty: false, message: 'is required' },
+    
+  },
+  chartType: {
+    presence: { allowEmpty: false, message: 'is required' },
+    
+  },
+  chartFrequency: {
+    presence: { allowEmpty: false, message: 'is required' },
+  },
+  pollutant: {
+    presence: { allowEmpty: false, message: 'is required' },
+  },
+  policy: {
+    presence: { allowEmpty: false, message: 'is required' },
+    checked: true
+  }
+};
+
 const CustomisableChart = props => {
   const { className, ...rest } = props;
 
   const classes = useStyles();
+
+  const [formState, setFormState] = useState({
+    isValid: false,
+    values: {},
+    touched: {},
+    errors: {}
+  });
+
+  useEffect(() => {
+    const errors = validate(formState.values, schema);
+
+    setFormState(formState => ({
+      ...formState,
+      isValid: errors ? false : true,
+      errors: errors || {}
+    }));
+  }, [formState.values]);
+
 
   var startDate = new Date();
   startDate.setMonth(startDate.getMonth() - 1);
@@ -112,8 +152,7 @@ const CustomisableChart = props => {
   
   const [values, setReactSelectValue] = useState({ selectedOption: [] });
 
-  const handleMultiChange = selectedOption => {
-    //setValue('reactSelect', selectedOption);
+  const handleMultiChange = selectedOption => {    
     setReactSelectValue({ selectedOption });
   }
 
@@ -127,6 +166,18 @@ const CustomisableChart = props => {
 
   const handleChartTypeChange = selectedChartType => {
     setSelectedChartType(selectedChartType);
+
+    setFormState(formState => ({
+      ...formState,
+      values: {
+        ...formState.values,
+        chartType: selectedChartType.value
+      },
+      touched: {
+        ...formState.touched,
+        chartType: true
+      }
+    }));
   };
 
   const frequencyOptions = [
@@ -162,13 +213,14 @@ const CustomisableChart = props => {
 
   const [customisedGraphLabel, setCustomisedGraphLabel] = useState('PM2.5(µg/m3)');
   const [displayAnnotation, setDisplayAnnotation] = useState(true);
+  const [customisedAnnotation, setCustomAnnotations] = useState({value: 25,label_content:'WHO AQG'});
 
   const [customGraphData, setCustomisedGraphData] = useState([]);
 
   useEffect(() => {
     
-    axios.get('https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/customisedchart/random')
-    //axios.get('http://127.0.0.1:5000/api/v1/dashboard/customisedchart/random')
+    //axios.get('https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/customisedchart/random')
+    axios.get('http://127.0.0.1:5000/api/v1/dashboard/customisedchart/random')
       .then(res => res.data)
       .then((customisedChartData) => {
         setCustomisedGraphData(customisedChartData)
@@ -177,6 +229,8 @@ const CustomisableChart = props => {
       .catch(console.log)
   },[]);
 
+  const hasError = field =>
+    formState.touched[field] && formState.errors[field] ? true : false;
   
   let  handleSubmit = (e) => {
     e.preventDefault();
@@ -193,8 +247,8 @@ const CustomisableChart = props => {
     //console.log(JSON.stringify(filter));
 
     axios.post(
-      'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/customisedchart',      
-      //'http://127.0.0.1:5000/api/v1/dashboard/customisedchart', 
+      //'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/customisedchart',      
+      'http://127.0.0.1:5000/api/v1/dashboard/customisedchart', 
       JSON.stringify(filter),
       { headers: { 'Content-Type': 'application/json' } }
     ).then(res => res.data)
@@ -203,22 +257,27 @@ const CustomisableChart = props => {
         console.log(customisedChartData)
 
         setCustomChartTitle(customisedChartData.custom_chart_title)
-        setCustomisedGraphLabel(customisedChartData.results?customisedChartData.results[0].pollutant:'')
-        console.log(customisedChartData.results[0].pollutant)
-        setDisplayAnnotation(customisedChartData.results && customisedChartData.results[0].pollutant==='PM 2.5'?true:false)
-
+        setCustomisedGraphLabel(customisedChartData.results?customisedChartData.results[0].chart_label:'')
+        console.log(customisedChartData.results[0].chart_label)
+        setDisplayAnnotation(customisedChartData.results ?true:false)
+        setCustomAnnotations(customisedChartData.results ? 
+          customisedChartData.results[0].pollutant==='PM 10'?
+            {value:50, label_content:'WHO AQG'}:
+              customisedChartData.results[0].pollutant==='NO2' && customisedChartData.results[0].frequency==='hourly'?
+              {value:200, label_content:'WHO AQG'}:{}:{})
       }).catch(
         console.log
       )    
   }
 
+  /*
   if (customGraphData.results  && customGraphData.results[0].chart_type !== 'pie' && customGraphData.results[0].frequency !== 'monthly'){
     for (var i=0; i<customGraphData.results[0].chart_data.labels.length; i++){
       let newTime = new Date (customGraphData.results[0].chart_data.labels[i]);
       customGraphData.results[0].chart_data.labels[i] = newTime.getFullYear()+'-'+appendLeadingZeroes(newTime.getMonth()+1)+'-'+appendLeadingZeroes(newTime.getDate())+
       ' '+appendLeadingZeroes(newTime.getHours())+':'+ appendLeadingZeroes(newTime.getMinutes());
     }
-  }
+  }*/
 
   const customisedGraphData = {
     chart_type: customGraphData.results? customGraphData.results[0].chart_type:null,
@@ -233,12 +292,12 @@ const CustomisableChart = props => {
         type: 'line',
         mode: 'horizontal',
         scaleID: 'y-axis-0',
-        value: 25,
+        value: customisedAnnotation.value,
         borderColor: palette.text.secondary,
         borderWidth: 1,
         label: {
           enabled: true,
-          content: 'WHO AQG',
+          content: customisedAnnotation.label_content,
           //backgroundColor: palette.white,
           titleFontColor: palette.text.primary,
           bodyFontColor: palette.text.primary,
@@ -420,14 +479,18 @@ const CustomisableChart = props => {
                         fullWidth
                         label="Chart Type"
                         className="reactSelect"
-                        name="chart-type"
+                        name="chartType"
                         placeholder="Chart Type"
                         value={selectedChart}
                         options={chartTypeOptions}
                         onChange={handleChartTypeChange}    
                         variant="outlined"
                         margin="dense" 
-                        required         
+                        required   
+                        error={hasError('chartType')}                        
+                        helperText={
+                          hasError('chartType') ? formState.errors.chartType[0] : null
+                        }      
                       />
                     </Grid>
                     
@@ -440,7 +503,7 @@ const CustomisableChart = props => {
                         fullWidth
                         label ="Frequency"
                         className=""
-                        name="chart-frequency"
+                        name="chartFrequency"
                         placeholder="Frequency"
                         value={selectedFrequency}
                         options={frequencyOptions}
@@ -490,8 +553,8 @@ const CustomisableChart = props => {
                           >
                             <KeyboardDatePicker                     
                               disableToolbar
-                              variant="inline"
-                              format="MM/dd/yyyy"
+                              variant="dialog"
+                              format="yyyy-MM-dd"
                               margin="normal"
                               id="date-picker-inline"
                               label="Start Date"
@@ -501,6 +564,7 @@ const CustomisableChart = props => {
                                 'aria-label': 'change date',
                               }}
                               required
+                              disableFuture
                             />  
                           </Grid>  
                           <Grid
@@ -511,9 +575,8 @@ const CustomisableChart = props => {
                             xl={6}
                             xs={12}
                           >            
-                            <KeyboardTimePicker                     
-                              disableToolbar
-                              variant="inline"
+                            <KeyboardTimePicker                   
+                              variant="dialog"
                               margin="normal"
                               id="time-picker"
                               label="Start Time "
@@ -522,7 +585,7 @@ const CustomisableChart = props => {
                               KeyboardButtonProps={{
                                 'aria-label': 'change time',
                               }}  
-                              required                    
+                              //required                    
                             />
                           </Grid>
 
@@ -536,8 +599,8 @@ const CustomisableChart = props => {
                           >
                             <KeyboardDatePicker                      
                               disableToolbar
-                              variant="inline"
-                              format="MM/dd/yyyy"
+                              variant="dialog"
+                              format="yyyy-MM-dd"
                               margin="normal"
                               id="date-picker-inline"
                               label="End Date"
@@ -547,6 +610,8 @@ const CustomisableChart = props => {
                                 'aria-label': 'change end date',
                               }}
                               required
+                              disableFuture
+                              
                             /> 
                           </Grid> 
                           <Grid
@@ -557,9 +622,8 @@ const CustomisableChart = props => {
                             xl={6}
                             xs={12}
                           >              
-                            <KeyboardTimePicker                      
-                              disableToolbar
-                              variant="inline"
+                            <KeyboardTimePicker                    
+                              variant="dialog"
                               margin="normal"
                               id="time-picker"
                               label="End Time "
@@ -590,6 +654,7 @@ const CustomisableChart = props => {
                   Cancel
                 </Button>
                 <Button
+                  //disabled={!formState.isValid}
                   variant="outlined" 
                   onClick={handleClose} 
                   color="primary"                  

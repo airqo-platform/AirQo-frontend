@@ -18,6 +18,7 @@ import {
   ReportTemplate,
   LocationList as LocationListView,
   SignUp as SignUpView,
+  Documentation,
 } from '../views';
 
 import Landing from "../views/layouts/Landing";
@@ -105,7 +106,14 @@ const Routes = () => {
         layout={MainLayout}
         path="/locations"
       />
- 
+
+      <PrivateRoute
+        component={Documentation}
+        exact
+        layout={MainLayout}
+        path="/documentation"
+      />
+
       <Route
         component={Landing}
         exact path="/landing"

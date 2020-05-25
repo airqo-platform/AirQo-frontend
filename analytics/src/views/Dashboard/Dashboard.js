@@ -1,7 +1,7 @@
 import React from 'react';
 import { makeStyles } from '@material-ui/styles';
 import { Grid, Card, CardContent, CardHeader, Button, Divider, CardActions } from '@material-ui/core';
-import { Line,Bar } from 'react-chartjs-2';
+import { Line, Bar } from 'react-chartjs-2';
 import clsx from 'clsx';
 import PropTypes from 'prop-types';
 import { Pm25Levels, Map, CustomisableChart, PollutantCategory, ExceedancesChart, TotalProfit } from './components';
@@ -11,6 +11,7 @@ import palette from 'theme/palette';
 import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
 import ArrowRightIcon from '@material-ui/icons/ArrowRight';
 //import Legend from './components/Map/Legend'
+import axios from 'axios';
  
 
 const useStyles = makeStyles(theme => ({
@@ -36,17 +37,41 @@ const useStyles = makeStyles(theme => ({
 const Dashboard = props => {
   const classes = useStyles();
   const { className, staticContext, ...rest } = props;
+
+  function appendLeadingZeroes(n){
+    if(n <= 9){
+      return '0' + n;
+    }
+    return n
+  }
+
+  let todaysDate = new Date()
+  const dateValue = appendLeadingZeroes(todaysDate.getDate() +'/'+appendLeadingZeroes(todaysDate.getMonth()+1)+'/'+ todaysDate.getFullYear())
  
   const [backgroundColors, setBackgroundColors] = useState([]);
+
+  const [pm25CategoriesLocationCount, setPm25CategoriesLocationCount] = useState([]);
+
+  useEffect(() => {
+    //axios.get('https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/locations/pm25categorycount?organisation_name=KCCA')
+    axios.get('http://127.0.0.1:5000/api/v1/dashboard/locations/pm25categorycount?organisation_name=KCCA')
+      .then(res => res.data)
+      .then((data) => {        
+        setPm25CategoriesLocationCount(data);        
+        console.log(data)  
+        //console.log(data.pm25_categories)           
+      })
+      .catch(console.log)
+  }, []);
+
   const [locations,setLocations] = useState([]);
 
   useEffect(() => {
-    fetch('https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/historical/daily/devices')
-    //fetch('http://127.0.0.1:5000/api/v1/dashboard/historical/daily/devices')
+    //fetch('https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/historical/daily/devices')
+    fetch('http://127.0.0.1:5000/api/v1/dashboard/historical/daily/devices')
       .then(res => res.json())
       .then((locationsData) => {        
-        setLocations(locationsData.results);
-        
+        setLocations(locationsData.results);        
       })
       .catch(console.log)
   },[]);
@@ -174,7 +199,8 @@ const Dashboard = props => {
         >
           <PollutantCategory
             pm25level="Good"
-            pm25levelCount="04"
+            pm25levelCount={typeof pm25CategoriesLocationCount != 'undefined' && 
+            pm25CategoriesLocationCount !=null && pm25CategoriesLocationCount.length >0 ?pm25CategoriesLocationCount[0]['locations_with_category_good'].category_count:''}
             iconClass="pm25Good"
           />
         </Grid>       
@@ -188,7 +214,8 @@ const Dashboard = props => {
         >
           <PollutantCategory
             pm25level="Moderate"
-            pm25levelCount="05"
+            pm25levelCount={typeof pm25CategoriesLocationCount != 'undefined' && 
+            pm25CategoriesLocationCount !=null && pm25CategoriesLocationCount.length >0 ? pm25CategoriesLocationCount[1]['locations_with_category_moderate'].category_count:''}
             iconClass="pm25Moderate"
           />
         </Grid>
@@ -201,7 +228,8 @@ const Dashboard = props => {
         >
           <PollutantCategory
             pm25level="UHFSG"
-            pm25levelCount="07"
+            pm25levelCount={typeof pm25CategoriesLocationCount != 'undefined' && 
+            pm25CategoriesLocationCount !=null && pm25CategoriesLocationCount.length >0 ?pm25CategoriesLocationCount[2].locations_with_category_UH4SG.category_count:''}
             iconClass="pm25UH4SG"
           />
         </Grid>
@@ -215,7 +243,8 @@ const Dashboard = props => {
         >
           <PollutantCategory
             pm25level="Unhealthy"
-            pm25levelCount="06"
+            pm25levelCount={typeof pm25CategoriesLocationCount != 'undefined' && 
+            pm25CategoriesLocationCount !=null && pm25CategoriesLocationCount.length >0 ?pm25CategoriesLocationCount[3].locations_with_category_unhealth.category_count:''}
             iconClass="pm25UnHealthy"
           />
         </Grid>
@@ -229,7 +258,8 @@ const Dashboard = props => {
         >
           <PollutantCategory
             pm25level="Very Unhealthy"
-            pm25levelCount="02"
+            pm25levelCount={typeof pm25CategoriesLocationCount != 'undefined' && 
+            pm25CategoriesLocationCount !=null && pm25CategoriesLocationCount.length >0 ?pm25CategoriesLocationCount[4].locations_with_category_very_unhealthy.category_count:''}
             iconClass="pm25VeryUnHealthy"
           />
         </Grid>
@@ -242,7 +272,8 @@ const Dashboard = props => {
         >
           <PollutantCategory
             pm25level="Hazardous"
-            pm25levelCount="01"
+            pm25levelCount={typeof pm25CategoriesLocationCount != 'undefined' && 
+            pm25CategoriesLocationCount !=null && pm25CategoriesLocationCount.length >0 ?pm25CategoriesLocationCount[5].locations_with_category_hazardous.category_count:''}
             iconClass="pm25Harzadous"
           />
         </Grid>
@@ -269,10 +300,11 @@ const Dashboard = props => {
               className={clsx(classes.chartCard)}
             >
               <CardHeader              
-                title="Mean Daily PM2.5 for Past 28 Days"
+                title={`Mean Daily PM2.5 for Past 28 Days From ${dateValue}`}
               />
               <Divider />
               <CardContent>
+                
                 <div className={classes.chartContainer}>
                   <Bar
                     data={locationsGraphData}

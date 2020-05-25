@@ -24,7 +24,12 @@ const Download = (props) => {
 
   //const [customDownloadData, setCustomisedDownloadData] = useState([]);
  
-  const [selectedDate, setSelectedStartDate] = useState(new Date());
+  var startDate = new Date();
+  startDate.setMonth(startDate.getMonth() - 1);
+  startDate.setHours(0,0,0,0);
+
+  
+  const [selectedDate, setSelectedStartDate] = useState(startDate);
   const handleDateChange = (date) => {
     setSelectedStartDate(date);
   };
@@ -226,8 +231,8 @@ const Download = (props) => {
                         >
                           <KeyboardDatePicker                     
                             disableToolbar
-                            variant="inline"
-                            format="MM/dd/yyyy"
+                            variant="dialog"
+                            format="yyyy-MM-dd"
                             margin="normal"
                             id="date-picker-inline"
                             label="Start Date"
@@ -237,6 +242,7 @@ const Download = (props) => {
                               'aria-label': 'change date',
                             }}
                             required
+                            disableFuture
                           />  
                         </Grid>  
                         <Grid
@@ -247,9 +253,8 @@ const Download = (props) => {
                           xl={3}
                           xs={12}
                         >            
-                          <KeyboardTimePicker                     
-                            disableToolbar
-                            variant="inline"
+                          <KeyboardTimePicker                    
+                            variant="dialog"
                             margin="normal"
                             id="time-picker"
                             label="Start Time "
@@ -272,8 +277,8 @@ const Download = (props) => {
                         >
                           <KeyboardDatePicker                      
                             disableToolbar
-                            variant="inline"
-                            format="MM/dd/yyyy"
+                            variant="dialog"
+                            format="yyyy-MM-dd"
                             margin="normal"
                             id="date-picker-inline"
                             label="End Date"
@@ -283,6 +288,7 @@ const Download = (props) => {
                               'aria-label': 'change end date',
                             }}
                             required
+                            disableFuture
                           /> 
                         </Grid> 
                         <Grid
@@ -294,8 +300,7 @@ const Download = (props) => {
                           xs={12}
                         >              
                           <KeyboardTimePicker                      
-                            disableToolbar
-                            variant="inline"
+                            variant="dialog"
                             margin="normal"
                             id="time-picker"
                             label="End Time "
