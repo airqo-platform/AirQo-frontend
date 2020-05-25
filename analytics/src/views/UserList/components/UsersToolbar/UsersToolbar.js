@@ -1,5 +1,5 @@
 /* eslint-disable */
-import React from 'react';
+import React, {useState} from 'react';
 import PropTypes from 'prop-types';
 import clsx from 'clsx';
 import { makeStyles } from '@material-ui/styles';
@@ -42,9 +42,17 @@ const UsersToolbar = props => {
   console.dir(mappeduserState);
   
   const userState = mappeduserState;
-  const newUser = userState.newUser;
 
-  const [open, setOpen] = React.useState(false);
+  const [open, setOpen] = useState(false);
+  
+  const [form, setState] = useState({
+    userName:'',
+    firstName:'',
+    lastName:'',
+    email:'',
+    password:'',
+    password2:''
+  })
 
   const classes = useStyles();
 
@@ -62,18 +70,22 @@ const UsersToolbar = props => {
   };
 
   const onChange = (e) => {
-    this.setState({ [e.target.id]: e.target.value });
+setState({
+  ...form,
+  [e.target.id]:e.target.value
+})
+
   };
 
   const onSubmit = (e) =>{
     e.preventDefault();
     const userData = {
-      userName: userState.newUser.userName,
-      firstName: userState.newUser.firstName,
-      lastName: userState.newUser.lastName,
-      email: userState.newUser.email,
-      password: userState.newUser.password,
-      password2: userState.newUser.password2
+      userName: form.userName,
+      firstName: form.firstName,
+      lastName: form.lastName,
+      email: form.email,
+      password: form.password,
+      password2: form.password2
     };
     console.log(userData);
     props.mappedAddUser(userData);
@@ -104,7 +116,9 @@ const UsersToolbar = props => {
                 id="email"
                 name="Email Address"
                 type="email"
+                label="email"
                 onChange={onChange}
+                value={form.email}
                 fullWidth
               />
               <TextField
@@ -112,8 +126,10 @@ const UsersToolbar = props => {
                 margin="dense"
                 id="userName"
                 name="userName"
+                label="user name"
                 type="text"
                 onChange={onChange}
+                value={form.userName}
                 fullWidth
               />
                <TextField
@@ -121,17 +137,21 @@ const UsersToolbar = props => {
                 margin="dense"
                 id="firstName"
                 name="firstName"
+                label="first name"
                 type="firstName"
                 onChange={onChange}
+                value={form.firstName}
                 fullWidth
               />
                <TextField
                 autoFocus
                 margin="dense"
                 id="lastName"
+                label="last name"
                 name="lastName"
                 type="lastName"
                 onChange={onChange}
+                value={form.lastName}
                 fullWidth
               />
                <TextField
@@ -139,17 +159,21 @@ const UsersToolbar = props => {
                 margin="dense"
                 id="password"
                 name="password"
+                label="password"
                 type="password"
                 onChange={onChange}
+                value={form.password}
                 fullWidth
               />
                <TextField
                 autoFocus
                 margin="dense"
                 id="password2"
+                label="confirm password"
                 name="password2"
-                type="password2"
+                type="password"
                 onChange={onChange}
+                value={form.password2}
                 fullWidth
               />
             </DialogContent>

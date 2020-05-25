@@ -185,15 +185,6 @@ const editUser = mappeduserState.actorToEdit;
     setRowsPerPage(event.target.value);
   };
 
-/**************************** the life cycle methods *******************************/
-// useEffect(()=>{
-//   //this is called when the component is mounted
-// props.fetchUsers();
-// return ()=>{
-//   //this will be called on component unmount
-// }
-// });
-
   return (
     <Card
       {...rest}
@@ -238,7 +229,7 @@ const editUser = mappeduserState.actorToEdit;
                   <TableRow
                     className={classes.tableRow}
                     hover
-                    key={user.id}
+                    key={user._id}
                     selected={selectedUsers.indexOf(user.firstName) !== -1}
                   >
                     <TableCell padding="checkbox">
