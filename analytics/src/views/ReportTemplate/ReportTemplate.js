@@ -4,8 +4,10 @@ import { Grid, Card, CardContent, Button } from "@material-ui/core";
 import Tooltip from "@material-ui/core/Tooltip";
 import Main from "./Main";
 import MainTest from "./MainTest";
+import PropTypes from "prop-types";
+import { connect } from "react-redux";
 import ReactToPrint, { useReactToPrint } from "react-to-print";
-import PictureAsPdfSharpIcon from "@material-ui/icons/PictureAsPdfSharp";
+import PictureAsPdfRoundedIcon from "@material-ui/icons/PictureAsPdfRounded";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -16,12 +18,15 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const ReportTemplate = () => {
+const ReportTemplate = (props) => {
   const classes = useStyles();
   const componentRef = useRef();
   const handlePrint = useReactToPrint({
     content: () => componentRef.current,
   });
+
+  const { user } = props.auth;
+  //console.log(user._id);
 
   return (
     <div className={classes.root}>
@@ -33,14 +38,14 @@ const ReportTemplate = () => {
                 <Button
                   color="primary"
                   variant="contained"
-                  endIcon={<PictureAsPdfSharpIcon />}
+                  endIcon={<PictureAsPdfRoundedIcon />}
                   onClick={handlePrint}
                   alt="Generate Pdf"
                 >
                   {/* Generate Pdf */}
                 </Button>
               </Tooltip>
-              <Main ref={componentRef} />
+              <Main ref={componentRef} user_id={user._id} />
               {/* <MainTest ref={componentRef} /> */}
             </CardContent>
           </Card>
@@ -50,4 +55,14 @@ const ReportTemplate = () => {
   );
 };
 
-export default ReportTemplate;
+ReportTemplate.propTypes = {
+  className: PropTypes.string,
+  auth: PropTypes.object.isRequired,
+};
+
+const mapStateToProps = (state) => ({
+  auth: state.auth,
+});
+
+export default connect(mapStateToProps)(ReportTemplate);
+//export default ReportTemplate;
