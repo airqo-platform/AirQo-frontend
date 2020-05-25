@@ -9,6 +9,7 @@ import {
 } from "draft-js";
 import { Divider, Drawer, Button, Grid } from "@material-ui/core";
 import SaveIcon from "@material-ui/icons/Save";
+import Tooltip from "@material-ui/core/Tooltip";
 import CloudDownloadIcon from "@material-ui/icons/CloudDownload";
 import { Editor } from "react-draft-wysiwyg";
 import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css";
@@ -38,7 +39,6 @@ class Main extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      rawState: {},
       editorState: EditorState.createEmpty(),
     };
   }
@@ -55,11 +55,11 @@ class Main extends Component {
       .get("http://127.0.0.1:4000/api/v1/report/get_default_report_template")
       .then((res) => {
         let result = res.data[0];
-        //this.props.rawState = result.report_body
-        this.setState({ rawState: result.report_body });
-        //this.setState({ editorState: EditorState.createWithContent(
-        //convertFromRaw(JSON.parse(result.report_body))
-        //)})
+        this.setState({
+          editorState: EditorState.createWithContent(
+            convertFromRaw(JSON.parse(JSON.stringify(result.report_body)))
+          ),
+        });
         console.log(result.report_body);
       })
       .catch((e) => {
@@ -100,30 +100,34 @@ class Main extends Component {
     // );
     // console.log(rawState);
     return (
-      <>
+      <div>
         <div>
-          <Button
-            color="primary"
-            variant="contained"
-            endIcon={<SaveIcon />}
-            onClick=""
-            className="print"
-          >
-            <style>{"@media print {.print{display: none;}}"}</style>
-            {/* Save Draft */}
-          </Button>
+          <Tooltip title="Save report" placement="right" arrow>
+            <Button
+              color="primary"
+              variant="contained"
+              endIcon={<SaveIcon />}
+              onClick=""
+              className="print"
+            >
+              <style>{"@media print {.print{display: none;}}"}</style>
+              {/* Save Draft */}
+            </Button>
+          </Tooltip>
         </div>
         <div>
-          <Button
-            color="primary"
-            variant="contained"
-            endIcon={<CloudDownloadIcon />}
-            onClick=""
-            className="print"
-          >
-            <style>{"@media print {.print{display: none;}}"}</style>
-            {/* Load Draft */}
-          </Button>
+          <Tooltip title="Open previous report" placement="right" arrow>
+            <Button
+              color="primary"
+              variant="contained"
+              endIcon={<CloudDownloadIcon />}
+              onClick=""
+              className="print"
+            >
+              <style>{"@media print {.print{display: none;}}"}</style>
+              {/* Load Draft */}
+            </Button>
+          </Tooltip>
         </div>
         <div style={editor}>
           <Editor
@@ -145,7 +149,7 @@ class Main extends Component {
           />
           <style>{"@media print {.hidden-on-print{display: none;}}"}</style>
         </div>
-      </>
+      </div>
     );
   }
 }
