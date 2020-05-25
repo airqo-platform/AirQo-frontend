@@ -1107,8 +1107,8 @@ else if (myChartType=='bar'){
                 labelString: 'Time',
                 fontWeight:4,
                 fontColor: 'black',
-                fontSize: 20,
-                padding: 6
+                fontSize: 15,
+                padding: 10
               },
               ticks: {
                 fontColor:'black'                 
