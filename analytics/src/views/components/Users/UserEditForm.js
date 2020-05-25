@@ -14,8 +14,11 @@ const UserEditForm = props => {
       <div className="row">
         <div className="col-md-12">
           <FormGroup>
-            <FormControlLabel>userName: </FormControlLabel>
-            <FormControl>
+           
+            <FormControl
+             type="text" placeholder="Enter userName"
+             name="userName" defaultValue={props.userData.userName}
+            >
             <Input 
             defaultValue={props.userData.userName} 
             placeholder="Enter userName"
@@ -28,8 +31,11 @@ const UserEditForm = props => {
         </div>
         <div className="col-md-12">
           <FormGroup>
-            <FormControlLabel>firstName: </FormControlLabel>
-            <FormControl>
+        
+            <FormControl
+             type="text" placeholder="Enter firstName"
+             name="firstName" defaultValue={props.userData.firstName}
+            >
             <Input 
             defaultValue={props.userData.firstName} 
             placeholder="Enter firstName"
@@ -42,8 +48,11 @@ const UserEditForm = props => {
         </div>
         <div className="col-md-12">
           <FormGroup>
-            <FormControlLabel>lastName: </FormControlLabel>
-            <FormControl>
+         
+            <FormControl
+             type="text" placeholder="Enter lastName"
+             name="lastName" defaultValue={props.userData.lastName}
+            >
             <Input 
             defaultValue={props.userData.lastName} 
             placeholder="Enter lastName"
@@ -56,8 +65,11 @@ const UserEditForm = props => {
         </div>
         <div className="col-md-12">
           <FormGroup>
-            <FormControlLabel>email: </FormControlLabel>
-            <FormControl>
+            
+            <FormControl
+             type="text" placeholder="Enter email"
+             name="email" defaultValue={props.userData.email}
+            >
                   <Input 
             defaultValue={props.userData.email} 
             placeholder="Enter email"
