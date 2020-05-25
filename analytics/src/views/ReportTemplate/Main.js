@@ -7,7 +7,17 @@ import {
   ContentState,
   convertFromHTML,
 } from "draft-js";
-import { Divider, Drawer, Button, Grid } from "@material-ui/core";
+import {
+  Divider,
+  Drawer,
+  Button,
+  Grid,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  TextField,
+} from "@material-ui/core";
 import SaveIcon from "@material-ui/icons/Save";
 import Tooltip from "@material-ui/core/Tooltip";
 import CloudDownloadIcon from "@material-ui/icons/CloudDownload";
@@ -24,7 +34,18 @@ class Main extends Component {
     this.state = {
       editorState: EditorState.createEmpty(),
       user: props.auth,
+      open: false,
+      openSave: false,
+      openConfirm: false,
+      saved_report: {},
+      report_name: "",
     };
+    // bind to this
+    this.handleClick = this.handleClick.bind(this);
+    this.handleSaveClick = this.handleSaveClick.bind(this);
+    this.handleSaveClose = this.handleSaveClose.bind(this);
+    this.changeHandler = this.changeHandler.bind(this);
+    this.handleConfirmClose = this.handleConfirmClose.bind(this);
   }
 
   onEditorStateChange = (editorState) => {
@@ -44,7 +65,7 @@ class Main extends Component {
             convertFromRaw(JSON.parse(JSON.stringify(result.report_body)))
           ),
         });
-        console.log(result.report_body);
+        //console.log(result.report_body);
       })
       .catch((e) => {
         console.log(e);
@@ -70,6 +91,55 @@ class Main extends Component {
     });
   };
 
+  // save monthly report
+  saveReport = () => {
+    // head the save planning space dialog
+    this.setState((prevState) => ({ openSave: !prevState.openSave }));
+    // make api call
+    axios
+      .post(
+        "http://127.0.0.1:4000/api/v1/report/save_monthly_report",
+        {
+          user_id: this.state.user._id,
+          report_name: this.state.report_name,
+          report_body: this.state.report_body,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      )
+      .then((res) => {
+        console.log(res);
+        this.setState((prevState) => ({ openConfirm: !prevState.openConfirm })); //
+      })
+      .catch((e) => console.log(e));
+  };
+
+  // This deals with save report dialog box
+  handleSaveClick = () => {
+    this.setState((prevState) => ({ openSave: !prevState.openSave }));
+  };
+  handleSaveClose = () => {
+    this.setState((prevState) => ({ openSave: !prevState.openSave }));
+    //console.log(this.state, this.props.plan, this.props.user_id);
+  };
+  // hooks the monthly report textfield input
+  changeHandler = (e) => {
+    this.setState({ [e.target.name]: e.target.value });
+  };
+
+  // Handles saved report confirmation feedback
+  handleConfirmClose = () => {
+    this.setState((prevState) => ({ openConfirm: !prevState.openConfirm }));
+  };
+
+  // load previously saved report
+  handleClick = () => {
+    this.setState((prevState) => ({ open: !prevState.open }));
+  };
+
   render() {
     const { editorState } = this.state;
     const editor = {
@@ -79,7 +149,7 @@ class Main extends Component {
       textAlign: "justify",
     };
     const { user } = this.state.user;
-    // console.log(user._id);
+    console.log(user._id);
     // const rawState = JSON.stringify(
     //   convertToRaw(editorState.getCurrentContent())
     // );
@@ -92,7 +162,7 @@ class Main extends Component {
               color="primary"
               variant="contained"
               endIcon={<SaveIcon />}
-              onClick=""
+              onClick={this.handleSaveClick}
               className="print"
             >
               <style>{"@media print {.print{display: none;}}"}</style>
@@ -134,6 +204,60 @@ class Main extends Component {
           />
           <style>{"@media print {.hidden-on-print{display: none;}}"}</style>
         </div>
+
+        {/* Dialog for save locate data */}
+        <Dialog
+          open={this.state.openSave}
+          onClose={this.handleSaveClose}
+          aria-labelledby="form-dialog-title"
+        >
+          {/* <DialogTitle id="form-dialog-title">Save Planning Space</DialogTitle> */}
+          <DialogContent>
+            <DialogContentText>
+              To save this report, please enter the name in the text field
+              below.
+            </DialogContentText>
+            <TextField
+              autoFocus
+              margin="dense"
+              id="name"
+              name="report_name"
+              value={this.state.report_name}
+              onChange={this.changeHandler}
+              label="Save As"
+              type="text"
+              placeholder="airqo_analytics_monthly_report_001"
+              fullWidth
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={this.handleSaveClose} color="primary">
+              Cancel
+            </Button>
+            <Button onClick={this.saveReport} color="primary">
+              Save
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Dialog for confirming saved location data  */}
+        <Dialog
+          open={this.state.openConfirm}
+          onClose={this.handleConfirmClose}
+          aria-labelledby="alert-dialog-title"
+          aria-describedby="alert-dialog-description"
+        >
+          <DialogContent>
+            <DialogContentText id="alert-dialog-description">
+              Your report has been saved successfully
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={this.handleConfirmClose} color="primary">
+              OK
+            </Button>
+          </DialogActions>
+        </Dialog>
       </div>
     );
   }
