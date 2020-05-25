@@ -56,25 +56,6 @@ export const fetchUsers = () => {
             }
         });
     };
-
-    // return (dispatch) => {
-    //     dispatch(fetchUsersRequest());
-    //     //returns a promise
-    //     return axios
-    //         .get(constants.GET_USERS_URI)
-    //         .then(res => {
-    //             try {
-    //                 const { users, message } = res.data;
-    //                 console.log('sending these users: ');
-    //                 console.log(users);
-    //                 dispatch(fetchUsersSuccess(users, message))
-    //             } catch (e) {
-    //                 console.log(e);
-    //             }
-    //         }).catch(error => {
-    //             dispatch(fetchUsersFailed(error));
-    //         })
-    // }
 }
 
 export const fetchUsersRequest = () => {
@@ -173,27 +154,32 @@ export const hideEditDialog = () => {
     }
 }
 
-
-export const editUser = (userToEdit) => {
-    return dispatch => {
-        dispatch(editUserRequest(userToEdit));
-
-        axios
-            .put(constants.GET_USERS_URI, userToEdit)
-            .then(res => {
-                try {
-                    const { user, message } = res.data
-                    dispatch(editUserSuccess(user, message))
-                } catch (e) {
-                    console.log(e)
-                }
-            })
-            .catch(error => {
-                dispatch(editUserFailed(error));
-            })
-
+export const editUser = (userToEdit) => (dispatch) => {
+    dispatch(editUserRequest(userToEdit));
+    console.log('user to edit: ');
+    //console.log(userToEdit.values());
+    let dataToSend = {};
+    for (const [key, value] of userToEdit.entries()) {
+        dataToSend[key] = value;
     }
-}
+    console.dir(dataToSend);
+    return axios({
+            method: 'put',
+            url: constants.GET_USERS_URI,
+            data: dataToSend,
+        })
+        .then(response => {
+            if (response) {
+                dispatch(editUserSuccess(response.data, response.data.message));
+            } else {
+                dispatch(editUserFailed(response.data.message));
+            }
+        })
+        .catch(e => {
+            dispatch(editUserFailed(e));
+        })
+};
+
 
 export const editUserRequest = userToEdit => {
 
@@ -390,6 +376,10 @@ export const verifyToken = async(token) => {
 };
 
 export const updatePassword = (userData) => (dispatch) => {
+    /**
+     * need to get the id of the user intact
+     * 
+     */
     axios
         .put("http://localhost:3000/api/v1/users/updatePassword", userData)
         .then((response) => {
