@@ -15,31 +15,15 @@ import { Editor } from "react-draft-wysiwyg";
 import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css";
 import "../../assets/scss/report.css";
 import axios from "axios";
-
-// function uploadImageCallBack(file) {
-//   return new Promise((resolve, reject) => {
-//     const xhr = new XMLHttpRequest();
-//     xhr.open("POST", "https://api.imgur.com/3/image");
-//     xhr.setRequestHeader("Authorization", "Client-ID XXXXX");
-//     const data = new FormData();
-//     data.append("image", file);
-//     xhr.send(data);
-//     xhr.addEventListener("load", () => {
-//       const response = JSON.parse(xhr.responseText);
-//       resolve(response);
-//     });
-//     xhr.addEventListener("error", () => {
-//       const error = JSON.parse(xhr.responseText);
-//       reject(error);
-//     });
-//   });
-// }
+import { connect } from "react-redux";
+import PropTypes from "prop-types";
 
 class Main extends Component {
   constructor(props) {
     super(props);
     this.state = {
       editorState: EditorState.createEmpty(),
+      user: props.auth,
     };
   }
 
@@ -94,7 +78,8 @@ class Main extends Component {
       margin: "0 auto",
       textAlign: "justify",
     };
-
+    const { user } = this.state.user;
+    // console.log(user._id);
     // const rawState = JSON.stringify(
     //   convertToRaw(editorState.getCurrentContent())
     // );
@@ -154,4 +139,12 @@ class Main extends Component {
   }
 }
 
-export default Main;
+Main.propTypes = {
+  auth: PropTypes.object.isRequired,
+};
+
+const mapStateToProps = (state) => ({
+  auth: state.auth,
+});
+
+export default connect(mapStateToProps)(Main);
