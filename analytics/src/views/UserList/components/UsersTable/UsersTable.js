@@ -81,7 +81,7 @@ const UsersTable = props => {
 
 const users =  mappeduserState.users;
 const collaborators = mappeduserState.collaborators;
-const editUser = mappeduserState.actorToEdit;
+const editUser = mappeduserState.userToEdit;
 
   //the methods:
 
@@ -133,11 +133,6 @@ const editUser = mappeduserState.actorToEdit;
   const approveConfirmUser = () => {
     props.mappedApproveConfirmUser(this.props.mappeduserState.userToConfirm);
   }
-
-  // const componentWillMount = () => {
-  //   props.fetchUsers();
-  // }
-
 
   const classes = useStyles();
   const [selectedUsers, setSelectedUsers] = useState([]);
@@ -303,7 +298,7 @@ editUser={submitEditUser}
 }
 
 {
-editUser && userState.isFetching && 
+editUser && mappeduserState.isFetching && 
 <Alert 
   icon={<Check fontSize="inherit"/>}
   severity="success">
