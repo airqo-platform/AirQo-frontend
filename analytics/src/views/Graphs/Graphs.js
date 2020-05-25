@@ -710,7 +710,7 @@ const Graphs = props => {
           type="submit"
         > Submit
         </Button>
-        <Button 
+        {/*<Button 
           variant="contained" 
           color="primary"              
           type="button"
@@ -719,7 +719,7 @@ const Graphs = props => {
           //onClick={(e) => handleDownload(e)}
           onClick={() => handleDownloadPie()}
         > Download
-        </Button>
+        </Button>*/}
       </div>       
       </form>
 
@@ -985,7 +985,7 @@ const Graphs = props => {
     type="submit"
   > Submit
   </Button>
-  <Button 
+  {/*<Button 
     variant="contained" 
     color="primary"              
     type="button"
@@ -996,7 +996,7 @@ const Graphs = props => {
     //onClick={() => handleDownload()}
     //onClick={(e) => this.handleDownload(e)}
     > Download
-  </Button>
+  </Button>*/}
 </div>       
 </form>
 
@@ -1276,7 +1276,7 @@ else if (myChartType=='bar'){
         type="submit"
         > Submit
         </Button>
-        <Button 
+        {/*<Button 
           variant="contained" 
           color="primary"              
           type="button"
@@ -1285,7 +1285,7 @@ else if (myChartType=='bar'){
           //onClick={(e) => handleDownload(e)}
           onClick={() => handleDownloadPie()}
         > Download
-        </Button>
+        </Button>*/}
         </div>       
         </form>
 
@@ -1566,7 +1566,7 @@ else if (myChartType=='bar'){
     type="submit"
   > Submit
   </Button>
-  <Button 
+  {/*<Button 
     variant="contained" 
     color="primary"              
     type="button"
@@ -1575,7 +1575,7 @@ else if (myChartType=='bar'){
     //onClick={(e) => handleDownload(e)}
     onClick={() => handleDownloadPie()}
     > Download
-  </Button>
+  </Button>*/}
 </div>       
 </form>
 
