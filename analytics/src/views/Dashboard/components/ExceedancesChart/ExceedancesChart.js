@@ -206,7 +206,7 @@ const ExceedancesChart = props => {
       console.log(filter_string);
   
       axios.post(
-        //'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/exceedances',
+        'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/exceedances',
         //'http://127.0.0.1:5000//api/v1/dashboard/exceedances', 
         filter_string,
         { headers: { 'Content-Type': 'application/json' } }

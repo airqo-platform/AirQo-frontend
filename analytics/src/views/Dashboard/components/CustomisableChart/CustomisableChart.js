@@ -219,8 +219,8 @@ const CustomisableChart = props => {
 
   useEffect(() => {
     
-    //axios.get('https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/customisedchart/random')
-    axios.get('http://127.0.0.1:5000/api/v1/dashboard/customisedchart/random')
+    axios.get('https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/customisedchart/random')
+    //axios.get('http://127.0.0.1:5000/api/v1/dashboard/customisedchart/random')
       .then(res => res.data)
       .then((customisedChartData) => {
         setCustomisedGraphData(customisedChartData)
@@ -247,8 +247,8 @@ const CustomisableChart = props => {
     //console.log(JSON.stringify(filter));
 
     axios.post(
-      //'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/customisedchart',      
-      'http://127.0.0.1:5000/api/v1/dashboard/customisedchart', 
+      'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/customisedchart',      
+      //'http://127.0.0.1:5000/api/v1/dashboard/customisedchart', 
       JSON.stringify(filter),
       { headers: { 'Content-Type': 'application/json' } }
     ).then(res => res.data)
@@ -263,8 +263,9 @@ const CustomisableChart = props => {
         setCustomAnnotations(customisedChartData.results ? 
           customisedChartData.results[0].pollutant==='PM 10'?
             {value:50, label_content:'WHO AQG'}:
-              customisedChartData.results[0].pollutant==='NO2' && customisedChartData.results[0].frequency==='hourly'?
-              {value:200, label_content:'WHO AQG'}:{}:{})
+            customisedChartData.results[0].pollutant==='NO2' && customisedChartData.results[0].frequency==='hourly'?
+              {value:200, label_content:'WHO AQG'}:
+              customisedChartData.results[0].pollutant==='PM 2.5'?{value:25, label_content:'WHO AQG'}:{}:{})
       }).catch(
         console.log
       )    

@@ -53,8 +53,8 @@ const Dashboard = props => {
   const [pm25CategoriesLocationCount, setPm25CategoriesLocationCount] = useState([]);
 
   useEffect(() => {
-    //axios.get('https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/locations/pm25categorycount?organisation_name=KCCA')
-    axios.get('http://127.0.0.1:5000/api/v1/dashboard/locations/pm25categorycount?organisation_name=KCCA')
+    axios.get('https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/locations/pm25categorycount?organisation_name=KCCA')
+    //axios.get('http://127.0.0.1:5000/api/v1/dashboard/locations/pm25categorycount?organisation_name=KCCA')
       .then(res => res.data)
       .then((data) => {        
         setPm25CategoriesLocationCount(data);        
@@ -67,8 +67,8 @@ const Dashboard = props => {
   const [locations,setLocations] = useState([]);
 
   useEffect(() => {
-    //fetch('https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/historical/daily/devices')
-    fetch('http://127.0.0.1:5000/api/v1/dashboard/historical/daily/devices')
+    fetch('https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/historical/daily/devices')
+    //fetch('http://127.0.0.1:5000/api/v1/dashboard/historical/daily/devices')
       .then(res => res.json())
       .then((locationsData) => {        
         setLocations(locationsData.results);        
