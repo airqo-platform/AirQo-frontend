@@ -91,8 +91,8 @@ class Main extends Component {
 
   // save monthly report
   saveReport = () => {
-    // head the save planning space dialog
-    this.setState((prevState) => ({ openSave: !prevState.openSave }));
+    // hide the save draft report dialog
+    this.setState({ openSave: false });
     // get status of the report
     let report_body = convertToRaw(this.state.editorState.getCurrentContent());
 
@@ -115,17 +115,17 @@ class Main extends Component {
       )
       .then((res) => {
         console.log(res);
-        this.setState((prevState) => ({ openConfirm: !prevState.openConfirm })); //
+        this.setState({ openConfirm: true }); //
       })
       .catch((e) => console.log(e));
   };
 
   // This deals with save report dialog box
   handleSaveClick = () => {
-    this.setState((prevState) => ({ openSave: !prevState.openSave }));
+    this.setState({ openSave: true });
   };
   handleSaveClose = () => {
-    this.setState((prevState) => ({ openSave: !prevState.openSave }));
+    this.setState({ openSave: false });
   };
   // hooks the monthly report textfield input
   changeHandler = (e) => {
@@ -134,8 +134,8 @@ class Main extends Component {
 
   // Handles saved report confirmation feedback
   handleConfirmClose = () => {
-    this.setState((prevState) => ({ openConfirm: !prevState.openConfirm }));
-    this.setState((prevState) => ({ openPrevSaved: !prevState.openPrevSaved }));
+    this.setState({ openConfirm: false });
+    this.setState({ openPrevSaved: false });
   };
 
   // load previously saved report
