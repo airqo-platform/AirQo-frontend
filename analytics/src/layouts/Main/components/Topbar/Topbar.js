@@ -1,3 +1,4 @@
+/* eslint-disable */
 import React, { useState, Component } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 import clsx from 'clsx';

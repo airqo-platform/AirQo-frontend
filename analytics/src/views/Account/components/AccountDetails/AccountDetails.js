@@ -12,6 +12,8 @@ import {
   Button,
   TextField
 } from '@material-ui/core';
+import { connect } from "react-redux";
+import { withRouter } from 'react-router-dom';
 
 const useStyles = makeStyles(() => ({
   root: {}
@@ -40,18 +42,20 @@ const AccountDetails = props => {
 
   const states = [
     {
-      value: 'alabama',
-      label: 'Alabama'
+      value: 'Kyagwe',
+      label: 'Kyagwe'
     },
     {
-      value: 'new-york',
-      label: 'New York'
+      value: 'Bukoto',
+      label: 'Bukoto'
     },
     {
-      value: 'san-francisco',
-      label: 'San Francisco'
+      value: 'Nansana',
+      label: 'Nansana'
     }
   ];
+
+  const { user } = props.auth;
 
   return (
     <Card
@@ -85,7 +89,8 @@ const AccountDetails = props => {
                 name="firstName"
                 onChange={handleChange}
                 required
-                value={values.firstName}
+                value=""
+                placeholder={user.firstName}
                 variant="outlined"
               />
             </Grid>
@@ -101,7 +106,8 @@ const AccountDetails = props => {
                 name="lastName"
                 onChange={handleChange}
                 required
-                value={values.lastName}
+                value=""
+                placeholder={user.lastName}
                 variant="outlined"
               />
             </Grid>
@@ -117,7 +123,8 @@ const AccountDetails = props => {
                 name="email"
                 onChange={handleChange}
                 required
-                value={values.email}
+                value=""
+                placeholder={user.email}
                 variant="outlined"
               />
             </Grid>
@@ -133,7 +140,8 @@ const AccountDetails = props => {
                 name="phone"
                 onChange={handleChange}
                 type="number"
-                value={values.phone}
+                value=""
+                placeholder={user.phoneNumber}
                 variant="outlined"
               />
             </Grid>
@@ -144,7 +152,7 @@ const AccountDetails = props => {
             >
               <TextField
                 fullWidth
-                label="Select State"
+                label="Preferred Locations"
                 margin="dense"
                 name="state"
                 onChange={handleChange}
@@ -152,7 +160,7 @@ const AccountDetails = props => {
                 select
                 // eslint-disable-next-line react/jsx-sort-props
                 SelectProps={{ native: true }}
-                value={values.state}
+                value=""
                 variant="outlined"
               >
                 {states.map(option => (
@@ -177,7 +185,8 @@ const AccountDetails = props => {
                 name="country"
                 onChange={handleChange}
                 required
-                value={values.country}
+                value=""
+                placeholder="Uganda"
                 variant="outlined"
               />
             </Grid>
@@ -198,7 +207,12 @@ const AccountDetails = props => {
 };
 
 AccountDetails.propTypes = {
-  className: PropTypes.string
+  className: PropTypes.string,
+  auth: PropTypes.object.isRequired,
 };
 
-export default AccountDetails;
+const mapStateToProps = (state) => ({
+  auth: state.auth,
+});
+
+export default connect(mapStateToProps, {})(withRouter(AccountDetails));

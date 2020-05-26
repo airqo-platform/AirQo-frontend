@@ -12,6 +12,7 @@ import SettingsIcon from '@material-ui/icons/Settings';
 import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
 import LocationOnIcon from '@material-ui/icons/LocationOn';
 import HelpOutlineIcon from '@material-ui/icons/HelpOutline';
+import TuneIcon from '@material-ui/icons/Tune';
 
 import { Profile, SidebarNav } from "./components";
 
@@ -88,6 +89,11 @@ const Sidebar = (props) => {
       title: "Account",
       href: "/account",
       icon: <AccountBoxIcon />,
+    },
+    {
+      title: 'Defaults',
+      href: '/defaults',
+      icon: <TuneIcon />
     },
     {
       title: "Settings",

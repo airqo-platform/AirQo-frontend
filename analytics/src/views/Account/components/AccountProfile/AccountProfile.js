@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import clsx from 'clsx';
 import moment from 'moment';
 import { makeStyles } from '@material-ui/styles';
+import { withRouter } from 'react-router-dom';
 import {
   Card,
   CardActions,
@@ -13,6 +14,7 @@ import {
   Button,
   LinearProgress
 } from '@material-ui/core';
+import { connect } from "react-redux";
 
 const useStyles = makeStyles(theme => ({
   root: {},
@@ -39,13 +41,15 @@ const AccountProfile = props => {
 
   const classes = useStyles();
 
-  const user = {
-    name: 'Shen Zhi',
-    city: 'Los Angeles',
-    country: 'USA',
-    timezone: 'GTM-7',
-    avatar: '/images/avatars/avatar_11.png'
-  };
+  const { user } = props.auth;
+
+  // const user = {
+  //   name: 'Shen Zhi',
+  //   city: 'Los Angeles',
+  //   country: 'USA',
+  //   timezone: 'GTM-7',
+  //   avatar: '/images/avatars/avatar_11.png'
+  // };
 
   return (
     <Card
@@ -59,21 +63,23 @@ const AccountProfile = props => {
               gutterBottom
               variant="h2"
             >
-              John Doe
+              {user.firstName}{" "}{user.lastName}
             </Typography>
             <Typography
               className={classes.locationText}
               color="textSecondary"
               variant="body1"
             >
-              {user.city}, {user.country}
+              {/* {user.city}, {user.country} */}
+              {"Kampala"},{"Uganda"}
             </Typography>
             <Typography
               className={classes.dateText}
               color="textSecondary"
               variant="body1"
             >
-              {moment().format('hh:mm A')} ({user.timezone})
+              {/* {moment().format('hh:mm A')} ({user.timezone})  */}
+              {moment().format('hh:mm A')} ({"GMT+3"})
             </Typography>
           </div>
           <Avatar
@@ -105,7 +111,15 @@ const AccountProfile = props => {
 };
 
 AccountProfile.propTypes = {
-  className: PropTypes.string
+  className: PropTypes.string,
+  auth: PropTypes.object.isRequired,
 };
 
-export default AccountProfile;
+const mapStateToProps = (state) => ({
+  auth: state.auth,
+});
+
+export default connect(mapStateToProps, {})(withRouter(AccountProfile));
+
+
+//yeah yeah\

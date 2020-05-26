@@ -1,3 +1,4 @@
+/* eslint-disable */
 import React, { Component } from "react";
 import TextField from "@material-ui/core/TextField";
 import axios from "axios";
@@ -27,6 +28,7 @@ class ForgotPassword extends Component {
     };
   }
 
+<<<<<<< HEAD:analytics/src/views/components/input/ForgotPassword.js
   async componentDidMount() {
     var anchorElem = document.createElement('link');
     anchorElem.setAttribute('href', 'https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css');
@@ -39,6 +41,9 @@ class ForgotPassword extends Component {
     let el = document.getElementById('logincdn');
     el.remove(); 
   }
+=======
+  async componentDidMount() { }
+>>>>>>> ft-user-management:analytics/src/views/components/Users/ForgotPassword.js
 
   onChange = (e) => {
     this.setState({
@@ -125,3 +130,5 @@ const mapSateToProps = (state) => ({
 });
 
 export default connect(mapSateToProps, { forgotPassword })(ForgotPassword);
+
+//
