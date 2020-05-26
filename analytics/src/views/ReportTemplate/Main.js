@@ -43,6 +43,7 @@ class Main extends Component {
     this.changeHandler = this.changeHandler.bind(this);
     this.handleConfirmClose = this.handleConfirmClose.bind(this);
     this.handlePrevSavedClose = this.handlePrevSavedClose.bind(this);
+    this.onDraftReportSelected = this.onDraftReportSelected.bind(this);
   }
 
   onEditorStateChange = (editorState) => {
@@ -155,6 +156,14 @@ class Main extends Component {
     this.setState((prevState) => ({ openPrevSaved: !prevState.openPrevSaved }));
   };
   handlePrevSavedClose = () => {
+    this.setState((prevState) => ({ openPrevSaved: !prevState.openPrevSaved }));
+  };
+  onDraftReportSelected = (report_name, report_body) => {
+    this.setState({
+      editorState: EditorState.createWithContent(
+        convertFromRaw(JSON.parse(JSON.stringify(report_body)))
+      ),
+    });
     this.setState((prevState) => ({ openPrevSaved: !prevState.openPrevSaved }));
   };
 
@@ -288,7 +297,16 @@ class Main extends Component {
                 <List>
                   {this.state.saved_report != null ? (
                     this.state.saved_report.map((s) => (
-                      <ListItem key={s._id} href="#" onClick="" component="a">
+                      <ListItem
+                        key={s._id}
+                        href="#"
+                        onClick={this.onDraftReportSelected.bind(
+                          this,
+                          s.report_name,
+                          s.report_body
+                        )}
+                        component="a"
+                      >
                         <ListItemAvatar>
                           <Avatar>
                             <DescriptionIcon />
