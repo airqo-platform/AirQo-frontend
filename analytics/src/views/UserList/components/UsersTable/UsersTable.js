@@ -82,6 +82,7 @@ const UsersTable = props => {
 const users =  mappeduserState.users;
 const collaborators = mappeduserState.collaborators;
 const editUser = mappeduserState.userToEdit;
+const userToDelete = mappeduserState.userToDelete;
 
   //the methods:
 
@@ -119,7 +120,7 @@ const editUser = mappeduserState.userToEdit;
   }
 
   const cofirmDeleteUser = () => {
-    props.mappedConfirmDeleteUser(this.props.mappeduserState.userToDelete);
+    props.mappedConfirmDeleteUser(mappeduserState.userToDelete);
   }
 
   const showConfirmDialog = (userToConfirm) => {
@@ -131,7 +132,7 @@ const editUser = mappeduserState.userToEdit;
   }
 
   const approveConfirmUser = () => {
-    props.mappedApproveConfirmUser(this.props.mappeduserState.userToConfirm);
+    props.mappedApproveConfirmUser(mappeduserState.userToConfirm);
   }
 
   const classes = useStyles();
@@ -179,6 +180,13 @@ const editUser = mappeduserState.userToEdit;
   const handleRowsPerPageChange = event => {
     setRowsPerPage(event.target.value);
   };
+
+
+  useEffect(()=>{
+    props.fetchUsers();
+  
+    },[]);
+
 
   return (
     <Card
@@ -330,6 +338,67 @@ cancel
     </Button>
   </DialogActions>
 </Dialog>
+
+{/***************************************** deleting a user ***********************************/}
+
+<Dialog
+open={props.mappeduserState.showDeleteDialog}
+onClose={hideDeleteDialog}
+aria-labelledby="form-dialog-title">
+
+  <DialogContent>
+<DialogContentText>Delete User</DialogContentText>
+
+{
+  props.mappeduserState.userToDelete && !userToDelete.error && !userToDelete.isFetching && 
+  <Alert severity="warning">
+  <AlertTitle>Warning</AlertTitle>
+Are you sure you want to delete this user — <strong>{props.mappeduserState.userToDelete.firstName}</strong>?
+  <strong> {mappeduserState.error} </strong>
+  </Alert>
+}
+
+{
+mappeduserState.userToDelete && mappeduserState.error && 
+<Alert severity="error">
+<AlertTitle>Failed</AlertTitle>
+<strong> {mappeduserState.error} </strong>
+</Alert>
+}
+
+{
+mappeduserState.userToDelete && !mappeduserState.error && mappeduserState.isFetching && 
+<Alert severity="success">
+<strong> Deleting.... </strong>
+</Alert>
+}
+
+{
+!mappeduserState.userToDelete && !mappeduserState.error && !mappeduserState.isFetching && 
+  <Alert severity="success">
+<AlertTitle>Success</AlertTitle>
+User <strong> {mappeduserState.successMsg}</strong>
+  </Alert>
+}
+  </DialogContent>
+  <DialogActions>
+{!mappeduserState.successMsg && !mappeduserState.isFetching && 
+<div>
+<Button onClick={cofirmDeleteUser} color="primary">
+Yes
+    </Button>
+    <Button onClick={hideDeleteDialog} color="primary">
+No
+    </Button>
+</div>
+}
+{
+mappeduserState.successMsg && !mappeduserState.isFetching && 
+<Button onClick={hideConfirmDialog}>Close</Button>
+}
+  </DialogActions>
+</Dialog>
+
     </Card>
   );
 };

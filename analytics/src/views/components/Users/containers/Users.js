@@ -22,6 +22,8 @@ const mapDispatchToProps = dispatch => {
         //you can now say this.props.mappedAppActions
         fetchUsers: () => dispatch(userActions.fetchUsers()),
 
+        fetchCollaborators: () => dispatch(userActions.fetchCollaborators()),
+
         mappedshowEditDialog: userToEdit => dispatch(userActions.showEditDialog(userToEdit)),
         mappedhideEditDialog: () => dispatch(userActions.hideEditDialog()),
         mappedEditUser: userToEdit => dispatch(userActions.editUser(userToEdit)),
@@ -37,6 +39,7 @@ const mapDispatchToProps = dispatch => {
         mappedAddUser: userToAdd => dispatch(userActions.addNewUser(userToAdd)),
         mappedShowAddDialog: () => dispatch(userActions.showAddDialog()),
         mappedHideAddDialog: () => dispatch(userActions.hideAddDialog())
+
     };
 };
 

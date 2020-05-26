@@ -24,7 +24,14 @@ import {
     SHOW_CONFIRM_DIALOG,
     SET_DEFAULTS_REQUEST,
     SET_DEFAULTS_SUCCESS,
-    SET_DEFAULTS_FAILED
+    SET_DEFAULTS_FAILED,
+    UPDATE_PASSWORD_REQUEST,
+    UPDATE_PASSWORD_SUCCESS,
+    UPDATE_PASSWORD_FAILED,
+    UPDATE_PROFILE_REQUEST,
+    UPDATE_PROFILE_SUCCESS,
+    UPDATE_PROFILE_FAILED
+
 } from "../types";
 
 const isEmpty = require("is-empty");
@@ -124,7 +131,7 @@ export default function(state = initialState, action) {
         case REGISTER_USER_SUCCESS:
             return {
                 ...state,
-                users: [...state.users, action.payload.user],
+                users: [...state.users, action.user],
                 user: null,
                 isFetching: false,
                 error: null,
@@ -371,6 +378,25 @@ export default function(state = initialState, action) {
                 showEditDialog: false,
                 userToEdit: null,
                 newUser: null
+            }
+
+            /************************ save password  *********************************************/
+        case UPDATE_PASSWORD_REQUEST:
+            return {
+                ...state,
+                users: state.users,
+                userToDefault: action.userToDefault,
+            }
+        case UPDATE_PASSWORD_SUCCESS:
+            return {
+                ...state,
+                users: state.users,
+            }
+        case UPDATE_PASSWORD_FAILED:
+            return {
+                ...state,
+                users: state.users,
+                user: null,
             }
 
             //set defaults
