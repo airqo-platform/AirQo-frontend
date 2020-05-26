@@ -144,7 +144,8 @@ class Main extends Component {
   handlePrevSavedOpen = () => {
     axios
       .get(
-        "http://127.0.0.1:5000/api/v1/report/get_monthly_report/" +
+        "https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/report/get_monthly_report/" +
+        //"http://127.0.0.1:5000/api/v1/report/get_monthly_report/" +
           this.state.user_id
       )
       .then((res) => {
