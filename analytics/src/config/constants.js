@@ -10,6 +10,7 @@ const devConfig = {
     REJECT_USER_URI: "http://localhost:3000/api/v1/users/deny",
     ACCEPT_USER_URI: "http://localhost:3000/api/v1/users/accept",
     GET_USERS_URI: "http://localhost:3000/api/v1/users/",
+    GET_COLLABORATORS_URI: "http://localhost:3000/api/v1/users/collaborators/",
 };
 const testConfig = {
     VERIFY_TOKEN_URI: "http://localhost:3000/api/v1/users/reset",

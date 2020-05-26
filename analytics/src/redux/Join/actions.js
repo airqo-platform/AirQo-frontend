@@ -1,3 +1,4 @@
+/* eslint-disable */
 import axios from "axios";
 import setAuthToken from "../../utils/setAuthToken";
 import jwt_decode from "jwt-decode";
@@ -33,7 +34,14 @@ import {
     SET_DEFAULTS_FAILED,
     REGISTRATION_SUCCESS,
     SHOW_REGISTER_USER,
-    HIDE_REGISTER_USER
+    HIDE_REGISTER_USER,
+    GET_COLLABORATORS_SUCCESS,
+    GET_COLLABORATORS_FAILED,
+    GET_COLLABORATORS_REQUEST,
+    UPDATE_PROFILE_REQUEST,
+    UPDATE_PROFILE_SUCCESS,
+    UPDATE_PROFILE_FAILURE,
+    UPDATE_PROFILE_FAILED
 } from "./types";
 import constants from "../../config/constants";
 
@@ -57,6 +65,7 @@ export const fetchUsers = () => {
         });
     };
 }
+
 
 export const fetchUsersRequest = () => {
     return {
@@ -82,6 +91,53 @@ export const fetchUsersFailed = (error) => {
     }
 }
 
+/*********************** fetching collaborators ********************************/
+
+export const fetchCollaborators = (id) => {
+
+    return (dispatch) => {
+        dispatch(fetchCollaboratorsRequest());
+        // Returns a promise
+        console.log("we are now fetching users using the action for fetching ");
+        return fetch(constants.GET_COLLABORATORS_URI + id).then((response) => {
+            if (response.ok) {
+                response.json().then((data) => {
+                    dispatch(fetchCollaboratorsSuccess(data.users, data.message));
+                });
+            } else {
+                response.json().then((error) => {
+                    dispatch(fetchCollaboratorsFailed(error));
+                });
+            }
+        });
+    };
+
+}
+
+export const fetchCollaboratorsRequest = () => {
+    return {
+        type: GET_COLLABORATORS_REQUEST,
+    }
+}
+
+export const fetchCollaboratorsSuccess = (users, message) => {
+    console.log("these are the users we are sending: ");
+    console.dir(users);
+    return {
+        type: GET_COLLABORATORS_SUCCESS,
+        users: users,
+        message: message,
+        receiveAt: Date.now,
+    }
+}
+
+export const fetchCollaboratorsFailed = (error) => {
+    return {
+        type: GET_COLLABORATORS_FAILED,
+        error
+    }
+}
+
 
 /********************* Add a new user ***********************************/
 export const addNewUser = (user) => {
@@ -90,9 +146,9 @@ export const addNewUser = (user) => {
         axios
             .post(constants.REGISTER_USER_URI, user)
             .then(res => {
-                const { user, message } = res.data
+                const { savedData, message } = res.data
                 try {
-                    dispatch(addNewUserRequestSuccess(user, message))
+                    dispatch(addNewUserRequestSuccess(savedData, message))
                 } catch (e) {
                     console.log(e)
                 }
@@ -221,21 +277,22 @@ export const hideDeleteDialog = () => {
 };
 
 export const deleteUser = userToDelete => {
-    return dispatch => {
-        axios
-            .delete(constants.GET_USERS_URI, userToDelete)
-            .then(res => {
-                try {
-                    const { user, message } = res.data;
-                    dispatch(deleteUserSuccess(user, message))
-                } catch (e) {
-                    console.log(e)
-                }
-            })
-            .catch(error => {
-                dispatch(deleteUserFailed(error));
-            })
-    }
+    return (dispatch) => {
+        dispatch(deleteUserRequest(userToDelete));
+        return fetch(constants.GET_USERS_URI + userToDelete._id, {
+            method: "delete",
+        }).then((response) => {
+            if (response.ok) {
+                response.json().then((data) => {
+                    dispatch(deleteUserSuccess(data.user, data.message));
+                });
+            } else {
+                response.json().then((error) => {
+                    dispatch(deleteUserFailed(error));
+                });
+            }
+        });
+    };
 }
 
 export const deleteUserRequest = userToDelete => {
@@ -375,13 +432,10 @@ export const verifyToken = async(token) => {
         });
 };
 
+
 export const updatePassword = (userData) => (dispatch) => {
-    /**
-     * need to get the id of the user intact
-     * 
-     */
     axios
-        .put("http://localhost:3000/api/v1/users/updatePassword", userData)
+        .put(constants.UPDATE_PWD_IN_URI, userData)
         .then((response) => {
             console.log(response.data);
             if (response.data.success === true) {
@@ -393,7 +447,6 @@ export const updatePassword = (userData) => (dispatch) => {
                 dispatch({
                     type: UPDATE_PASSWORD_FAILED,
                     payload: response.data.err
-
                 })
             }
         })
@@ -404,6 +457,29 @@ export const updatePassword = (userData) => (dispatch) => {
                 payload: error.response,
             })
         });
+};
+
+export const updateProfile = (userData) => (dispatch) => {
+    dispatch({ type: UPDATE_PROFILE_REQUEST });
+    return axios({
+            method: 'put',
+            url: constants.GET_USERS_URI,
+            data: userData,
+        })
+        .then(response => {
+            if (response) {
+                dispatch({
+                    type: UPDATE_PROFILE_SUCCESS
+                });
+            } else {
+                dispatch({
+                    type: UPDATE_PROFILE_FAILED
+                });
+            }
+        })
+        .catch(e => {
+            dispatch({});
+        })
 };
 
 // Set logged in user
@@ -445,7 +521,7 @@ export const hideConfirmDialog = () => {
 
 export const confirmUser = (userToConfirm) => (dispatch) => {
     dispatch(confirmUserRequest(userToConfirm));
-    return axios.post("http://localhost:3000/api/v1/users/", userToConfirm)
+    return axios.post(constants.GET_USERS_URI, userToConfirm)
         .then(response => {
             if (response) {
                 dispatch(confirmUserSuccess(response.data.user, response.data.message));
@@ -487,7 +563,7 @@ export const confirmUserFailed = (error) => {
 //*********************************** setting defaults ************************************/
 export const setDefaults = (values) => (dispatch) => {
     dispatch(setDefaultsRequest(values));
-    return axios.post("http://localhost:3000/api/v1/users/", values)
+    return axios.post(constants.GET_USERS_URI, values)
         .then(response => {
             if (response) {
                 dispatch(setDefaultsSuccess(response.data.user, response.data.message));

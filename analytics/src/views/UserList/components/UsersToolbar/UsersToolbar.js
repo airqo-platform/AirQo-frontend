@@ -44,15 +44,21 @@ const UsersToolbar = props => {
   const userState = mappeduserState;
 
   const [open, setOpen] = useState(false);
-  
-  const [form, setState] = useState({
+
+  const initialState = {
     userName:'',
     firstName:'',
     lastName:'',
     email:'',
     password:'',
     password2:''
-  })
+  }
+  
+  const [form, setState] = useState(initialState);
+
+  const clearState = ()=>{
+    setState({...initialState});
+  };
 
   const classes = useStyles();
 
@@ -68,6 +74,10 @@ const UsersToolbar = props => {
     setOpen(false);
     props.mappedHideAddDialog();
   };
+
+  const hideAddDialog = ()=>{
+props.mappedHideAddDialog();
+  }
 
   const onChange = (e) => {
 setState({
@@ -89,11 +99,12 @@ setState({
     };
     console.log(userData);
     props.mappedAddUser(userData);
+ clearState();
   }
 
   return (
     <div
-      {...rest}
+      // {...rest}
       className={clsx(classes.root, className)}
     >
       <div className={classes.row}>
@@ -115,7 +126,7 @@ setState({
                 margin="dense"
                 id="email"
                 name="Email Address"
-                type="email"
+                type="text"
                 label="email"
                 onChange={onChange}
                 value={form.email}
@@ -138,7 +149,7 @@ setState({
                 id="firstName"
                 name="firstName"
                 label="first name"
-                type="firstName"
+                type="text"
                 onChange={onChange}
                 value={form.firstName}
                 fullWidth
@@ -149,7 +160,7 @@ setState({
                 id="lastName"
                 label="last name"
                 name="lastName"
-                type="lastName"
+                type="text"
                 onChange={onChange}
                 value={form.lastName}
                 fullWidth
@@ -177,14 +188,16 @@ setState({
                 fullWidth
               />
             </DialogContent>
+
             <DialogActions>
-              <Button onClick={handleClose} color="primary">
+           <Button onClick={handleClose} color="primary">
                 Cancel
           </Button>
               <Button onClick={onSubmit} color="primary">
                 Submit
           </Button>
             </DialogActions>
+            
           </Dialog>
         </div>
       </div>
