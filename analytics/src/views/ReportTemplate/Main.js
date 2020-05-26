@@ -55,7 +55,7 @@ class Main extends Component {
 
   componentDidMount() {
     axios
-      .get("http://127.0.0.1:4000/api/v1/report/get_default_report_template")
+      .get("http://127.0.0.1:5000/api/v1/report/get_default_report_template")
       .then((res) => {
         let result = res.data[0];
         this.setState({
@@ -101,7 +101,7 @@ class Main extends Component {
     // make api call to save report
     axios
       .post(
-        "http://127.0.0.1:4000/api/v1/report/save_monthly_report",
+        "http://127.0.0.1:5000/api/v1/report/save_monthly_report",
         {
           user_id: this.state.user_id,
           report_name: this.state.report_name,
@@ -142,7 +142,7 @@ class Main extends Component {
   handlePrevSavedOpen = () => {
     axios
       .get(
-        "http://127.0.0.1:4000/api/v1/report/get_monthly_report/" +
+        "http://127.0.0.1:5000/api/v1/report/get_monthly_report/" +
           this.state.user_id
       )
       .then((res) => {
