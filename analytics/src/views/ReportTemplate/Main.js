@@ -11,6 +11,13 @@ import {
 import SaveIcon from "@material-ui/icons/Save";
 import FolderIcon from "@material-ui/icons/Folder";
 import Tooltip from "@material-ui/core/Tooltip";
+import List from "@material-ui/core/List";
+import ListItem from "@material-ui/core/ListItem";
+import ListItemText from "@material-ui/core/ListItemText";
+import ListItemAvatar from "@material-ui/core/ListItemAvatar";
+import DialogTitle from "@material-ui/core/DialogTitle";
+import Avatar from "@material-ui/core/Avatar";
+import DescriptionIcon from "@material-ui/icons/Description";
 import { Editor } from "react-draft-wysiwyg";
 import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css";
 import "../../assets/scss/report.css";
@@ -22,19 +29,20 @@ class Main extends Component {
     this.state = {
       editorState: EditorState.createEmpty(),
       user_id: this.props.user_id,
-      open: false,
+      openPrevSaved: false,
       openSave: false,
       openConfirm: false,
-      saved_report: {},
+      saved_report: [],
       report_body: {},
       report_name: "",
     };
     // bind to this
-    this.handleClick = this.handleClick.bind(this);
+    this.handlePrevSavedOpen = this.handlePrevSavedOpen.bind(this);
     this.handleSaveClick = this.handleSaveClick.bind(this);
     this.handleSaveClose = this.handleSaveClose.bind(this);
     this.changeHandler = this.changeHandler.bind(this);
     this.handleConfirmClose = this.handleConfirmClose.bind(this);
+    this.handlePrevSavedClose = this.handlePrevSavedClose.bind(this);
   }
 
   onEditorStateChange = (editorState) => {
@@ -126,11 +134,28 @@ class Main extends Component {
   // Handles saved report confirmation feedback
   handleConfirmClose = () => {
     this.setState((prevState) => ({ openConfirm: !prevState.openConfirm }));
+    this.setState((prevState) => ({ openPrevSaved: !prevState.openPrevSaved }));
   };
 
   // load previously saved report
-  handleClick = () => {
-    this.setState((prevState) => ({ open: !prevState.open }));
+  handlePrevSavedOpen = () => {
+    axios
+      .get(
+        "http://127.0.0.1:4000/api/v1/report/get_monthly_report/" +
+          this.state.user_id
+      )
+      .then((res) => {
+        this.setState({ saved_report: res.data });
+        console.log(res.data);
+        //console.log(this.state, "current user: ", this.props.auth.user._id);
+      })
+      .catch((e) => {
+        console.log(e);
+      });
+    this.setState((prevState) => ({ openPrevSaved: !prevState.openPrevSaved }));
+  };
+  handlePrevSavedClose = () => {
+    this.setState((prevState) => ({ openPrevSaved: !prevState.openPrevSaved }));
   };
 
   render() {
@@ -155,7 +180,7 @@ class Main extends Component {
               className="print"
             >
               <style>{"@media print {.print{display: none;}}"}</style>
-              {/* Save Draft */}
+              {/* save draft */}
             </Button>
           </Tooltip>
         </div>
@@ -165,7 +190,7 @@ class Main extends Component {
               color="primary"
               variant="contained"
               endIcon={<FolderIcon />}
-              onClick=""
+              onClick={this.handlePrevSavedOpen}
               className="print"
             >
               <style>{"@media print {.print{display: none;}}"}</style>
@@ -243,6 +268,57 @@ class Main extends Component {
             <DialogActions>
               <Button onClick={this.handleConfirmClose} color="primary">
                 OK
+              </Button>
+            </DialogActions>
+          </Dialog>
+
+          {/* Previously saved */}
+          <Dialog
+            open={this.state.openPrevSaved}
+            onClose={this.handlePrevSavedClose}
+            aria-labelledby="alert-dialog-title"
+            aria-describedby="alert-dialog-description"
+          >
+            <DialogTitle id="simple-dialog-title">
+              Open draft report
+            </DialogTitle>
+
+            <DialogContent>
+              <DialogContentText id="alert-dialog-description">
+                <List>
+                  {this.state.saved_report != null ? (
+                    this.state.saved_report.map((s) => (
+                      <ListItem key={s._id} href="#" onClick="" component="a">
+                        <ListItemAvatar>
+                          <Avatar>
+                            <DescriptionIcon />
+                          </Avatar>
+                        </ListItemAvatar>
+                        <ListItemText
+                          primary={s.report_name}
+                          secondary={s.report_date}
+                        />
+                      </ListItem>
+                    ))
+                  ) : (
+                    <ListItem>
+                      <ListItemAvatar>
+                        <Avatar>
+                          <DescriptionIcon />
+                        </Avatar>
+                      </ListItemAvatar>
+                      <ListItemText
+                        primary="No draft report found"
+                        secondary="Empty Collection"
+                      />
+                    </ListItem>
+                  )}
+                </List>
+              </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={this.handlePrevSavedClose} color="primary">
+                Close
               </Button>
             </DialogActions>
           </Dialog>
