@@ -53,10 +53,7 @@
     "html2canvas": "^1.0.0-rc.5",
     "is-empty": "^1.2.0",
     "jsonexport": "^2.4.1",
-<<<<<<< HEAD
-=======
     "jspdf": "^1.5.3",
->>>>>>> exceedance-chart
     "jwt-decode": "^2.2.0",
     "leaflet": "^1.6.0",
     "linkref": "^1.1.0",
