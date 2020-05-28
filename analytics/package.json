@@ -90,7 +90,6 @@
     "validate.js": "^0.13.1",
     "yarn": "^1.22.4",
     "react-router-bootstrap": "^0.23.3"
-    
   },
   "devDependencies": {
     "@babel/cli": "^7.8.4",
@@ -110,6 +109,5 @@
     "enzyme-adapter-react-16": "^1.15.2",
     "enzyme-to-json": "^3.4.4",
     "eslint-config-prettier": "^6.10.1"
-    
   }
 }
