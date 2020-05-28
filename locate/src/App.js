@@ -38,7 +38,9 @@ import Devices from "./views/components/DataDisplay/Devices";
 import Users from "./views/components/DataDisplay/Users";
 import Manager from "./views/components/DataDisplay/DeviceManagement";
 import Incentives from "./views/components/DataDisplay/Incentives";
-import { LocationList } from "./views/components/LocationList";
+import { LocationList, LocationRegister } from "./views/components/LocationList";
+//import { LocationRegister }from "./views/components/LocationRegister";
+//import { LocationRegister } from "./views/components/LocationList/LocationRegister";
 
 // Check for token to keep user logged in
 if (localStorage.jwtToken) {
@@ -95,6 +97,12 @@ class App extends Component {
                   extact
                   path="/location"
                   component={LocationList}
+                  layout={MainLayout}
+                />
+                <PrivateRoute
+                  extact
+                  path="/register_location"
+                  component={LocationRegister}
                   layout={MainLayout}
                 />
                 <PrivateRoute
