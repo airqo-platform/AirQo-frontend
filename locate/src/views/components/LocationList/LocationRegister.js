@@ -52,11 +52,15 @@ const useStyles = makeStyles(theme => ({
     marginRight: 'auto',            
     paddingBottom: 0,
     marginTop: 0,
-    fontWeight: 500
+    fontWeight: 500,
+    border: '2px solid #757575',
+    
+    //border: '#757575'
+    //borderWidth: "5px",
+    //borderColor: "#757575"
 },
   
 }));
-
 
 
 const selectStyles = {
@@ -73,7 +77,7 @@ const selectStyles = {
     border: '2px solid #757575',
     borderRadius: '0',
     minHeight: '1px',
-    height: '42px',
+    height: '56px',
   }),
   input: (provided) => ({
     ...provided,
@@ -85,6 +89,7 @@ const selectStyles = {
     paddingTop: '0',
     paddingBottom: '0',
     color: '#757575',
+    //color:'#000000',
   }),
   indicatorSeparator: (provided) => ({
     ...provided,
@@ -113,34 +118,55 @@ const LocationRegister = props => {
   const { className, ...rest } = props;
   let params = useParams();
   const classes = useStyles();
+
+  const [locationReference, setLocationReference] = useState('');
+  /*const handleLocationReferenceChange = defaultLocationRef => {
+	  setLocationReference(defaultLocationRef);
+  }*/
   
   useEffect(() => {
-	  //code to retrieve next location ID from backend
+    //code to retrieve next location ID from backend
+    axios.get(
+      //'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/device/graph',
+      'http://127.0.0.1:4000/api/v1/location_registry/create_id'
+    )
+    .then(
+      res=>{
+        const ref = res.data;
+        //console.log(ref);
+        setLocationReference(ref)
+
+    }).catch(
+      console.log
+    )
   });
  
   const [loading, setLoading] = useState({value: false})
-  const [submitBtn, setSubmitBtn] = useState(false);
+  //const [submitBtn, setSubmitBtn] = useState(false);
   
-  const [locationReference, setLocationReference] = useState('');
-  const handleLocationReferenceChange = defaultLocationRef => {
-	  setLocationReference(defaultLocationRef);
-  }
 
-
-  const [latitude, setLatitude] = useState();
+  const [latitude, setLatitude] = useState(0);
   const handleLatitudeChange = enteredLatitude =>{
-	  setLatitude(enteredLatitude);
+    let re = /\s*|\d+(\.d+)?/
+    if (re.test(enteredLatitude.target.value)) {
+	  setLatitude(enteredLatitude.target.value);
   }
+}
   
-  const [longitude, setLongitude] = useState();
+  const [longitude, setLongitude] = useState(0);
   const handleLongitudeChange = enteredLongitude =>{
-	  setLongitude(enteredLongitude);
+    let re = /\s*|\d+(\.d+)?/
+    if (re.test(enteredLongitude.target.value)){
+	  setLongitude(enteredLongitude.target.value);
   }
+}
   
   const [hostName, setHostName] = useState('');
-  const handleHostNameChange = enteredHostName =>{
-	  setHostName(enteredHostName);
-  }
+
+  const handleHostNameChange = enteredHostName => {
+    setHostName(enteredHostName.target.value);
+}
+ 
   
   const [internet, setInternet] = useState({value: ''});
   const handleInternetChange = selectedInternet => {
@@ -157,14 +183,17 @@ const LocationRegister = props => {
 	  setPower(selectedPower);
   }
   const powerOptions = [
-    { value: 'solar', label: 'SMS' },
-    { value: 'mains', label: 'mains' },
+    { value: 'solar', label: 'Solar' },
+    { value: 'mains', label: 'Mains' },
   ];
   
-  const [height, setHeight] = useState();
+  const [height, setHeight] = useState(0);
   const handleHeightChange = enteredHeight => {
-	  setHeight(enteredHeight);
+    let re = /\s*|\d+(\.d+)?/
+    if (re.test(enteredHeight.target.value)) {
+      setHeight(enteredHeight.target.value);
   }
+}
   
   const [roadIntensity, setRoadIntensity] = useState({value: ''});
   const handleRoadIntensityChange = selectedRoadIntensity => {
@@ -177,24 +206,29 @@ const LocationRegister = props => {
 	{ value: 'heavy', label: 'Heavy' },
 	{ value: 'extreme', label: 'Extreme' },
 	];
-	
+  
+  const [mobile, setMobile] = useState(false);
   const [mobility, setMobility] = useState({value: ''});
   const handleMobilityChange = selectedMobility => {
-	  setMobility(selectedMobility);
+    setMobility(selectedMobility);
+    if(mobility.value == 'static' ){
+      setMobile(true);
+    }
   }
   const mobilityOptions = [
     { value: 'static', label: 'Static' },
     { value: 'mobile', label: 'Mobile' },
-	];
-	  
+  ];
+  
+
   const [installationType, setInstallationType] = useState('');
   const handleInstallationTypeChange = enteredInstallationType => {
-	  setInstallationType(enteredInstallationType);
+	  setInstallationType(enteredInstallationType.target.value);
   }
   
   const [landuse, setLanduse] = useState('');
   const handleLanduseChange = enteredLanduse => {
-	  setLanduse(enteredLanduse);
+	  setLanduse(enteredLanduse.target.value);
   }
     
   const [roadStatus, setRoadStatus] = useState({value: ''});
@@ -216,8 +250,35 @@ const LocationRegister = props => {
     { value: 'burning', label: 'Burning' },
     { value: 'cooking', label: 'Cooking' },
     { value: 'road dust', label: 'Road dust' },
-	{ value: 'idling', label: 'Idling' }
+	  { value: 'idling', label: 'Idling' }
   ];
+
+  let generateReference = () =>{
+    axios.get(
+      //'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/device/graph',
+      'http://127.0.0.1:4000/api/v1/location_registry/create_id'
+    )
+    .then(
+      res=>{
+        const ref = res.data;
+        console.log(ref);
+        //setLocationReference(ref)
+        return ref
+
+    }).catch(
+      console.log
+    )
+
+  }
+
+  let changeHandler = event => {
+    event.persist();
+  
+    let value = event.target.value;
+    setHeight(value);
+  
+  };
+  
   
 
   let  handleSubmit = (e) => {
@@ -225,25 +286,24 @@ const LocationRegister = props => {
     setLoading(true);
 
     let filter ={ 
-	  locationReference: locationReference,
-	  mobility: mobility.value,
-      latitude: latitude,
-      longitude:  longitude,
+      locationReference: locationReference,
       hostName:  hostName,
+	    mobility: mobility.value,
+      latitude: Number(latitude),
+      longitude:  Number(longitude),
       internet:  internet.value,
-      power:  power.value,
-      height: height,
+      height: Number(height),      
       roadIntensity: roadIntensity.value, 
-      installationType:	installationType,
-      landuse: landuse,	  
-	  roadStatus: roadStatus.value,
-	  localActivities: localActivities
+      installationType:	installationType,  
+      roadStatus: roadStatus.value,
+      landuse: landuse,	
+      power:  power.value,
     }
     console.log(JSON.stringify(filter));
-
+    
     axios.post(
       //'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/device/graph',
-      'http://127.0.0.1:5000/api/v1/location/register', 
+      'http://127.0.0.1:4000/api/v1/location_registry/register', 
       JSON.stringify(filter),
       { headers: { 'Content-Type': 'application/json' } }
     )
@@ -251,7 +311,7 @@ const LocationRegister = props => {
       res=>{
         const myData = res.data;
         console.log(myData);
-        setLoading(false) //in return dialog to show that location has been saved successfully (look in locate daniel's code)
+        //setLoading(false) 
     }).catch(
       console.log
     )
@@ -266,10 +326,12 @@ const LocationRegister = props => {
           <React.Fragment>
             <Grid item xs={6}>
             <div className={classes.formControl} style={{width: '250px'}}>
+            <span>Location Reference</span>
               <TextField 
                 className={classes.textField}
 	              id="locationReference" 
-		            label="Location Reference"
+                //label="Location Reference"
+                value = {locationReference}
 		            //placeholder="Location Reference"
                 variant = "outlined"
                 size = "medium"
@@ -283,17 +345,22 @@ const LocationRegister = props => {
           
             </Grid>
             <Grid item xs={6}>
-            <div className={classes.formControl} style={{width: '250px'}}>
+
+           <div className={classes.formControl} style={{width: '250px'}}>
+           <span>Height aboove ground (m)</span>
               <TextField 
                 className={classes.textField}
 	              id="height" 
-		            label="Height above ground (m)"
+                //label="Height above ground (m)"
+                value = {height}
 		            //placeholder="Height above ground"
-                onchange = {handleHeightChange}
+                keyboardType="numeric"
+                onChange={changeHandler}
                 variant = "outlined"
                 size = "medium"
                 color ="secondary"
                 margin ="normal"
+                disabled = {mobile}
 	            /> 
               </div>
             </Grid>
@@ -304,13 +371,15 @@ const LocationRegister = props => {
           <React.Fragment>
             <Grid item xs={6}>
             <div className={classes.formControl} style={{width: '250px'}}>
+            <span>Host Name</span>
               <TextField 
                 required 
                 className={classes.textField}
 	              id="hostName" 
-		            label="Host Name"
+                //label="Host Name"
+                value = {hostName}
 		            //placeholder="Host Name"
-                onchange = {handleHostNameChange}
+                onChange = {handleHostNameChange}
                 variant = "outlined"
                 size = "medium"
                 color ="secondary"
@@ -334,6 +403,7 @@ const LocationRegister = props => {
                 //placeholder={'Enter Road Intensity'}
                 autoFocus={true}     
                 styles={selectStyles}   
+                isDisabled ={mobile}
               />
               </div>
             </Grid>
@@ -359,16 +429,19 @@ const LocationRegister = props => {
             </Grid>
             <Grid item xs={6}>
             <div className={classes.formControl} style={{width: '250px'}}>
+            <span>Installation Type</span>
               <TextField 
                 className={classes.textField}
 	              id="installationType" 
-		            label="Installation Type"
+                //label="Installation Type"
+                value = {installationType}
 		            //placeholder="Installation Type"
-                onchange = {handleInstallationTypeChange}
+                onChange = {handleInstallationTypeChange}
                 variant = "outlined"
                 size = "medium"
                 color ="secondary"
                 margin ="normal"
+                disabled = {mobile}
 	            /> 
               </div>
             </Grid>
@@ -380,17 +453,21 @@ const LocationRegister = props => {
           <React.Fragment>
             <Grid item xs={6}>
             <div className={classes.formControl} style={{width: '250px'}}>
+            <span>Latitude</span>
               <TextField 
                 className={classes.textField}
                 id="latitude" 
-		            label="Latitude"
+                //label="Latitude"
+                value = {latitude}
 		            //placeholder="Latitude"
-                onchange = {handleLatitudeChange}
+                onChange = {handleLatitudeChange}
+                keyboardType="numeric"
 		            variant = "outlined"
                 //type = "number"
                 size = "medium"
                 color ="secondary"
                 margin ="normal"
+                disabled = {mobile}
 	             /> 
                </div>
             </Grid>
@@ -401,10 +478,11 @@ const LocationRegister = props => {
                 className="reactSelect"
                 name="roadStatus"
                 placeholder="Road Status"
-                value={roadStatus}
+                //value={roadStatus}
                 options={roadStatusOptions}
                 onChange={handleRoadStatusChange}   
-                styles={selectStyles}            
+                styles={selectStyles}    
+                isDisabled ={mobile}      
               />
             </div>
             </Grid>
@@ -415,33 +493,40 @@ const LocationRegister = props => {
           <React.Fragment>
             <Grid item xs={6}>
             <div className={classes.formControl} style={{width: '250px'}}>
+            <span>Longitude</span>
               <TextField 
                 className={classes.textField}
                 id="longitude" 
-		            label="Longitude"
+                //label="Longitude"
+                value = {longitude}
 		            //placeholder="Longitude"
-                onchange = {handleLongitudeChange}
+                onChange = {handleLongitudeChange}
+                keyboardType="numeric"
 		            variant = "outlined"
                 //type = "number"
                 size = "medium"
                 color ="secondary"
                 margin ="normal"
+                disabled = {mobile}
 	             /> 
                </div>
             </Grid>
             <Grid item xs={6}>
             <div className={classes.formControl} style={{width: '250px'}}>
+            <span>Landuse</span>
               <TextField  
                 className={classes.textField}
 	              id="landuse" 
-		            label="Landuse"
+		            //label="Landuse"
 		            //placeholder="Landuse"
-                onchange = {handleLanduseChange}
+                onChange = {handleLanduseChange}
                 variant = "outlined"
                 size = "medium"
                 color ="secondary"
                 margin ="normal"
-	          /> 
+                disabled = {mobile}
+                value = {landuse}
+	            /> 
 	          </div>
             </Grid>
            </React.Fragment>
@@ -458,8 +543,9 @@ const LocationRegister = props => {
                 placeholder="Internet"
                 value={internet}
                 options={internetOptions}
-                 onChange={handleInternetChange}
-                 styles={selectStyles} 
+                onChange={handleInternetChange}
+                styles={selectStyles} 
+                isDisabled ={mobile}
               />
               </div>
               </Grid>
@@ -473,7 +559,8 @@ const LocationRegister = props => {
                 value={power}
                 options={powerOptions}
                 onChange={handlePowerChange} 
-                styles={selectStyles}              
+                styles={selectStyles} 
+                isDisabled ={mobile}            
               />
 	          </div>
             </Grid>
