@@ -53,11 +53,7 @@ const useStyles = makeStyles(theme => ({
     paddingBottom: 0,
     marginTop: 0,
     fontWeight: 500,
-    border: '2px solid #757575',
-    
-    //border: '#757575'
-    //borderWidth: "5px",
-    //borderColor: "#757575"
+    border: '2px solid #7575FF',    
 },
   
 }));
@@ -74,7 +70,8 @@ const selectStyles = {
   }),
   control: (provided) => ({
     ...provided,
-    border: '2px solid #757575',
+    //border: '2px solid #757575',
+    border: '2px solid #7575FF',
     borderRadius: '0',
     minHeight: '1px',
     height: '56px',
@@ -347,7 +344,7 @@ const LocationRegister = props => {
             <Grid item xs={6}>
 
            <div className={classes.formControl} style={{width: '250px'}}>
-           <span>Height aboove ground (m)</span>
+           <span>Height above ground (m)</span>
               <TextField 
                 className={classes.textField}
 	              id="height" 
@@ -567,16 +564,16 @@ const LocationRegister = props => {
            </React.Fragment>
         </Grid>
         </Grid>
+        <div className={classes.formControl} style={{width: '900px'}}>
 
-      <div className={classes.formControl}>
         <Button 
           variant="contained" 
           color="primary"              
           type="submit"
+          align = "centre"
         > Register Location
         </Button>
-      </div>
-           
+      </div>           
       </form>
     </div>
     )
