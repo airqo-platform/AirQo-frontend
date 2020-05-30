@@ -8,6 +8,8 @@ import {
   DialogContentText,
   TextField,
 } from "@material-ui/core";
+import UpdateIcon from "@material-ui/icons/Update";
+import ArrowBackIcon from "@material-ui/icons/ArrowBack";
 import SaveIcon from "@material-ui/icons/Save";
 import FolderIcon from "@material-ui/icons/Folder";
 import Tooltip from "@material-ui/core/Tooltip";
@@ -31,10 +33,13 @@ class Main extends Component {
       editorState: EditorState.createEmpty(),
       user_id: this.props.user_id,
       openPrevSaved: false,
+      isDraftSelected: false,
       openSave: false,
       openConfirm: false,
       saved_report: [],
       report_body: {},
+      report_body_default: {},
+      report_name_default: "",
       report_name: "",
       response_msg: "",
     };
@@ -46,6 +51,9 @@ class Main extends Component {
     this.handleConfirmClose = this.handleConfirmClose.bind(this);
     this.handlePrevSavedClose = this.handlePrevSavedClose.bind(this);
     this.onDraftReportSelected = this.onDraftReportSelected.bind(this);
+    this.onDraftDelete = this.onDraftDelete.bind(this);
+    this.onUpdateDraft = this.onUpdateDraft.bind(this);
+    this.onUpdateDraftCancel = this.onUpdateDraft.bind(this);
   }
 
   onEditorStateChange = (editorState) => {
@@ -69,6 +77,8 @@ class Main extends Component {
           ),
         });
         //console.log(result.report_body);
+        this.setState({ report_body_default: result.report_body });
+        this.setState({ report_name_default: result.report_name });
       })
       .catch((e) => {
         console.log(e);
@@ -159,19 +169,27 @@ class Main extends Component {
       .catch((e) => {
         console.log(e);
       });
-    this.setState((prevState) => ({ openPrevSaved: !prevState.openPrevSaved }));
+    this.setState({ openPrevSaved: true });
   };
+
   handlePrevSavedClose = () => {
-    this.setState((prevState) => ({ openPrevSaved: !prevState.openPrevSaved }));
+    this.setState({ openPrevSaved: false });
   };
+
+  // renders content of selected draft report
   onDraftReportSelected = (report_name, report_body) => {
     this.setState({
       editorState: EditorState.createWithContent(
         convertFromRaw(JSON.parse(JSON.stringify(report_body)))
       ),
     });
-    this.setState((prevState) => ({ openPrevSaved: !prevState.openPrevSaved }));
+    this.setState({ isDraftSelected: true });
+    this.setState({ report_name: report_name });
+    this.setState({ report_body: report_body });
+    this.setState({ openPrevSaved: false });
   };
+
+  // permanently deletes draft report template from the database
   onDraftDelete = (report_id, report_name) => {
     // make api call to save report
     axios
@@ -185,6 +203,43 @@ class Main extends Component {
         this.setState({ openConfirm: true }); //
       })
       .catch((e) => console.log(e));
+  };
+
+  // handle updating draft report
+  onUpdateDraft = () => {
+    axios
+      .post(
+        "https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/report/update_monthly_report/" +
+          this.state.report_name,
+        {
+          report_body: this.state.report_body,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      )
+      .then((res) => {
+        console.log(res.data);
+        this.setState({ response_msg: res.data.message });
+        this.setState({ openConfirm: true }); //
+      })
+      .catch((e) => console.log(e));
+  };
+
+  //handle cancellation of report update
+  onUpdateDraftCancel = () => {
+    this.setState({
+      editorState: EditorState.createWithContent(
+        convertFromRaw(
+          JSON.parse(JSON.stringify(this.state.report_body_default))
+        )
+      ),
+    });
+
+    this.setState({ isDraftSelected: false });
+    this.setState({ report_body: this.state.report_body_default });
   };
 
   render() {
@@ -204,20 +259,54 @@ class Main extends Component {
 
     return (
       <div>
-        <div>
-          <Tooltip title="Save report" placement="right" arrow>
-            <Button
-              color="primary"
-              variant="contained"
-              endIcon={<SaveIcon />}
-              onClick={this.handleSaveClick}
-              className="print"
-            >
-              <style>{"@media print {.print{display: none;}}"}</style>
-              {/* save draft */}
-            </Button>
-          </Tooltip>
-        </div>
+        {!this.state.isDraftSelected && (
+          <div>
+            <Tooltip title="Save draft report" placement="right" arrow>
+              <Button
+                color="primary"
+                variant="contained"
+                endIcon={<SaveIcon />}
+                onClick={this.handleSaveClick}
+                className="print"
+              >
+                <style>{"@media print {.print{display: none;}}"}</style>
+                {/* save draft */}
+              </Button>
+            </Tooltip>
+          </div>
+        )}
+        {this.state.isDraftSelected && (
+          <div>
+            <Tooltip title="Update draft report" placement="right" arrow>
+              <Button
+                color="primary"
+                variant="contained"
+                endIcon={<UpdateIcon />}
+                onClick={this.onUpdateDraft}
+                className="print"
+              >
+                <style>{"@media print {.print{display: none;}}"}</style>
+                {/* Load Draft */}
+              </Button>
+            </Tooltip>
+          </div>
+        )}
+        {this.state.isDraftSelected && (
+          <div>
+            <Tooltip title="Go back to default report" placement="right" arrow>
+              <Button
+                color="primary"
+                variant="contained"
+                endIcon={<ArrowBackIcon />}
+                onClick={this.onUpdateDraftCancel}
+                className="print"
+              >
+                <style>{"@media print {.print{display: none;}}"}</style>
+                {/* Load Draft */}
+              </Button>
+            </Tooltip>
+          </div>
+        )}
         <div>
           <Tooltip title="Open previous report" placement="right" arrow>
             <Button
@@ -232,6 +321,7 @@ class Main extends Component {
             </Button>
           </Tooltip>
         </div>
+
         <div style={editor}>
           <Editor
             editorState={editorState}
