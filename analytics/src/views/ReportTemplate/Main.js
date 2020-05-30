@@ -17,6 +17,7 @@ import ListItemText from "@material-ui/core/ListItemText";
 import ListItemAvatar from "@material-ui/core/ListItemAvatar";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import Avatar from "@material-ui/core/Avatar";
+import DeleteIcon from "@material-ui/icons/Delete";
 import DescriptionIcon from "@material-ui/icons/Description";
 import { Editor } from "react-draft-wysiwyg";
 import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css";
@@ -169,6 +170,19 @@ class Main extends Component {
     });
     this.setState((prevState) => ({ openPrevSaved: !prevState.openPrevSaved }));
   };
+  onDraftDelete = (report_id, report_name) => {
+    // make api call to save report
+    axios
+      .delete(
+        "https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/report/delete_monthly_report/" +
+          report_name
+      )
+      .then((res) => {
+        console.log(res.data);
+        this.setState({ openConfirm: true }); //
+      })
+      .catch((e) => console.log(e));
+  };
 
   render() {
     const { editorState } = this.state;
@@ -177,6 +191,11 @@ class Main extends Component {
       width: "210mm",
       margin: "0 auto",
       textAlign: "justify",
+    };
+    const delete_report = {
+      paddingLeft: "3em",
+      color: "red",
+      display: "block",
     };
     console.log(this.state.user_id);
 
@@ -300,26 +319,39 @@ class Main extends Component {
                 <List>
                   {this.state.saved_report != null ? (
                     this.state.saved_report.map((s) => (
-                      <ListItem
-                        key={s._id}
-                        href="#"
-                        onClick={this.onDraftReportSelected.bind(
-                          this,
-                          s.report_name,
-                          s.report_body
-                        )}
-                        component="a"
-                      >
-                        <ListItemAvatar>
-                          <Avatar>
-                            <DescriptionIcon />
-                          </Avatar>
-                        </ListItemAvatar>
-                        <ListItemText
-                          primary={s.report_name}
-                          secondary={s.report_date}
-                        />
-                      </ListItem>
+                      <div>
+                        <ListItem
+                          key={s._id}
+                          href="#"
+                          onClick={this.onDraftReportSelected.bind(
+                            this,
+                            s.report_name,
+                            s.report_body
+                          )}
+                          component="a"
+                        >
+                          <ListItemAvatar>
+                            <Avatar>
+                              <DescriptionIcon />
+                            </Avatar>
+                          </ListItemAvatar>
+                          <ListItemText
+                            primary={s.report_name}
+                            secondary={s.report_date}
+                          />
+                        </ListItem>
+                        <a
+                          href="#"
+                          style={delete_report}
+                          onClick={this.onDraftDelete.bind(
+                            this,
+                            s._id,
+                            s.report_name
+                          )}
+                        >
+                          <DeleteIcon />
+                        </a>
+                      </div>
                     ))
                   ) : (
                     <ListItem>
