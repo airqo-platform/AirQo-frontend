@@ -36,6 +36,7 @@ class Main extends Component {
       saved_report: [],
       report_body: {},
       report_name: "",
+      response_msg: "",
     };
     // bind to this
     this.handlePrevSavedOpen = this.handlePrevSavedOpen.bind(this);
@@ -119,6 +120,7 @@ class Main extends Component {
       )
       .then((res) => {
         console.log(res);
+        this.setState({ response_msg: res.data.message });
         this.setState({ openConfirm: true }); //
       })
       .catch((e) => console.log(e));
@@ -179,6 +181,7 @@ class Main extends Component {
       )
       .then((res) => {
         console.log(res.data);
+        this.setState({ response_msg: res.data.message });
         this.setState({ openConfirm: true }); //
       })
       .catch((e) => console.log(e));
@@ -293,7 +296,7 @@ class Main extends Component {
           >
             <DialogContent>
               <DialogContentText id="alert-dialog-description">
-                Your report has been saved successfully
+                {this.state.response_msg}
               </DialogContentText>
             </DialogContent>
             <DialogActions>
