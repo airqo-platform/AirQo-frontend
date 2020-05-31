@@ -10,24 +10,31 @@ const useStyles = makeStyles(() => ({
     boxShadow: 'none'
   }
 }));
-
-const logo_style = {
-    'height': '4em',
-    'width': '4em',
-    'borderRadius': '50%',
-    'paddingTop': '.2em'
-  }
+const kcca_logo_style = {
+  height: '3.5em',
+  width: '4em',
+  borderRadius: '15%',
+  paddingTop: '.2em',
+  marginRight: '.4em'
+};
+const mak_logo_style = {
+  height: '4em',
+  width: '5em',
+  borderRadius: '15%',
+  paddingTop: '.2em',
+  marginRight: '.4em'
+};
+const airqo_logo_style = {
+  height: '3.5em',
+  width: '5em',
+  paddingTop: '.2em',
+  marginRight: '.4em'
+};
 
 const Topbar = props => {
   const { className, ...rest } = props;
 
   const classes = useStyles();
-  const airqo_logo_style = {
-    'height': '4em',
-    'width': '4em',
-    'paddingTop': '.2em',
-    'marginRight': '.4em'
-  }
 
   return (
     <AppBar
@@ -40,8 +47,8 @@ const Topbar = props => {
         <RouterLink to="/">
           <img
             alt="Logo"
-            style = {logo_style}
-            src="images/logos/kcca_logo.jpg"
+            style={kcca_logo_style}
+            src="/images/logos/kcca_logo.jpg"
           />
         </RouterLink>
         <RouterLink to="/">
@@ -54,8 +61,8 @@ const Topbar = props => {
         <RouterLink to="/">
           <img
             alt="mak.ac.ug"
-            style={logo_style}
-            src="/images/logos/mak_logo.jpg"
+            style={mak_logo_style}
+            src="/images/logos/mak-logo-png.png"
           />
         </RouterLink>
       </Toolbar>
