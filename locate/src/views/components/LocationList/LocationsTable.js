@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import clsx from 'clsx';
 import PropTypes from 'prop-types';
 import PerfectScrollbar from 'react-perfect-scrollbar';
+import axios from 'axios';
+import { Link } from "react-router-dom";
 import { makeStyles } from '@material-ui/styles';
 import {
   Card,
@@ -36,7 +38,10 @@ const useStyles = makeStyles(theme => ({
   },
   actions: {
     justifyContent: 'flex-end'
-  }
+  },
+  link: {
+    color: '#3344FF'
+    }
 }));
 
 const LocationsTable = props => {
@@ -44,9 +49,41 @@ const LocationsTable = props => {
 
   const classes = useStyles();
 
+  const [data, setData] = useState([]);   
+
   const [selectedLocations, setSelectedLocations] = useState([]);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [page, setPage] = useState(0);
+
+  /*
+  useEffect(() => {
+    const GetData = async () => {
+      const result = await axios.get('http://127.0.0.1:4000/api/v1/location_registry/locations');
+      setData(result.data);
+    }
+    
+    GetData();
+    console.log('we did it');    
+    console.log(data);
+  }, []); */
+
+  
+  useEffect(() => {
+    //code to retrieve all locations data
+    axios.get(
+      //'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/device/graph',
+      'http://127.0.0.1:4000/api/v1/location_registry/locations'
+    )
+    .then(
+      res=>{
+        const ref = res.data;
+        console.log(ref);
+        setData(ref);
+
+    }).catch(
+      console.log
+    )
+  }, []);
 
   const handleSelectAll = event => {
     const { users } = props;
@@ -101,7 +138,7 @@ const LocationsTable = props => {
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell padding="checkbox">
+                  {/*<TableCell padding="checkbox">
                     <Checkbox
                       checked={selectedLocations.length === users.length}
                       color="primary"
@@ -111,17 +148,40 @@ const LocationsTable = props => {
                       }
                       onChange={handleSelectAll}
                     />
-                  </TableCell>
+                    </TableCell>*/}
                   <TableCell>Location Ref</TableCell>
-                  <TableCell>Device Ref</TableCell>
-                  <TableCell>Channel ID</TableCell>
+                  <TableCell>Location Name</TableCell>
                   <TableCell>Host Name</TableCell>
-                  <TableCell>Location (country, region, district, subcounty, parish)</TableCell>
-                  <TableCell>latitude</TableCell>
-                  <TableCell>longitude</TableCell>  
+                  <TableCell>Latitude</TableCell>
+                  <TableCell>Longitude</TableCell>
+                  <TableCell>Country</TableCell>
+                  <TableCell>District</TableCell>
+                  <TableCell>Subcounty</TableCell>  
+                  <TableCell>Parish</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
+              {data.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(row => {
+                return (
+                <TableRow >
+                  <TableCell> 
+                    <Link className={classes.link} to="/view_location">{row.loc_ref}</Link>
+                  </TableCell>
+                  <TableCell>{row.location_name}</TableCell>
+                  <TableCell>{row.host}</TableCell>
+                  <TableCell>{row.latitude}</TableCell>
+                  <TableCell>{row.longitude}</TableCell>
+                  <TableCell>{row.country}</TableCell>
+                  <TableCell>{row.district}</TableCell>
+                  <TableCell>{row.subcounty}</TableCell>
+                  <TableCell>{row.parish}</TableCell>
+                </TableRow>
+                 );  
+               })}  
+                 
+                 
+                 
+                {/*
                 {users.slice(0, rowsPerPage).map(user => (
                   <TableRow
                     className={classes.tableRow}
@@ -129,7 +189,7 @@ const LocationsTable = props => {
                     key={user.id}
                     selected={selectedLocations.indexOf(user.id) !== -1}
                   >
-                    <TableCell padding="checkbox">
+                    {/*<TableCell padding="checkbox">
                       <Checkbox
                         checked={selectedLocations.indexOf(user.id) !== -1}
                         color="primary"
@@ -138,30 +198,34 @@ const LocationsTable = props => {
                       />
                     </TableCell>
                     <TableCell>
-                        {user.location_ref}
+                        {user.loc_ref}
                     </TableCell>
                     <TableCell>
-                      {user.address.device_ref}
+                      {user.location_name}
                     </TableCell>
                     <TableCell>
-                      {user.address.channel_id}
+                      {user.host}
                     </TableCell>
                     <TableCell>
-                      {user.address.host_name}
+                      {user.latitude}
                     </TableCell>
                     <TableCell>
-                      {user.address.parish}, {user.address.subcounty},{' '}
-                      {user.address.district}, {user.address.region}, {' '}
-                      {user.address.country}
+                      {user.longitude}
                     </TableCell>
                     <TableCell>
-                      {user.address.latitude}
+                      {user.country}
                     </TableCell>
                     <TableCell>
-                      {user.address.longitude}
+                      {user.district}
+                    </TableCell>
+                    <TableCell>
+                      {user.subcounty}
+                    </TableCell>
+                    <TableCell>
+                      {user.parish}
                     </TableCell>
                   </TableRow>
-                ))}
+                ))}*/}
               </TableBody>
             </Table>
           </div>
@@ -170,7 +234,7 @@ const LocationsTable = props => {
       <CardActions className={classes.actions}>
         <TablePagination
           component="div"
-          count={users.length}
+          count={data.length}
           onChangePage={handlePageChange}
           onChangeRowsPerPage={handleRowsPerPageChange}
           page={page}

@@ -26,6 +26,11 @@ const useStyles = makeStyles((theme) => ({
   searchInput: {
     marginRight: theme.spacing(1),
   },
+  link: {
+    color: '#3344FF',
+    marginRight: theme.spacing(1),
+    fontWeight: "bold"
+    }
 }));
 
 const LocationsToolbar = (props) => {
@@ -43,7 +48,7 @@ const LocationsToolbar = (props) => {
         <span className={classes.spacer} />
         <Button className={classes.importButton}>Import</Button>
         <Button className={classes.exportButton}>Export</Button>
-        <Link to="/register_location">Add location</Link>
+        <Link to="/register_location" className={classes.link}>ADD LOCATION</Link>
         
       </div>
       <div className={classes.row}>

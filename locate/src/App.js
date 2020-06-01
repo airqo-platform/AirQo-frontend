@@ -38,7 +38,7 @@ import Devices from "./views/components/DataDisplay/Devices";
 import Users from "./views/components/DataDisplay/Users";
 import Manager from "./views/components/DataDisplay/DeviceManagement";
 import Incentives from "./views/components/DataDisplay/Incentives";
-import { LocationList, LocationRegister } from "./views/components/LocationList";
+import { LocationList, LocationRegister, LocationView } from "./views/components/LocationList";
 //import { LocationRegister }from "./views/components/LocationRegister";
 //import { LocationRegister } from "./views/components/LocationList/LocationRegister";
 
@@ -103,6 +103,12 @@ class App extends Component {
                   extact
                   path="/register_location"
                   component={LocationRegister}
+                  layout={MainLayout}
+                />
+                 <PrivateRoute
+                  extact
+                  path="/view_location"
+                  component={LocationView}
                   layout={MainLayout}
                 />
                 <PrivateRoute

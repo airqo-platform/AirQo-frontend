@@ -136,7 +136,7 @@ const LocationRegister = props => {
     }).catch(
       console.log
     )
-  });
+  }, []);
  
   const [loading, setLoading] = useState({value: false})
   //const [submitBtn, setSubmitBtn] = useState(false);
@@ -388,10 +388,10 @@ const LocationRegister = props => {
             <div className={classes.formControl} style={{width: '250px',height:10}}>
             <span>Road Intensity</span>
               <Select
-                className="react-selectcomponent"
-                //className="reactSelect"
+                //className="react-selectcomponent"
+                className="reactSelect"
                 name="roadIntensity"
-                placeholder="Road Intensity"
+                //placeholder="Road Intensity"
                 value={roadIntensity}
                 options={roadIntensityOptions}
                 onChange={handleRoadIntensityChange}   
@@ -415,7 +415,7 @@ const LocationRegister = props => {
               <Select 
                 className="reactSelect"
                 name="mobility"
-                placeholder="Mobility"
+                //placeholder="Mobility"
                 value={mobility}
                 options={mobilityOptions}
                 onChange={handleMobilityChange}
@@ -474,7 +474,7 @@ const LocationRegister = props => {
               <Select
                 className="reactSelect"
                 name="roadStatus"
-                placeholder="Road Status"
+                //placeholder="Road Status"
                 //value={roadStatus}
                 options={roadStatusOptions}
                 onChange={handleRoadStatusChange}   
@@ -537,7 +537,7 @@ const LocationRegister = props => {
               <Select
                 className="reactSelect"
                 name="internet"
-                placeholder="Internet"
+                //placeholder="Internet"
                 value={internet}
                 options={internetOptions}
                 onChange={handleInternetChange}
@@ -552,7 +552,7 @@ const LocationRegister = props => {
               <Select
                 className="reactSelect"
                 name="power"
-                placeholder="Power"
+                //placeholder="Power"
                 value={power}
                 options={powerOptions}
                 onChange={handlePowerChange} 
@@ -575,6 +575,26 @@ const LocationRegister = props => {
         </Button>
       </div>           
       </form>
+
+      {/*  
+        <Dialog
+            open={confirmDialog}
+            onClose={handleConfirmClose}
+            aria-labelledby="alert-dialog-title"
+            aria-describedby="alert-dialog-description"
+          >
+            <DialogContent>
+              <DialogContentText id="alert-dialog-description">
+                {confirmDialogMsg}
+              </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={this.handleConfirmClose} color="primary">
+                OK
+              </Button>
+            </DialogActions>
+          </Dialog>
+          */}
     </div>
     )
 
