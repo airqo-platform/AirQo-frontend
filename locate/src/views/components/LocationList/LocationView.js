@@ -7,6 +7,10 @@ import Select from 'react-select';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
 import TextField from '@material-ui/core/TextField';
+import { TableContainer, Table, TableBody, TableCell, TableHead, TableRow, Paper } from '@material-ui/core';
+import { Link } from "react-router-dom";
+
+
 //import Select from '@material-ui/core/Select';
 
 
@@ -18,7 +22,9 @@ const useStyles = makeStyles(theme => ({
     marginTop: theme.spacing(2)
   },
   title: {
-    fontWeight: 700
+    fontWeight: 700,
+    color: '#000000',
+    fontSize: 20,
   },
   avatar: {
     backgroundColor: theme.palette.success.main,
@@ -63,46 +69,98 @@ const LocationView = props => {
   let params = useParams();
   const classes = useStyles();
 
-  const [loc_ref, setLocRef] = useState('');
-  const [locData, setLocData] = useState({});
-
+  const [locData, setLocData] = useState('')
+  
   useEffect(() => {
-    let url = 'http://127.0.0.1:4000/api/v1/location_registry/'+loc_ref
-   
     axios.get(
-      url
+      'http://127.0.0.1:4000/api/v1/location_registry?loc_ref='+params.loc_ref
     )
     .then(
       res=>{
         const data = res.data;
         console.log(data);
         setLocData(data);
-
+        //console.log(locData);
     }).catch(
       console.log
     )
   }, []);
  
-  let  handleSubmit = (e) => {
-
-   
-  }
-
     return(
-    <div className={classes.root}>   
-          
-    <form onSubmit={handleSubmit}>
+    <div className={classes.root}>
+      <div>
+        <Typography  className={classes.title} variant="h6" id="tableTitle" component="div">
+          {locData.loc_ref} : {locData.location_name}
+        </Typography> 
+      </div>
+      <br/>
+      <div>
+     <TableContainer component={Paper}>  
+        <Table stickyHeader  aria-label="sticky table">  
+         {/* <TableHead>  
+            <TableRow align='center'>  {locData.loc_ref}: {locData.location_name}
+              {/*<TableCell align="center">{locData.loc_ref}: {locData.location_name}</TableCell> *
+            </TableRow> 
+          </TableHead> */}
+          <TableBody>  
+            <TableRow>  
+              <TableCell>Host Name: {locData.host}</TableCell>  
+              <TableCell>Parish: {locData.parish}</TableCell> 
+              <TableCell>Altitude: {locData.altitude}</TableCell>   
+            </TableRow> 
+            <TableRow>  
+              <TableCell>Mobility: {locData.mobility}</TableCell>  
+              <TableCell>Internet: {locData.internet}</TableCell> 
+              <TableCell>Aspect: {locData.aspect}</TableCell>   
+            </TableRow> 
+            <TableRow>  
+              <TableCell>Latitude: {locData.latitude}</TableCell>  
+              <TableCell>Power Type: {locData.power}</TableCell> 
+              <TableCell>Landform (90): {locData.landform_90}</TableCell>   
+            </TableRow> 
+            <TableRow>  
+              <TableCell>Longitude: {locData.longitude}</TableCell>  
+              <TableCell>Height above ground (m): {locData.height}</TableCell> 
+              <TableCell>Landform (270): {locData.landform_270}</TableCell>   
+            </TableRow> 
+            <TableRow>  
+              <TableCell>Country: {locData.country}</TableCell>  
+              <TableCell>Road Intensity: {locData.road_intensity}</TableCell> 
+              <TableCell>Distance to nearest road (m): {locData.distance_from_nearest_road}</TableCell>   
+            </TableRow> 
+            <TableRow>  
+              <TableCell>Region: {locData.region}</TableCell>  
+              <TableCell>Installation Description: {locData.installation_type}</TableCell> 
+              <TableCell>Distance to nearest residential road (m): {locData.distance_from_residential}</TableCell>   
+            </TableRow> 
+            <TableRow>  
+              <TableCell>District: {locData.district}</TableCell>  
+              <TableCell>Road Status: {locData.road_status}</TableCell> 
+              <TableCell>Distance to nearest motorway (m): {locData.distance_from_motorway}</TableCell>   
+            </TableRow> 
+            <TableRow>  
+              <TableCell>subcounty: {locData.subcounty}</TableCell>  
+              <TableCell>landuse: {locData.landuse}</TableCell> 
+              <TableCell>Distance to nearest city/town (m): {locData.distance_from_city}</TableCell>   
+            </TableRow> 
+          </TableBody> 
+        </Table> 
+     </TableContainer>
+     </div>
 
-        
-        <Button 
+     <br/>
+
+     <div>    
+     <Link to={`/edit/${locData.loc_ref}`}>
+     <Button 
           variant="contained" 
           color="primary"              
           type="submit"
           align = "centre"
-        > View Location
+        > Edit Location
         </Button>
-          
-      </form>
+     </Link>    
+      </div>
     </div>
     )
 

@@ -8,4 +8,6 @@ export { default as LocationRegister }
 from "./LocationRegister";
 export { default as LocationView }
 from "./LocationView";
+export { default as LocationEdit }
+from "./LocationEdit";
 

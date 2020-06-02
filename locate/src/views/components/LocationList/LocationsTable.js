@@ -165,7 +165,7 @@ const LocationsTable = props => {
                 return (
                 <TableRow >
                   <TableCell> 
-                    <Link className={classes.link} to="/view_location">{row.loc_ref}</Link>
+                    <Link className={classes.link} to={`/locations/${row.loc_ref}`}>{row.loc_ref}</Link>
                   </TableCell>
                   <TableCell>{row.location_name}</TableCell>
                   <TableCell>{row.host}</TableCell>
