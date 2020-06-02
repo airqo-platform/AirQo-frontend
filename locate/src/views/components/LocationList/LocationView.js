@@ -62,6 +62,26 @@ const LocationView = props => {
   const { className, ...rest } = props;
   let params = useParams();
   const classes = useStyles();
+
+  const [loc_ref, setLocRef] = useState('');
+  const [locData, setLocData] = useState({});
+
+  useEffect(() => {
+    let url = 'http://127.0.0.1:4000/api/v1/location_registry/'+loc_ref
+   
+    axios.get(
+      url
+    )
+    .then(
+      res=>{
+        const data = res.data;
+        console.log(data);
+        setLocData(data);
+
+    }).catch(
+      console.log
+    )
+  }, []);
  
   let  handleSubmit = (e) => {
 
