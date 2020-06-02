@@ -116,27 +116,94 @@ const LocationEdit = props => {
   const { className, ...rest } = props;
   let params = useParams();
   const classes = useStyles();
-  const initialLocationState = {
-    locRef: null,
-    hostName: '',
-    mobility: '',
-    latitude: null,
-    longitude:NavPills,
-    internet:'',
-    power:'',
-    height:'',
-    roadIntensity:'',
-    installationType:'',
-    roadStatus:'',
-    landuse: ''
-  };
-
-  const [currentLocation, setCurrentLocation] = useState(initialLocationState);
+  
   const [message, setMessage] = useState('');
+  const [locationReference, setLocationReference] = useState('');
+  const [latitude, setLatitude] = useState(0);
+  const [longitude, setLongitude] = useState(0);
+  const [hostName, setHostName] = useState('');
+  const [mobile, setMobile] = useState(false);
+  const [mobility, setMobility] = useState('');
+  const mobilityOptions = [
+    { value: 'static', label: 'Static' },
+    { value: 'mobile', label: 'Mobile' },
+  ];
+
+  const [internet, setInternet] = useState('');
+  const handleInternetChange = selectedInternet => {
+	  setInternet(selectedInternet.value);
+  }
+  const internetOptions = [
+    { value: 'sms', label: 'SMS' },
+    { value: 'wifi', label: 'WiFi' },
+	{ value: 'lora', label: 'LoRa' }
+  ];
+
+  const [power, setPower] = useState("");
+  const handlePowerChange = selectedPower => {
+	  setPower(selectedPower.value);
+  }
+  const powerOptions = [
+    { value: 'solar', label: 'Solar' },
+    { value: 'mains', label: 'Mains' },
+  ];
+
+  const [height, setHeight] = useState(0);
+  const handleHeightChange = enteredHeight => {
+    let re = /\s*|\d+(\.d+)?/
+    if (re.test(enteredHeight.target.value)) {
+      setHeight(enteredHeight.target.value);
+  }
+}
+
+const [roadIntensity, setRoadIntensity] = useState("");
+const handleRoadIntensityChange = selectedRoadIntensity => {
+	  setRoadIntensity(selectedRoadIntensity.value);
+  }
+const roadIntensityOptions = [
+    { value: 'minimal', label: 'Minimal' },
+    { value: 'light', label: 'Light' },
+    { value: 'moderate', label: 'Moderate' },
+	{ value: 'heavy', label: 'Heavy' },
+	{ value: 'extreme', label: 'Extreme' },
+    ];
+const [installationType, setInstallationType] = useState("");
+const handleInstallationTypeChange = enteredInstallationType => {
+	  setInstallationType(enteredInstallationType.target.value);
+  }
+
+const [roadStatus, setRoadStatus] = useState('');
+const handleRoadStatusChange = selectedRoadStatus => {
+	  setRoadStatus(selectedRoadStatus.value);
+  }
+const roadStatusOptions = [
+    { value: 'paved', label: 'Paved' },
+    { value: 'unpaved', label: 'Unpaved' }
+  ];
+
+const [landuse, setLanduse] = useState('');
+const handleLanduseChange = enteredLanduse => {
+	  setLanduse(enteredLanduse.target.value);
+  }
+  
+
   const getTutorial = ref => {
     axios.get('http://127.0.0.1:4000/api/v1/location_registry/edit?loc_ref='+ref)
       .then(response => {
-        setCurrentLocation(response.data);
+        let myData = response.data
+        //setCurrentLocation(response.data);
+        setLocationReference(myData.loc_ref);
+        setHostName(myData.host);
+        setMobility(myData.mobility);
+        setLatitude(myData.latitude);
+        setLongitude(myData.longitude);
+        setInternet(myData.internet);
+        setPower(myData.power);
+        setHeight(myData.height_above_ground);
+        setRoadIntensity(myData.road_intensity);
+        setInstallationType(myData.installation_type);
+        setRoadStatus(myData.road_status);
+        setLanduse(myData.landuse);
         console.log(response.data);
       })
       .catch(e => {
@@ -148,162 +215,12 @@ const LocationEdit = props => {
     getTutorial(params.loc_ref);
   }, [params.loc_ref]);
 
+  /*
   const handleInputChange = event => {
     const { name, value } = event.target;
     setCurrentLocation({ ...currentLocation, [name]: value });
-  };
-
-
-
-  const [locData, setLocData] = useState('');
-  /*
-  useEffect(() => {
-    console.log(params.loc_ref)
-    axios.get(
-      'http://127.0.0.1:4000/api/v1/location_registry/edit?loc_ref='+params.loc_ref
-    )
-    .then(
-      res=>{
-        const data = res.data;
-        console.log(data);
-        setLocData(data);
-        //console.log(locData);
-    }).catch(
-      console.log
-    )
-    //setLocData(data);
-  }, []);*/
-
- /* useEffect(() => {
-    axios.get(
-      'http://127.0.0.1:4000/api/v1/location_registry?loc_ref='+params.loc_ref
-    )
-    .then(
-      res=>{
-        const data = res.data;
-        console.log(data);
-        setLocData(data);
-    }).catch(
-      console.log
-    )
-  }, []);*/
- 
-  //const [loading, setLoading] = useState({value: false})
-  //const [submitBtn, setSubmitBtn] = useState(false);
-  
-  const [locationReference, setLocationReference] = useState(locData.loc_ref);
-  /*const handleLocationReferenceChange = defaultLocationRef => {
-	  setLocationReference(defaultLocationRef);
-  }*/
-
-  const [latitude, setLatitude] = useState(locData.latitude);
-  /*const handleLatitudeChange = enteredLatitude =>{
-    let re = /\s*|\d+(\.d+)?/
-    if (re.test(enteredLatitude.target.value)) {
-	  setLatitude(enteredLatitude.target.value);
-  }
-}*/
-  
-  const [longitude, setLongitude] = useState(locData.longitude);
-  /*const handleLongitudeChange = enteredLongitude =>{
-    let re = /\s*|\d+(\.d+)?/
-    if (re.test(enteredLongitude.target.value)){
-	  setLongitude(enteredLongitude.target.value);
-  }
-}*/
-  
-  const [hostName, setHostName] = useState(locData.host);
-
- /* const handleHostNameChange = enteredHostName => {
-    setHostName(enteredHostName.target.value);
-}*/
- 
-  
-  const [internet, setInternet] = useState({value: locData.internet});
-  const handleInternetChange = selectedInternet => {
-	  setInternet(selectedInternet);
-  }
-  const internetOptions = [
-    { value: 'sms', label: 'SMS' },
-    { value: 'wifi', label: 'WiFi' },
-	{ value: 'lora', label: 'LoRa' }
-  ];
-  
-  const [power, setPower] = useState({value: locData.power});
-  const handlePowerChange = selectedPower => {
-	  setPower(selectedPower);
-  }
-  const powerOptions = [
-    { value: 'solar', label: 'Solar' },
-    { value: 'mains', label: 'Mains' },
-  ];
-  
-  const [height, setHeight] = useState(locData.height_above_ground);
-  const handleHeightChange = enteredHeight => {
-    let re = /\s*|\d+(\.d+)?/
-    if (re.test(enteredHeight.target.value)) {
-      setHeight(enteredHeight.target.value);
-  }
-}
-  
-  const [roadIntensity, setRoadIntensity] = useState({value: locData.road_intensity});
-  const handleRoadIntensityChange = selectedRoadIntensity => {
-	  setRoadIntensity(selectedRoadIntensity);
-  }
-  const roadIntensityOptions = [
-    { value: 'minimal', label: 'Minimal' },
-    { value: 'light', label: 'Light' },
-    { value: 'moderate', label: 'Moderate' },
-	{ value: 'heavy', label: 'Heavy' },
-	{ value: 'extreme', label: 'Extreme' },
-	];
-  
-  const [mobile, setMobile] = useState(false);
-  const [mobility, setMobility] = useState({value: locData.mobility});
-  /*const handleMobilityChange = selectedMobility => {
-    setMobility(selectedMobility);
-    if(mobility.value == 'static' ){
-      setMobile(true);
-    }
-  }*/
-  const mobilityOptions = [
-    { value: 'static', label: 'Static' },
-    { value: 'mobile', label: 'Mobile' },
-  ];
-  
-
-  const [installationType, setInstallationType] = useState(locData.installation_type);
-  const handleInstallationTypeChange = enteredInstallationType => {
-	  setInstallationType(enteredInstallationType.target.value);
-  }
-  
-  const [landuse, setLanduse] = useState(locData.landuse);
-  const handleLanduseChange = enteredLanduse => {
-	  setLanduse(enteredLanduse.target.value);
-  }
-    
-  const [roadStatus, setRoadStatus] = useState({value: locData.road_status});
-  const handleRoadStatusChange = selectedRoadStatus => {
-	  setRoadStatus(selectedRoadStatus);
-  }
-  const roadStatusOptions = [
-    { value: 'paved', label: 'Paved' },
-    { value: 'unpaved', label: 'Unpaved' }
-  ];
-  
-  /*const [localActivities, setLocalActivities = useState([]);
-  const [localActivities,setLocalActivities] = useState({ selectedOption: [] });
-  const handleLocalActivitiesChange = selectedLocalActivities => {
-	  //setLocalActivities(selectedLocalActivities);
-	  setLocalActivities({ selectedLocalActivities});
-  }
-  const localActivitiesOptions = [
-    { value: 'burning', label: 'Burning' },
-    { value: 'cooking', label: 'Cooking' },
-    { value: 'road dust', label: 'Road dust' },
-	  { value: 'idling', label: 'Idling' }
-  ];
-  */
+  };  
+*/
 
   let changeHandler = event => {
     event.persist();
@@ -318,26 +235,20 @@ const LocationEdit = props => {
   let  handleSubmit = (e) => {
     e.preventDefault();
     //setLoading(true);
-
     let filter ={ 
       locationReference: locationReference,
-      hostName:  hostName,
-	  mobility: mobility.value,
-      latitude: Number(latitude),
-      longitude:  Number(longitude),
-      internet:  internet.value,
+      internet:  internet,
       height: Number(height),      
-      roadIntensity: roadIntensity.value, 
+      roadIntensity: roadIntensity, 
       installationType:	installationType,  
-      roadStatus: roadStatus.value,
+      roadStatus: roadStatus,
       landuse: landuse,	
-      power:  power.value,
+      power:  power,
     }
     console.log(JSON.stringify(filter));
     
     axios.post(
-      //'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/device/graph',
-      'http://127.0.0.1:4000/api/v1/location_registry/edit', 
+      'http://127.0.0.1:4000/api/v1/location_registry/update', 
       JSON.stringify(filter),
       { headers: { 'Content-Type': 'application/json' } }
     )
@@ -364,15 +275,13 @@ const LocationEdit = props => {
               <TextField 
                 className={classes.textField}
 	              id="locationReference" 
-                //value = {locationReference}
-                value = {currentLocation.loc_ref}
-		            //placeholder="Location Reference"
+                value = {locationReference}
                 variant = "outlined"
                 size = "medium"
                 color ="secondary"
                 margin ="normal"
-		            InputProps={{
-                readOnly: true,
+		        InputProps={{
+                  readOnly: true,
                 }}
 	            /> 
               </div>
@@ -384,11 +293,8 @@ const LocationEdit = props => {
            <span>Height above ground (m)</span>
               <TextField 
                 className={classes.textField}
-                  id="height" 
-                  value ={currentLocation.height}
-                
-                //value = {height}
-		            //placeholder="Height above ground"
+                id="height" 
+                value = {height}
                 keyboardType="numeric"
                 onChange={changeHandler}
                 variant = "outlined"
@@ -410,19 +316,15 @@ const LocationEdit = props => {
               <TextField 
                 required 
                 className={classes.textField}
-	              id="hostName" 
-                //label="Host Name"
+	            id="hostName" 
                 value = {hostName}
-		            //placeholder="Host Name"
-                //onChange = {handleHostNameChange}
                 variant = "outlined"
                 size = "medium"
                 color ="secondary"
                 margin ="normal"
                 InputProps={{
-                readOnly: true,
+                  readOnly: true,
                 }}
-                
 	            /> 
               </div>
             </Grid>
@@ -430,16 +332,18 @@ const LocationEdit = props => {
             <div className={classes.formControl} style={{width: '250px',height:10}}>
             <span>Road Intensity</span>
               <Select
-                //className="react-selectcomponent"
                 className="reactSelect"
                 name="roadIntensity"
-                //placeholder="Road Intensity"
-                value={roadIntensity}
+                //value={roadIntensity.value}
+               // value="myRoadIntensity"
+                //value = {roadIntensity}
                 options={roadIntensityOptions}
-                onChange={handleRoadIntensityChange}   
+                onChange={handleRoadIntensityChange}  
+                value={roadIntensityOptions.filter(function(option) {
+                    return option.value === roadIntensity;
+                  })} 
                 variant = "outlined"
                 autoWidth   
-                //placeholder={'Enter Road Intensity'}
                 autoFocus={true}     
                 styles={selectStyles}   
                 isDisabled ={mobile}
@@ -457,10 +361,11 @@ const LocationEdit = props => {
               <Select 
                 className="reactSelect"
                 name="mobility"
-                //placeholder="Mobility"
-                value={mobility}
+                //value={mobility}
+                value={mobilityOptions.filter(function(option) {
+                    return option.value === mobility;
+                  })}
                 options={mobilityOptions}
-                //onChange={handleMobilityChange}
                 defaultValue = "Mobility"
                 styles={selectStyles} 
                 isDisabled={ true }
@@ -472,10 +377,8 @@ const LocationEdit = props => {
             <span>Installation Type</span>
               <TextField 
                 className={classes.textField}
-	              id="installationType" 
-                //label="Installation Type"
+	            id="installationType" 
                 value = {installationType}
-		            //placeholder="Installation Type"
                 onChange = {handleInstallationTypeChange}
                 variant = "outlined"
                 size = "medium"
@@ -497,12 +400,9 @@ const LocationEdit = props => {
               <TextField 
                 className={classes.textField}
                 id="latitude" 
-                //label="Latitude"
                 value = {latitude}
-		            //placeholder="Latitude"
-                //onChange = {handleLatitudeChange}
                 keyboardType="numeric"
-		            variant = "outlined"
+		        variant = "outlined"
                 //type = "number"
                 size = "medium"
                 color ="secondary"
@@ -520,12 +420,14 @@ const LocationEdit = props => {
               <Select
                 className="reactSelect"
                 name="roadStatus"
-                //placeholder="Road Status"
                 //value={roadStatus}
                 options={roadStatusOptions}
                 onChange={handleRoadStatusChange}   
                 styles={selectStyles}    
-                isDisabled ={mobile}      
+                isDisabled ={mobile}  
+                value={roadStatusOptions.filter(function(option) {
+                    return option.value === roadStatus;
+                  })}    
               />
             </div>
             </Grid>
@@ -540,18 +442,15 @@ const LocationEdit = props => {
               <TextField 
                 className={classes.textField}
                 id="longitude" 
-                //label="Longitude"
                 value = {longitude}
-		            //placeholder="Longitude"
-                //onChange = {handleLongitudeChange}
                 keyboardType="numeric"
-		            variant = "outlined"
+		        variant = "outlined"
                 //type = "number"
                 size = "medium"
                 color ="secondary"
                 margin ="normal"
                 InputProps={{
-                    readOnly: true,
+                  readOnly: true,
                     }}
                 //disabled = {mobile}
 	             /> 
@@ -562,9 +461,7 @@ const LocationEdit = props => {
             <span>Landuse</span>
               <TextField  
                 className={classes.textField}
-	              id="landuse" 
-		            //label="Landuse"
-		            //placeholder="Landuse"
+	            id="landuse" 
                 onChange = {handleLanduseChange}
                 variant = "outlined"
                 size = "medium"
@@ -586,12 +483,14 @@ const LocationEdit = props => {
               <Select
                 className="reactSelect"
                 name="internet"
-                //placeholder="Internet"
-                value={internet}
+                //value={internet}
                 options={internetOptions}
                 onChange={handleInternetChange}
                 styles={selectStyles} 
                 isDisabled ={mobile}
+                value={internetOptions.filter(function(option) {
+                    return option.value === internet;
+                  })}
               />
               </div>
               </Grid>
@@ -601,8 +500,10 @@ const LocationEdit = props => {
               <Select
                 className="reactSelect"
                 name="power"
-                //placeholder="Power"
-                value={power}
+                //value={power}
+                value={powerOptions.filter(function(option) {
+                    return option.value === power;
+                  })}
                 options={powerOptions}
                 onChange={handlePowerChange} 
                 styles={selectStyles} 
@@ -620,7 +521,7 @@ const LocationEdit = props => {
           color="primary"              
           type="submit"
           align = "centre"
-        > Register Location
+        > Save Changes
         </Button>
       </div>           
       </form>

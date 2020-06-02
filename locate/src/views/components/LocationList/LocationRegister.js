@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { makeStyles } from '@material-ui/styles';
 import PropTypes from 'prop-types';
-import { Card, CardContent, Grid, Button,Typography } from '@material-ui/core';
+import { Grid, Button,Typography, Dialog, DialogActions, DialogContent, DialogContentText } from '@material-ui/core';
 import clsx from 'clsx';
 import Select from 'react-select';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
 import TextField from '@material-ui/core/TextField';
-//import Select from '@material-ui/core/Select';
+import { Link } from "react-router-dom";
 
 
 const useStyles = makeStyles(theme => ({
@@ -138,9 +138,11 @@ const LocationRegister = props => {
     )
   }, []);
  
-  const [loading, setLoading] = useState({value: false})
+  //const [loading, setLoading] = useState({value: false})
   //const [submitBtn, setSubmitBtn] = useState(false);
   
+  const [dialogStatus, setDialogStatus] = useState(false)
+  const [dialogMessage, setDialogMessage] = useState('')
 
   const [latitude, setLatitude] = useState(0);
   const handleLatitudeChange = enteredLatitude =>{
@@ -275,12 +277,16 @@ const LocationRegister = props => {
     setHeight(value);
   
   };
+
+  let handleConfirmClose = () => {
+    setDialogStatus(false);
+  };
   
   
 
   let  handleSubmit = (e) => {
     e.preventDefault();
-    setLoading(true);
+    //setLoading(true);
 
     let filter ={ 
       locationReference: locationReference,
@@ -308,6 +314,10 @@ const LocationRegister = props => {
       res=>{
         const myData = res.data;
         console.log(myData);
+        console.log(myData.message);
+        setDialogMessage(myData.message);
+        setDialogStatus(true);
+
         //setLoading(false) 
     }).catch(
       console.log
@@ -575,26 +585,35 @@ const LocationRegister = props => {
         </Button>
       </div>           
       </form>
-
-      {/*  
+       
+       {dialogStatus? (
+       
         <Dialog
-            open={confirmDialog}
+            open={dialogStatus}
             onClose={handleConfirmClose}
             aria-labelledby="alert-dialog-title"
             aria-describedby="alert-dialog-description"
           >
             <DialogContent>
               <DialogContentText id="alert-dialog-description">
-                {confirmDialogMsg}
+                {dialogMessage}
               </DialogContentText>
             </DialogContent>
             <DialogActions>
-              <Button onClick={this.handleConfirmClose} color="primary">
-                OK
+            <div>    
+            <Link to='/location'>
+              <Button 
+               variant="contained" 
+               color="primary"              
+               align = "centre"
+              > OK
               </Button>
+            </Link>  
+            </div>  
             </DialogActions>
           </Dialog>
-          */}
+          ) : null}
+          
     </div>
     )
 
