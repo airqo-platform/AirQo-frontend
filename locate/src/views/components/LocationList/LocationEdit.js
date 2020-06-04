@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { makeStyles } from '@material-ui/styles';
 import PropTypes from 'prop-types';
-import { Card, CardContent, Grid, Button,Typography } from '@material-ui/core';
+import { Grid, Button,Typography, Dialog, DialogActions, DialogContent, DialogContentText } from '@material-ui/core';
 import clsx from 'clsx';
 import Select from 'react-select';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
 import TextField from '@material-ui/core/TextField';
 import NavPills from '../NavPills/NavPills';
+import { Link } from "react-router-dom";
 //import Select from '@material-ui/core/Select';
 
 
@@ -125,8 +126,8 @@ const LocationEdit = props => {
   const [mobile, setMobile] = useState(false);
   const [mobility, setMobility] = useState('');
   const mobilityOptions = [
-    { value: 'static', label: 'Static' },
-    { value: 'mobile', label: 'Mobile' },
+    { value: 'Static', label: 'Static' },
+    { value: 'Mobile', label: 'Mobile' },
   ];
 
   const [internet, setInternet] = useState('');
@@ -134,9 +135,9 @@ const LocationEdit = props => {
 	  setInternet(selectedInternet.value);
   }
   const internetOptions = [
-    { value: 'sms', label: 'SMS' },
-    { value: 'wifi', label: 'WiFi' },
-	{ value: 'lora', label: 'LoRa' }
+    { value: 'SMS', label: 'SMS' },
+    { value: 'WiFi', label: 'WiFi' },
+	{ value: 'LoRa', label: 'LoRa' }
   ];
 
   const [power, setPower] = useState("");
@@ -144,8 +145,8 @@ const LocationEdit = props => {
 	  setPower(selectedPower.value);
   }
   const powerOptions = [
-    { value: 'solar', label: 'Solar' },
-    { value: 'mains', label: 'Mains' },
+    { value: 'Solar', label: 'Solar' },
+    { value: 'Mains', label: 'Mains' },
   ];
 
   const [height, setHeight] = useState(0);
@@ -161,11 +162,11 @@ const handleRoadIntensityChange = selectedRoadIntensity => {
 	  setRoadIntensity(selectedRoadIntensity.value);
   }
 const roadIntensityOptions = [
-    { value: 'minimal', label: 'Minimal' },
-    { value: 'light', label: 'Light' },
-    { value: 'moderate', label: 'Moderate' },
-	{ value: 'heavy', label: 'Heavy' },
-	{ value: 'extreme', label: 'Extreme' },
+    { value: 'Minimal', label: 'Minimal' },
+    { value: 'Light', label: 'Light' },
+    { value: 'Moderate', label: 'Moderate' },
+	  { value: 'Heavy', label: 'Heavy' },
+	  { value: 'Extreme', label: 'Extreme' },
     ];
 const [installationType, setInstallationType] = useState("");
 const handleInstallationTypeChange = enteredInstallationType => {
@@ -177,17 +178,20 @@ const handleRoadStatusChange = selectedRoadStatus => {
 	  setRoadStatus(selectedRoadStatus.value);
   }
 const roadStatusOptions = [
-    { value: 'paved', label: 'Paved' },
-    { value: 'unpaved', label: 'Unpaved' }
+    { value: 'Paved', label: 'Paved' },
+    { value: 'Unpaved', label: 'Unpaved' }
   ];
 
 const [landuse, setLanduse] = useState('');
 const handleLanduseChange = enteredLanduse => {
 	  setLanduse(enteredLanduse.target.value);
   }
+
+  const [dialogStatus, setDialogStatus] = useState(false)
+  const [dialogMessage, setDialogMessage] = useState('')
   
 
-  const getTutorial = ref => {
+  const getLocation = ref => {
     axios.get('http://127.0.0.1:4000/api/v1/location_registry/edit?loc_ref='+ref)
       .then(response => {
         let myData = response.data
@@ -212,7 +216,7 @@ const handleLanduseChange = enteredLanduse => {
   };
 
   useEffect(() => {
-    getTutorial(params.loc_ref);
+    getLocation(params.loc_ref);
   }, [params.loc_ref]);
 
   /*
@@ -229,6 +233,11 @@ const handleLanduseChange = enteredLanduse => {
     setHeight(value);
   
   };
+
+  let handleConfirmClose = () => {
+    setDialogStatus(false);
+  };
+  
   
   
 
@@ -257,6 +266,8 @@ const handleLanduseChange = enteredLanduse => {
         const myData = res.data;
         console.log(myData);
         //setLoading(false) 
+        setDialogMessage(myData.message);
+        setDialogStatus(true);
     }).catch(
       console.log
     )
@@ -525,26 +536,34 @@ const handleLanduseChange = enteredLanduse => {
         </Button>
       </div>           
       </form>
-
-      {/*  
-        <Dialog
-            open={confirmDialog}
+      {dialogStatus? (
+      <Dialog
+            open={dialogStatus}
             onClose={handleConfirmClose}
             aria-labelledby="alert-dialog-title"
             aria-describedby="alert-dialog-description"
           >
             <DialogContent>
               <DialogContentText id="alert-dialog-description">
-                {confirmDialogMsg}
+                {dialogMessage}
               </DialogContentText>
             </DialogContent>
             <DialogActions>
-              <Button onClick={this.handleConfirmClose} color="primary">
-                OK
+            <div>    
+           {/* <Link to='/location'>*/}
+           <Link to={`/locations/${locationReference}`}>
+              <Button 
+               variant="contained" 
+               color="primary"              
+               align = "centre"
+              > OK
               </Button>
+            </Link>  
+            </div>  
             </DialogActions>
           </Dialog>
-          */}
+          ) : null}
+
     </div>
     )
 

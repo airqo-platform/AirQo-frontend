@@ -8,6 +8,7 @@ import axios from 'axios';
 import { useParams } from 'react-router-dom';
 import TextField from '@material-ui/core/TextField';
 import { Link } from "react-router-dom";
+import LoadingOverlay from 'react-loading-overlay';
 
 
 const useStyles = makeStyles(theme => ({
@@ -52,8 +53,10 @@ const useStyles = makeStyles(theme => ({
     marginRight: 'auto',            
     paddingBottom: 0,
     marginTop: 0,
-    fontWeight: 500,
-    border: '2px solid #7575FF',    
+    //fontWeight: 500,
+    border: '2px solid #7575FF', 
+    fontFamily: 'Times New Roman', 
+  
 },
   
 }));
@@ -67,6 +70,8 @@ const selectStyles = {
     minHeight: '1px',
     textAlign: 'left',
     border: 'none',
+    //fontWeight: 500,
+    //fontFamily: 'Times New Roman',
   }),
   control: (provided) => ({
     ...provided,
@@ -75,10 +80,14 @@ const selectStyles = {
     borderRadius: '0',
     minHeight: '1px',
     height: '56px',
+    fontWeight: 500,
+    //fontFamily: 'Times New Roman',
   }),
   input: (provided) => ({
     ...provided,
     minHeight: '1px',
+    //fontweight:500,
+    //fontFamily: 'Times New Roman',
   }),
   dropdownIndicator: (provided) => ({
     ...provided,
@@ -103,11 +112,13 @@ const selectStyles = {
     height: '40px',
     paddingTop: '0',
     paddingBottom: '0',
+    fontweight: 500,
   }),
   singleValue: (provided) => ({
     ...provided,
     minHeight: '1px',
     paddingBottom: '2px',
+    fontweight: 500,
   }),
 };
 
@@ -117,20 +128,15 @@ const LocationRegister = props => {
   const classes = useStyles();
 
   const [locationReference, setLocationReference] = useState('');
-  /*const handleLocationReferenceChange = defaultLocationRef => {
-	  setLocationReference(defaultLocationRef);
-  }*/
   
   useEffect(() => {
     //code to retrieve next location ID from backend
     axios.get(
-      //'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/device/graph',
       'http://127.0.0.1:4000/api/v1/location_registry/create_id'
     )
     .then(
       res=>{
         const ref = res.data;
-        //console.log(ref);
         setLocationReference(ref)
 
     }).catch(
@@ -140,6 +146,7 @@ const LocationRegister = props => {
  
   //const [loading, setLoading] = useState({value: false})
   //const [submitBtn, setSubmitBtn] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   
   const [dialogStatus, setDialogStatus] = useState(false)
   const [dialogMessage, setDialogMessage] = useState('')
@@ -172,9 +179,9 @@ const LocationRegister = props => {
 	  setInternet(selectedInternet);
   }
   const internetOptions = [
-    { value: 'sms', label: 'SMS' },
-    { value: 'wifi', label: 'WiFi' },
-	  { value: 'lora', label: 'LoRa' }
+    { value: 'SMS', label: 'SMS' },
+    { value: 'WiFi', label: 'WiFi' },
+	  { value: 'LoRa', label: 'LoRa' }
   ];
   
   const [power, setPower] = useState({value: ''});
@@ -182,8 +189,8 @@ const LocationRegister = props => {
 	  setPower(selectedPower);
   }
   const powerOptions = [
-    { value: 'solar', label: 'Solar' },
-    { value: 'mains', label: 'Mains' },
+    { value: 'Solar', label: 'Solar' },
+    { value: 'Mains', label: 'Mains' },
   ];
   
   const [height, setHeight] = useState(0);
@@ -199,25 +206,29 @@ const LocationRegister = props => {
 	  setRoadIntensity(selectedRoadIntensity);
   }
   const roadIntensityOptions = [
-    { value: 'minimal', label: 'Minimal' },
-    { value: 'light', label: 'Light' },
-    { value: 'moderate', label: 'Moderate' },
-	{ value: 'heavy', label: 'Heavy' },
-	{ value: 'extreme', label: 'Extreme' },
+    { value: 'Minimal', label: 'Minimal' },
+    { value: 'Light', label: 'Light' },
+    { value: 'Moderate', label: 'Moderate' },
+	  { value: 'Heavy', label: 'Heavy' },
+	  { value: 'Extreme', label: 'Extreme' },
 	];
   
   const [mobile, setMobile] = useState(false);
   const [mobility, setMobility] = useState({value: ''});
   const handleMobilityChange = selectedMobility => {
     setMobility(selectedMobility);
-    if(mobility.value == 'static' ){
+    if(selectedMobility.value == 'Mobile' ){
       setMobile(true);
+    }
+    else if (selectedMobility.value == 'Static'){
+      setMobile(false);
     }
   }
   const mobilityOptions = [
-    { value: 'static', label: 'Static' },
-    { value: 'mobile', label: 'Mobile' },
+    { value: 'Static', label: 'Static' },
+    { value: 'Mobile', label: 'Mobile' },
   ];
+
   
 
   const [installationType, setInstallationType] = useState('');
@@ -235,12 +246,12 @@ const LocationRegister = props => {
 	  setRoadStatus(selectedRoadStatus);
   }
   const roadStatusOptions = [
-    { value: 'paved', label: 'Paved' },
-    { value: 'unpaved', label: 'Unpaved' }
+    { value: 'Paved', label: 'Paved' },
+    { value: 'Unpaved', label: 'Unpaved' }
   ];
   
   //const [localActivities, setLocalActivities = useState([]);
-  const [localActivities,setLocalActivities] = useState({ selectedOption: [] });
+ /* const [localActivities,setLocalActivities] = useState({ selectedOption: [] });
   const handleLocalActivitiesChange = selectedLocalActivities => {
 	  //setLocalActivities(selectedLocalActivities);
 	  setLocalActivities({ selectedLocalActivities});
@@ -250,7 +261,7 @@ const LocationRegister = props => {
     { value: 'cooking', label: 'Cooking' },
     { value: 'road dust', label: 'Road dust' },
 	  { value: 'idling', label: 'Idling' }
-  ];
+  ];*/
 
   let generateReference = () =>{
     axios.get(
@@ -287,6 +298,7 @@ const LocationRegister = props => {
   let  handleSubmit = (e) => {
     e.preventDefault();
     //setLoading(true);
+    setIsLoading(true);
 
     let filter ={ 
       locationReference: locationReference,
@@ -312,6 +324,7 @@ const LocationRegister = props => {
     )
     .then(
       res=>{
+        setIsLoading(false);
         const myData = res.data;
         console.log(myData);
         console.log(myData.message);
@@ -325,7 +338,12 @@ const LocationRegister = props => {
   }
 
     return(
-    <div className={classes.root}>   
+    <div className={classes.root}>  
+    <LoadingOverlay
+      active={isLoading}
+      spinner
+      text='Saving Location...'
+    >
           
     <form onSubmit={handleSubmit}>
       <Grid container spacing={1}>
@@ -398,17 +416,11 @@ const LocationRegister = props => {
             <div className={classes.formControl} style={{width: '250px',height:10}}>
             <span>Road Intensity</span>
               <Select
-                //className="react-selectcomponent"
                 className="reactSelect"
                 name="roadIntensity"
-                //placeholder="Road Intensity"
-                value={roadIntensity}
+                //value={roadIntensity}
                 options={roadIntensityOptions}
-                onChange={handleRoadIntensityChange}   
-                variant = "outlined"
-                autoWidth   
-                //placeholder={'Enter Road Intensity'}
-                autoFocus={true}     
+                onChange={handleRoadIntensityChange}    
                 styles={selectStyles}   
                 isDisabled ={mobile}
               />
@@ -425,8 +437,7 @@ const LocationRegister = props => {
               <Select 
                 className="reactSelect"
                 name="mobility"
-                //placeholder="Mobility"
-                value={mobility}
+                //value={mobility}
                 options={mobilityOptions}
                 onChange={handleMobilityChange}
                 defaultValue = "Mobility"
@@ -484,7 +495,6 @@ const LocationRegister = props => {
               <Select
                 className="reactSelect"
                 name="roadStatus"
-                //placeholder="Road Status"
                 //value={roadStatus}
                 options={roadStatusOptions}
                 onChange={handleRoadStatusChange}   
@@ -547,8 +557,7 @@ const LocationRegister = props => {
               <Select
                 className="reactSelect"
                 name="internet"
-                //placeholder="Internet"
-                value={internet}
+                //value={internet}
                 options={internetOptions}
                 onChange={handleInternetChange}
                 styles={selectStyles} 
@@ -562,8 +571,7 @@ const LocationRegister = props => {
               <Select
                 className="reactSelect"
                 name="power"
-                //placeholder="Power"
-                value={power}
+                //value={power}
                 options={powerOptions}
                 onChange={handlePowerChange} 
                 styles={selectStyles} 
@@ -585,6 +593,7 @@ const LocationRegister = props => {
         </Button>
       </div>           
       </form>
+      </LoadingOverlay>
        
        {dialogStatus? (
        
@@ -601,7 +610,8 @@ const LocationRegister = props => {
             </DialogContent>
             <DialogActions>
             <div>    
-            <Link to='/location'>
+           {/* <Link to='/location'>*/}
+           <Link to={`/locations/${locationReference}`}>
               <Button 
                variant="contained" 
                color="primary"              
@@ -616,7 +626,6 @@ const LocationRegister = props => {
           
     </div>
     )
-
   }
  
 
