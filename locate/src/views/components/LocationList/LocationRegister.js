@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { makeStyles } from '@material-ui/styles';
 import PropTypes from 'prop-types';
-import { Grid, Button,Typography, Dialog, DialogActions, DialogContent, DialogContentText } from '@material-ui/core';
+import { Grid, Button,Typography, Dialog, DialogActions, DialogContent, DialogContentText, responsiveFontSizes } from '@material-ui/core';
 import clsx from 'clsx';
 import Select from 'react-select';
 import axios from 'axios';
@@ -13,8 +13,19 @@ import LoadingOverlay from 'react-loading-overlay';
 
 const useStyles = makeStyles(theme => ({
   root: {
-    padding: theme.spacing(3)
+    padding: theme.spacing(3),
+    //'&:hover $notchedOutline': {
+     // border: '2px solid #7575FF',
+    //}
   },
+  notchedOutline: {
+  },
+  focused: {
+    "& $notchedOutline": {
+      borderColor: "blue"
+    }
+  },
+ 
   content: {
     marginTop: theme.spacing(2)
   },
@@ -54,10 +65,18 @@ const useStyles = makeStyles(theme => ({
     paddingBottom: 0,
     marginTop: 0,
     //fontWeight: 500,
+    //borderWidth: '2px',
+    //borderColor: '#7575FF',
     border: '2px solid #7575FF', 
-    fontFamily: 'Times New Roman', 
-  
-},
+  },
+
+  input: {
+    color: 'black',
+    fontFamily: 'Arial',
+    fontweight:500,
+    font: '100px',
+    fontSize: 17
+}
   
 }));
 
@@ -70,8 +89,10 @@ const selectStyles = {
     minHeight: '1px',
     textAlign: 'left',
     border: 'none',
-    //fontWeight: 500,
-    //fontFamily: 'Times New Roman',
+    fontWeight: 500,
+    fontFamily: 'Arial',
+    font: '100px',
+    fontSize: 17
   }),
   control: (provided) => ({
     ...provided,
@@ -80,14 +101,10 @@ const selectStyles = {
     borderRadius: '0',
     minHeight: '1px',
     height: '56px',
-    fontWeight: 500,
-    //fontFamily: 'Times New Roman',
   }),
   input: (provided) => ({
     ...provided,
     minHeight: '1px',
-    //fontweight:500,
-    //fontFamily: 'Times New Roman',
   }),
   dropdownIndicator: (provided) => ({
     ...provided,
@@ -95,7 +112,6 @@ const selectStyles = {
     paddingTop: '0',
     paddingBottom: '0',
     color: '#757575',
-    //color:'#000000',
   }),
   indicatorSeparator: (provided) => ({
     ...provided,
@@ -126,6 +142,15 @@ const LocationRegister = props => {
   const { className, ...rest } = props;
   let params = useParams();
   const classes = useStyles();
+
+  const InputProps = {
+    classes: {
+      root: classes.root,
+      notchedOutline: classes.notchedOutline,
+      focused: classes.focused
+      //notchedOutline: classes.notchedOutline
+    },
+  };
 
   const [locationReference, setLocationReference] = useState('');
   
@@ -236,9 +261,9 @@ const LocationRegister = props => {
 	  setInstallationType(enteredInstallationType.target.value);
   }
   
-  const [landuse, setLanduse] = useState('');
-  const handleLanduseChange = enteredLanduse => {
-	  setLanduse(enteredLanduse.target.value);
+  const [localActivities, setLocalActivities] = useState('');
+  const handleLocalActivitiesChange = enteredLocalActivities => {
+	  setLocalActivities(enteredLocalActivities.target.value);
   }
     
   const [roadStatus, setRoadStatus] = useState({value: ''});
@@ -311,7 +336,7 @@ const LocationRegister = props => {
       roadIntensity: roadIntensity.value, 
       installationType:	installationType,  
       roadStatus: roadStatus.value,
-      landuse: landuse,	
+      localActivities: localActivities,	
       power:  power.value,
     }
     console.log(JSON.stringify(filter));
@@ -355,16 +380,19 @@ const LocationRegister = props => {
               <TextField 
                 className={classes.textField}
 	              id="locationReference" 
-                //label="Location Reference"
                 value = {locationReference}
-		            //placeholder="Location Reference"
                 variant = "outlined"
                 size = "medium"
                 color ="secondary"
                 margin ="normal"
-		            InputProps={{
-                readOnly: true,
-                }}
+                InputProps={{
+                  classes: {
+                    notchedOutline: classes.notchedOutline,
+                    focused: classes.focused
+                  },
+                  className: classes.input,
+                  readOnly:true
+              }}
 	            /> 
               </div>
           
@@ -376,9 +404,7 @@ const LocationRegister = props => {
               <TextField 
                 className={classes.textField}
 	              id="height" 
-                //label="Height above ground (m)"
                 value = {height}
-		            //placeholder="Height above ground"
                 keyboardType="numeric"
                 onChange={changeHandler}
                 variant = "outlined"
@@ -386,6 +412,13 @@ const LocationRegister = props => {
                 color ="secondary"
                 margin ="normal"
                 disabled = {mobile}
+                InputProps={{
+                  className: classes.input,
+                  classes: {
+                    notchedOutline: classes.notchedOutline,
+                    focused: classes.focused
+                  }  
+              }}
 	            /> 
               </div>
             </Grid>
@@ -401,14 +434,19 @@ const LocationRegister = props => {
                 required 
                 className={classes.textField}
 	              id="hostName" 
-                //label="Host Name"
                 value = {hostName}
-		            //placeholder="Host Name"
                 onChange = {handleHostNameChange}
                 variant = "outlined"
                 size = "medium"
                 color ="secondary"
                 margin ="normal"
+                InputProps={{
+                  className: classes.input,
+                  classes: {
+                    notchedOutline: classes.notchedOutline,
+                    focused: classes.focused
+                  }
+              }}
 	            /> 
               </div>
             </Grid>
@@ -451,15 +489,20 @@ const LocationRegister = props => {
               <TextField 
                 className={classes.textField}
 	              id="installationType" 
-                //label="Installation Type"
                 value = {installationType}
-		            //placeholder="Installation Type"
                 onChange = {handleInstallationTypeChange}
                 variant = "outlined"
                 size = "medium"
                 color ="secondary"
                 margin ="normal"
                 disabled = {mobile}
+                InputProps={{
+                  className: classes.input,
+                  classes: {
+                    notchedOutline: classes.notchedOutline,
+                    focused: classes.focused
+                  }
+              }}
 	            /> 
               </div>
             </Grid>
@@ -475,9 +518,7 @@ const LocationRegister = props => {
               <TextField 
                 className={classes.textField}
                 id="latitude" 
-                //label="Latitude"
                 value = {latitude}
-		            //placeholder="Latitude"
                 onChange = {handleLatitudeChange}
                 keyboardType="numeric"
 		            variant = "outlined"
@@ -486,6 +527,13 @@ const LocationRegister = props => {
                 color ="secondary"
                 margin ="normal"
                 disabled = {mobile}
+                InputProps={{
+                  className: classes.input,
+                  classes: {
+                    notchedOutline: classes.notchedOutline,
+                    focused: classes.focused
+                  }
+              }}
 	             /> 
                </div>
             </Grid>
@@ -514,9 +562,7 @@ const LocationRegister = props => {
               <TextField 
                 className={classes.textField}
                 id="longitude" 
-                //label="Longitude"
                 value = {longitude}
-		            //placeholder="Longitude"
                 onChange = {handleLongitudeChange}
                 keyboardType="numeric"
 		            variant = "outlined"
@@ -525,24 +571,36 @@ const LocationRegister = props => {
                 color ="secondary"
                 margin ="normal"
                 disabled = {mobile}
+                InputProps={{
+                  className: classes.input,
+                  classes: {
+                    notchedOutline: classes.notchedOutline,
+                    focused: classes.focused
+                  }
+              }}
 	             /> 
                </div>
             </Grid>
             <Grid item xs={6}>
             <div className={classes.formControl} style={{width: '250px'}}>
-            <span>Landuse</span>
+            <span>Local Activities</span>
               <TextField  
                 className={classes.textField}
-	              id="landuse" 
-		            //label="Landuse"
-		            //placeholder="Landuse"
-                onChange = {handleLanduseChange}
+	              id="localActivities" 
+                onChange = {handleLocalActivitiesChange}
                 variant = "outlined"
                 size = "medium"
                 color ="secondary"
                 margin ="normal"
                 disabled = {mobile}
-                value = {landuse}
+                value = {localActivities}
+                InputProps={{
+                  className: classes.input,
+                  classes: {
+                    notchedOutline: classes.notchedOutline,
+                    focused: classes.focused
+                  }
+              }}
 	            /> 
 	          </div>
             </Grid>
@@ -561,7 +619,7 @@ const LocationRegister = props => {
                 options={internetOptions}
                 onChange={handleInternetChange}
                 styles={selectStyles} 
-                isDisabled ={mobile}
+                //isDisabled ={mobile}
               />
               </div>
               </Grid>
@@ -575,7 +633,7 @@ const LocationRegister = props => {
                 options={powerOptions}
                 onChange={handlePowerChange} 
                 styles={selectStyles} 
-                isDisabled ={mobile}            
+                //isDisabled ={mobile}            
               />
 	          </div>
             </Grid>

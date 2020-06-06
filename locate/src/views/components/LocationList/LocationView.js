@@ -120,7 +120,7 @@ const LocationView = props => {
             </TableRow> 
             <TableRow>  
               <TableCell>Longitude: {locData.longitude}</TableCell>  
-              <TableCell>Height above ground (m): {locData.height}</TableCell> 
+              <TableCell>Height above ground (m): {locData.height_above_ground}</TableCell> 
               <TableCell>Landform (270): {locData.landform_270}</TableCell>   
             </TableRow> 
             <TableRow>  
@@ -139,8 +139,8 @@ const LocationView = props => {
               <TableCell>Distance to nearest motorway (m): {locData.distance_from_motorway}</TableCell>   
             </TableRow> 
             <TableRow>  
-              <TableCell>subcounty: {locData.subcounty}</TableCell>  
-              <TableCell>landuse: {locData.landuse}</TableCell> 
+              <TableCell>Subcounty: {locData.subcounty}</TableCell>  
+              <TableCell>Local Activities: {locData.local_activities}</TableCell> 
               <TableCell>Distance to nearest city/town (m): {locData.distance_from_city}</TableCell>   
             </TableRow> 
           </TableBody> 

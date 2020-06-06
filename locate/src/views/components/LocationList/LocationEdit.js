@@ -9,12 +9,21 @@ import { useParams } from 'react-router-dom';
 import TextField from '@material-ui/core/TextField';
 import NavPills from '../NavPills/NavPills';
 import { Link } from "react-router-dom";
+import LoadingOverlay from 'react-loading-overlay';
 //import Select from '@material-ui/core/Select';
 
 
 const useStyles = makeStyles(theme => ({
   root: {
-    padding: theme.spacing(3)
+    padding: theme.spacing(3),
+    //fontFamily: 'Times New Roman'
+  },
+  notchedOutline: {
+  },
+  focused: {
+    "& $notchedOutline": {
+      borderColor: "blue"
+    }
   },
   content: {
     marginTop: theme.spacing(2)
@@ -46,6 +55,7 @@ const useStyles = makeStyles(theme => ({
 
   formControl: {
     margin: theme.spacing(3),
+    fontFamily: 'Times New Roman'
   },
   textField: {
     width: '250px',
@@ -54,9 +64,18 @@ const useStyles = makeStyles(theme => ({
     marginRight: 'auto',            
     paddingBottom: 0,
     marginTop: 0,
-    fontWeight: 500,
-    border: '2px solid #7575FF',    
-},
+    //fontWeight: 500,
+    //borderWidth: '2px',
+    //borderColor: '#7575FF',
+    border: '2px solid #7575FF', 
+  },
+  input: {
+    color: 'black',
+    fontFamily: 'Arial',
+    fontweight:500,
+    font: '100px',
+    fontSize: 17
+}
   
 }));
 
@@ -69,6 +88,10 @@ const selectStyles = {
     minHeight: '1px',
     textAlign: 'left',
     border: 'none',
+    fontWeight: 500,
+    fontFamily: 'Arial',
+    font: '100px',
+    fontSize: 17
   }),
   control: (provided) => ({
     ...provided,
@@ -105,11 +128,13 @@ const selectStyles = {
     height: '40px',
     paddingTop: '0',
     paddingBottom: '0',
+    fontWeight: 500,
   }),
   singleValue: (provided) => ({
     ...provided,
     minHeight: '1px',
     paddingBottom: '2px',
+    fontWeight: 500
   }),
 };
 
@@ -118,11 +143,14 @@ const LocationEdit = props => {
   let params = useParams();
   const classes = useStyles();
   
-  const [message, setMessage] = useState('');
+  //const [message, setMessage] = useState('');
   const [locationReference, setLocationReference] = useState('');
   const [latitude, setLatitude] = useState(0);
   const [longitude, setLongitude] = useState(0);
   const [hostName, setHostName] = useState('');
+  const handleHostNameChange = enteredHostName => {
+    setHostName(enteredHostName.target.value);
+}
   const [mobile, setMobile] = useState(false);
   const [mobility, setMobility] = useState('');
   const mobilityOptions = [
@@ -130,9 +158,9 @@ const LocationEdit = props => {
     { value: 'Mobile', label: 'Mobile' },
   ];
 
-  const [internet, setInternet] = useState('');
+  const [internet, setInternet] = useState({value: ''});
   const handleInternetChange = selectedInternet => {
-	  setInternet(selectedInternet.value);
+	  setInternet(selectedInternet);
   }
   const internetOptions = [
     { value: 'SMS', label: 'SMS' },
@@ -140,9 +168,9 @@ const LocationEdit = props => {
 	{ value: 'LoRa', label: 'LoRa' }
   ];
 
-  const [power, setPower] = useState("");
+  const [power, setPower] = useState({value: ''});
   const handlePowerChange = selectedPower => {
-	  setPower(selectedPower.value);
+	  setPower(selectedPower);
   }
   const powerOptions = [
     { value: 'Solar', label: 'Solar' },
@@ -157,41 +185,44 @@ const LocationEdit = props => {
   }
 }
 
-const [roadIntensity, setRoadIntensity] = useState("");
+const [roadIntensity, setRoadIntensity] = useState({value: ''});
 const handleRoadIntensityChange = selectedRoadIntensity => {
-	  setRoadIntensity(selectedRoadIntensity.value);
-  }
+  setRoadIntensity(selectedRoadIntensity);
+}
 const roadIntensityOptions = [
-    { value: 'Minimal', label: 'Minimal' },
-    { value: 'Light', label: 'Light' },
-    { value: 'Moderate', label: 'Moderate' },
-	  { value: 'Heavy', label: 'Heavy' },
-	  { value: 'Extreme', label: 'Extreme' },
-    ];
-const [installationType, setInstallationType] = useState("");
+  { value: 'Minimal', label: 'Minimal' },
+  { value: 'Light', label: 'Light' },
+  { value: 'Moderate', label: 'Moderate' },
+  { value: 'Heavy', label: 'Heavy' },
+  { value: 'Extreme', label: 'Extreme' },
+];
+
+const [installationType, setInstallationType] = useState('');
 const handleInstallationTypeChange = enteredInstallationType => {
 	  setInstallationType(enteredInstallationType.target.value);
   }
-
-const [roadStatus, setRoadStatus] = useState('');
+  
+const [localActivities, setLocalActivities] = useState('');
+const handleLocalActivitiesChange = enteredLocalActivities => {
+	  setLocalActivities(enteredLocalActivities.target.value);
+  }
+    
+const [roadStatus, setRoadStatus] = useState({value: ''});
 const handleRoadStatusChange = selectedRoadStatus => {
-	  setRoadStatus(selectedRoadStatus.value);
+	  setRoadStatus(selectedRoadStatus);
   }
 const roadStatusOptions = [
     { value: 'Paved', label: 'Paved' },
     { value: 'Unpaved', label: 'Unpaved' }
   ];
 
-const [landuse, setLanduse] = useState('');
-const handleLanduseChange = enteredLanduse => {
-	  setLanduse(enteredLanduse.target.value);
-  }
-
+  const [isLoading, setIsLoading] = useState(false);
   const [dialogStatus, setDialogStatus] = useState(false)
   const [dialogMessage, setDialogMessage] = useState('')
+
   
 
-  const getLocation = ref => {
+const getLocation = ref => {
     axios.get('http://127.0.0.1:4000/api/v1/location_registry/edit?loc_ref='+ref)
       .then(response => {
         let myData = response.data
@@ -207,7 +238,7 @@ const handleLanduseChange = enteredLanduse => {
         setRoadIntensity(myData.road_intensity);
         setInstallationType(myData.installation_type);
         setRoadStatus(myData.road_status);
-        setLanduse(myData.landuse);
+        setLocalActivities(myData.local_activities);
         console.log(response.data);
       })
       .catch(e => {
@@ -215,7 +246,7 @@ const handleLanduseChange = enteredLanduse => {
       });
   };
 
-  useEffect(() => {
+ useEffect(() => {
     getLocation(params.loc_ref);
   }, [params.loc_ref]);
 
@@ -243,15 +274,21 @@ const handleLanduseChange = enteredLanduse => {
 
   let  handleSubmit = (e) => {
     e.preventDefault();
-    //setLoading(true);
+    setIsLoading(true);
+
     let filter ={ 
       locationReference: locationReference,
+      hostName:  hostName,
+      //mobility: mobility.value,
+      //mobility: mobility,
+      latitude: Number(latitude),
+      longitude:  Number(longitude),
       internet:  internet,
       height: Number(height),      
       roadIntensity: roadIntensity, 
       installationType:	installationType,  
       roadStatus: roadStatus,
-      landuse: landuse,	
+      localActivities: localActivities,	
       power:  power,
     }
     console.log(JSON.stringify(filter));
@@ -263,6 +300,7 @@ const handleLanduseChange = enteredLanduse => {
     )
     .then(
       res=>{
+        setIsLoading(false);
         const myData = res.data;
         console.log(myData);
         //setLoading(false) 
@@ -274,7 +312,12 @@ const handleLanduseChange = enteredLanduse => {
   }
 
     return(
-    <div className={classes.root}>   
+    <div className={classes.root}>
+    <LoadingOverlay
+      active={isLoading}
+      spinner
+      text='Updating Location...'
+    > 
           
     <form onSubmit={handleSubmit}>
       <Grid container spacing={1}>
@@ -291,9 +334,14 @@ const handleLanduseChange = enteredLanduse => {
                 size = "medium"
                 color ="secondary"
                 margin ="normal"
-		        InputProps={{
-                  readOnly: true,
-                }}
+                InputProps={{
+                  classes: {
+                    notchedOutline: classes.notchedOutline,
+                    focused: classes.focused
+                  },
+                  className: classes.input,
+                  readOnly:true
+              }}
 	            /> 
               </div>
           
@@ -302,9 +350,9 @@ const handleLanduseChange = enteredLanduse => {
 
            <div className={classes.formControl} style={{width: '250px'}}>
            <span>Height above ground (m)</span>
-              <TextField 
+           <TextField 
                 className={classes.textField}
-                id="height" 
+	              id="height" 
                 value = {height}
                 keyboardType="numeric"
                 onChange={changeHandler}
@@ -313,7 +361,14 @@ const handleLanduseChange = enteredLanduse => {
                 color ="secondary"
                 margin ="normal"
                 disabled = {mobile}
-	            /> 
+                InputProps={{
+                  className: classes.input,
+                  classes: {
+                    notchedOutline: classes.notchedOutline,
+                    focused: classes.focused
+                  }  
+              }}
+	            />
               </div>
             </Grid>
           </React.Fragment>
@@ -324,30 +379,34 @@ const handleLanduseChange = enteredLanduse => {
             <Grid item xs={6}>
             <div className={classes.formControl} style={{width: '250px'}}>
             <span>Host Name</span>
-              <TextField 
+            <TextField 
                 required 
                 className={classes.textField}
-	            id="hostName" 
+	              id="hostName" 
                 value = {hostName}
+                onChange = {handleHostNameChange}
                 variant = "outlined"
                 size = "medium"
                 color ="secondary"
                 margin ="normal"
                 InputProps={{
-                  readOnly: true,
-                }}
+                  className: classes.input,
+                  //readOnly:true,
+                  classes: {
+                    notchedOutline: classes.notchedOutline,
+                    focused: classes.focused
+                  }
+              }}
 	            /> 
               </div>
             </Grid>
             <Grid item xs={6}>
             <div className={classes.formControl} style={{width: '250px',height:10}}>
             <span>Road Intensity</span>
+            {/*}
               <Select
                 className="reactSelect"
                 name="roadIntensity"
-                //value={roadIntensity.value}
-               // value="myRoadIntensity"
-                //value = {roadIntensity}
                 options={roadIntensityOptions}
                 onChange={handleRoadIntensityChange}  
                 value={roadIntensityOptions.filter(function(option) {
@@ -358,6 +417,19 @@ const handleLanduseChange = enteredLanduse => {
                 autoFocus={true}     
                 styles={selectStyles}   
                 isDisabled ={mobile}
+                />*/}
+
+              <Select
+                className="reactSelect"
+                name="roadIntensity"
+                //value={roadStatus}
+                options={roadIntensityOptions}
+                onChange={handleRoadIntensityChange}   
+                styles={selectStyles}    
+                isDisabled ={mobile}  
+                value={roadIntensityOptions.filter(function(option) {
+                    return option.value === roadIntensity;
+                  })}    
               />
               </div>
             </Grid>
@@ -455,7 +527,7 @@ const handleLanduseChange = enteredLanduse => {
                 id="longitude" 
                 value = {longitude}
                 keyboardType="numeric"
-		        variant = "outlined"
+		            variant = "outlined"
                 //type = "number"
                 size = "medium"
                 color ="secondary"
@@ -469,17 +541,17 @@ const handleLanduseChange = enteredLanduse => {
             </Grid>
             <Grid item xs={6}>
             <div className={classes.formControl} style={{width: '250px'}}>
-            <span>Landuse</span>
+            <span>Local Activities</span>
               <TextField  
                 className={classes.textField}
-	            id="landuse" 
-                onChange = {handleLanduseChange}
+	              id="localActivities" 
+                onChange = {handleLocalActivitiesChange}
                 variant = "outlined"
                 size = "medium"
                 color ="secondary"
                 margin ="normal"
                 disabled = {mobile}
-                value = {landuse}
+                value = {localActivities}
 	            /> 
 	          </div>
             </Grid>
@@ -536,6 +608,7 @@ const handleLanduseChange = enteredLanduse => {
         </Button>
       </div>           
       </form>
+      </LoadingOverlay>
       {dialogStatus? (
       <Dialog
             open={dialogStatus}
