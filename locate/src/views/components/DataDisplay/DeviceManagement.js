@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 // react plugin for creating charts
 import ChartistGraph from "react-chartist";
 // @material-ui/core
@@ -38,11 +38,44 @@ import {
 } from "../../variables/charts.js";
 
 import styles from "assets/jss/material-dashboard-react/views/dashboardStyle.js";
+import constants from "../../../config/constants";
+import axios from "axios";
 
 const useStyles = makeStyles(styles);
 
 export default function DeviceManagement() {
+  //set states for storing device status
+  const [deviceStatusSummary, setStatusSummary] = useState();
+  const [noOfDevices, setNoOfDevices] = useState(0);
+  const [solarPowered, setSolarPowered] = useState(0);
+  const [mainPowered, setMainPowered] = useState(0);
+
   const classes = useStyles();
+
+  useEffect(() => {
+    axios.get(constants.GET_DEVICE_STATUS_SUMMARY).then(({ data }) => {
+      //console.log(data[0].loc_power_suppy);
+      let no_devices = 0,
+        due_maintenance = 0,
+        no_solar = 0,
+        no_main = 0;
+      data.map((item) => {
+        no_devices++;
+        if (item.loc_power_suppy == "Solar") {
+          no_solar = no_solar + 1;
+        }
+
+        if (item.loc_power_suppy == "Mains") {
+          no_main = no_main + 1;
+        }
+      });
+      setStatusSummary(data);
+      setNoOfDevices(no_devices);
+      setSolarPowered(no_solar);
+      setMainPowered(no_main);
+    });
+  }, []);
+
   return (
     <div>
       <GridContainer>
@@ -53,7 +86,7 @@ export default function DeviceManagement() {
                 <DevicesIcon />
               </CardIcon>
               <p className={classes.cardCategory}>Devices on the network</p>
-              <h3 className={classes.cardTitle}>70</h3>
+              <h3 className={classes.cardTitle}>{noOfDevices}</h3>
             </CardHeader>
             <CardFooter stats></CardFooter>
           </Card>
@@ -65,7 +98,7 @@ export default function DeviceManagement() {
                 <RestoreIcon />
               </CardIcon>
               <p className={classes.cardCategory}>Due for maintenance</p>
-              <h3 className={classes.cardTitle}>20</h3>
+              <h3 className={classes.cardTitle}>---</h3>
             </CardHeader>
             <CardFooter stats></CardFooter>
           </Card>
@@ -77,7 +110,7 @@ export default function DeviceManagement() {
                 <WbSunnyIcon />
               </CardIcon>
               <p className={classes.cardCategory}>Solar powered</p>
-              <h3 className={classes.cardTitle}>30</h3>
+              <h3 className={classes.cardTitle}> {solarPowered}</h3>
             </CardHeader>
             <CardFooter stats></CardFooter>
           </Card>
@@ -89,7 +122,7 @@ export default function DeviceManagement() {
                 <PowerIcon />
               </CardIcon>
               <p className={classes.cardCategory}>Mains Powered</p>
-              <h3 className={classes.cardTitle}>40</h3>
+              <h3 className={classes.cardTitle}>{mainPowered}</h3>
             </CardHeader>
             <CardFooter stats></CardFooter>
           </Card>
