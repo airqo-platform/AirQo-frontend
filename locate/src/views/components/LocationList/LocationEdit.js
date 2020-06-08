@@ -55,7 +55,7 @@ const useStyles = makeStyles(theme => ({
 
   formControl: {
     margin: theme.spacing(3),
-    fontFamily: 'Times New Roman'
+    //fontFamily: 'Times New Roman'
   },
   textField: {
     width: '250px',
@@ -160,7 +160,7 @@ const LocationEdit = props => {
 
   const [internet, setInternet] = useState({value: ''});
   const handleInternetChange = selectedInternet => {
-	  setInternet(selectedInternet);
+	  setInternet(selectedInternet.value);
   }
   const internetOptions = [
     { value: 'SMS', label: 'SMS' },
@@ -170,7 +170,7 @@ const LocationEdit = props => {
 
   const [power, setPower] = useState({value: ''});
   const handlePowerChange = selectedPower => {
-	  setPower(selectedPower);
+	  setPower(selectedPower.value);
   }
   const powerOptions = [
     { value: 'Solar', label: 'Solar' },
@@ -187,7 +187,7 @@ const LocationEdit = props => {
 
 const [roadIntensity, setRoadIntensity] = useState({value: ''});
 const handleRoadIntensityChange = selectedRoadIntensity => {
-  setRoadIntensity(selectedRoadIntensity);
+  setRoadIntensity(selectedRoadIntensity.value);
 }
 const roadIntensityOptions = [
   { value: 'Minimal', label: 'Minimal' },
@@ -206,16 +206,19 @@ const [localActivities, setLocalActivities] = useState('');
 const handleLocalActivitiesChange = enteredLocalActivities => {
 	  setLocalActivities(enteredLocalActivities.target.value);
   }
+
     
 const [roadStatus, setRoadStatus] = useState({value: ''});
 const handleRoadStatusChange = selectedRoadStatus => {
-	  setRoadStatus(selectedRoadStatus);
+    //console.log(selectedRoadStatus.value);
+	  setRoadStatus(selectedRoadStatus.value);
   }
 const roadStatusOptions = [
     { value: 'Paved', label: 'Paved' },
     { value: 'Unpaved', label: 'Unpaved' }
   ];
-
+  
+  const [detailsLoading, setDetailsLoading] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [dialogStatus, setDialogStatus] = useState(false)
   const [dialogMessage, setDialogMessage] = useState('')
@@ -223,8 +226,10 @@ const roadStatusOptions = [
   
 
 const getLocation = ref => {
+    setDetailsLoading(true);
     axios.get('http://127.0.0.1:4000/api/v1/location_registry/edit?loc_ref='+ref)
       .then(response => {
+        setDetailsLoading(false);
         let myData = response.data
         //setCurrentLocation(response.data);
         setLocationReference(myData.loc_ref);
@@ -240,6 +245,9 @@ const getLocation = ref => {
         setRoadStatus(myData.road_status);
         setLocalActivities(myData.local_activities);
         console.log(response.data);
+        if (myData.mobility == 'Mobile'){
+          setMobile(true);
+        }
       })
       .catch(e => {
         console.log(e);
@@ -278,11 +286,11 @@ const getLocation = ref => {
 
     let filter ={ 
       locationReference: locationReference,
-      hostName:  hostName,
+      //hostName:  hostName,
       //mobility: mobility.value,
       //mobility: mobility,
-      latitude: Number(latitude),
-      longitude:  Number(longitude),
+      //latitude: Number(latitude),
+      //longitude:  Number(longitude),
       internet:  internet,
       height: Number(height),      
       roadIntensity: roadIntensity, 
@@ -317,6 +325,11 @@ const getLocation = ref => {
       active={isLoading}
       spinner
       text='Updating Location...'
+    > 
+    <LoadingOverlay
+      active={detailsLoading}
+      spinner
+      text='Loading Location details...'
     > 
           
     <form onSubmit={handleSubmit}>
@@ -391,7 +404,7 @@ const getLocation = ref => {
                 margin ="normal"
                 InputProps={{
                   className: classes.input,
-                  //readOnly:true,
+                  readOnly:true,
                   classes: {
                     notchedOutline: classes.notchedOutline,
                     focused: classes.focused
@@ -422,14 +435,14 @@ const getLocation = ref => {
               <Select
                 className="reactSelect"
                 name="roadIntensity"
-                //value={roadStatus}
+                //value={roadIntensity.value}
                 options={roadIntensityOptions}
                 onChange={handleRoadIntensityChange}   
                 styles={selectStyles}    
                 isDisabled ={mobile}  
                 value={roadIntensityOptions.filter(function(option) {
                     return option.value === roadIntensity;
-                  })}    
+                  })}  
               />
               </div>
             </Grid>
@@ -485,7 +498,7 @@ const getLocation = ref => {
                 id="latitude" 
                 value = {latitude}
                 keyboardType="numeric"
-		        variant = "outlined"
+		            variant = "outlined"
                 //type = "number"
                 size = "medium"
                 color ="secondary"
@@ -502,15 +515,15 @@ const getLocation = ref => {
               <span>Road Status</span>
               <Select
                 className="reactSelect"
-                name="roadStatus"
-                //value={roadStatus}
+                //name="roadStatus"
+                //value={roadStatus.value}
                 options={roadStatusOptions}
                 onChange={handleRoadStatusChange}   
                 styles={selectStyles}    
                 isDisabled ={mobile}  
                 value={roadStatusOptions.filter(function(option) {
                     return option.value === roadStatus;
-                  })}    
+                  })}  
               />
             </div>
             </Grid>
@@ -608,6 +621,7 @@ const getLocation = ref => {
         </Button>
       </div>           
       </form>
+      </LoadingOverlay>
       </LoadingOverlay>
       {dialogStatus? (
       <Dialog

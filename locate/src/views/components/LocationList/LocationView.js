@@ -9,6 +9,7 @@ import { useParams } from 'react-router-dom';
 import TextField from '@material-ui/core/TextField';
 import { TableContainer, Table, TableBody, TableCell, TableHead, TableRow, Paper } from '@material-ui/core';
 import { Link } from "react-router-dom";
+import LoadingOverlay from 'react-loading-overlay';
 
 
 //import Select from '@material-ui/core/Select';
@@ -70,13 +71,16 @@ const LocationView = props => {
   const classes = useStyles();
 
   const [locData, setLocData] = useState('')
+  const [isLoading, setIsLoading] = useState(false);
   
   useEffect(() => {
+    setIsLoading(true);
     axios.get(
       'http://127.0.0.1:4000/api/v1/location_registry?loc_ref='+params.loc_ref
     )
     .then(
       res=>{
+        setIsLoading(false);
         const data = res.data;
         console.log(data);
         setLocData(data);
@@ -87,7 +91,13 @@ const LocationView = props => {
   }, []);
  
     return(
+      
     <div className={classes.root}>
+      <LoadingOverlay
+      active={isLoading}
+      spinner
+      text='Loading Location details...'
+    >
       <div>
         <Typography  className={classes.title} variant="h6" id="tableTitle" component="div">
           {locData.loc_ref} : {locData.location_name}
@@ -104,44 +114,44 @@ const LocationView = props => {
           </TableHead> */}
           <TableBody>  
             <TableRow>  
-              <TableCell>Host Name: {locData.host}</TableCell>  
-              <TableCell>Parish: {locData.parish}</TableCell> 
-              <TableCell>Altitude: {locData.altitude}</TableCell>   
+              <TableCell>Host Name: <b>{locData.host}</b></TableCell>  
+              <TableCell>Parish: <b>{locData.parish}</b></TableCell> 
+              <TableCell>Altitude: <b>{locData.altitude}</b></TableCell>   
             </TableRow> 
             <TableRow>  
-              <TableCell>Mobility: {locData.mobility}</TableCell>  
-              <TableCell>Internet: {locData.internet}</TableCell> 
-              <TableCell>Aspect: {locData.aspect}</TableCell>   
+              <TableCell>Mobility: <b>{locData.mobility}</b></TableCell>  
+              <TableCell>Internet: <b>{locData.internet}</b></TableCell> 
+              <TableCell>Aspect: <b>{locData.aspect}</b></TableCell>   
             </TableRow> 
             <TableRow>  
-              <TableCell>Latitude: {locData.latitude}</TableCell>  
-              <TableCell>Power Type: {locData.power}</TableCell> 
-              <TableCell>Landform (90): {locData.landform_90}</TableCell>   
+              <TableCell>Latitude: <b>{locData.latitude}</b></TableCell>  
+              <TableCell>Power Type: <b>{locData.power}</b></TableCell> 
+              <TableCell>Landform (90): <b>{locData.landform_90}</b></TableCell>   
             </TableRow> 
             <TableRow>  
-              <TableCell>Longitude: {locData.longitude}</TableCell>  
-              <TableCell>Height above ground (m): {locData.height_above_ground}</TableCell> 
-              <TableCell>Landform (270): {locData.landform_270}</TableCell>   
+              <TableCell>Longitude: <b>{locData.longitude}</b></TableCell>  
+              <TableCell>Height above ground (m): <b>{locData.height_above_ground}</b></TableCell> 
+              <TableCell>Landform (270): <b>{locData.landform_270}</b></TableCell>   
             </TableRow> 
             <TableRow>  
-              <TableCell>Country: {locData.country}</TableCell>  
-              <TableCell>Road Intensity: {locData.road_intensity}</TableCell> 
-              <TableCell>Distance to nearest road (m): {locData.distance_from_nearest_road}</TableCell>   
+              <TableCell>Country: <b>{locData.country}</b></TableCell>  
+              <TableCell>Road Intensity: <b>{locData.road_intensity}</b></TableCell> 
+              <TableCell>Distance to nearest road (m): <b>{locData.distance_from_nearest_road}</b></TableCell>   
             </TableRow> 
             <TableRow>  
-              <TableCell>Region: {locData.region}</TableCell>  
-              <TableCell>Installation Description: {locData.installation_type}</TableCell> 
-              <TableCell>Distance to nearest residential road (m): {locData.distance_from_residential}</TableCell>   
+              <TableCell>Region: <b>{locData.region}</b></TableCell>  
+              <TableCell>Installation Description: <b>{locData.installation_type}</b></TableCell> 
+              <TableCell>Distance to nearest residential road (m): <b>{locData.distance_from_residential}</b></TableCell>   
             </TableRow> 
             <TableRow>  
-              <TableCell>District: {locData.district}</TableCell>  
-              <TableCell>Road Status: {locData.road_status}</TableCell> 
-              <TableCell>Distance to nearest motorway (m): {locData.distance_from_motorway}</TableCell>   
+              <TableCell>District: <b>{locData.district}</b></TableCell>  
+              <TableCell>Road Status: <b>{locData.road_status}</b></TableCell> 
+              <TableCell>Distance to nearest motorway (m): <b>{locData.distance_from_motorway}</b></TableCell>   
             </TableRow> 
             <TableRow>  
-              <TableCell>Subcounty: {locData.subcounty}</TableCell>  
-              <TableCell>Local Activities: {locData.local_activities}</TableCell> 
-              <TableCell>Distance to nearest city/town (m): {locData.distance_from_city}</TableCell>   
+              <TableCell>Subcounty: <b>{locData.subcounty}</b></TableCell>  
+              <TableCell>Local Activities: <b>{locData.local_activities}</b></TableCell> 
+              <TableCell>Distance to nearest city/town (m): <b>{locData.distance_from_city}</b></TableCell>   
             </TableRow> 
           </TableBody> 
         </Table> 
@@ -161,6 +171,7 @@ const LocationView = props => {
         </Button>
      </Link>    
       </div>
+      </LoadingOverlay>
     </div>
     )
 

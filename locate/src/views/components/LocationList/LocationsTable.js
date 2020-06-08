@@ -19,6 +19,7 @@ import {
   Typography,
   TablePagination
 } from '@material-ui/core';
+import LoadingOverlay from 'react-loading-overlay';
 
 
 const useStyles = makeStyles(theme => ({
@@ -55,6 +56,8 @@ const LocationsTable = props => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [page, setPage] = useState(0);
 
+  const [isLoading, setIsLoading] = useState(false);
+
   /*
   useEffect(() => {
     const GetData = async () => {
@@ -70,12 +73,14 @@ const LocationsTable = props => {
   
   useEffect(() => {
     //code to retrieve all locations data
+    setIsLoading(true);
     axios.get(
       //'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/device/graph',
       'http://127.0.0.1:4000/api/v1/location_registry/locations'
     )
     .then(
       res=>{
+        setIsLoading(false);
         const ref = res.data;
         console.log(ref);
         setData(ref);
@@ -128,6 +133,11 @@ const LocationsTable = props => {
   };
 
   return (
+    <LoadingOverlay
+      active={isLoading}
+      spinner
+      text='Loading Locations...'
+    >
     <Card
       {...rest}
       className={clsx(classes.root, className)}
@@ -151,7 +161,7 @@ const LocationsTable = props => {
                     </TableCell>*/}
                   <TableCell>Location Ref</TableCell>
                   <TableCell>Location Name</TableCell>
-                  <TableCell>Host Name</TableCell>
+                  <TableCell>Mobility</TableCell>
                   <TableCell>Latitude</TableCell>
                   <TableCell>Longitude</TableCell>
                   <TableCell>Country</TableCell>
@@ -168,7 +178,7 @@ const LocationsTable = props => {
                     <Link className={classes.link} to={`/locations/${row.loc_ref}`}>{row.loc_ref}</Link>
                   </TableCell>
                   <TableCell>{row.location_name}</TableCell>
-                  <TableCell>{row.host}</TableCell>
+                  <TableCell>{row.mobility}</TableCell>
                   <TableCell>{row.latitude}</TableCell>
                   <TableCell>{row.longitude}</TableCell>
                   <TableCell>{row.country}</TableCell>
@@ -243,6 +253,7 @@ const LocationsTable = props => {
         />
       </CardActions>
     </Card>
+    </LoadingOverlay>
   );
 };
 
