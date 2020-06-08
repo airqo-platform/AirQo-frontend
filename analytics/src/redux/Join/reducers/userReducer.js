@@ -3,6 +3,9 @@ import {
     GET_USERS_REQUEST,
     GET_USERS_SUCCESS,
     GET_USERS_FAILED,
+    GET_CANDIDATES_REQUEST,
+    GET_CANDIDATES_SUCCESS,
+    GET_CANDIDATES_FAILED,
     REGISTER_USER_REQUEST,
     REGISTER_USER_FAILED,
     REGISTER_USER_SUCCESS,
@@ -31,15 +34,13 @@ import {
     UPDATE_PROFILE_REQUEST,
     UPDATE_PROFILE_SUCCESS,
     UPDATE_PROFILE_FAILED
+} from '../types';
 
-} from "../types";
-
-const isEmpty = require("is-empty");
+const isEmpty = require('is-empty');
 
 const initialState = {
     users: [],
-    collaborators: [],
-    user: null,
+    candidates: [],
     isFetching: false,
     error: null,
     successMsg: null,
@@ -53,7 +54,7 @@ const initialState = {
     showConfirmDialog: null,
     userToDefault: null,
     userDefaults: {},
-    showAddUser: false,
+    showAddUser: false
 };
 
 export default function(state = initialState, action) {
@@ -63,7 +64,7 @@ export default function(state = initialState, action) {
             return {
                 ...state,
                 users: [],
-                user: null,
+                candidates: [],
                 isFetching: true,
                 error: null,
                 successMsg: null,
@@ -76,7 +77,7 @@ export default function(state = initialState, action) {
             return {
                 ...state,
                 users: action.users,
-                user: null,
+                candidates: [],
                 isFetching: false,
                 error: null,
                 successMsg: action.message,
@@ -89,7 +90,7 @@ export default function(state = initialState, action) {
             return {
                 ...state,
                 users: [],
-                user: null,
+                candidates: [],
                 isFetching: false,
                 error: action.error,
                 successMsg: null,
@@ -98,12 +99,55 @@ export default function(state = initialState, action) {
                 showEditDialog: false,
                 userToEdit: null
             };
+
+            /************************* fetch candidates ****************************************** */
+
+        case GET_CANDIDATES_REQUEST:
+            return {
+                ...state,
+                users: [],
+                candidates: [],
+                isFetching: true,
+                error: null,
+                successMsg: null,
+                showDeleteDialog: false,
+                userToDelete: null,
+                showEditDialog: false,
+                userToEdit: null
+            };
+        case GET_CANDIDATES_SUCCESS:
+            return {
+                ...state,
+                users: action.users,
+                candidates: action.candidates,
+                isFetching: false,
+                error: null,
+                successMsg: action.message,
+                showDeleteDialog: false,
+                userToDelete: null,
+                showEditDialog: false,
+                userToEdit: null
+            };
+        case GET_CANDIDATES_FAILED:
+            return {
+                ...state,
+                users: [],
+                candidates: [],
+                isFetching: false,
+                error: action.error,
+                successMsg: null,
+                showDeleteDialog: false,
+                userToDelete: null,
+                showEditDialog: false,
+                userToEdit: null
+            };
+
             /************************* Add/register user ****************************************** */
         case REGISTER_USER_REQUEST:
             return {
                 ...state,
                 users: state.users,
-                user: null,
+                candidates: state.candidates,
                 isFetching: true,
                 error: null,
                 successMsg: null,
@@ -111,14 +155,13 @@ export default function(state = initialState, action) {
                 userToDelete: null,
                 showEditDialog: false,
                 userToEdit: null,
-                newUser: action.user,
-
+                newUser: action.user
             };
         case REGISTER_USER_FAILED:
             return {
                 ...state,
                 users: state.users,
-                user: null,
+                candidates: state.candidates,
                 isFetching: true,
                 error: action.error,
                 successMsg: null,
@@ -132,7 +175,7 @@ export default function(state = initialState, action) {
             return {
                 ...state,
                 users: [...state.users, action.user],
-                user: null,
+                candidates: state.candidates,
                 isFetching: false,
                 error: null,
                 successMsg: action.message,
@@ -147,7 +190,7 @@ export default function(state = initialState, action) {
             return {
                 ...state,
                 users: state.users,
-                user: null,
+                candidates: state.candidates,
                 isFetching: false,
                 error: null,
                 successMsg: null,
@@ -162,7 +205,7 @@ export default function(state = initialState, action) {
             return {
                 ...state,
                 users: state.users,
-                user: null,
+                candidates: state.candidates,
                 isFetching: false,
                 error: null,
                 successMsg: null,
@@ -176,7 +219,7 @@ export default function(state = initialState, action) {
             return {
                 ...state,
                 users: state.users,
-                user: null,
+                candidates: state.candidates,
                 isFetching: false,
                 error: null,
                 successMsg: null,
@@ -199,7 +242,7 @@ export default function(state = initialState, action) {
             return {
                 ...state,
                 users: updatedUsers,
-                user: null,
+                candidates: state.candidates,
                 isFetching: false,
                 error: null,
                 successMsg: action.message,
@@ -214,7 +257,7 @@ export default function(state = initialState, action) {
             return {
                 ...state,
                 users: state.users,
-                user: null,
+                candidates: state.candidates,
                 isFetching: false,
                 error: action.error,
                 successMsg: null,
@@ -229,7 +272,7 @@ export default function(state = initialState, action) {
             return {
                 ...state,
                 users: state.users,
-                user: null,
+                candidates: state.candidates,
                 isFetching: false,
                 error: action.error,
                 successMsg: null,
@@ -244,7 +287,7 @@ export default function(state = initialState, action) {
             return {
                 ...state,
                 users: state.users,
-                user: null,
+                candidates: state.candidates,
                 isFetching: false,
                 error: action.error,
                 successMsg: null,
@@ -259,7 +302,7 @@ export default function(state = initialState, action) {
             return {
                 ...state,
                 users: state.users,
-                user: null,
+                candidates: state.candidates,
                 isFetching: false,
                 error: null,
                 successMsg: null,
@@ -277,7 +320,7 @@ export default function(state = initialState, action) {
             return {
                 ...state,
                 users: filteredUsers,
-                user: null,
+                candidates: state.candidates,
                 isFetching: false,
                 error: null,
                 successMsg: action.message,
@@ -292,7 +335,7 @@ export default function(state = initialState, action) {
             return {
                 ...state,
                 users: state.users,
-                user: null,
+                candidates: state.candidates,
                 isFetching: false,
                 error: action.error,
                 successMsg: null,
@@ -313,7 +356,7 @@ export default function(state = initialState, action) {
             return {
                 ...state,
                 users: state.users,
-                user: null,
+                candidates: state.candidates,
                 isFetching: false,
                 error: action.error,
                 successMsg: null,
@@ -322,12 +365,12 @@ export default function(state = initialState, action) {
                 showEditDialog: false,
                 userToEdit: null,
                 newUser: null
-            }
+            };
         case HIDE_CONFIRM_DIALOG:
             return {
                 ...state,
                 users: state.users,
-                user: null,
+                candidates: state.candidates,
                 isFetching: false,
                 error: action.error,
                 successMsg: null,
@@ -336,12 +379,12 @@ export default function(state = initialState, action) {
                 showEditDialog: false,
                 userToEdit: null,
                 newUser: null
-            }
+            };
         case CONFIRM_USER_REQUEST:
             return {
                 ...state,
                 users: state.users,
-                user: null,
+                candidates: state.candidates,
                 isFetching: false,
                 error: null,
                 successMsg: null,
@@ -350,12 +393,12 @@ export default function(state = initialState, action) {
                 showEditDialog: false,
                 userToEdit: null,
                 newUser: null
-            }
+            };
         case CONFIRM_USER_SUCCESS:
             return {
                 ...state,
                 users: state.users,
-                user: null,
+                candidates: state.candidates,
                 isFetching: false,
                 error: null,
                 successMsg: action.message,
@@ -364,12 +407,12 @@ export default function(state = initialState, action) {
                 showEditDialog: false,
                 userToEdit: null,
                 newUser: null
-            }
+            };
         case CONFIRM_USER_FAILED:
             return {
                 ...state,
                 users: state.users,
-                user: null,
+                candidates: state.candidates,
                 isFetching: false,
                 error: action.error,
                 successMsg: null,
@@ -378,39 +421,39 @@ export default function(state = initialState, action) {
                 showEditDialog: false,
                 userToEdit: null,
                 newUser: null
-            }
+            };
 
             /************************ save password  *********************************************/
         case UPDATE_PASSWORD_REQUEST:
             return {
                 ...state,
                 users: state.users,
-                userToDefault: action.userToDefault,
-            }
+                userToDefault: action.userToDefault
+            };
         case UPDATE_PASSWORD_SUCCESS:
             return {
                 ...state,
-                users: state.users,
-            }
+                users: state.users
+            };
         case UPDATE_PASSWORD_FAILED:
             return {
                 ...state,
                 users: state.users,
-                user: null,
-            }
+                candidates: []
+            };
 
             //set defaults
         case SET_DEFAULTS_REQUEST:
             return {
                 ...state,
                 userToDefault: action.userToDefault,
-                userDefaults: false,
-            }
+                userDefaults: false
+            };
         case SET_DEFAULTS_SUCCESS:
             return {
                 ...state,
                 users: state.users,
-                user: null,
+                candidates: state.candidates,
                 isFetching: false,
                 error: null,
                 successMsg: action.message,
@@ -419,12 +462,12 @@ export default function(state = initialState, action) {
                 showEditDialog: false,
                 userToEdit: null,
                 newUser: null
-            }
+            };
         case SET_DEFAULTS_FAILED:
             return {
                 ...state,
                 users: state.users,
-                user: null,
+                candidates: state.candidates,
                 isFetching: false,
                 error: action.error,
                 successMsg: null,
@@ -433,7 +476,7 @@ export default function(state = initialState, action) {
                 showEditDialog: false,
                 userToEdit: null,
                 newUser: null
-            }
+            };
 
         default:
             return state;
