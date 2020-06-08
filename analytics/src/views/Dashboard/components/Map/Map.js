@@ -10,6 +10,7 @@ import FullscreenControl from 'react-leaflet-fullscreen';
 import 'react-leaflet-fullscreen/dist/styles.css';
 import L from 'leaflet';
 import Filter from './Filter';
+import axios from "axios";
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -45,7 +46,7 @@ const Map = props => {
   const { className, ...rest } = props;
 
   const classes = useStyles();
-
+  const [magnitude,setMagnitude ] = useState('All');
   const [contacts,setContacts ] = useState([]);
 
   useEffect(() => {
@@ -67,6 +68,15 @@ const Map = props => {
               aqi > 0   ? 'pm25Good' :
                 'pm25UnCategorised';
   }
+
+  let fetchFilteredData = (magnitude) => {
+    //this.setState({ isLoaded: false }, () => {
+    fetch('http://127.0.0.1:5000/api/v1/dashboard/monitoringsites?organisation_name=KCCA&pm25_category='+magnitude)
+      .then(res => res.json())
+      .then((contactData) => {
+        setContacts(contactData.airquality_monitoring_sites)
+      });
+  };
 
   return (
     <Card
@@ -129,7 +139,7 @@ const Map = props => {
       
           <FullscreenControl position="topright" />
 
-            {/* <Legend/> */}
+          <Filter fetchFilteredData={fetchFilteredData} />
 
         </LeafletMap>
         
