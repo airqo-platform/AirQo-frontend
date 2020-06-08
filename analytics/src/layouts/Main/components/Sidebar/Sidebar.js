@@ -10,8 +10,9 @@ import TuneIcon from '@material-ui/icons/Tune';
 import TimelineIcon from '@material-ui/icons/Timeline';
 import AccountBoxIcon from '@material-ui/icons/AccountBox';
 import SettingsIcon from '@material-ui/icons/Settings';
+import SupervisedUserCircleIcon from '@material-ui/icons/SupervisedUserCircle';
 
-import { Profile, SidebarNav} from './components';
+import { Profile, SidebarNav } from './components';
 
 const useStyles = makeStyles(theme => ({
   drawer: {
@@ -64,6 +65,11 @@ const Sidebar = props => {
       href: '/admin/users',
       icon: <PeopleIcon />
     },
+    // {
+    //   title: 'Candidates',
+    //   href: '/candidates',
+    //   icon: <SupervisedUserCircleIcon />
+    // },
     {
       title: 'Account',
       href: '/account',
@@ -79,31 +85,42 @@ const Sidebar = props => {
       href: '/settings',
       icon: <SettingsIcon />
     }
-  ]
+  ];
 
+  const { mappedAuth } = props;
+  let { user } = mappedAuth;
+  let userPages = [];
+
+  if (user.privilege == 'admin') {
+    userPages = userManagementPages;
+  } 
+
+  
+  // else if (user.privilege == 'admin') {
+  //   userPages = userManagementPages.filter(function(element) {
+  //     return element.title != 'Candidates';
+  //   });
+  // } 
+  
+  
+  else {
+    userPages = userManagementPages.filter(function(element) {
+      return element.title != 'Users';
+    });
+  }
   return (
     <Drawer
       anchor="left"
       classes={{ paper: classes.drawer }}
       onClose={onClose}
       open={open}
-      variant={variant}
-    >
-      <div
-        {...rest}
-        className={clsx(classes.root, className)}
-      >
+      variant={variant}>
+      <div {...rest} className={clsx(classes.root, className)}>
         <Profile />
         <Divider className={classes.divider} />
-        <SidebarNav
-          className={classes.nav}
-          pages={pages}
-        />
+        <SidebarNav className={classes.nav} pages={pages} />
         <Divider className={classes.divider} />
-        <SidebarNav
-          className={classes.nav}
-          pages={userManagementPages}
-        />
+        <SidebarNav className={classes.nav} pages={userPages} />
         {/* <UpgradePlan /> */}
       </div>
     </Drawer>
