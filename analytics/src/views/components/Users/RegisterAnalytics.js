@@ -1,86 +1,108 @@
 /* eslint-disable */
-import React, { Component } from "react";
-import { Link, withRouter } from "react-router-dom";
-import PropTypes from "prop-types";
-import { connect } from "react-redux";
-import {registerUser } from "../../../redux/Join/actions";
-import classnames from "classnames";
-import CustomInput from "../CustomInput/CustomInput";
-import Autocomplete from "@material-ui/lab/Autocomplete";
-import TextField from "@material-ui/core/TextField";
-import FormControlLabel from "@material-ui/core/FormControlLabel";
-import Checkbox from "@material-ui/core/Checkbox";
-import countries from "../../../utils/countries";
+import React, { Component } from 'react';
+import { Link, withRouter } from 'react-router-dom';
+import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
+import { registerCandidate } from '../../../redux/Join/actions';
+import classnames from 'classnames';
+import TextField from '@material-ui/core/TextField';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import Checkbox from '@material-ui/core/Checkbox';
+import countries from '../../../utils/countries';
 import { Alert, AlertTitle } from '@material-ui/lab';
-import {withStyles, InputLabel } from '@material-ui/core'
+import { withStyles, InputLabel } from '@material-ui/core';
 
-const defaultProps = {
-  options: countries.array,
-  getOptionLabel: (option) => option.label,
-};
 
-const styles = (theme) => ({
+const styles = theme => ({
   root: {
     width: '100%',
     '& > * + *': {
-      marginTop: theme.spacing(2),
-    },
-  },
+      marginTop: theme.spacing(2)
+    }
+  }
 });
 
 class Register extends Component {
   constructor() {
     super();
     this.state = {
-      firstName: "",
-      lastName: "",
-      email: "",
-      userName: "",
-      country: "",
-      phoneNumber: "",
-      jobTitle: "",
-      desc: "",
+      firstName: '',
+      lastName: '',
+      email: '',
+      country: '',
+      phoneNumber: '',
+      jobTitle: '',
+      description: '',
+      organization:'',
       errors: {},
+    isChecked: {}
     };
+
   }
 
   componentDidMount() {
     // If logged in and user navigates to Register page, should redirect them to dashboard
     if (this.props.auth.isAuthenticated) {
-      this.props.history.push("/dashboard");
+      this.props.history.push('/dashboard');
     }
   }
 
   componentWillReceiveProps(nextProps) {
+    if (nextProps.auth.registered) {
+      this.props.history.push("/login"); // push user to the landing page after successfull signup
+    }
     if (nextProps.errors) {
       this.setState({
-        errors: nextProps.errors,
+        errors: nextProps.errors
       });
     }
   }
 
-  onChange = (e) => {
+  onChange = e => {
     this.setState({ [e.target.id]: e.target.value });
   };
-  onSubmit = (e) => {
+
+  handleCheck = event =>{
+    this.state.isChecked = event.target.checked;
+    this.setState({isChecked: this.state.isChecked})
+  }
+
+  clearState = ()=>{
+  const initialState = {
+    firstName: '',
+    lastName: '',
+    email: '',
+    country: '',
+    phoneNumber: '',
+    jobTitle: '',
+    description: '',
+    organization:'',
+    errors: {},
+  isChecked: {}
+  }
+    this.setState(initialState);
+  };
+  
+  onSubmit = e => {
     e.preventDefault();
     const newUser = {
       firstName: this.state.firstName,
       lastName: this.state.lastName,
       email: this.state.email,
-      company: this.state.company,
+      organization: this.state.company,
       jobTitle: this.state.jobTitle,
       phoneNumber: this.state.phoneNumber,
       country: this.state.country,
-      desc: this.state.desc,
-      errors: {},
+      description: this.state.description,
+      organization: this.state.organization
     };
     console.log(newUser);
-    this.props.registerUser(newUser, this.props.history);
+    this.props.registerCandidate(newUser);
+    this.clearState();
   };
   render() {
     const { errors } = this.state;
-    const {classes} = this.props;
+    const { classes } = this.props;
 
     return (
       <div className="container">
@@ -90,7 +112,7 @@ class Register extends Component {
               <i className="material-icons left">keyboard_backspace</i> Back to
               home
             </Link>
-            <div className="col s12" style={{ paddingLeft: "11.250px" }}>
+            <div className="col s12" style={{ paddingLeft: '11.250px' }}>
               <h4>
                 <b>Join Analytics</b>
               </h4>
@@ -106,8 +128,8 @@ class Register extends Component {
                   error={errors.firstName}
                   id="firstName"
                   type="text"
-                  className={classnames("", {
-                    invalid: errors.firstName,
+                  className={classnames('', {
+                    invalid: errors.firstName
                   })}
                 />
                 <label htmlFor="firstName">First Name</label>
@@ -120,8 +142,8 @@ class Register extends Component {
                   error={errors.lastName}
                   id="lastName"
                   type="text"
-                  className={classnames("", {
-                    invalid: errors.lastName,
+                  className={classnames('', {
+                    invalid: errors.lastName
                   })}
                 />
                 <label htmlFor="lastName">Last Name</label>
@@ -135,8 +157,8 @@ class Register extends Component {
                   error={errors.jobTitle}
                   id="jobTitle"
                   type="text"
-                  className={classnames("", {
-                    invalid: errors.jobTitle,
+                  className={classnames('', {
+                    invalid: errors.jobTitle
                   })}
                 />
                 <label htmlFor="jobTitle">Job Title</label>
@@ -146,16 +168,16 @@ class Register extends Component {
               <div className="input-field col s12">
                 <input
                   onChange={this.onChange}
-                  value={this.state.company}
-                  error={errors.company}
-                  id="company"
+                  value={this.state.organization}
+                  error={errors.organization}
+                  id="organization"
                   type="text"
-                  className={classnames("", {
-                    invalid: errors.company,
+                  className={classnames('', {
+                    invalid: errors.organization
                   })}
                 />
-                <label htmlFor="jobTitle">company</label>
-                <span className="red-text">{errors.company}</span>
+                <label htmlFor="organization">Organization</label>
+                <span className="red-text">{errors.organization}</span>
               </div>
 
               <div className="input-field col s12">
@@ -165,8 +187,8 @@ class Register extends Component {
                   error={errors.email}
                   id="email"
                   type="email"
-                  className={classnames("", {
-                    invalid: errors.email,
+                  className={classnames('', {
+                    invalid: errors.email
                   })}
                 />
                 <label htmlFor="email">Email</label>
@@ -180,85 +202,91 @@ class Register extends Component {
                   error={errors.phoneNumber}
                   id="phoneNumber"
                   type="tel"
-                  className={classnames("", {
-                    invalid: errors.phoneNumber,
+                  className={classnames('', {
+                    invalid: errors.phoneNumber
                   })}
                 />
-                <label htmlFor="email">Phone Number</label>
+                <label htmlFor="phoneNumber">Phone Number</label>
                 <span className="red-text">{errors.phoneNumber}</span>
               </div>
 
               <div className="input-field col s12">
-                <InputLabel
-                  style={{ color: "#AAAAAA" }}
-                >
-                  Brief Description
-                </InputLabel>
-                <CustomInput
-                  labelText="Briefly outline your interest in air quality data"
-                  formControlProps={{
-                    fullWidth: true,
-                  }}
-                  inputProps={{
-                    multiline: true,
-                    rows: 5,
-                  }}
-                  id="desc"
+                <TextField
+                  id="description"
+                  label="Description"
+                  multiline
+                  fullWidth
+                  rowsMax="5"
+                  value={this.state.description}
                   onChange={this.onChange}
-                  value={this.state.desc}
-                  error={errors.desc}
+                  className={classes.textField}
+                  margin="normal"
+                  helperText="Briefly outline your interest in air quality data"
+                  variant="outlined"
+                  error={errors.description}
                 />
               </div>
               <div className="input-field col s12">
-                <Autocomplete
-                  {...defaultProps}
-                  clearOnEscape
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      id="country"
-                      label="Country"
-                      margin="normal"
-                      onChange={this.onChange}
-                      value={this.state.country}
-                      error={errors.country}
-                    />
-                  )}
-                />
+                <TextField
+                  id="country"
+                  select
+                  label="Country"
+                  className={classes.textField}
+                  error={errors.country}
+                  value={this.state.country}
+                  onChange={this.onChange}
+                  SelectProps={{
+                    native: true,
+                    MenuProps: {
+                      className: classes.menu
+                    }
+                  }}
+                  helperText="Please select your country"
+                  margin="normal"
+                  variant="outlined">
+                  {countries.array.map(option => (
+                    <option key={option.label} value={option.label}>
+                      {option.label}
+                    </option>
+                  ))}
+                </TextField>
               </div>
-              <div>
+              <div>            
                 <FormControlLabel
                   control={
                     <Checkbox
-                      checked={this.state.checkedB}
+                      id="isChecked"
+                      value={this.state.isChecked}
                       onChange={this.onChange}
-                      name="checkedB"
                       color="primary"
                     />
                   }
                   label="Agree to our terms and conditions?"
                 />
               </div>
-              <div className="col s12" style={{ paddingLeft: "11.250px" }}>
-                <button
+              <div className="col s12" style={{ paddingLeft: '11.250px' }}>
+                { this.state.isChecked ?
+                  <button
                   style={{
-                    width: "150px",
-                    borderRadius: "3px",
-                    letterSpacing: "1.5px",
-                    marginTop: "1rem",
+                    width: '150px',
+                    borderRadius: '3px',
+                    letterSpacing: '1.5px',
+                    marginTop: '1rem'
                   }}
                   type="submit"
-                  className="btn btn-large waves-effect waves-light hoverable blue accent-3"
-                >
+                  className="btn btn-large waves-effect waves-light hoverable blue accent-3">
                   JOIN
                 </button>
+                :
+                null
+                }
               </div>
-          { this.props.auth.newUser && 
-          <Alert severity="success">
-              <AlertTitle>Success</AlertTitle>
-               This is a success alert — <strong>check it out!</strong>
-         </Alert>
-         }
+              {this.props.auth.newUser && (
+                <Alert severity="success">
+                  <AlertTitle>Success</AlertTitle>
+                  This is a success alert — <strong>check it out!</strong>
+                </Alert>
+              )}
             </form>
           </div>
         </div>
@@ -268,17 +296,16 @@ class Register extends Component {
 }
 
 Register.propTypes = {
-  registerUser: PropTypes.func.isRequired,
+  registerCandidate: PropTypes.func.isRequired,
   auth: PropTypes.object.isRequired,
-  errors: PropTypes.object.isRequired,
+  errors: PropTypes.object.isRequired
 };
 
-//get our state from Redux and map it to Props to use inside components.
-const mapStateToProps = (state) => ({
+const mapStateToProps = state => ({
   auth: state.auth,
-  errors: state.errors,
+  errors: state.errors
 });
 
-export default connect(mapStateToProps, { registerUser })(
-  withRouter(withStyles(styles, {withTheme:true})(Register))
+export default connect(mapStateToProps, { registerCandidate })(
+  withRouter(withStyles(styles, { withTheme: true })(Register))
 );

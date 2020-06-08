@@ -37,6 +37,7 @@
         "@material-ui/lab": "^4.0.0-alpha.50",
         "@material-ui/pickers": "^3.2.10",
         "@material-ui/styles": "^4.9.10",
+        "@mui-treasury/styles": "^1.7.0",
         "axios": "^0.19.2",
         "chart.js": "^2.8.0",
         "classnames": "^2.2.6",
