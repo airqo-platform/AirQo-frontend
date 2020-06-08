@@ -1,5 +1,5 @@
 /* eslint-disable */
-import React from 'react';
+import React, { useState } from 'react';
 import clsx from 'clsx';
 import { makeStyles } from '@material-ui/core/styles';
 import InputLabel from '@material-ui/core/InputLabel';
@@ -24,7 +24,6 @@ import {
     Button,
     TextField
   } from '@material-ui/core';
-  import { connect } from "react-redux";
 
 
 const useStyles = makeStyles((theme) => ({
@@ -51,14 +50,19 @@ const useStyles = makeStyles((theme) => ({
 
 }));
 
-export default function SimpleSelect(props) {
-    const { className, ...rest } = props;
+const  SetDefaults = (props) => {
+    const { 
+      className, 
+      mappeduserState,  
+      mappedAuth, 
+      mappedUpdateAuthenticatedUser,
+      ...rest } = props;
     const classes = useStyles();
-    const [age, setAge] = React.useState('');
+    // const [age, setAge] = React.useState('');
 
-    const handleChange = (event) => {
-        setAge(event.target.value);
-    };
+    // const handleChange = (event) => {
+    //     setAge(event.target.value);
+    // };
     const [selectedDate, setSelectedDate] = React.useState(new Date('2014-08-18T21:11:54'));
 
     const handleStartDateChange = (date) => {
@@ -68,6 +72,42 @@ export default function SimpleSelect(props) {
     const handleEndDateChange = (date) => {
         setSelectedDate(date);
     };
+
+    const initialState = {
+      firstName: '',
+      lastName: '',
+      email: '',
+      phone: '',
+      state: '',
+      country: ''
+    }
+
+    const [values, setValues] = useState(initialState);
+
+    const handleChange = event => {
+      setValues({
+        ...values,
+        [event.target.name]: event.target.value
+      });
+    };    
+
+    const clearState = ()=>{
+      setValues({...initialState});
+    };
+  
+    const onSubmit = (e) => {
+      e.preventDefault();
+      const userData = {
+        password: values.firstName,
+        firstName: values.lastName,
+        email: values.email,
+        phoneNumber: values.phoneNumber
+      };
+      console.log(userData);
+      props.mappedUpdateAuthenticatedUser(user._id, userData);
+      clearState();
+    };
+
 
     return (
        <div>
@@ -80,49 +120,27 @@ className={clsx(classes.root, className)}
   noValidate
 >
   <CardHeader
-    subheader="The default values to be used in the graphs"
+    subheader="Please enter your preferences for the Landing Page"
     title="User Defaults"
   />
   <Divider />
   <CardContent>
     <Grid
-      container
-      spacing={3}
+      container={true}
+      spacing={6}
     >
+
       <Grid
         item
-        md={6}
-        xs={12}
-      >
-         <FormControl variant="outlined" className={classes.formControl}>
-                <InputLabel id="demo-simple-select-outlined-label">Location</InputLabel>
-                <Select
-                    labelId="demo-simple-select-outlined-label"
-                    id="demo-simple-select-outlined"
-                    value={age}
-                    onChange={handleChange}
-                    label="Location"
-                >
-                    <MenuItem value="">
-                        <em>None</em>
-                    </MenuItem>
-                    <MenuItem value={10}>Ntinda</MenuItem>
-                    <MenuItem value={20}>Kamwokya</MenuItem>
-                    <MenuItem value={30}>Kiwatule</MenuItem>
-                </Select>
-            </FormControl>
-      </Grid>
-      <Grid
-        item
-        md={6}
-        xs={12}
+        md='auto'
+        xs='auto'
       >
       <FormControl variant="outlined" className={classes.formControl}>
                 <InputLabel id="demo-simple-select-outlined-label">Pollutant</InputLabel>
                 <Select
                     labelId="demo-simple-select-outlined-label"
                     id="demo-simple-select-outlined"
-                    value={age}
+                    value={values.pollutant}
                     onChange={handleChange}
                     label="Pollutant"
                 >
@@ -137,16 +155,17 @@ className={clsx(classes.root, className)}
       </Grid>
       <Grid
         item
-        md={6}
-        xs={12}
+        md='auto'
+        xs='auto'
       >
-      <FormControl variant="filled" className={classes.formControl}>
+      <FormControl variant="outlined" className={classes.formControl}>
                 <InputLabel id="demo-simple-select-filled-label">Frequency</InputLabel>
                 <Select
                     labelId="demo-simple-select-filled-label"
                     id="demo-simple-select-filled"
-                    value={age}
+                    value={values.frequency}
                     onChange={handleChange}
+                    label="Frequency"
                 >
                     <MenuItem value="">
                         <em>None</em>
@@ -159,8 +178,8 @@ className={clsx(classes.root, className)}
       </Grid>
       <Grid
         item
-        md={6}
-        xs={12}
+        md='auto'
+        xs='auto'
       >
       <FormControl variant="filled" className={classes.formControl}>
                 <TextField
@@ -175,13 +194,14 @@ className={clsx(classes.root, className)}
                     inputProps={{
                         step: 300, // 5 min
                     }}
+                    InputProps={{ disableUnderline: true }}
                 />
             </FormControl>
       </Grid>
       <Grid
         item
-        md={6}
-        xs={12}
+        md='auto'
+        xs='auto'
       >
         <FormControl variant="filled" className={classes.formControl}>
                 <TextField
@@ -196,13 +216,14 @@ className={clsx(classes.root, className)}
                     inputProps={{
                         step: 300, // 5 min
                     }}
+                    InputProps={{ disableUnderline: true }}
                 />
             </FormControl>
       </Grid>
       <Grid
         item
-        md={6}
-        xs={12}
+        md='auto'
+        xs='auto'
       >
         <MuiPickersUtilsProvider utils={DateFnsUtils}>
                 <Grid container justify="space-around">
@@ -216,6 +237,7 @@ className={clsx(classes.root, className)}
                         KeyboardButtonProps={{
                             'aria-label': 'change date',
                         }}
+                        InputProps={{ disableUnderline: true }}
                     />
                     <KeyboardDatePicker
                         margin="normal"
@@ -227,6 +249,7 @@ className={clsx(classes.root, className)}
                         KeyboardButtonProps={{
                             'aria-label': 'change date',
                         }}
+                        InputProps={{ disableUnderline: true }}
                     />
                 </Grid>
                 </MuiPickersUtilsProvider>
@@ -238,7 +261,8 @@ className={clsx(classes.root, className)}
     <Button
       color="primary"
       variant="contained"
-    >
+      onClick={onSubmit}
+      >
       Save Defaults
     </Button>
   </CardActions>
@@ -248,3 +272,4 @@ className={clsx(classes.root, className)}
     );
 }
 
+export default SetDefaults;

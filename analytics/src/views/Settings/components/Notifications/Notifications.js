@@ -24,7 +24,10 @@ const useStyles = makeStyles(() => ({
 }));
 
 const Notifications = props => {
-  const { className, ...rest } = props;
+  const { className, mappedAuth, mappeduserState, ...rest } = props;
+
+  const {user} = mappedAuth;
+const userState = mappeduserState;
 
   const classes = useStyles();
 
@@ -52,12 +55,6 @@ const Notifications = props => {
               sm={6}
               xs={12}
             >
-              <Typography
-                gutterBottom
-                variant="h6"
-              >
-                Notifications
-              </Typography>
               <FormControlLabel
                 control={
                   <Checkbox
@@ -90,42 +87,6 @@ const Notifications = props => {
                 label="Phone calls"
               />
             </Grid>
-            <Grid
-              className={classes.item}
-              item
-              md={4}
-              sm={6}
-              xs={12}
-            >
-              <Typography
-                gutterBottom
-                variant="h6"
-              >
-                Messages
-              </Typography>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    color="primary"
-                    defaultChecked //
-                  />
-                }
-                label="Email"
-              />
-              <FormControlLabel
-                control={<Checkbox color="primary" />}
-                label="Push Notifications"
-              />
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    color="primary"
-                    defaultChecked //
-                  />
-                }
-                label="Phone calls"
-              />
-            </Grid>
           </Grid>
         </CardContent>
         <Divider />
@@ -143,7 +104,9 @@ const Notifications = props => {
 };
 
 Notifications.propTypes = {
-  className: PropTypes.string
+  className: PropTypes.string,
+  mappedAuth: PropTypes.object.isRequired,
+  mappeduserState: PropTypes.object.isRequired
 };
 
 export default Notifications;

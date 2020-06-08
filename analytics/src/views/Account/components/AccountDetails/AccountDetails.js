@@ -12,33 +12,51 @@ import {
   Button,
   TextField
 } from '@material-ui/core';
-import { connect } from "react-redux";
-import { withRouter } from 'react-router-dom';
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles((theme) => ({
+  container: {
+    display: 'flex',
+    flexWrap: 'wrap',
+  },
+  textField: {
+    marginLeft: theme.spacing.unit,
+    marginRight: theme.spacing.unit,
+  },
+  dense: {
+    marginTop: 16,
+  },
+  menu: {
+    width: 200,
+  },
   root: {}
 }));
 
+
 const AccountDetails = props => {
-  const { className, ...rest } = props;
+  const { className, mappeduserState, mappedAuth, ...rest } = props;
+
+  const { user } = mappedAuth;
+  console.log("the user is here: ")
+  console.dir(user);
 
   const classes = useStyles();
 
-  const [values, setValues] = useState({
-    firstName: 'Shen',
-    lastName: 'Zhi',
-    email: 'shen.zhi@devias.io',
-    phone: '',
-    state: 'Alabama',
-    country: 'USA'
-  });
-
-  const handleChange = event => {
-    setValues({
-      ...values,
-      [event.target.name]: event.target.value
-    });
+  const initialState = {
+    firstName: user.firstName,
+    lastName: user.lastName,
+    email: user.email,
+    phoneNumber: '',
   };
+
+  const [form, setState] = useState(initialState);
+
+  const handleChange = (e) => {
+    setState({
+      ...form,
+      [e.target.id]:e.target.value
+    })
+    
+      };
 
   const states = [
     {
@@ -55,97 +73,80 @@ const AccountDetails = props => {
     }
   ];
 
-  const { user } = props.auth;
+  const clearState = ()=>{
+    setState({...initialState});
+  };
+
+  const onSubmit = (e) =>{
+    e.preventDefault();
+    const userData = {
+      firstName: form.firstName,
+      lastName: form.lastName,
+      email: form.email,
+      phoneNumber: form.phoneNumber,
+    };
+    console.log(userData);
+    props.mappedUpdateAuthenticatedUser(userData);
+ clearState();
+  }
 
   return (
-    <Card
-      {...rest}
-      className={clsx(classes.root, className)}
-    >
-      <form
-        autoComplete="off"
-        noValidate
-      >
-        <CardHeader
-          subheader="The information can be edited"
-          title="Profile"
-        />
+    <Card {...rest} className={clsx(classes.root, className)}>
+      <form autoComplete="off" noValidate>
+        <CardHeader subheader="The information can be edited" title="Profile" />
         <Divider />
         <CardContent>
-          <Grid
-            container
-            spacing={3}
-          >
-            <Grid
-              item
-              md={6}
-              xs={12}
-            >
+          <Grid container spacing={3}>
+            <Grid item md={6} xs={12}>
               <TextField
                 fullWidth
                 helperText="Please specify the first name"
                 label="First name"
                 margin="dense"
-                name="firstName"
+                id="firstName"
                 onChange={handleChange}
                 required
-                value=""
-                placeholder={user.firstName}
-                variant="outlined"
+                value={form.firstName}
+                InputProps={{ disableUnderline: true }}
               />
             </Grid>
-            <Grid
-              item
-              md={6}
-              xs={12}
-            >
+            <Grid item md={6} xs={12}>
               <TextField
                 fullWidth
                 label="Last name"
                 margin="dense"
-                name="lastName"
+                id="lastName"
                 onChange={handleChange}
                 required
-                value=""
-                placeholder={user.lastName}
-                variant="outlined"
+                value={form.lastName}
+                InputProps={{ disableUnderline: true }}
               />
             </Grid>
-            <Grid
-              item
-              md={6}
-              xs={12}
-            >
+            <Grid item md={6} xs={12}>
               <TextField
                 fullWidth
                 label="Email Address"
                 margin="dense"
-                name="email"
+                id="email"
                 onChange={handleChange}
                 required
-                value=""
-                placeholder={user.email}
-                variant="outlined"
+                value={form.email}
+                InputProps={{ disableUnderline: true }}
+             
               />
             </Grid>
-            <Grid
-              item
-              md={6}
-              xs={12}
-            >
+            <Grid item md={6} xs={12}>
               <TextField
                 fullWidth
                 label="Phone Number"
                 margin="dense"
-                name="phone"
+                id="phoneNumber"
                 onChange={handleChange}
-                type="number"
-                value=""
-                placeholder={user.phoneNumber}
-                variant="outlined"
+                value={form.phoneNumber}
+                InputProps={{ disableUnderline: true }}
               />
             </Grid>
-            <Grid
+            {/* <Grid
               item
               md={6}
               xs={12}
@@ -185,19 +186,16 @@ const AccountDetails = props => {
                 name="country"
                 onChange={handleChange}
                 required
-                value=""
-                placeholder="Uganda"
+                value="Uganda"
+                // defaultValue="Uganda"
                 variant="outlined"
               />
-            </Grid>
+            </Grid> */}
           </Grid>
         </CardContent>
         <Divider />
         <CardActions>
-          <Button
-            color="primary"
-            variant="contained"
-          >
+          <Button color="primary" variant="contained" onClick={onSubmit}>
             Save details
           </Button>
         </CardActions>
@@ -208,11 +206,7 @@ const AccountDetails = props => {
 
 AccountDetails.propTypes = {
   className: PropTypes.string,
-  auth: PropTypes.object.isRequired,
+  mappedAuth: PropTypes.object.isRequired
 };
 
-const mapStateToProps = (state) => ({
-  auth: state.auth,
-});
-
-export default connect(mapStateToProps, {})(withRouter(AccountDetails));
+export default AccountDetails;
