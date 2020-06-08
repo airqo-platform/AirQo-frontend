@@ -9,7 +9,7 @@ import { useEffect, useState } from 'react';
 import FullscreenControl from 'react-leaflet-fullscreen';
 import 'react-leaflet-fullscreen/dist/styles.css';
 import L from 'leaflet';
-// import Legend from "./Legend";
+import Filter from './Filter';
 
 const useStyles = makeStyles(theme => ({
   root: {
