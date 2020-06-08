@@ -225,5 +225,130 @@ select{
 	color: #000;
   }
 
+  .filter {
+	z-index: 2000;
+	background-color: #e7e7e7;
+	border-bottom: 12px solid var(--colorSandyBrown);
+	position: absolute;
+	top: 140px;
+	left: 30px;
+	min-width: 12%;
+	box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+	padding: 10px 15px;
+	font-family: "Open Sans", sans-serif;
+	font-weight: 300;
+	color: #808080;
+  }
+  
+  .filter__h2 {
+	font-family: "Raleway", sans-serif;
+	font-size: 22px;
+	display: inline-block;
+	margin-top: 5px;
+	margin-bottom: 0px;
+	cursor: pointer;
+  }
+  
+  .filter__h3 {
+	font-family: "Open Sans", sans-serif;
+	font-weight: 300;
+	border-bottom: 1px solid var(--colorSandyBrown);
+	margin-bottom: 10px;
+  }
+  
+  .filter__p {
+	font-family: "Open Sans", sans-serif;
+	font-size: 12px;
+  }
+  
+  i {
+	border: solid var(--colorSandyBrown);
+	border-width: 0 4px 4px 0;
+	display: inline-block;
+	padding: 3px;
+	margin-left: 10px;
+	margin-bottom: 4px;
+	cursor: pointer;
+  }
+  
+  .down {
+	transform: rotate(45deg);
+	-webkit-transform: rotate(45deg);
+  }
+  
+  input {
+	margin-right: 10px;
+  }
+  
+  label {
+	display: block;
+	font-size: 14px;
+  }
+  
+  .loadingScreen {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	background-color: var(--colorPeachPuff);
+	z-index: 10;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+  }
+  
+  .loadingScreen__h3 {
+	font-family: "Raleway", sans-seri;
+	font-size: 42px;
+	text-align: center;
+	color: var(--colorSandyBrown);
+  }
+  
+  .spinner {
+	text-align: center;
+  }
+  
+  .popup__span {
+	font-weight: 500;
+	color: var(--colorJazzberry);
+  }
+  
+  .popup__a:hover {
+	color: var(--colorJazzberry);
+	opacity: 1;
+  }
+  
+  .leaflet-container a {
+	color: var(--colorSpaceCadet);
+	opacity: 0.8;
+	transition: 0.3s;
+  }
+  
+  .leaflet-control {
+	z-index: 1;
+	left: 30px;
+	top: 70vh;
+  }
+  
+  .leaflet-control-zoom a {
+	padding: 2px;
+  }
+  
+  @media only screen and (max-width: 640px) {
+	.leaflet-control {
+	  left: 30px;
+	  top: 60vh;
+	}
+  
+	.filter {
+	  top: 160px;
+	}
+  
+	.filter__h2 {
+	  font-size: 20px;
+	}
+  }
+
 
   
