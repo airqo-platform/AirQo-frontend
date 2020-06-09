@@ -284,6 +284,7 @@ const getLocation = ref => {
     e.preventDefault();
     setIsLoading(true);
 
+    
     let filter ={ 
       locationReference: locationReference,
       //hostName:  hostName,
@@ -299,6 +300,21 @@ const getLocation = ref => {
       localActivities: localActivities,	
       power:  power,
     }
+/*
+    let filter ={ 
+      locationReference: locationReference,
+      hostName:  hostName,
+	    //mobility: mobility.value,
+      latitude: Number(latitude),
+      longitude:  Number(longitude),
+      internet:  internet,
+      height: Number(height),      
+      roadIntensity: roadIntensity, 
+      installationType:	installationType,  
+      roadStatus: roadStatus,
+      localActivities: localActivities,	
+      power:  power,
+    }*/
     console.log(JSON.stringify(filter));
     
     axios.post(

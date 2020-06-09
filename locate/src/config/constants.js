@@ -24,7 +24,8 @@ const constants = {
   DELETE_LOCATE_MAP:
     "https://locate-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/map/deletelocatemap/",
   GET_DEVICE_STATUS_SUMMARY:
-    "http://localhost:6000/api/v1/device/monitor/status",
+    //"http://localhost:6000/api/v1/device/monitor/status",
+    "https://device-monitoring-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/device/monitor/status"
 };
 
 export default constants;

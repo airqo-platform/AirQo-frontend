@@ -53,8 +53,15 @@ export default function DeviceManagement() {
   const classes = useStyles();
 
   useEffect(() => {
-    axios.get(constants.GET_DEVICE_STATUS_SUMMARY).then(({ data }) => {
-      //console.log(data[0].loc_power_suppy);
+    axios.get(
+      constants.GET_DEVICE_STATUS_SUMMARY
+      )
+      .then(
+        
+        ({ data }) => {
+      
+      //console.log(data);
+      console.log(data[0].loc_power_suppy);
       let no_devices = 0,
         due_maintenance = 0,
         no_solar = 0,
@@ -68,7 +75,8 @@ export default function DeviceManagement() {
         if (item.loc_power_suppy == "Mains") {
           no_main = no_main + 1;
         }
-      });
+      }
+      );
       setStatusSummary(data);
       setNoOfDevices(no_devices);
       setSolarPowered(no_solar);
