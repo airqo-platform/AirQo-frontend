@@ -84,7 +84,7 @@ const AccountDetails = props => {
       email: form.email,
       phoneNumber: form.phoneNumber
     };
-    console.log("sending this guy here:")
+    console.log('sending this guy here:');
     console.log(userData);
     props.mappedUpdateAuthenticatedUser(userData);
     clearState();
@@ -107,7 +107,7 @@ const AccountDetails = props => {
                 onChange={handleChange}
                 required
                 value={form.firstName}
-                InputProps={{ disableUnderline: true }}
+                variant="outlined"
               />
             </Grid>
             <Grid item md={6} xs={12}>
@@ -119,7 +119,7 @@ const AccountDetails = props => {
                 onChange={handleChange}
                 required
                 value={form.lastName}
-                InputProps={{ disableUnderline: true }}
+                variant="outlined"
               />
             </Grid>
             <Grid item md={6} xs={12}>
@@ -131,7 +131,7 @@ const AccountDetails = props => {
                 onChange={handleChange}
                 required
                 value={form.email}
-                InputProps={{ disableUnderline: true }}
+                variant="outlined"
               />
             </Grid>
             <Grid item md={6} xs={12}>
@@ -142,14 +142,18 @@ const AccountDetails = props => {
                 id="phoneNumber"
                 onChange={handleChange}
                 value={form.phoneNumber}
-                InputProps={{ disableUnderline: true }}
+                variant="outlined"
               />
             </Grid>
           </Grid>
         </CardContent>
         <Divider />
         <CardActions>
-          <Button color="primary" variant="contained" onClick={onSubmit} disabled>
+          <Button
+            color="primary"
+            variant="contained"
+            onClick={onSubmit}
+            disabled>
             Save details
           </Button>
         </CardActions>

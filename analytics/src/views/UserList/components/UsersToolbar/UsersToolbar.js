@@ -207,9 +207,9 @@ const UsersToolbar = props => {
                 type="text"
                 label="email"
                 onChange={onChange}
+                variant="outlined"
                 value={form.email}
                 fullWidth
-                InputProps={{ disableUnderline: true }}
               />
 
               <TextField
@@ -220,8 +220,8 @@ const UsersToolbar = props => {
                 type="text"
                 onChange={onChange}
                 value={form.firstName}
+                variant="outlined"
                 fullWidth
-                InputProps={{ disableUnderline: true }}
               />
               <TextField
                 margin="dense"
@@ -231,8 +231,8 @@ const UsersToolbar = props => {
                 type="text"
                 onChange={onChange}
                 value={form.lastName}
+                variant="outlined"
                 fullWidth
-                InputProps={{ disableUnderline: true }}
               />
 
               <TextField
@@ -243,8 +243,8 @@ const UsersToolbar = props => {
                 type="text"
                 onChange={onChange}
                 value={form.userName}
+                variant="outlined"
                 fullWidth
-                InputProps={{ disableUnderline: true }}
               />
               <TextField
                 margin="dense"
@@ -255,13 +255,13 @@ const UsersToolbar = props => {
                 type="password"
                 onChange={onChange}
                 value={form.password}
+                variant="outlined"
                 fullWidth
                 InputProps={{
                   autocomplete: 'new-password',
                   form: {
                     autocomplete: 'off'
                   },
-                  disableUnderline: true
                 }}
               />
               <TextField
@@ -271,6 +271,7 @@ const UsersToolbar = props => {
                 name="password2"
                 type="password"
                 onChange={onChange}
+                variant="outlined"
                 value={form.password2}
                 fullWidth
                 InputProps={{
@@ -278,7 +279,7 @@ const UsersToolbar = props => {
                   form: {
                     autocomplete: 'off'
                   },
-                  disableUnderline: true
+                 
                 }}
               />
               <TextField
@@ -288,6 +289,7 @@ const UsersToolbar = props => {
                 className={classes.textField}
                 value={form.privilege}
                 onChange={onChange}
+                variant="outlined"
                 SelectProps={{
                   native: true,
                   MenuProps: {

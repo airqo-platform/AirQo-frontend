@@ -21,7 +21,12 @@ import {
   Account as AccountView,
   Settings as SettingsView,
   NotFound as NotFoundView,
-  Graphs
+  Graphs,
+  Download,
+  ReportTemplate,
+  LocationList as LocationListView,
+  SignUp as SignUpView,
+  Documentation,
 } from '../views';
 
 import Landing from '../views/layouts/Landing';
@@ -78,7 +83,22 @@ const Routes = () => {
         layout={MainLayout}
         path="/settings"
       />
+
+    <PrivateRoute
+            component={Download}
+            exact
+            layout={MainLayout}
+            path="/download"
+          />
+      
       <PrivateRoute
+        component={ReportTemplate}
+        exact
+        layout={MainLayout}
+        path="/report"
+      />
+
+       <PrivateRoute
         component={ConnectedSetDefaults}
         exact
         layout={MainLayout}
@@ -90,17 +110,74 @@ const Routes = () => {
         layout={MinimalLayout}
         path="/not-found"
       />
-      <Route component={Landing} exact path="/landing" />
-      <Route exact path="/login" component={Login} />
-      <Route exact path="/forgot" component={ForgotPassword} />
 
-      <Route exact path="/register" component={Register} />
+      <PrivateRoute
+        component={Graphs}
+        exact
+        layout={MainLayout}
+        path="/location/:locationname"
+      />
 
-      <Route exact path="/reset/:token" component={ResetPassword} />
+      <PrivateRoute
+        component={LocationListView}
+        exact
+        layout={MainLayout}
+        path="/locations"
+      />
+
+      <PrivateRoute
+        component={Documentation}
+        exact
+        layout={MainLayout}
+        path="/documentation"
+      />
+
+      <Route
+        component={Landing}
+        exact
+        path="/landing"
+      />
+      <Route
+        component={Login}
+        exact
+        path="/login"
+      />
+      <Route
+        component={ForgotPassword}
+        exact
+        path="/forgot"
+      />
+      <RouteWithLayout
+        component={ResetPassword}
+        exact
+        path="/reset"
+      />
+      <Route
+        exact path="/forgot"
+        component={ForgotPassword} />
+
+<Route exact path="/register" component={Register} />
+      
+      <Route 
+        exact path="/reset" 
+        component={ResetPassword} />
+
+      <RouteWithLayout
+        component={SignUpView}
+        exact
+        layout={MinimalLayout}
+        path="/sign-up"
+      />
+      
+    
+    <Route 
+    exact path="/reset/:token" 
+    component={ResetPassword} />
 
       <RouteWithLayout exact path="/reset" component={ResetPassword} />
 
       <Redirect to="/not-found" />
+      
     </Switch>
   );
 };

@@ -68,7 +68,7 @@ const Password = props => {
           onChange={handleChange}
           type="password"
           value={values.password}
-          InputProps={{ disableUnderline: true }}
+          variant="outlined"
         />
         <TextField
           fullWidth
@@ -78,7 +78,7 @@ const Password = props => {
           style={{ marginTop: '1rem' }}
           type="password"
           value={values.password2}
-          InputProps={{ disableUnderline: true }}
+          variant="outlined"
         />
       </CardContent>
       <Divider />
@@ -97,5 +97,10 @@ Password.propTypes = {
   mappeduserState: PropTypes.object.isRequired,
   updatePassword: PropTypes.func.isRequired
 };
+
+const mapStateToProps = (state) => ({
+  auth: state.auth,
+  userState: state.userState
+});
 
 export default Password;

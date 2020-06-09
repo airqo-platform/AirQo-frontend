@@ -28,7 +28,18 @@ class ForgotPassword extends Component {
     };
   }
 
-  async componentDidMount() { }
+  async componentDidMount() {
+    var anchorElem = document.createElement('link');
+    anchorElem.setAttribute('href', 'https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css');
+    anchorElem.setAttribute('rel','stylesheet') ;
+    anchorElem.setAttribute('id','logincdn') ;
+    document.getElementsByTagName('head')[0].appendChild(anchorElem);
+  }
+
+  componentWillUnmount(){
+    let el = document.getElementById('logincdn');
+    el.remove(); 
+  }
 
   onChange = (e) => {
     this.setState({

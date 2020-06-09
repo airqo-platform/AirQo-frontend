@@ -215,7 +215,7 @@ className={clsx(classes.root, className)}
         value={form.start_date}
         onChange={onChange}
         className={classes.textField}
-        InputProps={{ disableUnderline: true }}
+        variant="outlined"
         InputLabelProps={{
           shrink: true,
         }}
@@ -227,7 +227,7 @@ className={clsx(classes.root, className)}
         type="datetime-local"
         value={form.end_date}
         onChange={onChange}
-        InputProps={{ disableUnderline: true }}
+        variant="outlined"
         className={classes.textField}
         InputLabelProps={{
           shrink: true,

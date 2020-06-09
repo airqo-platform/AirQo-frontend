@@ -1,6 +1,6 @@
 /* eslint-disable */
 import React, { Component } from 'react';
-import "./App.css";
+//import "./App.css";
 import {
     Router,
     Route,
@@ -21,7 +21,7 @@ import validate from 'validate.js';
 
 import { chartjs } from './helpers';
 import theme from './theme';
-import 'react-perfect-scrollbar/dist/css/styles.css';
+//import 'react-perfect-scrollbar/dist/css/styles.css';
 import './assets/scss/index.scss';
 import validators from './common/validators';
 import Routes from './routes/Routes';

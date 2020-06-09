@@ -4,6 +4,7 @@ import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { loginUser } from "../../../redux/Join/actions";
 import classnames from "classnames";
+//import styles from './Login.css'
 
 class Login extends Component {
   constructor() {
@@ -13,9 +14,18 @@ class Login extends Component {
       password: "",
       errors: {},
     };
+
+    
   }
 
   componentDidMount() {
+    var anchorElem = document.createElement('link');
+    anchorElem.setAttribute('href', 'https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css');
+    anchorElem.setAttribute('rel','stylesheet') ;
+    anchorElem.setAttribute('id','logincdn') ;
+
+    //document.body.appendChild(anchorElem);
+    document.getElementsByTagName('head')[0].appendChild(anchorElem);
     // If logged in and user navigates to Login page, should redirect them to dashboard
     if (this.props.auth.isAuthenticated) {
       this.props.history.push("/dashboard");
@@ -31,6 +41,11 @@ class Login extends Component {
         errors: nextProps.errors,
       });
     }
+  }
+
+  componentWillUnmount(){
+    let el = document.getElementById('logincdn');
+    el.remove(); 
   }
 
   onChange = (e) => {

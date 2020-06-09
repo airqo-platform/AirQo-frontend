@@ -9,8 +9,11 @@ import BarChartIcon from '@material-ui/icons/BarChart';
 import TuneIcon from '@material-ui/icons/Tune';
 import TimelineIcon from '@material-ui/icons/Timeline';
 import AccountBoxIcon from '@material-ui/icons/AccountBox';
+import LocationOnIcon from '@material-ui/icons/LocationOn';
+import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
 import SettingsIcon from '@material-ui/icons/Settings';
 import SupervisedUserCircleIcon from '@material-ui/icons/SupervisedUserCircle';
+import HelpOutlineIcon from '@material-ui/icons/HelpOutline';
 
 import { Profile, SidebarNav } from './components';
 
@@ -54,9 +57,27 @@ const Sidebar = props => {
       icon: <BarChartIcon />
     },
     {
-      title: 'Custom Reports',
-      href: '/reports',
-      icon: <TimelineIcon />
+      title: "Report Template",
+      href: "/report",
+      icon: <TimelineIcon />,
+    },
+
+    {
+      title: "Locations",
+      href: "/locations",
+      icon: <LocationOnIcon />,
+    },
+
+    {
+      title: 'Data Download',
+      href: '/download',
+      icon: <CloudDownloadIcon />
+    },
+
+    {
+      title: 'Documentation',
+      href: '/documentation',
+      icon: <HelpOutlineIcon />
     }
   ];
   const userManagementPages = [
