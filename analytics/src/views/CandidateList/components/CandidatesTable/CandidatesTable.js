@@ -36,7 +36,7 @@ import { Check, CheckCircleOutline } from '@material-ui/icons';
 import { connect } from 'react-redux';
 import { getInitials } from 'helpers';
 import { showEditDialog } from 'redux/Join/actions';
-import UserEditForm from 'views/components/Users/UserEditForm';
+import CandidateEditForm from 'views/components/Users/UserEditForm';
 
 const useStyles = makeStyles(theme => ({
   root: {},
@@ -65,22 +65,22 @@ function withMyHook(Component) {
   };
 }
 
-const UsersTable = props => {
+const CandidatesTable = props => {
   //the props
   //need to get the ones from the state
   /***
-   * if we are to take the prop value which was provided at UserList:
+   * if we are to take the prop value which was provided at CandidateList:
    *
    */
 
   const { className, mappeduserState, ...rest } = props;
 
-  console.log('the mapped user state for UsersTable is here:');
+  console.log('the mapped user state for CandidatesTable is here:');
   console.dir(mappeduserState);
 
-  const users = mappeduserState.users;
+  const users = mappeduserState.candidates;
   const collaborators = mappeduserState.collaborators;
-  const editUser = mappeduserState.userToEdit;
+  const editCandidate = mappeduserState.userToEdit;
   const userToDelete = mappeduserState.userToDelete;
 
   //the methods:
@@ -93,9 +93,9 @@ const UsersTable = props => {
     props.mappedhideEditDialog();
   };
 
-  const submitEditUser = e => {
+  const submitEditCandidate = e => {
     e.preventDefault();
-    const editForm = document.getElementById('EditUserForm');
+    const editForm = document.getElementById('EditCandidateForm');
     const userData = props.mappeduserState;
     if (editForm.userName.value !== '') {
       const data = new FormData();
@@ -105,7 +105,7 @@ const UsersTable = props => {
       data.append('lastName', editForm.lastName.value);
       data.append('email', editForm.email.value);
       //add the role in the near future.
-      props.mappedEditUser(data);
+      props.mappedEditCandidate(data);
     } else {
       return;
     }
@@ -119,8 +119,8 @@ const UsersTable = props => {
     props.mappedHideDeleteDialog();
   };
 
-  const cofirmDeleteUser = () => {
-    props.mappedConfirmDeleteUser(mappeduserState.userToDelete);
+  const cofirmDeleteCandidate = () => {
+    props.mappedConfirmDeleteCandidate(mappeduserState.userToDelete);
   };
 
   const showConfirmDialog = userToConfirm => {
@@ -131,45 +131,52 @@ const UsersTable = props => {
     props.mappedhideConfirmDialog();
   };
 
-  const approveConfirmUser = () => {
-    props.mappedApproveConfirmUser(mappeduserState.userToConfirm);
+  const approveConfirmCandidate = () => {
+    props.mappedApproveConfirmCandidate(mappeduserState.userToConfirm);
   };
 
   const classes = useStyles();
-  const [selectedUsers, setSelectedUsers] = useState([]);
+  const [selectedCandidates, setSelectedCandidates] = useState([]);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [page, setPage] = useState(0);
 
   const handleSelectAll = event => {
-    let selectedUsers;
+    let selectedCandidates;
 
     if (event.target.checked) {
-      selectedUsers = users.map(user => user._id);
+      selectedCandidates = users.map(user => user._id);
     } else {
-      selectedUsers = [];
+      selectedCandidates = [];
     }
 
-    setSelectedUsers(selectedUsers);
+    setSelectedCandidates(selectedCandidates);
   };
 
   const handleSelectOne = (event, id) => {
-    const selectedIndex = selectedUsers.indexOf(id);
-    let newSelectedUsers = [];
+    const selectedIndex = selectedCandidates.indexOf(id);
+    let newSelectedCandidates = [];
 
     if (selectedIndex === -1) {
-      newSelectedUsers = newSelectedUsers.concat(selectedUsers, id);
+      newSelectedCandidates = newSelectedCandidates.concat(
+        selectedCandidates,
+        id
+      );
     } else if (selectedIndex === 0) {
-      newSelectedUsers = newSelectedUsers.concat(selectedUsers.slice(1));
-    } else if (selectedIndex === selectedUsers.length - 1) {
-      newSelectedUsers = newSelectedUsers.concat(selectedUsers.slice(0, -1));
+      newSelectedCandidates = newSelectedCandidates.concat(
+        selectedCandidates.slice(1)
+      );
+    } else if (selectedIndex === selectedCandidates.length - 1) {
+      newSelectedCandidates = newSelectedCandidates.concat(
+        selectedCandidates.slice(0, -1)
+      );
     } else if (selectedIndex > 0) {
-      newSelectedUsers = newSelectedUsers.concat(
-        selectedUsers.slice(0, selectedIndex),
-        selectedUsers.slice(selectedIndex + 1)
+      newSelectedCandidates = newSelectedCandidates.concat(
+        selectedCandidates.slice(0, selectedIndex),
+        selectedCandidates.slice(selectedIndex + 1)
       );
     }
 
-    setSelectedUsers(newSelectedUsers);
+    setSelectedCandidates(newSelectedCandidates);
   };
 
   const handlePageChange = (event, page) => {
@@ -182,7 +189,7 @@ const UsersTable = props => {
   //
 
   useEffect(() => {
-    props.fetchUsers();
+    props.fetchCandidates();
   }, []);
 
   return (
@@ -190,12 +197,12 @@ const UsersTable = props => {
       {/*************************** list all the users **********************************************/}
       {!users && props.mappeduserState.isFetching && <p>Loading users...</p>}
       {users.length <= 0 && !props.mappeduserState.isFetching && (
-        <p>No Users Available. And A User to List here</p>
+        <p>No Candidates Available. And A Candidate to List here</p>
       )}
 
       {/* for the users */}
       {/* check if this is an super admin or an admin */}
-      {/* if super admin, use User Table, if just admin, use Collaborator Table */}
+      {/* if super admin, use Candidate Table, if just admin, use Collaborator Table */}
       {/* To use the different tables, it will just have to be different APIs */}
 
       <CardContent className={classes.content}>
@@ -206,21 +213,24 @@ const UsersTable = props => {
                 <TableRow>
                   <TableCell padding="checkbox">
                     <Checkbox
-                      checked={selectedUsers.length === users.length}
+                      checked={selectedCandidates.length === users.length}
                       color="primary"
                       indeterminate={
-                        selectedUsers.length > 0 &&
-                        selectedUsers.length < users.length
+                        selectedCandidates.length > 0 &&
+                        selectedCandidates.length < users.length
                       }
                       onChange={handleSelectAll}
                     />
                   </TableCell>
                   <TableCell>Full Name</TableCell>
-                  <TableCell>email</TableCell>
-                  <TableCell>Username</TableCell>
-                  <TableCell>Role</TableCell>
+                  <TableCell>Email</TableCell>
+                  <TableCell>Description</TableCell>
+                  <TableCell>Organization</TableCell>
+                  <TableCell>Country</TableCell>
+                  <TableCell>Job Title</TableCell>
+                  <TableCell>Phone Number</TableCell>
                   <TableCell>Action</TableCell>
-                  
+           
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -230,10 +240,12 @@ const UsersTable = props => {
                     className={classes.tableRow}
                     hover
                     key={user._id}
-                    selected={selectedUsers.indexOf(user.firstName) !== -1}>
+                    selected={
+                      selectedCandidates.indexOf(user.firstName) !== -1
+                    }>
                     <TableCell padding="checkbox">
                       <Checkbox
-                        checked={selectedUsers.indexOf(user._id) !== -1}
+                        checked={selectedCandidates.indexOf(user._id) !== -1}
                         color="primary"
                         onChange={event => handleSelectOne(event, user._id)}
                         value="true"
@@ -256,22 +268,13 @@ const UsersTable = props => {
                     {/* <TableCell>
                       {moment(user.createdAt).format('DD/MM/YYYY')}
                     </TableCell> */}
-                    <TableCell>{user.userName}</TableCell>
-                    <TableCell>{user.privilege}</TableCell>
+                    <TableCell>{user.description}</TableCell>
+                    <TableCell>{user.organization}</TableCell>
+                    <TableCell>{user.country}</TableCell>
+                    <TableCell>{user.jobTitle}</TableCell>
+                    <TableCell>{user.phoneNumber}</TableCell>
                     <TableCell>
-                      <Button
-                        color="primary"
-                        onClick={() => showEditDialog(user)}>
-                        Update
-                      </Button>{' '}
-                      |
-                      <Button onClick={() => showDeleteDialog(user)}>
-                        Delete
-                      </Button>{' '}
-                      {/* |
-                      <Button onClick={() => showConfirmDialog(user)}>
-                        Confirm
-                      </Button> */}
+                      <Button color="primary">Confirm</Button>{' '}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -303,29 +306,34 @@ const UsersTable = props => {
         <DialogContent>
           <DialogContentText>Edit the user's details</DialogContentText>
 
-          {editUser && (
-            <UserEditForm userData={editUser} editUser={submitEditUser} />
+          {editCandidate && (
+            <CandidateEditForm
+              userData={editCandidate}
+              editCandidate={submitEditCandidate}
+            />
           )}
 
-          {editUser && mappeduserState.isFetching && (
+          {editCandidate && mappeduserState.isFetching && (
             <Alert icon={<Check fontSize="inherit" />} severity="success">
               Updating....
             </Alert>
           )}
 
-          {editUser && !mappeduserState.isFetching && mappeduserState.error && (
-            <Alert severity="error">
-              <AlertTitle>Failed</AlertTitle>
-              <strong> {mappeduserState.error} </strong>
-            </Alert>
-          )}
+          {editCandidate &&
+            !mappeduserState.isFetching &&
+            mappeduserState.error && (
+              <Alert severity="error">
+                <AlertTitle>Failed</AlertTitle>
+                <strong> {mappeduserState.error} </strong>
+              </Alert>
+            )}
 
-          {editUser &&
+          {editCandidate &&
             !mappeduserState.isFetching &&
             mappeduserState.successMsg && (
               <Alert severity="success">
                 <AlertTitle>Success</AlertTitle>
-                <strong>{editUser.firstName}</strong>{' '}
+                <strong>{editCandidate.firstName}</strong>{' '}
                 {mappeduserState.successMsg}
               </Alert>
             )}
@@ -344,7 +352,7 @@ const UsersTable = props => {
         onClose={hideDeleteDialog}
         aria-labelledby="form-dialog-title">
         <DialogContent>
-          <DialogContentText>Delete User</DialogContentText>
+          <DialogContentText>Delete Candidate</DialogContentText>
 
           {props.mappeduserState.userToDelete &&
             !userToDelete.error &&
@@ -377,14 +385,14 @@ const UsersTable = props => {
             !mappeduserState.isFetching && (
               <Alert severity="success">
                 <AlertTitle>Success</AlertTitle>
-                User <strong> {mappeduserState.successMsg}</strong>
+                Candidate <strong> {mappeduserState.successMsg}</strong>
               </Alert>
             )}
         </DialogContent>
         <DialogActions>
           {!mappeduserState.successMsg && !mappeduserState.isFetching && (
             <div>
-              <Button onClick={cofirmDeleteUser} color="primary">
+              <Button onClick={cofirmDeleteCandidate} color="primary">
                 Yes
               </Button>
               <Button onClick={hideDeleteDialog} color="primary">
@@ -401,11 +409,10 @@ const UsersTable = props => {
   );
 };
 
-UsersTable.propTypes = {
+CandidatesTable.propTypes = {
   className: PropTypes.string,
-  users: PropTypes.array.isRequired,
-  auth: PropTypes.object.isRequired,
-  fetchUsers: PropTypes.func.isRequired
+  candidates: PropTypes.array.isRequired,
+  fetchCandidates: PropTypes.func.isRequired
 };
 
-export default UsersTable;
+export default CandidatesTable;
