@@ -1,7 +1,11 @@
-import React, { useState } from 'react';
+/* eslint-disable */
+import React, { useState, useEffect } from 'react';
 import { makeStyles } from '@material-ui/styles';
+import PropTypes from 'prop-types';
+import { connect } from "react-redux";
+import {connectedUsersTable as UsersTable, connectedUsersToolbar as UsersToolbar} from '../components/Users/containers/Users';
 
-import { UsersToolbar, UsersTable } from './components';
+
 import mockData from './data';
 
 const useStyles = makeStyles(theme => ({
@@ -13,10 +17,16 @@ const useStyles = makeStyles(theme => ({
   }
 }));
 
-const UserList = () => {
+
+const UserList = (props) => {
   const classes = useStyles();
 
-  const [users] = useState(mockData);
+  const users = props.mappeduserState.users;
+
+  useEffect(()=>{
+  props.fetchUsers();
+
+  },[]);
 
   return (
     <div className={classes.root}>
@@ -27,5 +37,13 @@ const UserList = () => {
     </div>
   );
 };
+
+UserList.propTypes = {
+  auth: PropTypes.object.isRequired,
+  errors: PropTypes.object.isRequired,
+  userState: PropTypes.object.isRequired
+};
+
+
 
 export default UserList;

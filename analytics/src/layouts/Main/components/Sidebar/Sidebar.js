@@ -9,71 +9,98 @@ import BarChartIcon from '@material-ui/icons/BarChart';
 import TimelineIcon from '@material-ui/icons/Timeline';
 import AccountBoxIcon from '@material-ui/icons/AccountBox';
 import SettingsIcon from '@material-ui/icons/Settings';
+import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
+import LocationOnIcon from '@material-ui/icons/LocationOn';
+import HelpOutlineIcon from '@material-ui/icons/HelpOutline';
+import TuneIcon from '@material-ui/icons/Tune';
 
-import { Profile, SidebarNav} from './components';
+import { Profile, SidebarNav } from "./components";
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   drawer: {
     width: 240,
-    [theme.breakpoints.up('lg')]: {
+    [theme.breakpoints.up("lg")]: {
       marginTop: 64,
-      height: 'calc(100% - 64px)'
-    }
+      height: "calc(100% - 64px)",
+    },
   },
   root: {
     backgroundColor: theme.palette.white,
-    display: 'flex',
-    flexDirection: 'column',
-    height: '100%',
-    padding: theme.spacing(2)
+    display: "flex",
+    flexDirection: "column",
+    height: "100%",
+    padding: theme.spacing(2),
   },
   divider: {
-    margin: theme.spacing(2, 0)
+    margin: theme.spacing(2, 0),
   },
   nav: {
-    marginBottom: theme.spacing(2)
-  }
+    marginBottom: theme.spacing(2),
+  },
 }));
 
-const Sidebar = props => {
+const Sidebar = (props) => {
   const { open, variant, onClose, className, ...rest } = props;
 
   const classes = useStyles();
 
   const pages = [
     {
-      title: 'Dashboard',
-      href: '/dashboard',
-      icon: <DashboardIcon />
+      title: "Dashboard",
+      href: "/dashboard",
+      icon: <DashboardIcon />,
     },
     {
-      title: 'Graphs',
-      href: '/graphs',
-      icon: <BarChartIcon />
+      title: "Graphs",
+      href: "/graphs",
+      icon: <BarChartIcon />,
     },
     {
-      title: 'Custom Reports',
-      href: '/reports',
-      icon: <TimelineIcon />
+      title: "Report Template",
+      href: "/report",
+      icon: <TimelineIcon />,
+    },
+
+    {
+      title: "Locations",
+      href: "/locations",
+      icon: <LocationOnIcon />,
+    },
+
+    {
+      title: 'Data Download',
+      href: '/download',
+      icon: <CloudDownloadIcon />
+    },
+
+    {
+      title: 'Documentation',
+      href: '/documentation',
+      icon: <HelpOutlineIcon />
     }
   ];
   const userManagementPages = [
     {
-      title: 'Users',
-      href: '/admin/users',
-      icon: <PeopleIcon />
+      title: "Users",
+      href: "/admin/users",
+      icon: <PeopleIcon />,
     },
     {
-      title: 'Account',
-      href: '/account',
-      icon: <AccountBoxIcon />
+      title: "Account",
+      href: "/account",
+      icon: <AccountBoxIcon />,
     },
     {
-      title: 'Settings',
-      href: '/settings',
-      icon: <SettingsIcon />
-    }
-  ]
+      title: 'Defaults',
+      href: '/defaults',
+      icon: <TuneIcon />
+    },
+    {
+      title: "Settings",
+      href: "/settings",
+      icon: <SettingsIcon />,
+    },
+  ];
 
   return (
     <Drawer
@@ -83,21 +110,12 @@ const Sidebar = props => {
       open={open}
       variant={variant}
     >
-      <div
-        {...rest}
-        className={clsx(classes.root, className)}
-      >
+      <div {...rest} className={clsx(classes.root, className)}>
         <Profile />
         <Divider className={classes.divider} />
-        <SidebarNav
-          className={classes.nav}
-          pages={pages}
-        />
+        <SidebarNav className={classes.nav} pages={pages} />
         <Divider className={classes.divider} />
-        <SidebarNav
-          className={classes.nav}
-          pages={userManagementPages}
-        />
+        <SidebarNav className={classes.nav} pages={userManagementPages} />
         {/* <UpgradePlan /> */}
       </div>
     </Drawer>
@@ -108,7 +126,7 @@ Sidebar.propTypes = {
   className: PropTypes.string,
   onClose: PropTypes.func,
   open: PropTypes.bool.isRequired,
-  variant: PropTypes.string.isRequired
+  variant: PropTypes.string.isRequired,
 };
 
 export default Sidebar;
