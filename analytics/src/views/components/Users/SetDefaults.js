@@ -1,5 +1,5 @@
 /* eslint-disable */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import clsx from 'clsx';
 import { makeStyles } from '@material-ui/core/styles';
 import InputLabel from '@material-ui/core/InputLabel';
@@ -14,6 +14,9 @@ import {
     KeyboardDatePicker,
 } from '@material-ui/pickers';
 
+import PropTypes from 'prop-types';
+import { withStyles } from '@material-ui/core/styles';
+
 import {
     Card,
     CardHeader,
@@ -24,6 +27,46 @@ import {
     Button,
     TextField
   } from '@material-ui/core';
+
+
+const defaults = [
+  {
+    value: 'None',
+    label: 'None',
+  },
+  {
+    value: 'PM10',
+    label: 'PM1O',
+  },
+  {
+    value: 'PM2.5',
+    label: 'PM2.5',
+  },
+  {
+    value: 'NO2',
+    label: 'NO2',
+  },
+];
+
+
+const frequency = [
+  {
+    value: 'None',
+    label: 'None',
+  },
+  {
+    value: 'Daily',
+    label: 'Daily',
+  },
+  {
+    value: 'Hourly',
+    label: 'Hourly',
+  },
+  {
+    value: 'Monthly',
+    label: 'Monthly',
+  },
+];
 
 
 const useStyles = makeStyles((theme) => ({
@@ -50,211 +93,149 @@ const useStyles = makeStyles((theme) => ({
 
 }));
 
+
 const  SetDefaults = (props) => {
-    const { 
-      className, 
-      mappeduserState,  
-      mappedAuth, 
-      mappedUpdateAuthenticatedUser,
-      ...rest } = props;
+
+  const { className, mappedAuth,  mappedUpdateAuthenticatedUser, mappeduserState, ...rest } = props;
+  const { user } = mappedAuth;
+
     const classes = useStyles();
-    // const [age, setAge] = React.useState('');
-
-    // const handleChange = (event) => {
-    //     setAge(event.target.value);
-    // };
-    const [selectedDate, setSelectedDate] = React.useState(new Date('2014-08-18T21:11:54'));
-
-    const handleStartDateChange = (date) => {
-        setSelectedDate(date);
-    };
-
-    const handleEndDateChange = (date) => {
-        setSelectedDate(date);
-    };
 
     const initialState = {
-      firstName: '',
-      lastName: '',
-      email: '',
-      phone: '',
-      state: '',
-      country: ''
+      pollutant: '',
+      frequency:'',
+      start_date: '2017-05-24T10:30',
+      end_date: '2020-05-24T10:30',
     }
 
-    const [values, setValues] = useState(initialState);
+    const [form, setState] = useState(initialState);
 
-    const handleChange = event => {
-      setValues({
-        ...values,
-        [event.target.name]: event.target.value
+    const onChange = event => {
+      setState({
+        ...form,
+        [event.target.id]: event.target.value
       });
     };    
 
     const clearState = ()=>{
-      setValues({...initialState});
+      setState({...initialState});
     };
   
     const onSubmit = (e) => {
       e.preventDefault();
       const userData = {
-        password: values.firstName,
-        firstName: values.lastName,
-        email: values.email,
-        phoneNumber: values.phoneNumber
+        id: user._id,
+        pollutant: form.pollutant,
+        end_date: form.end_date,
+        start_date: form.start_date,
+        frequency: form.frequency
       };
       console.log(userData);
-      props.mappedUpdateAuthenticatedUser(user._id, userData);
+      console.log("the data from end date:")
+      console.dir(form.end_date);
+      console.log("the data from start date:")
+      console.dir(form.start_date);
+      console.log("the user ID:")
+      console.log(user._id);
+      props.mappedSetDefaults(userData);
       clearState();
     };
 
-
+    // useEffect(() => {
+    //   props.fetchDefaults()
+    // }, []);
+  
     return (
-       <div>
 <Card
 {...rest}
 className={clsx(classes.root, className)}
 >
-<form
-  autoComplete="off"
-  noValidate
->
+
   <CardHeader
     subheader="Please enter your preferences for the Landing Page"
     title="User Defaults"
   />
   <Divider />
   <CardContent>
-    <Grid
-      container={true}
-      spacing={6}
-    >
+{
+    <div>
+       <TextField
+          id="pollutant"
+          select
+          label="Pollutant"
+          className={classes.textField}
+          value={form.privilege}
+          onChange={onChange}
+          SelectProps={{
+            native: true,
+            MenuProps: {
+              className: classes.menu,
+            },
+          }}
+          helperText="Please select the pollutant"
+          margin="normal"
+          variant="outlined"
+        >
+          {defaults.map(option => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </TextField>
 
-      <Grid
-        item
-        md='auto'
-        xs='auto'
-      >
-      <FormControl variant="outlined" className={classes.formControl}>
-                <InputLabel id="demo-simple-select-outlined-label">Pollutant</InputLabel>
-                <Select
-                    labelId="demo-simple-select-outlined-label"
-                    id="demo-simple-select-outlined"
-                    value={values.pollutant}
-                    onChange={handleChange}
-                    label="Pollutant"
-                >
-                    <MenuItem value="">
-                        <em>None</em>
-                    </MenuItem>
-                    <MenuItem value={10}>PM10</MenuItem>
-                    <MenuItem value={20}>NO2</MenuItem>
-                    <MenuItem value={30}>PM2.5</MenuItem>
-                </Select>
-            </FormControl>
-      </Grid>
-      <Grid
-        item
-        md='auto'
-        xs='auto'
-      >
-      <FormControl variant="outlined" className={classes.formControl}>
-                <InputLabel id="demo-simple-select-filled-label">Frequency</InputLabel>
-                <Select
-                    labelId="demo-simple-select-filled-label"
-                    id="demo-simple-select-filled"
-                    value={values.frequency}
-                    onChange={handleChange}
-                    label="Frequency"
-                >
-                    <MenuItem value="">
-                        <em>None</em>
-                    </MenuItem>
-                    <MenuItem value={10}>Daily</MenuItem>
-                    <MenuItem value={20}>Hourly</MenuItem>
-                    <MenuItem value={30}>Monthly</MenuItem>
-                </Select>
-            </FormControl>
-      </Grid>
-      <Grid
-        item
-        md='auto'
-        xs='auto'
-      >
-      <FormControl variant="filled" className={classes.formControl}>
-                <TextField
-                    id="time"
-                    label="Start time"
-                    type="time"
-                    defaultValue="07:30"
-                    className={classes.textField}
-                    InputLabelProps={{
-                        shrink: true,
-                    }}
-                    inputProps={{
-                        step: 300, // 5 min
-                    }}
-                    InputProps={{ disableUnderline: true }}
-                />
-            </FormControl>
-      </Grid>
-      <Grid
-        item
-        md='auto'
-        xs='auto'
-      >
-        <FormControl variant="filled" className={classes.formControl}>
-                <TextField
-                    id="time"
-                    label="End time"
-                    type="time"
-                    defaultValue="07:30"
-                    className={classes.textField}
-                    InputLabelProps={{
-                        shrink: true,
-                    }}
-                    inputProps={{
-                        step: 300, // 5 min
-                    }}
-                    InputProps={{ disableUnderline: true }}
-                />
-            </FormControl>
-      </Grid>
-      <Grid
-        item
-        md='auto'
-        xs='auto'
-      >
-        <MuiPickersUtilsProvider utils={DateFnsUtils}>
-                <Grid container justify="space-around">
-                    <KeyboardDatePicker
-                        margin="normal"
-                        id="date-picker-dialog"
-                        label="Start Date"
-                        format="MM/dd/yyyy"
-                        value={selectedDate}
-                        onChange={handleStartDateChange}
-                        KeyboardButtonProps={{
-                            'aria-label': 'change date',
-                        }}
-                        InputProps={{ disableUnderline: true }}
-                    />
-                    <KeyboardDatePicker
-                        margin="normal"
-                        id="date-picker-dialog"
-                        label="End Date"
-                        format="MM/dd/yyyy"
-                        value={selectedDate}
-                        onChange={handleEndDateChange}
-                        KeyboardButtonProps={{
-                            'aria-label': 'change date',
-                        }}
-                        InputProps={{ disableUnderline: true }}
-                    />
-                </Grid>
-                </MuiPickersUtilsProvider>
-      </Grid>
-    </Grid>
+        <TextField
+          id="frequency"
+          select
+          label="Frequency"
+          className={classes.textField}
+          value={form.frequency}
+          onChange={onChange}
+          SelectProps={{
+            native: true,
+            MenuProps: {
+              className: classes.menu,
+            },
+          }}
+          helperText="Please select the frequency"
+          margin="normal"
+          variant="outlined"
+        >
+          {frequency.map(option => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </TextField>
+
+{/* start time and start date */}
+  <TextField
+        id="start_date"
+        label="Start Date and Time"
+        type="datetime-local"
+        value={form.start_date}
+        onChange={onChange}
+        className={classes.textField}
+        InputProps={{ disableUnderline: true }}
+        InputLabelProps={{
+          shrink: true,
+        }}
+      />
+{/* end time and end date */}
+ <TextField
+        id="end_date"
+        label="End Date and Time"
+        type="datetime-local"
+        value={form.end_date}
+        onChange={onChange}
+        InputProps={{ disableUnderline: true }}
+        className={classes.textField}
+        InputLabelProps={{
+          shrink: true,
+        }}
+      />
+</div>
+
+}
   </CardContent>
   <Divider />
   <CardActions>
@@ -266,10 +247,12 @@ className={clsx(classes.root, className)}
       Save Defaults
     </Button>
   </CardActions>
-</form>
 </Card>
-</div>
     );
 }
+
+SetDefaults.propTypes = {
+  fetchDefaults: PropTypes.func.isRequired
+};
 
 export default SetDefaults;

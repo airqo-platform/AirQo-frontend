@@ -119,13 +119,14 @@ const Routes = () => {
       exact path="/register" 
       component={Register} />
     
-    <Route 
+     <Route 
     exact path="/reset/:token" 
     component={ResetPassword} />
 
-      <RouteWithLayout
+     <RouteWithLayout
         exact path="/reset"
         component={ResetPassword} />
+        
       <Redirect to="/not-found" />
     </Switch>
   );

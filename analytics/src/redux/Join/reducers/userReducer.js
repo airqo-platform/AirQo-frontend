@@ -3,6 +3,9 @@ import {
     GET_USERS_REQUEST,
     GET_USERS_SUCCESS,
     GET_USERS_FAILED,
+    GET_DEFAULTS_REQUEST,
+    GET_DEFAULTS_SUCCESS,
+    GET_DEFAULTS_FAILED,
     GET_CANDIDATES_REQUEST,
     GET_CANDIDATES_SUCCESS,
     GET_CANDIDATES_FAILED,
@@ -52,9 +55,9 @@ const initialState = {
     showAddUser: false,
     userToConfirm: null,
     showConfirmDialog: null,
-    userToDefault: null,
-    userDefaults: {},
-    showAddUser: false
+    userDefaults: [],
+    showAddUser: false,
+    isUpdating: false
 };
 
 export default function(state = initialState, action) {
@@ -63,8 +66,9 @@ export default function(state = initialState, action) {
         case GET_USERS_REQUEST:
             return {
                 ...state,
-                users: [],
-                candidates: [],
+                users: state.users,
+                candidates: state.candidates,
+                userDefaults: state.userDefaults,
                 isFetching: true,
                 error: null,
                 successMsg: null,
@@ -77,7 +81,8 @@ export default function(state = initialState, action) {
             return {
                 ...state,
                 users: action.users,
-                candidates: [],
+                candidates: state.candidates,
+                userDefaults: state.userDefaults,
                 isFetching: false,
                 error: null,
                 successMsg: action.message,
@@ -90,7 +95,8 @@ export default function(state = initialState, action) {
             return {
                 ...state,
                 users: [],
-                candidates: [],
+                candidates: state.candidates,
+                userDefaults: state.userDefaults,
                 isFetching: false,
                 error: action.error,
                 successMsg: null,
@@ -105,8 +111,9 @@ export default function(state = initialState, action) {
         case GET_CANDIDATES_REQUEST:
             return {
                 ...state,
-                users: [],
-                candidates: [],
+                users: state.users,
+                candidates: state.candidates,
+                userDefaults: state.userDefaults,
                 isFetching: true,
                 error: null,
                 successMsg: null,
@@ -118,8 +125,9 @@ export default function(state = initialState, action) {
         case GET_CANDIDATES_SUCCESS:
             return {
                 ...state,
-                users: action.users,
+                users: state.users,
                 candidates: action.candidates,
+                userDefaults: state.userDefaults,
                 isFetching: false,
                 error: null,
                 successMsg: action.message,
@@ -131,8 +139,53 @@ export default function(state = initialState, action) {
         case GET_CANDIDATES_FAILED:
             return {
                 ...state,
-                users: [],
+                users: state.users,
+                userDefaults: state.userDefaults,
                 candidates: [],
+                isFetching: false,
+                error: action.error,
+                successMsg: null,
+                showDeleteDialog: false,
+                userToDelete: null,
+                showEditDialog: false,
+                userToEdit: null
+            };
+
+            /************************* fetch defaults ****************************************** */
+        case GET_DEFAULTS_REQUEST:
+            return {
+                ...state,
+                users: state.users,
+                candidates: state.candidates,
+                userDefaults: state.userDefaults,
+                isFetching: true,
+                error: null,
+                successMsg: null,
+                showDeleteDialog: false,
+                userToDelete: null,
+                showEditDialog: false,
+                userToEdit: null
+            };
+        case GET_DEFAULTS_SUCCESS:
+            return {
+                ...state,
+                users: state.users,
+                candidates: state.candidates,
+                userDefaults: action.defaults,
+                isFetching: false,
+                error: null,
+                successMsg: action.message,
+                showDeleteDialog: false,
+                userToDelete: null,
+                showEditDialog: false,
+                userToEdit: null
+            };
+        case GET_DEFAULTS_FAILED:
+            return {
+                ...state,
+                users: state.users,
+                candidates: state.candidates,
+                userDefaults: state.userDefaults,
                 isFetching: false,
                 error: action.error,
                 successMsg: null,
@@ -148,6 +201,7 @@ export default function(state = initialState, action) {
                 ...state,
                 users: state.users,
                 candidates: state.candidates,
+                userDefaults: state.userDefaults,
                 isFetching: true,
                 error: null,
                 successMsg: null,
@@ -162,6 +216,7 @@ export default function(state = initialState, action) {
                 ...state,
                 users: state.users,
                 candidates: state.candidates,
+                userDefaults: state.userDefaults,
                 isFetching: true,
                 error: action.error,
                 successMsg: null,
@@ -176,6 +231,7 @@ export default function(state = initialState, action) {
                 ...state,
                 users: [...state.users, action.user],
                 candidates: state.candidates,
+                userDefaults: state.userDefaults,
                 isFetching: false,
                 error: null,
                 successMsg: action.message,
@@ -191,6 +247,7 @@ export default function(state = initialState, action) {
                 ...state,
                 users: state.users,
                 candidates: state.candidates,
+                userDefaults: state.userDefaults,
                 isFetching: false,
                 error: null,
                 successMsg: null,
@@ -206,6 +263,7 @@ export default function(state = initialState, action) {
                 ...state,
                 users: state.users,
                 candidates: state.candidates,
+                userDefaults: state.userDefaults,
                 isFetching: false,
                 error: null,
                 successMsg: null,
@@ -220,6 +278,7 @@ export default function(state = initialState, action) {
                 ...state,
                 users: state.users,
                 candidates: state.candidates,
+                userDefaults: state.userDefaults,
                 isFetching: false,
                 error: null,
                 successMsg: null,
@@ -243,6 +302,7 @@ export default function(state = initialState, action) {
                 ...state,
                 users: updatedUsers,
                 candidates: state.candidates,
+                userDefaults: state.userDefaults,
                 isFetching: false,
                 error: null,
                 successMsg: action.message,
@@ -258,6 +318,7 @@ export default function(state = initialState, action) {
                 ...state,
                 users: state.users,
                 candidates: state.candidates,
+                userDefaults: state.userDefaults,
                 isFetching: false,
                 error: action.error,
                 successMsg: null,
@@ -273,6 +334,7 @@ export default function(state = initialState, action) {
                 ...state,
                 users: state.users,
                 candidates: state.candidates,
+                userDefaults: state.userDefaults,
                 isFetching: false,
                 error: action.error,
                 successMsg: null,
@@ -288,6 +350,7 @@ export default function(state = initialState, action) {
                 ...state,
                 users: state.users,
                 candidates: state.candidates,
+                userDefaults: state.userDefaults,
                 isFetching: false,
                 error: action.error,
                 successMsg: null,
@@ -303,6 +366,7 @@ export default function(state = initialState, action) {
                 ...state,
                 users: state.users,
                 candidates: state.candidates,
+                userDefaults: state.userDefaults,
                 isFetching: false,
                 error: null,
                 successMsg: null,
@@ -321,6 +385,7 @@ export default function(state = initialState, action) {
                 ...state,
                 users: filteredUsers,
                 candidates: state.candidates,
+                userDefaults: state.userDefaults,
                 isFetching: false,
                 error: null,
                 successMsg: action.message,
@@ -336,6 +401,7 @@ export default function(state = initialState, action) {
                 ...state,
                 users: state.users,
                 candidates: state.candidates,
+                userDefaults: state.userDefaults,
                 isFetching: false,
                 error: action.error,
                 successMsg: null,
@@ -357,6 +423,7 @@ export default function(state = initialState, action) {
                 ...state,
                 users: state.users,
                 candidates: state.candidates,
+                userDefaults: state.userDefaults,
                 isFetching: false,
                 error: action.error,
                 successMsg: null,
@@ -371,6 +438,7 @@ export default function(state = initialState, action) {
                 ...state,
                 users: state.users,
                 candidates: state.candidates,
+                userDefaults: state.userDefaults,
                 isFetching: false,
                 error: action.error,
                 successMsg: null,
@@ -385,6 +453,7 @@ export default function(state = initialState, action) {
                 ...state,
                 users: state.users,
                 candidates: state.candidates,
+                userDefaults: state.userDefaults,
                 isFetching: false,
                 error: null,
                 successMsg: null,
@@ -399,6 +468,7 @@ export default function(state = initialState, action) {
                 ...state,
                 users: state.users,
                 candidates: state.candidates,
+                userDefaults: state.userDefaults,
                 isFetching: false,
                 error: null,
                 successMsg: action.message,
@@ -413,6 +483,7 @@ export default function(state = initialState, action) {
                 ...state,
                 users: state.users,
                 candidates: state.candidates,
+                userDefaults: state.userDefaults,
                 isFetching: false,
                 error: action.error,
                 successMsg: null,
@@ -428,37 +499,44 @@ export default function(state = initialState, action) {
             return {
                 ...state,
                 users: state.users,
-                userToDefault: action.userToDefault
+                candidates: state.candidates,
+                userDefaults: state.userDefaults
             };
         case UPDATE_PASSWORD_SUCCESS:
             return {
                 ...state,
-                users: state.users
+                users: state.users,
+                candidates: state.candidates,
+                userDefaults: state.userDefaults
             };
         case UPDATE_PASSWORD_FAILED:
             return {
                 ...state,
                 users: state.users,
-                candidates: []
+                candidates: state.candidates,
+                userDefaults: state.userDefaults
             };
 
-            //set defaults
+            /************************ set defaults *********************************************/
         case SET_DEFAULTS_REQUEST:
             return {
                 ...state,
-                userToDefault: action.userToDefault,
-                userDefaults: false
+                isUpdating: true,
+                users: state.users,
+                candidates: state.candidates,
+                userDefaults: state.userDefaults,
+                successMsg: null
             };
         case SET_DEFAULTS_SUCCESS:
             return {
                 ...state,
                 users: state.users,
                 candidates: state.candidates,
+                userDefaults: state.userDefaults,
                 isFetching: false,
                 error: null,
                 successMsg: action.message,
-                showDeleteDialog: true,
-                userToDelete: action.userToConfirm,
+                showDeleteDialog: false,
                 showEditDialog: false,
                 userToEdit: null,
                 newUser: null
@@ -468,6 +546,7 @@ export default function(state = initialState, action) {
                 ...state,
                 users: state.users,
                 candidates: state.candidates,
+                userDefaults: state.userDefaults,
                 isFetching: false,
                 error: action.error,
                 successMsg: null,

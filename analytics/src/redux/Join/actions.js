@@ -9,6 +9,9 @@ import {
     GET_USERS_REQUEST,
     GET_USERS_SUCCESS,
     GET_USERS_FAILED,
+    GET_DEFAULTS_REQUEST,
+    GET_DEFAULTS_SUCCESS,
+    GET_DEFAULTS_FAILED,
     REGISTER_USER_REQUEST,
     REGISTER_USER_SUCCESS,
     SHOW_CONFIRM_DIALOG,
@@ -569,11 +572,12 @@ export const updateProfile = userData => dispatch => {
         });
 };
 
-//*********************************** setting the default settings ************************************/
-export const setDefaults = values => dispatch => {
+//*********************************** default settings ************************************/
+export const setDefaults = (values, id) => dispatch => {
+    console.log('the sent id is: ' + `${values.id}`);
     dispatch(setDefaultsRequest(values));
     return axios
-        .put(constants.DEFAULTS_URI + `${values.id}`, values)
+        .put(constants.DEFAULTS_URI + '/' + `${values.id}`, values)
         .then(response => {
             if (response) {
                 dispatch(
@@ -590,23 +594,64 @@ export const setDefaults = values => dispatch => {
 
 export const setDefaultsRequest = values => {
     return {
-        type: SET_DEFAULTS_REQUEST,
-        userToDefault: values.id,
-        userDefaults: values
+        type: SET_DEFAULTS_REQUEST
     };
 };
 
-export const setDefaultsSuccess = message => {
+export const setDefaultsSuccess = (data, mes) => {
     return {
         type: SET_DEFAULTS_SUCCESS,
-        userToDefault: null,
-        message: message
+        message: mes
     };
 };
 
 export const setDefaultsFailed = error => {
     return {
         type: SET_DEFAULTS_FAILED,
+        error
+    };
+};
+
+//*********************************** fetching default settings ************************************/
+export const fetchDefaults = () => {
+    return dispatch => {
+        // dispatch(fetchDefaultsRequest());
+        return fetch(constants.DEFAULTS_URI).then(response => {
+            if (response.ok) {
+                response.json().then(data => {
+                    dispatch(fetchDefaultsSuccess(data.prefs, data.message));
+                    console.log('the default settings:  ');
+                    console.dir(data.prefs);
+                });
+            } else {
+                response.json().then(error => {
+                    // dispatch(fetchDefaultsFailed(error));
+                });
+            }
+        });
+    };
+};
+
+export const fetchDefaultsRequest = () => {
+    return {
+        type: GET_DEFAULTS_REQUEST
+    };
+};
+
+export const fetchDefaultsSuccess = (defaults, message) => {
+    console.log('these are the defaults we are sending: ');
+    console.dir(defaults);
+    return {
+        type: GET_DEFAULTS_SUCCESS,
+        defaults: defaults,
+        message: message,
+        receiveAt: Date.now
+    };
+};
+
+export const fetchDefaultsFailed = error => {
+    return {
+        type: GET_DEFAULTS_FAILED,
         error
     };
 };

@@ -30,8 +30,8 @@ const mapStateToProps = (state, ownProps) => {
 const mapDispatchToProps = dispatch => {
     return {
         fetchUsers: () => dispatch(userActions.fetchUsers()),
-
         fetchCandidates: () => dispatch(userActions.fetchCandidates()),
+        fetchDefaults: () => dispatch(userActions.fetchDefaults()),
 
         mappedshowEditDialog: userToEdit =>
             dispatch(userActions.showEditDialog(userToEdit)),
@@ -58,7 +58,10 @@ const mapDispatchToProps = dispatch => {
             dispatch(userActions.updateAuthenticatedUser(userToUpdate)),
 
         mappedUpdatePassword: userToUpdate =>
-            dispatch(userActions.updatePassword(userToUpdate))
+            dispatch(userActions.updatePassword(userToUpdate)),
+
+        mappedSetDefaults: defaultSettings =>
+            dispatch(userActions.setDefaults(defaultSettings))
     };
 };
 
