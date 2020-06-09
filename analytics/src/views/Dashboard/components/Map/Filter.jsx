@@ -49,10 +49,11 @@ class Filter extends Component {
                     checked={this.state.magnitudeFilter === 'Good' }
                     onChange={this.handleMagnitudeChange}
                   />
-                  {"Good"}
+                   <div class="control__indicator1"></div>
+                   {"Good"}
                 </label>
-                <div id="" class="" style="background: rgb(240, 40, 40);"></div>
-                <span id="">VIIRS 375m / NOAA-20</span>
+                {/* <div id="" class="" style="background: rgb(240, 40, 40);"></div>
+                <span id="">VIIRS 375m / NOAA-20</span> */}
                 <label>
                   <input
                     type="radio"
@@ -61,6 +62,7 @@ class Filter extends Component {
                     checked={this.state.magnitudeFilter === 'Moderate' }
                     onChange={this.handleMagnitudeChange}
                   />
+                  <div class="control__indicator2"></div>
                   {"Moderate"}
                 </label>
                 <label>
@@ -71,6 +73,7 @@ class Filter extends Component {
                     checked={this.state.magnitudeFilter === 'UHFSG' }
                     onChange={this.handleMagnitudeChange}
                   />
+                  <div class="control__indicator3"></div>
                   {"UHFSG"}
                 </label>
                 <label>
@@ -81,6 +84,7 @@ class Filter extends Component {
                     checked={this.state.magnitudeFilter === 'Unhealthy' }
                     onChange={this.handleMagnitudeChange}
                   />
+                  <div class="control__indicator4"></div>
                   {"Unhealthy"}
                 </label>
                 <label>
@@ -91,6 +95,7 @@ class Filter extends Component {
                     checked={this.state.magnitudeFilter === 'Very Unhealthy' }
                     onChange={this.handleMagnitudeChange}
                   />
+                  <div class="control__indicator5"></div>
                   {"Very Unhealthy"}
                 </label>
                 <label>
@@ -101,6 +106,7 @@ class Filter extends Component {
                     checked={this.state.magnitudeFilter === 'Harzadous'}
                     onChange={this.handleMagnitudeChange}
                   />
+                  <div class="control__indicator6"></div>
                   {"Harzadous"}
                 </label>
               </form>
