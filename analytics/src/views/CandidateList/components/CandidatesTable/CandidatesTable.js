@@ -223,10 +223,14 @@ const CandidatesTable = props => {
                     />
                   </TableCell>
                   <TableCell>Full Name</TableCell>
-                  <TableCell>email</TableCell>
-                  <TableCell>Candidatename</TableCell>
-                  <TableCell>Role</TableCell>
+                  <TableCell>Email</TableCell>
+                  <TableCell>Description</TableCell>
+                  <TableCell>Organization</TableCell>
+                  <TableCell>Country</TableCell>
+                  <TableCell>Job Title</TableCell>
+                  <TableCell>Phone Number</TableCell>
                   <TableCell>Action</TableCell>
+           
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -264,22 +268,13 @@ const CandidatesTable = props => {
                     {/* <TableCell>
                       {moment(user.createdAt).format('DD/MM/YYYY')}
                     </TableCell> */}
-                    <TableCell>{user.userName}</TableCell>
-                    <TableCell>{user.privilege}</TableCell>
+                    <TableCell>{user.description}</TableCell>
+                    <TableCell>{user.organization}</TableCell>
+                    <TableCell>{user.country}</TableCell>
+                    <TableCell>{user.jobTitle}</TableCell>
+                    <TableCell>{user.phoneNumber}</TableCell>
                     <TableCell>
-                      <Button
-                        color="primary"
-                        onClick={() => showEditDialog(user)}>
-                        Update
-                      </Button>{' '}
-                      |
-                      <Button onClick={() => showDeleteDialog(user)}>
-                        Delete
-                      </Button>{' '}
-                      {/* |
-                      <Button onClick={() => showConfirmDialog(user)}>
-                        Confirm
-                      </Button> */}
+                      <Button color="primary">Confirm</Button>{' '}
                     </TableCell>
                   </TableRow>
                 ))}
