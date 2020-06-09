@@ -354,14 +354,14 @@ const Dashboard = props => {
                
 
 
-          <Grid
+          {/* <Grid
             container
             spacing={0}
             className='MapCardContent'
-          >
+          > */}
 
           
-            <Grid
+            {/* <Grid
               item
               lg={2}
               sm={4}
@@ -450,12 +450,12 @@ const Dashboard = props => {
                 //pm25levelText="(250.5 - 500.4)"           
                 
               />
-            </Grid> 
+            </Grid>  */}
              {/* <p>
               PM <sub>2.5</sub> - Particulate Matter 
             </p> */}
                 
-          </Grid> 
+          {/* </Grid>  */}
         </Grid>
         
 
