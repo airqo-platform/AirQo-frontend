@@ -48,7 +48,6 @@ const LocationsToolbar = (props) => {
         <span className={classes.spacer} />
         {/*<Button className={classes.importButton}>Import</Button>*/}
         <Button className={classes.exportButton}>Export</Button>
-       {/* <Link to="/register_location" className={classes.link}>ADD LOCATION</Link>  */}
      <Link to="/register_location" >
      <Button 
           variant="contained" 
