@@ -20,6 +20,8 @@ import {
   TablePagination
 } from '@material-ui/core';
 import LoadingOverlay from 'react-loading-overlay';
+import {CSVLink, CSVDownload} from 'react-csv';
+import { Button } from "@material-ui/core";
 
 
 const useStyles = makeStyles(theme => ({
@@ -240,9 +242,36 @@ const LocationsTable = props => {
             </Table>
           </div>
         </PerfectScrollbar>
+        {/*}
+        <br/>
+        <CSVLink data={data} 
+         align = "center">
+        <Button 
+        className={classes.exportButton}
+        variant="contained" 
+        color="primary"
+        align = "centre"
+        >Export as CSV
+        </Button>
+              </CSVLink>*/}
       </CardContent>
-      <CardActions className={classes.actions}>
-        <TablePagination
+      <CardActions className = {classes.actions}>
+      <CSVLink 
+        data={data} 
+        filename="locations_data.csv"
+        align = "center">
+        <Button 
+          className={classes.exportButton}
+          variant="contained" 
+          color="primary"
+          align = "centre"
+        >Export to CSV
+        </Button>
+      </CSVLink>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+      
+        <TablePagination 
           component="div"
           count={data.length}
           onChangePage={handlePageChange}
@@ -251,7 +280,12 @@ const LocationsTable = props => {
           rowsPerPage={rowsPerPage}
           rowsPerPageOptions={[5, 10, 25]}
         />
+
       </CardActions>
+
+     
+     
+      
     </Card>
     </LoadingOverlay>
   );

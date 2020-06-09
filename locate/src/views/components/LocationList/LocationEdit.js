@@ -611,7 +611,7 @@ const getLocation = ref => {
         </Grid>
         </Grid>
         <div className={classes.formControl} style={{width: '900px'}}>
-
+       
         <Button 
           variant="contained" 
           color="primary"              
@@ -619,6 +619,16 @@ const getLocation = ref => {
           align = "centre"
         > Save Changes
         </Button>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <Link to={`/location`}>
+        <Button 
+          variant="contained" 
+          color="primary"              
+          type="button"
+          align = "centre"
+        > Cancel
+        </Button>
+        </Link>
       </div>           
       </form>
       </LoadingOverlay>

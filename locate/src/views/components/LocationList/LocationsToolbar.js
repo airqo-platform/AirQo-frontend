@@ -5,6 +5,7 @@ import { makeStyles } from "@material-ui/styles";
 import { Button } from "@material-ui/core";
 import { Link } from "react-router-dom";
 import { SearchInput } from "../SearchInput";
+import {CSVLink, CSVDownload} from 'react-csv';
 
 const useStyles = makeStyles((theme) => ({
   root: {},
@@ -47,7 +48,16 @@ const LocationsToolbar = (props) => {
       <div className={classes.row}>
         <span className={classes.spacer} />
         {/*<Button className={classes.importButton}>Import</Button>*/}
-        <Button className={classes.exportButton}>Export</Button>
+        {/*
+        <CSVLink data={data} >
+        <Button 
+        className={classes.exportButton}
+        variant="contained" 
+        color="primary"
+        align = "centre"
+        >Export
+        </Button>
+      </CSVLink>*/}
      <Link to="/register_location" >
      <Button 
           variant="contained" 

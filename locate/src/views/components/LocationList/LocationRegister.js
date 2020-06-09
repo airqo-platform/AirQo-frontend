@@ -363,7 +363,7 @@ const LocationRegister = props => {
   }
 
     return(
-    <div className={classes.root}>  
+    <div className={classes.root}> 
     <LoadingOverlay
       active={isLoading}
       spinner
@@ -373,6 +373,7 @@ const LocationRegister = props => {
     <form onSubmit={handleSubmit}>
       <Grid container spacing={1}>
         <Grid container item xs={12} spacing={3}>
+        {/*<h5 align = "center"><b>Add a Location</b></h5><br/>*/}
           <React.Fragment>
             <Grid item xs={6}>
             <div className={classes.formControl} style={{width: '250px'}}>
