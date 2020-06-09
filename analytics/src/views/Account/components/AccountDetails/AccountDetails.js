@@ -78,6 +78,7 @@ const AccountDetails = props => {
   const onSubmit = e => {
     e.preventDefault();
     const userData = {
+      id: user._id,
       firstName: form.firstName,
       lastName: form.lastName,
       email: form.email,
@@ -85,7 +86,7 @@ const AccountDetails = props => {
     };
     console.log("sending this guy here:")
     console.log(userData);
-    props.mappedUpdateAuthenticatedUser(user._id, userData);
+    props.mappedUpdateAuthenticatedUser(userData);
     clearState();
   };
 
@@ -144,51 +145,6 @@ const AccountDetails = props => {
                 InputProps={{ disableUnderline: true }}
               />
             </Grid>
-            {/* <Grid
-              item
-              md={6}
-              xs={12}
-            >
-              <TextField
-                fullWidth
-                label="Preferred Locations"
-                margin="dense"
-                name="state"
-                onChange={handleChange}
-                required
-                select
-                // eslint-disable-next-line react/jsx-sort-props
-                SelectProps={{ native: true }}
-                value=""
-                variant="outlined"
-              >
-                {states.map(option => (
-                  <option
-                    key={option.value}
-                    value={option.value}
-                  >
-                    {option.label}
-                  </option>
-                ))}
-              </TextField>
-            </Grid>
-            <Grid
-              item
-              md={6}
-              xs={12}
-            >
-              <TextField
-                fullWidth
-                label="Country"
-                margin="dense"
-                name="country"
-                onChange={handleChange}
-                required
-                value="Uganda"
-                // defaultValue="Uganda"
-                variant="outlined"
-              />
-            </Grid> */}
           </Grid>
         </CardContent>
         <Divider />

@@ -657,12 +657,12 @@ export const fetchDefaultsFailed = error => {
 };
 
 /*********************update authenticated user ************************/
-export const updateAuthenticatedUser = (userToUpdate, newData) => dispatch => {
-    dispatch(updateAuthenticatedUserRequest(userToUpdate));
+export const updateAuthenticatedUser = newData => dispatch => {
+    dispatch(updateAuthenticatedUserRequest());
 
     return axios({
             method: 'put',
-            url: constants.GET_USERS_URI + `${userToUpdate}`,
+            url: constants.GET_USERS_URI + `${newData.id}`,
             data: newData
         })
         .then(response => {
@@ -679,10 +679,9 @@ export const updateAuthenticatedUser = (userToUpdate, newData) => dispatch => {
         });
 };
 
-export const updateAuthenticatedUserRequest = userToUpdate => {
+export const updateAuthenticatedUserRequest = () => {
     return {
-        type: UPDATE_AUTHENTICATED_USER_REQUEST,
-        payload: userToUpdate
+        type: UPDATE_AUTHENTICATED_USER_REQUEST
     };
 };
 

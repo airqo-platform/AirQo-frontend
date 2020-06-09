@@ -65,11 +65,11 @@ const Sidebar = props => {
       href: '/admin/users',
       icon: <PeopleIcon />
     },
-    // {
-    //   title: 'Candidates',
-    //   href: '/candidates',
-    //   icon: <SupervisedUserCircleIcon />
-    // },
+    {
+      title: 'Candidates',
+      href: '/candidates',
+      icon: <SupervisedUserCircleIcon />
+    },
     {
       title: 'Account',
       href: '/account',
@@ -91,15 +91,15 @@ const Sidebar = props => {
   let { user } = mappedAuth;
   let userPages = [];
 
-  if (user.privilege === 'admin' || user.privilege === 'super'  ) {
+  if (user.privilege === 'super' ) {
     userPages = userManagementPages;
   } 
 
-  // else if (user.privilege === 'admin') {
-  //   userPages = userManagementPages.filter(function(element) {
-  //     return element.title !== 'Candidates';
-  //   });
-  // } 
+ else if (user.privilege === 'admin') {
+    userPages = userManagementPages.filter(function(element) {
+      return element.title !== 'Candidates';
+    });
+  } 
   
   else {
     userPages = userManagementPages.filter(function(element) {

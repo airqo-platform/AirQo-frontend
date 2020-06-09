@@ -48,7 +48,7 @@ export default function(state = initialState, action) {
         case UPDATE_AUTHENTICATED_USER_SUCCESS:
             return {
                 ...state,
-                user: state.users,
+                user: state.user,
                 updating: false
             };
         case UPDATE_AUTHENTICATED_USER_FAILED:

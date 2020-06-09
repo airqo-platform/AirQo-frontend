@@ -2,13 +2,10 @@
 import React, { useState, useEffect } from 'react';
 import { makeStyles } from '@material-ui/styles';
 import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
 import {
   connectedCandidatesTable as CandidatesTable,
   connectedCandidatesToolbar as CandidatesToolbar
 } from '../components/Users/containers/Users';
-
-import mockData from './data';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -29,11 +26,9 @@ const CandidateList = props => {
   }, []);
 
   return (
-   
-      <div className={classes.content}>
-        <CandidatesTable candidates={candidates} />
-      </div>
-
+    <div className={classes.content}>
+      <CandidatesTable candidates={candidates} />
+    </div>
   );
 };
 
