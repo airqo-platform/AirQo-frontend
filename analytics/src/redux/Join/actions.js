@@ -662,11 +662,8 @@ export const updateAuthenticatedUser = (userToUpdate, newData) => dispatch => {
 
     return axios({
             method: 'put',
-            url: constants.GET_USERS_URI,
-            data: newData,
-            params: {
-                id: userToUpdate
-            }
+            url: constants.GET_USERS_URI + `${userToUpdate}`,
+            data: newData
         })
         .then(response => {
             if (response) {

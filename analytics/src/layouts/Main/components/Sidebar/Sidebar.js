@@ -91,21 +91,19 @@ const Sidebar = props => {
   let { user } = mappedAuth;
   let userPages = [];
 
-  if (user.privilege == 'admin') {
+  if (user.privilege === 'admin' || user.privilege === 'super'  ) {
     userPages = userManagementPages;
   } 
 
-  
-  // else if (user.privilege == 'admin') {
+  // else if (user.privilege === 'admin') {
   //   userPages = userManagementPages.filter(function(element) {
-  //     return element.title != 'Candidates';
+  //     return element.title !== 'Candidates';
   //   });
   // } 
   
-  
   else {
     userPages = userManagementPages.filter(function(element) {
-      return element.title != 'Users';
+      return element.title !== 'Users';
     });
   }
   return (

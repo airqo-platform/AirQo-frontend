@@ -13,30 +13,29 @@ import {
   TextField
 } from '@material-ui/core';
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles(theme => ({
   container: {
     display: 'flex',
-    flexWrap: 'wrap',
+    flexWrap: 'wrap'
   },
   textField: {
     marginLeft: theme.spacing.unit,
-    marginRight: theme.spacing.unit,
+    marginRight: theme.spacing.unit
   },
   dense: {
-    marginTop: 16,
+    marginTop: 16
   },
   menu: {
-    width: 200,
+    width: 200
   },
   root: {}
 }));
-
 
 const AccountDetails = props => {
   const { className, mappeduserState, mappedAuth, ...rest } = props;
 
   const { user } = mappedAuth;
-  console.log("the user is here: ")
+  console.log('the user is here: ');
   console.dir(user);
 
   const classes = useStyles();
@@ -45,18 +44,17 @@ const AccountDetails = props => {
     firstName: user.firstName,
     lastName: user.lastName,
     email: user.email,
-    phoneNumber: '',
+    phoneNumber: ''
   };
 
   const [form, setState] = useState(initialState);
 
-  const handleChange = (e) => {
+  const handleChange = e => {
     setState({
       ...form,
-      [e.target.id]:e.target.value
-    })
-    
-      };
+      [e.target.id]: e.target.value
+    });
+  };
 
   const states = [
     {
@@ -73,22 +71,23 @@ const AccountDetails = props => {
     }
   ];
 
-  const clearState = ()=>{
-    setState({...initialState});
+  const clearState = () => {
+    setState({ ...initialState });
   };
 
-  const onSubmit = (e) =>{
+  const onSubmit = e => {
     e.preventDefault();
     const userData = {
       firstName: form.firstName,
       lastName: form.lastName,
       email: form.email,
-      phoneNumber: form.phoneNumber,
+      phoneNumber: form.phoneNumber
     };
+    console.log("sending this guy here:")
     console.log(userData);
-    props.mappedUpdateAuthenticatedUser(userData);
- clearState();
-  }
+    props.mappedUpdateAuthenticatedUser(user._id, userData);
+    clearState();
+  };
 
   return (
     <Card {...rest} className={clsx(classes.root, className)}>
@@ -132,7 +131,6 @@ const AccountDetails = props => {
                 required
                 value={form.email}
                 InputProps={{ disableUnderline: true }}
-             
               />
             </Grid>
             <Grid item md={6} xs={12}>
@@ -195,7 +193,7 @@ const AccountDetails = props => {
         </CardContent>
         <Divider />
         <CardActions>
-          <Button color="primary" variant="contained" onClick={onSubmit}>
+          <Button color="primary" variant="contained" onClick={onSubmit} disabled>
             Save details
           </Button>
         </CardActions>

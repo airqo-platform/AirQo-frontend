@@ -50,6 +50,7 @@ const Password = props => {
       password: values.password,
       password2: values.password2
     };
+    console.log("sending them through...");
     console.log(userData);
     props.mappedUpdatePassword(userData);
     clearState();
@@ -82,7 +83,7 @@ const Password = props => {
       </CardContent>
       <Divider />
       <CardActions>
-        <Button color="primary" variant="outlined" onClick={onSubmit}>
+        <Button color="primary" variant="outlined" onClick={onSubmit} disabled>
           Update
         </Button>
       </CardActions>
