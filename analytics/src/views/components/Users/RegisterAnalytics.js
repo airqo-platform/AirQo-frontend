@@ -12,7 +12,6 @@ import countries from '../../../utils/countries';
 import { Alert, AlertTitle } from '@material-ui/lab';
 import { withStyles, InputLabel } from '@material-ui/core';
 
-
 const styles = theme => ({
   root: {
     width: '100%',
@@ -33,15 +32,24 @@ class Register extends Component {
       phoneNumber: '',
       jobTitle: '',
       description: '',
-      organization:'',
+      organization: '',
       errors: {},
-    isChecked: {}
+      isChecked: {}
     };
-
   }
 
   componentDidMount() {
-    // If logged in and user navigates to Register page, should redirect them to dashboard
+    var anchorElem = document.createElement('link');
+    anchorElem.setAttribute(
+      'href',
+      'https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css'
+    );
+    anchorElem.setAttribute('rel', 'stylesheet');
+    anchorElem.setAttribute('id', 'logincdn');
+
+    //document.body.appendChild(anchorElem);
+    document.getElementsByTagName('head')[0].appendChild(anchorElem);
+    // If logged in and user navigates to Login page, should redirect them to dashboard
     if (this.props.auth.isAuthenticated) {
       this.props.history.push('/dashboard');
     }
@@ -49,7 +57,7 @@ class Register extends Component {
 
   componentWillReceiveProps(nextProps) {
     if (nextProps.auth.registered) {
-      this.props.history.push("/login"); // push user to the landing page after successfull signup
+      this.props.history.push('/login'); // push user to the landing page after successfull signup
     }
     if (nextProps.errors) {
       this.setState({
@@ -62,27 +70,27 @@ class Register extends Component {
     this.setState({ [e.target.id]: e.target.value });
   };
 
-  handleCheck = event =>{
+  handleCheck = event => {
     this.state.isChecked = event.target.checked;
-    this.setState({isChecked: this.state.isChecked})
-  }
+    this.setState({ isChecked: this.state.isChecked });
+  };
 
-  clearState = ()=>{
-  const initialState = {
-    firstName: '',
-    lastName: '',
-    email: '',
-    country: '',
-    phoneNumber: '',
-    jobTitle: '',
-    description: '',
-    organization:'',
-    errors: {},
-  isChecked: {}
-  }
+  clearState = () => {
+    const initialState = {
+      firstName: '',
+      lastName: '',
+      email: '',
+      country: '',
+      phoneNumber: '',
+      jobTitle: '',
+      description: '',
+      organization: '',
+      errors: {},
+      isChecked: {}
+    };
     this.setState(initialState);
   };
-  
+
   onSubmit = e => {
     e.preventDefault();
     const newUser = {
@@ -251,7 +259,7 @@ class Register extends Component {
                   ))}
                 </TextField>
               </div>
-              <div>            
+              <div>
                 <FormControlLabel
                   control={
                     <Checkbox
@@ -265,21 +273,19 @@ class Register extends Component {
                 />
               </div>
               <div className="col s12" style={{ paddingLeft: '11.250px' }}>
-                { this.state.isChecked ?
+                {this.state.isChecked ? (
                   <button
-                  style={{
-                    width: '150px',
-                    borderRadius: '3px',
-                    letterSpacing: '1.5px',
-                    marginTop: '1rem'
-                  }}
-                  type="submit"
-                  className="btn btn-large waves-effect waves-light hoverable blue accent-3">
-                  JOIN
-                </button>
-                :
-                null
-                }
+                    style={{
+                      width: '150px',
+                      borderRadius: '3px',
+                      letterSpacing: '1.5px',
+                      marginTop: '1rem'
+                    }}
+                    type="submit"
+                    className="btn btn-large waves-effect waves-light hoverable blue accent-3">
+                    JOIN
+                  </button>
+                ) : null}
               </div>
               {this.props.auth.newUser && (
                 <Alert severity="success">

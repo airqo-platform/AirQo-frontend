@@ -110,6 +110,17 @@ const  SetDefaults = (props) => {
 
     const [form, setState] = useState(initialState);
 
+    useEffect(() => {
+      var anchorElem = document.createElement('link');
+      anchorElem.setAttribute(
+          'href',
+          'https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css'
+      );
+      anchorElem.setAttribute('rel', 'stylesheet');
+      anchorElem.setAttribute('id', 'logincdn');
+  });
+
+
     const onChange = event => {
       setState({
         ...form,
