@@ -2,7 +2,10 @@ import React from 'react';
 import { makeStyles } from '@material-ui/styles';
 import { Grid } from '@material-ui/core';
 
-import { Notifications, Password } from './components';
+import {
+  connnectedSettingsPassword as ConnnectedSettingsPassword, 
+  connectedSettingsNotifications as ConnectedSettingsNotifications
+} from 'views/components/Users/containers/Users';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -24,14 +27,14 @@ const Settings = () => {
           md={7}
           xs={12}
         >
-          <Notifications />
+          <ConnectedSettingsNotifications />
         </Grid>
         <Grid
           item
           md={5}
           xs={12}
         >
-          <Password />
+          <ConnnectedSettingsPassword />
         </Grid>
       </Grid>
     </div>

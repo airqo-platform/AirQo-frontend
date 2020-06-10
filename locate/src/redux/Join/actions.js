@@ -7,7 +7,6 @@ import {
   SET_CURRENT_USER,
   USER_LOADING,
   RESET_PWD_SUCCESS,
-  DEACTIVATE_USER_REQUEST,
   RECOVERY_EMAIL_REQUEST,
 } from "./types";
 import constants from "../../config/constants";
@@ -84,22 +83,11 @@ export const forgotPassword = (userData) => async (dispatch) => {
         type: RECOVERY_EMAIL_REQUEST,
         payload: response.data,
       });
-      // if (response.data === "email not recognized") {
-      //   this.setState({
-      //     showError: true,
-      //     messageFromServer: "",
-      //   });
-      // } else if (response.data === "recovery email sent") {
-      //   this.setState({
-      //     showError: false,
-      //     messageFromServer: "",
-      //   });
-      // }
     })
     .catch((err) =>
       dispatch({
         type: GET_ERRORS,
-        payload: err.response,
+        payload: err.response.data,
       })
     );
 };

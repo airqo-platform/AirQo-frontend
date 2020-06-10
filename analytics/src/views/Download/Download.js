@@ -7,7 +7,7 @@ import clsx from 'clsx';
 import DateFnsUtils from '@date-io/date-fns';
 import {MuiPickersUtilsProvider, KeyboardTimePicker, KeyboardDatePicker} from '@material-ui/pickers';
 import axios from 'axios';
-import {PollutantCategory} from '../Dashboard/components'
+//import {PollutantCategory} from '../Dashboard/components'
 //import CsvDownloader from 'react-csv-downloader';
 import jsonexport from 'jsonexport'
 //import {CSVDownload} from 'react-csv';
@@ -45,7 +45,8 @@ const Download = (props) => {
   const [filterLocations,setFilterLocations] = useState([]);
 
   useEffect(() => {
-    fetch('http://127.0.0.1:5000/api/v1/dashboard/monitoringsites/locations?organisation_name=KCCA')
+    fetch('https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/monitoringsites/locations?organisation_name=KCCA')
+    //fetch('http://127.0.0.1:5000/api/v1/dashboard/monitoringsites/locations?organisation_name=KCCA')
       .then(res => res.json())
       .then((filterLocationsData) => {
         setFilterLocations(filterLocationsData.airquality_monitoring_sites)
@@ -124,7 +125,8 @@ const Download = (props) => {
   
    
     axios.post(
-      'http://localhost:5000/api/v1/data/download', 
+      'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/data/download',
+      //'http://localhost:5000/api/v1/data/download', 
       JSON.stringify(params),
       { headers: { 'Content-Type': 'application/json' } }
     ).then(res => res.data)
@@ -132,9 +134,9 @@ const Download = (props) => {
         // setCustomisedDownloadData(customisedDownloadData)    
         //download the returned data
         console.log((JSON.stringify(customisedDownloadData)))
-    if(selectedType.value ==="JSON"){
-    let filename = "export.json";
-    let contentType = "application/json;charset=utf-8;";
+    if(selectedType.value ==='JSON'){
+    let filename = 'export.json';
+    let contentType = 'application/json;charset=utf-8;';
     if (window.navigator && window.navigator.msSaveOrOpenBlob) {
       var blob = new Blob([decodeURIComponent(encodeURI(JSON.stringify(customisedDownloadData)))], { type: contentType });
       navigator.msSaveOrOpenBlob(blob, filename);
@@ -195,7 +197,6 @@ console.log(csv);
       }).catch(
         console.log
       )  
-
     
   }  
   return (
@@ -248,8 +249,8 @@ console.log(csv);
                         >
                           <KeyboardDatePicker                     
                             disableToolbar
-                            variant="inline"
-                            format="MM/dd/yyyy"
+                            variant="dialog"
+                            format="yyyy-MM-dd"
                             margin="normal"
                             id="date-picker-inline"
                             label="Start Date"
@@ -259,6 +260,7 @@ console.log(csv);
                               'aria-label': 'change date',
                             }}
                             required
+                            disableFuture
                           />  
                         </Grid>  
                         <Grid
@@ -269,9 +271,8 @@ console.log(csv);
                           xl={3}
                           xs={12}
                         >            
-                          <KeyboardTimePicker                     
-                            disableToolbar
-                            variant="inline"
+                          <KeyboardTimePicker                    
+                            variant="dialog"
                             margin="normal"
                             id="time-picker"
                             label="Start Time "
@@ -294,8 +295,8 @@ console.log(csv);
                         >
                           <KeyboardDatePicker                      
                             disableToolbar
-                            variant="inline"
-                            format="MM/dd/yyyy"
+                            variant="dialog"
+                            format="yyyy-MM-dd"
                             margin="normal"
                             id="date-picker-inline"
                             label="End Date"
@@ -305,6 +306,7 @@ console.log(csv);
                               'aria-label': 'change end date',
                             }}
                             required
+                            disableFuture
                           /> 
                         </Grid> 
                         <Grid
@@ -316,8 +318,7 @@ console.log(csv);
                           xs={12}
                         >              
                           <KeyboardTimePicker                      
-                            disableToolbar
-                            variant="inline"
+                            variant="dialog"
                             margin="normal"
                             id="time-picker"
                             label="End Time "
@@ -488,4 +489,5 @@ console.log(csv);
 Download.propTypes = {
   className: PropTypes.string
 };
+
 export default Download;

@@ -2,7 +2,10 @@ import React from 'react';
 import { makeStyles } from '@material-ui/styles';
 import { Grid } from '@material-ui/core';
 
-import { AccountProfile, AccountDetails } from './components';
+import {
+  connectedAccountProfile as ConnectedAccountProfile, 
+  connectedAccountsDetails as ConnectedAccountDetails
+} from 'views/components/Users/containers/Users';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -26,7 +29,7 @@ const Account = () => {
           xl={4}
           xs={12}
         >
-          <AccountProfile />
+          <ConnectedAccountProfile />
         </Grid>
         <Grid
           item
@@ -35,7 +38,7 @@ const Account = () => {
           xl={8}
           xs={12}
         >
-          <AccountDetails />
+          <ConnectedAccountDetails />
         </Grid>
       </Grid>
     </div>
