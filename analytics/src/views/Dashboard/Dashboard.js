@@ -1,7 +1,7 @@
 import React from 'react';
 import { makeStyles } from '@material-ui/styles';
 import { Grid, Card, CardContent, CardHeader, Button, Divider, CardActions } from '@material-ui/core';
-import { Line,Bar } from 'react-chartjs-2';
+import { Line, Bar } from 'react-chartjs-2';
 import clsx from 'clsx';
 import PropTypes from 'prop-types';
 import { Pm25Levels, Map, CustomisableChart, PollutantCategory, ExceedancesChart, TotalProfit } from './components';
@@ -10,6 +10,8 @@ import 'chartjs-plugin-annotation';
 import palette from 'theme/palette';
 import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
 import ArrowRightIcon from '@material-ui/icons/ArrowRight';
+//import Legend from './components/Map/Legend'
+import axios from 'axios';
  
 
 const useStyles = makeStyles(theme => ({
@@ -35,17 +37,41 @@ const useStyles = makeStyles(theme => ({
 const Dashboard = props => {
   const classes = useStyles();
   const { className, staticContext, ...rest } = props;
+
+  function appendLeadingZeroes(n){
+    if(n <= 9){
+      return '0' + n;
+    }
+    return n
+  }
+
+  let todaysDate = new Date()
+  const dateValue = appendLeadingZeroes(todaysDate.getDate() +'/'+appendLeadingZeroes(todaysDate.getMonth()+1)+'/'+ todaysDate.getFullYear())
  
   const [backgroundColors, setBackgroundColors] = useState([]);
+
+  const [pm25CategoriesLocationCount, setPm25CategoriesLocationCount] = useState([]);
+
+  useEffect(() => {
+    axios.get('https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/locations/pm25categorycount?organisation_name=KCCA')
+    //axios.get('http://127.0.0.1:5000/api/v1/dashboard/locations/pm25categorycount?organisation_name=KCCA')
+      .then(res => res.data)
+      .then((data) => {        
+        setPm25CategoriesLocationCount(data);        
+        console.log(data)  
+        //console.log(data.pm25_categories)           
+      })
+      .catch(console.log)
+  }, []);
+
   const [locations,setLocations] = useState([]);
 
   useEffect(() => {
-    fetch('https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/monitoringsite/historical/daily/devices')
+    fetch('https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/historical/daily/devices')
     //fetch('http://127.0.0.1:5000/api/v1/dashboard/historical/daily/devices')
       .then(res => res.json())
       .then((locationsData) => {        
-        setLocations(locationsData.results);
-        
+        setLocations(locationsData.results);        
       })
       .catch(console.log)
   },[]);
@@ -65,24 +91,6 @@ const Dashboard = props => {
   }
   
 
-  const data = {
-    labels: [
-      '10/04/2018', '10/05/2018', 
-      '10/06/2018', '10/07/2018', 
-      '10/08/2018', '10/09/2018', 
-      '10/10/2018', '10/11/2018', 
-      '10/12/2018', '10/13/2018', 
-      '10/14/2018', '10/15/2018'
-    ],
-    datasets: [
-      {
-        label: 'PM2.5(µg/m3)',
-        data: [22,19,27,23,22,24,17,25,23,24,20,19],
-        fill: false,          // Don't fill area under the line
-        borderColor:  palette.primary.main,  // Line color
-      }
-    ]
-  }
 
   
   const options_main= {
@@ -96,7 +104,7 @@ const Dashboard = props => {
         borderWidth: 2,
         label: {
           enabled: true,
-          content: 'WHO LIMIT',
+          content: 'WHO AQG',
           //backgroundColor: palette.white,
           titleFontColor: palette.text.primary,
           bodyFontColor: palette.text.primary,
@@ -190,21 +198,25 @@ const Dashboard = props => {
           xs={12}
         >
           <PollutantCategory
-            pm25level="GOOD"
-            pm25levelCount="08"
+            pm25level="Good"
+            pm25levelCount={typeof pm25CategoriesLocationCount != 'undefined' && 
+            pm25CategoriesLocationCount !=null && pm25CategoriesLocationCount.length >0 ?pm25CategoriesLocationCount[0]['locations_with_category_good'].category_count:''}
+            iconClass="pm25Good"
           />
-        </Grid>
-
+        </Grid>       
         <Grid
           item
           lg={2}
           sm={6}
           xl={2}
           xs={12}
+          
         >
           <PollutantCategory
-            pm25level="MODERATE"
-            pm25levelCount="05"
+            pm25level="Moderate"
+            pm25levelCount={typeof pm25CategoriesLocationCount != 'undefined' && 
+            pm25CategoriesLocationCount !=null && pm25CategoriesLocationCount.length >0 ? pm25CategoriesLocationCount[1]['locations_with_category_moderate'].category_count:''}
+            iconClass="pm25Moderate"
           />
         </Grid>
         <Grid
@@ -216,7 +228,9 @@ const Dashboard = props => {
         >
           <PollutantCategory
             pm25level="UHFSG"
-            pm25levelCount="07"
+            pm25levelCount={typeof pm25CategoriesLocationCount != 'undefined' && 
+            pm25CategoriesLocationCount !=null && pm25CategoriesLocationCount.length >0 ?pm25CategoriesLocationCount[2].locations_with_category_UH4SG.category_count:''}
+            iconClass="pm25UH4SG"
           />
         </Grid>
 
@@ -228,8 +242,10 @@ const Dashboard = props => {
           xs={12}
         >
           <PollutantCategory
-            pm25level="UNHEALTHY"
-            pm25levelCount="07"
+            pm25level="Unhealthy"
+            pm25levelCount={typeof pm25CategoriesLocationCount != 'undefined' && 
+            pm25CategoriesLocationCount !=null && pm25CategoriesLocationCount.length >0 ?pm25CategoriesLocationCount[3].locations_with_category_unhealth.category_count:''}
+            iconClass="pm25UnHealthy"
           />
         </Grid>
 
@@ -241,8 +257,10 @@ const Dashboard = props => {
           xs={12}
         >
           <PollutantCategory
-            pm25level="V.UNHEALTHY"
-            pm25levelCount="07"
+            pm25level="Very Unhealthy"
+            pm25levelCount={typeof pm25CategoriesLocationCount != 'undefined' && 
+            pm25CategoriesLocationCount !=null && pm25CategoriesLocationCount.length >0 ?pm25CategoriesLocationCount[4].locations_with_category_very_unhealthy.category_count:''}
+            iconClass="pm25VeryUnHealthy"
           />
         </Grid>
         <Grid
@@ -253,16 +271,18 @@ const Dashboard = props => {
           xs={12}
         >
           <PollutantCategory
-            pm25level="HAZARDOUS"
-            pm25levelCount="07"
+            pm25level="Hazardous"
+            pm25levelCount={typeof pm25CategoriesLocationCount != 'undefined' && 
+            pm25CategoriesLocationCount !=null && pm25CategoriesLocationCount.length >0 ?pm25CategoriesLocationCount[5].locations_with_category_hazardous.category_count:''}
+            iconClass="pm25Harzadous"
           />
         </Grid>
         <Grid
           item
-          lg={5}
-          md={5}
+          lg={6}
+          md={6}
           sm={12}
-          xl={5}
+          xl={6}
           xs={12}
           container
           spacing={2}
@@ -280,10 +300,11 @@ const Dashboard = props => {
               className={clsx(classes.chartCard)}
             >
               <CardHeader              
-                title="Mean Daily PM2.5 for Past 28 Days"
+                title={`Mean Daily PM2.5 for Past 28 Days From ${dateValue}`}
               />
               <Divider />
               <CardContent>
+                
                 <div className={classes.chartContainer}>
                   <Bar
                     data={locationsGraphData}
@@ -302,18 +323,22 @@ const Dashboard = props => {
             xl={12}
             xs={12}
           >
-            <ExceedancesChart  className={clsx(classes.chartCard)}/>  
+            <ExceedancesChart  
+              className={clsx(classes.chartCard)} 
+              chartContainer={classes.chartContainer}
+            />  
 
           </Grid>      
         </Grid>
 
         <Grid
           item
-          lg={7}
-          md={7}
+          lg={6}
+          md={6}
           sm={12}
-          xl={7}
+          xl={6}
           xs={12}
+          
         >
                  
          
@@ -324,18 +349,122 @@ const Dashboard = props => {
             xl={12}
             xs={12}
           >
-            <Map />
-          </Grid>
+            <Map/>
+          </Grid>         
+               
+
+
+          <Grid
+            container
+            spacing={0}
+            className='MapCardContent'
+          >
+
           
+            <Grid
+              item
+              lg={2}
+              sm={4}
+              xl={2}
+              xs={12}
+            >
+             
+              <Pm25Levels background="#45e50d" 
+                pm25level="Good"
+                //pm25levelText = "(0 - 12)"
+                
+              />
+            </Grid>
+            <Grid
+              item
+              lg={2}
+              sm={4}
+              xl={2}
+              xs={12}
+            >
+              <Pm25Levels
+                background="#f8fe28"
+                pm25level="Moderate"
+                //pm25levelText="(12.1 - 35.4)"
+                
+              />
+            </Grid>
+
+            <Grid
+              item
+              lg={2}
+              sm={4}
+              xl={2}
+              xs={12}
+            >
+              <Pm25Levels
+                background="#ee8310"
+                pm25level="Unhealthy for sensitive groups" //Unhealthy for sensitive groups
+                pm25levelColor="#FFFFFF"
+                //pm25levelText="(35.6 - 55.4)"            
+                
+              />
+            </Grid>
+
+            <Grid
+              item
+              lg={2}
+              sm={4}
+              xl={2}
+              xs={12}
+            >
+              <Pm25Levels
+                background="#fe0000"
+                pm25level="Unhealthy"
+                pm25levelColor="#FFFFFF"
+                //pm25levelText="(55.5 - 150.4)"            
+                
+              />
+            </Grid>
+            <Grid
+              item
+              lg={2}
+              sm={4}
+              xl={2}
+              xs={12}
+            >
+              <Pm25Levels
+                background="#8639c0"
+                pm25level="Very unhealthy"
+                pm25levelColor="#FFFFFF"
+                //pm25levelText="(150.5 - 250.4)"           
+                
+              />
+            </Grid>
+            <Grid
+              item
+              lg={2}
+              sm={4}
+              xl={2}
+              xs={12}
+            >
+              <Pm25Levels
+                background="#81202e"
+                pm25level="Hazardous"
+                pm25levelColor="#FFFFFF"
+                //pm25levelText="(250.5 - 500.4)"           
+                
+              />
+            </Grid> 
+             {/* <p>
+              PM <sub>2.5</sub> - Particulate Matter 
+            </p> */}
+                
+          </Grid> 
         </Grid>
         
 
         <Grid
           item          
-          lg={4}
-          md={4}
+          lg={6}
+          md={6}
           sm={12}
-          xl={4}
+          xl={6}
           xs={12}
         >
           
@@ -344,10 +473,10 @@ const Dashboard = props => {
         </Grid>
         <Grid
           item
-          lg={4}
-          md={4}
+          lg={6}
+          md={6}
           sm={12}
-          xl={4}
+          xl={6}
           xs={12}
         >
            <CustomisableChart className={clsx(classes.chartCard)}/>   
@@ -356,10 +485,23 @@ const Dashboard = props => {
         
     <Grid
            item
-           lg={4}
-           md={4}
+           lg={6}
+           md={6}
            sm={12}
-           xl={4}
+           xl={6}
+           xs={12}
+        >
+          
+          <CustomisableChart className={clsx(classes.chartCard)}/>
+          
+    </Grid>
+
+    <Grid
+           item
+           lg={6}
+           md={6}
+           sm={12}
+           xl={6}
            xs={12}
         >
           

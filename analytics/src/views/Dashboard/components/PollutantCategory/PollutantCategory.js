@@ -18,7 +18,7 @@ const useStyles = makeStyles(theme => ({
     fontWeight: 700
   },
   avatar: {
-    backgroundColor: theme.palette.success.main,
+    //backgroundColor: theme.palette.success.main,
     height: 56,
     width: 56
   },
@@ -41,7 +41,7 @@ const useStyles = makeStyles(theme => ({
 }));
 
 const TotalUsers = props => {
-  const { className, pm25level, pm25levelCount, ...rest } = props;
+  const { className, pm25level, pm25levelCount, iconClass, ...rest } = props;
 
   const classes = useStyles();
 
@@ -67,7 +67,7 @@ const TotalUsers = props => {
             <Typography variant="h3">{pm25levelCount}</Typography>
           </Grid>
           <Grid item>
-            <Avatar className={classes.avatar}>
+            <Avatar className={classes.avatar + ' '+ iconClass} >
               <PeopleIcon className={classes.icon} />
             </Avatar>
           </Grid>
@@ -78,13 +78,13 @@ const TotalUsers = props => {
             className={classes.differenceValue}
             variant="body2"
           >
-            16%
+            
           </Typography>
           <Typography
             className={classes.caption}
             variant="caption"
           >
-            Since last month
+            Since last hour
           </Typography>
         </div>
       </CardContent>

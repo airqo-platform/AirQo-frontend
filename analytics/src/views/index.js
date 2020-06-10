@@ -9,3 +9,4 @@ export { default as Download } from './Download';
 export { default as ReportTemplate } from './ReportTemplate';
 export { default as LocationList } from  './Locations'
 export { default as SignUp } from './SignUp';
+export { default as Documentation } from './Documentation';

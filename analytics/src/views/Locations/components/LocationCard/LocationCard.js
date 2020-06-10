@@ -13,7 +13,8 @@ import {
 } from '@material-ui/core';
 import AccessTimeIcon from '@material-ui/icons/AccessTime';
 import GetAppIcon from '@material-ui/icons/GetApp';
-
+import ArrowForwardIcon from '@material-ui/icons/ArrowForward'
+import {Link } from 'react-router-dom';
 const useStyles = makeStyles(theme => ({
   root: {},
   imageContainer: {
@@ -89,12 +90,13 @@ const LocationCard = props => {
             className={classes.statsItem}
             item
           >
-            <GetAppIcon className={classes.statsIcon} />
+            <ArrowForwardIcon className={classes.statsIcon} />
             <Typography
               display="inline"
               variant="body2"
             >
-              {location.totalDownloads} Downloads
+              <Link to={`/location/${location.Parish}`}>View More</Link>
+               
             </Typography>
           </Grid>
         </Grid>

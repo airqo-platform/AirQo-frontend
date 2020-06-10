@@ -35,17 +35,21 @@ const useStyles = makeStyles(theme => ({
 }));
 
 const AccountProfile = props => {
-  const { className, ...rest } = props;
+  const { className, mappedAuth,mappeduserState, ...rest } = props;
 
   const classes = useStyles();
 
-  const user = {
-    name: 'Shen Zhi',
-    city: 'Los Angeles',
-    country: 'USA',
-    timezone: 'GTM-7',
-    avatar: '/images/avatars/avatar_11.png'
-  };
+  const { user } = mappedAuth;
+
+  const userState = mappeduserState;
+
+  // const user = {
+  //   name: 'Shen Zhi',
+  //   city: 'Los Angeles',
+  //   country: 'USA',
+  //   timezone: 'GTM-7',
+  //   avatar: '/images/avatars/avatar_11.png'
+  // };
 
   return (
     <Card
@@ -59,21 +63,23 @@ const AccountProfile = props => {
               gutterBottom
               variant="h2"
             >
-              John Doe
+              {user.firstName}{" "}{user.lastName}
             </Typography>
             <Typography
               className={classes.locationText}
               color="textSecondary"
               variant="body1"
             >
-              {user.city}, {user.country}
+              {/* {user.city}, {user.country} */}
+              {"Kampala"},{"Uganda"}
             </Typography>
             <Typography
               className={classes.dateText}
               color="textSecondary"
               variant="body1"
             >
-              {moment().format('hh:mm A')} ({user.timezone})
+              {/* {moment().format('hh:mm A')} ({user.timezone})  */}
+              {moment().format('hh:mm A')} ({"GMT+3"})
             </Typography>
           </div>
           <Avatar
@@ -105,7 +111,9 @@ const AccountProfile = props => {
 };
 
 AccountProfile.propTypes = {
-  className: PropTypes.string
+  className: PropTypes.string,
+  mappedAuth: PropTypes.object.isRequired,
+  mappeduserState: PropTypes.object.isRequired,
 };
 
 export default AccountProfile;

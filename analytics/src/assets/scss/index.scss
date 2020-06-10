@@ -98,6 +98,15 @@ select{
 
 .canvas-container {
   height: 60vh;
+  
+}
+
+.MapCardContent {
+	padding: none !important; 
+	margin: none !important;
+	border: none !important;
+	line-height: 0em !important;
+
 }
 
 .markertext {
@@ -119,6 +128,7 @@ select{
   .leaflet-marker-icon {
 	color: #000;
 	font-size: 12px;
+	font-weight: 700;
 	line-height: 35px;
 	text-align: center;
 	vertical-align: bottom;
@@ -131,28 +141,29 @@ select{
 .pm25Good {
 	background:#45e50d;
 	border: 2px solid #45e50d;
+	background-color:#45e50d !important;
   }
 
  .pm25Moderate {
-	background:#f8fe28;
+	background:#f8fe28 !important;
 	border: 2px solid #f8fe28;
   }
  .pm25UH4SG {
-	background:#ee8310;
+	background:#ee8310 !important;
 	border: 2px solid #ee8310;
 
   }
   .pm25UnHealthy {
-	background:#fe0000;
+	background:#fe0000 !important;
 	border: 2px solid #fe0000;
   }
   .pm25VeryUnHealthy {
-	background:#8639c0;
+	background:#8639c0 !important;
 	border: 2px solid #8639c0;
 
   }
   .pm25Harzadous{
-	background:#81202e;
+	background:#81202e !important;
 	border: 2px solid #81202e;
 	
   }
@@ -160,3 +171,59 @@ select{
 	background:#808080;
 	border: 2px solid #808080;
   }
+
+ 
+  /*Legend specific*/
+.legend {
+	padding: 0px 0px;
+	font: 12px Arial, Helvetica, sans-serif;
+	background:transparent;
+	background:transparent;
+	/*box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);*/
+	/*border-radius: 5px;*/
+	line-height: 0.3;
+	color: #fff;
+	font-style: normal;
+  }
+  .legend h4 {
+	text-align: center;
+	font-size: 12px;
+	margin: 2px 12px 8px;
+	color: #777;
+	font-style: normal;
+  }
+  
+  .legend span {
+	position: center;
+	bottom: 3px
+  }
+  
+  .legend i {
+	width: auto;
+	height: 21px;
+	float: right;
+	margin: 0 0 0 0;
+	opacity: 1;
+	padding: 8px;
+	border-radius: 0px;
+	font-style: normal;
+  }
+  
+  .legend i.icon {
+	background-size: 18px;
+	background-color: rgba(255, 255, 255, 1);
+  }
+  .legend j {
+	width: auto;
+	height: 21px;
+	float: right;
+	margin: 0 0 0 0;
+	opacity: 1;
+	padding: 8px;
+	border-radius: 3px;
+	font-style: normal;
+	color: #000;
+  }
+
+
+  

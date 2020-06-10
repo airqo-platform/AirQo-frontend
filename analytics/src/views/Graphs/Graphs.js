@@ -11,6 +11,14 @@ import axios from 'axios';
 import { useParams } from 'react-router-dom';
 import LoadingSpinner from './loadingSpinner';
 import 'chartjs-plugin-annotation';
+import html2canvas from "html2canvas";
+import { Done } from '@material-ui/icons';
+//import * as jsPDF from 'jspdf';
+//import domtoimage from 'dom-to-image';
+
+
+
+const pdfConverter = require("jspdf");
 
 
 const useStyles = makeStyles(theme => ({
@@ -65,7 +73,7 @@ const Graphs = props => {
     startdate.setHours(0,0,0,0);
   
     let effectFilter ={ 
-      location: 'Civic Centre',
+      location: params.locationname,
       startDate: startdate,
       endDate:  new Date(),
       chartType:  'bar',
@@ -108,7 +116,7 @@ const Graphs = props => {
 
   const [myChartType, setMyChartType] = useState({value: ''});
   const [myPollutant, setMyPollutant] = useState({value: ''});
-  const [myLocation, setMyLocation] = useState({value:''})
+  const [myLocation, setMyLocation] = useState(params.locationname)
   
 
   var startDate = new Date();
@@ -161,6 +169,7 @@ const Graphs = props => {
   ];
 
   const [selectedChart, setSelectedChartType] =  useState({value: 'line' });
+  const [downloadBtn, setDownloadBtn] = useState(false);
 
   const handleChartTypeChange = selectedChartType => {
     setSelectedChartType(selectedChartType);
@@ -293,6 +302,63 @@ const Graphs = props => {
 
   }
 
+  /*let exportPdf =() => {
+    const div = document.getElementById('pie');
+    const options = { background: 'white', height: 845, width: 595 };
+    domtoimage.toPng(div, options).then((dataUrl) => {
+        //Initialize JSPDF
+        const doc = new jsPDF('p', 'mm', 'a4');
+        //Add image Url to PDF
+        doc.addImage(dataUrl, 'PNG', 0, 0, 210, 340);
+        doc.save('pdfDocument.pdf');
+    });
+}*/
+
+  let handleDownloadPie = () => {
+    //var url_base64jp = document.getElementById("mychart").toDataURL("image/jpg");
+    //let input = window.document.getElementById("pie");
+    let input = window.document.getElementsByClassName("chart")[0];
+    html2canvas(input).then(canvas => {
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new pdfConverter("l", "pt");
+      pdf.addImage(imgData, "JPEG", 0, 0, canvas.width, canvas.height);
+      //pdf.addImage(imgData, "png", input.offsetLeft, input.offsetTop, input.clientWidth, input.clientHeight);
+      //pdf.addImage(imgData, "png", 0, 0, input.clientWidth, input.clientHeight);
+      pdf.save("chart.pdf");
+      //setDownloadBtn(false);
+});
+  }
+  
+  let done = () => {
+    //pass
+  }
+
+
+
+
+  let handleDownload = (e) => {
+    const but = e.target;
+    but.style.display = "none";
+    let input = window.document.getElementsByClassName("Pie")[0];
+    //let input = document.getElementById("mychart");
+
+    html2canvas(input).then(canvas => {
+      const img = canvas.toDataURL("image/png");
+      const pdf = new pdfConverter("l", "pt");
+      pdf.addImage(
+        img,
+        "png",
+        input.offsetLeft,
+        input.offsetTop,
+        input.clientWidth,
+        input.clientHeight
+      );
+      pdf.save("chart.pdf");
+      but.style.display = "block";
+    });
+
+  }
+
   let  handleSubmit = (e) => {
     e.preventDefault();
     setLoading(true);
@@ -327,7 +393,8 @@ const Graphs = props => {
           myData.forEach(element => {
             myValues.push(element);
           });
-          setPollutionValues(myValues)
+          setPollutionValues(myValues);
+          setDownloadBtn(true);
         }
 
         else if (typeof myData[0]== 'object'){
@@ -356,7 +423,8 @@ const Graphs = props => {
           });
           setTimes(myTimes);
           setPollutionValues(myValues);
-          setBackgroundColors(myColors)
+          setBackgroundColors(myColors);
+          setDownloadBtn(true);
         }
         else{
           //pass
@@ -409,9 +477,10 @@ const Graphs = props => {
               xl={12}
               xs={12}
               >
-              <div>
-              {loading ? <LoadingSpinner /> : 
+             <div className="chart">
               <Line
+              id = "line"
+              height={200}
               data= {
                   {
                   labels: times,
@@ -431,6 +500,10 @@ const Graphs = props => {
               }
               }
               options={{
+                //onAnimationComplete: handleDownloadPie,
+                animation:{
+                  onComplete : done
+                },
                 title:{
                   display:true,
                   text: 'Line graph showing '+myPollutant+' data in '+myLocation,
@@ -481,7 +554,7 @@ const Graphs = props => {
                 maintainAspectRatio: true,
                 responsive: true
                 }}
-              />}
+              /> 
               </div>
               </Grid>
           </Grid>
@@ -532,7 +605,7 @@ const Graphs = props => {
           >
             <KeyboardDatePicker
               disableToolbar
-              variant="inline"
+              variant="dialog"
               format="yyyy-MM-dd"
               margin="normal"
               id="date-picker-inline"
@@ -542,10 +615,10 @@ const Graphs = props => {
               KeyboardButtonProps={{
                 'aria-label': 'change date',
               }}
+              disableFuture
             />                
-            <KeyboardTimePicker
-              disableToolbar
-              variant="inline"
+            <KeyboardTimePicker              
+              variant="dialog"
               margin="normal"
               id="time-picker"
               label="Time Picker "
@@ -567,7 +640,7 @@ const Graphs = props => {
           >
             <KeyboardDatePicker
               disableToolbar
-              variant="inline"
+              variant="dialog"
               format="yyyy-MM-dd"
               margin="normal"
               id="date-picker-inline"
@@ -577,10 +650,10 @@ const Graphs = props => {
               KeyboardButtonProps={{
                 'aria-label': 'change end date',
               }}
+              disableFuture
             />                
-            <KeyboardTimePicker
-              disableToolbar
-              variant="inline"
+            <KeyboardTimePicker              
+              variant="dialog"
               margin="normal"
               id="time-picker"
               label="Time Picker "
@@ -635,8 +708,18 @@ const Graphs = props => {
           variant="contained" 
           color="primary"              
           type="submit"
-        > Generate Graph
+        > Submit
         </Button>
+        {/*<Button 
+          variant="contained" 
+          color="primary"              
+          type="button"
+          disabled={downloadBtn === false ? "true" : ""}
+          //onclick = {handleDownload}
+          //onClick={(e) => handleDownload(e)}
+          onClick={() => handleDownloadPie()}
+        > Download
+        </Button>*/}
       </div>       
       </form>
 
@@ -667,10 +750,37 @@ const Graphs = props => {
           xl={8}
           xs={12}
           >
+           <Card
+            {...rest}
+            className={clsx(classes.root, className)}
+          >
+            <CardContent>
+              <Grid
+                container
+                justify="space-between"
+              >
+              <Grid item>
+                <Typography
+                  className={classes.title}
+                  color="textSecondary"
+                  gutterBottom
+                  variant="body2"
+                >
+                  {params.locationname}
+                </Typography>
+              </Grid>           
+              <Grid
+              item
+              lg={12}
+              sm={12}
+              xl={12}
+              xs={12}
+              >
 
-           <div>
-          {loading ? <LoadingSpinner /> : 
+         <div className="chart">
           <Pie
+          id="pie"
+          height={200}
           data= {
             {
               labels: ['Good', 'Moderate', 'UH4SG', 'Unhealthy', 'Very Unhealthy', 'Hazardous', 'Other'],
@@ -688,6 +798,11 @@ const Graphs = props => {
           options={
             
             {
+              bezierCurve : false,
+              //onAnimationComplete: handleDownloadPie,
+            animation:{
+                onComplete : done
+              },
             title:{
               display:true,
               text: 'Pie Chart showing '+ myPollutant+ ' data in '+myLocation,
@@ -715,9 +830,13 @@ const Graphs = props => {
             
             maintainAspectRatio: true,
             responsive: true
-            }}/>}
+            }}/>
           </div>
           </Grid>
+          </Grid>
+          </CardContent>
+    </Card>
+        </Grid>
 
           <Grid
           item
@@ -771,9 +890,10 @@ const Graphs = props => {
         KeyboardButtonProps={{
           'aria-label': 'change date',
         }}
+        disableFuture
       />                
       <KeyboardTimePicker
-        disableToolbar
+        
         variant="inline"
         margin="normal"
         id="time-picker"
@@ -806,9 +926,10 @@ const Graphs = props => {
         KeyboardButtonProps={{
           'aria-label': 'change end date',
         }}
+        disableFuture
       />                
       <KeyboardTimePicker
-        disableToolbar
+        
         variant="inline"
         margin="normal"
         id="time-picker"
@@ -864,8 +985,20 @@ const Graphs = props => {
     variant="contained" 
     color="primary"              
     type="submit"
-  > Generate Graph
+  > Submit
   </Button>
+  {/*<Button 
+    variant="contained" 
+    color="primary"              
+    type="button"
+    disabled={downloadBtn === false ? "true" : ""}
+    //onClick={(e) => handleDownload(e)}
+    onClick={() => handleDownloadPie()}
+    //onClick = {handleDownloadPie()}
+    //onClick={() => handleDownload()}
+    //onClick={(e) => this.handleDownload(e)}
+    > Download
+  </Button>*/}
 </div>       
 </form>
 
@@ -896,9 +1029,36 @@ else if (myChartType=='bar'){
         xl={8}
         xs={12}
         >
-        <div>
-        {loading ? <LoadingSpinner /> : 
+         <Card
+            {...rest}
+            className={clsx(classes.root, className)}
+          >
+            <CardContent>
+              <Grid
+                container
+                justify="space-between"
+              >
+              <Grid item>
+                <Typography
+                  className={classes.title}
+                  color="textSecondary"
+                  gutterBottom
+                  variant="body2"
+                >
+                  {params.locationname}
+                </Typography>
+              </Grid>           
+              <Grid
+              item
+              lg={12}
+              sm={12}
+              xl={12}
+              xs={12}
+              >
+        <div className="chart">
         <Bar
+        height={200}
+        id = "bar"
         data= {
             {
             labels: times,
@@ -914,6 +1074,10 @@ else if (myChartType=='bar'){
          }
         }
         options={{
+          //onAnimationComplete: handleDownloadPie,
+          animation:{
+            onComplete : done
+          },
           title:{
             display:true,
             text: 'Bar graph showing '+myPollutant+ ' data in '+myLocation,
@@ -945,8 +1109,8 @@ else if (myChartType=='bar'){
                 labelString: 'Time',
                 fontWeight:4,
                 fontColor: 'black',
-                fontSize: 20,
-                padding: 6
+                fontSize: 15,
+                padding: 10
               },
               ticks: {
                 fontColor:'black'                 
@@ -960,10 +1124,13 @@ else if (myChartType=='bar'){
         
           maintainAspectRatio: true,
           responsive: true
-          }}/>}
+          }}/>
         </div>
         </Grid>
-
+          </Grid>
+          </CardContent>
+    </Card>
+        </Grid>
         <Grid
         item
         lg={4}
@@ -1016,9 +1183,10 @@ else if (myChartType=='bar'){
             KeyboardButtonProps={{
               'aria-label': 'change date',
             }}
+            disableFuture
           />                
           <KeyboardTimePicker
-            disableToolbar
+            
             variant="inline"
             margin="normal"
             id="time-picker"
@@ -1051,9 +1219,10 @@ else if (myChartType=='bar'){
             KeyboardButtonProps={{
               'aria-label': 'change end date',
             }}
+            disableFuture
           />                
           <KeyboardTimePicker
-            disableToolbar
+            
             variant="inline"
             margin="normal"
             id="time-picker"
@@ -1109,8 +1278,18 @@ else if (myChartType=='bar'){
         variant="contained" 
         color="primary"              
         type="submit"
-        > Generate Graph
+        > Submit
         </Button>
+        {/*<Button 
+          variant="contained" 
+          color="primary"              
+          type="button"
+          disabled={downloadBtn === false ? "true" : ""}
+          //onclick = {handleDownload}
+          //onClick={(e) => handleDownload(e)}
+          onClick={() => handleDownloadPie()}
+        > Download
+        </Button>*/}
         </div>       
         </form>
 
@@ -1142,9 +1321,37 @@ else if (myChartType=='bar'){
           xl={8}
           xs={12}
           >
+          <Card
+            {...rest}
+            className={clsx(classes.root, className)}
+          >
+            <CardContent>
+              <Grid
+                container
+                justify="space-between"
+              >
+              <Grid item>
+                <Typography
+                  className={classes.title}
+                  color="textSecondary"
+                  gutterBottom
+                  variant="body2"
+                >
+                  {params.locationname}
+                </Typography>
+              </Grid>           
+              <Grid
+              item
+              lg={12}
+              sm={12}
+              xl={12}
+              xs={12}
+              >
          
-        <div>
+        <div className="chart">
         <Bar
+        height={200}
+        id ="default"
         data= {
             {
             labels: times,
@@ -1160,9 +1367,13 @@ else if (myChartType=='bar'){
          }
         }
         options={{
+          //onAnimationComplete: handleDownloadPie,
+          animation:{
+            onComplete : done
+          },
           title:{
             display:true,
-            text: 'Bar graph showing PM 2.5 data at KCCA',
+            text: 'Bar graph showing PM 2.5 data at '+ myLocation,
             fontColor: 'black',
             fontWeight: 5,
             fontSize: 20
@@ -1207,8 +1418,11 @@ else if (myChartType=='bar'){
           responsive: true
           }}/>
         </div>
+        </Grid>
           </Grid>
-
+          </CardContent>
+    </Card>
+        </Grid>
           <Grid
           item
           lg={4}
@@ -1261,9 +1475,10 @@ else if (myChartType=='bar'){
         KeyboardButtonProps={{
           'aria-label': 'change date',
         }}
+        disableFuture
       />                
       <KeyboardTimePicker
-        disableToolbar
+        
         variant="inline"
         margin="normal"
         id="time-picker"
@@ -1296,9 +1511,10 @@ else if (myChartType=='bar'){
         KeyboardButtonProps={{
           'aria-label': 'change end date',
         }}
+        disableFuture
       />                
       <KeyboardTimePicker
-        disableToolbar
+        
         variant="inline"
         margin="normal"
         id="time-picker"
@@ -1354,8 +1570,18 @@ else if (myChartType=='bar'){
     variant="contained" 
     color="primary"              
     type="submit"
-  > Generate Graph
+  > Submit
   </Button>
+  {/*<Button 
+    variant="contained" 
+    color="primary"              
+    type="button"
+    disabled={downloadBtn === false ? "true" : ""}
+    //onclick = {handleDownload}
+    //onClick={(e) => handleDownload(e)}
+    onClick={() => handleDownloadPie()}
+    > Download
+  </Button>*/}
 </div>       
 </form>
 

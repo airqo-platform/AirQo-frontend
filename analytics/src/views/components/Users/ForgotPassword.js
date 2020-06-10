@@ -1,3 +1,4 @@
+/* eslint-disable */
 import React, { Component } from "react";
 import TextField from "@material-ui/core/TextField";
 import axios from "axios";
@@ -125,3 +126,5 @@ const mapSateToProps = (state) => ({
 });
 
 export default connect(mapSateToProps, { forgotPassword })(ForgotPassword);
+
+//
