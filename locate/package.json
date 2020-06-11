@@ -33,6 +33,7 @@
     "react-leaflet-fullscreen": "^1.0.1",
     "react-loader-spinner": "^3.1.14",
     "react-loading-overlay": "^1.0.1",
+    "react-perfect-scrollbar": "^1.5.8",
     "react-redux": "^7.2.0",
     "react-router-dom": "^5.1.2",
     "react-scripts": "3.4.0",
@@ -47,7 +48,7 @@
   "scripts": {
     "start": "serve -s build",
     "prestart": "npm install -g serve",
-    "local": "PORT=5000 react-scripts start",
+    "local": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",

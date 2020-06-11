@@ -6,11 +6,16 @@ import { Divider, Drawer } from '@material-ui/core';
 import DashboardIcon from '@material-ui/icons/Dashboard';
 import PeopleIcon from '@material-ui/icons/People';
 import BarChartIcon from '@material-ui/icons/BarChart';
+import TuneIcon from '@material-ui/icons/Tune';
 import TimelineIcon from '@material-ui/icons/Timeline';
 import AccountBoxIcon from '@material-ui/icons/AccountBox';
+import LocationOnIcon from '@material-ui/icons/LocationOn';
+import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
 import SettingsIcon from '@material-ui/icons/Settings';
+import SupervisedUserCircleIcon from '@material-ui/icons/SupervisedUserCircle';
+import HelpOutlineIcon from '@material-ui/icons/HelpOutline';
 
-import { Profile, SidebarNav} from './components';
+import { Profile, SidebarNav } from './components';
 
 const useStyles = makeStyles(theme => ({
   drawer: {
@@ -52,9 +57,27 @@ const Sidebar = props => {
       icon: <BarChartIcon />
     },
     {
-      title: 'Custom Reports',
-      href: '/reports',
-      icon: <TimelineIcon />
+      title: "Report Template",
+      href: "/report",
+      icon: <TimelineIcon />,
+    },
+
+    {
+      title: "Locations",
+      href: "/locations",
+      icon: <LocationOnIcon />,
+    },
+
+    {
+      title: 'Data Download',
+      href: '/download',
+      icon: <CloudDownloadIcon />
+    },
+
+    {
+      title: 'Documentation',
+      href: '/documentation',
+      icon: <HelpOutlineIcon />
     }
   ];
   const userManagementPages = [
@@ -64,40 +87,59 @@ const Sidebar = props => {
       icon: <PeopleIcon />
     },
     {
+      title: 'Candidates',
+      href: '/candidates',
+      icon: <SupervisedUserCircleIcon />
+    },
+    {
       title: 'Account',
       href: '/account',
       icon: <AccountBoxIcon />
+    },
+    {
+      title: 'Defaults',
+      href: '/defaults',
+      icon: <TuneIcon />
     },
     {
       title: 'Settings',
       href: '/settings',
       icon: <SettingsIcon />
     }
-  ]
+  ];
 
+  const { mappedAuth } = props;
+  let { user } = mappedAuth;
+  let userPages = [];
+
+  if (user.privilege === 'super' ) {
+    userPages = userManagementPages;
+  } 
+
+ else if (user.privilege === 'admin') {
+    userPages = userManagementPages.filter(function(element) {
+      return element.title !== 'Candidates';
+    });
+  } 
+  
+  else {
+    userPages = userManagementPages.filter(function(element) {
+      return element.title !== 'Users';
+    });
+  }
   return (
     <Drawer
       anchor="left"
       classes={{ paper: classes.drawer }}
       onClose={onClose}
       open={open}
-      variant={variant}
-    >
-      <div
-        {...rest}
-        className={clsx(classes.root, className)}
-      >
+      variant={variant}>
+      <div {...rest} className={clsx(classes.root, className)}>
         <Profile />
         <Divider className={classes.divider} />
-        <SidebarNav
-          className={classes.nav}
-          pages={pages}
-        />
+        <SidebarNav className={classes.nav} pages={pages} />
         <Divider className={classes.divider} />
-        <SidebarNav
-          className={classes.nav}
-          pages={userManagementPages}
-        />
+        <SidebarNav className={classes.nav} pages={userPages} />
         {/* <UpgradePlan /> */}
       </div>
     </Drawer>

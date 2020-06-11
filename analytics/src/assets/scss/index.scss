@@ -15,6 +15,7 @@ body {
   height: 100%;
 }
 
+
 a {
   text-decoration: none;
 }
@@ -46,6 +47,7 @@ a {
 .form-style-graph input[type=date],
 .form-style-graph input[type=search],
 .form-style-graph input[type=time],
+.form-style-graph input[type=input],
  
 select{
 	box-sizing: border-box;
@@ -71,6 +73,12 @@ select{
 .form-style-graph .field-select{
 	width: 100%;
 }
+.form-style-graph .field-button{
+  background: #4B99AD;
+	padding: 8px 15px 8px 15px;
+	border: none;
+	color: #fff;
+}
 .form-style-graph input[type=submit], .form-style-graph input[type=button]{
 	background: #4B99AD;
 	padding: 8px 15px 8px 15px;
@@ -86,4 +94,136 @@ select{
 .form-style-graph .required{
 	color:red;
 }  
+
+
+.canvas-container {
+  height: 60vh;
+  
+}
+
+.MapCardContent {
+	padding: none !important; 
+	margin: none !important;
+	border: none !important;
+	line-height: 0em !important;
+
+}
+
+.markertext {
+	all: revert;
+	color: black;
+	font-size:12px;
+	font-weight: 700;
+	background-color: none;
+	border-color: none;
+	background: none;
+	border: none;
+	box-shadow: none;
+	margin: 0px;
+	cursor: none;
+	direction: 'center';
+	fill: false;
+  }
+
+  .leaflet-marker-icon {
+	color: #000;
+	font-size: 12px;
+	font-weight: 700;
+	line-height: 35px;
+	text-align: center;
+	vertical-align: bottom;
+	box-shadow: 2px 1px 4px rgba(0,0,0,0.2);
+	border-radius: 30px;
+	border-width: 3px;
+	opacity: 1;		
+}
+
+.pm25Good {
+	background:#45e50d;
+	border: 2px solid #45e50d;
+	background-color:#45e50d !important;
+  }
+
+ .pm25Moderate {
+	background:#f8fe28 !important;
+	border: 2px solid #f8fe28;
+  }
+ .pm25UH4SG {
+	background:#ee8310 !important;
+	border: 2px solid #ee8310;
+
+  }
+  .pm25UnHealthy {
+	background:#fe0000 !important;
+	border: 2px solid #fe0000;
+  }
+  .pm25VeryUnHealthy {
+	background:#8639c0 !important;
+	border: 2px solid #8639c0;
+
+  }
+  .pm25Harzadous{
+	background:#81202e !important;
+	border: 2px solid #81202e;
+	
+  }
+  .pm25UnCategorised{
+	background:#808080;
+	border: 2px solid #808080;
+  }
+
  
+  /*Legend specific*/
+.legend {
+	padding: 0px 0px;
+	font: 12px Arial, Helvetica, sans-serif;
+	background:transparent;
+	background:transparent;
+	/*box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);*/
+	/*border-radius: 5px;*/
+	line-height: 0.3;
+	color: #fff;
+	font-style: normal;
+  }
+  .legend h4 {
+	text-align: center;
+	font-size: 12px;
+	margin: 2px 12px 8px;
+	color: #777;
+	font-style: normal;
+  }
+  
+  .legend span {
+	position: center;
+	bottom: 3px
+  }
+  
+  .legend i {
+	width: auto;
+	height: 21px;
+	float: right;
+	margin: 0 0 0 0;
+	opacity: 1;
+	padding: 8px;
+	border-radius: 0px;
+	font-style: normal;
+  }
+  
+  .legend i.icon {
+	background-size: 18px;
+	background-color: rgba(255, 255, 255, 1);
+  }
+  .legend j {
+	width: auto;
+	height: 21px;
+	float: right;
+	margin: 0 0 0 0;
+	opacity: 1;
+	padding: 8px;
+	border-radius: 3px;
+	font-style: normal;
+	color: #000;
+  }
+
+
+  
