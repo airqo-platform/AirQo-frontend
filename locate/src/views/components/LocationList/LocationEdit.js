@@ -10,14 +10,18 @@ import TextField from '@material-ui/core/TextField';
 import NavPills from '../NavPills/NavPills';
 import { Link } from "react-router-dom";
 import LoadingOverlay from 'react-loading-overlay';
+import CreatableSelect from 'react-select/creatable';
+//import './assets/css/location-registry.css';
 //import Select from '@material-ui/core/Select';
+import '../../../assets/css/location-registry.css';
 
 
 const useStyles = makeStyles(theme => ({
   root: {
     padding: theme.spacing(3),
-    //fontFamily: 'Times New Roman'
-  },
+    //marginLeft: 100,
+    //marginRight: 100,
+     },
   notchedOutline: {
   },
   focused: {
@@ -55,23 +59,27 @@ const useStyles = makeStyles(theme => ({
 
   formControl: {
     margin: theme.spacing(3),
-    //fontFamily: 'Times New Roman'
+    fontFamily: 'Open Sans',
+    marginLeft: 100,
+    marginRight: 100
   },
   textField: {
     width: '250px',
     textAlign: 'left',
-    marginLeft: 'auto',
-    marginRight: 'auto',            
+    //marginLeft: 'auto',
+    //marginRight: 'auto',            
     paddingBottom: 0,
     marginTop: 0,
     //fontWeight: 500,
     //borderWidth: '2px',
     //borderColor: '#7575FF',
+    borderRadius: 10,
     border: '2px solid #7575FF', 
+    fontFamily: 'Open Sans'
   },
   input: {
     color: 'black',
-    fontFamily: 'Arial',
+    fontFamily: 'Open Sans',
     fontweight:500,
     font: '100px',
     fontSize: 17
@@ -89,7 +97,8 @@ const selectStyles = {
     textAlign: 'left',
     border: 'none',
     fontWeight: 500,
-    fontFamily: 'Arial',
+    //fontFamily: 'Arial',
+    fontFamily: 'Open Sans',
     font: '100px',
     fontSize: 17
   }),
@@ -97,7 +106,7 @@ const selectStyles = {
     ...provided,
     //border: '2px solid #757575',
     border: '2px solid #7575FF',
-    borderRadius: '0',
+    borderRadius: 10,
     minHeight: '1px',
     height: '56px',
   }),
@@ -138,6 +147,65 @@ const selectStyles = {
   }),
 };
 
+const multiStyles = {
+  container: (provided) => ({
+    ...provided,
+    display: 'inline-block',
+    width: '250px',
+    minHeight: '1px',
+    textAlign: 'left',
+    border: 'none',
+    //borderRadius: 10,
+    fontWeight: 500,
+    //fontFamily: 'Arial',
+    fontFamily: 'Open Sans',
+    font: '100px',
+    fontSize: 17
+  }),
+  control: (provided) => ({
+    ...provided,
+    border: '2px solid #7575FF',
+    borderRadius: 10,
+    minHeight: '56px',
+   // height: 'auto'
+  }),
+  input: (provided) => ({
+    ...provided,
+    minHeight: '1px',
+  }),
+  dropdownIndicator: (provided) => ({
+    ...provided,
+    minHeight: '1px',
+    paddingTop: '0',
+    paddingBottom: '0',
+    color: '#7575FF',
+  }),
+  indicatorSeparator: (provided) => ({
+    ...provided,
+    minHeight: '1px',
+    color: '#7575FF',
+    //height: '24px',
+  }),
+  clearIndicator: (provided) => ({
+    ...provided,
+    minHeight: '1px',
+  }),
+  valueContainer: (provided) => ({
+    ...provided,
+    minHeight: '40px',
+    //height: '40px',
+    paddingTop: '0',
+    paddingBottom: '0',
+    fontweight: 500,
+  }),
+  singleValue: (provided) => ({
+    ...provided,
+    minHeight: '1px',
+    paddingBottom: '2px',
+    fontweight: 500,
+  }),
+};
+
 const LocationEdit = props => {
   const { className, ...rest } = props;
   let params = useParams();
@@ -163,7 +231,7 @@ const LocationEdit = props => {
 	  setInternet(selectedInternet.value);
   }
   const internetOptions = [
-    { value: 'SMS', label: 'SMS' },
+    { value: 'GSM', label: 'GSM' },
     { value: 'WiFi', label: 'WiFi' },
 	{ value: 'LoRa', label: 'LoRa' }
   ];
@@ -202,10 +270,17 @@ const handleInstallationTypeChange = enteredInstallationType => {
 	  setInstallationType(enteredInstallationType.target.value);
   }
   
-const [localActivities, setLocalActivities] = useState('');
-const handleLocalActivitiesChange = enteredLocalActivities => {
-	  setLocalActivities(enteredLocalActivities.target.value);
+  const [localActivities, setLocalActivities] = useState([]);
+  const handleLocalActivitiesChange = selectedOptions => {
+    setLocalActivities(selectedOptions);
   }
+ const localActivitiesOptions = [
+   { value: 'Burning', label: 'Burning' },
+   { value: 'Cooking', label: 'Cooking' },
+   { value: 'Dust', label: 'Dust' },
+   { value: 'Construction', label: 'Construction' },
+   { value:'Vehicle Emissions', label: 'Vehicle Emissions'}
+ ];
 
     
 const [roadStatus, setRoadStatus] = useState({value: ''});
@@ -300,21 +375,6 @@ const getLocation = ref => {
       localActivities: localActivities,	
       power:  power,
     }
-/*
-    let filter ={ 
-      locationReference: locationReference,
-      hostName:  hostName,
-	    //mobility: mobility.value,
-      latitude: Number(latitude),
-      longitude:  Number(longitude),
-      internet:  internet,
-      height: Number(height),      
-      roadIntensity: roadIntensity, 
-      installationType:	installationType,  
-      roadStatus: roadStatus,
-      localActivities: localActivities,	
-      power:  power,
-    }*/
     console.log(JSON.stringify(filter));
     
     axios.post(
@@ -349,6 +409,7 @@ const getLocation = ref => {
     > 
           
     <form onSubmit={handleSubmit}>
+    <h5 align = "center"><b>Edit a Location</b></h5><br/>
       <Grid container spacing={1}>
         <Grid container item xs={12} spacing={3}>
           <React.Fragment>
@@ -432,21 +493,6 @@ const getLocation = ref => {
             <Grid item xs={6}>
             <div className={classes.formControl} style={{width: '250px',height:10}}>
             <span>Road Intensity</span>
-            {/*}
-              <Select
-                className="reactSelect"
-                name="roadIntensity"
-                options={roadIntensityOptions}
-                onChange={handleRoadIntensityChange}  
-                value={roadIntensityOptions.filter(function(option) {
-                    return option.value === roadIntensity;
-                  })} 
-                variant = "outlined"
-                autoWidth   
-                autoFocus={true}     
-                styles={selectStyles}   
-                isDisabled ={mobile}
-                />*/}
 
               <Select
                 className="reactSelect"
@@ -489,7 +535,7 @@ const getLocation = ref => {
             <span>Installation Type</span>
               <TextField 
                 className={classes.textField}
-	            id="installationType" 
+	              id="installationType" 
                 value = {installationType}
                 onChange = {handleInstallationTypeChange}
                 variant = "outlined"
@@ -497,6 +543,7 @@ const getLocation = ref => {
                 color ="secondary"
                 margin ="normal"
                 disabled = {mobile}
+                InputProps={{className: classes.input}}
 	            /> 
               </div>
             </Grid>
@@ -521,6 +568,7 @@ const getLocation = ref => {
                 margin ="normal"
                 InputProps={{
                     readOnly: true,
+                    className: classes.input
                     }}
                 //disabled = {mobile}
 	             /> 
@@ -563,6 +611,7 @@ const getLocation = ref => {
                 margin ="normal"
                 InputProps={{
                   readOnly: true,
+                  className: classes.input
                     }}
                 //disabled = {mobile}
 	             /> 
@@ -571,6 +620,23 @@ const getLocation = ref => {
             <Grid item xs={6}>
             <div className={classes.formControl} style={{width: '250px'}}>
             <span>Local Activities</span>
+            <CreatableSelect
+              className="reactselect"
+              name = "localActivities"
+              //placeholder="Local Activities"
+              options={ localActivitiesOptions}
+              onChange={handleLocalActivitiesChange}
+              styles = {multiStyles}
+              isDisabled ={mobile} 
+              isMulti
+              value = {localActivities}
+              //value={localActivities.selectedOption}
+              //value={localActivitiesOptions.filter(function(option) {
+                //return option.selectedOption === localActivities;
+              //})}
+            />
+
+            {/*
               <TextField  
                 className={classes.textField}
 	              id="localActivities" 
@@ -581,7 +647,8 @@ const getLocation = ref => {
                 margin ="normal"
                 disabled = {mobile}
                 value = {localActivities}
-	            /> 
+                InputProps={{className: classes.input}}
+            /> */}
 	          </div>
             </Grid>
            </React.Fragment>

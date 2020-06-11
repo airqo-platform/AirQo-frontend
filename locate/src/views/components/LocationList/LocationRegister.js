@@ -9,11 +9,16 @@ import { useParams } from 'react-router-dom';
 import TextField from '@material-ui/core/TextField';
 import { Link } from "react-router-dom";
 import LoadingOverlay from 'react-loading-overlay';
+import CreatableSelect from 'react-select/creatable';
+//import './assets/css/location-registry.css';
+import '../../../assets/css/location-registry.css';
 
 
 const useStyles = makeStyles(theme => ({
   root: {
     padding: theme.spacing(3),
+    //marginLeft: 100,
+    //marginRight: 100,
     //'&:hover $notchedOutline': {
      // border: '2px solid #7575FF',
     //}
@@ -30,7 +35,10 @@ const useStyles = makeStyles(theme => ({
     marginTop: theme.spacing(2)
   },
   title: {
-    fontWeight: 700
+    fontWeight: 700,
+    color: '#000000',
+    fontSize: 24,
+    fontFamily: 'Open Sans'
   },
   avatar: {
     backgroundColor: theme.palette.success.main,
@@ -56,23 +64,28 @@ const useStyles = makeStyles(theme => ({
 
   formControl: {
     margin: theme.spacing(3),
+    fontFamily: 'Open Sans',
+    marginLeft: 100,
+    marginRight: 100
   },
   textField: {
     width: '250px',
     textAlign: 'left',
-    marginLeft: 'auto',
-    marginRight: 'auto',            
+    //marginLeft: 'auto',
+    //marginRight: 'auto',            
     paddingBottom: 0,
     marginTop: 0,
     //fontWeight: 500,
     //borderWidth: '2px',
     //borderColor: '#7575FF',
+    borderRadius: 10,
     border: '2px solid #7575FF', 
   },
 
   input: {
     color: 'black',
-    fontFamily: 'Arial',
+    //fontFamily: 'Arial',
+    fontFamily: 'Open Sans',
     fontweight:500,
     font: '100px',
     fontSize: 17
@@ -89,8 +102,10 @@ const selectStyles = {
     minHeight: '1px',
     textAlign: 'left',
     border: 'none',
+    //borderRadius: 10,
     fontWeight: 500,
-    fontFamily: 'Arial',
+    //fontFamily: 'Arial',
+    fontFamily: 'Open Sans',
     font: '100px',
     fontSize: 17
   }),
@@ -98,7 +113,7 @@ const selectStyles = {
     ...provided,
     //border: '2px solid #757575',
     border: '2px solid #7575FF',
-    borderRadius: '0',
+    borderRadius: 10,
     minHeight: '1px',
     height: '56px',
   }),
@@ -111,12 +126,12 @@ const selectStyles = {
     minHeight: '1px',
     paddingTop: '0',
     paddingBottom: '0',
-    color: '#757575',
+    color: '#7575FF',
   }),
   indicatorSeparator: (provided) => ({
     ...provided,
     minHeight: '1px',
-    height: '24px',
+    //height: '24px',
   }),
   clearIndicator: (provided) => ({
     ...provided,
@@ -136,6 +151,67 @@ const selectStyles = {
     paddingBottom: '2px',
     fontweight: 500,
   }),
+};
+
+const multiStyles = {
+  container: (provided) => ({
+    ...provided,
+    display: 'inline-block',
+    width: '250px',
+    minHeight: '1px',
+    textAlign: 'left',
+    border: 'none',
+    //borderRadius: 10,
+    fontWeight: 500,
+    //fontFamily: 'Arial',
+    fontFamily: 'Open Sans',
+    font: '100px',
+    fontSize: 17
+  }),
+  control: (provided) => ({
+    ...provided,
+    border: '2px solid #7575FF',
+    borderRadius: 10,
+    minHeight: '56px',
+   // height: 'auto'
+  }),
+  input: (provided) => ({
+    ...provided,
+    minHeight: '1px',
+  }),
+  dropdownIndicator: (provided) => ({
+    ...provided,
+    minHeight: '1px',
+    paddingTop: '0',
+    paddingBottom: '0',
+    color: '#7575FF',
+  }),
+  indicatorSeparator: (provided) => ({
+    ...provided,
+    minHeight: '1px',
+    color: '#7575FF',
+    //height: '24px',
+  }),
+  clearIndicator: (provided) => ({
+    ...provided,
+    minHeight: '1px',
+  }),
+  valueContainer: (provided) => ({
+    ...provided,
+    minHeight: '40px',
+    //height: '40px',
+    paddingTop: '0',
+    paddingBottom: '0',
+    fontweight: 500,
+  }),
+  singleValue: (provided) => ({
+    ...provided,
+    minHeight: '1px',
+    paddingBottom: '2px',
+    fontweight: 500,
+  }),
+  
+  
 };
 
 const LocationRegister = props => {
@@ -204,7 +280,7 @@ const LocationRegister = props => {
 	  setInternet(selectedInternet);
   }
   const internetOptions = [
-    { value: 'SMS', label: 'SMS' },
+    { value: 'GSM', label: 'GSM' },
     { value: 'WiFi', label: 'WiFi' },
 	  { value: 'LoRa', label: 'LoRa' }
   ];
@@ -260,11 +336,25 @@ const LocationRegister = props => {
   const handleInstallationTypeChange = enteredInstallationType => {
 	  setInstallationType(enteredInstallationType.target.value);
   }
+ 
   
-  const [localActivities, setLocalActivities] = useState('');
-  const handleLocalActivitiesChange = enteredLocalActivities => {
-	  setLocalActivities(enteredLocalActivities.target.value);
+  const [localActivities, setLocalActivities] = useState([]);
+  const handleLocalActivitiesChange = selectedOptions => {
+    setLocalActivities(selectedOptions);
   }
+
+ 
+/* const [localActivities, setLocalActivities] = useState({ selectedOption: [] });
+ const handleLocalActivitiesChange = selectedOption => {
+  setLocalActivities({ selectedOption });
+}*/
+const localActivitiesOptions = [
+  { value: 'Burning', label: 'Burning' },
+  { value: 'Cooking', label: 'Cooking' },
+  { value: 'Dust', label: 'Dust' },
+  { value: 'Construction', label: 'Construction' },
+  { value:'Vehicle emissions', label: 'Vehicle Emissions'}
+];
     
   const [roadStatus, setRoadStatus] = useState({value: ''});
   const handleRoadStatusChange = selectedRoadStatus => {
@@ -275,18 +365,7 @@ const LocationRegister = props => {
     { value: 'Unpaved', label: 'Unpaved' }
   ];
   
-  //const [localActivities, setLocalActivities = useState([]);
- /* const [localActivities,setLocalActivities] = useState({ selectedOption: [] });
-  const handleLocalActivitiesChange = selectedLocalActivities => {
-	  //setLocalActivities(selectedLocalActivities);
-	  setLocalActivities({ selectedLocalActivities});
-  }
-  const localActivitiesOptions = [
-    { value: 'burning', label: 'Burning' },
-    { value: 'cooking', label: 'Cooking' },
-    { value: 'road dust', label: 'Road dust' },
-	  { value: 'idling', label: 'Idling' }
-  ];*/
+  
 
   let generateReference = () =>{
     axios.get(
@@ -336,11 +415,12 @@ const LocationRegister = props => {
       roadIntensity: roadIntensity.value, 
       installationType:	installationType,  
       roadStatus: roadStatus.value,
+      //localActivities: localActivities.selectedOption,
       localActivities: localActivities,	
       power:  power.value,
     }
     console.log(JSON.stringify(filter));
-    
+    /*
     axios.post(
       //'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/device/graph',
       'http://127.0.0.1:4000/api/v1/location_registry/register', 
@@ -359,7 +439,7 @@ const LocationRegister = props => {
         //setLoading(false) 
     }).catch(
       console.log
-    )
+    )*/
   }
 
     return(
@@ -370,10 +450,10 @@ const LocationRegister = props => {
       text='Saving Location...'
     >
           
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} className={classes.formControl}>
+    <h5 align = "center"><b>Add a Location</b></h5><br/>
       <Grid container spacing={1}>
         <Grid container item xs={12} spacing={3}>
-        {/*<h5 align = "center"><b>Add a Location</b></h5><br/>*/}
           <React.Fragment>
             <Grid item xs={6}>
             <div className={classes.formControl} style={{width: '250px'}}>
@@ -567,7 +647,6 @@ const LocationRegister = props => {
                 onChange = {handleLongitudeChange}
                 keyboardType="numeric"
 		            variant = "outlined"
-                //type = "number"
                 size = "medium"
                 color ="secondary"
                 margin ="normal"
@@ -585,24 +664,21 @@ const LocationRegister = props => {
             <Grid item xs={6}>
             <div className={classes.formControl} style={{width: '250px'}}>
             <span>Local Activities</span>
-              <TextField  
-                className={classes.textField}
-	              id="localActivities" 
-                onChange = {handleLocalActivitiesChange}
-                variant = "outlined"
-                size = "medium"
-                color ="secondary"
-                margin ="normal"
-                disabled = {mobile}
-                value = {localActivities}
-                InputProps={{
-                  className: classes.input,
-                  classes: {
-                    notchedOutline: classes.notchedOutline,
-                    focused: classes.focused
-                  }
-              }}
-	            /> 
+            <CreatableSelect
+              //className="reactselect"
+              className="basic-multi-select"
+              classNamePrefix="select"
+              name = "localActivities"
+              //value={localActivities.selectedOption}
+              value = {localActivities}
+              options={localActivitiesOptions}
+              onChange={handleLocalActivitiesChange}
+              //styles = {selectStyles}
+              styles = {multiStyles}
+              isDisabled ={mobile} 
+              closeMenuOnSelect={false}
+              isMulti
+            />
 	          </div>
             </Grid>
            </React.Fragment>

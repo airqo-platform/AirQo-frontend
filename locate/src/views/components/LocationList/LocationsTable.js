@@ -22,6 +22,8 @@ import {
 import LoadingOverlay from 'react-loading-overlay';
 import {CSVLink, CSVDownload} from 'react-csv';
 import { Button } from "@material-ui/core";
+//import './assets/css/location-registry.css';
+import '../../../assets/css/location-registry.css';
 
 
 const useStyles = makeStyles(theme => ({
@@ -43,8 +45,12 @@ const useStyles = makeStyles(theme => ({
     justifyContent: 'flex-end'
   },
   link: {
-    color: '#3344FF'
-    }
+    color: '#3344FF',
+    fontFamily: 'Open Sans'
+    },
+  table: {
+    fontFamily:'Open Sans'
+  }
 }));
 
 const LocationsTable = props => {
@@ -147,7 +153,7 @@ const LocationsTable = props => {
       <CardContent className={classes.content}>
         <PerfectScrollbar>
           <div className={classes.inner}>
-            <Table>
+            <Table className ={classes.table}>
               <TableHead>
                 <TableRow>
                   {/*<TableCell padding="checkbox">
@@ -161,15 +167,15 @@ const LocationsTable = props => {
                       onChange={handleSelectAll}
                     />
                     </TableCell>*/}
-                  <TableCell>Location Ref</TableCell>
-                  <TableCell>Location Name</TableCell>
-                  <TableCell>Mobility</TableCell>
-                  <TableCell>Latitude</TableCell>
-                  <TableCell>Longitude</TableCell>
-                  <TableCell>Country</TableCell>
-                  <TableCell>District</TableCell>
-                  <TableCell>Subcounty</TableCell>  
-                  <TableCell>Parish</TableCell>
+                  <TableCell className = {classes.table}><b>Location Ref</b></TableCell>
+                  <TableCell className = {classes.table}><b>Location Name</b></TableCell>
+                  <TableCell className = {classes.table}><b>Mobility</b></TableCell>
+                  <TableCell className = {classes.table}><b>Latitude</b></TableCell>
+                  <TableCell className = {classes.table}><b>Longitude</b></TableCell>
+                  <TableCell className = {classes.table}><b>Country</b></TableCell>
+                  <TableCell className = {classes.table}><b>District</b></TableCell>
+                  <TableCell className = {classes.table}><b>Subcounty</b></TableCell>  
+                  <TableCell className = {classes.table}><b>Parish</b></TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -179,14 +185,14 @@ const LocationsTable = props => {
                   <TableCell> 
                     <Link className={classes.link} to={`/locations/${row.loc_ref}`}>{row.loc_ref}</Link>
                   </TableCell>
-                  <TableCell>{row.location_name}</TableCell>
-                  <TableCell>{row.mobility}</TableCell>
-                  <TableCell>{row.latitude}</TableCell>
-                  <TableCell>{row.longitude}</TableCell>
-                  <TableCell>{row.country}</TableCell>
-                  <TableCell>{row.district}</TableCell>
-                  <TableCell>{row.subcounty}</TableCell>
-                  <TableCell>{row.parish}</TableCell>
+                  <TableCell className = {classes.table}>{row.location_name}</TableCell>
+                  <TableCell className = {classes.table}>{row.mobility}</TableCell>
+                  <TableCell className = {classes.table}>{row.latitude}</TableCell>
+                  <TableCell className = {classes.table}>{row.longitude}</TableCell>
+                  <TableCell className = {classes.table}>{row.country}</TableCell>
+                  <TableCell className = {classes.table}>{row.district}</TableCell>
+                  <TableCell className = {classes.table}>{row.subcounty}</TableCell>
+                  <TableCell className = {classes.table}>{row.parish}</TableCell>
                 </TableRow>
                  );  
                })}  

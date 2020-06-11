@@ -10,12 +10,14 @@ import TextField from '@material-ui/core/TextField';
 import { TableContainer, Table, TableBody, TableCell, TableHead, TableRow, Paper } from '@material-ui/core';
 import { Link } from "react-router-dom";
 import LoadingOverlay from 'react-loading-overlay';
+//import './assets/css/location-registry.css';
+import '../../../assets/css/location-registry.css';
 
 
 
 const useStyles = makeStyles(theme => ({
   root: {
-    padding: theme.spacing(3)
+    padding: theme.spacing(3),
   },
   content: {
     marginTop: theme.spacing(2)
@@ -24,6 +26,7 @@ const useStyles = makeStyles(theme => ({
     fontWeight: 700,
     color: '#000000',
     fontSize: 20,
+    fontFamily: 'Open Sans'
   },
   avatar: {
     backgroundColor: theme.palette.success.main,
@@ -49,17 +52,13 @@ const useStyles = makeStyles(theme => ({
 
   formControl: {
     margin: theme.spacing(3),
+    fontFamily: 'Open Sans'
   },
-  textField: {
-    width: '250px',
-    textAlign: 'left',
-    marginLeft: 'auto',
-    marginRight: 'auto',            
-    paddingBottom: 0,
-    marginTop: 0,
-    fontWeight: 500,
-    border: '2px solid #7575FF',    
-},
+
+  table: {
+    fontFamily: 'Open Sans'
+  }
+  
   
 }));
 
@@ -70,6 +69,7 @@ const LocationView = props => {
 
   const [locData, setLocData] = useState('')
   const [isLoading, setIsLoading] = useState(false);
+  const [loaded, setLoaded] = useState(false)
   
   useEffect(() => {
     setIsLoading(true);
@@ -78,11 +78,13 @@ const LocationView = props => {
     )
     .then(
       res=>{
+        
         setIsLoading(false);
         const data = res.data;
         console.log(data);
         setLocData(data);
         //console.log(locData);
+        setLoaded(true);
     }).catch(
       console.log
     )
@@ -103,7 +105,7 @@ const LocationView = props => {
       </div>
       <br/>
       <div>
-     <TableContainer component={Paper}>  
+     <TableContainer component={Paper} className = {classes.table}>  
         <Table stickyHeader  aria-label="sticky table">  
          {/* <TableHead>  
             <TableRow align='center'>  {locData.loc_ref}: {locData.location_name}
@@ -112,44 +114,50 @@ const LocationView = props => {
           </TableHead> */}
           <TableBody>  
             <TableRow>  
-              <TableCell>Host Name: <b>{locData.host}</b></TableCell>  
-              <TableCell>Parish: <b>{locData.parish}</b></TableCell> 
-              <TableCell>Altitude: <b>{locData.altitude}</b></TableCell>   
+              <TableCell className = {classes.table}>Host Name: <b>{locData.host}</b></TableCell>  
+              <TableCell className = {classes.table}>Parish: <b>{locData.parish}</b></TableCell> 
+              <TableCell className = {classes.table}>Altitude: <b>{locData.altitude}</b></TableCell>   
             </TableRow> 
             <TableRow>  
-              <TableCell>Mobility: <b>{locData.mobility}</b></TableCell>  
-              <TableCell>Internet: <b>{locData.internet}</b></TableCell> 
-              <TableCell>Aspect: <b>{locData.aspect}</b></TableCell>   
+              <TableCell className = {classes.table}>Mobility: <b>{locData.mobility}</b></TableCell>  
+              <TableCell className = {classes.table}>Internet: <b>{locData.internet}</b></TableCell> 
+              <TableCell className = {classes.table}>Aspect: <b>{locData.aspect}</b></TableCell>   
             </TableRow> 
             <TableRow>  
-              <TableCell>Latitude: <b>{locData.latitude}</b></TableCell>  
-              <TableCell>Power Type: <b>{locData.power}</b></TableCell> 
-              <TableCell>Landform (90): <b>{locData.landform_90}</b></TableCell>   
+              <TableCell className = {classes.table}>Latitude: <b>{locData.latitude}</b></TableCell>  
+              <TableCell className = {classes.table}>Power Type: <b>{locData.power}</b></TableCell> 
+              <TableCell className = {classes.table}>Landform (90): <b>{locData.landform_90}</b></TableCell>   
             </TableRow> 
             <TableRow>  
-              <TableCell>Longitude: <b>{locData.longitude}</b></TableCell>  
-              <TableCell>Height above ground (m): <b>{locData.height_above_ground}</b></TableCell> 
-              <TableCell>Landform (270): <b>{locData.landform_270}</b></TableCell>   
+              <TableCell className = {classes.table}>Longitude: <b>{locData.longitude}</b></TableCell>  
+              <TableCell className = {classes.table}>Height above ground (m): <b>{locData.height_above_ground}</b></TableCell> 
+              <TableCell className = {classes.table}>Landform (270): <b>{locData.landform_270}</b></TableCell>   
             </TableRow> 
             <TableRow>  
-              <TableCell>Country: <b>{locData.country}</b></TableCell>  
-              <TableCell>Road Intensity: <b>{locData.road_intensity}</b></TableCell> 
-              <TableCell>Distance to nearest road (m): <b>{locData.distance_from_nearest_road}</b></TableCell>   
+              <TableCell className = {classes.table}>Country: <b>{locData.country}</b></TableCell>  
+              <TableCell className = {classes.table}>Road Intensity: <b>{locData.road_intensity}</b></TableCell> 
+              <TableCell className = {classes.table}>Distance to nearest road (m): <b>{locData.distance_from_nearest_road}</b></TableCell>   
             </TableRow> 
             <TableRow>  
-              <TableCell>Region: <b>{locData.region}</b></TableCell>  
-              <TableCell>Installation Description: <b>{locData.installation_type}</b></TableCell> 
-              <TableCell>Distance to nearest residential road (m): <b>{locData.distance_from_residential}</b></TableCell>   
+              <TableCell className = {classes.table}>Region: <b>{locData.region}</b></TableCell>  
+              <TableCell className = {classes.table}>Installation Description: <b>{locData.installation_type}</b></TableCell> 
+              <TableCell className = {classes.table}>Distance to nearest residential road (m): <b>{locData.distance_from_residential}</b></TableCell>   
             </TableRow> 
             <TableRow>  
-              <TableCell>District: <b>{locData.district}</b></TableCell>  
-              <TableCell>Road Status: <b>{locData.road_status}</b></TableCell> 
-              <TableCell>Distance to nearest motorway (m): <b>{locData.distance_from_motorway}</b></TableCell>   
+              <TableCell className = {classes.table}>District: <b>{locData.district}</b></TableCell>  
+              <TableCell className = {classes.table}>Road Status: <b>{locData.road_status}</b></TableCell> 
+              <TableCell className = {classes.table}>Distance to nearest motorway (m): <b>{locData.distance_from_motorway}</b></TableCell>   
             </TableRow> 
             <TableRow>  
-              <TableCell>Subcounty: <b>{locData.subcounty}</b></TableCell>  
-              <TableCell>Local Activities: <b>{locData.local_activities}</b></TableCell> 
-              <TableCell>Distance to nearest city/town (m): <b>{locData.distance_from_city}</b></TableCell>   
+              <TableCell className = {classes.table}>Subcounty: <b>{locData.subcounty}</b></TableCell>  
+              {/*<TableCell className = {classes.table}>Local Activities:<b>{locData.local_activities.map(item => {return item+','})}</b></TableCell> */}
+              {
+              loaded?
+                    <TableCell className = {classes.table}>Local Activities: <b>{locData.local_activities.join()}</b></TableCell>
+                    :
+                    <TableCell className = {classes.table}>Local Activities: <b>{locData.local_activities}</b></TableCell>
+                }
+              <TableCell className = {classes.table}>Distance to nearest city/town (m): <b>{locData.distance_from_city}</b></TableCell>   
             </TableRow> 
           </TableBody> 
         </Table> 
@@ -165,6 +173,7 @@ const LocationView = props => {
           color="primary"              
           type="submit"
           align = "centre"
+          fontFamily = 'Open Sans'
         > Edit Location
         </Button>
      </Link>    
