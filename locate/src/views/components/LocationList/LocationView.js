@@ -12,6 +12,8 @@ import { Link } from "react-router-dom";
 import LoadingOverlay from 'react-loading-overlay';
 //import './assets/css/location-registry.css';
 import '../../../assets/css/location-registry.css';
+import { Map, FeatureGroup, LayerGroup, TileLayer, Marker, Popup } from "react-leaflet";
+import 'leaflet/dist/leaflet.css'
 
 
 
@@ -69,7 +71,8 @@ const LocationView = props => {
 
   const [locData, setLocData] = useState('')
   const [isLoading, setIsLoading] = useState(false);
-  const [loaded, setLoaded] = useState(false)
+  const [loaded, setLoaded] = useState(false);
+  const [position, setPosition] = useState([0,0]);
   
   useEffect(() => {
     setIsLoading(true);
@@ -83,6 +86,7 @@ const LocationView = props => {
         const data = res.data;
         console.log(data);
         setLocData(data);
+        setPosition([data.latitude, data.longitude]);
         //console.log(locData);
         setLoaded(true);
     }).catch(
@@ -104,7 +108,37 @@ const LocationView = props => {
         </Typography> 
       </div>
       <br/>
+
+      <div style={{width: '250px', align: 'center'}} >  
+
+       <Map center={[0.32, 32.10]} zoom={13} scrollWheelZoom={false}>
+        <TileLayer
+          attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+          url='http://{s}.tile.osm.org/{z}/{x}/{y}.png'
+        />
+        <Marker position={[0.32, 32.10]}>
+          <Popup>
+            <span>A pretty CSS3 popup. <br/> Easily customizable.</span>
+          </Popup>
+        </Marker>
+      </Map>  
+
+      {/*}  
+     
+      <Map
+          center={[locData.latitude, locData.longitude]}
+          //zoom={this.props.mapDefaults.zoom}
+        >
+
+      <TileLayer
+            attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+            url="http://{s}.tile.osm.org/{z}/{x}/{y}.png"
+          />
+    </Map>*/}
+      </div>
+
       <div>
+
      <TableContainer component={Paper} className = {classes.table}>  
         <Table stickyHeader  aria-label="sticky table">  
          {/* <TableHead>  

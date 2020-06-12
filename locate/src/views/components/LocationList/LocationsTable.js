@@ -24,12 +24,15 @@ import {CSVLink, CSVDownload} from 'react-csv';
 import { Button } from "@material-ui/core";
 //import './assets/css/location-registry.css';
 import '../../../assets/css/location-registry.css';
+import { SearchInput } from "../SearchInput";
+
+import MaterialTable, { MTablePagination, Paper} from 'material-table';
 
 
 const useStyles = makeStyles(theme => ({
   root: {},
   content: {
-    padding: 0
+    padding: 0,
   },
   inner: {
     minWidth: 1050
@@ -65,6 +68,13 @@ const LocationsTable = props => {
   const [page, setPage] = useState(0);
 
   const [isLoading, setIsLoading] = useState(false);
+  const [filterInput, setFilterInput] = useState('');
+  const handleFilterChange = filter =>{
+    const value = filter.target.value || undefined
+    setFilterInput(value);
+  }
+
+ 
 
   /*
   useEffect(() => {
@@ -146,27 +156,24 @@ const LocationsTable = props => {
       spinner
       text='Loading Locations...'
     >
+      {/*
+      <div className={classes.row}>
+    
+        <SearchInput
+          className={classes.searchInput}
+          placeholder="Search location"
+          modifier='material'
+          onChange={handleFilterChange}
+          value = {filterInput}
+        />
+      </div> */}
     <Card
       {...rest}
       className={clsx(classes.root, className)}
     >
       <CardContent className={classes.content}>
         <PerfectScrollbar>
-          <div className={classes.inner}>
-            <Table className ={classes.table}>
-              <TableHead>
-                <TableRow>
-                  {/*<TableCell padding="checkbox">
-                    <Checkbox
-                      checked={selectedLocations.length === users.length}
-                      color="primary"
-                      indeterminate={
-                        selectedLocations.length > 0 &&
-                        selectedLocations.length < users.length
-                      }
-                      onChange={handleSelectAll}
-                    />
-                    </TableCell>*/}
+          {/*
                   <TableCell className = {classes.table}><b>Location Ref</b></TableCell>
                   <TableCell className = {classes.table}><b>Location Name</b></TableCell>
                   <TableCell className = {classes.table}><b>Mobility</b></TableCell>
@@ -198,57 +205,50 @@ const LocationsTable = props => {
                })}  
                  
                  
-                 
-                {/*
-                {users.slice(0, rowsPerPage).map(user => (
-                  <TableRow
-                    className={classes.tableRow}
-                    hover
-                    key={user.id}
-                    selected={selectedLocations.indexOf(user.id) !== -1}
-                  >
-                    {/*<TableCell padding="checkbox">
-                      <Checkbox
-                        checked={selectedLocations.indexOf(user.id) !== -1}
-                        color="primary"
-                        onChange={event => handleSelectOne(event, user.id)}
-                        value="true"
-                      />
-                    </TableCell>
-                    <TableCell>
-                        {user.loc_ref}
-                    </TableCell>
-                    <TableCell>
-                      {user.location_name}
-                    </TableCell>
-                    <TableCell>
-                      {user.host}
-                    </TableCell>
-                    <TableCell>
-                      {user.latitude}
-                    </TableCell>
-                    <TableCell>
-                      {user.longitude}
-                    </TableCell>
-                    <TableCell>
-                      {user.country}
-                    </TableCell>
-                    <TableCell>
-                      {user.district}
-                    </TableCell>
-                    <TableCell>
-                      {user.subcounty}
-                    </TableCell>
-                    <TableCell>
-                      {user.parish}
-                    </TableCell>
-                  </TableRow>
-                ))}*/}
+                
+                    
               </TableBody>
             </Table>
-          </div>
-        </PerfectScrollbar>
-        {/*}
+          </div> */}
+          <MaterialTable
+            className = {classes.table}
+            title="Location Registry"
+            columns={[
+             { title: 'Reference', 
+               field: 'loc_ref', 
+               render: rowData => <Link className={classes.link} to={`/locations/${rowData.loc_ref}`}>{rowData.loc_ref}</Link>
+             },
+             { title: 'Name', field: 'location_name', cellStyle:{ fontFamily: 'Open Sans'} },
+             { title: 'Mobility', field: 'mobility', cellStyle:{ fontFamily: 'Open Sans'} },
+             { title: 'Latitude', field: 'latitude', cellStyle:{ fontFamily: 'Open Sans'} },
+             { title: 'Longitude', field: 'longitude', cellStyle:{ fontFamily: 'Open Sans'} },
+             { title: 'Country', field: 'country', cellStyle:{ fontFamily: 'Open Sans'} },
+             { title: 'District', field: 'district', cellStyle:{ fontFamily: 'Open Sans'} },
+             { title: 'Subcounty', field: 'subcounty', cellStyle:{ fontFamily: 'Open Sans'} },
+             { title: 'Parish', field: 'parish', cellStyle:{ fontFamily: 'Open Sans'} },
+             //{title: 'Birth Place',mfield: 'birthCity', lookup: { 34: 'İstanbul', 63: 'Şanlıurfa' },},
+      ]}   
+      data = {data}  
+      options={{
+        search: true,
+        exportButton: true,
+        searchFieldAlignment: 'left',
+        showTitle: false,
+        searchFieldStyle: {
+          fontFamily: 'Open Sans',
+          border: '2px solid #7575FF',
+        },
+        headerStyle: {
+          fontFamily: 'Open Sans',
+          fontSize: 16,
+          fontWeight: 600
+        },
+        pageSizeOptions : [10, 25, 50, data.length],
+        pageSize: 10
+      }}
+    />
+        </PerfectScrollbar> 
+        {/*
         <br/>
         <CSVLink data={data} 
          align = "center">
@@ -260,8 +260,11 @@ const LocationsTable = props => {
         >Export as CSV
         </Button>
               </CSVLink>*/}
-      </CardContent>
-      <CardActions className = {classes.actions}>
+      </CardContent> 
+      {/*<CardActions className = {classes.actions}>*/}
+      {/*
+      <CardContent className={classes.content}>
+      <br/>
       <CSVLink 
         data={data} 
         filename="locations_data.csv"
@@ -274,9 +277,9 @@ const LocationsTable = props => {
         >Export to CSV
         </Button>
       </CSVLink>
-      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+      </CardContent>
       
+      {/*
         <TablePagination 
           component="div"
           count={data.length}
@@ -285,14 +288,11 @@ const LocationsTable = props => {
           page={page}
           rowsPerPage={rowsPerPage}
           rowsPerPageOptions={[5, 10, 25]}
-        />
+        /> 
 
-      </CardActions>
+      {/*</CardActions>*/}
+      </Card>
 
-     
-     
-      
-    </Card>
     </LoadingOverlay>
   );
 };

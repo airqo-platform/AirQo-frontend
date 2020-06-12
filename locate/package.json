@@ -18,6 +18,7 @@
     "classnames": "^2.2.6",
     "clsx": "^1.1.0",
     "geojson-validation": "^1.0.1",
+    "google-map-react": "^1.1.7",
     "is-empty": "^1.2.0",
     "jsonexport": "^2.4.1",
     "jspdf": "^1.5.3",

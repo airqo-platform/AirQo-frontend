@@ -723,9 +723,19 @@ const localActivitiesOptions = [
           variant="contained" 
           color="primary"              
           type="submit"
-          align = "centre"
+          //align = "centre"
         > Register Location
         </Button>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <Link to={`/location`}>
+        <Button 
+          variant="contained" 
+          color="primary"              
+          type="button"
+          //align = "centre"
+        > Cancel
+        </Button>
+        </Link>
       </div>           
       </form>
       </LoadingOverlay>

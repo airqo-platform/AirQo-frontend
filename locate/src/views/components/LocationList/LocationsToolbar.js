@@ -69,12 +69,7 @@ const LocationsToolbar = (props) => {
      </Link>    
         
       </div>
-      <div className={classes.row}>
-        <SearchInput
-          className={classes.searchInput}
-          placeholder="Search location"
-        />
-      </div>
+
     </div>
   );
 };
