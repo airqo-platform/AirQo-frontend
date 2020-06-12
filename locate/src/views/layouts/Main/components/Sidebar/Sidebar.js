@@ -13,6 +13,7 @@ import SettingsIcon from "@material-ui/icons/Settings";
 import LocateIcon from "@material-ui/icons/AddLocation";
 import ManageIcon from "@material-ui/icons/Build";
 import AddIcon from "@material-ui/icons/Add";
+import EditLocationIcon from '@material-ui/icons/EditLocation';
 
 import { Profile, SidebarNav } from "./components";
 
@@ -71,6 +72,11 @@ const Sidebar = (props) => {
       href: "/registry",
       icon: <AddIcon />,
     },
+    {
+      title: "Location Registry",
+      href: "/location",
+      icon: < EditLocationIcon /> ,
+   },
   ];
   const userManagementPages = [
     {

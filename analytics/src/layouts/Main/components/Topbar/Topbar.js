@@ -1,14 +1,15 @@
+/* eslint-disable */
 import React, { useState, Component } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 import clsx from 'clsx';
 import PropTypes from 'prop-types';
-import { connect } from "react-redux";
+import { connect } from 'react-redux';
 import { makeStyles } from '@material-ui/core/styles';
 import { AppBar, Toolbar, Badge, Hidden, IconButton } from '@material-ui/core';
 import MenuIcon from '@material-ui/icons/Menu';
 import NotificationsIcon from '@material-ui/icons/NotificationsOutlined';
 import InputIcon from '@material-ui/icons/Input';
-import { logoutUser } from "../../../../redux/Join/actions";
+import { logoutUser } from '../../../../redux/Join/actions';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -25,11 +26,12 @@ const useStyles = makeStyles(theme => ({
 function withMyHook(Component) {
   return function WrappedComponent(props) {
     const classes = useStyles();
-    return <Component {...props} classes={classes} />;
+    return <Component
+      {...props}
+      classes={classes}
+           />;
   };
 }
-
-
 
 const Topbar = props => {
   const divProps = Object.assign({}, props);
@@ -40,25 +42,30 @@ const Topbar = props => {
   const classes = useStyles();
 
   const [notifications] = useState([]);
-  const logo_style = {
-    'height': '4em',
-    'width': '4em',
-    'borderRadius': '50%',
-    'paddingTop': '.2em',
-    'marginRight': '.4em'
-  }
+  const kcca_logo_style = {
+    height: '3.5em',
+    width: '4em',
+    borderRadius: '15%',
+    paddingTop: '.2em',
+    marginRight: '.4em'
+  };
+  const mak_logo_style = {
+    height: '3.3em',
+    width: '4em',
+    borderRadius: '15%',
+    paddingTop: '.2em',
+    marginRight: '.4em'
+  };
   const airqo_logo_style = {
-    'height': '4em',
-    'width': '4em',
-    'paddingTop': '.2em',
-    'marginRight': '.4em'
-  }
-  const onLogoutClick = (e) => {
+    height: '3.5em',
+    width: '5em',
+    paddingTop: '.2em',
+    marginRight: '.4em'
+  };
+  const onLogoutClick = e => {
     e.preventDefault();
     props.logoutUser();
   };
- 
-  
 
   return (
     <AppBar
@@ -69,7 +76,7 @@ const Topbar = props => {
         <RouterLink to="/">
           <img
             alt="Logo"
-            style = {logo_style}
+            style={kcca_logo_style}
             src="/images/logos/kcca_logo.jpg"
           />
         </RouterLink>
@@ -83,7 +90,7 @@ const Topbar = props => {
         <RouterLink to="/">
           <img
             alt="mak.ac.ug"
-            style={logo_style}
+            style={mak_logo_style}
             src="/images/logos/mak_logo.jpg"
           />
         </RouterLink>
@@ -123,12 +130,11 @@ Topbar.propTypes = {
   className: PropTypes.string,
   onSidebarOpen: PropTypes.func,
   logoutUser: PropTypes.func.isRequired,
-  auth: PropTypes.object.isRequired,
+  auth: PropTypes.object.isRequired
 };
 
-const mapStateToProps = (state) => ({
-  auth: state.auth,
+const mapStateToProps = state => ({
+  auth: state.auth
 });
 
 export default connect(mapStateToProps, { logoutUser })(withMyHook(Topbar));
-
