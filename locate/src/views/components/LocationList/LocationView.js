@@ -132,6 +132,8 @@ const LocationView = props => {
         </Grid>  
         </Grid>
        
+       {locData.mobility=='Static'?
+       (
 
         <Paper className={classes.paper}>
         <Grid
@@ -185,7 +187,7 @@ const LocationView = props => {
     }
         </Grid>
         </Grid>
-        </Paper>
+       </Paper>) : null}
 
        
 
