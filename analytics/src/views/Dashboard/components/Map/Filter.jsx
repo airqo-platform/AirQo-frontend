@@ -27,7 +27,7 @@ class Filter extends Component {
             PM2.5 AQI
           </h2>
           <i className="arrow down" onClick={this.toggleFilter}></i>
-          {this.state.isFilterOpen === false ? null : (
+          {this.state.isFilterOpen === true ? null : (
             <>
               <form>
                 <h3 className="filter__h3">Air Quality Levels</h3>
@@ -52,8 +52,6 @@ class Filter extends Component {
                    <div class="control__indicator1"></div>
                    {"Good"}
                 </label>
-                {/* <div id="" class="" style="background: rgb(240, 40, 40);"></div>
-                <span id="">VIIRS 375m / NOAA-20</span> */}
                 <label>
                   <input
                     type="radio"
@@ -74,7 +72,7 @@ class Filter extends Component {
                     onChange={this.handleMagnitudeChange}
                   />
                   <div class="control__indicator3"></div>
-                  {"UHFSG"}
+                  Unhealthy <small>for sensitive groups</small>
                 </label>
                 <label>
                   <input

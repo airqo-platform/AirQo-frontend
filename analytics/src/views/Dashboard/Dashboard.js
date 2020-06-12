@@ -25,7 +25,7 @@ const useStyles = makeStyles(theme => ({
     color: theme.palette.text.secondary,
   },
   chartContainer: {
-    height: 200,
+    height: 180,
     position: 'relative'
   },
   actions: {
