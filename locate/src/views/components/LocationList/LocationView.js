@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { makeStyles } from '@material-ui/styles';
 import PropTypes from 'prop-types';
-import { Card, CardContent, Grid, Button,Typography } from '@material-ui/core';
+import { Card, CardContent, Grid, Button, Typography, Divider, CardHeader } from '@material-ui/core';
 import clsx from 'clsx';
 import Select from 'react-select';
 import axios from 'axios';
@@ -10,10 +10,9 @@ import TextField from '@material-ui/core/TextField';
 import { TableContainer, Table, TableBody, TableCell, TableHead, TableRow, Paper } from '@material-ui/core';
 import { Link } from "react-router-dom";
 import LoadingOverlay from 'react-loading-overlay';
-//import './assets/css/location-registry.css';
 import '../../../assets/css/location-registry.css';
 import { Map, FeatureGroup, LayerGroup, TileLayer, Marker, Popup } from "react-leaflet";
-import 'leaflet/dist/leaflet.css'
+import 'react-leaflet-fullscreen/dist/styles.css';
 
 
 
@@ -23,6 +22,10 @@ const useStyles = makeStyles(theme => ({
   },
   content: {
     marginTop: theme.spacing(2)
+  },
+  cardMap: {
+    maxWidth: 345,
+    width: 50,
   },
   title: {
     fontWeight: 700,
@@ -59,7 +62,17 @@ const useStyles = makeStyles(theme => ({
 
   table: {
     fontFamily: 'Open Sans'
-  }
+  },
+
+  divClear: {
+   clear: 'both'
+  },
+  paper: {
+    maxWidth: 400,
+    height: 310,
+    margin: `${theme.spacing(1)}px auto`,
+    padding: theme.spacing(2),
+  },
   
   
 }));
@@ -95,57 +108,103 @@ const LocationView = props => {
   }, []);
  
     return(
-      
-    <div className={classes.root}>
-      <LoadingOverlay
-      active={isLoading}
-      spinner
+      <div className={classes.root}>
+        <LoadingOverlay
+          active={isLoading}
+         spinner
       text='Loading Location details...'
     >
-      <div>
-        <Typography  className={classes.title} variant="h6" id="tableTitle" component="div">
+     
+      <Grid
+        container
+        spacing={4}
+      >
+        <Grid
+          item
+          lg={12}
+          sm={12}
+          xl={12}
+          xs={12}
+        >
+          <Typography  className={classes.title} variant="h6" id="tableTitle" component="div">
           {locData.loc_ref} : {locData.location_name}
         </Typography> 
-      </div>
-      <br/>
+        </Grid>  
+        </Grid>
+       
 
-      <div style={{width: '250px', align: 'center'}} >  
+        <Paper className={classes.paper}>
+        <Grid
+        container
+        spacing={4}
+         >
+          <Grid
+            item
+            lg={12}
+            sm={12}
+            xl={12}
+            xs={12}
+            styles ={{alignContent:'center'}}
+            alignContent='center'
+            alignItems= 'center'
+            justify='center'
+          >
 
-       <Map center={[0.32, 32.10]} zoom={13} scrollWheelZoom={false}>
-        <TileLayer
-          attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-          url='http://{s}.tile.osm.org/{z}/{x}/{y}.png'
-        />
-        <Marker position={[0.32, 32.10]}>
-          <Popup>
-            <span>A pretty CSS3 popup. <br/> Easily customizable.</span>
-          </Popup>
+          {loaded? 
+      (
+       <Map center={[locData.latitude, locData.longitude]} 
+       zoom={13} 
+       scrollWheelZoom={false}
+       style={{ width: '30%', height: '250px', align:'center'}}
+       >
+         <TileLayer
+            url ="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          /> 
+        <Marker position={[locData.latitude, locData.longitude]}>
+        <Popup>
+          <span>
+            <span>
+              {locData.location_name}
+            </span>
+          </span>
+        </Popup>
         </Marker>
-      </Map>  
-
-      {/*}  
-     
-      <Map
-          center={[locData.latitude, locData.longitude]}
-          //zoom={this.props.mapDefaults.zoom}
-        >
-
-      <TileLayer
-            attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-            url="http://{s}.tile.osm.org/{z}/{x}/{y}.png"
+      </Map> 
+         ):
+       (
+        <Map center={[0, 0]} 
+       zoom={13} 
+       scrollWheelZoom={false}
+       style={{ width: '30%', height: '250px', align:'center'}}
+       > 
+       <TileLayer
+            url ="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
-    </Map>*/}
-      </div>
+      </Map> 
+       )
+    }
+        </Grid>
+        </Grid>
+        </Paper>
 
-      <div>
+       
 
-     <TableContainer component={Paper} className = {classes.table}>  
+        <Grid
+        container
+        spacing={4}
+      >
+      
+        <Grid
+          item
+          lg={12}
+          md={12}
+          sm={12}
+          xl={12}
+          xs={12}
+          
+        >
+           <TableContainer component={Paper} className = {classes.table}>  
         <Table stickyHeader  aria-label="sticky table">  
-         {/* <TableHead>  
-            <TableRow align='center'>  {locData.loc_ref}: {locData.location_name}
-              {/*<TableCell align="center">{locData.loc_ref}: {locData.location_name}</TableCell> *
-            </TableRow> 
-          </TableHead> */}
           <TableBody>  
             <TableRow>  
               <TableCell className = {classes.table}>Host Name: <b>{locData.host}</b></TableCell>  
@@ -184,7 +243,6 @@ const LocationView = props => {
             </TableRow> 
             <TableRow>  
               <TableCell className = {classes.table}>Subcounty: <b>{locData.subcounty}</b></TableCell>  
-              {/*<TableCell className = {classes.table}>Local Activities:<b>{locData.local_activities.map(item => {return item+','})}</b></TableCell> */}
               {
               loaded?
                     <TableCell className = {classes.table}>Local Activities: <b>{locData.local_activities.join()}</b></TableCell>
@@ -196,13 +254,27 @@ const LocationView = props => {
           </TableBody> 
         </Table> 
      </TableContainer>
-     </div>
+                 
 
-     <br/>
+            </Grid>
+          </Grid>
 
-     <div>    
-     <Link to={`/edit/${locData.loc_ref}`}>
-     <Button 
+          <Grid
+        container
+        spacing={4}
+      >
+      
+        <Grid
+          item
+          lg={12}
+          md={12}
+          sm={12}
+          xl={12}
+          xs={12}
+          
+        >
+        <Link to={`/edit/${locData.loc_ref}`}>
+        <Button 
           variant="contained" 
           color="primary"              
           type="submit"
@@ -211,14 +283,17 @@ const LocationView = props => {
         > Edit Location
         </Button>
      </Link>    
-      </div>
+          </Grid>
+        </Grid>
+
+
+
       </LoadingOverlay>
-    </div>
+      </div>
+      
+              
     )
-
   }
- 
-
 
 LocationView.propTypes = {
   className: PropTypes.string
