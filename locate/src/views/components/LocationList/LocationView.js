@@ -13,6 +13,9 @@ import LoadingOverlay from 'react-loading-overlay';
 import '../../../assets/css/location-registry.css';
 import { Map, FeatureGroup, LayerGroup, TileLayer, Marker, Popup } from "react-leaflet";
 import 'react-leaflet-fullscreen/dist/styles.css';
+import img from '../../../assets/img/locations/placeholder.png';
+
+
 
 
 
@@ -260,6 +263,25 @@ const LocationView = props => {
 
             </Grid>
           </Grid>
+
+          <Grid
+        container
+        spacing={4}
+      >
+        <Grid
+          item
+          lg={12}
+          sm={12}
+          xl={12}
+          xs={12}
+        >
+          
+
+        <img src={img} alt='location image' />
+
+
+        </Grid>  
+        </Grid>
 
           <Grid
         container
