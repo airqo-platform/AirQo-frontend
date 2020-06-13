@@ -116,7 +116,7 @@ const Sidebar = props => {
     userPages = userManagementPages;
   } 
 
- else if (user.privilege === 'admin') {
+else if (user.privilege === 'admin') {
     userPages = userManagementPages.filter(function(element) {
       return element.title !== 'Candidates';
     });
@@ -124,7 +124,7 @@ const Sidebar = props => {
   
   else {
     userPages = userManagementPages.filter(function(element) {
-      return element.title !== 'Users';
+      return element.title !== 'Users' && element.title !=='Candidates';
     });
   }
   return (
