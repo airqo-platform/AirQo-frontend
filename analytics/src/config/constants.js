@@ -1,6 +1,6 @@
 /* eslint-disable */
 const devConfig = {
-    VERIFY_TOKEN_URI: 'http://localhost:3000/api/v1/users/reset',
+    VERIFY_TOKEN_URI: 'http://localhost:3000/api/v1/users/reset/you',
     UPDATE_PWD_URI: 'http://localhost:3000/api/v1/users/updatePasswordViaEmail',
     UPDATE_PWD_IN_URI: 'http://localhost:3000/api/v1/users/updatePassword',
     FORGOT_PWD_URI: 'http://localhost:3000/api/v1/users/forgotPassword',
@@ -14,7 +14,7 @@ const devConfig = {
     DEFAULTS_URI: 'http://localhost:3000/api/v1/users/defaults'
 };
 const testConfig = {
-    VERIFY_TOKEN_URI: 'http://localhost:3000/api/v1/users/reset',
+    VERIFY_TOKEN_URI: 'http://localhost:3000/api/v1/users/reset/you',
     UPDATE_PWD_URI: 'http://localhost:3000/api/v1/users/updatePasswordViaEmail',
     UPDATE_PWD_IN_URI: 'http://localhost:3000/api/v1/users/updatePassword',
     FORGOT_PWD_URI: 'http://localhost:3000/api/v1/users/forgotPassword',
@@ -29,7 +29,7 @@ const testConfig = {
 };
 
 const stageConfig = {
-    VERIFY_TOKEN_URI: 'https://airqo-250220.uc.r.appspot.com/api/v1/users/reset',
+    VERIFY_TOKEN_URI: 'https://airqo-250220.uc.r.appspot.com/api/v1/users/reset/you',
     UPDATE_PWD_URI: 'https://airqo-250220.uc.r.appspot.com/api/v1/users/updatePasswordViaEmail',
     UPDATE_PWD_IN_URI: 'https://airqo-250220.uc.r.appspot.com/api/v1/users/updatePassword',
     FORGOT_PWD_URI: 'https://airqo-250220.uc.r.appspot.com/api/v1/users/forgotPassword',
@@ -43,7 +43,7 @@ const stageConfig = {
     DEFAULTS_URI: 'https://airqo-250220.uc.r.appspot.com/api/v1/users/defaults'
 };
 const prodConfig = {
-    VERIFY_TOKEN_URI: 'https://airqo-250220.uc.r.appspot.com/api/v1/users/reset',
+    VERIFY_TOKEN_URI: 'https://airqo-250220.uc.r.appspot.com/api/v1/users/reset/you',
     UPDATE_PWD_URI: 'https://airqo-250220.uc.r.appspot.com/api/v1/users/updatePasswordViaEmail',
     UPDATE_PWD_IN_URI: 'https://airqo-250220.uc.r.appspot.com/api/v1/users/updatePassword',
     FORGOT_PWD_URI: 'https://airqo-250220.uc.r.appspot.com/api/v1/users/forgotPassword',
