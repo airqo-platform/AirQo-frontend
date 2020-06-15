@@ -10,6 +10,7 @@ import AccountProfile from 'views/Account/components/AccountProfile/AccountProfi
 import SettingsNotifications from 'views/Settings/components/Notifications/Notifications';
 import SettingsPassword from 'views/Settings/components/Password/Password';
 import SetDefaults from 'views/components/Users/SetDefaults';
+import Dashboard from 'views/Dashboard/Dashboard';
 
 import SideBar from 'layouts/Main/components/Sidebar/Sidebar';
 
@@ -31,7 +32,7 @@ const mapDispatchToProps = dispatch => {
     return {
         fetchUsers: () => dispatch(userActions.fetchUsers()),
         fetchCandidates: () => dispatch(userActions.fetchCandidates()),
-        fetchDefaults: () => dispatch(userActions.fetchDefaults()),
+        fetchDefaults: userId => dispatch(userActions.fetchDefaults(userId)),
 
         mappedshowEditDialog: userToEdit =>
             dispatch(userActions.showEditDialog(userToEdit)),
@@ -91,6 +92,8 @@ const connectedSetDefaults = containerCreator(SetDefaults);
 
 const connectedSideBar = containerCreator(SideBar);
 
+const connectedDashboard = containerCreator(Dashboard);
+
 export {
     connectedUserList,
     connectedUsersTable,
@@ -103,5 +106,6 @@ export {
     connectedSettingsNotifications,
     connnectedSettingsPassword,
     connectedSetDefaults,
-    connectedSideBar
+    connectedSideBar,
+    connectedDashboard
 };

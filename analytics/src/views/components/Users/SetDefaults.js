@@ -48,6 +48,48 @@ const defaults = [
   },
 ];
 
+const charts = [
+  {
+    value: 'None',
+    label: 'None',
+  },
+  {
+    value: 'Line',
+    label: 'Line',
+  },
+  {
+    value: 'Bar',
+    label: 'Bar',
+  },
+  {
+    value: 'Pie',
+    label: 'Pie',
+  },
+];
+
+const titles = [
+  {
+    value: 'None',
+    label: 'None',
+  },
+  {
+    value: 'Chart One',
+    label: 'Chart One',
+  },
+  {
+    value: 'Chart Two',
+    label: 'Chart Two',
+  },
+  {
+    value: 'Chart Three',
+    label: 'Chart Three',
+  },
+  {
+    value: 'Chart Four',
+    label: 'Chart Four',
+  },
+];
+
 
 const frequency = [
   {
@@ -85,6 +127,10 @@ const useStyles = makeStyles((theme) => ({
         marginLeft: theme.spacing(1),
         marginRight: theme.spacing(1),
         width: 200,
+        paddingLeft: "0px",
+        paddingRight: "0px",
+        paddingBottom: "15px",
+        paddingTop: "15px",
     },
     root: {},
     details: {
@@ -104,8 +150,10 @@ const  SetDefaults = (props) => {
     const initialState = {
       pollutant: '',
       frequency:'',
-      start_date: '2017-05-24T10:30',
-      end_date: '2020-05-24T10:30',
+      startDate: '2017-05-24T10:30',
+      endDate: '2020-05-24T10:30',
+      chartTitle: "",
+      chartType: ""
     }
 
     const [form, setState] = useState(initialState);
@@ -137,31 +185,54 @@ const  SetDefaults = (props) => {
       const userData = {
         id: user._id,
         pollutant: form.pollutant,
-        end_date: form.end_date,
-        start_date: form.start_date,
-        frequency: form.frequency
+        endDate: form.endDate,
+        startDate: form.startDate,
+        frequency: form.frequency,
+        chartType: form.chartType,
+        chartTitle: form.chartTitle
       };
       console.log(userData);
       console.log("the data from end date:")
-      console.dir(form.end_date);
+      console.dir(form.endDate);
       console.log("the data from start date:")
-      console.dir(form.start_date);
+      console.dir(form.startDate);
       console.log("the user ID:")
       console.log(user._id);
       props.mappedSetDefaults(userData);
       clearState();
     };
 
-    // useEffect(() => {
-    //   props.fetchDefaults()
-    // }, []);
+
+    //   useEffect(() => {
+    // try{
+    //   const abortController = new AbortController()
+    // const signal = abortController.signal;
+    //     props.fetchDefaults(user._id, signal);
+    //     return function cleanup(){
+    //       abortController.abort();
+    //     }
+    // }
+    // catch(e){
+    // console.log(e);
+    // }
+    //   }, []);
   
     return (
+
+      <Grid
+      container
+      spacing={4}
+    >
+ <Grid
+          item
+          md={4}
+          xs={12}
+        >
+
 <Card
 {...rest}
 className={clsx(classes.root, className)}
 >
-
   <CardHeader
     subheader="Please enter your preferences for the Landing Page"
     title="User Defaults"
@@ -218,12 +289,60 @@ className={clsx(classes.root, className)}
           ))}
         </TextField>
 
+        <TextField
+          id="chartType"
+          select
+          label="chartType"
+          className={classes.textField}
+          value={form.chartType}
+          onChange={onChange}
+          SelectProps={{
+            native: true,
+            MenuProps: {
+              className: classes.menu,
+            },
+          }}
+          helperText="Please select the chat type"
+          margin="normal"
+          variant="outlined"
+        >
+          {charts.map(option => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </TextField>
+
+        <TextField
+          id="chartTitle"
+          select
+          label="chartTitle"
+          className={classes.textField}
+          value={form.chartTitle}
+          onChange={onChange}
+          SelectProps={{
+            native: true,
+            MenuProps: {
+              className: classes.menu,
+            },
+          }}
+          helperText="Please select the chat title"
+          margin="normal"
+          variant="outlined"
+        >
+          {titles.map(option => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </TextField>
+
 {/* start time and start date */}
   <TextField
-        id="start_date"
+        id="startDate"
         label="Start Date and Time"
         type="datetime-local"
-        value={form.start_date}
+        value={form.startDate}
         onChange={onChange}
         className={classes.textField}
         variant="outlined"
@@ -233,10 +352,10 @@ className={clsx(classes.root, className)}
       />
 {/* end time and end date */}
  <TextField
-        id="end_date"
+        id="endDate"
         label="End Date and Time"
         type="datetime-local"
-        value={form.end_date}
+        value={form.endDate}
         onChange={onChange}
         variant="outlined"
         className={classes.textField}
@@ -244,8 +363,10 @@ className={clsx(classes.root, className)}
           shrink: true,
         }}
       />
-</div>
 
+
+
+</div>
 }
   </CardContent>
   <Divider />
@@ -259,6 +380,8 @@ className={clsx(classes.root, className)}
     </Button>
   </CardActions>
 </Card>
+</Grid>
+</Grid>
     );
 }
 

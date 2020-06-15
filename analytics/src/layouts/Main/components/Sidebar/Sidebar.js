@@ -52,11 +52,6 @@ const Sidebar = props => {
       icon: <DashboardIcon />
     },
     {
-      title: 'Graphs',
-      href: '/graphs',
-      icon: <BarChartIcon />
-    },
-    {
       title: "Report Template",
       href: "/report",
       icon: <TimelineIcon />,
@@ -112,6 +107,7 @@ const Sidebar = props => {
   let { user } = mappedAuth;
   let userPages = [];
 
+ try {
   if (user.privilege === 'super' ) {
     userPages = userManagementPages;
   } 
@@ -127,6 +123,10 @@ else if (user.privilege === 'admin') {
       return element.title !== 'Users' && element.title !=='Candidates';
     });
   }
+ }
+ catch(e){
+console.log(e);
+ }
   return (
     <Drawer
       anchor="left"

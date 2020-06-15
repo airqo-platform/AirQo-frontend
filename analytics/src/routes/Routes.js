@@ -15,8 +15,7 @@ import {
 } from 'views/components/Users/containers/Users';
 
 import {
-  Dashboard as DashboardView,
-  Graphs as GraphView,
+
   Reports as ReportView,
   Account as AccountView,
   Settings as SettingsView,
@@ -28,6 +27,8 @@ import {
   SignUp as SignUpView,
   Documentation,
 } from '../views';
+
+import {connectedDashboard as DashboardView} from 'views/components/Users/containers/Users'
 
 import Landing from '../views/layouts/Landing';
 import ForgotPassword from '../views/components/Users/ForgotPassword';
@@ -59,12 +60,6 @@ const Routes = () => {
         path="/candidates"
       />
 
-      <PrivateRoute
-        component={Graphs}
-        exact
-        layout={MainLayout}
-        path="/graphs"
-      />
       <PrivateRoute
         component={ReportView}
         exact

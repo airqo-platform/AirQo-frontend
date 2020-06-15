@@ -185,7 +185,7 @@ export default function(state = initialState, action) {
                 ...state,
                 users: state.users,
                 candidates: state.candidates,
-                userDefaults: state.userDefaults,
+                userDefaults: [],
                 isFetching: false,
                 error: action.error,
                 successMsg: null,

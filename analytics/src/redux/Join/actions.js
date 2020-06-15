@@ -57,20 +57,6 @@ export const fetchUsers = () => {
         dispatch(fetchUsersRequest());
         // Returns a promise
         console.log('we are now fetching users using the action for fetching ');
-        /**
-         * create a a different url based on the privilege of the
-         * requesting user
-         *
-         * if (privilege == admin)
-         * const url = constants.GET_USERS_URI`
-         *
-         * else if (privilege == collaborator )
-         * const url = constants.GET_USERS_URI+`?privilege=${0}`
-         *
-         * else if (privilege == user)
-         * const url = constants.GET_USERS_URI+`?privilege=${0}`
-         *
-         * * */
         return fetch(constants.GET_USERS_URI).then(response => {
             if (response.ok) {
                 response.json().then(data => {
@@ -110,13 +96,6 @@ export const fetchUsersFailed = error => {
 };
 
 /*********************** fetching Candidatess ********************************/
-
-/***
- * there should be a candidates URL that we call and
- * get to use this in the UsersTable to handle the Candidates route
- * add the candidates routes acccordingly
- * fly like a real boss.
- */
 
 export const fetchCandidates = id => {
     return dispatch => {
@@ -581,7 +560,7 @@ export const setDefaults = (values, id) => dispatch => {
         .then(response => {
             if (response) {
                 dispatch(
-                    setDefaultsSuccess(response.data.updatedUser, response.data.message)
+                    setDefaultsSuccess(response.data.saved, response.data.message)
                 );
             } else {
                 dispatch(setDefaultsFailed(response.data.message));
@@ -601,7 +580,8 @@ export const setDefaultsRequest = values => {
 export const setDefaultsSuccess = (data, mes) => {
     return {
         type: SET_DEFAULTS_SUCCESS,
-        message: mes
+        message: mes,
+        defaults: data
     };
 };
 
@@ -612,20 +592,20 @@ export const setDefaultsFailed = error => {
     };
 };
 
-//*********************************** fetching default settings ************************************/
-export const fetchDefaults = () => {
+//********************** fetching default settings ***************************/
+export const fetchDefaults = (userId) => {
     return dispatch => {
-        // dispatch(fetchDefaultsRequest());
-        return fetch(constants.DEFAULTS_URI).then(response => {
+        dispatch(fetchDefaultsRequest());
+        return fetch(constants.DEFAULTS_URI + '/' + `${userId}`).then(response => {
             if (response.ok) {
                 response.json().then(data => {
-                    dispatch(fetchDefaultsSuccess(data.prefs, data.message));
+                    dispatch(fetchDefaultsSuccess(data.defaults, data.message));
                     console.log('the default settings:  ');
-                    console.dir(data.prefs);
+                    console.dir(data.defaults);
                 });
             } else {
                 response.json().then(error => {
-                    // dispatch(fetchDefaultsFailed(error));
+                    dispatch(fetchDefaultsFailed(error));
                 });
             }
         });
@@ -639,13 +619,12 @@ export const fetchDefaultsRequest = () => {
 };
 
 export const fetchDefaultsSuccess = (defaults, message) => {
-    console.log('these are the defaults we are sending: ');
+    console.log('these are the defaults we have received: ');
     console.dir(defaults);
     return {
         type: GET_DEFAULTS_SUCCESS,
         defaults: defaults,
-        message: message,
-        receiveAt: Date.now
+        message: message
     };
 };
 
@@ -656,7 +635,7 @@ export const fetchDefaultsFailed = error => {
     };
 };
 
-/*********************update authenticated user ************************/
+/********************* update authenticated user ************************/
 export const updateAuthenticatedUser = newData => dispatch => {
     dispatch(updateAuthenticatedUserRequest());
 
