@@ -231,7 +231,7 @@ select{
 	border-bottom: 12px solid;
 	border-color:grey;
 	position: absolute;
-	top: 10px;
+	top: 210px;
 	left: 5px;
 	min-width: 12%;
 	box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
@@ -244,11 +244,12 @@ select{
   .filter__h2 {
 	font-family: "Raleway", sans-serif;
 	font-size: 16px;
-	font-weight: 400;
+	font-weight: 300;
 	display: inline-block;
 	margin-top: 5px;
 	margin-bottom: 0px;
 	cursor: pointer;
+	text-align: center;
   }
   
   .filter__h3 {
@@ -270,14 +271,14 @@ select{
 	border-width: 0 4px 4px 0;
 	display: inline-block;
 	padding: 3px;
-	margin-left: 10px;
-	margin-bottom: 4px;
+	margin-left: 130px;
+	margin-bottom: 0px;
 	cursor: pointer;
   }
   
   .down {
-	transform: rotate(45deg);
-	-webkit-transform: rotate(45deg);
+	transform: rotate(-135deg);
+	-webkit-transform: rotate(-135deg);
   }
   
   input {
@@ -314,6 +315,7 @@ select{
 	display: inline-block;
 	margin-right: 5px;
   }
+  
   .control__indicator4 {
 	// position: absolute;
 	// top: 2px;
@@ -349,7 +351,6 @@ select{
 	display: block;
 	font-size: 16px;
   }
-
   .label i {
 	width: 18px;
 	height: 18px;
@@ -358,6 +359,13 @@ select{
 	opacity: 0.7;
   }
 
+  small {
+	font-size: smaller;
+	// margin-left: 45px;
+	margin-top: -10px;
+	padding:0px;
+	line-height: 1px !important;
+}
   .loadingScreen {
 	position: absolute;
 	top: 0;

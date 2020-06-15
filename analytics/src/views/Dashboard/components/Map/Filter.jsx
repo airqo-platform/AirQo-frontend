@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 class Filter extends Component {
   state = {
-    magnitudeFilter: "",
+    magnitudeFilter: "All",
     isFilterOpen: false
   };
   handleMagnitudeChange = event => {
@@ -12,6 +12,8 @@ class Filter extends Component {
       return { isFilterOpen: !currentState.isFilterOpen };
     });
   };
+
+
   componentDidUpdate(prevProps, prevState) {
    if (this.state.magnitudeFilter !== prevState.magnitudeFilter) {
       this.props.fetchFilteredData(
