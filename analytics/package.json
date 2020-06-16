@@ -67,6 +67,7 @@
     "react-dom": "^16.8.6",
     "react-draft-wysiwyg": "^1.14.5",
     "react-hook-form": "^5.4.2",
+    "react-idle-timer": "^4.2.12",
     "react-leaflet": "^2.6.3",
     "react-leaflet-fullscreen": "^1.0.1",
     "react-leaflet-shapefile": "^2.0.0",
@@ -75,6 +76,7 @@
     "react-pdf-print": "^0.1.9",
     "react-perfect-scrollbar": "^1.5.3",
     "react-redux": "^7.2.0",
+    "react-router-bootstrap": "^0.23.3",
     "react-router-dom": "^5.1.2",
     "react-scripts": "^3.0.1",
     "react-select": "^3.1.0",
@@ -88,9 +90,7 @@
     "underscore": "^1.9.1",
     "uuid": "^3.3.2",
     "validate.js": "^0.13.1",
-    "yarn": "^1.22.4",
-    "react-router-bootstrap": "^0.23.3",
-    "react-idle-timer": "^4.2.12"
+    "yarn": "^1.22.4"
   },
   "devDependencies": {
     "@babel/cli": "^7.8.4",

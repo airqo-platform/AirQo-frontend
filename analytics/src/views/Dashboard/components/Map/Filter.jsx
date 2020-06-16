@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+
 class Filter extends Component {
   state = {
     magnitudeFilter: "All",
@@ -13,7 +14,6 @@ class Filter extends Component {
     });
   };
 
-
   componentDidUpdate(prevProps, prevState) {
    if (this.state.magnitudeFilter !== prevState.magnitudeFilter) {
       this.props.fetchFilteredData(
@@ -23,16 +23,17 @@ class Filter extends Component {
   }
   render() {
     return (
-      <>
+      <> 
+
         <div className="filter">
-          <h2 className="filter__h2" onClick={this.toggleFilter}>
+        <h2 className="filter__h2" onClick={this.toggleFilter}>
             PM2.5 AQI
           </h2>
-          <i className="arrow down" onClick={this.toggleFilter}></i>
+          <a onClick={this.toggleFilter}> {this.state.isFilterOpen? '+' : 'x'}</a>
           {this.state.isFilterOpen === true ? null : (
             <>
               <form>
-                <h3 className="filter__h3">Air Quality Levels</h3>
+                <h3 className="filter__h3"></h3>
                 <label>
                   <input
                     type="radio"
