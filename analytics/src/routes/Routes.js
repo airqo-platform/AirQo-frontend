@@ -5,17 +5,18 @@ import { Switch, Redirect, Route } from 'react-router-dom';
 
 import { RouteWithLayout } from '../components';
 import { Main as MainLayout, Minimal as MinimalLayout } from '../layouts';
-import PrivateRoute from "../views/components/PrivateRoute/PrivateRoute.js";
-import Register from "../views/components/Users/RegisterAnalytics";
+import PrivateRoute from '../views/components/PrivateRoute/PrivateRoute.js';
+import Register from '../views/components/Users/RegisterAnalytics';
 
-// import Users from '../views/components/Users/Users';
-import AddUser from '../views/components/Users/containers/AddUser';
-import {connectedUserList} from '../views/components/Users/containers/Users';
+import {
+  connectedUserList as ConnectedUserList,
+  connectedCandidateList as ConnectedCandidateList,
+  connectedSetDefaults as ConnectedSetDefaults
+} from 'views/components/Users/containers/Users';
 
 import {
   Dashboard as DashboardView,
   Graphs as GraphView,
-  UserList as UserListView,
   Reports as ReportView,
   Account as AccountView,
   Settings as SettingsView,
@@ -28,21 +29,15 @@ import {
   Documentation,
 } from '../views';
 
-import Landing from "../views/layouts/Landing";
-import ForgotPassword from "../views/components/Users/ForgotPassword";
-import ResetPassword from "../views/components/Users/ResetPassword";
-import Defaults from "../views/components/Users/SetDefaults";
-import Login from "../views/components/Users/Login";
-// import ListUsers from "../views/components/Users/ListUserComponent";
+import Landing from '../views/layouts/Landing';
+import ForgotPassword from '../views/components/Users/ForgotPassword';
+import ResetPassword from '../views/components/Users/ResetPassword';
+import Login from '../views/components/Users/Login';
 
 const Routes = () => {
   return (
     <Switch>
-      <Redirect
-        exact
-        from="/"
-        to="/landing"
-      />
+      <Redirect exact from="/" to="/landing" />
       <PrivateRoute
         exact
         path="/dashboard"
@@ -51,17 +46,17 @@ const Routes = () => {
       />
 
       <PrivateRoute
-        component={connectedUserList}
+        component={ConnectedUserList}
         exact
         layout={MainLayout}
         path="/admin/users"
       />
 
       <PrivateRoute
-        component={AddUser}
+        component={ConnectedCandidateList}
         exact
         layout={MainLayout}
-        path="/add/users"
+        path="/candidates"
       />
 
       <PrivateRoute
@@ -104,7 +99,7 @@ const Routes = () => {
       />
 
        <PrivateRoute
-        component={Defaults}
+        component={ConnectedSetDefaults}
         exact
         layout={MainLayout}
         path="/defaults"
@@ -158,12 +153,10 @@ const Routes = () => {
         path="/reset"
       />
       <Route
-        exact path="/login"
-        component={Login} />
-      <Route
         exact path="/forgot"
         component={ForgotPassword} />
 
+<Route exact path="/register" component={Register} />
       
       <Route 
         exact path="/reset" 
@@ -181,13 +174,8 @@ const Routes = () => {
     exact path="/reset/:token" 
     component={ResetPassword} />
 
-      {/* <RouteWithLayout path="/add/users" component={AddUser}>
-        <Route exact path="/users" component={Users} />
-      </RouteWithLayout> */}
+      <RouteWithLayout exact path="/reset" component={ResetPassword} />
 
-      <RouteWithLayout
-        exact path="/reset"
-        component={ResetPassword} />
       <Redirect to="/not-found" />
       
     </Switch>

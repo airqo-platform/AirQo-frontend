@@ -1,26 +1,27 @@
 /* eslint-disable */
-import React, { useState, useEffect } from 'react';
+import React, {useState,  useEffect} from 'react';
 import PropTypes from 'prop-types';
 import clsx from 'clsx';
 import { makeStyles } from '@material-ui/styles';
-import {
-  Button,
-  TextField,
+import { 
+  Button, 
+  TextField, 
   FormControl,
   InputLabel,
-  Select,
+  Select, 
   Input,
-  MenuItem,
-  DialogTitle,
-  DialogContent,
-  Dialog,
-  DialogActions,
-  DialogContentText
-} from '@material-ui/core';
+   MenuItem,
+   DialogTitle,
+   DialogContent,
+   Dialog,
+   DialogActions,
+   DialogContentText
+  } from '@material-ui/core';
 
-import { useMinimalSelectStyles } from '@mui-treasury/styles/select/minimal';
+  import { useMinimalSelectStyles } from '@mui-treasury/styles/select/minimal';
 
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+  import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+
 
 import { SearchInput } from 'components';
 
@@ -46,64 +47,64 @@ const useStyles = makeStyles(theme => ({
   },
   container: {
     display: 'flex',
-    flexWrap: 'wrap'
+    flexWrap: 'wrap',
   },
   textField: {
     marginLeft: theme.spacing.unit,
-    marginRight: theme.spacing.unit
+    marginRight: theme.spacing.unit,
   },
   dense: {
-    marginTop: 16
+    marginTop: 16,
   },
   menu: {
-    width: 200
-  }
+    width: 200,
+  },
+
 }));
+
 
 const roles = [
   {
-    value: 'none',
-    label: 'none'
-  },
-  {
     value: 'admin',
-    label: 'admin'
+    label: 'admin',
   },
   {
     value: 'user',
-    label: 'user'
+    label: 'user',
   },
   {
     value: 'collaborator',
-    label: 'collaborator'
-  }
+    label: 'collaborator',
+  },
 ];
+
+
 
 /***func starts here....... */
 const UsersToolbar = props => {
-  const { className, mappeduserState, ...rest } = props;
+  const { className,mappeduserState, ...rest } = props;
 
-  console.log('the mapped state for UsersToolsbar is here:');
+  console.log('the mapped state for UsersToolsbar is here:')
   console.dir(mappeduserState);
-
+  
   const userState = mappeduserState;
 
   const [open, setOpen] = useState(false);
 
   const initialState = {
-    userName: '',
-    firstName: '',
-    lastName: '',
-    email: '',
-    password: '',
-    password2: '',
-    privilege: ''
-  };
-
+    userName:'',
+    firstName:'',
+    lastName:'',
+    email:'',
+    password:'',
+    password2:'',
+    privilege:''
+  }
+  
   const [form, setState] = useState(initialState);
 
-  const clearState = () => {
-    setState({ ...initialState });
+  const clearState = ()=>{
+    setState({...initialState});
   };
 
   const classes = useStyles();
@@ -121,18 +122,19 @@ const UsersToolbar = props => {
     props.mappedHideAddDialog();
   };
 
-  const hideAddDialog = () => {
-    props.mappedHideAddDialog();
+  const hideAddDialog = ()=>{
+props.mappedHideAddDialog();
+  }
+
+  const onChange = (e) => {
+setState({
+  ...form,
+  [e.target.id]:e.target.value
+})
+
   };
 
-  const onChange = e => {
-    setState({
-      ...form,
-      [e.target.id]: e.target.value
-    });
-  };
-
-  const onSubmit = e => {
+  const onSubmit = (e) =>{
     e.preventDefault();
     const userData = {
       userName: form.userName,
@@ -145,22 +147,21 @@ const UsersToolbar = props => {
     };
     console.log(userData);
     props.mappedAddUser(userData);
-    clearState();
-  };
+ clearState();
+  }
 
   const minimalSelectClasses = useMinimalSelectStyles();
 
-  useEffect(() => {
-    clearState();
-  }, []);
 
-  const iconComponent = props => {
+  useEffect(()=>{
+    clearState();
+  
+    },[]);
+
+  const iconComponent = (props) => {
     return (
-      <ExpandMoreIcon
-        className={props.className + ' ' + minimalSelectClasses.icon}
-      />
-    );
-  };
+      <ExpandMoreIcon className={props.className + " " + minimalSelectClasses.icon}/>
+    )};
 
   // moves the menu below the select input
   const menuProps = {
@@ -169,20 +170,23 @@ const UsersToolbar = props => {
       list: minimalSelectClasses.list
     },
     anchorOrigin: {
-      vertical: 'bottom',
-      horizontal: 'left'
+      vertical: "bottom",
+        horizontal: "left"
     },
     transformOrigin: {
-      vertical: 'top',
-      horizontal: 'left'
+      vertical: "top",
+        horizontal: "left"
     },
     getContentAnchorEl: null
   };
 
+  
+
   return (
     <div
       // {...rest}
-      className={clsx(classes.root, className)}>
+      className={clsx(classes.root, className)}
+    >
       <div className={classes.row}>
         <SearchInput
           className={classes.searchInput}
@@ -192,14 +196,11 @@ const UsersToolbar = props => {
         <div>
           <Button variant="contained" color="primary" onClick={handleClickOpen}>
             Add User
-          </Button>
-          <Dialog
-            open={open}
-            onClose={handleClose}
-            aria-labelledby="form-dialog-title">
+      </Button>
+          <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
             <DialogTitle id="form-dialog-title">Add User</DialogTitle>
             <DialogContent>
-              <TextField
+            <TextField
                 autoFocus
                 margin="dense"
                 id="email"
@@ -207,12 +208,13 @@ const UsersToolbar = props => {
                 type="text"
                 label="email"
                 onChange={onChange}
-                variant="outlined"
                 value={form.email}
                 fullWidth
+                InputProps={{ disableUnderline: true }}
               />
-
-              <TextField
+           
+               <TextField
+              
                 margin="dense"
                 id="firstName"
                 name="firstName"
@@ -220,10 +222,11 @@ const UsersToolbar = props => {
                 type="text"
                 onChange={onChange}
                 value={form.firstName}
-                variant="outlined"
                 fullWidth
+                InputProps={{ disableUnderline: true }}
               />
-              <TextField
+               <TextField
+             
                 margin="dense"
                 id="lastName"
                 label="last name"
@@ -231,22 +234,24 @@ const UsersToolbar = props => {
                 type="text"
                 onChange={onChange}
                 value={form.lastName}
-                variant="outlined"
                 fullWidth
+                InputProps={{ disableUnderline: true }}
               />
 
-              <TextField
-                margin="dense"
-                id="userName"
-                name="userName"
-                label="user name"
-                type="text"
-                onChange={onChange}
-                value={form.userName}
-                variant="outlined"
-                fullWidth
-              />
-              <TextField
+<TextField
+          
+          margin="dense"
+          id="userName"
+          name="userName"
+          label="user name"
+          type="text"
+          onChange={onChange}
+          value={form.userName}
+          fullWidth
+          InputProps={{ disableUnderline: true }}
+        />
+               <TextField
+              
                 margin="dense"
                 id="password"
                 name="password"
@@ -255,66 +260,61 @@ const UsersToolbar = props => {
                 type="password"
                 onChange={onChange}
                 value={form.password}
-                variant="outlined"
                 fullWidth
-                InputProps={{
-                  autocomplete: 'new-password',
-                  form: {
-                    autocomplete: 'off'
-                  },
-                }}
+                InputProps={{ autocomplete: 'new-password',
+                form: {
+                  autocomplete: 'off',
+                }, disableUnderline: true }}
               />
-              <TextField
+               <TextField
+           
                 margin="dense"
                 id="password2"
                 label="confirm password"
                 name="password2"
                 type="password"
                 onChange={onChange}
-                variant="outlined"
                 value={form.password2}
                 fullWidth
-                InputProps={{
-                  autocomplete: 'new-password',
-                  form: {
-                    autocomplete: 'off'
-                  },
-                 
-                }}
+                InputProps={{  autocomplete: 'new-password',
+                form: {
+                  autocomplete: 'off',
+                },disableUnderline: true }}
               />
-              <TextField
-                id="privilege"
-                select
-                label="Role"
-                className={classes.textField}
-                value={form.privilege}
-                onChange={onChange}
-                variant="outlined"
-                SelectProps={{
-                  native: true,
-                  MenuProps: {
-                    className: classes.menu
-                  }
-                }}
-                helperText="Please select your role"
-                margin="normal"
-                variant="outlined">
-                {roles.map(option => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </TextField>
+          <TextField
+          id="privilege"
+          select
+          label="Role"
+          className={classes.textField}
+          value={form.privilege}
+          onChange={onChange}
+          SelectProps={{
+            native: true,
+            MenuProps: {
+              className: classes.menu,
+            },
+          }}
+          helperText="Please select your role"
+          margin="normal"
+          variant="outlined"
+        >
+          {roles.map(option => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </TextField>
             </DialogContent>
 
             <DialogActions>
-              <Button onClick={handleClose} color="primary" variant="outlined">
+           <Button onClick={handleClose} color="primary" variant="outlined">
                 Cancel
-              </Button>
+          </Button>
               <Button onClick={onSubmit} color="primary" variant="outlined">
                 Submit
-              </Button>
+          </Button>
             </DialogActions>
+            
           </Dialog>
         </div>
       </div>

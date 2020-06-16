@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import clsx from 'clsx';
 import moment from 'moment';
 import { makeStyles } from '@material-ui/styles';
-import { withRouter } from 'react-router-dom';
 import {
   Card,
   CardActions,
@@ -14,7 +13,6 @@ import {
   Button,
   LinearProgress
 } from '@material-ui/core';
-import { connect } from "react-redux";
 
 const useStyles = makeStyles(theme => ({
   root: {},
@@ -37,11 +35,13 @@ const useStyles = makeStyles(theme => ({
 }));
 
 const AccountProfile = props => {
-  const { className, ...rest } = props;
+  const { className, mappedAuth,mappeduserState, ...rest } = props;
 
   const classes = useStyles();
 
-  const { user } = props.auth;
+  const { user } = mappedAuth;
+
+  const userState = mappeduserState;
 
   // const user = {
   //   name: 'Shen Zhi',
@@ -112,14 +112,8 @@ const AccountProfile = props => {
 
 AccountProfile.propTypes = {
   className: PropTypes.string,
-  auth: PropTypes.object.isRequired,
+  mappedAuth: PropTypes.object.isRequired,
+  mappeduserState: PropTypes.object.isRequired,
 };
 
-const mapStateToProps = (state) => ({
-  auth: state.auth,
-});
-
-export default connect(mapStateToProps, {})(withRouter(AccountProfile));
-
-
-//yeah yeah\
+export default AccountProfile;
