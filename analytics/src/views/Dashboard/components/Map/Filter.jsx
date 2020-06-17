@@ -75,7 +75,8 @@ class Filter extends Component {
                     onChange={this.handleMagnitudeChange}
                   />
                   <div class="control__indicator3"></div>
-                  Unhealthy <small>for sensitive groups</small>
+                  UHFSG
+                  {/* Unhealthy <small>for sensitive groups</small> */}
                 </label>
                 <label>
                   <input
