@@ -5,20 +5,17 @@ import {
     UPDATE_PASSWORD_REQUEST,
     UPDATE_PASSWORD_FAILED,
     UPDATE_PASSWORD_SUCCESS,
-    REGISTRATION_SUCCESS,
-    UPDATE_AUTHENTICATED_USER_SUCCESS,
-    UPDATE_AUTHENTICATED_USER_REQUEST,
-    UPDATE_AUTHENTICATED_USER_FAILED
-} from '../types';
+    REGISTRATION_SUCCESS
+} from "../types";
 
-const isEmpty = require('is-empty');
+const isEmpty = require("is-empty");
 
 const initialState = {
     isAuthenticated: false,
     user: {},
     loading: false,
-    updating: false,
-    registered: false
+    passwordUpdated: false,
+    newUser: {}
 };
 
 export default function(state = initialState, action) {
@@ -37,30 +34,15 @@ export default function(state = initialState, action) {
         case UPDATE_PASSWORD_SUCCESS:
             return {
                 ...state,
-                updating: false,
+                passwordUpdated: true,
                 user: action.payload
-            };
+            }
         case REGISTRATION_SUCCESS:
             return {
                 ...state,
-                registered: true
-            };
-        case UPDATE_AUTHENTICATED_USER_SUCCESS:
-            return {
-                ...state,
-                user: state.user,
-                updating: false
-            };
-        case UPDATE_AUTHENTICATED_USER_FAILED:
-            return {
-                ...state,
-                updating: false
-            };
-        case UPDATE_AUTHENTICATED_USER_REQUEST:
-            return {
-                ...state,
-                updating: true
-            };
+                newUser: true
+            }
+
         default:
             return state;
     }

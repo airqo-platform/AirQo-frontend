@@ -93,7 +93,7 @@ class Filter extends Component {
                     type="radio"
                     name="magnitude"
                     value='VeryUnhealthy'
-                    checked={this.state.magnitudeFilter === 'Very Unhealthy' }
+                    checked={this.state.magnitudeFilter === 'VeryUnhealthy' }
                     onChange={this.handleMagnitudeChange}
                   />
                   <div class="control__indicator5"></div>

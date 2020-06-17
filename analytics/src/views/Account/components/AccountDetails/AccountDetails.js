@@ -1,190 +1,218 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import clsx from 'clsx';
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/styles';
 import {
-    Card,
-    CardHeader,
-    CardContent,
-    CardActions,
-    Divider,
-    Grid,
-    Button,
-    TextField
+  Card,
+  CardHeader,
+  CardContent,
+  CardActions,
+  Divider,
+  Grid,
+  Button,
+  TextField
 } from '@material-ui/core';
+import { connect } from "react-redux";
+import { withRouter } from 'react-router-dom';
 
-const useStyles = makeStyles(theme => ({
-    container: {
-        display: 'flex',
-        flexWrap: 'wrap'
-    },
-    textField: {
-        marginLeft: theme.spacing.unit,
-        marginRight: theme.spacing.unit
-    },
-    dense: {
-        marginTop: 16
-    },
-    menu: {
-        width: 200
-    },
-    root: {}
+const useStyles = makeStyles(() => ({
+  root: {}
 }));
 
 const AccountDetails = props => {
-    const { className, mappeduserState, mappedAuth, ...rest } = props;
+  const { className, ...rest } = props;
 
-    const { user } = mappedAuth;
-    console.log('the user is here: ');
-    console.dir(user);
+  const classes = useStyles();
 
-    const classes = useStyles();
+  const [values, setValues] = useState({
+    firstName: 'Shen',
+    lastName: 'Zhi',
+    email: 'shen.zhi@devias.io',
+    phone: '',
+    state: 'Alabama',
+    country: 'USA'
+  });
 
-    const initialState = {
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        phoneNumber: ''
-    };
-
-    const [form, setState] = useState(initialState);
-
-    useEffect(() => {
-        var anchorElem = document.createElement('link');
-        anchorElem.setAttribute(
-            'href',
-            'https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css'
-        );
-        anchorElem.setAttribute('rel', 'stylesheet');
-        anchorElem.setAttribute('id', 'logincdn');
+  const handleChange = event => {
+    setValues({
+      ...values,
+      [event.target.name]: event.target.value
     });
+  };
 
-    const handleChange = e => {
-        setState({
-            ...form,
-            [e.target.id]: e.target.value
-        });
-    };
+  const states = [
+    {
+      value: 'Kyagwe',
+      label: 'Kyagwe'
+    },
+    {
+      value: 'Bukoto',
+      label: 'Bukoto'
+    },
+    {
+      value: 'Nansana',
+      label: 'Nansana'
+    }
+  ];
 
-    const states = [{
-            value: 'Kyagwe',
-            label: 'Kyagwe'
-        },
-        {
-            value: 'Bukoto',
-            label: 'Bukoto'
-        },
-        {
-            value: 'Nansana',
-            label: 'Nansana'
-        }
-    ];
+  const { user } = props.auth;
 
-    const clearState = () => {
-        setState({...initialState });
-    };
-
-    const onSubmit = e => {
-        e.preventDefault();
-        const userData = {
-            id: user._id,
-            firstName: form.firstName,
-            lastName: form.lastName,
-            email: form.email,
-            phoneNumber: form.phoneNumber
-        };
-        console.log('sending this guy here:');
-        console.log(userData);
-        props.mappedUpdateAuthenticatedUser(userData);
-        clearState();
-    };
-
-    return ( <
-        Card {...rest }
-        className = { clsx(classes.root, className) } >
-        <
-        form autoComplete = "off"
-        noValidate >
-        <
-        CardHeader subheader = "The information can be edited"
-        title = "Profile" / >
-        <
-        Divider / >
-        <
-        CardContent >
-        <
-        Grid container spacing = { 3 } >
-        <
-        Grid item md = { 6 }
-        xs = { 12 } >
-        <
-        TextField fullWidth helperText = "Please specify the first name"
-        label = "First name"
-        margin = "dense"
-        id = "firstName"
-        onChange = { handleChange }
-        required value = { form.firstName }
-        variant = "outlined" /
-        >
-        <
-        /Grid>{' '} <
-        Grid item md = { 6 }
-        xs = { 12 } >
-        <
-        TextField fullWidth label = "Last name"
-        margin = "dense"
-        id = "lastName"
-        onChange = { handleChange }
-        required value = { form.lastName }
-        variant = "outlined" /
-        >
-        <
-        /Grid>{' '} <
-        Grid item md = { 6 }
-        xs = { 12 } >
-        <
-        TextField fullWidth label = "Email Address"
-        margin = "dense"
-        id = "email"
-        onChange = { handleChange }
-        required value = { form.email }
-        variant = "outlined" /
-        >
-        <
-        /Grid>{' '} <
-        Grid item md = { 6 }
-        xs = { 12 } >
-        <
-        TextField fullWidth label = "Phone Number"
-        margin = "dense"
-        id = "phoneNumber"
-        onChange = { handleChange }
-        value = { form.phoneNumber }
-        variant = "outlined" /
-        >
-        <
-        /Grid>{' '} <
-        /Grid>{' '} <
-        /CardContent>{' '} <
-        Divider / >
-        <
-        CardActions >
-        <
-        Button color = "primary"
-        variant = "contained"
-        onClick = { onSubmit }
-        disabled >
-        Save details { ' ' } <
-        /Button>{' '} <
-        /CardActions>{' '} <
-        /form>{' '} <
-        /Card>
-    );
+  return (
+    <Card
+      {...rest}
+      className={clsx(classes.root, className)}
+    >
+      <form
+        autoComplete="off"
+        noValidate
+      >
+        <CardHeader
+          subheader="The information can be edited"
+          title="Profile"
+        />
+        <Divider />
+        <CardContent>
+          <Grid
+            container
+            spacing={3}
+          >
+            <Grid
+              item
+              md={6}
+              xs={12}
+            >
+              <TextField
+                fullWidth
+                helperText="Please specify the first name"
+                label="First name"
+                margin="dense"
+                name="firstName"
+                onChange={handleChange}
+                required
+                value=""
+                placeholder={user.firstName}
+                variant="outlined"
+              />
+            </Grid>
+            <Grid
+              item
+              md={6}
+              xs={12}
+            >
+              <TextField
+                fullWidth
+                label="Last name"
+                margin="dense"
+                name="lastName"
+                onChange={handleChange}
+                required
+                value=""
+                placeholder={user.lastName}
+                variant="outlined"
+              />
+            </Grid>
+            <Grid
+              item
+              md={6}
+              xs={12}
+            >
+              <TextField
+                fullWidth
+                label="Email Address"
+                margin="dense"
+                name="email"
+                onChange={handleChange}
+                required
+                value=""
+                placeholder={user.email}
+                variant="outlined"
+              />
+            </Grid>
+            <Grid
+              item
+              md={6}
+              xs={12}
+            >
+              <TextField
+                fullWidth
+                label="Phone Number"
+                margin="dense"
+                name="phone"
+                onChange={handleChange}
+                type="number"
+                value=""
+                placeholder={user.phoneNumber}
+                variant="outlined"
+              />
+            </Grid>
+            <Grid
+              item
+              md={6}
+              xs={12}
+            >
+              <TextField
+                fullWidth
+                label="Preferred Locations"
+                margin="dense"
+                name="state"
+                onChange={handleChange}
+                required
+                select
+                // eslint-disable-next-line react/jsx-sort-props
+                SelectProps={{ native: true }}
+                value=""
+                variant="outlined"
+              >
+                {states.map(option => (
+                  <option
+                    key={option.value}
+                    value={option.value}
+                  >
+                    {option.label}
+                  </option>
+                ))}
+              </TextField>
+            </Grid>
+            <Grid
+              item
+              md={6}
+              xs={12}
+            >
+              <TextField
+                fullWidth
+                label="Country"
+                margin="dense"
+                name="country"
+                onChange={handleChange}
+                required
+                value=""
+                placeholder="Uganda"
+                variant="outlined"
+              />
+            </Grid>
+          </Grid>
+        </CardContent>
+        <Divider />
+        <CardActions>
+          <Button
+            color="primary"
+            variant="contained"
+          >
+            Save details
+          </Button>
+        </CardActions>
+      </form>
+    </Card>
+  );
 };
 
 AccountDetails.propTypes = {
-    className: PropTypes.string,
-    mappedAuth: PropTypes.object.isRequired
+  className: PropTypes.string,
+  auth: PropTypes.object.isRequired,
 };
 
-export default AccountDetails;
+const mapStateToProps = (state) => ({
+  auth: state.auth,
+});
+
+export default connect(mapStateToProps, {})(withRouter(AccountDetails));
