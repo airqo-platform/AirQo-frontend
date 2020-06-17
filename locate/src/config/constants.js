@@ -25,6 +25,8 @@ const prodConfig = {
     "https://locate-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/map/deletelocatemap/",
   GET_DEVICE_STATUS_SUMMARY:
     "https://device-monitoring-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/device/monitor/status",
+  GET_DEVICE_STATUS_FOR_PIECHART_DISPLAY:
+    "https://device-monitoring-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/device/monitor/status/latest",
 };
 
 const devConfig = {
@@ -44,7 +46,9 @@ const devConfig = {
   UPDATE_LOCATE_MAP: "http://localhost:4000/api/v1/map/updatelocatemap/",
   DELETE_LOCATE_MAP: "http://localhost:4000/api/v1/map/deletelocatemap/",
   GET_DEVICE_STATUS_SUMMARY:
-    "http://localhost:4000/api/v1/device/monitor/status",
+    "http://localhost:5000/api/v1/device/monitor/status",
+  GET_DEVICE_STATUS_FOR_PIECHART_DISPLAY:
+    "http://localhost:5000/api/v1/device/monitor/status/latest",
 };
 
 function runConfig(env) {

@@ -45,10 +45,40 @@ const useStyles = makeStyles(styles);
 
 export default function DeviceManagement() {
   //set states for storing device status
+  const [onlineStatusUpdateTime, setOnlineStatusUpdateTime] = useState()
+  const [onlineStatusChart, setOnlineStatusChart] = useState({data:{}, options:{}})
+  
+  useEffect(() => {
+    axios.get(constants.GET_DEVICE_STATUS_FOR_PIECHART_DISPLAY).then(({ data }) => {
+      console.log('data values')
+      console.log(data)
+      console.log('offline:' + data['data']['offline_devices_percentage'])
+      console.log('online:' + data['data']['online_devices_percentage'])
+      let onlineStatusChartData = {
+        data: {
+          series: [data['data']['offline_devices_percentage'], data['data']['online_devices_percentage']],
+          //labels: ['Offline', 'Online']
+        },
+        options: {
+          donut: true,
+          donutWidth: 60,
+          donutSolid: true,
+          startAngle: 270,
+          showLabel: true,
+        },
+      };
+      setOnlineStatusChart(onlineStatusChartData);
+      setOnlineStatusUpdateTime(data['data']['created_at'])
+      console.log(onlineStatusChartData)
+      
+    });
+  }, []);
+
   const [deviceStatusSummary, setStatusSummary] = useState();
   const [noOfDevices, setNoOfDevices] = useState(0);
   const [solarPowered, setSolarPowered] = useState(0);
   const [mainPowered, setMainPowered] = useState(0);
+  
 
   const classes = useStyles();
 
@@ -76,6 +106,7 @@ export default function DeviceManagement() {
     });
   }, []);
 
+  
   return (
     <div>
       <GridContainer>
@@ -188,19 +219,20 @@ export default function DeviceManagement() {
         <GridItem xs={12} sm={12} md={4}>
           <Card chart>
             <CardHeader color="info">
-              <ChartistGraph
-                className="ct-chart"
-                data={OnlineStatusChart.data}
-                type="Pie"
-                options={OnlineStatusChart.options}
-              />
+            <h4 className={classes.cardTitle}>Online Status</h4>
+             
             </CardHeader>
             <CardBody>
-              <h4 className={classes.cardTitle}>Online Status</h4>
+            <ChartistGraph
+                className="ct-chart"
+                data={onlineStatusChart.data}
+                type="Pie"
+                options={onlineStatusChart.options}
+              />
             </CardBody>
             <CardFooter chart>
               <div className={classes.stats}>
-                <AccessTime /> updated 2 minutes ago
+                <AccessTime /> Last updated on {onlineStatusUpdateTime}
               </div>
             </CardFooter>
           </Card>
