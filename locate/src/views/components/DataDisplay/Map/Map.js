@@ -97,7 +97,6 @@ const Map = props => {
           easeLinearity={0.35}
           scrollWheelZoom
           zoom={7}
-         
           
           zoomControl        
           
