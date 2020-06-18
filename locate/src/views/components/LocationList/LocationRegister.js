@@ -238,6 +238,7 @@ const LocationRegister = props => {
     .then(
       res=>{
         const ref = res.data;
+        console.log(ref);
         setLocationReference(ref)
 
     }).catch(
@@ -252,7 +253,7 @@ const LocationRegister = props => {
   const [dialogStatus, setDialogStatus] = useState(false)
   const [dialogMessage, setDialogMessage] = useState('')
 
-  const [latitude, setLatitude] = useState(0);
+  const [latitude, setLatitude] = useState(null);
   const handleLatitudeChange = enteredLatitude =>{
     let re = /\s*|\d+(\.d+)?/
     if (re.test(enteredLatitude.target.value)) {
@@ -260,7 +261,7 @@ const LocationRegister = props => {
   }
 }
   
-  const [longitude, setLongitude] = useState(0);
+  const [longitude, setLongitude] = useState(null);
   const handleLongitudeChange = enteredLongitude =>{
     let re = /\s*|\d+(\.d+)?/
     if (re.test(enteredLongitude.target.value)){
@@ -415,12 +416,11 @@ const localActivitiesOptions = [
       roadIntensity: roadIntensity.value, 
       installationType:	installationType,  
       roadStatus: roadStatus.value,
-      //localActivities: localActivities.selectedOption,
       localActivities: localActivities,	
       power:  power.value,
     }
     console.log(JSON.stringify(filter));
-    /*
+  
     axios.post(
       //'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/device/graph',
       'http://127.0.0.1:4000/api/v1/location_registry/register', 
@@ -439,7 +439,7 @@ const localActivitiesOptions = [
         //setLoading(false) 
     }).catch(
       console.log
-    )*/
+    )
   }
 
     return(
@@ -696,7 +696,7 @@ const localActivitiesOptions = [
                 options={internetOptions}
                 onChange={handleInternetChange}
                 styles={selectStyles} 
-                //isDisabled ={mobile}
+                isDisabled ={mobile}
               />
               </div>
               </Grid>
@@ -710,7 +710,7 @@ const localActivitiesOptions = [
                 options={powerOptions}
                 onChange={handlePowerChange} 
                 styles={selectStyles} 
-                //isDisabled ={mobile}            
+                isDisabled ={mobile}            
               />
 	          </div>
             </Grid>

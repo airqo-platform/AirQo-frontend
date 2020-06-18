@@ -213,8 +213,8 @@ const LocationEdit = props => {
   
   //const [message, setMessage] = useState('');
   const [locationReference, setLocationReference] = useState('');
-  const [latitude, setLatitude] = useState(0);
-  const [longitude, setLongitude] = useState(0);
+  const [latitude, setLatitude] = useState(null);
+  const [longitude, setLongitude] = useState(null);
   const [hostName, setHostName] = useState('');
   const handleHostNameChange = enteredHostName => {
     setHostName(enteredHostName.target.value);

@@ -27,6 +27,9 @@ import CardHeader from "../Card/CardHeader.js";
 import CardIcon from "../Card/CardIcon.js";
 import CardBody from "../Card/CardBody.js";
 import CardFooter from "../Card/CardFooter.js";
+import { StickyContainer, Sticky } from 'react-sticky';
+//import clockstyles from '../../../assets/css/dashboard-clock.css';
+import '../../../assets/css/dashboard-clock.css';
 
 import { bugs, website, server } from "../../variables/general.js";
 
@@ -41,10 +44,54 @@ import styles from "assets/jss/material-dashboard-react/views/dashboardStyle.js"
 import constants from "../../../config/constants";
 import axios from "axios";
 
+/*
+const useStyles = makeStyles(theme => ({
+  sticky: {
+    position:'fixed',
+  }
+}));
+
+const headerStyle = {
+  position: 'fixed',
+  top: 0,
+  textAlign: 'center',
+  align: 'center'
+};*/
+
 const useStyles = makeStyles(styles);
 
 export default function DeviceManagement() {
-  //set states for storing device status
+  const [date, setDate] = React.useState(new Date());
+  useEffect(() => {
+    var timerID = setInterval( () => tick(), 1000 );
+  
+    return function cleanup() {
+        clearInterval(timerID);
+      };
+   }, []);
+
+   function tick() {
+    setDate(new Date());
+   }
+   
+{/*
+  useEffect(() => {
+    const header = document.getElementById("myHeader");
+    const sticky = header.offsetTop;
+
+    const scrollCallBack = window.addEventListener("scroll", () => {
+      if (window.pageYOffset > sticky) {
+        header.classList.add("sticky");
+      } 
+      else {
+        header.classList.remove("sticky");
+      }
+    });
+    return () => {
+      window.removeEventListener("scroll", scrollCallBack);
+    };
+  }, []);*/}
+
   const [deviceStatusSummary, setStatusSummary] = useState();
   const [noOfDevices, setNoOfDevices] = useState(0);
   const [solarPowered, setSolarPowered] = useState(0);
@@ -86,6 +133,14 @@ export default function DeviceManagement() {
 
   return (
     <div>
+
+      <div>
+        {/*<h2 id="myHeader" className="header">{date.toLocaleTimeString()}</h2>*/}
+        <h2>{date.toLocaleTimeString()}</h2>
+        
+      </div>
+
+      <div>
       <GridContainer>
         <GridItem xs={12} sm={6} md={3}>
           <Card>
@@ -284,6 +339,7 @@ export default function DeviceManagement() {
           </Card>
         </GridItem>
       </GridContainer>
+    </div>
     </div>
   );
 }

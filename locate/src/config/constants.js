@@ -14,7 +14,8 @@ const constants = {
   ACCEPT_USER_URI: "https://airqo-250220.uc.r.appspot.com/api/v1/users/accept",
   GET_USERS_URI: "https://airqo-250220.uc.r.appspot.com/api/v1/users/",
   RUN_LOCATE_MODEL:
-    "https://locate-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/map/parishes",
+    //"https://locate-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/map/parishes",
+    "http://localhost:4001/api/v1/map/parishes",
   SAVE_LOCATE_MAP:
     "https://locate-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/map/savelocatemap",
   GET_LOCATE_MAP:

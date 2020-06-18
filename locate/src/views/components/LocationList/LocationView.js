@@ -93,7 +93,7 @@ const LocationView = props => {
   useEffect(() => {
     setIsLoading(true);
     axios.get(
-      'http://127.0.0.1:4000/api/v1/location_registry?loc_ref='+params.loc_ref
+      'http://127.0.0.1:4000/api/v1/location_registry/location?loc_ref='+params.loc_ref
     )
     .then(
       res=>{
