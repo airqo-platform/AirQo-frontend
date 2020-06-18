@@ -63,6 +63,10 @@ const dashboardStyle = {
       lineHeight: "1"
     }
   },
+  mapContainer: {
+    height: "400px",
+  },
+
   cardTitleWhite: {
     color: whiteColor,
     marginTop: "0px",

@@ -27,6 +27,7 @@ import CardHeader from "../Card/CardHeader.js";
 import CardIcon from "../Card/CardIcon.js";
 import CardBody from "../Card/CardBody.js";
 import CardFooter from "../Card/CardFooter.js";
+import Map from "./Map/Map"
 
 import { bugs, website, server } from "../../variables/general.js";
 
@@ -95,6 +96,18 @@ export default function DeviceManagement() {
           </Card>
         </GridItem>
       </GridContainer>
+
+      <GridContainer>
+        <GridItem xs={12} sm={12} md={12}>
+          <Card>
+            <div className={classes.mapContainer}>
+          <Map/>
+          </div>
+          </Card>
+        </GridItem>
+      </GridContainer>
+
+
       <GridContainer>
         <GridItem xs={12} sm={12} md={4}>
           <Card chart>
