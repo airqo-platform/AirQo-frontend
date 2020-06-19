@@ -36,7 +36,7 @@
     "react/jsx-no-duplicate-props": 1,
     "react/jsx-no-literals": 0,
     "react/jsx-no-undef": 1,
-    "react/jsx-sort-props": 1,
+    "react/jsx-sort-props": 0,
     "react/jsx-uses-react": 1,
     "react/jsx-uses-vars": 1,
     "react/no-danger": 1,
@@ -51,7 +51,9 @@
     "react/react-in-jsx-scope": 1,
     "react/self-closing-comp": 1,
     "react/sort-comp": 0,
-    "semi": 0
+    "semi": 0,
+    "react-hooks/rules-of-hooks": "error" , // Checks rules of Hooks
+    "react-hooks/exhaustive-deps": "warn" // Checks effect dependencies
   },
   "env": {
     "es6": true,
@@ -63,6 +65,7 @@
     "experimentalObjectRestSpread": true
   },
   "plugins": [
-    "react"
+    "react",
+    "react-hooks"
   ]
 }
