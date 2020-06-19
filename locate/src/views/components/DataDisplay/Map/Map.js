@@ -11,6 +11,8 @@ import 'react-leaflet-fullscreen/dist/styles.css';
 import L from 'leaflet';
 // import Filter from './Filter';
 import axios from "axios";
+import ReactDOM from 'react-dom';
+// import '../../../../assets/scss/index.scss';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -38,6 +40,20 @@ const useStyles = makeStyles(theme => ({
   },
   progress: {
     marginTop: theme.spacing(3)
+  },
+
+  leafletMarkerIcon: {
+    color: "#3f51b5",
+    backgroundColor:"#3f51b5",
+    fontSize: "12px",
+    fontWeight: "700",
+    lineHeight: "35px",
+    textAlign: "center",
+    verticalAlign: "bottom",
+    boxShadow: "2px 1px 4px rgba(0,0,0,0.2)",
+    borderRadius: "30px",
+    borderWidth: "3px",
+    opacity: 0.9	
   }
 }));
 
@@ -115,7 +131,8 @@ const Map = props => {
                 L.divIcon({
                 // html:`${contact.Last_Hour_PM25_Value == 0?'':contact.Last_Hour_PM25_Value}`,
                 iconSize: 35,
-                //className:`leaflet-marker-icon ${getPm25CategoryColorClass(contact.Last_Hour_PM25_Value)}`
+                // className:`leafletMarkerIcon ${getPm25CategoryColorClass(contact.Last_Hour_PM25_Value)}`
+                 className: classes.leafletMarkerIcon
                  })}
               >
               
