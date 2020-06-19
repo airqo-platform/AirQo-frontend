@@ -71,10 +71,13 @@ const useStyles = makeStyles(theme => ({
    clear: 'both'
   },
   paper: {
-    maxWidth: 400,
+    //maxWidth: 800,
     height: 310,
+    //width:800,
     margin: `${theme.spacing(1)}px auto`,
+    margin: '10px auto',
     padding: theme.spacing(2),
+    textAlign: 'center'
   },
   
   
@@ -134,7 +137,83 @@ const LocationView = props => {
         </Typography> 
         </Grid>  
         </Grid>
+
+      {/*Meandering starts here*/}
+      {locData.mobility=='Static'?
+       (
+
+        <Paper className={classes.paper}>
+          <Paper elevation ={0}>
+        <Grid
+        container
+        spacing={2}
+         >
+          <Grid
+            item
+            //lg={6}
+            sm={6}
+            //xl={6}
+            xs={12}
+            styles ={{alignContent:'center'}}
+            alignContent='center'
+            alignItems= 'center'
+            justify='center'
+          >
+
+          {loaded? 
+      (
+       <Map center={[locData.latitude, locData.longitude]} 
+       zoom={13} 
+       scrollWheelZoom={false}
+       style={{ width: '30%', height: '250px', align:'center'}}
+       >
+         <TileLayer
+            url ="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          /> 
+        <Marker position={[locData.latitude, locData.longitude]}>
+        <Popup>
+          <span>
+            <span>
+              {locData.location_name}
+            </span>
+          </span>
+        </Popup>
+        </Marker>
+      </Map> 
+         ):
+       (
+        <Map center={[0, 0]} 
+       zoom={13} 
+       scrollWheelZoom={false}
+       style={{ width: '30%', height: '250px', align:'center'}}
+       > 
+       <TileLayer
+            url ="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+      </Map> 
+       )
+    }
+        </Grid>
+        </Grid>
+        </Paper>
+        <Paper elevation={0}>
+        <Grid container>
+        <Grid
+          item
+          lg={12}
+          sm={6}
+          //xl={12}
+          xs={12}
+        >
+        <img src={img} alt='location image' />
+        </Grid>  
+        </Grid>
+        </Paper>
+      
+       </Paper>) : null}
+       {/*and ends here}
        
+       {/*
        {locData.mobility=='Static'?
        (
 
@@ -145,10 +224,10 @@ const LocationView = props => {
          >
           <Grid
             item
-            lg={12}
-            sm={12}
-            xl={12}
-            xs={12}
+            lg={6}
+            sm={6}
+            xl={6}
+            xs={6}
             styles ={{alignContent:'center'}}
             alignContent='center'
             alignItems= 'center'
@@ -192,6 +271,8 @@ const LocationView = props => {
         </Grid>
        </Paper>) : null}
 
+       */}
+
        
 
         <Grid
@@ -208,8 +289,8 @@ const LocationView = props => {
           xs={12}
           
         >
-           <TableContainer component={Paper} className = {classes.table}>  
-        <Table stickyHeader  aria-label="sticky table">  
+        <TableContainer component={Paper} className = {classes.table}>  
+         <Table stickyHeader  aria-label="sticky table">  
           <TableBody>  
             <TableRow>  
               <TableCell className = {classes.table}>Host Name: <b>{locData.host}</b></TableCell>  
@@ -263,11 +344,11 @@ const LocationView = props => {
 
             </Grid>
           </Grid>
-
-          <Grid
+      {/*}
+        <Grid
         container
         spacing={4}
-      >
+        >
         <Grid
           item
           lg={12}
@@ -275,13 +356,10 @@ const LocationView = props => {
           xl={12}
           xs={12}
         >
-          
-
         <img src={img} alt='location image' />
-
-
         </Grid>  
-        </Grid>
+        </Grid> 
+        */}
 
           <Grid
         container
@@ -306,8 +384,8 @@ const LocationView = props => {
           fontFamily = 'Open Sans'
         > Edit Location
         </Button>
-     </Link>    
-          </Grid>
+        </Link>    
+        </Grid>
         </Grid>
 
 

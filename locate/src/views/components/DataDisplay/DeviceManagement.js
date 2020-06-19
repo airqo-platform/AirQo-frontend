@@ -27,10 +27,6 @@ import CardHeader from "../Card/CardHeader.js";
 import CardIcon from "../Card/CardIcon.js";
 import CardBody from "../Card/CardBody.js";
 import CardFooter from "../Card/CardFooter.js";
-import { StickyContainer, Sticky } from 'react-sticky';
-import clockstyles from '../../../assets/css/dashboard-clock.css';
-import '../../../assets/css/dashboard-clock.css';
-
 import { bugs, website, server } from "../../variables/general.js";
 
 import {
