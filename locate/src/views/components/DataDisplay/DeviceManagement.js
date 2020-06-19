@@ -49,6 +49,9 @@ export default function DeviceManagement() {
   const [noOfDevices, setNoOfDevices] = useState(0);
   const [solarPowered, setSolarPowered] = useState(0);
   const [mainPowered, setMainPowered] = useState(0);
+  const [noDueMaintenance, setNoDueMaintenance] = useState(0);
+
+  //const [noOfDevicesTS, setNoOfDevicesTS] = useState(0); //TS= ThinkSpeak
 
   const classes = useStyles();
 
@@ -56,9 +59,9 @@ export default function DeviceManagement() {
     axios.get(constants.GET_DEVICE_STATUS_SUMMARY).then(({ data }) => {
       //console.log(data[0].loc_power_suppy);
       let no_devices = 0,
-        due_maintenance = 0,
         no_solar = 0,
         no_main = 0;
+      let due_maintenance = new Array();
       data.map((item) => {
         no_devices++;
         if (item.loc_power_suppy == "Solar") {
@@ -68,12 +71,40 @@ export default function DeviceManagement() {
         if (item.loc_power_suppy == "Mains") {
           no_main = no_main + 1;
         }
+
+        // calculate due maintenance date
+        if (item.last_maintained == "") {
+          // no know last maintenance date specified.
+          console.log("yes");
+        } else {
+          console.log(item.last_maintained);
+          let lst_maintained = item.last_maintained;
+          let past_date = new Date(lst_maintained);
+          let current_date = new Date();
+
+          let month_difference =
+            current_date.getFullYear() * 12 +
+            current_date.getMonth() -
+            (past_date.getFullYear() * 12 + past_date.getMonth());
+          console.log(month_difference);
+          if (month_difference >= 2) {
+            // took two months without maintenance activity
+            due_maintenance.push(month_difference);
+          }
+        }
       });
       setStatusSummary(data);
       setNoOfDevices(no_devices);
       setSolarPowered(no_solar);
       setMainPowered(no_main);
+      setNoDueMaintenance(due_maintenance.length);
     });
+
+    //axios.get(constants.GET_TOTAL_DEVICES).then(({ data }) => {
+    // getting total number of devices directly from thinkspeak
+    //console.log(data.count);
+    // setNoOfDevicesTS(data.count);
+    //});
   }, []);
 
   return (
@@ -98,7 +129,7 @@ export default function DeviceManagement() {
                 <RestoreIcon />
               </CardIcon>
               <p className={classes.cardCategory}>Due for maintenance</p>
-              <h3 className={classes.cardTitle}>---</h3>
+              <h3 className={classes.cardTitle}> {noDueMaintenance}</h3>
             </CardHeader>
             <CardFooter stats></CardFooter>
           </Card>
