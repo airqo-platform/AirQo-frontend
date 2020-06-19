@@ -36,7 +36,8 @@ const useStyles = makeStyles(theme => ({
 
 const Dashboard = props => {
   const classes = useStyles();
-  const { className, staticContext, ...rest } = props;
+  const { className, staticContext, mappedAuth, mappeduserState, mappedErrors, ...rest } = props;
+  const {user} = mappedAuth;
 
   function appendLeadingZeroes(n){
     if(n <= 9){
@@ -52,7 +53,24 @@ const Dashboard = props => {
 
   const [pm25CategoriesLocationCount, setPm25CategoriesLocationCount] = useState([]);
 
+  // useEffect(() => {
+  //   try{
+  //       props.fetchDefaults(user._id);
+  //   }
+  //   catch(e){
+  //   console.log(e);
+  //   }
+  //     }, []);
+
+//   useEffect(() => {
+// return ()=>{
+//   props.fetchDefaults(user._id);
+// }
+
+//   }, []);
+
   useEffect(() => {
+
     axios.get('https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/locations/pm25categorycount?organisation_name=KCCA')
     //axios.get('http://127.0.0.1:5000/api/v1/dashboard/locations/pm25categorycount?organisation_name=KCCA')
       .then(res => res.data)
@@ -61,7 +79,10 @@ const Dashboard = props => {
         console.log(data)  
         //console.log(data.pm25_categories)           
       })
-      .catch(console.log)
+      .catch(e=>{
+        console.log(e);
+      });
+
   }, []);
 
   const [locations,setLocations] = useState([]);
@@ -73,8 +94,12 @@ const Dashboard = props => {
       .then((locationsData) => {        
         setLocations(locationsData.results);        
       })
-      .catch(console.log)
+      .catch(e=>{
+        console.log(e)
+      })
   },[]);
+
+
 
  
   const locationsGraphData = {
@@ -517,7 +542,9 @@ const Dashboard = props => {
 
 
 Dashboard.propTypes = {
-  className: PropTypes.string
+  className: PropTypes.string,
+  mappedAuth: PropTypes.object.isRequired,
+  fetchDefaults: PropTypes.func.isRequired
 };
 
 
