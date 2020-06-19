@@ -28,7 +28,7 @@ import CardIcon from "../Card/CardIcon.js";
 import CardBody from "../Card/CardBody.js";
 import CardFooter from "../Card/CardFooter.js";
 import { StickyContainer, Sticky } from 'react-sticky';
-//import clockstyles from '../../../assets/css/dashboard-clock.css';
+import clockstyles from '../../../assets/css/dashboard-clock.css';
 import '../../../assets/css/dashboard-clock.css';
 
 import { bugs, website, server } from "../../variables/general.js";
@@ -59,6 +59,15 @@ const headerStyle = {
 };*/
 
 const useStyles = makeStyles(styles);
+const headerStyle = {
+  position: 'fixed',
+  top: 0,
+  //bottom: 0,
+  zIndex:100,
+  //textAlign: 'center',
+  //align:'center'
+};
+ 
 
 export default function DeviceManagement() {
   const [date, setDate] = React.useState(new Date());
@@ -73,6 +82,7 @@ export default function DeviceManagement() {
    function tick() {
     setDate(new Date());
    }
+
    
 {/*
   useEffect(() => {
@@ -132,15 +142,26 @@ export default function DeviceManagement() {
   }, []);
 
   return (
-    <div>
-
+    <div> 
+      {/*}
       <div>
-        {/*<h2 id="myHeader" className="header">{date.toLocaleTimeString()}</h2>*/}
-        <h2>{date.toLocaleTimeString()}</h2>
+        <GridContainer>
+          <GridItem xs={12} sm={12} md={12}>
+            <Card style={headerStyle}>
+              <h2>{date.toLocaleTimeString()}</h2>
+            </Card>
+          </GridItem>
+        </GridContainer>
+  </div>*/}
+      {/*
+      <div style={headerStyle}>
+        {/*<h2 id="myHeader" className="header">{date.toLocaleTimeString()}</h2>
+        /*<h2 >{date.toLocaleTimeString()}</h2>
         
-      </div>
+      </div>*/}
 
-      <div>
+
+      <div style={{top:500}}>
       <GridContainer>
         <GridItem xs={12} sm={6} md={3}>
           <Card>

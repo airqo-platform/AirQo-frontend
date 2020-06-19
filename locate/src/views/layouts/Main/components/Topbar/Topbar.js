@@ -1,9 +1,9 @@
-import React, { useState, Component } from "react";
+import React, { useState, Component, useEffect } from "react";
 import clsx from "clsx";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { makeStyles } from "@material-ui/styles";
-import { AppBar, Toolbar, Badge, Hidden, IconButton } from "@material-ui/core";
+import { AppBar, Toolbar, Badge, Hidden, IconButton, Typography } from "@material-ui/core";
 import MenuIcon from "@material-ui/icons/Menu";
 import NotificationsIcon from "@material-ui/icons/NotificationsOutlined";
 import InputIcon from "@material-ui/icons/Input";
@@ -51,14 +51,29 @@ const Topbar = (props) => {
     marginRight: ".4em",
   };
 
+
   const onLogoutClick = (e) => {
     e.preventDefault();
     props.logoutUser();
   };
 
+  const [date, setDate] = React.useState(new Date());
+  useEffect(() => {
+    var timerID = setInterval( () => tick(), 1000 );
+  
+    return function cleanup() {
+        clearInterval(timerID);
+      };
+   }, []);
+
+   function tick() {
+    setDate(new Date());
+   }
+
   return (
     <AppBar {...rest} className={clsx(classes.root, className)}>
       <Toolbar>
+        <p style={{fontSize: 20, marginLeft: "50%", fontWeight: "bold"}}>{date.toLocaleTimeString()}</p>
         <div className={classes.flexGrow} />
         <Hidden mdDown>
           <IconButton color="inherit">
