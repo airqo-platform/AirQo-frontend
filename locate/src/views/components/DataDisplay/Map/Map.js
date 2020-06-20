@@ -9,7 +9,7 @@ import { useEffect, useState } from 'react';
 import FullscreenControl from 'react-leaflet-fullscreen';
 import 'react-leaflet-fullscreen/dist/styles.css';
 import L from 'leaflet';
-// import Filter from './Filter';
+import Filter from './FilterPowerSource.jsx';
 import axios from "axios";
 import ReactDOM from 'react-dom';
 // import '../../../../assets/scss/index.scss';
@@ -121,7 +121,6 @@ const Map = props => {
             url="http://{s}.tile.osm.org/{z}/{x}/{y}.png"
           />           
           {contacts.map((contact) => (
-
             <Marker 
               position={[contact.loc_lat,contact.loc_long]}
               fill="true"
@@ -135,26 +134,21 @@ const Map = props => {
                  className: classes.leafletMarkerIcon
                  })}
               >
-              
               <Popup>
                 <h2>{contact.Parish} - {contact.Division} Division</h2> 
                 <h4>{contact.LocationCode}</h4>
 
                 <h1> {contact.Last_Hour_PM25_Value == 0?'':contact.Last_Hour_PM25_Value}</h1> 
                 <span>Last Refreshed: {contact.LastHour} (UTC)</span>
-                <Divider/>
-
-                
-               
+                <Divider/>               
                 <Link to={`/location/${contact.Parish}`}>More Details</Link>
-                
               </Popup>
             </Marker>   
           ))}    
       
-          <FullscreenControl position="topright" />
+          <FullscreenControl position="topleft" />
 
-          {/* <Filter fetchFilteredData={fetchFilteredData} /> */}
+          <Filter fetchFilteredData={fetchFilteredData} />
 
         </LeafletMap>
         
