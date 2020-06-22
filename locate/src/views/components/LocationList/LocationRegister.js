@@ -453,7 +453,7 @@ const localActivitiesOptions = [
     <form onSubmit={handleSubmit} className={classes.formControl}>
     <h5 align = "center"><b>Add a Location</b></h5><br/>
       <Grid container spacing={1}>
-        <Grid container item xs={12} spacing={3}>
+        <Grid container item xs={12} spacing={3} >
           <React.Fragment>
             <Grid item xs={6}>
             <div className={classes.formControl} style={{width: '250px'}}>
@@ -717,16 +717,16 @@ const localActivitiesOptions = [
            </React.Fragment>
         </Grid>
         </Grid>
-        <div className={classes.formControl} style={{width: '900px'}}>
+       {/* <div className={classes.formControl} style={{width: '900px', justifyContent:'center', alignItems:'center'}}>*/}
 
         <Button 
           variant="contained" 
           color="primary"              
           type="submit"
           //align = "centre"
-        > Register Location
+        > Register 
         </Button>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{/*&nbsp;&nbsp;&nbsp;*/}
         <Link to={`/location`}>
         <Button 
           variant="contained" 
@@ -736,7 +736,7 @@ const localActivitiesOptions = [
         > Cancel
         </Button>
         </Link>
-      </div>           
+      {/*</div>  */}       
       </form>
       </LoadingOverlay>
        

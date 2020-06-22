@@ -700,7 +700,7 @@ const getLocation = ref => {
           color="primary"              
           type="submit"
           align = "centre"
-        > Save Changes
+        >   Save  
         </Button>
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
         <Link to={`/location`}>
