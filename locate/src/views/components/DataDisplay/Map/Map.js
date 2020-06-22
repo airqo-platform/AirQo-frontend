@@ -53,7 +53,7 @@ const useStyles = makeStyles(theme => ({
     boxShadow: "2px 1px 4px rgba(0,0,0,0.2)",
     borderRadius: "30px",
     borderWidth: "3px",
-    opacity: 0.9	
+    opacity: 1	
   }
 }));
 
@@ -148,7 +148,7 @@ const Map = props => {
       
           <FullscreenControl position="topleft" />
 
-          <Filter fetchFilteredData={fetchFilteredData} />
+          {/* <Filter fetchFilteredData={fetchFilteredData} /> */}
 
         </LeafletMap>
         
