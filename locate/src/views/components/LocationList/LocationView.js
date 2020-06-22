@@ -16,9 +16,6 @@ import 'react-leaflet-fullscreen/dist/styles.css';
 import img from '../../../assets/img/locations/placeholder.png';
 
 
-
-
-
 const useStyles = makeStyles(theme => ({
   root: {
     padding: theme.spacing(3),
@@ -71,11 +68,11 @@ const useStyles = makeStyles(theme => ({
    clear: 'both'
   },
   paper: {
-    //maxWidth: 800,
+    maxWidth: 400,
     height: 310,
     //width:800,
     margin: `${theme.spacing(1)}px auto`,
-    margin: '10px auto',
+    //margin: '10px auto',
     padding: theme.spacing(2),
     textAlign: 'center'
   },
@@ -139,6 +136,8 @@ const LocationView = props => {
         </Grid>
 
       {/*Meandering starts here*/}
+      {/*}
+
       {locData.mobility=='Static'?
        (
 
@@ -210,10 +209,10 @@ const LocationView = props => {
         </Grid>
         </Paper>
       
-       </Paper>) : null}
-       {/*and ends here}
+       </Paper>) : null} */}
+       {/*and ends here} */}
        
-       {/*
+       
        {locData.mobility=='Static'?
        (
 
@@ -270,9 +269,6 @@ const LocationView = props => {
         </Grid>
         </Grid>
        </Paper>) : null}
-
-       */}
-
        
 
         <Grid
@@ -344,7 +340,7 @@ const LocationView = props => {
 
             </Grid>
           </Grid>
-      {/*}
+      {/*
         <Grid
         container
         spacing={4}
