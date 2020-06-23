@@ -76,7 +76,60 @@ const dashboardStyle = {
       fontWeight: "400",
       lineHeight: "1"
     }
-  }
+  },
+
+  mapContainer: {
+    height: "400px",
+  },
+
+  leafletMarkerIcon: {
+    color: "#000",
+    fontSize: "12px",
+    fontWeight: "700",
+    lineHeight: "35px",
+    textAlign: "center",
+    verticalAlign: "bottom",
+    boxShadow: "2px 1px 4px rgba(0,0,0,0.2)",
+    borderRadius: "30px",
+    borderWidth: "3px",
+    opacity: "1",	
+  },
+  
+  pm25Good: {
+    background:"#45e50d",
+    border: "2px solid #45e50d",
+    backgroundColor:"#45e50d !important",
+    },
+  
+   pm25Moderate: {
+    background:"#f8fe28 !important",
+    border: "2px solid #f8fe28",
+    },
+
+   pm25UH4SG: {
+    background:"#ee8310 !important",
+    border: "2px solid #ee8310",
+    },
+
+    pm25UnHealthy: {
+    background:"#fe0000 !important",
+    border: "2px solid #fe0000",
+    },
+
+    pm25VeryUnHealthy: {
+    background:"#8639c0 !important",
+    border: "2px solid #8639c0",
+    },
+
+    pm25Harzadous: {
+    background: "#81202e !important",
+    border: "2px solid #81202e",
+    },
+    
+    pm25UnCategorised: {
+    background:"#808080",
+    border: "2px solid #808080",
+    }
 };
 
 export default dashboardStyle;
