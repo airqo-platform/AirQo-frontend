@@ -40,13 +40,30 @@ import {
 import styles from "assets/jss/material-dashboard-react/views/dashboardStyle.js";
 import constants from "../../../config/constants";
 import axios from "axios";
+import palette from '../../../assets/theme/palette';
+import { Line, Bar, Pie } from 'react-chartjs-2';
 
 const useStyles = makeStyles(styles);
 
 export default function DeviceManagement() {
   //set states for storing device status
+
+  const [inActiveDevices, setInActiveDevices] = useState([])
+  const [inActiveDevicesCount, setInActiveDevicesCount] = useState(0)
+   
+  useEffect(() => {
+    axios.get(constants.GET_LATEST_OFFLINE_DEVICES).then(({ data }) => {
+      console.log(data)      
+
+      let devices  = data.map(x => [x['chan_id'], , x['airqo_ref'], x['loc_mob_stat'], x['loc_power_suppy']]);
+      setInActiveDevices(devices.slice(2,7));
+      setInActiveDevicesCount(data.length)
+    });
+  }, []);
+
   const [onlineStatusUpdateTime, setOnlineStatusUpdateTime] = useState()
   const [onlineStatusChart, setOnlineStatusChart] = useState({data:{}, options:{}})
+  const [deviceStatusValues, setDeviceStatusValues] = useState([])
   
   useEffect(() => {
     axios.get(constants.GET_DEVICE_STATUS_FOR_PIECHART_DISPLAY).then(({ data }) => {
@@ -54,6 +71,8 @@ export default function DeviceManagement() {
       console.log(data)
       console.log('offline:' + data['data']['offline_devices_percentage'])
       console.log('online:' + data['data']['online_devices_percentage'])
+
+      setDeviceStatusValues([data['data']['offline_devices_percentage'], data['data']['online_devices_percentage']])
       let onlineStatusChartData = {
         data: {
           series: [data['data']['offline_devices_percentage'], data['data']['online_devices_percentage']],
@@ -106,6 +125,96 @@ export default function DeviceManagement() {
     });
   }, []);
 
+ 
+  const [networkUptime,setNetworkUptime] = useState([]);
+
+  useEffect(() => {
+    axios.get(constants.GET_NETWORK_UPTIME).then(({ data }) => {
+      console.log(data)  
+      setNetworkUptime(data);        
+    });
+  },[]);
+
+ 
+  const uptimeData = {
+    labels: networkUptime.uptime_labels,
+    datasets: [
+      {
+        label: 'Network Uptime',
+        data: networkUptime.uptime_values,
+        fill: false,         
+        borderColor: palette.primary.main ,
+        backgroundColor: palette.primary.main
+      }
+    ]
+  }
+  
+
+
+  
+  const options_main= {    
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: false,
+    legend: { display: false },
+    cornerRadius: 0,
+    tooltips: {
+      enabled: true,
+      mode: 'index',
+      intersect: false,
+      borderWidth: 1,
+      borderColor: palette.divider,
+      backgroundColor: palette.white,
+      titleFontColor: palette.text.primary,
+      bodyFontColor: palette.text.secondary,
+      footerFontColor: palette.text.secondary      
+    },
+    layout: { padding: 0 },
+    scales: {
+      xAxes: [
+        {
+          barThickness: 12,
+          maxBarThickness: 10,
+          barPercentage: 0.5,
+          categoryPercentage: 0.5,
+          ticks: {
+            fontColor: palette.text.secondary,            
+          },
+          gridLines: {
+            display: false,
+            drawBorder: false
+          },
+          scaleLabel: {
+            display: true,
+            labelString: 'Time Periods'
+          }
+
+        }
+      ],
+      yAxes: [
+        {
+          ticks: {
+            fontColor: palette.text.secondary,
+            beginAtZero: true,
+            min: 0            
+          },
+          gridLines: {
+            borderDash: [2],
+            borderDashOffset: [2],
+            color: palette.divider,
+            drawBorder: false,
+            zeroLineBorderDash: [2],
+            zeroLineBorderDashOffset: [2],
+            zeroLineColor: palette.divider
+          },
+          scaleLabel: {
+            display: true,
+            labelString: 'Uptime(%)'
+          }
+        }
+      ]
+    }
+  };
   
   return (
     <div>
@@ -161,24 +270,26 @@ export default function DeviceManagement() {
       </GridContainer>
       <GridContainer>
         <GridItem xs={12} sm={12} md={4}>
-          <Card chart>
-            <CardHeader color="info">
-              <ChartistGraph
-                className="ct-chart"
-                data={dailySalesChart.data}
-                type="Line"
-                options={dailySalesChart.options}
-                listener={dailySalesChart.animation}
-              />
+          
+          <Card>
+            <CardHeader color="primary">
+                <h4 className={classes.cardTitleWhite}>
+                Network Uptime
+                </h4>
             </CardHeader>
-            <CardBody>
-              <h4 className={classes.cardTitle}>
-                Average network uptime analysis
-              </h4>
-            </CardBody>
-            <CardFooter chart>
+            
+              <CardBody>                
+                <div className={classes.chartContainer}>
+                  <Bar
+                    data={uptimeData}
+                    options={options_main}
+                  />
+                </div>
+              </CardBody>            
+            
+            <CardFooter >
               <div className={classes.stats}>
-                <AccessTime /> updated 4 minutes ago
+                <AccessTime /> Last updated {networkUptime.created_at}
               </div>
             </CardFooter>
           </Card>
@@ -186,49 +297,84 @@ export default function DeviceManagement() {
         <GridItem xs={12} sm={12} md={4}>
           <Card>
             <CardHeader color="primary">
-              <h4 className={classes.cardTitleWhite}>Inactive Devices</h4>
+              <h4 className={classes.cardTitleWhite}>Inactive Devices({inActiveDevicesCount})</h4>
             </CardHeader>
             <CardBody>
               <Table
                 tableHeaderColor="primary"
-                tableHead={["Device", "Location", "Type", "Carrier"]}
-                tableData={[
-                  [
-                    "Bwaise-2020-01-15T13:16:43.218Z",
-                    "Bwaise",
-                    "static",
-                    "MTN",
-                  ],
-                  [
-                    "Kamwokya-2020-01-15T13:16:43.218Z",
-                    "Kamwokya",
-                    "Static",
-                    "Airtel",
-                  ],
-                  [
-                    "Lugazi-2020-01-15T13:16:43.218Z",
-                    "Lugazi",
-                    "Static",
-                    "MTN",
-                  ],
-                ]}
+                tableHead={["Device", "Location", "Type", "Power Supply"]}
+                tableData={inActiveDevices}
               />
             </CardBody>
           </Card>
         </GridItem>
         <GridItem xs={12} sm={12} md={4}>
-          <Card chart>
+          <Card>
             <CardHeader color="info">
             <h4 className={classes.cardTitle}>Online Status</h4>
              
             </CardHeader>
-            <CardBody>
+            <CardBody>            
             <ChartistGraph
                 className="ct-chart"
                 data={onlineStatusChart.data}
                 type="Pie"
                 options={onlineStatusChart.options}
               />
+            </CardBody>
+            <CardFooter chart>
+              <div className={classes.stats}>
+                <AccessTime /> Last updated on {onlineStatusUpdateTime}
+              </div>
+            </CardFooter>
+          </Card>
+        </GridItem>
+
+        <GridItem xs={12} sm={12} md={4}>
+          <Card>
+            <CardHeader color="info">
+            <h4 className={classes.cardTitle}>Online Status</h4>
+             
+            </CardHeader>
+            <CardBody>
+            <Pie            
+            id="pie"
+            height={200}
+            data= {
+              {
+                labels: ['Offline', 'Online'],
+                datasets: [{
+                  label: 'Device Status',
+                  data: deviceStatusValues, 
+                  backgroundColor: [ '#17BECF', '#BCBD22']                 
+                }
+              ]
+            }
+            }
+            options={
+              
+              {
+              tooltips: {
+                callbacks: {
+                  label: function(tooltipItem, data) {
+                    var allData = data.datasets[tooltipItem.datasetIndex].data;
+                    var tooltipLabel = data.labels[tooltipItem.index];
+                    var tooltipData = allData[tooltipItem.index];
+                    var total = 0;
+                    for (var i in allData) {
+                      total += allData[i];
+                    }
+                    var tooltipPercentage = Math.round((tooltipData / total) * 100);                    
+                    return tooltipLabel + ': ' + tooltipPercentage + '%';
+                  }
+                }
+              },
+              
+              maintainAspectRatio: true,
+              responsive: true
+              }}
+             />
+            
             </CardBody>
             <CardFooter chart>
               <div className={classes.stats}>

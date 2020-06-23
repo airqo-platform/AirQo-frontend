@@ -27,6 +27,10 @@ const prodConfig = {
     "https://device-monitoring-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/device/monitor/status",
   GET_DEVICE_STATUS_FOR_PIECHART_DISPLAY:
     "https://device-monitoring-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/device/monitor/status/latest",
+    GET_LATEST_OFFLINE_DEVICES:
+    "https://device-monitoring-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/monitor/devices/offline",
+    GET_NETWORK_UPTIME:
+    "https://device-monitoring-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/monitor/network/uptime",
 };
 
 const devConfig = {
@@ -49,6 +53,11 @@ const devConfig = {
     "http://localhost:5000/api/v1/device/monitor/status",
   GET_DEVICE_STATUS_FOR_PIECHART_DISPLAY:
     "http://localhost:5000/api/v1/device/monitor/status/latest",
+  GET_LATEST_OFFLINE_DEVICES:
+  "http://localhost:5000/api/v1/monitor/devices/offline",
+  GET_NETWORK_UPTIME:
+  "http://localhost:5000/api/v1/monitor/network/uptime",
+  
 };
 
 function runConfig(env) {
