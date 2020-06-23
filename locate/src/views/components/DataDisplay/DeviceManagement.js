@@ -144,7 +144,7 @@ export default function DeviceManagement() {
         data: networkUptime.uptime_values,
         fill: false,         
         borderColor: palette.primary.main ,
-        backgroundColor: palette.primary.main
+        backgroundColor: '#BCBD22'
       }
     ]
   }
@@ -173,10 +173,10 @@ export default function DeviceManagement() {
     scales: {
       xAxes: [
         {
-          barThickness: 12,
-          maxBarThickness: 10,
-          barPercentage: 0.5,
-          categoryPercentage: 0.5,
+          barThickness: 35,
+          //maxBarThickness: 10,
+          barPercentage: 1,
+          //categoryPercentage: 0.5,
           ticks: {
             fontColor: palette.text.secondary,            
           },
@@ -281,6 +281,7 @@ export default function DeviceManagement() {
               <CardBody>                
                 <div className={classes.chartContainer}>
                   <Bar
+                    height={250}
                     data={uptimeData}
                     options={options_main}
                   />
@@ -308,28 +309,7 @@ export default function DeviceManagement() {
             </CardBody>
           </Card>
         </GridItem>
-        <GridItem xs={12} sm={12} md={4}>
-          <Card>
-            <CardHeader color="info">
-            <h4 className={classes.cardTitle}>Online Status</h4>
-             
-            </CardHeader>
-            <CardBody>            
-            <ChartistGraph
-                className="ct-chart"
-                data={onlineStatusChart.data}
-                type="Pie"
-                options={onlineStatusChart.options}
-              />
-            </CardBody>
-            <CardFooter chart>
-              <div className={classes.stats}>
-                <AccessTime /> Last updated on {onlineStatusUpdateTime}
-              </div>
-            </CardFooter>
-          </Card>
-        </GridItem>
-
+       
         <GridItem xs={12} sm={12} md={4}>
           <Card>
             <CardHeader color="info">
@@ -346,7 +326,7 @@ export default function DeviceManagement() {
                 datasets: [{
                   label: 'Device Status',
                   data: deviceStatusValues, 
-                  backgroundColor: [ '#17BECF', '#BCBD22']                 
+                  backgroundColor: ['#BCBD22','#17BECF' ]                 
                 }
               ]
             }
