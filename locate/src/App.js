@@ -32,11 +32,11 @@ import Login from "./views/components/Inputs/Login";
 import Profile from "./views/components/Inputs/UserProfile";
 import Settings from "./views/components/Inputs/Settings";
 import PrivateRoute from "./views/components/PrivateRoute/PrivateRoute";
-import Dashboard from "./views/components/Dashboard/Dashboard";
+import { connectedDeviceManagement as ConnectedDeviceManagement } from "./views/components/DataDisplay/IncidentReport/containers/IncidentReport";
 import Map from "./views/components/Map";
+import Dashboard from "./views/components/Dashboard/Dashboard";
 import Devices from "./views/components/DataDisplay/Devices";
 import Users from "./views/components/DataDisplay/Users";
-import Manager from "./views/components/DataDisplay/DeviceManagement";
 import Incentives from "./views/components/DataDisplay/Incentives";
 import { LocationList } from "./views/components/LocationList";
 
@@ -120,7 +120,7 @@ class App extends Component {
                 <PrivateRoute
                   exact
                   path="/manager"
-                  component={Manager}
+                  component={ConnectedDeviceManagement}
                   layout={MainLayout}
                 />
 

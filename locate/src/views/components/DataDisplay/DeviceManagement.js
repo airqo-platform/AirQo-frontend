@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 // react plugin for creating charts
 import ChartistGraph from "react-chartist";
 // @material-ui/core
@@ -28,8 +28,6 @@ import CardIcon from "../Card/CardIcon.js";
 import CardBody from "../Card/CardBody.js";
 import CardFooter from "../Card/CardFooter.js";
 
-import { bugs, website, server } from "../../variables/general.js";
-
 import {
   dailySalesChart,
   emailsSubscriptionChart,
@@ -41,7 +39,21 @@ import styles from "assets/jss/material-dashboard-react/views/dashboardStyle.js"
 
 const useStyles = makeStyles(styles);
 
-export default function DeviceManagement() {
+export default function DeviceManagement(props) {
+  const { className, mappedAuth, mappedAlerts, mappedIssues, ...rest } = props;
+
+  const { user } = mappedAuth;
+  const { alerts } = mappedAlerts;
+  const { issues } = mappedIssues;
+
+  useEffect(() => {
+    props.fetchAlerts();
+  }, []);
+
+  useEffect(() => {
+    props.fetchIssues();
+  }, []);
+
   const classes = useStyles();
   return (
     <div>
@@ -178,15 +190,34 @@ export default function DeviceManagement() {
           <CustomTabs
             title="Incident Report:"
             headerColor="primary"
+            /** for each object within the array
+             * I will map to construct an appropriate array which has
+             * the unit name and the activity which as carried out
+             */
             tabs={[
+              {
+                tabName: "Alerts",
+                tabIcon: NotificationsNoneIcon,
+                tabContent: (
+                  <TasksWithoutEdits
+                    checkedIndexes={[0]}
+                    tasksIndexes={[0, 1, 2, 3, 4, 5]}
+                    tasks={alerts.map(function (alert) {
+                      return alert.unit + "-" + alert.activity;
+                    })}
+                  />
+                ),
+              },
               {
                 tabName: "Issues",
                 tabIcon: BugReport,
                 tabContent: (
                   <TasksWithoutEdits
                     checkedIndexes={[0]}
-                    tasksIndexes={[0, 1, 2, 3]}
-                    tasks={bugs}
+                    tasksIndexes={[0, 1, 2, 3, 4, 5]}
+                    tasks={issues.map(function (issue) {
+                      return issue.unit + "-" + alert.issue;
+                    })}
                   />
                 ),
               },
@@ -196,19 +227,10 @@ export default function DeviceManagement() {
                 tabContent: (
                   <TasksWithoutEdits
                     checkedIndexes={[0]}
-                    tasksIndexes={[0, 1]}
-                    tasks={website}
-                  />
-                ),
-              },
-              {
-                tabName: "Alerts",
-                tabIcon: NotificationsNoneIcon,
-                tabContent: (
-                  <TasksWithoutEdits
-                    checkedIndexes={[0]}
-                    tasksIndexes={[0]}
-                    tasks={server}
+                    tasksIndexes={[0, 1, 2, 3, 4, 5]}
+                    tasks={alerts.map(function (alert) {
+                      return alert.unit + "-" + alert.activity;
+                    })}
                   />
                 ),
               },
