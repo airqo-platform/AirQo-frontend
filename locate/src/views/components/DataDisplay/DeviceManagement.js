@@ -201,9 +201,14 @@ export default function DeviceManagement(props) {
                 tabContent: (
                   <TasksWithoutEdits
                     checkedIndexes={[0]}
-                    tasksIndexes={[0, 1, 2, 3, 4, 5]}
+                    tasksIndexes={[0, 1, 2, 3, 4, 5, 6, 7, 8]}
                     tasks={alerts.map(function (alert) {
-                      return alert.unit + "-" + alert.activity;
+                      return (
+                        alert.unit +
+                        "-" +
+                        "has been maintained on " +
+                        alert.date
+                      );
                     })}
                   />
                 ),
@@ -214,9 +219,11 @@ export default function DeviceManagement(props) {
                 tabContent: (
                   <TasksWithoutEdits
                     checkedIndexes={[0]}
-                    tasksIndexes={[0, 1, 2, 3, 4, 5]}
+                    tasksIndexes={[0, 1, 2, 3, 4, 5, 6, 7, 8]}
                     tasks={issues.map(function (issue) {
-                      return issue.unit + "-" + alert.issue;
+                      return (
+                        issue.unit + "-" + "has been maintained " + alert.date
+                      );
                     })}
                   />
                 ),
