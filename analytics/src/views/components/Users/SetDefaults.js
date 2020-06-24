@@ -1,5 +1,5 @@
 /* eslint-disable */
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import clsx from 'clsx';
 import { makeStyles } from '@material-ui/core/styles';
 import InputLabel from '@material-ui/core/InputLabel';
@@ -9,242 +9,359 @@ import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 import DateFnsUtils from '@date-io/date-fns';
 import {
-    MuiPickersUtilsProvider,
-    KeyboardTimePicker,
-    KeyboardDatePicker,
+  MuiPickersUtilsProvider,
+  KeyboardTimePicker,
+  KeyboardDatePicker
 } from '@material-ui/pickers';
 
+import PropTypes from 'prop-types';
+import { withStyles } from '@material-ui/core/styles';
+
 import {
-    Card,
-    CardHeader,
-    CardContent,
-    CardActions,
-    Divider,
-    Grid,
-    Button,
-    TextField
-  } from '@material-ui/core';
-  import { connect } from "react-redux";
+  Card,
+  CardHeader,
+  CardContent,
+  CardActions,
+  Divider,
+  Grid,
+  Button,
+  TextField
+} from '@material-ui/core';
 
+const defaults = [
+  {
+    value: 'None',
+    label: 'None'
+  },
+  {
+    value: 'PM10',
+    label: 'PM1O'
+  },
+  {
+    value: 'PM2.5',
+    label: 'PM2.5'
+  },
+  {
+    value: 'NO2',
+    label: 'NO2'
+  }
+];
 
-const useStyles = makeStyles((theme) => ({
-    formControl: {
-        margin: theme.spacing(1),
-        minWidth: 120,
-    },
-    selectEmpty: {
-        marginTop: theme.spacing(2),
-    },
-    container: {
-        display: 'flex',
-        flexWrap: 'wrap',
-    },
-    textField: {
-        marginLeft: theme.spacing(1),
-        marginRight: theme.spacing(1),
-        width: 200,
-    },
-    root: {},
-    details: {
-      display: 'flex'
-    },
+const charts = [
+  {
+    value: 'None',
+    label: 'None'
+  },
+  {
+    value: 'Line',
+    label: 'Line'
+  },
+  {
+    value: 'Bar',
+    label: 'Bar'
+  },
+  {
+    value: 'Pie',
+    label: 'Pie'
+  }
+];
 
+const titles = [
+  {
+    value: 'None',
+    label: 'None'
+  },
+  {
+    value: 'Chart One',
+    label: 'Chart One'
+  },
+  {
+    value: 'Chart Two',
+    label: 'Chart Two'
+  },
+  {
+    value: 'Chart Three',
+    label: 'Chart Three'
+  },
+  {
+    value: 'Chart Four',
+    label: 'Chart Four'
+  }
+];
+
+const frequency = [
+  {
+    value: 'None',
+    label: 'None'
+  },
+  {
+    value: 'Daily',
+    label: 'Daily'
+  },
+  {
+    value: 'Hourly',
+    label: 'Hourly'
+  },
+  {
+    value: 'Monthly',
+    label: 'Monthly'
+  }
+];
+
+const useStyles = makeStyles(theme => ({
+  formControl: {
+    margin: theme.spacing(1),
+    minWidth: 120
+  },
+  selectEmpty: {
+    marginTop: theme.spacing(2)
+  },
+  container: {
+    display: 'flex',
+    flexWrap: 'wrap'
+  },
+  textField: {
+    marginLeft: theme.spacing(1),
+    marginRight: theme.spacing(1),
+    width: 200,
+    paddingLeft: '0px',
+    paddingRight: '0px',
+    paddingBottom: '15px',
+    paddingTop: '15px'
+  },
+  root: {},
+  details: {
+    display: 'flex'
+  }
 }));
 
-export default function SimpleSelect(props) {
-    const { className, ...rest } = props;
-    const classes = useStyles();
-    const [age, setAge] = React.useState('');
+const SetDefaults = props => {
+  const {
+    className,
+    mappedAuth,
+    mappedUpdateAuthenticatedUser,
+    mappeduserState,
+    ...rest
+  } = props;
+  const { user } = mappedAuth;
 
-    const handleChange = (event) => {
-        setAge(event.target.value);
+  const classes = useStyles();
+
+  const initialState = {
+    pollutant: '',
+    frequency: '',
+    startDate: '2017-05-24T10:30',
+    endDate: '2020-05-24T10:30',
+    chartTitle: '',
+    chartType: ''
+  };
+
+  const [form, setState] = useState(initialState);
+
+  useEffect(() => {
+    var anchorElem = document.createElement('link');
+    anchorElem.setAttribute(
+      'href',
+      'https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css'
+    );
+    anchorElem.setAttribute('rel', 'stylesheet');
+    anchorElem.setAttribute('id', 'logincdn');
+  });
+
+  const onChange = event => {
+    setState({
+      ...form,
+      [event.target.id]: event.target.value
+    });
+  };
+
+  const clearState = () => {
+    setState({ ...initialState });
+  };
+
+  const onSubmit = e => {
+    e.preventDefault();
+    const userData = {
+      id: user._id,
+      pollutant: form.pollutant,
+      endDate: form.endDate,
+      startDate: form.startDate,
+      frequency: form.frequency,
+      chartType: form.chartType,
+      chartTitle: form.chartTitle
     };
-    const [selectedDate, setSelectedDate] = React.useState(new Date('2014-08-18T21:11:54'));
+    console.log(userData);
+    console.log('the data from end date:');
+    console.dir(form.endDate);
+    console.log('the data from start date:');
+    console.dir(form.startDate);
+    console.log('the user ID:');
+    console.log(user._id);
+    props.mappedSetDefaults(userData);
+    clearState();
+  };
 
-    const handleStartDateChange = (date) => {
-        setSelectedDate(date);
-    };
+  //   useEffect(() => {
+  // try{
+  //   const abortController = new AbortController()
+  // const signal = abortController.signal;
+  //     props.fetchDefaults(user._id, signal);
+  //     return function cleanup(){
+  //       abortController.abort();
+  //     }
+  // }
+  // catch(e){
+  // console.log(e);
+  // }
+  //   }, []);
 
-    const handleEndDateChange = (date) => {
-        setSelectedDate(date);
-    };
-
-    return (
-       <div>
-<Card
-{...rest}
-className={clsx(classes.root, className)}
->
-<form
-  autoComplete="off"
-  noValidate
->
-  <CardHeader
-    subheader="The default values to be used in the graphs"
-    title="User Defaults"
-  />
-  <Divider />
-  <CardContent>
-    <Grid
-      container
-      spacing={3}
-    >
-      <Grid
-        item
-        md={6}
-        xs={12}
-      >
-         <FormControl variant="outlined" className={classes.formControl}>
-                <InputLabel id="demo-simple-select-outlined-label">Location</InputLabel>
-                <Select
-                    labelId="demo-simple-select-outlined-label"
-                    id="demo-simple-select-outlined"
-                    value={age}
-                    onChange={handleChange}
-                    label="Location"
-                >
-                    <MenuItem value="">
-                        <em>None</em>
-                    </MenuItem>
-                    <MenuItem value={10}>Ntinda</MenuItem>
-                    <MenuItem value={20}>Kamwokya</MenuItem>
-                    <MenuItem value={30}>Kiwatule</MenuItem>
-                </Select>
-            </FormControl>
-      </Grid>
-      <Grid
-        item
-        md={6}
-        xs={12}
-      >
-      <FormControl variant="outlined" className={classes.formControl}>
-                <InputLabel id="demo-simple-select-outlined-label">Pollutant</InputLabel>
-                <Select
-                    labelId="demo-simple-select-outlined-label"
-                    id="demo-simple-select-outlined"
-                    value={age}
-                    onChange={handleChange}
-                    label="Pollutant"
-                >
-                    <MenuItem value="">
-                        <em>None</em>
-                    </MenuItem>
-                    <MenuItem value={10}>PM10</MenuItem>
-                    <MenuItem value={20}>NO2</MenuItem>
-                    <MenuItem value={30}>PM2.5</MenuItem>
-                </Select>
-            </FormControl>
-      </Grid>
-      <Grid
-        item
-        md={6}
-        xs={12}
-      >
-      <FormControl variant="filled" className={classes.formControl}>
-                <InputLabel id="demo-simple-select-filled-label">Frequency</InputLabel>
-                <Select
-                    labelId="demo-simple-select-filled-label"
-                    id="demo-simple-select-filled"
-                    value={age}
-                    onChange={handleChange}
-                >
-                    <MenuItem value="">
-                        <em>None</em>
-                    </MenuItem>
-                    <MenuItem value={10}>Daily</MenuItem>
-                    <MenuItem value={20}>Hourly</MenuItem>
-                    <MenuItem value={30}>Monthly</MenuItem>
-                </Select>
-            </FormControl>
-      </Grid>
-      <Grid
-        item
-        md={6}
-        xs={12}
-      >
-      <FormControl variant="filled" className={classes.formControl}>
+  return (
+    <Grid container spacing={4}>
+      <Grid item md={4} xs={12}>
+        <Card {...rest} className={clsx(classes.root, className)}>
+          <CardHeader
+            subheader="Please enter your preferences for the Landing Page"
+            title="User Defaults"
+          />
+          <Divider />
+          <CardContent>
+            {
+              <div>
                 <TextField
-                    id="time"
-                    label="Start time"
-                    type="time"
-                    defaultValue="07:30"
-                    className={classes.textField}
-                    InputLabelProps={{
-                        shrink: true,
-                    }}
-                    inputProps={{
-                        step: 300, // 5 min
-                    }}
-                />
-            </FormControl>
-      </Grid>
-      <Grid
-        item
-        md={6}
-        xs={12}
-      >
-        <FormControl variant="filled" className={classes.formControl}>
+                  id="pollutant"
+                  select
+                  label="Pollutant"
+                  className={classes.textField}
+                  value={form.privilege}
+                  onChange={onChange}
+                  SelectProps={{
+                    native: true,
+                    MenuProps: {
+                      className: classes.menu
+                    }
+                  }}
+                  helperText="Please select the pollutant"
+                  margin="normal"
+                  variant="outlined">
+                  {defaults.map(option => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </TextField>
+
                 <TextField
-                    id="time"
-                    label="End time"
-                    type="time"
-                    defaultValue="07:30"
-                    className={classes.textField}
-                    InputLabelProps={{
-                        shrink: true,
-                    }}
-                    inputProps={{
-                        step: 300, // 5 min
-                    }}
+                  id="frequency"
+                  select
+                  label="Frequency"
+                  className={classes.textField}
+                  value={form.frequency}
+                  onChange={onChange}
+                  SelectProps={{
+                    native: true,
+                    MenuProps: {
+                      className: classes.menu
+                    }
+                  }}
+                  helperText="Please select the frequency"
+                  margin="normal"
+                  variant="outlined">
+                  {frequency.map(option => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </TextField>
+
+                <TextField
+                  id="chartType"
+                  select
+                  label="chartType"
+                  className={classes.textField}
+                  value={form.chartType}
+                  onChange={onChange}
+                  SelectProps={{
+                    native: true,
+                    MenuProps: {
+                      className: classes.menu
+                    }
+                  }}
+                  helperText="Please select the chat type"
+                  margin="normal"
+                  variant="outlined">
+                  {charts.map(option => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </TextField>
+
+                <TextField
+                  id="chartTitle"
+                  select
+                  label="chartTitle"
+                  className={classes.textField}
+                  value={form.chartTitle}
+                  onChange={onChange}
+                  SelectProps={{
+                    native: true,
+                    MenuProps: {
+                      className: classes.menu
+                    }
+                  }}
+                  helperText="Please select the chat title"
+                  margin="normal"
+                  variant="outlined">
+                  {titles.map(option => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </TextField>
+
+                {/* start time and start date */}
+                <TextField
+                  id="startDate"
+                  label="Start Date and Time"
+                  type="datetime-local"
+                  value={form.startDate}
+                  onChange={onChange}
+                  className={classes.textField}
+                  variant="outlined"
+                  InputLabelProps={{
+                    shrink: true
+                  }}
                 />
-            </FormControl>
-      </Grid>
-      <Grid
-        item
-        md={6}
-        xs={12}
-      >
-        <MuiPickersUtilsProvider utils={DateFnsUtils}>
-                <Grid container justify="space-around">
-                    <KeyboardDatePicker
-                        margin="normal"
-                        id="date-picker-dialog"
-                        label="Start Date"
-                        format="MM/dd/yyyy"
-                        value={selectedDate}
-                        onChange={handleStartDateChange}
-                        KeyboardButtonProps={{
-                            'aria-label': 'change date',
-                        }}
-                    />
-                    <KeyboardDatePicker
-                        margin="normal"
-                        id="date-picker-dialog"
-                        label="End Date"
-                        format="MM/dd/yyyy"
-                        value={selectedDate}
-                        onChange={handleEndDateChange}
-                        KeyboardButtonProps={{
-                            'aria-label': 'change date',
-                        }}
-                    />
-                </Grid>
-                </MuiPickersUtilsProvider>
+                {/* end time and end date */}
+                <TextField
+                  id="endDate"
+                  label="End Date and Time"
+                  type="datetime-local"
+                  value={form.endDate}
+                  onChange={onChange}
+                  variant="outlined"
+                  className={classes.textField}
+                  InputLabelProps={{
+                    shrink: true
+                  }}
+                />
+              </div>
+            }
+          </CardContent>
+          <Divider />
+          <CardActions>
+            <Button color="primary" variant="contained" onClick={onSubmit}>
+              Save Defaults
+            </Button>
+          </CardActions>
+        </Card>
       </Grid>
     </Grid>
-  </CardContent>
-  <Divider />
-  <CardActions>
-    <Button
-      color="primary"
-      variant="contained"
-    >
-      Save Defaults
-    </Button>
-  </CardActions>
-</form>
-</Card>
-</div>
-    );
-}
+  );
+};
 
+SetDefaults.propTypes = {
+  fetchDefaults: PropTypes.func.isRequired
+};
+
+export default SetDefaults;

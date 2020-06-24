@@ -5,16 +5,13 @@ import { logoutUser } from "../../../redux/Join/actions";
 import GridContainer from "../Grid/GridContainer.js";
 import GridItem from "../Grid/GridItem.js";
 import NavPills from "../NavPills/NavPills.js";
-
 import { makeStyles } from "@material-ui/core/styles";
 import DevicesIcon from "@material-ui/icons/Devices";
 import AddBoxIcon from "@material-ui/icons/AddBox";
 import PaymentIcon from "@material-ui/icons/Payment";
 import CompassCalibrationIcon from "@material-ui/icons/CompassCalibration";
 import AddLocationIcon from "@material-ui/icons/AddLocation";
-
 import Schedule from "@material-ui/icons/Schedule";
-
 import styles from "assets/jss/material-kit-react/views/componentsSections/pillsStyle.js";
 
 const useStyles = makeStyles(styles);
@@ -146,7 +143,6 @@ function Dashboard(props) {
     </div>
   );
 }
-
 Dashboard.propTypes = {
   logoutUser: PropTypes.func.isRequired,
   auth: PropTypes.object.isRequired,
