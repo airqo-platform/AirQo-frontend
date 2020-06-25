@@ -12,6 +12,7 @@ import LoadingOverlay from 'react-loading-overlay';
 import CreatableSelect from 'react-select/creatable';
 //import './assets/css/location-registry.css';
 import '../../../assets/css/location-registry.css';
+import constants from '../../../config/constants.js';
 
 
 const useStyles = makeStyles(theme => ({
@@ -233,7 +234,8 @@ const LocationRegister = props => {
   useEffect(() => {
     //code to retrieve next location ID from backend
     axios.get(
-      'http://127.0.0.1:4000/api/v1/location_registry/create_id'
+      //'http://127.0.0.1:4000/api/v1/location_registry/create_id'
+      constants.CREATE_ID_URI
     )
     .then(
       res=>{
@@ -370,8 +372,7 @@ const localActivitiesOptions = [
 
   let generateReference = () =>{
     axios.get(
-      //'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/device/graph',
-      'http://127.0.0.1:4000/api/v1/location_registry/create_id'
+      constants.CREATE_ID_URI
     )
     .then(
       res=>{
@@ -422,8 +423,8 @@ const localActivitiesOptions = [
     console.log(JSON.stringify(filter));
   
     axios.post(
-      //'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/device/graph',
-      'http://127.0.0.1:4000/api/v1/location_registry/register', 
+      //'http://127.0.0.1:4000/api/v1/location_registry/register', 
+      constants.REGISTER_LOCATION_URI,
       JSON.stringify(filter),
       { headers: { 'Content-Type': 'application/json' } }
     )

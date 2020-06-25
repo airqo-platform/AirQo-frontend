@@ -32,7 +32,7 @@ const prodConfig = {
     //"http://127.0.0.1:4000/api/v1/location_registry/create_id",
     REGISTER_LOCATION_URI: "https://location-registry-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/location_registry/register",
     //"http://127.0.0.1:4000/api/v1/location_registry/register",
-    VIEW_LOCATION_URI: "https://location-registry-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/location?loc_ref=",
+    VIEW_LOCATION_URI: "https://location-registry-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/location_registry/location?loc_ref=",
     //"http://127.0.0.1:4000/api/v1/location_registry/location?loc_ref=",
     EDIT_LOCATION_DETAILS_URI: "https://location-registry-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/location_registry/edit?loc_ref=",
     //"http://127.0.0.1:4000/api/v1/location_registry/edit?loc_ref=",

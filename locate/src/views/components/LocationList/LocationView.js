@@ -14,6 +14,7 @@ import '../../../assets/css/location-registry.css';
 import { Map, FeatureGroup, LayerGroup, TileLayer, Marker, Popup } from "react-leaflet";
 import 'react-leaflet-fullscreen/dist/styles.css';
 import img from '../../../assets/img/locations/placeholder.png';
+import constants from '../../../config/constants.js';
 
 
 const useStyles = makeStyles(theme => ({
@@ -93,7 +94,8 @@ const LocationView = props => {
   useEffect(() => {
     setIsLoading(true);
     axios.get(
-      'http://127.0.0.1:4000/api/v1/location_registry/location?loc_ref='+params.loc_ref
+      //'http://127.0.0.1:4000/api/v1/location_registry/location?loc_ref='+params.loc_ref
+      constants.VIEW_LOCATION_URI+params.loc_ref
     )
     .then(
       res=>{

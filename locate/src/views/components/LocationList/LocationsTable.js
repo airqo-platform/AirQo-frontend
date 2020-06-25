@@ -25,8 +25,10 @@ import { Button } from "@material-ui/core";
 //import './assets/css/location-registry.css';
 import '../../../assets/css/location-registry.css';
 import { SearchInput } from "../SearchInput";
+import constants from '../../../config/constants.js';
 
 import MaterialTable, { MTablePagination, Paper} from 'material-table';
+import { configs } from 'eslint-plugin-prettier';
 
 
 const useStyles = makeStyles(theme => ({
@@ -94,7 +96,8 @@ const LocationsTable = props => {
     setIsLoading(true);
     axios.get(
       //'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/device/graph',
-      'http://127.0.0.1:4000/api/v1/location_registry/locations'
+      //'http://127.0.0.1:4000/api/v1/location_registry/locations'
+      constants.ALL_LOCATIONS_URI
     )
     .then(
       res=>{

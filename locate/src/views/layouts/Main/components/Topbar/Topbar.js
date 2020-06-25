@@ -73,7 +73,7 @@ const Topbar = (props) => {
   return (
     <AppBar {...rest} className={clsx(classes.root, className)}>
       <Toolbar>
-        <p style={{fontSize: 20, marginLeft: "50%", fontWeight: "bold"}}>{date.toLocaleTimeString()}</p>
+        <p style={{fontSize: 20, marginLeft: "50%", fontWeight: "bold"}}>{date.toLocaleString()}</p>
         <div className={classes.flexGrow} />
         <Hidden mdDown>
           <IconButton color="inherit">

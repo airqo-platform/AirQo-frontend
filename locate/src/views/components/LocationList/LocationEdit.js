@@ -14,6 +14,7 @@ import CreatableSelect from 'react-select/creatable';
 //import './assets/css/location-registry.css';
 //import Select from '@material-ui/core/Select';
 import '../../../assets/css/location-registry.css';
+import constants from '../../../config/constants.js';
 
 
 const useStyles = makeStyles(theme => ({
@@ -302,7 +303,10 @@ const roadStatusOptions = [
 
 const getLocation = ref => {
     setDetailsLoading(true);
-    axios.get('http://127.0.0.1:4000/api/v1/location_registry/edit?loc_ref='+ref)
+    axios.get(
+      //'http://127.0.0.1:4000/api/v1/location_registry/edit?loc_ref='+ref
+      constants.EDIT_LOCATION_DETAILS_URI+ref
+      )
       .then(response => {
         setDetailsLoading(false);
         let myData = response.data
@@ -378,7 +382,8 @@ const getLocation = ref => {
     console.log(JSON.stringify(filter));
     
     axios.post(
-      'http://127.0.0.1:4000/api/v1/location_registry/update', 
+      //'http://127.0.0.1:4000/api/v1/location_registry/update', 
+      constants. UPDATE_LOCATION_URI,
       JSON.stringify(filter),
       { headers: { 'Content-Type': 'application/json' } }
     )
