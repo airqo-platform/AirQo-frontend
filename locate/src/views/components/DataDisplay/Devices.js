@@ -5,8 +5,8 @@ import PropTypes from 'prop-types';
 import PerfectScrollbar from 'react-perfect-scrollbar';
 import axios from 'axios';
 import { Link } from "react-router-dom";
-import { makeStyles } from '@material-ui/styles';
-import { Card, CardContent,  Button, Dialog, DialogActions, DialogContent, DialogTitle } from '@material-ui/core';
+import { makeStyles, mergeClasses } from '@material-ui/styles';
+import { Card, CardContent, Grid, Button, Dialog, DialogActions, DialogContent, DialogTitle, SvgIcon, Icon } from '@material-ui/core';
 import LoadingOverlay from 'react-loading-overlay';
 import constants from '../../../config/constants.js';
 import TextField from '@material-ui/core/TextField';
@@ -16,6 +16,17 @@ import {
   KeyboardTimePicker,
   KeyboardDatePicker,
 } from '@material-ui/pickers';
+//import { AccessAlarm, ThreeDRotation } from '@material-ui/icons';
+import { Update, Delete, Edit } from '@material-ui/icons';
+import Tooltip from '@material-ui/core/Tooltip';
+//import Select from 'react-select';
+import Select from '@material-ui/core/Select';
+import FormControl from '@material-ui/core/FormControl';
+import Input from '@material-ui/core/Input';
+import InputLabel from '@material-ui/core/InputLabel';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import Checkbox from '@material-ui/core/Checkbox';
+import CheckBoxIcon from '@material-ui/icons/CheckBox';
 
 const useStyles = makeStyles(theme => ({
   root: {},
@@ -41,7 +52,10 @@ const useStyles = makeStyles(theme => ({
     },
   table: {
     fontFamily:'Open Sans'
-  }
+  },
+formControl: {
+  minWidth: 200,
+}
 }));
 
 
@@ -59,7 +73,15 @@ const DevicesTable = props => {
     setMaintenanceOpen(false);
   };
 
-  
+  const [deployOpen, setDeployOpen]= useState(false);
+  const handleDeployOpen = () => {
+    setDeployOpen(true);
+  };
+  const handleDeployClose = () => {
+    setDeployOpen(false);
+  };
+
+  //maintenance log parameters
   const [deviceName, setDeviceName] = useState('');
   const [maintenanceDescription, setMaintenanceDescription] = useState('');
   const handleMaintenanceDescriptionChange = description => {
@@ -70,6 +92,44 @@ const DevicesTable = props => {
     setSelectedDate(date);
   };
   
+  //deployment parameters
+  const [locationsOptions, setLocationsOptions] = useState([]);
+  const [locationID, setLocationID] = useState('');
+  const handleLocationIDChange = enteredLocation => {
+    setLocationID(enteredLocation)
+  }
+  const [height, setHeight] = useState(null);
+  const handleHeightChange = enteredHeight => {
+    let re = /\s*|\d+(\.d+)?/
+    if (re.test(enteredHeight.target.value)) {
+      setHeight(enteredHeight.target.value);
+    }
+  }
+  const [power, setPower] = useState({value: ''});
+  const handlePowerChange = selectedPower => {
+	  setPower(selectedPower);
+  }
+
+  const [installationType, setInstallationType] = useState('');
+  const handleInstallationTypeChange = enteredInstallationType => {
+	  setInstallationType(enteredInstallationType.target.value);
+  }
+
+  const [deploymentDate, setDeploymentDate] = useState(null);
+  const handleDeploymentDateChange = (date) => {
+    setDeploymentDate(date);
+  };
+  
+  const [primaryChecked, setPrimaryChecked] = useState(true);
+  const handlePrimaryChange = (event) => {
+    setPrimaryChecked(false);
+  }
+
+  const [collocationChecked, setCollocationChecked] = useState(false);
+  const handleCollocationChange = (event) => {
+    setCollocationChecked(true);
+  }
+
   useEffect(() => {
     //code to retrieve all devices' data
     setIsLoading(true);
@@ -108,10 +168,24 @@ const DevicesTable = props => {
       console.log('Deploying '+name);
       //console.log(name);
       setDeviceName(name);
+      handleDeployOpen();
       //handleMaintenanceOpen();
     }
   }
   
+  let  handleDeploySubmit = (e) => {
+    //e.preventDefault();
+    //setLoading(true);
+    //setIsLoading(true);
+   /*
+    let filter ={ 
+      unit: deviceName,
+      activity:  maintenanceDescription,
+	    date: selectedDate.toString(),
+      
+    }*/
+    //console.log(JSON.stringify(filter));
+  }
   
   let  handleMaintenanceSubmit = (e) => {
     //e.preventDefault();
@@ -180,18 +254,35 @@ const DevicesTable = props => {
                cellStyle: {fontFamily: 'Open Sans'},
                //render: rowData => <Link className={classes.link} onClick={handleMaintenanceClick(rowData.airqo_ref)}> Update Maintenance log </Link>,
                render: rowData => <div>
-                                    <Link 
-                                      className={classes.link} 
-                                      onClick = {handleMaintenanceClick(rowData.airqo_ref)}
-                                    > 
-                                    Update Maintenance log 
-                                    </Link><br/>
+                                    <Tooltip title="Update Maintenance Log">
+                                      <Link 
+                                        className={classes.link} 
+                                        onClick = {handleMaintenanceClick(rowData.airqo_ref)}
+                                      > 
+                                        <Update></Update>
+                                      </Link>
+                                    </Tooltip>
+
+                                    <Tooltip title="Deploy Device">
+                                      <Link 
+                                        className={classes.link} 
+                                        onClick = {handleDeployClick(rowData.airqo_ref)}
+                                      > 
+                                      Deploy
+                                      {/*
+                                        <Icon>
+                                          <img  src="../../../../assets/img/icons/deploy.svg"/>
+                                        </Icon>
+                                          */}
+                                      </Link>
+                                    </Tooltip>
+                                    {/*
                                     <Link 
                                       className={classes.link} 
                                       onClick = {handleDeployClick(rowData.airqo_ref)}
                                     > 
                                     Deploy 
-                                    </Link>
+                                        </Link>*/}
                                     </div>
             },
        
@@ -281,6 +372,146 @@ const DevicesTable = props => {
                 onClick = {handleMaintenanceClose}
                > Cancel
                </Button>
+           </DialogActions>
+         </Dialog>
+         ) : null}
+
+  {deployOpen? (
+       
+       <Dialog
+           open={deployOpen}
+           onClose={handleDeployClose}
+           aria-labelledby="form-dialog-title"
+           aria-describedby="form-dialog-description"
+         >
+           <DialogTitle id="form-dialog-title" style={{alignContent:'center'}}>Deploy a device</DialogTitle>
+           
+           <DialogContent>
+             <Grid container spacing={1}>
+               <Grid container item xs={12} spacing={3}>
+                 <Grid item xs={6}>
+                   <TextField 
+                     id="standard-basic" 
+                     label="Device Name"
+                     value = {deviceName}
+                   /> 
+                 </Grid>
+                 <Grid item xs={6}>
+                    <TextField 
+                      id="standard-basic" 
+                      label="height" 
+                      value = {height}
+                      onChange = {handleHeightChange}
+                    />
+                  </Grid>
+                </Grid>
+                <Grid container item xs={12} spacing={3}>
+                 <Grid item xs={6}>
+                   <FormControl className={classes.formControl}>
+                     <InputLabel htmlFor="demo-dialog-native">Location ID</InputLabel>
+                     <Select
+                       native
+                       value={locationID}
+                       onChange={handleLocationIDChange}
+                       input={<Input id="demo-dialog-native" />}
+                     >
+                      <option aria-label="None" value="" />
+                      <option value={10}>Ten</option>
+                      <option value={20}>Twenty</option>
+                      <option value={30}>Thirty</option>
+                     </Select>
+                   </FormControl>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <FormControl className={classes.formControl}>
+                      <InputLabel htmlFor="demo-dialog-native">Power Type</InputLabel>
+                      <Select
+                        native
+                        value={power}
+                        onChange={handlePowerChange}
+                        input={<Input id="demo-dialog-native" />}
+                      >
+                        <option aria-label="None" value="" />
+                        <option value="Mains">Mains</option>
+                        <option value="Solar">Solar</option>
+                      </Select>
+                    </FormControl>
+                   </Grid>
+                  </Grid>
+                  <Grid container item xs={12} spacing={3}>
+                    <Grid item xs={6}>
+                      <TextField 
+                        id="standard-basic" 
+                        label="Installation Type" 
+                        value = {installationType}
+                        onChange = {handleInstallationTypeChange}
+                        />
+                      </Grid>
+                      <Grid item xs={6}>
+                        <MuiPickersUtilsProvider utils={DateFnsUtils}>
+                          <KeyboardDatePicker
+                            disableToolbar
+                            //variant="inline"
+                            //format="MM/dd/yyyy"
+                            format = "yyyy-MM-dd"
+                            //margin="normal"
+                            id="deploymentDate"
+                            label="Date of Deployment"
+                            value={deploymentDate}
+                            onChange={handleDeploymentDateChange}
+                            /*
+                            KeyboardButtonProps={{
+                               'aria-label': 'change date',
+                            }}*/
+                          />
+                        </MuiPickersUtilsProvider>
+                      </Grid>
+                    </Grid>
+                    <Grid container item xs={12} spacing={3}>
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            checked={primaryChecked}
+                            onChange={handlePrimaryChange}
+                            name="primaryDevice"
+                            color="primary"
+                          />
+                        } 
+                        label="I wish to make this my primary device in this location"
+                      />
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            checked={collocationChecked}
+                            onChange={handleCollocationChange}
+                            name="collocation"
+                            color="primary"
+                          />
+                        } 
+                      label="This deployment is a formal collocation"
+                      />
+                    </Grid>
+                  </Grid>
+                </DialogContent> 
+          
+          
+                <DialogActions>
+                <Grid container alignItems="center" alignContent="center" justify="center">
+                 <Button 
+                  variant="contained" 
+                  color="primary"              
+                  onClick={handleDeploySubmit}
+                 > Deploy
+                </Button>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+               <Button 
+                variant="contained" 
+                color="primary"              
+                //type="button"
+                onClick = {handleDeployClose}
+               > Cancel
+               </Button>
+               </Grid>
            </DialogActions>
          </Dialog>
          ) : null}
