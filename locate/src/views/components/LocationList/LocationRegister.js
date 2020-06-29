@@ -158,7 +158,7 @@ const multiStyles = {
   container: (provided) => ({
     ...provided,
     display: 'inline-block',
-    width: '250px',
+    width: '770px',
     minHeight: '1px',
     textAlign: 'left',
     border: 'none',
@@ -275,7 +275,12 @@ const LocationRegister = props => {
 
   const handleHostNameChange = enteredHostName => {
     setHostName(enteredHostName.target.value);
-}
+  }
+
+  const [description, setDescription] = useState('');
+  const handleDescriptionChange = enteredDescription => {
+    setDescription(enteredDescription.target.value);
+  }
  
   
   const [internet, setInternet] = useState({value: ''});
@@ -479,9 +484,30 @@ const localActivitiesOptions = [
               </div>
           
             </Grid>
+           
             <Grid item xs={6}>
 
            <div className={classes.formControl} style={{width: '250px'}}>
+           <span>Location Description</span>
+              <TextField 
+                className={classes.textField}
+	              id="description" 
+                value = {description}
+                onChange={handleDescriptionChange}
+                variant = "outlined"
+                size = "medium"
+                color ="secondary"
+                margin ="normal"
+                disabled = {mobile}
+                InputProps={{
+                  className: classes.input,
+                  classes: {
+                    notchedOutline: classes.notchedOutline,
+                    focused: classes.focused
+                  }  
+              }}
+	            />
+           { /*
            <span>Height above ground (m)</span>
               <TextField 
                 className={classes.textField}
@@ -501,17 +527,17 @@ const localActivitiesOptions = [
                     focused: classes.focused
                   }  
               }}
-	            /> 
+	            /> */}
               </div>
             </Grid>
           </React.Fragment>
-        </Grid>
+        </Grid> 
 
         <Grid container item xs={12} spacing={3}>
           <React.Fragment>
             <Grid item xs={6}>
             <div className={classes.formControl} style={{width: '250px'}}>
-            <span>Host Name</span>
+            <span>Host Reference</span>
               <TextField 
                 required 
                 className={classes.textField}
@@ -567,6 +593,17 @@ const localActivitiesOptions = [
             </Grid>
             <Grid item xs={6}>
             <div className={classes.formControl} style={{width: '250px'}}>
+            <span>Road Status</span>
+              <Select
+                className="reactSelect"
+                name="roadStatus"
+                //value={roadStatus}
+                options={roadStatusOptions}
+                onChange={handleRoadStatusChange}   
+                styles={selectStyles}    
+                isDisabled ={mobile}      
+              />
+            {/*
             <span>Installation Type</span>
               <TextField 
                 className={classes.textField}
@@ -585,7 +622,7 @@ const localActivitiesOptions = [
                     focused: classes.focused
                   }
               }}
-	            /> 
+	            /> */}
               </div>
             </Grid>
           </React.Fragment>
@@ -621,25 +658,6 @@ const localActivitiesOptions = [
             </Grid>
             <Grid item xs={6}>
             <div className={classes.formControl} style={{width: '250px'}}>
-              <span>Road Status</span>
-              <Select
-                className="reactSelect"
-                name="roadStatus"
-                //value={roadStatus}
-                options={roadStatusOptions}
-                onChange={handleRoadStatusChange}   
-                styles={selectStyles}    
-                isDisabled ={mobile}      
-              />
-            </div>
-            </Grid>
-           </React.Fragment>
-        </Grid>
-
-        <Grid container item xs={12} spacing={3}>
-          <React.Fragment>
-            <Grid item xs={6}>
-            <div className={classes.formControl} style={{width: '250px'}}>
             <span>Longitude</span>
               <TextField 
                 className={classes.textField}
@@ -660,9 +678,15 @@ const localActivitiesOptions = [
                   }
               }}
 	             /> 
-               </div>
+              
+            </div>
             </Grid>
-            <Grid item xs={6}>
+           </React.Fragment>
+        </Grid>
+
+        <Grid container item xs={12} spacing={3}>
+          <React.Fragment>
+            <Grid item xs={12}>
             <div className={classes.formControl} style={{width: '250px'}}>
             <span>Local Activities</span>
             <CreatableSelect
@@ -680,8 +704,15 @@ const localActivitiesOptions = [
               closeMenuOnSelect={false}
               isMulti
             />
-	          </div>
+            
+            </div>
             </Grid>
+            {/*
+            <Grid item xs={6}>
+            <div className={classes.formControl} style={{width: '250px'}}>
+            
+	          </div>
+            </Grid>*/}
            </React.Fragment>
         </Grid>
 
@@ -689,6 +720,7 @@ const localActivitiesOptions = [
           <React.Fragment>
             <Grid item xs={6}>
             <div className={classes.formControl} style={{width: '250px'}}>
+            {/*
             <span>Internet Option</span>
               <Select
                 className="reactSelect"
@@ -698,11 +730,12 @@ const localActivitiesOptions = [
                 onChange={handleInternetChange}
                 styles={selectStyles} 
                 isDisabled ={mobile}
-              />
+              /> */}
               </div>
               </Grid>
             <Grid item xs={6}>
             <div className={classes.formControl} style={{width: '250px'}}>
+            {/*
             <span>Power Type</span>
               <Select
                 className="reactSelect"
@@ -712,7 +745,7 @@ const localActivitiesOptions = [
                 onChange={handlePowerChange} 
                 styles={selectStyles} 
                 isDisabled ={mobile}            
-              />
+              />*/}
 	          </div>
             </Grid>
            </React.Fragment>

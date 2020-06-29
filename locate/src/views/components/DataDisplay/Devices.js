@@ -17,7 +17,7 @@ import {
   KeyboardDatePicker,
 } from '@material-ui/pickers';
 //import { AccessAlarm, ThreeDRotation } from '@material-ui/icons';
-import { Update, Delete, Edit } from '@material-ui/icons';
+import { Update, Delete, Edit, CloudUpload } from '@material-ui/icons';
 import Tooltip from '@material-ui/core/Tooltip';
 //import Select from 'react-select';
 import Select from '@material-ui/core/Select';
@@ -94,9 +94,34 @@ const DevicesTable = props => {
   
   //deployment parameters
   const [locationsOptions, setLocationsOptions] = useState([]);
+  
+  useEffect(() => {
+    //code to retrieve all devices' data
+    //setIsLoading(true);
+    axios.get(
+      //'http://127.0.0.1:4001/api/v1/device/monitor/devices'
+      constants.ALL_LOCATIONS_URI
+    )
+    .then(
+      res=>{
+        //setIsLoading(false);
+        const ref = res.data;
+        console.log(ref);
+        let locationArray = [];
+        for (var i=0; i<ref.length; i++){
+          //pass
+          locationArray.push(ref[i].loc_ref)
+        }
+        setLocationsOptions(locationArray);
+
+    }).catch(
+      console.log
+    )
+  }, []);
+
   const [locationID, setLocationID] = useState('');
-  const handleLocationIDChange = enteredLocation => {
-    setLocationID(enteredLocation)
+  const handleLocationIDChange = (event) => {
+    setLocationID(event.target.value);
   }
   const [height, setHeight] = useState(null);
   const handleHeightChange = enteredHeight => {
@@ -105,10 +130,14 @@ const DevicesTable = props => {
       setHeight(enteredHeight.target.value);
     }
   }
-  const [power, setPower] = useState({value: ''});
-  const handlePowerChange = selectedPower => {
-	  setPower(selectedPower);
+  const [power, setPower] = useState('');
+  const handlePowerChange = (event) => {
+	  setPower(event.target.value);
   }
+  const powerOptions = [
+    { value: 'Solar', label: 'Solar' },
+    { value: 'Mains', label: 'Mains' },
+  ];
 
   const [installationType, setInstallationType] = useState('');
   const handleInstallationTypeChange = enteredInstallationType => {
@@ -177,14 +206,22 @@ const DevicesTable = props => {
     //e.preventDefault();
     //setLoading(true);
     //setIsLoading(true);
-   /*
+   
     let filter ={ 
       unit: deviceName,
-      activity:  maintenanceDescription,
-	    date: selectedDate.toString(),
+      locationID: locationID,
+      installationType: installationType,
+      height: height,
+      power: power,
+      deploymentDate: deploymentDate,
+      primary: primaryChecked,
+      collocation: collocationChecked,
+      //unit: deviceName,
+      //activity:  maintenanceDescription,
+	    //date: selectedDate.toString(),
       
-    }*/
-    //console.log(JSON.stringify(filter));
+    }
+    console.log(JSON.stringify(filter));
   }
   
   let  handleMaintenanceSubmit = (e) => {
@@ -262,14 +299,16 @@ const DevicesTable = props => {
                                         <Update></Update>
                                       </Link>
                                     </Tooltip>
+                                    &nbsp;&nbsp;&nbsp;
 
                                     <Tooltip title="Deploy Device">
                                       <Link 
                                         className={classes.link} 
                                         onClick = {handleDeployClick(rowData.airqo_ref)}
                                       > 
-                                      Deploy
-                                      {/*
+                                      <CloudUpload></CloudUpload>
+                                        {/*Deploy
+                                    
                                         <Icon>
                                           <img  src="../../../../assets/img/icons/deploy.svg"/>
                                         </Icon>
@@ -415,10 +454,8 @@ const DevicesTable = props => {
                        onChange={handleLocationIDChange}
                        input={<Input id="demo-dialog-native" />}
                      >
-                      <option aria-label="None" value="" />
-                      <option value={10}>Ten</option>
-                      <option value={20}>Twenty</option>
-                      <option value={30}>Thirty</option>
+                       {locationsOptions.map( (loc_id) =>
+                       <option value={loc_id}>{loc_id}</option>)}
                      </Select>
                    </FormControl>
                   </Grid>
