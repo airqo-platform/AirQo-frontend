@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import clsx from 'clsx';
 import PropTypes from 'prop-types';
 import PerfectScrollbar from 'react-perfect-scrollbar';
+import axios from 'axios';
+import { Link } from "react-router-dom";
 import { makeStyles } from '@material-ui/styles';
 import {
   Card,
@@ -17,12 +19,22 @@ import {
   Typography,
   TablePagination
 } from '@material-ui/core';
+import LoadingOverlay from 'react-loading-overlay';
+import {CSVLink, CSVDownload} from 'react-csv';
+import { Button } from "@material-ui/core";
+//import './assets/css/location-registry.css';
+import '../../../assets/css/location-registry.css';
+import { SearchInput } from "../SearchInput";
+import constants from '../../../config/constants.js';
+
+import MaterialTable, { MTablePagination, Paper} from 'material-table';
+import { configs } from 'eslint-plugin-prettier';
 
 
 const useStyles = makeStyles(theme => ({
   root: {},
   content: {
-    padding: 0
+    padding: 0,
   },
   inner: {
     minWidth: 1050
@@ -36,6 +48,13 @@ const useStyles = makeStyles(theme => ({
   },
   actions: {
     justifyContent: 'flex-end'
+  },
+  link: {
+    color: '#3344FF',
+    fontFamily: 'Open Sans'
+    },
+  table: {
+    fontFamily:'Open Sans'
   }
 }));
 
@@ -44,9 +63,53 @@ const LocationsTable = props => {
 
   const classes = useStyles();
 
+  const [data, setData] = useState([]);   
+
   const [selectedLocations, setSelectedLocations] = useState([]);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [page, setPage] = useState(0);
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [filterInput, setFilterInput] = useState('');
+  const handleFilterChange = filter =>{
+    const value = filter.target.value || undefined
+    setFilterInput(value);
+  }
+
+ 
+
+  /*
+  useEffect(() => {
+    const GetData = async () => {
+      const result = await axios.get('http://127.0.0.1:4000/api/v1/location_registry/locations');
+      setData(result.data);
+    }
+    
+    GetData();
+    console.log('we did it');    
+    console.log(data);
+  }, []); */
+
+  
+  useEffect(() => {
+    //code to retrieve all locations data
+    setIsLoading(true);
+    axios.get(
+      //'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/device/graph',
+      //'http://127.0.0.1:4000/api/v1/location_registry/locations'
+      constants.ALL_LOCATIONS_URI
+    )
+    .then(
+      res=>{
+        setIsLoading(false);
+        const ref = res.data;
+        console.log(ref);
+        setData(ref);
+
+    }).catch(
+      console.log
+    )
+  }, []);
 
   const handleSelectAll = event => {
     const { users } = props;
@@ -91,94 +154,149 @@ const LocationsTable = props => {
   };
 
   return (
+    <LoadingOverlay
+      active={isLoading}
+      spinner
+      text='Loading Locations...'
+    >
+      {/*
+      <div className={classes.row}>
+    
+        <SearchInput
+          className={classes.searchInput}
+          placeholder="Search location"
+          modifier='material'
+          onChange={handleFilterChange}
+          value = {filterInput}
+        />
+      </div> */}
     <Card
       {...rest}
       className={clsx(classes.root, className)}
     >
       <CardContent className={classes.content}>
         <PerfectScrollbar>
-          <div className={classes.inner}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell padding="checkbox">
-                    <Checkbox
-                      checked={selectedLocations.length === users.length}
-                      color="primary"
-                      indeterminate={
-                        selectedLocations.length > 0 &&
-                        selectedLocations.length < users.length
-                      }
-                      onChange={handleSelectAll}
-                    />
-                  </TableCell>
-                  <TableCell>Location Ref</TableCell>
-                  <TableCell>Device Ref</TableCell>
-                  <TableCell>Channel ID</TableCell>
-                  <TableCell>Host Name</TableCell>
-                  <TableCell>Location (country, region, district, subcounty, parish)</TableCell>
-                  <TableCell>latitude</TableCell>
-                  <TableCell>longitude</TableCell>  
+          {/*
+                  <TableCell className = {classes.table}><b>Location Ref</b></TableCell>
+                  <TableCell className = {classes.table}><b>Location Name</b></TableCell>
+                  <TableCell className = {classes.table}><b>Mobility</b></TableCell>
+                  <TableCell className = {classes.table}><b>Latitude</b></TableCell>
+                  <TableCell className = {classes.table}><b>Longitude</b></TableCell>
+                  <TableCell className = {classes.table}><b>Country</b></TableCell>
+                  <TableCell className = {classes.table}><b>District</b></TableCell>
+                  <TableCell className = {classes.table}><b>Subcounty</b></TableCell>  
+                  <TableCell className = {classes.table}><b>Parish</b></TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {users.slice(0, rowsPerPage).map(user => (
-                  <TableRow
-                    className={classes.tableRow}
-                    hover
-                    key={user.id}
-                    selected={selectedLocations.indexOf(user.id) !== -1}
-                  >
-                    <TableCell padding="checkbox">
-                      <Checkbox
-                        checked={selectedLocations.indexOf(user.id) !== -1}
-                        color="primary"
-                        onChange={event => handleSelectOne(event, user.id)}
-                        value="true"
-                      />
-                    </TableCell>
-                    <TableCell>
-                        {user.location_ref}
-                    </TableCell>
-                    <TableCell>
-                      {user.address.device_ref}
-                    </TableCell>
-                    <TableCell>
-                      {user.address.channel_id}
-                    </TableCell>
-                    <TableCell>
-                      {user.address.host_name}
-                    </TableCell>
-                    <TableCell>
-                      {user.address.parish}, {user.address.subcounty},{' '}
-                      {user.address.district}, {user.address.region}, {' '}
-                      {user.address.country}
-                    </TableCell>
-                    <TableCell>
-                      {user.address.latitude}
-                    </TableCell>
-                    <TableCell>
-                      {user.address.longitude}
-                    </TableCell>
-                  </TableRow>
-                ))}
+              {data.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(row => {
+                return (
+                <TableRow >
+                  <TableCell> 
+                    <Link className={classes.link} to={`/locations/${row.loc_ref}`}>{row.loc_ref}</Link>
+                  </TableCell>
+                  <TableCell className = {classes.table}>{row.location_name}</TableCell>
+                  <TableCell className = {classes.table}>{row.mobility}</TableCell>
+                  <TableCell className = {classes.table}>{row.latitude}</TableCell>
+                  <TableCell className = {classes.table}>{row.longitude}</TableCell>
+                  <TableCell className = {classes.table}>{row.country}</TableCell>
+                  <TableCell className = {classes.table}>{row.district}</TableCell>
+                  <TableCell className = {classes.table}>{row.subcounty}</TableCell>
+                  <TableCell className = {classes.table}>{row.parish}</TableCell>
+                </TableRow>
+                 );  
+               })}  
+                 
+                 
+                
+                    
               </TableBody>
             </Table>
-          </div>
-        </PerfectScrollbar>
+          </div> */}
+          <MaterialTable
+            className = {classes.table}
+            title="Location Registry"
+            columns={[
+             { title: 'Reference', 
+               field: 'loc_ref', 
+               render: rowData => <Link className={classes.link} to={`/locations/${rowData.loc_ref}`}>{rowData.loc_ref}</Link>
+             },
+             { title: 'Name', field: 'location_name', cellStyle:{ fontFamily: 'Open Sans'} },
+             { title: 'Mobility', field: 'mobility', cellStyle:{ fontFamily: 'Open Sans'} },
+             { title: 'Latitude', field: 'latitude', cellStyle:{ fontFamily: 'Open Sans'} },
+             { title: 'Longitude', field: 'longitude', cellStyle:{ fontFamily: 'Open Sans'} },
+             { title: 'Country', field: 'country', cellStyle:{ fontFamily: 'Open Sans'} },
+             { title: 'District', field: 'district', cellStyle:{ fontFamily: 'Open Sans'} },
+             { title: 'Subcounty', field: 'subcounty', cellStyle:{ fontFamily: 'Open Sans'} },
+             { title: 'Parish', field: 'parish', cellStyle:{ fontFamily: 'Open Sans'} },
+             //{title: 'Birth Place',mfield: 'birthCity', lookup: { 34: 'İstanbul', 63: 'Şanlıurfa' },},
+      ]}   
+      data = {data}  
+      options={{
+        search: true,
+        exportButton: true,
+        searchFieldAlignment: 'left',
+        showTitle: false,
+        searchFieldStyle: {
+          fontFamily: 'Open Sans',
+          border: '2px solid #7575FF',
+        },
+        headerStyle: {
+          fontFamily: 'Open Sans',
+          fontSize: 16,
+          fontWeight: 600
+        },
+        pageSizeOptions : [10, 25, 50, data.length],
+        pageSize: 10
+      }}
+    />
+        </PerfectScrollbar> 
+        {/*
+        <br/>
+        <CSVLink data={data} 
+         align = "center">
+        <Button 
+        className={classes.exportButton}
+        variant="contained" 
+        color="primary"
+        align = "centre"
+        >Export as CSV
+        </Button>
+              </CSVLink>*/}
+      </CardContent> 
+      {/*<CardActions className = {classes.actions}>*/}
+      {/*
+      <CardContent className={classes.content}>
+      <br/>
+      <CSVLink 
+        data={data} 
+        filename="locations_data.csv"
+        align = "center">
+        <Button 
+          className={classes.exportButton}
+          variant="contained" 
+          color="primary"
+          align = "centre"
+        >Export to CSV
+        </Button>
+      </CSVLink>
       </CardContent>
-      <CardActions className={classes.actions}>
-        <TablePagination
+      
+      {/*
+        <TablePagination 
           component="div"
-          count={users.length}
+          count={data.length}
           onChangePage={handlePageChange}
           onChangeRowsPerPage={handleRowsPerPageChange}
           page={page}
           rowsPerPage={rowsPerPage}
           rowsPerPageOptions={[5, 10, 25]}
-        />
-      </CardActions>
-    </Card>
+        /> 
+
+      {/*</CardActions>*/}
+      </Card>
+
+    </LoadingOverlay>
   );
 };
 
