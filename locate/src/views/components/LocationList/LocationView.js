@@ -291,42 +291,65 @@ const LocationView = props => {
          <Table stickyHeader  aria-label="sticky table">  
           <TableBody>  
             <TableRow>  
-              <TableCell className = {classes.table}>Host Name: <b>{locData.host}</b></TableCell>  
+              <TableCell className = {classes.table}>Host Ref: <b>{locData.host}</b></TableCell>  
+              <TableCell className = {classes.table}>District: <b>{locData.district}</b></TableCell> 
+              <TableCell className = {classes.table}>Aspect: <b>{locData.aspect}</b></TableCell> 
+              {/*
               <TableCell className = {classes.table}>Parish: <b>{locData.parish}</b></TableCell> 
-              <TableCell className = {classes.table}>Altitude: <b>{locData.altitude}</b></TableCell>   
+              <TableCell className = {classes.table}>Altitude: <b>{locData.altitude}</b></TableCell>*/}
             </TableRow> 
             <TableRow>  
-              <TableCell className = {classes.table}>Mobility: <b>{locData.mobility}</b></TableCell>  
+              <TableCell className = {classes.table}>Mobility: <b>{locData.mobility}</b></TableCell> 
+              <TableCell className = {classes.table}>Subcounty: <b>{locData.subcounty}</b></TableCell> 
+              <TableCell className = {classes.table}>Landform (90): <b>{locData.landform_90}</b></TableCell>  
+              {/* 
               <TableCell className = {classes.table}>Internet: <b>{locData.internet}</b></TableCell> 
-              <TableCell className = {classes.table}>Aspect: <b>{locData.aspect}</b></TableCell>   
+              <TableCell className = {classes.table}>Aspect: <b>{locData.aspect}</b></TableCell>   */}
             </TableRow> 
             <TableRow>  
-              <TableCell className = {classes.table}>Latitude: <b>{locData.latitude}</b></TableCell>  
-              <TableCell className = {classes.table}>Power Type: <b>{locData.power}</b></TableCell> 
-              <TableCell className = {classes.table}>Landform (90): <b>{locData.landform_90}</b></TableCell>   
-            </TableRow> 
-            <TableRow>  
-              <TableCell className = {classes.table}>Longitude: <b>{locData.longitude}</b></TableCell>  
-              <TableCell className = {classes.table}>Height above ground (m): <b>{locData.height_above_ground}</b></TableCell> 
+              <TableCell className = {classes.table}>Latitude: <b>{locData.latitude}</b></TableCell> 
+              <TableCell className = {classes.table}>Parish: <b>{locData.parish}</b></TableCell>
               <TableCell className = {classes.table}>Landform (270): <b>{locData.landform_270}</b></TableCell>   
+              {/* 
+              <TableCell className = {classes.table}>Power Type: <b>{locData.power}</b></TableCell> 
+              <TableCell className = {classes.table}>Landform (90): <b>{locData.landform_90}</b></TableCell>  */} 
             </TableRow> 
             <TableRow>  
+              <TableCell className = {classes.table}>Longitude: <b>{locData.longitude}</b></TableCell> 
+              <TableCell className = {classes.table}>Road Intensity: <b>{locData.road_intensity}</b></TableCell>
+              <TableCell className = {classes.table}>Distance to nearest road (m): <b>{locData.distance_from_nearest_road}</b></TableCell>  
+              {/* 
+              <TableCell className = {classes.table}>Height above ground (m): <b>{locData.height_above_ground}</b></TableCell> 
+              <TableCell className = {classes.table}>Landform (270): <b>{locData.landform_270}</b></TableCell>   */}
+            </TableRow> 
+            <TableRow>  
+              <TableCell className = {classes.table}>Description: <b>{locData.description}</b></TableCell>  
+              <TableCell className = {classes.table}>Road Status: <b>{locData.road_status}</b></TableCell> 
+              <TableCell className = {classes.table}>Distance to nearest residential road (m): <b>{locData.distance_from_residential}</b></TableCell>
+              {/*
               <TableCell className = {classes.table}>Country: <b>{locData.country}</b></TableCell>  
               <TableCell className = {classes.table}>Road Intensity: <b>{locData.road_intensity}</b></TableCell> 
-              <TableCell className = {classes.table}>Distance to nearest road (m): <b>{locData.distance_from_nearest_road}</b></TableCell>   
+              <TableCell className = {classes.table}>Distance to nearest road (m): <b>{locData.distance_from_nearest_road}</b></TableCell> */}  
             </TableRow> 
-            <TableRow>  
+            <TableRow> 
+              <TableCell className = {classes.table}>Country: <b>{locData.country}</b></TableCell> 
+              <TableCell className = {classes.table}>Altitude: <b>{locData.altitude}</b></TableCell>
+              <TableCell className = {classes.table}>Distance to nearest motorway (m): <b>{locData.distance_from_motorway}</b></TableCell>  
+              {/*
               <TableCell className = {classes.table}>Region: <b>{locData.region}</b></TableCell>  
               <TableCell className = {classes.table}>Installation Description: <b>{locData.installation_type}</b></TableCell> 
               <TableCell className = {classes.table}>Distance to nearest residential road (m): <b>{locData.distance_from_residential}</b></TableCell>   
+              */}
             </TableRow> 
+            {/*
             <TableRow>  
               <TableCell className = {classes.table}>District: <b>{locData.district}</b></TableCell>  
               <TableCell className = {classes.table}>Road Status: <b>{locData.road_status}</b></TableCell> 
               <TableCell className = {classes.table}>Distance to nearest motorway (m): <b>{locData.distance_from_motorway}</b></TableCell>   
-            </TableRow> 
+            </TableRow> */}
             <TableRow>  
-              <TableCell className = {classes.table}>Subcounty: <b>{locData.subcounty}</b></TableCell>  
+              <TableCell className = {classes.table}>Region: <b>{locData.region}</b></TableCell> 
+              {/*<TableCell className = {classes.table}>Subcounty: <b>{locData.subcounty}</b></TableCell>  */}
               {
               loaded?
                     <TableCell className = {classes.table}>Local Activities: <b>{locData.local_activities.join()}</b></TableCell>
