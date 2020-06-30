@@ -229,7 +229,7 @@ const LocationView = props => {
             sm={6}
             xl={6}
             xs={6}
-            styles ={{alignContent:'center'}}
+            style ={{alignContent:'center'}}
             alignContent='center'
             alignItems= 'center'
             justify='center'
@@ -240,7 +240,8 @@ const LocationView = props => {
        <Map center={[locData.latitude, locData.longitude]} 
        zoom={13} 
        scrollWheelZoom={false}
-       style={{ width: '30%', height: '250px', align:'center'}}
+       style = {{width: '30%', height: '250px', top: '70px'}}
+       //style={{ width: '30%', height: '250px', align:'center'}}
        >
          <TileLayer
             url ="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -270,7 +271,8 @@ const LocationView = props => {
     }
         </Grid>
         </Grid>
-       </Paper>) : null}
+       </Paper>
+       ) : null}
        
        
 
