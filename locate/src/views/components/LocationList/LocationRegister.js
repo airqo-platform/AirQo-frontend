@@ -488,56 +488,7 @@ const localActivitiesOptions = [
             <Grid item xs={6}>
 
            <div className={classes.formControl} style={{width: '250px'}}>
-           <span>Location Description</span>
-              <TextField 
-                className={classes.textField}
-	              id="description" 
-                value = {description}
-                onChange={handleDescriptionChange}
-                variant = "outlined"
-                size = "medium"
-                color ="secondary"
-                margin ="normal"
-                disabled = {mobile}
-                InputProps={{
-                  className: classes.input,
-                  classes: {
-                    notchedOutline: classes.notchedOutline,
-                    focused: classes.focused
-                  }  
-              }}
-	            />
-           { /*
-           <span>Height above ground (m)</span>
-              <TextField 
-                className={classes.textField}
-	              id="height" 
-                value = {height}
-                keyboardType="numeric"
-                onChange={changeHandler}
-                variant = "outlined"
-                size = "medium"
-                color ="secondary"
-                margin ="normal"
-                disabled = {mobile}
-                InputProps={{
-                  className: classes.input,
-                  classes: {
-                    notchedOutline: classes.notchedOutline,
-                    focused: classes.focused
-                  }  
-              }}
-	            /> */}
-              </div>
-            </Grid>
-          </React.Fragment>
-        </Grid> 
-
-        <Grid container item xs={12} spacing={3}>
-          <React.Fragment>
-            <Grid item xs={6}>
-            <div className={classes.formControl} style={{width: '250px'}}>
-            <span>Host Reference</span>
+           <span>Host Reference</span>
               <TextField 
                 required 
                 className={classes.textField}
@@ -556,24 +507,11 @@ const localActivitiesOptions = [
                   }
               }}
 	            /> 
-              </div>
-            </Grid>
-            <Grid item xs={6}>
-            <div className={classes.formControl} style={{width: '250px',height:10}}>
-            <span>Road Intensity</span>
-              <Select
-                className="reactSelect"
-                name="roadIntensity"
-                //value={roadIntensity}
-                options={roadIntensityOptions}
-                onChange={handleRoadIntensityChange}    
-                styles={selectStyles}   
-                isDisabled ={mobile}
-              />
+
               </div>
             </Grid>
           </React.Fragment>
-        </Grid>
+        </Grid> 
 
         <Grid container item xs={12} spacing={3}>
           <React.Fragment>
@@ -589,27 +527,16 @@ const localActivitiesOptions = [
                 defaultValue = "Mobility"
                 styles={selectStyles} 
                />
-               </div>
+              </div>
             </Grid>
             <Grid item xs={6}>
-            <div className={classes.formControl} style={{width: '250px'}}>
-            <span>Road Status</span>
-              <Select
-                className="reactSelect"
-                name="roadStatus"
-                //value={roadStatus}
-                options={roadStatusOptions}
-                onChange={handleRoadStatusChange}   
-                styles={selectStyles}    
-                isDisabled ={mobile}      
-              />
-            {/*
-            <span>Installation Type</span>
+            <div className={classes.formControl} style={{width: '250px',height:10}}>
+            <span>Location Description</span>
               <TextField 
                 className={classes.textField}
-	              id="installationType" 
-                value = {installationType}
-                onChange = {handleInstallationTypeChange}
+	              id="description" 
+                value = {description}
+                onChange={handleDescriptionChange}
                 variant = "outlined"
                 size = "medium"
                 color ="secondary"
@@ -620,14 +547,13 @@ const localActivitiesOptions = [
                   classes: {
                     notchedOutline: classes.notchedOutline,
                     focused: classes.focused
-                  }
+                  }  
               }}
-	            /> */}
+	            />
               </div>
             </Grid>
           </React.Fragment>
         </Grid>
-
 
         <Grid container item xs={12} spacing={3}>
           <React.Fragment>
@@ -686,6 +612,42 @@ const localActivitiesOptions = [
 
         <Grid container item xs={12} spacing={3}>
           <React.Fragment>
+            <Grid item xs={6}>
+            <div className={classes.formControl} style={{width: '250px'}}>
+            <span>Road Intensity</span>
+              <Select
+                className="reactSelect"
+                name="roadIntensity"
+                //value={roadIntensity}
+                options={roadIntensityOptions}
+                onChange={handleRoadIntensityChange}    
+                styles={selectStyles}   
+                isDisabled ={mobile}
+              />
+               </div>
+            </Grid>
+            <Grid item xs={6}>
+            <div className={classes.formControl} style={{width: '250px'}}>
+            <span>Road Status</span>
+              <Select
+                className="reactSelect"
+                name="roadStatus"
+                //value={roadStatus}
+                options={roadStatusOptions}
+                onChange={handleRoadStatusChange}   
+                styles={selectStyles}    
+                isDisabled ={mobile}      
+              />
+              </div>
+            </Grid>
+          </React.Fragment>
+        </Grid>
+
+
+        
+
+        <Grid container item xs={12} spacing={3}>
+          <React.Fragment>
             <Grid item xs={12}>
             <div className={classes.formControl} style={{width: '250px'}}>
             <span>Local Activities</span>
@@ -707,49 +669,9 @@ const localActivitiesOptions = [
             
             </div>
             </Grid>
-            {/*
-            <Grid item xs={6}>
-            <div className={classes.formControl} style={{width: '250px'}}>
-            
-	          </div>
-            </Grid>*/}
            </React.Fragment>
         </Grid>
 
-        <Grid container item xs={12} spacing={3}>
-          <React.Fragment>
-            <Grid item xs={6}>
-            <div className={classes.formControl} style={{width: '250px'}}>
-            {/*
-            <span>Internet Option</span>
-              <Select
-                className="reactSelect"
-                name="internet"
-                //value={internet}
-                options={internetOptions}
-                onChange={handleInternetChange}
-                styles={selectStyles} 
-                isDisabled ={mobile}
-              /> */}
-              </div>
-              </Grid>
-            <Grid item xs={6}>
-            <div className={classes.formControl} style={{width: '250px'}}>
-            {/*
-            <span>Power Type</span>
-              <Select
-                className="reactSelect"
-                name="power"
-                //value={power}
-                options={powerOptions}
-                onChange={handlePowerChange} 
-                styles={selectStyles} 
-                isDisabled ={mobile}            
-              />*/}
-	          </div>
-            </Grid>
-           </React.Fragment>
-        </Grid>
         </Grid>
        {/* <div className={classes.formControl} style={{width: '900px', justifyContent:'center', alignItems:'center'}}>*/}
 

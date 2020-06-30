@@ -152,7 +152,7 @@ const multiStyles = {
   container: (provided) => ({
     ...provided,
     display: 'inline-block',
-    width: '250px',
+    width: '865px',
     minHeight: '1px',
     textAlign: 'left',
     border: 'none',
@@ -220,6 +220,11 @@ const LocationEdit = props => {
   const handleHostNameChange = enteredHostName => {
     setHostName(enteredHostName.target.value);
 }
+  const [description, setDescription] = useState('');
+  const handleDescriptionChange = enteredDescription => {
+    setDescription(enteredDescription.target.value);
+  }
+
   const [mobile, setMobile] = useState(false);
   const [mobility, setMobility] = useState('');
   const mobilityOptions = [
@@ -444,6 +449,27 @@ const getLocation = ref => {
             <Grid item xs={6}>
 
            <div className={classes.formControl} style={{width: '250px'}}>
+           <span>Host Reference</span>
+           <TextField 
+                required 
+                className={classes.textField}
+	            id="hostName" 
+                value = {hostName}
+                onChange = {handleHostNameChange}
+                variant = "outlined"
+                size = "medium"
+                color ="secondary"
+                margin ="normal"
+                InputProps={{
+                  className: classes.input,
+                  readOnly:true,
+                  classes: {
+                    notchedOutline: classes.notchedOutline,
+                    focused: classes.focused
+                  }
+              }}
+	            /> 
+           {/*
            <span>Height above ground (m)</span>
            <TextField 
                 className={classes.textField}
@@ -463,54 +489,7 @@ const getLocation = ref => {
                     focused: classes.focused
                   }  
               }}
-	            />
-              </div>
-            </Grid>
-          </React.Fragment>
-        </Grid>
-
-        <Grid container item xs={12} spacing={3}>
-          <React.Fragment>
-            <Grid item xs={6}>
-            <div className={classes.formControl} style={{width: '250px'}}>
-            <span>Host Name</span>
-            <TextField 
-                required 
-                className={classes.textField}
-	              id="hostName" 
-                value = {hostName}
-                onChange = {handleHostNameChange}
-                variant = "outlined"
-                size = "medium"
-                color ="secondary"
-                margin ="normal"
-                InputProps={{
-                  className: classes.input,
-                  readOnly:true,
-                  classes: {
-                    notchedOutline: classes.notchedOutline,
-                    focused: classes.focused
-                  }
-              }}
-	            /> 
-              </div>
-            </Grid>
-            <Grid item xs={6}>
-            <div className={classes.formControl} style={{width: '250px',height:10}}>
-            <span>Road Intensity</span>
-
-              <Select
-                className="reactSelect"
-                name="roadIntensity"
-                //value={roadIntensity.value}
-                options={roadIntensityOptions}
-                onChange={handleRoadIntensityChange}   
-                styles={selectStyles}    
-                isDisabled ={mobile}  
-                value={roadIntensityOptions.filter(function(option) {
-                    return option.value === roadIntensity;
-                  })}  
-              />
+	            />*/}
               </div>
             </Grid>
           </React.Fragment>
@@ -533,28 +512,70 @@ const getLocation = ref => {
                 styles={selectStyles} 
                 isDisabled={ true }
                />
-               </div>
-            </Grid>
-            <Grid item xs={6}>
-            <div className={classes.formControl} style={{width: '250px'}}>
-            <span>Installation Type</span>
-              <TextField 
+               { /*
+            <span>Host Name</span>
+            <TextField 
+                required 
                 className={classes.textField}
-	              id="installationType" 
-                value = {installationType}
-                onChange = {handleInstallationTypeChange}
+	              id="hostName" 
+                value = {hostName}
+                onChange = {handleHostNameChange}
                 variant = "outlined"
                 size = "medium"
                 color ="secondary"
                 margin ="normal"
-                disabled = {mobile}
-                InputProps={{className: classes.input}}
+                InputProps={{
+                  className: classes.input,
+                  readOnly:true,
+                  classes: {
+                    notchedOutline: classes.notchedOutline,
+                    focused: classes.focused
+                  }
+              }}
+	            /> */}
+              </div>
+            </Grid>
+            <Grid item xs={6}>
+            <div className={classes.formControl} style={{width: '250px',height:10}}>
+            <span>Location Description</span>
+           <TextField 
+                required 
+                className={classes.textField}
+	            id="description" 
+                value = {description}
+                onChange = {handleDescriptionChange}
+                variant = "outlined"
+                size = "medium"
+                color ="secondary"
+                margin ="normal"
+                InputProps={{
+                  className: classes.input,
+                  readOnly:true,
+                  classes: {
+                    notchedOutline: classes.notchedOutline,
+                    focused: classes.focused
+                  }
+              }}
 	            /> 
+                {/*
+            <span>Road Intensity</span>
+
+              <Select
+                className="reactSelect"
+                name="roadIntensity"
+                //value={roadIntensity.value}
+                options={roadIntensityOptions}
+                onChange={handleRoadIntensityChange}   
+                styles={selectStyles}    
+                isDisabled ={mobile}  
+                value={roadIntensityOptions.filter(function(option) {
+                    return option.value === roadIntensity;
+                  })}  
+              />*/}
               </div>
             </Grid>
           </React.Fragment>
         </Grid>
-
 
         <Grid container item xs={12} spacing={3}>
           <React.Fragment>
@@ -577,6 +598,97 @@ const getLocation = ref => {
                     }}
                 //disabled = {mobile}
 	             /> 
+               { /*
+            <span>Mobility</span>
+              <Select 
+                className="reactSelect"
+                name="mobility"
+                //value={mobility}
+                value={mobilityOptions.filter(function(option) {
+                    return option.value === mobility;
+                  })}
+                options={mobilityOptions}
+                defaultValue = "Mobility"
+                styles={selectStyles} 
+                isDisabled={ true }
+               />*/}
+               </div>
+            </Grid>
+            <Grid item xs={6}>
+            <div className={classes.formControl} style={{width: '250px'}}>
+            <span>Longitude</span>
+              <TextField 
+                className={classes.textField}
+                id="longitude" 
+                value = {longitude}
+                keyboardType="numeric"
+		            variant = "outlined"
+                //type = "number"
+                size = "medium"
+                color ="secondary"
+                margin ="normal"
+                InputProps={{
+                  readOnly: true,
+                  className: classes.input
+                    }}
+                //disabled = {mobile}
+	             /> 
+                
+                {/*
+            <span>Installation Type</span>
+              <TextField 
+                className={classes.textField}
+	              id="installationType" 
+                value = {installationType}
+                onChange = {handleInstallationTypeChange}
+                variant = "outlined"
+                size = "medium"
+                color ="secondary"
+                margin ="normal"
+                disabled = {mobile}
+                InputProps={{className: classes.input}}
+	            /> */}
+              </div>
+            </Grid>
+          </React.Fragment>
+        </Grid>
+
+
+        <Grid container item xs={12} spacing={3}>
+          <React.Fragment>
+            <Grid item xs={6}>
+            <div className={classes.formControl} style={{width: '250px'}}>
+            <span>Road Intensity</span>
+            <Select
+              className="reactSelect"
+              name="roadIntensity"
+              //value={roadIntensity.value}
+              options={roadIntensityOptions}
+              onChange={handleRoadIntensityChange}   
+              styles={selectStyles}    
+              isDisabled ={mobile}  
+              value={roadIntensityOptions.filter(function(option) {
+                return option.value === roadIntensity;
+              })}  
+            />
+                {/*
+            <span>Latitude</span>
+              <TextField 
+                className={classes.textField}
+                id="latitude" 
+                value = {latitude}
+                keyboardType="numeric"
+		            variant = "outlined"
+                //type = "number"
+                size = "medium"
+                color ="secondary"
+                margin ="normal"
+                InputProps={{
+                    readOnly: true,
+                    className: classes.input
+                    }}
+                //disabled = {mobile}
+                /> */}
                </div>
             </Grid>
             <Grid item xs={6}>
@@ -601,102 +713,26 @@ const getLocation = ref => {
 
         <Grid container item xs={12} spacing={3}>
           <React.Fragment>
-            <Grid item xs={6}>
-            <div className={classes.formControl} style={{width: '250px'}}>
-            <span>Longitude</span>
-              <TextField 
-                className={classes.textField}
-                id="longitude" 
-                value = {longitude}
-                keyboardType="numeric"
-		            variant = "outlined"
-                //type = "number"
-                size = "medium"
-                color ="secondary"
-                margin ="normal"
-                InputProps={{
-                  readOnly: true,
-                  className: classes.input
-                    }}
-                //disabled = {mobile}
-	             /> 
-               </div>
-            </Grid>
-            <Grid item xs={6}>
+            <Grid item xs={12}>
             <div className={classes.formControl} style={{width: '250px'}}>
             <span>Local Activities</span>
             <CreatableSelect
-              className="reactselect"
+              className="basic-multi-select"
+              classNamePrefix="select"
               name = "localActivities"
-              //placeholder="Local Activities"
-              options={ localActivitiesOptions}
+              value = {localActivities}
+              options={localActivitiesOptions}
               onChange={handleLocalActivitiesChange}
               styles = {multiStyles}
               isDisabled ={mobile} 
+              //closeMenuOnSelect={false}
               isMulti
-              value = {localActivities}
-              //value={localActivities.selectedOption}
-              //value={localActivitiesOptions.filter(function(option) {
-                //return option.selectedOption === localActivities;
-              //})}
             />
-
-            {/*
-              <TextField  
-                className={classes.textField}
-	              id="localActivities" 
-                onChange = {handleLocalActivitiesChange}
-                variant = "outlined"
-                size = "medium"
-                color ="secondary"
-                margin ="normal"
-                disabled = {mobile}
-                value = {localActivities}
-                InputProps={{className: classes.input}}
-            /> */}
-	          </div>
+            </div>
             </Grid>
-           </React.Fragment>
-        </Grid>
-
-        <Grid container item xs={12} spacing={3}>
-          <React.Fragment>
-            <Grid item xs={6}>
-            <div className={classes.formControl} style={{width: '250px'}}>
-            <span>Internet Option</span>
-              <Select
-                className="reactSelect"
-                name="internet"
-                //value={internet}
-                options={internetOptions}
-                onChange={handleInternetChange}
-                styles={selectStyles} 
-                isDisabled ={mobile}
-                value={internetOptions.filter(function(option) {
-                    return option.value === internet;
-                  })}
-              />
-              </div>
-              </Grid>
-            <Grid item xs={6}>
-            <div className={classes.formControl} style={{width: '250px'}}>
-            <span>Power Type</span>
-              <Select
-                className="reactSelect"
-                name="power"
-                //value={power}
-                value={powerOptions.filter(function(option) {
-                    return option.value === power;
-                  })}
-                options={powerOptions}
-                onChange={handlePowerChange} 
-                styles={selectStyles} 
-                isDisabled ={mobile}            
-              />
-	          </div>
+            </React.Fragment>
             </Grid>
-           </React.Fragment>
-        </Grid>
+
         </Grid>
         <div className={classes.formControl} style={{width: '900px'}}>
        

@@ -395,15 +395,15 @@ const DevicesTable = props => {
                  </MuiPickersUtilsProvider>
                   </DialogContent> 
           
-          
                  <DialogActions>
+                 <Grid container alignItems="center" alignContent="center" justify="center">
                  <Button 
                   variant="contained" 
                   color="primary"              
                   onClick={handleMaintenanceSubmit}
                  > Update
                 </Button>
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+               &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                <Button 
                 variant="contained" 
                 color="primary"              
@@ -411,6 +411,7 @@ const DevicesTable = props => {
                 onClick = {handleMaintenanceClose}
                > Cancel
                </Button>
+               </Grid>
            </DialogActions>
          </Dialog>
          ) : null}
