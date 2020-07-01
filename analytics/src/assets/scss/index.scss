@@ -107,6 +107,22 @@ select{
 
 }
 
+// .markertext {
+// 	all: revert;
+// 	color: black;
+// 	font-size:12px;
+// 	font-weight: 700;
+// 	background-color: none;
+// 	border-color: none;
+// 	background: none;
+// 	border: none;
+// 	box-shadow: none;
+// 	margin: 0px;
+// 	cursor: none;
+// 	direction: 'center';
+// 	fill: false;
+//   }
+
   .leaflet-marker-icon {
 	color: #000;
 	font-size: 12px;
@@ -201,7 +217,7 @@ select{
 	border-width: 0 4px 4px 0;
 	display: inline-block;
 	padding: 3px;
-	margin-left: 80px;
+	margin-left: 130px;
 	margin-bottom: 0px;
 	transition: 0.3s;
 	font-size: 25px;
@@ -215,7 +231,7 @@ select{
 	// border-width: 0 4px 4px 0;
 	display: inline-block;
 	// padding: 3px;
-	margin-left: 50px;
+	margin-left: 100px;
 	margin-bottom: 0px;
 	transition: 0.3s;
 	font-size: 20px;

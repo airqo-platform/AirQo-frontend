@@ -14,52 +14,57 @@ import LocationOnIcon from '@material-ui/icons/LocationOn';
 import HelpOutlineIcon from '@material-ui/icons/HelpOutline';
 import TuneIcon from '@material-ui/icons/Tune';
 
-import { Profile, SidebarNav } from './components';
+import { Profile, SidebarNav } from "./components";
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   drawer: {
     width: 240,
-    [theme.breakpoints.up('lg')]: {
+    [theme.breakpoints.up("lg")]: {
       marginTop: 64,
-      height: 'calc(100% - 64px)'
-    }
+      height: "calc(100% - 64px)",
+    },
   },
   root: {
     backgroundColor: theme.palette.white,
-    display: 'flex',
-    flexDirection: 'column',
-    height: '100%',
-    padding: theme.spacing(2)
+    display: "flex",
+    flexDirection: "column",
+    height: "100%",
+    padding: theme.spacing(2),
   },
   divider: {
-    margin: theme.spacing(2, 0)
+    margin: theme.spacing(2, 0),
   },
   nav: {
-    marginBottom: theme.spacing(2)
-  }
+    marginBottom: theme.spacing(2),
+  },
 }));
 
-const Sidebar = props => {
+const Sidebar = (props) => {
   const { open, variant, onClose, className, ...rest } = props;
 
   const classes = useStyles();
 
   const pages = [
     {
-      title: 'Dashboard',
-      href: '/dashboard',
-      icon: <DashboardIcon />
+      title: "Dashboard",
+      href: "/dashboard",
+      icon: <DashboardIcon />,
     },
     {
-      title: 'Report Template',
-      href: '/report',
-      icon: <TimelineIcon />
+      title: "Graphs",
+      href: "/graphs",
+      icon: <BarChartIcon />,
+    },
+    {
+      title: "Report Template",
+      href: "/report",
+      icon: <TimelineIcon />,
     },
 
     {
-      title: 'Locations',
-      href: '/locations',
-      icon: <LocationOnIcon />
+      title: "Locations",
+      href: "/locations",
+      icon: <LocationOnIcon />,
     },
 
     {
@@ -76,14 +81,14 @@ const Sidebar = props => {
   ];
   const userManagementPages = [
     {
-      title: 'Users',
-      href: '/admin/users',
-      icon: <PeopleIcon />
+      title: "Users",
+      href: "/admin/users",
+      icon: <PeopleIcon />,
     },
     {
-      title: 'Account',
-      href: '/account',
-      icon: <AccountBoxIcon />
+      title: "Account",
+      href: "/account",
+      icon: <AccountBoxIcon />,
     },
     {
       title: 'Defaults',
@@ -91,38 +96,20 @@ const Sidebar = props => {
       icon: <TuneIcon />
     },
     {
-      title: 'Settings',
-      href: '/settings',
-      icon: <SettingsIcon />
-    }
+      title: "Settings",
+      href: "/settings",
+      icon: <SettingsIcon />,
+    },
   ];
 
-  const { mappedAuth } = props;
-  let { user } = mappedAuth;
-  let userPages = [];
-
-  try {
-    if (user.privilege === 'super') {
-      userPages = userManagementPages;
-    } else if (user.privilege === 'admin') {
-      userPages = userManagementPages.filter(function(element) {
-        return element.title !== 'Candidates';
-      });
-    } else {
-      userPages = userManagementPages.filter(function(element) {
-        return element.title !== 'Users' && element.title !== 'Candidates';
-      });
-    }
-  } catch (e) {
-    console.log(e);
-  }
   return (
     <Drawer
       anchor="left"
       classes={{ paper: classes.drawer }}
       onClose={onClose}
       open={open}
-      variant={variant}>
+      variant={variant}
+    >
       <div {...rest} className={clsx(classes.root, className)}>
         <Profile />
         <Divider className={classes.divider} />
@@ -139,7 +126,7 @@ Sidebar.propTypes = {
   className: PropTypes.string,
   onClose: PropTypes.func,
   open: PropTypes.bool.isRequired,
-  variant: PropTypes.string.isRequired
+  variant: PropTypes.string.isRequired,
 };
 
 export default Sidebar;
