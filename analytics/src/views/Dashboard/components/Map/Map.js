@@ -69,6 +69,16 @@ const Map = props => {
                 'pm25UnCategorised';
   }
 
+  let getCategory = (aqi) =>{
+    return aqi > 250.4  ? 'Harzadous' :
+      aqi > 150.4  ? 'Very UnHealthy' :
+        aqi > 55.4   ? 'UnHealthy' :
+          aqi > 35.4   ? 'Unhealthy for sensitive groups' :
+            aqi > 12   ? 'Moderate' :
+              aqi > 0   ? 'Good' :
+                'UnCategorised';
+  }
+
   let fetchFilteredData = (magnitude) => {
     //this.setState({ isLoaded: false }, () => {
     fetch('http://127.0.0.1:5000/api/v1/dashboard/monitoringsites?organisation_name=KCCA&pm25_category='+magnitude)
@@ -122,15 +132,20 @@ const Map = props => {
               >
               
               <Popup>
-                <h2>{contact.Parish} - {contact.Division} Division</h2> 
-                <h4>{contact.LocationCode}</h4>
+                <h3>{contact.Parish} - {contact.Division} Division</h3> 
+                <span>{contact.LocationCode}</span>
 
-                <h1> {contact.Last_Hour_PM25_Value == 0?'':contact.Last_Hour_PM25_Value}</h1> 
+                <div class = "{getPm25CategoryColorClass(contact.Last_Hour_PM25_Value)}">
+                {/* <img
+              src="https://cdn3.iconfinder.com/data/icons/basicolor-arrows-checks/24/149_check_ok-512.png"
+              width="50"
+              height="50"
+              alt="no img"
+            /> */}
+                <h3> AQI: {contact.Last_Hour_PM25_Value == 0?'':contact.Last_Hour_PM25_Value} - {getCategory(contact.Last_Hour_PM25_Value == 0?'':contact.Last_Hour_PM25_Value)}</h3> 
+                </div>
                 <span>Last Refreshed: {contact.LastHour} (UTC)</span>
                 <Divider/>
-
-                
-               
                 <Link to={`/location/${contact.Parish}`}>More Details</Link>
                 
               </Popup>
