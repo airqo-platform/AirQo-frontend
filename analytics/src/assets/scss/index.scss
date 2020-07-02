@@ -173,22 +173,23 @@ select{
     .filter {
 	z-index: 1000;
 	background-color:rgba(255, 255, 255, 1);
-	border-bottom: 12px solid;
-	border-color:grey;
+	// border-bottom: 12px solid;
+	// border-color:grey;
 	position: absolute;
-    bottom: 10px;
-	// top: 225px;
+    bottom: 20px;
 	left: 5px;
-	min-width: 12%;
+	// min-width: 12%;
 	box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
-	padding: 10px 10px;
+	padding: 5px 10px;
 	font-family: "Open Sans", sans-serif;
 	font-weight: 300;
 	color: #000;
+	border-radius: 5px;
+	background-color: whitesmoke;
   }
   
   .filter__h2 {
-	font-family: "Raleway", sans-serif;
+	// font-family: "Raleway", sans-serif;
 	font-size: 16px;
 	font-weight: 300;
 	display: inline-block;
@@ -226,12 +227,12 @@ select{
 
   .filter a {
 	border: solid;
-	border-color: white;
+	border-color: whitesmoke;
 	color: grey;
 	// border-width: 0 4px 4px 0;
 	display: inline-block;
 	// padding: 3px;
-	margin-left: 100px;
+	margin-left: 15px;
 	margin-bottom: 0px;
 	transition: 0.3s;
 	font-size: 20px;
@@ -249,54 +250,74 @@ select{
   
   .control__indicator1 {
 	left: 0;
-	width: 18px;
-	height: 18px;
+	width: 90px;
+	height: 20px;
 	background: #44e527;
 	display: inline-block;
 	margin-right: 5px;
+	border-radius: 5px;
+	text-align: center;
+	margin-bottom: 2px;
   }
   .control__indicator2 {
 	left: 0;
-	width: 18px;
-	height: 18px;
+	width: 90px;
+	height: 20px;
 	background: #f8fe39;
 	display: inline-block;
 	margin-right: 5px;
+	border-radius: 5px;
+	text-align: center;
+	margin-bottom: 2px;
   }
   .control__indicator3 {
 	left: 0;
-	width: 18px;
-	height: 18px;
+	width: 90px;
+	height: 20px;
 	background: #ee8327;
 	display: inline-block;
 	margin-right: 5px;
+	border-radius: 5px;
+	text-align: center;
+	margin-bottom: 2px;
   }
   
   .control__indicator4 {
 	// position: absolute;
 	// top: 2px;
 	left: 0;
-	width: 18px;
-	height: 18px;
+	width: 90px;
+	height: 20px;
 	background: #fe0023;
 	display: inline-block;
 	margin-right: 5px;
+	border-radius: 5px;
+	text-align: center;
+	margin-bottom: 2px;
   }
   .control__indicator5 {
 	left: 0;
-	width: 18px;
-	height: 18px;
+	width: 90px;
+	height: 20px;
 	background: #8639c0;
 	display: inline-block;
 	margin-right: 5px;
+	border-radius: 5px;
+	text-align: center;
+	color: white;
+	margin-bottom: 2px;
   }
   .control__indicator6 {
 	left: 0;
-	width: 18px;
-	height: 18px;
+	width: 90px;
+	height: 20px;
 	background: #81202e;
 	display: inline-block;
 	margin-right: 5px;
+	border-radius: 5px;
+	text-align: center;
+	color: white;
+	margin-bottom: 2px;
   }
 
   label {
