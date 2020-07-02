@@ -11,6 +11,9 @@ import 'react-leaflet-fullscreen/dist/styles.css';
 import L from 'leaflet';
 import Filter from './Filter';
 import axios from "axios";
+// import moment from 'moment';
+import moment from 'moment-timezone';
+
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -69,10 +72,10 @@ const Map = props => {
                 'pm25UnCategorised';
   }
 
-  let getCategory = (aqi) =>{
+  let getCategorytext = (aqi) =>{
     return aqi > 250.4  ? 'Harzadous' :
       aqi > 150.4  ? 'Very UnHealthy' :
-        aqi > 55.4   ? 'UnHealthy' :
+        aqi > 55.4   ? 'Unhealthy' :
           aqi > 35.4   ? 'Unhealthy for sensitive groups' :
             aqi > 12   ? 'Moderate' :
               aqi > 0   ? 'Good' :
@@ -87,6 +90,13 @@ const Map = props => {
         setContacts(contactData.airquality_monitoring_sites)
       });
   };
+
+
+  let getDateString = (t, tz) => {
+    return moment.utc()
+    .tz("Africa/Kampala")
+    .format('l');
+}
 
   return (
     <Card
@@ -108,8 +118,6 @@ const Map = props => {
           easeLinearity={0.35}
           scrollWheelZoom
           zoom={12}
-         
-          
           zoomControl        
           
         >
@@ -117,7 +125,6 @@ const Map = props => {
             url="http://{s}.tile.osm.org/{z}/{x}/{y}.png"
           />           
           {contacts.map((contact) => (
-
             <Marker 
               position={[contact.Latitude,contact.Longitude]}
               fill="true"
@@ -135,16 +142,22 @@ const Map = props => {
                 <h3>{contact.Parish} - {contact.Division} Division</h3> 
                 <span>{contact.LocationCode}</span>
 
-                <div class = "{getPm25CategoryColorClass(contact.Last_Hour_PM25_Value)}">
-                {/* <img
+                <div
+                style={{
+                  backgroundColor: `${getPm25CategoryColorClass(contact.Last_Hour_PM25_Value)}`
+                }}
+                >
+                <img
               src="https://cdn3.iconfinder.com/data/icons/basicolor-arrows-checks/24/149_check_ok-512.png"
               width="50"
               height="50"
               alt="no img"
-            /> */}
-                <h3> AQI: {contact.Last_Hour_PM25_Value == 0?'':contact.Last_Hour_PM25_Value} - {getCategory(contact.Last_Hour_PM25_Value == 0?'':contact.Last_Hour_PM25_Value)}</h3> 
+            />
+           
+                <h3> AQI: {contact.Last_Hour_PM25_Value == 0?'':contact.Last_Hour_PM25_Value} - {getCategorytext(contact.Last_Hour_PM25_Value == 0?'':contact.Last_Hour_PM25_Value)}</h3> 
+                
                 </div>
-                <span>Last Refreshed: {contact.LastHour} (UTC)</span>
+                <span>Last Refreshed: {getDateString(contact.LastHour)} (EAT)</span>
                 <Divider/>
                 <Link to={`/location/${contact.Parish}`}>More Details</Link>
                 
