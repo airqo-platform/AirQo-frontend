@@ -93,9 +93,7 @@ const Map = props => {
 
 
   let getDateString = (t, tz) => {
-    return moment.utc()
-    .tz("Africa/Kampala")
-    .format('l');
+    return moment.utc(t, 'YYYY-MM-DD HH:mm').tz("Africa/Kampala").format('YYYY-MM-DD HH:mm');
 }
 
   return (
