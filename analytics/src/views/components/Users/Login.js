@@ -66,13 +66,15 @@ class Login extends Component {
     const { errors } = this.state;
     return (
       <div className="container">
-        <div style={{ marginTop: "4rem" }} className="row">
+        <div
+          style={{ marginTop: "4rem" }}
+          className="row"
+          style={{ height: "auto", backgroundColor: "#2979FF" }}
+        >
           <div
             className="col s4"
             style={{
-              backgroundColor: "#2979FF",
               padding: "1em",
-              height: "66vh",
             }}
           ></div>
           <div
