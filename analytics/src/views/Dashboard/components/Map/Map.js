@@ -62,6 +62,17 @@ const Map = props => {
       .catch(console.log)
   },[]);
 
+  let fetchFilteredData = (magnitude) => {
+    //this.setState({ isLoaded: false }, () => {
+    fetch('http://127.0.0.1:5000/api/v1/dashboard/monitoringsites?organisation_name=KCCA&pm25_category='+magnitude)
+      .then(res => res.json())
+      .then((contactData) => {
+        setContacts(contactData.airquality_monitoring_sites)
+      });
+  };
+
+  //classify marker colors based on AQI value
+
   let getPm25CategoryColorClass = (aqi) =>{
     return aqi > 250.4  ? 'pm25Harzadous' :
       aqi > 150.4  ? 'pm25VeryUnHealthy' :
@@ -72,6 +83,7 @@ const Map = props => {
                 'pm25UnCategorised';
   }
 
+  //change popup text based on AQI value
   let getCategorytext = (aqi) =>{
     return aqi > 250.4  ? 'Harzadous' :
       aqi > 150.4  ? 'Very UnHealthy' :
@@ -82,16 +94,19 @@ const Map = props => {
                 'UnCategorised';
   }
 
-  let fetchFilteredData = (magnitude) => {
-    //this.setState({ isLoaded: false }, () => {
-    fetch('http://127.0.0.1:5000/api/v1/dashboard/monitoringsites?organisation_name=KCCA&pm25_category='+magnitude)
-      .then(res => res.json())
-      .then((contactData) => {
-        setContacts(contactData.airquality_monitoring_sites)
-      });
-  };
+   //change popup background color based on AQI value
 
+  let getbackground = (aqi) =>{
+    return aqi > 250.4  ? '#81202e' :
+      aqi > 150.4  ? '#8639c0' :
+        aqi > 55.4   ? '#fe0023' :
+          aqi > 35.4   ? '#ee8327' :
+            aqi > 12   ? '#f8fe39' :
+              aqi > 0   ? '#44e527' :
+                '#797979';
+  }
 
+ //Convert date from UTC to EAT
   let getDateString = (t, tz) => {
     return moment.utc(t, 'YYYY-MM-DD HH:mm').tz("Africa/Kampala").format('YYYY-MM-DD HH:mm');
 }
@@ -142,17 +157,22 @@ const Map = props => {
 
                 <div
                 style={{
-                  backgroundColor: `${getPm25CategoryColorClass(contact.Last_Hour_PM25_Value)}`
+                  backgroundColor: `${getbackground(contact.Last_Hour_PM25_Value)}`,
+                  padding:"10px",
+                  marginTop:"10px",
+                  marginBottom:"10px"
                 }}
                 >
-                <img
+                {/* <img
               src="https://cdn3.iconfinder.com/data/icons/basicolor-arrows-checks/24/149_check_ok-512.png"
               width="50"
               height="50"
               alt="no img"
-            />
+            /> */}
            
-                <h3> AQI: {contact.Last_Hour_PM25_Value == 0?'':contact.Last_Hour_PM25_Value} - {getCategorytext(contact.Last_Hour_PM25_Value == 0?'':contact.Last_Hour_PM25_Value)}</h3> 
+                <h3 style={{
+                  fontWeight:"normal"
+                }}> AQI: {contact.Last_Hour_PM25_Value == 0?'':contact.Last_Hour_PM25_Value} - {getCategorytext(contact.Last_Hour_PM25_Value == 0?'':contact.Last_Hour_PM25_Value)}</h3> 
                 
                 </div>
                 <span>Last Refreshed: {getDateString(contact.LastHour)} (EAT)</span>
