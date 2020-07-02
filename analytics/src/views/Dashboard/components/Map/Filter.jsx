@@ -27,7 +27,7 @@ class Filter extends Component {
 
         <div className="filter">
         <h2 className="filter__h2" onClick={this.toggleFilter}>
-            PM2.5 AQI
+            PM 2.5 AQI
           </h2>
           <a onClick={this.toggleFilter}> {this.state.isFilterOpen? '+' : 'x'}</a>
           {this.state.isFilterOpen === true ? null : (
@@ -52,8 +52,8 @@ class Filter extends Component {
                     checked={this.state.magnitudeFilter === 'Good' }
                     onChange={this.handleMagnitudeChange}
                   />
-                   <div class="control__indicator1"></div>
-                   {"Good"}
+                   <div class="control__indicator1">0 - 12</div>
+                   
                 </label>
                 <label>
                   <input
@@ -63,8 +63,8 @@ class Filter extends Component {
                     checked={this.state.magnitudeFilter === 'Moderate' }
                     onChange={this.handleMagnitudeChange}
                   />
-                  <div class="control__indicator2"></div>
-                  {"Moderate"}
+                  <div class="control__indicator2">12.1 - 35.4</div>
+                  
                 </label>
                 <label>
                   <input
@@ -74,8 +74,8 @@ class Filter extends Component {
                     checked={this.state.magnitudeFilter === 'UHFSG' }
                     onChange={this.handleMagnitudeChange}
                   />
-                  <div class="control__indicator3"></div>
-                  Unhealthy <small>for sensitive groups</small>
+                  <div class="control__indicator3">35.5 - 55.4</div>
+                  
                 </label>
                 <label>
                   <input
@@ -85,8 +85,8 @@ class Filter extends Component {
                     checked={this.state.magnitudeFilter === 'Unhealthy' }
                     onChange={this.handleMagnitudeChange}
                   />
-                  <div class="control__indicator4"></div>
-                  {"Unhealthy"}
+                  <div class="control__indicator4">55.5 - 150.4</div>
+                  
                 </label>
                 <label>
                   <input
@@ -96,8 +96,8 @@ class Filter extends Component {
                     checked={this.state.magnitudeFilter === 'VeryUnhealthy' }
                     onChange={this.handleMagnitudeChange}
                   />
-                  <div class="control__indicator5"></div>
-                  {"Very Unhealthy"}
+                  <div class="control__indicator5">150.5 - 250.4</div>
+                  
                 </label>
                 <label>
                   <input
@@ -107,8 +107,8 @@ class Filter extends Component {
                     checked={this.state.magnitudeFilter === 'Harzadous'}
                     onChange={this.handleMagnitudeChange}
                   />
-                  <div class="control__indicator6"></div>
-                  {"Harzadous"}
+                  <div class="control__indicator6">250.5 - 500</div>
+                  
                 </label>
               </form>
             </>
