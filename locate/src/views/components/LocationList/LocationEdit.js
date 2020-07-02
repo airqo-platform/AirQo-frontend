@@ -11,8 +11,6 @@ import NavPills from '../NavPills/NavPills';
 import { Link } from "react-router-dom";
 import LoadingOverlay from 'react-loading-overlay';
 import CreatableSelect from 'react-select/creatable';
-//import './assets/css/location-registry.css';
-//import Select from '@material-ui/core/Select';
 import '../../../assets/css/location-registry.css';
 import constants from '../../../config/constants.js';
 
@@ -20,8 +18,6 @@ import constants from '../../../config/constants.js';
 const useStyles = makeStyles(theme => ({
   root: {
     padding: theme.spacing(3),
-    //marginLeft: 100,
-    //marginRight: 100,
      },
   notchedOutline: {
   },
@@ -66,14 +62,9 @@ const useStyles = makeStyles(theme => ({
   },
   textField: {
     width: '250px',
-    textAlign: 'left',
-    //marginLeft: 'auto',
-    //marginRight: 'auto',            
+    textAlign: 'left',          
     paddingBottom: 0,
     marginTop: 0,
-    //fontWeight: 500,
-    //borderWidth: '2px',
-    //borderColor: '#7575FF',
     borderRadius: 10,
     border: '2px solid #7575FF', 
     fontFamily: 'Open Sans'
@@ -98,14 +89,12 @@ const selectStyles = {
     textAlign: 'left',
     border: 'none',
     fontWeight: 500,
-    //fontFamily: 'Arial',
     fontFamily: 'Open Sans',
     font: '100px',
     fontSize: 17
   }),
   control: (provided) => ({
     ...provided,
-    //border: '2px solid #757575',
     border: '2px solid #7575FF',
     borderRadius: 10,
     minHeight: '1px',
@@ -121,7 +110,6 @@ const selectStyles = {
     paddingTop: '0',
     paddingBottom: '0',
     color: '#757575',
-    //color:'#000000',
   }),
   indicatorSeparator: (provided) => ({
     ...provided,
@@ -156,9 +144,7 @@ const multiStyles = {
     minHeight: '1px',
     textAlign: 'left',
     border: 'none',
-    //borderRadius: 10,
     fontWeight: 500,
-    //fontFamily: 'Arial',
     fontFamily: 'Open Sans',
     font: '100px',
     fontSize: 17
@@ -168,7 +154,6 @@ const multiStyles = {
     border: '2px solid #7575FF',
     borderRadius: 10,
     minHeight: '56px',
-   // height: 'auto'
   }),
   input: (provided) => ({
     ...provided,
@@ -185,7 +170,6 @@ const multiStyles = {
     ...provided,
     minHeight: '1px',
     color: '#7575FF',
-    //height: '24px',
   }),
   clearIndicator: (provided) => ({
     ...provided,
@@ -194,7 +178,6 @@ const multiStyles = {
   valueContainer: (provided) => ({
     ...provided,
     minHeight: '40px',
-    //height: '40px',
     paddingTop: '0',
     paddingBottom: '0',
     fontweight: 500,
@@ -212,7 +195,6 @@ const LocationEdit = props => {
   let params = useParams();
   const classes = useStyles();
   
-  //const [message, setMessage] = useState('');
   const [locationReference, setLocationReference] = useState('');
   const [latitude, setLatitude] = useState(null);
   const [longitude, setLongitude] = useState(null);
@@ -291,7 +273,6 @@ const handleInstallationTypeChange = enteredInstallationType => {
     
 const [roadStatus, setRoadStatus] = useState({value: ''});
 const handleRoadStatusChange = selectedRoadStatus => {
-    //console.log(selectedRoadStatus.value);
 	  setRoadStatus(selectedRoadStatus.value);
   }
 const roadStatusOptions = [
@@ -309,23 +290,19 @@ const roadStatusOptions = [
 const getLocation = ref => {
     setDetailsLoading(true);
     axios.get(
-      //'http://127.0.0.1:4000/api/v1/location_registry/edit?loc_ref='+ref
-      constants.EDIT_LOCATION_DETAILS_URI+ref
+      'http://127.0.0.1:4000/api/v1/location_registry/edit?loc_ref='+ref
+      //constants.EDIT_LOCATION_DETAILS_URI+ref
       )
       .then(response => {
         setDetailsLoading(false);
         let myData = response.data
-        //setCurrentLocation(response.data);
         setLocationReference(myData.loc_ref);
         setHostName(myData.host);
         setMobility(myData.mobility);
         setLatitude(myData.latitude);
         setLongitude(myData.longitude);
-        setInternet(myData.internet);
-        setPower(myData.power);
-        setHeight(myData.height_above_ground);
         setRoadIntensity(myData.road_intensity);
-        setInstallationType(myData.installation_type);
+        setDescription(myData.description);
         setRoadStatus(myData.road_status);
         setLocalActivities(myData.local_activities);
         console.log(response.data);
@@ -341,13 +318,6 @@ const getLocation = ref => {
  useEffect(() => {
     getLocation(params.loc_ref);
   }, [params.loc_ref]);
-
-  /*
-  const handleInputChange = event => {
-    const { name, value } = event.target;
-    setCurrentLocation({ ...currentLocation, [name]: value });
-  };  
-*/
 
   let changeHandler = event => {
     event.persist();
@@ -370,25 +340,17 @@ const getLocation = ref => {
 
     
     let filter ={ 
-      locationReference: locationReference,
-      //hostName:  hostName,
-      //mobility: mobility.value,
-      //mobility: mobility,
-      //latitude: Number(latitude),
-      //longitude:  Number(longitude),
-      internet:  internet,
-      height: Number(height),      
-      roadIntensity: roadIntensity, 
-      installationType:	installationType,  
+      locationReference: locationReference,    
+      roadIntensity: roadIntensity,  
       roadStatus: roadStatus,
+      description: description,
       localActivities: localActivities,	
-      power:  power,
     }
     console.log(JSON.stringify(filter));
     
     axios.post(
-      //'http://127.0.0.1:4000/api/v1/location_registry/update', 
-      constants. UPDATE_LOCATION_URI,
+      'http://127.0.0.1:4000/api/v1/location_registry/update', 
+      //constants. UPDATE_LOCATION_URI,
       JSON.stringify(filter),
       { headers: { 'Content-Type': 'application/json' } }
     )
@@ -397,7 +359,6 @@ const getLocation = ref => {
         setIsLoading(false);
         const myData = res.data;
         console.log(myData);
-        //setLoading(false) 
         setDialogMessage(myData.message);
         setDialogStatus(true);
     }).catch(
@@ -469,27 +430,6 @@ const getLocation = ref => {
                   }
               }}
 	            /> 
-           {/*
-           <span>Height above ground (m)</span>
-           <TextField 
-                className={classes.textField}
-	              id="height" 
-                value = {height}
-                keyboardType="numeric"
-                onChange={changeHandler}
-                variant = "outlined"
-                size = "medium"
-                color ="secondary"
-                margin ="normal"
-                disabled = {mobile}
-                InputProps={{
-                  className: classes.input,
-                  classes: {
-                    notchedOutline: classes.notchedOutline,
-                    focused: classes.focused
-                  }  
-              }}
-	            />*/}
               </div>
             </Grid>
           </React.Fragment>
@@ -512,27 +452,6 @@ const getLocation = ref => {
                 styles={selectStyles} 
                 isDisabled={ true }
                />
-               { /*
-            <span>Host Name</span>
-            <TextField 
-                required 
-                className={classes.textField}
-	              id="hostName" 
-                value = {hostName}
-                onChange = {handleHostNameChange}
-                variant = "outlined"
-                size = "medium"
-                color ="secondary"
-                margin ="normal"
-                InputProps={{
-                  className: classes.input,
-                  readOnly:true,
-                  classes: {
-                    notchedOutline: classes.notchedOutline,
-                    focused: classes.focused
-                  }
-              }}
-	            /> */}
               </div>
             </Grid>
             <Grid item xs={6}>
@@ -550,28 +469,13 @@ const getLocation = ref => {
                 margin ="normal"
                 InputProps={{
                   className: classes.input,
-                  readOnly:true,
+                  //readOnly:true,
                   classes: {
                     notchedOutline: classes.notchedOutline,
                     focused: classes.focused
                   }
               }}
 	            /> 
-                {/*
-            <span>Road Intensity</span>
-
-              <Select
-                className="reactSelect"
-                name="roadIntensity"
-                //value={roadIntensity.value}
-                options={roadIntensityOptions}
-                onChange={handleRoadIntensityChange}   
-                styles={selectStyles}    
-                isDisabled ={mobile}  
-                value={roadIntensityOptions.filter(function(option) {
-                    return option.value === roadIntensity;
-                  })}  
-              />*/}
               </div>
             </Grid>
           </React.Fragment>
@@ -598,20 +502,6 @@ const getLocation = ref => {
                     }}
                 //disabled = {mobile}
 	             /> 
-               { /*
-            <span>Mobility</span>
-              <Select 
-                className="reactSelect"
-                name="mobility"
-                //value={mobility}
-                value={mobilityOptions.filter(function(option) {
-                    return option.value === mobility;
-                  })}
-                options={mobilityOptions}
-                defaultValue = "Mobility"
-                styles={selectStyles} 
-                isDisabled={ true }
-               />*/}
                </div>
             </Grid>
             <Grid item xs={6}>
@@ -634,20 +524,6 @@ const getLocation = ref => {
                 //disabled = {mobile}
 	             /> 
                 
-                {/*
-            <span>Installation Type</span>
-              <TextField 
-                className={classes.textField}
-	              id="installationType" 
-                value = {installationType}
-                onChange = {handleInstallationTypeChange}
-                variant = "outlined"
-                size = "medium"
-                color ="secondary"
-                margin ="normal"
-                disabled = {mobile}
-                InputProps={{className: classes.input}}
-	            /> */}
               </div>
             </Grid>
           </React.Fragment>
@@ -671,24 +547,6 @@ const getLocation = ref => {
                 return option.value === roadIntensity;
               })}  
             />
-                {/*
-            <span>Latitude</span>
-              <TextField 
-                className={classes.textField}
-                id="latitude" 
-                value = {latitude}
-                keyboardType="numeric"
-		            variant = "outlined"
-                //type = "number"
-                size = "medium"
-                color ="secondary"
-                margin ="normal"
-                InputProps={{
-                    readOnly: true,
-                    className: classes.input
-                    }}
-                //disabled = {mobile}
-                /> */}
                </div>
             </Grid>
             <Grid item xs={6}>
@@ -696,7 +554,6 @@ const getLocation = ref => {
               <span>Road Status</span>
               <Select
                 className="reactSelect"
-                //name="roadStatus"
                 //value={roadStatus.value}
                 options={roadStatusOptions}
                 onChange={handleRoadStatusChange}   
@@ -790,8 +647,6 @@ const getLocation = ref => {
 
   }
  
-
-
 LocationEdit.propTypes = {
   className: PropTypes.string
 };

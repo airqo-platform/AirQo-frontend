@@ -18,11 +18,6 @@ import constants from '../../../config/constants.js';
 const useStyles = makeStyles(theme => ({
   root: {
     padding: theme.spacing(3),
-    //marginLeft: 100,
-    //marginRight: 100,
-    //'&:hover $notchedOutline': {
-     // border: '2px solid #7575FF',
-    //}
   },
   notchedOutline: {
   },
@@ -71,21 +66,15 @@ const useStyles = makeStyles(theme => ({
   },
   textField: {
     width: '250px',
-    textAlign: 'left',
-    //marginLeft: 'auto',
-    //marginRight: 'auto',            
+    textAlign: 'left',          
     paddingBottom: 0,
     marginTop: 0,
-    //fontWeight: 500,
-    //borderWidth: '2px',
-    //borderColor: '#7575FF',
     borderRadius: 10,
     border: '2px solid #7575FF', 
   },
 
   input: {
     color: 'black',
-    //fontFamily: 'Arial',
     fontFamily: 'Open Sans',
     fontweight:500,
     font: '100px',
@@ -105,14 +94,12 @@ const selectStyles = {
     border: 'none',
     //borderRadius: 10,
     fontWeight: 500,
-    //fontFamily: 'Arial',
     fontFamily: 'Open Sans',
     font: '100px',
     fontSize: 17
   }),
   control: (provided) => ({
     ...provided,
-    //border: '2px solid #757575',
     border: '2px solid #7575FF',
     borderRadius: 10,
     minHeight: '1px',
@@ -132,7 +119,6 @@ const selectStyles = {
   indicatorSeparator: (provided) => ({
     ...provided,
     minHeight: '1px',
-    //height: '24px',
   }),
   clearIndicator: (provided) => ({
     ...provided,
@@ -162,9 +148,7 @@ const multiStyles = {
     minHeight: '1px',
     textAlign: 'left',
     border: 'none',
-    //borderRadius: 10,
     fontWeight: 500,
-    //fontFamily: 'Arial',
     fontFamily: 'Open Sans',
     font: '100px',
     fontSize: 17
@@ -174,7 +158,6 @@ const multiStyles = {
     border: '2px solid #7575FF',
     borderRadius: 10,
     minHeight: '56px',
-   // height: 'auto'
   }),
   input: (provided) => ({
     ...provided,
@@ -191,7 +174,6 @@ const multiStyles = {
     ...provided,
     minHeight: '1px',
     color: '#7575FF',
-    //height: '24px',
   }),
   clearIndicator: (provided) => ({
     ...provided,
@@ -200,7 +182,6 @@ const multiStyles = {
   valueContainer: (provided) => ({
     ...provided,
     minHeight: '40px',
-    //height: '40px',
     paddingTop: '0',
     paddingBottom: '0',
     fontweight: 500,
@@ -225,7 +206,6 @@ const LocationRegister = props => {
       root: classes.root,
       notchedOutline: classes.notchedOutline,
       focused: classes.focused
-      //notchedOutline: classes.notchedOutline
     },
   };
 
@@ -234,8 +214,8 @@ const LocationRegister = props => {
   useEffect(() => {
     //code to retrieve next location ID from backend
     axios.get(
-      //'http://127.0.0.1:4000/api/v1/location_registry/create_id'
-      constants.CREATE_ID_URI
+      'http://127.0.0.1:4000/api/v1/location_registry/create_id'
+      //constants.CREATE_ID_URI
     )
     .then(
       res=>{
@@ -255,7 +235,7 @@ const LocationRegister = props => {
   const [dialogStatus, setDialogStatus] = useState(false)
   const [dialogMessage, setDialogMessage] = useState('')
 
-  const [latitude, setLatitude] = useState(null);
+  const [latitude, setLatitude] = useState('');
   const handleLatitudeChange = enteredLatitude =>{
     let re = /\s*|\d+(\.d+)?/
     if (re.test(enteredLatitude.target.value)) {
@@ -263,7 +243,7 @@ const LocationRegister = props => {
   }
 }
   
-  const [longitude, setLongitude] = useState(null);
+  const [longitude, setLongitude] = useState('');
   const handleLongitudeChange = enteredLongitude =>{
     let re = /\s*|\d+(\.d+)?/
     if (re.test(enteredLongitude.target.value)){
@@ -281,34 +261,6 @@ const LocationRegister = props => {
   const handleDescriptionChange = enteredDescription => {
     setDescription(enteredDescription.target.value);
   }
- 
-  
-  const [internet, setInternet] = useState({value: ''});
-  const handleInternetChange = selectedInternet => {
-	  setInternet(selectedInternet);
-  }
-  const internetOptions = [
-    { value: 'GSM', label: 'GSM' },
-    { value: 'WiFi', label: 'WiFi' },
-	  { value: 'LoRa', label: 'LoRa' }
-  ];
-  
-  const [power, setPower] = useState({value: ''});
-  const handlePowerChange = selectedPower => {
-	  setPower(selectedPower);
-  }
-  const powerOptions = [
-    { value: 'Solar', label: 'Solar' },
-    { value: 'Mains', label: 'Mains' },
-  ];
-  
-  const [height, setHeight] = useState(0);
-  const handleHeightChange = enteredHeight => {
-    let re = /\s*|\d+(\.d+)?/
-    if (re.test(enteredHeight.target.value)) {
-      setHeight(enteredHeight.target.value);
-  }
-}
   
   const [roadIntensity, setRoadIntensity] = useState({value: ''});
   const handleRoadIntensityChange = selectedRoadIntensity => {
@@ -337,14 +289,6 @@ const LocationRegister = props => {
     { value: 'Static', label: 'Static' },
     { value: 'Mobile', label: 'Mobile' },
   ];
-
-  
-
-  const [installationType, setInstallationType] = useState('');
-  const handleInstallationTypeChange = enteredInstallationType => {
-	  setInstallationType(enteredInstallationType.target.value);
-  }
- 
   
   const [localActivities, setLocalActivities] = useState([]);
   const handleLocalActivitiesChange = selectedOptions => {
@@ -377,7 +321,8 @@ const localActivitiesOptions = [
 
   let generateReference = () =>{
     axios.get(
-      constants.CREATE_ID_URI
+      'http://127.0.0.1:4000/api/v1/location_registry/create_id'
+      //constants.CREATE_ID_URI
     )
     .then(
       res=>{
@@ -391,14 +336,6 @@ const localActivitiesOptions = [
     )
 
   }
-
-  let changeHandler = event => {
-    event.persist();
-  
-    let value = event.target.value;
-    setHeight(value);
-  
-  };
 
   let handleConfirmClose = () => {
     setDialogStatus(false);
@@ -415,21 +352,18 @@ const localActivitiesOptions = [
       locationReference: locationReference,
       hostName:  hostName,
 	    mobility: mobility.value,
-      latitude: Number(latitude),
-      longitude:  Number(longitude),
-      internet:  internet.value,
-      height: Number(height),      
-      roadIntensity: roadIntensity.value, 
-      installationType:	installationType,  
+      latitude: latitude,
+      longitude: longitude,  
+      description: description,   
+      roadIntensity: roadIntensity.value,  
       roadStatus: roadStatus.value,
       localActivities: localActivities,	
-      power:  power.value,
     }
     console.log(JSON.stringify(filter));
   
     axios.post(
-      //'http://127.0.0.1:4000/api/v1/location_registry/register', 
-      constants.REGISTER_LOCATION_URI,
+      'http://127.0.0.1:4000/api/v1/location_registry/register', 
+      //constants.REGISTER_LOCATION_URI,
       JSON.stringify(filter),
       { headers: { 'Content-Type': 'application/json' } }
     )
@@ -441,8 +375,6 @@ const localActivitiesOptions = [
         console.log(myData.message);
         setDialogMessage(myData.message);
         setDialogStatus(true);
-
-        //setLoading(false) 
     }).catch(
       console.log
     )
@@ -541,7 +473,7 @@ const localActivitiesOptions = [
                 size = "medium"
                 color ="secondary"
                 margin ="normal"
-                disabled = {mobile}
+                //disabled = {mobile}
                 InputProps={{
                   className: classes.input,
                   classes: {
@@ -682,7 +614,7 @@ const localActivitiesOptions = [
           //align = "centre"
         > Register 
         </Button>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{/*&nbsp;&nbsp;&nbsp;*/}
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
         <Link to={`/location`}>
         <Button 
           variant="contained" 
@@ -711,7 +643,6 @@ const localActivitiesOptions = [
             </DialogContent>
             <DialogActions>
             <div>    
-           {/* <Link to='/location'>*/}
            <Link to={`/locations/${locationReference}`}>
               <Button 
                variant="contained" 

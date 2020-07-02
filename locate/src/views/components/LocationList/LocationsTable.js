@@ -95,9 +95,8 @@ const LocationsTable = props => {
     //code to retrieve all locations data
     setIsLoading(true);
     axios.get(
-      //'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/device/graph',
-      //'http://127.0.0.1:4000/api/v1/location_registry/locations'
-      constants.ALL_LOCATIONS_URI
+      'http://127.0.0.1:4000/api/v1/location_registry/locations'
+      //constants.ALL_LOCATIONS_URI
     )
     .then(
       res=>{
