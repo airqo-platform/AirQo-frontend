@@ -11,6 +11,7 @@ const devConfig = {
     ACCEPT_USER_URI: "http://localhost:3000/api/v1/users/accept",
     GET_USERS_URI: "http://localhost:3000/api/v1/users/",
     GET_COLLABORATORS_URI: "http://localhost:3000/api/v1/users/collaborators/",
+    GET_DATA_MAP:'http://127.0.0.1:5000/api/v1/dashboard/monitoringsites?organisation_name=KCCA&pm25_category=',
 };
 const testConfig = {
     VERIFY_TOKEN_URI: "http://localhost:3000/api/v1/users/reset",
@@ -23,6 +24,7 @@ const testConfig = {
     REJECT_USER_URI: "http://localhost:3000/api/v1/users/deny",
     ACCEPT_USER_URI: "http://localhost:3000/api/v1/users/accept",
     GET_USERS_URI: "http://localhost:3000/api/v1/users/",
+    GET_DATA_MAP:'http://127.0.0.1:5000/api/v1/dashboard/monitoringsites?organisation_name=KCCA&pm25_category=',
 };
 
 const stageConfig = {
@@ -36,6 +38,7 @@ const stageConfig = {
     REJECT_USER_URI: "https://airqo-250220.uc.r.appspot.com/api/v1/users/deny",
     ACCEPT_USER_URI: "https://airqo-250220.uc.r.appspot.com/api/v1/users/accept",
     GET_USERS_URI: "https://airqo-250220.uc.r.appspot.com/api/v1/users/",
+    GET_DATA_MAP:'https://airqo-250220.uc.r.appspot.com/api/v1/dashboard/monitoringsites?organisation_name=KCCA&pm25_category=',
 };
 const prodConfig = {
     VERIFY_TOKEN_URI: "https://airqo-250220.uc.r.appspot.com/api/v1/users/reset",
@@ -48,6 +51,7 @@ const prodConfig = {
     REJECT_USER_URI: "https://airqo-250220.uc.r.appspot.com/api/v1/users/deny",
     ACCEPT_USER_URI: "https://airqo-250220.uc.r.appspot.com/api/v1/users/accept",
     GET_USERS_URI: "https://airqo-250220.uc.r.appspot.com/api/v1/users/",
+    GET_DATA_MAP:'https://airqo-250220.uc.r.appspot.com/api/v1/dashboard/monitoringsites?organisation_name=KCCA&pm25_category=',
 };
 const defaultConfig = {
     PORT: process.env.PORT || 5000,
@@ -59,7 +63,7 @@ function envConfig(env) {
         case "development":
             return devConfig;
         case "test":
-            return stageConfig;
+            return testConfig;
         case "stage":
             return stageConfig;
         default:
@@ -71,3 +75,5 @@ export default {
     ...defaultConfig,
     ...envConfig(process.env.NODE_ENV),
 };
+
+
