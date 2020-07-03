@@ -55,7 +55,7 @@ class Filter extends Component {
                   />
                    <div class="control__indicator1" data-tip data-for="good">0 - 12</div>
                    <ReactTooltip id="good" place="right" effect="solid">
-                   <h3 style={{fontWeight:"normal" }}> GOOD</h3> 
+                   <h3 style={{fontWeight:"normal" }}> Good</h3> 
                    {/* <p>Air Quality is good for everyone</p> */}
                    </ReactTooltip>                   
                 </label>
