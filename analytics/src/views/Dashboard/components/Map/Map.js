@@ -11,8 +11,8 @@ import 'react-leaflet-fullscreen/dist/styles.css';
 import L from 'leaflet';
 import Filter from './Filter';
 import axios from "axios";
-// import moment from 'moment';
 import moment from 'moment-timezone';
+import constants from "../../../../config/constants";
 
 
 const useStyles = makeStyles(theme => ({
@@ -53,18 +53,18 @@ const Map = props => {
   const [contacts,setContacts ] = useState([]);
 
   useEffect(() => {
-   fetch('http://127.0.0.1:5000/api/v1/dashboard/monitoringsites?organisation_name=KCCA&pm25_category='+magnitude)
-    //fetch('http://127.0.0.1:5000/api/v1/dashboard/monitoringsites?organisation_name=KCCA')
+  console.log("testing", constants.GET_DATA_MAP)
+   fetch(constants.GET_DATA_MAP + magnitude)
       .then(res => res.json())
       .then((contactData) => {
         setContacts(contactData.airquality_monitoring_sites)
       })
       .catch(console.log)
   },[]);
-
+  
   let fetchFilteredData = (magnitude) => {
     //this.setState({ isLoaded: false }, () => {
-    fetch('http://127.0.0.1:5000/api/v1/dashboard/monitoringsites?organisation_name=KCCA&pm25_category='+magnitude)
+    fetch(constants.GET_DATA_MAP+magnitude)
       .then(res => res.json())
       .then((contactData) => {
         setContacts(contactData.airquality_monitoring_sites)
