@@ -21,6 +21,19 @@ const styles = theme => ({
   }
 });
 
+const validEmailRegex = RegExp(
+  /^(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i
+);
+
+const validateForm = errors => {
+  let valid = true;
+  Object.values(errors).forEach(
+    // if we have an error string set valid to false
+    val => val.length > 0 && (valid = false)
+  );
+  return valid;
+};
+
 class Register extends Component {
   constructor() {
     super();
@@ -67,7 +80,50 @@ class Register extends Component {
   }
 
   onChange = e => {
-    this.setState({ [e.target.id]: e.target.value });
+    // this.setState({ [e.target.id]: e.target.value });
+
+    e.preventDefault();
+    const { id, value } = e.target;
+    let errors = this.props.errors;
+
+    switch (id) {
+      case 'firstName':
+        errors.firstName = value.length === 0 ? 'first name is required' : '';
+        break;
+      case 'lastName':
+        errors.lastName = value.length === 0 ? 'last name is required' : '';
+        break;
+      case 'email':
+        errors.email = validEmailRegex.test(value) ? '' : 'Email is not valid!';
+        break;
+      case 'organization':
+        errors.organization =
+          value.length === 0 ? 'organization is required' : '';
+        break;
+      case 'jobTitle':
+        errors.jobTitle = value.length === 0 ? 'job title is required' : '';
+        break;
+      case 'phoneNumber':
+        errors.phoneNumber =
+          value.length === 0 ? 'phone number  is required' : '';
+        break;
+      case 'country':
+        errors.country = value.length === 0 ? 'country is required' : '';
+        break;
+
+      default:
+        break;
+    }
+
+    this.setState(
+      {
+        errors,
+        [id]: value
+      },
+      () => {
+        console.log(errors);
+      }
+    );
   };
 
   handleCheck = event => {
@@ -93,6 +149,44 @@ class Register extends Component {
 
   onSubmit = e => {
     e.preventDefault();
+    if (validateForm(this.state.errors)) {
+      console.info('Valid Form');
+    } else {
+      console.error('Invalid Form');
+    }
+
+    const { id, value } = e.target;
+    let errors = this.state.errors;
+    // const { errors } = this.state;
+
+    switch (id) {
+      case 'firstName':
+        console.log('the firstName error');
+        errors.firstName = mappedErrors.errors.firstName;
+        console.log(errors.firstName);
+        break;
+      case 'lastName':
+        errors.lastName = mappedErrors.errors.lastName;
+        break;
+      case 'email':
+        errors.email = mappedErrors.errors.email;
+        break;
+      case 'organization':
+        errors.organization = mappedErrors.errors.organization;
+        break;
+      case 'jobTitle':
+        errors.jobTitle = mappedErrors.errors.jobTitle;
+        break;
+      case 'phoneNumber':
+        errors.phoneNumber = mappedErrors.errors.phoneNumber;
+        break;
+      case 'country':
+        errors.country = mappedErrors.errors.country;
+        break;
+      default:
+        break;
+    }
+
     const newUser = {
       firstName: this.state.firstName,
       lastName: this.state.lastName,
@@ -107,11 +201,23 @@ class Register extends Component {
     console.log(newUser);
     this.props.registerCandidate(newUser);
     this.clearState();
+    if (errors) {
+      this.setState(
+        {
+          errors,
+          [id]: value
+        },
+        () => {
+          console.log(errors);
+        }
+      );
+    } else {
+      this.clearState();
+    }
   };
   render() {
     const { errors } = this.state;
     const { classes } = this.props;
-
     return (
       <div className="container">
         <div className="row">
@@ -233,6 +339,8 @@ class Register extends Component {
                   variant="outlined"
                   error={errors.description}
                 />
+                <label htmlFor="description">Description</label>
+                <span className="red-text">{errors.description}</span>
               </div>
               <div className="input-field col s12">
                 <TextField
@@ -258,6 +366,8 @@ class Register extends Component {
                     </option>
                   ))}
                 </TextField>
+                <label htmlFor="country">Country</label>
+                <span className="red-text">{errors.country}</span>
               </div>
               <div>
                 <FormControlLabel
@@ -290,7 +400,8 @@ class Register extends Component {
               {this.props.auth.newUser && (
                 <Alert severity="success">
                   <AlertTitle>Success</AlertTitle>
-                  This is a success alert — <strong>check it out!</strong>
+                  Successfully registered the user —{' '}
+                  <strong>check it out!</strong>
                 </Alert>
               )}
             </form>
@@ -312,6 +423,7 @@ const mapStateToProps = state => ({
   errors: state.errors
 });
 
+// export default Register;
 export default connect(mapStateToProps, { registerCandidate })(
   withRouter(withStyles(styles, { withTheme: true })(Register))
 );
