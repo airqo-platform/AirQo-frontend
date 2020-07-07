@@ -309,21 +309,7 @@ export default function DeviceManagement() {
             </CardFooter>
           </Card>
         </GridItem>
-        <GridItem xs={12} sm={12} md={4}>
-          <Card>
-            <CardHeader color="primary">
-              <h4 className={classes.cardTitleWhite}>Inactive Devices({inActiveDevicesCount})</h4>
-            </CardHeader>
-            <CardBody>
-              <Table
-                tableHeaderColor="primary"
-                tableHead={["Device", "Location", "Type", "Power Supply"]}
-                tableData={inActiveDevices}
-              />
-            </CardBody>
-          </Card>
-        </GridItem>
-       
+
         <GridItem xs={12} sm={12} md={4}>
           <Card>
             <CardHeader color="info">
@@ -377,6 +363,23 @@ export default function DeviceManagement() {
             </CardFooter>
           </Card>
         </GridItem>
+        
+        <GridItem xs={12} sm={12} md={4}>
+          <Card>
+            <CardHeader color="primary">
+              <h4 className={classes.cardTitleWhite}>Offline Devices({inActiveDevicesCount})</h4>
+            </CardHeader>
+            <CardBody>
+              <Table
+                tableHeaderColor="primary"
+                tableHead={["Device", "Location", "Type", "Power Supply"]}
+                tableData={inActiveDevices}
+              />
+            </CardBody>
+          </Card>
+        </GridItem>
+       
+       
       </GridContainer>
       <GridContainer>
         <GridItem xs={12} sm={12} md={6}>
