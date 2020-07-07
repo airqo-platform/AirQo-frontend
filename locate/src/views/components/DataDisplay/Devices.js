@@ -27,6 +27,7 @@ import InputLabel from '@material-ui/core/InputLabel';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Checkbox from '@material-ui/core/Checkbox';
 import CheckBoxIcon from '@material-ui/icons/CheckBox';
+import DeleteDialog from './Dialogs/DeleteDialog.js'
 
 const useStyles = makeStyles(theme => ({
   root: {},
@@ -47,9 +48,11 @@ const useStyles = makeStyles(theme => ({
     justifyContent: 'flex-end'
   },
   link: {
-    color: '#3344FF',
+    color: '#3344AA',
+    //color: 'black',
     fontFamily: 'Open Sans'
     },
+    
   table: {
     fontFamily:'Open Sans'
   },
@@ -64,7 +67,7 @@ const DevicesTable = props => {
   const classes = useStyles();
   const [data, setData] = useState([]);   
   const [isLoading, setIsLoading] = useState(false);
-  const [dialogLoading, setDialogLoading] = useState(true);
+  const [devicesLoading, setDevicesLoading] = useState(false);
   const [dialogResponseMessage, setDialogResponseMessage] = useState('');
 
   const [maintenanceOpen, setMaintenanceOpen]= useState(false);
@@ -91,6 +94,14 @@ const DevicesTable = props => {
     setRecallOpen(false);
   }
 
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const handleDeleteOpen = () => {
+    setDeleteOpen(true);
+  };
+  const handleDeleteClose = () => {
+    setDeleteOpen(false);
+  }
+
   const [responseOpen, setResponseOpen] = useState(false);
   const handleResponseOpen = () => {
     setResponseOpen(true);
@@ -115,7 +126,7 @@ const DevicesTable = props => {
   const [locationsOptions, setLocationsOptions] = useState([]);
   
   useEffect(() => {
-    //code to retrieve all devices' data
+    //code to retrieve all locations' data
     //setIsLoading(true);
     axios.get(
       //'http://127.0.0.1:4001/api/v1/device/monitor/devices'
@@ -153,10 +164,6 @@ const DevicesTable = props => {
   const handlePowerChange = (event) => {
 	  setPower(event.target.value);
   }
-  const powerOptions = [
-    { value: 'Solar', label: 'Solar' },
-    { value: 'Mains', label: 'Mains' },
-  ];
 
   const [installationType, setInstallationType] = useState('');
   const handleInstallationTypeChange = enteredInstallationType => {
@@ -177,6 +184,9 @@ const DevicesTable = props => {
   const handleCollocationChange = (event) => {
     setCollocationChecked(true);
   }
+
+  //Delete parameters
+  const [deviceID, setDeviceID] = useState('');
 
   useEffect(() => {
     //code to retrieve all devices' data
@@ -228,6 +238,15 @@ const DevicesTable = props => {
       handleDeployOpen();
     }
   }
+
+  let handleDeleteClick = (id) => {
+    return (event) => {
+      //setDeviceName(name);
+      setDeviceID(id);
+      handleDeleteOpen();
+    }
+  }
+
   
   let handleDeploySubmit = (e) => {
     //e.preventDefault();
@@ -309,6 +328,33 @@ const DevicesTable = props => {
 
   }
 
+  let handleDeleteSubmit = (e) => {
+    console.log('Deleting ...')
+    let filter = {
+      device: deviceID
+    }
+    console.log(JSON.stringify(filter));
+    /*
+    axios.post(
+      "http://localhost:3000/api/v1/data/channels/maintenance/add"
+      //constants.ADD_MAINTENANCE_URI,
+      JSON.stringify(filter),
+      { headers: { 'Content-Type': 'application/json' } }
+    )
+    .then(
+      res=>{
+        setIsLoading(false);
+        const myData = res.data;
+        console.log(myData);
+        console.log(myData.message);
+        setDialogMessage(myData.message);
+        setDialogStatus(true);
+    }).catch(
+      console.log
+    )*/
+
+  }
+
 
   return (
     <div className={classes.root}> 
@@ -343,12 +389,15 @@ const DevicesTable = props => {
                //render: rowData => <Link className={classes.link} onClick={handleMaintenanceClick(rowData.airqo_ref)}> Update Maintenance log </Link>,
                render: rowData => <div>
                                     <Tooltip title="Update Maintenance Log">
+                                      
                                       <Link 
                                         className={classes.link} 
                                         onClick = {handleMaintenanceClick(rowData.airqo_ref)}
+                                        //style={{color: 'black'}} 
+                                        //activeStyle={{color: 'red'}}
                                       > 
                                         <Update></Update>
-                                      </Link>
+                                      </Link> 
                                     </Tooltip>
                                     &nbsp;&nbsp;&nbsp;
 
@@ -382,7 +431,7 @@ const DevicesTable = props => {
                                     <Tooltip title="Delete Device">
                                       <Link 
                                         className={classes.link} 
-                                        //onClick = {handleRecallClick(rowData.airqo_ref, rowData.location_ID)}
+                                        onClick = {handleDeleteClick(rowData.chan_id)}
                                       > 
                                         <DeleteOutlined></DeleteOutlined>
                                       </Link>
@@ -396,11 +445,6 @@ const DevicesTable = props => {
                                         </Link>*/}
                                     </div>
             },
-       
-             //{ title: 'District', field: 'district', cellStyle:{ fontFamily: 'Open Sans'} },
-             //{ title: 'Subcounty', field: 'subcounty', cellStyle:{ fontFamily: 'Open Sans'} },
-             //{ title: 'Parish', field: 'parish', cellStyle:{ fontFamily: 'Open Sans'} },
-             //{title: 'Birth Place',mfield: 'birthCity', lookup: { 34: 'İstanbul', 63: 'Şanlıurfa' },},
       ]}   
       data = {data}  
       options={{
@@ -541,6 +585,7 @@ const DevicesTable = props => {
                      value = {deviceName}
                    /> 
                  </Grid>
+                 {devicesLoading?(
                  <Grid item xs={6}>
                     <TextField 
                       id="standard-basic" 
@@ -548,7 +593,7 @@ const DevicesTable = props => {
                       value = {height}
                       onChange = {handleHeightChange}
                     />
-                  </Grid>
+                 </Grid>): null }
                 </Grid>
                 <Grid container item xs={12} spacing={3}>
                  <Grid item xs={6}>
@@ -565,6 +610,8 @@ const DevicesTable = props => {
                      </Select>
                    </FormControl>
                   </Grid>
+                  {devicesLoading?(
+                    
                   <Grid item xs={6}>
                     <FormControl className={classes.formControl}>
                       <InputLabel htmlFor="demo-dialog-native">Power Type</InputLabel>
@@ -580,8 +627,10 @@ const DevicesTable = props => {
                         <option value="Battery">Battery</option>
                       </Select>
                     </FormControl>
-                   </Grid>
+                   </Grid>): null }
                   </Grid>
+                  {devicesLoading?(
+                    <div>
                   <Grid container item xs={12} spacing={3}>
                     <Grid item xs={6}>
                       <TextField 
@@ -634,11 +683,11 @@ const DevicesTable = props => {
                         } 
                       label="This deployment is a formal collocation"
                       />
-                    </Grid>
+                    </Grid> </div>): null }
                   </Grid>
                 </DialogContent> 
           
-          
+                {devicesLoading?(
                 <DialogActions>
                 <Grid container alignItems="center" alignContent="center" justify="center">
                  <Button 
@@ -656,7 +705,7 @@ const DevicesTable = props => {
                > Cancel
                </Button>
                </Grid>
-           </DialogActions>
+           </DialogActions>): null }
          </Dialog>
          ) : null}
          {recallOpen? (
@@ -688,6 +737,42 @@ const DevicesTable = props => {
                 color="primary"              
                 //type="button"
                 onClick = {handleRecallClose}
+               > NO
+               </Button>
+               </Grid>
+           </DialogActions>
+         </Dialog>
+         ) : null}
+
+     {deleteOpen? (
+       
+       <Dialog
+           open={deleteOpen}
+           onClose={handleDeleteClose}
+           aria-labelledby="form-dialog-title"
+           aria-describedby="form-dialog-description"
+         >
+           <DialogTitle id="form-dialog-title" style={{alignContent:'center'}}>Delete a device</DialogTitle>
+           
+                <DialogContent>
+                  Are you sure you want to delete device {deviceName}?
+                </DialogContent> 
+          
+          
+                <DialogActions>
+                <Grid container alignItems="center" alignContent="center" justify="center">
+                 <Button 
+                  variant="contained" 
+                  color="primary"              
+                  onClick={handleDeleteSubmit}
+                 > YES
+                </Button>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+               <Button 
+                variant="contained" 
+                color="primary"              
+                //type="button"
+                onClick = {handleDeleteClose}
                > NO
                </Button>
                </Grid>
