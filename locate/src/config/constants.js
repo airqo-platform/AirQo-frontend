@@ -41,6 +41,8 @@ const prodConfig = {
     GET_DEVICE_STATUS_FOR_PIECHART_DISPLAY: "https://device-monitoring-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/device/monitor/status/latest",
     GET_LATEST_OFFLINE_DEVICES: "https://device-monitoring-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/monitor/devices/offline",
     GET_NETWORK_UPTIME: "https://device-monitoring-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/monitor/network/uptime",
+    ADD_MAINTENANCE_URI: "https://data-manager-dot-airqo-250220.appspot.com/api/v1/data/channels/maintenance/add",
+    REGISTER_DEVICE_URI: "https://device-registry-dot-airqo-250220.appspot.com/api/v1/devices/ts"
 };
 
 const devConfig = {
@@ -59,22 +61,18 @@ const devConfig = {
   GET_LOCATE_MAP: "http://localhost:4000/api/v1/map/getlocatemap/",
   UPDATE_LOCATE_MAP: "http://localhost:4000/api/v1/map/updatelocatemap/",
   DELETE_LOCATE_MAP: "http://localhost:4000/api/v1/map/deletelocatemap/",
-  GET_DEVICE_STATUS_SUMMARY:
-    "http://localhost:6000/api/v1/device/monitor/status",
-  GET_DEVICE_STATUS_FOR_PIECHART_DISPLAY:
-  "http://127.0.0.1:4001/api/v1/device/monitor/status/latest",
-  GET_LATEST_OFFLINE_DEVICES:
-  "http://127.0.0.1:4001/api/v1/monitor/devices/offline",
-  GET_NETWORK_UPTIME:
-  "http://127.0.0.1:4001/api/v1/monitor/network/uptime",
+  GET_DEVICE_STATUS_SUMMARY: "http://localhost:6000/api/v1/device/monitor/status",
+  GET_DEVICE_STATUS_FOR_PIECHART_DISPLAY: "http://127.0.0.1:4001/api/v1/device/monitor/status/latest",
+  GET_LATEST_OFFLINE_DEVICES: "http://127.0.0.1:4001/api/v1/monitor/devices/offline",
+  GET_NETWORK_UPTIME: "http://127.0.0.1:4001/api/v1/monitor/network/uptime",
   ALL_LOCATIONS_URI: "http://127.0.0.1:4000/api/v1/location_registry/locations",
   CREATE_ID_URI: "http://127.0.0.1:4000/api/v1/location_registry/create_id",
   REGISTER_LOCATION_URI: "http://127.0.0.1:4000/api/v1/location_registry/register",
   VIEW_LOCATION_URI: "http://127.0.0.1:4000/api/v1/location_registry/location?loc_ref=",
   EDIT_LOCATION_DETAILS_URI: "http://127.0.0.1:4000/api/v1/location_registry/edit?loc_ref=",
   UPDATE_LOCATION_URI: "http://127.0.0.1:4000/api/v1/location_registry/update",
-
-  
+  ADD_MAINTENANCE_URI: "http://localhost:3000/api/v1/data/channels/maintenance/add",
+  REGISTER_DEVICE_URI: "http://127.0.0.1:3000/api/v1/devices/ts",
   
 };
 

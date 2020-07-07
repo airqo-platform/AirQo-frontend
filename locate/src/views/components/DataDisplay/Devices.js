@@ -17,7 +17,7 @@ import {
   KeyboardDatePicker,
 } from '@material-ui/pickers';
 //import { AccessAlarm, ThreeDRotation } from '@material-ui/icons';
-import { Update, Delete, Edit, CloudUpload } from '@material-ui/icons';
+import { Update, DeleteOutlined, EditOutlined, CloudUploadOutlined, UndoOutlined } from '@material-ui/icons';
 import Tooltip from '@material-ui/core/Tooltip';
 //import Select from 'react-select';
 import Select from '@material-ui/core/Select';
@@ -64,6 +64,8 @@ const DevicesTable = props => {
   const classes = useStyles();
   const [data, setData] = useState([]);   
   const [isLoading, setIsLoading] = useState(false);
+  const [dialogLoading, setDialogLoading] = useState(true);
+  const [dialogResponseMessage, setDialogResponseMessage] = useState('');
 
   const [maintenanceOpen, setMaintenanceOpen]= useState(false);
   const handleMaintenanceOpen = () => {
@@ -80,6 +82,23 @@ const DevicesTable = props => {
   const handleDeployClose = () => {
     setDeployOpen(false);
   };
+
+  const [recallOpen, setRecallOpen] = useState(false);
+  const handleRecallOpen = () => {
+    setRecallOpen(true);
+  };
+  const handleRecallClose = () => {
+    setRecallOpen(false);
+  }
+
+  const [responseOpen, setResponseOpen] = useState(false);
+  const handleResponseOpen = () => {
+    setResponseOpen(true);
+  };
+  const handleResponseClose = () => {
+    setResponseOpen(false);
+  }
+
 
   //maintenance log parameters
   const [deviceName, setDeviceName] = useState('');
@@ -192,17 +211,25 @@ const DevicesTable = props => {
     }
   }
 
+  let handleRecallClick = (name, location) => {
+    return (event) => {
+      console.log(name);
+      setDeviceName(name);
+      setLocationID(location);
+      handleRecallOpen();
+    }
+  }
+
   let handleDeployClick = (name) => {
     return (event) => {
       console.log('Deploying '+name);
       //console.log(name);
       setDeviceName(name);
       handleDeployOpen();
-      //handleMaintenanceOpen();
     }
   }
   
-  let  handleDeploySubmit = (e) => {
+  let handleDeploySubmit = (e) => {
     //e.preventDefault();
     //setLoading(true);
     //setIsLoading(true);
@@ -226,20 +253,45 @@ const DevicesTable = props => {
   
   let  handleMaintenanceSubmit = (e) => {
     //e.preventDefault();
-    //setLoading(true);
-    //setIsLoading(true);
+    //setDialogLoading(true);
 
     let filter ={ 
       unit: deviceName,
       activity:  maintenanceDescription,
-	    date: selectedDate.toString(),
+	    date: selectedDate.toString(),  
+    }
+    console.log(JSON.stringify(filter));
+    axios.post(
+      "http://localhost:3000/api/v1/data/channels/maintenance/add",
+      //constants.ADD_MAINTENANCE_URI,
+      JSON.stringify(filter),
+      { headers: { 'Content-Type': 'application/json' } }
+    )
+    .then(
+      res=>{
+        const myData = res.data;
+        console.log(myData.message);
+        setDialogResponseMessage(myData.message);
+        setMaintenanceOpen(false);
+        setResponseOpen(true);
+        setMaintenanceDescription('');
+    }).catch(
+      console.log
+    )
+  }
+
+  let handleRecallSubmit = (e) => {
+    let filter ={ 
+      unit: deviceName,
+	    location: locationID,
       
     }
     console.log(JSON.stringify(filter));
-  /*
+
+     /*
     axios.post(
-      //'http://127.0.0.1:4000/api/v1/location_registry/register', 
-      constants.REGISTER_LOCATION_URI,
+      "http://localhost:3000/api/v1/data/channels/maintenance/add"
+      //constants.ADD_MAINTENANCE_URI,
       JSON.stringify(filter),
       { headers: { 'Content-Type': 'application/json' } }
     )
@@ -251,11 +303,10 @@ const DevicesTable = props => {
         console.log(myData.message);
         setDialogMessage(myData.message);
         setDialogStatus(true);
-
-        //setLoading(false) 
     }).catch(
       console.log
     )*/
+
   }
 
 
@@ -306,13 +357,34 @@ const DevicesTable = props => {
                                         className={classes.link} 
                                         onClick = {handleDeployClick(rowData.airqo_ref)}
                                       > 
-                                      <CloudUpload></CloudUpload>
+                                      <CloudUploadOutlined></CloudUploadOutlined>
                                         {/*Deploy
                                     
                                         <Icon>
                                           <img  src="../../../../assets/img/icons/deploy.svg"/>
                                         </Icon>
                                           */}
+                                      </Link>
+                                    </Tooltip>
+                                    &nbsp;&nbsp;&nbsp;
+
+                                    <Tooltip title="Recall Device">
+                                      <Link 
+                                        className={classes.link} 
+                                        onClick = {handleRecallClick(rowData.airqo_ref, rowData.location_ID)}
+                                      > 
+                                        <UndoOutlined></UndoOutlined>
+                                      </Link>
+                                    </Tooltip>
+
+                                    &nbsp;&nbsp;&nbsp;
+
+                                    <Tooltip title="Delete Device">
+                                      <Link 
+                                        className={classes.link} 
+                                        //onClick = {handleRecallClick(rowData.airqo_ref, rowData.location_ID)}
+                                      > 
+                                        <DeleteOutlined></DeleteOutlined>
                                       </Link>
                                     </Tooltip>
                                     {/*
@@ -355,6 +427,35 @@ const DevicesTable = props => {
 
     </LoadingOverlay>
 
+    {responseOpen?
+    (
+      <Dialog
+      open={responseOpen}
+      onClose={handleResponseClose}
+      aria-labelledby="form-dialog-title"
+      aria-describedby="form-dialog-description"
+      >
+        <DialogContent>
+          {dialogResponseMessage}
+        </DialogContent> 
+        
+        <DialogActions>
+          <Grid container alignItems="center" alignContent="center" justify="center">
+            <Button 
+              variant="contained" 
+              color="primary"              
+              onClick={handleResponseClose}
+            > OK
+            </Button>
+          </Grid>
+        </DialogActions>
+    </Dialog>
+
+
+    ): null
+    
+  }
+
     {maintenanceOpen? (
        
        <Dialog
@@ -364,8 +465,10 @@ const DevicesTable = props => {
            aria-describedby="form-dialog-description"
          >
            <DialogTitle id="form-dialog-title">Update Maintenance Log</DialogTitle>
+
            
            <DialogContent>
+                <div>
                  <TextField 
                    id="standard-basic" 
                    label="Device Name"
@@ -393,6 +496,8 @@ const DevicesTable = props => {
                    }}
                    />
                  </MuiPickersUtilsProvider>
+                 </div>
+                 
                   </DialogContent> 
           
                  <DialogActions>
@@ -472,6 +577,7 @@ const DevicesTable = props => {
                         <option aria-label="None" value="" />
                         <option value="Mains">Mains</option>
                         <option value="Solar">Solar</option>
+                        <option value="Battery">Battery</option>
                       </Select>
                     </FormControl>
                    </Grid>
@@ -548,6 +654,41 @@ const DevicesTable = props => {
                 //type="button"
                 onClick = {handleDeployClose}
                > Cancel
+               </Button>
+               </Grid>
+           </DialogActions>
+         </Dialog>
+         ) : null}
+         {recallOpen? (
+       
+       <Dialog
+           open={recallOpen}
+           onClose={handleRecallClose}
+           aria-labelledby="form-dialog-title"
+           aria-describedby="form-dialog-description"
+         >
+           <DialogTitle id="form-dialog-title" style={{alignContent:'center'}}>Recall a device</DialogTitle>
+           
+                <DialogContent>
+                  Are you sure you want to recall device {deviceName} from location {locationID}?
+                </DialogContent> 
+          
+          
+                <DialogActions>
+                <Grid container alignItems="center" alignContent="center" justify="center">
+                 <Button 
+                  variant="contained" 
+                  color="primary"              
+                  onClick={handleRecallSubmit}
+                 > YES
+                </Button>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+               <Button 
+                variant="contained" 
+                color="primary"              
+                //type="button"
+                onClick = {handleRecallClose}
+               > NO
                </Button>
                </Grid>
            </DialogActions>
