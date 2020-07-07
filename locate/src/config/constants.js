@@ -42,7 +42,8 @@ const prodConfig = {
     GET_LATEST_OFFLINE_DEVICES: "https://device-monitoring-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/monitor/devices/offline",
     GET_NETWORK_UPTIME: "https://device-monitoring-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/monitor/network/uptime",
     ADD_MAINTENANCE_URI: "https://data-manager-dot-airqo-250220.appspot.com/api/v1/data/channels/maintenance/add",
-    REGISTER_DEVICE_URI: "https://device-registry-dot-airqo-250220.appspot.com/api/v1/devices/ts"
+    //REGISTER_DEVICE_URI: "https://device-registry-dot-airqo-250220.appspot.com/api/v1/devices/ts"
+    REGISTER_DEVICE_URI: "http://127.0.0.1:3000/api/v1/devices/ts",
 };
 
 const devConfig = {

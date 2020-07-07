@@ -70,6 +70,14 @@ const DevicesTable = props => {
   const [devicesLoading, setDevicesLoading] = useState(false);
   const [dialogResponseMessage, setDialogResponseMessage] = useState('');
 
+  const [registerOpen, setRegisterOpen] = useState(false);
+  const handleRegisterOpen = () => {
+    setRegisterOpen(true);
+  };
+  const handleRegisterClose = () => {
+    setRegisterOpen(false);
+  }
+
   const [maintenanceOpen, setMaintenanceOpen]= useState(false);
   const handleMaintenanceOpen = () => {
     setMaintenanceOpen(true);
@@ -188,6 +196,59 @@ const DevicesTable = props => {
   //Delete parameters
   const [deviceID, setDeviceID] = useState('');
 
+  //Register parameters
+  const [registerName, setRegisterName] = useState('');
+  const handleRegisterNameChange = name => {
+	  setRegisterName(name.target.value);
+  }
+  const [manufacturer, setManufacturer] = useState('');
+  const handleManufacturerChange = manufacturer => {
+	  setManufacturer(manufacturer.target.value);
+  }
+  const [productName, setProductName] = useState('');
+  const handleProductNameChange = name => {
+	  setProductName(name.target.value);
+  }
+  const [owner, setOwner] = useState('');
+  const handleOwnerChange = name => {
+	  setOwner(name.target.value);
+  }
+  const [description, setDescription] = useState('');
+  const handleDescriptionChange = (event) => {
+	  setDescription(event.target.value);
+  }
+  const [visibility, setVisibility] = useState('');
+  const handleVisibilityChange = (event) => {
+	  setVisibility(event.target.value);
+  }
+  const [ISP, setISP] = useState('');
+  const handleISPChange = (event) => {
+	  setISP(event.target.value);
+  }
+
+
+  const [latitude, setLatitude] = useState(null);
+  const handleLatitudeChange = lat => {
+    let re = /\s*|\d+(\.d+)?/
+    if (re.test(lat.target.value)) {
+      setLatitude(lat.target.value);
+    }
+  }
+  const [longitude, setLongitude] = useState(null);
+  const handleLongitudeChange = long => {
+    let re = /\s*|\d+(\.d+)?/
+    if (re.test(long.target.value)) {
+      setLongitude(long.target.value);
+    }
+  }
+  const [phone, setPhone] = useState(null);
+  const handlePhoneChange = event => {
+    let re = /\s*|\d+(\.d+)?/
+    if (re.test(event.target.value)) {
+      setPhone(event.target.value);
+    }
+  }
+
   useEffect(() => {
     //code to retrieve all devices' data
     setIsLoading(true);
@@ -213,6 +274,7 @@ const DevicesTable = props => {
     handleMaintenanceOpen();
   }*/
  
+
   let handleMaintenanceClick = (name) => {
     return (event) => {
       console.log(name);
@@ -328,8 +390,53 @@ const DevicesTable = props => {
 
   }
 
+  let handleRegisterSubmit = (e) => {
+    console.log('Registering');
+    let filter = {
+      name: registerName,
+      latitude: latitude,
+      longitude: longitude,
+      visibility: visibility,
+      device_manufacturer: manufacturer,
+      product_name:productName,
+      owner: owner,
+      ISP: ISP,
+      phoneNumber: phone,
+      description: description
+    }
+    console.log(JSON.stringify(filter));
+    axios.post(
+      //"http://localhost:3000/api/v1/data/channels/maintenance/add"
+      constants.REGISTER_DEVICE_URI,
+      JSON.stringify(filter),
+      { headers: { 'Content-Type': 'application/json' } }
+    )
+    .then(
+      res=>{
+        const myData = res.data;
+        console.log(myData.message);
+        setDialogResponseMessage(myData.message);
+        setRegisterOpen(false);
+        setResponseOpen(true);
+
+        setRegisterName('');
+        setLatitude('');
+        setLongitude('');
+        setVisibility('');
+        setManufacturer('');
+        setProductName('');
+        setOwner('');
+        setISP('');
+        setPhone('');
+        setDescription('');
+        //setMaintenanceDescription('');
+    }).catch(
+      console.log
+    )
+  }
+
   let handleDeleteSubmit = (e) => {
-    console.log('Deleting ...')
+    console.log('Deleting ...');
     let filter = {
       device: deviceID
     }
@@ -357,7 +464,25 @@ const DevicesTable = props => {
 
 
   return (
-    <div className={classes.root}> 
+    <div className={classes.root}>
+      <br/>
+    
+      {/*<div alignContent ="right">*/}
+      <Grid container alignItems="right" alignContent="right" justify="center">
+    {/*<Link >*/}
+     <Button 
+          variant="contained" 
+          color="primary"              
+          type="submit"
+          align = "right"
+          onClick={handleRegisterOpen}
+        > Add Device
+        </Button>
+    {/* </Link> */}
+     </Grid>
+     {/*</div> */} 
+      <br/>
+
     <LoadingOverlay
       active={isLoading}
       spinner
@@ -708,7 +833,7 @@ const DevicesTable = props => {
            </DialogActions>): null }
          </Dialog>
          ) : null}
-         {recallOpen? (
+        {recallOpen? (
        
        <Dialog
            open={recallOpen}
@@ -738,6 +863,127 @@ const DevicesTable = props => {
                 //type="button"
                 onClick = {handleRecallClose}
                > NO
+               </Button>
+               </Grid>
+           </DialogActions>
+         </Dialog>
+         ) : null}
+
+     {registerOpen? (
+       
+       <Dialog
+           open={registerOpen}
+           onClose={handleRegisterClose}
+           aria-labelledby="form-dialog-title"
+           aria-describedby="form-dialog-description"
+         >
+           <DialogTitle id="form-dialog-title">Add a device</DialogTitle>
+
+           <DialogContent>
+                <div>
+                 <TextField 
+                   id="standard-basic" 
+                   label="Device Name"
+                   value = {registerName}
+                   fullWidth = {true}
+                   onChange = {handleRegisterNameChange}
+                   /> <br/>
+                 <TextField 
+                   id="standard-basic" 
+                   label="Description" 
+                   value = {description}
+                   onChange = {handleDescriptionChange}
+                   fullWidth = {true}
+                   /><br/>
+                  <TextField 
+                   id="standard-basic" 
+                   label="Manufacturer" 
+                   value = {manufacturer}
+                   onChange = {handleManufacturerChange}
+                   fullWidth = {true}
+                   /><br/>
+                   <TextField 
+                   id="standard-basic" 
+                   label="Product Name" 
+                   value = {productName}
+                   onChange = {handleProductNameChange}
+                   fullWidth = {true}
+                   /><br/>
+                   <TextField 
+                   id="standard-basic" 
+                   label="Latitude" 
+                   value = {latitude}
+                   onChange = {handleLatitudeChange}
+                   fullWidth = {true}
+                   /><br/>
+                   <TextField 
+                   id="standard-basic" 
+                   label="Longitude" 
+                   value = {longitude}
+                   onChange = {handleLongitudeChange}
+                   fullWidth = {true}
+                   /><br/>
+                   <FormControl className={classes.formControl} fullWidth={true}>
+                      <InputLabel htmlFor="demo-dialog-native"> Visibility</InputLabel>
+                      <Select
+                        native
+                        value={visibility}
+                        onChange={handleVisibilityChange}
+                        input={<Input id="demo-dialog-native" />}
+                      >
+                        <option aria-label="None" value="" />
+                        <option value="Public">Public</option>
+                        <option value="Private">Private</option>
+                      </Select>
+                   </FormControl>
+                   <TextField 
+                   id="standard-basic" 
+                   label="Owner" 
+                   value = {owner}
+                   onChange = {handleOwnerChange}
+                   fullWidth = {true}
+                   /><br/>
+                   <FormControl className={classes.formControl} fullWidth={true}>
+                      <InputLabel htmlFor="demo-dialog-native"> Internet Service Provider</InputLabel>
+                      <Select
+                        native
+                        value={ISP}
+                        onChange={handleISPChange}
+                        input={<Input id="demo-dialog-native" />}
+                      >
+                        <option aria-label="None" value="" />
+                        <option value="MTN">MTN</option>
+                        <option value="Africell">Africell</option>
+                        <option value="Airtel">Airtel</option>
+                      </Select>
+                   </FormControl>
+                   <TextField 
+                   id="standard-basic" 
+                   label="Phone Number" 
+                   value = {phone}
+                   onChange = {handlePhoneChange}
+                   fullWidth = {true}
+                   /><br/>
+                 
+                 </div>
+                 
+                  </DialogContent> 
+          
+                 <DialogActions>
+                 <Grid container alignItems="center" alignContent="center" justify="center">
+                 <Button 
+                  variant="contained" 
+                  color="primary"              
+                  onClick={handleRegisterSubmit}
+                 > Register
+                </Button>
+               &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+               <Button 
+                variant="contained" 
+                color="primary"              
+                //type="button"
+                onClick = {handleRegisterClose}
+               > Cancel
                </Button>
                </Grid>
            </DialogActions>
