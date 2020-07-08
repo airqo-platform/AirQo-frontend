@@ -119,8 +119,8 @@ const Download = (props) => {
   const handleCleanessChange = (selecteddegreeOfClean) => {
     setSelectedClean(selecteddegreeOfClean);
   };
-  console.log(values.selectedOption);
-  console.log(selectedPollutant);
+  //console.log(values.selectedOption);
+  //console.log(selectedPollutant);
 
   let handleSubmit = (e) => {
     e.preventDefault();
@@ -130,7 +130,7 @@ const Download = (props) => {
       startDate: selectedDate,
       endDate: selectedEndDate,
       frequency: selectedFrequency.value,
-      pollutant: selectedPollutant.value,
+      pollutants: selectedPollutant,
       fileType: selectedType.value,
       degreeOfClean: selectedClean.value,
       organisation_name: "KCCA",
@@ -150,63 +150,68 @@ const Download = (props) => {
         //download the returned data
         console.log(JSON.stringify(customisedDownloadData));
         if (selectedType.value === "JSON") {
-          let filename = "export.json";
-          let contentType = "application/json;charset=utf-8;";
-          if (window.navigator && window.navigator.msSaveOrOpenBlob) {
-            var blob = new Blob(
-              [
-                decodeURIComponent(
-                  encodeURI(JSON.stringify(customisedDownloadData))
-                ),
-              ],
-              { type: contentType }
-            );
-            navigator.msSaveOrOpenBlob(blob, filename);
-          } else {
-            var a = document.createElement("a");
-            a.download = filename;
-            a.href =
-              "data:" +
-              contentType +
-              "," +
-              encodeURIComponent(JSON.stringify(customisedDownloadData));
-            a.target = "_blank";
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-          }
+          // let filename = "export.json";
+          // let contentType = "application/json;charset=utf-8;";
+          // if (window.navigator && window.navigator.msSaveOrOpenBlob) {
+          //   var blob = new Blob(
+          //     [
+          //       decodeURIComponent(
+          //         encodeURI(JSON.stringify(customisedDownloadData))
+          //       ),
+          //     ],
+          //     { type: contentType }
+          //   );
+          //   navigator.msSaveOrOpenBlob(blob, filename);
+          // } else {
+          //   var a = document.createElement("a");
+          //   a.download = filename;
+          //   a.href =
+          //     "data:" +
+          //     contentType +
+          //     "," +
+          //     encodeURIComponent(JSON.stringify(customisedDownloadData));
+          //   a.target = "_blank";
+          //   document.body.appendChild(a);
+          //   a.click();
+          //   document.body.removeChild(a);
+          // }
         } else {
           console.log(customisedDownloadData.results);
-          let csvData = [];
-          customisedDownloadData.results.forEach((element) => {
-            console.log(element["division"]);
-            csvData.push({
-              label: element.datasets.label,
-              DateTime: element.chart_data.labels,
-              pollutant: element.chart_data.pollutant_values,
-              Division: element.division,
-              parish: element.parish,
-            });
-          });
-          console.log(csvData);
-          const fields = ["DateTime", "pollutant", "Division", "parish"];
-          const transforms = [unwind({ paths: ["pollutant", "DateTime"] })];
+          for (const [key, value] of Object.entries(
+            customisedDownloadData.results
+          )) {
+            console.log(`${key}: ${value[0]}`);
+          }
+          // let csvData = [];
+          // customisedDownloadData.results.forEach((element) => {
+          //   console.log(element["division"]);
+          //   csvData.push({
+          //     label: element.datasets.label,
+          //     DateTime: element.chart_data.labels,
+          //     pollutant: element.chart_data.pollutant_values,
+          //     Division: element.division,
+          //     parish: element.parish,
+          //   });
+          // });
+          // console.log(csvData);
+          // const fields = ["DateTime", "pollutant", "Division", "parish"];
+          // const transforms = [unwind({ paths: ["pollutant", "DateTime"] })];
 
-          const json2csvParser = new Parser({ fields, transforms });
-          const csv = json2csvParser.parse(csvData);
+          // const json2csvParser = new Parser({ fields, transforms });
+          // const csv = json2csvParser.parse(csvData);
 
-          console.log(csv);
-          var filename = "Analyticsexpt.csv";
-          var link = document.createElement("a");
-          link.setAttribute(
-            "href",
-            "data:text/csv;charset=utf-8,%EF%BB%BF" + encodeURIComponent(csv)
-          );
-          link.setAttribute("download", filename);
-          link.style.visibility = "hidden";
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
+          // console.log(csv);
+          // var filename = "Analyticsexpt.csv";
+          // var link = document.createElement("a");
+          // link.setAttribute(
+          //   "href",
+          //   "data:text/csv;charset=utf-8,%EF%BB%BF" + encodeURIComponent(csv)
+          // );
+          // link.setAttribute("download", filename);
+          // link.style.visibility = "hidden";
+          // document.body.appendChild(link);
+          // link.click();
+          // document.body.removeChild(link);
 
           /*jsonexport(csvData,function(err, csv){
     if(err) return console.log(err);
