@@ -58,68 +58,62 @@ export default function DeviceManagement() {
 
   useEffect(() => {
     // get total number of devices on the network
-    axios
-      .get("http://localhost:4000/api/v1/device/monitor/status")
-      .then(({ data }) => {
-        //console.log(data[0].loc_power_suppy);
-        let no_devices = 0;
-        data.map((item) => {
-          no_devices++;
-        });
-        setStatusSummary(data);
-        setNoOfDevices(no_devices);
+    axios.get(constants.GET_DEVICE_STATUS_SUMMARY).then(({ data }) => {
+      //console.log(data[0].loc_power_suppy);
+      let no_devices = 0;
+      data.map((item) => {
+        no_devices++;
       });
+      setStatusSummary(data);
+      setNoOfDevices(no_devices);
+    });
 
     // get total number of devices on solar power or main power
-    axios
-      .get("http://localhost:4000/api/v1/device/monitor/power_type")
-      .then(({ data }) => {
-        //console.log(data[0].loc_power_suppy);
-        let no_solar = 0,
-          no_main = 0,
-          no_battery = 0;
-        data.map((item) => {
-          if (item.power == "Solar") {
-            no_solar = no_solar + 1;
-          }
-          if (item.power == "Mains") {
-            no_main = no_main + 1;
-          }
-          if (item.power == "Battery") {
-            no_battery = no_battery + 1;
-          }
-        });
-
-        setSolarPowered(no_solar);
-        setMainPowered(no_main);
-        setBatteryPowered(no_battery);
+    axios.get(constants.GET_DEVICE_POWER_TYPE).then(({ data }) => {
+      //console.log(data[0].loc_power_suppy);
+      let no_solar = 0,
+        no_main = 0,
+        no_battery = 0;
+      data.map((item) => {
+        if (item.power == "Solar") {
+          no_solar = no_solar + 1;
+        }
+        if (item.power == "Mains") {
+          no_main = no_main + 1;
+        }
+        if (item.power == "Battery") {
+          no_battery = no_battery + 1;
+        }
       });
+
+      setSolarPowered(no_solar);
+      setMainPowered(no_main);
+      setBatteryPowered(no_battery);
+    });
 
     // get number of devices due for maintenance
-    axios
-      .get("http://localhost:4000/api/v1/device/monitor/maintenance_log")
-      .then(({ data }) => {
-        //console.log(data[0].loc_power_suppy);
-        let due_maintenance = new Array();
+    axios.get(constants.GET_DEVICE_MAINTENANCE_LOG).then(({ data }) => {
+      //console.log(data[0].loc_power_suppy);
+      let due_maintenance = new Array();
 
-        data.map((item) => {
-          console.log("next maintained", item.nextMaintenance);
-          let lst_maintained = item.nextMaintenance;
-          let past_date = new Date(lst_maintained);
-          let current_date = new Date();
+      data.map((item) => {
+        console.log("next maintained", item.nextMaintenance);
+        let lst_maintained = item.nextMaintenance;
+        let past_date = new Date(lst_maintained);
+        let current_date = new Date();
 
-          let month_difference =
-            past_date.getFullYear() * 12 +
-            past_date.getMonth() -
-            (current_date.getFullYear() * 12 + current_date.getMonth());
-          console.log(month_difference);
-          if (month_difference <= 0) {
-            // took two months without maintenance activity
-            due_maintenance.push(month_difference);
-          }
-        });
-        setNoDueMaintenance(due_maintenance.length);
+        let month_difference =
+          past_date.getFullYear() * 12 +
+          past_date.getMonth() -
+          (current_date.getFullYear() * 12 + current_date.getMonth());
+        console.log(month_difference);
+        if (month_difference <= 0) {
+          // took two months without maintenance activity
+          due_maintenance.push(month_difference);
+        }
       });
+      setNoDueMaintenance(due_maintenance.length);
+    });
 
     //axios.get(constants.GET_TOTAL_DEVICES).then(({ data }) => {
     // getting total number of devices directly from thinkspeak
