@@ -48,6 +48,7 @@ export default function DeviceManagement() {
   const [deviceStatusSummary, setStatusSummary] = useState();
   const [noOfDevices, setNoOfDevices] = useState(0);
   const [solarPowered, setSolarPowered] = useState(0);
+  const [batteryPowered, setBatteryPowered] = useState(0);
   const [mainPowered, setMainPowered] = useState(0);
   const [noDueMaintenance, setNoDueMaintenance] = useState(0);
 
@@ -56,49 +57,69 @@ export default function DeviceManagement() {
   const classes = useStyles();
 
   useEffect(() => {
-    axios.get(constants.GET_DEVICE_STATUS_SUMMARY).then(({ data }) => {
-      //console.log(data[0].loc_power_suppy);
-      let no_devices = 0,
-        no_solar = 0,
-        no_main = 0;
-      let due_maintenance = new Array();
-      data.map((item) => {
-        no_devices++;
-        if (item.loc_power_suppy == "Solar") {
-          no_solar = no_solar + 1;
-        }
+    // get total number of devices on the network
+    axios
+      .get("http://localhost:4000/api/v1/device/monitor/status")
+      .then(({ data }) => {
+        //console.log(data[0].loc_power_suppy);
+        let no_devices = 0;
+        data.map((item) => {
+          no_devices++;
+        });
+        setStatusSummary(data);
+        setNoOfDevices(no_devices);
+      });
 
-        if (item.loc_power_suppy == "Mains") {
-          no_main = no_main + 1;
-        }
+    // get total number of devices on solar power or main power
+    axios
+      .get("http://localhost:4000/api/v1/device/monitor/power_type")
+      .then(({ data }) => {
+        //console.log(data[0].loc_power_suppy);
+        let no_solar = 0,
+          no_main = 0,
+          no_battery = 0;
+        data.map((item) => {
+          if (item.power == "Solar") {
+            no_solar = no_solar + 1;
+          }
+          if (item.power == "Mains") {
+            no_main = no_main + 1;
+          }
+          if (item.power == "Battery") {
+            no_battery = no_battery + 1;
+          }
+        });
 
-        // calculate due maintenance date
-        if (item.last_maintained == "") {
-          // no know last maintenance date specified.
-          console.log("yes");
-        } else {
-          console.log(item.last_maintained);
-          let lst_maintained = item.last_maintained;
+        setSolarPowered(no_solar);
+        setMainPowered(no_main);
+        setBatteryPowered(no_battery);
+      });
+
+    // get number of devices due for maintenance
+    axios
+      .get("http://localhost:4000/api/v1/device/monitor/maintenance_log")
+      .then(({ data }) => {
+        //console.log(data[0].loc_power_suppy);
+        let due_maintenance = new Array();
+
+        data.map((item) => {
+          console.log("next maintained", item.nextMaintenance);
+          let lst_maintained = item.nextMaintenance;
           let past_date = new Date(lst_maintained);
           let current_date = new Date();
 
           let month_difference =
-            current_date.getFullYear() * 12 +
-            current_date.getMonth() -
-            (past_date.getFullYear() * 12 + past_date.getMonth());
+            past_date.getFullYear() * 12 +
+            past_date.getMonth() -
+            (current_date.getFullYear() * 12 + current_date.getMonth());
           console.log(month_difference);
-          if (month_difference >= 2) {
+          if (month_difference <= 0) {
             // took two months without maintenance activity
             due_maintenance.push(month_difference);
           }
-        }
+        });
+        setNoDueMaintenance(due_maintenance.length);
       });
-      setStatusSummary(data);
-      setNoOfDevices(no_devices);
-      setSolarPowered(no_solar);
-      setMainPowered(no_main);
-      setNoDueMaintenance(due_maintenance.length);
-    });
 
     //axios.get(constants.GET_TOTAL_DEVICES).then(({ data }) => {
     // getting total number of devices directly from thinkspeak
@@ -142,6 +163,8 @@ export default function DeviceManagement() {
               </CardIcon>
               <p className={classes.cardCategory}>Solar powered</p>
               <h3 className={classes.cardTitle}> {solarPowered}</h3>
+              {/* <p className={classes.cardCategory}>Battery powered</p>
+              <h3 className={classes.cardTitle}> {batteryPowered}</h3> */}
             </CardHeader>
             <CardFooter stats></CardFooter>
           </Card>
