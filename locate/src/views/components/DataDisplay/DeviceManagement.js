@@ -56,7 +56,7 @@ export default function DeviceManagement() {
     axios.get(constants.GET_LATEST_OFFLINE_DEVICES).then(({ data }) => {
       console.log(data)      
 
-      let devices  = data.map(x => [x['chan_id'], , x['airqo_ref'], x['loc_mob_stat'], x['loc_power_suppy']]);
+      let devices  = data.map(x => [x['name'],  x['time_offline'], x['mobility'], x['power']]);
       setInActiveDevices(devices.slice(2,7));
       setInActiveDevicesCount(data.length)
     });
@@ -363,7 +363,7 @@ export default function DeviceManagement() {
             </CardFooter>
           </Card>
         </GridItem>
-        
+
         <GridItem xs={12} sm={12} md={4}>
           <Card>
             <CardHeader color="primary">
@@ -372,7 +372,7 @@ export default function DeviceManagement() {
             <CardBody>
               <Table
                 tableHeaderColor="primary"
-                tableHead={["Device", "Location", "Type", "Power Supply"]}
+                tableHead={["Device", "Time Offline", "Type", "Power Supply"]}
                 tableData={inActiveDevices}
               />
             </CardBody>
