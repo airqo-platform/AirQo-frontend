@@ -47,8 +47,7 @@ import { Line, Bar, Pie } from 'react-chartjs-2';
 const useStyles = makeStyles(styles);
 
 export default function DeviceManagement() {
-  //set states for storing device status
-
+  
   const [inActiveDevices, setInActiveDevices] = useState([])
   const [inActiveDevicesCount, setInActiveDevicesCount] = useState(0)
    
