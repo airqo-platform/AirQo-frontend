@@ -493,7 +493,7 @@ export default function DeviceManagement() {
             <CardHeader color="primary">
               <h4 className={classes.cardTitleWhite}>Leaderboard</h4>
               <p className={classes.cardCategoryWhite}>
-                Best performing 5 devices on network (28 Days)
+                Best performing 5 devices on network in the past 28 days
               </p>
             </CardHeader>
             <CardBody>
@@ -510,7 +510,7 @@ export default function DeviceManagement() {
             <CardHeader color="primary">
               <h4 className={classes.cardTitleWhite}>Leaderboard</h4>
               <p className={classes.cardCategoryWhite}>
-                Worst performing 5 devices on network (28 Days)
+                Worst performing 5 devices on network in the past 28 days
               </p>
             </CardHeader>
             <CardBody>
