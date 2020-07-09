@@ -31,6 +31,10 @@ const prodConfig = {
     "https://device-monitoring-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/monitor/devices/offline",
     GET_NETWORK_UPTIME:
     "https://device-monitoring-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/monitor/network/uptime",
+  GET_NETWORK_BEST_PERFORMING_DEVICES:
+  "https://device-monitoring-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/monitor/network/devices/bestperforming",
+  GET_NETWORK_WORST_PERFORMING_DEVICES:
+  "https://device-monitoring-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/monitor/network/devices/worstperforming",
 };
 
 const devConfig = {
@@ -57,6 +61,10 @@ const devConfig = {
   "http://localhost:5000/api/v1/monitor/devices/offline",
   GET_NETWORK_UPTIME:
   "http://localhost:5000/api/v1/monitor/network/uptime",
+  GET_NETWORK_BEST_PERFORMING_DEVICES:
+  "http://localhost:5000/api/v1/monitor/network/devices/bestperforming",
+  GET_NETWORK_WORST_PERFORMING_DEVICES:
+  "http://localhost:5000/api/v1/monitor/network/devices/worstperforming",
   
 };
 

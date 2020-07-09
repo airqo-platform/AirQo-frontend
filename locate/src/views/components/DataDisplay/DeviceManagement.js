@@ -61,6 +61,71 @@ export default function DeviceManagement() {
     });
   }, []);
 
+  const [worstPerformingDevicesInTwentyFourHours, setWorstPerformingDevicesInTwentyFourHours] = useState([])
+  const [worstPerformingDevicesAllTime, setWorstPerformingDevicesAllTime] = useState([])
+  const [worstPerformingDevicesInTwentyEightDays, setWorstPerformingDevicesInTwentyEightDays] = useState([])
+  const [worstPerformingDevicesInTwelveMonths, setWorstPerformingInTwelveMonths] = useState([])
+  const [worstPerformingDevicesInSevenDays, setWorstPerformingDevicesInSevenDays] = useState([])
+  useEffect(() => {
+    axios.get(constants.GET_NETWORK_WORST_PERFORMING_DEVICES).then(({ data }) => {
+      console.log(data)      
+      let twenty_four_data = data['24 hours']
+      let all_time_data = data['all time']
+      let seven_days_data = data['7 days']
+      let twenty_eight_days_data = data['28 days']
+      let twelve_months_data = data['12 months']
+
+      let devicesSevenDays  = seven_days_data.map(x => [x['device_channel_id'],  x['device_uptime_in_percentage'], x['device_downtime_in_percentage']]);
+      setWorstPerformingDevicesInSevenDays(devicesSevenDays.slice(0,5));
+
+      let devices_all_time  = all_time_data.map(x => [x['device_channel_id'],  x['device_uptime_in_percentage'], x['device_downtime_in_percentage']]);
+      setWorstPerformingDevicesAllTime(devices_all_time.slice(0,30));
+
+      let devicesTwentyFourHour  = twenty_four_data.map(x => [x['device_channel_id'],  x['device_uptime_in_percentage'], x['device_downtime_in_percentage']]);
+      setWorstPerformingDevicesInTwentyFourHours(devicesTwentyFourHour.slice(0,30));
+
+      let devicesTwentyEightDays  = twenty_eight_days_data.map(x => [x['device_channel_id'],  x['device_uptime_in_percentage'], x['device_downtime_in_percentage']]);
+      setWorstPerformingDevicesInTwentyEightDays(devicesTwentyEightDays.slice(0,5));
+
+      let devicesTwelveMonths  = twelve_months_data.map(x => [x['device_channel_id'],  x['device_uptime_in_percentage'], x['device_downtime_in_percentage']]);
+      setWorstPerformingInTwelveMonths(devicesTwelveMonths.slice(0,5));
+      
+    });
+  }, []);
+
+  const [bestPerformingDevicesInTwentyFourHours, setBestPerformingDevicesInTwentyFourHours] = useState([])
+  const [bestPerformingDevicesAllTime, setBestPerformingDevicesAllTime] = useState([])
+  const [bestPerformingDevicesInTwentyEightDays, setBestPerformingDevicesInTwentyEightDays] = useState([])
+  const [bestPerformingDevicesInTwelveMonths, setBestPerformingInTwelveMonths] = useState([])
+  const [bestPerformingDevicesInSevenDays, setBestPerformingDevicesInSevenDays] = useState([])
+  
+  useEffect(() => {
+    axios.get(constants.GET_NETWORK_BEST_PERFORMING_DEVICES).then(({ data }) => {
+      console.log(data)      
+      let twenty_four_data = data['24 hours']
+      let all_time_data = data['all time']
+      let seven_days_data = data['7 days']
+      let twenty_eight_days_data = data['28 days']
+      let twelve_months_data = data['12 months']
+
+      let devicesSevenDays  = seven_days_data.map(x => [x['device_channel_id'],  x['device_uptime_in_percentage'], x['device_downtime_in_percentage']]);
+      setBestPerformingDevicesInSevenDays(devicesSevenDays.slice(0,5));
+
+      let devices_all_time  = all_time_data.map(x => [x['device_channel_id'],  x['device_uptime_in_percentage'], x['device_downtime_in_percentage']]);
+      setBestPerformingDevicesAllTime(devices_all_time.slice(0,30));
+
+      let devicesTwentyFourHour  = twenty_four_data.map(x => [x['device_channel_id'],  x['device_uptime_in_percentage'], x['device_downtime_in_percentage']]);
+      setBestPerformingDevicesInTwentyFourHours(devicesTwentyFourHour.slice(0,30));
+
+      let devicesTwentyEightDays  = twenty_eight_days_data.map(x => [x['device_channel_id'],  x['device_uptime_in_percentage'], x['device_downtime_in_percentage']]);
+      setBestPerformingDevicesInTwentyEightDays(devicesTwentyEightDays.slice(0,5));
+
+      let devicesTwelveMonths  = twelve_months_data.map(x => [x['device_channel_id'],  x['device_uptime_in_percentage'], x['device_downtime_in_percentage']]);
+      setBestPerformingInTwelveMonths(devicesTwelveMonths.slice(0,5));
+      
+    });
+  }, []);
+
   const [onlineStatusUpdateTime, setOnlineStatusUpdateTime] = useState()
   const [onlineStatusChart, setOnlineStatusChart] = useState({data:{}, options:{}})
   const [deviceStatusValues, setDeviceStatusValues] = useState([])
@@ -381,7 +446,7 @@ export default function DeviceManagement() {
        
       </GridContainer>
       <GridContainer>
-        <GridItem xs={12} sm={12} md={6}>
+      <GridItem xs={12} sm={12} md={6}>
           <CustomTabs
             title="Incident Report:"
             headerColor="primary"
@@ -422,33 +487,82 @@ export default function DeviceManagement() {
             ]}
           />
         </GridItem>
-        <GridItem xs={12} sm={12} md={6}>
+      </GridContainer>
+      <GridContainer>
+                
+        <GridItem xs={12} sm={12} md={3} lg={3}>
           <Card>
             <CardHeader color="primary">
               <h4 className={classes.cardTitleWhite}>Leaderboard</h4>
               <p className={classes.cardCategoryWhite}>
-                Best and worst performing devices
+                Best performing 30 devices on network (All Time)
               </p>
             </CardHeader>
             <CardBody>
               <Table
                 tableHeaderColor="primary"
-                tableHead={["Device", "Location", "Type", "Days Active"]}
-                tableData={[
-                  ["1", "Bwaise-2020-01-15T13:16:43.218Z", "Bwaise", "Static"],
-                  [
-                    "2",
-                    "Kamwokya-2020-01-15T13:16:43.218Z",
-                    "Kamwokya",
-                    "Static",
-                  ],
-                  ["3", "Lugazi-2020-01-15T13:16:43.218Z", "Lugazi", "Static"],
-                  ["4", "Lugazi-2020-01-15T13:16:43.218Z", "Lugazi", "Static"],
-                ]}
+                tableHead={["Device Channel", "Uptime(%)", "Downtime(%)"]}
+                tableData={bestPerformingDevicesAllTime}
               />
             </CardBody>
           </Card>
         </GridItem>
+
+        <GridItem xs={12} sm={12} md={3} lg={3}>
+          <Card>
+            <CardHeader color="primary">
+              <h4 className={classes.cardTitleWhite}>Leaderboard</h4>
+              <p className={classes.cardCategoryWhite}>
+                Best performing 30 devices on network (24 Hours)
+              </p>
+            </CardHeader>
+            <CardBody>
+              <Table
+                tableHeaderColor="primary"
+                tableHead={["Device Channel", "Uptime(%)", "Downtime(%)"]}
+                tableData={bestPerformingDevicesInTwentyFourHours}
+              />
+            </CardBody>
+          </Card>
+        </GridItem>
+
+       
+        <GridItem xs={12} sm={12} md={3} lg={3}>
+          <Card>
+            <CardHeader color="primary">
+              <h4 className={classes.cardTitleWhite}>Leaderboard</h4>
+              <p className={classes.cardCategoryWhite}>
+                Worst performing 30 devices on network (All Time)
+              </p>
+            </CardHeader>
+            <CardBody>
+              <Table
+                tableHeaderColor="primary"
+                tableHead={["Device Channel", "Uptime(%)", "Downtime(%)"]}
+                tableData={worstPerformingDevicesAllTime}
+              />
+            </CardBody>
+          </Card>
+        </GridItem>
+
+        <GridItem xs={12} sm={12} md={3} lg={3}>
+          <Card>
+            <CardHeader color="primary">
+              <h4 className={classes.cardTitleWhite}>Leaderboard</h4>
+              <p className={classes.cardCategoryWhite}>
+                Worst performing 30 devices on network (24 Hours)
+              </p>
+            </CardHeader>
+            <CardBody>
+              <Table
+                tableHeaderColor="primary"
+                tableHead={["Device Channel", "Uptime(%)", "Downtime(%)"]}
+                tableData={worstPerformingDevicesInTwentyFourHours}
+              />
+            </CardBody>
+          </Card>
+        </GridItem>
+        
       </GridContainer>
     </div>
   );
