@@ -79,24 +79,26 @@ const prodConfig = {
   GET_DATA_MAP:'https://airqo-250220.uc.r.appspot.com/api/v1/dashboard/monitoringsites?organisation_name=KCCA&pm25_category=',
 };
 const defaultConfig = {
-  PORT: process.env.PORT || 5000,
-  NODE_PATH: process.env.NODE_PATH || "src",
+    PORT: process.env.PORT || 5000,
+    NODE_PATH: process.env.NODE_PATH || "src",
 };
 
 function envConfig(env) {
-  switch (env) {
-    case "development":
-      return devConfig;
-    case "test":
-      return stageConfig;
-    case "stage":
-      return stageConfig;
-    default:
-      return prodConfig;
-  }
+    switch (env) {
+        case "development":
+            return devConfig;
+        case "test":
+            return testConfig;
+        case "stage":
+            return stageConfig;
+        default:
+            return prodConfig;
+    }
 }
 
 export default {
-  ...defaultConfig,
-  ...envConfig(process.env.NODE_ENV),
+    ...defaultConfig,
+    ...envConfig(process.env.NODE_ENV),
 };
+
+
