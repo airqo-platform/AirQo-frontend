@@ -45,6 +45,7 @@ const prodConfig = {
     REGISTER_DEVICE_URI: "https://device-registry-dot-airqo-250220.uc.r.appspot.com/api/v1/devices/ts",
     ALL_DEVICES_URI: "https://device-registry-dot-airqo-250220.uc.r.appspot.com/api/v1/devices",
     DEPLOY_DEVICE_URI: "https://device-registry-dot-airqo-250220.uc.r.appspot.com/api/v1/devices/ts/deploy/device",
+    DELETE_DEVICE_URI: "https://device-registry-dot-airqo-250220.uc.r.appspot.com/api/v1/devices/ts/delete?device=",
     GET_NETWORK_BEST_PERFORMING_DEVICES:
     "https://device-monitoring-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/monitor/network/devices/bestperforming",
     GET_NETWORK_WORST_PERFORMING_DEVICES:
@@ -84,6 +85,7 @@ const devConfig = {
   REGISTER_DEVICE_URI: "http://127.0.0.1:3000/api/v1/devices/ts",
   ALL_DEVICES_URI: "http://127.0.0.1:3000/api/v1/devices",
   DEPLOY_DEVICE_URI: "http://127.0.0.1:3000/api/v1/devices/ts/deploy/device",
+  //DELETE_DEVICE_URI: "http://127.0.0.1:3000/api/api/v1/devices/ts/delete?device="
   
   
 };
