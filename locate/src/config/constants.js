@@ -71,8 +71,6 @@ const devConfig = {
   GET_LOCATE_MAP: "http://localhost:4000/api/v1/map/getlocatemap/",
   UPDATE_LOCATE_MAP: "http://localhost:4000/api/v1/map/updatelocatemap/",
   DELETE_LOCATE_MAP: "http://localhost:4000/api/v1/map/deletelocatemap/",
-  GET_DEVICE_STATUS_SUMMARY:
-    "http://localhost:5000/api/v1/device/monitor/status",
   GET_DEVICE_STATUS_FOR_PIECHART_DISPLAY:
     "http://localhost:5000/api/v1/device/monitor/status/latest",
   GET_LATEST_OFFLINE_DEVICES:
