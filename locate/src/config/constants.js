@@ -15,6 +15,10 @@ const prodConfig = {
   GET_USERS_URI: "https://airqo-250220.uc.r.appspot.com/api/v1/users/",
   GET_DEVICE_STATUS_SUMMARY:
     "https://device-monitoring-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/device/monitor/status",
+  GET_DEVICE_MAINTENANCE_LOG:
+    "https://device-monitoring-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/device/monitor/maintenance_log",
+  GET_DEVICE_POWER_TYPE:
+    "https://device-monitoring-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/device/monitor/power_type",
 };
 
 const devConfig = {
@@ -30,6 +34,10 @@ const devConfig = {
   GET_USERS_URI: "http://localhost:3000/api/v1/users/",
   GET_DEVICE_STATUS_SUMMARY:
     "http://localhost:4000/api/v1/device/monitor/status",
+  GET_DEVICE_MAINTENANCE_LOG:
+    "http://localhost:4000/api/v1/device/monitor/maintenance_log",
+  GET_DEVICE_POWER_TYPE:
+    "http://localhost:4000/api/v1/device/monitor/power_type",
 };
 
 function runConfig(env) {
