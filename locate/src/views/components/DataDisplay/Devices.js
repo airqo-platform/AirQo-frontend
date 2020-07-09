@@ -319,20 +319,37 @@ const DevicesTable = props => {
     //setIsLoading(true);
    
     let filter ={ 
-      unit: deviceName,
-      locationID: locationID,
-      installationType: installationType,
+      deviceName: deviceName,
+      locationName: locationID,
+      mountType: installationType,
       height: height,
-      power: power,
-      deploymentDate: deploymentDate,
-      primary: primaryChecked,
-      collocation: collocationChecked,
+      powerType: power,
+      date: deploymentDate.toString(),
+      isPrimaryInLocation: primaryChecked,
+      isUserForCollocaton: collocationChecked,
       //unit: deviceName,
       //activity:  maintenanceDescription,
 	    //date: selectedDate.toString(),
       
     }
     console.log(JSON.stringify(filter));
+    axios.post(
+      //"http://127.0.0.1:3000/api/v1/devices/ts/deploy/device",
+      constants.DEPLOY_DEVICE_URI,
+      JSON.stringify(filter),
+      { headers: { 'Content-Type': 'application/json' } }
+    )
+    .then(
+      res=>{
+        const myData = res.data;
+        console.log(myData.message);
+        setDialogResponseMessage(myData.message);
+        setDeployOpen(false);
+        setResponseOpen(true);
+        //setMaintenanceDescription('');
+    }).catch(
+      console.log
+    )
   }
   
   let  handleMaintenanceSubmit = (e) => {
@@ -708,7 +725,7 @@ const DevicesTable = props => {
                      value = {deviceName}
                    /> 
                  </Grid>
-                 {devicesLoading?(
+                {/* {devicesLoading?(*/}
                  <Grid item xs={6}>
                     <TextField 
                       id="standard-basic" 
@@ -716,7 +733,7 @@ const DevicesTable = props => {
                       value = {height}
                       onChange = {handleHeightChange}
                     />
-                 </Grid>): null }
+                 </Grid> {/*): null }*/}
                 </Grid>
                 <Grid container item xs={12} spacing={3}>
                  <Grid item xs={6}>
@@ -733,7 +750,7 @@ const DevicesTable = props => {
                      </Select>
                    </FormControl>
                   </Grid>
-                  {devicesLoading?(
+                  {/*{devicesLoading?(*/}
                     
                   <Grid item xs={6}>
                     <FormControl className={classes.formControl}>
@@ -750,9 +767,9 @@ const DevicesTable = props => {
                         <option value="Battery">Battery</option>
                       </Select>
                     </FormControl>
-                   </Grid>): null }
+                   </Grid> {/*}): null }*/}
                   </Grid>
-                  {devicesLoading?(
+                  {/*{devicesLoading?(*/}
                     <div>
                   <Grid container item xs={12} spacing={3}>
                     <Grid item xs={6}>
@@ -806,11 +823,11 @@ const DevicesTable = props => {
                         } 
                       label="This deployment is a formal collocation"
                       />
-                    </Grid> </div>): null }
+                    </Grid> </div> {/*}): null }*/}
                   </Grid>
                 </DialogContent> 
           
-                {devicesLoading?(
+                {/*{devicesLoading?(*/}
                 <DialogActions>
                 <Grid container alignItems="center" alignContent="center" justify="center">
                  <Button 
@@ -828,7 +845,7 @@ const DevicesTable = props => {
                > Cancel
                </Button>
                </Grid>
-           </DialogActions>): null }
+           </DialogActions> {/*}): null }*/}
          </Dialog>
          ) : null}
         {recallOpen? (
@@ -851,7 +868,8 @@ const DevicesTable = props => {
                  <Button 
                   variant="contained" 
                   color="primary"              
-                  onClick={handleRecallSubmit}
+                  //onClick={handleRecallSubmit}
+                  onClick = {handleRecallClose}
                  > YES
                 </Button>
                 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;

@@ -71,9 +71,9 @@ const devConfig = {
   GET_LATEST_OFFLINE_DEVICES: "http://127.0.0.1:4001/api/v1/monitor/devices/offline",
   GET_NETWORK_UPTIME: "http://127.0.0.1:4001/api/v1/monitor/network/uptime",
   GET_NETWORK_BEST_PERFORMING_DEVICES:
-  "http://localhost:5000/api/v1/monitor/network/devices/bestperforming",
+  "http://localhost:4001/api/v1/monitor/network/devices/bestperforming",
   GET_NETWORK_WORST_PERFORMING_DEVICES:
-  "http://localhost:5000/api/v1/monitor/network/devices/worstperforming",
+  "http://localhost:4001/api/v1/monitor/network/devices/worstperforming",
   ALL_LOCATIONS_URI: "http://127.0.0.1:4000/api/v1/location_registry/locations",
   CREATE_ID_URI: "http://127.0.0.1:4000/api/v1/location_registry/create_id",
   REGISTER_LOCATION_URI: "http://127.0.0.1:4000/api/v1/location_registry/register",
