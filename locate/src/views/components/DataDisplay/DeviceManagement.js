@@ -79,10 +79,10 @@ export default function DeviceManagement() {
       setWorstPerformingDevicesInSevenDays(devicesSevenDays.slice(0,5));
 
       let devices_all_time  = all_time_data.map(x => [x['device_channel_id'],  x['device_uptime_in_percentage'], x['device_downtime_in_percentage']]);
-      setWorstPerformingDevicesAllTime(devices_all_time.slice(0,30));
+      setWorstPerformingDevicesAllTime(devices_all_time.slice(0,5));
 
       let devicesTwentyFourHour  = twenty_four_data.map(x => [x['device_channel_id'],  x['device_uptime_in_percentage'], x['device_downtime_in_percentage']]);
-      setWorstPerformingDevicesInTwentyFourHours(devicesTwentyFourHour.slice(0,30));
+      setWorstPerformingDevicesInTwentyFourHours(devicesTwentyFourHour.slice(0,5));
 
       let devicesTwentyEightDays  = twenty_eight_days_data.map(x => [x['device_channel_id'],  x['device_uptime_in_percentage'], x['device_downtime_in_percentage']]);
       setWorstPerformingDevicesInTwentyEightDays(devicesTwentyEightDays.slice(0,5));
@@ -112,10 +112,10 @@ export default function DeviceManagement() {
       setBestPerformingDevicesInSevenDays(devicesSevenDays.slice(0,5));
 
       let devices_all_time  = all_time_data.map(x => [x['device_channel_id'],  x['device_uptime_in_percentage'], x['device_downtime_in_percentage']]);
-      setBestPerformingDevicesAllTime(devices_all_time.slice(0,30));
+      setBestPerformingDevicesAllTime(devices_all_time.slice(0,5));
 
       let devicesTwentyFourHour  = twenty_four_data.map(x => [x['device_channel_id'],  x['device_uptime_in_percentage'], x['device_downtime_in_percentage']]);
-      setBestPerformingDevicesInTwentyFourHours(devicesTwentyFourHour.slice(0,30));
+      setBestPerformingDevicesInTwentyFourHours(devicesTwentyFourHour.slice(0,5));
 
       let devicesTwentyEightDays  = twenty_eight_days_data.map(x => [x['device_channel_id'],  x['device_uptime_in_percentage'], x['device_downtime_in_percentage']]);
       setBestPerformingDevicesInTwentyEightDays(devicesTwentyEightDays.slice(0,5));
@@ -487,83 +487,44 @@ export default function DeviceManagement() {
             ]}
           />
         </GridItem>
+
+        <GridItem xs={12} sm={12} md={3} lg={3}>
+          <Card>
+            <CardHeader color="primary">
+              <h4 className={classes.cardTitleWhite}>Leaderboard</h4>
+              <p className={classes.cardCategoryWhite}>
+                Best performing 5 devices on network (28 Days)
+              </p>
+            </CardHeader>
+            <CardBody>
+              <Table
+                tableHeaderColor="primary"
+                tableHead={["Device Channel", "Uptime(%)", "Downtime(%)"]}
+                tableData={bestPerformingDevicesInTwentyEightDays}
+              />
+            </CardBody>
+          </Card>
+        </GridItem>
+        <GridItem xs={12} sm={12} md={3} lg={3}>
+          <Card>
+            <CardHeader color="primary">
+              <h4 className={classes.cardTitleWhite}>Leaderboard</h4>
+              <p className={classes.cardCategoryWhite}>
+                Worst performing 5 devices on network (28 Days)
+              </p>
+            </CardHeader>
+            <CardBody>
+              <Table
+                tableHeaderColor="primary"
+                tableHead={["Device Channel", "Uptime(%)", "Downtime(%)"]}
+                tableData={worstPerformingDevicesInTwentyEightDays}
+              />
+            </CardBody>
+          </Card>
+        </GridItem>
+      
       </GridContainer>
-      <GridContainer>
-                
-        <GridItem xs={12} sm={12} md={3} lg={3}>
-          <Card>
-            <CardHeader color="primary">
-              <h4 className={classes.cardTitleWhite}>Leaderboard</h4>
-              <p className={classes.cardCategoryWhite}>
-                Best performing 30 devices on network (All Time)
-              </p>
-            </CardHeader>
-            <CardBody>
-              <Table
-                tableHeaderColor="primary"
-                tableHead={["Device Channel", "Uptime(%)", "Downtime(%)"]}
-                tableData={bestPerformingDevicesAllTime}
-              />
-            </CardBody>
-          </Card>
-        </GridItem>
-
-        <GridItem xs={12} sm={12} md={3} lg={3}>
-          <Card>
-            <CardHeader color="primary">
-              <h4 className={classes.cardTitleWhite}>Leaderboard</h4>
-              <p className={classes.cardCategoryWhite}>
-                Best performing 30 devices on network (24 Hours)
-              </p>
-            </CardHeader>
-            <CardBody>
-              <Table
-                tableHeaderColor="primary"
-                tableHead={["Device Channel", "Uptime(%)", "Downtime(%)"]}
-                tableData={bestPerformingDevicesInTwentyFourHours}
-              />
-            </CardBody>
-          </Card>
-        </GridItem>
-
-       
-        <GridItem xs={12} sm={12} md={3} lg={3}>
-          <Card>
-            <CardHeader color="primary">
-              <h4 className={classes.cardTitleWhite}>Leaderboard</h4>
-              <p className={classes.cardCategoryWhite}>
-                Worst performing 30 devices on network (All Time)
-              </p>
-            </CardHeader>
-            <CardBody>
-              <Table
-                tableHeaderColor="primary"
-                tableHead={["Device Channel", "Uptime(%)", "Downtime(%)"]}
-                tableData={worstPerformingDevicesAllTime}
-              />
-            </CardBody>
-          </Card>
-        </GridItem>
-
-        <GridItem xs={12} sm={12} md={3} lg={3}>
-          <Card>
-            <CardHeader color="primary">
-              <h4 className={classes.cardTitleWhite}>Leaderboard</h4>
-              <p className={classes.cardCategoryWhite}>
-                Worst performing 30 devices on network (24 Hours)
-              </p>
-            </CardHeader>
-            <CardBody>
-              <Table
-                tableHeaderColor="primary"
-                tableHead={["Device Channel", "Uptime(%)", "Downtime(%)"]}
-                tableData={worstPerformingDevicesInTwentyFourHours}
-              />
-            </CardBody>
-          </Card>
-        </GridItem>
-        
-      </GridContainer>
+      
     </div>
   );
 }
