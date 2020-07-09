@@ -13,12 +13,18 @@ const prodConfig = {
   REJECT_USER_URI: "https://airqo-250220.uc.r.appspot.com/api/v1/users/deny",
   ACCEPT_USER_URI: "https://airqo-250220.uc.r.appspot.com/api/v1/users/accept",
   GET_USERS_URI: "https://airqo-250220.uc.r.appspot.com/api/v1/users/",
+  // GET_DEVICE_STATUS_SUMMARY:
+  //   "https://device-monitoring-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/device/monitor/status",
+  // GET_DEVICE_MAINTENANCE_LOG:
+  //   "https://device-monitoring-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/device/monitor/maintenance_log",
+  // GET_DEVICE_POWER_TYPE:
+  //   "https://device-monitoring-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/device/monitor/power_type",
   GET_DEVICE_STATUS_SUMMARY:
-    "https://device-monitoring-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/device/monitor/status",
+    "http://34.78.78.202:30006/api/v1/device/monitor/status",
   GET_DEVICE_MAINTENANCE_LOG:
-    "https://device-monitoring-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/device/monitor/maintenance_log",
+    "http://34.78.78.202:30006/api/v1/device/monitor/maintenance_log",
   GET_DEVICE_POWER_TYPE:
-    "https://device-monitoring-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/device/monitor/power_type",
+    "http://34.78.78.202:30006/api/v1/device/monitor/power_type",
 };
 
 const devConfig = {
