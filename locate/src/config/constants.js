@@ -49,4 +49,4 @@ function runConfig(env) {
   }
 }
 
-export default { ...runConfig('process.env.NODE_ENV') };
+export default { ...runConfig(process.env.NODE_ENV) };
