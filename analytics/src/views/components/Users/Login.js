@@ -14,18 +14,19 @@ class Login extends Component {
       password: "",
       errors: {},
     };
-
-    
   }
 
   componentDidMount() {
-    var anchorElem = document.createElement('link');
-    anchorElem.setAttribute('href', 'https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css');
-    anchorElem.setAttribute('rel','stylesheet') ;
-    anchorElem.setAttribute('id','logincdn') ;
+    var anchorElem = document.createElement("link");
+    anchorElem.setAttribute(
+      "href",
+      "https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"
+    );
+    anchorElem.setAttribute("rel", "stylesheet");
+    anchorElem.setAttribute("id", "logincdn");
 
     //document.body.appendChild(anchorElem);
-    document.getElementsByTagName('head')[0].appendChild(anchorElem);
+    document.getElementsByTagName("head")[0].appendChild(anchorElem);
     // If logged in and user navigates to Login page, should redirect them to dashboard
     if (this.props.auth.isAuthenticated) {
       this.props.history.push("/dashboard");
@@ -43,9 +44,9 @@ class Login extends Component {
     }
   }
 
-  componentWillUnmount(){
-    let el = document.getElementById('logincdn');
-    el.remove(); 
+  componentWillUnmount() {
+    let el = document.getElementById("logincdn");
+    el.remove();
   }
 
   onChange = (e) => {
@@ -65,9 +66,22 @@ class Login extends Component {
     const { errors } = this.state;
     return (
       <div className="container">
-        <div style={{ marginTop: "4rem" }} className="row">
-          <div className="col s8 offset-s2">
-          <Link to="/" className="btn-flat waves-effect">
+        <div
+          style={{ marginTop: "4rem" }}
+          className="row"
+          style={{ height: "auto", backgroundColor: "#2979FF" }}
+        >
+          <div
+            className="col s4"
+            style={{
+              padding: "1em",
+            }}
+          ></div>
+          <div
+            className="col s8"
+            style={{ backgroundColor: "#fff", padding: "1em" }}
+          >
+            <Link to="/" className="btn-flat waves-effect">
               <i className="material-icons left">keyboard_backspace</i> Back to
               home
             </Link>
