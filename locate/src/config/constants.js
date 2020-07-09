@@ -45,6 +45,10 @@ const prodConfig = {
     REGISTER_DEVICE_URI: "https://device-registry-dot-airqo-250220.uc.r.appspot.com/api/v1/devices/ts",
     ALL_DEVICES_URI: "https://device-registry-dot-airqo-250220.uc.r.appspot.com/api/v1/devices",
     DEPLOY_DEVICE_URI: "https://device-registry-dot-airqo-250220.uc.r.appspot.com/api/v1/devices/ts/deploy/device",
+    GET_NETWORK_BEST_PERFORMING_DEVICES:
+    "https://device-monitoring-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/monitor/network/devices/bestperforming",
+    GET_NETWORK_WORST_PERFORMING_DEVICES:
+    "https://device-monitoring-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/monitor/network/devices/worstperforming",
 };
 
 const devConfig = {
@@ -66,6 +70,10 @@ const devConfig = {
   GET_DEVICE_STATUS_FOR_PIECHART_DISPLAY: "http://127.0.0.1:4001/api/v1/device/monitor/status/latest",
   GET_LATEST_OFFLINE_DEVICES: "http://127.0.0.1:4001/api/v1/monitor/devices/offline",
   GET_NETWORK_UPTIME: "http://127.0.0.1:4001/api/v1/monitor/network/uptime",
+  GET_NETWORK_BEST_PERFORMING_DEVICES:
+  "http://localhost:5000/api/v1/monitor/network/devices/bestperforming",
+  GET_NETWORK_WORST_PERFORMING_DEVICES:
+  "http://localhost:5000/api/v1/monitor/network/devices/worstperforming",
   ALL_LOCATIONS_URI: "http://127.0.0.1:4000/api/v1/location_registry/locations",
   CREATE_ID_URI: "http://127.0.0.1:4000/api/v1/location_registry/create_id",
   REGISTER_LOCATION_URI: "http://127.0.0.1:4000/api/v1/location_registry/register",
@@ -76,6 +84,7 @@ const devConfig = {
   REGISTER_DEVICE_URI: "http://127.0.0.1:3000/api/v1/devices/ts",
   ALL_DEVICES_URI: "http://127.0.0.1:3000/api/v1/devices",
   DEPLOY_DEVICE_URI: "http://127.0.0.1:3000/api/v1/devices/ts/deploy/device",
+  
   
 };
 
@@ -88,4 +97,4 @@ function runConfig(env) {
   }
 }
 
-export default { ...runConfig('process.env.NODE_ENV') };
+export default { ...runConfig(process.env.NODE_ENV) };

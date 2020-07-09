@@ -607,7 +607,7 @@ class Maps extends React.Component {
                               s.space_name,
                               s.plan
                             )}
-                          />
+z                          />
                           <Button
                             variant="contained"
                             size="small"
