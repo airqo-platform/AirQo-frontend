@@ -145,7 +145,7 @@ export default function DeviceManagement() {
                 <RestoreIcon />
               </CardIcon>
               <p className={classes.cardCategory}>Due for maintenance</p>
-              <h3 className={classes.cardTitle}>{noDueMaintenance}</h3>
+              <h3 className={classes.cardTitle}>0</h3>
             </CardHeader>
             <CardFooter stats></CardFooter>
           </Card>
