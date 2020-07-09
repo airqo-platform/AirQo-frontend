@@ -741,9 +741,11 @@ const DevicesTable = props => {
                      <InputLabel htmlFor="demo-dialog-native">Location ID</InputLabel>
                      <Select
                        native
+                       required
                        value={locationID}
                        onChange={handleLocationIDChange}
                        input={<Input id="demo-dialog-native" />}
+                       required
                      >
                        {locationsOptions.map( (loc_id) =>
                        <option value={loc_id}>{loc_id}</option>)}
@@ -792,6 +794,7 @@ const DevicesTable = props => {
                             label="Date of Deployment"
                             value={deploymentDate}
                             onChange={handleDeploymentDateChange}
+                            required
                             /*
                             KeyboardButtonProps={{
                                'aria-label': 'change date',
@@ -903,6 +906,7 @@ const DevicesTable = props => {
                    value = {registerName}
                    fullWidth = {true}
                    onChange = {handleRegisterNameChange}
+                   required
                    /> <br/>
                  <TextField 
                    id="standard-basic" 
@@ -910,6 +914,7 @@ const DevicesTable = props => {
                    value = {description}
                    onChange = {handleDescriptionChange}
                    fullWidth = {true}
+                   required
                    /><br/>
                   <TextField 
                    id="standard-basic" 
@@ -917,6 +922,7 @@ const DevicesTable = props => {
                    value = {manufacturer}
                    onChange = {handleManufacturerChange}
                    fullWidth = {true}
+                   required
                    /><br/>
                    <TextField 
                    id="standard-basic" 
@@ -924,6 +930,7 @@ const DevicesTable = props => {
                    value = {productName}
                    onChange = {handleProductNameChange}
                    fullWidth = {true}
+                   required
                    /><br/>
                    <TextField 
                    id="standard-basic" 
@@ -931,6 +938,7 @@ const DevicesTable = props => {
                    value = {latitude}
                    onChange = {handleLatitudeChange}
                    fullWidth = {true}
+                   required
                    /><br/>
                    <TextField 
                    id="standard-basic" 
@@ -938,10 +946,12 @@ const DevicesTable = props => {
                    value = {longitude}
                    onChange = {handleLongitudeChange}
                    fullWidth = {true}
+                   required
                    /><br/>
                    <FormControl className={classes.formControl} fullWidth={true}>
                       <InputLabel htmlFor="demo-dialog-native"> Visibility</InputLabel>
                       <Select
+                        required
                         native
                         value={visibility}
                         onChange={handleVisibilityChange}
@@ -958,6 +968,7 @@ const DevicesTable = props => {
                    value = {owner}
                    onChange = {handleOwnerChange}
                    fullWidth = {true}
+                   required
                    /><br/>
                    <FormControl className={classes.formControl} fullWidth={true}>
                       <InputLabel htmlFor="demo-dialog-native"> Internet Service Provider</InputLabel>
