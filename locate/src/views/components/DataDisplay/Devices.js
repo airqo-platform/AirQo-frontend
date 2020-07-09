@@ -254,8 +254,8 @@ const DevicesTable = props => {
     setIsLoading(true);
     axios.get(
       //'http://127.0.0.1:4001/api/v1/device/monitor/devices'
-      "http://127.0.0.1:3000/api/v1/devices"
-      //ALL_DEVICES_URI
+      //"http://127.0.0.1:3000/api/v1/devices"
+      constants.ALL_DEVICES_URI
       //constants.ALL_LOCATIONS_URI
     )
     .then(
@@ -346,8 +346,8 @@ const DevicesTable = props => {
     }
     console.log(JSON.stringify(filter));
     axios.post(
-      "http://localhost:3000/api/v1/data/channels/maintenance/add",
-      //constants.ADD_MAINTENANCE_URI,
+      //"http://localhost:3000/api/v1/data/channels/maintenance/add",
+      constants.ADD_MAINTENANCE_URI,
       JSON.stringify(filter),
       { headers: { 'Content-Type': 'application/json' } }
     )
@@ -409,8 +409,8 @@ const DevicesTable = props => {
     }
     console.log(JSON.stringify(filter));
     axios.post(
-      "http://127.0.0.1:3000/api/v1/devices/ts",
-      //constants.REGISTER_DEVICE_URI,
+      //"http://127.0.0.1:3000/api/v1/devices/ts",
+      constants.REGISTER_DEVICE_URI,
       JSON.stringify(filter),
       { headers: { 'Content-Type': 'application/json' } }
     )
