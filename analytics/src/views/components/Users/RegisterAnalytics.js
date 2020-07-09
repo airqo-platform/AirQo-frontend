@@ -3,26 +3,19 @@ import React, { Component } from "react";
 import { Link, withRouter } from "react-router-dom";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
-import {registerUser } from "../../../redux/Join/actions";
+import { registerCandidate } from "../../../redux/Join/actions";
 import classnames from "classnames";
-import CustomInput from "../CustomInput/CustomInput";
-import Autocomplete from "@material-ui/lab/Autocomplete";
 import TextField from "@material-ui/core/TextField";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
 import Checkbox from "@material-ui/core/Checkbox";
 import countries from "../../../utils/countries";
-import { Alert, AlertTitle } from '@material-ui/lab';
-import {withStyles, InputLabel } from '@material-ui/core'
-
-const defaultProps = {
-  options: countries.array,
-  getOptionLabel: (option) => option.label,
-};
+import { Alert, AlertTitle } from "@material-ui/lab";
+import { withStyles, InputLabel } from "@material-ui/core";
 
 const styles = (theme) => ({
   root: {
-    width: '100%',
-    '& > * + *': {
+    width: "100%",
+    "& > * + *": {
       marginTop: theme.spacing(2),
     },
   },
@@ -35,23 +28,37 @@ class Register extends Component {
       firstName: "",
       lastName: "",
       email: "",
-      userName: "",
       country: "",
       phoneNumber: "",
       jobTitle: "",
-      desc: "",
+      description: "",
+      organization: "",
       errors: {},
+      isChecked: {},
     };
   }
 
   componentDidMount() {
-    // If logged in and user navigates to Register page, should redirect them to dashboard
+    var anchorElem = document.createElement("link");
+    anchorElem.setAttribute(
+      "href",
+      "https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"
+    );
+    anchorElem.setAttribute("rel", "stylesheet");
+    anchorElem.setAttribute("id", "logincdn");
+
+    //document.body.appendChild(anchorElem);
+    document.getElementsByTagName("head")[0].appendChild(anchorElem);
+    // If logged in and user navigates to Login page, should redirect them to dashboard
     if (this.props.auth.isAuthenticated) {
       this.props.history.push("/dashboard");
     }
   }
 
   componentWillReceiveProps(nextProps) {
+    if (nextProps.auth.registered) {
+      this.props.history.push("/login"); // push user to the landing page after successfull signup
+    }
     if (nextProps.errors) {
       this.setState({
         errors: nextProps.errors,
@@ -62,6 +69,28 @@ class Register extends Component {
   onChange = (e) => {
     this.setState({ [e.target.id]: e.target.value });
   };
+
+  handleCheck = (event) => {
+    this.state.isChecked = event.target.checked;
+    this.setState({ isChecked: this.state.isChecked });
+  };
+
+  clearState = () => {
+    const initialState = {
+      firstName: "",
+      lastName: "",
+      email: "",
+      country: "",
+      phoneNumber: "",
+      jobTitle: "",
+      description: "",
+      organization: "",
+      errors: {},
+      isChecked: {},
+    };
+    this.setState(initialState);
+  };
+
   onSubmit = (e) => {
     e.preventDefault();
     const newUser = {
@@ -72,8 +101,8 @@ class Register extends Component {
       jobTitle: this.state.jobTitle,
       phoneNumber: this.state.phoneNumber,
       country: this.state.country,
-      desc: this.state.desc,
-      errors: {},
+      description: this.state.description,
+      organization: this.state.organization,
     };
     console.log(newUser);
     this.props.registerUser(newUser, this.props.history);
@@ -85,7 +114,18 @@ class Register extends Component {
     return (
       <div className="container">
         <div className="row">
-          <div className="col s8 offset-s2">
+          <div
+            className="col s8 offset-s2"
+            style={{
+              backgroundColor: "#2979FF",
+              height: "15vh",
+              padding: "1em",
+            }}
+          ></div>
+          <div
+            className="col s8 offset-s2"
+            style={{ backgroundColor: "#fff", padding: "1em" }}
+          >
             <Link to="/" className="btn-flat waves-effect">
               <i className="material-icons left">keyboard_backspace</i> Back to
               home
@@ -151,7 +191,7 @@ class Register extends Component {
                   id="company"
                   type="text"
                   className={classnames("", {
-                    invalid: errors.company,
+                    invalid: errors.organization,
                   })}
                 />
                 <label htmlFor="jobTitle">company</label>
@@ -210,21 +250,30 @@ class Register extends Component {
                 />
               </div>
               <div className="input-field col s12">
-                <Autocomplete
-                  {...defaultProps}
-                  clearOnEscape
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      id="country"
-                      label="Country"
-                      margin="normal"
-                      onChange={this.onChange}
-                      value={this.state.country}
-                      error={errors.country}
-                    />
-                  )}
-                />
+                <TextField
+                  id="country"
+                  select
+                  label="Country"
+                  className={classes.textField}
+                  error={errors.country}
+                  value={this.state.country}
+                  onChange={this.onChange}
+                  SelectProps={{
+                    native: true,
+                    MenuProps: {
+                      className: classes.menu,
+                    },
+                  }}
+                  helperText="Please select your country"
+                  margin="normal"
+                  variant="outlined"
+                >
+                  {countries.array.map((option) => (
+                    <option key={option.label} value={option.label}>
+                      {option.label}
+                    </option>
+                  ))}
+                </TextField>
               </div>
               <div>
                 <FormControlLabel
@@ -240,18 +289,20 @@ class Register extends Component {
                 />
               </div>
               <div className="col s12" style={{ paddingLeft: "11.250px" }}>
-                <button
-                  style={{
-                    width: "150px",
-                    borderRadius: "3px",
-                    letterSpacing: "1.5px",
-                    marginTop: "1rem",
-                  }}
-                  type="submit"
-                  className="btn btn-large waves-effect waves-light hoverable blue accent-3"
-                >
-                  JOIN
-                </button>
+                {this.state.isChecked ? (
+                  <button
+                    style={{
+                      width: "150px",
+                      borderRadius: "3px",
+                      letterSpacing: "1.5px",
+                      marginTop: "1rem",
+                    }}
+                    type="submit"
+                    className="btn btn-large waves-effect waves-light hoverable blue accent-3"
+                  >
+                    JOIN
+                  </button>
+                ) : null}
               </div>
           { this.props.auth.newUser && 
           <Alert severity="success">
@@ -273,7 +324,6 @@ Register.propTypes = {
   errors: PropTypes.object.isRequired,
 };
 
-//get our state from Redux and map it to Props to use inside components.
 const mapStateToProps = (state) => ({
   auth: state.auth,
   errors: state.errors,
