@@ -41,9 +41,10 @@ const prodConfig = {
     GET_DEVICE_STATUS_FOR_PIECHART_DISPLAY: "https://device-monitoring-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/device/monitor/status/latest",
     GET_LATEST_OFFLINE_DEVICES: "https://device-monitoring-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/monitor/devices/offline",
     GET_NETWORK_UPTIME: "https://device-monitoring-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/monitor/network/uptime",
-    ADD_MAINTENANCE_URI: "https://data-manager-dot-airqo-250220.appspot.com/api/v1/data/channels/maintenance/add",
-    //REGISTER_DEVICE_URI: "https://device-registry-dot-airqo-250220.appspot.com/api/v1/devices/ts"
-    REGISTER_DEVICE_URI: "http://127.0.0.1:3000/api/v1/devices/ts",
+    ADD_MAINTENANCE_URI: "https://data-manager-dot-airqo-250220.uc.r.appspot.com/api/v1/data/channels/maintenance/add",
+    REGISTER_DEVICE_URI: "https://device-registry-dot-airqo-250220.uc.r.appspot.com/api/v1/devices/ts",
+    ALL_DEVICES_URI: "https://device-registry-dot-airqo-250220.uc.r.appspot.com/api/v1/devices",
+    DEPLOY_DEVICE_URI: "https://device-registry-dot-airqo-250220.uc.r.appspot.com/api/v1/devices/ts/deploy/device",
 };
 
 const devConfig = {
@@ -52,8 +53,7 @@ const devConfig = {
   FORGOT_PWD_URI: "http://localhost:3000/api/v1/users/forgotPassword",
   LOGIN_USER_URI: "http://localhost:3000/api/v1/users/loginUser",
   REGISTER_USER_URI: "http://localhost:3000/api/v1/users/registerUser",
-  REGISTER_CANDIDATE_URI:
-    "http://localhost:3000/api/v1/users/registerCandidate",
+  REGISTER_CANDIDATE_URI: "http://localhost:3000/api/v1/users/registerCandidate",
   REJECT_USER_URI: "http://localhost:3000/api/v1/users/deny",
   ACCEPT_USER_URI: "http://localhost:3000/api/v1/users/accept",
   GET_USERS_URI: "http://localhost:3000/api/v1/users/",
@@ -74,6 +74,8 @@ const devConfig = {
   UPDATE_LOCATION_URI: "http://127.0.0.1:4000/api/v1/location_registry/update",
   ADD_MAINTENANCE_URI: "http://localhost:3000/api/v1/data/channels/maintenance/add",
   REGISTER_DEVICE_URI: "http://127.0.0.1:3000/api/v1/devices/ts",
+  ALL_DEVICES_URI: "http://127.0.0.1:3000/api/v1/devices",
+  DEPLOY_DEVICE_URI: "http://127.0.0.1:3000/api/v1/devices/ts/deploy/device",
   
 };
 

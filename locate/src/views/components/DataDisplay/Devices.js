@@ -253,13 +253,16 @@ const DevicesTable = props => {
     //code to retrieve all devices' data
     setIsLoading(true);
     axios.get(
-      'http://127.0.0.1:4001/api/v1/device/monitor/devices'
+      //'http://127.0.0.1:4001/api/v1/device/monitor/devices'
+      "http://127.0.0.1:3000/api/v1/devices"
+      //ALL_DEVICES_URI
       //constants.ALL_LOCATIONS_URI
     )
     .then(
       res=>{
         setIsLoading(false);
         const ref = res.data;
+        console.log('Devices loading')
         console.log(ref);
         setData(ref);
 
@@ -406,8 +409,8 @@ const DevicesTable = props => {
     }
     console.log(JSON.stringify(filter));
     axios.post(
-      //"http://localhost:3000/api/v1/data/channels/maintenance/add"
-      constants.REGISTER_DEVICE_URI,
+      "http://127.0.0.1:3000/api/v1/devices/ts",
+      //constants.REGISTER_DEVICE_URI,
       JSON.stringify(filter),
       { headers: { 'Content-Type': 'application/json' } }
     )
@@ -498,16 +501,11 @@ const DevicesTable = props => {
             className = {classes.table}
             title="Device Registry"
             columns={[
-              /*
-             { title: 'Reference', 
-               field: 'loc_ref', 
-               render: rowData => <Link className={classes.link} to={`/locations/${rowData.loc_ref}`}>{rowData.loc_ref}</Link>
-             },*/
-             { title: 'Name', field: 'airqo_ref', cellStyle:{ fontFamily: 'Open Sans'} },
-             { title: 'Channel ID', field: 'chan_id', cellStyle:{ fontFamily: 'Open Sans'} },
-             { title: 'Location ID', field: 'location_ID', cellStyle:{ fontFamily: 'Open Sans'} },
-             { title: 'Power Type', field: 'loc_power_suppy', cellStyle:{ fontFamily: 'Open Sans'} },
-             { title: 'Last Maintained', field: 'last_maintained', cellStyle:{ fontFamily: 'Open Sans'} },
+             { title: 'Device Name', field: 'name', cellStyle:{ fontFamily: 'Open Sans'} },
+             { title: 'Description', field: 'description', cellStyle:{ fontFamily: 'Open Sans'} },
+             { title: 'Device ID', field: 'channelID', cellStyle:{ fontFamily: 'Open Sans'} }, //should be channel ID
+             { title: 'Registration Date', field: 'createdAt', cellStyle:{ fontFamily: 'Open Sans'} },
+             { title: 'Location ID', field: 'locationID', cellStyle:{ fontFamily: 'Open Sans'} },
              { title: 'Actions',
                //field: '', 
                cellStyle: {fontFamily: 'Open Sans'},
@@ -517,7 +515,7 @@ const DevicesTable = props => {
                                       
                                       <Link 
                                         className={classes.link} 
-                                        onClick = {handleMaintenanceClick(rowData.airqo_ref)}
+                                        onClick = {handleMaintenanceClick(rowData.name)}
                                         //style={{color: 'black'}} 
                                         //activeStyle={{color: 'red'}}
                                       > 
@@ -529,7 +527,7 @@ const DevicesTable = props => {
                                     <Tooltip title="Deploy Device">
                                       <Link 
                                         className={classes.link} 
-                                        onClick = {handleDeployClick(rowData.airqo_ref)}
+                                        onClick = {handleDeployClick(rowData.name)}
                                       > 
                                       <CloudUploadOutlined></CloudUploadOutlined>
                                         {/*Deploy
@@ -545,7 +543,7 @@ const DevicesTable = props => {
                                     <Tooltip title="Recall Device">
                                       <Link 
                                         className={classes.link} 
-                                        onClick = {handleRecallClick(rowData.airqo_ref, rowData.location_ID)}
+                                        onClick = {handleRecallClick(rowData.name, rowData.locationID)}
                                       > 
                                         <UndoOutlined></UndoOutlined>
                                       </Link>
@@ -556,7 +554,7 @@ const DevicesTable = props => {
                                     <Tooltip title="Delete Device">
                                       <Link 
                                         className={classes.link} 
-                                        onClick = {handleDeleteClick(rowData.chan_id)}
+                                        onClick = {handleDeleteClick(rowData.channelID)}
                                       > 
                                         <DeleteOutlined></DeleteOutlined>
                                       </Link>
