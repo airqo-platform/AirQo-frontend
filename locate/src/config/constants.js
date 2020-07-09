@@ -62,6 +62,12 @@ const devConfig = {
   REJECT_USER_URI: "http://localhost:3000/api/v1/users/deny",
   ACCEPT_USER_URI: "http://localhost:3000/api/v1/users/accept",
   GET_USERS_URI: "http://localhost:3000/api/v1/users/",
+  GET_DEVICE_STATUS_SUMMARY:
+    "http://localhost:4000/api/v1/device/monitor/status",
+  GET_DEVICE_MAINTENANCE_LOG:
+    "http://localhost:4000/api/v1/device/monitor/maintenance_log",
+  GET_DEVICE_POWER_TYPE:
+    "http://localhost:4000/api/v1/device/monitor/power_type",
   RUN_LOCATE_MODEL: "http://localhost:4000/api/v1/map/parishes",
   SAVE_LOCATE_MAP: "http://localhost:4000/api/v1/map/savelocatemap",
   GET_LOCATE_MAP: "http://localhost:4000/api/v1/map/getlocatemap/",
