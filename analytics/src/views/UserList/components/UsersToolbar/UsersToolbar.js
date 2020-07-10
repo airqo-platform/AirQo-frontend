@@ -1,6 +1,7 @@
 /* eslint-disable */
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
 import clsx from 'clsx';
 import { makeStyles } from '@material-ui/styles';
 import {
@@ -25,7 +26,12 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import { SearchInput } from 'components';
 
 const useStyles = makeStyles(theme => ({
-  root: {},
+  root: {
+    '&$error': {
+      color: 'red'
+    }
+  },
+  error: {},
   row: {
     height: '42px',
     display: 'flex',
@@ -79,9 +85,14 @@ const roles = [
   }
 ];
 
+const validPasswordRegex = RegExp(/(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,}/);
+const validEmailRegex = RegExp(
+  /^(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i
+);
+
 /***func starts here....... */
 const UsersToolbar = props => {
-  const { className, mappeduserState, ...rest } = props;
+  const { className, mappeduserState, mappedErrors, ...rest } = props;
 
   console.log('the mapped state for UsersToolsbar is here:');
   console.dir(mappeduserState);
@@ -97,7 +108,8 @@ const UsersToolbar = props => {
     email: '',
     password: '',
     password2: '',
-    privilege: ''
+    privilege: '',
+    errors: {}
   };
 
   const [form, setState] = useState(initialState);
@@ -110,12 +122,9 @@ const UsersToolbar = props => {
 
   const handleClickOpen = () => {
     setOpen(true);
-    //I also need to trigger something here which enables updates the newUser state variable
-    //update the user action for opening the dialog box of adding a new user.
-    //I could now update the state using actions
     props.mappedShowAddDialog();
   };
-
+  //
   const handleClose = () => {
     setOpen(false);
     props.mappedHideAddDialog();
@@ -126,14 +135,83 @@ const UsersToolbar = props => {
   };
 
   const onChange = e => {
-    setState({
-      ...form,
-      [e.target.id]: e.target.value
-    });
+    e.preventDefault();
+    const { id, value } = e.target;
+    let errors = form.errors;
+
+    switch (id) {
+      case 'firstName':
+        errors.firstName = value.length === 0 ? 'first name is required' : '';
+        break;
+      case 'lastName':
+        errors.lastName = value.length === 0 ? 'last name is required' : '';
+        break;
+      case 'password':
+        errors.password = validPasswordRegex.test(value)
+          ? ''
+          : 'Minimum six characters, at least one uppercase letter, one lowercase letter and one number!';
+        break;
+      case 'email':
+        errors.email = validEmailRegex.test(value) ? '' : 'Email is not valid!';
+        break;
+      case 'userName':
+        errors.userName = value.length === 0 ? 'userName is required' : '';
+        break;
+      case 'password2':
+        errors.password2 = validPasswordRegex.test(value)
+          ? ''
+          : 'Minimum six characters, at least one uppercase letter, one lowercase letter and one number!';
+        break;
+      case 'privilege':
+        errors.privilege = value.length === 0 ? 'role is required' : '';
+        break;
+
+      default:
+        break;
+    }
+
+    setState(
+      {
+        ...form,
+        [id]: value
+      },
+      () => {
+        console.log(errors);
+      }
+    );
   };
 
   const onSubmit = e => {
     e.preventDefault();
+
+    const { id, value } = e.target;
+    let errors = form.errors;
+
+    switch (id) {
+      case 'firstName':
+        errors.firstName = mappedErrors.errors.firstName;
+        break;
+      case 'lastName':
+        errors.lastName = mappedErrors.errors.lastName;
+        break;
+      case 'email':
+        errors.email = mappedErrors.errors.email;
+        break;
+      case 'password':
+        errors.password = mappedErrors.errors.password;
+        break;
+      case 'password2':
+        errors.password2 = mappedErrors.errors.password2;
+        break;
+      case 'userName':
+        errors.userName = mappedErrors.errors.userName;
+        break;
+      case 'privilege':
+        errors.privilege = mappedErrors.errors.privilege;
+        break;
+      default:
+        break;
+    }
     const userData = {
       userName: form.userName,
       firstName: form.firstName,
@@ -144,8 +222,22 @@ const UsersToolbar = props => {
       privilege: form.privilege
     };
     console.log(userData);
-    props.mappedAddUser(userData);
-    clearState();
+    if (userData.password !== userData.password2) {
+      alert("Passwords don't match");
+    } else if (errors) {
+      setState(
+        {
+          errors,
+          [id]: value
+        },
+        () => {
+          console.log(errors);
+        }
+      );
+    } else {
+      props.mappedAddUser(userData);
+      clearState();
+    }
   };
 
   const minimalSelectClasses = useMinimalSelectStyles();
@@ -206,6 +298,8 @@ const UsersToolbar = props => {
                 name="Email Address"
                 type="text"
                 label="email"
+                helperText={form.errors.email}
+                error={form.errors.email}
                 onChange={onChange}
                 variant="outlined"
                 value={form.email}
@@ -218,6 +312,8 @@ const UsersToolbar = props => {
                 name="firstName"
                 label="first name"
                 type="text"
+                helperText={form.errors.firstName}
+                error={form.errors.firstName}
                 onChange={onChange}
                 value={form.firstName}
                 variant="outlined"
@@ -229,6 +325,8 @@ const UsersToolbar = props => {
                 label="last name"
                 name="lastName"
                 type="text"
+                helperText={form.errors.lastName}
+                error={form.errors.lastName}
                 onChange={onChange}
                 value={form.lastName}
                 variant="outlined"
@@ -241,6 +339,8 @@ const UsersToolbar = props => {
                 name="userName"
                 label="user name"
                 type="text"
+                helperText={form.errors.userName}
+                error={form.errors.userName}
                 onChange={onChange}
                 value={form.userName}
                 variant="outlined"
@@ -252,6 +352,8 @@ const UsersToolbar = props => {
                 name="password"
                 autoComplete="new-password"
                 label="password"
+                helperText={form.errors.password}
+                error={form.errors.password}
                 type="password"
                 onChange={onChange}
                 value={form.password}
@@ -261,7 +363,7 @@ const UsersToolbar = props => {
                   autocomplete: 'new-password',
                   form: {
                     autocomplete: 'off'
-                  },
+                  }
                 }}
               />
               <TextField
@@ -270,16 +372,18 @@ const UsersToolbar = props => {
                 label="confirm password"
                 name="password2"
                 type="password"
+                label="confirmation password"
                 onChange={onChange}
                 variant="outlined"
                 value={form.password2}
+                helperText={form.errors.password2}
+                error={form.errors.password2}
                 fullWidth
                 InputProps={{
                   autocomplete: 'new-password',
                   form: {
                     autocomplete: 'off'
-                  },
-                 
+                  }
                 }}
               />
               <TextField
@@ -296,7 +400,8 @@ const UsersToolbar = props => {
                     className: classes.menu
                   }
                 }}
-                helperText="Please select your role"
+                helperText={form.errors.privilege}
+                error={form.errors.privilege}
                 margin="normal"
                 variant="outlined">
                 {roles.map(option => (
@@ -322,8 +427,19 @@ const UsersToolbar = props => {
   );
 };
 
+// UsersToolbar.propTypes = {
+//   className: PropTypes.string
+// };
+
+// export default UsersToolbar;
+
 UsersToolbar.propTypes = {
+  auth: PropTypes.object.isRequired,
+  errors: PropTypes.object.isRequired,
   className: PropTypes.string
 };
-
-export default UsersToolbar;
+const mapStateToProps = state => ({
+  auth: state.auth,
+  errors: state.errors
+});
+export default connect(mapStateToProps)(UsersToolbar);
