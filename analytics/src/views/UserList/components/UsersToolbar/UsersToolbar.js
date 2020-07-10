@@ -224,19 +224,10 @@ const UsersToolbar = props => {
     console.log(userData);
     if (userData.password !== userData.password2) {
       alert("Passwords don't match");
-    } else if (errors) {
-      setState(
-        {
-          errors,
-          [id]: value
-        },
-        () => {
-          console.log(errors);
-        }
-      );
     } else {
       props.mappedAddUser(userData);
       clearState();
+      handleClose();
     }
   };
 
