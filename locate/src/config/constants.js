@@ -51,8 +51,14 @@ const prodConfig = {
     "https://locate-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/map/updatelocatemap/",
   DELETE_LOCATE_MAP:
     "https://locate-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/map/deletelocatemap/",
+  // GET_DEVICE_STATUS_SUMMARY:
+  //   "https://device-monitoring-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/device/monitor/status",
   GET_DEVICE_STATUS_SUMMARY:
-    "https://device-monitoring-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/device/monitor/status",
+    "http://34.78.78.202:30006/api/v1/device/monitor/status",
+  GET_DEVICE_MAINTENANCE_LOG:
+    "http://34.78.78.202:30006/api/v1/device/monitor/maintenance_log",
+  GET_DEVICE_POWER_TYPE:
+    "http://34.78.78.202:30006/api/v1/device/monitor/power_type",
   GET_DEVICE_STATUS_FOR_PIECHART_DISPLAY:
     "https://device-monitoring-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/device/monitor/status/latest",
   GET_LATEST_OFFLINE_DEVICES:
