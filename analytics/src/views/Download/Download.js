@@ -150,31 +150,31 @@ const Download = (props) => {
         //download the returned data
         console.log(JSON.stringify(customisedDownloadData));
         if (selectedType.value === "JSON") {
-          // let filename = "export.json";
-          // let contentType = "application/json;charset=utf-8;";
-          // if (window.navigator && window.navigator.msSaveOrOpenBlob) {
-          //   var blob = new Blob(
-          //     [
-          //       decodeURIComponent(
-          //         encodeURI(JSON.stringify(customisedDownloadData))
-          //       ),
-          //     ],
-          //     { type: contentType }
-          //   );
-          //   navigator.msSaveOrOpenBlob(blob, filename);
-          // } else {
-          //   var a = document.createElement("a");
-          //   a.download = filename;
-          //   a.href =
-          //     "data:" +
-          //     contentType +
-          //     "," +
-          //     encodeURIComponent(JSON.stringify(customisedDownloadData));
-          //   a.target = "_blank";
-          //   document.body.appendChild(a);
-          //   a.click();
-          //   document.body.removeChild(a);
-          // }
+          let filename = "airquality-" + selectedFrequency.value + ".json";
+          let contentType = "application/json;charset=utf-8;";
+          if (window.navigator && window.navigator.msSaveOrOpenBlob) {
+            var blob = new Blob(
+              [
+                decodeURIComponent(
+                  encodeURI(JSON.stringify(customisedDownloadData))
+                ),
+              ],
+              { type: contentType }
+            );
+            navigator.msSaveOrOpenBlob(blob, filename);
+          } else {
+            var a = document.createElement("a");
+            a.download = filename;
+            a.href =
+              "data:" +
+              contentType +
+              "," +
+              encodeURIComponent(JSON.stringify(customisedDownloadData));
+            a.target = "_blank";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+          }
         } else {
           console.log(customisedDownloadData.results);
           for (const [key, value] of Object.entries(
