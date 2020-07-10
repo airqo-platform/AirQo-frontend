@@ -97,11 +97,17 @@ const devConfig = {
   GET_LOCATE_MAP: "http://localhost:4000/api/v1/map/getlocatemap/",
   UPDATE_LOCATE_MAP: "http://localhost:4000/api/v1/map/updatelocatemap/",
   DELETE_LOCATE_MAP: "http://localhost:4000/api/v1/map/deletelocatemap/",
+  GET_DEVICE_STATUS_SUMMARY:
+    "http://localhost:4001/api/v1/device/monitor/status",
+  GET_DEVICE_MAINTENANCE_LOG:
+    "http://localhost:4001/api/v1/device/monitor/maintenance_log",
+  GET_DEVICE_POWER_TYPE:
+    "http://localhost:4001/api/v1/device/monitor/power_type",
   GET_DEVICE_STATUS_FOR_PIECHART_DISPLAY:
-    "http://localhost:5000/api/v1/device/monitor/status/latest",
+    "http://localhost:4001/api/v1/device/monitor/status/latest",
   GET_LATEST_OFFLINE_DEVICES:
-    "http://localhost:5000/api/v1/monitor/devices/offline",
-  GET_NETWORK_UPTIME: "http://localhost:5000/api/v1/monitor/network/uptime",
+    "http://localhost:4001/api/v1/monitor/devices/offline",
+  GET_NETWORK_UPTIME: "http://localhost:4001/api/v1/monitor/network/uptime",
   GET_NETWORK_BEST_PERFORMING_DEVICES:
     "http://localhost:4001/api/v1/monitor/network/devices/bestperforming",
   GET_NETWORK_WORST_PERFORMING_DEVICES:
