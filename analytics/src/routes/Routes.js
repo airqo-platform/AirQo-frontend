@@ -11,11 +11,11 @@ import Register from '../views/components/Users/RegisterAnalytics';
 import {
   connectedUserList as ConnectedUserList,
   connectedCandidateList as ConnectedCandidateList,
-  connectedSetDefaults as ConnectedSetDefaults
+  connectedSetDefaults as ConnectedSetDefaults,
+  connectedRegisterAnalytics as ConnectedRegister
 } from 'views/components/Users/containers/Users';
 
 import {
-
   Reports as ReportView,
   Account as AccountView,
   Settings as SettingsView,
@@ -25,10 +25,10 @@ import {
   ReportTemplate,
   LocationList as LocationListView,
   SignUp as SignUpView,
-  Documentation,
+  Documentation
 } from '../views';
 
-import {connectedDashboard as DashboardView} from 'views/components/Users/containers/Users'
+import { connectedDashboard as DashboardView } from 'views/components/Users/containers/Users';
 
 import Landing from '../views/layouts/Landing';
 import ForgotPassword from '../views/components/Users/ForgotPassword';
@@ -79,13 +79,13 @@ const Routes = () => {
         path="/settings"
       />
 
-    <PrivateRoute
-            component={Download}
-            exact
-            layout={MainLayout}
-            path="/download"
-          />
-      
+      <PrivateRoute
+        component={Download}
+        exact
+        layout={MainLayout}
+        path="/download"
+      />
+
       <PrivateRoute
         component={ReportTemplate}
         exact
@@ -93,7 +93,7 @@ const Routes = () => {
         path="/report"
       />
 
-       <PrivateRoute
+      <PrivateRoute
         component={ConnectedSetDefaults}
         exact
         layout={MainLayout}
@@ -127,35 +127,15 @@ const Routes = () => {
         path="/documentation"
       />
 
-      <Route
-        component={Landing}
-        exact
-        path="/landing"
-      />
-      <Route
-        component={Login}
-        exact
-        path="/login"
-      />
-      <Route
-        component={ForgotPassword}
-        exact
-        path="/forgot"
-      />
-      <RouteWithLayout
-        component={ResetPassword}
-        exact
-        path="/reset"
-      />
-      <Route
-        exact path="/forgot"
-        component={ForgotPassword} />
+      <Route component={Landing} exact path="/landing" />
+      <Route component={Login} exact path="/login" />
+      <Route component={ForgotPassword} exact path="/forgot" />
+      <RouteWithLayout component={ResetPassword} exact path="/reset" />
+      <Route exact path="/forgot" component={ForgotPassword} />
 
-<Route exact path="/register" component={Register} />
-      
-      <Route 
-        exact path="/reset" 
-        component={ResetPassword} />
+      <Route exact path="/register" component={ConnectedRegister} />
+
+      <Route exact path="/reset" component={ResetPassword} />
 
       <RouteWithLayout
         component={SignUpView}
@@ -163,16 +143,12 @@ const Routes = () => {
         layout={MinimalLayout}
         path="/sign-up"
       />
-      
-    
-    <Route 
-    exact path="/reset/:token" 
-    component={ResetPassword} />
+
+      <Route exact path="/reset/:token" component={ResetPassword} />
 
       <RouteWithLayout exact path="/reset" component={ResetPassword} />
 
       <Redirect to="/not-found" />
-      
     </Switch>
   );
 };
