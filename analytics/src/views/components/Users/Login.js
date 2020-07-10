@@ -89,8 +89,18 @@ class Login extends Component {
     const { errors } = this.state;
     return (
       <div className="container">
-        <div style={{ marginTop: '4rem' }} className="row">
-          <div className="col s8 offset-s2">
+        <div
+          style={{ marginTop: '4rem' }}
+          className="row"
+          style={{ height: 'auto', backgroundColor: '#2979FF' }}>
+          <div
+            className="col s4"
+            style={{
+              padding: '1em'
+            }}></div>
+          <div
+            className="col s8"
+            style={{ backgroundColor: '#fff', padding: '1em' }}>
             <Link to="/" className="btn-flat waves-effect">
               <i className="material-icons left">keyboard_backspace</i> Back to
               home

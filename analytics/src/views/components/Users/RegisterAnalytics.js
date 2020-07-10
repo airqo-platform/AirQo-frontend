@@ -221,7 +221,16 @@ class Register extends Component {
     return (
       <div className="container">
         <div className="row">
-          <div className="col s8 offset-s2">
+          <div
+            className="col s8 offset-s2"
+            style={{
+              backgroundColor: '#2979FF',
+              height: '15vh',
+              padding: '1em'
+            }}></div>
+          <div
+            className="col s8 offset-s2"
+            style={{ backgroundColor: '#fff', padding: '1em' }}>
             <Link to="/" className="btn-flat waves-effect">
               <i className="material-icons left">keyboard_backspace</i> Back to
               home
