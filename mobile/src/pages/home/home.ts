@@ -26,13 +26,13 @@ export class HomePage {
 
   favorite_nodes: any = [];
 
-  get_favorite_nodes_api  = 'https://test-dot-airqo-frontend.appspot.com/Apis/airqoPlaceLatest';
+  get_favorite_nodes_api  = `${this.api.api_endpoint}/airqoPlaceLatest`;
   favorite_nodes_api_success: any
   
-  get_nearest_node_api    = 'https://test-dot-airqo-frontend.appspot.com/Apis/airqoNearest';
+  get_nearest_node_api    = `${this.api.api_endpoint}/airqoNearest`;
   nearest_node_api_success: any;
 
-  get_coordinates_api    = 'https://buzentech.com/get-info.php';
+  get_coordinates_api    = `${this.api.external_api_endpoint}/get-info.php`;
 
 
   constructor(private navCtrl: NavController, private storage: Storage, private http: HttpClient, private loadingCtrl: LoadingController, 
@@ -45,19 +45,19 @@ export class HomePage {
   // --------------------------------------------------------------------------------------------------------------------
   // Runs when the page has loaded. Fires only once
   // --------------------------------------------------------------------------------------------------------------------
-  ionViewDidLoad() {
+  async ionViewDidLoad() {
     if(this.api.isConnected()){
       this.getLocation();
     }
+
+    await this.offlineLoadFavorites(null);
   }
 
 
   // --------------------------------------------------------------------------------------------------------------------
   // Fires everytime page loads
   // --------------------------------------------------------------------------------------------------------------------
-  async ionViewDidEnter() {
-    await this.offlineLoadFavorites(null);
-  }
+  async ionViewDidEnter() { }
 
 
   // --------------------------------------------------------------------------------------------------------------------
@@ -67,6 +67,7 @@ export class HomePage {
     this.storage.get('favorites').then((val) => {
       if(val && val != null && val != '' && val.length > 0) {
         this.favorite_nodes = val;
+
         if(this.api.isConnected()) {
           this.onlineLoadFavoritesNodesReadings(val, refresher);
         } else {
@@ -187,9 +188,10 @@ export class HomePage {
   // Online - Load Favorites Nodes Readings from online
   // --------------------------------------------------------------------------------------------------------------------
   async onlineLoadFavoritesNodesReadings(favorite_nodes, refresher) {
-    this.favorite_nodes = [];
+    this.favorite_nodes = [];    
 
     if(favorite_nodes.length > 0) {
+
       for(let i = 0; i < favorite_nodes.length; i++){
         let params = {
           api: this.api.api_key,
@@ -215,6 +217,7 @@ export class HomePage {
           }
         });
       }
+
       if(refresher){
         refresher.complete();
       }
@@ -233,6 +236,8 @@ export class HomePage {
   // Offline - Load favorites readings
   // --------------------------------------------------------------------------------------------------------------------
   offlineLoadFavoritesNodesReadings() {
+    this.favorite_nodes = [];
+
     this.storage.get('favorites_readings').then((val) => {
       if(val && val != null && val != '' && val.length > 0) {
         this.favorite_nodes = val;

@@ -20,7 +20,7 @@ export class SearchPage {
 
   textInput = new FormControl('');
 
-  search_nodes_api  = 'https://test-dot-airqo-frontend.appspot.com/Apis/airqoSearchPlaces';
+  search_nodes_api  = `${this.api.api_endpoint}/airqoSearchPlaces`;
   search_nodes_api_success: any
   
   constructor(public navCtrl: NavController, public navParams: NavParams, private storage: Storage, private toastCtrl: ToastController, 

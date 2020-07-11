@@ -14,7 +14,7 @@ export class ForgotPasswordPage {
 
   user: any = {};
 
-  forgot_password_api    = 'https://test-dot-airqo-frontend.appspot.com/Apis/ForgotPassword';
+  forgot_password_api    = `${this.api.api_endpoint}/ForgotPassword`;
 
   constructor(private navCtrl: NavController, private navParams: NavParams, private toastCtrl: ToastController, private http: HttpClient,
     private loadingCtrl: LoadingController, private storage: Storage, private alertCtrl: AlertController, private api: ApiProvider) {

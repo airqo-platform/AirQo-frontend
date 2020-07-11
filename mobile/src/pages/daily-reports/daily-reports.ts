@@ -19,7 +19,7 @@ export class DailyReportsPage {
 
   display_message: any;
 
-  unsubscribe_api = 'https://test-dot-airqo-frontend.appspot.com/Apis/airqoSubscribeDailyReports';
+  unsubscribe_api = `${this.api.api_endpoint}/airqoSubscribeDailyReports`;
 
   constructor(public navCtrl: NavController, public navParams: NavParams, private modalCtrl: ModalController, private toastCtrl: ToastController, 
     private alertCtrl: AlertController, private storage: Storage, private loadingCtrl: LoadingController, private api: ApiProvider,

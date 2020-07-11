@@ -28,9 +28,9 @@ export class CameraPage {
   nodes: any = [];
   favorite_nodes: any = [];
 
-  aqi_camera_api = 'https://test-dot-airqo-frontend.appspot.com/Apis/airqoAqiCamera';
+  aqi_camera_api = `${this.api.api_endpoint}/airqoAqiCamera`;
 
-  get_coordinates_api    = 'https://buzentech.com/get-info.php';
+  get_coordinates_api    = `${this.api.external_api_endpoint}/get-info.php`;
 
   constructor(public navCtrl: NavController, public navParams: NavParams, private storage: Storage, private toastCtrl: ToastController, 
     private viewCtrl: ViewController, private loadingCtrl: LoadingController, private http: HttpClient, 

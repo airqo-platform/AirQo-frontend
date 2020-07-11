@@ -20,7 +20,7 @@ export class SignInPage {
   password_type: string = 'password';
   password_icon: string = 'eye-off';
 
-  sign_in_api    = 'https://test-dot-airqo-frontend.appspot.com/Apis/airqoUserLogin';
+  sign_in_api    = `${this.api.api_endpoint}/airqoUserLogin`;
 
   constructor(private navCtrl: NavController, private navParams: NavParams, private toastCtrl: ToastController, private http: HttpClient,
     private loadingCtrl: LoadingController, private storage: Storage, private alertCtrl: AlertController, private api: ApiProvider) {

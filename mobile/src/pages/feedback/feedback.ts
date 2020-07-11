@@ -15,7 +15,7 @@ export class FeedbackPage {
   user: any = {};
   feedback: any = {};
 
-  feedback_api    = 'https://test-dot-airqo-frontend.appspot.com/Apis/airqoFeedback';
+  feedback_api    = `${this.api.api_endpoint}/airqoFeedback`;
 
   constructor(private navCtrl: NavController, private storage: Storage, private http: HttpClient, private loadingCtrl: LoadingController, 
     private alertCtrl: AlertController, private toastCtrl: ToastController, public api: ApiProvider) {

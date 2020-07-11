@@ -65501,10 +65501,13 @@ page-camera .btn-label {
 
 page-camera .picture-section {
   margin: 1rem;
-  height: 15rem;
+  text-align: center;
+}
+
+page-camera .preview-image {
+  max-height: 20rem;
   -o-object-fit: cover;
   object-fit: cover;
-  text-align: center;
 }
 
 page-camera .face {
@@ -65779,6 +65782,10 @@ page-intro .btn-getting-started {
   border-radius: 5px;
 }
 
+page-intro .btn-border {
+  border: 0.2rem solid white;
+}
+
 page-intro .bg-blue {
   background-color: #3067e2;
 }
@@ -65833,13 +65840,18 @@ page-key .image-icon {
 
 page-key .heading {
   background-color: #3067e2;
-  color: #000000;
+  color: #ffffff;
   font-weight: 400;
+  height: 5rem;
 }
 
 page-key .title {
   color: #efeef2;
   font-weight: bold;
+}
+
+page-key .black {
+  color: #000000;
 }
 
 page-key .bg-green {
@@ -65879,26 +65891,20 @@ page-map .center {
   text-align: center;
 }
 
+page-map .marker-number {
+  font-weight: 500;
+}
+
 page-map .marker-pin {
   width: 30px;
   height: 30px;
-  border-radius: 50% 50% 50% 0;
+  border-radius: 50% 50% 50% 50%;
   position: absolute;
   -webkit-transform: rotate(-45deg);
   transform: rotate(-45deg);
   left: 50%;
   top: 50%;
   margin: -15px 0 0 -15px;
-}
-
-page-map .marker-pin::after {
-  content: '';
-  width: 24px;
-  height: 24px;
-  margin: 3px 0 0 3px;
-  background: #fff;
-  position: absolute;
-  border-radius: 50%;
 }
 
 page-map .custom-airqo-icon span {
@@ -66057,6 +66063,10 @@ page-node ion-content {
   background-size: cover;
 }
 
+page-node .fixed-content {
+  background: transparent;
+}
+
 page-node .top-section {
   height: 45%;
   position: relative;
@@ -66065,6 +66075,10 @@ page-node .top-section {
 page-node .bottom-section {
   height: 55%;
   position: relative;
+}
+
+page-node .no-data {
+  text-align: center;
 }
 
 page-node ion-grid {
@@ -66194,25 +66208,40 @@ page-node .bottom-section .sub-title .date {
 
 page-node .bottom-section .key-card {
   position: absolute;
-  top: 6rem;
+  bottom: 6rem;
 }
 
-page-node .bottom-section .key-card .key {
+page-node .bottom-section .key {
   height: 5rem;
   padding: 0.5rem;
 }
 
-page-node .bottom-section .key-card .key .key-label {
+page-node .bottom-section .key-label {
   text-align: center;
   font-size: 1.6rem;
   font-weight: 450;
+  height: 5rem;
 }
 
-page-node .bottom-section .bar-chart-scroll {
-  height: inherit;
-  position: absolute;
-  bottom: 0;
-  width: 100%;
+page-node .scroll-chart {
+  overflow-x: scroll !important;
+}
+
+page-node .chartAreaWrapper {
+  width: 1000px;
+  overflow-x: scroll !important;
+}
+
+page-node #historyChart {
+  width: 100% !important;
+  -o-object-fit: contain;
+  object-fit: contain;
+}
+
+page-node #forecastChart {
+  width: 100% !important;
+  -o-object-fit: contain;
+  object-fit: contain;
 }
 
 page-node .bg-darker {
@@ -66288,6 +66317,14 @@ page-node .moderate-bold {
   page-node .key {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
+  }
+  page-node .top-section {
+    height: 20%;
+    position: relative;
+  }
+  page-node .bottom-section {
+    height: 80%;
+    position: relative;
   }
 }
 

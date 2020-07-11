@@ -20,7 +20,7 @@ export class MapPage {
 
   nodes: any = [];
 
-  nodes_list_api = 'https://test-dot-airqo-frontend.appspot.com/Apis/airqoPlacesCached';
+  nodes_list_api = `${this.api.api_endpoint}/airqoPlacesCached`;
   places_nodes_list_api_success: any;
 
   constructor(public navCtrl: NavController, private storage: Storage, private toastCtrl: ToastController, private loadingCtrl: LoadingController, 

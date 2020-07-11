@@ -2,7 +2,7 @@
   "name": "airqo",
   "version": "0.0.1",
   "author": "AirQo Team",
-  "homepage": "https://airqo.net/",
+  "homepage": "https://test-dot-airqo-frontend.appspot.com/",
   "private": true,
   "scripts": {
     "start": "ionic-app-scripts serve",
@@ -27,15 +27,18 @@
     "@ionic-native/device": "^4.20.0",
     "@ionic-native/geolocation": "^4.20.0",
     "@ionic-native/network": "^4.20.0",
+    "@ionic-native/onesignal": "^4.20.0",
     "@ionic-native/social-sharing": "^4.20.0",
     "@ionic-native/splash-screen": "~4.20.0",
     "@ionic-native/sqlite": "^4.20.0",
     "@ionic-native/status-bar": "~4.20.0",
     "@ionic/storage": "2.2.0",
     "@types/jquery": "^3.3.31",
+    "@types/leaflet": "^1.5.9",
     "chart.js": "^2.9.3",
-    "cordova-android": "7.1.4",
+    "cordova-android": "8.1.0",
     "cordova-ios": "4.5.5",
+    "cordova-plugin-androidx-adapter": "1.1.0",
     "cordova-plugin-apprate": "1.5.0",
     "cordova-plugin-camera": "4.1.0",
     "cordova-plugin-device": "^2.0.2",
@@ -47,26 +50,27 @@
     "cordova-plugin-network-information": "2.0.2",
     "cordova-plugin-splashscreen": "^5.0.2",
     "cordova-plugin-statusbar": "^2.4.2",
-    "cordova-plugin-whitelist": "^1.3.3",
+    "cordova-plugin-whitelist": "1.3.4",
     "cordova-plugin-x-socialsharing": "5.6.3",
     "cordova-sqlite-storage": "4.0.0",
     "es6-promise-plugin": "4.2.2",
+    "firebase": "^7.9.1",
     "ionic-angular": "3.9.5",
     "ionicons": "3.0.0",
     "jquery": "^3.4.1",
     "leaflet": "^1.6.0",
+    "onesignal-cordova-plugin": "2.8.3",
     "rxjs": "5.5.11",
     "sw-toolbox": "3.6.0",
     "zone.js": "0.8.29"
   },
   "devDependencies": {
     "@ionic/app-scripts": "3.2.2",
-    "typescript": "~2.6.2"
+    "typescript": "^2.9.2"
   },
   "description": "An Ionic project",
   "cordova": {
     "plugins": {
-      "cordova-plugin-whitelist": {},
       "cordova-plugin-statusbar": {},
       "cordova-plugin-device": {},
       "cordova-plugin-splashscreen": {},
@@ -85,11 +89,12 @@
       "cordova-plugin-geolocation": {
         "GEOLOCATION_USAGE_DESCRIPTION": "To locate you so as to provide readings relevant to your area"
       },
+      "onesignal-cordova-plugin": {},
       "cordova-plugin-camera": {
-        "CAMERA_USAGE_DESCRIPTION": "To submit images to AirQo",
-        "PHOTOLIBRARY_USAGE_DESCRIPTION": "To submit images to AirQo",
         "ANDROID_SUPPORT_V4_VERSION": "27.+"
-      }
+      },
+      "cordova-plugin-androidx-adapter": {},
+      "cordova-plugin-whitelist": {}
     },
     "platforms": [
       "ios",

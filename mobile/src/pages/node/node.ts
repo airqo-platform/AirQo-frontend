@@ -30,10 +30,10 @@ export class NodePage {
 
   graphs_segments: any = 'history';
 
-  history_node_api = 'https://test-dot-airqo-frontend.appspot.com/Apis/airqoPlace24Hours';
+  history_node_api = `${this.api.api_endpoint}/airqoPlace24Hours`;
   history_node_api_success: boolean = true;
 
-  forecast_node_api = 'https://test-dot-airqo-frontend.appspot.com/Apis/placeForecast';
+  forecast_node_api = `${this.api.api_endpoint}/placeForecast`;
   forecast_node_api_success: boolean = true;
 
   constructor(public navCtrl: NavController, public navParams: NavParams, private storage: Storage, private toastCtrl: ToastController, 
@@ -66,6 +66,10 @@ export class NodePage {
   // Runs when the page has loaded. Fires only once
   // --------------------------------------------------------------------------------------------------------------------
   async ionViewDidLoad() {
+
+    this.offlineLoadHistoryNodeInfo();
+    this.offlineLoadForecastNodeInfo();
+
     if(this.api.isConnected()){
       await this.onlineLoadHistoryNodeInfo();
       await this.onlineLoadNodeForecastInfo();
@@ -102,47 +106,55 @@ export class NodePage {
       channel: this.node.channel_id
     };
 
-    loader.present().then(() => {
-      this.http.post(this.history_node_api, params).subscribe((result: any) => {
-        console.log(result);
-
-        if(result.success == '100' && result.feed.hourly_results){
-          if(result.feed.hourly_results.length > 0){
-            this.history_node_api_success = true;
-            this.node.refreshed     = result.feed.hourly_results[0].time;
-            this.node.feeds.field1  = result.feed.hourly_results[0].pm2_5;
-
-            this.offlineStoreHistoryStoreNodeInfo(result.feed.hourly_results, this.node);
-            this.getHistoryGraphData(result.feed.hourly_results);
-          }
-          loader.dismiss();
+    this.storage.get("history").then((val) => {
+      if(val != null && val != '' && val && val.length > 0) {
+        if(val.filter(item => item.channel_id === this.node.channel_id).length != 0){
+          
         } else {
-
-          this.toastCtrl.create({
-            message: 'History information not available',
-            duration: 3000,
-            position: 'bottom',
-            showCloseButton: true,
-          }).present();
-
-          // this.storage.get("history").then((val) => {
-          //   if(val && val != null && val != '' && val.length > 0) {
-
-          //   } else {
-          //     this.history_node_api_success = false;
-          //     loader.dismiss();
-          //     this.toastCtrl.create({
-          //       message: 'History information not available',
-          //       duration: 3500,
-          //       position: 'bottom'
-          //     }).present();
-          //   }
-          // });
+          loader.present();
         }
-      }, (err) => {
-        this.history_node_api_success = false;
-        this.api.networkErrorMessage();
-      });
+      }
+    });
+
+    this.http.post(this.history_node_api, params).subscribe((result: any) => {
+      console.log(result);
+
+      if(result.success == '100' && result.feed.hourly_results){
+        if(result.feed.hourly_results.length > 0){
+          this.history_node_api_success = true;
+          this.node.refreshed     = result.feed.hourly_results[0].time;
+          this.node.feeds.field1  = result.feed.hourly_results[0].pm2_5;
+
+          this.offlineStoreHistoryStoreNodeInfo(result.feed.hourly_results, this.node);
+          this.getHistoryGraphData(result.feed.hourly_results);
+        }
+        loader.dismiss();
+      } else {
+
+        this.toastCtrl.create({
+          message: 'History information not available',
+          duration: 3000,
+          position: 'bottom',
+          showCloseButton: true,
+        }).present();
+
+        // this.storage.get("history").then((val) => {
+        //   if(val && val != null && val != '' && val.length > 0) {
+
+        //   } else {
+        //     this.history_node_api_success = false;
+        //     loader.dismiss();
+        //     this.toastCtrl.create({
+        //       message: 'History information not available',
+        //       duration: 3500,
+        //       position: 'bottom'
+        //     }).present();
+        //   }
+        // });
+      }
+    }, (err) => {
+      this.history_node_api_success = false;
+      this.api.networkErrorMessage();
     });
   }
 
@@ -163,35 +175,43 @@ export class NodePage {
       lat: this.node.lat,
       lng: this.node.lng
     };
-    
-    loader.present().then(() => {
-      this.http.post(this.forecast_node_api, params).subscribe((result: any) => {
-        console.log(result);
 
-        if((result.success == '100') && result.formatted_results) {
-          if(result.formatted_results.predictions.length > 0){
-            this.forecast_node_api_success = true;
-            console.log(result.formatted_results.predictions);
-            
-            this.offlineStoreForecastStoreNodeInfo(result.formatted_results.predictions);
-            this.getForecastGraphData(result.formatted_results.predictions);
-          }
-          loader.dismiss();
+    this.storage.get("forecast").then((val) => {
+      if(val != null && val != '' && val && val.length > 0) {
+        if(val.filter(item => item.channel_id === this.node.channel_id).length != 0){
+          
         } else {
-          this.forecast_node_api_success = false;
-          loader.dismiss();
-          this.toastCtrl.create({
-            message: 'Forecast information not available',
-            duration: 3000,
-            position: 'bottom',
-            showCloseButton: true,
-          }).present();
+          // loader.present();
         }
-      }, (err) => {
+      }
+    });
+    
+    this.http.post(this.forecast_node_api, params).subscribe((result: any) => {
+      console.log(result);
+
+      if((result.success == '100') && result.formatted_results) {
+        if(result.formatted_results.predictions.length > 0){
+          this.forecast_node_api_success = true;
+          console.log(result.formatted_results.predictions);
+          
+          this.offlineStoreForecastStoreNodeInfo(result.formatted_results.predictions);
+          this.getForecastGraphData(result.formatted_results.predictions);
+        }
+        loader.dismiss();
+      } else {
         this.forecast_node_api_success = false;
         loader.dismiss();
-        this.api.networkErrorMessage();
-      });
+        this.toastCtrl.create({
+          message: 'Forecast information not available',
+          duration: 3000,
+          position: 'bottom',
+          showCloseButton: true,
+        }).present();
+      }
+    }, (err) => {
+      this.forecast_node_api_success = false;
+      loader.dismiss();
+      this.api.networkErrorMessage();
     });
   }
 

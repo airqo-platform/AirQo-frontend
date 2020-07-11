@@ -15,10 +15,10 @@ export class AddNodeSubscriptionPage {
   nodes: any = [];
   favorite_nodes: any = [];
 
-  get_places_nodes_list_api = 'https://test-dot-airqo-frontend.appspot.com/Apis/airqoPlacesCached';
+  get_places_nodes_list_api = `${this.api.api_endpoint}/airqoPlacesCached`;
   places_nodes_list_api_success: any;
 
-  subscribe_api = 'https://test-dot-airqo-frontend.appspot.com/Apis/airqoSubscribeDailyReports';
+  subscribe_api = `${this.api.api_endpoint}/airqoSubscribeDailyReports`;
 
   constructor(public navCtrl: NavController, public navParams: NavParams, private storage: Storage, private toastCtrl: ToastController, 
     private viewCtrl: ViewController, private loadingCtrl: LoadingController, private http: HttpClient, 
