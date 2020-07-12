@@ -23,10 +23,13 @@ import axios from "axios";
 //import CsvDownloader from 'react-csv-downloader';
 import jsonexport from "jsonexport";
 //import {CSVDownload} from 'react-csv';
+import constants from "../../config/constants.js";
+
 const {
   Parser,
   transforms: { unwind },
 } = require("json2csv");
+
 const useStyles = makeStyles((theme) => ({
   root: {
     padding: theme.spacing(4),
@@ -100,8 +103,8 @@ const Download = (props) => {
   };
 
   const typeOptions = [
-    { value: "JSON", label: "JSON" },
-    { value: "CSV", label: "CSV" },
+    { value: "json", label: "JSON" },
+    { value: "csv", label: "CSV" },
   ];
 
   const [selectedType, setSelectedType] = useState();
@@ -140,7 +143,7 @@ const Download = (props) => {
     axios
       .post(
         //'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/data/download',
-        "http://localhost:5000/api/v1/data/download",
+        constants.DOWNLOAD_DATA + selectedType.value,
         JSON.stringify(params),
         { headers: { "Content-Type": "application/json" } }
       )
@@ -149,8 +152,8 @@ const Download = (props) => {
         // setCustomisedDownloadData(customisedDownloadData)
         //download the returned data
         console.log(JSON.stringify(customisedDownloadData));
-        if (selectedType.value === "JSON") {
-          let filename = "airquality-" + selectedFrequency.value + ".json";
+        if (selectedType.value === "json") {
+          let filename = "airquality-data-" + selectedFrequency.value + ".json";
           let contentType = "application/json;charset=utf-8;";
           if (window.navigator && window.navigator.msSaveOrOpenBlob) {
             var blob = new Blob(
@@ -176,12 +179,12 @@ const Download = (props) => {
             document.body.removeChild(a);
           }
         } else {
-          console.log(customisedDownloadData.results);
-          for (const [key, value] of Object.entries(
-            customisedDownloadData.results
-          )) {
-            console.log(`${key}: ${value[0]}`);
-          }
+          // console.log(customisedDownloadData.results);
+          // for (const [key, value] of Object.entries(
+          //   customisedDownloadData.results
+          // )) {
+          //   console.log(`${key}: ${value[0]}`);
+          // }
           // let csvData = [];
           // customisedDownloadData.results.forEach((element) => {
           //   console.log(element["division"]);
@@ -194,25 +197,24 @@ const Download = (props) => {
           //   });
           // });
           // console.log(csvData);
-          // const fields = ["DateTime", "pollutant", "Division", "parish"];
+          //const fields = ["DateTime", "pollutant", "Division", "parish"];
           // const transforms = [unwind({ paths: ["pollutant", "DateTime"] })];
-
           // const json2csvParser = new Parser({ fields, transforms });
           // const csv = json2csvParser.parse(csvData);
-
-          // console.log(csv);
-          // var filename = "Analyticsexpt.csv";
-          // var link = document.createElement("a");
-          // link.setAttribute(
-          //   "href",
-          //   "data:text/csv;charset=utf-8,%EF%BB%BF" + encodeURIComponent(csv)
-          // );
-          // link.setAttribute("download", filename);
-          // link.style.visibility = "hidden";
-          // document.body.appendChild(link);
-          // link.click();
-          // document.body.removeChild(link);
-
+          const json2csvParser = new Parser();
+          const csv = json2csvParser.parse(customisedDownloadData);
+          console.log(csv);
+          var filename = "airquality-data-" + selectedFrequency.value + ".csv";
+          var link = document.createElement("a");
+          link.setAttribute(
+            "href",
+            "data:text/csv;charset=utf-8,%EF%BB%BF" + encodeURIComponent(csv)
+          );
+          link.setAttribute("download", filename);
+          link.style.visibility = "hidden";
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
           /*jsonexport(csvData,function(err, csv){
     if(err) return console.log(err);
     var filename ="Analyticsexpt.csv"
