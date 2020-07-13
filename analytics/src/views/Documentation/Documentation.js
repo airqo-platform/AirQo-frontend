@@ -35,7 +35,9 @@ const Documentation = () => {
         container
         spacing={4}
       >
-            <Grid
+
+        
+<Grid
               item
               sm={3}
               xs={12}
@@ -50,6 +52,26 @@ const Documentation = () => {
         <MuiTypography variant='b1'><a href = 'https://docs.google.com/document/d/1Yb5eMx8NedM9HpuwD8GzVW4OptHkcNVJar6G-zsjKso/edit?usp=sharing' target='blank'>Documentation Handbook</a></MuiTypography>
 
         </Grid>
+
+        {Object.keys(variants).map((key, i) => (
+          <Fragment key={i}>
+            <Grid
+              item
+              sm={3}
+              xs={12}
+            >
+              <MuiTypography variant="caption">{key}</MuiTypography>
+            </Grid>
+            <Grid
+              item
+              sm={9}
+              xs={12}
+            >              
+              <MuiTypography variant={key}>{variants[key]}</MuiTypography>
+            </Grid>
+          </Fragment>
+        ))}
+
 
         
       </Grid>

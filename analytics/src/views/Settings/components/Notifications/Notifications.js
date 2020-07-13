@@ -24,10 +24,7 @@ const useStyles = makeStyles(() => ({
 }));
 
 const Notifications = props => {
-  const { className, mappedAuth, mappeduserState, ...rest } = props;
-
-  const {user} = mappedAuth;
-const userState = mappeduserState;
+  const { className, ...rest } = props;
 
   const classes = useStyles();
 
@@ -55,6 +52,12 @@ const userState = mappeduserState;
               sm={6}
               xs={12}
             >
+              <Typography
+                gutterBottom
+                variant="h6"
+              >
+                Notifications
+              </Typography>
               <FormControlLabel
                 control={
                   <Checkbox
@@ -87,6 +90,42 @@ const userState = mappeduserState;
                 label="Phone calls"
               />
             </Grid>
+            <Grid
+              className={classes.item}
+              item
+              md={4}
+              sm={6}
+              xs={12}
+            >
+              <Typography
+                gutterBottom
+                variant="h6"
+              >
+                Messages
+              </Typography>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    color="primary"
+                    defaultChecked //
+                  />
+                }
+                label="Email"
+              />
+              <FormControlLabel
+                control={<Checkbox color="primary" />}
+                label="Push Notifications"
+              />
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    color="primary"
+                    defaultChecked //
+                  />
+                }
+                label="Phone calls"
+              />
+            </Grid>
           </Grid>
         </CardContent>
         <Divider />
@@ -94,7 +133,6 @@ const userState = mappeduserState;
           <Button
             color="primary"
             variant="outlined"
-            disabled
           >
             Save
           </Button>
@@ -105,9 +143,7 @@ const userState = mappeduserState;
 };
 
 Notifications.propTypes = {
-  className: PropTypes.string,
-  mappedAuth: PropTypes.object.isRequired,
-  mappeduserState: PropTypes.object.isRequired
+  className: PropTypes.string
 };
 
 export default Notifications;

@@ -36,46 +36,34 @@ class ResetPassword extends Component {
   //extract token and DATE from URL params and
   //passes it back to server's reset route for verification
   async componentDidMount() {
-    var anchorElem = document.createElement('link');
-    anchorElem.setAttribute('href', 'https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css');
-    anchorElem.setAttribute('rel','stylesheet') ;
-    anchorElem.setAttribute('id','logincdn') ;
-
-    //document.body.appendChild(anchorElem);
-    document.getElementsByTagName('head')[0].appendChild(anchorElem);
- 
     const {
       match: {
         params: { token },
       },
     } = this.props;
-
-      await axios.get(constants.VERIFY_TOKEN_URI, {
+    try {
+      const response = await axios.get(constants.VERIFY_TOKEN_URI, {
         params: {
           resetPasswordToken: token,
         },
-      }).then(response=>{
-        console.log("this is my response: ")
-   console.log(response);
-   if (response.data.message === "password reset link a-ok") {
-    this.setState({
-      userName: response.data.userName,
-      updated: false,
-      isLoading: false,
-      error: false,
-    });
-  }
-  else {
-    this.setState({
-      updated: false,
-      isLoading: false,
-      error: true,
-    });
-  }
-      }).catch(error=>{
-        console.log(error.data);
-      })
-
+      });
+      // console.log(response);
+      if (response.data.message === "password reset link a-ok") {
+        this.setState({
+          userName: response.data.userName,
+          updated: false,
+          isLoading: false,
+          error: false,
+        });
+      }
+    } catch (error) {
+      console.log(error.response.data);
+      this.setState({
+        updated: false,
+        isLoading: false,
+        error: true,
+      });
+    }
   }
 
   onChange = (e) => {
@@ -86,49 +74,44 @@ class ResetPassword extends Component {
 
   //if the user is authenticated and allowed to reset their password.
   //update password while logged into the app, as well
-  onSubmit =  (e) => {
-    e.preventDefault();
+  onSubmit = async (e) => {
     const { userName, password } = this.state;
     const {
       match: {
         params: { token },
       },
     } = this.props;
-
-    return axios
-    .put(constants.UPDATE_PWD_URI,{
-          userName,
-          password,
-          resetPasswordToken: token
-        } )
-    .then(response => {
-        if (response.data.message === "password updated") {
-          this.setState({
-                      updated: true,
-                      error: false,
-                       });
-        } else {
-          this.setState({
-                              updated: false,
-                              error: true,
-                        });
-        }
-    })
-    .catch(e => {
-      console.log(e.data)
-    });
-
-
+    try {
+      const response = await axios.put(constants.UPDATE_PWD_URI, {
+        userName,
+        password,
+        resetPasswordToken: token,
+      });
+      console.log(response.data);
+      if (response.data.message === "password updated") {
+        this.setState({
+          updated: true,
+          error: false,
+        });
+      } else {
+        this.setState({
+          updated: false,
+          error: true,
+        });
+      }
+    } catch (error) {
+      console.log(error.response.data);
+    }
   };
 
   render() {
     // const { errors } = this.state;
-    const { userName, password, password2, error, isLoading, updated, errors } = this.state;
+    const { password, error, isLoading, updated, errors } = this.state;
 
     if (error) {
       return (
         <div>
-          <div>
+          <div style={loading}>
             <h4>Problem resetting password. Please send another reset link.</h4>
             <Link to="/" className="btn-flat waves-effect">
               <i className="material-icons left">keyboard_backspace</i> Back to
@@ -150,20 +133,22 @@ class ResetPassword extends Component {
       );
     }
 
-    else if (isLoading) {
+    if (isLoading) {
       return (
-    
-          <div>Loading User Data...</div>
-       
+        <div>
+          <div style={loading}>Loading User Data...</div>
+        </div>
       );
     }
-
-    else if (!isLoading && !error) {
 
     return (
       <div className="container">
         <div className="row">
           <div className="col s8 offset-s2">
+            <Link to="/" className="btn-flat waves-effect">
+              <i className="material-icons left">keyboard_backspace</i> Back to
+              home
+            </Link>
             <div className="col s12" style={{ paddingLeft: "11.250px" }}>
               <h4>
                 <b>Reset Password</b>
@@ -173,7 +158,7 @@ class ResetPassword extends Component {
               <div className="input-field col s12">
                 <input
                   onChange={this.onChange}
-                  value={password}
+                  value={this.state.password}
                   error={errors.password}
                   id="password"
                   type="password"
@@ -187,7 +172,7 @@ class ResetPassword extends Component {
               <div className="input-field col s12">
                 <input
                   onChange={this.onChange}
-                  value={password2}
+                  value={this.state.password2}
                   error={errors.password2}
                   id="password2"
                   type="password"
@@ -212,6 +197,10 @@ class ResetPassword extends Component {
                   Reset
                 </button>
               </div>
+              <div></div>
+              <div className="col s12" style={{ paddingTop: "20px" }}>
+                <Link to="/forgot"> Forgotten Password?</Link>
+              </div>
             </form>
             {updated && (
               <div>
@@ -233,10 +222,10 @@ class ResetPassword extends Component {
       </div>
     );
   }
-  }
 }
 
 ResetPassword.propTypes = {
+  resetPassword: PropTypes.func.isRequired,
   errors: PropTypes.object.isRequired,
   match: PropTypes.shape({
     params: PropTypes.shape({
@@ -249,4 +238,6 @@ const mapSateToProps = (state) => ({
   errors: state.errors,
 });
 
-export default ResetPassword;
+export default connect(mapSateToProps, { updatePassword, verifyToken })(
+  withRouter(ResetPassword)
+);

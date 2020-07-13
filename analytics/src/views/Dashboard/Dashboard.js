@@ -37,7 +37,7 @@ const useStyles = makeStyles(theme => ({
     color: theme.palette.text.secondary
   },
   chartContainer: {
-    height: 200,
+    height: 180,
     position: 'relative'
   },
   actions: {
@@ -389,15 +389,45 @@ const Dashboard = props => {
           </Grid>
         </Grid>
 
-        <Grid item lg={6} md={6} sm={12} xl={6} xs={12}>
-          <Grid item lg={12} sm={12} xl={12} xs={12}>
-            <Map />
-          </Grid>
+        <Grid
+          item
+          lg={6}
+          md={6}
+          sm={12}
+          xl={6}
+          xs={12}
+          
+        >
+                 
+         
+          <Grid
+            item
+            lg={12}
+            sm={12}
+            xl={12}
+            xs={12}
+          >
+            <Map/>
+          </Grid>         
+               
 
-          <Grid container spacing={0} className="MapCardContent">
-            <Grid item lg={2} sm={4} xl={2} xs={12}>
-              <Pm25Levels
-                background="#45e50d"
+
+          {/* <Grid
+            container
+            spacing={0}
+            className='MapCardContent'
+          > */}
+
+          
+            {/* <Grid
+              item
+              lg={2}
+              sm={4}
+              xl={2}
+              xs={12}
+            >
+             
+              <Pm25Levels background="#45e50d" 
                 pm25level="Good"
                 //pm25levelText = "(0 - 12)"
               />
@@ -442,11 +472,12 @@ const Dashboard = props => {
                 pm25levelColor="#FFFFFF"
                 //pm25levelText="(250.5 - 500.4)"
               />
-            </Grid>
-            {/* <p>
+            </Grid>  */}
+             {/* <p>
               PM <sub>2.5</sub> - Particulate Matter 
             </p> */}
-          </Grid>
+                
+          {/* </Grid>  */}
         </Grid>
 
         <Grid item lg={6} md={6} sm={12} xl={6} xs={12}>
@@ -469,9 +500,7 @@ const Dashboard = props => {
 };
 
 Dashboard.propTypes = {
-  className: PropTypes.string,
-  mappedAuth: PropTypes.object.isRequired,
-  fetchDefaults: PropTypes.func.isRequired
+  className: PropTypes.string
 };
 
 export default Dashboard;

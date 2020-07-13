@@ -24,11 +24,9 @@ a {
   height: 100%;
 }
 
-
-
 .form-style-graph {
 	margin:10px auto;
-	max-width: 400px;
+	max-width: 300px;
 	padding: 20px 12px 10px 20px;
 	font: 13px "Lucida Sans Unicode", "Lucida Grande", sans-serif;
 }
@@ -109,21 +107,21 @@ select{
 
 }
 
-.markertext {
-	all: revert;
-	color: black;
-	font-size:12px;
-	font-weight: 700;
-	background-color: none;
-	border-color: none;
-	background: none;
-	border: none;
-	box-shadow: none;
-	margin: 0px;
-	cursor: none;
-	direction: 'center';
-	fill: false;
-  }
+// .markertext {
+// 	all: revert;
+// 	color: black;
+// 	font-size:12px;
+// 	font-weight: 700;
+// 	background-color: none;
+// 	border-color: none;
+// 	background: none;
+// 	border: none;
+// 	box-shadow: none;
+// 	margin: 0px;
+// 	cursor: none;
+// 	direction: 'center';
+// 	fill: false;
+//   }
 
   .leaflet-marker-icon {
 	color: #000;
@@ -171,59 +169,163 @@ select{
 	background:#808080;
 	border: 2px solid #808080;
   }
-
  
-  /*Legend specific*/
-.legend {
-	padding: 0px 0px;
-	font: 12px Arial, Helvetica, sans-serif;
-	background:transparent;
-	background:transparent;
-	/*box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);*/
-	/*border-radius: 5px;*/
-	line-height: 0.3;
-	color: #fff;
-	font-style: normal;
-  }
-  .legend h4 {
-	text-align: center;
-	font-size: 12px;
-	margin: 2px 12px 8px;
-	color: #777;
-	font-style: normal;
-  }
-  
-  .legend span {
-	position: center;
-	bottom: 3px
-  }
-  
-  .legend i {
-	width: auto;
-	height: 21px;
-	float: right;
-	margin: 0 0 0 0;
-	opacity: 1;
-	padding: 8px;
-	border-radius: 0px;
-	font-style: normal;
-  }
-  
-  .legend i.icon {
-	background-size: 18px;
-	background-color: rgba(255, 255, 255, 1);
-  }
-  .legend j {
-	width: auto;
-	height: 21px;
-	float: right;
-	margin: 0 0 0 0;
-	opacity: 1;
-	padding: 8px;
-	border-radius: 3px;
-	font-style: normal;
+    .filter {
+	z-index: 1000;
+	background-color:rgba(255, 255, 255, 1);
+	border-bottom: 12px solid;
+	border-color:grey;
+	position: absolute;
+    bottom: 10px;
+	// top: 225px;
+	left: 5px;
+	min-width: 12%;
+	box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+	padding: 10px 10px;
+	font-family: "Open Sans", sans-serif;
+	font-weight: 300;
 	color: #000;
   }
+  
+  .filter__h2 {
+	font-family: "Raleway", sans-serif;
+	font-size: 16px;
+	font-weight: 300;
+	display: inline-block;
+	margin-top: 0px;
+	margin-bottom: 0px;
+	cursor: pointer;
+	text-align: center;
+  }
+  
+  .filter__h3 {
+	// font-family: "Open Sans", sans-serif;
+	// font-weight: 300;
+	border-bottom: 1px solid;
+	border-color: grey;
+	margin-bottom: 10px;
+  }
+  
+  .filter__p {
+	font-family: "Open Sans", sans-serif;
+	font-size: 12px;
+  }
+  
+  i {
+	border: solid;
+	border-color: grey;
+	border-width: 0 4px 4px 0;
+	display: inline-block;
+	padding: 3px;
+	margin-left: 130px;
+	margin-bottom: 0px;
+	transition: 0.3s;
+	font-size: 25px;
+	// cursor: pointer;
+  }
 
+  .filter a {
+	border: solid;
+	border-color: white;
+	color: grey;
+	// border-width: 0 4px 4px 0;
+	display: inline-block;
+	// padding: 3px;
+	margin-left: 100px;
+	margin-bottom: 0px;
+	transition: 0.3s;
+	font-size: 20px;
+	cursor: pointer;
+  }
+  
+//   .down {
+// 	transform: rotate(-135deg);
+// 	-webkit-transform: rotate(-135deg);
+//   }
+  
+  input {
+	margin-right: 10px;
+  }
+  
+  .control__indicator1 {
+	left: 0;
+	width: 18px;
+	height: 18px;
+	background: #44e527;
+	display: inline-block;
+	margin-right: 5px;
+  }
+  .control__indicator2 {
+	left: 0;
+	width: 18px;
+	height: 18px;
+	background: #f8fe39;
+	display: inline-block;
+	margin-right: 5px;
+  }
+  .control__indicator3 {
+	left: 0;
+	width: 18px;
+	height: 18px;
+	background: #ee8327;
+	display: inline-block;
+	margin-right: 5px;
+  }
+  
+  .control__indicator4 {
+	// position: absolute;
+	// top: 2px;
+	left: 0;
+	width: 18px;
+	height: 18px;
+	background: #fe0023;
+	display: inline-block;
+	margin-right: 5px;
+  }
+  .control__indicator5 {
+	left: 0;
+	width: 18px;
+	height: 18px;
+	background: #8639c0;
+	display: inline-block;
+	margin-right: 5px;
+  }
+  .control__indicator6 {
+	left: 0;
+	width: 18px;
+	height: 18px;
+	background: #81202e;
+	display: inline-block;
+	margin-right: 5px;
+  }
+
+  label {
+	display: block;
+	font-size: 14px;
+  }
+  .label i {
+	width: 18px;
+	height: 18px;
+	float: left;
+	margin: 0 8px 0 0;
+	opacity: 0.7;
+  }
+
+  small {
+	font-size: smaller;
+	// margin-left: 45px;
+	margin-top: -10px;
+	padding:0px;
+	line-height: 1px !important;
+}  
+	  .openbtn {
+		font-size: 16px;
+		cursor: pointer;
+		background-color: white;
+		color: black;
+		padding: 10px 15px;
+		border: none;
+	  }
+	
 
   

@@ -31,9 +31,9 @@ import {
 
 import { Alert, AlertTitle } from '@material-ui/lab';
 
-import { Check, CheckCircleOutline } from '@material-ui/icons';
+import {Check, CheckCircleOutline} from '@material-ui/icons';
 
-import { connect } from 'react-redux';
+import { connect } from "react-redux";
 import { getInitials } from 'helpers';
 import { showEditDialog } from 'redux/Join/actions';
 import UserEditForm from 'views/components/Users/UserEditForm';
@@ -65,75 +65,75 @@ function withMyHook(Component) {
   };
 }
 
+
 const UsersTable = props => {
   //the props
   //need to get the ones from the state
   /***
    * if we are to take the prop value which was provided at UserList:
-   *
+   * 
    */
 
-  const { className, mappeduserState, ...rest } = props;
+  const { className,mappeduserState, ...rest } = props;
 
-  console.log('the mapped user state for UsersTable is here:');
+  console.log('the mapped user state for UsersTable is here:')
   console.dir(mappeduserState);
 
-  const users = mappeduserState.users;
-  const collaborators = mappeduserState.collaborators;
-  const editUser = mappeduserState.userToEdit;
-  const userToDelete = mappeduserState.userToDelete;
+const users =  mappeduserState.users;
+const collaborators = mappeduserState.collaborators;
+const editUser = mappeduserState.userToEdit;
+const userToDelete = mappeduserState.userToDelete;
 
   //the methods:
 
-  const showEditDialog = userToEdit => {
+  const showEditDialog = (userToEdit) => {
     props.mappedshowEditDialog(userToEdit);
-  };
+  }
 
-  const hideEditDialog = () => {
+  const hideEditDialog = ()=> {
     props.mappedhideEditDialog();
-  };
+  }
 
-  const submitEditUser = e => {
+  const submitEditUser = (e)=> {
     e.preventDefault();
-    const editForm = document.getElementById('EditUserForm');
+    const editForm = document.getElementById("EditUserForm");
     const userData = props.mappeduserState;
-    if (editForm.userName.value !== '') {
+    if (editForm.userName.value !== "") {
       const data = new FormData();
       data.append('id', userData.userToEdit._id);
       data.append('userName', editForm.userName.value);
       data.append('firstName', editForm.firstName.value);
       data.append('lastName', editForm.lastName.value);
       data.append('email', editForm.email.value);
-      //add the role in the near future.
       props.mappedEditUser(data);
     } else {
       return;
     }
-  };
+  }
 
-  const showDeleteDialog = userToDelete => {
+  const showDeleteDialog = (userToDelete)=> {
     props.mappedShowDeleteDialog(userToDelete);
-  };
+  }
 
-  const hideDeleteDialog = () => {
+  const hideDeleteDialog = ()=> {
     props.mappedHideDeleteDialog();
-  };
+  }
 
   const cofirmDeleteUser = () => {
     props.mappedConfirmDeleteUser(mappeduserState.userToDelete);
-  };
+  }
 
-  const showConfirmDialog = userToConfirm => {
+  const showConfirmDialog = (userToConfirm) => {
     props.mappedShowConfirmDialog(userToConfirm);
-  };
+  }
 
-  const hideConfirmDialog = () => {
+ const  hideConfirmDialog = () => {
     props.mappedhideConfirmDialog();
-  };
+  }
 
   const approveConfirmUser = () => {
     props.mappedApproveConfirmUser(mappeduserState.userToConfirm);
-  };
+  }
 
   const classes = useStyles();
   const [selectedUsers, setSelectedUsers] = useState([]);
@@ -141,6 +141,7 @@ const UsersTable = props => {
   const [page, setPage] = useState(0);
 
   const handleSelectAll = event => {
+
     let selectedUsers;
 
     if (event.target.checked) {
@@ -179,24 +180,28 @@ const UsersTable = props => {
   const handleRowsPerPageChange = event => {
     setRowsPerPage(event.target.value);
   };
-  //
 
-  useEffect(() => {
+
+  useEffect(()=>{
     props.fetchUsers();
-  }, []);
+  
+    },[]);
+
 
   return (
-    <Card {...rest} className={clsx(classes.root, className)}>
+    <Card
+      {...rest}
+      className={clsx(classes.root, className)}
+    >
+
       {/*************************** list all the users **********************************************/}
       {!users && props.mappeduserState.isFetching && <p>Loading users...</p>}
-      {users.length <= 0 && !props.mappeduserState.isFetching && (
-        <p>No Users Available. And A User to List here</p>
-      )}
-
-      {/* for the users */}
-      {/* check if this is an super admin or an admin */}
-      {/* if super admin, use User Table, if just admin, use Collaborator Table */}
-      {/* To use the different tables, it will just have to be different APIs */}
+      {users.length <=0 && !props.mappeduserState.isFetching && <p>No Users Available. And A User to List here</p>}
+      
+        {/* for the users */}
+        {/* check if this is an super admin or an admin */}
+        {/* if super admin, use User Table, if just admin, use Collaborator Table */}
+        {/* To use the different tables, it will just have to be different APIs */}
 
       <CardContent className={classes.content}>
         <PerfectScrollbar>
@@ -218,9 +223,7 @@ const UsersTable = props => {
                   <TableCell>Full Name</TableCell>
                   <TableCell>email</TableCell>
                   <TableCell>Username</TableCell>
-                  <TableCell>Role</TableCell>
                   <TableCell>Action</TableCell>
-                  
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -230,7 +233,8 @@ const UsersTable = props => {
                     className={classes.tableRow}
                     hover
                     key={user._id}
-                    selected={selectedUsers.indexOf(user.firstName) !== -1}>
+                    selected={selectedUsers.indexOf(user.firstName) !== -1}
+                  >
                     <TableCell padding="checkbox">
                       <Checkbox
                         checked={selectedUsers.indexOf(user._id) !== -1}
@@ -241,37 +245,26 @@ const UsersTable = props => {
                     </TableCell>
                     <TableCell>
                       <div className={classes.nameContainer}>
-                        <Avatar className={classes.avatar} src={user.avatarUrl}>
-                          {getInitials(
-                            `${user.firstName + ' ' + user.lastName}`
-                          )}
+                        <Avatar
+                          className={classes.avatar}
+                          src={user.avatarUrl}
+                        >
+                          {getInitials( `${user.firstName+" "+user.lastName}`)}
                         </Avatar>
-                        <Typography variant="body1">
-                          {' '}
-                          {user.firstName + ' ' + user.lastName}
-                        </Typography>
+                        <Typography variant="body1"> {user.firstName+" "+user.lastName}</Typography>
                       </div>
                     </TableCell>
                     <TableCell>{user.email}</TableCell>
                     {/* <TableCell>
                       {moment(user.createdAt).format('DD/MM/YYYY')}
                     </TableCell> */}
-                    <TableCell>{user.userName}</TableCell>
-                    <TableCell>{user.privilege}</TableCell>
                     <TableCell>
-                      <Button
-                        color="primary"
-                        onClick={() => showEditDialog(user)}>
-                        Update
-                      </Button>{' '}
-                      |
-                      <Button onClick={() => showDeleteDialog(user)}>
-                        Delete
-                      </Button>{' '}
-                      {/* |
-                      <Button onClick={() => showConfirmDialog(user)}>
-                        Confirm
-                      </Button> */}
+                      {user.userName}
+                    </TableCell>
+                    <TableCell>
+                      <Button color="primary" onClick={()=> showEditDialog(user)}>Update</Button> | 
+                      <Button onClick={()=>showDeleteDialog(user)}>Delete</Button> | 
+                      <Button onClick={()=>showConfirmDialog(user)}>Confirm</Button>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -293,110 +286,119 @@ const UsersTable = props => {
         />
       </CardActions>
 
-      {/*************************** the edit dialog **********************************************/}
-      <Dialog
-        open={props.mappeduserState.showEditDialog}
-        onClose={hideEditDialog}
-        aria-labelledby="form-dialog-title">
-        <DialogTitle></DialogTitle>
-        <DialogContent></DialogContent>
-        <DialogContent>
-          <DialogContentText>Edit the user's details</DialogContentText>
+{/*************************** the edit dialog **********************************************/}
+<Dialog
+open={props.mappeduserState.showEditDialog}
+onClose={hideEditDialog}
+aria-labelledby="form-dialog-title">
 
-          {editUser && (
-            <UserEditForm userData={editUser} editUser={submitEditUser} />
-          )}
+  <DialogTitle></DialogTitle>
+  <DialogContent></DialogContent>
+  <DialogContent>
+<DialogContentText>Edit the user's details</DialogContentText>
 
-          {editUser && mappeduserState.isFetching && (
-            <Alert icon={<Check fontSize="inherit" />} severity="success">
-              Updating....
-            </Alert>
-          )}
+{
+editUser &&
+  <UserEditForm
+userData={editUser}
+editUser={submitEditUser}
+/>
+}
 
-          {editUser && !mappeduserState.isFetching && mappeduserState.error && (
-            <Alert severity="error">
-              <AlertTitle>Failed</AlertTitle>
-              <strong> {mappeduserState.error} </strong>
-            </Alert>
-          )}
+{
+editUser && mappeduserState.isFetching && 
+<Alert 
+  icon={<Check fontSize="inherit"/>}
+  severity="success">
+Updating....
+</Alert>
+}
 
-          {editUser &&
-            !mappeduserState.isFetching &&
-            mappeduserState.successMsg && (
-              <Alert severity="success">
-                <AlertTitle>Success</AlertTitle>
-                <strong>{editUser.firstName}</strong>{' '}
-                {mappeduserState.successMsg}
-              </Alert>
-            )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={hideEditDialog} color="primary" variant="contained">
-            cancel
-          </Button>
-        </DialogActions>
-      </Dialog>
+{
+editUser && !mappeduserState.isFetching && mappeduserState.error && 
+<Alert severity="error">
+<AlertTitle>Failed</AlertTitle>
+<strong> {userState.error} </strong>
+</Alert>
+}
 
-      {/***************************************** deleting a user ***********************************/}
+{
+  editUser && !mappeduserState.isFetching && mappeduserState.successMsg && 
+  <Alert severity="success">
+<AlertTitle>
+  Success
+</AlertTitle>
+<strong>{editUser.firstName}</strong> {mappeduserState.successMsg}
+  </Alert>
+}
+  </DialogContent>
+  <DialogActions>
+    <Button onClick={hideEditDialog} color="primary">
+cancel
+    </Button>
+  </DialogActions>
+</Dialog>
 
-      <Dialog
-        open={props.mappeduserState.showDeleteDialog}
-        onClose={hideDeleteDialog}
-        aria-labelledby="form-dialog-title">
-        <DialogContent>
-          <DialogContentText>Delete User</DialogContentText>
+{/***************************************** deleting a user ***********************************/}
 
-          {props.mappeduserState.userToDelete &&
-            !userToDelete.error &&
-            !userToDelete.isFetching && (
-              <Alert severity="warning">
-                <AlertTitle>Warning</AlertTitle>
-                Are you sure you want to delete this user —{' '}
-                <strong>{props.mappeduserState.userToDelete.firstName}</strong>?
-                <strong> {mappeduserState.error} </strong>
-              </Alert>
-            )}
+<Dialog
+open={props.mappeduserState.showDeleteDialog}
+onClose={hideDeleteDialog}
+aria-labelledby="form-dialog-title">
 
-          {mappeduserState.userToDelete && mappeduserState.error && (
-            <Alert severity="error">
-              <AlertTitle>Failed</AlertTitle>
-              <strong> {mappeduserState.error} </strong>
-            </Alert>
-          )}
+  <DialogContent>
+<DialogContentText>Delete User</DialogContentText>
 
-          {mappeduserState.userToDelete &&
-            !mappeduserState.error &&
-            mappeduserState.isFetching && (
-              <Alert severity="success">
-                <strong> Deleting.... </strong>
-              </Alert>
-            )}
+{
+  props.mappeduserState.userToDelete && !userToDelete.error && !userToDelete.isFetching && 
+  <Alert severity="warning">
+  <AlertTitle>Warning</AlertTitle>
+Are you sure you want to delete this user — <strong>{props.mappeduserState.userToDelete.firstName}</strong>?
+  <strong> {mappeduserState.error} </strong>
+  </Alert>
+}
 
-          {!mappeduserState.userToDelete &&
-            !mappeduserState.error &&
-            !mappeduserState.isFetching && (
-              <Alert severity="success">
-                <AlertTitle>Success</AlertTitle>
-                User <strong> {mappeduserState.successMsg}</strong>
-              </Alert>
-            )}
-        </DialogContent>
-        <DialogActions>
-          {!mappeduserState.successMsg && !mappeduserState.isFetching && (
-            <div>
-              <Button onClick={cofirmDeleteUser} color="primary">
-                Yes
-              </Button>
-              <Button onClick={hideDeleteDialog} color="primary">
-                No
-              </Button>
-            </div>
-          )}
-          {mappeduserState.successMsg && !mappeduserState.isFetching && (
-            <Button onClick={hideConfirmDialog}>Close</Button>
-          )}
-        </DialogActions>
-      </Dialog>
+{
+mappeduserState.userToDelete && mappeduserState.error && 
+<Alert severity="error">
+<AlertTitle>Failed</AlertTitle>
+<strong> {mappeduserState.error} </strong>
+</Alert>
+}
+
+{
+mappeduserState.userToDelete && !mappeduserState.error && mappeduserState.isFetching && 
+<Alert severity="success">
+<strong> Deleting.... </strong>
+</Alert>
+}
+
+{
+!mappeduserState.userToDelete && !mappeduserState.error && !mappeduserState.isFetching && 
+  <Alert severity="success">
+<AlertTitle>Success</AlertTitle>
+User <strong> {mappeduserState.successMsg}</strong>
+  </Alert>
+}
+  </DialogContent>
+  <DialogActions>
+{!mappeduserState.successMsg && !mappeduserState.isFetching && 
+<div>
+<Button onClick={cofirmDeleteUser} color="primary">
+Yes
+    </Button>
+    <Button onClick={hideDeleteDialog} color="primary">
+No
+    </Button>
+</div>
+}
+{
+mappeduserState.successMsg && !mappeduserState.isFetching && 
+<Button onClick={hideConfirmDialog}>Close</Button>
+}
+  </DialogActions>
+</Dialog>
+
     </Card>
   );
 };
@@ -408,4 +410,4 @@ UsersTable.propTypes = {
   fetchUsers: PropTypes.func.isRequired
 };
 
-export default UsersTable;
+export default UsersTable
