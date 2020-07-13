@@ -1,19 +1,37 @@
 /* eslint-disable */
-import React, {useState} from 'react';
+import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
 import clsx from 'clsx';
 import { makeStyles } from '@material-ui/styles';
-import { Button, TextField } from '@material-ui/core';
-import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogContentText from '@material-ui/core/DialogContentText';
-import DialogTitle from '@material-ui/core/DialogTitle';
+import {
+  Button,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  Input,
+  MenuItem,
+  DialogTitle,
+  DialogContent,
+  Dialog,
+  DialogActions,
+  DialogContentText
+} from '@material-ui/core';
+
+import { useMinimalSelectStyles } from '@mui-treasury/styles/select/minimal';
+
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 
 import { SearchInput } from 'components';
 
 const useStyles = makeStyles(theme => ({
-  root: {},
+  root: {
+    '&$error': {
+      color: 'red'
+    }
+  },
+  error: {},
   row: {
     height: '42px',
     display: 'flex',
@@ -31,82 +49,223 @@ const useStyles = makeStyles(theme => ({
   },
   searchInput: {
     marginRight: theme.spacing(1)
+  },
+  container: {
+    display: 'flex',
+    flexWrap: 'wrap'
+  },
+  textField: {
+    marginLeft: theme.spacing.unit,
+    marginRight: theme.spacing.unit
+  },
+  dense: {
+    marginTop: 16
+  },
+  menu: {
+    width: 200
   }
 }));
 
+const roles = [
+  {
+    value: 'none',
+    label: 'none'
+  },
+  {
+    value: 'admin',
+    label: 'admin'
+  },
+  {
+    value: 'user',
+    label: 'user'
+  },
+  {
+    value: 'collaborator',
+    label: 'collaborator'
+  }
+];
+
+const validPasswordRegex = RegExp(/(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,}/);
+const validEmailRegex = RegExp(
+  /^(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i
+);
+
 /***func starts here....... */
 const UsersToolbar = props => {
-  const { className,mappeduserState, ...rest } = props;
+  const { className, mappeduserState, mappedErrors, ...rest } = props;
 
-  console.log('the mapped state for UsersToolsbar is here:')
+  console.log('the mapped state for UsersToolsbar is here:');
   console.dir(mappeduserState);
-  
+
   const userState = mappeduserState;
 
   const [open, setOpen] = useState(false);
 
   const initialState = {
-    userName:'',
-    firstName:'',
-    lastName:'',
-    email:'',
-    password:'',
-    password2:''
-  }
-  
+    userName: '',
+    firstName: '',
+    lastName: '',
+    email: '',
+    password: '',
+    password2: '',
+    privilege: '',
+    errors: {}
+  };
+
   const [form, setState] = useState(initialState);
 
-  const clearState = ()=>{
-    setState({...initialState});
+  const clearState = () => {
+    setState({ ...initialState });
   };
 
   const classes = useStyles();
 
   const handleClickOpen = () => {
     setOpen(true);
-    //I also need to trigger something here which enables updates the newUser state variable
-    //update the user action for opening the dialog box of adding a new user.
-    //I could now update the state using actions
     props.mappedShowAddDialog();
   };
-
+  //
   const handleClose = () => {
     setOpen(false);
     props.mappedHideAddDialog();
   };
 
-  const hideAddDialog = ()=>{
-props.mappedHideAddDialog();
-  }
-
-  const onChange = (e) => {
-setState({
-  ...form,
-  [e.target.id]:e.target.value
-})
-
+  const hideAddDialog = () => {
+    props.mappedHideAddDialog();
   };
 
-  const onSubmit = (e) =>{
+  const onChange = e => {
     e.preventDefault();
+    const { id, value } = e.target;
+    let errors = form.errors;
+
+    switch (id) {
+      case 'firstName':
+        errors.firstName = value.length === 0 ? 'first name is required' : '';
+        break;
+      case 'lastName':
+        errors.lastName = value.length === 0 ? 'last name is required' : '';
+        break;
+      case 'password':
+        errors.password = validPasswordRegex.test(value)
+          ? ''
+          : 'Minimum six characters, at least one uppercase letter, one lowercase letter and one number!';
+        break;
+      case 'email':
+        errors.email = validEmailRegex.test(value) ? '' : 'Email is not valid!';
+        break;
+      case 'userName':
+        errors.userName = value.length === 0 ? 'userName is required' : '';
+        break;
+      case 'password2':
+        errors.password2 = validPasswordRegex.test(value)
+          ? ''
+          : 'Minimum six characters, at least one uppercase letter, one lowercase letter and one number!';
+        break;
+      case 'privilege':
+        errors.privilege = value.length === 0 ? 'role is required' : '';
+        break;
+
+      default:
+        break;
+    }
+
+    setState(
+      {
+        ...form,
+        [id]: value
+      },
+      () => {
+        console.log(errors);
+      }
+    );
+  };
+
+  const onSubmit = e => {
+    e.preventDefault();
+
+    const { id, value } = e.target;
+    let errors = form.errors;
+
+    switch (id) {
+      case 'firstName':
+        errors.firstName = mappedErrors.errors.firstName;
+        break;
+      case 'lastName':
+        errors.lastName = mappedErrors.errors.lastName;
+        break;
+      case 'email':
+        errors.email = mappedErrors.errors.email;
+        break;
+      case 'password':
+        errors.password = mappedErrors.errors.password;
+        break;
+      case 'password2':
+        errors.password2 = mappedErrors.errors.password2;
+        break;
+      case 'userName':
+        errors.userName = mappedErrors.errors.userName;
+        break;
+      case 'privilege':
+        errors.privilege = mappedErrors.errors.privilege;
+        break;
+      default:
+        break;
+    }
     const userData = {
       userName: form.userName,
       firstName: form.firstName,
       lastName: form.lastName,
       email: form.email,
       password: form.password,
-      password2: form.password2
+      password2: form.password2,
+      privilege: form.privilege
     };
     console.log(userData);
-    props.mappedAddUser(userData);
- clearState();
-  }
+    if (userData.password !== userData.password2) {
+      alert("Passwords don't match");
+    } else {
+      props.mappedAddUser(userData);
+      clearState();
+      handleClose();
+    }
+  };
+
+  const minimalSelectClasses = useMinimalSelectStyles();
+
+  useEffect(() => {
+    clearState();
+  }, []);
+
+  const iconComponent = props => {
+    return (
+      <ExpandMoreIcon
+        className={props.className + ' ' + minimalSelectClasses.icon}
+      />
+    );
+  };
+
+  // moves the menu below the select input
+  const menuProps = {
+    classes: {
+      paper: minimalSelectClasses.paper,
+      list: minimalSelectClasses.list
+    },
+    anchorOrigin: {
+      vertical: 'bottom',
+      horizontal: 'left'
+    },
+    transformOrigin: {
+      vertical: 'top',
+      horizontal: 'left'
+    },
+    getContentAnchorEl: null
+  };
 
   return (
     <div
       // {...rest}
-      className={clsx(classes.root, className)}
-    >
+      className={clsx(classes.root, className)}>
       <div className={classes.row}>
         <SearchInput
           className={classes.searchInput}
@@ -116,9 +275,11 @@ setState({
         <div>
           <Button variant="contained" color="primary" onClick={handleClickOpen}>
             Add User
-      </Button>
-          <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
-
+          </Button>
+          <Dialog
+            open={open}
+            onClose={handleClose}
+            aria-labelledby="form-dialog-title">
             <DialogTitle id="form-dialog-title">Add User</DialogTitle>
             <DialogContent>
               <TextField
@@ -128,76 +289,128 @@ setState({
                 name="Email Address"
                 type="text"
                 label="email"
+                helperText={form.errors.email}
+                error={form.errors.email}
                 onChange={onChange}
+                variant="outlined"
                 value={form.email}
                 fullWidth
               />
+
               <TextField
-                autoFocus
-                margin="dense"
-                id="userName"
-                name="userName"
-                label="user name"
-                type="text"
-                onChange={onChange}
-                value={form.userName}
-                fullWidth
-              />
-               <TextField
-                autoFocus
                 margin="dense"
                 id="firstName"
                 name="firstName"
                 label="first name"
                 type="text"
+                helperText={form.errors.firstName}
+                error={form.errors.firstName}
                 onChange={onChange}
                 value={form.firstName}
+                variant="outlined"
                 fullWidth
               />
-               <TextField
-                autoFocus
+              <TextField
                 margin="dense"
                 id="lastName"
                 label="last name"
                 name="lastName"
                 type="text"
+                helperText={form.errors.lastName}
+                error={form.errors.lastName}
                 onChange={onChange}
                 value={form.lastName}
+                variant="outlined"
                 fullWidth
               />
-               <TextField
-                autoFocus
+
+              <TextField
+                margin="dense"
+                id="userName"
+                name="userName"
+                label="user name"
+                type="text"
+                helperText={form.errors.userName}
+                error={form.errors.userName}
+                onChange={onChange}
+                value={form.userName}
+                variant="outlined"
+                fullWidth
+              />
+              <TextField
                 margin="dense"
                 id="password"
                 name="password"
+                autoComplete="new-password"
                 label="password"
+                helperText={form.errors.password}
+                error={form.errors.password}
                 type="password"
                 onChange={onChange}
                 value={form.password}
+                variant="outlined"
                 fullWidth
+                InputProps={{
+                  autocomplete: 'new-password',
+                  form: {
+                    autocomplete: 'off'
+                  }
+                }}
               />
-               <TextField
-                autoFocus
+              <TextField
                 margin="dense"
                 id="password2"
                 label="confirm password"
                 name="password2"
                 type="password"
+                label="confirmation password"
                 onChange={onChange}
+                variant="outlined"
                 value={form.password2}
+                helperText={form.errors.password2}
+                error={form.errors.password2}
                 fullWidth
+                InputProps={{
+                  autocomplete: 'new-password',
+                  form: {
+                    autocomplete: 'off'
+                  }
+                }}
               />
+              <TextField
+                id="privilege"
+                select
+                label="Role"
+                className={classes.textField}
+                value={form.privilege}
+                onChange={onChange}
+                variant="outlined"
+                SelectProps={{
+                  native: true,
+                  MenuProps: {
+                    className: classes.menu
+                  }
+                }}
+                helperText={form.errors.privilege}
+                error={form.errors.privilege}
+                margin="normal"
+                variant="outlined">
+                {roles.map(option => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </TextField>
             </DialogContent>
 
             <DialogActions>
-           <Button onClick={handleClose} color="primary">
+              <Button onClick={handleClose} color="primary" variant="outlined">
                 Cancel
-          </Button>
-              <Button onClick={onSubmit} color="primary">
+              </Button>
+              <Button onClick={onSubmit} color="primary" variant="outlined">
                 Submit
-          </Button>
+              </Button>
             </DialogActions>
-            
           </Dialog>
         </div>
       </div>
@@ -205,8 +418,19 @@ setState({
   );
 };
 
+// UsersToolbar.propTypes = {
+//   className: PropTypes.string
+// };
+
+// export default UsersToolbar;
+
 UsersToolbar.propTypes = {
+  auth: PropTypes.object.isRequired,
+  errors: PropTypes.object.isRequired,
   className: PropTypes.string
 };
-
-export default UsersToolbar;
+const mapStateToProps = state => ({
+  auth: state.auth,
+  errors: state.errors
+});
+export default connect(mapStateToProps)(UsersToolbar);

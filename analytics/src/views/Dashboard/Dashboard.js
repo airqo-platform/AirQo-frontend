@@ -1,10 +1,25 @@
 import React from 'react';
 import { makeStyles } from '@material-ui/styles';
-import { Grid, Card, CardContent, CardHeader, Button, Divider, CardActions } from '@material-ui/core';
+import {
+  Grid,
+  Card,
+  CardContent,
+  CardHeader,
+  Button,
+  Divider,
+  CardActions
+} from '@material-ui/core';
 import { Line, Bar } from 'react-chartjs-2';
 import clsx from 'clsx';
 import PropTypes from 'prop-types';
-import { Pm25Levels, Map, CustomisableChart, PollutantCategory, ExceedancesChart, TotalProfit } from './components';
+import {
+  Pm25Levels,
+  Map,
+  CustomisableChart,
+  PollutantCategory,
+  ExceedancesChart,
+  TotalProfit
+} from './components';
 import { useEffect, useState } from 'react';
 import 'chartjs-plugin-annotation';
 import palette from 'theme/palette';
@@ -12,17 +27,13 @@ import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
 import ArrowRightIcon from '@material-ui/icons/ArrowRight';
 //import Legend from './components/Map/Legend'
 import axios from 'axios';
- 
 
 const useStyles = makeStyles(theme => ({
   root: {
     padding: theme.spacing(4)
   },
-  chartCard:{
-
-  },
   differenceIcon: {
-    color: theme.palette.text.secondary,
+    color: theme.palette.text.secondary
   },
   chartContainer: {
     height: 180,
@@ -33,85 +44,168 @@ const useStyles = makeStyles(theme => ({
   }
 }));
 
-
 const Dashboard = props => {
   const classes = useStyles();
-  const { className, staticContext, ...rest } = props;
+  const {
+    className,
+    staticContext,
+    mappedAuth,
+    mappeduserState,
+    mappedErrors,
+    ...rest
+  } = props;
+  const { user, isAuthenticated } = mappedAuth;
 
-  function appendLeadingZeroes(n){
-    if(n <= 9){
+  function appendLeadingZeroes(n) {
+    if (n <= 9) {
       return '0' + n;
     }
     return n
   }
 
-  let todaysDate = new Date()
-  const dateValue = appendLeadingZeroes(todaysDate.getDate() +'/'+appendLeadingZeroes(todaysDate.getMonth()+1)+'/'+ todaysDate.getFullYear())
- 
+  let todaysDate = new Date();
+  const dateValue = appendLeadingZeroes(
+    todaysDate.getDate() +
+      '/' +
+      appendLeadingZeroes(todaysDate.getMonth() + 1) +
+      '/' +
+      todaysDate.getFullYear()
+  );
+
   const [backgroundColors, setBackgroundColors] = useState([]);
 
-  const [pm25CategoriesLocationCount, setPm25CategoriesLocationCount] = useState([]);
+  const [
+    pm25CategoriesLocationCount,
+    setPm25CategoriesLocationCount
+  ] = useState([]);
+
+  // useEffect(() => {
+  //   try{
+  //       props.fetchDefaults(user._id);
+  //   }
+  //   catch(e){
+  //   console.log(e);
+  //   }
+  //     }, []);
+
+  //   useEffect(() => {
+  // return ()=>{
+  //   props.fetchDefaults(user._id);
+  // }
+
+  //   }, []);
+
+  //load JIRA Helpdek widget
+  // console.log(user._id);
+  useEffect(() => {
+    // if (user._id != {}) {
+    function jiraHelpdesk(callback) {
+      let jhdScript = document.createElement('script');
+      jhdScript.type = 'text/javascript';
+      jhdScript.setAttribute('data-jsd-embedded', null);
+      jhdScript.setAttribute(
+        'data-key',
+        'cf4a44fc-f333-4e48-8e6c-6b94f97cea15'
+      );
+      jhdScript.setAttribute(
+        'data-base-url',
+        'https://jsd-widget.atlassian.com'
+      );
+      jhdScript.src = 'https://jsd-widget.atlassian.com/assets/embed.js';
+      if (jhdScript.readyState) {
+        // old IE support
+        jhdScript.onreadystatechange = function() {
+          if (
+            jhdScript.readyState === 'loaded' ||
+            jhdScript.readyState === 'complete'
+          ) {
+            jhdScript.onreadystatechange = null;
+            callback();
+          }
+        };
+      } else {
+        //modern browsers
+        jhdScript.onload = function() {
+          callback();
+        };
+      }
+      document.getElementsByTagName('head')[0].appendChild(jhdScript);
+    }
+
+    jiraHelpdesk(function() {
+      let DOMContentLoaded_event = document.createEvent('Event');
+      DOMContentLoaded_event.initEvent('DOMContentLoaded', true, true);
+      window.document.dispatchEvent(DOMContentLoaded_event);
+    });
+  }, []);
 
   useEffect(() => {
-    // axios.get('https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/locations/pm25categorycount?organisation_name=KCCA')
-    axios.get('http://127.0.0.1:5000/api/v1/dashboard/locations/pm25categorycount?organisation_name=KCCA')
+    axios
+      .get(
+        'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/locations/pm25categorycount?organisation_name=KCCA'
+      )
+      //axios.get('http://127.0.0.1:5000/api/v1/dashboard/locations/pm25categorycount?organisation_name=KCCA')
       .then(res => res.data)
-      .then((data) => {        
-        setPm25CategoriesLocationCount(data);        
-        console.log(data)  
-        //console.log(data.pm25_categories)           
+      .then(data => {
+        setPm25CategoriesLocationCount(data);
+        console.log(data);
+        //console.log(data.pm25_categories)
       })
-      .catch(console.log)
+      .catch(e => {
+        console.log(e);
+      });
   }, []);
 
   const [locations,setLocations] = useState([]);
 
   useEffect(() => {
-    fetch('https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/historical/daily/devices')
-    //fetch('http://127.0.0.1:5000/api/v1/dashboard/historical/daily/devices')
+    fetch(
+      'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/historical/daily/devices'
+    )
+      //fetch('http://127.0.0.1:5000/api/v1/dashboard/historical/daily/devices')
       .then(res => res.json())
-      .then((locationsData) => {        
-        setLocations(locationsData.results);        
+      .then(locationsData => {
+        setLocations(locationsData.results);
       })
-      .catch(console.log)
-  },[]);
+      .catch(e => {
+        console.log(e);
+      });
+  }, []);
 
- 
   const locationsGraphData = {
     labels: locations.labels,
     datasets: [
       {
         label: 'PM2.5(µg/m3)',
         data: locations.average_pm25_values,
-        fill: false,          // Don't fill area under the line
-        borderColor: palette.primary.main , // Line color
+        fill: false, // Don't fill area under the line
+        borderColor: palette.primary.main, // Line color
         backgroundColor: locations.background_colors //palette.primary.main,
       }
     ]
-  }
-  
-
+  };
 
   
   const options_main= {
     annotation: {
-      annotations: [{
-        type: 'line',
-        mode: 'horizontal',
-        scaleID: 'y-axis-0',
-        value: 25,
-        borderColor: palette.text.secondary,
-        borderWidth: 2,
-        label: {
-          enabled: true,
-          content: 'WHO AQG',
-          //backgroundColor: palette.white,
-          titleFontColor: palette.text.primary,
-          bodyFontColor: palette.text.primary,
-          position:'right'
-        },
-        
-      }]
+      annotations: [
+        {
+          type: 'line',
+          mode: 'horizontal',
+          scaleID: 'y-axis-0',
+          value: 25,
+          borderColor: palette.text.secondary,
+          borderWidth: 2,
+          label: {
+            enabled: true,
+            content: 'WHO AQG',
+            //backgroundColor: palette.white,
+            titleFontColor: palette.text.primary,
+            bodyFontColor: palette.text.primary,
+            position: 'right'
+          }
+        }
+      ]
     },
     responsive: true,
     maintainAspectRatio: false,
@@ -144,7 +238,7 @@ const Dashboard = props => {
           barPercentage: 0.5,
           categoryPercentage: 0.5,
           ticks: {
-            fontColor: palette.text.secondary,
+            fontColor: palette.text.secondary
             //fontSize:10
           },
           gridLines: {
@@ -155,7 +249,6 @@ const Dashboard = props => {
             display: true,
             labelString: 'Locations'
           }
-
         }
       ],
       yAxes: [
@@ -199,8 +292,14 @@ const Dashboard = props => {
         >
           <PollutantCategory
             pm25level="Good"
-            pm25levelCount={typeof pm25CategoriesLocationCount != 'undefined' && 
-            pm25CategoriesLocationCount !=null && pm25CategoriesLocationCount.length >0 ?pm25CategoriesLocationCount[0]['locations_with_category_good'].category_count:''}
+            pm25levelCount={
+              typeof pm25CategoriesLocationCount != 'undefined' &&
+              pm25CategoriesLocationCount != null &&
+              pm25CategoriesLocationCount.length > 0
+                ? pm25CategoriesLocationCount[0]['locations_with_category_good']
+                    .category_count
+                : ''
+            }
             iconClass="pm25Good"
           />
         </Grid>       
@@ -214,8 +313,15 @@ const Dashboard = props => {
         >
           <PollutantCategory
             pm25level="Moderate"
-            pm25levelCount={typeof pm25CategoriesLocationCount != 'undefined' && 
-            pm25CategoriesLocationCount !=null && pm25CategoriesLocationCount.length >0 ? pm25CategoriesLocationCount[1]['locations_with_category_moderate'].category_count:''}
+            pm25levelCount={
+              typeof pm25CategoriesLocationCount != 'undefined' &&
+              pm25CategoriesLocationCount != null &&
+              pm25CategoriesLocationCount.length > 0
+                ? pm25CategoriesLocationCount[1][
+                    'locations_with_category_moderate'
+                  ].category_count
+                : ''
+            }
             iconClass="pm25Moderate"
           />
         </Grid>
@@ -228,8 +334,14 @@ const Dashboard = props => {
         >
           <PollutantCategory
             pm25level="UHFSG"
-            pm25levelCount={typeof pm25CategoriesLocationCount != 'undefined' && 
-            pm25CategoriesLocationCount !=null && pm25CategoriesLocationCount.length >0 ?pm25CategoriesLocationCount[2].locations_with_category_UH4SG.category_count:''}
+            pm25levelCount={
+              typeof pm25CategoriesLocationCount != 'undefined' &&
+              pm25CategoriesLocationCount != null &&
+              pm25CategoriesLocationCount.length > 0
+                ? pm25CategoriesLocationCount[2].locations_with_category_UH4SG
+                    .category_count
+                : ''
+            }
             iconClass="pm25UH4SG"
           />
         </Grid>
@@ -243,8 +355,14 @@ const Dashboard = props => {
         >
           <PollutantCategory
             pm25level="Unhealthy"
-            pm25levelCount={typeof pm25CategoriesLocationCount != 'undefined' && 
-            pm25CategoriesLocationCount !=null && pm25CategoriesLocationCount.length >0 ?pm25CategoriesLocationCount[3].locations_with_category_unhealth.category_count:''}
+            pm25levelCount={
+              typeof pm25CategoriesLocationCount != 'undefined' &&
+              pm25CategoriesLocationCount != null &&
+              pm25CategoriesLocationCount.length > 0
+                ? pm25CategoriesLocationCount[3]
+                    .locations_with_category_unhealth.category_count
+                : ''
+            }
             iconClass="pm25UnHealthy"
           />
         </Grid>
@@ -258,8 +376,14 @@ const Dashboard = props => {
         >
           <PollutantCategory
             pm25level="Very Unhealthy"
-            pm25levelCount={typeof pm25CategoriesLocationCount != 'undefined' && 
-            pm25CategoriesLocationCount !=null && pm25CategoriesLocationCount.length >0 ?pm25CategoriesLocationCount[4].locations_with_category_very_unhealthy.category_count:''}
+            pm25levelCount={
+              typeof pm25CategoriesLocationCount != 'undefined' &&
+              pm25CategoriesLocationCount != null &&
+              pm25CategoriesLocationCount.length > 0
+                ? pm25CategoriesLocationCount[4]
+                    .locations_with_category_very_unhealthy.category_count
+                : ''
+            }
             iconClass="pm25VeryUnHealthy"
           />
         </Grid>
@@ -272,8 +396,14 @@ const Dashboard = props => {
         >
           <PollutantCategory
             pm25level="Hazardous"
-            pm25levelCount={typeof pm25CategoriesLocationCount != 'undefined' && 
-            pm25CategoriesLocationCount !=null && pm25CategoriesLocationCount.length >0 ?pm25CategoriesLocationCount[5].locations_with_category_hazardous.category_count:''}
+            pm25levelCount={
+              typeof pm25CategoriesLocationCount != 'undefined' &&
+              pm25CategoriesLocationCount != null &&
+              pm25CategoriesLocationCount.length > 0
+                ? pm25CategoriesLocationCount[5]
+                    .locations_with_category_hazardous.category_count
+                : ''
+            }
             iconClass="pm25Harzadous"
           />
         </Grid>
