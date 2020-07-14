@@ -19,7 +19,14 @@ const devConfig = {
   GET_PM25_CATEGORY_COUNT_URI:'http://127.0.0.1:5000/api/v1/dashboard/locations/pm25categorycount?organisation_name=KCCA',
   GET_HISTORICAL_DAILY_MEAN_AVERAGES_FOR_LAST_28_DAYS_URI:'http://127.0.0.1:5000/api/v1/dashboard/historical/daily/devices',
   GENERATE_DEVICE_GRAPH_URI:'http://127.0.0.1:5000/api/v1/device/graph',
-  DOWNLOAD_CUSTOMISED_DATA_URI: 'http://127.0.0.1:5000/api/v1/data/download'
+  DOWNLOAD_CUSTOMISED_DATA_URI: 'http://127.0.0.1:5000/api/v1/data/download',
+  GET_DEFAULT_REPORT_TEMPLATE_URI:'http://127.0.0.1:5000/api/v1/report/get_default_report_template',
+  SAVE_MONTHLY_REPORT_URI:'http://127.0.0.1:5000/api/v1/report/save_monthly_report',
+  GET_MONTHLY_REPORT_URI:'http://127.0.0.1:5000/api/v1/report/get_monthly_report/',
+  DELETE_MONTHLY_REPORT_URI:'http://127.0.0.1:5000/api/v1/report/delete_monthly_report/',
+  UPDATE_MONTHLY_REPORT_URI:'http://127.0.0.1:5000/api/v1/report/update_monthly_report/',
+  EXCEEDANCES_URI:'http://127.0.0.1:5000/api/v1/dashboard/exceedances',
+  GET_MONITORING_SITES_URI:'http://127.0.0.1:5000/api/v1/dashboard/monitoringsites?organisation_name=KCCA'
 };
 const testConfig = {
   VERIFY_TOKEN_URI: 'http://localhost:3000/api/v1/users/reset/you',
@@ -64,7 +71,14 @@ const stageConfig = {
   GET_PM25_CATEGORY_COUNT_URI:'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/locations/pm25categorycount?organisation_name=KCCA',
   GET_HISTORICAL_DAILY_MEAN_AVERAGES_FOR_LAST_28_DAYS_URI:'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/historical/daily/devices',
   GENERATE_DEVICE_GRAPH_URI:'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/device/graph',
-  DOWNLOAD_CUSTOMISED_DATA_URI: 'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/data/download'
+  DOWNLOAD_CUSTOMISED_DATA_URI: 'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/data/download',
+  GET_DEFAULT_REPORT_TEMPLATE_URI:'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/report/get_default_report_template',
+  SAVE_MONTHLY_REPORT_URI:'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/report/save_monthly_report',
+  GET_MONTHLY_REPORT_URI:'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/report/get_monthly_report/',
+  DELETE_MONTHLY_REPORT_URI:'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/report/delete_monthly_report/',
+  UPDATE_MONTHLY_REPORT_URI:'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/report/update_monthly_report/',
+  EXCEEDANCES_URI:'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/exceedances',
+  GET_MONITORING_SITES_URI:'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/monitoringsites?organisation_name=KCCA'
 };
 const prodConfig = {
   VERIFY_TOKEN_URI:
@@ -93,7 +107,14 @@ const prodConfig = {
   GET_PM25_CATEGORY_COUNT_URI:'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/locations/pm25categorycount?organisation_name=KCCA',
   GET_HISTORICAL_DAILY_MEAN_AVERAGES_FOR_LAST_28_DAYS_URI:'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/historical/daily/devices',
   GENERATE_DEVICE_GRAPH_URI:'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/device/graph',
-  DOWNLOAD_CUSTOMISED_DATA_URI: 'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/data/download'
+  DOWNLOAD_CUSTOMISED_DATA_URI: 'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/data/download',
+  GET_DEFAULT_REPORT_TEMPLATE_URI:'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/report/get_default_report_template',
+  SAVE_MONTHLY_REPORT_URI:'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/report/save_monthly_report',
+  GET_MONTHLY_REPORT_URI:'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/report/get_monthly_report/',
+  DELETE_MONTHLY_REPORT_URI:'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/report/delete_monthly_report/',
+  UPDATE_MONTHLY_REPORT_URI:'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/report/update_monthly_report/',
+  EXCEEDANCES_URI:'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/exceedances',
+  GET_MONITORING_SITES_URI:'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/monitoringsites?organisation_name=KCCA'
 };
 const defaultConfig = {
   PORT: process.env.PORT || 5000,

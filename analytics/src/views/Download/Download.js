@@ -45,8 +45,7 @@ const Download = (props) => {
   const [filterLocations,setFilterLocations] = useState([]);
 
   useEffect(() => {
-    fetch(constants.GET_MONITORING_SITES_LOCATIONS_URI)
-    //fetch('http://127.0.0.1:5000/api/v1/dashboard/monitoringsites/locations?organisation_name=KCCA')
+    fetch(constants.GET_MONITORING_SITES_LOCATIONS_URI)    
       .then(res => res.json())
       .then((filterLocationsData) => {
         setFilterLocations(filterLocationsData.airquality_monitoring_sites)
@@ -124,9 +123,8 @@ const Download = (props) => {
     console.log(JSON.stringify(params));
   
    
-    axios.post(
-      'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/data/download',
-      //'http://localhost:5000/api/v1/data/download', 
+    axios.post(constants.DOWNLOAD_CUSTOMISED_DATA_URI
+      , 
       JSON.stringify(params),
       { headers: { 'Content-Type': 'application/json' } }
     ).then(res => res.data)
