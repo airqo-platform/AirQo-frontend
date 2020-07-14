@@ -267,11 +267,11 @@ const LocationRegister = props => {
 	  setRoadIntensity(selectedRoadIntensity);
   }
   const roadIntensityOptions = [
-    { value: 'Minimal', label: 'Minimal' },
-    { value: 'Light', label: 'Light' },
-    { value: 'Moderate', label: 'Moderate' },
-	  { value: 'Heavy', label: 'Heavy' },
-	  { value: 'Extreme', label: 'Extreme' },
+    { value: '1', label: '1' },
+    { value: '2', label: '2' },
+    { value: '3', label: '3' },
+	  { value: '4', label: '4' },
+	  { value: '5', label: '5' },
 	];
   
   const [mobile, setMobile] = useState(false);
@@ -360,7 +360,7 @@ const localActivitiesOptions = [
       localActivities: localActivities,	
     }
     console.log(JSON.stringify(filter));
-  
+   
     axios.post(
       'http://127.0.0.1:4000/api/v1/location_registry/register', 
       //constants.REGISTER_LOCATION_URI,
@@ -383,9 +383,9 @@ const localActivitiesOptions = [
     return(
     <div className={classes.root}> 
     <LoadingOverlay
-      active={isLoading}
+      active={isLoading}             
       spinner
-      text='Saving Location...'
+      text='Saving Location. This may take a few minutes...'
     >
           
     <form onSubmit={handleSubmit} className={classes.formControl}>
