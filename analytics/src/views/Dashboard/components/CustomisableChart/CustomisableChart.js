@@ -20,6 +20,7 @@ import Typography from '@material-ui/core/Typography';
 import {MoreHoriz, Close} from '@material-ui/icons';
 import MuiDialogTitle from '@material-ui/core/DialogTitle';
 import validate from 'validate.js';
+import constants from '../../../../config/constants'
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -246,9 +247,7 @@ const CustomisableChart = props => {
     }
     //console.log(JSON.stringify(filter));
 
-    axios.post(
-      'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/customisedchart',      
-      //'http://127.0.0.1:5000/api/v1/dashboard/customisedchart', 
+    axios.post(constants.GENERATE_CUSTOMISABLE_CHARTS_URI, 
       JSON.stringify(filter),
       { headers: { 'Content-Type': 'application/json' } }
     ).then(res => res.data)
