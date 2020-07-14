@@ -140,8 +140,7 @@ const CustomisableChart = props => {
   const [filterLocations,setFilterLocations] = useState([]);
   
   useEffect(() => {
-    fetch('https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/monitoringsites/locations?organisation_name=KCCA')
-    //fetch('http://127.0.0.1:5000/api/v1/dashboard/monitoringsites/locations?organisation_name=KCCA')
+    fetch(constants.GET_MONITORING_SITES_LOCATIONS_URI)    
       .then(res => res.json())
       .then((filterLocationsData) => {
         setFilterLocations(filterLocationsData.airquality_monitoring_sites)
@@ -220,8 +219,7 @@ const CustomisableChart = props => {
 
   useEffect(() => {
     
-    axios.get('https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/customisedchart/random')
-    //axios.get('http://127.0.0.1:5000/api/v1/dashboard/customisedchart/random')
+    axios.get(constants.GET_CUSTOMISABLE_CHART_INITIAL_DATA_URI)   
       .then(res => res.data)
       .then((customisedChartData) => {
         setCustomisedGraphData(customisedChartData)

@@ -14,6 +14,8 @@ const devConfig = {
   GET_CANDIDATES_URI: 'http://localhost:3000/api/v1/users/candidates/fetch',
   DEFAULTS_URI: 'http://localhost:3000/api/v1/users/defaults',
   GENERATE_CUSTOMISABLE_CHARTS_URI: 'http://127.0.0.1:5000/api/v1/dashboard/customisedchart',
+  GET_CUSTOMISABLE_CHART_INITIAL_DATA_URI: 'http://127.0.0.1:5000/api/v1/dashboard/customisedchart/random',
+  GET_MONITORING_SITES_LOCATIONS_URI: 'http://127.0.0.1:5000/api/v1/dashboard/monitoringsites/locations?organisation_name=KCCA'
 };
 const testConfig = {
   VERIFY_TOKEN_URI: 'http://localhost:3000/api/v1/users/reset/you',
@@ -53,6 +55,8 @@ const stageConfig = {
     'https://airqo-250220.uc.r.appspot.com/api/v1/users/candidates/fetch',
   DEFAULTS_URI: 'https://airqo-250220.uc.r.appspot.com/api/v1/users/defaults',
   GENERATE_CUSTOMISABLE_CHARTS_URI: 'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/customisedchart',
+  GET_CUSTOMISABLE_CHART_INITIAL_DATA_URI: 'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/customisedchart/random',
+  GET_MONITORING_SITES_LOCATIONS_URI: 'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/monitoringsites/locations?organisation_name=KCCA'
 };
 const prodConfig = {
   VERIFY_TOKEN_URI:
@@ -76,6 +80,8 @@ const prodConfig = {
     'https://airqo-250220.uc.r.appspot.com/api/v1/users/candidates/fetch',
   DEFAULTS_URI: 'https://airqo-250220.uc.r.appspot.com/api/v1/users/defaults',
   GENERATE_CUSTOMISABLE_CHARTS_URI: 'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/customisedchart',
+  GET_CUSTOMISABLE_CHART_INITIAL_DATA_URI: 'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/customisedchart/random',
+  GET_MONITORING_SITES_LOCATIONS_URI: 'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/monitoringsites/locations?organisation_name=KCCA'
 };
 const defaultConfig = {
   PORT: process.env.PORT || 5000,
