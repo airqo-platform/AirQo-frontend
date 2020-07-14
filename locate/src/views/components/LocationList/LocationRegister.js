@@ -493,6 +493,7 @@ const localActivitiesOptions = [
             <div className={classes.formControl} style={{width: '250px'}}>
             <span>Latitude</span>
               <TextField 
+                required
                 className={classes.textField}
                 id="latitude" 
                 value = {latitude}
@@ -518,6 +519,7 @@ const localActivitiesOptions = [
             <div className={classes.formControl} style={{width: '250px'}}>
             <span>Longitude</span>
               <TextField 
+                required
                 className={classes.textField}
                 id="longitude" 
                 value = {longitude}
