@@ -7,10 +7,10 @@ import clsx from 'clsx';
 import DateFnsUtils from '@date-io/date-fns';
 import {MuiPickersUtilsProvider, KeyboardTimePicker, KeyboardDatePicker} from '@material-ui/pickers';
 import axios from 'axios';
-//import {PollutantCategory} from '../Dashboard/components'
 //import CsvDownloader from 'react-csv-downloader';
 import jsonexport from 'jsonexport'
 //import {CSVDownload} from 'react-csv';
+import constants from 'config/constants'
 const { Parser, transforms: { unwind } } = require('json2csv');
 const useStyles = makeStyles(theme => ({
   root: {
@@ -45,7 +45,7 @@ const Download = (props) => {
   const [filterLocations,setFilterLocations] = useState([]);
 
   useEffect(() => {
-    fetch('https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/monitoringsites/locations?organisation_name=KCCA')
+    fetch(constants.GET_MONITORING_SITES_LOCATIONS_URI)
     //fetch('http://127.0.0.1:5000/api/v1/dashboard/monitoringsites/locations?organisation_name=KCCA')
       .then(res => res.json())
       .then((filterLocationsData) => {
