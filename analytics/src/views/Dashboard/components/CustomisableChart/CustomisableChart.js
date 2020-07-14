@@ -33,6 +33,12 @@ const useStyles = makeStyles(theme => ({
     width: 56
   },
 
+  subheader:{
+    color: '#263238' ,
+    fontSize: 16,    
+    fontWeight: 500
+}
+
     
 }));
 
@@ -46,7 +52,8 @@ const styles = (theme) => ({
     right: theme.spacing(1),
     top: theme.spacing(1),
     color: theme.palette.grey[500],
-  },
+  }
+ 
 });
 
 const DialogTitle = withStyles(styles)((props) => {
@@ -125,6 +132,8 @@ const CustomisableChart = props => {
   };
 
   const [customChartTitle, setCustomChartTitle] = useState('Custom Chart Title');
+  const [customChartTitleSecondSection, setCustomChartTitleSecondSection] = useState('Custom Chart Title');
+
   
 
   const handleDateChange = (date) => {
@@ -224,6 +233,7 @@ const CustomisableChart = props => {
       .then((customisedChartData) => {
         setCustomisedGraphData(customisedChartData)
         setCustomChartTitle(customisedChartData.custom_chart_title)
+        setCustomChartTitleSecondSection(customisedChartData.custom_chart_title_second_section)
       })
       .catch(console.log)
   },[]);
@@ -243,16 +253,15 @@ const CustomisableChart = props => {
       pollutant: selectedPollutant.value,
       organisation_name: 'KCCA'     
     }
-    //console.log(JSON.stringify(filter));
-
+   
     axios.post(constants.GENERATE_CUSTOMISABLE_CHARTS_URI, 
       JSON.stringify(filter),
       { headers: { 'Content-Type': 'application/json' } }
     ).then(res => res.data)
       .then((customisedChartData) => {
-        setCustomisedGraphData(customisedChartData)    
-        console.log(customisedChartData)
-
+        setCustomisedGraphData(customisedChartData) 
+        
+        setCustomChartTitleSecondSection(customisedChartData.custom_chart_title_second_section)
         setCustomChartTitle(customisedChartData.custom_chart_title)
         setCustomisedGraphLabel(customisedChartData.results?customisedChartData.results[0].chart_label:'')
         console.log(customisedChartData.results[0].chart_label)
@@ -395,9 +404,14 @@ const CustomisableChart = props => {
           </IconButton>
         }      
         
-        title= {customChartTitle}
+        title= {customChartTitle} 
+        subheader={customChartTitleSecondSection}
         style={{ textAlign: 'center' }}
+        classes={{subheader: classes.subheader }}
+       
       />
+        
+
       <Divider />
       <CardContent>
                 
