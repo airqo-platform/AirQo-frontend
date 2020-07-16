@@ -47,7 +47,9 @@ import {
   UPDATE_AUTHENTICATED_USER_REQUEST,
   UPDATE_AUTHENTICATED_USER_FAILED,
   UPDATE_AUTHENTICATED_USER_SUCCESS,
-  REGISTER_CANDIDATE_URI
+  REGISTER_CANDIDATE_REQUEST,
+  REGISTER_CANDIDATE_SUCCESS,
+  REGISTER_CANDIDATE_FAILED
 } from './types';
 import constants from '../../config/constants';
 
@@ -314,8 +316,10 @@ export const deleteUserFailed = error => {
   };
 };
 
-/************************* Register a new User  *****************************/
+/************************* Register a new Candidate  *****************************/
 export const registerCandidate = userData => dispatch => {
+  console.log('hitting the candidate registration actions');
+  dispatch(registrationRequest());
   axios
     .post(constants.REGISTER_CANDIDATE_URI, userData)
     .then(res => {
@@ -343,8 +347,21 @@ export const registerCandidate = userData => dispatch => {
 
 export const registrationSuccess = data => {
   return {
-    type: REGISTRATION_SUCCESS,
+    type: REGISTER_CANDIDATE_SUCCESS,
     payload: data.savedData
+  };
+};
+
+export const registrationRequest = () => {
+  return {
+    type: REGISTER_CANDIDATE_REQUEST
+  };
+};
+
+export const registrationFailed = data => {
+  return {
+    type: REGISTER_CANDIDATE_FAILED,
+    payload: data
   };
 };
 

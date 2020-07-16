@@ -5,12 +5,15 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { registerCandidate } from '../../../redux/Join/actions';
 import classnames from 'classnames';
-import TextField from '@material-ui/core/TextField';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import Checkbox from '@material-ui/core/Checkbox';
 import countries from '../../../utils/countries';
 import { Alert, AlertTitle } from '@material-ui/lab';
-import { withStyles, InputLabel } from '@material-ui/core';
+import {
+  withStyles,
+  InputLabel,
+  Checkbox,
+  FormControlLabel,
+  TextField
+} from '@material-ui/core';
 
 const styles = theme => ({
   root: {
@@ -25,14 +28,14 @@ const validEmailRegex = RegExp(
   /^(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i
 );
 
-const validateForm = errors => {
-  let valid = true;
-  Object.values(errors).forEach(
-    // if we have an error string set valid to false
-    val => val.length > 0 && (valid = false)
-  );
-  return valid;
-};
+// const validateForm = errors => {
+//   let valid = true;
+//   Object.values(errors).forEach(
+//     // if we have an error string set valid to false
+//     val => val.length > 0 && (valid = false)
+//   );
+//   return valid;
+// };
 
 class Register extends Component {
   constructor() {
@@ -107,6 +110,10 @@ class Register extends Component {
         errors.phoneNumber =
           value.length === 0 ? 'phone number  is required' : '';
         break;
+      case 'description':
+        errors.description =
+          value.length === 0 ? 'description  is required' : '';
+        break;
       case 'country':
         errors.country = value.length === 0 ? 'country is required' : '';
         break;
@@ -149,11 +156,11 @@ class Register extends Component {
 
   onSubmit = e => {
     e.preventDefault();
-    if (validateForm(this.state.errors)) {
-      console.info('Valid Form');
-    } else {
-      console.error('Invalid Form');
-    }
+    // if (validateForm(this.state.errors)) {
+    //   console.info('Valid Form');
+    // } else {
+    //   console.error('Invalid Form');
+    // }
 
     const { id, value } = e.target;
     let errors = this.state.errors;
@@ -179,6 +186,9 @@ class Register extends Component {
         break;
       case 'phoneNumber':
         errors.phoneNumber = mappedErrors.errors.phoneNumber;
+        break;
+      case 'description':
+        errors.description = mappedErrors.errors.description;
         break;
       case 'country':
         errors.country = mappedErrors.errors.country;
@@ -228,193 +238,195 @@ class Register extends Component {
               height: '15vh',
               padding: '1em'
             }}></div>
-          <div
-            className="col s8 offset-s2"
-            style={{ backgroundColor: '#fff', padding: '1em' }}>
-            <Link to="/" className="btn-flat waves-effect">
-              <i className="material-icons left">keyboard_backspace</i> Back to
-              home
-            </Link>
-            <div className="col s12" style={{ paddingLeft: '11.250px' }}>
-              <h4>
-                <b>Join Analytics</b>
-              </h4>
-              <p className="grey-text text-darken-1">
-                Already have an account? <Link to="/login">Log in</Link>
-              </p>
-            </div>
-            <form noValidate onSubmit={this.onSubmit}>
-              <div className="input-field col s12">
-                <input
-                  onChange={this.onChange}
-                  value={this.state.firstName}
-                  error={errors.firstName}
-                  id="firstName"
-                  type="text"
-                  className={classnames('', {
-                    invalid: errors.firstName
-                  })}
-                />
-                <label htmlFor="firstName">First Name</label>
-                <span className="red-text">{errors.firstName}</span>
-              </div>
-              <div className="input-field col s12">
-                <input
-                  onChange={this.onChange}
-                  value={this.state.lastName}
-                  error={errors.lastName}
-                  id="lastName"
-                  type="text"
-                  className={classnames('', {
-                    invalid: errors.lastName
-                  })}
-                />
-                <label htmlFor="lastName">Last Name</label>
-                <span className="red-text">{errors.lastName}</span>
-              </div>
 
-              <div className="input-field col s12">
-                <input
-                  onChange={this.onChange}
-                  value={this.state.jobTitle}
-                  error={errors.jobTitle}
-                  id="jobTitle"
-                  type="text"
-                  className={classnames('', {
-                    invalid: errors.jobTitle
-                  })}
-                />
-                <label htmlFor="jobTitle">Job Title</label>
-                <span className="red-text">{errors.jobTitle}</span>
-              </div>
-
-              <div className="input-field col s12">
-                <input
-                  onChange={this.onChange}
-                  value={this.state.organization}
-                  error={errors.organization}
-                  id="organization"
-                  type="text"
-                  className={classnames('', {
-                    invalid: errors.organization
-                  })}
-                />
-                <label htmlFor="organization">Organization</label>
-                <span className="red-text">{errors.organization}</span>
-              </div>
-
-              <div className="input-field col s12">
-                <input
-                  onChange={this.onChange}
-                  value={this.state.email}
-                  error={errors.email}
-                  id="email"
-                  type="email"
-                  className={classnames('', {
-                    invalid: errors.email
-                  })}
-                />
-                <label htmlFor="email">Email</label>
-                <span className="red-text">{errors.email}</span>
-              </div>
-
-              <div className="input-field col s12">
-                <input
-                  onChange={this.onChange}
-                  value={this.state.phoneNumber}
-                  error={errors.phoneNumber}
-                  id="phoneNumber"
-                  type="tel"
-                  className={classnames('', {
-                    invalid: errors.phoneNumber
-                  })}
-                />
-                <label htmlFor="phoneNumber">Phone Number</label>
-                <span className="red-text">{errors.phoneNumber}</span>
-              </div>
-
-              <div className="input-field col s12">
-                <TextField
-                  id="description"
-                  label="Description"
-                  multiline
-                  fullWidth
-                  rowsMax="5"
-                  value={this.state.description}
-                  onChange={this.onChange}
-                  className={classes.textField}
-                  margin="normal"
-                  helperText="Briefly outline your interest in air quality data"
-                  variant="outlined"
-                  error={errors.description}
-                />
-                <label htmlFor="description">Description</label>
-                <span className="red-text">{errors.description}</span>
-              </div>
-              <div className="input-field col s12">
-                <TextField
-                  id="country"
-                  select
-                  label="Country"
-                  className={classes.textField}
-                  error={errors.country}
-                  value={this.state.country}
-                  onChange={this.onChange}
-                  SelectProps={{
-                    native: true,
-                    MenuProps: {
-                      className: classes.menu
-                    }
-                  }}
-                  helperText="Please select your country"
-                  margin="normal"
-                  variant="outlined">
-                  {countries.array.map(option => (
-                    <option key={option.label} value={option.label}>
-                      {option.label}
-                    </option>
-                  ))}
-                </TextField>
-                <label htmlFor="country">Country</label>
-                <span className="red-text">{errors.country}</span>
-              </div>
-              <div>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      id="isChecked"
-                      value={this.state.isChecked}
-                      onChange={this.onChange}
-                      color="primary"
-                    />
-                  }
-                  label="Agree to our terms and conditions?"
-                />
-              </div>
+          {!this.props.auth.registered && (
+            <div
+              className="col s8 offset-s2"
+              style={{ backgroundColor: '#fff', padding: '1em' }}>
+              <Link to="/" className="btn-flat waves-effect">
+                <i className="material-icons left">keyboard_backspace</i> Back
+                to home
+              </Link>
               <div className="col s12" style={{ paddingLeft: '11.250px' }}>
-                {this.state.isChecked ? (
-                  <button
-                    style={{
-                      width: '150px',
-                      borderRadius: '3px',
-                      letterSpacing: '1.5px',
-                      marginTop: '1rem'
-                    }}
-                    type="submit"
-                    className="btn btn-large waves-effect waves-light hoverable blue accent-3">
-                    JOIN
-                  </button>
-                ) : null}
+                <h4>
+                  <b>Join Analytics</b>
+                </h4>
+                <p className="grey-text text-darken-1">
+                  Already have an account? <Link to="/login">Log in</Link>
+                </p>
               </div>
-              {this.props.auth.newUser && (
-                <Alert severity="success">
-                  <AlertTitle>Success</AlertTitle>
-                  Successfully registered the user —{' '}
-                  <strong>check it out!</strong>
-                </Alert>
-              )}
-            </form>
-          </div>
+              <form noValidate onSubmit={this.onSubmit}>
+                <div className="input-field col s12">
+                  <input
+                    onChange={this.onChange}
+                    value={this.state.firstName}
+                    error={errors.firstName}
+                    id="firstName"
+                    type="text"
+                    className={classnames('', {
+                      invalid: errors.firstName
+                    })}
+                  />
+                  <label htmlFor="firstName">First Name</label>
+                  <span className="red-text">{errors.firstName}</span>
+                </div>
+                <div className="input-field col s12">
+                  <input
+                    onChange={this.onChange}
+                    value={this.state.lastName}
+                    error={errors.lastName}
+                    id="lastName"
+                    type="text"
+                    className={classnames('', {
+                      invalid: errors.lastName
+                    })}
+                  />
+                  <label htmlFor="lastName">Last Name</label>
+                  <span className="red-text">{errors.lastName}</span>
+                </div>
+
+                <div className="input-field col s12">
+                  <input
+                    onChange={this.onChange}
+                    value={this.state.jobTitle}
+                    error={errors.jobTitle}
+                    id="jobTitle"
+                    type="text"
+                    className={classnames('', {
+                      invalid: errors.jobTitle
+                    })}
+                  />
+                  <label htmlFor="jobTitle">Job Title</label>
+                  <span className="red-text">{errors.jobTitle}</span>
+                </div>
+
+                <div className="input-field col s12">
+                  <input
+                    onChange={this.onChange}
+                    value={this.state.organization}
+                    error={errors.organization}
+                    id="organization"
+                    type="text"
+                    className={classnames('', {
+                      invalid: errors.organization
+                    })}
+                  />
+                  <label htmlFor="organization">Organization</label>
+                  <span className="red-text">{errors.organization}</span>
+                </div>
+
+                <div className="input-field col s12">
+                  <input
+                    onChange={this.onChange}
+                    value={this.state.email}
+                    error={errors.email}
+                    id="email"
+                    type="email"
+                    className={classnames('', {
+                      invalid: errors.email
+                    })}
+                  />
+                  <label htmlFor="email">Email</label>
+                  <span className="red-text">{errors.email}</span>
+                </div>
+
+                <div className="input-field col s12">
+                  <input
+                    onChange={this.onChange}
+                    value={this.state.phoneNumber}
+                    error={errors.phoneNumber}
+                    id="phoneNumber"
+                    type="tel"
+                    className={classnames('', {
+                      invalid: errors.phoneNumber
+                    })}
+                  />
+                  <label htmlFor="phoneNumber">Phone Number</label>
+                  <span className="red-text">{errors.phoneNumber}</span>
+                </div>
+
+                <div className="input-field col s12">
+                  <TextField
+                    id="description"
+                    label="Description"
+                    multiline
+                    fullWidth
+                    rowsMax="5"
+                    value={this.state.description}
+                    onChange={this.onChange}
+                    className={classes.textField}
+                    margin="normal"
+                    helperText="Briefly outline your interest in air quality data"
+                    variant="outlined"
+                    error={errors.description}
+                  />
+                  <label htmlFor="description">Description</label>
+                  <span className="red-text">{errors.description}</span>
+                </div>
+                <div className="input-field col s12">
+                  <TextField
+                    id="country"
+                    select
+                    label="Country"
+                    className={classes.textField}
+                    error={errors.country}
+                    value={this.state.country}
+                    onChange={this.onChange}
+                    SelectProps={{
+                      native: true,
+                      MenuProps: {
+                        className: classes.menu
+                      }
+                    }}
+                    helperText="Please select your country"
+                    margin="normal"
+                    variant="outlined">
+                    {countries.array.map(option => (
+                      <option key={option.label} value={option.label}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </TextField>
+                  <label htmlFor="country">Country</label>
+                  <span className="red-text">{errors.country}</span>
+                </div>
+                <div>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        id="isChecked"
+                        value={this.state.isChecked}
+                        onChange={this.onChange}
+                        color="primary"
+                      />
+                    }
+                    label="Agree to our terms and conditions?"
+                  />
+                </div>
+                <div className="col s12" style={{ paddingLeft: '11.250px' }}>
+                  {this.state.isChecked ? (
+                    <button
+                      style={{
+                        width: '150px',
+                        borderRadius: '3px',
+                        letterSpacing: '1.5px',
+                        marginTop: '1rem'
+                      }}
+                      type="submit"
+                      className="btn btn-large waves-effect waves-light hoverable blue accent-3">
+                      JOIN
+                    </button>
+                  ) : null}
+                </div>
+              </form>
+            </div>
+          )}
+          {this.props.auth.registered && (
+            <Alert severity="success">
+              <AlertTitle>Success</AlertTitle>
+              Successfully registered the user
+            </Alert>
+          )}
         </div>
       </div>
     );
