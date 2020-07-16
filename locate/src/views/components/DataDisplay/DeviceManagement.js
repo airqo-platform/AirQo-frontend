@@ -299,8 +299,9 @@ export default function DeviceManagement() {
       setBatteryPowered(no_battery);
     });
 
-    // get number of devices due for maintenance
-    axios.get(constants.GET_DEVICE_MAINTENANCE_LOG).then(({ data }) => {
+    // get number of devices due for maintenance,
+    // look for the nextMaintenance field in devices collection
+    axios.get(constants.GET_DEVICE_STATUS_SUMMARY).then(({ data }) => {
       //console.log(data[0].loc_power_suppy);
       let due_maintenance = new Array();
 
