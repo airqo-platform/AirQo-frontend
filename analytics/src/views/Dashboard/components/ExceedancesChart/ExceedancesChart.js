@@ -10,7 +10,8 @@ import axios from 'axios';
 //import LoadingSpinner from '../../../Graphs/loadingSpinner';
 import Select from 'react-select';
 import palette from 'theme/palette';
-
+import constants from 'config/constants'
+import { constant } from 'underscore';
 const useStyles = makeStyles(theme => ({
   root: {
     height: '100%'
@@ -75,8 +76,7 @@ const ExceedancesChart = props => {
     //setLoading(true);
 
     axios.post(
-      'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/exceedances',
-      //'http://127.0.0.1:5000//api/v1/dashboard/exceedances', 
+      constants.EXCEEDANCES_URI, 
       JSON.stringify(effectFilter),
       { headers: { 'Content-Type': 'application/json' } }
     )
@@ -219,8 +219,7 @@ const ExceedancesChart = props => {
       console.log(filter_string);
   
       axios.post(
-        'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/exceedances',
-        //'http://127.0.0.1:5000//api/v1/dashboard/exceedances', 
+        constants.EXCEEDANCES_URI,
         filter_string,
         { headers: { 'Content-Type': 'application/json' } }
       )

@@ -10,6 +10,7 @@ import FullscreenControl from 'react-leaflet-fullscreen';
 import 'react-leaflet-fullscreen/dist/styles.css';
 import L from 'leaflet';
 // import Legend from "./Legend";
+import constants from 'config/constants'
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -49,8 +50,7 @@ const Map = props => {
   const [contacts,setContacts ] = useState([]);
 
   useEffect(() => {
-   fetch('https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/monitoringsites?organisation_name=KCCA')
-    //fetch('http://127.0.0.1:5000/api/v1/dashboard/monitoringsites?organisation_name=KCCA')
+   fetch(constants.GET_MONITORING_SITES_URI)    
       .then(res => res.json())
       .then((contactData) => {
         setContacts(contactData.airquality_monitoring_sites)
