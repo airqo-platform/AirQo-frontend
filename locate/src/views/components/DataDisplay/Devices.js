@@ -76,7 +76,15 @@ const DevicesTable = props => {
   };
   const handleRegisterClose = () => {
     setRegisterOpen(false);
-  }
+  };
+
+  const [editOpen, setEditOpen] = useState(false);
+  const handleEditOpen = () => {
+    setEditOpen(true);
+  };
+  const handleEditClose = () => {
+    setEditOpen(false);
+  };
 
   const [maintenanceOpen, setMaintenanceOpen]= useState(false);
   const handleMaintenanceOpen = () => {
@@ -226,7 +234,6 @@ const DevicesTable = props => {
 	  setISP(event.target.value);
   }
 
-
   const [latitude, setLatitude] = useState(null);
   const handleLatitudeChange = lat => {
     let re = /\s*|\d+(\.d+)?/
@@ -276,7 +283,24 @@ const DevicesTable = props => {
     //setDeviceName(rowData.airqo_ref);
     handleMaintenanceOpen();
   }*/
- 
+  
+  let handleEditClick = (name, manufacturer,product, owner, description, visibility, ISP, lat, long, phone) => {
+    return (event) => {
+      console.log(name);
+      setRegisterName(name);
+      setManufacturer(manufacturer);
+      setProductName(product);
+      setOwner(owner);
+      setDescription(description);
+      setVisibility(visibility);
+      setISP(ISP);
+      setLatitude(lat);
+      setLongitude(long);
+      setPhone(phone);
+      handleEditOpen();
+
+    }
+  }
 
   let handleMaintenanceClick = (name) => {
     return (event) => {
@@ -455,6 +479,51 @@ const DevicesTable = props => {
     )
   }
 
+  let handleEditSubmit = (e) => {
+    console.log('Updating');
+    let filter = {
+      name: registerName,
+      latitude: latitude,
+      longitude: longitude,
+      visibility: visibility,
+      device_manufacturer: manufacturer,
+      product_name:productName,
+      owner: owner,
+      ISP: ISP,
+      phoneNumber: phone,
+      description: description
+    }
+    console.log(JSON.stringify(filter));
+    /*
+    axios.post(
+      //"http://127.0.0.1:3000/api/v1/devices/ts/update?device=",
+      constants.EDIT_DEVICE_URI+channelID,
+      JSON.stringify(filter),
+      { headers: { 'Content-Type': 'application/json' } }
+    )
+    .then(
+      res=>{
+        const myData = res.data;
+        console.log(myData.message);
+        setDialogResponseMessage(myData.message);
+        setEditOpen(false);
+        setResponseOpen(true);
+
+        setRegisterName('');
+        setLatitude('');
+        setLongitude('');
+        setVisibility('');
+        setManufacturer('');
+        setProductName('');
+        setOwner('');
+        setISP('');
+        setPhone('');
+        setDescription('');
+    }).catch(
+      console.log
+    )*/
+  }
+
   let handleDeleteSubmit = (e) => {
     console.log('Deleting ...');
     let filter = {
@@ -522,12 +591,31 @@ const DevicesTable = props => {
              { title: 'Description', field: 'description', cellStyle:{ fontFamily: 'Open Sans'} },
              { title: 'Device ID', field: 'channelID', cellStyle:{ fontFamily: 'Open Sans'} }, //should be channel ID
              { title: 'Registration Date', field: 'createdAt', cellStyle:{ fontFamily: 'Open Sans'} },
-             { title: 'Location ID', field: 'locationID', cellStyle:{ fontFamily: 'Open Sans'} },
+             { title: 'Location ID', 
+               field: 'location_id', 
+               render: rowData => <Link className={classes.link} to={`/locations/${rowData.location_id}`}>{rowData.location_id}</Link>
+             },
+            // { title: 'Location ID', field: 'location_id', cellStyle:{ fontFamily: 'Open Sans'} },
              { title: 'Actions',
                //field: '', 
                cellStyle: {fontFamily: 'Open Sans'},
                //render: rowData => <Link className={classes.link} onClick={handleMaintenanceClick(rowData.airqo_ref)}> Update Maintenance log </Link>,
                render: rowData => <div>
+                                    <Tooltip title="Edit a device">
+                                      
+                                      <Link 
+                                        className={classes.link} 
+                                        onClick = {handleEditClick(rowData.name, rowData.device_manufacturer, rowData.product_name, 
+                                          rowData.owner, rowData.description, rowData.visibility, rowData.ISP, rowData.latitude,
+                                          rowData.longitude, rowData.phoneNumber)}
+                                        //style={{color: 'black'}} 
+                                        //activeStyle={{color: 'red'}}
+                                      > 
+                                        <EditOutlined></EditOutlined>
+                                      </Link> 
+                                    </Tooltip>
+                                    &nbsp;&nbsp;&nbsp;
+
                                     <Tooltip title="Update Maintenance Log">
                                       
                                       <Link 
@@ -1010,6 +1098,143 @@ const DevicesTable = props => {
                 color="primary"              
                 //type="button"
                 onClick = {handleRegisterClose}
+               > Cancel
+               </Button>
+               </Grid>
+           </DialogActions>
+         </Dialog>
+         ) : null}
+
+     {editOpen? (
+       
+       <Dialog
+           open={editOpen}
+           onClose={handleEditClose}
+           aria-labelledby="form-dialog-title"
+           aria-describedby="form-dialog-description"
+         >
+           <DialogTitle id="form-dialog-title">Edit a device</DialogTitle>
+
+           <DialogContent>
+                <div>
+                 <TextField 
+                   id="standard-basic" 
+                   label="Device Name"
+                   value = {registerName}
+                   fullWidth = {true}
+                   onChange = {handleRegisterNameChange}
+                   required
+                   InputProps={{
+                    classes: {
+                      notchedOutline: classes.notchedOutline,
+                      focused: classes.focused
+                    },
+                    className: classes.input,
+                    readOnly:true
+                }}
+                   /> <br/>
+                 <TextField 
+                   id="standard-basic" 
+                   label="Description" 
+                   value = {description}
+                   onChange = {handleDescriptionChange}
+                   fullWidth = {true}
+                   required
+                   /><br/>
+                  <TextField 
+                   id="standard-basic" 
+                   label="Manufacturer" 
+                   value = {manufacturer}
+                   onChange = {handleManufacturerChange}
+                   fullWidth = {true}
+                   required
+                   /><br/>
+                   <TextField 
+                   id="standard-basic" 
+                   label="Product Name" 
+                   value = {productName}
+                   onChange = {handleProductNameChange}
+                   fullWidth = {true}
+                   required
+                   /><br/>
+                   <TextField 
+                   id="standard-basic" 
+                   label="Latitude" 
+                   value = {latitude}
+                   onChange = {handleLatitudeChange}
+                   fullWidth = {true}
+                   required
+                   /><br/>
+                   <TextField 
+                   id="standard-basic" 
+                   label="Longitude" 
+                   value = {longitude}
+                   onChange = {handleLongitudeChange}
+                   fullWidth = {true}
+                   required
+                   /><br/>
+                   <FormControl className={classes.formControl} fullWidth={true}>
+                      <InputLabel htmlFor="demo-dialog-native"> Visibility</InputLabel>
+                      <Select
+                        required
+                        native
+                        value={visibility}
+                        onChange={handleVisibilityChange}
+                        input={<Input id="demo-dialog-native" />}
+                      >
+                        <option aria-label="None" value="" />
+                        <option value="Public">Public</option>
+                        <option value="Private">Private</option>
+                      </Select>
+                   </FormControl>
+                   <TextField 
+                   id="standard-basic" 
+                   label="Owner" 
+                   value = {owner}
+                   onChange = {handleOwnerChange}
+                   fullWidth = {true}
+                   required
+                   /><br/>
+                   <FormControl className={classes.formControl} fullWidth={true}>
+                      <InputLabel htmlFor="demo-dialog-native"> Internet Service Provider</InputLabel>
+                      <Select
+                        native
+                        value={ISP}
+                        onChange={handleISPChange}
+                        input={<Input id="demo-dialog-native" />}
+                      >
+                        <option aria-label="None" value="" />
+                        <option value="MTN">MTN</option>
+                        <option value="Africell">Africell</option>
+                        <option value="Airtel">Airtel</option>
+                      </Select>
+                   </FormControl>
+                   <TextField 
+                   id="standard-basic" 
+                   label="Phone Number" 
+                   value = {phone}
+                   onChange = {handlePhoneChange}
+                   fullWidth = {true}
+                   /><br/>
+                 
+                 </div>
+                 
+                  </DialogContent> 
+          
+                 <DialogActions>
+                 <Grid container alignItems="center" alignContent="center" justify="center">
+                 <Button 
+                  variant="contained" 
+                  color="primary"              
+                  onClick={handleEditSubmit}
+                 > Update
+                </Button>
+               &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+               <Button 
+                variant="contained" 
+                color="primary"              
+                //type="button"
+                onClick = {handleEditClose}
                > Cancel
                </Button>
                </Grid>
