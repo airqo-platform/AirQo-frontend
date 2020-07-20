@@ -75,6 +75,8 @@ const prodConfig = {
     "https://device-registry-dot-airqo-250220.uc.r.appspot.com/api/v1/devices/ts/deploy/device",
   DELETE_DEVICE_URI:
     "https://device-registry-dot-airqo-250220.uc.r.appspot.com/api/v1/devices/ts/delete?device=",
+  ALL_SENSORS_URI: 
+  "https://device-registry-dot-airqo-250220.uc.r.appspot.com/api/v1/devices/get/sensors",
   GET_NETWORK_BEST_PERFORMING_DEVICES:
     "https://device-monitoring-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/monitor/network/devices/bestperforming",
   GET_NETWORK_WORST_PERFORMING_DEVICES:

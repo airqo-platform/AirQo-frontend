@@ -59,10 +59,21 @@ const useStyles = makeStyles(theme => ({
 formControl: {
   minWidth: 200,
 }
+
 }));
 
 
 const DevicesTable = props => {
+  const ITEM_HEIGHT = 48;
+const ITEM_PADDING_TOP = 8;
+const MenuProps = {
+  PaperProps: {
+    style: {
+      maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
+      width: 250,
+    },
+  },
+};
   const { className, users, ...rest } = props;
   const classes = useStyles();
   const [data, setData] = useState([]);   
@@ -124,7 +135,9 @@ const DevicesTable = props => {
   };
   const handleResponseClose = () => {
     setResponseOpen(false);
-  }
+  };
+
+  const [hasError, setHasError] = useState(false); 
 
 
   //maintenance log parameters
@@ -205,6 +218,32 @@ const DevicesTable = props => {
   const [deviceID, setDeviceID] = useState('');
 
   //Register parameters
+  const [sensorsOptions, setSensorsOptions] = useState([]);
+  
+  useEffect(() => {
+    //code to retrieve all sensors' data
+    //setIsLoading(true);
+    axios.get(
+      //'http://127.0.0.1:4001/api/v1/device/monitor/devices'
+      constants.ALL_SENSORS_URI
+    )
+    .then(
+      res=>{
+        //setIsLoading(false);
+        const ref = res.data;
+        console.log(ref);
+        let sensorArray = [];
+        for (var i=0; i<ref.length; i++){
+          //pass
+          sensorArray.push(ref[i].name+ " ( "+ ref[i].quantityKind.join(', ')+ ")")
+        }
+        setSensorsOptions(sensorArray);
+
+    }).catch(
+      console.log
+    )
+  }, []);
+
   const [registerName, setRegisterName] = useState('');
   const handleRegisterNameChange = name => {
 	  setRegisterName(name.target.value);
@@ -234,14 +273,14 @@ const DevicesTable = props => {
 	  setISP(event.target.value);
   }
 
-  const [latitude, setLatitude] = useState(null);
+  const [latitude, setLatitude] = useState('0.332269');
   const handleLatitudeChange = lat => {
     let re = /\s*|\d+(\.d+)?/
     if (re.test(lat.target.value)) {
       setLatitude(lat.target.value);
     }
   }
-  const [longitude, setLongitude] = useState(null);
+  const [longitude, setLongitude] = useState('32.570077');
   const handleLongitudeChange = long => {
     let re = /\s*|\d+(\.d+)?/
     if (re.test(long.target.value)) {
@@ -255,6 +294,24 @@ const DevicesTable = props => {
       setPhone(event.target.value);
     }
   }
+
+  const [components, setComponents] = useState([]);
+  const handleComponentsChange = (event) => {
+	  setComponents(event.target.value);
+  }
+  
+  /*
+  const handleChangeMultiple = (event) => {
+    const { options } = event.target;
+    const value = [];
+    for (let i = 0, l = options.length; i < l; i += 1) {
+      if (options[i].selected) {
+        value.push(options[i].value);
+      }
+    }
+    //setPersonName(value);
+    setComponents(value);
+  };*/
 
   useEffect(() => {
     //code to retrieve all devices' data
@@ -467,17 +524,21 @@ const DevicesTable = props => {
       owner: owner,
       ISP: ISP,
       phoneNumber: phone,
-      description: description
+      description: description,
+      sensors: components
     }
     console.log(JSON.stringify(filter));
+   
     axios.post(
       //"http://127.0.0.1:3000/api/v1/devices/ts",
       constants.REGISTER_DEVICE_URI,
       JSON.stringify(filter),
-      { headers: { 'Content-Type': 'application/json' } }
-    )
+      { headers: { 'Content-Type': 'application/json' } },
+      //console.log('REQUEST')
+    ) 
     .then(
       res=>{
+        console.log('RESPONSE');
         const myData = res.data;
         console.log(myData.message);
         setDialogResponseMessage(myData.message);
@@ -494,6 +555,7 @@ const DevicesTable = props => {
         setISP('');
         setPhone('');
         setDescription('');
+        setComponents([]);
         //setMaintenanceDescription('');
     }).catch(
       console.log
@@ -1038,7 +1100,7 @@ const DevicesTable = props => {
                    value = {manufacturer}
                    onChange = {handleManufacturerChange}
                    fullWidth = {true}
-                   required
+                  // required
                    /><br/>
                    <TextField 
                    id="standard-basic" 
@@ -1046,7 +1108,7 @@ const DevicesTable = props => {
                    value = {productName}
                    onChange = {handleProductNameChange}
                    fullWidth = {true}
-                   required
+                   //required
                    /><br/>
                    <TextField 
                    id="standard-basic" 
@@ -1064,7 +1126,7 @@ const DevicesTable = props => {
                    fullWidth = {true}
                    required
                    /><br/>
-                   <FormControl className={classes.formControl} fullWidth={true}>
+                   <FormControl required className={classes.formControl} fullWidth={true}>
                       <InputLabel htmlFor="demo-dialog-native"> Visibility</InputLabel>
                       <Select
                         required
@@ -1079,12 +1141,12 @@ const DevicesTable = props => {
                       </Select>
                    </FormControl>
                    <TextField 
+                   required
                    id="standard-basic" 
                    label="Owner" 
                    value = {owner}
                    onChange = {handleOwnerChange}
                    fullWidth = {true}
-                   required
                    /><br/>
                    <FormControl className={classes.formControl} fullWidth={true}>
                       <InputLabel htmlFor="demo-dialog-native"> Internet Service Provider</InputLabel>
@@ -1107,6 +1169,21 @@ const DevicesTable = props => {
                    onChange = {handlePhoneChange}
                    fullWidth = {true}
                    /><br/>
+                   <FormControl className={classes.formControl} fullWidth={true}>
+                     <InputLabel htmlFor="demo-dialog-native"Device >Components</InputLabel>
+                     <Select
+                       multiple
+                       value={components}
+                       onChange={handleComponentsChange}
+                       //onChange = {handleChangeMultiple}
+                       input={<Input id="demo-dialog-native" />}
+                       MenuProps={MenuProps}
+                     >
+                       <option aria-label="None" value="" />
+                       {sensorsOptions.map( (sensor) =>
+                       <option value={sensor}>{sensor}</option>)}
+                     </Select>
+                   </FormControl><br/>
                  
                  </div>
                  
