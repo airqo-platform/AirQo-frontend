@@ -283,6 +283,27 @@ const DevicesTable = props => {
     //setDeviceName(rowData.airqo_ref);
     handleMaintenanceOpen();
   }*/
+
+  function appendLeadingZeroes(n) {
+    if (n <= 9) {
+      return '0' + n;
+    }
+    return n;
+  }
+
+  let formatDate = (date) => {
+    //setDate(new Date());
+    //setDate(new Date());
+    //let newTime = new Date();
+    let time = appendLeadingZeroes(date.getDate()) +
+    '-' +
+    appendLeadingZeroes(date.getMonth() + 1) +
+    '-' +
+    date.getFullYear()
+
+    return time;
+    //setDate(time);
+   }
   
   let handleEditClick = (name, manufacturer,product, owner, description, visibility, ISP, lat, long, phone) => {
     return (event) => {
@@ -593,8 +614,15 @@ const DevicesTable = props => {
              { title: 'Registration Date', field: 'createdAt', cellStyle:{ fontFamily: 'Open Sans'} },
              { title: 'Location ID', 
                field: 'location_id', 
+               cellStyle:{ fontFamily: 'Open Sans'},
                render: rowData => <Link className={classes.link} to={`/locations/${rowData.location_id}`}>{rowData.location_id}</Link>
              },
+             { title: 'Registration Date', 
+               field: 'createdAt', 
+               cellStyle:{ fontFamily: 'Open Sans'},
+               render: rowData => formatDate(new Date(rowData.createdAt))
+             },
+             
             // { title: 'Location ID', field: 'location_id', cellStyle:{ fontFamily: 'Open Sans'} },
              { title: 'Actions',
                //field: '', 
