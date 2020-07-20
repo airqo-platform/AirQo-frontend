@@ -611,17 +611,17 @@ const DevicesTable = props => {
              { title: 'Device Name', field: 'name', cellStyle:{ fontFamily: 'Open Sans'} },
              { title: 'Description', field: 'description', cellStyle:{ fontFamily: 'Open Sans'} },
              { title: 'Device ID', field: 'channelID', cellStyle:{ fontFamily: 'Open Sans'} }, //should be channel ID
-             { title: 'Registration Date', field: 'createdAt', cellStyle:{ fontFamily: 'Open Sans'} },
-             { title: 'Location ID', 
-               field: 'location_id', 
-               cellStyle:{ fontFamily: 'Open Sans'},
-               render: rowData => <Link className={classes.link} to={`/locations/${rowData.location_id}`}>{rowData.location_id}</Link>
-             },
              { title: 'Registration Date', 
                field: 'createdAt', 
                cellStyle:{ fontFamily: 'Open Sans'},
                render: rowData => formatDate(new Date(rowData.createdAt))
              },
+             { title: 'Location ID', 
+               field: 'location_id', 
+               cellStyle:{ fontFamily: 'Open Sans'},
+               render: rowData => <Link className={classes.link} to={`/locations/${rowData.location_id}`}>{rowData.location_id}</Link>
+             },
+             
              
             // { title: 'Location ID', field: 'location_id', cellStyle:{ fontFamily: 'Open Sans'} },
              { title: 'Actions',
