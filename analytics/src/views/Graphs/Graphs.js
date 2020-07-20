@@ -17,6 +17,7 @@ import LoadingSpinner from './loadingSpinner';
 import 'chartjs-plugin-annotation';
 import html2canvas from 'html2canvas';
 import { Done } from '@material-ui/icons';
+import constants from 'config/constants'
 //import * as jsPDF from 'jspdf';
 //import domtoimage from 'dom-to-image';
 
@@ -86,8 +87,7 @@ const Graphs = props => {
 
     axios
       .post(
-        'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/device/graph',
-        //'http://127.0.0.1:5000/api/v1/device/graph',
+        constants.GENERATE_DEVICE_GRAPH_URI,
         JSON.stringify(effectFilter),
         { headers: { 'Content-Type': 'application/json' } }
       )
@@ -147,9 +147,9 @@ const Graphs = props => {
 
   useEffect(() => {
     fetch(
-      'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/monitoringsites/locations?organisation_name=KCCA'
+      constants.GET_MONITORING_SITES_LOCATIONS_URI
     )
-      //fetch('http://127.0.0.1:5000/api/v1/dashboard/monitoringsites/locations?organisation_name=KCCA')
+      
       .then(res => res.json())
       .then(filterLocationsData => {
         setFilterLocations(filterLocationsData.airquality_monitoring_sites);
@@ -384,8 +384,7 @@ const Graphs = props => {
 
     axios
       .post(
-        'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/device/graph',
-        //'http://127.0.0.1:5000/api/v1/device/graph',
+        constants.GENERATE_DEVICE_GRAPH_URI,        
         JSON.stringify(filter),
         { headers: { 'Content-Type': 'application/json' } }
       )
