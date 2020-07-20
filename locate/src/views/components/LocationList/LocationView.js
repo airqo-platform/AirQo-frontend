@@ -240,7 +240,8 @@ const LocationView = props => {
        <Map center={[locData.latitude, locData.longitude]} 
        zoom={13} 
        scrollWheelZoom={false}
-       style = {{width: '30%', height: '250px', top: '70px'}}
+       //style = {{width: '30%', height: '250px', top: '70px'}}
+       style = {{width: '30%', height: '250px', top: '0px'}}
        //style={{ width: '30%', height: '250px', align:'center'}}
        >
          <TileLayer
