@@ -27,6 +27,7 @@ import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
 import ArrowRightIcon from '@material-ui/icons/ArrowRight';
 //import Legend from './components/Map/Legend'
 import axios from 'axios';
+import constants from '../../config/constants'
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -142,15 +143,11 @@ const Dashboard = props => {
 
   useEffect(() => {
     axios
-      .get(
-        'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/locations/pm25categorycount?organisation_name=KCCA'
-      )
-      //axios.get('http://127.0.0.1:5000/api/v1/dashboard/locations/pm25categorycount?organisation_name=KCCA')
+      .get(constants.GET_PM25_CATEGORY_COUNT_URI)
       .then(res => res.data)
       .then(data => {
         setPm25CategoriesLocationCount(data);
-        console.log(data);
-        //console.log(data.pm25_categories)
+        console.log(data);        
       })
       .catch(e => {
         console.log(e);
@@ -160,10 +157,7 @@ const Dashboard = props => {
   const [locations, setLocations] = useState([]);
 
   useEffect(() => {
-    fetch(
-      'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/historical/daily/devices'
-    )
-      //fetch('http://127.0.0.1:5000/api/v1/dashboard/historical/daily/devices')
+    fetch(constants.GET_HISTORICAL_DAILY_MEAN_AVERAGES_FOR_LAST_28_DAYS_URI)      
       .then(res => res.json())
       .then(locationsData => {
         setLocations(locationsData.results);

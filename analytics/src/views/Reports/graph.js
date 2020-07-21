@@ -8,7 +8,7 @@ import Select from 'react-select';
 import DateFnsUtils from '@date-io/date-fns';
 import {MuiPickersUtilsProvider, KeyboardTimePicker, KeyboardDatePicker} from '@material-ui/pickers';
 import axios from 'axios';
-
+import constants from 'config/constants'
 const useStyles = makeStyles(theme => ({
   root: {
     padding: theme.spacing(3)
@@ -69,7 +69,7 @@ const Graphs = props => {
   const [filterLocations,setFilterLocations] = useState([]);
 
   useEffect(() => {
-    fetch('http://127.0.0.1:5000/api/v1/dashboard/monitoringsites/locations?organisation_name=KCCA')
+    fetch(constants.GET_MONITORING_SITES_LOCATIONS_URI)
       .then(res => res.json())
       .then((filterLocationsData) => {
         setFilterLocations(filterLocationsData.airquality_monitoring_sites)
@@ -81,8 +81,7 @@ const Graphs = props => {
 
   const [values, setReactSelectValue] = useState({ selectedOption: [] });
 
-  const handleMultiChange = selectedOption => {
-    //setValue('reactSelect', selectedOption);
+  const handleMultiChange = selectedOption => {    
     setReactSelectValue({ selectedOption });
   }
 
@@ -137,7 +136,7 @@ const Graphs = props => {
     console.log(JSON.stringify(filter));
 
     axios.post(
-      'http://127.0.0.1:5000/api/v1/device/graph', 
+      constants.GENERATE_DEVICE_GRAPH_URI, 
       JSON.stringify(filter),
       { headers: { 'Content-Type': 'application/json' } }
     )

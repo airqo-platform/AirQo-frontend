@@ -25,6 +25,7 @@ import { Editor } from 'react-draft-wysiwyg';
 import 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css';
 import '../../assets/scss/report.css';
 import axios from 'axios';
+import constants from 'config/constants';
 
 class Main extends Component {
   constructor(props) {
@@ -63,12 +64,8 @@ class Main extends Component {
   };
 
   componentDidMount() {
-    // local: http://127.0.0.1:4000
     axios
-      .get(
-        'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/report/get_default_report_template'
-      )
-      //.get("http://127.0.0.1:5000/api/v1/report/get_default_report_template")
+      .get(constants.GET_DEFAULT_REPORT_TEMPLATE_URI)     
       .then(res => {
         let result = res.data[0];
         this.setState({
@@ -116,8 +113,7 @@ class Main extends Component {
     // make api call to save report
     axios
       .post(
-        'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/report/save_monthly_report',
-        //"http://127.0.0.1:5000/api/v1/report/save_monthly_report",
+        constants.SAVE_MONTHLY_REPORT_URI,        
         {
           user_id: this.state.user_id,
           report_name: this.state.report_name,
@@ -159,8 +155,7 @@ class Main extends Component {
   handlePrevSavedOpen = () => {
     axios
       .get(
-        'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/report/get_monthly_report/' +
-          //"http://127.0.0.1:5000/api/v1/report/get_monthly_report/" +
+        constants.GET_MONTHLY_REPORT_URI+          
           this.state.user_id
       )
       .then(res => {
@@ -196,7 +191,7 @@ class Main extends Component {
     // make api call to save report
     axios
       .delete(
-        'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/report/delete_monthly_report/' +
+        constants.DELETE_MONTHLY_REPORT_URI+
           report_name
       )
       .then(res => {
@@ -222,7 +217,7 @@ class Main extends Component {
   onUpdateDraft = () => {
     axios
       .post(
-        'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/report/update_monthly_report/' +
+         constants.UPDATE_MONTHLY_REPORT_URI+
           this.state.report_name,
         {
           report_body: convertToRaw(this.state.editorState.getCurrentContent())
