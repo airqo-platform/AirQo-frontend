@@ -37,6 +37,7 @@ const prodConfig = {
   GET_LATEST_OFFLINE_DEVICES:
     "http://34.78.78.202:30006/api/v1/monitor/devices/offline",
   GET_NETWORK_UPTIME: "http://34.78.78.202:30006/api/v1/monitor/network/uptime",
+  GET_DEVICE_UPTIME: "http://34.78.78.202:30006/api/v1/monitor/device/uptime/",
   ADD_MAINTENANCE_URI:
     "http://34.78.78.202:30001/api/v1/data/channels/maintenance/add",
   REGISTER_DEVICE_URI: "http://34.78.78.202:30002/api/v1/devices/ts",
