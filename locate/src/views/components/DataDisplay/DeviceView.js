@@ -78,7 +78,7 @@ export default function DeviceView() {
   const [networkUptime, setNetworkUptime] = useState([]);
 
   useEffect(() => {
-    axios.get(constants.GET_NETWORK_UPTIME).then(({ data }) => {
+    axios.get(constants.GET_DEVICE_UPTIME+params.channelID).then(({ data }) => {
       console.log(data);
       setNetworkUptime(data);
     });

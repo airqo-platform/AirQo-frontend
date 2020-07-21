@@ -108,6 +108,7 @@ const devConfig = {
   GET_LATEST_OFFLINE_DEVICES:
     "http://localhost:4001/api/v1/monitor/devices/offline",
   GET_NETWORK_UPTIME: "http://localhost:4001/api/v1/monitor/network/uptime",
+  GET_DEVICE_UPTIME: "http://localhost:4001/api/v1/monitor/device/uptime/",
   GET_NETWORK_BEST_PERFORMING_DEVICES:
     "http://localhost:4001/api/v1/monitor/network/devices/bestperforming",
   GET_NETWORK_WORST_PERFORMING_DEVICES:
