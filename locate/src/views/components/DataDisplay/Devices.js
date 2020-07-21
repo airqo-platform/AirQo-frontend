@@ -27,7 +27,8 @@ import InputLabel from '@material-ui/core/InputLabel';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Checkbox from '@material-ui/core/Checkbox';
 import CheckBoxIcon from '@material-ui/icons/CheckBox';
-import DeleteDialog from './Dialogs/DeleteDialog.js'
+import DeleteDialog from './Dialogs/DeleteDialog.js';
+import TextareaAutosize from '@material-ui/core/TextareaAutosize';
 
 const useStyles = makeStyles(theme => ({
   root: {},
@@ -58,13 +59,22 @@ const useStyles = makeStyles(theme => ({
   },
 formControl: {
   minWidth: 200,
-}
+  //marginLeft: theme.spacing(2)
+  //margin: theme.spacing(2),
+},
+input: {
+  color: 'black',
+  fontFamily: 'Open Sans',
+  fontweight:500,
+  font: '100px',
+  fontSize: 17
+},
 
 }));
 
 
 const DevicesTable = props => {
-  const ITEM_HEIGHT = 48;
+const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
 const MenuProps = {
   PaperProps: {
@@ -87,6 +97,17 @@ const MenuProps = {
   };
   const handleRegisterClose = () => {
     setRegisterOpen(false);
+    setRegisterName('');
+    setLatitude('0.332269');
+    setLongitude('32.570077');
+    setVisibility('');
+    setManufacturer('');
+    setProductName('');
+    setOwner('');
+    setISP('');
+    setPhone(null);
+    setDescription('');
+    setComponents([]);
   };
 
   const [editOpen, setEditOpen] = useState(false);
@@ -95,6 +116,17 @@ const MenuProps = {
   };
   const handleEditClose = () => {
     setEditOpen(false);
+    setRegisterName('');
+    setLatitude('');
+    setLongitude('');
+    setVisibility('');
+    setManufacturer('');
+    setProductName('');
+    setOwner('');
+    setISP('');
+    setPhone(null);
+    setDescription('');
+    setComponents([]);
   };
 
   const [maintenanceOpen, setMaintenanceOpen]= useState(false);
@@ -103,6 +135,7 @@ const MenuProps = {
   };
   const handleMaintenanceClose = () => {
     setMaintenanceOpen(false);
+    setMaintenanceDescription('');
   };
 
   const [deployOpen, setDeployOpen]= useState(false);
@@ -214,10 +247,10 @@ const MenuProps = {
     setCollocationChecked(true);
   }
 
-  //Delete parameters
+  //Edit parameters
   const [deviceID, setDeviceID] = useState('');
 
-  //Register parameters
+  //Register and Edit parameters
   const [sensorsOptions, setSensorsOptions] = useState([]);
   
   useEffect(() => {
@@ -232,10 +265,12 @@ const MenuProps = {
         //setIsLoading(false);
         const ref = res.data;
         console.log(ref);
+        //console.log(ref[0].sensorID)
         let sensorArray = [];
         for (var i=0; i<ref.length; i++){
           //pass
-          sensorArray.push(ref[i].name+ " ( "+ ref[i].quantityKind.join(', ')+ ")")
+          sensorArray.push(ref[i]);
+          //sensorArray.push(ref[i].name+ " ( "+ ref[i].quantityKind.join(', ')+ ")")
         }
         setSensorsOptions(sensorArray);
 
@@ -362,7 +397,7 @@ const MenuProps = {
     //setDate(time);
    }
   
-  let handleEditClick = (name, manufacturer,product, owner, description, visibility, ISP, lat, long, phone) => {
+  let handleEditClick = (name, manufacturer,product, owner, description, visibility, ISP, lat, long, phone, channelID) => {
     return (event) => {
       console.log(name);
       setRegisterName(name);
@@ -375,6 +410,7 @@ const MenuProps = {
       setLatitude(lat);
       setLongitude(long);
       setPhone(phone);
+      setDeviceID(channelID);
       handleEditOpen();
 
     }
@@ -464,6 +500,7 @@ const MenuProps = {
 	    date: selectedDate.toString(),  
     }
     console.log(JSON.stringify(filter));
+    
     axios.post(
       //"http://localhost:3000/api/v1/data/channels/maintenance/add",
       constants.ADD_MAINTENANCE_URI,
@@ -477,7 +514,6 @@ const MenuProps = {
         setDialogResponseMessage(myData.message);
         setMaintenanceOpen(false);
         setResponseOpen(true);
-        setMaintenanceDescription('');
     }).catch(
       console.log
     )
@@ -534,7 +570,6 @@ const MenuProps = {
       constants.REGISTER_DEVICE_URI,
       JSON.stringify(filter),
       { headers: { 'Content-Type': 'application/json' } },
-      //console.log('REQUEST')
     ) 
     .then(
       res=>{
@@ -544,19 +579,6 @@ const MenuProps = {
         setDialogResponseMessage(myData.message);
         setRegisterOpen(false);
         setResponseOpen(true);
-
-        setRegisterName('');
-        setLatitude('');
-        setLongitude('');
-        setVisibility('');
-        setManufacturer('');
-        setProductName('');
-        setOwner('');
-        setISP('');
-        setPhone('');
-        setDescription('');
-        setComponents([]);
-        //setMaintenanceDescription('');
     }).catch(
       console.log
     )
@@ -566,21 +588,21 @@ const MenuProps = {
     console.log('Updating');
     let filter = {
       name: registerName,
-      latitude: latitude,
-      longitude: longitude,
+      latitude: latitude.toString(),
+      longitude: longitude.toString(),
       visibility: visibility,
       device_manufacturer: manufacturer,
       product_name:productName,
       owner: owner,
       ISP: ISP,
       phoneNumber: phone,
-      description: description
+      description: description,
+      sensors:components
     }
     console.log(JSON.stringify(filter));
-    /*
-    axios.post(
+    axios.put(
       //"http://127.0.0.1:3000/api/v1/devices/ts/update?device=",
-      constants.EDIT_DEVICE_URI+channelID,
+      constants.EDIT_DEVICE_URI+deviceID.toString(),
       JSON.stringify(filter),
       { headers: { 'Content-Type': 'application/json' } }
     )
@@ -592,19 +614,10 @@ const MenuProps = {
         setEditOpen(false);
         setResponseOpen(true);
 
-        setRegisterName('');
-        setLatitude('');
-        setLongitude('');
-        setVisibility('');
-        setManufacturer('');
-        setProductName('');
-        setOwner('');
-        setISP('');
-        setPhone('');
-        setDescription('');
+        
     }).catch(
       console.log
-    )*/
+    )
   }
 
   let handleDeleteSubmit = (e) => {
@@ -697,7 +710,7 @@ const MenuProps = {
                                         className={classes.link} 
                                         onClick = {handleEditClick(rowData.name, rowData.device_manufacturer, rowData.product_name, 
                                           rowData.owner, rowData.description, rowData.visibility, rowData.ISP, rowData.latitude,
-                                          rowData.longitude, rowData.phoneNumber)}
+                                          rowData.longitude, rowData.phoneNumber, rowData.channelID)}
                                         //style={{color: 'black'}} 
                                         //activeStyle={{color: 'red'}}
                                       > 
@@ -832,16 +845,27 @@ const MenuProps = {
            <DialogContent>
                 <div>
                  <TextField 
-                   id="standard-basic" 
+                   id="deviceName" 
                    label="Device Name"
                    value = {deviceName}
                    /> <br/>
+                   
                  <TextField 
                    id="standard-basic" 
                    label="Description" 
                    value = {maintenanceDescription}
                    onChange = {handleMaintenanceDescriptionChange}
                    /><br/>
+              {/*}
+                <TextareaAutosize
+                  id = "maintenanceDescription"
+                  label = "Description"
+                  value = {maintenanceDescription}
+                  onChange = {handleMaintenanceDescriptionChange}
+                  rowsMin={3}
+                  //placeholder="Maximum 4 rows"
+                  />*/}
+
                  <MuiPickersUtilsProvider utils={DateFnsUtils}>
                   <KeyboardDatePicker
                     disableToolbar
@@ -1077,15 +1101,18 @@ const MenuProps = {
            <DialogTitle id="form-dialog-title">Add a device</DialogTitle>
 
            <DialogContent>
-                <div>
+              {/*<div>*/}
+              <form className={classes.formControl}> {/*onSubmit={handleRegisterSubmit}*/}
+                {/*<Grid container>
+                 <Grid container item>*/}
                  <TextField 
-                   id="standard-basic" 
-                   label="Device Name"
-                   value = {registerName}
-                   fullWidth = {true}
-                   onChange = {handleRegisterNameChange}
                    required
-                   /> <br/>
+                   id="deviceName" 
+                   value = {registerName}
+                   onChange = {handleRegisterNameChange}
+                   label="Device Name"
+                   fullWidth = {true}                 
+                   /><br/>
                  <TextField 
                    id="standard-basic" 
                    label="Description" 
@@ -1126,7 +1153,7 @@ const MenuProps = {
                    fullWidth = {true}
                    required
                    /><br/>
-                   <FormControl required className={classes.formControl} fullWidth={true}>
+                   <FormControl required  fullWidth={true}>
                       <InputLabel htmlFor="demo-dialog-native"> Visibility</InputLabel>
                       <Select
                         required
@@ -1148,7 +1175,7 @@ const MenuProps = {
                    onChange = {handleOwnerChange}
                    fullWidth = {true}
                    /><br/>
-                   <FormControl className={classes.formControl} fullWidth={true}>
+                   <FormControl fullWidth={true}>
                       <InputLabel htmlFor="demo-dialog-native"> Internet Service Provider</InputLabel>
                       <Select
                         native
@@ -1169,7 +1196,7 @@ const MenuProps = {
                    onChange = {handlePhoneChange}
                    fullWidth = {true}
                    /><br/>
-                   <FormControl className={classes.formControl} fullWidth={true}>
+                   <FormControl fullWidth={true}>
                      <InputLabel htmlFor="demo-dialog-native"Device >Components</InputLabel>
                      <Select
                        multiple
@@ -1181,14 +1208,41 @@ const MenuProps = {
                      >
                        <option aria-label="None" value="" />
                        {sensorsOptions.map( (sensor) =>
-                       <option value={sensor}>{sensor}</option>)}
+                       <option value={sensor.sensorID}>{sensor.name+ " ( "+ sensor.quantityKind.join(', ')+ ")"}</option>)}
                      </Select>
-                   </FormControl><br/>
+                   </FormControl><br/> <br/>
+                   {/*</Grid>
+                   </Grid> <br/>*/}
+                   </form>
+                   </DialogContent>
+
+                   <DialogActions>
+                  
+                <Grid container alignItems="center" alignContent="center" justify="center">
+                 <Button 
+                  variant="contained" 
+                  color="primary"  
+                  type ="submit"            
+                  onClick={handleRegisterSubmit}
+                 > Register
+                </Button>
+               &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+               <Button 
+                variant="contained" 
+                color="primary"              
+                type="button"
+                onClick = {handleRegisterClose}
+               > Cancel
+               </Button>
+               </Grid> <br/>
+              </DialogActions>
+              {/*</form>*/}
                  
-                 </div>
+                 {/*</div>
                  
-                  </DialogContent> 
-          
+                  </DialogContent> *?}
+                  
+              {/*}
                  <DialogActions>
                  <Grid container alignItems="center" alignContent="center" justify="center">
                  <Button 
@@ -1206,7 +1260,7 @@ const MenuProps = {
                > Cancel
                </Button>
                </Grid>
-           </DialogActions>
+                       </DialogActions> */}
          </Dialog>
          ) : null}
 
@@ -1221,20 +1275,17 @@ const MenuProps = {
            <DialogTitle id="form-dialog-title">Edit a device</DialogTitle>
 
            <DialogContent>
-                <div>
+                <form  className={classes.formControl}> 
+                {/*<Grid container>
+                 <Grid container item>*/}
                  <TextField 
+                   required
                    id="standard-basic" 
                    label="Device Name"
                    value = {registerName}
                    fullWidth = {true}
-                   onChange = {handleRegisterNameChange}
-                   required
+                   onChange = {handleRegisterNameChange} 
                    InputProps={{
-                    classes: {
-                      notchedOutline: classes.notchedOutline,
-                      focused: classes.focused
-                    },
-                    className: classes.input,
                     readOnly:true
                 }}
                    /> <br/>
@@ -1252,7 +1303,6 @@ const MenuProps = {
                    value = {manufacturer}
                    onChange = {handleManufacturerChange}
                    fullWidth = {true}
-                   required
                    /><br/>
                    <TextField 
                    id="standard-basic" 
@@ -1260,7 +1310,6 @@ const MenuProps = {
                    value = {productName}
                    onChange = {handleProductNameChange}
                    fullWidth = {true}
-                   required
                    /><br/>
                    <TextField 
                    id="standard-basic" 
@@ -1278,10 +1327,9 @@ const MenuProps = {
                    fullWidth = {true}
                    required
                    /><br/>
-                   <FormControl className={classes.formControl} fullWidth={true}>
+                   <FormControl required className={classes.formControl} fullWidth={true}>
                       <InputLabel htmlFor="demo-dialog-native"> Visibility</InputLabel>
                       <Select
-                        required
                         native
                         value={visibility}
                         onChange={handleVisibilityChange}
@@ -1321,8 +1369,28 @@ const MenuProps = {
                    onChange = {handlePhoneChange}
                    fullWidth = {true}
                    /><br/>
+
+                   <FormControl className={classes.formControl} fullWidth={true}>
+                     <InputLabel htmlFor="demo-dialog-native"Device >Components</InputLabel>
+                     <Select
+                       multiple
+                       value={components}
+                       onChange={handleComponentsChange}
+                       //onChange = {handleChangeMultiple}
+                       input={<Input id="demo-dialog-native" />}
+                       MenuProps={MenuProps}
+                     >
+                       <option aria-label="None" value="" />
+                       {sensorsOptions.map( (sensor) =>
+                       <option value={sensor.sensorID}>{sensor.name+ " ( "+ sensor.quantityKind.join(', ')+ ")"}</option>)}
+                     </Select>
+                   </FormControl><br/> <br/>
+                   </form>
+                  {/*} </Grid>
+                   </Grid> <br/>*/}
+
                  
-                 </div>
+                 {/*</div>*/}
                  
                   </DialogContent> 
           
@@ -1330,6 +1398,7 @@ const MenuProps = {
                  <Grid container alignItems="center" alignContent="center" justify="center">
                  <Button 
                   variant="contained" 
+                  type = "submit"
                   color="primary"              
                   onClick={handleEditSubmit}
                  > Update
@@ -1338,12 +1407,12 @@ const MenuProps = {
                <Button 
                 variant="contained" 
                 color="primary"              
-                //type="button"
+                type="button"
                 onClick = {handleEditClose}
                > Cancel
                </Button>
-               </Grid>
-           </DialogActions>
+               </Grid> <br/>
+          </DialogActions>
          </Dialog>
          ) : null}
 
