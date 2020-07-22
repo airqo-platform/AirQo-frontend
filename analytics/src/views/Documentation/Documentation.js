@@ -47,7 +47,7 @@ const Documentation = () => {
            sm={9}
            xs={12}>
         <MuiTypography variant='h1'>Analytics handbook </MuiTypography>
-        <MuiTypography variant='b1'><a href = 'https://docs.google.com/document/d/1Yb5eMx8NedM9HpuwD8GzVW4OptHkcNVJar6G-zsjKso/edit?usp=sharing' target='blank'>Documentation Handbook</a></MuiTypography>
+        <MuiTypography variant='b1'><a href = 'https://drive.google.com/file/d/12HO_iavh-K0aeaIAgKsq31hCeWQJ0bni/view?usp=sharing' target='blank'>Documentation Handbook</a></MuiTypography>
 
         </Grid>
 
