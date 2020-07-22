@@ -17,7 +17,7 @@ import {
   KeyboardDatePicker,
 } from '@material-ui/pickers';
 //import { AccessAlarm, ThreeDRotation } from '@material-ui/icons';
-import { Update, DeleteOutlined, EditOutlined, CloudUploadOutlined, UndoOutlined } from '@material-ui/icons';
+import { Update, AddOutlined, EditOutlined, CloudUploadOutlined, UndoOutlined } from '@material-ui/icons';
 import Tooltip from '@material-ui/core/Tooltip';
 //import Select from 'react-select';
 import Select from '@material-ui/core/Select';
@@ -27,7 +27,6 @@ import InputLabel from '@material-ui/core/InputLabel';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Checkbox from '@material-ui/core/Checkbox';
 import CheckBoxIcon from '@material-ui/icons/CheckBox';
-import DeleteDialog from './Dialogs/DeleteDialog.js';
 import TextareaAutosize from '@material-ui/core/TextareaAutosize';
 
 const useStyles = makeStyles(theme => ({
@@ -107,7 +106,7 @@ const MenuProps = {
     setISP('');
     setPhone(null);
     setDescription('');
-    setComponents([]);
+    //setComponents([]);
   };
 
   const [editOpen, setEditOpen] = useState(false);
@@ -126,7 +125,7 @@ const MenuProps = {
     setISP('');
     setPhone(null);
     setDescription('');
-    setComponents([]);
+    //setComponents([]);
   };
 
   const [maintenanceOpen, setMaintenanceOpen]= useState(false);
@@ -154,12 +153,12 @@ const MenuProps = {
     setRecallOpen(false);
   }
 
-  const [deleteOpen, setDeleteOpen] = useState(false);
-  const handleDeleteOpen = () => {
-    setDeleteOpen(true);
+  const [sensorOpen, setSensorOpen] = useState(false);
+  const handleSensorOpen = () => {
+    setSensorOpen(true);
   };
-  const handleDeleteClose = () => {
-    setDeleteOpen(false);
+  const handleSensorClose = () => {
+    setSensorOpen(false);
   }
 
   const [responseOpen, setResponseOpen] = useState(false);
@@ -183,6 +182,23 @@ const MenuProps = {
   const handleDateChange = (date) => {
     setSelectedDate(date);
   };
+  //sensor parameters
+  const [sensorID, setSensorID] = useState('');
+  const handleSensorIDChange = id => {
+    setSensorID(id.target.value);
+  } 
+  const [sensorName, setSensorName] = useState('');
+  const handleSensorNameChange = name => {
+    setSensorName(name.target.value);
+  } 
+  const [quantityKind, setQuantityKind] = useState('');
+  const handleQuantityKindChange = quantity => {
+    setQuantityKind(quantity.target.value);
+  } 
+  const [measurementUnit, setMeasurementUnit] = useState('');
+  const handleMeasurementUnitChange = unit => {
+    setMeasurementUnit(unit.target.value);
+  }
   
   //deployment parameters
   const [locationsOptions, setLocationsOptions] = useState([]);
@@ -329,11 +345,11 @@ const MenuProps = {
       setPhone(event.target.value);
     }
   }
-
+/*
   const [components, setComponents] = useState([]);
   const handleComponentsChange = (event) => {
 	  setComponents(event.target.value);
-  }
+  }*/
   
   /*
   const handleChangeMultiple = (event) => {
@@ -442,11 +458,12 @@ const MenuProps = {
     }
   }
 
-  let handleDeleteClick = (id) => {
+  let handleSensorClick = (id) => {
     return (event) => {
-      //setDeviceName(name);
+      console.log('Adding sensors to channel '+id);
+      //console.log(name);
       setDeviceID(id);
-      handleDeleteOpen();
+      handleSensorOpen();
     }
   }
 
@@ -561,7 +578,7 @@ const MenuProps = {
       ISP: ISP,
       phoneNumber: phone,
       description: description,
-      sensors: components
+      //sensors: components
     }
     console.log(JSON.stringify(filter));
    
@@ -597,7 +614,7 @@ const MenuProps = {
       ISP: ISP,
       phoneNumber: phone,
       description: description,
-      sensors:components
+      //sensors:components
     }
     console.log(JSON.stringify(filter));
     axios.put(
@@ -620,10 +637,13 @@ const MenuProps = {
     )
   }
 
-  let handleDeleteSubmit = (e) => {
-    console.log('Deleting ...');
+  let handleSensorSubmit = (e) => {
+    console.log('Adding sensor ...');
     let filter = {
-      device: deviceID
+      device: deviceID,
+      sensorID: sensorID,
+      quantityKind: quantityKind,
+      measurementUnit: measurementUnit
     }
     console.log(JSON.stringify(filter));
     /*
@@ -759,12 +779,12 @@ const MenuProps = {
 
                                     &nbsp;&nbsp;&nbsp;
 
-                                    <Tooltip title="Delete Device">
+                                    <Tooltip title="Add Component">
                                       <Link 
                                         className={classes.link} 
-                                        onClick = {handleDeleteClick(rowData.channelID)}
+                                        onClick = {handleSensorClick(rowData.channelID)}
                                       > 
-                                        <DeleteOutlined></DeleteOutlined>
+                                        <AddOutlined></AddOutlined>
                                       </Link>
                                     </Tooltip>
                                     {/*
@@ -1196,6 +1216,7 @@ const MenuProps = {
                    onChange = {handlePhoneChange}
                    fullWidth = {true}
                    /><br/>
+                   {/*
                    <FormControl fullWidth={true}>
                      <InputLabel htmlFor="demo-dialog-native"Device >Components</InputLabel>
                      <Select
@@ -1210,7 +1231,7 @@ const MenuProps = {
                        {sensorsOptions.map( (sensor) =>
                        <option value={sensor.sensorID}>{sensor.name+ " ( "+ sensor.quantityKind.join(', ')+ ")"}</option>)}
                      </Select>
-                   </FormControl><br/> <br/>
+                   </FormControl><br/> <br/>*/}
                    {/*</Grid>
                    </Grid> <br/>*/}
                    </form>
@@ -1369,7 +1390,7 @@ const MenuProps = {
                    onChange = {handlePhoneChange}
                    fullWidth = {true}
                    /><br/>
-
+                   {/*
                    <FormControl className={classes.formControl} fullWidth={true}>
                      <InputLabel htmlFor="demo-dialog-native"Device >Components</InputLabel>
                      <Select
@@ -1384,7 +1405,7 @@ const MenuProps = {
                        {sensorsOptions.map( (sensor) =>
                        <option value={sensor.sensorID}>{sensor.name+ " ( "+ sensor.quantityKind.join(', ')+ ")"}</option>)}
                      </Select>
-                   </FormControl><br/> <br/>
+                       </FormControl><br/> <br/>*/}
                    </form>
                   {/*} </Grid>
                    </Grid> <br/>*/}
@@ -1416,16 +1437,138 @@ const MenuProps = {
          </Dialog>
          ) : null}
 
-     {deleteOpen? (
+     {sensorOpen? (
        
        <Dialog
-           open={deleteOpen}
-           onClose={handleDeleteClose}
+           open={sensorOpen}
+           onClose={handleSensorClose}
            aria-labelledby="form-dialog-title"
            aria-describedby="form-dialog-description"
          >
-           <DialogTitle id="form-dialog-title" style={{alignContent:'center'}}>Delete a device</DialogTitle>
-           
+           <DialogTitle id="form-dialog-title" style={{alignContent:'center'}}>Add a component</DialogTitle>
+           <DialogContent>
+                <div>
+                  {/*
+                 <TextField 
+                   fullWidth={true}
+                   id="deviceName" 
+                   label="Device Name"
+                   value = {deviceName}
+                   /> <br/>*/}
+                 <TextField 
+                   //fullWidth={true}
+                   id="sensorID" 
+                   label="Component ID"
+                   value = {sensorID}
+                   fullWidth={true}
+                   /> <br/>
+
+                 <FormControl required  fullWidth={true}>
+                  <InputLabel htmlFor="demo-dialog-native"> Component Name</InputLabel>
+                   <Select
+                    native
+                    value={sensorName}
+                    onChange={handleSensorNameChange}
+                    input={<Input id="demo-dialog-native" />}
+                   >
+                        <option aria-label="None" value="" />
+                        <option value="Alphasense OPC-N2">Alphasense OPC-N2</option>
+                        <option value="pms5003">pms5003</option>
+                        <option value="DHT11">DHT11</option>
+                        <option value="Lithium Ion 18650">Lithium Ion 18650</option>
+                        <option value="Generic">Generic</option>
+                        <option value="Purple Air II">Purple Air II</option>
+                        <option value="Bosch BME280">Bosch BME280</option>
+                      </Select>
+                   </FormControl><br/>
+
+                  <FormControl required fullWidth={true}>
+                  <InputLabel htmlFor="demo-dialog-native"> Quantity Measured</InputLabel>
+                   <Select
+                    native
+                    value={quantityKind}
+                    onChange={handleQuantityKindChange}
+                    input={<Input id="demo-dialog-native" />}
+                   >
+                        <option aria-label="None" value="" />
+                        <option value="pm1">PM 1</option>
+                        <option value="pm2.5">PM 2.5</option>
+                        <option value="pm10">PM 10</option>
+                        <option value="ext_temp">External Temperature</option>
+                        <option value="ext_rh">External Humidity</option>
+                        <option value="int_temp">Internal Temperature</option>
+                        <option value="int_rh">Internal Humidity</option>
+                        <option value="battery">Battery Voltage</option>
+                        <option value="gps">GPS</option>
+                      </Select>
+                   </FormControl><br/>
+
+                   <FormControl required fullWidth={true}>
+                    <InputLabel htmlFor="demo-dialog-native"> Unit of Measure</InputLabel>
+                    <Select
+                    native
+                    value={measurementUnit}
+                    onChange={handleMeasurementUnitChange}
+                    input={<Input id="demo-dialog-native" />}
+                    >
+                        <option aria-label="None" value="" />
+                        <option value="µg/m3">µg/m3</option>
+                        <option value="%">%</option>
+                        <option value="&#8451;">&#8451;</option>
+                        <option style = {{fontFamily: 'Calibri'}} value="&#8457;">&#8457;</option>
+                        <option value="V">V</option>
+                        <option value="coords">GPS Coordinates</option>
+                      </Select>
+                   </FormControl><br/>
+                 
+                 {/*
+                   
+                 <TextField 
+                   id="standard-basic" 
+                   label="Description" 
+                   value = {maintenanceDescription}
+                   onChange = {handleMaintenanceDescriptionChange}
+                   /><br/>
+              
+                 <MuiPickersUtilsProvider utils={DateFnsUtils}>
+                  <KeyboardDatePicker
+                    disableToolbar
+                    variant="inline"
+                    //format="MM/dd/yyyy"
+                    format = "yyyy-MM-dd"
+                    margin="normal"
+                    id="maintenanceDate"
+                    label="Date of Maintenance"
+                    value={selectedDate}
+                    onChange={handleDateChange}
+                    KeyboardButtonProps={{
+                    'aria-label': 'change date',
+                   }}
+                   />
+                 </MuiPickersUtilsProvider>*/}
+                 </div>
+                 
+                  </DialogContent> 
+          
+                 <DialogActions>
+                 <Grid container alignItems="center" alignContent="center" justify="center">
+                 <Button 
+                  variant="contained" 
+                  color="primary"              
+                  onClick={handleSensorSubmit}
+                 > Add
+                </Button>
+               &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+               <Button 
+                variant="contained" 
+                color="primary"              
+                //type="button"
+                onClick = {handleSensorClose}
+               > Cancel
+               </Button>
+               </Grid>
+           </DialogActions>
+              {/*}
                 <DialogContent>
                   Are you sure you want to delete device {deviceName}?
                 </DialogContent> 
@@ -1436,7 +1579,7 @@ const MenuProps = {
                  <Button 
                   variant="contained" 
                   color="primary"              
-                  onClick={handleDeleteSubmit}
+                  onClick={handleSensorSubmit}
                  > YES
                 </Button>
                 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
@@ -1444,11 +1587,11 @@ const MenuProps = {
                 variant="contained" 
                 color="primary"              
                 //type="button"
-                onClick = {handleDeleteClose}
+                onClick = {handleSensorClose}
                > NO
                </Button>
                </Grid>
-           </DialogActions>
+     </DialogActions>*/}
          </Dialog>
          ) : null}
     </div>
