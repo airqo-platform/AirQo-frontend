@@ -481,7 +481,7 @@ const Dashboard = props => {
                   onClick={handleClick}
                   className={classes.chartSaveButton}
                 >
-                  <MoreVertIcon />
+                  <MoreHoriz />
                 </IconButton>
                 <Menu
                   anchorEl={anchorEl}
@@ -511,6 +511,8 @@ const Dashboard = props => {
             <ExceedancesChart
               className={clsx(classes.chartCard)}
               chartContainer={classes.chartContainer}
+              idSuffix='exceedances'
+
             />
           </Grid>
         </Grid>

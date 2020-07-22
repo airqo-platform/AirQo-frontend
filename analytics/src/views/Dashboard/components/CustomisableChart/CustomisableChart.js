@@ -23,7 +23,6 @@ import validate from 'validate.js';
 import constants from '../../../../config/constants'
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
-import MoreVertIcon from '@material-ui/icons/MoreVert';
 import domtoimage from 'dom-to-image';
 import JsPDF from 'jspdf';
 
