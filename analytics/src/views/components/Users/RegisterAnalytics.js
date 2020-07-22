@@ -1,35 +1,35 @@
 /* eslint-disable */
-import React, { Component } from 'react';
-import { Link, withRouter } from 'react-router-dom';
-import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
-import { registerCandidate } from '../../../redux/Join/actions';
-import classnames from 'classnames';
-import TextField from '@material-ui/core/TextField';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import Checkbox from '@material-ui/core/Checkbox';
-import countries from '../../../utils/countries';
-import { Alert, AlertTitle } from '@material-ui/lab';
-import { withStyles, InputLabel } from '@material-ui/core';
+import React, { Component } from "react";
+import { Link, withRouter } from "react-router-dom";
+import PropTypes from "prop-types";
+import { connect } from "react-redux";
+import { registerCandidate } from "../../../redux/Join/actions";
+import classnames from "classnames";
+import TextField from "@material-ui/core/TextField";
+import FormControlLabel from "@material-ui/core/FormControlLabel";
+import Checkbox from "@material-ui/core/Checkbox";
+import countries from "../../../utils/countries";
+import { Alert, AlertTitle } from "@material-ui/lab";
+import { withStyles, InputLabel } from "@material-ui/core";
 
-const styles = theme => ({
+const styles = (theme) => ({
   root: {
-    width: '100%',
-    '& > * + *': {
-      marginTop: theme.spacing(2)
-    }
-  }
+    width: "100%",
+    "& > * + *": {
+      marginTop: theme.spacing(2),
+    },
+  },
 });
 
 const validEmailRegex = RegExp(
   /^(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i
 );
 
-const validateForm = errors => {
+const validateForm = (errors) => {
   let valid = true;
   Object.values(errors).forEach(
     // if we have an error string set valid to false
-    val => val.length > 0 && (valid = false)
+    (val) => val.length > 0 && (valid = false)
   );
   return valid;
 };
@@ -38,48 +38,48 @@ class Register extends Component {
   constructor() {
     super();
     this.state = {
-      firstName: '',
-      lastName: '',
-      email: '',
-      country: '',
-      phoneNumber: '',
-      jobTitle: '',
-      description: '',
-      organization: '',
+      firstName: "",
+      lastName: "",
+      email: "",
+      country: "",
+      phoneNumber: "",
+      jobTitle: "",
+      description: "",
+      organization: "",
       errors: {},
-      isChecked: {}
+      isChecked: {},
     };
   }
 
   componentDidMount() {
-    var anchorElem = document.createElement('link');
+    var anchorElem = document.createElement("link");
     anchorElem.setAttribute(
-      'href',
-      'https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css'
+      "href",
+      "https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"
     );
-    anchorElem.setAttribute('rel', 'stylesheet');
-    anchorElem.setAttribute('id', 'logincdn');
+    anchorElem.setAttribute("rel", "stylesheet");
+    anchorElem.setAttribute("id", "logincdn");
 
     //document.body.appendChild(anchorElem);
-    document.getElementsByTagName('head')[0].appendChild(anchorElem);
+    document.getElementsByTagName("head")[0].appendChild(anchorElem);
     // If logged in and user navigates to Login page, should redirect them to dashboard
     if (this.props.auth.isAuthenticated) {
-      this.props.history.push('/dashboard');
+      this.props.history.push("/dashboard");
     }
   }
 
   componentWillReceiveProps(nextProps) {
     if (nextProps.auth.registered) {
-      this.props.history.push('/login'); // push user to the landing page after successfull signup
+      this.props.history.push("/login"); // push user to the landing page after successfull signup
     }
     if (nextProps.errors) {
       this.setState({
-        errors: nextProps.errors
+        errors: nextProps.errors,
       });
     }
   }
 
-  onChange = e => {
+  onChange = (e) => {
     // this.setState({ [e.target.id]: e.target.value });
 
     e.preventDefault();
@@ -87,28 +87,28 @@ class Register extends Component {
     let errors = this.props.errors;
 
     switch (id) {
-      case 'firstName':
-        errors.firstName = value.length === 0 ? 'first name is required' : '';
+      case "firstName":
+        errors.firstName = value.length === 0 ? "first name is required" : "";
         break;
-      case 'lastName':
-        errors.lastName = value.length === 0 ? 'last name is required' : '';
+      case "lastName":
+        errors.lastName = value.length === 0 ? "last name is required" : "";
         break;
-      case 'email':
-        errors.email = validEmailRegex.test(value) ? '' : 'Email is not valid!';
+      case "email":
+        errors.email = validEmailRegex.test(value) ? "" : "Email is not valid!";
         break;
-      case 'organization':
+      case "organization":
         errors.organization =
-          value.length === 0 ? 'organization is required' : '';
+          value.length === 0 ? "organization is required" : "";
         break;
-      case 'jobTitle':
-        errors.jobTitle = value.length === 0 ? 'job title is required' : '';
+      case "jobTitle":
+        errors.jobTitle = value.length === 0 ? "job title is required" : "";
         break;
-      case 'phoneNumber':
+      case "phoneNumber":
         errors.phoneNumber =
-          value.length === 0 ? 'phone number  is required' : '';
+          value.length === 0 ? "phone number  is required" : "";
         break;
-      case 'country':
-        errors.country = value.length === 0 ? 'country is required' : '';
+      case "country":
+        errors.country = value.length === 0 ? "country is required" : "";
         break;
 
       default:
@@ -118,7 +118,7 @@ class Register extends Component {
     this.setState(
       {
         errors,
-        [id]: value
+        [id]: value,
       },
       () => {
         console.log(errors);
@@ -126,33 +126,33 @@ class Register extends Component {
     );
   };
 
-  handleCheck = event => {
+  handleCheck = (event) => {
     this.state.isChecked = event.target.checked;
     this.setState({ isChecked: this.state.isChecked });
   };
 
   clearState = () => {
     const initialState = {
-      firstName: '',
-      lastName: '',
-      email: '',
-      country: '',
-      phoneNumber: '',
-      jobTitle: '',
-      description: '',
-      organization: '',
+      firstName: "",
+      lastName: "",
+      email: "",
+      country: "",
+      phoneNumber: "",
+      jobTitle: "",
+      description: "",
+      organization: "",
       errors: {},
-      isChecked: {}
+      isChecked: {},
     };
     this.setState(initialState);
   };
 
-  onSubmit = e => {
+  onSubmit = (e) => {
     e.preventDefault();
     if (validateForm(this.state.errors)) {
-      console.info('Valid Form');
+      console.info("Valid Form");
     } else {
-      console.error('Invalid Form');
+      console.error("Invalid Form");
     }
 
     const { id, value } = e.target;
@@ -160,27 +160,27 @@ class Register extends Component {
     // const { errors } = this.state;
 
     switch (id) {
-      case 'firstName':
-        console.log('the firstName error');
+      case "firstName":
+        console.log("the firstName error");
         errors.firstName = mappedErrors.errors.firstName;
         console.log(errors.firstName);
         break;
-      case 'lastName':
+      case "lastName":
         errors.lastName = mappedErrors.errors.lastName;
         break;
-      case 'email':
+      case "email":
         errors.email = mappedErrors.errors.email;
         break;
-      case 'organization':
+      case "organization":
         errors.organization = mappedErrors.errors.organization;
         break;
-      case 'jobTitle':
+      case "jobTitle":
         errors.jobTitle = mappedErrors.errors.jobTitle;
         break;
-      case 'phoneNumber':
+      case "phoneNumber":
         errors.phoneNumber = mappedErrors.errors.phoneNumber;
         break;
-      case 'country':
+      case "country":
         errors.country = mappedErrors.errors.country;
         break;
       default:
@@ -196,7 +196,7 @@ class Register extends Component {
       phoneNumber: this.state.phoneNumber,
       country: this.state.country,
       description: this.state.description,
-      organization: this.state.organization
+      organization: this.state.organization,
     };
     console.log(newUser);
     this.props.registerCandidate(newUser);
@@ -205,7 +205,7 @@ class Register extends Component {
       this.setState(
         {
           errors,
-          [id]: value
+          [id]: value,
         },
         () => {
           console.log(errors);
@@ -224,18 +224,20 @@ class Register extends Component {
           <div
             className="col s8 offset-s2"
             style={{
-              backgroundColor: '#2979FF',
-              height: '15vh',
-              padding: '1em'
-            }}></div>
+              backgroundColor: "#3067e2",
+              height: "15vh",
+              padding: "1em",
+            }}
+          ></div>
           <div
             className="col s8 offset-s2"
-            style={{ backgroundColor: '#fff', padding: '1em' }}>
+            style={{ backgroundColor: "#fff", padding: "1em" }}
+          >
             <Link to="/" className="btn-flat waves-effect">
               <i className="material-icons left">keyboard_backspace</i> Back to
               home
             </Link>
-            <div className="col s12" style={{ paddingLeft: '11.250px' }}>
+            <div className="col s12" style={{ paddingLeft: "11.250px" }}>
               <h4>
                 <b>Join Analytics</b>
               </h4>
@@ -251,8 +253,8 @@ class Register extends Component {
                   error={errors.firstName}
                   id="firstName"
                   type="text"
-                  className={classnames('', {
-                    invalid: errors.firstName
+                  className={classnames("", {
+                    invalid: errors.firstName,
                   })}
                 />
                 <label htmlFor="firstName">First Name</label>
@@ -265,8 +267,8 @@ class Register extends Component {
                   error={errors.lastName}
                   id="lastName"
                   type="text"
-                  className={classnames('', {
-                    invalid: errors.lastName
+                  className={classnames("", {
+                    invalid: errors.lastName,
                   })}
                 />
                 <label htmlFor="lastName">Last Name</label>
@@ -280,8 +282,8 @@ class Register extends Component {
                   error={errors.jobTitle}
                   id="jobTitle"
                   type="text"
-                  className={classnames('', {
-                    invalid: errors.jobTitle
+                  className={classnames("", {
+                    invalid: errors.jobTitle,
                   })}
                 />
                 <label htmlFor="jobTitle">Job Title</label>
@@ -295,8 +297,8 @@ class Register extends Component {
                   error={errors.organization}
                   id="organization"
                   type="text"
-                  className={classnames('', {
-                    invalid: errors.organization
+                  className={classnames("", {
+                    invalid: errors.organization,
                   })}
                 />
                 <label htmlFor="organization">Organization</label>
@@ -310,8 +312,8 @@ class Register extends Component {
                   error={errors.email}
                   id="email"
                   type="email"
-                  className={classnames('', {
-                    invalid: errors.email
+                  className={classnames("", {
+                    invalid: errors.email,
                   })}
                 />
                 <label htmlFor="email">Email</label>
@@ -325,8 +327,8 @@ class Register extends Component {
                   error={errors.phoneNumber}
                   id="phoneNumber"
                   type="tel"
-                  className={classnames('', {
-                    invalid: errors.phoneNumber
+                  className={classnames("", {
+                    invalid: errors.phoneNumber,
                   })}
                 />
                 <label htmlFor="phoneNumber">Phone Number</label>
@@ -363,13 +365,14 @@ class Register extends Component {
                   SelectProps={{
                     native: true,
                     MenuProps: {
-                      className: classes.menu
-                    }
+                      className: classes.menu,
+                    },
                   }}
                   helperText="Please select your country"
                   margin="normal"
-                  variant="outlined">
-                  {countries.array.map(option => (
+                  variant="outlined"
+                >
+                  {countries.array.map((option) => (
                     <option key={option.label} value={option.label}>
                       {option.label}
                     </option>
@@ -391,17 +394,18 @@ class Register extends Component {
                   label="Agree to our terms and conditions?"
                 />
               </div>
-              <div className="col s12" style={{ paddingLeft: '11.250px' }}>
+              <div className="col s12" style={{ paddingLeft: "11.250px" }}>
                 {this.state.isChecked ? (
                   <button
                     style={{
-                      width: '150px',
-                      borderRadius: '3px',
-                      letterSpacing: '1.5px',
-                      marginTop: '1rem'
+                      width: "150px",
+                      borderRadius: "3px",
+                      letterSpacing: "1.5px",
+                      marginTop: "1rem",
                     }}
                     type="submit"
-                    className="btn btn-large waves-effect waves-light hoverable blue accent-3">
+                    className="btn btn-large waves-effect waves-light hoverable blue accent-3"
+                  >
                     JOIN
                   </button>
                 ) : null}
@@ -409,7 +413,7 @@ class Register extends Component {
               {this.props.auth.newUser && (
                 <Alert severity="success">
                   <AlertTitle>Success</AlertTitle>
-                  Successfully registered the user —{' '}
+                  Successfully registered the user —{" "}
                   <strong>check it out!</strong>
                 </Alert>
               )}
@@ -424,12 +428,12 @@ class Register extends Component {
 Register.propTypes = {
   registerCandidate: PropTypes.func.isRequired,
   auth: PropTypes.object.isRequired,
-  errors: PropTypes.object.isRequired
+  errors: PropTypes.object.isRequired,
 };
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
   auth: state.auth,
-  errors: state.errors
+  errors: state.errors,
 });
 
 // export default Register;
