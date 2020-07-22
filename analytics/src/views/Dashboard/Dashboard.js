@@ -27,7 +27,7 @@ import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
 import ArrowRightIcon from '@material-ui/icons/ArrowRight';
 //import Legend from './components/Map/Legend'
 import axios from 'axios';
-import constants from '../../config/constants'
+import constants from '../../config/constants';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -38,7 +38,7 @@ const useStyles = makeStyles(theme => ({
     color: theme.palette.text.secondary
   },
   chartContainer: {
-    height: 200,
+    height: 180,
     position: 'relative'
   },
   actions: {
@@ -147,7 +147,7 @@ const Dashboard = props => {
       .then(res => res.data)
       .then(data => {
         setPm25CategoriesLocationCount(data);
-        console.log(data);        
+        console.log(data);
       })
       .catch(e => {
         console.log(e);
@@ -157,7 +157,7 @@ const Dashboard = props => {
   const [locations, setLocations] = useState([]);
 
   useEffect(() => {
-    fetch(constants.GET_HISTORICAL_DAILY_MEAN_AVERAGES_FOR_LAST_28_DAYS_URI)      
+    fetch(constants.GET_HISTORICAL_DAILY_MEAN_AVERAGES_FOR_LAST_28_DAYS_URI)
       .then(res => res.json())
       .then(locationsData => {
         setLocations(locationsData.results);
@@ -388,7 +388,7 @@ const Dashboard = props => {
             <Map />
           </Grid>
 
-          <Grid container spacing={0} className="MapCardContent">
+          {/* <Grid container spacing={0} className="MapCardContent">
             <Grid item lg={2} sm={4} xl={2} xs={12}>
               <Pm25Levels
                 background="#45e50d"
@@ -436,11 +436,11 @@ const Dashboard = props => {
                 pm25levelColor="#FFFFFF"
                 //pm25levelText="(250.5 - 500.4)"
               />
-            </Grid>
-            {/* <p>
+            </Grid> */}
+          {/* <p>
               PM <sub>2.5</sub> - Particulate Matter 
             </p> */}
-          </Grid>
+          {/* </Grid> */}
         </Grid>
 
         <Grid item lg={6} md={6} sm={12} xl={6} xs={12}>
