@@ -95,9 +95,9 @@ const devConfig = {
   UPDATE_LOCATION_URI: "http://127.0.0.1:4000/api/v1/location_registry/update",
   ADD_MAINTENANCE_URI:
     "http://localhost:3000/api/v1/data/channels/maintenance/add",
-  REGISTER_DEVICE_URI: "http://127.0.0.1:3000/api/v1/devices/ts",
-  ALL_DEVICES_URI: "http://127.0.0.1:3000/api/v1/devices",
-  DEPLOY_DEVICE_URI: "http://127.0.0.1:3000/api/v1/devices/ts/deploy/device",
+  REGISTER_DEVICE_URI: "http://127.0.0.1:5000/api/v1/devices/ts",
+  ALL_DEVICES_URI: "http://127.0.0.1:5000/api/v1/devices",
+  DEPLOY_DEVICE_URI: "http://127.0.0.1:5000/api/v1/devices/ts/deploy/device",
   //DELETE_DEVICE_URI: "http://127.0.0.1:3000/api/api/v1/devices/ts/delete?device="
 };
 

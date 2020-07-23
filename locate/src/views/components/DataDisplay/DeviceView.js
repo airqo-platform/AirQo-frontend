@@ -25,6 +25,7 @@ import CardHeader from "../Card/CardHeader.js";
 import CardIcon from "../Card/CardIcon.js";
 import CardBody from "../Card/CardBody.js";
 import CardFooter from "../Card/CardFooter.js";
+import { TableContainer, Table, TableBody, TableCell, TableHead, TableRow, Paper } from "@material-ui/core";
 
 import { useParams } from 'react-router-dom';
 
@@ -49,6 +50,22 @@ export default function DeviceView() {
   let params = useParams();
   
   const classes = useStyles();
+  let getMaintenanceLog = (name) => {
+    console.log(constants.DEVICE_MAINTENANCE_LOG_URI+name)
+    axios
+      .get(
+        constants.DEVICE_MAINTENANCE_LOG_URI+name
+        )
+        .then(
+          res=>{
+            const ref = res.data;
+            console.log('Maintenance history data ...')
+            console.log(ref);
+            return ref;
+          }
+        );
+        
+      }
   
   const [onlineStatusUpdateTime, setOnlineStatusUpdateTime] = useState();
   const [onlineStatusChart, setOnlineStatusChart] = useState({
@@ -160,6 +177,43 @@ export default function DeviceView() {
       ],
     },
   };
+
+  const [loaded, setLoaded] = useState(false);
+  const [deviceData, setDeviceData] = useState([]);
+  const [maintenanceData, setMaintenanceData] = useState([]);
+  useEffect(() => {
+    let deviceID = params.channelId
+    axios.get(
+      constants.ALL_DEVICES_URI
+    )
+    .then(
+      res=>{
+        const ref = res.data;
+        for (var i=0; i<ref.length; i++){
+          if (ref[i].channelID==deviceID){
+            console.log(ref[i]);
+            setDeviceData(ref[i]);
+            console.log('ref[i]');
+            console.log(ref[i].name);
+            let data = getMaintenanceLog(ref[i].name);
+            console.log('setting maintenance data');
+            console.log(data);
+            setMaintenanceData(data);
+            //setMaintenanceData(getMaintenanceLog(ref[i].name));
+            setLoaded(true);
+          }
+        }
+    }).catch(
+      console.log
+    )
+    /*
+    let channelID = params.channelId
+    axios.get(constants.GET_DEVICE_UPTIME+channelID).then(({ data }) => {
+      console.log(data);
+      setNetworkUptime(data);
+    });*/
+  }, []);
+
 
   return (
     <div>
