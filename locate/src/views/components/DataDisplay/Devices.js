@@ -17,7 +17,8 @@ import {
   KeyboardDatePicker,
 } from '@material-ui/pickers';
 //import { AccessAlarm, ThreeDRotation } from '@material-ui/icons';
-import { Update, DeleteOutlined, EditOutlined, CloudUploadOutlined, UndoOutlined } from '@material-ui/icons';
+//import {PageviewIcon, PageViewOutlined} from '@material-ui/icons/Pageview';
+import { Update, DeleteOutlined, EditOutlined, CloudUploadOutlined, UndoOutlined, Pageview,PageviewOutlined } from '@material-ui/icons';
 import Tooltip from '@material-ui/core/Tooltip';
 //import Select from 'react-select';
 import Select from '@material-ui/core/Select';
@@ -518,7 +519,9 @@ const DevicesTable = props => {
             className = {classes.table}
             title="Device Registry"
             columns={[
-             { title: 'Device Name', field: 'name', cellStyle:{ fontFamily: 'Open Sans'} },
+             { title: 'Device Name', field: 'name',
+             render: rowData => <Link className={classes.link} to={`/device/${rowData.channelID}`}>{rowData.name}</Link>,
+              cellStyle:{ fontFamily: 'Open Sans'} },
              { title: 'Description', field: 'description', cellStyle:{ fontFamily: 'Open Sans'} },
              { title: 'Device ID', field: 'channelID', cellStyle:{ fontFamily: 'Open Sans'} }, //should be channel ID
              { title: 'Registration Date', field: 'createdAt', cellStyle:{ fontFamily: 'Open Sans'} },
@@ -528,6 +531,12 @@ const DevicesTable = props => {
                cellStyle: {fontFamily: 'Open Sans'},
                //render: rowData => <Link className={classes.link} onClick={handleMaintenanceClick(rowData.airqo_ref)}> Update Maintenance log </Link>,
                render: rowData => <div>
+                                    <Tooltip title="View Device Details">                                   
+                                      <Link className={classes.link} to={`/device/${rowData.channelID}`}>                                                                               
+                                      <PageviewOutlined></PageviewOutlined>
+                                      </Link> 
+                                    </Tooltip>
+                                    &nbsp;&nbsp;&nbsp;
                                     <Tooltip title="Update Maintenance Log">
                                       
                                       <Link 
