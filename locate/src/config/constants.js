@@ -38,6 +38,7 @@ const prodConfig = {
     "http://34.78.78.202:30006/api/v1/monitor/devices/offline",
   GET_NETWORK_UPTIME: "http://34.78.78.202:30006/api/v1/monitor/network/uptime",
   GET_DEVICE_UPTIME: "http://34.78.78.202:30006/api/v1/monitor/device/uptime/",
+  DEVICE_MAINTENANCE_LOG_URI = "http://34.78.78.202:30006/api/v1/device/monitor/maintenance_logs/",
   ADD_MAINTENANCE_URI:
     "http://34.78.78.202:30001/api/v1/data/channels/maintenance/add",
   REGISTER_DEVICE_URI: "http://34.78.78.202:30002/api/v1/devices/ts",
@@ -98,6 +99,7 @@ const devConfig = {
   REGISTER_DEVICE_URI: "http://127.0.0.1:5000/api/v1/devices/ts",
   ALL_DEVICES_URI: "http://127.0.0.1:5000/api/v1/devices",
   DEPLOY_DEVICE_URI: "http://127.0.0.1:5000/api/v1/devices/ts/deploy/device",
+  DEVICE_MAINTENANCE_LOG_URI = "http://localhost:4001/api/v1/device/monitor/maintenance_logs/"
   //DELETE_DEVICE_URI: "http://127.0.0.1:3000/api/api/v1/devices/ts/delete?device="
 };
 

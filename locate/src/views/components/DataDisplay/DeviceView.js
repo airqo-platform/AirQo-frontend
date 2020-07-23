@@ -210,8 +210,8 @@ export default function DeviceView() {
         const ref = res.data;
         for (var i=0; i<ref.length; i++){
           if (ref[i].channelID==deviceID){
-            console.log('ref[i]');
-            console.log(ref[i]);
+            console.log('ref[i].name');
+            console.log(ref[i].name);
             setDeviceData(ref[i]);
             setDeviceName(ref[i].name);
             console.log('getting maintenance logs')
