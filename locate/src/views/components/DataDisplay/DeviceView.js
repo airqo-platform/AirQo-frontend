@@ -68,6 +68,7 @@ export default function DeviceView() {
         );
         
       }*/
+      const [maintenanceData, setMaintenanceData] = useState([]);
 
       function logs(name) {
         console.log(constants.DEVICE_MAINTENANCE_LOG_URI+name)
@@ -80,7 +81,9 @@ export default function DeviceView() {
             const ref = res.data;
             console.log('Maintenance history data ...')
             console.log(ref);
-            return ref;
+            console.log(typeof(ref));
+            setMaintenanceData(ref);
+            //return ref;
           }
         );
        }
@@ -198,7 +201,6 @@ export default function DeviceView() {
 
   const [loaded, setLoaded] = useState(false);
   const [deviceData, setDeviceData] = useState([]);
-  const [maintenanceData, setMaintenanceData] = useState([]);
   const [deviceName, setDeviceName] = useState('');
   useEffect(() => {
     let deviceID = params.channelId
@@ -215,7 +217,7 @@ export default function DeviceView() {
             setDeviceData(ref[i]);
             setDeviceName(ref[i].name);
             console.log('getting maintenance logs')
-            //console.log(logs(ref[i].name));
+            console.log(logs(ref[i].name));
             //let data = logs(ref[i].name);
             //console.log(data);
             //console.log(ref[i].name);
@@ -421,12 +423,13 @@ export default function DeviceView() {
             <TableContainer component={Paper} className = {classes.table}>  
              <Table stickyHeader  aria-label="sticky table" alignItems="left" alignContent="left">  
                <TableBody style = {{alignContent:"left", alignItems:"left"}} >  
-               {/*
-               {maintainData.map( (date, activity) =>
+               
+               {maintenanceData.map( (log) => (
                  <TableRow style={{ align: 'left' }} >  
-                  <TableCell>{date}</TableCell>
-                  <TableCell>{activity}</TableCell>
-                </TableRow>)}*/}
+                  <TableCell>{log.date}</TableCell>
+                  <TableCell>{log.activity}</TableCell>
+                </TableRow>))
+                }
                </TableBody>
             </Table>
           </TableContainer>
