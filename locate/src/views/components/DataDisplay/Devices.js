@@ -766,7 +766,9 @@ const MenuProps = {
             className = {classes.table}
             title="Device Registry"
             columns={[
-             { title: 'Device Name', field: 'name', cellStyle:{ fontFamily: 'Open Sans'} },
+             { title: 'Device Name', field: 'name',
+             render: rowData => <Link className={classes.link} to={`/device/${rowData.channelID}`}>{rowData.name}</Link>,
+              cellStyle:{ fontFamily: 'Open Sans'} },
              { title: 'Description', field: 'description', cellStyle:{ fontFamily: 'Open Sans'} },
              { title: 'Device ID', field: 'channelID', cellStyle:{ fontFamily: 'Open Sans'} }, //should be channel ID
              { title: 'Registration Date', 
@@ -803,6 +805,12 @@ const MenuProps = {
                                     </Tooltip>
                                     &nbsp;&nbsp;&nbsp;
 
+                                    <Tooltip title="View Device Details">                                   
+                                      <Link className={classes.link} to={`/device/${rowData.channelID}`}>                                                                               
+                                      <PageviewOutlined></PageviewOutlined>
+                                      </Link> 
+                                    </Tooltip>
+                                    &nbsp;&nbsp;&nbsp;
                                     <Tooltip title="Update Maintenance Log">
                                       
                                       <Link 
