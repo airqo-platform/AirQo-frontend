@@ -17,7 +17,7 @@ import TasksWithoutEdits from "../Tasks/TasksWithoutEdits";
 // core components
 import GridItem from "../Grid/GridItem.js";
 import GridContainer from "../Grid/GridContainer.js";
-import Table from "../Table/Table.js";
+//import Table from "../Table/Table.js";
 import Tasks from "../Tasks/Tasks.js";
 import CustomTabs from "../CustomTabs/CustomTabs";
 import Card from "../Card/Card.js";
@@ -25,6 +25,7 @@ import CardHeader from "../Card/CardHeader.js";
 import CardIcon from "../Card/CardIcon.js";
 import CardBody from "../Card/CardBody.js";
 import CardFooter from "../Card/CardFooter.js";
+import { Map, TileLayer, Marker, Popup } from "react-leaflet";
 import { TableContainer, Table, TableBody, TableCell, TableHead, TableRow, Paper } from "@material-ui/core";
 
 import { useParams } from 'react-router-dom';
@@ -50,6 +51,7 @@ export default function DeviceView() {
   let params = useParams();
   
   const classes = useStyles();
+  /*
   let getMaintenanceLog = (name) => {
     console.log(constants.DEVICE_MAINTENANCE_LOG_URI+name)
     axios
@@ -65,7 +67,23 @@ export default function DeviceView() {
           }
         );
         
-      }
+      }*/
+
+      function logs(name) {
+        console.log(constants.DEVICE_MAINTENANCE_LOG_URI+name)
+        axios
+         .get(
+            constants.DEVICE_MAINTENANCE_LOG_URI+name
+          )
+         .then(
+          res=>{
+            const ref = res.data;
+            console.log('Maintenance history data ...')
+            console.log(ref);
+            return ref;
+          }
+        );
+       }
   
   const [onlineStatusUpdateTime, setOnlineStatusUpdateTime] = useState();
   const [onlineStatusChart, setOnlineStatusChart] = useState({
@@ -181,6 +199,7 @@ export default function DeviceView() {
   const [loaded, setLoaded] = useState(false);
   const [deviceData, setDeviceData] = useState([]);
   const [maintenanceData, setMaintenanceData] = useState([]);
+  const [deviceName, setDeviceName] = useState('');
   useEffect(() => {
     let deviceID = params.channelId
     axios.get(
@@ -191,14 +210,19 @@ export default function DeviceView() {
         const ref = res.data;
         for (var i=0; i<ref.length; i++){
           if (ref[i].channelID==deviceID){
+            console.log('ref[i]');
             console.log(ref[i]);
             setDeviceData(ref[i]);
-            console.log('ref[i]');
-            console.log(ref[i].name);
-            let data = getMaintenanceLog(ref[i].name);
-            console.log('setting maintenance data');
-            console.log(data);
-            setMaintenanceData(data);
+            setDeviceName(ref[i].name);
+            console.log('getting maintenance logs')
+            //console.log(logs(ref[i].name));
+            //let data = logs(ref[i].name);
+            //console.log(data);
+            //console.log(ref[i].name);
+            //let data = getMaintenanceLog(ref[i].name);
+            //console.log('setting maintenance data');
+            //console.log(data);
+            //setMaintenanceData(data);
             //setMaintenanceData(getMaintenanceLog(ref[i].name));
             setLoaded(true);
           }
@@ -215,8 +239,10 @@ export default function DeviceView() {
   }, []);
 
 
+
   return (
     <div>
+      <h4 style={{color: "#3f51b5"}}><b>{deviceData.name} : {deviceData.channelID}</b></h4>
       
      
       <GridContainer>
@@ -240,6 +266,8 @@ export default function DeviceView() {
           </Card>
         </GridItem>
 
+        {/*}
+
         <GridItem xs={12} sm={12} md={4}>
           <Card>
             <CardHeader color="info">
@@ -254,8 +282,56 @@ export default function DeviceView() {
               </div>
             </CardFooter>
           </Card>
-        </GridItem>
+  </GridItem> */}
+  <GridItem xs={12} sm={12} md={4}>
+          <Card>
+            <CardHeader color="info">
+              <h4 className={classes.cardTitle}>Device Location</h4>
+            </CardHeader>
+            {loaded? (
+            <CardBody>
+               <Map 
+                 center={[deviceData.latitude, deviceData.longitude]} 
+                 zoom={13} 
+                 scrollWheelZoom={false}
+                 style = {{width: '90%', height: '250px', }}
+                //style={{ width: '30%', height: '250px', align:'center'}}
+                >
+                 <TileLayer
+                  url ="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                /> 
+                <Marker position={[deviceData.latitude, deviceData.longitude]}>
+                <Popup>
+                 <span>
+                 <span>
+                   {/*{deviceData.name}*/}
+                   {deviceName}
+                 </span>
+                 </span>
+               </Popup>
+               </Marker>
+              </Map> 
+            </CardBody>
+      
+         ):  
+       (
+        <CardBody>
+        <Map center={[0.3476, 32.5825]} 
+       zoom={13} 
+       scrollWheelZoom={false}
+       style={{ width: '30%', height: '250px', align:'center'}}
+       > 
+       <TileLayer
+            url ="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+      </Map> 
+      </CardBody>
+       )
+    }
 
+          </Card>
+        </GridItem>
+       {/*
         <GridItem xs={12} sm={12} md={4}>
           <Card>
             <CardHeader color="primary">
@@ -264,6 +340,143 @@ export default function DeviceView() {
               </h4>
             </CardHeader>
             <CardBody>
+             
+            </CardBody>
+          </Card>
+        </GridItem>*/}
+         <GridItem xs={12} sm={12} md={4}>
+          <Card>
+            <CardHeader color="primary">
+              <h4 className={classes.cardTitleWhite}>
+                Device Details
+              </h4>
+            </CardHeader>
+            <CardBody>
+            <div alignContent = "left" style = {{alignContent:"left", alignItems:"left"}}>
+            <TableContainer component={Paper} className = {classes.table}>  
+             <Table stickyHeader  aria-label="sticky table" alignItems="left" alignContent="left">  
+               <TableBody style = {{alignContent:"left", alignItems:"left"}} >  
+                 <TableRow style={{ align: 'left' }} >  
+                   <TableCell><b>Power Type: </b>{deviceData.powerType}</TableCell>
+                   {/*<TableCell className = {classes.table}>: <b>{deviceData.powerType}</b></TableCell> */}
+                 </TableRow>
+                 <TableRow>
+                   <TableCell align="left"> <b>Owner: </b>{deviceData.owner} </TableCell>
+                 </TableRow>
+                 <TableRow>
+                   <TableCell><b>Manufacturer:</b> {deviceData.device_manufacturer}</TableCell>
+                 </TableRow>
+                 <TableRow>
+                  <TableCell><b>Product Name: </b>{deviceData.productName}</TableCell>
+                 </TableRow>
+                 <TableRow>
+                   <TableCell><b>ISP: </b>{deviceData.ISP}</TableCell>
+                 </TableRow>
+                 <TableRow>
+                   <TableCell><b>Phone Number: </b>{"0"+deviceData.phoneNumber}</TableCell>
+                 </TableRow>
+               </TableBody>
+            </Table>
+          </TableContainer>
+                
+            </div>
+             
+            </CardBody>
+          </Card>
+        </GridItem>
+      </GridContainer>
+
+      <GridContainer>
+        
+        <GridItem xs={12} sm={12} md={4}>
+          <Card>
+            <CardHeader color="primary">
+              <h4 className={classes.cardTitleWhite}>Maintenance History</h4>
+            </CardHeader>
+
+            <CardBody>
+               { /*
+              <PerfectScrollbar>
+          <MaterialTable
+            className = {classes.table}
+            //title="Device Registry"
+            columns={[
+             { title: 'Date', field: 'date'},
+             { title: 'Maintenance Done', field: 'activity' }, //should be channel ID
+      ]}   
+      data = {maintenanceData}  
+      options={{
+        exportButton: true,
+        showTitle: false,
+        headerStyle: {
+          //fontFamily: 'Open Sans',
+          fontSize: 16,
+          fontWeight: 600
+        },
+        pageSize: 5
+      }}
+    />
+        </PerfectScrollbar> */}
+        <div alignContent = "left" style = {{alignContent:"left", alignItems:"left"}}>
+            <TableContainer component={Paper} className = {classes.table}>  
+             <Table stickyHeader  aria-label="sticky table" alignItems="left" alignContent="left">  
+               <TableBody style = {{alignContent:"left", alignItems:"left"}} >  
+               {/*
+               {maintainData.map( (date, activity) =>
+                 <TableRow style={{ align: 'left' }} >  
+                  <TableCell>{date}</TableCell>
+                  <TableCell>{activity}</TableCell>
+                </TableRow>)}*/}
+               </TableBody>
+            </Table>
+          </TableContainer>
+                
+              </div>
+            </CardBody>
+          </Card>
+        </GridItem>
+
+       
+
+       {/*
+       <GridItem xs={12} sm={12} md={4}>
+          <Card>
+            <CardHeader color="primary">
+              <h4 className={classes.cardTitleWhite}>
+                
+              </h4>
+            </CardHeader>
+            <CardBody>
+             
+            </CardBody>
+          </Card>
+       </GridItem> */}
+
+      <GridItem xs={12} sm={12} md={4}>
+          <Card>
+            <CardHeader color="info">
+              <h4 className={classes.cardTitle}>Device Online Status</h4>
+            </CardHeader>
+            <CardBody>
+             
+            </CardBody>
+            <CardFooter chart>
+              <div className={classes.stats}>
+                <AccessTime /> Last updated on {onlineStatusUpdateTime}
+              </div>
+            </CardFooter>
+          </Card>
+  </GridItem> 
+
+        <GridItem xs={12} sm={12} md={4}>
+          <Card>
+            <CardHeader color="primary">
+              <h4 className={classes.cardTitleWhite}>Sensor Correlation</h4>
+            </CardHeader>
+            <CardBody>
+            <div alignContent = "left" style = {{alignContent:"left", alignItems:"left"}}>
+                
+            </div>
              
             </CardBody>
           </Card>
