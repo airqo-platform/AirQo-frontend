@@ -116,8 +116,8 @@ const MenuProps = {
   const handleEditClose = () => {
     setEditOpen(false);
     setRegisterName('');
-    setLatitude('');
-    setLongitude('');
+    setLatitude('0.332269');
+    setLongitude('32.570077');
     setVisibility('');
     setManufacturer('');
     setProductName('');
@@ -143,6 +143,16 @@ const MenuProps = {
   };
   const handleDeployClose = () => {
     setDeployOpen(false);
+    setDeviceName('');
+    setLocationID('');
+    setInstallationType('');
+    setHeight('');
+    setPower('');
+    setDeploymentDate(new Date());
+    setLatitude('');
+    setLongitude('');
+    setPrimaryChecked(true);
+    setCollocationChecked(false);
   };
 
   const [recallOpen, setRecallOpen] = useState(false);
@@ -151,6 +161,9 @@ const MenuProps = {
   };
   const handleRecallClose = () => {
     setRecallOpen(false);
+    setDeviceName('');
+    setLocationID('');
+    setRecallDate(new Date());
   }
 
   const [sensorOpen, setSensorOpen] = useState(false);
@@ -201,6 +214,7 @@ const MenuProps = {
   }
   
   //deployment parameters
+  const [recallDate, setRecallDate] = useState(new Date());
   const [locationsOptions, setLocationsOptions] = useState([]);
   
   useEffect(() => {
@@ -488,6 +502,7 @@ const MenuProps = {
       console.log(name);
       setDeviceName(name);
       setLocationID(location);
+      setRecallDate(new Date());
       handleRecallOpen();
     }
   }
@@ -512,10 +527,7 @@ const MenuProps = {
 
   
   let handleDeploySubmit = (e) => {
-    //e.preventDefault();
-    //setLoading(true);
-    //setIsLoading(true);
-   
+       
     let filter ={ 
       deviceName: deviceName,
       locationName: locationID,
@@ -526,20 +538,22 @@ const MenuProps = {
       latitude: latitude.toString(),
       longitude: longitude.toString(),
       isPrimaryInLocation: primaryChecked,
-      isUsedForCollocaton: collocationChecked
+      isUserForCollocaton: collocationChecked
       
     }
     console.log(JSON.stringify(filter));
-    /*
+    console.log(constants.DEPLOY_DEVICE_URI+"deploy",);
+    
     axios.post(
       //"http://127.0.0.1:3000/api/v1/devices/ts/deploy/device",
       //constants.DEPLOY_DEVICE_URI,
-      constants.DEPLOY_DEVICE_URI+"deploy"
+      constants.DEPLOY_DEVICE_URI+"deploy",
       JSON.stringify(filter),
       { headers: { 'Content-Type': 'application/json' } }
     )
     .then(
       res=>{
+        console.log('Response returned')
         const myData = res.data;
         console.log(myData.message);
         setDialogResponseMessage(myData.message);
@@ -548,7 +562,7 @@ const MenuProps = {
         //setMaintenanceDescription('');
     }).catch(
       console.log
-    )*/
+    )
   }
   
   let  handleMaintenanceSubmit = (e) => {
@@ -582,30 +596,30 @@ const MenuProps = {
 
   let handleRecallSubmit = (e) => {
     let filter ={ 
-      unit: deviceName,
-	    location: locationID,
+      deviceName: deviceName,
+      locationName: locationID,
+      date: recallDate,
       
     }
     console.log(JSON.stringify(filter));
-
-     /*
+    console.log(constants.DEPLOY_DEVICE_URI+"recall",);
+    
     axios.post(
-      "http://localhost:3000/api/v1/data/channels/maintenance/add"
-      //constants.ADD_MAINTENANCE_URI,
+      constants.DEPLOY_DEVICE_URI+"recall",
       JSON.stringify(filter),
       { headers: { 'Content-Type': 'application/json' } }
     )
     .then(
       res=>{
-        setIsLoading(false);
+        console.log('Response returned')
         const myData = res.data;
-        console.log(myData);
         console.log(myData.message);
-        setDialogMessage(myData.message);
-        setDialogStatus(true);
+        setDialogResponseMessage(myData.message);
+        setRecallOpen(false);
+        setResponseOpen(true);
     }).catch(
       console.log
-    )*/
+    )
 
   }
 
@@ -1143,7 +1157,7 @@ const MenuProps = {
                   variant="contained" 
                   color="primary"              
                   //onClick={handleRecallSubmit}
-                  onClick = {handleRecallClose}
+                  onClick = {handleRecallSubmit}
                  > YES
                 </Button>
                 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
