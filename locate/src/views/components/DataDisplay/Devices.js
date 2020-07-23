@@ -153,6 +153,7 @@ const MenuProps = {
     setLongitude('');
     setPrimaryChecked(true);
     setCollocationChecked(false);
+    setDevicesLabel('');
   };
 
   const [recallOpen, setRecallOpen] = useState(false);
@@ -1047,7 +1048,7 @@ const MenuProps = {
                        <option value={loc_id}>{loc_id}</option>)}
                      </Select>
                    </FormControl>
-                       <h6 style = {{fontSize:14}}>{devicesLabel}</h6>
+                       <h6 style = {{fontSize:14}}><b>{devicesLabel}</b></h6>
                   </Grid>
                   {/*{devicesLoading?(*/}
                     
