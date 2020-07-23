@@ -230,18 +230,33 @@ const MenuProps = {
   const [devicesInLocation, setDevicesInLocation] = useState([]);
   const [devicesLabel, setDevicesLabel] = useState('');
 
+  let locationCoordinates = (loc_ref) => {
+    axios.get(
+      constants.EDIT_LOCATION_DETAILS_URI+loc_ref
+    )
+    .then(
+      res => {
+        const ref = res.data;
+        console.log('Latitude:'+ref.latitude.toString())
+        console.log('Longitude:'+ref.longitude.toString())
+        setLatitude(ref.latitude);
+        setLongitude(ref.longitude);
+      }
+    );
+
+  }
+
   const [locationID, setLocationID] = useState('');
   const handleLocationIDChange = (event) => {
     let myLocation = event.target.value;
-    //setLocationID(event.target.value);
     setLocationID(myLocation);
+    locationCoordinates(myLocation);
     console.log('Getting devices in location '+myLocation)
     axios.get(
       constants.DEVICES_IN_LOCATION_URI+myLocation
     )
     .then(
       res=>{
-        //setIsLoading(false);
         const ref = res.data;
         console.log(ref);
         let devicesArray = [];
@@ -259,7 +274,7 @@ const MenuProps = {
       console.log
     )
   }
-  const [height, setHeight] = useState(null);
+  const [height, setHeight] = useState('');
   const handleHeightChange = enteredHeight => {
     let re = /\s*|\d+(\.d+)?/
     if (re.test(enteredHeight.target.value)) {
@@ -276,11 +291,11 @@ const MenuProps = {
 	  setInstallationType(enteredInstallationType.target.value);
   }
 
-  const [deploymentDate, setDeploymentDate] = useState(null);
+  const [deploymentDate, setDeploymentDate] = useState(new Date());
   const handleDeploymentDateChange = (date) => {
     setDeploymentDate(date);
   };
-  
+
   const [primaryChecked, setPrimaryChecked] = useState(true);
   const handlePrimaryChange = (event) => {
     setPrimaryChecked(false);
@@ -507,18 +522,19 @@ const MenuProps = {
       mountType: installationType,
       height: height,
       powerType: power,
-      date: deploymentDate.toString(),
+      date: deploymentDate,
+      latitude: latitude.toString(),
+      longitude: longitude.toString(),
       isPrimaryInLocation: primaryChecked,
-      isUserForCollocaton: collocationChecked,
-      //unit: deviceName,
-      //activity:  maintenanceDescription,
-	    //date: selectedDate.toString(),
+      isUsedForCollocaton: collocationChecked
       
     }
     console.log(JSON.stringify(filter));
+    /*
     axios.post(
       //"http://127.0.0.1:3000/api/v1/devices/ts/deploy/device",
-      constants.DEPLOY_DEVICE_URI,
+      //constants.DEPLOY_DEVICE_URI,
+      constants.DEPLOY_DEVICE_URI+"deploy"
       JSON.stringify(filter),
       { headers: { 'Content-Type': 'application/json' } }
     )
@@ -532,7 +548,7 @@ const MenuProps = {
         //setMaintenanceDescription('');
     }).catch(
       console.log
-    )
+    )*/
   }
   
   let  handleMaintenanceSubmit = (e) => {
@@ -740,9 +756,10 @@ const MenuProps = {
                render: rowData => formatDate(new Date(rowData.createdAt))
              },
              { title: 'Location ID', 
-               field: 'location_id', 
+               //field: 'location_id', 
+               field: 'locationID',
                cellStyle:{ fontFamily: 'Open Sans'},
-               render: rowData => <Link className={classes.link} to={`/locations/${rowData.location_id}`}>{rowData.location_id}</Link>
+               render: rowData => <Link className={classes.link} to={`/locations/${rowData.locationID}`}>{rowData.locationID}</Link>
              },
              
              
@@ -973,6 +990,7 @@ const MenuProps = {
                      id="standard-basic" 
                      label="Device Name"
                      value = {deviceName}
+                     required
                    /> 
                  </Grid>
                 {/* {devicesLoading?(*/}
@@ -987,7 +1005,7 @@ const MenuProps = {
                 </Grid>
                 <Grid container item xs={12} spacing={3}>
                  <Grid item xs={6}>
-                   <FormControl className={classes.formControl}>
+                   <FormControl required className={classes.formControl}>
                      <InputLabel htmlFor="demo-dialog-native">Location ID</InputLabel>
                      <Select
                        native
@@ -1047,12 +1065,13 @@ const MenuProps = {
                             value={deploymentDate}
                             onChange={handleDeploymentDateChange}
                             required
-                            /*
+                            
                             KeyboardButtonProps={{
                                'aria-label': 'change date',
-                            }}*/
+                            }}
                           />
                         </MuiPickersUtilsProvider>
+
                       </Grid>
                     </Grid>
                     <Grid container item xs={12} spacing={3}>
