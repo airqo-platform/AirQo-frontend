@@ -542,7 +542,7 @@ const MenuProps = {
       
     }
     console.log(JSON.stringify(filter));
-    console.log(constants.DEPLOY_DEVICE_URI+"deploy",);
+    //console.log(constants.DEPLOY_DEVICE_URI+"deploy",);
     
     axios.post(
       //"http://127.0.0.1:3000/api/v1/devices/ts/deploy/device",
@@ -557,7 +557,8 @@ const MenuProps = {
         const myData = res.data;
         console.log(myData.message);
         setDialogResponseMessage(myData.message);
-        setDeployOpen(false);
+        //setDeployOpen(false);
+        handleDeployClose();
         setResponseOpen(true);
         //setMaintenanceDescription('');
     }).catch(
@@ -587,7 +588,8 @@ const MenuProps = {
         const myData = res.data;
         console.log(myData.message);
         setDialogResponseMessage(myData.message);
-        setMaintenanceOpen(false);
+        //setMaintenanceOpen(false);
+        handleMaintenanceClose();
         setResponseOpen(true);
     }).catch(
       console.log
@@ -615,7 +617,8 @@ const MenuProps = {
         const myData = res.data;
         console.log(myData.message);
         setDialogResponseMessage(myData.message);
-        setRecallOpen(false);
+        handleRecallClose();
+        //setRecallOpen(false);
         setResponseOpen(true);
     }).catch(
       console.log
@@ -652,7 +655,8 @@ const MenuProps = {
         const myData = res.data;
         console.log(myData.message);
         setDialogResponseMessage(myData.message);
-        setRegisterOpen(false);
+        //setRegisterOpen(false);
+        handleRegisterClose();
         setResponseOpen(true);
     }).catch(
       console.log
@@ -686,7 +690,8 @@ const MenuProps = {
         const myData = res.data;
         console.log(myData.message);
         setDialogResponseMessage(myData.message);
-        setEditOpen(false);
+        //setEditOpen(false);
+        handleEditClose();
         setResponseOpen(true);
 
         

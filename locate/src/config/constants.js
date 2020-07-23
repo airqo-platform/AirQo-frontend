@@ -126,12 +126,12 @@ const devConfig = {
   ADD_MAINTENANCE_URI:
     "http://localhost:3000/api/v1/data/channels/maintenance/add",
   REGISTER_DEVICE_URI: "http://localhost:6000/api/v1/devices/ts",
-  ALL_DEVICES_URI: "http://localhost:6000/api/v1/devices",
+  ALL_DEVICES_URI: "http://localhost:5000/api/v1/devices",
   //DEPLOY_DEVICE_URI: "http://127.0.0.1:5000/api/v1/devices/ts/deploy/device",
-  EDIT_DEVICE_URI: "http://localhost:6000/api/v1/devices/ts/update?device=",
-  ALL_SENSORS_URI: "http://127.0.0.1:6000/api/v1/devices/get/sensors",
-  DEVICES_IN_LOCATION_URI: "http://localhost:6000/api/v1/devices/by/location?loc=",
-  DEPLOY_DEVICE_URI: "http://localhost:6000/api/v1/devices/ts/activity?type="
+  EDIT_DEVICE_URI: "http://localhost:5000/api/v1/devices/ts/update?device=",
+  ALL_SENSORS_URI: "http://127.0.0.1:5000/api/v1/devices/get/sensors",
+  DEVICES_IN_LOCATION_URI: "http://localhost:5000/api/v1/devices/by/location?loc=",
+  DEPLOY_DEVICE_URI: "http://localhost:5000/api/v1/devices/ts/activity?type="
   //DELETE_DEVICE_URI: "http://127.0.0.1:3000/api/api/v1/devices/ts/delete?device="
 };
 
