@@ -17,7 +17,7 @@ import {
   KeyboardDatePicker,
 } from '@material-ui/pickers';
 //import { AccessAlarm, ThreeDRotation } from '@material-ui/icons';
-import { Update, AddOutlined, EditOutlined, CloudUploadOutlined, UndoOutlined } from '@material-ui/icons';
+import { Update, AddOutlined, EditOutlined, CloudUploadOutlined, UndoOutlined, EventBusy } from '@material-ui/icons';
 import Tooltip from '@material-ui/core/Tooltip';
 //import Select from 'react-select';
 import Select from '@material-ui/core/Select';
@@ -227,9 +227,37 @@ const MenuProps = {
     )
   }, []);
 
+  const [devicesInLocation, setDevicesInLocation] = useState([]);
+  const [devicesLabel, setDevicesLabel] = useState('');
+
   const [locationID, setLocationID] = useState('');
   const handleLocationIDChange = (event) => {
-    setLocationID(event.target.value);
+    let myLocation = event.target.value;
+    //setLocationID(event.target.value);
+    setLocationID(myLocation);
+    console.log('Getting devices in location '+myLocation)
+    axios.get(
+      constants.DEVICES_IN_LOCATION_URI+myLocation
+    )
+    .then(
+      res=>{
+        //setIsLoading(false);
+        const ref = res.data;
+        console.log(ref);
+        let devicesArray = [];
+        if (ref.length != 0){
+          for (var i=0; i<ref.length; i++){
+            devicesArray.push(ref[i].name);
+        }
+        setDevicesLabel(devicesArray.join(', ')+ ' found in '+ myLocation);
+      }
+        else{
+          setDevicesLabel('No devices found in '+ myLocation);
+        }
+
+    }).catch(
+      console.log
+    )
   }
   const [height, setHeight] = useState(null);
   const handleHeightChange = enteredHeight => {
@@ -968,11 +996,13 @@ const MenuProps = {
                        onChange={handleLocationIDChange}
                        input={<Input id="demo-dialog-native" />}
                        required
-                     >
+                     > 
+                       <option aria-label="None" value="" />
                        {locationsOptions.map( (loc_id) =>
                        <option value={loc_id}>{loc_id}</option>)}
                      </Select>
                    </FormControl>
+                       <h6 style = {{fontSize:14}}>{devicesLabel}</h6>
                   </Grid>
                   {/*{devicesLoading?(*/}
                     

@@ -129,7 +129,8 @@ const devConfig = {
   ALL_DEVICES_URI: "http://localhost:5000/api/v1/devices",
   DEPLOY_DEVICE_URI: "http://127.0.0.1:5000/api/v1/devices/ts/deploy/device",
   EDIT_DEVICE_URI: "http://localhost:5000/api/v1/devices/ts/update?device=",
-  ALL_SENSORS_URI: "http://127.0.0.1:5000/api/v1/devices/get/sensors"
+  ALL_SENSORS_URI: "http://127.0.0.1:5000/api/v1/devices/get/sensors",
+  DEVICES_IN_LOCATION_URI: "http://localhost:5000/api/v1/devices/by/location?loc="
   //DELETE_DEVICE_URI: "http://127.0.0.1:3000/api/api/v1/devices/ts/delete?device="
 };
 
