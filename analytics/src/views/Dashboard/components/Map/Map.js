@@ -76,7 +76,12 @@ const Map = (props) => {
 
   return (
     <Card {...rest} className={clsx(classes.root, className)}>
-      <CardHeader title="Mean PM2.5 by Location for Past 60 Minutes" />
+      <CardHeader
+        title={"Mean PM2.5 by Location for Past 60 Minutes"}
+        subheader={
+          "Colours indicate AQI level of concern if maintained as a 24 hour average"
+        }
+      />
       <Divider />
 
       <CardContent>
