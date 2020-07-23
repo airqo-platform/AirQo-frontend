@@ -273,6 +273,8 @@ const Dashboard = (props) => {
 
   return (
     <div className={classes.root}>
+      <h4>Number of nodes at each AQI risk level</h4>
+      <br />
       <Grid container spacing={4}>
         <Grid item lg={2} sm={6} xl={2} xs={12}>
           <PollutantCategory
