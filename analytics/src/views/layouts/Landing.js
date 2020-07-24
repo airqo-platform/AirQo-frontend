@@ -30,7 +30,7 @@ class Landing extends Component {
           <div
             className="col s6"
             style={{
-              backgroundColor: "#2979FF",
+              backgroundColor: "#3067e2",
               height: "50vh",
               width: "55vh",
             }}
@@ -40,6 +40,16 @@ class Landing extends Component {
               style={analytics_logo_style}
               src="/images/logos/airqo_logo.png"
             />
+            <h6
+              style={{
+                color: "#FFFFFF",
+                marginLeft: "31%",
+                marginTop: "0px",
+              }}
+            >
+              {" "}
+              Access the Data{" "}
+            </h6>
           </div>
           <div
             className="col s6"
