@@ -6,6 +6,8 @@ import { makeStyles } from "@material-ui/core/styles";
 import Icon from "@material-ui/core/Icon";
 // @material-ui/icons
 import DevicesIcon from "@material-ui/icons/Devices";
+import ReportProblem from "@material-ui/icons/ReportProblem";
+import BatteryFullIcon from "@material-ui/icons/BatteryFull";
 import AccessTime from "@material-ui/icons/AccessTime";
 import BugReport from "@material-ui/icons/BugReport";
 import Code from "@material-ui/icons/Code";
@@ -259,6 +261,7 @@ export default function DeviceManagement() {
   const [batteryPowered, setBatteryPowered] = useState(0);
   const [mainPowered, setMainPowered] = useState(0);
   const [noDueMaintenance, setNoDueMaintenance] = useState(0);
+  const [noOverDueMaintenance, setNoOverDueMaintenance] = useState(0);
 
   //const [noOfDevicesTS, setNoOfDevicesTS] = useState(0); //TS= ThinkSpeak
 
@@ -299,28 +302,45 @@ export default function DeviceManagement() {
       setBatteryPowered(no_battery);
     });
 
-    // get number of devices due for maintenance
-    axios.get(constants.GET_DEVICE_MAINTENANCE_LOG).then(({ data }) => {
-      //console.log(data[0].loc_power_suppy);
-      let due_maintenance = new Array();
+    // get number of devices due for maintenance,
+    // look for the nextMaintenance field in devices collection
+    // device is due for maintenance, 1 day, 1 week to nextMaintenance date
+    axios.get(constants.GET_DEVICE_STATUS_SUMMARY).then(({ data }) => {
+      let due_maintenance = 0;
+      let overdue_maintenance = 0;
 
       data.map((item) => {
-        console.log("next maintained", item.nextMaintenance);
-        let lst_maintained = item.nextMaintenance;
-        let past_date = new Date(lst_maintained);
-        let current_date = new Date();
+        let nextMaintenance = item.nextMaintenance;
+        // next maintenance === "" assume overdue for maintenance
+        if (nextMaintenance == "") {
+          overdue_maintenance = overdue_maintenance + 1;
+        } else {
+          let nextMain = new Date(nextMaintenance);
+          let current_date = new Date();
+          let difference_in_time = nextMain.getTime() - current_date.getTime();
+          let difference_in_days = difference_in_time / (1000 * 3600 * 24);
+          console.log(
+            "Next: " + nextMain,
+            " Current: " + current_date,
+            " days: " + difference_in_days
+          );
 
-        let month_difference =
-          past_date.getFullYear() * 12 +
-          past_date.getMonth() -
-          (current_date.getFullYear() * 12 + current_date.getMonth());
-        console.log(month_difference);
-        if (month_difference <= 0) {
-          // took two months without maintenance activity
-          due_maintenance.push(month_difference);
+          // 1. logic for overdue maintenance goes here
+          if (difference_in_days <= 0) {
+            // took two months without maintenance activity
+            overdue_maintenance = overdue_maintenance + 1;
+          }
+
+          // 1. logic for due maintenance goes here
+          // 2 weeks to maintenance date
+          if (difference_in_days > 0 && difference_in_days < 16) {
+            due_maintenance = due_maintenance + 1;
+          }
         }
       });
-      setNoDueMaintenance(due_maintenance.length);
+
+      setNoDueMaintenance(due_maintenance);
+      setNoOverDueMaintenance(overdue_maintenance);
     });
 
     //axios.get(constants.GET_TOTAL_DEVICES).then(({ data }) => {
@@ -418,52 +438,102 @@ export default function DeviceManagement() {
   return (
     <div>
       <GridContainer>
-        <GridItem xs={12} sm={6} md={3}>
+        <GridItem xs={12} sm={2} md={2}>
           <Card>
             <CardHeader color="primary" stats icon>
               <CardIcon color="primary">
                 <DevicesIcon />
               </CardIcon>
-              <p className={classes.cardCategory}>Devices on the network</p>
+              {/* <p className={classes.cardCategory}>Devices on the network</p> */}
               <h3 className={classes.cardTitle}>{noOfDevices}</h3>
             </CardHeader>
-            <CardFooter stats></CardFooter>
+            <CardFooter stats>
+              <p className={classes.cardCategory}>Devices on the network</p>
+            </CardFooter>
           </Card>
         </GridItem>
-        <GridItem xs={12} sm={6} md={3}>
+        <GridItem xs={12} sm={2} md={2}>
           <Card>
             <CardHeader color="primary" stats icon>
               <CardIcon color="primary">
                 <RestoreIcon />
               </CardIcon>
-              <p className={classes.cardCategory}>Due for maintenance</p>
-              <h3 className={classes.cardTitle}>0</h3>
+              {/* <p className={classes.cardCategory}>Due for maintenance</p> */}
+              <h3 className={classes.cardTitle}>{noDueMaintenance}</h3>
             </CardHeader>
-            <CardFooter stats></CardFooter>
+            <CardFooter stats>
+              <p className={classes.cardCategory}>Due for maintenance</p>
+            </CardFooter>
           </Card>
         </GridItem>
-        <GridItem xs={12} sm={6} md={3}>
+        <GridItem xs={12} sm={2} md={2}>
+          <Card>
+            <CardHeader color="primary" stats icon>
+              <CardIcon color="primary">
+                <ReportProblem />
+              </CardIcon>
+              {/* <p className={classes.cardCategory}>Overdue for maintenance</p> */}
+              <h3 className={classes.cardTitle}>{noOverDueMaintenance}</h3>
+            </CardHeader>
+            <CardFooter stats>
+              {" "}
+              <p className={classes.cardCategory}>Overdue for maintenance</p>
+            </CardFooter>
+          </Card>
+        </GridItem>
+        <GridItem xs={12} sm={2} md={2}>
           <Card>
             <CardHeader color="primary" stats icon>
               <CardIcon color="primary">
                 <WbSunnyIcon />
               </CardIcon>
-              <p className={classes.cardCategory}>Solar powered</p>
+              {/* <p className={classes.cardCategory}>Solar powered</p> */}
               <h3 className={classes.cardTitle}> {solarPowered}</h3>
             </CardHeader>
-            <CardFooter stats></CardFooter>
+            <CardFooter stats>
+              <p className={classes.cardCategory}>
+                {" "}
+                <br />
+                Solar powered
+              </p>
+            </CardFooter>
           </Card>
         </GridItem>
-        <GridItem xs={12} sm={6} md={3}>
+        <GridItem xs={12} sm={2} md={2}>
+          <Card>
+            <CardHeader color="primary" stats icon>
+              <CardIcon color="primary">
+                <BatteryFullIcon />
+              </CardIcon>
+              {/* <p className={classes.cardCategory}>Battery powered</p> */}
+              <h3 className={classes.cardTitle}> {batteryPowered}</h3>
+            </CardHeader>
+            <CardFooter stats>
+              {" "}
+              <p className={classes.cardCategory}>
+                {" "}
+                <br />
+                Battery powered
+              </p>
+            </CardFooter>
+          </Card>
+        </GridItem>
+        <GridItem xs={12} sm={2} md={2}>
           <Card>
             <CardHeader color="primary" stats icon>
               <CardIcon color="primary">
                 <PowerIcon />
               </CardIcon>
-              <p className={classes.cardCategory}>Mains Powered</p>
               <h3 className={classes.cardTitle}>{mainPowered}</h3>
             </CardHeader>
-            <CardFooter stats></CardFooter>
+            <CardFooter stats>
+              {" "}
+              <p className={classes.cardCategory}>
+                {" "}
+                <br />
+                Mains Powered
+              </p>
+            </CardFooter>
           </Card>
         </GridItem>
       </GridContainer>
