@@ -65,9 +65,28 @@ const Topbar = (props) => {
         clearInterval(timerID);
       };
    }, []);
+   function appendLeadingZeroes(n) {
+    if (n <= 9) {
+      return '0' + n;
+    }
+    return n;
+  }
 
    function tick() {
-    setDate(new Date());
+    //setDate(new Date());
+    let newTime = new Date();
+    let time = appendLeadingZeroes(newTime.getDate()) +
+    '-' +
+    appendLeadingZeroes(newTime.getMonth() + 1) +
+    '-' +
+    newTime.getFullYear() +
+    ' ' +
+    appendLeadingZeroes(newTime.getHours()) +
+    ':' +
+    appendLeadingZeroes(newTime.getMinutes()) +
+    ':' +
+    appendLeadingZeroes(newTime.getSeconds());
+    setDate(time);
    }
 
   return (

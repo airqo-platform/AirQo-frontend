@@ -35,6 +35,7 @@ import PrivateRoute from "./views/components/PrivateRoute/PrivateRoute";
 import Dashboard from "./views/components/Dashboard/Dashboard";
 import Map from "./views/components/Map";
 import Devices from "./views/components/DataDisplay/Devices";
+import DeviceView from "./views/components/DataDisplay/DeviceView"
 import Users from "./views/components/DataDisplay/Users";
 import Manager from "./views/components/DataDisplay/DeviceManagement";
 import Incentives from "./views/components/DataDisplay/Incentives";
@@ -91,6 +92,12 @@ class App extends Component {
                   extact
                   path="/registry"
                   component={Devices}
+                  layout={MainLayout}
+                />
+                <PrivateRoute
+                  exact
+                  path="/device/:channelId"
+                  component={DeviceView}
                   layout={MainLayout}
                 />
                 <PrivateRoute
