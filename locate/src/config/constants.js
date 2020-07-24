@@ -46,7 +46,8 @@ const prodConfig = {
   REGISTER_DEVICE_URI: "http://34.78.78.202:30002/api/v1/devices/ts",
   ALL_DEVICES_URI: "http://34.78.78.202:30002/api/v1/devices",
   DEPLOY_DEVICE_URI:
-    "http://34.78.78.202:30002/api/v1/devices/ts/deploy/device",
+    //"http://34.78.78.202:30002/api/v1/devices/ts/deploy/device",
+    "http:/34.78.78.202:30002/api/v1/devices/ts/activity?type=",
   DELETE_DEVICE_URI:
     "http://34.78.78.202:30002/api/v1/devices/ts/delete?device=",
   GET_NETWORK_BEST_PERFORMING_DEVICES:
@@ -102,7 +103,8 @@ const devConfig = {
     "http://localhost:3000/api/v1/data/channels/maintenance/add",
   REGISTER_DEVICE_URI: "http://127.0.0.1:5000/api/v1/devices/ts",
   ALL_DEVICES_URI: "http://127.0.0.1:5000/api/v1/devices",
-  DEPLOY_DEVICE_URI: "http://127.0.0.1:5000/api/v1/devices/ts/deploy/device",
+  //DEPLOY_DEVICE_URI: "http://127.0.0.1:5000/api/v1/devices/ts/deploy/device",
+  DEPLOY_DEVICE_URI: "http://localhost:5000/api/v1/devices/ts/activity?type=",
   DEVICE_MAINTENANCE_LOG_URI: "http://localhost:4001/api/v1/device/monitor/maintenance_logs/"
   //DELETE_DEVICE_URI: "http://127.0.0.1:3000/api/api/v1/devices/ts/delete?device="
 };
