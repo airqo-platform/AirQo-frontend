@@ -28,8 +28,10 @@ const prodConfig = {
   DELETE_LOCATE_MAP: "http://34.78.78.202:30004/api/v1/map/deletelocatemap/",
   GET_DEVICE_STATUS_SUMMARY:
     "http://34.78.78.202:30006/api/v1/device/monitor/status",
+  GET_MAINTENANCE_LOGS:
+    "http://34.78.78.202:30006/api/v1/device/monitor/maintenance_logs",
   GET_DEVICE_MAINTENANCE_LOG:
-    "http://34.78.78.202:30006/api/v1/device/monitor/maintenance_log",
+    "http://34.78.78.202:30006/api/v1/device/monitor/maintenance_logs/",
   GET_DEVICE_POWER_TYPE:
     "http://34.78.78.202:30006/api/v1/device/monitor/power_type",
   GET_DEVICE_STATUS_FOR_PIECHART_DISPLAY:
@@ -70,8 +72,10 @@ const devConfig = {
   DELETE_LOCATE_MAP: "http://localhost:4000/api/v1/map/deletelocatemap/",
   GET_DEVICE_STATUS_SUMMARY:
     "http://localhost:4001/api/v1/device/monitor/status",
+  GET_MAINTENANCE_LOGS:
+    "http://localhost:4001/api/v1/device/monitor/maintenance_logs",
   GET_DEVICE_MAINTENANCE_LOG:
-    "http://localhost:4001/api/v1/device/monitor/maintenance_log",
+    "http://localhost:4001/api/v1/device/monitor/maintenance_logs/",
   GET_DEVICE_POWER_TYPE:
     "http://localhost:4001/api/v1/device/monitor/power_type",
   GET_DEVICE_STATUS_FOR_PIECHART_DISPLAY:
