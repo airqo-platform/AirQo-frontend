@@ -554,14 +554,11 @@ const MenuProps = {
       longitude: longitude.toString(),
       isPrimaryInLocation: primaryChecked,
       isUserForCollocaton: collocationChecked
-      
     }
     console.log(JSON.stringify(filter));
-    //console.log(constants.DEPLOY_DEVICE_URI+"deploy",);
+    console.log(constants.DEPLOY_DEVICE_URI+"deploy");
     
     axios.post(
-      //"http://127.0.0.1:3000/api/v1/devices/ts/deploy/device",
-      //constants.DEPLOY_DEVICE_URI,
       constants.DEPLOY_DEVICE_URI+"deploy",
       JSON.stringify(filter),
       { headers: { 'Content-Type': 'application/json' } }
@@ -569,13 +566,15 @@ const MenuProps = {
     .then(
       res=>{
         console.log('Response returned')
+        /*
         const myData = res.data;
         console.log(myData.message);
+
         setDialogResponseMessage(myData.message);
         //setDeployOpen(false);
         handleDeployClose();
         setResponseOpen(true);
-        //setMaintenanceDescription('');
+        //setMaintenanceDescription('');*/
     }).catch(
       console.log
     )
@@ -620,6 +619,8 @@ const MenuProps = {
     }
     console.log(JSON.stringify(filter));
     console.log(constants.DEPLOY_DEVICE_URI+"recall",);
+
+    
     
     axios.post(
       constants.DEPLOY_DEVICE_URI+"recall",
