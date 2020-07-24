@@ -36,8 +36,8 @@ import {
   SET_DEFAULTS_SUCCESS,
   SET_DEFAULTS_FAILED,
   REGISTRATION_SUCCESS,
-  SHOW_REGISTER_USER,
-  HIDE_REGISTER_USER,
+  SHOW_REGISTER_DIALOG,
+  HIDE_REGISTER_DIALOG,
   GET_CANDIDATES_SUCCESS,
   GET_CANDIDATES_FAILED,
   GET_CANDIDATES_REQUEST,
@@ -182,16 +182,15 @@ export const addNewUserRequestFailed = error => {
   };
 };
 
-export const showAddDialog = userToAdd => {
+export const showAddDialog = () => {
   return {
-    type: SHOW_REGISTER_USER,
-    user: userToAdd
+    type: SHOW_REGISTER_DIALOG
   };
 };
 
 export const hideAddDialog = () => {
   return {
-    type: HIDE_REGISTER_USER
+    type: HIDE_REGISTER_DIALOG
   };
 };
 
