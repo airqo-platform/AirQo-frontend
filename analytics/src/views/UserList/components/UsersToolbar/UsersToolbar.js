@@ -19,8 +19,6 @@ import {
   DialogContentText
 } from '@material-ui/core';
 
-import { Alert, AlertTitle } from '@material-ui/lab';
-
 import { useMinimalSelectStyles } from '@mui-treasury/styles/select/minimal';
 
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
@@ -96,10 +94,12 @@ const validEmailRegex = RegExp(
 const UsersToolbar = props => {
   const { className, mappeduserState, mappedErrors, ...rest } = props;
 
+  console.log('the mapped state for UsersToolsbar is here:');
+  console.dir(mappeduserState);
+
+  const userState = mappeduserState;
+
   const [open, setOpen] = useState(false);
-  const [added, setAdded] = useState(false);
-  const [failed, setFailed] = useState(false);
-  const [adding, setAdding] = useState(false);
 
   const initialState = {
     userName: '',
@@ -130,13 +130,9 @@ const UsersToolbar = props => {
     props.mappedHideAddDialog();
   };
 
-  // const showAddDialog = () => {
-  //   props.mappedShowAddDialog();
-  // };
-
-  // const hideAddDialog = () => {
-  //   props.mappedHideAddDialog();
-  // };
+  const hideAddDialog = () => {
+    props.mappedHideAddDialog();
+  };
 
   const onChange = e => {
     e.preventDefault();
@@ -231,6 +227,7 @@ const UsersToolbar = props => {
     } else {
       props.mappedAddUser(userData);
       clearState();
+      handleClose();
     }
   };
 
@@ -285,170 +282,134 @@ const UsersToolbar = props => {
             aria-labelledby="form-dialog-title">
             <DialogTitle id="form-dialog-title">Add User</DialogTitle>
             <DialogContent>
-              {mappeduserState.showAddDialog &&
-                !mappeduserState.successMg &&
-                !mappeduserState.newUser && (
-                  <div>
-                    <TextField
-                      autoFocus
-                      margin="dense"
-                      id="email"
-                      name="Email Address"
-                      type="text"
-                      label="email"
-                      helperText={form.errors.email}
-                      error={form.errors.email}
-                      onChange={onChange}
-                      variant="outlined"
-                      value={form.email}
-                      fullWidth
-                    />
+              <TextField
+                autoFocus
+                margin="dense"
+                id="email"
+                name="Email Address"
+                type="text"
+                label="email"
+                helperText={form.errors.email}
+                error={form.errors.email}
+                onChange={onChange}
+                variant="outlined"
+                value={form.email}
+                fullWidth
+              />
 
-                    <TextField
-                      margin="dense"
-                      id="firstName"
-                      name="firstName"
-                      label="first name"
-                      type="text"
-                      helperText={form.errors.firstName}
-                      error={form.errors.firstName}
-                      onChange={onChange}
-                      value={form.firstName}
-                      variant="outlined"
-                      fullWidth
-                    />
-                    <TextField
-                      margin="dense"
-                      id="lastName"
-                      label="last name"
-                      name="lastName"
-                      type="text"
-                      helperText={form.errors.lastName}
-                      error={form.errors.lastName}
-                      onChange={onChange}
-                      value={form.lastName}
-                      variant="outlined"
-                      fullWidth
-                    />
+              <TextField
+                margin="dense"
+                id="firstName"
+                name="firstName"
+                label="first name"
+                type="text"
+                helperText={form.errors.firstName}
+                error={form.errors.firstName}
+                onChange={onChange}
+                value={form.firstName}
+                variant="outlined"
+                fullWidth
+              />
+              <TextField
+                margin="dense"
+                id="lastName"
+                label="last name"
+                name="lastName"
+                type="text"
+                helperText={form.errors.lastName}
+                error={form.errors.lastName}
+                onChange={onChange}
+                value={form.lastName}
+                variant="outlined"
+                fullWidth
+              />
 
-                    <TextField
-                      margin="dense"
-                      id="userName"
-                      name="userName"
-                      label="user name"
-                      type="text"
-                      helperText={form.errors.userName}
-                      error={form.errors.userName}
-                      onChange={onChange}
-                      value={form.userName}
-                      variant="outlined"
-                      fullWidth
-                    />
-                    <TextField
-                      margin="dense"
-                      id="password"
-                      name="password"
-                      autoComplete="new-password"
-                      label="password"
-                      helperText={form.errors.password}
-                      error={form.errors.password}
-                      type="password"
-                      onChange={onChange}
-                      value={form.password}
-                      variant="outlined"
-                      fullWidth
-                      InputProps={{
-                        autocomplete: 'new-password',
-                        form: {
-                          autocomplete: 'off'
-                        }
-                      }}
-                    />
-                    <TextField
-                      margin="dense"
-                      id="password2"
-                      label="confirm password"
-                      name="password2"
-                      type="password"
-                      label="confirmation password"
-                      onChange={onChange}
-                      variant="outlined"
-                      value={form.password2}
-                      helperText={form.errors.password2}
-                      error={form.errors.password2}
-                      fullWidth
-                      InputProps={{
-                        autocomplete: 'new-password',
-                        form: {
-                          autocomplete: 'off'
-                        }
-                      }}
-                    />
-                    <TextField
-                      id="privilege"
-                      select
-                      label="Role"
-                      className={classes.textField}
-                      value={form.privilege}
-                      onChange={onChange}
-                      variant="outlined"
-                      SelectProps={{
-                        native: true,
-                        MenuProps: {
-                          className: classes.menu
-                        }
-                      }}
-                      helperText={form.errors.privilege}
-                      error={form.errors.privilege}
-                      margin="normal"
-                      variant="outlined">
-                      {roles.map(option => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </TextField>
-                  </div>
-                )}
-
-              {mappeduserState.newUser &&
-                !mappeduserState.error &&
-                mappeduserState.isFetching &&
-                !mappeduserState.successMg && (
-                  <Alert severity="success">
-                    <strong> Adding user.... </strong>
-                  </Alert>
-                )}
-
-              {mappeduserState.successMsg &&
-                !mappeduserState.isFetching &&
-                mappeduserState.newUser && (
-                  <Alert severity="success">
-                    <AlertTitle>Success</AlertTitle>
-                    User <strong> {mappeduserState.successMsg}</strong>
-                  </Alert>
-                )}
+              <TextField
+                margin="dense"
+                id="userName"
+                name="userName"
+                label="user name"
+                type="text"
+                helperText={form.errors.userName}
+                error={form.errors.userName}
+                onChange={onChange}
+                value={form.userName}
+                variant="outlined"
+                fullWidth
+              />
+              <TextField
+                margin="dense"
+                id="password"
+                name="password"
+                autoComplete="new-password"
+                label="password"
+                helperText={form.errors.password}
+                error={form.errors.password}
+                type="password"
+                onChange={onChange}
+                value={form.password}
+                variant="outlined"
+                fullWidth
+                InputProps={{
+                  autocomplete: 'new-password',
+                  form: {
+                    autocomplete: 'off'
+                  }
+                }}
+              />
+              <TextField
+                margin="dense"
+                id="password2"
+                label="confirm password"
+                name="password2"
+                type="password"
+                label="confirmation password"
+                onChange={onChange}
+                variant="outlined"
+                value={form.password2}
+                helperText={form.errors.password2}
+                error={form.errors.password2}
+                fullWidth
+                InputProps={{
+                  autocomplete: 'new-password',
+                  form: {
+                    autocomplete: 'off'
+                  }
+                }}
+              />
+              <TextField
+                id="privilege"
+                select
+                label="Role"
+                className={classes.textField}
+                value={form.privilege}
+                onChange={onChange}
+                variant="outlined"
+                SelectProps={{
+                  native: true,
+                  MenuProps: {
+                    className: classes.menu
+                  }
+                }}
+                helperText={form.errors.privilege}
+                error={form.errors.privilege}
+                margin="normal"
+                variant="outlined">
+                {roles.map(option => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </TextField>
             </DialogContent>
 
             <DialogActions>
-              {!mappeduserState.successMsg && !mappeduserState.isFetching && (
-                <div>
-                  <Button
-                    onClick={handleClose}
-                    color="primary"
-                    variant="outlined">
-                    Cancel
-                  </Button>
-                  <Button onClick={onSubmit} color="primary" variant="outlined">
-                    Submit
-                  </Button>
-                </div>
-              )}
-              {mappeduserState.successMsg &&
-                !mappeduserState.isFetching &&
-                mappeduserState.newUser && (
-                  <Button onClick={handleClose}>Close</Button>
-                )}
+              <Button onClick={handleClose} color="primary" variant="outlined">
+                Cancel
+              </Button>
+              <Button onClick={onSubmit} color="primary" variant="outlined">
+                Submit
+              </Button>
             </DialogActions>
           </Dialog>
         </div>
