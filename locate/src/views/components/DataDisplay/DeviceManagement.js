@@ -438,79 +438,102 @@ export default function DeviceManagement() {
   return (
     <div>
       <GridContainer>
-        <GridItem xs={12} sm={6} md={4}>
+        <GridItem xs={12} sm={2} md={2}>
           <Card>
             <CardHeader color="primary" stats icon>
               <CardIcon color="primary">
                 <DevicesIcon />
               </CardIcon>
-              <p className={classes.cardCategory}>Devices on the network</p>
+              {/* <p className={classes.cardCategory}>Devices on the network</p> */}
               <h3 className={classes.cardTitle}>{noOfDevices}</h3>
             </CardHeader>
-            <CardFooter stats></CardFooter>
+            <CardFooter stats>
+              <p className={classes.cardCategory}>Devices on the network</p>
+            </CardFooter>
           </Card>
         </GridItem>
-        <GridItem xs={12} sm={6} md={4}>
+        <GridItem xs={12} sm={2} md={2}>
           <Card>
             <CardHeader color="primary" stats icon>
               <CardIcon color="primary">
                 <RestoreIcon />
               </CardIcon>
-              <p className={classes.cardCategory}>Due for maintenance</p>
+              {/* <p className={classes.cardCategory}>Due for maintenance</p> */}
               <h3 className={classes.cardTitle}>{noDueMaintenance}</h3>
             </CardHeader>
-            <CardFooter stats></CardFooter>
+            <CardFooter stats>
+              <p className={classes.cardCategory}>Due for maintenance</p>
+            </CardFooter>
           </Card>
         </GridItem>
-        <GridItem xs={12} sm={6} md={4}>
+        <GridItem xs={12} sm={2} md={2}>
           <Card>
             <CardHeader color="primary" stats icon>
               <CardIcon color="primary">
                 <ReportProblem />
               </CardIcon>
-              <p className={classes.cardCategory}>Overdue for maintenance</p>
+              {/* <p className={classes.cardCategory}>Overdue for maintenance</p> */}
               <h3 className={classes.cardTitle}>{noOverDueMaintenance}</h3>
             </CardHeader>
-            <CardFooter stats></CardFooter>
+            <CardFooter stats>
+              {" "}
+              <p className={classes.cardCategory}>Overdue for maintenance</p>
+            </CardFooter>
           </Card>
         </GridItem>
-      </GridContainer>
-
-      <GridContainer>
-        <GridItem xs={12} sm={6} md={4}>
+        <GridItem xs={12} sm={2} md={2}>
           <Card>
             <CardHeader color="primary" stats icon>
               <CardIcon color="primary">
                 <WbSunnyIcon />
               </CardIcon>
-              <p className={classes.cardCategory}>Solar powered</p>
+              {/* <p className={classes.cardCategory}>Solar powered</p> */}
               <h3 className={classes.cardTitle}> {solarPowered}</h3>
             </CardHeader>
-            <CardFooter stats></CardFooter>
+            <CardFooter stats>
+              <p className={classes.cardCategory}>
+                {" "}
+                <br />
+                Solar powered
+              </p>
+            </CardFooter>
           </Card>
         </GridItem>
-        <GridItem xs={12} sm={6} md={4}>
+        <GridItem xs={12} sm={2} md={2}>
           <Card>
             <CardHeader color="primary" stats icon>
               <CardIcon color="primary">
                 <BatteryFullIcon />
               </CardIcon>
-              <p className={classes.cardCategory}>Battery powered</p>
+              {/* <p className={classes.cardCategory}>Battery powered</p> */}
               <h3 className={classes.cardTitle}> {batteryPowered}</h3>
             </CardHeader>
-            <CardFooter stats></CardFooter>
+            <CardFooter stats>
+              {" "}
+              <p className={classes.cardCategory}>
+                {" "}
+                <br />
+                Battery powered
+              </p>
+            </CardFooter>
           </Card>
         </GridItem>
-        <GridItem xs={12} sm={6} md={4}>
+        <GridItem xs={12} sm={2} md={2}>
           <Card>
             <CardHeader color="primary" stats icon>
               <CardIcon color="primary">
                 <PowerIcon />
               </CardIcon>
-              <p className={classes.cardCategory}>Mains Powered</p>
               <h3 className={classes.cardTitle}>{mainPowered}</h3>
             </CardHeader>
-            <CardFooter stats></CardFooter>
+            <CardFooter stats>
+              {" "}
+              <p className={classes.cardCategory}>
+                {" "}
+                <br />
+                Mains Powered
+              </p>
+            </CardFooter>
           </Card>
         </GridItem>
       </GridContainer>
