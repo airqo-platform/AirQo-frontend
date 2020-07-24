@@ -1,55 +1,55 @@
-import React, { Component } from 'react';
-import { Link } from 'react-router-dom';
-import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
-import { loginUser } from '../../../redux/Join/actions';
-import classnames from 'classnames';
+import React, { Component } from "react";
+import { Link } from "react-router-dom";
+import PropTypes from "prop-types";
+import { connect } from "react-redux";
+import { loginUser } from "../../../redux/Join/actions";
+import classnames from "classnames";
 //import styles from './Login.css'
 
 class Login extends Component {
   constructor() {
     super();
     this.state = {
-      userName: '',
-      password: '',
-      errors: {}
+      userName: "",
+      password: "",
+      errors: {},
     };
   }
 
   componentDidMount() {
-    var anchorElem = document.createElement('link');
+    var anchorElem = document.createElement("link");
     anchorElem.setAttribute(
-      'href',
-      'https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css'
+      "href",
+      "https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"
     );
-    anchorElem.setAttribute('rel', 'stylesheet');
-    anchorElem.setAttribute('id', 'logincdn');
+    anchorElem.setAttribute("rel", "stylesheet");
+    anchorElem.setAttribute("id", "logincdn");
 
     //document.body.appendChild(anchorElem);
-    document.getElementsByTagName('head')[0].appendChild(anchorElem);
+    document.getElementsByTagName("head")[0].appendChild(anchorElem);
     // If logged in and user navigates to Login page, should redirect them to dashboard
     if (this.props.auth.isAuthenticated) {
-      this.props.history.push('/dashboard');
+      this.props.history.push("/dashboard");
     }
   }
 
   componentWillReceiveProps(nextProps) {
     if (nextProps.auth.isAuthenticated) {
-      this.props.history.push('/dashboard'); // push user to dashboard when they login
+      this.props.history.push("/dashboard"); // push user to dashboard when they login
     }
     if (nextProps.errors) {
       this.setState({
-        errors: nextProps.errors
+        errors: nextProps.errors,
       });
     }
   }
 
   componentWillUnmount() {
-    let el = document.getElementById('logincdn');
+    let el = document.getElementById("logincdn");
     el.remove();
   }
 
-  onChange = e => {
+  onChange = (e) => {
     //this.setState({ [e.target.id]: e.target.value });
     //
 
@@ -58,8 +58,8 @@ class Login extends Component {
     let errors = this.props.errors;
 
     switch (id) {
-      case 'userName':
-        errors.userName = value.length === 0 ? ' username is required' : '';
+      case "userName":
+        errors.userName = value.length === 0 ? " username is required" : "";
         break;
       default:
         break;
@@ -68,18 +68,18 @@ class Login extends Component {
     this.setState(
       {
         errors,
-        [id]: value
+        [id]: value,
       },
       () => {
         console.log(errors);
       }
     );
   };
-  onSubmit = e => {
+  onSubmit = (e) => {
     e.preventDefault();
     const userData = {
       userName: this.state.userName,
-      password: this.state.password
+      password: this.state.password,
     };
     console.log(userData);
     this.props.loginUser(userData);
@@ -90,22 +90,25 @@ class Login extends Component {
     return (
       <div className="container">
         <div
-          style={{ marginTop: '4rem' }}
+          style={{ marginTop: "4rem" }}
           className="row"
-          style={{ height: 'auto', backgroundColor: '#2979FF' }}>
+          style={{ height: "auto", backgroundColor: "#3067e2" }}
+        >
           <div
             className="col s4"
             style={{
-              padding: '1em'
-            }}></div>
+              padding: "1em",
+            }}
+          ></div>
           <div
             className="col s8"
-            style={{ backgroundColor: '#fff', padding: '1em' }}>
+            style={{ backgroundColor: "#fff", padding: "1em" }}
+          >
             <Link to="/" className="btn-flat waves-effect">
               <i className="material-icons left">keyboard_backspace</i> Back to
               home
             </Link>
-            <div className="col s12" style={{ paddingLeft: '11.250px' }}>
+            <div className="col s12" style={{ paddingLeft: "11.250px" }}>
               <h4>
                 <b>Login</b>
               </h4>
@@ -121,8 +124,8 @@ class Login extends Component {
                   error={errors.userName}
                   id="userName"
                   type="text"
-                  className={classnames('', {
-                    invalid: errors.userName || errors.credentialsnotfound
+                  className={classnames("", {
+                    invalid: errors.userName || errors.credentialsnotfound,
                   })}
                 />
                 <label htmlFor="userName">Username</label>
@@ -138,8 +141,8 @@ class Login extends Component {
                   error={errors.password}
                   id="password"
                   type="password"
-                  className={classnames('', {
-                    invalid: errors.password || errors.passwordincorrect
+                  className={classnames("", {
+                    invalid: errors.password || errors.passwordincorrect,
                   })}
                 />
                 <label htmlFor="password">Password</label>
@@ -148,22 +151,23 @@ class Login extends Component {
                   {errors.passwordincorrect}
                 </span>
               </div>
-              <div className="col s12" style={{ paddingLeft: '11.250px' }}>
+              <div className="col s12" style={{ paddingLeft: "11.250px" }}>
                 <button
                   style={{
-                    width: '150px',
-                    borderRadius: '3px',
-                    letterSpacing: '1.5px',
-                    marginTop: '1rem'
+                    width: "150px",
+                    borderRadius: "3px",
+                    letterSpacing: "1.5px",
+                    marginTop: "1rem",
                   }}
                   type="submit"
-                  className="btn btn-large waves-effect waves-light hoverable blue accent-3">
+                  className="btn btn-large waves-effect waves-light hoverable blue accent-3"
+                >
                   Login
                 </button>
               </div>
             </form>
             <div></div>
-            <div className="col s12" style={{ paddingTop: '20px' }}>
+            <div className="col s12" style={{ paddingTop: "20px" }}>
               <Link to="/forgot"> Forgotten Password?</Link>
             </div>
           </div>
@@ -175,10 +179,10 @@ class Login extends Component {
 Login.propTypes = {
   loginUser: PropTypes.func.isRequired,
   auth: PropTypes.object.isRequired,
-  errors: PropTypes.object.isRequired
+  errors: PropTypes.object.isRequired,
 };
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
   auth: state.auth,
-  errors: state.errors
+  errors: state.errors,
 });
 export default connect(mapStateToProps, { loginUser })(Login);
