@@ -9,7 +9,7 @@ import { makeStyles, mergeClasses } from '@material-ui/styles';
 import { Card, CardContent, Grid, Button, Dialog, DialogActions, DialogContent, DialogTitle, SvgIcon, Icon } from '@material-ui/core';
 import LoadingOverlay from 'react-loading-overlay';
 import constants from '../../../config/constants.js';
-import TextField from '@material-ui/core/TextField';
+import TextField from '@material-ui/core/TextField';  
 import DateFnsUtils from '@date-io/date-fns';
 import {
   MuiPickersUtilsProvider,
@@ -17,7 +17,7 @@ import {
   KeyboardDatePicker,
 } from '@material-ui/pickers';
 //import { AccessAlarm, ThreeDRotation } from '@material-ui/icons';
-import { Update, AddOutlined, EditOutlined, CloudUploadOutlined, UndoOutlined, pageViewOutlined, EventBusy } from '@material-ui/icons';
+import { Update, AddOutlined, EditOutlined, CloudUploadOutlined, UndoOutlined, PageviewOutlined, EventBusy } from '@material-ui/icons';
 import Tooltip from '@material-ui/core/Tooltip';
 //import Select from 'react-select';
 import Select from '@material-ui/core/Select';
@@ -205,14 +205,28 @@ const MenuProps = {
   const handleSensorNameChange = name => {
     setSensorName(name.target.value);
   } 
-  const [quantityKind, setQuantityKind] = useState('');
+  const [quantityKind, setQuantityKind] = useState([]);
+  
   const handleQuantityKindChange = quantity => {
     setQuantityKind(quantity.target.value);
   } 
-  const [measurementUnit, setMeasurementUnit] = useState('');
+  
+  const [measurementUnit, setMeasurementUnit] = useState([]);
   const handleMeasurementUnitChange = unit => {
     setMeasurementUnit(unit.target.value);
   }
+  /*
+  const handleMeasurementUnitChange = (event) => {
+    const { options } = event.target;
+    const value = [];
+    for (let i = 0, l = options.length; i < l; i += 1) {
+      if (options[i].selected) {
+        value.push(options[i].value);
+      }
+    }
+    //setPersonName(value);
+    setMeasurementUnit(value);
+  }*/
   
   //deployment parameters
   const [recallDate, setRecallDate] = useState(new Date());
@@ -791,6 +805,14 @@ const MenuProps = {
                cellStyle: {fontFamily: 'Open Sans'},
                //render: rowData => <Link className={classes.link} onClick={handleMaintenanceClick(rowData.airqo_ref)}> Update Maintenance log </Link>,
                render: rowData => <div>
+
+                                     <Tooltip title="View Device Details">                                   
+                                      <Link className={classes.link} to={`/device/${rowData.channelID}`}>                                                                               
+                                      <PageviewOutlined></PageviewOutlined>
+                                      </Link> 
+                                    </Tooltip>
+                                    &nbsp;&nbsp;&nbsp;
+
                                     <Tooltip title="Edit a device">
                                       
                                       <Link 
@@ -806,12 +828,7 @@ const MenuProps = {
                                     </Tooltip>
                                     &nbsp;&nbsp;&nbsp;
 
-                                    <Tooltip title="View Device Details">                                   
-                                      <Link className={classes.link} to={`/device/${rowData.channelID}`}>                                                                               
-                                      <PageviewOutlined></PageviewOutlined>
-                                      </Link> 
-                                    </Tooltip>
-                                    &nbsp;&nbsp;&nbsp;
+                                   
                                     <Tooltip title="Update Maintenance Log">
                                       
                                       <Link 
@@ -1538,6 +1555,7 @@ const MenuProps = {
                    label="Component ID"
                    value = {sensorID}
                    fullWidth={true}
+                   onChange={handleSensorIDChange}
                    /> <br/>
 
                  <FormControl required  fullWidth={true}>
@@ -1562,10 +1580,12 @@ const MenuProps = {
                   <FormControl required fullWidth={true}>
                   <InputLabel htmlFor="demo-dialog-native"> Quantity Measured</InputLabel>
                    <Select
-                    native
+                    multiple
+                    //native
                     value={quantityKind}
                     onChange={handleQuantityKindChange}
                     input={<Input id="demo-dialog-native" />}
+                    //MenuProps={MenuProps}
                    >
                         <option aria-label="None" value="" />
                         <option value="pm1">PM 1</option>
@@ -1583,7 +1603,8 @@ const MenuProps = {
                    <FormControl required fullWidth={true}>
                     <InputLabel htmlFor="demo-dialog-native"> Unit of Measure</InputLabel>
                     <Select
-                    native
+                    //native
+                    multiple
                     value={measurementUnit}
                     onChange={handleMeasurementUnitChange}
                     input={<Input id="demo-dialog-native" />}
