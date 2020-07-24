@@ -12,6 +12,10 @@ import Select from 'react-select';
 import palette from 'theme/palette';
 import constants from 'config/constants'
 import { constant } from 'underscore';
+import Menu from '@material-ui/core/Menu';
+import MenuItem from '@material-ui/core/MenuItem';
+import domtoimage from 'dom-to-image';
+import JsPDF from 'jspdf';
 const useStyles = makeStyles(theme => ({
   root: {
     height: '100%'
@@ -52,7 +56,7 @@ const useStyles = makeStyles(theme => ({
   }));*/
 
 const ExceedancesChart = props => {
-  const { className, chartContainer, ...rest } = props;
+  const { className, chartContainer, idSuffix, ...rest } = props;
   
   const classes = useStyles();
  // const [loading, setLoading] = useState(false);
@@ -269,18 +273,136 @@ const ExceedancesChart = props => {
         console.log
       )
     }
+
+    const rootCustomChartContainerId = 'rootCustomChartContainerId'+ idSuffix;
+  const iconButton = 'exportIconButton';
+  const [anchorEl, setAnchorEl] = useState(null);
+
+  const filter = node => (node.id !== iconButton);
+
+  const ITEM_HEIGHT = 48;
+  const paperProps = {
+    style: {
+      maxHeight: ITEM_HEIGHT * 4.5,
+      width: 150,
+    },
+  };
+
+  const exportToImage = async (chart, format, exportFunc) => {
+    try {
+      const dataUrl = await exportFunc(chart, { filter });
+      const link = document.createElement('a');
+      document.body.appendChild(link);
+      link.download = `chart.${format}`;
+      link.href = dataUrl;
+      link.click();
+      link.remove();
+    } catch (err) {      
+      console.error('oops, something went wrong!', err);
+    }
+  };
+
+  const exportToJpeg = chart => exportToImage(chart, 'jpeg', domtoimage.toJpeg);
+
+  const exportToPng = chart => exportToImage(chart, 'png', domtoimage.toPng);
+
+  const exportToPdf = async (chart) => {
+    const width = chart.offsetWidth;
+    const height = chart.offsetHeight;
+    try {
+      const dataUrl = await domtoimage.toJpeg(chart, { filter });      
+      const doc = new JsPDF({
+        orientation: 'landscape',
+        unit: 'px',
+        format: [width, height],
+      });
+      const pdfWidth = doc.internal.pageSize.getWidth();
+      const pdfHeight = doc.internal.pageSize.getHeight();
+      doc.addImage(dataUrl, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+      doc.save('chart');
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('oops, something went wrong!', err);
+    }
+  };
+
+  const print = async (chart) => {
+    try {
+      const dataUrl = await domtoimage.toJpeg(chart, { filter });
+      let html = '<html><head><title></title></head>';
+      html += '<body style="width: 100%; padding: 0; margin: 0;"';
+      html += ' onload="window.focus(); window.print(); window.close()">';
+      html += `<img src="${dataUrl}" /></body></html>`;
+
+      const printWindow = window.open('', 'print');
+      printWindow.document.open();
+      printWindow.document.write(html);
+      printWindow.document.close();
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('oops, something went wrong!', err);
+    }
+  };
+
+  const menuOptions = [
+    { key: 'Customise', action: handleClickOpen, text: 'Customise Chart' },
+    { key: 'Print', action: print, text: 'Print' },
+    { key: 'JPEG', action: exportToJpeg, text: 'Save as JPEG' },
+    { key: 'PNG', action: exportToPng, text: 'Save as PNG' },
+    { key: 'PDF', action: exportToPdf, text: 'Save as PDF' },
+  ];
+
+  const handleClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+
+  const handleExportCustomChart = ({ action }) => () => {
+    const chart = document.querySelector(`#${rootCustomChartContainerId}`);
+    handleClose();
+    action(chart);
+  };
+
+  const openMenu = Boolean(anchorEl);
+  
     
     return (
       <Card
         {...rest}
         className={className}
+        id = {rootCustomChartContainerId}
       >
-        <CardHeader  
+        <CardHeader           
           action={
-            <IconButton size="small" color="primary" onClick={handleClickOpen}>
-              <MoreHoriz />
-            </IconButton>
-          }      
+            <Grid>
+            <IconButton
+            size="small" 
+            color="primary"
+            id={iconButton}
+            onClick={handleClick}
+            className={classes.chartSaveButton}
+          >
+             <MoreHoriz />
+            
+          </IconButton>
+          <Menu
+            anchorEl={anchorEl}
+            open={openMenu}
+            onClose={handleMenuClose}
+            PaperProps={paperProps}
+          >
+            {menuOptions.map(option => (
+              <MenuItem key={option.key} onClick={handleExportCustomChart(option)}>
+                {option.text}
+              </MenuItem>
+            ))}
+          </Menu>
+          </Grid>
+          }     
           
           title= {customChartTitle}
           style={{ textAlign: 'center' }}
@@ -484,7 +606,8 @@ const ExceedancesChart = props => {
 };
   
 ExceedancesChart.propTypes = {
-  className: PropTypes.string
+  className: PropTypes.string,
+  idSuffix: PropTypes.string
 };
   
 export default ExceedancesChart;
