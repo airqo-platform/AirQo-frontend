@@ -17,7 +17,7 @@ import {
   KeyboardDatePicker,
 } from '@material-ui/pickers';
 //import { AccessAlarm, ThreeDRotation } from '@material-ui/icons';
-import { Update, AddOutlined, EditOutlined, CloudUploadOutlined, UndoOutlined, EventBusy } from '@material-ui/icons';
+import { Update, AddOutlined, EditOutlined, CloudUploadOutlined, UndoOutlined, pageViewOutlined, EventBusy } from '@material-ui/icons';
 import Tooltip from '@material-ui/core/Tooltip';
 //import Select from 'react-select';
 import Select from '@material-ui/core/Select';
