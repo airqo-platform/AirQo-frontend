@@ -38,6 +38,8 @@ const devConfig = {
   EXCEEDANCES_URI: "http://127.0.0.1:5000/api/v1/dashboard/exceedances",
   GET_MONITORING_SITES_URI:
     "http://127.0.0.1:5000/api/v1/dashboard/monitoringsites?organisation_name=KCCA",
+  GET_DATA_MAP:
+    "http://127.0.0.1:5000/api/v1/dashboard/monitoringsites?organisation_name=KCCA&pm25_category=",
 };
 const testConfig = {
   VERIFY_TOKEN_URI: "http://localhost:3000/api/v1/users/reset/you",
@@ -95,6 +97,8 @@ const stageConfig = {
   EXCEEDANCES_URI: "http://34.78.78.202:31003/api/v1/dashboard/exceedances",
   GET_MONITORING_SITES_URI:
     "http://34.78.78.202:31003/api/v1/dashboard/monitoringsites?organisation_name=KCCA",
+  GET_DATA_MAP:
+    "http://34.78.78.202:31003/api/v1/dashboard/monitoringsites?organisation_name=KCCA&pm25_category=",
 };
 const prodConfig = {
   VERIFY_TOKEN_URI: "http://34.78.78.202:30000/api/v1/users/reset/you",
@@ -137,6 +141,8 @@ const prodConfig = {
   EXCEEDANCES_URI: "http://34.78.78.202:30003/api/v1/dashboard/exceedances",
   GET_MONITORING_SITES_URI:
     "http://34.78.78.202:30003/api/v1/dashboard/monitoringsites?organisation_name=KCCA",
+  GET_DATA_MAP:
+    "http://34.78.78.202:30003/api/v1/dashboard/monitoringsites?organisation_name=KCCA&pm25_category=",
 };
 const defaultConfig = {
   PORT: process.env.PORT || 5000,

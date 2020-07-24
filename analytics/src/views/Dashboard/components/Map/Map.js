@@ -1,21 +1,32 @@
-import React from 'react';
-import clsx from 'clsx';
-import PropTypes from 'prop-types';
-import { makeStyles } from '@material-ui/styles';
-import { Map as LeafletMap, TileLayer, Popup, Marker} from 'react-leaflet';
-import {Link } from 'react-router-dom';
-import {Card, CardContent, CardHeader, Divider, IconButton, Grid} from '@material-ui/core';
-import { useEffect, useState } from 'react';
-import FullscreenControl from 'react-leaflet-fullscreen';
-import 'react-leaflet-fullscreen/dist/styles.css';
-import L from 'leaflet';
+import React from "react";
+import clsx from "clsx";
+import PropTypes from "prop-types";
+import { makeStyles } from "@material-ui/styles";
+import { Map as LeafletMap, TileLayer, Popup, Marker } from "react-leaflet";
+import { Link } from "react-router-dom";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  Divider,
+  IconButton,
+  Grid,
+} from "@material-ui/core";
+import { useEffect, useState } from "react";
+import FullscreenControl from "react-leaflet-fullscreen";
+import "react-leaflet-fullscreen/dist/styles.css";
+import L from "leaflet";
 // import Legend from "./Legend";
-import constants from 'config/constants'
-import {MoreHoriz} from '@material-ui/icons';
-import Menu from '@material-ui/core/Menu';
-import MenuItem from '@material-ui/core/MenuItem';
-import domtoimage from 'dom-to-image';
-import JsPDF from 'jspdf';
+import constants from "../../../../config/constants";
+import Filter from "./Filter";
+import axios from "axios";
+import moment from "moment-timezone";
+// import constants from 'config/constants'
+import { MoreHoriz } from "@material-ui/icons";
+import Menu from "@material-ui/core/Menu";
+import MenuItem from "@material-ui/core/MenuItem";
+import domtoimage from "dom-to-image";
+import JsPDF from "jspdf";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -53,6 +64,7 @@ const Map = (props) => {
   const classes = useStyles();
 
   const [contacts, setContacts] = useState([]);
+  const [magnitude, setMagnitude] = useState("All");
 
   useEffect(() => {
     fetch(constants.GET_MONITORING_SITES_URI)
@@ -62,6 +74,26 @@ const Map = (props) => {
       })
       .catch(console.log);
   }, []);
+
+  useEffect(() => {
+    console.log("testing", constants.GET_DATA_MAP);
+    fetch(constants.GET_DATA_MAP + magnitude)
+      .then((res) => res.json())
+      .then((contactData) => {
+        setContacts(contactData.airquality_monitoring_sites);
+      })
+      .catch(console.log);
+  }, []);
+
+  let fetchFilteredData = (magnitude) => {
+    //this.setState({ isLoaded: false }, () => {
+    fetch(constants.GET_DATA_MAP + magnitude)
+      .then((res) => res.json())
+      .then((contactData) => {
+        setContacts(contactData.airquality_monitoring_sites);
+      });
+  };
+  //classify marker colors based on AQI value
 
   let getPm25CategoryColorClass = (aqi) => {
     return aqi > 250.4
@@ -79,129 +111,54 @@ const Map = (props) => {
       : "pm25UnCategorised";
   };
 
-  const rootMapContainerId = 'rootMapContainerId';
-  const iconButton = 'exportIconButton';
-  const [anchorEl, setAnchorEl] = useState(null);
-
-  const filter = node => (node.id !== iconButton);
-
-  const ITEM_HEIGHT = 48;
-  const paperProps = {
-    style: {
-      maxHeight: ITEM_HEIGHT * 4.5,
-      width: 150,
-    },
+  //change popup text based on AQI value
+  let getCategorytext = (aqi) => {
+    return aqi > 250.4
+      ? "Harzadous"
+      : aqi > 150.4
+      ? "Very UnHealthy"
+      : aqi > 55.4
+      ? "Unhealthy"
+      : aqi > 35.4
+      ? "Unhealthy for sensitive groups"
+      : aqi > 12
+      ? "Moderate"
+      : aqi > 0
+      ? "Good"
+      : "UnCategorised";
   };
 
-  const exportToImage = async (chart, format, exportFunc) => {
-    try {
-      const dataUrl = await exportFunc(chart, { filter });
-      const link = document.createElement('a');
-      document.body.appendChild(link);
-      link.download = `chart.${format}`;
-      link.href = dataUrl;
-      link.click();
-      link.remove();
-    } catch (err) {      
-      console.error('oops, something went wrong!', err);
-    }
+  //change popup background color based on AQI value
+
+  let getbackground = (aqi) => {
+    return aqi > 250.4
+      ? "#81202e"
+      : aqi > 150.4
+      ? "#8639c0"
+      : aqi > 55.4
+      ? "#fe0023"
+      : aqi > 35.4
+      ? "#ee8327"
+      : aqi > 12
+      ? "#f8fe39"
+      : aqi > 0
+      ? "#44e527"
+      : "#797979";
   };
 
-  const exportToJpeg = chart => exportToImage(chart, 'jpeg', domtoimage.toJpeg);
-
-  const exportToPng = chart => exportToImage(chart, 'png', domtoimage.toPng);
-
-  const exportToPdf = async (chart) => {
-    const width = chart.offsetWidth;
-    const height = chart.offsetHeight;
-    try {
-      const dataUrl = await domtoimage.toJpeg(chart, { filter });      
-      const doc = new JsPDF({
-        orientation: 'landscape',
-        unit: 'px',
-        format: [width, height],
-      });
-      const pdfWidth = doc.internal.pageSize.getWidth();
-      const pdfHeight = doc.internal.pageSize.getHeight();
-      doc.addImage(dataUrl, 'JPEG', 0, 0, pdfWidth, pdfHeight);
-      doc.save('chart');
-    } catch (err) {      
-      console.error('oops, something went wrong!', err);
-    }
+  //Convert date from UTC to EAT
+  let getDateString = (t, tz) => {
+    return moment
+      .utc(t, "YYYY-MM-DD HH:mm")
+      .tz("Africa/Kampala")
+      .format("YYYY-MM-DD HH:mm");
   };
-
-  const print = async (chart) => {
-    try {
-      const dataUrl = await domtoimage.toJpeg(chart, { filter });
-      let html = '<html><head><title></title></head>';
-      html += '<body style="width: 100%; padding: 0; margin: 0;"';
-      html += ' onload="window.focus(); window.print(); window.close()">';
-      html += `<img src="${dataUrl}" /></body></html>`;
-
-      const printWindow = window.open('', 'print');
-      printWindow.document.open();
-      printWindow.document.write(html);
-      printWindow.document.close();
-    } catch (err) {
-      console.error('oops, something went wrong!', err);
-    }
-  };
-
-  const options = [
-    { key: 'Print', action: print, text: 'Print' },
-    { key: 'JPEG', action: exportToJpeg, text: 'Save as JPEG' },
-    { key: 'PNG', action: exportToPng, text: 'Save as PNG' },
-    { key: 'PDF', action: exportToPdf, text: 'Save as PDF' },
-  ];
-
-  const handleClick = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
-
-  const handleExportMap = ({ action }) => () => {
-    const chart = document.querySelector(`#${rootMapContainerId}`);
-    handleClose();
-    action(chart);
-  };
-
-  const openMenu = Boolean(anchorEl);
 
   return (
-    <Card
-      {...rest}
-      className={clsx(classes.root, className)}
-    >
-      <CardHeader        
+    <Card {...rest} className={clsx(classes.root, className)}>
+      <CardHeader
         title="Mean PM2.5 by Location for Past 60 Minutes"
-        action={
-          <Grid>
-          <IconButton
-            size="small" 
-          color="primary"
-          id={iconButton}
-          onClick={handleClick}
-          className={classes.chartSaveButton}
-        >
-          <MoreHoriz />
-        </IconButton>
-        <Menu
-          anchorEl={anchorEl}
-          open={openMenu}
-          onClose={handleClose}
-          PaperProps={paperProps}
-        >
-          {options.map(option => (
-            <MenuItem key={option.key} onClick={handleExportMap(option)}>
-              {option.text}
-            </MenuItem>
-          ))}
-        </Menu>
-        </Grid>
-        } 
+        subheader="Colours indicate AQI level of concern if maintained as a 24 hour average"
       />
       <Divider />
 
@@ -240,27 +197,57 @@ const Map = (props) => {
               })}
             >
               <Popup>
-                <h2>
+                <h3>
                   {contact.Parish} - {contact.Division} Division
-                </h2>
-                <h4>{contact.LocationCode}</h4>
+                </h3>
+                <span>{contact.LocationCode}</span>
 
-                <h1>
-                  {" "}
-                  {contact.Last_Hour_PM25_Value == 0
-                    ? ""
-                    : contact.Last_Hour_PM25_Value}
-                </h1>
-                <span>Last Refreshed: {contact.LastHour} (UTC)</span>
+                <div
+                  style={{
+                    backgroundColor: `${getbackground(
+                      contact.Last_Hour_PM25_Value
+                    )}`,
+                    padding: "10px",
+                    marginTop: "10px",
+                    marginBottom: "10px",
+                  }}
+                >
+                  {/* <img
+              src="https://cdn3.iconfinder.com/data/icons/basicolor-arrows-checks/24/149_check_ok-512.png"
+              width="50"
+              height="50"
+              alt="no img"
+            /> */}
+
+                  <h3
+                    style={{
+                      fontWeight: "normal",
+                    }}
+                  >
+                    {" "}
+                    AQI:{" "}
+                    {contact.Last_Hour_PM25_Value == 0
+                      ? ""
+                      : contact.Last_Hour_PM25_Value}{" "}
+                    -{" "}
+                    {getCategorytext(
+                      contact.Last_Hour_PM25_Value == 0
+                        ? ""
+                        : contact.Last_Hour_PM25_Value
+                    )}
+                  </h3>
+                </div>
+                <span>
+                  Last Refreshed: {getDateString(contact.LastHour)} (EAT)
+                </span>
                 <Divider />
-
                 <Link to={`/location/${contact.Parish}`}>More Details</Link>
               </Popup>
             </Marker>
           ))}
 
           <FullscreenControl position="topright" />
-
+          <Filter fetchFilteredData={fetchFilteredData} />
           {/* <Legend/> */}
         </LeafletMap>
       </CardContent>
