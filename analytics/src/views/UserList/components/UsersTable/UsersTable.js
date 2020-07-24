@@ -220,6 +220,7 @@ const UsersTable = props => {
                   <TableCell>Username</TableCell>
                   <TableCell>Role</TableCell>
                   <TableCell>Action</TableCell>
+                  
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -392,7 +393,7 @@ const UsersTable = props => {
             </div>
           )}
           {mappeduserState.successMsg && !mappeduserState.isFetching && (
-            <Button onClick={hideDeleteDialog}>Close</Button>
+            <Button onClick={hideConfirmDialog}>Close</Button>
           )}
         </DialogActions>
       </Dialog>
