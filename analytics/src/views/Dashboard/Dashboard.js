@@ -7,11 +7,12 @@ import {
   CardHeader,
   Button,
   Divider,
-  CardActions,
-} from "@material-ui/core";
-import { Line, Bar } from "react-chartjs-2";
-import clsx from "clsx";
-import PropTypes from "prop-types";
+  CardActions, 
+  IconButton
+} from '@material-ui/core';
+import { Line, Bar } from 'react-chartjs-2';
+import clsx from 'clsx';
+import PropTypes from 'prop-types';
 import {
   Pm25Levels,
   Map,
@@ -26,8 +27,14 @@ import palette from "theme/palette";
 import ArrowDropDownIcon from "@material-ui/icons/ArrowDropDown";
 import ArrowRightIcon from "@material-ui/icons/ArrowRight";
 //import Legend from './components/Map/Legend'
-import axios from "axios";
-import constants from "../../config/constants";
+import axios from 'axios';
+import constants from '../../config/constants'
+import {MoreHoriz} from '@material-ui/icons';
+import Menu from '@material-ui/core/Menu';
+import MenuItem from '@material-ui/core/MenuItem';
+import MoreVertIcon from '@material-ui/icons/MoreVert';
+import domtoimage from 'dom-to-image';
+import JsPDF from 'jspdf';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -42,8 +49,12 @@ const useStyles = makeStyles((theme) => ({
     position: "relative",
   },
   actions: {
-    justifyContent: "flex-end",
+    justifyContent: 'flex-end'
   },
+  chartSaveButton: {
+    width: '50px',
+    height: '50px',
+  }, 
 }));
 
 const Dashboard = (props) => {
@@ -270,6 +281,101 @@ const Dashboard = (props) => {
       ],
     },
   };
+  
+  const rootContainerId = 'widget-container';
+  const iconButton = 'exportIconButton';
+  const [anchorEl, setAnchorEl] = useState(null);
+
+  const filter = node => (node.id !== iconButton);
+
+  const ITEM_HEIGHT = 48;
+  const paperProps = {
+    style: {
+      maxHeight: ITEM_HEIGHT * 4.5,
+      width: 150,
+    },
+  };
+
+  const exportToImage = async (chart, format, exportFunc) => {
+    try {
+      const dataUrl = await exportFunc(chart, { filter });
+      const link = document.createElement('a');
+      document.body.appendChild(link);
+      link.download = `chart.${format}`;
+      link.href = dataUrl;
+      link.click();
+      link.remove();
+    } catch (err) {      
+      console.error('oops, something went wrong!', err);
+    }
+  };
+
+  const exportToJpeg = chart => exportToImage(chart, 'jpeg', domtoimage.toJpeg);
+
+  const exportToPng = chart => exportToImage(chart, 'png', domtoimage.toPng);
+
+  const exportToPdf = async (chart) => {
+    const width = chart.offsetWidth;
+    const height = chart.offsetHeight;
+    try {
+      const dataUrl = await domtoimage.toJpeg(chart, { filter });      
+      const doc = new JsPDF({
+        orientation: 'landscape',
+        unit: 'px',
+        format: [width, height],
+      });
+      const pdfWidth = doc.internal.pageSize.getWidth();
+      const pdfHeight = doc.internal.pageSize.getHeight();
+      doc.addImage(dataUrl, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+      doc.save('chart');
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('oops, something went wrong!', err);
+    }
+  };
+
+  const print = async (chart) => {
+    try {
+      const dataUrl = await domtoimage.toJpeg(chart, { filter });
+      let html = '<html><head><title></title></head>';
+      html += '<body style="width: 100%; padding: 0; margin: 0;"';
+      html += ' onload="window.focus(); window.print(); window.close()">';
+      html += `<img src="${dataUrl}" /></body></html>`;
+
+      const printWindow = window.open('', 'print');
+      printWindow.document.open();
+      printWindow.document.write(html);
+      printWindow.document.close();
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('oops, something went wrong!', err);
+    }
+  };
+
+  const options = [
+    { key: 'Print', action: print, text: 'Print' },
+    { key: 'JPEG', action: exportToJpeg, text: 'Save as JPEG' },
+    { key: 'PNG', action: exportToPng, text: 'Save as PNG' },
+    { key: 'PDF', action: exportToPdf, text: 'Save as PDF' },
+  ];
+
+  const handleClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleExport = ({ action }) => () => {
+    const chart = document.querySelector(`#${rootContainerId}`);
+    handleClose();
+    action(chart);
+  };
+
+  
+  const open = Boolean(anchorEl);
+  
 
   return (
     <div className={classes.root}>
@@ -364,13 +470,39 @@ const Dashboard = (props) => {
           />
         </Grid>
         <Grid item lg={6} md={6} sm={12} xl={6} xs={12} container spacing={2}>
-          <Grid item lg={12} md={12} sm={12} xl={12} xs={12}>
-            <Card {...rest} className={clsx(classes.chartCard)}>
+          <Grid item lg={12} md={12} sm={12} xl={12} xs={12}  >
+            <Card {...rest} className={clsx(classes.chartCard)} id={rootContainerId}>
               <CardHeader
                 title={`Mean Daily PM2.5 for Past 28 Days From ${dateValue}`}
+                action={
+                  <Grid>
+                  <IconButton
+                    size="small" 
+                  color="primary"
+                  id={iconButton}
+                  onClick={handleClick}
+                  className={classes.chartSaveButton}
+                >
+                  <MoreHoriz />
+                </IconButton>
+                <Menu
+                  anchorEl={anchorEl}
+                  open={open}
+                  onClose={handleClose}
+                  PaperProps={paperProps}
+                >
+                  {options.map(option => (
+                    <MenuItem key={option.key} onClick={handleExport(option)}>
+                      {option.text}
+                    </MenuItem>
+                  ))}
+                </Menu>
+                </Grid>
+                } 
               />
               <Divider />
               <CardContent>
+              
                 <div className={classes.chartContainer}>
                   <Bar data={locationsGraphData} options={options_main} />
                 </div>
@@ -381,13 +513,15 @@ const Dashboard = (props) => {
             <ExceedancesChart
               className={clsx(classes.chartCard)}
               chartContainer={classes.chartContainer}
+              idSuffix='exceedances'
+
             />
           </Grid>
         </Grid>
 
-        <Grid item lg={6} md={6} sm={12} xl={6} xs={12}>
+        <Grid item lg={6} md={6} sm={12} xl={6} xs={12} >
           <Grid item lg={12} sm={12} xl={12} xs={12}>
-            <Map />
+            <Map id='rootMapContainerId' />
           </Grid>
 
           <Grid container spacing={0} className="MapCardContent">
@@ -446,18 +580,18 @@ const Dashboard = (props) => {
         </Grid>
 
         <Grid item lg={6} md={6} sm={12} xl={6} xs={12}>
-          <CustomisableChart className={clsx(classes.chartCard)} />
+          <CustomisableChart className={clsx(classes.chartCard)} idSuffix='custom-one' />
         </Grid>
         <Grid item lg={6} md={6} sm={12} xl={6} xs={12}>
-          <CustomisableChart className={clsx(classes.chartCard)} />
-        </Grid>
-
-        <Grid item lg={6} md={6} sm={12} xl={6} xs={12}>
-          <CustomisableChart className={clsx(classes.chartCard)} />
+          <CustomisableChart className={clsx(classes.chartCard)} idSuffix='custom-two' />
         </Grid>
 
         <Grid item lg={6} md={6} sm={12} xl={6} xs={12}>
-          <CustomisableChart className={clsx(classes.chartCard)} />
+          <CustomisableChart className={clsx(classes.chartCard)} idSuffix='custom-three'/>
+        </Grid>
+
+        <Grid item lg={6} md={6} sm={12} xl={6} xs={12}>
+          <CustomisableChart className={clsx(classes.chartCard)} idSuffix='custom-four' />
         </Grid>
       </Grid>
     </div>
