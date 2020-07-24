@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import React from 'react';
 import clsx from 'clsx';
 import PropTypes from 'prop-types';
@@ -17,21 +16,6 @@ import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import domtoimage from 'dom-to-image';
 import JsPDF from 'jspdf';
-=======
-import React from "react";
-import clsx from "clsx";
-import PropTypes from "prop-types";
-import { makeStyles } from "@material-ui/styles";
-import { Map as LeafletMap, TileLayer, Popup, Marker } from "react-leaflet";
-import { Link } from "react-router-dom";
-import { Card, CardContent, CardHeader, Divider } from "@material-ui/core";
-import { useEffect, useState } from "react";
-import FullscreenControl from "react-leaflet-fullscreen";
-import "react-leaflet-fullscreen/dist/styles.css";
-import L from "leaflet";
-// import Legend from "./Legend";
-import constants from "config/constants";
->>>>>>> staging
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -187,7 +171,6 @@ const Map = (props) => {
   const openMenu = Boolean(anchorEl);
 
   return (
-<<<<<<< HEAD
     <Card
       {...rest}
       className={clsx(classes.root, className)}
@@ -219,14 +202,6 @@ const Map = (props) => {
         </Menu>
         </Grid>
         } 
-=======
-    <Card {...rest} className={clsx(classes.root, className)}>
-      <CardHeader
-        title={"Mean PM2.5 by Location for Past 60 Minutes"}
-        subheader={
-          "Colours indicate AQI level of concern if maintained as a 24 hour average"
-        }
->>>>>>> staging
       />
       <Divider />
 
