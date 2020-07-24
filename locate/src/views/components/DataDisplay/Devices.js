@@ -266,8 +266,8 @@ const MenuProps = {
     .then(
       res => {
         const ref = res.data;
-        console.log('Latitude:'+ref.latitude.toString())
-        console.log('Longitude:'+ref.longitude.toString())
+        //console.log('Latitude:'+ref.latitude.toString())
+        //console.log('Longitude:'+ref.longitude.toString())
         setLatitude(ref.latitude);
         setLongitude(ref.longitude);
       }
@@ -566,18 +566,23 @@ const MenuProps = {
     .then(
       res=>{
         console.log('Response returned')
-        /*
         const myData = res.data;
         console.log(myData.message);
-
         setDialogResponseMessage(myData.message);
         //setDeployOpen(false);
         handleDeployClose();
         setResponseOpen(true);
         //setMaintenanceDescription('');*/
-    }).catch(
-      console.log
-    )
+    }).catch(error => {
+      console.log(error.message)
+      setDialogResponseMessage('Device already deployed');
+      handleDeployClose();
+      setResponseOpen(true);
+
+  })
+    //setDialogResponseMessage('Deployment already carried out for this device');
+      //handleDeployClose();
+      //setResponseOpen(true);
   }
   
   let  handleMaintenanceSubmit = (e) => {
@@ -636,9 +641,18 @@ const MenuProps = {
         handleRecallClose();
         //setRecallOpen(false);
         setResponseOpen(true);
-    }).catch(
-      console.log
-    )
+    }).catch(error => {
+      //console.log(error.message)
+      setDialogResponseMessage('Device is not deployed in any location');
+      handleRecallClose();
+      setResponseOpen(true);
+      
+
+  })
+    /*
+    setDialogResponseMessage('This device was already recalled');
+      handleRecallClose();
+      setResponseOpen(true);*/
 
   }
 
