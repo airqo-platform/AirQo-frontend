@@ -1,0 +1,41 @@
+###########################################################
+# Start deployment of analytics frontend
+###########################################################
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: airqo-analytics-frontend
+  namespace: production
+spec:
+  selector:
+    matchLabels:
+      app: analytics-ui
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: analytics-ui
+    spec:
+      containers:
+        - name: analytics-ui
+          image: us.gcr.io/airqo-250220/airqo-analytics-frontend:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+              name: analytics-ui
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: airqo-analytics-frontend-svc
+  namespace: production
+spec:
+  selector:
+    app: analytics-ui
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+      nodePort: 30100
+  type: NodePort
