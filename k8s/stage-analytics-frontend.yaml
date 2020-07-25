@@ -1,5 +1,5 @@
 ###########################################################
-# Start deployment of analytics staging
+# Start deployment of analytics fronted staging
 ###########################################################
 apiVersion: apps/v1
 kind: Deployment
