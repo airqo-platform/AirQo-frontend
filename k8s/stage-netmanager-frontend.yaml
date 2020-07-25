@@ -1,0 +1,41 @@
+###########################################################
+# Start deployment of netmanager frontend - staging
+###########################################################
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: airqo-stage-netmanager-frontend
+  namespace: staging
+spec:
+  selector:
+    matchLabels:
+      app: sta-netmanager-ui
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: sta-netmanager-ui
+    spec:
+      containers:
+        - name: sta-netman-ui
+          image: us.gcr.io/airqo-250220/airqo-stage-netmanager-frontend:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+              name: sta-netman-ui
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: airqo-stage-netmanager-ui-svc
+  namespace: staging
+spec:
+  selector:
+    app: sta-netmanager-ui
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+      nodePort: 31104
+  type: NodePort
