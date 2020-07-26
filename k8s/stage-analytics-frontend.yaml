@@ -4,17 +4,17 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: airqo-analytics-frontend
+  name: airqo-stage-analytics-frontend
   namespace: staging
 spec:
   selector:
     matchLabels:
-      app: analytics-ui
+      app: sta-analytics-ui
   replicas: 2
   template:
     metadata:
       labels:
-        app: analytics-ui
+        app: sta-analytics-ui
     spec:
       containers:
         - name: analytics-ui
@@ -28,11 +28,11 @@ spec:
 kind: Service
 apiVersion: v1
 metadata:
-  name: airqo-analytics-frontend-svc
+  name: airqo-stage-analytics-frontend-svc
   namespace: staging
 spec:
   selector:
-    app: analytics-ui
+    app: sta-analytics-ui
   ports:
     - protocol: TCP
       port: 80
