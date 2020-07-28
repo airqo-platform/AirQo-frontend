@@ -568,7 +568,7 @@ const MenuProps = {
         console.log('Response returned')
         const myData = res.data;
         console.log(myData.message);
-        setDialogResponseMessage(myData.message);
+        setDialogResponseMessage('Device successfully deployed');
         //setDeployOpen(false);
         handleDeployClose();
         setResponseOpen(true);
@@ -606,13 +606,17 @@ const MenuProps = {
       res=>{
         const myData = res.data;
         console.log(myData.message);
-        setDialogResponseMessage(myData.message);
+        setDialogResponseMessage('Maintenance log updated');
         //setMaintenanceOpen(false);
         handleMaintenanceClose();
         setResponseOpen(true);
-    }).catch(
-      console.log
-    )
+    }).catch(error => {
+      console.log(error.message)
+      setDialogResponseMessage('An error occured. Please try again');
+      handleMaintenanceClose();
+      setResponseOpen(true);
+
+  })
   }
 
   let handleRecallSubmit = (e) => {
@@ -637,7 +641,7 @@ const MenuProps = {
         console.log('Response returned')
         const myData = res.data;
         console.log(myData.message);
-        setDialogResponseMessage(myData.message);
+        setDialogResponseMessage('Device successfully recalled');
         handleRecallClose();
         //setRecallOpen(false);
         setResponseOpen(true);
@@ -684,13 +688,17 @@ const MenuProps = {
         console.log('RESPONSE');
         const myData = res.data;
         console.log(myData.message);
-        setDialogResponseMessage(myData.message);
+        setDialogResponseMessage('Device successfully registered')
         //setRegisterOpen(false);
         handleRegisterClose();
         setResponseOpen(true);
-    }).catch(
-      console.log
-    )
+    }).catch(error => {
+        console.log(error.message)
+        setDialogResponseMessage('An error occured. Please check your inputs and try again');
+        handleRegisterClose();
+        setResponseOpen(true);
+  
+    })
   }
 
   let handleEditSubmit = (e) => {
@@ -719,15 +727,16 @@ const MenuProps = {
       res=>{
         const myData = res.data;
         console.log(myData.message);
-        setDialogResponseMessage(myData.message);
-        //setEditOpen(false);
+        //setDialogResponseMessage(myData.message);
+        setDialogResponseMessage('Device successfully updated')
         handleEditClose();
-        setResponseOpen(true);
-
-        
-    }).catch(
-      console.log
-    )
+        setResponseOpen(true);  
+    }).catch(error => {
+      console.log(error.message)
+      setDialogResponseMessage('An error ocuured.Please check your inputs and try again');
+      handleEditClose();
+      setResponseOpen(true);
+  })
   }
 
   let handleSensorSubmit = (e) => {
@@ -752,7 +761,7 @@ const MenuProps = {
         const myData = res.data;
         console.log(myData);
         console.log(myData.message);
-        setDialogMessage(myData.message);
+        //setDialogMessage(myData.message);
         setDialogStatus(true);
     }).catch(
       console.log
