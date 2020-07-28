@@ -824,88 +824,69 @@ const MenuProps = {
                //field: '', 
                cellStyle: {fontFamily: 'Open Sans'},
                //render: rowData => <Link className={classes.link} onClick={handleMaintenanceClick(rowData.airqo_ref)}> Update Maintenance log </Link>,
-               render: rowData => <div>
-
-                                     <Tooltip title="View Device Details">                                   
-                                      <Link className={classes.link} to={`/device/${rowData.channelID}`}>                                                                               
-                                      <PageviewOutlined></PageviewOutlined>
-                                      </Link> 
-                                    </Tooltip>
-                                    &nbsp;&nbsp;&nbsp;
-
-                                    <Tooltip title="Edit a device">
-                                      
-                                      <Link 
-                                        className={classes.link} 
-                                        onClick = {handleEditClick(rowData.name, rowData.device_manufacturer, rowData.product_name, 
-                                          rowData.owner, rowData.description, rowData.visibility, rowData.ISP, rowData.latitude,
-                                          rowData.longitude, rowData.phoneNumber, rowData.channelID)}
-                                        //style={{color: 'black'}} 
-                                        //activeStyle={{color: 'red'}}
-                                      > 
-                                        <EditOutlined></EditOutlined>
-                                      </Link> 
-                                    </Tooltip>
-                                    &nbsp;&nbsp;&nbsp;
-
-                                   
-                                    <Tooltip title="Update Maintenance Log">
-                                      
-                                      <Link 
-                                        className={classes.link} 
-                                        onClick = {handleMaintenanceClick(rowData.name)}
-                                        //style={{color: 'black'}} 
-                                        //activeStyle={{color: 'red'}}
-                                      > 
-                                        <Update></Update>
-                                      </Link> 
-                                    </Tooltip>
-                                    &nbsp;&nbsp;&nbsp;
-
-                                    <Tooltip title="Deploy Device">
-                                      <Link 
-                                        className={classes.link} 
-                                        onClick = {handleDeployClick(rowData.name)}
-                                      > 
-                                      <CloudUploadOutlined></CloudUploadOutlined>
-                                        {/*Deploy
-                                    
-                                        <Icon>
-                                          <img  src="../../../../assets/img/icons/deploy.svg"/>
-                                        </Icon>
-                                          */}
-                                      </Link>
-                                    </Tooltip>
-                                    &nbsp;&nbsp;&nbsp;
-
-                                    <Tooltip title="Recall Device">
-                                      <Link 
-                                        className={classes.link} 
-                                        onClick = {handleRecallClick(rowData.name, rowData.locationID)}
-                                      > 
-                                        <UndoOutlined></UndoOutlined>
-                                      </Link>
-                                    </Tooltip>
-
-                                    &nbsp;&nbsp;&nbsp;
-
-                                    <Tooltip title="Add Component">
-                                      <Link 
-                                        className={classes.link} 
-                                        onClick = {handleSensorClick(rowData.channelID)}
-                                      > 
-                                        <AddOutlined></AddOutlined>
-                                      </Link>
-                                    </Tooltip>
-                                    {/*
-                                    <Link 
-                                      className={classes.link} 
-                                      onClick = {handleDeployClick(rowData.airqo_ref)}
-                                    > 
-                                    Deploy 
-                                        </Link>*/}
-                                    </div>
+               render: rowData => {
+                 return(
+                   <div>
+                    {rowData.isActive?
+                      <Tooltip title="View Device Details">                                   
+                        <Link className={classes.link} to={`/device/${rowData.channelID}`}>                                                                               
+                          <PageviewOutlined></PageviewOutlined>
+                        </Link> 
+                      </Tooltip>:
+                      <Tooltip title="Link disabled for inactive device">                                                                                                    
+                        <PageviewOutlined></PageviewOutlined>
+                      </Tooltip>
+                     } &nbsp;&nbsp;
+                      <Tooltip title="Edit a device">
+                        <Link 
+                        className={classes.link} 
+                        onClick = {handleEditClick(rowData.name, rowData.device_manufacturer, rowData.product_name, 
+                        rowData.owner, rowData.description, rowData.visibility, rowData.ISP, rowData.latitude,
+                        rowData.longitude, rowData.phoneNumber, rowData.channelID)}
+                        > 
+                          <EditOutlined></EditOutlined>
+                        </Link> 
+                      </Tooltip>
+                      &nbsp;&nbsp;&nbsp;
+                      <Tooltip title="Update Maintenance Log">
+                        <Link
+                        className={classes.link} 
+                        onClick = {handleMaintenanceClick(rowData.name)}
+                        > 
+                          <Update></Update>
+                        </Link> 
+                      </Tooltip>
+                      &nbsp;&nbsp;
+                      <Tooltip title="Deploy Device">
+                        <Link 
+                        className={classes.link} 
+                        onClick = {handleDeployClick(rowData.name)}
+                        > 
+                          <CloudUploadOutlined></CloudUploadOutlined>
+                        </Link>
+                      </Tooltip>
+                      &nbsp;&nbsp;
+                      <Tooltip title="Recall Device">
+                        <Link 
+                        className={classes.link} 
+                        onClick = {handleRecallClick(rowData.name, rowData.locationID)}
+                        > 
+                          <UndoOutlined></UndoOutlined>
+                        </Link>
+                      </Tooltip>
+                      &nbsp;&nbsp;
+                      <Tooltip title="Add Component">
+                        <Link 
+                        className={classes.link} 
+                        onClick = {handleSensorClick(rowData.channelID)}
+                        > 
+                          <AddOutlined></AddOutlined>
+                        </Link>
+                      </Tooltip>
+                    </div>
+                                    )
             },
+          }
       ]}   
       data = {data}  
       options={{
