@@ -290,8 +290,8 @@ const roadStatusOptions = [
 const getLocation = ref => {
     setDetailsLoading(true);
     axios.get(
-      'http://127.0.0.1:4000/api/v1/location_registry/edit?loc_ref='+ref
-      //constants.EDIT_LOCATION_DETAILS_URI+ref
+      //'http://127.0.0.1:4000/api/v1/location_registry/edit?loc_ref='+ref
+      constants.EDIT_LOCATION_DETAILS_URI+ref
       )
       .then(response => {
         setDetailsLoading(false);
@@ -349,8 +349,8 @@ const getLocation = ref => {
     console.log(JSON.stringify(filter));
     
     axios.post(
-      'http://127.0.0.1:4000/api/v1/location_registry/update', 
-      //constants. UPDATE_LOCATION_URI,
+      //'http://127.0.0.1:4000/api/v1/location_registry/update', 
+      constants.UPDATE_LOCATION_URI,
       JSON.stringify(filter),
       { headers: { 'Content-Type': 'application/json' } }
     )

@@ -214,8 +214,8 @@ const LocationRegister = props => {
   useEffect(() => {
     //code to retrieve next location ID from backend
     axios.get(
-      'http://127.0.0.1:4000/api/v1/location_registry/create_id'
-      //constants.CREATE_ID_URI
+      //'http://127.0.0.1:4000/api/v1/location_registry/create_id'
+      constants.CREATE_ID_URI
     )
     .then(
       res=>{
@@ -321,8 +321,8 @@ const localActivitiesOptions = [
 
   let generateReference = () =>{
     axios.get(
-      'http://127.0.0.1:4000/api/v1/location_registry/create_id'
-      //constants.CREATE_ID_URI
+      //'http://127.0.0.1:4000/api/v1/location_registry/create_id'
+      constants.CREATE_ID_URI
     )
     .then(
       res=>{
@@ -362,8 +362,8 @@ const localActivitiesOptions = [
     console.log(JSON.stringify(filter));
    
     axios.post(
-      'http://127.0.0.1:4000/api/v1/location_registry/register', 
-      //constants.REGISTER_LOCATION_URI,
+      //'http://127.0.0.1:4000/api/v1/location_registry/register', 
+      constants.REGISTER_LOCATION_URI,
       JSON.stringify(filter),
       { headers: { 'Content-Type': 'application/json' } }
     )
