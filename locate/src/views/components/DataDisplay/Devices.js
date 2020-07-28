@@ -5,8 +5,8 @@ import PropTypes from 'prop-types';
 import PerfectScrollbar from 'react-perfect-scrollbar';
 import axios from 'axios';
 import { Link } from "react-router-dom";
-import { makeStyles, mergeClasses } from '@material-ui/styles';
-import { Card, CardContent, Grid, Button, Dialog, DialogActions, DialogContent, DialogTitle, SvgIcon, Icon } from '@material-ui/core';
+import { makeStyles } from '@material-ui/styles';
+import { Card, CardContent, Grid, Button, Dialog, DialogActions, DialogContent, DialogTitle } from '@material-ui/core';
 import LoadingOverlay from 'react-loading-overlay';
 import constants from '../../../config/constants.js';
 import TextField from '@material-ui/core/TextField';  
@@ -16,18 +16,14 @@ import {
   KeyboardTimePicker,
   KeyboardDatePicker,
 } from '@material-ui/pickers';
-//import { AccessAlarm, ThreeDRotation } from '@material-ui/icons';
 import { Update, AddOutlined, EditOutlined, CloudUploadOutlined, UndoOutlined, PageviewOutlined, EventBusy } from '@material-ui/icons';
 import Tooltip from '@material-ui/core/Tooltip';
-//import Select from 'react-select';
 import Select from '@material-ui/core/Select';
 import FormControl from '@material-ui/core/FormControl';
 import Input from '@material-ui/core/Input';
 import InputLabel from '@material-ui/core/InputLabel';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Checkbox from '@material-ui/core/Checkbox';
-import CheckBoxIcon from '@material-ui/icons/CheckBox';
-import TextareaAutosize from '@material-ui/core/TextareaAutosize';
 
 const useStyles = makeStyles(theme => ({
   root: {},
@@ -49,7 +45,6 @@ const useStyles = makeStyles(theme => ({
   },
   link: {
     color: '#3344AA',
-    //color: 'black',
     fontFamily: 'Open Sans'
     },
     
@@ -58,8 +53,6 @@ const useStyles = makeStyles(theme => ({
   },
 formControl: {
   minWidth: 200,
-  //marginLeft: theme.spacing(2)
-  //margin: theme.spacing(2),
 },
 input: {
   color: 'black',
@@ -106,7 +99,6 @@ const MenuProps = {
     setISP('');
     setPhone(null);
     setDescription('');
-    //setComponents([]);
   };
 
   const [editOpen, setEditOpen] = useState(false);
@@ -125,7 +117,6 @@ const MenuProps = {
     setISP('');
     setPhone(null);
     setDescription('');
-    //setComponents([]);
   };
 
   const [maintenanceOpen, setMaintenanceOpen]= useState(false);
@@ -215,38 +206,21 @@ const MenuProps = {
   const handleMeasurementUnitChange = unit => {
     setMeasurementUnit(unit.target.value);
   }
-  /*
-  const handleMeasurementUnitChange = (event) => {
-    const { options } = event.target;
-    const value = [];
-    for (let i = 0, l = options.length; i < l; i += 1) {
-      if (options[i].selected) {
-        value.push(options[i].value);
-      }
-    }
-    //setPersonName(value);
-    setMeasurementUnit(value);
-  }*/
   
   //deployment parameters
   const [recallDate, setRecallDate] = useState(new Date());
   const [locationsOptions, setLocationsOptions] = useState([]);
   
   useEffect(() => {
-    //code to retrieve all locations' data
-    //setIsLoading(true);
     axios.get(
-      //'http://127.0.0.1:4001/api/v1/device/monitor/devices'
       constants.ALL_LOCATIONS_URI
     )
     .then(
       res=>{
-        //setIsLoading(false);
         const ref = res.data;
         console.log(ref);
         let locationArray = [];
         for (var i=0; i<ref.length; i++){
-          //pass
           locationArray.push(ref[i].loc_ref)
         }
         setLocationsOptions(locationArray);
@@ -266,8 +240,6 @@ const MenuProps = {
     .then(
       res => {
         const ref = res.data;
-        //console.log('Latitude:'+ref.latitude.toString())
-        //console.log('Longitude:'+ref.longitude.toString())
         setLatitude(ref.latitude);
         setLongitude(ref.longitude);
       }
@@ -342,23 +314,16 @@ const MenuProps = {
   const [sensorsOptions, setSensorsOptions] = useState([]);
   
   useEffect(() => {
-    //code to retrieve all sensors' data
-    //setIsLoading(true);
     axios.get(
-      //'http://127.0.0.1:4001/api/v1/device/monitor/devices'
       constants.ALL_SENSORS_URI
     )
     .then(
       res=>{
-        //setIsLoading(false);
         const ref = res.data;
         console.log(ref);
-        //console.log(ref[0].sensorID)
         let sensorArray = [];
         for (var i=0; i<ref.length; i++){
-          //pass
           sensorArray.push(ref[i]);
-          //sensorArray.push(ref[i].name+ " ( "+ ref[i].quantityKind.join(', ')+ ")")
         }
         setSensorsOptions(sensorArray);
 
@@ -417,33 +382,10 @@ const MenuProps = {
       setPhone(event.target.value);
     }
   }
-/*
-  const [components, setComponents] = useState([]);
-  const handleComponentsChange = (event) => {
-	  setComponents(event.target.value);
-  }*/
-  
-  /*
-  const handleChangeMultiple = (event) => {
-    const { options } = event.target;
-    const value = [];
-    for (let i = 0, l = options.length; i < l; i += 1) {
-      if (options[i].selected) {
-        value.push(options[i].value);
-      }
-    }
-    //setPersonName(value);
-    setComponents(value);
-  };*/
 
   useEffect(() => {
-    //code to retrieve all devices' data
-    setIsLoading(true);
     axios.get(
-      //'http://127.0.0.1:4001/api/v1/device/monitor/devices'
-      //"http://127.0.0.1:3000/api/v1/devices"
       constants.ALL_DEVICES_URI
-      //constants.ALL_LOCATIONS_URI
     )
     .then(
       res=>{
@@ -457,12 +399,6 @@ const MenuProps = {
       console.log
     )
   }, []);
-/*
-  let handleMaintenanceClick = (e) => {
-    e.preventDefault();
-    //setDeviceName(rowData.airqo_ref);
-    handleMaintenanceOpen();
-  }*/
 
   function appendLeadingZeroes(n) {
     if (n <= 9) {
@@ -472,9 +408,6 @@ const MenuProps = {
   }
 
   let formatDate = (date) => {
-    //setDate(new Date());
-    //setDate(new Date());
-    //let newTime = new Date();
     let time = appendLeadingZeroes(date.getDate()) +
     '-' +
     appendLeadingZeroes(date.getMonth() + 1) +
@@ -482,7 +415,6 @@ const MenuProps = {
     date.getFullYear()
 
     return time;
-    //setDate(time);
    }
   
   let handleEditClick = (name, manufacturer,product, owner, description, visibility, ISP, lat, long, phone, channelID) => {
@@ -525,7 +457,6 @@ const MenuProps = {
   let handleDeployClick = (name) => {
     return (event) => {
       console.log('Deploying '+name);
-      //console.log(name);
       setDeviceName(name);
       handleDeployOpen();
     }
@@ -534,7 +465,6 @@ const MenuProps = {
   let handleSensorClick = (id) => {
     return (event) => {
       console.log('Adding sensors to channel '+id);
-      //console.log(name);
       setDeviceID(id);
       handleSensorOpen();
     }
@@ -569,10 +499,8 @@ const MenuProps = {
         const myData = res.data;
         console.log(myData.message);
         setDialogResponseMessage('Device successfully deployed');
-        //setDeployOpen(false);
         handleDeployClose();
         setResponseOpen(true);
-        //setMaintenanceDescription('');*/
     }).catch(error => {
       console.log(error.message)
       setDialogResponseMessage('Device already deployed');
@@ -580,16 +508,10 @@ const MenuProps = {
       setResponseOpen(true);
 
   })
-    //setDialogResponseMessage('Deployment already carried out for this device');
-      //handleDeployClose();
-      //setResponseOpen(true);
   }
   
   let  handleMaintenanceSubmit = (e) => {
-    //e.preventDefault();
-    //setDialogLoading(true);
-
-    let filter ={ 
+      let filter ={ 
       unit: deviceName,
       activity:  maintenanceDescription,
 	    date: selectedDate.toString(),  
@@ -597,7 +519,6 @@ const MenuProps = {
     console.log(JSON.stringify(filter));
     
     axios.post(
-      //"http://localhost:3000/api/v1/data/channels/maintenance/add",
       constants.ADD_MAINTENANCE_URI,
       JSON.stringify(filter),
       { headers: { 'Content-Type': 'application/json' } }
@@ -607,7 +528,6 @@ const MenuProps = {
         const myData = res.data;
         console.log(myData.message);
         setDialogResponseMessage('Maintenance log updated');
-        //setMaintenanceOpen(false);
         handleMaintenanceClose();
         setResponseOpen(true);
     }).catch(error => {
@@ -643,20 +563,14 @@ const MenuProps = {
         console.log(myData.message);
         setDialogResponseMessage('Device successfully recalled');
         handleRecallClose();
-        //setRecallOpen(false);
         setResponseOpen(true);
     }).catch(error => {
-      //console.log(error.message)
       setDialogResponseMessage('Device is not deployed in any location');
       handleRecallClose();
       setResponseOpen(true);
       
 
   })
-    /*
-    setDialogResponseMessage('This device was already recalled');
-      handleRecallClose();
-      setResponseOpen(true);*/
 
   }
 
@@ -673,12 +587,10 @@ const MenuProps = {
       ISP: ISP,
       phoneNumber: phone,
       description: description,
-      //sensors: components
     }
     console.log(JSON.stringify(filter));
    
     axios.post(
-      //"http://127.0.0.1:3000/api/v1/devices/ts",
       constants.REGISTER_DEVICE_URI,
       JSON.stringify(filter),
       { headers: { 'Content-Type': 'application/json' } },
@@ -689,7 +601,6 @@ const MenuProps = {
         const myData = res.data;
         console.log(myData.message);
         setDialogResponseMessage('Device successfully registered')
-        //setRegisterOpen(false);
         handleRegisterClose();
         setResponseOpen(true);
     }).catch(error => {
@@ -714,11 +625,9 @@ const MenuProps = {
       ISP: ISP,
       phoneNumber: phone,
       description: description,
-      //sensors:components
     }
     console.log(JSON.stringify(filter));
     axios.put(
-      //"http://127.0.0.1:3000/api/v1/devices/ts/update?device=",
       constants.EDIT_DEVICE_URI+deviceID.toString(),
       JSON.stringify(filter),
       { headers: { 'Content-Type': 'application/json' } }
@@ -727,7 +636,6 @@ const MenuProps = {
       res=>{
         const myData = res.data;
         console.log(myData.message);
-        //setDialogResponseMessage(myData.message);
         setDialogResponseMessage('Device successfully updated')
         handleEditClose();
         setResponseOpen(true);  
@@ -773,10 +681,7 @@ const MenuProps = {
   return (
     <div className={classes.root}>
       <br/>
-    
-      {/*<div alignContent ="right">*/}
       <Grid container alignItems="right" alignContent="right" justify="center">
-    {/*<Link >*/}
      <Button 
           variant="contained" 
           color="primary"              
@@ -785,9 +690,7 @@ const MenuProps = {
           onClick={handleRegisterOpen}
         > Add Device
         </Button>
-    {/* </Link> */}
      </Grid>
-     {/*</div> */} 
       <br/>
 
     <LoadingOverlay
@@ -820,19 +723,12 @@ const MenuProps = {
                cellStyle:{ fontFamily: 'Open Sans'},
                render: rowData => formatDate(new Date(rowData.createdAt))
              },
-             { title: 'Location ID', 
-               //field: 'location_id', 
+             { title: 'Location ID',  
                field: 'locationID',
                cellStyle:{ fontFamily: 'Open Sans'},
                render: rowData => <Link className={classes.link} to={`/locations/${rowData.locationID}`}>{rowData.locationID}</Link>
              },
-             
-             
-            // { title: 'Location ID', field: 'location_id', cellStyle:{ fontFamily: 'Open Sans'} },
              { title: 'Actions',
-               //field: '', 
-               cellStyle: {fontFamily: 'Open Sans'},
-               //render: rowData => <Link className={classes.link} onClick={handleMaintenanceClick(rowData.airqo_ref)}> Update Maintenance log </Link>,
                render: rowData => {
                  return(
                    <div>
@@ -976,15 +872,6 @@ const MenuProps = {
                    value = {maintenanceDescription}
                    onChange = {handleMaintenanceDescriptionChange}
                    /><br/>
-              {/*}
-                <TextareaAutosize
-                  id = "maintenanceDescription"
-                  label = "Description"
-                  value = {maintenanceDescription}
-                  onChange = {handleMaintenanceDescriptionChange}
-                  rowsMin={3}
-                  //placeholder="Maximum 4 rows"
-                  />*/}
 
                  <MuiPickersUtilsProvider utils={DateFnsUtils}>
                   <KeyboardDatePicker
@@ -1018,7 +905,6 @@ const MenuProps = {
                <Button 
                 variant="contained" 
                 color="primary"              
-                //type="button"
                 onClick = {handleMaintenanceClose}
                > Cancel
                </Button>
@@ -1048,7 +934,6 @@ const MenuProps = {
                      required
                    /> 
                  </Grid>
-                {/* {devicesLoading?(*/}
                  <Grid item xs={6}>
                     <TextField 
                       id="standard-basic" 
@@ -1056,7 +941,7 @@ const MenuProps = {
                       value = {height}
                       onChange = {handleHeightChange}
                     />
-                 </Grid> {/*): null }*/}
+                 </Grid> 
                 </Grid>
                 <Grid container item xs={12} spacing={3}>
                  <Grid item xs={6}>
@@ -1077,7 +962,6 @@ const MenuProps = {
                    </FormControl>
                        <h6 style = {{fontSize:14}}><b>{devicesLabel}</b></h6>
                   </Grid>
-                  {/*{devicesLoading?(*/}
                     
                   <Grid item xs={6}>
                     <FormControl className={classes.formControl}>
@@ -1094,9 +978,8 @@ const MenuProps = {
                         <option value="Battery">Battery</option>
                       </Select>
                     </FormControl>
-                   </Grid> {/*}): null }*/}
+                   </Grid> 
                   </Grid>
-                  {/*{devicesLoading?(*/}
                     <div>
                   <Grid container item xs={12} spacing={3}>
                     <Grid item xs={6}>
@@ -1111,10 +994,7 @@ const MenuProps = {
                         <MuiPickersUtilsProvider utils={DateFnsUtils}>
                           <KeyboardDatePicker
                             disableToolbar
-                            //variant="inline"
-                            //format="MM/dd/yyyy"
                             format = "yyyy-MM-dd"
-                            //margin="normal"
                             id="deploymentDate"
                             label="Date of Deployment"
                             value={deploymentDate}
@@ -1152,11 +1032,10 @@ const MenuProps = {
                         } 
                       label="This deployment is a formal collocation"
                       />
-                    </Grid> </div> {/*}): null }*/}
+                    </Grid> </div> 
                   </Grid>
                 </DialogContent> 
           
-                {/*{devicesLoading?(*/}
                 <DialogActions>
                 <Grid container alignItems="center" alignContent="center" justify="center">
                  <Button 
@@ -1169,15 +1048,14 @@ const MenuProps = {
                <Button 
                 variant="contained" 
                 color="primary"              
-                //type="button"
                 onClick = {handleDeployClose}
                > Cancel
                </Button>
                </Grid>
-           </DialogActions> {/*}): null }*/}
+           </DialogActions> 
          </Dialog>
          ) : null}
-        {recallOpen? (
+  {recallOpen? (
        
        <Dialog
            open={recallOpen}
@@ -1197,7 +1075,6 @@ const MenuProps = {
                  <Button 
                   variant="contained" 
                   color="primary"              
-                  //onClick={handleRecallSubmit}
                   onClick = {handleRecallSubmit}
                  > YES
                 </Button>
@@ -1205,7 +1082,6 @@ const MenuProps = {
                <Button 
                 variant="contained" 
                 color="primary"              
-                //type="button"
                 onClick = {handleRecallClose}
                > NO
                </Button>
@@ -1225,10 +1101,7 @@ const MenuProps = {
            <DialogTitle id="form-dialog-title">Add a device</DialogTitle>
 
            <DialogContent>
-              {/*<div>*/}
-              <form className={classes.formControl}> {/*onSubmit={handleRegisterSubmit}*/}
-                {/*<Grid container>
-                 <Grid container item>*/}
+              <form className={classes.formControl}> 
                  <TextField 
                    required
                    id="deviceName" 
@@ -1251,7 +1124,6 @@ const MenuProps = {
                    value = {manufacturer}
                    onChange = {handleManufacturerChange}
                    fullWidth = {true}
-                  // required
                    /><br/>
                    <TextField 
                    id="standard-basic" 
@@ -1259,7 +1131,6 @@ const MenuProps = {
                    value = {productName}
                    onChange = {handleProductNameChange}
                    fullWidth = {true}
-                   //required
                    /><br/>
                    <TextField 
                    id="standard-basic" 
@@ -1320,24 +1191,6 @@ const MenuProps = {
                    onChange = {handlePhoneChange}
                    fullWidth = {true}
                    /><br/>
-                   {/*
-                   <FormControl fullWidth={true}>
-                     <InputLabel htmlFor="demo-dialog-native"Device >Components</InputLabel>
-                     <Select
-                       multiple
-                       value={components}
-                       onChange={handleComponentsChange}
-                       //onChange = {handleChangeMultiple}
-                       input={<Input id="demo-dialog-native" />}
-                       MenuProps={MenuProps}
-                     >
-                       <option aria-label="None" value="" />
-                       {sensorsOptions.map( (sensor) =>
-                       <option value={sensor.sensorID}>{sensor.name+ " ( "+ sensor.quantityKind.join(', ')+ ")"}</option>)}
-                     </Select>
-                   </FormControl><br/> <br/>*/}
-                   {/*</Grid>
-                   </Grid> <br/>*/}
                    </form>
                    </DialogContent>
 
@@ -1361,31 +1214,6 @@ const MenuProps = {
                </Button>
                </Grid> <br/>
               </DialogActions>
-              {/*</form>*/}
-                 
-                 {/*</div>
-                 
-                  </DialogContent> *?}
-                  
-              {/*}
-                 <DialogActions>
-                 <Grid container alignItems="center" alignContent="center" justify="center">
-                 <Button 
-                  variant="contained" 
-                  color="primary"              
-                  onClick={handleRegisterSubmit}
-                 > Register
-                </Button>
-               &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-               <Button 
-                variant="contained" 
-                color="primary"              
-                //type="button"
-                onClick = {handleRegisterClose}
-               > Cancel
-               </Button>
-               </Grid>
-                       </DialogActions> */}
          </Dialog>
          ) : null}
 
@@ -1401,8 +1229,6 @@ const MenuProps = {
 
            <DialogContent>
                 <form  className={classes.formControl}> 
-                {/*<Grid container>
-                 <Grid container item>*/}
                  <TextField 
                    required
                    id="standard-basic" 
@@ -1494,28 +1320,8 @@ const MenuProps = {
                    onChange = {handlePhoneChange}
                    fullWidth = {true}
                    /><br/>
-                   {/*
-                   <FormControl className={classes.formControl} fullWidth={true}>
-                     <InputLabel htmlFor="demo-dialog-native"Device >Components</InputLabel>
-                     <Select
-                       multiple
-                       value={components}
-                       onChange={handleComponentsChange}
-                       //onChange = {handleChangeMultiple}
-                       input={<Input id="demo-dialog-native" />}
-                       MenuProps={MenuProps}
-                     >
-                       <option aria-label="None" value="" />
-                       {sensorsOptions.map( (sensor) =>
-                       <option value={sensor.sensorID}>{sensor.name+ " ( "+ sensor.quantityKind.join(', ')+ ")"}</option>)}
-                     </Select>
-                       </FormControl><br/> <br/>*/}
+                   
                    </form>
-                  {/*} </Grid>
-                   </Grid> <br/>*/}
-
-                 
-                 {/*</div>*/}
                  
                   </DialogContent> 
           
@@ -1552,15 +1358,7 @@ const MenuProps = {
            <DialogTitle id="form-dialog-title" style={{alignContent:'center'}}>Add a component</DialogTitle>
            <DialogContent>
                 <div>
-                  {/*
                  <TextField 
-                   fullWidth={true}
-                   id="deviceName" 
-                   label="Device Name"
-                   value = {deviceName}
-                   /> <br/>*/}
-                 <TextField 
-                   //fullWidth={true}
                    id="sensorID" 
                    label="Component ID"
                    value = {sensorID}
@@ -1591,11 +1389,9 @@ const MenuProps = {
                   <InputLabel htmlFor="demo-dialog-native"> Quantity Measured</InputLabel>
                    <Select
                     multiple
-                    //native
                     value={quantityKind}
                     onChange={handleQuantityKindChange}
                     input={<Input id="demo-dialog-native" />}
-                    //MenuProps={MenuProps}
                    >
                         <option aria-label="None" value="" />
                         <option value="pm1">PM 1</option>
@@ -1613,7 +1409,6 @@ const MenuProps = {
                    <FormControl required fullWidth={true}>
                     <InputLabel htmlFor="demo-dialog-native"> Unit of Measure</InputLabel>
                     <Select
-                    //native
                     multiple
                     value={measurementUnit}
                     onChange={handleMeasurementUnitChange}
@@ -1628,32 +1423,6 @@ const MenuProps = {
                         <option value="coords">GPS Coordinates</option>
                       </Select>
                    </FormControl><br/>
-                 
-                 {/*
-                   
-                 <TextField 
-                   id="standard-basic" 
-                   label="Description" 
-                   value = {maintenanceDescription}
-                   onChange = {handleMaintenanceDescriptionChange}
-                   /><br/>
-              
-                 <MuiPickersUtilsProvider utils={DateFnsUtils}>
-                  <KeyboardDatePicker
-                    disableToolbar
-                    variant="inline"
-                    //format="MM/dd/yyyy"
-                    format = "yyyy-MM-dd"
-                    margin="normal"
-                    id="maintenanceDate"
-                    label="Date of Maintenance"
-                    value={selectedDate}
-                    onChange={handleDateChange}
-                    KeyboardButtonProps={{
-                    'aria-label': 'change date',
-                   }}
-                   />
-                 </MuiPickersUtilsProvider>*/}
                  </div>
                  
                   </DialogContent> 
@@ -1670,36 +1439,12 @@ const MenuProps = {
                <Button 
                 variant="contained" 
                 color="primary"              
-                //type="button"
                 onClick = {handleSensorClose}
                > Cancel
                </Button>
                </Grid>
            </DialogActions>
-              {/*}
-                <DialogContent>
-                  Are you sure you want to delete device {deviceName}?
-                </DialogContent> 
-          
-          
-                <DialogActions>
-                <Grid container alignItems="center" alignContent="center" justify="center">
-                 <Button 
-                  variant="contained" 
-                  color="primary"              
-                  onClick={handleSensorSubmit}
-                 > YES
-                </Button>
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-               <Button 
-                variant="contained" 
-                color="primary"              
-                //type="button"
-                onClick = {handleSensorClose}
-               > NO
-               </Button>
-               </Grid>
-     </DialogActions>*/}
+              
          </Dialog>
          ) : null}
     </div>
@@ -1713,103 +1458,3 @@ DevicesTable.propTypes = {
 };
 
 export default DevicesTable;
-
-
-/*
-export default function DeviceRegistry() {
-  const [state, setState] = React.useState({
-    columns: [
-      { title: "Name", field: "name" },
-      { title: "Location", field: "location" },
-      {
-        title: "Mount Type",
-        field: "mountType",
-        lookup: { 34: "wall", 63: "pole", 85: "motor bike" },
-      },
-      {
-        title: "mobile",
-        field: "mobile",
-        lookup: { 35: "true", 64: "false" },
-      },
-      {
-        title: "visibility",
-        field: "visibility",
-        lookup: { 36: "public", 68: "private" },
-      },
-      { title: "Distance to Road", field: "distanceToRoad" },
-      { title: "Height", field: "height" },
-      { title: "description", field: "description" },
-    ],
-    data: [
-      {
-        name: "Bwaise-2020-01-15T13:16:43.218Z",
-        location: "Bwaise",
-        distanceToRoad: 1987,
-        mountType: "pole",
-        mobile: true,
-        visibility: "public",
-        height: 23,
-        description: "Bwaise second installation",
-      },
-      {
-        name: "Katwe-2020-01-15T13:28:57.113Z",
-        location: "Bwaise",
-        distanceToRoad: 1987,
-        mountType: "pole",
-        mobile: true,
-        visibility: "public",
-        height: 23,
-        description: "Katwe third installation",
-      },
-    ],
-  });
-
-  return (
-    <MaterialTable
-      title="Device Registry"
-      columns={state.columns}
-      data={state.data}
-      editable={{
-        onRowAdd: (newData) =>
-          new Promise((resolve) => {
-            setTimeout(() => {
-              resolve();
-              setState((prevState) => {
-                const data = [...prevState.data];
-                data.push(newData);
-                return { ...prevState, data };
-              });
-            }, 600);
-          }),
-        onRowUpdate: (newData, oldData) =>
-          new Promise((resolve) => {
-            setTimeout(() => {
-              resolve();
-              if (oldData) {
-                setState((prevState) => {
-                  const data = [...prevState.data];
-                  data[data.indexOf(oldData)] = newData;
-                  return { ...prevState, data };
-                });
-              }
-            }, 600);
-          }),
-        onRowDelete: (oldData) =>
-          new Promise((resolve) => {
-            setTimeout(() => {
-              resolve();
-              setState((prevState) => {
-                const data = [...prevState.data];
-                data.splice(data.indexOf(oldData), 1);
-                return { ...prevState, data };
-              });
-            }, 600);
-          }),
-      }}
-      options={{
-        actionsColumnIndex: -1,
-      }}
-    />
-  );
-}
-*/
