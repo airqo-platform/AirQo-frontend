@@ -95,8 +95,8 @@ const LocationsTable = props => {
     //code to retrieve all locations data
     setIsLoading(true);
     axios.get(
-      'http://127.0.0.1:4000/api/v1/location_registry/locations'
-      //constants.ALL_LOCATIONS_URI
+      //'http://127.0.0.1:4000/api/v1/location_registry/locations'
+      constants.ALL_LOCATIONS_URI
     )
     .then(
       res=>{
