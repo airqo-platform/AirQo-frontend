@@ -796,9 +796,14 @@ const MenuProps = {
             className = {classes.table}
             title="Device Registry"
             columns={[
-             { title: 'Device Name', field: 'name',
-             render: rowData => <Link className={classes.link} to={`/device/${rowData.channelID}`}>{rowData.name}</Link>,
-              cellStyle:{ fontFamily: 'Open Sans'} },
+             { title: 'Device Name', field: 'name', cellStyle:{ fontFamily: 'Open Sans'},
+             render: rowData => {
+               return (
+                 rowData.isActive?
+                   <Link className={classes.link} to={`/device/${rowData.channelID}`}>{rowData.name}</Link>:
+                   <p>{rowData.name}</p>
+               );
+             }},
              { title: 'Description', field: 'description', cellStyle:{ fontFamily: 'Open Sans'} },
              { title: 'Device ID', field: 'channelID', cellStyle:{ fontFamily: 'Open Sans'} }, //should be channel ID
              { title: 'Registration Date', 
