@@ -245,7 +245,7 @@ const MenuProps = {
         console.log(ref);
         let locationArray = [];
         for (var i=0; i<ref.length; i++){
-          locationArray.push(ref[i].loc_ref)
+          locationArray.push({"loc_ref":ref[i].loc_ref, "loc_name":ref[i].location_name})
         }
         setLocationsOptions(locationArray);
 
@@ -986,6 +986,7 @@ const MenuProps = {
                      label="Device Name"
                      value = {deviceName}
                      required
+                     fullWidth = {true} 
                    /> 
                  </Grid>
                  <Grid item xs={6}>
@@ -994,12 +995,13 @@ const MenuProps = {
                       label="height" 
                       value = {height}
                       onChange = {handleHeightChange}
+                      fullWidth = {true} 
                     />
                  </Grid> 
                 </Grid>
                 <Grid container item xs={12} spacing={3}>
                  <Grid item xs={6}>
-                   <FormControl required className={classes.formControl}>
+                   <FormControl required className={classes.formControl} fullWidth = {true} >
                      <InputLabel htmlFor="demo-dialog-native">Location ID</InputLabel>
                      <Select
                        native
@@ -1010,15 +1012,15 @@ const MenuProps = {
                       
                      > 
                        <option aria-label="None" value="" />
-                       {locationsOptions.map( (loc_id) =>
-                       <option value={loc_id}>{loc_id}</option>)}
+                       {locationsOptions.map( (location) =>
+                       <option value={location.loc_ref}>{location.loc_ref}: {location.loc_name}</option>)}
                      </Select>
                    </FormControl>
                        <h6 style = {{fontSize:14}}><b>{devicesLabel}</b></h6>
                   </Grid>
                     
                   <Grid item xs={6}>
-                    <FormControl className={classes.formControl}>
+                    <FormControl className={classes.formControl} fullWidth = {true} >
                       <InputLabel htmlFor="demo-dialog-native">Power Type</InputLabel>
                       <Select
                         native
@@ -1042,11 +1044,13 @@ const MenuProps = {
                         label="Installation Type" 
                         value = {installationType}
                         onChange = {handleInstallationTypeChange}
+                        fullWidth = {true} 
                         />
                       </Grid>
                       <Grid item xs={6}>
                         <MuiPickersUtilsProvider utils={DateFnsUtils}>
                           <KeyboardDatePicker
+                            fullWidth = {true} 
                             disableToolbar
                             format = "yyyy-MM-dd"
                             id="deploymentDate"
