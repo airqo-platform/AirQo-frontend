@@ -24,6 +24,10 @@ import Input from '@material-ui/core/Input';
 import InputLabel from '@material-ui/core/InputLabel';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Checkbox from '@material-ui/core/Checkbox';
+import CreatableSelect from 'react-select/creatable';
+import MenuItem from '@material-ui/core/MenuItem';
+import ListItemText from '@material-ui/core/ListItemText';
+import Autocomplete from '@material-ui/lab/Autocomplete';
 
 const useStyles = makeStyles(theme => ({
   root: {},
@@ -72,7 +76,7 @@ const MenuProps = {
   PaperProps: {
     style: {
       maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
-      width: 250,
+      width: 350,
     },
   },
 };
@@ -175,14 +179,34 @@ const MenuProps = {
   };
 
   const [hasError, setHasError] = useState(false); 
-
-
   //maintenance log parameters
+  const maintenanceOptions = [
+    "dust removal and sensor cleaning",
+    "power circuitry and components works",
+    "GPS module works/replacement",
+    "GSM module works/replacement",
+    "battery works/replacement",
+    "power supply works/replacement",
+    "antenna works/replacement",
+    "mounts replacement",
+  ];
   const [deviceName, setDeviceName] = useState('');
-  const [maintenanceDescription, setMaintenanceDescription] = useState('');
+  const [maintenanceType, setMaintenanceType] = useState('');
+  const handleMaintenanceTypeChange = type =>{
+    setMaintenanceType(type.target.value);
+    if (type.target.value == 'Preventive Maintenance'){
+      setMaintenanceDescription(["dust removal and sensor cleaning"])
+    }
+    else{
+      setMaintenanceDescription([]);
+    }
+  }
+  //const [maintenanceDescription, setMaintenanceDescription] = useState('');
+  const [maintenanceDescription, setMaintenanceDescription] = useState([]);
   const handleMaintenanceDescriptionChange = description => {
     setMaintenanceDescription(description.target.value);
   } 
+
   const [selectedDate, setSelectedDate] = useState(new Date());
   const handleDateChange = (date) => {
     setSelectedDate(date);
@@ -399,6 +423,7 @@ const MenuProps = {
       console.log
     )
   }, []);
+ 
 
   function appendLeadingZeroes(n) {
     if (n <= 9) {
@@ -513,11 +538,13 @@ const MenuProps = {
   let  handleMaintenanceSubmit = (e) => {
       let filter ={ 
       unit: deviceName,
+      activityType: maintenanceType,
       activity:  maintenanceDescription,
-	    date: selectedDate.toString(),  
+      //date: selectedDate.toString(),  
+      date:selectedDate
     }
     console.log(JSON.stringify(filter));
-    
+    /*
     axios.post(
       constants.ADD_MAINTENANCE_URI,
       JSON.stringify(filter),
@@ -536,7 +563,7 @@ const MenuProps = {
       handleMaintenanceClose();
       setResponseOpen(true);
 
-  })
+  })*/
   }
 
   let handleRecallSubmit = (e) => {
@@ -859,22 +886,49 @@ const MenuProps = {
 
            
            <DialogContent>
-                <div>
+                <div style ={{width:300}}>
                  <TextField 
                    id="deviceName" 
                    label="Device Name"
                    value = {deviceName}
+                   fullWidth = {true}
                    /> <br/>
-                   
-                 <TextField 
-                   id="standard-basic" 
-                   label="Description" 
-                   value = {maintenanceDescription}
-                   onChange = {handleMaintenanceDescriptionChange}
-                   /><br/>
+                   <FormControl required className={classes.formControl} fullWidth = {true}>
+                      <InputLabel htmlFor="demo-dialog-native">Type of Maintenance</InputLabel>
+                      <Select
+                        native
+                        value={maintenanceType}
+                        onChange={handleMaintenanceTypeChange}
+                        input={<Input id="demo-dialog-native" />}
+                      >
+                        <option aria-label="None" value="" />
+                        <option value="Preventive Maintenance">Preventive</option>
+                        <option value="Corrective Maintenance">Corrective</option>
+                      </Select>
+                  </FormControl><br/>
+                  <FormControl required className={classes.formControl} fullWidth = {true}>
+                      <InputLabel htmlFor="demo-dialog-native">Description of Activities</InputLabel>
+                      <Select
+                        multiple
+                        value={maintenanceDescription}
+                        onChange={handleMaintenanceDescriptionChange}
+                        input={<Input />}
+                        renderValue={(selected) => selected.join(', ')}
+                        MenuProps={MenuProps}
+                      >
+                       <option aria-label="None" value="" />
+                       {maintenanceOptions.map((name) => (
+                        <MenuItem key={name} value={name}>
+                          <Checkbox checked={maintenanceDescription.indexOf(name) > -1} />
+                          <ListItemText primary={name} />
+                        </MenuItem>
+                       ))}
+                      </Select>
+                  </FormControl><br/>
 
-                 <MuiPickersUtilsProvider utils={DateFnsUtils}>
-                  <KeyboardDatePicker
+                 <MuiPickersUtilsProvider utils={DateFnsUtils} fullWidth = {true}>
+                  <KeyboardDatePicker 
+                    fullWidth = {true}
                     disableToolbar
                     variant="inline"
                     //format="MM/dd/yyyy"
@@ -953,7 +1007,7 @@ const MenuProps = {
                        value={locationID}
                        onChange={handleLocationIDChange}
                        input={<Input id="demo-dialog-native" />}
-                       required
+                      
                      > 
                        <option aria-label="None" value="" />
                        {locationsOptions.map( (loc_id) =>
@@ -1149,7 +1203,7 @@ const MenuProps = {
                    required
                    /><br/>
                    <FormControl required  fullWidth={true}>
-                      <InputLabel htmlFor="demo-dialog-native"> Visibility</InputLabel>
+                      <InputLabel htmlFor="demo-dialog-native"> Data Access</InputLabel>
                       <Select
                         required
                         native
