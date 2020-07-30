@@ -66,7 +66,6 @@ const Map = props => {
 
   useEffect(() => {
    fetch('http://127.0.0.1:5000/api/v1/device/monitor/status')
-    //fetch('http://127.0.0.1:5000/api/v1/dashboard/monitoringsites?organisation_name=KCCA')
       .then(res => res.json())
       .then((contactData) => {
         setContacts(contactData)
@@ -94,16 +93,7 @@ const Map = props => {
   };
 
   return (
-    <Card
-      {...rest}
-      className={clsx(classes.root, className)}
-    >
-      <CardHeader        
-        title="Devices"
-      />
-      <Divider />
-            
-      <CardContent>
+    
         <LeafletMap
           animate
           attributionControl
@@ -122,7 +112,7 @@ const Map = props => {
           />           
           {contacts.map((contact) => (
             <Marker 
-              position={[contact.loc_lat,contact.loc_long]}
+              position={[contact.latitude,contact.longitude]}
               fill="true"
               key={contact._id} 
               clickable="true"  
@@ -151,12 +141,7 @@ const Map = props => {
           {/* <Filter fetchFilteredData={fetchFilteredData} /> */}
 
         </LeafletMap>
-        
-      </CardContent>
-  
-
-    </Card>
-
+ 
   );
 };
 
