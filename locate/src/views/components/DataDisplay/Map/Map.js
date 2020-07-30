@@ -65,7 +65,7 @@ const Map = props => {
   const [contacts,setContacts ] = useState([]);
 
   useEffect(() => {
-   fetch('http://127.0.0.1:5000/api/v1/device/monitor/status')
+   fetch('http://127.0.0.1:4001/api/v1/device/monitor/status')
       .then(res => res.json())
       .then((contactData) => {
         setContacts(contactData)
@@ -85,7 +85,7 @@ const Map = props => {
 
   let fetchFilteredData = (magnitude) => {
     //this.setState({ isLoaded: false }, () => {
-    fetch('http://127.0.0.1:5000/api/v1/device/monitor/status')
+    fetch('http://127.0.0.1:4001/api/v1/device/monitor/status')
       .then(res => res.json())
       .then((contactData) => {
         setContacts(contactData)
