@@ -41,27 +41,12 @@ const useStyles = makeStyles(theme => ({
   progress: {
     marginTop: theme.spacing(3)
   },
-
-  // leafletMarkerIcon: {
-  //   color: "#3f51b5",
-  //   backgroundColor:"#3f51b5",
-  //   fontSize: "12px",
-  //   fontWeight: "700",
-  //   lineHeight: "35px",
-  //   textAlign: "center",
-  //   verticalAlign: "bottom",
-  //   boxShadow: "2px 1px 4px rgba(0,0,0,0.2)",
-  //   borderRadius: "30px",
-  //   borderWidth: "3px",
-  //   opacity: 1	
-  // }
 }));
 
 const Map = props => {
   const { className, ...rest } = props;
 
   const classes = useStyles();
-  //const [magnitude,setMagnitude ] = useState('All');
   const [contacts,setContacts ] = useState([]);
 
   useEffect(() => {
@@ -82,17 +67,7 @@ const Map = props => {
                 'UnCategorise';
   }
 
-  // let fetchFilteredData = (magnitude) => {
-  //   //this.setState({ isLoaded: false }, () => {
-  //   fetch('http://127.0.0.1:4001/api/v1/monitor/devices/online_offline')
-  //     .then(res => res.json())
-  //     .then((contactData) => {
-  //       setContacts(contactData)
-  //     });
-  // };
-
   return (
-    
         <LeafletMap
           animate
           attributionControl
@@ -102,9 +77,7 @@ const Map = props => {
           easeLinearity={0.35}
           scrollWheelZoom
           zoom={7}
-          
           zoomControl        
-          
         >
           <TileLayer
             url="http://{s}.tile.osm.org/{z}/{x}/{y}.png"
@@ -120,27 +93,18 @@ const Map = props => {
                 //html:`${contact.isOnline}`,
                 iconSize: 35,
                 className:`leafletMarkerIcon ${CategoryColorClass(contact.isOnline)}`
-                //className: classes.leafletMarkerIcon
                  })}
               >
-              <Popup>
-               
+              <Popup> 
               </Popup>
             </Marker>   
-          ))}    
-      
+          ))}  
           <FullscreenControl position="topleft" />
-
-          {/* <Filter fetchFilteredData={fetchFilteredData} /> */}
-
         </LeafletMap>
  
   );
 };
-
-
 Map.propTypes = {
   className: PropTypes.string
 };
-
 export default Map;
