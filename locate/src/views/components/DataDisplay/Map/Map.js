@@ -110,7 +110,7 @@ const Map = props => {
           <TileLayer
             url="http://{s}.tile.osm.org/{z}/{x}/{y}.png"
           />           
-          {contacts.map((contact) => (
+          {[contacts].map((contact) => (
             <Marker 
               position={[contact.latitude,contact.longitude]}
               fill="true"
