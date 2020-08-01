@@ -8,7 +8,7 @@ import {Card, CardContent, CardHeader, Divider} from '@material-ui/core';
 import { useEffect, useState } from 'react';
 import FullscreenControl from 'react-leaflet-fullscreen';
 import 'react-leaflet-fullscreen/dist/styles.css';
-import L from 'leaflet';
+import L, { control } from 'leaflet';
 import Filter from './FilterPowerSource.jsx';
 import axios from "axios";
 import ReactDOM from 'react-dom';
@@ -65,27 +65,27 @@ const Map = props => {
   const [contacts,setContacts ] = useState([]);
 
   useEffect(() => {
-   fetch('http://127.0.0.1:4001/api/v1/device/monitor/status')
+   fetch('http://127.0.0.1:4001/api/v1/monitor/devices/online_offline')
       .then(res => res.json())
       .then((contactData) => {
-        setContacts(contactData)
+        let devices = contactData["online_offline_devices"]
+        console.log("devices")
+        console.log(devices)
+        setContacts(devices)
+        console.log(contacts)
       })
       .catch(console.log)
   },[]);
 
-  let getPm25CategoryColorClass = (aqi) =>{
-    return aqi > 250.4  ? 'pm25Harzadous' :
-      aqi > 150.4  ? 'pm25VeryUnHealthy' :
-        aqi > 55.4   ? 'pm25UnHealthy' :
-          aqi > 35.4   ? 'pm25UH4SG' :
-            aqi > 12   ? 'pm25Moderate' :
-              aqi > 0   ? 'pm25Good' :
+  let getPm25CategoryColorClass = (isOnline) =>{
+    return isOnline > false  ? 'pm25Harzadous' :
+      isOnline > true  ? 'pm25VeryUnHealthy' :
                 'pm25UnCategorised';
   }
 
   let fetchFilteredData = (magnitude) => {
     //this.setState({ isLoaded: false }, () => {
-    fetch('http://127.0.0.1:4001/api/v1/device/monitor/status')
+    fetch('http://127.0.0.1:4001/api/v1/monitor/devices/online_offline')
       .then(res => res.json())
       .then((contactData) => {
         setContacts(contactData)
@@ -110,7 +110,7 @@ const Map = props => {
           <TileLayer
             url="http://{s}.tile.osm.org/{z}/{x}/{y}.png"
           />           
-          {[contacts].map((contact) => (
+          {contacts.map((contact) => (
             <Marker 
               position={[contact.latitude,contact.longitude]}
               fill="true"
@@ -118,20 +118,14 @@ const Map = props => {
               clickable="true"  
               icon={
                 L.divIcon({
-                // html:`${contact.Last_Hour_PM25_Value == 0?'':contact.Last_Hour_PM25_Value}`,
+                //html:`${contact.isOnline}`,
                 iconSize: 35,
-                // className:`leafletMarkerIcon ${getPm25CategoryColorClass(contact.Last_Hour_PM25_Value)}`
-                 className: classes.leafletMarkerIcon
+                className:`leafletMarkerIcon ${getPm25CategoryColorClass(contact.isOnline)}`
+                //className: classes.leafletMarkerIcon
                  })}
               >
               <Popup>
-                <h2>{contact.Parish} - {contact.Division} Division</h2> 
-                <h4>{contact.LocationCode}</h4>
-
-                <h1> {contact.Last_Hour_PM25_Value == 0?'':contact.Last_Hour_PM25_Value}</h1> 
-                <span>Last Refreshed: {contact.LastHour} (UTC)</span>
-                <Divider/>               
-                <Link to={`/location/${contact.Parish}`}>More Details</Link>
+               
               </Popup>
             </Marker>   
           ))}    
