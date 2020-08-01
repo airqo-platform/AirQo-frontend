@@ -77,8 +77,8 @@ const Map = props => {
   },[]);
 
   let CategoryColorClass = (isOnline) =>{
-    return isOnline > false  ? 'deviceOffline' :
-      isOnline > true  ? 'deviceOnline' :
+    return isOnline == true  ? 'deviceOnline' :
+      isOnline == false  ? 'deviceOffline' :
                 'UnCategorise';
   }
 
