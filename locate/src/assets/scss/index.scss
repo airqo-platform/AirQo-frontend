@@ -11,15 +11,14 @@
 	opacity: 1;		
 }
 
-.pm25Good {
-	background:#45e50d;
-	border: 2px solid #45e50d;
-	background-color:#45e50d !important;
+.deviceOnline {
+	border: 2px solid #3f51b5;
+	background-color: #3f51b5 !important;
   }
 
- .pm25Moderate {
-	background:#f8fe28 !important;
-	border: 2px solid #f8fe28;
+ .deviceOffline {
+	background: #808080 !important;
+	border: 2px solid #808080;
   }
  .pm25UH4SG {
 	background:#ee8310 !important;
@@ -40,7 +39,7 @@
 	border: 2px solid #81202e;
 	
   }
-  .pm25UnCategorised{
-	background:#808080;
-	border: 2px solid #808080;
+  .UnCategorised{
+	background:#000000;
+	border: 2px solid #000000;
   }
