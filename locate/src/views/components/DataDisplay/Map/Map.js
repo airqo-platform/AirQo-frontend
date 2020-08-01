@@ -42,26 +42,26 @@ const useStyles = makeStyles(theme => ({
     marginTop: theme.spacing(3)
   },
 
-  leafletMarkerIcon: {
-    color: "#3f51b5",
-    backgroundColor:"#3f51b5",
-    fontSize: "12px",
-    fontWeight: "700",
-    lineHeight: "35px",
-    textAlign: "center",
-    verticalAlign: "bottom",
-    boxShadow: "2px 1px 4px rgba(0,0,0,0.2)",
-    borderRadius: "30px",
-    borderWidth: "3px",
-    opacity: 1	
-  }
+  // leafletMarkerIcon: {
+  //   color: "#3f51b5",
+  //   backgroundColor:"#3f51b5",
+  //   fontSize: "12px",
+  //   fontWeight: "700",
+  //   lineHeight: "35px",
+  //   textAlign: "center",
+  //   verticalAlign: "bottom",
+  //   boxShadow: "2px 1px 4px rgba(0,0,0,0.2)",
+  //   borderRadius: "30px",
+  //   borderWidth: "3px",
+  //   opacity: 1	
+  // }
 }));
 
 const Map = props => {
   const { className, ...rest } = props;
 
   const classes = useStyles();
-  const [magnitude,setMagnitude ] = useState('All');
+  //const [magnitude,setMagnitude ] = useState('All');
   const [contacts,setContacts ] = useState([]);
 
   useEffect(() => {
@@ -69,7 +69,6 @@ const Map = props => {
       .then(res => res.json())
       .then((contactData) => {
         let devices = contactData["online_offline_devices"]
-        console.log("devices")
         console.log(devices)
         setContacts(devices)
         console.log(contacts)
@@ -77,20 +76,20 @@ const Map = props => {
       .catch(console.log)
   },[]);
 
-  let getPm25CategoryColorClass = (isOnline) =>{
-    return isOnline > false  ? 'pm25Harzadous' :
-      isOnline > true  ? 'pm25VeryUnHealthy' :
-                'pm25UnCategorised';
+  let CategoryColorClass = (isOnline) =>{
+    return isOnline > false  ? 'deviceOffline' :
+      isOnline > true  ? 'deviceOnline' :
+                'UnCategorise';
   }
 
-  let fetchFilteredData = (magnitude) => {
-    //this.setState({ isLoaded: false }, () => {
-    fetch('http://127.0.0.1:4001/api/v1/monitor/devices/online_offline')
-      .then(res => res.json())
-      .then((contactData) => {
-        setContacts(contactData)
-      });
-  };
+  // let fetchFilteredData = (magnitude) => {
+  //   //this.setState({ isLoaded: false }, () => {
+  //   fetch('http://127.0.0.1:4001/api/v1/monitor/devices/online_offline')
+  //     .then(res => res.json())
+  //     .then((contactData) => {
+  //       setContacts(contactData)
+  //     });
+  // };
 
   return (
     
@@ -114,13 +113,13 @@ const Map = props => {
             <Marker 
               position={[contact.latitude,contact.longitude]}
               fill="true"
-              key={contact._id} 
+              key={contact.channelId} 
               clickable="true"  
               icon={
                 L.divIcon({
                 //html:`${contact.isOnline}`,
                 iconSize: 35,
-                className:`leafletMarkerIcon ${getPm25CategoryColorClass(contact.isOnline)}`
+                className:`leafletMarkerIcon ${CategoryColorClass(contact.isOnline)}`
                 //className: classes.leafletMarkerIcon
                  })}
               >
