@@ -24,6 +24,15 @@ code {
 	border-width: 3px;
 	opacity: 1;		
 }
+.deviceOnline {
+	border: 2px solid #3f51b5;
+	background-color: #3f51b5 !important;
+  }
+
+ .deviceOffline {
+	background: #808080 !important;
+	border: 2px solid #808080;
+  }
 
 .pm25Good {
 	background:#45e50d;
@@ -54,9 +63,9 @@ code {
 	border: 2px solid #81202e;
 	
   }
-  .pm25UnCategorised{
-	background:#808080;
-	border: 2px solid #808080;
+  .UnCategorised{
+	background:#000000;
+	border: 2px solid #000000;
   }
   .filter {
 	z-index: 1000;
