@@ -129,7 +129,10 @@ const MenuProps = {
   };
   const handleMaintenanceClose = () => {
     setMaintenanceOpen(false);
-    setMaintenanceDescription('');
+    setMaintenanceDescription([]);
+    setLocationID('');
+    setMaintenanceType('');
+    setSelectedDate(new Date());
   };
 
   const [deployOpen, setDeployOpen]= useState(false);
@@ -496,10 +499,11 @@ const MenuProps = {
     }
   }
 
-  let handleMaintenanceClick = (name) => {
+  let handleMaintenanceClick = (name, location) => {
     return (event) => {
       console.log(name);
       setDeviceName(name);
+      setLocationID(location);
       handleMaintenanceOpen();
     }
   }
@@ -572,16 +576,16 @@ const MenuProps = {
   
   let  handleMaintenanceSubmit = (e) => {
       let filter ={ 
-      unit: deviceName,
-      activityType: maintenanceType,
-      activity:  maintenanceDescription,
-      //date: selectedDate.toString(),  
+      deviceName: deviceName,
+      locationName: locationID,
+      description: maintenanceType,
+      tags:  maintenanceDescription,  
       date:selectedDate
     }
     console.log(JSON.stringify(filter));
-    /*
+    
     axios.post(
-      constants.ADD_MAINTENANCE_URI,
+      constants.DEPLOY_DEVICE_URI+"maintain",
       JSON.stringify(filter),
       { headers: { 'Content-Type': 'application/json' } }
     )
@@ -598,7 +602,7 @@ const MenuProps = {
       handleMaintenanceClose();
       setResponseOpen(true);
 
-  })*/
+  })
   }
 
   let handleRecallSubmit = (e) => {
@@ -818,7 +822,7 @@ const MenuProps = {
                       <Tooltip title="Update Maintenance Log">
                         <Link
                         className={classes.link} 
-                        onClick = {handleMaintenanceClick(rowData.name)}
+                        onClick = {handleMaintenanceClick(rowData.name, rowData.locationID)}
                         > 
                           <Update></Update>
                         </Link> 
