@@ -493,7 +493,7 @@ export default function DeviceManagement() {
             <CardFooter stats>
               <p className={classes.cardCategory}>
                 {" "}
-                <br />
+               {/* <br />*/}
                 Solar powered
               </p>
             </CardFooter>
@@ -512,7 +512,7 @@ export default function DeviceManagement() {
               {" "}
               <p className={classes.cardCategory}>
                 {" "}
-                <br />
+                {/*<br />*/}
                 Battery powered
               </p>
             </CardFooter>
@@ -530,7 +530,7 @@ export default function DeviceManagement() {
               {" "}
               <p className={classes.cardCategory}>
                 {" "}
-                <br />
+               {/*} <br />*/}
                 Mains Powered
               </p>
             </CardFooter>
