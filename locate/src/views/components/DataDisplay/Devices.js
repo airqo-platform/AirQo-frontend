@@ -190,6 +190,7 @@ const MenuProps = {
     "antenna works/replacement",
     "mounts replacement",
   ];
+
   const [deviceName, setDeviceName] = useState('');
   const [maintenanceType, setMaintenanceType] = useState('');
   const handleMaintenanceTypeChange = type =>{
@@ -212,6 +213,29 @@ const MenuProps = {
     setSelectedDate(date);
   };
   //sensor parameters
+  const quantityOptions = [
+    {"name":"PM 1(µg/m3)", "value":{"quantityKind":"pm1", "measurementUnit":"µg/m3"}},
+    {"name":"PM 2.5(µg/m3)", "value":{"quantityKind":"pm2.5", "measurementUnit":"µg/m3"}},
+    {"name":"PM 10(µg/m3)", "value":{"quantityKind":"pm10", "measurementUnit":"µg/m3"}},
+    {"name":"External Temperature(&#8451;)", "value":{"quantityKind":"ext_temp", "measurementUnit":"&#8451;"}},
+    {"name":"External Temperature(&#8457;)", "value":{"quantityKind":"ext_temp", "measurementUnit":"&#8457;"}},
+    {"name":"External Humidity(%)", "value":{"quantityKind":"ext_rh", "measurementUnit":"%"}},
+    {"name":"Internal Temperature(&#8451;)", "value":{"quantityKind":"int_temp", "measurementUnit":"&#8451;"}},
+    {"name":"Internal Humidity(%)", "value":{"quantityKind":"int_rh", "measurementUnit":"%"}},
+    {"name":"Battery Voltage(V)", "value":{"quantityKind":"battery_voltage", "measurementUnit":"V"}},
+    {"name":"GPS", "value":{"quantityKind":"GPS", "measurementUnit":"gps coordinates"}},
+    
+  ];
+
+  function getStyles(name, personName, theme) {
+    return {
+      fontWeight:
+        personName.indexOf(name) === -1
+          ? theme.typography.fontWeightRegular
+          : theme.typography.fontWeightMedium,
+    };
+  }
+
   const [sensorID, setSensorID] = useState('');
   const handleSensorIDChange = id => {
     setSensorID(id.target.value);
@@ -223,9 +247,18 @@ const MenuProps = {
   const [quantityKind, setQuantityKind] = useState([]);
   
   const handleQuantityKindChange = quantity => {
+    console.log(quantity.target.value);
     setQuantityKind(quantity.target.value);
   } 
   
+  const getQuantityName = (name, quantityOptions) =>{
+    for (let i=0; i<quantityOptions.length; i++){
+      if (quantityOptions[i].name===name){
+        return quantityOptions[i].name
+      } 
+    }
+    return "";
+  }
   const [measurementUnit, setMeasurementUnit] = useState([]);
   const handleMeasurementUnitChange = unit => {
     setMeasurementUnit(unit.target.value);
@@ -245,8 +278,10 @@ const MenuProps = {
         console.log(ref);
         let locationArray = [];
         for (var i=0; i<ref.length; i++){
-          locationArray.push({"loc_ref":ref[i].loc_ref, "loc_name":ref[i].location_name})
+          locationArray.push({"loc_ref":ref[i].loc_ref, "loc_name":ref[i].location_name, "loc_desc":ref[i].description})
         }
+        console.log("location array");
+        console.log(locationArray);
         setLocationsOptions(locationArray);
 
     }).catch(
@@ -680,7 +715,7 @@ const MenuProps = {
       device: deviceID,
       sensorID: sensorID,
       quantityKind: quantityKind,
-      measurementUnit: measurementUnit
+      //measurementUnit: measurementUnit
     }
     console.log(JSON.stringify(filter));
     /*
@@ -1012,8 +1047,12 @@ const MenuProps = {
                       
                      > 
                        <option aria-label="None" value="" />
-                       {locationsOptions.map( (location) =>
-                       <option value={location.loc_ref}>{location.loc_ref}: {location.loc_name}</option>)}
+                       {locationsOptions.map( (location) => 
+                       (location.loc_name=="")||(location.loc_name==null)?
+                       <option value={location.loc_ref}>{location.loc_ref}: {location.loc_desc}</option>:
+                       <option value={location.loc_ref}>{location.loc_ref}: {location.loc_name}</option>
+                       
+                       )}
                      </Select>
                    </FormControl>
                        <h6 style = {{fontSize:14}}><b>{devicesLabel}</b></h6>
@@ -1424,7 +1463,7 @@ const MenuProps = {
                    onChange={handleSensorIDChange}
                    /> <br/>
 
-                 <FormControl required  fullWidth={true}>
+                 <FormControl  required  fullWidth={true}>
                   <InputLabel htmlFor="demo-dialog-native"> Component Name</InputLabel>
                    <Select
                     native
@@ -1443,27 +1482,70 @@ const MenuProps = {
                       </Select>
                    </FormControl><br/>
 
-                  <FormControl required fullWidth={true}>
+
+                   <FormControl required className={classes.formControl} fullWidth = {true}>
+                      <InputLabel htmlFor="demo-dialog-native">Quantity Measured</InputLabel>
+                      <Select
+          labelId="demo-mutiple-name-label"
+          id="demo-mutiple-name"
+          multiple
+          //value={quantityKind}
+          value = {quantityOptions.getQuantityName(quantityKind.name)}
+          onChange={handleQuantityKindChange}
+          input={<Input />}
+          MenuProps={MenuProps}
+        >
+          {quantityOptions.map((quantity) => (
+            <MenuItem key={quantity.name} value={quantity.value}>
+              {quantity.name}
+            </MenuItem>
+          ))}
+        </Select>
+                      {/*}
+                      <Select
+                        multiple
+                        value={quantityKind}
+                        onChange={handleQuantityKindChange}
+                        input={<Input />}
+                        renderValue={(selected) => selected.join(', ')}
+                        MenuProps={MenuProps}
+                      >
+                       <option aria-label="None" value="" />
+                   
+                       {quantityOptions.map((quantity) => (
+                        <MenuItem key={quantity.name} value={quantity.value}>
+                          <Checkbox checked={quantityKind.indexOf(quantity) > -1} />
+                          <ListItemText primary={quantity.name} />
+                        </MenuItem>
+                       ))}
+                       </Select>*/}
+                  </FormControl><br/>
+                 {/*}
+
+                  <FormControl required className={classes.formControl} fullWidth={true}>
                   <InputLabel htmlFor="demo-dialog-native"> Quantity Measured</InputLabel>
                    <Select
                     multiple
                     value={quantityKind}
                     onChange={handleQuantityKindChange}
-                    input={<Input id="demo-dialog-native" />}
+                    input={<Input />}
+                    renderValue={(selected) => selected.join(', ')}
+                    MenuProps={MenuProps}
                    >
                         <option aria-label="None" value="" />
-                        <option value="pm1">PM 1</option>
-                        <option value="pm2.5">PM 2.5</option>
-                        <option value="pm10">PM 10</option>
-                        <option value="ext_temp">External Temperature</option>
-                        <option value="ext_rh">External Humidity</option>
-                        <option value="int_temp">Internal Temperature</option>
-                        <option value="int_rh">Internal Humidity</option>
-                        <option value="battery">Battery Voltage</option>
-                        <option value="gps">GPS</option>
+                        <option value={{"quantityKind":"pm1", "measurementUnit":"µg/m3"}}>PM 1(µg/m3)</option>
+                        <option value={{"quantityKind":"pm2.5", "measurementUnit":"µg/m3"}}>PM 2.5(µg/m3)</option>
+                        <option value={{"quantityKind":"pm10", "measurementUnit":"µg/m3"}}>PM 10(µg/m3)</option>
+                        <option value={{"quantityKind":"ext_temp", "measurementUnit":"&#8451;"}}>External Temperature(&#8451;)</option>
+                        <option value={{"quantityKind":"ext_temp", "measurementUnit":"&#8457;"}}>External Temperature(&#8457;)</option>
+                        <option value={{"quantityKind":"ext_rh", "measurementUnit":"%"}}>External Humidity(%)</option>
+                        <option value={{"quantityKind":"int_temp", "measurementUnit":"&#8451;"}}>Internal Temperature(&#8451;)</option>
+                        <option value={{"quantityKind":"int_rh", "measurementUnit":"%"}}>Internal Humidity(%)</option>
+                        <option value={{"quantityKind":"battery_voltage", "measurementUnit":"V"}}>Battery Voltage(V)</option>
+                        <option value={{"quantityKind":"GPS", "measurementUnit":"gps coordinates"}}>GPS</option>
                       </Select>
-                   </FormControl><br/>
-
+                       </FormControl><br/>*/}
+                   {/*}
                    <FormControl required fullWidth={true}>
                     <InputLabel htmlFor="demo-dialog-native"> Unit of Measure</InputLabel>
                     <Select
@@ -1480,7 +1562,7 @@ const MenuProps = {
                         <option value="V">V</option>
                         <option value="coords">GPS Coordinates</option>
                       </Select>
-                   </FormControl><br/>
+                  </FormControl><br/>*/}
                  </div>
                  
                   </DialogContent> 
