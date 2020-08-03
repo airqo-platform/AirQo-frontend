@@ -244,6 +244,7 @@ export default function DeviceView() {
 
   return (
     <div>
+      
       <h4 style={{color: "#3f51b5"}}><b>{deviceData.name} : {deviceData.channelID}</b></h4>
       
      
@@ -292,7 +293,29 @@ export default function DeviceView() {
             </CardHeader>
             {loaded? (
             <CardBody>
-               <Map 
+              {(deviceData.longitude==null) || (deviceData.longitude==0)?
+              <Map 
+              center={[1.3733, 32.2903]} 
+              zoom={13} 
+              scrollWheelZoom={false}
+              style = {{width: '90%', height: '250px', }}
+             //style={{ width: '30%', height: '250px', align:'center'}}
+             >
+              <TileLayer
+               url ="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+             /> 
+             {/*<Marker position={[deviceData.latitude, deviceData.longitude]}>
+             <Popup>
+              <span>
+              <span>
+                {/*{deviceData.name}
+                {deviceName}
+              </span>
+              </span>
+            </Popup>
+            </Marker>*/}
+            </Map>
+               :<Map 
                  center={[deviceData.latitude, deviceData.longitude]} 
                  zoom={13} 
                  scrollWheelZoom={false}
@@ -312,7 +335,7 @@ export default function DeviceView() {
                  </span>
                </Popup>
                </Marker>
-              </Map> 
+               </Map> }
             </CardBody>
       
          ):  
