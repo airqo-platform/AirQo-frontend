@@ -53,6 +53,8 @@ const prodConfig = {
     "http://34.78.78.202:30006/api/v1/monitor/network/devices/bestperforming",
   GET_NETWORK_WORST_PERFORMING_DEVICES:
     "http://34.78.78.202:30006/api/v1/monitor/network/devices/worstperforming",
+  ADD_COMPONENT_URI:
+  "http://34.78.78.202:30002/api/v1/devices/add/components?device="
 };
 
 const devConfig = {
@@ -107,8 +109,9 @@ const devConfig = {
   ALL_SENSORS_URI: "http://127.0.0.1:5000/api/v1/devices/get/sensors",
   DEVICES_IN_LOCATION_URI: "http://localhost:5000/api/v1/devices/by/location?loc=",
   DEPLOY_DEVICE_URI: "http://localhost:5000/api/v1/devices/ts/activity?type=",
-  DEVICE_MAINTENANCE_LOG_URI: "http://localhost:4001/api/v1/device/monitor/maintenance_logs/"
+  DEVICE_MAINTENANCE_LOG_URI: "http://localhost:4001/api/v1/device/monitor/maintenance_logs/",
   //DELETE_DEVICE_URI: "http://127.0.0.1:3000/api/api/v1/devices/ts/delete?device="
+  ADD_COMPONENT_URI:"http://localhost:5000/api/v1/devices/add/components?device="
 };
 
 function runConfig(env) {

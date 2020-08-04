@@ -65,6 +65,9 @@ input: {
   font: '100px',
   fontSize: 17
 },
+paper: { 
+  minWidth: "400px" 
+},
 
 }));
 
@@ -171,6 +174,9 @@ const MenuProps = {
   };
   const handleSensorClose = () => {
     setSensorOpen(false);
+    setDeviceName('');
+    setSensorName('');
+    setQuantityKind([]);
   }
 
   const [responseOpen, setResponseOpen] = useState(false);
@@ -184,14 +190,20 @@ const MenuProps = {
   const [hasError, setHasError] = useState(false); 
   //maintenance log parameters
   const maintenanceOptions = [
-    "dust removal and sensor cleaning",
-    "power circuitry and components works",
+    "Dust blowing and sensor cleaning",
+    "Site update check",
+    "Device equipment check",
+    "Power circuitry and components works",
     "GPS module works/replacement",
     "GSM module works/replacement",
-    "battery works/replacement",
-    "power supply works/replacement",
-    "antenna works/replacement",
-    "mounts replacement",
+    "Battery works/replacement",
+    "Power supply works/replacement",
+    "Antenna works/replacement",
+    "Mounts replacement",
+    "Software checks/re-installation",
+    "PCB works/replacement",
+    "Temp/humidity sensor works/replacement",
+    "Air quality sensor(s) works/replacement"
   ];
 
   const [deviceName, setDeviceName] = useState('');
@@ -199,7 +211,7 @@ const MenuProps = {
   const handleMaintenanceTypeChange = type =>{
     setMaintenanceType(type.target.value);
     if (type.target.value == 'Preventive Maintenance'){
-      setMaintenanceDescription(["dust removal and sensor cleaning"])
+      setMaintenanceDescription(["Dust blowing and sensor cleaning","Site update check","Device equipment check",])
     }
     else{
       setMaintenanceDescription([]);
@@ -216,7 +228,55 @@ const MenuProps = {
     setSelectedDate(date);
   };
   //sensor parameters
-  const quantityOptions = [
+  /*const quantityOptions = ["PM 1(µg/m3)", "PM 2.5(µg/m3)", "PM 10(µg/m3)", "External Temperature(C)", 
+  "External Temperature(F)", "External Humidity(%)", "Internal Temperature(C)", "Internal Humidity(%)", 
+  "Battery Voltage(V)", "GPS"];*/
+  const quantityOptions = ["PM 1(µg/m3)", "PM 2.5(µg/m3)", "PM 10(µg/m3)", "External Temperature(\xB0C)", 
+  "External Temperature(\xB0F)", "External Humidity(%)", "Internal Temperature(\xB0C)", "Internal Humidity(%)", 
+  "Battery Voltage(V)", "GPS"];
+
+  const convertQuantityOptions= (myArray) => {
+    let newArray = [];
+    for (let i=0; i<myArray.length; i++){
+      if (myArray[i]=="PM 1(µg/m3)"){
+        newArray.push({"quantityKind":"pm1", "measurementUnit":"µg/m3"})
+      }
+      else if (myArray[i]=="PM 2.5(µg/m3)"){
+        newArray.push({"quantityKind":"pm2.5", "measurementUnit":"µg/m3"})
+      }
+      else if (myArray[i]=="PM 10(µg/m3)"){
+        newArray.push({"quantityKind":"pm10", "measurementUnit":"µg/m3"})
+      }
+      else if (myArray[i]=="External Temperature(\xB0C)"){
+        newArray.push({"quantityKind":"ext_temp", "measurementUnit":"\xB0C"})
+      }
+      else if (myArray[i]=="External Temperature(\xB0F)"){
+        newArray.push({"quantityKind":"ext_temp", "measurementUnit":"\xB0F"})
+      }
+      else if (myArray[i]=="External Humidity(%)"){
+        newArray.push({"quantityKind":"ext_rh", "measurementUnit":"%"})
+      }
+      else if (myArray[i]=="Internal Temperature(\xB0C)"){
+        newArray.push({"quantityKind":"int_temp", "measurementUnit":"\xB0C"})
+      }
+      else if (myArray[i]=="Internal Humidity(%)"){
+        newArray.push({"quantityKind":"int_rh", "measurementUnit":"%"})
+      }
+      else if (myArray[i]=="Battery Voltage(V)"){
+        newArray.push({"quantityKind":"battery_voltage", "measurementUnit":"V"})
+      }
+      else if (myArray[i]=="GPS"){
+        newArray.push({"quantityKind":"GPS", "measurementUnit":"gps coordinates"})
+      }
+      else{
+        newArray.push({"quantityKind":"unknown", "measurementUnit":"unknown"})
+      }
+     
+    }
+    return newArray;
+  }
+
+  const quantityOptions2 = [
     {"name":"PM 1(µg/m3)", "value":{"quantityKind":"pm1", "measurementUnit":"µg/m3"}},
     {"name":"PM 2.5(µg/m3)", "value":{"quantityKind":"pm2.5", "measurementUnit":"µg/m3"}},
     {"name":"PM 10(µg/m3)", "value":{"quantityKind":"pm10", "measurementUnit":"µg/m3"}},
@@ -242,18 +302,43 @@ const MenuProps = {
   const [sensorID, setSensorID] = useState('');
   const handleSensorIDChange = id => {
     setSensorID(id.target.value);
-  } 
+  }                       
   const [sensorName, setSensorName] = useState('');
-  const handleSensorNameChange = name => {
+  const handleSensorNameChange = name =>{
     setSensorName(name.target.value);
-  } 
+    if (name.target.value == 'Alphasense OPC-N2'){
+      setQuantityKind(["PM 1(µg/m3)", "PM 2.5(µg/m3)", "PM 10(µg/m3)"])
+    }
+    else if (name.target.value == 'pms5003'){
+      setQuantityKind(["PM 2.5(µg/m3)", "PM 10(µg/m3)"])
+    }
+    else if (name.target.value == 'DHT11'){
+      setQuantityKind(["Internal Temperature(\xB0C)", "Internal Humidity(%)"])
+    }
+    else if (name.target.value == 'Lithium Ion 18650'){
+      setQuantityKind(["Battery Voltage(V)"])
+    }
+    else if (name.target.value == 'Generic'){
+      setQuantityKind(["GPS"])
+    }
+    else if (name.target.value == 'Purple Air II'){
+      setQuantityKind(["PM 1(µg/m3)"])
+    }
+    else if (name.target.value == 'Bosch BME280'){
+      setQuantityKind(["External Temperature(\xB0C)", "External Humidity(%)"])
+    }
+    else{
+      setQuantityKind([]);
+    }
+  }
   const [quantityKind, setQuantityKind] = useState([]);
   
   const handleQuantityKindChange = quantity => {
     console.log(quantity.target.value);
     setQuantityKind(quantity.target.value);
   } 
-  
+
+    
   const getQuantityName = (name, quantityOptions) =>{
     for (let i=0; i<quantityOptions.length; i++){
       if (quantityOptions[i].name===name){
@@ -446,6 +531,7 @@ const MenuProps = {
   }
 
   useEffect(() => {
+    console.log('Getting devices ..');
     axios.get(
       constants.ALL_DEVICES_URI
     )
@@ -526,10 +612,11 @@ const MenuProps = {
     }
   }
 
-  let handleSensorClick = (id) => {
+  let handleSensorClick = (name) => {
     return (event) => {
-      console.log('Adding sensors to channel '+id);
-      setDeviceID(id);
+      console.log('Adding sensors to channel '+name);
+      setDeviceName(name);
+      //setDeviceID(id);
       handleSensorOpen();
     }
   }
@@ -714,33 +801,30 @@ const MenuProps = {
   }
 
   let handleSensorSubmit = (e) => {
-    console.log('Adding sensor ...');
     let filter = {
-      device: deviceID,
-      sensorID: sensorID,
-      quantityKind: quantityKind,
-      //measurementUnit: measurementUnit
+      description:sensorName, //e.g. pms5003
+      measurement: convertQuantityOptions(quantityKind),//e.g. [{"quantityKind":"humidity", "measurementUnit":"%"}]
     }
     console.log(JSON.stringify(filter));
-    /*
     axios.post(
-      "http://localhost:3000/api/v1/data/channels/maintenance/add"
-      //constants.ADD_MAINTENANCE_URI,
+      constants.ADD_COMPONENT_URI+deviceName,
       JSON.stringify(filter),
       { headers: { 'Content-Type': 'application/json' } }
     )
     .then(
       res=>{
-        setIsLoading(false);
         const myData = res.data;
-        console.log(myData);
         console.log(myData.message);
-        //setDialogMessage(myData.message);
-        setDialogStatus(true);
-    }).catch(
-      console.log
-    )*/
+        setDialogResponseMessage('Component successfully added');
+        handleSensorClose();
+        setResponseOpen(true);
+    }).catch(error => {
+      console.log(error.message)
+      setDialogResponseMessage('An error occured. Please try again');
+      handleSensorClose();
+      setResponseOpen(true);
 
+  })
   }
 
 
@@ -849,7 +933,7 @@ const MenuProps = {
                       <Tooltip title="Add Component">
                         <Link 
                         className={classes.link} 
-                        onClick = {handleSensorClick(rowData.channelID)}
+                        onClick = {handleSensorClick(rowData.name)}
                         > 
                           <AddOutlined></AddOutlined>
                         </Link>
@@ -1455,16 +1539,19 @@ const MenuProps = {
            onClose={handleSensorClose}
            aria-labelledby="form-dialog-title"
            aria-describedby="form-dialog-description"
+           classes={{ paper: classes.paper}}
+           //style = {{ minWidth: "500px" }}
          >
            <DialogTitle id="form-dialog-title" style={{alignContent:'center'}}>Add a component</DialogTitle>
            <DialogContent>
                 <div>
-                 <TextField 
-                   id="sensorID" 
-                   label="Component ID"
-                   value = {sensorID}
+                  <TextField 
+                   id="deviceName" 
+                   label="Device Name"
+                   value = {deviceName}
                    fullWidth={true}
-                   onChange={handleSensorIDChange}
+                   required
+                   //onChange={handleDeviceNameChange}
                    /> <br/>
 
                  <FormControl  required  fullWidth={true}>
@@ -1490,23 +1577,6 @@ const MenuProps = {
                    <FormControl required className={classes.formControl} fullWidth = {true}>
                       <InputLabel htmlFor="demo-dialog-native">Quantity Measured</InputLabel>
                       <Select
-          labelId="demo-mutiple-name-label"
-          id="demo-mutiple-name"
-          multiple
-          //value={quantityKind}
-          value = {quantityOptions.getQuantityName(quantityKind.name)}
-          onChange={handleQuantityKindChange}
-          input={<Input />}
-          MenuProps={MenuProps}
-        >
-          {quantityOptions.map((quantity) => (
-            <MenuItem key={quantity.name} value={quantity.value}>
-              {quantity.name}
-            </MenuItem>
-          ))}
-        </Select>
-                      {/*}
-                      <Select
                         multiple
                         value={quantityKind}
                         onChange={handleQuantityKindChange}
@@ -1514,59 +1584,15 @@ const MenuProps = {
                         renderValue={(selected) => selected.join(', ')}
                         MenuProps={MenuProps}
                       >
-                       <option aria-label="None" value="" />
-                   
-                       {quantityOptions.map((quantity) => (
-                        <MenuItem key={quantity.name} value={quantity.value}>
-                          <Checkbox checked={quantityKind.indexOf(quantity) > -1} />
-                          <ListItemText primary={quantity.name} />
-                        </MenuItem>
-                       ))}
-                       </Select>*/}
+                        <option aria-label="None" value="" />
+                        {quantityOptions.map((quantity) => (
+                          <MenuItem key={quantity} value={quantity}>
+                            <Checkbox checked={quantityKind.indexOf(quantity) > -1} />
+                            <ListItemText primary={quantity} />
+                            </MenuItem>
+                          ))}
+                      </Select>
                   </FormControl><br/>
-                 {/*}
-
-                  <FormControl required className={classes.formControl} fullWidth={true}>
-                  <InputLabel htmlFor="demo-dialog-native"> Quantity Measured</InputLabel>
-                   <Select
-                    multiple
-                    value={quantityKind}
-                    onChange={handleQuantityKindChange}
-                    input={<Input />}
-                    renderValue={(selected) => selected.join(', ')}
-                    MenuProps={MenuProps}
-                   >
-                        <option aria-label="None" value="" />
-                        <option value={{"quantityKind":"pm1", "measurementUnit":"µg/m3"}}>PM 1(µg/m3)</option>
-                        <option value={{"quantityKind":"pm2.5", "measurementUnit":"µg/m3"}}>PM 2.5(µg/m3)</option>
-                        <option value={{"quantityKind":"pm10", "measurementUnit":"µg/m3"}}>PM 10(µg/m3)</option>
-                        <option value={{"quantityKind":"ext_temp", "measurementUnit":"&#8451;"}}>External Temperature(&#8451;)</option>
-                        <option value={{"quantityKind":"ext_temp", "measurementUnit":"&#8457;"}}>External Temperature(&#8457;)</option>
-                        <option value={{"quantityKind":"ext_rh", "measurementUnit":"%"}}>External Humidity(%)</option>
-                        <option value={{"quantityKind":"int_temp", "measurementUnit":"&#8451;"}}>Internal Temperature(&#8451;)</option>
-                        <option value={{"quantityKind":"int_rh", "measurementUnit":"%"}}>Internal Humidity(%)</option>
-                        <option value={{"quantityKind":"battery_voltage", "measurementUnit":"V"}}>Battery Voltage(V)</option>
-                        <option value={{"quantityKind":"GPS", "measurementUnit":"gps coordinates"}}>GPS</option>
-                      </Select>
-                       </FormControl><br/>*/}
-                   {/*}
-                   <FormControl required fullWidth={true}>
-                    <InputLabel htmlFor="demo-dialog-native"> Unit of Measure</InputLabel>
-                    <Select
-                    multiple
-                    value={measurementUnit}
-                    onChange={handleMeasurementUnitChange}
-                    input={<Input id="demo-dialog-native" />}
-                    >
-                        <option aria-label="None" value="" />
-                        <option value="µg/m3">µg/m3</option>
-                        <option value="%">%</option>
-                        <option value="&#8451;">&#8451;</option>
-                        <option style = {{fontFamily: 'Calibri'}} value="&#8457;">&#8457;</option>
-                        <option value="V">V</option>
-                        <option value="coords">GPS Coordinates</option>
-                      </Select>
-                  </FormControl><br/>*/}
                  </div>
                  
                   </DialogContent> 
