@@ -2,7 +2,7 @@ import React from 'react';
 import clsx from 'clsx';
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/styles';
-import { Map as LeafletMap, TileLayer, Popup, Marker, LayersControl, } from 'react-leaflet';
+import { Map as LeafletMap, TileLayer, Popup, Marker} from 'react-leaflet';
 import {Link } from 'react-router-dom';
 import {Card, CardContent, CardHeader, Divider} from '@material-ui/core';
 import { useEffect, useState } from 'react';
@@ -13,8 +13,6 @@ import Filter from './FilterPowerSource.jsx';
 import axios from "axios";
 import ReactDOM from 'react-dom';
 // import '../../../../assets/scss/index.scss';
-
-const {BaseLayer, Overlay} = LayersControl;
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -71,7 +69,6 @@ const Map = props => {
 
   return (
         <LeafletMap
-        
           animate
           attributionControl
           center={[0.3341424,32.5600613]}
@@ -84,9 +81,7 @@ const Map = props => {
         >
           <TileLayer
             url="http://{s}.tile.osm.org/{z}/{x}/{y}.png"
-          />  
-          <LayersControl position='topright'>   
-          <Overlay checked name='Red: te reo'>   
+          />           
           {contacts.map((contact) => (
             <Marker 
               position={[contact.latitude,contact.longitude]}
@@ -96,7 +91,7 @@ const Map = props => {
               icon={
                 L.divIcon({
                 //html:`${contact.isOnline}`,
-                iconSize: 35,
+                iconSize: 40,
                 className:`leafletMarkerIcon ${CategoryColorClass(contact.isOnline)}`
                  })}
               >
@@ -104,8 +99,6 @@ const Map = props => {
               </Popup>
             </Marker>   
           ))}  
-          </Overlay>  
-            </LayersControl>
           <FullscreenControl position="topleft" />
         </LeafletMap>
  
