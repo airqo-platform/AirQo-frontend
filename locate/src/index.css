@@ -20,13 +20,15 @@ code {
 	text-align: center;
 	vertical-align: bottom;
 	box-shadow: 2px 1px 4px rgba(0,0,0,0.2);
-	border-radius: 30px;
+	border-radius: 50px;
 	border-width: 3px;
 	opacity: 1;		
 }
 .deviceOnline {
 	border: 2px solid #3f51b5;
 	background-color: #3f51b5 !important;
+	border-width: 4px;
+	border-color: #81202e;
   }
 
  .deviceOffline {
