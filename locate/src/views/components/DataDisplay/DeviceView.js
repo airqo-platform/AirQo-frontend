@@ -17,6 +17,9 @@ import TasksWithoutEdits from "../Tasks/TasksWithoutEdits";
 // core components
 import GridItem from "../Grid/GridItem.js";
 import GridContainer from "../Grid/GridContainer.js";
+import FormControl from '@material-ui/core/FormControl';
+import TextField from '@material-ui/core/TextField';
+import Select from '@material-ui/core/Select';
 //import Table from "../Table/Table.js";
 import Tasks from "../Tasks/Tasks.js";
 import CustomTabs from "../CustomTabs/CustomTabs";
@@ -45,11 +48,27 @@ import constants from "../../../config/constants";
 import axios from "axios";
 import palette from "../../../assets/theme/palette";
 import { Line, Bar, Pie } from "react-chartjs-2";
+import Input from '@material-ui/core/Input';
+import InputLabel from '@material-ui/core/InputLabel';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import Checkbox from '@material-ui/core/Checkbox';
+import MenuItem from '@material-ui/core/MenuItem';
+import ListItemText from '@material-ui/core/ListItemText';
 
 const useStyles = makeStyles(styles);
 
 export default function DeviceView() {
   let params = useParams();
+  const ITEM_HEIGHT = 48;
+  const ITEM_PADDING_TOP = 8;
+  const MenuProps = {
+  PaperProps: {
+    style: {
+      maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
+      width: 350,
+      },
+    },
+  };
   
   const classes = useStyles();
   const [maintenanceData, setMaintenanceData] = useState([]);
@@ -87,7 +106,11 @@ export default function DeviceView() {
         //console.log(typeof(ref.components));
         setComponentsData(ref.components);
       }
-      );
+      )
+      .catch(error => {
+        console.log(error)
+  
+    })
     }
   function jsonArrayToString(myJsonArray){
     let myArray = [];
@@ -262,20 +285,162 @@ export default function DeviceView() {
       console.log
     )
   }, []);
+
+  //Edit dialog parameters
+  const [editComponentOpen, setEditComponentOpen] = useState(false);
+  const [componentName, setComponentName] = useState('');
+  const [sensorName, setSensorName] = useState('');
+  
+  const [quantityKind, setQuantityKind] = useState([]);
+  const handleQuantityKindChange = quantity => {
+    console.log(quantity.target.value);
+    setQuantityKind(quantity.target.value);
+  } 
+
+
+  function convertQuantities(myArray){
+    console.log("Converting Quantities");
+    for (let i=0; i<myArray.length; i++){
+      //myArray[i].quantityKind = editDialogObject[myArray[i].quantityKind];
+      console.log(myArray[i].quantityKind);
+      //myArray[i].quantityKind = "Yes Please";
+    }
+    //console.log(myArray)
+    return myArray;
+  }
+  const handleSensorNameChange = name =>{
+    setSensorName(name.target.value);
+    if (name.target.value == 'Alphasense OPC-N2'){
+      setQuantityKind(["PM 1(µg/m3)", "PM 2.5(µg/m3)", "PM 10(µg/m3)"])
+    }
+    else if (name.target.value == 'pms5003'){
+      setQuantityKind(["PM 2.5(µg/m3)", "PM 10(µg/m3)"])
+    }
+    else if (name.target.value == 'DHT11'){
+      setQuantityKind(["Internal Temperature(\xB0C)", "Internal Humidity(%)"])
+    }
+    else if (name.target.value == 'Lithium Ion 18650'){
+      setQuantityKind(["Battery Voltage(V)"])
+    }
+    else if (name.target.value == 'Generic'){
+      setQuantityKind(["GPS"])
+    }
+    else if (name.target.value == 'Purple Air II'){
+      setQuantityKind(["PM 1(µg/m3)"])
+    }
+    else if (name.target.value == 'Bosch BME280'){
+      setQuantityKind(["External Temperature(\xB0C)", "External Humidity(%)"])
+    }
+    else{
+      setQuantityKind([]);
+    }
+  }
+
+  const quantityOptions = ["PM 1(µg/m3)", "PM 2.5(µg/m3)", "PM 10(µg/m3)", "External Temperature(\xB0C)", 
+  "External Temperature(\xB0F)", "External Humidity(%)", "Internal Temperature(\xB0C)", "Internal Humidity(%)", 
+  "Battery Voltage(V)", "GPS"];
+
+  const convertQuantityOptions= (myArray) => {
+    let newArray = [];
+    for (let i=0; i<myArray.length; i++){
+      if (myArray[i]=="PM 1(µg/m3)"){
+        newArray.push({"quantityKind":"PM 1", "measurementUnit":"µg/m3"})
+      }
+      else if (myArray[i]=="PM 2.5(µg/m3)"){
+        newArray.push({"quantityKind":"PM 2.5", "measurementUnit":"µg/m3"})
+      }
+      else if (myArray[i]=="PM 10(µg/m3)"){
+        newArray.push({"quantityKind":"PM 10", "measurementUnit":"µg/m3"})
+      }
+      else if (myArray[i]=="External Temperature(\xB0C)"){
+        newArray.push({"quantityKind":"External Temperature", "measurementUnit":"\xB0C"})
+      }
+      else if (myArray[i]=="External Temperature(\xB0F)"){
+        newArray.push({"quantityKind":"External Temperature", "measurementUnit":"\xB0F"})
+      }
+      else if (myArray[i]=="External Humidity(%)"){
+        newArray.push({"quantityKind":"External Humidity", "measurementUnit":"%"})
+      }
+      else if (myArray[i]=="Internal Temperature(\xB0C)"){
+        newArray.push({"quantityKind":"Internal Temperature", "measurementUnit":"\xB0C"})
+      }
+      else if (myArray[i]=="Internal Humidity(%)"){
+        newArray.push({"quantityKind":"Internal Humidity", "measurementUnit":"%"})
+      }
+      else if (myArray[i]=="Battery Voltage(V)"){
+        newArray.push({"quantityKind":"Battery Voltage", "measurementUnit":"V"})
+      }
+      else if (myArray[i]=="GPS"){
+        newArray.push({"quantityKind":"GPS", "measurementUnit":"coordinates"})
+      }
+      else{
+        newArray.push({"quantityKind":"unknown", "measurementUnit":"unknown"})
+      }
+     
+    }
+    return newArray;
+  }
+
+
+
+  const handleEditComponentOpen = () => {
+    setEditComponentOpen(true);
+  };
+  const handleEditComponentClose = () => {
+    setEditComponentOpen(false);  
+    //setComponentName('');
+  }
+  let handleEditComponentClick = (name, id, component, quantity) => {
+    return (event) => {
+      console.log(name);
+      setDeviceName(name);
+      setComponentName(id);
+      setSensorName(component);
+      setQuantityKind(quantity);
+      handleEditComponentOpen();
+
+    }
+  }
+
+  let handleEditComponentSubmit = (e) => {
+    let filter = {
+      description:sensorName, //e.g. pms5003
+      measurement: convertQuantityOptions(quantityKind),//e.g. [{"quantityKind":"humidity", "measurementUnit":"%"}]
+    }
+    console.log(JSON.stringify(filter));
+    console.log(constants.UPDATE_COMPONENT_URI+deviceName+"&comp="+componentName);
+    
+    axios.put(
+      constants.UPDATE_COMPONENT_URI+deviceName+"&comp="+componentName,
+      JSON.stringify(filter),
+      { headers: { 'Content-Type': 'application/json' } }
+    )
+    .then(
+      res=>{
+        const myData = res.data;
+        //console.log(myData.message);
+        setDialogResponseMessage('Component successfully updated');
+        handleEditComponentClose();
+        setResponseOpen(true);
+    }).catch(error => {
+      //console.log(error.message)
+      setDialogResponseMessage('An error occured. Please try again');
+      handleEditComponentClose();
+      setResponseOpen(true);
+
+  })
+  }
+
+
  
   //delete  dialog parameters
   const [deleteOpen, setDeleteOpen] = useState(false);
-  const [componentName, setComponentName] = useState('');
-  //const [componentDescription, setComponentDescription] = useState('')
-  //const [componentMeasurement, setComponentMeasurement] = useState('')
-
   const handleDeleteOpen = () => {
     setDeleteOpen(true);
   };
   const handleDeleteClose = () => {
     setDeleteOpen(false);
     setComponentName('');
-    //setLocationID('');
    
   };
   //response dialog
@@ -306,7 +471,7 @@ export default function DeviceView() {
     console.log(constants.DELETE_COMPONENT_URI+componentName+"&device="+deviceName);
   
     axios.delete(
-      constants.constants.DELETE_COMPONENT_URI+componentName+"&device="+deviceName,
+      constants.DELETE_COMPONENT_URI+componentName+"&device="+deviceName,
       JSON.stringify(filter),
       { headers: { 'Content-Type': 'application/json' } }
     )
@@ -318,6 +483,7 @@ export default function DeviceView() {
         setDialogResponseMessage('Component successfully deleted');
         handleDeleteClose();
         setResponseOpen(true);
+        getComponents(deviceName);
     }).catch(error => {
       setDialogResponseMessage('An error occured. Please try again');
       handleDeleteClose();
@@ -326,8 +492,6 @@ export default function DeviceView() {
   })
 
   }
-
-
 
 
   return (
@@ -444,19 +608,6 @@ export default function DeviceView() {
 
           </Card>
         </GridItem>
-       {/*
-        <GridItem xs={12} sm={12} md={4}>
-          <Card>
-            <CardHeader color="primary">
-              <h4 className={classes.cardTitleWhite}>
-                
-              </h4>
-            </CardHeader>
-            <CardBody>
-             
-            </CardBody>
-          </Card>
-        </GridItem>*/}
          <GridItem xs={12} sm={12} md={4}>
           <Card>
             <CardHeader color="primary">
@@ -528,22 +679,6 @@ export default function DeviceView() {
           </Card>
         </GridItem>
 
-       
-
-       {/*
-       <GridItem xs={12} sm={12} md={4}>
-          <Card>
-            <CardHeader color="primary">
-              <h4 className={classes.cardTitleWhite}>
-                
-              </h4>
-            </CardHeader>
-            <CardBody>
-             
-            </CardBody>
-          </Card>
-       </GridItem> */}
-
       <GridItem xs={12} sm={12} md={4}>
           <Card>
             <CardHeader color="info">
@@ -567,12 +702,12 @@ export default function DeviceView() {
                   <TableCell>{component.description}</TableCell>                  
                   <TableCell>{jsonArrayToString(component.measurement)}</TableCell>
                   <TableCell>
-                    {/*
+                  
                   <Tooltip title="Edit">
-                    <Link onClick= {handleEditComponentClick} style = {{"color":"black"}}>
+                    <Link onClick= {handleEditComponentClick(deviceName, component.name, component.description, jsonArrayToString(component.measurement).split(", "))} style = {{"color":"black"}}>
                     <EditOutlined> </EditOutlined> 
                     </Link>
-                    </Tooltip>*/}
+                    </Tooltip>
                   <Tooltip title="Delete">
                     <Link onClick= {handleDeleteComponentClick(component.name)} style = {{"color":"black"}}>
                     <DeleteOutlined> </DeleteOutlined> 
@@ -669,6 +804,92 @@ export default function DeviceView() {
                </Button>
                </Grid>
            </DialogActions>
+         </Dialog>
+         ) : null}
+
+       {editComponentOpen? (
+       
+       <Dialog
+           open={editComponentOpen}
+           onClose={handleEditComponentClose}
+           aria-labelledby="form-dialog-title"
+           aria-describedby="form-dialog-description"
+           classes={{ paper: classes.paper}}
+           //style = {{ minWidth: "500px" }}
+         >
+           <DialogTitle id="form-dialog-title" style={{alignContent:'center'}}>Edit a component</DialogTitle>
+           <DialogContent>
+                <div>
+                  <TextField 
+                   id="deviceName" 
+                   label="Device Name"
+                   value = {deviceName}
+                   fullWidth={true}
+                   required
+                   //onChange={handleDeviceNameChange}
+                   /> <br/>
+
+                 <FormControl  required  fullWidth={true}>
+                  <InputLabel htmlFor="demo-dialog-native"> Component Name</InputLabel>
+                   <Select
+                    native
+                    value={sensorName}
+                    onChange={handleSensorNameChange}
+                    input={<Input id="demo-dialog-native" />}
+                   >
+                        <option aria-label="None" value="" />
+                        <option value="Alphasense OPC-N2">Alphasense OPC-N2</option>
+                        <option value="pms5003">pms5003</option>
+                        <option value="DHT11">DHT11</option>
+                        <option value="Lithium Ion 18650">Lithium Ion 18650</option>
+                        <option value="Generic">Generic</option>
+                        <option value="Purple Air II">Purple Air II</option>
+                        <option value="Bosch BME280">Bosch BME280</option>
+                      </Select>
+                   </FormControl><br/>
+
+
+                   <FormControl required className={classes.formControl} fullWidth = {true}>
+                      <InputLabel htmlFor="demo-dialog-native">Quantity Measured</InputLabel>
+                      <Select
+                        multiple
+                        value={quantityKind}
+                        onChange={handleQuantityKindChange}
+                        input={<Input />}
+                        renderValue={(selected) => selected.join(', ')}
+                        MenuProps={MenuProps}
+                      >
+                        <option aria-label="None" value="" />
+                        {quantityOptions.map((quantity) => (
+                          <MenuItem key={quantity} value={quantity}>
+                            <Checkbox checked={quantityKind.indexOf(quantity) > -1} />
+                            <ListItemText primary={quantity} />
+                            </MenuItem>
+                          ))}
+                      </Select>
+                  </FormControl><br/>
+                 </div>
+                 
+                  </DialogContent> 
+          
+                 <DialogActions>
+                 <Grid container alignItems="center" alignContent="center" justify="center">
+                 <Button 
+                  variant="contained" 
+                  color="primary"              
+                  onClick={handleEditComponentSubmit}
+                 > Update
+                </Button>
+               &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+               <Button 
+                variant="contained" 
+                color="primary"              
+                onClick = {handleEditComponentClose}
+               > Cancel
+               </Button>
+               </Grid>
+           </DialogActions>
+              
          </Dialog>
          ) : null}
 

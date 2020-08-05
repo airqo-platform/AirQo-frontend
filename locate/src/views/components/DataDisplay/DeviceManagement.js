@@ -513,7 +513,7 @@ export default function DeviceManagement() {
               <p className={classes.cardCategory}>
                 {" "}
                 {/*<br />*/}
-                Mobile Charger
+                Alternator
               </p>
             </CardFooter>
           </Card>

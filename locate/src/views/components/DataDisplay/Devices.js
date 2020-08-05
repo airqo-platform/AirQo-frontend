@@ -380,9 +380,12 @@ const MenuProps = {
   const [locationID, setLocationID] = useState('');
   const handleLocationIDChange = (event) => {
     let myLocation = event.target.value;
+    console.log('changing location');
+    console.log(myLocation);
     setLocationID(myLocation);
     locationCoordinates(myLocation);
     console.log('Getting devices in location '+myLocation)
+    console.log(constants.DEVICES_IN_LOCATION_URI+myLocation)
     axios.get(
       constants.DEVICES_IN_LOCATION_URI+myLocation
     )
@@ -390,6 +393,7 @@ const MenuProps = {
       res=>{
         const ref = res.data;
         console.log(ref);
+      
         let devicesArray = [];
         if (ref.length != 0){
           for (var i=0; i<ref.length; i++){
@@ -621,7 +625,7 @@ const MenuProps = {
     }
     console.log(JSON.stringify(filter));
     console.log(constants.DEPLOY_DEVICE_URI+"deploy");
-    
+    /*
     axios.post(
       constants.DEPLOY_DEVICE_URI+"deploy",
       JSON.stringify(filter),
@@ -641,7 +645,7 @@ const MenuProps = {
       handleDeployClose();
       setResponseOpen(true);
 
-  })
+  })*/
   }
   
   let  handleMaintenanceSubmit = (e) => {
@@ -685,8 +689,6 @@ const MenuProps = {
     console.log(JSON.stringify(filter));
     console.log(constants.DEPLOY_DEVICE_URI+"recall",);
 
-    
-    
     axios.post(
       constants.DEPLOY_DEVICE_URI+"recall",
       JSON.stringify(filter),
@@ -784,11 +786,14 @@ const MenuProps = {
   }
 
   let handleSensorSubmit = (e) => {
+    console.log('Quantity Kind');
+    console.log(quantityKind);
     let filter = {
       description:sensorName, //e.g. pms5003
       measurement: convertQuantityOptions(quantityKind),//e.g. [{"quantityKind":"humidity", "measurementUnit":"%"}]
     }
     console.log(JSON.stringify(filter));
+    
     axios.post(
       constants.ADD_COMPONENT_URI+deviceName,
       JSON.stringify(filter),
