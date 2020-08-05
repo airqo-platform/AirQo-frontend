@@ -422,6 +422,7 @@ export default function DeviceView() {
         setDialogResponseMessage('Component successfully updated');
         handleEditComponentClose();
         setResponseOpen(true);
+        getComponents(deviceName);
     }).catch(error => {
       //console.log(error.message)
       setDialogResponseMessage('An error occured. Please try again');
@@ -724,11 +725,6 @@ export default function DeviceView() {
               </div>
              
             </CardBody>
-            <CardFooter chart>
-              <div className={classes.stats}>
-                <AccessTime /> Last updated on {onlineStatusUpdateTime}
-              </div>
-            </CardFooter>
           </Card>
           </GridItem> 
 
