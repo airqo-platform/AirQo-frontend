@@ -228,9 +228,6 @@ const MenuProps = {
     setSelectedDate(date);
   };
   //sensor parameters
-  /*const quantityOptions = ["PM 1(µg/m3)", "PM 2.5(µg/m3)", "PM 10(µg/m3)", "External Temperature(C)", 
-  "External Temperature(F)", "External Humidity(%)", "Internal Temperature(C)", "Internal Humidity(%)", 
-  "Battery Voltage(V)", "GPS"];*/
   const quantityOptions = ["PM 1(µg/m3)", "PM 2.5(µg/m3)", "PM 10(µg/m3)", "External Temperature(\xB0C)", 
   "External Temperature(\xB0F)", "External Humidity(%)", "Internal Temperature(\xB0C)", "Internal Humidity(%)", 
   "Battery Voltage(V)", "GPS"];
@@ -239,34 +236,34 @@ const MenuProps = {
     let newArray = [];
     for (let i=0; i<myArray.length; i++){
       if (myArray[i]=="PM 1(µg/m3)"){
-        newArray.push({"quantityKind":"pm1", "measurementUnit":"µg/m3"})
+        newArray.push({"quantityKind":"PM 1", "measurementUnit":"µg/m3"})
       }
       else if (myArray[i]=="PM 2.5(µg/m3)"){
-        newArray.push({"quantityKind":"pm2.5", "measurementUnit":"µg/m3"})
+        newArray.push({"quantityKind":"PM 2.5", "measurementUnit":"µg/m3"})
       }
       else if (myArray[i]=="PM 10(µg/m3)"){
-        newArray.push({"quantityKind":"pm10", "measurementUnit":"µg/m3"})
+        newArray.push({"quantityKind":"PM 10", "measurementUnit":"µg/m3"})
       }
       else if (myArray[i]=="External Temperature(\xB0C)"){
-        newArray.push({"quantityKind":"ext_temp", "measurementUnit":"\xB0C"})
+        newArray.push({"quantityKind":"External Temperature", "measurementUnit":"\xB0C"})
       }
       else if (myArray[i]=="External Temperature(\xB0F)"){
-        newArray.push({"quantityKind":"ext_temp", "measurementUnit":"\xB0F"})
+        newArray.push({"quantityKind":"External Temperature", "measurementUnit":"\xB0F"})
       }
       else if (myArray[i]=="External Humidity(%)"){
-        newArray.push({"quantityKind":"ext_rh", "measurementUnit":"%"})
+        newArray.push({"quantityKind":"External Humidity", "measurementUnit":"%"})
       }
       else if (myArray[i]=="Internal Temperature(\xB0C)"){
-        newArray.push({"quantityKind":"int_temp", "measurementUnit":"\xB0C"})
+        newArray.push({"quantityKind":"Internal Temperature", "measurementUnit":"\xB0C"})
       }
       else if (myArray[i]=="Internal Humidity(%)"){
-        newArray.push({"quantityKind":"int_rh", "measurementUnit":"%"})
+        newArray.push({"quantityKind":"Internal Humidity", "measurementUnit":"%"})
       }
       else if (myArray[i]=="Battery Voltage(V)"){
-        newArray.push({"quantityKind":"battery_voltage", "measurementUnit":"V"})
+        newArray.push({"quantityKind":"Battery Voltage", "measurementUnit":"V"})
       }
       else if (myArray[i]=="GPS"){
-        newArray.push({"quantityKind":"GPS", "measurementUnit":"gps coordinates"})
+        newArray.push({"quantityKind":"GPS", "measurementUnit":"coordinates"})
       }
       else{
         newArray.push({"quantityKind":"unknown", "measurementUnit":"unknown"})
@@ -275,20 +272,6 @@ const MenuProps = {
     }
     return newArray;
   }
-
-  const quantityOptions2 = [
-    {"name":"PM 1(µg/m3)", "value":{"quantityKind":"pm1", "measurementUnit":"µg/m3"}},
-    {"name":"PM 2.5(µg/m3)", "value":{"quantityKind":"pm2.5", "measurementUnit":"µg/m3"}},
-    {"name":"PM 10(µg/m3)", "value":{"quantityKind":"pm10", "measurementUnit":"µg/m3"}},
-    {"name":"External Temperature(&#8451;)", "value":{"quantityKind":"ext_temp", "measurementUnit":"&#8451;"}},
-    {"name":"External Temperature(&#8457;)", "value":{"quantityKind":"ext_temp", "measurementUnit":"&#8457;"}},
-    {"name":"External Humidity(%)", "value":{"quantityKind":"ext_rh", "measurementUnit":"%"}},
-    {"name":"Internal Temperature(&#8451;)", "value":{"quantityKind":"int_temp", "measurementUnit":"&#8451;"}},
-    {"name":"Internal Humidity(%)", "value":{"quantityKind":"int_rh", "measurementUnit":"%"}},
-    {"name":"Battery Voltage(V)", "value":{"quantityKind":"battery_voltage", "measurementUnit":"V"}},
-    {"name":"GPS", "value":{"quantityKind":"GPS", "measurementUnit":"gps coordinates"}},
-    
-  ];
 
   function getStyles(name, personName, theme) {
     return {

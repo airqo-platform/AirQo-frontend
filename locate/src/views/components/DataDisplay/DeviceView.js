@@ -27,11 +27,12 @@ import CardBody from "../Card/CardBody.js";
 import CardFooter from "../Card/CardFooter.js";
 import { Map, TileLayer, Marker, Popup } from "react-leaflet";
 import { TableContainer, Table, TableBody, TableCell, TableHead, TableRow, Paper } from "@material-ui/core";
-
+import { DeleteOutlined, EditOutlined } from '@material-ui/icons';
+import Tooltip from '@material-ui/core/Tooltip';
+import { Link } from "react-router-dom";
 import { useParams } from 'react-router-dom';
-
+import { Grid, Button, Dialog, DialogActions, DialogContent, DialogTitle } from '@material-ui/core';
 import { bugs, website, server } from "../../variables/general.js";
-
 import {
   dailySalesChart,
   emailsSubscriptionChart,
@@ -51,42 +52,51 @@ export default function DeviceView() {
   let params = useParams();
   
   const classes = useStyles();
-  /*
-  let getMaintenanceLog = (name) => {
+  const [maintenanceData, setMaintenanceData] = useState([]);
+  
+  function logs(name) {
     console.log(constants.DEVICE_MAINTENANCE_LOG_URI+name)
     axios
       .get(
         constants.DEVICE_MAINTENANCE_LOG_URI+name
-        )
-        .then(
-          res=>{
-            const ref = res.data;
-            console.log('Maintenance history data ...')
-            console.log(ref);
-            return ref;
-          }
-        );
-        
-      }*/
-      const [maintenanceData, setMaintenanceData] = useState([]);
-
-      function logs(name) {
-        console.log(constants.DEVICE_MAINTENANCE_LOG_URI+name)
-        axios
-         .get(
-            constants.DEVICE_MAINTENANCE_LOG_URI+name
-          )
-         .then(
-          res=>{
-            const ref = res.data;
-            console.log('Maintenance history data ...')
-            console.log(ref);
-            console.log(typeof(ref));
-            setMaintenanceData(ref);
-            //return ref;
-          }
-        );
-       }
+      )
+      .then(
+      res=>{
+        const ref = res.data;
+        console.log('Maintenance history data ...')
+        console.log(ref);
+        console.log(typeof(ref));
+        setMaintenanceData(ref);
+      }
+      );
+    }
+  const [componentsData, setComponentsData] = useState([]);
+  function getComponents(name) {
+    console.log('getting components...');
+    console.log(constants.GET_COMPONENTS_URI+name);
+    axios
+      .get(
+        constants.GET_COMPONENTS_URI+name
+      )
+      .then(
+      res=>{
+        console.log('Components data ...')
+        //console.log(res);
+        const ref = res.data;
+        console.log(ref.components);
+        //console.log(typeof(ref.components));
+        setComponentsData(ref.components);
+      }
+      );
+    }
+  function jsonArrayToString(myJsonArray){
+    let myArray = [];
+    for (let i=0; i<myJsonArray.length; i++){
+      let myString = myJsonArray[i].quantityKind+"("+myJsonArray[i].measurementUnit+")";
+      myArray.push(myString);
+    }
+    return myArray.join(", ")
+  }
   
   const [onlineStatusUpdateTime, setOnlineStatusUpdateTime] = useState();
   const [onlineStatusChart, setOnlineStatusChart] = useState({
@@ -212,33 +222,111 @@ export default function DeviceView() {
         const ref = res.data;
         for (var i=0; i<ref.length; i++){
           if (ref[i].channelID==deviceID){
-            console.log('ref[i].name');
-            console.log(ref[i].name);
+            //console.log('ref[i].name');
+            //console.log(ref[i].name);
             setDeviceData(ref[i]);
             setDeviceName(ref[i].name);
             console.log('getting maintenance logs')
             console.log(logs(ref[i].name));
-            //let data = logs(ref[i].name);
-            //console.log(data);
-            //console.log(ref[i].name);
-            //let data = getMaintenanceLog(ref[i].name);
-            //console.log('setting maintenance data');
-            //console.log(data);
-            //setMaintenanceData(data);
-            //setMaintenanceData(getMaintenanceLog(ref[i].name));
+            console.log(getComponents(ref[i].name));
             setLoaded(true);
           }
         }
     }).catch(
       console.log
     )
-    /*
-    let channelID = params.channelId
-    axios.get(constants.GET_DEVICE_UPTIME+channelID).then(({ data }) => {
-      console.log(data);
-      setNetworkUptime(data);
-    });*/
   }, []);
+
+  const [componentData, setComponentData] = useState([]);
+  //const [deviceName, setDeviceName] = useState('');
+  useEffect(() => {
+    let deviceID = params.channelId
+    axios.get(
+      constants.ALL_DEVICES_URI
+    )
+    .then(
+      res=>{
+        const ref = res.data;
+        for (var i=0; i<ref.length; i++){
+          if (ref[i].channelID==deviceID){
+            console.log('ref[i].name');
+            console.log(ref[i].name);
+            setDeviceData(ref[i]);
+            setDeviceName(ref[i].name);
+            console.log('getting maintenance logs')
+            console.log(logs(ref[i].name));
+            setLoaded(true);
+          }
+        }
+    }).catch(
+      console.log
+    )
+  }, []);
+ 
+  //delete  dialog parameters
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [componentName, setComponentName] = useState('');
+  //const [componentDescription, setComponentDescription] = useState('')
+  //const [componentMeasurement, setComponentMeasurement] = useState('')
+
+  const handleDeleteOpen = () => {
+    setDeleteOpen(true);
+  };
+  const handleDeleteClose = () => {
+    setDeleteOpen(false);
+    setComponentName('');
+    //setLocationID('');
+   
+  };
+  //response dialog
+  const [dialogResponseMessage, setDialogResponseMessage] = useState('');
+  const [responseOpen, setResponseOpen] = useState(false);
+  const handleResponseOpen = () => {
+    setResponseOpen(true);
+  };
+  const handleResponseClose = () => {
+    setResponseOpen(false);
+  };
+
+
+ //opens dialog to delete a component
+  const handleDeleteComponentClick = (name) => {
+    return (event) => {
+      console.log('Deleting component '+name);
+      setComponentName(name);
+      handleDeleteOpen();
+    }
+  }
+  let handleDeleteSubmit = (e) => {
+    let filter ={ 
+      deviceName: deviceName,
+      componentName: componentName,      
+    }
+    console.log(JSON.stringify(filter));
+    console.log(constants.DELETE_COMPONENT_URI+componentName+"&device="+deviceName);
+  
+    axios.delete(
+      constants.constants.DELETE_COMPONENT_URI+componentName+"&device="+deviceName,
+      JSON.stringify(filter),
+      { headers: { 'Content-Type': 'application/json' } }
+    )
+    .then(
+      res=>{
+        console.log('Response returned')
+        const myData = res.data;
+        console.log(myData.message);
+        setDialogResponseMessage('Component successfully deleted');
+        handleDeleteClose();
+        setResponseOpen(true);
+    }).catch(error => {
+      setDialogResponseMessage('An error occured. Please try again');
+      handleDeleteClose();
+      setResponseOpen(true); 
+
+  })
+
+  }
+
 
 
 
@@ -420,28 +508,6 @@ export default function DeviceView() {
             </CardHeader>
 
             <CardBody>
-               { /*
-              <PerfectScrollbar>
-          <MaterialTable
-            className = {classes.table}
-            //title="Device Registry"
-            columns={[
-             { title: 'Date', field: 'date'},
-             { title: 'Maintenance Done', field: 'activity' }, //should be channel ID
-      ]}   
-      data = {maintenanceData}  
-      options={{
-        exportButton: true,
-        showTitle: false,
-        headerStyle: {
-          //fontFamily: 'Open Sans',
-          fontSize: 16,
-          fontWeight: 600
-        },
-        pageSize: 5
-      }}
-    />
-        </PerfectScrollbar> */}
         <div alignContent = "left" style = {{alignContent:"left", alignItems:"left"}}>
             <TableContainer component={Paper} className = {classes.table}>  
              <Table stickyHeader  aria-label="sticky table" alignItems="left" alignContent="left">  
@@ -481,9 +547,46 @@ export default function DeviceView() {
       <GridItem xs={12} sm={12} md={4}>
           <Card>
             <CardHeader color="info">
-              <h4 className={classes.cardTitle}>Device Online Status</h4>
+              <h4 className={classes.cardTitle}>Device Components</h4>
             </CardHeader>
             <CardBody>
+            <div alignContent = "left" style = {{alignContent:"left", alignItems:"left"}}>
+            <TableContainer component={Paper} className = {classes.table}>  
+             <Table stickyHeader  aria-label="sticky table" alignItems="left" alignContent="left">
+               <TableHead>
+                 <TableRow style={{ align: 'left' }} >  
+                  <TableCell>Description</TableCell>                  
+                  <TableCell>Quantities</TableCell>
+                  <TableCell>Actions</TableCell>
+                </TableRow>
+                 
+              </TableHead>  
+               <TableBody style = {{alignContent:"left", alignItems:"left"}} >  
+               {componentsData.map( (component) => (
+                 <TableRow style={{ align: 'left' }} >  
+                  <TableCell>{component.description}</TableCell>                  
+                  <TableCell>{jsonArrayToString(component.measurement)}</TableCell>
+                  <TableCell>
+                    {/*
+                  <Tooltip title="Edit">
+                    <Link onClick= {handleEditComponentClick} style = {{"color":"black"}}>
+                    <EditOutlined> </EditOutlined> 
+                    </Link>
+                    </Tooltip>*/}
+                  <Tooltip title="Delete">
+                    <Link onClick= {handleDeleteComponentClick(component.name)} style = {{"color":"black"}}>
+                    <DeleteOutlined> </DeleteOutlined> 
+                    </Link>
+                  </Tooltip>
+                  
+                  </TableCell>
+                </TableRow>))
+                }
+               </TableBody>
+            </Table>
+          </TableContainer>
+                
+              </div>
              
             </CardBody>
             <CardFooter chart>
@@ -492,7 +595,7 @@ export default function DeviceView() {
               </div>
             </CardFooter>
           </Card>
-  </GridItem> 
+          </GridItem> 
 
         <GridItem xs={12} sm={12} md={4}>
           <Card>
@@ -508,6 +611,66 @@ export default function DeviceView() {
           </Card>
         </GridItem>
       </GridContainer>
+
+      {responseOpen?
+    (
+      <Dialog
+      open={responseOpen}
+      onClose={handleResponseClose}
+      aria-labelledby="form-dialog-title"
+      aria-describedby="form-dialog-description"
+      >
+        <DialogContent>
+          {dialogResponseMessage}
+        </DialogContent> 
+        
+        <DialogActions>
+          <Grid container alignItems="center" alignContent="center" justify="center">
+            <Button 
+              variant="contained" 
+              color="primary"              
+              onClick={handleResponseClose}
+            > OK
+            </Button>
+          </Grid>
+        </DialogActions>
+    </Dialog>
+    ): null   
+  }
+
+{deleteOpen? (
+       
+       <Dialog
+           open={deleteOpen}
+           onClose={handleDeleteClose}
+           aria-labelledby="form-dialog-title"
+           aria-describedby="form-dialog-description"
+         >
+           <DialogTitle id="form-dialog-title" style={{alignContent:'center'}}>Delete a component</DialogTitle>
+           
+                <DialogContent>
+                  Are you sure you want to delete component {componentName} from device {deviceName}?
+                </DialogContent> 
+          
+                <DialogActions>
+                <Grid container alignItems="center" alignContent="center" justify="center">
+                 <Button 
+                  variant="contained" 
+                  color="primary"              
+                  onClick = {handleDeleteSubmit}
+                 > YES
+                </Button>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+               <Button 
+                variant="contained" 
+                color="primary"              
+                onClick = {handleDeleteClose}
+               > NO
+               </Button>
+               </Grid>
+           </DialogActions>
+         </Dialog>
+         ) : null}
 
      
     </div>
