@@ -110,18 +110,18 @@ const devConfig = {
   UPDATE_LOCATION_URI: "http://127.0.0.1:4000/api/v1/location_registry/update",
   ADD_MAINTENANCE_URI:
     "http://localhost:3000/api/v1/data/channels/maintenance/add",
-  REGISTER_DEVICE_URI: "http://localhost:3000/api/v1/devices/ts",
-  ALL_DEVICES_URI: "http://localhost:3000/api/v1/devices",
-  EDIT_DEVICE_URI: "http://localhost:3000/api/v1/devices/ts/update?device=",
-  ALL_SENSORS_URI: "http://127.0.0.1:3000/api/v1/devices/get/sensors",
+  REGISTER_DEVICE_URI: "http://localhost:5000/api/v1/devices/ts",
+  ALL_DEVICES_URI: "http://localhost:5000/api/v1/devices",
+  EDIT_DEVICE_URI: "http://localhost:5000/api/v1/devices/ts/update?device=",
+  ALL_SENSORS_URI: "http://127.0.0.1:5000/api/v1/devices/get/sensors",
   DEVICES_IN_LOCATION_URI: "http://localhost:3000/api/v1/devices/by/location?loc=",
-  DEPLOY_DEVICE_URI: "http://localhost:3000/api/v1/devices/ts/activity?type=",
+  DEPLOY_DEVICE_URI: "http://localhost:5000/api/v1/devices/ts/activity?type=",
   DEVICE_MAINTENANCE_LOG_URI: "http://localhost:4001/api/v1/device/monitor/maintenance_logs/",
   //DELETE_DEVICE_URI: "http://127.0.0.1:3000/api/api/v1/devices/ts/delete?device="
-  ADD_COMPONENT_URI:"http://localhost:3000/api/v1/devices/add/components?device=",
-  GET_COMPONENTS_URI: "http://localhost:3000/api/v1/devices/list/components?device=",
-  DELETE_COMPONENT_URI: "http://localhost:3000/api/v1/devices/delete/components?comp=",
-  UPDATE_COMPONENT_URI: "http://localhost:3000/api/v1/devices/update/components?device=",
+  ADD_COMPONENT_URI:"http://localhost:5000/api/v1/devices/add/components?device=",
+  GET_COMPONENTS_URI: "http://localhost:5000/api/v1/devices/list/components?device=",
+  DELETE_COMPONENT_URI: "http://localhost:5000/api/v1/devices/delete/components?comp=",
+  UPDATE_COMPONENT_URI: "http://localhost:5000/api/v1/devices/update/components?device=",
 };
 
 function runConfig(env) {
