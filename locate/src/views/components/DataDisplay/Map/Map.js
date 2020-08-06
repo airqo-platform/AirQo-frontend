@@ -70,7 +70,7 @@ const Map = props => {
   let CategoryColorClass2 = (isDue) =>{
     return isDue == "codeGreen"  ? 'green' :
       isDue == "codeRed"  ? 'red' :
-                'UnCategorise';
+                'orange';
   }
 
   return (
