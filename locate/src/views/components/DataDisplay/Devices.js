@@ -798,6 +798,7 @@ const MenuProps = {
       measurement: convertQuantityOptions(quantityKind),//e.g. [{"quantityKind":"humidity", "measurementUnit":"%"}]
     }
     console.log(JSON.stringify(filter));
+    console.log(constants.ADD_COMPONENT_URI+deviceName);
     
     axios.post(
       constants.ADD_COMPONENT_URI+deviceName,
@@ -889,22 +890,28 @@ const MenuProps = {
                         <Link 
                         className={classes.link} 
                         onClick = {handleEditClick(rowData.name, rowData.device_manufacturer, rowData.product_name, 
-                        rowData.owner, rowData.description, rowData.visibility, rowData.ISP, rowData.latitude,
+                        rowData.owner, rowData.description, rowData.visibility.toString(), rowData.ISP, rowData.latitude,
                         rowData.longitude, rowData.phoneNumber, rowData.channelID)}
                         > 
                           <EditOutlined></EditOutlined>
                         </Link> 
                       </Tooltip>
                       &nbsp;&nbsp;&nbsp;
+
+                      {rowData.isActive?
                       <Tooltip title="Update Maintenance Log">
-                        <Link
-                        className={classes.link} 
-                        onClick = {handleMaintenanceClick(rowData.name, rowData.locationID)}
-                        > 
-                          <Update></Update>
-                        </Link> 
+                      <Link
+                      className={classes.link} 
+                      onClick = {handleMaintenanceClick(rowData.name, rowData.locationID)}
+                      > 
+                        <Update></Update>
+                      </Link> 
+                    </Tooltip>:
+                      <Tooltip title="Link disabled for inactive device">                                                                                                    
+                        <Update></Update>
                       </Tooltip>
-                      &nbsp;&nbsp;
+                     } &nbsp;&nbsp;
+
                       <Tooltip title="Deploy Device">
                         <Link 
                         className={classes.link} 
@@ -914,15 +921,20 @@ const MenuProps = {
                         </Link>
                       </Tooltip>
                       &nbsp;&nbsp;
+                      {rowData.isActive?
                       <Tooltip title="Recall Device">
-                        <Link 
-                        className={classes.link} 
-                        onClick = {handleRecallClick(rowData.name, rowData.locationID)}
-                        > 
-                          <UndoOutlined></UndoOutlined>
-                        </Link>
+                      <Link 
+                      className={classes.link} 
+                      onClick = {handleRecallClick(rowData.name, rowData.locationID)}
+                      > 
+                        <UndoOutlined></UndoOutlined>
+                      </Link>
+                    </Tooltip>:
+                      <Tooltip title="Link disabled for inactive device">                                                                                                    
+                        <UndoOutlined></UndoOutlined>
                       </Tooltip>
-                      &nbsp;&nbsp;
+                     } &nbsp;&nbsp;
+                    
                       <Tooltip title="Add Component">
                         <Link 
                         className={classes.link} 

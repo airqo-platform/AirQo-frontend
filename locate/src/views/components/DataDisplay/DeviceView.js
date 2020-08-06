@@ -232,6 +232,23 @@ export default function DeviceView() {
     },
   };
 
+  function appendLeadingZeroes(n) {
+    if (n <= 9) {
+      return '0' + n;
+    }
+    return n;
+  }
+
+  let formatDate = (date) => {
+    let time = appendLeadingZeroes(date.getDate()) +
+    '-' +
+    appendLeadingZeroes(date.getMonth() + 1) +
+    '-' +
+    date.getFullYear()
+
+    return time;
+   }
+
   const [loaded, setLoaded] = useState(false);
   const [deviceData, setDeviceData] = useState([]);
   const [deviceName, setDeviceName] = useState('');
@@ -664,11 +681,10 @@ export default function DeviceView() {
             <TableContainer component={Paper} className = {classes.table}>  
              <Table stickyHeader  aria-label="sticky table" alignItems="left" alignContent="left">  
                <TableBody style = {{alignContent:"left", alignItems:"left"}} >  
-               
-               {maintenanceData.map( (log) => (
+                {maintenanceData.map( (log) => (
                  <TableRow style={{ align: 'left' }} >  
-                  <TableCell>{log.date}</TableCell>
-                  <TableCell>{log.activity}</TableCell>
+                  <TableCell>{formatDate(new Date(log.createdAt))}</TableCell>
+                  <TableCell>{typeof log.tags=== 'string'? log.tags:log.tags.join(', ')}</TableCell>
                 </TableRow>))
                 }
                </TableBody>
