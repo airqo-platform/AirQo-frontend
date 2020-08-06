@@ -6,7 +6,6 @@ import { Switch, Redirect, Route } from 'react-router-dom';
 import { RouteWithLayout } from '../components';
 import { Main as MainLayout, Minimal as MinimalLayout } from '../layouts';
 import PrivateRoute from '../views/components/PrivateRoute/PrivateRoute.js';
-import Register from '../views/components/Users/RegisterAnalytics';
 
 import {
   connectedUserList as ConnectedUserList,
@@ -135,7 +134,7 @@ const Routes = () => {
 
       <Route exact path="/register" component={ConnectedRegister} />
 
-      <Route exact path="/reset" component={ResetPassword} />
+      <Route exact path="/register" component={ConnectedRegister} />
 
       <RouteWithLayout
         component={SignUpView}

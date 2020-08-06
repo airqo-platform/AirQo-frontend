@@ -399,9 +399,9 @@ class Register extends Component {
                         onChange={this.onChange}
                         color="primary"
                       />
-                    }
-                    label="Agree to our terms and conditions?"
-                  />
+                    }>
+                    <label htmlFor="">Agree to our terms and conditions?</label>
+                  </FormControlLabel>
                 </div>
                 <div className="col s12" style={{ paddingLeft: '11.250px' }}>
                   {this.state.isChecked ? (
