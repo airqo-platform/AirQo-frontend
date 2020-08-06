@@ -656,6 +656,9 @@ const MenuProps = {
       tags:  maintenanceDescription,  
       date:selectedDate
     }
+    console.log('logging maintenance..');
+    console.log('location ID '+locationID);
+    console.log(constants.DEPLOY_DEVICE_URI+"maintain")
     console.log(JSON.stringify(filter));
     
     axios.post(
@@ -718,7 +721,7 @@ const MenuProps = {
       name: registerName,
       latitude: latitude,
       longitude: longitude,
-      visibility: visibility,
+      visibility: (visibility =="true"),
       device_manufacturer: manufacturer,
       product_name:productName,
       owner: owner,
@@ -756,7 +759,7 @@ const MenuProps = {
       name: registerName,
       latitude: latitude.toString(),
       longitude: longitude.toString(),
-      visibility: visibility,
+      visibility: (visibility =="true"),
       device_manufacturer: manufacturer,
       product_name:productName,
       owner: owner,
@@ -764,9 +767,11 @@ const MenuProps = {
       phoneNumber: phone,
       description: description,
     }
+    console.log(constants.EDIT_DEVICE_URI+registerName);
     console.log(JSON.stringify(filter));
+  
     axios.put(
-      constants.EDIT_DEVICE_URI+deviceID.toString(),
+      constants.EDIT_DEVICE_URI+registerName,
       JSON.stringify(filter),
       { headers: { 'Content-Type': 'application/json' } }
     )
@@ -779,7 +784,7 @@ const MenuProps = {
         setResponseOpen(true);  
     }).catch(error => {
       console.log(error.message)
-      setDialogResponseMessage('An error ocuured.Please check your inputs and try again');
+      setDialogResponseMessage('An error occured. Please check your inputs and try again');
       handleEditClose();
       setResponseOpen(true);
   })
@@ -1331,8 +1336,8 @@ const MenuProps = {
                         input={<Input id="demo-dialog-native" />}
                       >
                         <option aria-label="None" value="" />
-                        <option value="Public">Public</option>
-                        <option value="Private">Private</option>
+                        <option value="true">True</option>
+                        <option value="false">False</option>
                       </Select>
                    </FormControl>
                    <TextField 
@@ -1452,7 +1457,7 @@ const MenuProps = {
                    required
                    /><br/>
                    <FormControl required className={classes.formControl} fullWidth={true}>
-                      <InputLabel htmlFor="demo-dialog-native"> Visibility</InputLabel>
+                      <InputLabel htmlFor="demo-dialog-native">Data Access</InputLabel>
                       <Select
                         native
                         value={visibility}
@@ -1460,8 +1465,8 @@ const MenuProps = {
                         input={<Input id="demo-dialog-native" />}
                       >
                         <option aria-label="None" value="" />
-                        <option value="Public">Public</option>
-                        <option value="Private">Private</option>
+                        <option value="true">True</option>
+                        <option value="false">False</option>
                       </Select>
                    </FormControl>
                    <TextField 
