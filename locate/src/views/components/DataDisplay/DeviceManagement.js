@@ -31,6 +31,7 @@ import CardBody from "../Card/CardBody.js";
 import CardFooter from "../Card/CardFooter.js";
 import Map from "./Map/Map";
 
+
 import { bugs, website, server } from "../../variables/general.js";
 
 import {
@@ -45,6 +46,7 @@ import constants from "../../../config/constants";
 import axios from "axios";
 import palette from "../../../assets/theme/palette";
 import { Line, Bar, Pie } from "react-chartjs-2";
+import 'chartjs-plugin-annotation';
 
 const useStyles = makeStyles(styles);
 
@@ -373,6 +375,26 @@ export default function DeviceManagement() {
   };
 
   const options_main = {
+    annotation: {
+      annotations: [
+        {
+          type: "line",
+          mode: "horizontal",
+          scaleID: "y-axis-0",
+          value: 80,
+          borderColor: palette.text.secondary,
+          borderWidth: 2,
+          label: {
+            enabled: true,
+            content: "Threshold",
+            //backgroundColor: palette.white,
+            titleFontColor: palette.text.primary,
+            bodyFontColor: palette.text.primary,
+            position: "right",
+          },
+        },
+      ],
+    },
     responsive: true,
     maintainAspectRatio: false,
     animation: false,
@@ -416,6 +438,7 @@ export default function DeviceManagement() {
             fontColor: palette.text.secondary,
             beginAtZero: true,
             min: 0,
+            max:100
           },
           gridLines: {
             borderDash: [2],

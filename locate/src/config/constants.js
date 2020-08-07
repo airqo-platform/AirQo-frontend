@@ -40,7 +40,9 @@ const prodConfig = {
     "http://34.78.78.202:30006/api/v1/monitor/devices/offline",
   GET_NETWORK_UPTIME: "http://34.78.78.202:30006/api/v1/monitor/network/uptime",
   GET_DEVICE_UPTIME: "http://34.78.78.202:30006/api/v1/monitor/device/uptime/",
-  DEVICE_MAINTENANCE_LOG_URI: "http://34.78.78.202:30006/api/v1/device/monitor/maintenance_logs/",
+  GET_DEVICE_BATTERY_VOLTAGE:"http://34.78.78.202:30006/api/v1/monitor/device/batteryvoltage/",
+  GET_DEVICE_SENSOR_CORRELATION:"http://34.78.78.202:30006/api/v1/monitor/device/sensors/correlation/",
+  DEVICE_MAINTENANCE_LOG_URI:"http://34.78.78.202:30006/api/v1/device/monitor/maintenance_logs/",
   ADD_MAINTENANCE_URI:
     "http://34.78.78.202:30001/api/v1/data/channels/maintenance/add",
   REGISTER_DEVICE_URI: "http://34.78.78.202:30002/api/v1/devices/ts",
@@ -85,6 +87,8 @@ const devConfig = {
     "http://localhost:4001/api/v1/monitor/devices/offline",
   GET_NETWORK_UPTIME: "http://localhost:4001/api/v1/monitor/network/uptime",
   GET_DEVICE_UPTIME: "http://localhost:4001/api/v1/monitor/device/uptime/",
+  GET_DEVICE_BATTERY_VOLTAGE:"http://127.0.0.1:4001/api/v1/monitor/device/batteryvoltage/",
+  GET_DEVICE_SENSOR_CORRELATION:"http://127.0.0.1:4001/api/v1/monitor/device/sensors/correlation/",
   GET_NETWORK_BEST_PERFORMING_DEVICES:
     "http://localhost:4001/api/v1/monitor/network/devices/bestperforming",
   GET_NETWORK_WORST_PERFORMING_DEVICES:
@@ -100,13 +104,13 @@ const devConfig = {
   UPDATE_LOCATION_URI: "http://127.0.0.1:4000/api/v1/location_registry/update",
   ADD_MAINTENANCE_URI:
     "http://localhost:3000/api/v1/data/channels/maintenance/add",
-  REGISTER_DEVICE_URI: "http://localhost:5000/api/v1/devices/ts",
-  ALL_DEVICES_URI: "http://localhost:5000/api/v1/devices",
+  REGISTER_DEVICE_URI: "http://localhost:3000/api/v1/devices/ts",
+  ALL_DEVICES_URI: "http://localhost:3000/api/v1/devices",
   //DEPLOY_DEVICE_URI: "http://127.0.0.1:5000/api/v1/devices/ts/deploy/device",
-  EDIT_DEVICE_URI: "http://localhost:5000/api/v1/devices/ts/update?device=",
-  ALL_SENSORS_URI: "http://127.0.0.1:5000/api/v1/devices/get/sensors",
-  DEVICES_IN_LOCATION_URI: "http://localhost:5000/api/v1/devices/by/location?loc=",
-  DEPLOY_DEVICE_URI: "http://localhost:5000/api/v1/devices/ts/activity?type=",
+  EDIT_DEVICE_URI: "http://localhost:3000/api/v1/devices/ts/update?device=",
+  ALL_SENSORS_URI: "http://127.0.0.1:3000/api/v1/devices/get/sensors",
+  DEVICES_IN_LOCATION_URI: "http://localhost:3000/api/v1/devices/by/location?loc=",
+  DEPLOY_DEVICE_URI: "http://localhost:3000/api/v1/devices/ts/activity?type=",
   DEVICE_MAINTENANCE_LOG_URI: "http://localhost:4001/api/v1/device/monitor/maintenance_logs/"
   //DELETE_DEVICE_URI: "http://127.0.0.1:3000/api/api/v1/devices/ts/delete?device="
 };
