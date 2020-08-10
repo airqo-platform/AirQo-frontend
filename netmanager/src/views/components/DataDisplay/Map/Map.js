@@ -67,6 +67,12 @@ const Map = props => {
                 'UnCategorise';
   }
 
+  let CategoryColorClass2 = (isDue) =>{
+    return isDue == "codeGreen"  ? 'green' :
+      isDue == "codeRed"  ? 'red' :
+                'orange';
+  }
+
   return (
         <LeafletMap
           animate
@@ -91,14 +97,30 @@ const Map = props => {
               icon={
                 L.divIcon({
                 //html:`${contact.isOnline}`,
-                iconSize: 35,
+                iconSize: 38,
+                className:`leafletMarkerIcon ${CategoryColorClass2(contact.isDueMaintenance)}`
+                 })}
+              >
+            </Marker>   
+          ))}  
+
+          {contacts.map((contact) => (
+            <Marker 
+              position={[contact.latitude,contact.longitude]}
+              fill="false"
+              key={contact.channelId} 
+              clickable="true"  
+              icon={
+                L.divIcon({
+                //html:`${contact.isOnline}`,
+                iconSize: 30,
                 className:`leafletMarkerIcon ${CategoryColorClass(contact.isOnline)}`
                  })}
               >
-              <Popup> 
-              </Popup>
+              {/* <Popup> 
+              </Popup> */}
             </Marker>   
-          ))}  
+          ))} 
           <FullscreenControl position="topleft" />
         </LeafletMap>
  
