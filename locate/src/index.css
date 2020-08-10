@@ -20,13 +20,15 @@ code {
 	text-align: center;
 	vertical-align: bottom;
 	box-shadow: 2px 1px 4px rgba(0,0,0,0.2);
-	border-radius: 30px;
+	border-radius: 50px;
 	border-width: 3px;
 	opacity: 1;		
 }
 .deviceOnline {
-	border: 2px solid #3f51b5;
-	background-color: #3f51b5 !important;
+	border: 2px solid #4052b5;
+	background-color: #4052b5 !important;
+	/* border-width: 4px;
+	border-color: #81202e; */
   }
 
  .deviceOffline {
@@ -34,35 +36,28 @@ code {
 	border: 2px solid #808080;
   }
 
-.pm25Good {
-	background:#45e50d;
-	border: 2px solid #45e50d;
-	background-color:#45e50d !important;
+.green {
+	background:#18becf;
+	border: 2px solid #18becf;
+	background-color: #18becf !important;
   }
 
- .pm25Moderate {
-	background:#f8fe28 !important;
-	border: 2px solid #f8fe28;
+  .red {
+	background:#ff3366 !important;
+	border: 2px solid #ff3366;
   }
- .pm25UH4SG {
+
+  .orange {
 	background:#ee8310 !important;
 	border: 2px solid #ee8310;
 
   }
-  .pm25UnHealthy {
-	background:#fe0000 !important;
-	border: 2px solid #fe0000;
-  }
-  .pm25VeryUnHealthy {
-	background:#8639c0 !important;
-	border: 2px solid #8639c0;
 
+ .yellow {
+	background:#f8fe28 !important;
+	border: 2px solid #f8fe28;
   }
-  .pm25Harzadous{
-	background:#81202e !important;
-	border: 2px solid #81202e;
-	
-  }
+ 
   .UnCategorised{
 	background:#000000;
 	border: 2px solid #000000;
