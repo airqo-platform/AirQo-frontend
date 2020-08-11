@@ -274,7 +274,8 @@ export default function DeviceManagement() {
     axios.get(constants.GET_DEVICE_STATUS_SUMMARY).then(({ data }) => {
       //console.log(data[0].loc_power_suppy);
       let no_devices = 0;
-      [data].map((item) => { //Priscilla added array to data- Daniel needs to cross check why api is not returning array
+      data.map((item) => {
+        //Priscilla added array to data- Daniel needs to cross check why api is not returning array
         no_devices++;
       });
       setStatusSummary(data);
@@ -311,7 +312,8 @@ export default function DeviceManagement() {
       let due_maintenance = 0;
       let overdue_maintenance = 0;
 
-      [data].map((item) => { //Priscilla added array to data- Daniel needs to cross check why api is not returning array
+      data.map((item) => {
+        //Priscilla added array to data- Daniel needs to cross check why api is not returning array
         let nextMaintenance = item.nextMaintenance;
         // next maintenance === "" assume overdue for maintenance
         if (nextMaintenance == "") {
