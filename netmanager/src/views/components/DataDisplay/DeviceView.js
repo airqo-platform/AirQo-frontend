@@ -683,7 +683,7 @@ export default function DeviceView() {
                <TableBody style = {{alignContent:"left", alignItems:"left"}} >  
                 {maintenanceData.map( (log) => (
                  <TableRow style={{ align: 'left' }} >  
-                  <TableCell>{formatDate(new Date(log.createdAt))}</TableCell>
+                  <TableCell>{formatDate(new Date(log.date))}</TableCell>
                   <TableCell>{typeof log.tags=== 'string'? log.tags:log.tags.join(', ')}</TableCell>
                 </TableRow>))
                 }
