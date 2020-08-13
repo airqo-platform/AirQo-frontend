@@ -210,7 +210,7 @@ const MenuProps = {
   const [maintenanceType, setMaintenanceType] = useState('');
   const handleMaintenanceTypeChange = type =>{
     setMaintenanceType(type.target.value);
-    if (type.target.value == 'Preventive Maintenance'){
+    if (type.target.value == 'preventive'){
       setMaintenanceDescription(["Dust blowing and sensor cleaning","Site update check","Device equipment check",])
     }
     else{
@@ -625,7 +625,7 @@ const MenuProps = {
     }
     console.log(JSON.stringify(filter));
     console.log(constants.DEPLOY_DEVICE_URI+"deploy");
-    /*
+    
     axios.post(
       constants.DEPLOY_DEVICE_URI+"deploy",
       JSON.stringify(filter),
@@ -645,7 +645,7 @@ const MenuProps = {
       handleDeployClose();
       setResponseOpen(true);
 
-  })*/
+  })
   }
   
   let  handleMaintenanceSubmit = (e) => {
@@ -1030,8 +1030,8 @@ const MenuProps = {
                         input={<Input id="demo-dialog-native" />}
                       >
                         <option aria-label="None" value="" />
-                        <option value="Preventive Maintenance">Preventive</option>
-                        <option value="Corrective Maintenance">Corrective</option>
+                        <option value="preventive">Preventive</option>
+                        <option value="corrective">Corrective</option>
                       </Select>
                   </FormControl><br/>
                   <FormControl required className={classes.formControl} fullWidth = {true}>
