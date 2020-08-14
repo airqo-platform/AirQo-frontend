@@ -17,6 +17,9 @@ import TasksWithoutEdits from "../Tasks/TasksWithoutEdits";
 // core components
 import GridItem from "../Grid/GridItem.js";
 import GridContainer from "../Grid/GridContainer.js";
+import FormControl from '@material-ui/core/FormControl';
+import TextField from '@material-ui/core/TextField';
+import Select from '@material-ui/core/Select';
 //import Table from "../Table/Table.js";
 import Tasks from "../Tasks/Tasks.js";
 import CustomTabs from "../CustomTabs/CustomTabs";
@@ -27,11 +30,12 @@ import CardBody from "../Card/CardBody.js";
 import CardFooter from "../Card/CardFooter.js";
 import { Map, TileLayer, Marker, Popup } from "react-leaflet";
 import { TableContainer, Table, TableBody, TableCell, TableHead, TableRow, Paper } from "@material-ui/core";
-
+import { DeleteOutlined, EditOutlined } from '@material-ui/icons';
+import Tooltip from '@material-ui/core/Tooltip';
+import { Link } from "react-router-dom";
 import { useParams } from 'react-router-dom';
-
+import { Grid, Button, Dialog, DialogActions, DialogContent, DialogTitle } from '@material-ui/core';
 import { bugs, website, server } from "../../variables/general.js";
-
 import {
   dailySalesChart,
   emailsSubscriptionChart,
@@ -44,49 +48,78 @@ import constants from "../../../config/constants";
 import axios from "axios";
 import palette from "../../../assets/theme/palette";
 import { Line, Bar, Pie } from "react-chartjs-2";
+import Input from '@material-ui/core/Input';
+import InputLabel from '@material-ui/core/InputLabel';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import Checkbox from '@material-ui/core/Checkbox';
+import MenuItem from '@material-ui/core/MenuItem';
+import ListItemText from '@material-ui/core/ListItemText';
 
 const useStyles = makeStyles(styles);
 
 export default function DeviceView() {
   let params = useParams();
+  const ITEM_HEIGHT = 48;
+  const ITEM_PADDING_TOP = 8;
+  const MenuProps = {
+  PaperProps: {
+    style: {
+      maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
+      width: 350,
+      },
+    },
+  };
   
   const classes = useStyles();
-  /*
-  let getMaintenanceLog = (name) => {
+  const [maintenanceData, setMaintenanceData] = useState([]);
+  
+  function logs(name) {
     console.log(constants.DEVICE_MAINTENANCE_LOG_URI+name)
     axios
       .get(
         constants.DEVICE_MAINTENANCE_LOG_URI+name
-        )
-        .then(
-          res=>{
-            const ref = res.data;
-            console.log('Maintenance history data ...')
-            console.log(ref);
-            return ref;
-          }
-        );
-        
-      }*/
-      const [maintenanceData, setMaintenanceData] = useState([]);
-
-      function logs(name) {
-        console.log(constants.DEVICE_MAINTENANCE_LOG_URI+name)
-        axios
-         .get(
-            constants.DEVICE_MAINTENANCE_LOG_URI+name
-          )
-         .then(
-          res=>{
-            const ref = res.data;
-            console.log('Maintenance history data ...')
-            console.log(ref);
-            console.log(typeof(ref));
-            setMaintenanceData(ref);
-            //return ref;
-          }
-        );
-       }
+      )
+      .then(
+      res=>{
+        const ref = res.data;
+        console.log('Maintenance history data ...')
+        console.log(ref);
+        console.log(typeof(ref));
+        setMaintenanceData(ref);
+      }
+      );
+    }
+  const [componentsData, setComponentsData] = useState([]);
+  function getComponents(name) {
+    console.log('getting components...');
+    console.log(constants.GET_COMPONENTS_URI+name);
+    axios
+      .get(
+        constants.GET_COMPONENTS_URI+name
+      )
+      .then(
+      res=>{
+        console.log('Components data ...')
+        //console.log(res);
+        const ref = res.data;
+        console.log(ref.components);
+        //console.log(typeof(ref.components));
+        setComponentsData(ref.components);
+      }
+      )
+      .catch(error => {
+        console.log(error)
+  
+    })
+    }
+  function jsonArrayToString(myJsonArray){
+    let myArray = [];
+    for (let i=0; i<myJsonArray.length; i++){
+      let myString = myJsonArray[i].quantityKind+"("+myJsonArray[i].measurementUnit+")";
+      myArray.push(myString);
+    }
+    return myArray.join(", ")
+  }
   
   const [onlineStatusUpdateTime, setOnlineStatusUpdateTime] = useState();
   const [onlineStatusChart, setOnlineStatusChart] = useState({
@@ -199,9 +232,53 @@ export default function DeviceView() {
     },
   };
 
+  function appendLeadingZeroes(n) {
+    if (n <= 9) {
+      return '0' + n;
+    }
+    return n;
+  }
+
+  let formatDate = (date) => {
+    let time = appendLeadingZeroes(date.getDate()) +
+    '-' +
+    appendLeadingZeroes(date.getMonth() + 1) +
+    '-' +
+    date.getFullYear()
+
+    return time;
+   }
+
   const [loaded, setLoaded] = useState(false);
   const [deviceData, setDeviceData] = useState([]);
   const [deviceName, setDeviceName] = useState('');
+  useEffect(() => {
+    let deviceID = params.channelId
+    axios.get(
+      constants.ALL_DEVICES_URI
+    )
+    .then(
+      res=>{
+        const ref = res.data;
+        for (var i=0; i<ref.length; i++){
+          if (ref[i].channelID==deviceID){
+            //console.log('ref[i].name');
+            //console.log(ref[i].name);
+            setDeviceData(ref[i]);
+            setDeviceName(ref[i].name);
+            console.log('getting maintenance logs')
+            console.log(logs(ref[i].name));
+            console.log(getComponents(ref[i].name));
+            setLoaded(true);
+          }
+        }
+    }).catch(
+      console.log
+    )
+  }, []);
+
+  const [componentData, setComponentData] = useState([]);
+  //const [deviceName, setDeviceName] = useState('');
   useEffect(() => {
     let deviceID = params.channelId
     axios.get(
@@ -218,32 +295,226 @@ export default function DeviceView() {
             setDeviceName(ref[i].name);
             console.log('getting maintenance logs')
             console.log(logs(ref[i].name));
-            //let data = logs(ref[i].name);
-            //console.log(data);
-            //console.log(ref[i].name);
-            //let data = getMaintenanceLog(ref[i].name);
-            //console.log('setting maintenance data');
-            //console.log(data);
-            //setMaintenanceData(data);
-            //setMaintenanceData(getMaintenanceLog(ref[i].name));
             setLoaded(true);
           }
         }
     }).catch(
       console.log
     )
-    /*
-    let channelID = params.channelId
-    axios.get(constants.GET_DEVICE_UPTIME+channelID).then(({ data }) => {
-      console.log(data);
-      setNetworkUptime(data);
-    });*/
   }, []);
 
+  //Edit dialog parameters
+  const [editComponentOpen, setEditComponentOpen] = useState(false);
+  const [componentName, setComponentName] = useState('');
+  const [sensorName, setSensorName] = useState('');
+  
+  const [quantityKind, setQuantityKind] = useState([]);
+  const handleQuantityKindChange = quantity => {
+    console.log(quantity.target.value);
+    setQuantityKind(quantity.target.value);
+  } 
+
+
+  function convertQuantities(myArray){
+    console.log("Converting Quantities");
+    for (let i=0; i<myArray.length; i++){
+      //myArray[i].quantityKind = editDialogObject[myArray[i].quantityKind];
+      console.log(myArray[i].quantityKind);
+      //myArray[i].quantityKind = "Yes Please";
+    }
+    //console.log(myArray)
+    return myArray;
+  }
+  const handleSensorNameChange = name =>{
+    setSensorName(name.target.value);
+    if (name.target.value == 'Alphasense OPC-N2'){
+      setQuantityKind(["PM 1(µg/m3)", "PM 2.5(µg/m3)", "PM 10(µg/m3)"])
+    }
+    else if (name.target.value == 'pms5003'){
+      setQuantityKind(["PM 2.5(µg/m3)", "PM 10(µg/m3)"])
+    }
+    else if (name.target.value == 'DHT11'){
+      setQuantityKind(["Internal Temperature(\xB0C)", "Internal Humidity(%)"])
+    }
+    else if (name.target.value == 'Lithium Ion 18650'){
+      setQuantityKind(["Battery Voltage(V)"])
+    }
+    else if (name.target.value == 'Generic'){
+      setQuantityKind(["GPS"])
+    }
+    else if (name.target.value == 'Purple Air II'){
+      setQuantityKind(["PM 1(µg/m3)"])
+    }
+    else if (name.target.value == 'Bosch BME280'){
+      setQuantityKind(["External Temperature(\xB0C)", "External Humidity(%)"])
+    }
+    else{
+      setQuantityKind([]);
+    }
+  }
+
+  const quantityOptions = ["PM 1(µg/m3)", "PM 2.5(µg/m3)", "PM 10(µg/m3)", "External Temperature(\xB0C)", 
+  "External Temperature(\xB0F)", "External Humidity(%)", "Internal Temperature(\xB0C)", "Internal Humidity(%)", 
+  "Battery Voltage(V)", "GPS"];
+
+  const convertQuantityOptions= (myArray) => {
+    let newArray = [];
+    for (let i=0; i<myArray.length; i++){
+      if (myArray[i]=="PM 1(µg/m3)"){
+        newArray.push({"quantityKind":"PM 1", "measurementUnit":"µg/m3"})
+      }
+      else if (myArray[i]=="PM 2.5(µg/m3)"){
+        newArray.push({"quantityKind":"PM 2.5", "measurementUnit":"µg/m3"})
+      }
+      else if (myArray[i]=="PM 10(µg/m3)"){
+        newArray.push({"quantityKind":"PM 10", "measurementUnit":"µg/m3"})
+      }
+      else if (myArray[i]=="External Temperature(\xB0C)"){
+        newArray.push({"quantityKind":"External Temperature", "measurementUnit":"\xB0C"})
+      }
+      else if (myArray[i]=="External Temperature(\xB0F)"){
+        newArray.push({"quantityKind":"External Temperature", "measurementUnit":"\xB0F"})
+      }
+      else if (myArray[i]=="External Humidity(%)"){
+        newArray.push({"quantityKind":"External Humidity", "measurementUnit":"%"})
+      }
+      else if (myArray[i]=="Internal Temperature(\xB0C)"){
+        newArray.push({"quantityKind":"Internal Temperature", "measurementUnit":"\xB0C"})
+      }
+      else if (myArray[i]=="Internal Humidity(%)"){
+        newArray.push({"quantityKind":"Internal Humidity", "measurementUnit":"%"})
+      }
+      else if (myArray[i]=="Battery Voltage(V)"){
+        newArray.push({"quantityKind":"Battery Voltage", "measurementUnit":"V"})
+      }
+      else if (myArray[i]=="GPS"){
+        newArray.push({"quantityKind":"GPS", "measurementUnit":"coordinates"})
+      }
+      else{
+        newArray.push({"quantityKind":"unknown", "measurementUnit":"unknown"})
+      }
+     
+    }
+    return newArray;
+  }
+
+
+
+  const handleEditComponentOpen = () => {
+    setEditComponentOpen(true);
+  };
+  const handleEditComponentClose = () => {
+    setEditComponentOpen(false);  
+    //setComponentName('');
+  }
+  let handleEditComponentClick = (name, id, component, quantity) => {
+    return (event) => {
+      console.log(name);
+      setDeviceName(name);
+      setComponentName(id);
+      setSensorName(component);
+      setQuantityKind(quantity);
+      handleEditComponentOpen();
+
+    }
+  }
+
+  let handleEditComponentSubmit = (e) => {
+    let filter = {
+      description:sensorName, //e.g. pms5003
+      measurement: convertQuantityOptions(quantityKind),//e.g. [{"quantityKind":"humidity", "measurementUnit":"%"}]
+    }
+    console.log(JSON.stringify(filter));
+    console.log(constants.UPDATE_COMPONENT_URI+deviceName+"&comp="+componentName);
+    
+    axios.put(
+      constants.UPDATE_COMPONENT_URI+deviceName+"&comp="+componentName,
+      JSON.stringify(filter),
+      { headers: { 'Content-Type': 'application/json' } }
+    )
+    .then(
+      res=>{
+        const myData = res.data;
+        //console.log(myData.message);
+        setDialogResponseMessage('Component successfully updated');
+        handleEditComponentClose();
+        setResponseOpen(true);
+        getComponents(deviceName);
+    }).catch(error => {
+      //console.log(error.message)
+      setDialogResponseMessage('An error occured. Please try again');
+      handleEditComponentClose();
+      setResponseOpen(true);
+
+  })
+  }
+
+
+ 
+  //delete  dialog parameters
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const handleDeleteOpen = () => {
+    setDeleteOpen(true);
+  };
+  const handleDeleteClose = () => {
+    setDeleteOpen(false);
+    setComponentName('');
+   
+  };
+  //response dialog
+  const [dialogResponseMessage, setDialogResponseMessage] = useState('');
+  const [responseOpen, setResponseOpen] = useState(false);
+  const handleResponseOpen = () => {
+    setResponseOpen(true);
+  };
+  const handleResponseClose = () => {
+    setResponseOpen(false);
+  };
+
+
+ //opens dialog to delete a component
+  const handleDeleteComponentClick = (name) => {
+    return (event) => {
+      console.log('Deleting component '+name);
+      setComponentName(name);
+      handleDeleteOpen();
+    }
+  }
+  let handleDeleteSubmit = (e) => {
+    let filter ={ 
+      deviceName: deviceName,
+      componentName: componentName,      
+    }
+    console.log(JSON.stringify(filter));
+    console.log(constants.DELETE_COMPONENT_URI+componentName+"&device="+deviceName);
+  
+    axios.delete(
+      constants.DELETE_COMPONENT_URI+componentName+"&device="+deviceName,
+      JSON.stringify(filter),
+      { headers: { 'Content-Type': 'application/json' } }
+    )
+    .then(
+      res=>{
+        console.log('Response returned')
+        const myData = res.data;
+        console.log(myData.message);
+        setDialogResponseMessage('Component successfully deleted');
+        handleDeleteClose();
+        setResponseOpen(true);
+        getComponents(deviceName);
+    }).catch(error => {
+      setDialogResponseMessage('An error occured. Please try again');
+      handleDeleteClose();
+      setResponseOpen(true); 
+
+  })
+
+  }
 
 
   return (
     <div>
+      
       <h4 style={{color: "#3f51b5"}}><b>{deviceData.name} : {deviceData.channelID}</b></h4>
       
      
@@ -292,7 +563,29 @@ export default function DeviceView() {
             </CardHeader>
             {loaded? (
             <CardBody>
-               <Map 
+              {(deviceData.longitude==null) || (deviceData.longitude==0)?
+              <Map 
+              center={[1.3733, 32.2903]} 
+              zoom={13} 
+              scrollWheelZoom={false}
+              style = {{width: '90%', height: '250px', }}
+             //style={{ width: '30%', height: '250px', align:'center'}}
+             >
+              <TileLayer
+               url ="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+             /> 
+             {/*<Marker position={[deviceData.latitude, deviceData.longitude]}>
+             <Popup>
+              <span>
+              <span>
+                {/*{deviceData.name}
+                {deviceName}
+              </span>
+              </span>
+            </Popup>
+            </Marker>*/}
+            </Map>
+               :<Map 
                  center={[deviceData.latitude, deviceData.longitude]} 
                  zoom={13} 
                  scrollWheelZoom={false}
@@ -312,7 +605,7 @@ export default function DeviceView() {
                  </span>
                </Popup>
                </Marker>
-              </Map> 
+               </Map> }
             </CardBody>
       
          ):  
@@ -333,19 +626,6 @@ export default function DeviceView() {
 
           </Card>
         </GridItem>
-       {/*
-        <GridItem xs={12} sm={12} md={4}>
-          <Card>
-            <CardHeader color="primary">
-              <h4 className={classes.cardTitleWhite}>
-                
-              </h4>
-            </CardHeader>
-            <CardBody>
-             
-            </CardBody>
-          </Card>
-        </GridItem>*/}
          <GridItem xs={12} sm={12} md={4}>
           <Card>
             <CardHeader color="primary">
@@ -397,37 +677,14 @@ export default function DeviceView() {
             </CardHeader>
 
             <CardBody>
-               { /*
-              <PerfectScrollbar>
-          <MaterialTable
-            className = {classes.table}
-            //title="Device Registry"
-            columns={[
-             { title: 'Date', field: 'date'},
-             { title: 'Maintenance Done', field: 'activity' }, //should be channel ID
-      ]}   
-      data = {maintenanceData}  
-      options={{
-        exportButton: true,
-        showTitle: false,
-        headerStyle: {
-          //fontFamily: 'Open Sans',
-          fontSize: 16,
-          fontWeight: 600
-        },
-        pageSize: 5
-      }}
-    />
-        </PerfectScrollbar> */}
         <div alignContent = "left" style = {{alignContent:"left", alignItems:"left"}}>
             <TableContainer component={Paper} className = {classes.table}>  
              <Table stickyHeader  aria-label="sticky table" alignItems="left" alignContent="left">  
                <TableBody style = {{alignContent:"left", alignItems:"left"}} >  
-               
-               {maintenanceData.map( (log) => (
+                {maintenanceData.map( (log) => (
                  <TableRow style={{ align: 'left' }} >  
-                  <TableCell>{log.date}</TableCell>
-                  <TableCell>{log.activity}</TableCell>
+                  <TableCell>{formatDate(new Date(log.date))}</TableCell>
+                  <TableCell>{typeof log.tags=== 'string'? log.tags:log.tags.join(', ')}</TableCell>
                 </TableRow>))
                 }
                </TableBody>
@@ -439,37 +696,53 @@ export default function DeviceView() {
           </Card>
         </GridItem>
 
-       
-
-       {/*
-       <GridItem xs={12} sm={12} md={4}>
-          <Card>
-            <CardHeader color="primary">
-              <h4 className={classes.cardTitleWhite}>
-                
-              </h4>
-            </CardHeader>
-            <CardBody>
-             
-            </CardBody>
-          </Card>
-       </GridItem> */}
-
       <GridItem xs={12} sm={12} md={4}>
           <Card>
             <CardHeader color="info">
-              <h4 className={classes.cardTitle}>Device Online Status</h4>
+              <h4 className={classes.cardTitle}>Device Components</h4>
             </CardHeader>
             <CardBody>
+            <div alignContent = "left" style = {{alignContent:"left", alignItems:"left"}}>
+            <TableContainer component={Paper} className = {classes.table}>  
+             <Table stickyHeader  aria-label="sticky table" alignItems="left" alignContent="left">
+               <TableHead>
+                 <TableRow style={{ align: 'left' }} >  
+                  <TableCell>Description</TableCell>                  
+                  <TableCell>Quantities</TableCell>
+                  <TableCell>Actions</TableCell>
+                </TableRow>
+                 
+              </TableHead>  
+               <TableBody style = {{alignContent:"left", alignItems:"left"}} >  
+               {componentsData.map( (component) => (
+                 <TableRow style={{ align: 'left' }} >  
+                  <TableCell>{component.description}</TableCell>                  
+                  <TableCell>{jsonArrayToString(component.measurement)}</TableCell>
+                  <TableCell>
+                  
+                  <Tooltip title="Edit">
+                    <Link onClick= {handleEditComponentClick(deviceName, component.name, component.description, jsonArrayToString(component.measurement).split(", "))} style = {{"color":"black"}}>
+                    <EditOutlined> </EditOutlined> 
+                    </Link>
+                    </Tooltip>
+                  <Tooltip title="Delete">
+                    <Link onClick= {handleDeleteComponentClick(component.name)} style = {{"color":"black"}}>
+                    <DeleteOutlined> </DeleteOutlined> 
+                    </Link>
+                  </Tooltip>
+                  
+                  </TableCell>
+                </TableRow>))
+                }
+               </TableBody>
+            </Table>
+          </TableContainer>
+                
+              </div>
              
             </CardBody>
-            <CardFooter chart>
-              <div className={classes.stats}>
-                <AccessTime /> Last updated on {onlineStatusUpdateTime}
-              </div>
-            </CardFooter>
           </Card>
-  </GridItem> 
+          </GridItem> 
 
         <GridItem xs={12} sm={12} md={4}>
           <Card>
@@ -485,6 +758,152 @@ export default function DeviceView() {
           </Card>
         </GridItem>
       </GridContainer>
+
+      {responseOpen?
+    (
+      <Dialog
+      open={responseOpen}
+      onClose={handleResponseClose}
+      aria-labelledby="form-dialog-title"
+      aria-describedby="form-dialog-description"
+      >
+        <DialogContent>
+          {dialogResponseMessage}
+        </DialogContent> 
+        
+        <DialogActions>
+          <Grid container alignItems="center" alignContent="center" justify="center">
+            <Button 
+              variant="contained" 
+              color="primary"              
+              onClick={handleResponseClose}
+            > OK
+            </Button>
+          </Grid>
+        </DialogActions>
+    </Dialog>
+    ): null   
+  }
+
+{deleteOpen? (
+       
+       <Dialog
+           open={deleteOpen}
+           onClose={handleDeleteClose}
+           aria-labelledby="form-dialog-title"
+           aria-describedby="form-dialog-description"
+         >
+           <DialogTitle id="form-dialog-title" style={{alignContent:'center'}}>Delete a component</DialogTitle>
+           
+                <DialogContent>
+                  Are you sure you want to delete component {componentName} from device {deviceName}?
+                </DialogContent> 
+          
+                <DialogActions>
+                <Grid container alignItems="center" alignContent="center" justify="center">
+                 <Button 
+                  variant="contained" 
+                  color="primary"              
+                  onClick = {handleDeleteSubmit}
+                 > YES
+                </Button>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+               <Button 
+                variant="contained" 
+                color="primary"              
+                onClick = {handleDeleteClose}
+               > NO
+               </Button>
+               </Grid>
+           </DialogActions>
+         </Dialog>
+         ) : null}
+
+       {editComponentOpen? (
+       
+       <Dialog
+           open={editComponentOpen}
+           onClose={handleEditComponentClose}
+           aria-labelledby="form-dialog-title"
+           aria-describedby="form-dialog-description"
+           classes={{ paper: classes.paper}}
+           //style = {{ minWidth: "500px" }}
+         >
+           <DialogTitle id="form-dialog-title" style={{alignContent:'center'}}>Edit a component</DialogTitle>
+           <DialogContent>
+                <div>
+                  <TextField 
+                   id="deviceName" 
+                   label="Device Name"
+                   value = {deviceName}
+                   fullWidth={true}
+                   required
+                   //onChange={handleDeviceNameChange}
+                   /> <br/>
+
+                 <FormControl  required  fullWidth={true}>
+                  <InputLabel htmlFor="demo-dialog-native"> Component Name</InputLabel>
+                   <Select
+                    native
+                    value={sensorName}
+                    onChange={handleSensorNameChange}
+                    input={<Input id="demo-dialog-native" />}
+                   >
+                        <option aria-label="None" value="" />
+                        <option value="Alphasense OPC-N2">Alphasense OPC-N2</option>
+                        <option value="pms5003">pms5003</option>
+                        <option value="DHT11">DHT11</option>
+                        <option value="Lithium Ion 18650">Lithium Ion 18650</option>
+                        <option value="Generic">Generic</option>
+                        <option value="Purple Air II">Purple Air II</option>
+                        <option value="Bosch BME280">Bosch BME280</option>
+                      </Select>
+                   </FormControl><br/>
+
+
+                   <FormControl required className={classes.formControl} fullWidth = {true}>
+                      <InputLabel htmlFor="demo-dialog-native">Quantity Measured</InputLabel>
+                      <Select
+                        multiple
+                        value={quantityKind}
+                        onChange={handleQuantityKindChange}
+                        input={<Input />}
+                        renderValue={(selected) => selected.join(', ')}
+                        MenuProps={MenuProps}
+                      >
+                        <option aria-label="None" value="" />
+                        {quantityOptions.map((quantity) => (
+                          <MenuItem key={quantity} value={quantity}>
+                            <Checkbox checked={quantityKind.indexOf(quantity) > -1} />
+                            <ListItemText primary={quantity} />
+                            </MenuItem>
+                          ))}
+                      </Select>
+                  </FormControl><br/>
+                 </div>
+                 
+                  </DialogContent> 
+          
+                 <DialogActions>
+                 <Grid container alignItems="center" alignContent="center" justify="center">
+                 <Button 
+                  variant="contained" 
+                  color="primary"              
+                  onClick={handleEditComponentSubmit}
+                 > Update
+                </Button>
+               &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+               <Button 
+                variant="contained" 
+                color="primary"              
+                onClick = {handleEditComponentClose}
+               > Cancel
+               </Button>
+               </Grid>
+           </DialogActions>
+              
+         </Dialog>
+         ) : null}
 
      
     </div>
