@@ -5,8 +5,8 @@ import PropTypes from 'prop-types';
 import PerfectScrollbar from 'react-perfect-scrollbar';
 import axios from 'axios';
 import { Link } from "react-router-dom";
-import { makeStyles, mergeClasses } from '@material-ui/styles';
-import { Card, CardContent, Grid, Button, Dialog, DialogActions, DialogContent, DialogTitle, SvgIcon, Icon } from '@material-ui/core';
+import { makeStyles } from '@material-ui/styles';
+import { Card, CardContent, Grid, Button, Dialog, DialogActions, DialogContent, DialogTitle } from '@material-ui/core';
 import LoadingOverlay from 'react-loading-overlay';
 import constants from '../../../config/constants.js';
 import TextField from '@material-ui/core/TextField';  
@@ -16,18 +16,18 @@ import {
   KeyboardTimePicker,
   KeyboardDatePicker,
 } from '@material-ui/pickers';
-//import { AccessAlarm, ThreeDRotation } from '@material-ui/icons';
 import { Update, AddOutlined, EditOutlined, CloudUploadOutlined, UndoOutlined, PageviewOutlined, EventBusy } from '@material-ui/icons';
 import Tooltip from '@material-ui/core/Tooltip';
-//import Select from 'react-select';
 import Select from '@material-ui/core/Select';
 import FormControl from '@material-ui/core/FormControl';
 import Input from '@material-ui/core/Input';
 import InputLabel from '@material-ui/core/InputLabel';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Checkbox from '@material-ui/core/Checkbox';
-import CheckBoxIcon from '@material-ui/icons/CheckBox';
-import TextareaAutosize from '@material-ui/core/TextareaAutosize';
+import CreatableSelect from 'react-select/creatable';
+import MenuItem from '@material-ui/core/MenuItem';
+import ListItemText from '@material-ui/core/ListItemText';
+import Autocomplete from '@material-ui/lab/Autocomplete';
 
 const useStyles = makeStyles(theme => ({
   root: {},
@@ -49,7 +49,6 @@ const useStyles = makeStyles(theme => ({
   },
   link: {
     color: '#3344AA',
-    //color: 'black',
     fontFamily: 'Open Sans'
     },
     
@@ -58,8 +57,6 @@ const useStyles = makeStyles(theme => ({
   },
 formControl: {
   minWidth: 200,
-  //marginLeft: theme.spacing(2)
-  //margin: theme.spacing(2),
 },
 input: {
   color: 'black',
@@ -67,6 +64,9 @@ input: {
   fontweight:500,
   font: '100px',
   fontSize: 17
+},
+paper: { 
+  minWidth: "400px" 
 },
 
 }));
@@ -79,7 +79,7 @@ const MenuProps = {
   PaperProps: {
     style: {
       maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
-      width: 250,
+      width: 350,
     },
   },
 };
@@ -106,7 +106,6 @@ const MenuProps = {
     setISP('');
     setPhone(null);
     setDescription('');
-    //setComponents([]);
   };
 
   const [editOpen, setEditOpen] = useState(false);
@@ -125,7 +124,6 @@ const MenuProps = {
     setISP('');
     setPhone(null);
     setDescription('');
-    //setComponents([]);
   };
 
   const [maintenanceOpen, setMaintenanceOpen]= useState(false);
@@ -134,7 +132,10 @@ const MenuProps = {
   };
   const handleMaintenanceClose = () => {
     setMaintenanceOpen(false);
-    setMaintenanceDescription('');
+    setMaintenanceDescription([]);
+    setLocationID('');
+    setMaintenanceType('');
+    setSelectedDate(new Date());
   };
 
   const [deployOpen, setDeployOpen]= useState(false);
@@ -173,6 +174,9 @@ const MenuProps = {
   };
   const handleSensorClose = () => {
     setSensorOpen(false);
+    setDeviceName('');
+    setSensorName('');
+    setQuantityKind([]);
   }
 
   const [responseOpen, setResponseOpen] = useState(false);
@@ -184,71 +188,171 @@ const MenuProps = {
   };
 
   const [hasError, setHasError] = useState(false); 
-
-
   //maintenance log parameters
+  const maintenanceOptions = [
+    "Dust blowing and sensor cleaning",
+    "Site update check",
+    "Device equipment check",
+    "Power circuitry and components works",
+    "GPS module works/replacement",
+    "GSM module works/replacement",
+    "Battery works/replacement",
+    "Power supply works/replacement",
+    "Antenna works/replacement",
+    "Mounts replacement",
+    "Software checks/re-installation",
+    "PCB works/replacement",
+    "Temp/humidity sensor works/replacement",
+    "Air quality sensor(s) works/replacement"
+  ];
+
   const [deviceName, setDeviceName] = useState('');
-  const [maintenanceDescription, setMaintenanceDescription] = useState('');
+  const [maintenanceType, setMaintenanceType] = useState('');
+  const handleMaintenanceTypeChange = type =>{
+    setMaintenanceType(type.target.value);
+    if (type.target.value == 'preventive'){
+      setMaintenanceDescription(["Dust blowing and sensor cleaning","Site update check","Device equipment check",])
+    }
+    else{
+      setMaintenanceDescription([]);
+    }
+  }
+  //const [maintenanceDescription, setMaintenanceDescription] = useState('');
+  const [maintenanceDescription, setMaintenanceDescription] = useState([]);
   const handleMaintenanceDescriptionChange = description => {
     setMaintenanceDescription(description.target.value);
   } 
+
   const [selectedDate, setSelectedDate] = useState(new Date());
   const handleDateChange = (date) => {
     setSelectedDate(date);
   };
   //sensor parameters
+  const quantityOptions = ["PM 1(µg/m3)", "PM 2.5(µg/m3)", "PM 10(µg/m3)", "External Temperature(\xB0C)", 
+  "External Temperature(\xB0F)", "External Humidity(%)", "Internal Temperature(\xB0C)", "Internal Humidity(%)", 
+  "Battery Voltage(V)", "GPS"];
+
+  const convertQuantityOptions= (myArray) => {
+    let newArray = [];
+    for (let i=0; i<myArray.length; i++){
+      if (myArray[i]=="PM 1(µg/m3)"){
+        newArray.push({"quantityKind":"PM 1", "measurementUnit":"µg/m3"})
+      }
+      else if (myArray[i]=="PM 2.5(µg/m3)"){
+        newArray.push({"quantityKind":"PM 2.5", "measurementUnit":"µg/m3"})
+      }
+      else if (myArray[i]=="PM 10(µg/m3)"){
+        newArray.push({"quantityKind":"PM 10", "measurementUnit":"µg/m3"})
+      }
+      else if (myArray[i]=="External Temperature(\xB0C)"){
+        newArray.push({"quantityKind":"External Temperature", "measurementUnit":"\xB0C"})
+      }
+      else if (myArray[i]=="External Temperature(\xB0F)"){
+        newArray.push({"quantityKind":"External Temperature", "measurementUnit":"\xB0F"})
+      }
+      else if (myArray[i]=="External Humidity(%)"){
+        newArray.push({"quantityKind":"External Humidity", "measurementUnit":"%"})
+      }
+      else if (myArray[i]=="Internal Temperature(\xB0C)"){
+        newArray.push({"quantityKind":"Internal Temperature", "measurementUnit":"\xB0C"})
+      }
+      else if (myArray[i]=="Internal Humidity(%)"){
+        newArray.push({"quantityKind":"Internal Humidity", "measurementUnit":"%"})
+      }
+      else if (myArray[i]=="Battery Voltage(V)"){
+        newArray.push({"quantityKind":"Battery Voltage", "measurementUnit":"V"})
+      }
+      else if (myArray[i]=="GPS"){
+        newArray.push({"quantityKind":"GPS", "measurementUnit":"coordinates"})
+      }
+      else{
+        newArray.push({"quantityKind":"unknown", "measurementUnit":"unknown"})
+      }
+     
+    }
+    return newArray;
+  }
+
+  function getStyles(name, personName, theme) {
+    return {
+      fontWeight:
+        personName.indexOf(name) === -1
+          ? theme.typography.fontWeightRegular
+          : theme.typography.fontWeightMedium,
+    };
+  }
+
   const [sensorID, setSensorID] = useState('');
   const handleSensorIDChange = id => {
     setSensorID(id.target.value);
-  } 
+  }                       
   const [sensorName, setSensorName] = useState('');
-  const handleSensorNameChange = name => {
+  const handleSensorNameChange = name =>{
     setSensorName(name.target.value);
-  } 
+    if (name.target.value == 'Alphasense OPC-N2'){
+      setQuantityKind(["PM 1(µg/m3)", "PM 2.5(µg/m3)", "PM 10(µg/m3)"])
+    }
+    else if (name.target.value == 'pms5003'){
+      setQuantityKind(["PM 2.5(µg/m3)", "PM 10(µg/m3)"])
+    }
+    else if (name.target.value == 'DHT11'){
+      setQuantityKind(["Internal Temperature(\xB0C)", "Internal Humidity(%)"])
+    }
+    else if (name.target.value == 'Lithium Ion 18650'){
+      setQuantityKind(["Battery Voltage(V)"])
+    }
+    else if (name.target.value == 'Generic'){
+      setQuantityKind(["GPS"])
+    }
+    else if (name.target.value == 'Purple Air II'){
+      setQuantityKind(["PM 1(µg/m3)"])
+    }
+    else if (name.target.value == 'Bosch BME280'){
+      setQuantityKind(["External Temperature(\xB0C)", "External Humidity(%)"])
+    }
+    else{
+      setQuantityKind([]);
+    }
+  }
   const [quantityKind, setQuantityKind] = useState([]);
   
   const handleQuantityKindChange = quantity => {
+    console.log(quantity.target.value);
     setQuantityKind(quantity.target.value);
   } 
-  
+
+    
+  const getQuantityName = (name, quantityOptions) =>{
+    for (let i=0; i<quantityOptions.length; i++){
+      if (quantityOptions[i].name===name){
+        return quantityOptions[i].name
+      } 
+    }
+    return "";
+  }
   const [measurementUnit, setMeasurementUnit] = useState([]);
   const handleMeasurementUnitChange = unit => {
     setMeasurementUnit(unit.target.value);
   }
-  /*
-  const handleMeasurementUnitChange = (event) => {
-    const { options } = event.target;
-    const value = [];
-    for (let i = 0, l = options.length; i < l; i += 1) {
-      if (options[i].selected) {
-        value.push(options[i].value);
-      }
-    }
-    //setPersonName(value);
-    setMeasurementUnit(value);
-  }*/
   
   //deployment parameters
   const [recallDate, setRecallDate] = useState(new Date());
   const [locationsOptions, setLocationsOptions] = useState([]);
   
   useEffect(() => {
-    //code to retrieve all locations' data
-    //setIsLoading(true);
     axios.get(
-      //'http://127.0.0.1:4001/api/v1/device/monitor/devices'
       constants.ALL_LOCATIONS_URI
     )
     .then(
       res=>{
-        //setIsLoading(false);
         const ref = res.data;
         console.log(ref);
         let locationArray = [];
         for (var i=0; i<ref.length; i++){
-          //pass
-          locationArray.push(ref[i].loc_ref)
+          locationArray.push({"loc_ref":ref[i].loc_ref, "loc_name":ref[i].location_name, "loc_desc":ref[i].description})
         }
+        console.log("location array");
+        console.log(locationArray);
         setLocationsOptions(locationArray);
 
     }).catch(
@@ -266,8 +370,6 @@ const MenuProps = {
     .then(
       res => {
         const ref = res.data;
-        //console.log('Latitude:'+ref.latitude.toString())
-        //console.log('Longitude:'+ref.longitude.toString())
         setLatitude(ref.latitude);
         setLongitude(ref.longitude);
       }
@@ -278,9 +380,12 @@ const MenuProps = {
   const [locationID, setLocationID] = useState('');
   const handleLocationIDChange = (event) => {
     let myLocation = event.target.value;
+    console.log('changing location');
+    console.log(myLocation);
     setLocationID(myLocation);
     locationCoordinates(myLocation);
     console.log('Getting devices in location '+myLocation)
+    console.log(constants.DEVICES_IN_LOCATION_URI+myLocation)
     axios.get(
       constants.DEVICES_IN_LOCATION_URI+myLocation
     )
@@ -288,6 +393,7 @@ const MenuProps = {
       res=>{
         const ref = res.data;
         console.log(ref);
+      
         let devicesArray = [];
         if (ref.length != 0){
           for (var i=0; i<ref.length; i++){
@@ -342,23 +448,16 @@ const MenuProps = {
   const [sensorsOptions, setSensorsOptions] = useState([]);
   
   useEffect(() => {
-    //code to retrieve all sensors' data
-    //setIsLoading(true);
     axios.get(
-      //'http://127.0.0.1:4001/api/v1/device/monitor/devices'
       constants.ALL_SENSORS_URI
     )
     .then(
       res=>{
-        //setIsLoading(false);
         const ref = res.data;
         console.log(ref);
-        //console.log(ref[0].sensorID)
         let sensorArray = [];
         for (var i=0; i<ref.length; i++){
-          //pass
           sensorArray.push(ref[i]);
-          //sensorArray.push(ref[i].name+ " ( "+ ref[i].quantityKind.join(', ')+ ")")
         }
         setSensorsOptions(sensorArray);
 
@@ -417,33 +516,11 @@ const MenuProps = {
       setPhone(event.target.value);
     }
   }
-/*
-  const [components, setComponents] = useState([]);
-  const handleComponentsChange = (event) => {
-	  setComponents(event.target.value);
-  }*/
-  
-  /*
-  const handleChangeMultiple = (event) => {
-    const { options } = event.target;
-    const value = [];
-    for (let i = 0, l = options.length; i < l; i += 1) {
-      if (options[i].selected) {
-        value.push(options[i].value);
-      }
-    }
-    //setPersonName(value);
-    setComponents(value);
-  };*/
 
   useEffect(() => {
-    //code to retrieve all devices' data
-    setIsLoading(true);
+    console.log('Getting devices ..');
     axios.get(
-      //'http://127.0.0.1:4001/api/v1/device/monitor/devices'
-      //"http://127.0.0.1:3000/api/v1/devices"
       constants.ALL_DEVICES_URI
-      //constants.ALL_LOCATIONS_URI
     )
     .then(
       res=>{
@@ -457,12 +534,7 @@ const MenuProps = {
       console.log
     )
   }, []);
-/*
-  let handleMaintenanceClick = (e) => {
-    e.preventDefault();
-    //setDeviceName(rowData.airqo_ref);
-    handleMaintenanceOpen();
-  }*/
+ 
 
   function appendLeadingZeroes(n) {
     if (n <= 9) {
@@ -472,9 +544,6 @@ const MenuProps = {
   }
 
   let formatDate = (date) => {
-    //setDate(new Date());
-    //setDate(new Date());
-    //let newTime = new Date();
     let time = appendLeadingZeroes(date.getDate()) +
     '-' +
     appendLeadingZeroes(date.getMonth() + 1) +
@@ -482,7 +551,6 @@ const MenuProps = {
     date.getFullYear()
 
     return time;
-    //setDate(time);
    }
   
   let handleEditClick = (name, manufacturer,product, owner, description, visibility, ISP, lat, long, phone, channelID) => {
@@ -504,10 +572,11 @@ const MenuProps = {
     }
   }
 
-  let handleMaintenanceClick = (name) => {
+  let handleMaintenanceClick = (name, location) => {
     return (event) => {
       console.log(name);
       setDeviceName(name);
+      setLocationID(location);
       handleMaintenanceOpen();
     }
   }
@@ -525,17 +594,16 @@ const MenuProps = {
   let handleDeployClick = (name) => {
     return (event) => {
       console.log('Deploying '+name);
-      //console.log(name);
       setDeviceName(name);
       handleDeployOpen();
     }
   }
 
-  let handleSensorClick = (id) => {
+  let handleSensorClick = (name) => {
     return (event) => {
-      console.log('Adding sensors to channel '+id);
-      //console.log(name);
-      setDeviceID(id);
+      console.log('Adding sensors to channel '+name);
+      setDeviceName(name);
+      //setDeviceID(id);
       handleSensorOpen();
     }
   }
@@ -568,11 +636,9 @@ const MenuProps = {
         console.log('Response returned')
         const myData = res.data;
         console.log(myData.message);
-        setDialogResponseMessage(myData.message);
-        //setDeployOpen(false);
+        setDialogResponseMessage('Device successfully deployed');
         handleDeployClose();
         setResponseOpen(true);
-        //setMaintenanceDescription('');*/
     }).catch(error => {
       console.log(error.message)
       setDialogResponseMessage('Device already deployed');
@@ -580,25 +646,23 @@ const MenuProps = {
       setResponseOpen(true);
 
   })
-    //setDialogResponseMessage('Deployment already carried out for this device');
-      //handleDeployClose();
-      //setResponseOpen(true);
   }
   
   let  handleMaintenanceSubmit = (e) => {
-    //e.preventDefault();
-    //setDialogLoading(true);
-
-    let filter ={ 
-      unit: deviceName,
-      activity:  maintenanceDescription,
-	    date: selectedDate.toString(),  
+      let filter ={ 
+      deviceName: deviceName,
+      locationName: locationID,
+      description: maintenanceType,
+      tags:  maintenanceDescription,  
+      date:selectedDate
     }
+    console.log('logging maintenance..');
+    console.log('location ID '+locationID);
+    console.log(constants.DEPLOY_DEVICE_URI+"maintain")
     console.log(JSON.stringify(filter));
     
     axios.post(
-      //"http://localhost:3000/api/v1/data/channels/maintenance/add",
-      constants.ADD_MAINTENANCE_URI,
+      constants.DEPLOY_DEVICE_URI+"maintain",
       JSON.stringify(filter),
       { headers: { 'Content-Type': 'application/json' } }
     )
@@ -606,13 +670,16 @@ const MenuProps = {
       res=>{
         const myData = res.data;
         console.log(myData.message);
-        setDialogResponseMessage(myData.message);
-        //setMaintenanceOpen(false);
+        setDialogResponseMessage('Maintenance log updated');
         handleMaintenanceClose();
         setResponseOpen(true);
-    }).catch(
-      console.log
-    )
+    }).catch(error => {
+      console.log(error.message)
+      setDialogResponseMessage('An error occured. Please try again');
+      handleMaintenanceClose();
+      setResponseOpen(true);
+
+  })
   }
 
   let handleRecallSubmit = (e) => {
@@ -625,8 +692,6 @@ const MenuProps = {
     console.log(JSON.stringify(filter));
     console.log(constants.DEPLOY_DEVICE_URI+"recall",);
 
-    
-    
     axios.post(
       constants.DEPLOY_DEVICE_URI+"recall",
       JSON.stringify(filter),
@@ -637,22 +702,16 @@ const MenuProps = {
         console.log('Response returned')
         const myData = res.data;
         console.log(myData.message);
-        setDialogResponseMessage(myData.message);
+        setDialogResponseMessage('Device successfully recalled');
         handleRecallClose();
-        //setRecallOpen(false);
         setResponseOpen(true);
     }).catch(error => {
-      //console.log(error.message)
       setDialogResponseMessage('Device is not deployed in any location');
       handleRecallClose();
       setResponseOpen(true);
       
 
   })
-    /*
-    setDialogResponseMessage('This device was already recalled');
-      handleRecallClose();
-      setResponseOpen(true);*/
 
   }
 
@@ -662,19 +721,17 @@ const MenuProps = {
       name: registerName,
       latitude: latitude,
       longitude: longitude,
-      visibility: visibility,
+      visibility: (visibility =="true"),
       device_manufacturer: manufacturer,
       product_name:productName,
       owner: owner,
       ISP: ISP,
       phoneNumber: phone,
       description: description,
-      //sensors: components
     }
     console.log(JSON.stringify(filter));
    
     axios.post(
-      //"http://127.0.0.1:3000/api/v1/devices/ts",
       constants.REGISTER_DEVICE_URI,
       JSON.stringify(filter),
       { headers: { 'Content-Type': 'application/json' } },
@@ -684,13 +741,16 @@ const MenuProps = {
         console.log('RESPONSE');
         const myData = res.data;
         console.log(myData.message);
-        setDialogResponseMessage(myData.message);
-        //setRegisterOpen(false);
+        setDialogResponseMessage('Device successfully registered')
         handleRegisterClose();
         setResponseOpen(true);
-    }).catch(
-      console.log
-    )
+    }).catch(error => {
+        console.log(error.message)
+        setDialogResponseMessage('An error occured. Please check your inputs and try again');
+        handleRegisterClose();
+        setResponseOpen(true);
+  
+    })
   }
 
   let handleEditSubmit = (e) => {
@@ -699,19 +759,19 @@ const MenuProps = {
       name: registerName,
       latitude: latitude.toString(),
       longitude: longitude.toString(),
-      visibility: visibility,
+      visibility: (visibility =="true"),
       device_manufacturer: manufacturer,
       product_name:productName,
       owner: owner,
       ISP: ISP,
       phoneNumber: phone,
       description: description,
-      //sensors:components
     }
+    console.log(constants.EDIT_DEVICE_URI+registerName);
     console.log(JSON.stringify(filter));
+  
     axios.put(
-      //"http://127.0.0.1:3000/api/v1/devices/ts/update?device=",
-      constants.EDIT_DEVICE_URI+deviceID.toString(),
+      constants.EDIT_DEVICE_URI+registerName,
       JSON.stringify(filter),
       { headers: { 'Content-Type': 'application/json' } }
     )
@@ -719,55 +779,53 @@ const MenuProps = {
       res=>{
         const myData = res.data;
         console.log(myData.message);
-        setDialogResponseMessage(myData.message);
-        //setEditOpen(false);
+        setDialogResponseMessage('Device successfully updated')
         handleEditClose();
-        setResponseOpen(true);
-
-        
-    }).catch(
-      console.log
-    )
+        setResponseOpen(true);  
+    }).catch(error => {
+      console.log(error.message)
+      setDialogResponseMessage('An error occured. Please check your inputs and try again');
+      handleEditClose();
+      setResponseOpen(true);
+  })
   }
 
   let handleSensorSubmit = (e) => {
-    console.log('Adding sensor ...');
+    console.log('Quantity Kind');
+    console.log(quantityKind);
     let filter = {
-      device: deviceID,
-      sensorID: sensorID,
-      quantityKind: quantityKind,
-      measurementUnit: measurementUnit
+      description:sensorName, //e.g. pms5003
+      measurement: convertQuantityOptions(quantityKind),//e.g. [{"quantityKind":"humidity", "measurementUnit":"%"}]
     }
     console.log(JSON.stringify(filter));
-    /*
+    console.log(constants.ADD_COMPONENT_URI+deviceName);
+    
     axios.post(
-      "http://localhost:3000/api/v1/data/channels/maintenance/add"
-      //constants.ADD_MAINTENANCE_URI,
+      constants.ADD_COMPONENT_URI+deviceName,
       JSON.stringify(filter),
       { headers: { 'Content-Type': 'application/json' } }
     )
     .then(
       res=>{
-        setIsLoading(false);
         const myData = res.data;
-        console.log(myData);
         console.log(myData.message);
-        setDialogMessage(myData.message);
-        setDialogStatus(true);
-    }).catch(
-      console.log
-    )*/
+        setDialogResponseMessage('Component successfully added');
+        handleSensorClose();
+        setResponseOpen(true);
+    }).catch(error => {
+      console.log(error.message)
+      setDialogResponseMessage('An error occured. Please try again');
+      handleSensorClose();
+      setResponseOpen(true);
 
+  })
   }
 
 
   return (
     <div className={classes.root}>
       <br/>
-    
-      {/*<div alignContent ="right">*/}
       <Grid container alignItems="right" alignContent="right" justify="center">
-    {/*<Link >*/}
      <Button 
           variant="contained" 
           color="primary"              
@@ -776,9 +834,7 @@ const MenuProps = {
           onClick={handleRegisterOpen}
         > Add Device
         </Button>
-    {/* </Link> */}
      </Grid>
-     {/*</div> */} 
       <br/>
 
     <LoadingOverlay
@@ -796,9 +852,14 @@ const MenuProps = {
             className = {classes.table}
             title="Device Registry"
             columns={[
-             { title: 'Device Name', field: 'name',
-             render: rowData => <Link className={classes.link} to={`/device/${rowData.channelID}`}>{rowData.name}</Link>,
-              cellStyle:{ fontFamily: 'Open Sans'} },
+             { title: 'Device Name', field: 'name', cellStyle:{ fontFamily: 'Open Sans'},
+             render: rowData => {
+               return (
+                 rowData.isActive?
+                   <Link className={classes.link} to={`/device/${rowData.channelID}`}>{rowData.name}</Link>:
+                   <p>{rowData.name}</p>
+               );
+             }},
              { title: 'Description', field: 'description', cellStyle:{ fontFamily: 'Open Sans'} },
              { title: 'Device ID', field: 'channelID', cellStyle:{ fontFamily: 'Open Sans'} }, //should be channel ID
              { title: 'Registration Date', 
@@ -806,101 +867,86 @@ const MenuProps = {
                cellStyle:{ fontFamily: 'Open Sans'},
                render: rowData => formatDate(new Date(rowData.createdAt))
              },
-             { title: 'Location ID', 
-               //field: 'location_id', 
+             { title: 'Location ID',  
                field: 'locationID',
                cellStyle:{ fontFamily: 'Open Sans'},
                render: rowData => <Link className={classes.link} to={`/locations/${rowData.locationID}`}>{rowData.locationID}</Link>
              },
-             
-             
-            // { title: 'Location ID', field: 'location_id', cellStyle:{ fontFamily: 'Open Sans'} },
              { title: 'Actions',
-               //field: '', 
-               cellStyle: {fontFamily: 'Open Sans'},
-               //render: rowData => <Link className={classes.link} onClick={handleMaintenanceClick(rowData.airqo_ref)}> Update Maintenance log </Link>,
-               render: rowData => <div>
+               render: rowData => {
+                 return(
+                   <div>
+                    {rowData.isActive?
+                      <Tooltip title="View Device Details">                                   
+                        <Link className={classes.link} to={`/device/${rowData.channelID}`}>                                                                               
+                          <PageviewOutlined></PageviewOutlined>
+                        </Link> 
+                      </Tooltip>:
+                      <Tooltip title="Link disabled for inactive device">                                                                                                    
+                        <PageviewOutlined></PageviewOutlined>
+                      </Tooltip>
+                     } &nbsp;&nbsp;
+                      <Tooltip title="Edit a device">
+                        <Link 
+                        className={classes.link} 
+                        onClick = {handleEditClick(rowData.name, rowData.device_manufacturer, rowData.product_name, 
+                        rowData.owner, rowData.description, rowData.visibility.toString(), rowData.ISP, rowData.latitude,
+                        rowData.longitude, rowData.phoneNumber, rowData.channelID)}
+                        > 
+                          <EditOutlined></EditOutlined>
+                        </Link> 
+                      </Tooltip>
+                      &nbsp;&nbsp;&nbsp;
 
-                                     <Tooltip title="View Device Details">                                   
-                                      <Link className={classes.link} to={`/device/${rowData.channelID}`}>                                                                               
-                                      <PageviewOutlined></PageviewOutlined>
-                                      </Link> 
-                                    </Tooltip>
-                                    &nbsp;&nbsp;&nbsp;
+                      {rowData.isActive?
+                      <Tooltip title="Update Maintenance Log">
+                      <Link
+                      className={classes.link} 
+                      onClick = {handleMaintenanceClick(rowData.name, rowData.locationID)}
+                      > 
+                        <Update></Update>
+                      </Link> 
+                    </Tooltip>:
+                      <Tooltip title="Link disabled for inactive device">                                                                                                    
+                        <Update></Update>
+                      </Tooltip>
+                     } &nbsp;&nbsp;
 
-                                    <Tooltip title="Edit a device">
-                                      
-                                      <Link 
-                                        className={classes.link} 
-                                        onClick = {handleEditClick(rowData.name, rowData.device_manufacturer, rowData.product_name, 
-                                          rowData.owner, rowData.description, rowData.visibility, rowData.ISP, rowData.latitude,
-                                          rowData.longitude, rowData.phoneNumber, rowData.channelID)}
-                                        //style={{color: 'black'}} 
-                                        //activeStyle={{color: 'red'}}
-                                      > 
-                                        <EditOutlined></EditOutlined>
-                                      </Link> 
-                                    </Tooltip>
-                                    &nbsp;&nbsp;&nbsp;
-
-                                   
-                                    <Tooltip title="Update Maintenance Log">
-                                      
-                                      <Link 
-                                        className={classes.link} 
-                                        onClick = {handleMaintenanceClick(rowData.name)}
-                                        //style={{color: 'black'}} 
-                                        //activeStyle={{color: 'red'}}
-                                      > 
-                                        <Update></Update>
-                                      </Link> 
-                                    </Tooltip>
-                                    &nbsp;&nbsp;&nbsp;
-
-                                    <Tooltip title="Deploy Device">
-                                      <Link 
-                                        className={classes.link} 
-                                        onClick = {handleDeployClick(rowData.name)}
-                                      > 
-                                      <CloudUploadOutlined></CloudUploadOutlined>
-                                        {/*Deploy
-                                    
-                                        <Icon>
-                                          <img  src="../../../../assets/img/icons/deploy.svg"/>
-                                        </Icon>
-                                          */}
-                                      </Link>
-                                    </Tooltip>
-                                    &nbsp;&nbsp;&nbsp;
-
-                                    <Tooltip title="Recall Device">
-                                      <Link 
-                                        className={classes.link} 
-                                        onClick = {handleRecallClick(rowData.name, rowData.locationID)}
-                                      > 
-                                        <UndoOutlined></UndoOutlined>
-                                      </Link>
-                                    </Tooltip>
-
-                                    &nbsp;&nbsp;&nbsp;
-
-                                    <Tooltip title="Add Component">
-                                      <Link 
-                                        className={classes.link} 
-                                        onClick = {handleSensorClick(rowData.channelID)}
-                                      > 
-                                        <AddOutlined></AddOutlined>
-                                      </Link>
-                                    </Tooltip>
-                                    {/*
-                                    <Link 
-                                      className={classes.link} 
-                                      onClick = {handleDeployClick(rowData.airqo_ref)}
-                                    > 
-                                    Deploy 
-                                        </Link>*/}
-                                    </div>
+                      <Tooltip title="Deploy Device">
+                        <Link 
+                        className={classes.link} 
+                        onClick = {handleDeployClick(rowData.name)}
+                        > 
+                          <CloudUploadOutlined></CloudUploadOutlined>
+                        </Link>
+                      </Tooltip>
+                      &nbsp;&nbsp;
+                      {rowData.isActive?
+                      <Tooltip title="Recall Device">
+                      <Link 
+                      className={classes.link} 
+                      onClick = {handleRecallClick(rowData.name, rowData.locationID)}
+                      > 
+                        <UndoOutlined></UndoOutlined>
+                      </Link>
+                    </Tooltip>:
+                      <Tooltip title="Link disabled for inactive device">                                                                                                    
+                        <UndoOutlined></UndoOutlined>
+                      </Tooltip>
+                     } &nbsp;&nbsp;
+                    
+                      <Tooltip title="Add Component">
+                        <Link 
+                        className={classes.link} 
+                        onClick = {handleSensorClick(rowData.name)}
+                        > 
+                          <AddOutlined></AddOutlined>
+                        </Link>
+                      </Tooltip>
+                    </div>
+                                    )
             },
+          }
       ]}   
       data = {data}  
       options={{
@@ -968,31 +1014,49 @@ const MenuProps = {
 
            
            <DialogContent>
-                <div>
+                <div style ={{width:300}}>
                  <TextField 
                    id="deviceName" 
                    label="Device Name"
                    value = {deviceName}
+                   fullWidth = {true}
                    /> <br/>
-                   
-                 <TextField 
-                   id="standard-basic" 
-                   label="Description" 
-                   value = {maintenanceDescription}
-                   onChange = {handleMaintenanceDescriptionChange}
-                   /><br/>
-              {/*}
-                <TextareaAutosize
-                  id = "maintenanceDescription"
-                  label = "Description"
-                  value = {maintenanceDescription}
-                  onChange = {handleMaintenanceDescriptionChange}
-                  rowsMin={3}
-                  //placeholder="Maximum 4 rows"
-                  />*/}
+                   <FormControl required className={classes.formControl} fullWidth = {true}>
+                      <InputLabel htmlFor="demo-dialog-native">Type of Maintenance</InputLabel>
+                      <Select
+                        native
+                        value={maintenanceType}
+                        onChange={handleMaintenanceTypeChange}
+                        input={<Input id="demo-dialog-native" />}
+                      >
+                        <option aria-label="None" value="" />
+                        <option value="preventive">Preventive</option>
+                        <option value="corrective">Corrective</option>
+                      </Select>
+                  </FormControl><br/>
+                  <FormControl required className={classes.formControl} fullWidth = {true}>
+                      <InputLabel htmlFor="demo-dialog-native">Description of Activities</InputLabel>
+                      <Select
+                        multiple
+                        value={maintenanceDescription}
+                        onChange={handleMaintenanceDescriptionChange}
+                        input={<Input />}
+                        renderValue={(selected) => selected.join(', ')}
+                        MenuProps={MenuProps}
+                      >
+                       <option aria-label="None" value="" />
+                       {maintenanceOptions.map((name) => (
+                        <MenuItem key={name} value={name}>
+                          <Checkbox checked={maintenanceDescription.indexOf(name) > -1} />
+                          <ListItemText primary={name} />
+                        </MenuItem>
+                       ))}
+                      </Select>
+                  </FormControl><br/>
 
-                 <MuiPickersUtilsProvider utils={DateFnsUtils}>
-                  <KeyboardDatePicker
+                 <MuiPickersUtilsProvider utils={DateFnsUtils} fullWidth = {true}>
+                  <KeyboardDatePicker 
+                    fullWidth = {true}
                     disableToolbar
                     variant="inline"
                     //format="MM/dd/yyyy"
@@ -1023,7 +1087,6 @@ const MenuProps = {
                <Button 
                 variant="contained" 
                 color="primary"              
-                //type="button"
                 onClick = {handleMaintenanceClose}
                > Cancel
                </Button>
@@ -1051,21 +1114,22 @@ const MenuProps = {
                      label="Device Name"
                      value = {deviceName}
                      required
+                     fullWidth = {true} 
                    /> 
                  </Grid>
-                {/* {devicesLoading?(*/}
                  <Grid item xs={6}>
                     <TextField 
                       id="standard-basic" 
                       label="height" 
                       value = {height}
                       onChange = {handleHeightChange}
+                      fullWidth = {true} 
                     />
-                 </Grid> {/*): null }*/}
+                 </Grid> 
                 </Grid>
                 <Grid container item xs={12} spacing={3}>
                  <Grid item xs={6}>
-                   <FormControl required className={classes.formControl}>
+                   <FormControl required className={classes.formControl} fullWidth = {true} >
                      <InputLabel htmlFor="demo-dialog-native">Location ID</InputLabel>
                      <Select
                        native
@@ -1073,19 +1137,22 @@ const MenuProps = {
                        value={locationID}
                        onChange={handleLocationIDChange}
                        input={<Input id="demo-dialog-native" />}
-                       required
+                      
                      > 
                        <option aria-label="None" value="" />
-                       {locationsOptions.map( (loc_id) =>
-                       <option value={loc_id}>{loc_id}</option>)}
+                       {locationsOptions.map( (location) => 
+                       (location.loc_name=="")||(location.loc_name==null)?
+                       <option value={location.loc_ref}>{location.loc_ref}: {location.loc_desc}</option>:
+                       <option value={location.loc_ref}>{location.loc_ref}: {location.loc_name}</option>
+                       
+                       )}
                      </Select>
                    </FormControl>
                        <h6 style = {{fontSize:14}}><b>{devicesLabel}</b></h6>
                   </Grid>
-                  {/*{devicesLoading?(*/}
                     
                   <Grid item xs={6}>
-                    <FormControl className={classes.formControl}>
+                    <FormControl className={classes.formControl} fullWidth = {true} >
                       <InputLabel htmlFor="demo-dialog-native">Power Type</InputLabel>
                       <Select
                         native
@@ -1099,9 +1166,8 @@ const MenuProps = {
                         <option value="Battery">Battery</option>
                       </Select>
                     </FormControl>
-                   </Grid> {/*}): null }*/}
+                   </Grid> 
                   </Grid>
-                  {/*{devicesLoading?(*/}
                     <div>
                   <Grid container item xs={12} spacing={3}>
                     <Grid item xs={6}>
@@ -1110,16 +1176,15 @@ const MenuProps = {
                         label="Installation Type" 
                         value = {installationType}
                         onChange = {handleInstallationTypeChange}
+                        fullWidth = {true} 
                         />
                       </Grid>
                       <Grid item xs={6}>
                         <MuiPickersUtilsProvider utils={DateFnsUtils}>
                           <KeyboardDatePicker
+                            fullWidth = {true} 
                             disableToolbar
-                            //variant="inline"
-                            //format="MM/dd/yyyy"
                             format = "yyyy-MM-dd"
-                            //margin="normal"
                             id="deploymentDate"
                             label="Date of Deployment"
                             value={deploymentDate}
@@ -1157,11 +1222,10 @@ const MenuProps = {
                         } 
                       label="This deployment is a formal collocation"
                       />
-                    </Grid> </div> {/*}): null }*/}
+                    </Grid> </div> 
                   </Grid>
                 </DialogContent> 
           
-                {/*{devicesLoading?(*/}
                 <DialogActions>
                 <Grid container alignItems="center" alignContent="center" justify="center">
                  <Button 
@@ -1174,15 +1238,14 @@ const MenuProps = {
                <Button 
                 variant="contained" 
                 color="primary"              
-                //type="button"
                 onClick = {handleDeployClose}
                > Cancel
                </Button>
                </Grid>
-           </DialogActions> {/*}): null }*/}
+           </DialogActions> 
          </Dialog>
          ) : null}
-        {recallOpen? (
+  {recallOpen? (
        
        <Dialog
            open={recallOpen}
@@ -1202,7 +1265,6 @@ const MenuProps = {
                  <Button 
                   variant="contained" 
                   color="primary"              
-                  //onClick={handleRecallSubmit}
                   onClick = {handleRecallSubmit}
                  > YES
                 </Button>
@@ -1210,7 +1272,6 @@ const MenuProps = {
                <Button 
                 variant="contained" 
                 color="primary"              
-                //type="button"
                 onClick = {handleRecallClose}
                > NO
                </Button>
@@ -1230,10 +1291,7 @@ const MenuProps = {
            <DialogTitle id="form-dialog-title">Add a device</DialogTitle>
 
            <DialogContent>
-              {/*<div>*/}
-              <form className={classes.formControl}> {/*onSubmit={handleRegisterSubmit}*/}
-                {/*<Grid container>
-                 <Grid container item>*/}
+              <form className={classes.formControl}> 
                  <TextField 
                    required
                    id="deviceName" 
@@ -1256,7 +1314,6 @@ const MenuProps = {
                    value = {manufacturer}
                    onChange = {handleManufacturerChange}
                    fullWidth = {true}
-                  // required
                    /><br/>
                    <TextField 
                    id="standard-basic" 
@@ -1264,7 +1321,6 @@ const MenuProps = {
                    value = {productName}
                    onChange = {handleProductNameChange}
                    fullWidth = {true}
-                   //required
                    /><br/>
                    <TextField 
                    id="standard-basic" 
@@ -1283,7 +1339,7 @@ const MenuProps = {
                    required
                    /><br/>
                    <FormControl required  fullWidth={true}>
-                      <InputLabel htmlFor="demo-dialog-native"> Visibility</InputLabel>
+                      <InputLabel htmlFor="demo-dialog-native"> Data Access</InputLabel>
                       <Select
                         required
                         native
@@ -1292,8 +1348,8 @@ const MenuProps = {
                         input={<Input id="demo-dialog-native" />}
                       >
                         <option aria-label="None" value="" />
-                        <option value="Public">Public</option>
-                        <option value="Private">Private</option>
+                        <option value="true">True</option>
+                        <option value="false">False</option>
                       </Select>
                    </FormControl>
                    <TextField 
@@ -1325,24 +1381,6 @@ const MenuProps = {
                    onChange = {handlePhoneChange}
                    fullWidth = {true}
                    /><br/>
-                   {/*
-                   <FormControl fullWidth={true}>
-                     <InputLabel htmlFor="demo-dialog-native"Device >Components</InputLabel>
-                     <Select
-                       multiple
-                       value={components}
-                       onChange={handleComponentsChange}
-                       //onChange = {handleChangeMultiple}
-                       input={<Input id="demo-dialog-native" />}
-                       MenuProps={MenuProps}
-                     >
-                       <option aria-label="None" value="" />
-                       {sensorsOptions.map( (sensor) =>
-                       <option value={sensor.sensorID}>{sensor.name+ " ( "+ sensor.quantityKind.join(', ')+ ")"}</option>)}
-                     </Select>
-                   </FormControl><br/> <br/>*/}
-                   {/*</Grid>
-                   </Grid> <br/>*/}
                    </form>
                    </DialogContent>
 
@@ -1366,31 +1404,6 @@ const MenuProps = {
                </Button>
                </Grid> <br/>
               </DialogActions>
-              {/*</form>*/}
-                 
-                 {/*</div>
-                 
-                  </DialogContent> *?}
-                  
-              {/*}
-                 <DialogActions>
-                 <Grid container alignItems="center" alignContent="center" justify="center">
-                 <Button 
-                  variant="contained" 
-                  color="primary"              
-                  onClick={handleRegisterSubmit}
-                 > Register
-                </Button>
-               &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-               <Button 
-                variant="contained" 
-                color="primary"              
-                //type="button"
-                onClick = {handleRegisterClose}
-               > Cancel
-               </Button>
-               </Grid>
-                       </DialogActions> */}
          </Dialog>
          ) : null}
 
@@ -1406,8 +1419,6 @@ const MenuProps = {
 
            <DialogContent>
                 <form  className={classes.formControl}> 
-                {/*<Grid container>
-                 <Grid container item>*/}
                  <TextField 
                    required
                    id="standard-basic" 
@@ -1458,7 +1469,7 @@ const MenuProps = {
                    required
                    /><br/>
                    <FormControl required className={classes.formControl} fullWidth={true}>
-                      <InputLabel htmlFor="demo-dialog-native"> Visibility</InputLabel>
+                      <InputLabel htmlFor="demo-dialog-native">Data Access</InputLabel>
                       <Select
                         native
                         value={visibility}
@@ -1466,8 +1477,8 @@ const MenuProps = {
                         input={<Input id="demo-dialog-native" />}
                       >
                         <option aria-label="None" value="" />
-                        <option value="Public">Public</option>
-                        <option value="Private">Private</option>
+                        <option value="true">True</option>
+                        <option value="false">False</option>
                       </Select>
                    </FormControl>
                    <TextField 
@@ -1499,28 +1510,8 @@ const MenuProps = {
                    onChange = {handlePhoneChange}
                    fullWidth = {true}
                    /><br/>
-                   {/*
-                   <FormControl className={classes.formControl} fullWidth={true}>
-                     <InputLabel htmlFor="demo-dialog-native"Device >Components</InputLabel>
-                     <Select
-                       multiple
-                       value={components}
-                       onChange={handleComponentsChange}
-                       //onChange = {handleChangeMultiple}
-                       input={<Input id="demo-dialog-native" />}
-                       MenuProps={MenuProps}
-                     >
-                       <option aria-label="None" value="" />
-                       {sensorsOptions.map( (sensor) =>
-                       <option value={sensor.sensorID}>{sensor.name+ " ( "+ sensor.quantityKind.join(', ')+ ")"}</option>)}
-                     </Select>
-                       </FormControl><br/> <br/>*/}
+                   
                    </form>
-                  {/*} </Grid>
-                   </Grid> <br/>*/}
-
-                 
-                 {/*</div>*/}
                  
                   </DialogContent> 
           
@@ -1553,27 +1544,22 @@ const MenuProps = {
            onClose={handleSensorClose}
            aria-labelledby="form-dialog-title"
            aria-describedby="form-dialog-description"
+           classes={{ paper: classes.paper}}
+           //style = {{ minWidth: "500px" }}
          >
            <DialogTitle id="form-dialog-title" style={{alignContent:'center'}}>Add a component</DialogTitle>
            <DialogContent>
                 <div>
-                  {/*
-                 <TextField 
-                   fullWidth={true}
+                  <TextField 
                    id="deviceName" 
                    label="Device Name"
                    value = {deviceName}
-                   /> <br/>*/}
-                 <TextField 
-                   //fullWidth={true}
-                   id="sensorID" 
-                   label="Component ID"
-                   value = {sensorID}
                    fullWidth={true}
-                   onChange={handleSensorIDChange}
+                   required
+                   //onChange={handleDeviceNameChange}
                    /> <br/>
 
-                 <FormControl required  fullWidth={true}>
+                 <FormControl  required  fullWidth={true}>
                   <InputLabel htmlFor="demo-dialog-native"> Component Name</InputLabel>
                    <Select
                     native
@@ -1592,73 +1578,26 @@ const MenuProps = {
                       </Select>
                    </FormControl><br/>
 
-                  <FormControl required fullWidth={true}>
-                  <InputLabel htmlFor="demo-dialog-native"> Quantity Measured</InputLabel>
-                   <Select
-                    multiple
-                    //native
-                    value={quantityKind}
-                    onChange={handleQuantityKindChange}
-                    input={<Input id="demo-dialog-native" />}
-                    //MenuProps={MenuProps}
-                   >
-                        <option aria-label="None" value="" />
-                        <option value="pm1">PM 1</option>
-                        <option value="pm2.5">PM 2.5</option>
-                        <option value="pm10">PM 10</option>
-                        <option value="ext_temp">External Temperature</option>
-                        <option value="ext_rh">External Humidity</option>
-                        <option value="int_temp">Internal Temperature</option>
-                        <option value="int_rh">Internal Humidity</option>
-                        <option value="battery">Battery Voltage</option>
-                        <option value="gps">GPS</option>
-                      </Select>
-                   </FormControl><br/>
 
-                   <FormControl required fullWidth={true}>
-                    <InputLabel htmlFor="demo-dialog-native"> Unit of Measure</InputLabel>
-                    <Select
-                    //native
-                    multiple
-                    value={measurementUnit}
-                    onChange={handleMeasurementUnitChange}
-                    input={<Input id="demo-dialog-native" />}
-                    >
+                   <FormControl required className={classes.formControl} fullWidth = {true}>
+                      <InputLabel htmlFor="demo-dialog-native">Quantity Measured</InputLabel>
+                      <Select
+                        multiple
+                        value={quantityKind}
+                        onChange={handleQuantityKindChange}
+                        input={<Input />}
+                        renderValue={(selected) => selected.join(', ')}
+                        MenuProps={MenuProps}
+                      >
                         <option aria-label="None" value="" />
-                        <option value="µg/m3">µg/m3</option>
-                        <option value="%">%</option>
-                        <option value="&#8451;">&#8451;</option>
-                        <option style = {{fontFamily: 'Calibri'}} value="&#8457;">&#8457;</option>
-                        <option value="V">V</option>
-                        <option value="coords">GPS Coordinates</option>
+                        {quantityOptions.map((quantity) => (
+                          <MenuItem key={quantity} value={quantity}>
+                            <Checkbox checked={quantityKind.indexOf(quantity) > -1} />
+                            <ListItemText primary={quantity} />
+                            </MenuItem>
+                          ))}
                       </Select>
-                   </FormControl><br/>
-                 
-                 {/*
-                   
-                 <TextField 
-                   id="standard-basic" 
-                   label="Description" 
-                   value = {maintenanceDescription}
-                   onChange = {handleMaintenanceDescriptionChange}
-                   /><br/>
-              
-                 <MuiPickersUtilsProvider utils={DateFnsUtils}>
-                  <KeyboardDatePicker
-                    disableToolbar
-                    variant="inline"
-                    //format="MM/dd/yyyy"
-                    format = "yyyy-MM-dd"
-                    margin="normal"
-                    id="maintenanceDate"
-                    label="Date of Maintenance"
-                    value={selectedDate}
-                    onChange={handleDateChange}
-                    KeyboardButtonProps={{
-                    'aria-label': 'change date',
-                   }}
-                   />
-                 </MuiPickersUtilsProvider>*/}
+                  </FormControl><br/>
                  </div>
                  
                   </DialogContent> 
@@ -1675,36 +1614,12 @@ const MenuProps = {
                <Button 
                 variant="contained" 
                 color="primary"              
-                //type="button"
                 onClick = {handleSensorClose}
                > Cancel
                </Button>
                </Grid>
            </DialogActions>
-              {/*}
-                <DialogContent>
-                  Are you sure you want to delete device {deviceName}?
-                </DialogContent> 
-          
-          
-                <DialogActions>
-                <Grid container alignItems="center" alignContent="center" justify="center">
-                 <Button 
-                  variant="contained" 
-                  color="primary"              
-                  onClick={handleSensorSubmit}
-                 > YES
-                </Button>
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-               <Button 
-                variant="contained" 
-                color="primary"              
-                //type="button"
-                onClick = {handleSensorClose}
-               > NO
-               </Button>
-               </Grid>
-     </DialogActions>*/}
+              
          </Dialog>
          ) : null}
     </div>
@@ -1718,103 +1633,3 @@ DevicesTable.propTypes = {
 };
 
 export default DevicesTable;
-
-
-/*
-export default function DeviceRegistry() {
-  const [state, setState] = React.useState({
-    columns: [
-      { title: "Name", field: "name" },
-      { title: "Location", field: "location" },
-      {
-        title: "Mount Type",
-        field: "mountType",
-        lookup: { 34: "wall", 63: "pole", 85: "motor bike" },
-      },
-      {
-        title: "mobile",
-        field: "mobile",
-        lookup: { 35: "true", 64: "false" },
-      },
-      {
-        title: "visibility",
-        field: "visibility",
-        lookup: { 36: "public", 68: "private" },
-      },
-      { title: "Distance to Road", field: "distanceToRoad" },
-      { title: "Height", field: "height" },
-      { title: "description", field: "description" },
-    ],
-    data: [
-      {
-        name: "Bwaise-2020-01-15T13:16:43.218Z",
-        location: "Bwaise",
-        distanceToRoad: 1987,
-        mountType: "pole",
-        mobile: true,
-        visibility: "public",
-        height: 23,
-        description: "Bwaise second installation",
-      },
-      {
-        name: "Katwe-2020-01-15T13:28:57.113Z",
-        location: "Bwaise",
-        distanceToRoad: 1987,
-        mountType: "pole",
-        mobile: true,
-        visibility: "public",
-        height: 23,
-        description: "Katwe third installation",
-      },
-    ],
-  });
-
-  return (
-    <MaterialTable
-      title="Device Registry"
-      columns={state.columns}
-      data={state.data}
-      editable={{
-        onRowAdd: (newData) =>
-          new Promise((resolve) => {
-            setTimeout(() => {
-              resolve();
-              setState((prevState) => {
-                const data = [...prevState.data];
-                data.push(newData);
-                return { ...prevState, data };
-              });
-            }, 600);
-          }),
-        onRowUpdate: (newData, oldData) =>
-          new Promise((resolve) => {
-            setTimeout(() => {
-              resolve();
-              if (oldData) {
-                setState((prevState) => {
-                  const data = [...prevState.data];
-                  data[data.indexOf(oldData)] = newData;
-                  return { ...prevState, data };
-                });
-              }
-            }, 600);
-          }),
-        onRowDelete: (oldData) =>
-          new Promise((resolve) => {
-            setTimeout(() => {
-              resolve();
-              setState((prevState) => {
-                const data = [...prevState.data];
-                data.splice(data.indexOf(oldData), 1);
-                return { ...prevState, data };
-              });
-            }, 600);
-          }),
-      }}
-      options={{
-        actionsColumnIndex: -1,
-      }}
-    />
-  );
-}
-*/
