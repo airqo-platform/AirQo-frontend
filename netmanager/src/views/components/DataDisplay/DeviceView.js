@@ -48,16 +48,13 @@ import constants from "../../../config/constants";
 import axios from "axios";
 import palette from "../../../assets/theme/palette";
 import { Line, Bar, Pie } from "react-chartjs-2";
-<<<<<<< HEAD
 import 'chartjs-plugin-annotation';
-=======
 import Input from '@material-ui/core/Input';
 import InputLabel from '@material-ui/core/InputLabel';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Checkbox from '@material-ui/core/Checkbox';
 import MenuItem from '@material-ui/core/MenuItem';
 import ListItemText from '@material-ui/core/ListItemText';
->>>>>>> staging
 
 const useStyles = makeStyles(styles);
 
@@ -256,7 +253,6 @@ export default function DeviceView() {
     },
   };
 
-<<<<<<< HEAD
 
   const [deviceBatteryVoltage, setDeviceBatteryVoltage] = useState([]);
 
@@ -435,7 +431,6 @@ export default function DeviceView() {
       ],
     },
   };
-=======
   function appendLeadingZeroes(n) {
     if (n <= 9) {
       return '0' + n;
@@ -452,7 +447,6 @@ export default function DeviceView() {
 
     return time;
    }
->>>>>>> staging
 
   const [loaded, setLoaded] = useState(false);
   const [deviceData, setDeviceData] = useState([]);
@@ -904,7 +898,6 @@ export default function DeviceView() {
       <GridItem xs={12} sm={12} md={4}>
           <Card>
             <CardHeader color="info">
-<<<<<<< HEAD
               <h4 className={classes.cardTitle}>Device Battery Voltage</h4>
               <p className={classes.cardCategoryWhite}>
                 Average daily battery voltage in the past 28 days
@@ -920,50 +913,6 @@ export default function DeviceView() {
                 {/*<AccessTime /> Last updated on {onlineStatusUpdateTime} */} 
               </div>
             </CardFooter>
-=======
-              <h4 className={classes.cardTitle}>Device Components</h4>
-            </CardHeader>
-            <CardBody>
-            <div alignContent = "left" style = {{alignContent:"left", alignItems:"left"}}>
-            <TableContainer component={Paper} className = {classes.table}>  
-             <Table stickyHeader  aria-label="sticky table" alignItems="left" alignContent="left">
-               <TableHead>
-                 <TableRow style={{ align: 'left' }} >  
-                  <TableCell>Description</TableCell>                  
-                  <TableCell>Quantities</TableCell>
-                  <TableCell>Actions</TableCell>
-                </TableRow>
-                 
-              </TableHead>  
-               <TableBody style = {{alignContent:"left", alignItems:"left"}} >  
-               {componentsData.map( (component) => (
-                 <TableRow style={{ align: 'left' }} >  
-                  <TableCell>{component.description}</TableCell>                  
-                  <TableCell>{jsonArrayToString(component.measurement)}</TableCell>
-                  <TableCell>
-                  
-                  <Tooltip title="Edit">
-                    <Link onClick= {handleEditComponentClick(deviceName, component.name, component.description, jsonArrayToString(component.measurement).split(", "))} style = {{"color":"black"}}>
-                    <EditOutlined> </EditOutlined> 
-                    </Link>
-                    </Tooltip>
-                  <Tooltip title="Delete">
-                    <Link onClick= {handleDeleteComponentClick(component.name)} style = {{"color":"black"}}>
-                    <DeleteOutlined> </DeleteOutlined> 
-                    </Link>
-                  </Tooltip>
-                  
-                  </TableCell>
-                </TableRow>))
-                }
-               </TableBody>
-            </Table>
-          </TableContainer>
-                
-              </div>
-             
-            </CardBody>
->>>>>>> staging
           </Card>
           </GridItem> 
 
