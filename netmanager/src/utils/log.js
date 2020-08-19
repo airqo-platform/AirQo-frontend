@@ -1,14 +1,14 @@
-const log = {
-  logText: (text) => {
-    console.log(`${text}`);
-  },
-  logElement: (text, element) => {
-    console.log(`${text}: ${element}`);
-  },
-  logObject: (text, object) => {
-    console.log(`${text}:`);
-    console.dir(`${object}`);
-  },
+const logText = (text) => {
+  console.log(`${text}`);
 };
 
-export default log;
+const logElement = (text, element) => {
+  console.log(`${text}: ${element}`);
+};
+
+const logObject = (text, object) => {
+  console.log(`${text}:`);
+  console.dir(`${object}`);
+};
+
+export { logText, logElement, logObject };
