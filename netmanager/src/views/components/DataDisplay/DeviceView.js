@@ -48,6 +48,7 @@ import constants from "../../../config/constants";
 import axios from "axios";
 import palette from "../../../assets/theme/palette";
 import { Line, Bar, Pie } from "react-chartjs-2";
+import 'chartjs-plugin-annotation';
 import Input from '@material-ui/core/Input';
 import InputLabel from '@material-ui/core/InputLabel';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
@@ -170,6 +171,26 @@ export default function DeviceView() {
   };
 
   const options_main = {
+    annotation: {
+      annotations: [
+        {
+          type: "line",
+          mode: "horizontal",
+          scaleID: "y-axis-0",
+          value: 80,
+          borderColor: palette.text.secondary,
+          borderWidth: 2,
+          label: {
+            enabled: true,
+            content: "Threshold",
+            //backgroundColor: palette.white,
+            titleFontColor: palette.text.primary,
+            bodyFontColor: palette.text.primary,
+            position: "right",
+          },
+        },
+      ],
+    },
     responsive: true,
     maintainAspectRatio: false,
     animation: false,
@@ -232,6 +253,184 @@ export default function DeviceView() {
     },
   };
 
+
+  const [deviceBatteryVoltage, setDeviceBatteryVoltage] = useState([]);
+
+  useEffect(() => {
+    let channelID = params.channelId
+    axios.get(constants.GET_DEVICE_BATTERY_VOLTAGE+channelID).then(({ data }) => {
+      console.log(data);
+      setDeviceBatteryVoltage(data);
+    });
+  }, []);
+
+  const batteryVoltageData = {
+    labels: deviceBatteryVoltage.battery_voltage_labels,
+    datasets: [
+      {
+        label: "Device Battery Voltage",
+        data: deviceBatteryVoltage.battery_voltage_values,
+        fill: false,
+        borderColor: palette.primary.main,
+        backgroundColor: "#BCBD22",
+      },
+    ],
+  };
+
+  const options_ = {    
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: false,
+    legend: { display: false },
+    cornerRadius: 0,
+    tooltips: {
+      enabled: true,
+      mode: "index",
+      intersect: false,
+      borderWidth: 1,
+      borderColor: palette.divider,
+      backgroundColor: palette.white,
+      titleFontColor: palette.text.primary,
+      bodyFontColor: palette.text.secondary,
+      footerFontColor: palette.text.secondary,
+    },
+    layout: { padding: 0 },
+    scales: {
+      xAxes: [
+        {
+          barThickness: 35,
+          //maxBarThickness: 10,
+          barPercentage: 1,
+          //categoryPercentage: 0.5,
+          ticks: {
+            fontColor: palette.text.secondary,
+          },
+          gridLines: {
+            display: false,
+            drawBorder: false,
+          },
+          scaleLabel: {
+            display: true,
+            labelString: "Date",
+          },
+        },
+      ],
+      yAxes: [
+        {
+          ticks: {
+            fontColor: palette.text.secondary,
+            beginAtZero: true,
+            min: 0,
+          },
+          gridLines: {
+            borderDash: [2],
+            borderDashOffset: [2],
+            color: palette.divider,
+            drawBorder: false,
+            zeroLineBorderDash: [2],
+            zeroLineBorderDashOffset: [2],
+            zeroLineColor: palette.divider,
+          },
+          scaleLabel: {
+            display: true,
+            labelString: "Battery Voltage",
+          },
+        },
+      ],
+    },
+  };
+
+  
+  const [deviceSensorCorrelation, setDeviceSensorCorrelation] = useState([]);
+
+  useEffect(() => {
+    let channelID = params.channelId
+    axios.get(constants.GET_DEVICE_SENSOR_CORRELATION+channelID).then(({ data }) => {
+      setDeviceSensorCorrelation(data);
+    });
+  }, []);
+
+  const deviceSensorCorrelationData = {
+    labels: deviceSensorCorrelation.labels,
+    datasets: [
+      {
+        label: "Sensor One PM2.5",
+        data: deviceSensorCorrelation.sensor_one_values,
+        fill: false,
+        borderColor: palette.primary.main,
+        backgroundColor: "#BCBD22",
+      },
+      {
+        label: "Sensor Two PM2.5",
+        data: deviceSensorCorrelation.sensor_two_values,
+        fill: false,
+        borderColor: palette.primary.main,
+        backgroundColor: "#17BECF",
+      }
+    ],
+  };
+
+  const options_sensor_correlation = {    
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: false,
+    legend: { display: false },
+    cornerRadius: 0,
+    tooltips: {
+      enabled: true,
+      mode: "index",
+      intersect: false,
+      borderWidth: 1,
+      borderColor: palette.divider,
+      backgroundColor: palette.white,
+      titleFontColor: palette.text.primary,
+      bodyFontColor: palette.text.secondary,
+      footerFontColor: palette.text.secondary,
+    },
+    layout: { padding: 0 },
+    scales: {
+      xAxes: [
+        {
+          barThickness: 35,
+          //maxBarThickness: 10,
+          barPercentage: 1,          
+          ticks: {
+            fontColor: palette.text.secondary,
+          },
+          gridLines: {
+            display: false,
+            drawBorder: false,
+          },
+          scaleLabel: {
+            display: true,
+            labelString: "Date",
+          },
+        },
+      ],
+      yAxes: [
+        {
+          ticks: {
+            fontColor: palette.text.secondary,
+            beginAtZero: true,
+            min: 0,
+          },
+          gridLines: {
+            borderDash: [2],
+            borderDashOffset: [2],
+            color: palette.divider,
+            drawBorder: false,
+            zeroLineBorderDash: [2],
+            zeroLineBorderDashOffset: [2],
+            zeroLineColor: palette.divider,
+          },
+          scaleLabel: {
+            display: true,
+            labelString: "PM2.5(µg/m3)",
+          },
+        },
+      ],
+    },
+  };
   function appendLeadingZeroes(n) {
     if (n <= 9) {
       return '0' + n;
@@ -699,48 +898,21 @@ export default function DeviceView() {
       <GridItem xs={12} sm={12} md={4}>
           <Card>
             <CardHeader color="info">
-              <h4 className={classes.cardTitle}>Device Components</h4>
+              <h4 className={classes.cardTitle}>Device Battery Voltage</h4>
+              <p className={classes.cardCategoryWhite}>
+                Average daily battery voltage in the past 28 days
+              </p>
             </CardHeader>
             <CardBody>
-            <div alignContent = "left" style = {{alignContent:"left", alignItems:"left"}}>
-            <TableContainer component={Paper} className = {classes.table}>  
-             <Table stickyHeader  aria-label="sticky table" alignItems="left" alignContent="left">
-               <TableHead>
-                 <TableRow style={{ align: 'left' }} >  
-                  <TableCell>Description</TableCell>                  
-                  <TableCell>Quantities</TableCell>
-                  <TableCell>Actions</TableCell>
-                </TableRow>
-                 
-              </TableHead>  
-               <TableBody style = {{alignContent:"left", alignItems:"left"}} >  
-               {componentsData.map( (component) => (
-                 <TableRow style={{ align: 'left' }} >  
-                  <TableCell>{component.description}</TableCell>                  
-                  <TableCell>{jsonArrayToString(component.measurement)}</TableCell>
-                  <TableCell>
-                  
-                  <Tooltip title="Edit">
-                    <Link onClick= {handleEditComponentClick(deviceName, component.name, component.description, jsonArrayToString(component.measurement).split(", "))} style = {{"color":"black"}}>
-                    <EditOutlined> </EditOutlined> 
-                    </Link>
-                    </Tooltip>
-                  <Tooltip title="Delete">
-                    <Link onClick= {handleDeleteComponentClick(component.name)} style = {{"color":"black"}}>
-                    <DeleteOutlined> </DeleteOutlined> 
-                    </Link>
-                  </Tooltip>
-                  
-                  </TableCell>
-                </TableRow>))
-                }
-               </TableBody>
-            </Table>
-          </TableContainer>
-                
+            <div className={classes.chartContainer}>
+                <Line height={250} data={batteryVoltageData} options={options_} />
               </div>
-             
             </CardBody>
+            <CardFooter chart>
+              <div className={classes.stats}>
+                {/*<AccessTime /> Last updated on {onlineStatusUpdateTime} */} 
+              </div>
+            </CardFooter>
           </Card>
           </GridItem> 
 
@@ -748,13 +920,21 @@ export default function DeviceView() {
           <Card>
             <CardHeader color="primary">
               <h4 className={classes.cardTitleWhite}>Sensor Correlation</h4>
+              <p className={classes.cardCategoryWhite}>
+                 Daily sensor I and sensor II readings in the past 28 days
+              </p>
             </CardHeader>
             <CardBody>
-            <div alignContent = "left" style = {{alignContent:"left", alignItems:"left"}}>
-                
-            </div>
+            <div className={classes.chartContainer}>
+                <Line height={250} data={deviceSensorCorrelationData} options={options_sensor_correlation} />
+              </div>
              
             </CardBody>
+            <CardFooter chart>
+              <div className={classes.stats}>
+                 Pearson Correlation Value: {deviceSensorCorrelation.correlation_value}  
+              </div>
+            </CardFooter>
           </Card>
         </GridItem>
       </GridContainer>
