@@ -1,0 +1,76 @@
+{
+  "name": "airqo",
+  "version": "0.0.1",
+  "author": "Ionic Framework",
+  "homepage": "http://ionicframework.com/",
+  "private": true,
+  "scripts": {
+    "start": "ionic-app-scripts serve",
+    "clean": "ionic-app-scripts clean",
+    "build": "ionic-app-scripts build",
+    "lint": "ionic-app-scripts lint"
+  },
+  "dependencies": {
+    "@angular/animations": "5.2.11",
+    "@angular/common": "5.2.11",
+    "@angular/compiler": "5.2.11",
+    "@angular/compiler-cli": "5.2.11",
+    "@angular/core": "5.2.11",
+    "@angular/forms": "5.2.11",
+    "@angular/platform-browser": "5.2.11",
+    "@angular/platform-browser-dynamic": "5.2.11",
+    "@ionic-native/core": "4.20.0",
+    "@ionic-native/splash-screen": "4.20.0",
+    "@ionic-native/status-bar": "4.20.0",
+    "@ionic/storage": "2.2.0",
+    "cordova-android": "^8.1.0",
+    "cordova-plugin-dialogs": "^2.0.2",
+    "cordova-plugin-nativestorage": "^2.3.2",
+    "es6-promise-plugin": "^4.2.2",
+    "ionic-angular": "3.9.9",
+    "ionicons": "3.0.0",
+    "rxjs": "5.5.11",
+    "sw-toolbox": "3.6.0",
+    "zone.js": "0.8.29"
+  },
+  "devDependencies": {
+    "@ionic/app-scripts": "3.2.4",
+    "cordova-plugin-apprate": "^1.5.0",
+    "cordova-plugin-device": "^2.0.3",
+    "cordova-plugin-geolocation": "^4.0.2",
+    "cordova-plugin-ionic-keyboard": "^2.2.0",
+    "cordova-plugin-ionic-webview": "^4.2.1",
+    "cordova-plugin-network-information": "^2.0.2",
+    "cordova-plugin-splashscreen": "5.0.2",
+    "cordova-plugin-statusbar": "^2.4.2",
+    "cordova-plugin-x-socialsharing": "^5.6.3",
+    "cordova-sqlite-storage": "^4.0.0",
+    "typescript": "2.6.2"
+  },
+  "description": "An Ionic project",
+  "cordova": {
+    "plugins": {
+      "cordova-plugin-statusbar": {},
+      "cordova-plugin-splashscreen": {},
+      "cordova-plugin-ionic-webview": {
+        "ANDROID_SUPPORT_ANNOTATIONS_VERSION": "27.+"
+      },
+      "cordova-plugin-ionic-keyboard": {},
+      "cordova-sqlite-storage": {},
+      "cordova-plugin-device": {},
+      "cordova-plugin-x-socialsharing": {
+        "ANDROID_SUPPORT_V4_VERSION": "24.1.1+",
+        "PHOTO_LIBRARY_ADD_USAGE_DESCRIPTION": "This app requires photo library access to function properly.",
+        "PHOTO_LIBRARY_USAGE_DESCRIPTION": "This app requires photo library access to function properly."
+      },
+      "cordova-plugin-network-information": {},
+      "cordova-plugin-apprate": {},
+      "cordova-plugin-geolocation": {
+        "GEOLOCATION_USAGE_DESCRIPTION": "To locate you so as to provide readings relevant to your area"
+      }
+    },
+    "platforms": [
+      "android"
+    ]
+  }
+}
