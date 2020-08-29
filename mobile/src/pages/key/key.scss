@@ -1,0 +1,79 @@
+page-key {
+
+  // -----------------------------------------------------------------------------------------
+
+
+   ion-icon {
+      font-size: 2em;
+      font-weight: 800;
+   }
+
+   table {
+      background-color: #FFFFFF;
+      color: #000;
+   }
+
+   td {
+      padding: 0 5px 10px 0;
+      color: #ffffff;
+      font-weight: 500;
+   }
+   .td-images {
+    text-align: center;
+    padding-top: 10px;
+   }
+   .td-text {
+     padding-top: 10px;
+   }
+   .face {
+      width: 3em;
+      height: 3em;
+   }
+   .image-icon {
+    margin-top: 10px;
+     width: 2em;
+     height: 2em;
+   }
+   .heading {
+      background-color: color($colors, blue);
+      color:#ffffff;
+      font-weight: 400;
+      height: 5rem;
+   }
+   .title {
+    color: #efeef2;
+    font-weight: bold;
+   }
+
+   // -----------------------------------------------------------------------------------------
+
+   .black {
+    color: color($colors, black);
+   }
+
+  .bg-green {
+    background-color: color($colors, green);;
+  }
+
+  .bg-yellow {
+    background-color: color($colors, yellow);;
+  }
+
+  .bg-orange {
+    background-color: color($colors, orange);;
+  }
+
+  .bg-red {
+    background-color: color($colors, red);;
+  }
+
+  .bg-purple {
+    background-color: color($colors, purple);;
+  }
+
+  .bg-maroon {
+    background-color: color($colors, maroon);;
+  }
+
+   
+}

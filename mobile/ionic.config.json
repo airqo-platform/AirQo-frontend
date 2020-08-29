@@ -1,0 +1,7 @@
+{
+  "name": "airqo",
+  "integrations": {
+    "cordova": {}
+  },
+  "type": "ionic-angular"
+}
