@@ -1,0 +1,43 @@
+<ion-header>
+  <ion-navbar color="blue">
+    <ion-title>Sign Up</ion-title>
+  </ion-navbar>
+</ion-header>
+
+<ion-content>
+
+  <ion-card>
+    <ion-card-content>
+      
+      <div class="logo-section">
+        <img src="assets/logos/logo-blue-tagline.png"/>
+      </div>
+
+      <ion-list class="signin-form-section">
+
+        <ion-item>
+          <ion-label stacked>Name</ion-label>
+          <ion-input type="text" [(ngModel)]="user.name" placeholder="Name"></ion-input>
+        </ion-item>
+
+        <ion-item>
+          <ion-label stacked>Email</ion-label>
+          <ion-input type="email" [(ngModel)]="user.email" placeholder="Email"></ion-input>
+        </ion-item>
+      
+        <ion-item>
+          <ion-label stacked>Password</ion-label>
+          <ion-input [type]="password_type" [(ngModel)]="user.password" placeholder="Password"></ion-input>
+          <button ion-button icon-only item-right clear color="dark" (click)="hideShowPassword()"><ion-icon item-end [name]="password_icon" class="password-icon"></ion-icon></button>
+        </ion-item>
+
+        <button ion-button block color="blue" (click)="validateCredentials()">SIGN UP</button>
+
+        <p class="or-divider" (click)="goToSignInPage()">Already have an account?</p>
+      
+      </ion-list>
+
+    </ion-card-content>
+  </ion-card>
+
+</ion-content>
