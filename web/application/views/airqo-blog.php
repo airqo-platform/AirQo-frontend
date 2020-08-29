@@ -40,7 +40,7 @@
 						</a>
 					</div>
 					<div class="col-md-6 col-lg-6 col-sm-6 col-xs-6">
-						<a href="https://play.google.com/store/apps/details?id=com.buzen.contract.airqoapp" target="_blank">
+						<a href="https://play.google.com/store/apps/details?id=com.airqo.net&hl=en" target="_blank">
 							<img class="right" src="<?= base_url(); ?>assets/images/playstore.png">
 						</a>
 					</div>
