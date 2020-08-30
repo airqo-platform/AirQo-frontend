@@ -436,5 +436,5 @@ if ($node['reading'] >= 0 && $node['reading'] <= 12) {
 
      // chart_d
 </script>
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAnK2dESOs8To3A01UdU3YpRNcC7cU_MKc&callback=initMap">
+<script src="https://maps.googleapis.com/maps/api/js?key=<API_KEY>&callback=initMap">
 </script>
