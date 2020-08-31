@@ -1,0 +1,56 @@
+<ion-header>
+  <ion-navbar color="blue">
+    <ion-title>Sign In</ion-title>
+  </ion-navbar>
+</ion-header>
+
+<ion-content>
+
+  <ion-card>
+    <ion-card-content>
+      
+      <div class="logo-section">
+        <img src="assets/logos/logo-blue-tagline.png"/>
+      </div>
+
+      <ion-list class="signin-form-section">
+
+        <ion-item>
+          <ion-label stacked>Email</ion-label>
+          <ion-input type="email" [(ngModel)]="user.email" placeholder="Email"></ion-input>
+        </ion-item>
+      
+        <ion-item>
+          <ion-label stacked>Password</ion-label>
+          <ion-input [type]="password_type" [(ngModel)]="user.password" placeholder="Password"></ion-input>
+          <button ion-button icon-only item-right clear color="dark" (click)="hideShowPassword()"><ion-icon item-end [name]="password_icon" class="password-icon"></ion-icon></button>
+        </ion-item>
+
+        <ion-grid class="user-preference">
+          <ion-row>
+            <ion-col col-6>
+              <ion-item>
+                <ion-label text-wrap>Remember me</ion-label>
+                <ion-checkbox color="blue" (ionChange)="checkboxClicked($event, '')"></ion-checkbox>
+              </ion-item>
+            </ion-col>
+            <ion-col col-6>
+              <ion-item (click)="goToForgotPasswordPage()">
+                <ion-label>Forgot Password?</ion-label>
+              </ion-item>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+
+        <button ion-button block color="blue" (click)="validateCredentials()">SIGN IN</button>
+
+        <p class="or-divider">OR</p>
+
+        <button ion-button block outline (click)="goToSignUpPage()">SIGN UP</button>
+      
+      </ion-list>
+
+    </ion-card-content>
+  </ion-card>
+
+</ion-content>
