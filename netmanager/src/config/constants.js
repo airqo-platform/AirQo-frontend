@@ -65,6 +65,8 @@ const prodConfig = {
   "http://34.78.78.202:30002/api/v1/devices/delete/components?comp=",
   UPDATE_COMPONENT_URI: 
   "http://34.78.78.202:30002/api/v1/devices/update/components?device=",
+  GET_online_offline_maintenance_status: 
+  "http://34.78.78.202:30002/api/v1/monitor/devices/online_offline",
 };
 
 const devConfig = {
@@ -126,6 +128,7 @@ const devConfig = {
   GET_COMPONENTS_URI: "http://localhost:3000/api/v1/devices/list/components?device=",
   DELETE_COMPONENT_URI: "http://localhost:3000/api/v1/devices/delete/components?comp=",
   UPDATE_COMPONENT_URI: "http://localhost:3000/api/v1/devices/update/components?device=",
+  GET_online_offline_maintenance_status:"http://127.0.0.1:4001/api/v1/monitor/devices/online_offline",
 };
 
 function runConfig(env) {
