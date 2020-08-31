@@ -118,7 +118,8 @@ const CustomisableChart = (props) => {
   });
 
   useEffect(() => {
-    const errors = validate(formState.values, schema);
+    // const errors = validate(formState.values, schema);
+    const errors = {};
 
     setFormState((formState) => ({
       ...formState,
