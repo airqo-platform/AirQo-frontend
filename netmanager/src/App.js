@@ -29,8 +29,8 @@ import {
   Minimal as MinimalLayout,
 } from "../src/views/layouts/";
 import Login from "./views/components/Inputs/Login";
-import Profile from "./views/components/Inputs/UserProfile";
-import Settings from "./views/components/Inputs/Settings";
+// import Profile from "./views/components/Inputs/UserProfile";
+// import Settings from "./views/components/Inputs/Settings";
 import PrivateRoute from "./views/components/PrivateRoute/PrivateRoute";
 import Dashboard from "./views/components/Dashboard/Dashboard";
 import Map from "./views/components/Map";
@@ -45,6 +45,18 @@ import {
   LocationView,
   LocationEdit,
 } from "./views/components/LocationList";
+
+import {
+  Reports as ReportView,
+  Account as AccountView,
+  Settings as SettingsView,
+  NotFound as NotFoundView,
+  Download,
+  ReportTemplate,
+  LocationList as LocationListView,
+  SignUp as SignUpView,
+} from "./views/pages";
+
 //import { LocationRegister }from "./views/components/LocationRegister";
 //import { LocationRegister } from "./views/components/LocationList/LocationRegister";
 
@@ -135,20 +147,25 @@ class App extends Component {
                   component={Users}
                   layout={MainLayout}
                 />
+
                 <PrivateRoute
+                  component={ReportView}
                   exact
+                  layout={MainLayout}
+                  path="/reports"
+                />
+                <PrivateRoute
+                  component={AccountView}
+                  exact
+                  layout={MainLayout}
                   path="/account"
-                  component={Profile}
-                  layout={MainLayout}
                 />
-
                 <PrivateRoute
+                  component={SettingsView}
                   exact
-                  path="/settings"
-                  component={Settings}
                   layout={MainLayout}
+                  path="/settings"
                 />
-
                 <PrivateRoute
                   exact
                   path="/manager"
