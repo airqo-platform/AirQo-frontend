@@ -17,7 +17,7 @@ import FullscreenControl from "react-leaflet-fullscreen";
 import "react-leaflet-fullscreen/dist/styles.css";
 import L from "leaflet";
 // import Legend from "./Legend";
-import constants from "../../../../config/constants";
+import constants from "config/constants";
 import Filter from "./Filter";
 import axios from "axios";
 import moment from "moment-timezone";

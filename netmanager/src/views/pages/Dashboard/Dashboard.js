@@ -28,7 +28,7 @@ import ArrowDropDownIcon from "@material-ui/icons/ArrowDropDown";
 import ArrowRightIcon from "@material-ui/icons/ArrowRight";
 //import Legend from './components/Map/Legend'
 import axios from "axios";
-import constants from "../../config/constants";
+import constants from "config/constants";
 import { MoreHoriz } from "@material-ui/icons";
 import Menu from "@material-ui/core/Menu";
 import MenuItem from "@material-ui/core/MenuItem";
@@ -67,7 +67,7 @@ const Dashboard = (props) => {
     mappedErrors,
     ...rest
   } = props;
-  const { user, isAuthenticated } = mappedAuth;
+  // const { user, isAuthenticated } = mappedAuth;
 
   function appendLeadingZeroes(n) {
     if (n <= 9) {

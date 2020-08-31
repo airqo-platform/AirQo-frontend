@@ -85,9 +85,16 @@ class App extends Component {
                 <PrivateRoute
                   exact
                   path="/dashboard"
+                  component={AnalyticsDashboard}
+                  layout={MainLayout}
+                />
+                <PrivateRoute
+                  exact
+                  path="/overview"
                   component={Dashboard}
                   layout={MainLayout}
                 />
+
                 <PrivateRoute
                   exact
                   path="/locate"
@@ -154,13 +161,6 @@ class App extends Component {
                   exact
                   path="/manager"
                   component={Manager}
-                  layout={MainLayout}
-                />
-
-                <PrivateRoute
-                  exact
-                  path="/manager"
-                  component={AnalyticsDashboard}
                   layout={MainLayout}
                 />
 
