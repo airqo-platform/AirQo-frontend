@@ -38,7 +38,7 @@ import Devices from "./views/components/DataDisplay/Devices";
 import DeviceView from "./views/components/DataDisplay/DeviceView";
 import Users from "./views/components/DataDisplay/Users";
 import Manager from "./views/components/DataDisplay/DeviceManagement";
-import AnalyticsDashboard from "./views/components/DataDisplay/Dashboard";
+import AnalyticsDashboard from "./views/pages/Dashboard";
 import Incentives from "./views/components/DataDisplay/Incentives";
 import {
   LocationList,
