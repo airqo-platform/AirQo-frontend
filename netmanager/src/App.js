@@ -35,11 +35,17 @@ import PrivateRoute from "./views/components/PrivateRoute/PrivateRoute";
 import Dashboard from "./views/components/Dashboard/Dashboard";
 import Map from "./views/components/Map";
 import Devices from "./views/components/DataDisplay/Devices";
-import DeviceView from "./views/components/DataDisplay/DeviceView"
+import DeviceView from "./views/components/DataDisplay/DeviceView";
 import Users from "./views/components/DataDisplay/Users";
 import Manager from "./views/components/DataDisplay/DeviceManagement";
+import AnalyticsDashboard from "./views/components/DataDisplay/Dashboard";
 import Incentives from "./views/components/DataDisplay/Incentives";
-import { LocationList, LocationRegister, LocationView, LocationEdit } from "./views/components/LocationList";
+import {
+  LocationList,
+  LocationRegister,
+  LocationView,
+  LocationEdit,
+} from "./views/components/LocationList";
 //import { LocationRegister }from "./views/components/LocationRegister";
 //import { LocationRegister } from "./views/components/LocationList/LocationRegister";
 
@@ -112,7 +118,7 @@ class App extends Component {
                   component={LocationRegister}
                   layout={MainLayout}
                 />
-                 <PrivateRoute
+                <PrivateRoute
                   exact
                   path="/edit/:loc_ref"
                   component={LocationEdit}
@@ -148,6 +154,13 @@ class App extends Component {
                   exact
                   path="/manager"
                   component={Manager}
+                  layout={MainLayout}
+                />
+
+                <PrivateRoute
+                  exact
+                  path="/manager"
+                  component={AnalyticsDashboard}
                   layout={MainLayout}
                 />
 
