@@ -13,7 +13,8 @@ import SettingsIcon from "@material-ui/icons/Settings";
 import LocateIcon from "@material-ui/icons/AddLocation";
 import ManageIcon from "@material-ui/icons/Build";
 import AddIcon from "@material-ui/icons/Add";
-import EditLocationIcon from '@material-ui/icons/EditLocation';
+import EditLocationIcon from "@material-ui/icons/EditLocation";
+import AspectRatioIcon from "@material-ui/icons/AspectRatio";
 
 import { Profile, SidebarNav } from "./components";
 
@@ -47,6 +48,11 @@ const Sidebar = (props) => {
 
   const pages = [
     {
+      title: "Overview",
+      href: "/overview",
+      icon: <AspectRatioIcon />,
+    },
+    {
       title: "Dashboard",
       href: "/dashboard",
       icon: <DashboardIcon />,
@@ -75,8 +81,8 @@ const Sidebar = (props) => {
     {
       title: "Location Registry",
       href: "/location",
-      icon: < EditLocationIcon /> ,
-   },
+      icon: <EditLocationIcon />,
+    },
   ];
   const userManagementPages = [
     {

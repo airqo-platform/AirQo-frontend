@@ -38,6 +38,7 @@ import Devices from "./views/components/DataDisplay/Devices";
 import DeviceView from "./views/components/DataDisplay/DeviceView";
 import Users from "./views/components/DataDisplay/Users";
 import Manager from "./views/components/DataDisplay/DeviceManagement";
+import AnalyticsDashboard from "./views/pages/Dashboard";
 import Incentives from "./views/components/DataDisplay/Incentives";
 import {
   LocationList,
@@ -96,9 +97,16 @@ class App extends Component {
                 <PrivateRoute
                   exact
                   path="/dashboard"
+                  component={AnalyticsDashboard}
+                  layout={MainLayout}
+                />
+                <PrivateRoute
+                  exact
+                  path="/overview"
                   component={Dashboard}
                   layout={MainLayout}
                 />
+
                 <PrivateRoute
                   exact
                   path="/locate"
