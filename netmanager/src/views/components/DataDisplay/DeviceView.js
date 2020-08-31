@@ -939,6 +939,56 @@ export default function DeviceView() {
         </GridItem>
       </GridContainer>
 
+      <GridContainer>
+      <GridItem xs={12} sm={12} md={4}>
+          <Card>
+            <CardHeader color="info">
+              <h4 className={classes.cardTitle}>Device Components</h4>
+            </CardHeader>
+            <CardBody>
+            <div alignContent = "left" style = {{alignContent:"left", alignItems:"left"}}>
+            <TableContainer component={Paper} className = {classes.table}>  
+             <Table stickyHeader  aria-label="sticky table" alignItems="left" alignContent="left">
+               <TableHead>
+                 <TableRow style={{ align: 'left' }} >  
+                  <TableCell>Description</TableCell>                  
+                  <TableCell>Quantities</TableCell>
+                  <TableCell>Actions</TableCell>
+                </TableRow>
+                 
+              </TableHead>  
+               <TableBody style = {{alignContent:"left", alignItems:"left"}} >  
+               {componentsData.map( (component) => (
+                 <TableRow style={{ align: 'left' }} >  
+                  <TableCell>{component.description}</TableCell>                  
+                  <TableCell>{jsonArrayToString(component.measurement)}</TableCell>
+                  <TableCell>
+                  
+                  <Tooltip title="Edit">
+                    <Link onClick= {handleEditComponentClick(deviceName, component.name, component.description, jsonArrayToString(component.measurement).split(", "))} style = {{"color":"black"}}>
+                    <EditOutlined> </EditOutlined> 
+                    </Link>
+                    </Tooltip>
+                  <Tooltip title="Delete">
+                    <Link onClick= {handleDeleteComponentClick(component.name)} style = {{"color":"black"}}>
+                    <DeleteOutlined> </DeleteOutlined> 
+                    </Link>
+                  </Tooltip>
+                  
+                  </TableCell>
+                </TableRow>))
+                }
+               </TableBody>
+            </Table>
+          </TableContainer>
+                
+              </div>
+             
+            </CardBody>
+          </Card>
+      </GridItem> 
+      </GridContainer>
+
       {responseOpen?
     (
       <Dialog
