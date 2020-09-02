@@ -11,7 +11,6 @@ import 'react-leaflet-fullscreen/dist/styles.css';
 import L, { control } from 'leaflet';
 import axios from "axios";
 import ReactDOM from 'react-dom';
-import constants from '../../../../config/constants'
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -49,7 +48,7 @@ const Map = props => {
   const [contacts,setContacts ] = useState([]);
 
   useEffect(() => {
-   fetch(constants.GET_ONLINE_OFFLINE_MAINTENANCE_STATUS)
+   fetch('http://127.0.0.1:4001/api/v1/monitor/devices/online_offline')
       .then(res => res.json())
       .then((contactData) => {
         let devices = contactData["online_offline_devices"]
