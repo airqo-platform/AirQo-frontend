@@ -183,7 +183,7 @@ class Register extends Component {
       case "country":
         errors.country = mappedErrors.errors.country;
         break;
-      case 'description':
+      case "description":
         errors.description = mappedErrors.errors.description;
         break;
       default:

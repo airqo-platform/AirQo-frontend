@@ -20,11 +20,8 @@ import {
 } from "@material-ui/core";
 
 import { Alert, AlertTitle } from "@material-ui/lab";
-
 import { useMinimalSelectStyles } from "@mui-treasury/styles/select/minimal";
-
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
-
 import { SearchInput } from "views/components/SearchInput";
 
 const useStyles = makeStyles((theme) => ({

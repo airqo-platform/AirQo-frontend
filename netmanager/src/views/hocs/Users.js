@@ -87,7 +87,7 @@ const connectedSideBar = containerCreator(SideBar);
 
 const connectedDashboard = containerCreator(Dashboard);
 
-const connectedRegisterAnalytics = containerCreator(Register);
+const connectedSignUp = containerCreator(Register);
 
 export {
   connectedUserList,
@@ -102,5 +102,5 @@ export {
   connnectedSettingsPassword,
   connectedSideBar,
   connectedDashboard,
-  connectedRegisterAnalytics,
+  connectedSignUp,
 };
