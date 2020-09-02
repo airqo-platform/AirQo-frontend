@@ -66,7 +66,7 @@ const prodConfig = {
   UPDATE_COMPONENT_URI: 
   "http://34.78.78.202:30002/api/v1/devices/update/components?device=",
   GET_ONLINE_OFFLINE_MAINTENANCE_STATUS: 
-  "http://34.78.78.202:30002/api/v1/monitor/devices/online_offline",
+  "http://34.78.78.202:30006/api/v1/monitor/devices/online_offline",
 };
 
 const devConfig = {
