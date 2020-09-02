@@ -9,10 +9,8 @@ import { useEffect, useState } from 'react';
 import FullscreenControl from 'react-leaflet-fullscreen';
 import 'react-leaflet-fullscreen/dist/styles.css';
 import L, { control } from 'leaflet';
-import Filter from './FilterPowerSource.jsx';
 import axios from "axios";
 import ReactDOM from 'react-dom';
-// import '../../../../assets/scss/index.scss';
 
 const useStyles = makeStyles(theme => ({
   root: {
