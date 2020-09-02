@@ -1,0 +1,6 @@
+@media print {
+  .hidden-on-print {
+    display: none;
+    visibility: hidden;
+  }
+}
