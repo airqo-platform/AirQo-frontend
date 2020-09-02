@@ -33,7 +33,8 @@ import css from '../../../../../../src/index.css';
 const useStyles = makeStyles((theme) => ({
   root: {
     height: "100%",
-    padding: "0",
+    //width: 400,
+    padding: 0,
     margin: 0,
     border: 0,
   },
