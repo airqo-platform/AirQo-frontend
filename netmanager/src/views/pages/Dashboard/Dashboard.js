@@ -525,7 +525,7 @@ const Dashboard = (props) => {
 
         <Grid item lg={6} md={6} sm={12} xl={6} xs={12}>
           <Grid item lg={12} sm={12} xl={12} xs={12}>
-            <Map id="rootMapContainerId" />
+            {/* <Map id="rootMapContainerId" /> */}
           </Grid>
 
           {/* <Grid container spacing={0} className="MapCardContent">
