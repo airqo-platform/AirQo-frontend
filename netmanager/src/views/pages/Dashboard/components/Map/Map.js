@@ -27,6 +27,8 @@ import Menu from "@material-ui/core/Menu";
 import MenuItem from "@material-ui/core/MenuItem";
 import domtoimage from "dom-to-image";
 import JsPDF from "jspdf";
+//import '../../../../../../src/index.css';
+import css from '../../../../../../src/index.css';
 
 const useStyles = makeStyles((theme) => ({
   root: {
