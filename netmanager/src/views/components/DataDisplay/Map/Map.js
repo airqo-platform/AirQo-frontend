@@ -50,7 +50,7 @@ const Map = props => {
   const [contacts,setContacts ] = useState([]);
 
   useEffect(() => {
-   fetch(constants.GET_online_offline_maintenance_status)
+   fetch(constants.GET_ONLINE_OFFLINE_MAINTENANCE_STATUS)
       .then(res => res.json())
       .then((contactData) => {
         let devices = contactData["online_offline_devices"]
