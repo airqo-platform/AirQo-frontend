@@ -1,32 +1,32 @@
 /* eslint-disable */
-import React, { useState, useEffect } from 'react';
-import { makeStyles } from '@material-ui/styles';
-import PropTypes from 'prop-types';
+import React, { useState, useEffect } from "react";
+import { makeStyles } from "@material-ui/styles";
+import PropTypes from "prop-types";
 import { connect } from "react-redux";
-import {connectedUsersTable as UsersTable, connectedUsersToolbar as UsersToolbar} from '../components/Users/containers/Users';
+import {
+  connectedUsersTable as UsersTable,
+  connectedUsersToolbar as UsersToolbar,
+} from "views/hocs/Users";
 
+import mockData from "./data";
 
-import mockData from './data';
-
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   root: {
-    padding: theme.spacing(3)
+    padding: theme.spacing(3),
   },
   content: {
-    marginTop: theme.spacing(2)
-  }
+    marginTop: theme.spacing(2),
+  },
 }));
-
 
 const UserList = (props) => {
   const classes = useStyles();
 
   const users = props.mappeduserState.users;
 
-  useEffect(()=>{
-  props.fetchUsers();
-
-  },[]);
+  useEffect(() => {
+    props.fetchUsers();
+  }, []);
 
   return (
     <div className={classes.root}>
@@ -41,9 +41,7 @@ const UserList = (props) => {
 UserList.propTypes = {
   auth: PropTypes.object.isRequired,
   errors: PropTypes.object.isRequired,
-  userState: PropTypes.object.isRequired
+  userState: PropTypes.object.isRequired,
 };
-
-
 
 export default UserList;

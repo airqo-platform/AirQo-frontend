@@ -1,9 +1,9 @@
 /* eslint-disable */
-import React, { useState, useEffect } from 'react';
-import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
-import clsx from 'clsx';
-import { makeStyles } from '@material-ui/styles';
+import React, { useState, useEffect } from "react";
+import PropTypes from "prop-types";
+import { connect } from "react-redux";
+import clsx from "clsx";
+import { makeStyles } from "@material-ui/styles";
 import {
   Button,
   TextField,
@@ -16,75 +16,75 @@ import {
   DialogContent,
   Dialog,
   DialogActions,
-  DialogContentText
-} from '@material-ui/core';
+  DialogContentText,
+} from "@material-ui/core";
 
-import { Alert, AlertTitle } from '@material-ui/lab';
+import { Alert, AlertTitle } from "@material-ui/lab";
 
-import { useMinimalSelectStyles } from '@mui-treasury/styles/select/minimal';
+import { useMinimalSelectStyles } from "@mui-treasury/styles/select/minimal";
 
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 
-import { SearchInput } from 'components';
+import { SearchInput } from "views/components/SearchInput";
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   root: {
-    '&$error': {
-      color: 'red'
-    }
+    "&$error": {
+      color: "red",
+    },
   },
   error: {},
   row: {
-    height: '42px',
-    display: 'flex',
-    alignItems: 'center',
-    marginTop: theme.spacing(1)
+    height: "42px",
+    display: "flex",
+    alignItems: "center",
+    marginTop: theme.spacing(1),
   },
   spacer: {
-    flexGrow: 1
+    flexGrow: 1,
   },
   importButton: {
-    marginRight: theme.spacing(1)
+    marginRight: theme.spacing(1),
   },
   exportButton: {
-    marginRight: theme.spacing(1)
+    marginRight: theme.spacing(1),
   },
   searchInput: {
-    marginRight: theme.spacing(1)
+    marginRight: theme.spacing(1),
   },
   container: {
-    display: 'flex',
-    flexWrap: 'wrap'
+    display: "flex",
+    flexWrap: "wrap",
   },
   textField: {
     marginLeft: theme.spacing.unit,
-    marginRight: theme.spacing.unit
+    marginRight: theme.spacing.unit,
   },
   dense: {
-    marginTop: 16
+    marginTop: 16,
   },
   menu: {
-    width: 200
-  }
+    width: 200,
+  },
 }));
 
 const roles = [
   {
-    value: 'none',
-    label: 'none'
+    value: "none",
+    label: "none",
   },
   {
-    value: 'admin',
-    label: 'admin'
+    value: "admin",
+    label: "admin",
   },
   {
-    value: 'user',
-    label: 'user'
+    value: "user",
+    label: "user",
   },
   {
-    value: 'collaborator',
-    label: 'collaborator'
-  }
+    value: "collaborator",
+    label: "collaborator",
+  },
 ];
 
 const validPasswordRegex = RegExp(/(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,}/);
@@ -93,7 +93,7 @@ const validEmailRegex = RegExp(
 );
 
 /***func starts here....... */
-const UsersToolbar = props => {
+const UsersToolbar = (props) => {
   const { className, mappeduserState, mappedErrors, ...rest } = props;
 
   const [open, setOpen] = useState(false);
@@ -102,14 +102,14 @@ const UsersToolbar = props => {
   const [adding, setAdding] = useState(false);
 
   const initialState = {
-    userName: '',
-    firstName: '',
-    lastName: '',
-    email: '',
-    password: '',
-    password2: '',
-    privilege: '',
-    errors: {}
+    userName: "",
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+    password2: "",
+    privilege: "",
+    errors: {},
   };
 
   const [form, setState] = useState(initialState);
@@ -138,36 +138,36 @@ const UsersToolbar = props => {
   //   props.mappedHideAddDialog();
   // };
 
-  const onChange = e => {
+  const onChange = (e) => {
     e.preventDefault();
     const { id, value } = e.target;
     let errors = form.errors;
 
     switch (id) {
-      case 'firstName':
-        errors.firstName = value.length === 0 ? 'first name is required' : '';
+      case "firstName":
+        errors.firstName = value.length === 0 ? "first name is required" : "";
         break;
-      case 'lastName':
-        errors.lastName = value.length === 0 ? 'last name is required' : '';
+      case "lastName":
+        errors.lastName = value.length === 0 ? "last name is required" : "";
         break;
-      case 'password':
+      case "password":
         errors.password = validPasswordRegex.test(value)
-          ? ''
-          : 'Minimum six characters, at least one uppercase letter, one lowercase letter and one number!';
+          ? ""
+          : "Minimum six characters, at least one uppercase letter, one lowercase letter and one number!";
         break;
-      case 'email':
-        errors.email = validEmailRegex.test(value) ? '' : 'Email is not valid!';
+      case "email":
+        errors.email = validEmailRegex.test(value) ? "" : "Email is not valid!";
         break;
-      case 'userName':
-        errors.userName = value.length === 0 ? 'userName is required' : '';
+      case "userName":
+        errors.userName = value.length === 0 ? "userName is required" : "";
         break;
-      case 'password2':
+      case "password2":
         errors.password2 = validPasswordRegex.test(value)
-          ? ''
-          : 'Minimum six characters, at least one uppercase letter, one lowercase letter and one number!';
+          ? ""
+          : "Minimum six characters, at least one uppercase letter, one lowercase letter and one number!";
         break;
-      case 'privilege':
-        errors.privilege = value.length === 0 ? 'role is required' : '';
+      case "privilege":
+        errors.privilege = value.length === 0 ? "role is required" : "";
         break;
 
       default:
@@ -177,7 +177,7 @@ const UsersToolbar = props => {
     setState(
       {
         ...form,
-        [id]: value
+        [id]: value,
       },
       () => {
         console.log(errors);
@@ -185,32 +185,32 @@ const UsersToolbar = props => {
     );
   };
 
-  const onSubmit = e => {
+  const onSubmit = (e) => {
     e.preventDefault();
 
     const { id, value } = e.target;
     let errors = form.errors;
 
     switch (id) {
-      case 'firstName':
+      case "firstName":
         errors.firstName = mappedErrors.errors.firstName;
         break;
-      case 'lastName':
+      case "lastName":
         errors.lastName = mappedErrors.errors.lastName;
         break;
-      case 'email':
+      case "email":
         errors.email = mappedErrors.errors.email;
         break;
-      case 'password':
+      case "password":
         errors.password = mappedErrors.errors.password;
         break;
-      case 'password2':
+      case "password2":
         errors.password2 = mappedErrors.errors.password2;
         break;
-      case 'userName':
+      case "userName":
         errors.userName = mappedErrors.errors.userName;
         break;
-      case 'privilege':
+      case "privilege":
         errors.privilege = mappedErrors.errors.privilege;
         break;
       default:
@@ -223,7 +223,7 @@ const UsersToolbar = props => {
       email: form.email,
       password: form.password,
       password2: form.password2,
-      privilege: form.privilege
+      privilege: form.privilege,
     };
     console.log(userData);
     if (userData.password !== userData.password2) {
@@ -240,10 +240,10 @@ const UsersToolbar = props => {
     clearState();
   }, []);
 
-  const iconComponent = props => {
+  const iconComponent = (props) => {
     return (
       <ExpandMoreIcon
-        className={props.className + ' ' + minimalSelectClasses.icon}
+        className={props.className + " " + minimalSelectClasses.icon}
       />
     );
   };
@@ -252,23 +252,24 @@ const UsersToolbar = props => {
   const menuProps = {
     classes: {
       paper: minimalSelectClasses.paper,
-      list: minimalSelectClasses.list
+      list: minimalSelectClasses.list,
     },
     anchorOrigin: {
-      vertical: 'bottom',
-      horizontal: 'left'
+      vertical: "bottom",
+      horizontal: "left",
     },
     transformOrigin: {
-      vertical: 'top',
-      horizontal: 'left'
+      vertical: "top",
+      horizontal: "left",
     },
-    getContentAnchorEl: null
+    getContentAnchorEl: null,
   };
 
   return (
     <div
       // {...rest}
-      className={clsx(classes.root, className)}>
+      className={clsx(classes.root, className)}
+    >
       <div className={classes.row}>
         <SearchInput
           className={classes.searchInput}
@@ -282,7 +283,8 @@ const UsersToolbar = props => {
           <Dialog
             open={open}
             onClose={handleClose}
-            aria-labelledby="form-dialog-title">
+            aria-labelledby="form-dialog-title"
+          >
             <DialogTitle id="form-dialog-title">Add User</DialogTitle>
             <DialogContent>
               {mappeduserState.showAddDialog &&
@@ -358,10 +360,10 @@ const UsersToolbar = props => {
                       variant="outlined"
                       fullWidth
                       InputProps={{
-                        autocomplete: 'new-password',
+                        autocomplete: "new-password",
                         form: {
-                          autocomplete: 'off'
-                        }
+                          autocomplete: "off",
+                        },
                       }}
                     />
                     <TextField
@@ -378,10 +380,10 @@ const UsersToolbar = props => {
                       error={form.errors.password2}
                       fullWidth
                       InputProps={{
-                        autocomplete: 'new-password',
+                        autocomplete: "new-password",
                         form: {
-                          autocomplete: 'off'
-                        }
+                          autocomplete: "off",
+                        },
                       }}
                     />
                     <TextField
@@ -395,14 +397,15 @@ const UsersToolbar = props => {
                       SelectProps={{
                         native: true,
                         MenuProps: {
-                          className: classes.menu
-                        }
+                          className: classes.menu,
+                        },
                       }}
                       helperText={form.errors.privilege}
                       error={form.errors.privilege}
                       margin="normal"
-                      variant="outlined">
-                      {roles.map(option => (
+                      variant="outlined"
+                    >
+                      {roles.map((option) => (
                         <option key={option.value} value={option.value}>
                           {option.label}
                         </option>
@@ -436,7 +439,8 @@ const UsersToolbar = props => {
                   <Button
                     onClick={handleClose}
                     color="primary"
-                    variant="outlined">
+                    variant="outlined"
+                  >
                     Cancel
                   </Button>
                   <Button onClick={onSubmit} color="primary" variant="outlined">
@@ -466,10 +470,10 @@ const UsersToolbar = props => {
 UsersToolbar.propTypes = {
   auth: PropTypes.object.isRequired,
   errors: PropTypes.object.isRequired,
-  className: PropTypes.string
+  className: PropTypes.string,
 };
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
   auth: state.auth,
-  errors: state.errors
+  errors: state.errors,
 });
 export default connect(mapStateToProps)(UsersToolbar);

@@ -47,18 +47,16 @@ import {
   LocationEdit,
 } from "./views/components/LocationList";
 
-import {
-  Reports as ReportView,
-  Account as AccountView,
-  Settings as SettingsView,
-  NotFound as NotFoundView,
-  Download,
-  ReportTemplate,
-  LocationList as LocationListView,
-  SignUp as SignUpView,
-} from "./views/pages";
+import { SignUp as SignUpView } from "./views/pages/SignUp";
+import { Settings as SettingsView } from "./views/pages/Settings";
+import { Account as AccountView } from "./views/pages/Account";
+import { Download as DownloadView } from "./views/pages/Download";
+import { ReportTemplate as ReportTemplateView } from "./views/pages/ReportTemplate";
+import { Reports as ReportView } from "./views/pages/Reports";
+import { NotFound as NotFoundView } from "./views/pages/NotFound";
+import { LocationList as LocationListView } from "./views/pages/LocationList";
 
-//import { LocationRegister }from "./views/components/LocationRegister";
+//import { LocationRegister } from "./views/components/LocationRegister";
 //import { LocationRegister } from "./views/components/LocationList/LocationRegister";
 
 // Check for token to keep user logged in
@@ -87,7 +85,7 @@ class App extends Component {
         <ThemeProvider theme={theme}>
           <Router>
             <div className="App">
-              <Route exact path="/" component={Login} />
+              <Route exact path="/" component={SignUpView} />
               <Route exact path="/register" component={Register} />
               {/* <Route exact path="/login" component={Login} /> */}
               <Route exact path="/forgot" component={ForgotPassword} />

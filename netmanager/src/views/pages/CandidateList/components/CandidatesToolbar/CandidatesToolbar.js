@@ -1,53 +1,52 @@
 /* eslint-disable */
-import React, {useState,  useEffect} from 'react';
-import PropTypes from 'prop-types';
-import clsx from 'clsx';
-import { makeStyles } from '@material-ui/styles';
-import { 
-  Button, 
-  TextField, 
+import React, { useState, useEffect } from "react";
+import PropTypes from "prop-types";
+import clsx from "clsx";
+import { makeStyles } from "@material-ui/styles";
+import {
+  Button,
+  TextField,
   FormControl,
   InputLabel,
-  Select, 
+  Select,
   Input,
-   MenuItem,
-   DialogTitle,
-   DialogContent,
-   Dialog,
-   DialogActions,
-   DialogContentText
-  } from '@material-ui/core';
+  MenuItem,
+  DialogTitle,
+  DialogContent,
+  Dialog,
+  DialogActions,
+  DialogContentText,
+} from "@material-ui/core";
 
-  import { useMinimalSelectStyles } from '@mui-treasury/styles/select/minimal';
+import { useMinimalSelectStyles } from "@mui-treasury/styles/select/minimal";
 
-  import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 
+import { SearchInput } from "views/components/SearchInput";
 
-import { SearchInput } from 'components';
-
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   root: {},
   row: {
-    height: '42px',
-    display: 'flex',
-    alignItems: 'center',
-    marginTop: theme.spacing(1)
+    height: "42px",
+    display: "flex",
+    alignItems: "center",
+    marginTop: theme.spacing(1),
   },
   spacer: {
-    flexGrow: 1
+    flexGrow: 1,
   },
   importButton: {
-    marginRight: theme.spacing(1)
+    marginRight: theme.spacing(1),
   },
   exportButton: {
-    marginRight: theme.spacing(1)
+    marginRight: theme.spacing(1),
   },
   searchInput: {
-    marginRight: theme.spacing(1)
+    marginRight: theme.spacing(1),
   },
   container: {
-    display: 'flex',
-    flexWrap: 'wrap',
+    display: "flex",
+    flexWrap: "wrap",
   },
   textField: {
     marginLeft: theme.spacing.unit,
@@ -59,52 +58,48 @@ const useStyles = makeStyles(theme => ({
   menu: {
     width: 200,
   },
-
 }));
-
 
 const roles = [
   {
-    value: 'admin',
-    label: 'admin',
+    value: "admin",
+    label: "admin",
   },
   {
-    value: 'user',
-    label: 'user',
+    value: "user",
+    label: "user",
   },
   {
-    value: 'collaborator',
-    label: 'collaborator',
+    value: "collaborator",
+    label: "collaborator",
   },
 ];
 
-
-
 /***func starts here....... */
-const UsersToolbar = props => {
-  const { className,mappeduserState, ...rest } = props;
+const UsersToolbar = (props) => {
+  const { className, mappeduserState, ...rest } = props;
 
-  console.log('the mapped state for UsersToolsbar is here:')
+  console.log("the mapped state for UsersToolsbar is here:");
   console.dir(mappeduserState);
-  
+
   const userState = mappeduserState;
 
   const [open, setOpen] = useState(false);
 
   const initialState = {
-    userName:'',
-    firstName:'',
-    lastName:'',
-    email:'',
-    password:'',
-    password2:'',
-    privilege:''
-  }
-  
+    userName: "",
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+    password2: "",
+    privilege: "",
+  };
+
   const [form, setState] = useState(initialState);
 
-  const clearState = ()=>{
-    setState({...initialState});
+  const clearState = () => {
+    setState({ ...initialState });
   };
 
   const classes = useStyles();
@@ -122,19 +117,18 @@ const UsersToolbar = props => {
     props.mappedHideAddDialog();
   };
 
-  const hideAddDialog = ()=>{
-props.mappedHideAddDialog();
-  }
-
-  const onChange = (e) => {
-setState({
-  ...form,
-  [e.target.id]:e.target.value
-})
-
+  const hideAddDialog = () => {
+    props.mappedHideAddDialog();
   };
 
-  const onSubmit = (e) =>{
+  const onChange = (e) => {
+    setState({
+      ...form,
+      [e.target.id]: e.target.value,
+    });
+  };
+
+  const onSubmit = (e) => {
     e.preventDefault();
     const userData = {
       userName: form.userName,
@@ -143,44 +137,43 @@ setState({
       email: form.email,
       password: form.password,
       password2: form.password2,
-      privilege: form.privilege
+      privilege: form.privilege,
     };
     console.log(userData);
     props.mappedAddUser(userData);
- clearState();
-  }
+    clearState();
+  };
 
   const minimalSelectClasses = useMinimalSelectStyles();
 
-
-  useEffect(()=>{
+  useEffect(() => {
     clearState();
-  
-    },[]);
+  }, []);
 
   const iconComponent = (props) => {
     return (
-      <ExpandMoreIcon className={props.className + " " + minimalSelectClasses.icon}/>
-    )};
+      <ExpandMoreIcon
+        className={props.className + " " + minimalSelectClasses.icon}
+      />
+    );
+  };
 
   // moves the menu below the select input
   const menuProps = {
     classes: {
       paper: minimalSelectClasses.paper,
-      list: minimalSelectClasses.list
+      list: minimalSelectClasses.list,
     },
     anchorOrigin: {
       vertical: "bottom",
-        horizontal: "left"
+      horizontal: "left",
     },
     transformOrigin: {
       vertical: "top",
-        horizontal: "left"
+      horizontal: "left",
     },
-    getContentAnchorEl: null
+    getContentAnchorEl: null,
   };
-
-  
 
   return (
     <div
@@ -196,11 +189,15 @@ setState({
         <div>
           <Button variant="contained" color="primary" onClick={handleClickOpen}>
             Add User
-      </Button>
-          <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
+          </Button>
+          <Dialog
+            open={open}
+            onClose={handleClose}
+            aria-labelledby="form-dialog-title"
+          >
             <DialogTitle id="form-dialog-title">Add User</DialogTitle>
             <DialogContent>
-            <TextField
+              <TextField
                 autoFocus
                 margin="dense"
                 id="email"
@@ -212,9 +209,8 @@ setState({
                 fullWidth
                 InputProps={{ disableUnderline: true }}
               />
-           
-               <TextField
-              
+
+              <TextField
                 margin="dense"
                 id="firstName"
                 name="firstName"
@@ -225,8 +221,7 @@ setState({
                 fullWidth
                 InputProps={{ disableUnderline: true }}
               />
-               <TextField
-             
+              <TextField
                 margin="dense"
                 id="lastName"
                 label="last name"
@@ -238,20 +233,18 @@ setState({
                 InputProps={{ disableUnderline: true }}
               />
 
-<TextField
-          
-          margin="dense"
-          id="userName"
-          name="userName"
-          label="user name"
-          type="text"
-          onChange={onChange}
-          value={form.userName}
-          fullWidth
-          InputProps={{ disableUnderline: true }}
-        />
-               <TextField
-              
+              <TextField
+                margin="dense"
+                id="userName"
+                name="userName"
+                label="user name"
+                type="text"
+                onChange={onChange}
+                value={form.userName}
+                fullWidth
+                InputProps={{ disableUnderline: true }}
+              />
+              <TextField
                 margin="dense"
                 id="password"
                 name="password"
@@ -261,13 +254,15 @@ setState({
                 onChange={onChange}
                 value={form.password}
                 fullWidth
-                InputProps={{ autocomplete: 'new-password',
-                form: {
-                  autocomplete: 'off',
-                }, disableUnderline: true }}
+                InputProps={{
+                  autocomplete: "new-password",
+                  form: {
+                    autocomplete: "off",
+                  },
+                  disableUnderline: true,
+                }}
               />
-               <TextField
-           
+              <TextField
                 margin="dense"
                 id="password2"
                 label="confirm password"
@@ -276,45 +271,47 @@ setState({
                 onChange={onChange}
                 value={form.password2}
                 fullWidth
-                InputProps={{  autocomplete: 'new-password',
-                form: {
-                  autocomplete: 'off',
-                },disableUnderline: true }}
+                InputProps={{
+                  autocomplete: "new-password",
+                  form: {
+                    autocomplete: "off",
+                  },
+                  disableUnderline: true,
+                }}
               />
-          <TextField
-          id="privilege"
-          select
-          label="Role"
-          className={classes.textField}
-          value={form.privilege}
-          onChange={onChange}
-          SelectProps={{
-            native: true,
-            MenuProps: {
-              className: classes.menu,
-            },
-          }}
-          helperText="Please select your role"
-          margin="normal"
-          variant="outlined"
-        >
-          {roles.map(option => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </TextField>
+              <TextField
+                id="privilege"
+                select
+                label="Role"
+                className={classes.textField}
+                value={form.privilege}
+                onChange={onChange}
+                SelectProps={{
+                  native: true,
+                  MenuProps: {
+                    className: classes.menu,
+                  },
+                }}
+                helperText="Please select your role"
+                margin="normal"
+                variant="outlined"
+              >
+                {roles.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </TextField>
             </DialogContent>
 
             <DialogActions>
-           <Button onClick={handleClose} color="primary" variant="outlined">
+              <Button onClick={handleClose} color="primary" variant="outlined">
                 Cancel
-          </Button>
+              </Button>
               <Button onClick={onSubmit} color="primary" variant="outlined">
                 Submit
-          </Button>
+              </Button>
             </DialogActions>
-            
           </Dialog>
         </div>
       </div>
@@ -323,7 +320,7 @@ setState({
 };
 
 UsersToolbar.propTypes = {
-  className: PropTypes.string
+  className: PropTypes.string,
 };
 
 export default UsersToolbar;

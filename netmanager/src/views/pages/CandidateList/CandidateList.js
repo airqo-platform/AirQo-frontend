@@ -1,22 +1,22 @@
 /* eslint-disable */
-import React, { useState, useEffect } from 'react';
-import { makeStyles } from '@material-ui/styles';
-import PropTypes from 'prop-types';
+import React, { useState, useEffect } from "react";
+import { makeStyles } from "@material-ui/styles";
+import PropTypes from "prop-types";
 import {
   connectedCandidatesTable as CandidatesTable,
-  connectedCandidatesToolbar as CandidatesToolbar
-} from '../components/Users/containers/Users';
+  connectedCandidatesToolbar as CandidatesToolbar,
+} from "views/hocs/Users";
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   root: {
-    padding: theme.spacing(3)
+    padding: theme.spacing(3),
   },
   content: {
-    marginTop: theme.spacing(2)
-  }
+    marginTop: theme.spacing(2),
+  },
 }));
 
-const CandidateList = props => {
+const CandidateList = (props) => {
   const classes = useStyles();
 
   const candidates = props.mappeduserState.candidates;
@@ -33,7 +33,7 @@ const CandidateList = props => {
 };
 
 CandidateList.propTypes = {
-  errors: PropTypes.object.isRequired
+  errors: PropTypes.object.isRequired,
 };
 
 export default CandidateList;

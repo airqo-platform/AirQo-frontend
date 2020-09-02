@@ -1,10 +1,10 @@
 /* eslint-disable */
-import React, { useState, useEffect } from 'react';
-import clsx from 'clsx';
-import PropTypes from 'prop-types';
-import moment from 'moment';
-import PerfectScrollbar from 'react-perfect-scrollbar';
-import { makeStyles } from '@material-ui/styles';
+import React, { useState, useEffect } from "react";
+import clsx from "clsx";
+import PropTypes from "prop-types";
+import moment from "moment";
+import PerfectScrollbar from "react-perfect-scrollbar";
+import { makeStyles } from "@material-ui/styles";
 import {
   Card,
   CardActions,
@@ -26,36 +26,36 @@ import {
   DialogContent,
   DialogContentText,
   TextField,
-  DialogActions
-} from '@material-ui/core';
+  DialogActions,
+} from "@material-ui/core";
 
-import { Alert, AlertTitle } from '@material-ui/lab';
+import { Alert, AlertTitle } from "@material-ui/lab";
 
-import { Check, CheckCircleOutline } from '@material-ui/icons';
+import { Check, CheckCircleOutline } from "@material-ui/icons";
 
-import { connect } from 'react-redux';
-import { getInitials } from 'helpers';
-import { showEditDialog } from 'redux/Join/actions';
-import CandidateEditForm from 'views/components/Users/UserEditForm';
+import { connect } from "react-redux";
+import { getInitials } from "helpers";
+import { showEditDialog } from "redux/Join/actions";
+import CandidateEditForm from "views/pages/UserList/components/UserEditForm";
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   root: {},
   content: {
-    padding: 0
+    padding: 0,
   },
   inner: {
-    minWidth: 1050
+    minWidth: 1050,
   },
   nameContainer: {
-    display: 'flex',
-    alignItems: 'center'
+    display: "flex",
+    alignItems: "center",
   },
   avatar: {
-    marginRight: theme.spacing(2)
+    marginRight: theme.spacing(2),
   },
   actions: {
-    justifyContent: 'flex-end'
-  }
+    justifyContent: "flex-end",
+  },
 }));
 
 function withMyHook(Component) {
@@ -65,7 +65,7 @@ function withMyHook(Component) {
   };
 }
 
-const CandidatesTable = props => {
+const CandidatesTable = (props) => {
   //the props
   //need to get the ones from the state
   /***
@@ -75,7 +75,7 @@ const CandidatesTable = props => {
 
   const { className, mappeduserState, ...rest } = props;
 
-  console.log('the mapped user state for CandidatesTable is here:');
+  console.log("the mapped user state for CandidatesTable is here:");
   console.dir(mappeduserState);
 
   const users = mappeduserState.candidates;
@@ -85,7 +85,7 @@ const CandidatesTable = props => {
 
   //the methods:
 
-  const showEditDialog = userToEdit => {
+  const showEditDialog = (userToEdit) => {
     props.mappedshowEditDialog(userToEdit);
   };
 
@@ -93,17 +93,17 @@ const CandidatesTable = props => {
     props.mappedhideEditDialog();
   };
 
-  const submitEditCandidate = e => {
+  const submitEditCandidate = (e) => {
     e.preventDefault();
-    const editForm = document.getElementById('EditCandidateForm');
+    const editForm = document.getElementById("EditCandidateForm");
     const userData = props.mappeduserState;
-    if (editForm.userName.value !== '') {
+    if (editForm.userName.value !== "") {
       const data = new FormData();
-      data.append('id', userData.userToEdit._id);
-      data.append('userName', editForm.userName.value);
-      data.append('firstName', editForm.firstName.value);
-      data.append('lastName', editForm.lastName.value);
-      data.append('email', editForm.email.value);
+      data.append("id", userData.userToEdit._id);
+      data.append("userName", editForm.userName.value);
+      data.append("firstName", editForm.firstName.value);
+      data.append("lastName", editForm.lastName.value);
+      data.append("email", editForm.email.value);
       //add the role in the near future.
       props.mappedEditCandidate(data);
     } else {
@@ -111,7 +111,7 @@ const CandidatesTable = props => {
     }
   };
 
-  const showDeleteDialog = userToDelete => {
+  const showDeleteDialog = (userToDelete) => {
     props.mappedShowDeleteDialog(userToDelete);
   };
 
@@ -123,7 +123,7 @@ const CandidatesTable = props => {
     props.mappedConfirmDeleteCandidate(mappeduserState.userToDelete);
   };
 
-  const showConfirmDialog = userToConfirm => {
+  const showConfirmDialog = (userToConfirm) => {
     props.mappedShowConfirmDialog(userToConfirm);
   };
 
@@ -140,11 +140,11 @@ const CandidatesTable = props => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [page, setPage] = useState(0);
 
-  const handleSelectAll = event => {
+  const handleSelectAll = (event) => {
     let selectedCandidates;
 
     if (event.target.checked) {
-      selectedCandidates = users.map(user => user._id);
+      selectedCandidates = users.map((user) => user._id);
     } else {
       selectedCandidates = [];
     }
@@ -183,7 +183,7 @@ const CandidatesTable = props => {
     setPage(page);
   };
 
-  const handleRowsPerPageChange = event => {
+  const handleRowsPerPageChange = (event) => {
     setRowsPerPage(event.target.value);
   };
   //
@@ -230,24 +230,22 @@ const CandidatesTable = props => {
                   <TableCell>Job Title</TableCell>
                   <TableCell>Phone Number</TableCell>
                   <TableCell>Action</TableCell>
-           
                 </TableRow>
               </TableHead>
               <TableBody>
                 {/* this is where we iterate the users array */}
-                {users.slice(0, rowsPerPage).map(user => (
+                {users.slice(0, rowsPerPage).map((user) => (
                   <TableRow
                     className={classes.tableRow}
                     hover
                     key={user._id}
-                    selected={
-                      selectedCandidates.indexOf(user.firstName) !== -1
-                    }>
+                    selected={selectedCandidates.indexOf(user.firstName) !== -1}
+                  >
                     <TableCell padding="checkbox">
                       <Checkbox
                         checked={selectedCandidates.indexOf(user._id) !== -1}
                         color="primary"
-                        onChange={event => handleSelectOne(event, user._id)}
+                        onChange={(event) => handleSelectOne(event, user._id)}
                         value="true"
                       />
                     </TableCell>
@@ -255,12 +253,12 @@ const CandidatesTable = props => {
                       <div className={classes.nameContainer}>
                         <Avatar className={classes.avatar} src={user.avatarUrl}>
                           {getInitials(
-                            `${user.firstName + ' ' + user.lastName}`
+                            `${user.firstName + " " + user.lastName}`
                           )}
                         </Avatar>
                         <Typography variant="body1">
-                          {' '}
-                          {user.firstName + ' ' + user.lastName}
+                          {" "}
+                          {user.firstName + " " + user.lastName}
                         </Typography>
                       </div>
                     </TableCell>
@@ -274,7 +272,7 @@ const CandidatesTable = props => {
                     <TableCell>{user.jobTitle}</TableCell>
                     <TableCell>{user.phoneNumber}</TableCell>
                     <TableCell>
-                      <Button color="primary">Confirm</Button>{' '}
+                      <Button color="primary">Confirm</Button>{" "}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -300,7 +298,8 @@ const CandidatesTable = props => {
       <Dialog
         open={props.mappeduserState.showEditDialog}
         onClose={hideEditDialog}
-        aria-labelledby="form-dialog-title">
+        aria-labelledby="form-dialog-title"
+      >
         <DialogTitle></DialogTitle>
         <DialogContent></DialogContent>
         <DialogContent>
@@ -333,7 +332,7 @@ const CandidatesTable = props => {
             mappeduserState.successMsg && (
               <Alert severity="success">
                 <AlertTitle>Success</AlertTitle>
-                <strong>{editCandidate.firstName}</strong>{' '}
+                <strong>{editCandidate.firstName}</strong>{" "}
                 {mappeduserState.successMsg}
               </Alert>
             )}
@@ -350,7 +349,8 @@ const CandidatesTable = props => {
       <Dialog
         open={props.mappeduserState.showDeleteDialog}
         onClose={hideDeleteDialog}
-        aria-labelledby="form-dialog-title">
+        aria-labelledby="form-dialog-title"
+      >
         <DialogContent>
           <DialogContentText>Delete Candidate</DialogContentText>
 
@@ -359,7 +359,7 @@ const CandidatesTable = props => {
             !userToDelete.isFetching && (
               <Alert severity="warning">
                 <AlertTitle>Warning</AlertTitle>
-                Are you sure you want to delete this user —{' '}
+                Are you sure you want to delete this user —{" "}
                 <strong>{props.mappeduserState.userToDelete.firstName}</strong>?
                 <strong> {mappeduserState.error} </strong>
               </Alert>
@@ -412,7 +412,7 @@ const CandidatesTable = props => {
 CandidatesTable.propTypes = {
   className: PropTypes.string,
   candidates: PropTypes.array.isRequired,
-  fetchCandidates: PropTypes.func.isRequired
+  fetchCandidates: PropTypes.func.isRequired,
 };
 
 export default CandidatesTable;

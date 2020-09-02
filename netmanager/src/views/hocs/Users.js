@@ -1,16 +1,15 @@
 /* eslint-disable */
 import { connect, connectAdvanced } from "react-redux";
-import * as userActions from "../../../../redux/Join/actions";
-import UserList from "../../../UserList/UserList";
-import UsersTable from "../../../UserList/components/UsersTable/UsersTable";
-import UsersToolBar from "../../../UserList/components/UsersToolbar/UsersToolbar";
+import * as userActions from "redux/Join/actions";
+import UserList from "views/pages/UserList/UserList";
+import UsersTable from "views/pages/UserList/components/UsersTable/UsersTable";
+import UsersToolBar from "views/pages/UserList/components/UsersToolbar/UsersToolbar";
 
 import { AccountDetails, AccountProfile } from "views/pages/Account/components";
 import SettingsNotifications from "views/pages/Settings/components/Notifications/Notifications";
-import SettingsPassword from "views/pagesSettings/components/Password/Password";
-import SetDefaults from "views/hocs/SetDefaults";
+import SettingsPassword from "views/pages/Settings/components/Password/Password";
 import Dashboard from "views/pages/Dashboard/Dashboard";
-import SideBar from "layouts/Main/components/Sidebar/Sidebar";
+import SideBar from "views/layouts/Main/components/Sidebar/Sidebar";
 import CandidateList from "views/pages/CandidateList/CandidateList";
 import CandidatesTable from "views/pages/CandidateList/components/CandidatesTable/CandidatesTable";
 import CandidatesToolBar from "views/pages/CandidateList/components/CandidatesToolbar/CandidatesToolbar";
@@ -59,9 +58,6 @@ const mapDispatchToProps = (dispatch) => {
 
     mappedUpdatePassword: (userToUpdate) =>
       dispatch(userActions.updatePassword(userToUpdate)),
-
-    mappedSetDefaults: (defaultSettings) =>
-      dispatch(userActions.setDefaults(defaultSettings)),
   };
 };
 
@@ -87,8 +83,6 @@ const connectedSettingsNotifications = containerCreator(SettingsNotifications);
 
 const connnectedSettingsPassword = containerCreator(SettingsPassword);
 
-const connectedSetDefaults = containerCreator(SetDefaults);
-
 const connectedSideBar = containerCreator(SideBar);
 
 const connectedDashboard = containerCreator(Dashboard);
@@ -106,7 +100,6 @@ export {
   connectedAccountProfile,
   connectedSettingsNotifications,
   connnectedSettingsPassword,
-  connectedSetDefaults,
   connectedSideBar,
   connectedDashboard,
   connectedRegisterAnalytics,

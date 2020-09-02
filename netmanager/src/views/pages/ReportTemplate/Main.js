@@ -1,31 +1,32 @@
-import React, { Component } from 'react';
-import { EditorState, convertFromRaw, convertToRaw } from 'draft-js';
+import React, { Component } from "react";
+import { EditorState, convertFromRaw, convertToRaw } from "draft-js";
 import {
   Button,
   Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
-  TextField
-} from '@material-ui/core';
-import UpdateIcon from '@material-ui/icons/Update';
-import ArrowBackIcon from '@material-ui/icons/ArrowBack';
-import SaveIcon from '@material-ui/icons/Save';
-import FolderIcon from '@material-ui/icons/Folder';
-import Tooltip from '@material-ui/core/Tooltip';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemText from '@material-ui/core/ListItemText';
-import ListItemAvatar from '@material-ui/core/ListItemAvatar';
-import DialogTitle from '@material-ui/core/DialogTitle';
-import Avatar from '@material-ui/core/Avatar';
-import DeleteIcon from '@material-ui/icons/Delete';
-import DescriptionIcon from '@material-ui/icons/Description';
-import { Editor } from 'react-draft-wysiwyg';
-import 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css';
-import '../../assets/scss/report.css';
-import axios from 'axios';
-import constants from 'config/constants';
+  TextField,
+} from "@material-ui/core";
+import UpdateIcon from "@material-ui/icons/Update";
+import ArrowBackIcon from "@material-ui/icons/ArrowBack";
+import SaveIcon from "@material-ui/icons/Save";
+import FolderIcon from "@material-ui/icons/Folder";
+import Tooltip from "@material-ui/core/Tooltip";
+import List from "@material-ui/core/List";
+import ListItem from "@material-ui/core/ListItem";
+import ListItemText from "@material-ui/core/ListItemText";
+import ListItemAvatar from "@material-ui/core/ListItemAvatar";
+import DialogTitle from "@material-ui/core/DialogTitle";
+import Avatar from "@material-ui/core/Avatar";
+import DeleteIcon from "@material-ui/icons/Delete";
+import DescriptionIcon from "@material-ui/icons/Description";
+import { Editor } from "react-draft-wysiwyg";
+import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css";
+import "assets/scss/report.css";
+// import "netmanager/src/assets/scss/report.css";
+import axios from "axios";
+import constants from "config/constants";
 
 class Main extends Component {
   constructor(props) {
@@ -38,10 +39,10 @@ class Main extends Component {
       openSave: false,
       openConfirm: false,
       saved_report: [],
-      report_name: '',
+      report_name: "",
       report_body_default: {},
-      report_name_default: '',
-      response_msg: ''
+      report_name_default: "",
+      response_msg: "",
     };
     // bind to this
     this.handlePrevSavedOpen = this.handlePrevSavedOpen.bind(this);
@@ -56,45 +57,45 @@ class Main extends Component {
     this.onUpdateDraftCancel = this.onUpdateDraftCancel.bind(this);
   }
 
-  onEditorStateChange = editorState => {
+  onEditorStateChange = (editorState) => {
     // console.log(editorState)
     this.setState({
-      editorState
+      editorState,
     });
   };
 
   componentDidMount() {
     axios
-      .get(constants.GET_DEFAULT_REPORT_TEMPLATE_URI)     
-      .then(res => {
+      .get(constants.GET_DEFAULT_REPORT_TEMPLATE_URI)
+      .then((res) => {
         let result = res.data[0];
         this.setState({
           editorState: EditorState.createWithContent(
             convertFromRaw(JSON.parse(JSON.stringify(result.report_body)))
-          )
+          ),
         });
         //console.log(result.report_body);
         this.setState({ report_body_default: result.report_body });
         this.setState({ report_name_default: result.report_name });
       })
-      .catch(e => {
+      .catch((e) => {
         console.log(e);
       });
   }
 
-  uploadImageCallBack = file => {
+  uploadImageCallBack = (file) => {
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest(); // eslint-disable-line no-undef
-      xhr.open('POST', 'https://api.imgur.com/3/image');
-      xhr.setRequestHeader('Authorization', 'Client-ID 8d26ccd12712fca');
+      xhr.open("POST", "https://api.imgur.com/3/image");
+      xhr.setRequestHeader("Authorization", "Client-ID 8d26ccd12712fca");
       const data = new FormData(); // eslint-disable-line no-undef
-      data.append('image', file);
+      data.append("image", file);
       xhr.send(data);
-      xhr.addEventListener('load', () => {
+      xhr.addEventListener("load", () => {
         const response = JSON.parse(xhr.responseText);
         resolve(response);
       });
-      xhr.addEventListener('error', () => {
+      xhr.addEventListener("error", () => {
         const error = JSON.parse(xhr.responseText);
         reject(error);
       });
@@ -113,24 +114,24 @@ class Main extends Component {
     // make api call to save report
     axios
       .post(
-        constants.SAVE_MONTHLY_REPORT_URI,        
+        constants.SAVE_MONTHLY_REPORT_URI,
         {
           user_id: this.state.user_id,
           report_name: this.state.report_name,
-          report_body: report_body
+          report_body: report_body,
         },
         {
           headers: {
-            'Content-Type': 'application/json'
-          }
+            "Content-Type": "application/json",
+          },
         }
       )
-      .then(res => {
+      .then((res) => {
         console.log(res);
         this.setState({ response_msg: res.data.message });
         this.setState({ openConfirm: true }); //
       })
-      .catch(e => console.log(e));
+      .catch((e) => console.log(e));
   };
 
   // This deals with save report dialog box
@@ -141,7 +142,7 @@ class Main extends Component {
     this.setState({ openSave: false });
   };
   // hooks the monthly report textfield input
-  changeHandler = e => {
+  changeHandler = (e) => {
     this.setState({ [e.target.name]: e.target.value });
   };
 
@@ -154,16 +155,13 @@ class Main extends Component {
   // load previously saved report
   handlePrevSavedOpen = () => {
     axios
-      .get(
-        constants.GET_MONTHLY_REPORT_URI+          
-          this.state.user_id
-      )
-      .then(res => {
+      .get(constants.GET_MONTHLY_REPORT_URI + this.state.user_id)
+      .then((res) => {
         this.setState({ saved_report: res.data });
         console.log(res.data);
         //console.log(this.state, "current user: ", this.props.auth.user._id);
       })
-      .catch(e => {
+      .catch((e) => {
         console.log(e);
       });
     this.setState({ openPrevSaved: true });
@@ -178,7 +176,7 @@ class Main extends Component {
     this.setState({
       editorState: EditorState.createWithContent(
         convertFromRaw(JSON.parse(JSON.stringify(report_body)))
-      )
+      ),
     });
     this.setState({ isDraftSelected: true });
     this.setState({ report_name: report_name });
@@ -190,16 +188,13 @@ class Main extends Component {
   onDraftDelete = (report_id, report_name) => {
     // make api call to save report
     axios
-      .delete(
-        constants.DELETE_MONTHLY_REPORT_URI+
-          report_name
-      )
-      .then(res => {
+      .delete(constants.DELETE_MONTHLY_REPORT_URI + report_name)
+      .then((res) => {
         console.log(res.data);
         this.setState({ response_msg: res.data.message });
         this.setState({ openConfirm: true }); //
       })
-      .catch(e => console.log(e));
+      .catch((e) => console.log(e));
 
     // after success delete, return to default report template
     this.setState({
@@ -207,7 +202,7 @@ class Main extends Component {
         convertFromRaw(
           JSON.parse(JSON.stringify(this.state.report_body_default))
         )
-      )
+      ),
     });
 
     this.setState({ isDraftSelected: false });
@@ -217,23 +212,22 @@ class Main extends Component {
   onUpdateDraft = () => {
     axios
       .post(
-         constants.UPDATE_MONTHLY_REPORT_URI+
-          this.state.report_name,
+        constants.UPDATE_MONTHLY_REPORT_URI + this.state.report_name,
         {
-          report_body: convertToRaw(this.state.editorState.getCurrentContent())
+          report_body: convertToRaw(this.state.editorState.getCurrentContent()),
         },
         {
           headers: {
-            'Content-Type': 'application/json'
-          }
+            "Content-Type": "application/json",
+          },
         }
       )
-      .then(res => {
+      .then((res) => {
         console.log(res.data);
         this.setState({ response_msg: res.data.message });
         this.setState({ openConfirm: true }); //
       })
-      .catch(e => console.log(e));
+      .catch((e) => console.log(e));
   };
 
   //handle cancellation of report update
@@ -243,7 +237,7 @@ class Main extends Component {
         convertFromRaw(
           JSON.parse(JSON.stringify(this.state.report_body_default))
         )
-      )
+      ),
     });
 
     this.setState({ isDraftSelected: false });
@@ -253,15 +247,15 @@ class Main extends Component {
   render() {
     const { editorState } = this.state;
     const editor = {
-      height: 'auto',
-      width: '210mm',
-      margin: '0 auto',
-      textAlign: 'justify'
+      height: "auto",
+      width: "210mm",
+      margin: "0 auto",
+      textAlign: "justify",
     };
     const delete_report = {
-      paddingLeft: '3em',
-      color: 'red',
-      display: 'block'
+      paddingLeft: "3em",
+      color: "red",
+      display: "block",
     };
     console.log(this.state.user_id);
 
@@ -275,8 +269,9 @@ class Main extends Component {
                 variant="contained"
                 endIcon={<SaveIcon />}
                 onClick={this.handleSaveClick}
-                className="print">
-                <style>{'@media print {.print{display: none;}}'}</style>
+                className="print"
+              >
+                <style>{"@media print {.print{display: none;}}"}</style>
                 {/* save draft */}
               </Button>
             </Tooltip>
@@ -290,8 +285,9 @@ class Main extends Component {
                 variant="contained"
                 endIcon={<UpdateIcon />}
                 onClick={this.onUpdateDraft}
-                className="print">
-                <style>{'@media print {.print{display: none;}}'}</style>
+                className="print"
+              >
+                <style>{"@media print {.print{display: none;}}"}</style>
                 {/* Load Draft */}
               </Button>
             </Tooltip>
@@ -305,8 +301,9 @@ class Main extends Component {
                 variant="contained"
                 endIcon={<ArrowBackIcon />}
                 onClick={this.onUpdateDraftCancel}
-                className="print">
-                <style>{'@media print {.print{display: none;}}'}</style>
+                className="print"
+              >
+                <style>{"@media print {.print{display: none;}}"}</style>
                 {/* Load Draft */}
               </Button>
             </Tooltip>
@@ -319,8 +316,9 @@ class Main extends Component {
               variant="contained"
               endIcon={<FolderIcon />}
               onClick={this.handlePrevSavedOpen}
-              className="print">
-              <style>{'@media print {.print{display: none;}}'}</style>
+              className="print"
+            >
+              <style>{"@media print {.print{display: none;}}"}</style>
               {/* Load Draft */}
             </Button>
           </Tooltip>
@@ -332,7 +330,7 @@ class Main extends Component {
             onEditorStateChange={this.onEditorStateChange}
             toolbarClassName="hidden-on-print"
             toolbar={{
-              inline: { inDropdown: true, className: 'hidden-on-print' },
+              inline: { inDropdown: true, className: "hidden-on-print" },
               list: { inDropdown: true },
               textAlign: { inDropdown: true },
               link: { inDropdown: true },
@@ -340,18 +338,19 @@ class Main extends Component {
               image: {
                 uploadCallback: this.uploadImageCallBack.bind(this),
                 alt: { present: false, mandatory: false },
-                previewImage: true
-              }
+                previewImage: true,
+              },
             }}
           />
-          <style>{'@media print {.hidden-on-print{display: none;}}'}</style>
+          <style>{"@media print {.hidden-on-print{display: none;}}"}</style>
         </div>
         <div>
           {/* Dialog for report */}
           <Dialog
             open={this.state.openSave}
             onClose={this.handleSaveClose}
-            aria-labelledby="form-dialog-title">
+            aria-labelledby="form-dialog-title"
+          >
             <DialogContent>
               <DialogContentText>
                 To save this report, please enter the name in the text field
@@ -385,7 +384,8 @@ class Main extends Component {
             open={this.state.openConfirm}
             onClose={this.handleConfirmClose}
             aria-labelledby="alert-dialog-title"
-            aria-describedby="alert-dialog-description">
+            aria-describedby="alert-dialog-description"
+          >
             <DialogContent>
               <DialogContentText id="alert-dialog-description">
                 {this.state.response_msg}
@@ -403,7 +403,8 @@ class Main extends Component {
             open={this.state.openPrevSaved}
             onClose={this.handlePrevSavedClose}
             aria-labelledby="alert-dialog-title"
-            aria-describedby="alert-dialog-description">
+            aria-describedby="alert-dialog-description"
+          >
             <DialogTitle id="simple-dialog-title">
               Open draft report
             </DialogTitle>
@@ -412,7 +413,7 @@ class Main extends Component {
               <DialogContentText id="alert-dialog-description">
                 <List>
                   {this.state.saved_report != null ? (
-                    this.state.saved_report.map(s => (
+                    this.state.saved_report.map((s) => (
                       <div>
                         <ListItem>
                           <ListItemAvatar>
@@ -427,7 +428,8 @@ class Main extends Component {
                               this,
                               s.report_name,
                               s.report_body
-                            )}>
+                            )}
+                          >
                             <ListItemText
                               primary={s.report_name}
                               secondary={s.report_date}
@@ -440,7 +442,8 @@ class Main extends Component {
                               this,
                               s._id,
                               s.report_name
-                            )}>
+                            )}
+                          >
                             <DeleteIcon />
                           </a>
                         </ListItem>

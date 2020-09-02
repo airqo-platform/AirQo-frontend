@@ -23,7 +23,7 @@ import axios from "axios";
 //import CsvDownloader from 'react-csv-downloader';
 import jsonexport from "jsonexport";
 //import {CSVDownload} from 'react-csv';
-import constants from "../../config/constants.js";
+import constants from "config/constants.js";
 
 const {
   Parser,
