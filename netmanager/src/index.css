@@ -109,19 +109,7 @@
 	line-height: 0em !important;
   }
    
-  /* .leaflet-marker-icon {
-	color: #000;
-	font-size: 12px;
-	font-weight: 700;
-	line-height: 35px;
-	text-align: center;
-	vertical-align: bottom;
-	box-shadow: 2px 1px 4px rgba(0, 0, 0, 0.2);
-	border-radius: 30px;
-	border-width: 3px;
-	opacity: 1;
-  } */
-  
+
   .pm25Good {
 	background: #45e50d;
 	border: 2px solid #45e50d;
