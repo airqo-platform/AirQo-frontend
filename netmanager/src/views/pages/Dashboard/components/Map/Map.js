@@ -202,7 +202,7 @@ const Map = (props) => {
               <Popup>
                 <popup_a>
                   {contact.Parish} - {contact.Division} Division
-                </popup_a>
+                </popup_a><br></br>
                 <span>{contact.LocationCode}</span>
 
                 <div
