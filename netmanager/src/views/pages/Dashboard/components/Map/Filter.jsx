@@ -57,7 +57,7 @@ class Filter extends Component {
                     0 - 12
                   </div>
                   <ReactTooltip id="good" place="right" effect="solid">
-                    <h3 style={{ fontWeight: 'normal' }}> Good</h3>
+                  <popup_a style={{ fontWeight: 'normal' }}> Good</popup_a>
                     {/* <p>Air Quality is good for everyone</p> */}
                   </ReactTooltip>
                 </label>
