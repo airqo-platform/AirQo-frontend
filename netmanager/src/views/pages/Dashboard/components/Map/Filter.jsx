@@ -118,7 +118,7 @@ class Filter extends Component {
                     55.5 - 150.4
                   </div>
                   <ReactTooltip id="unhealthy" place="right" effect="solid">
-                    <h3 style={{ fontWeight: 'normal' }}>Unhealthy</h3>
+                  <popup_a style={{ fontWeight: 'normal' }}>Unhealthy</popup_a>
                     {/* <p>Sensitive groups: Avoid prolonged or heavy exertion. Consider moving activities indoors or rescheduling.</p>
                    <p>Everyone else: Reduce prolonged or heavy exertion. Take more breaks during all outdoor activities.</p> */}
                   </ReactTooltip>
@@ -138,7 +138,7 @@ class Filter extends Component {
                     150.5 - 250.4
                   </div>
                   <ReactTooltip id="veryunhealthy" place="right" effect="solid">
-                    <h3 style={{ fontWeight: 'normal' }}>Very Unhealthy</h3>
+                  <popup_a style={{ fontWeight: 'normal' }}>Very Unhealthy</popup_a>
                     {/* <p>Sensitive groups: Avoid all physical activities outdoors. Move activities indoors or reschedule to a time when airquality is better</p>
                    <p>Everyone else: Avoid prolonged or heavy exertion. Consider moving activities indoors or reschedule to a time when airquality is better</p> */}
                   </ReactTooltip>
@@ -158,7 +158,7 @@ class Filter extends Component {
                     250.5 - 500
                   </div>
                   <ReactTooltip id="harzadous" place="right" effect="solid">
-                    <h3 style={{ fontWeight: 'normal' }}>Harzadous</h3>
+                  <popup_a style={{ fontWeight: 'normal' }}>Harzadous</popup_a>
                     {/* <p>Everyone: Avoid all physical activities outdoors</p>
                    <p>Sesitive groups: Remain indoors and keeo activity levels low. Follow tips for keeping particle levels low indoors.</p> */}
                   </ReactTooltip>
