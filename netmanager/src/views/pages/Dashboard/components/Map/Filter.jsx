@@ -34,7 +34,7 @@ class Filter extends Component {
           {this.state.isFilterOpen === true ? null : (
             <>
               <form>
-                <h3 className="filter__h3"></h3>
+              <popup_a className="filter__h3"></popup_a>
                 <label>
                   <input
                     type="radio"
