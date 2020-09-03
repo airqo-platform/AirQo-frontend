@@ -77,7 +77,7 @@ class Filter extends Component {
                     place="right"
                     effect="solid"
                     multiline="true">
-                    <h3 style={{ fontWeight: 'normal' }}>Moderate</h3>
+                    <popup_a style={{ fontWeight: 'normal' }}>Moderate</popup_a>
                     {/* <p>Unusually sensitive people: Consider reducing prolonged or heavy exertion</p>
                    <p>Everyone else: Air pollution poses little or no risk</p> */}
                   </ReactTooltip>
