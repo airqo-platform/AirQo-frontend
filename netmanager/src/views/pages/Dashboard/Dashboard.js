@@ -48,6 +48,11 @@ const useStyles = makeStyles((theme) => ({
     height: 180,
     position: "relative",
   },
+  mapContainer: {
+    height: 590,
+    width: 580,
+    position: "relative",
+  },
   actions: {
     justifyContent: "flex-end",
   },
