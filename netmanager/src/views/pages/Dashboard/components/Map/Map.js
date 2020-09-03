@@ -27,6 +27,7 @@ import Menu from "@material-ui/core/Menu";
 import MenuItem from "@material-ui/core/MenuItem";
 import domtoimage from "dom-to-image";
 import JsPDF from "jspdf";
+import css from '../../../../../../src/index.css';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -197,9 +198,9 @@ const Map = (props) => {
               })}
             >
               <Popup>
-                <h3>
+                <popup_a>
                   {contact.Parish} - {contact.Division} Division
-                </h3>
+                </popup_a><br></br>
                 <span>{contact.LocationCode}</span>
 
                 <div
@@ -219,7 +220,7 @@ const Map = (props) => {
               alt="no img"
             /> */}
 
-                  <h3
+                  <popup_a
                     style={{
                       fontWeight: "normal",
                     }}
@@ -235,7 +236,7 @@ const Map = (props) => {
                         ? ""
                         : contact.Last_Hour_PM25_Value
                     )}
-                  </h3>
+                  </popup_a>
                 </div>
                 <span>
                   Last Refreshed: {getDateString(contact.LastHour)} (EAT)
