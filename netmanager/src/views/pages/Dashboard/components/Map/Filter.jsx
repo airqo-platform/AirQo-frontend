@@ -94,10 +94,10 @@ class Filter extends Component {
                     35.5 - 55.4
                   </div>
                   <ReactTooltip id="UHFSG" place="right" effect="solid">
-                    <h3 style={{ fontWeight: 'normal' }}>
+                  <popup_a style={{ fontWeight: 'normal' }}>
                       {' '}
                       Unhealthy for sensitive groups
-                    </h3>
+                    </popup_a>
                     {/* <p>Sensitive groups: Reduce prolonged or heavy exertion. It's okay to be active outside, but take more breaks and do less intense activities</p>
                    <p>People with asthma should follow their asthma action plans and keep quick relief medicine handy</p>
                    <p>If you have heart disease: Symptoms such as palpitaions, shortness of breath, or unusual fatigue may indicate a serirous problem. If you have any of these, contact your health care provider</p> */}
