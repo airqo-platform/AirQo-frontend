@@ -14,7 +14,9 @@ import CandidateList from "views/pages/CandidateList/CandidateList";
 import CandidatesTable from "views/pages/CandidateList/components/CandidatesTable/CandidatesTable";
 import CandidatesToolBar from "views/pages/CandidateList/components/CandidatesToolbar/CandidatesToolbar";
 
-import { SignUp, Register } from "views/pages/SignUp";
+import { SignUp, Register, Login } from "views/pages/SignUp";
+
+import { SignIn } from "views/pages/SignIn";
 
 // map state from store to props
 const mapStateToProps = (state, ownProps) => {
@@ -87,7 +89,13 @@ const connectedSideBar = containerCreator(SideBar);
 
 const connectedDashboard = containerCreator(Dashboard);
 
-const connectedSignUp = containerCreator(Register);
+const connectedRegister = containerCreator(Register);
+
+const connectedSignUp = containerCreator(SignUp);
+
+const connectedLogin = containerCreator(Login);
+
+const connectedSignIn = containerCreator(SignIn);
 
 export {
   connectedUserList,
@@ -103,4 +111,7 @@ export {
   connectedSideBar,
   connectedDashboard,
   connectedSignUp,
+  connectedRegister,
+  connectedLogin,
+  connectedSignIn,
 };
