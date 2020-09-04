@@ -16,7 +16,7 @@ import {
 import MenuIcon from "@material-ui/icons/Menu";
 import NotificationsIcon from "@material-ui/icons/NotificationsOutlined";
 import InputIcon from "@material-ui/icons/Input";
-import { logoutUser } from "../../../../../redux/Join/actions";
+import { logoutUser } from "redux/Join/actions";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -77,6 +77,14 @@ const Topbar = (props) => {
   };
 
   const handleCloseMenu = () => {
+    setAnchorEl(null);
+  };
+
+  const handleAccountClick = () => {
+    setAnchorEl(null);
+  };
+
+  const handleProfileClick = () => {
     setAnchorEl(null);
   };
 
@@ -152,16 +160,11 @@ const Topbar = (props) => {
             open={open}
             onClose={handleCloseMenu}
           >
-            <MenuItem onClick={handleCloseMenu}>Profile</MenuItem>
-            <MenuItem onClick={handleCloseMenu}>My account</MenuItem>
+            <MenuItem onClick={handleProfileClick}>Settings</MenuItem>
+            <MenuItem onClick={handleAccountClick}>Account</MenuItem>
             <MenuItem onClick={onLogoutClick}>Logout</MenuItem>
           </Menu>
         </Hidden>
-        {/* <Hidden lgUp>
-          <IconButton color="inherit" onClick={onLogoutClick}>
-            <MenuIcon />
-          </IconButton>
-        </Hidden> */}
       </Toolbar>
     </AppBar>
   );
