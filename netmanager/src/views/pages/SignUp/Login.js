@@ -112,9 +112,9 @@ class Login extends Component {
               <h4>
                 <b>Login</b>
               </h4>
-              <p className="grey-text text-darken-1">
+              {/* <p className="grey-text text-darken-1">
                 Don't have an account? <Link to="/register">Register</Link>
-              </p>
+              </p> */}
             </div>
             <form noValidate onSubmit={this.onSubmit}>
               <div className="input-field col s12">
