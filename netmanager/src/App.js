@@ -43,7 +43,11 @@ import {
   LocationEdit,
 } from "./views/components/LocationList";
 
-import { SignUp as SignUpView } from "./views/pages/SignUp";
+import {
+  SignUp as SignUpView,
+  Login as LoginView,
+  Register as RegisterView,
+} from "./views/pages/SignUp";
 import { Settings as SettingsView } from "./views/pages/Settings";
 import { Account as AccountView } from "./views/pages/Account";
 import { Download as DownloadView } from "./views/pages/Download";
@@ -61,6 +65,9 @@ import {
   connectedCandidateList as ConnectedCandidateList,
   connectedSetDefaults as ConnectedSetDefaults,
   connectedSignUp as ConnectedSignUp,
+  connectedSignIn as ConnectedSignIn,
+  connectedLogin as ConnectedLogin,
+  connectedRegister as ConnectedRegister,
   connectedDashboard as DashboardView,
 } from "views/hocs/Users";
 
@@ -94,9 +101,10 @@ class App extends Component {
         <ThemeProvider theme={theme}>
           <Router>
             <div className="App">
-              <Route exact path="/" component={SignUpView} />
-              <Route exact path="/register" component={ConnectedSignUp} />
-              <Route exact path="/login" component={Login} />
+              <Route exact path="/" component={ConnectedLogin} />
+              <Route exact path="/register" component={ConnectedRegister} />
+              <Route exact path="/sign-up" component={ConnectedSignUp} />
+              <Route component={ConnectedLogin} exact path="/login" />
               <Route exact path="/forgot" component={ForgotPassword} />
               <Route exact path="/reset/:token" component={ResetPassword} />
               <Switch>
@@ -106,13 +114,19 @@ class App extends Component {
                   component={AnalyticsDashboard}
                   layout={MainLayout}
                 />
+
+                <RouteWithLayout
+                  component={ConnectedSignIn}
+                  exact
+                  layout={MinimalLayout}
+                  path="/sign-in"
+                />
                 <PrivateRoute
                   exact
                   path="/overview"
                   component={Dashboard}
                   layout={MainLayout}
                 />
-
                 <PrivateRoute
                   exact
                   path="/locate"
@@ -137,6 +151,20 @@ class App extends Component {
                   component={LocationList}
                   layout={MainLayout}
                 />
+
+                <PrivateRoute
+                  component={NotFoundView}
+                  exact
+                  layout={MinimalLayout}
+                  path="/not-found"
+                />
+                <PrivateRoute
+                  component={ConnectedCandidateList}
+                  exact
+                  layout={MainLayout}
+                  path="/candidates"
+                />
+
                 <PrivateRoute
                   extact
                   path="/register_location"
@@ -186,13 +214,8 @@ class App extends Component {
                   component={Manager}
                   layout={MainLayout}
                 />
-
-                <PrivateRoute
-                  exact
-                  path="/incentives"
-                  component={Incentives}
-                  layout={MainLayout}
-                />
+                {/* 
+                <Redirect to="/not-found" /> */}
               </Switch>
             </div>
           </Router>
