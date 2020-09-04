@@ -9,25 +9,16 @@ import {
   IconButton,
   TextField,
   Link,
-  FormHelperText,
-  Checkbox,
   Typography,
 } from "@material-ui/core";
 import ArrowBackIcon from "@material-ui/icons/ArrowBack";
 
+import {
+  Facebook as FacebookIcon,
+  Google as GoogleIcon,
+} from "assets/img/icons";
+
 const schema = {
-  firstName: {
-    presence: { allowEmpty: false, message: "is required" },
-    length: {
-      maximum: 32,
-    },
-  },
-  lastName: {
-    presence: { allowEmpty: false, message: "is required" },
-    length: {
-      maximum: 32,
-    },
-  },
   email: {
     presence: { allowEmpty: false, message: "is required" },
     email: true,
@@ -40,10 +31,6 @@ const schema = {
     length: {
       maximum: 128,
     },
-  },
-  policy: {
-    presence: { allowEmpty: false, message: "is required" },
-    checked: true,
   },
 };
 
@@ -124,23 +111,24 @@ const useStyles = makeStyles((theme) => ({
   title: {
     marginTop: theme.spacing(3),
   },
+  socialButtons: {
+    marginTop: theme.spacing(3),
+  },
+  socialIcon: {
+    marginRight: theme.spacing(1),
+  },
+  sugestion: {
+    marginTop: theme.spacing(2),
+  },
   textField: {
     marginTop: theme.spacing(2),
   },
-  policy: {
-    marginTop: theme.spacing(1),
-    display: "flex",
-    alignItems: "center",
-  },
-  policyCheckbox: {
-    marginLeft: "-14px",
-  },
-  signUpButton: {
+  signInButton: {
     margin: theme.spacing(2, 0),
   },
 }));
 
-const SignUp = (props) => {
+const SignIn = (props) => {
   const { history } = props;
 
   const classes = useStyles();
@@ -153,14 +141,18 @@ const SignUp = (props) => {
   });
 
   useEffect(() => {
-    // const errors = validate(formState.values, schema);
+    const errors = validate(formState.values, schema);
 
     setFormState((formState) => ({
       ...formState,
-      // isValid: errors ? false : true,
-      // errors: errors || {},
+      isValid: errors ? false : true,
+      errors: errors || {},
     }));
   }, [formState.values]);
+
+  const handleBack = () => {
+    history.goBack();
+  };
 
   const handleChange = (event) => {
     event.persist();
@@ -181,11 +173,7 @@ const SignUp = (props) => {
     }));
   };
 
-  const handleBack = () => {
-    history.goBack();
-  };
-
-  const handleSignUp = (event) => {
+  const handleSignIn = (event) => {
     event.preventDefault();
     history.push("/");
   };
@@ -213,49 +201,50 @@ const SignUp = (props) => {
         </Grid>
         <Grid className={classes.content} item lg={7} xs={12}>
           <div className={classes.content}>
-            <div className={classes.contentHeader}>
+            {/* <div className={classes.contentHeader}>
               <IconButton onClick={handleBack}>
                 <ArrowBackIcon />
               </IconButton>
-            </div>
+            </div> */}
             <div className={classes.contentBody}>
-              <form className={classes.form} onSubmit={handleSignUp}>
+              <form className={classes.form} onSubmit={handleSignIn}>
                 <Typography className={classes.title} variant="h2">
-                  Create new account
+                  Sign in
                 </Typography>
                 <Typography color="textSecondary" gutterBottom>
-                  Use your email to create new account
+                  Sign in with social media
                 </Typography>
-                <TextField
-                  className={classes.textField}
-                  error={hasError("firstName")}
-                  fullWidth
-                  helperText={
-                    hasError("firstName") ? formState.errors.firstName[0] : null
-                  }
-                  label="First name"
-                  name="firstName"
-                  onChange={handleChange}
-                  type="text"
-                  value={formState.values.firstName || ""}
-                  variant="outlined"
-                  defaultValue=""
-                />
-                <TextField
-                  className={classes.textField}
-                  error={hasError("lastName")}
-                  fullWidth
-                  helperText={
-                    hasError("lastName") ? formState.errors.lastName[0] : null
-                  }
-                  label="Last name"
-                  name="lastName"
-                  onChange={handleChange}
-                  type="text"
-                  value={formState.values.lastName || ""}
-                  variant="outlined"
-                  defaultValue=""
-                />
+                <Grid className={classes.socialButtons} container spacing={2}>
+                  <Grid item>
+                    <Button
+                      color="primary"
+                      // onClick={handleSignIn}
+                      size="large"
+                      variant="contained"
+                    >
+                      <FacebookIcon className={classes.socialIcon} />
+                      Login with Facebook
+                    </Button>
+                  </Grid>
+                  <Grid item>
+                    <Button
+                      // onClick={handleSignIn}
+                      size="large"
+                      variant="contained"
+                    >
+                      <GoogleIcon className={classes.socialIcon} />
+                      Login with Google
+                    </Button>
+                  </Grid>
+                </Grid>
+                <Typography
+                  align="center"
+                  className={classes.sugestion}
+                  color="textSecondary"
+                  variant="body1"
+                >
+                  or login with email address
+                </Typography>
                 <TextField
                   className={classes.textField}
                   error={hasError("email")}
@@ -269,7 +258,6 @@ const SignUp = (props) => {
                   type="text"
                   value={formState.values.email || ""}
                   variant="outlined"
-                  defaultValue=""
                 />
                 <TextField
                   className={classes.textField}
@@ -284,59 +272,24 @@ const SignUp = (props) => {
                   type="password"
                   value={formState.values.password || ""}
                   variant="outlined"
-                  defaultValue=""
                 />
-                <div className={classes.policy}>
-                  <Checkbox
-                    checked={
-                      typeof formState.values.policy == "undefined"
-                        ? false
-                        : formState.values.policy
-                    }
-                    className={classes.policyCheckbox}
-                    color="primary"
-                    name="policy"
-                    onChange={handleChange}
-                  />
-                  <Typography
-                    className={classes.policyText}
-                    color="textSecondary"
-                    variant="body1"
-                  >
-                    I have read the{" "}
-                    <Link
-                      color="primary"
-                      component={RouterLink}
-                      to="#"
-                      underline="always"
-                      variant="h6"
-                    >
-                      Terms and Conditions
-                    </Link>
-                  </Typography>
-                </div>
-                {hasError("policy") && (
-                  <FormHelperText error>
-                    {formState.errors.policy[0]}
-                  </FormHelperText>
-                )}
                 <Button
-                  className={classes.signUpButton}
+                  className={classes.signInButton}
                   color="primary"
-                  disabled={!formState.isValid}
+                  // disabled={!formState.isValid}
                   fullWidth
                   size="large"
                   type="submit"
                   variant="contained"
                 >
-                  Sign up now
+                  Sign in now
                 </Button>
-                <Typography color="textSecondary" variant="body1">
-                  Have an account?{" "}
+                {/* <Typography color="textSecondary" variant="body1">
+                  Don't have an account?{" "}
                   <Link component={RouterLink} to="/sign-in" variant="h6">
-                    Sign in
+                    Sign up
                   </Link>
-                </Typography>
+                </Typography> */}
               </form>
             </div>
           </div>
@@ -346,8 +299,8 @@ const SignUp = (props) => {
   );
 };
 
-SignUp.propTypes = {
+SignIn.propTypes = {
   history: PropTypes.object,
 };
 
-export default withRouter(SignUp);
+export default withRouter(SignIn);
