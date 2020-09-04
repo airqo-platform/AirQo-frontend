@@ -1,19 +1,20 @@
-import React from 'react';
+import React from "react";
 /* eslint-disable */
-import { IndexRoute } from 'react-router';
-import { Switch, Redirect, Route } from 'react-router-dom';
+import { IndexRoute } from "react-router";
+import { Switch, Redirect, Route } from "react-router-dom";
 
-import { RouteWithLayout } from '../components';
-import { Main as MainLayout, Minimal as MinimalLayout } from '../layouts';
-import PrivateRoute from '../views/components/PrivateRoute/PrivateRoute.js';
-import Register from '../views/components/Users/RegisterAnalytics';
+import { RouteWithLayout } from "../components";
+import { Main as MainLayout, Minimal as MinimalLayout } from "../layouts";
+import PrivateRoute from "../views/components/PrivateRoute/PrivateRoute.js";
+import Register from "../views/components/Users/RegisterAnalytics";
 
 import {
   connectedUserList as ConnectedUserList,
   connectedCandidateList as ConnectedCandidateList,
   connectedSetDefaults as ConnectedSetDefaults,
-  connectedRegisterAnalytics as ConnectedRegister
-} from 'views/components/Users/containers/Users';
+  connectedRegisterAnalytics as ConnectedRegister,
+  connectedDashboard as DashboardView,
+} from "views/hocs/Users";
 
 import {
   Reports as ReportView,
@@ -25,15 +26,13 @@ import {
   ReportTemplate,
   LocationList as LocationListView,
   SignUp as SignUpView,
-  Documentation
-} from '../views';
+  Documentation,
+} from "views/pages";
 
-import { connectedDashboard as DashboardView } from 'views/components/Users/containers/Users';
-
-import Landing from '../views/layouts/Landing';
-import ForgotPassword from '../views/components/Users/ForgotPassword';
-import ResetPassword from '../views/components/Users/ResetPassword';
-import Login from '../views/components/Users/Login';
+import Landing from "views/layouts/Landing";
+import ForgotPassword from "views/pages/ForgotPassword";
+import ResetPassword from "views/pagesResetPassword";
+import Login from "views/pages/SignUp/Login";
 
 const Routes = () => {
   return (
