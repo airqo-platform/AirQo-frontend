@@ -86,11 +86,11 @@ const Sidebar = (props) => {
       href: "/admin/users",
       icon: <PeopleIcon />,
     },
-    {
-      title: "Candidates",
-      href: "/candidates",
-      icon: <SupervisedUserCircleIcon />,
-    },
+    // {
+    //   title: "Candidates",
+    //   href: "/candidates",
+    //   icon: <SupervisedUserCircleIcon />,
+    // },
     {
       title: "Account",
       href: "/account",
