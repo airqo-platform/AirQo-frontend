@@ -6,8 +6,8 @@ import { loginUser } from "../../../redux/Join/actions";
 import classnames from "classnames";
 
 class Login extends Component {
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
     this.state = {
       userName: "",
       password: "",

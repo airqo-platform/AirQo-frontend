@@ -1,0 +1,9 @@
+.App {
+  text-align: center;
+}
+
+.centerAlign{text-align: center;vertical-align: middle;}
+
+.ml-1 {
+  margin-left: 2rem !important;
+}

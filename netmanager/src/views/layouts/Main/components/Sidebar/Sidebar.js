@@ -15,6 +15,7 @@ import ManageIcon from "@material-ui/icons/Build";
 import AddIcon from "@material-ui/icons/Add";
 import EditLocationIcon from "@material-ui/icons/EditLocation";
 import AspectRatioIcon from "@material-ui/icons/AspectRatio";
+import SupervisedUserCircleIcon from "@material-ui/icons/SupervisedUserCircle";
 
 import { Profile, SidebarNav } from "./components";
 
@@ -63,11 +64,6 @@ const Sidebar = (props) => {
       icon: <LocateIcon />,
     },
     {
-      title: "Incentives",
-      href: "/incentives",
-      icon: <PaymentIcon />,
-    },
-    {
       title: "Device Management",
       href: "/manager",
       icon: <ManageIcon />,
@@ -90,6 +86,11 @@ const Sidebar = (props) => {
       href: "/admin/users",
       icon: <PeopleIcon />,
     },
+    // {
+    //   title: "Candidates",
+    //   href: "/candidates",
+    //   icon: <SupervisedUserCircleIcon />,
+    // },
     {
       title: "Account",
       href: "/account",
@@ -101,6 +102,26 @@ const Sidebar = (props) => {
       icon: <SettingsIcon />,
     },
   ];
+
+  const { mappedAuth } = props;
+  let { user } = mappedAuth;
+  let userPages = [];
+
+  try {
+    if (user.privilege === "super") {
+      userPages = userManagementPages;
+    } else if (user.privilege === "admin") {
+      userPages = userManagementPages.filter(function (element) {
+        return element.title !== "Candidates";
+      });
+    } else {
+      userPages = userManagementPages.filter(function (element) {
+        return element.title !== "Users" && element.title !== "Candidates";
+      });
+    }
+  } catch (e) {
+    console.log(e);
+  }
 
   return (
     <Drawer
@@ -115,7 +136,7 @@ const Sidebar = (props) => {
         <Divider className={classes.divider} />
         <SidebarNav className={classes.nav} pages={pages} />
         <Divider className={classes.divider} />
-        <SidebarNav className={classes.nav} pages={userManagementPages} />
+        <SidebarNav className={classes.nav} pages={userPages} />
         {/* <UpgradePlan /> */}
       </div>
     </Drawer>

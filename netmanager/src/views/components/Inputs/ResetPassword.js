@@ -20,7 +20,6 @@ const title = {
 class ResetPassword extends Component {
   constructor() {
     super();
-
     this.state = {
       userName: "",
       password: "",
@@ -237,6 +236,4 @@ const mapSateToProps = (state) => ({
   errors: state.errors,
 });
 
-export default connect(mapSateToProps, { updatePassword, verifyToken })(
-  withRouter(ResetPassword)
-);
+export default connect(mapSateToProps)(withRouter(ResetPassword));

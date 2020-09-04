@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import { Link, withRouter } from "react-router-dom";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
-import { registerUser } from "../../../redux/Join/actions";
+import { addNewUser } from "../../../redux/Join/actions";
 import classnames from "classnames";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
 import Checkbox from "@material-ui/core/Checkbox";
@@ -50,7 +50,7 @@ class Register extends Component {
       password2: this.state.password2,
     };
     console.log(newUser);
-    this.props.registerUser(newUser, this.props.history);
+    this.props.addNewUser(newUser, this.props.history);
   };
   render() {
     const { errors } = this.state;
@@ -193,7 +193,7 @@ class Register extends Component {
 }
 
 Register.propTypes = {
-  registerUser: PropTypes.func.isRequired,
+  addNewUser: PropTypes.func.isRequired,
   auth: PropTypes.object.isRequired,
   errors: PropTypes.object.isRequired,
 };
@@ -204,4 +204,4 @@ const mapStateToProps = (state) => ({
   errors: state.errors,
 });
 
-export default connect(mapStateToProps, { registerUser })(withRouter(Register));
+export default connect(mapStateToProps, { addNewUser })(withRouter(Register));
