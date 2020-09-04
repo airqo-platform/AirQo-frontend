@@ -198,7 +198,7 @@
 							</a>
 						</div>
 						<div class="col-md-6" style="padding: 15px;">
-							<a href="https://play.google.com/store/apps/details?id=com.airqo.net&hl=en" target="_blank">
+							<a href="https://play.google.com/store/apps/details?id=com.airqo.net&hl=en="_blank">
 								<img src="<?= base_url(); ?>assets/images/download1.png" style="height: 100px; width: 100%" class="img-fluid">
 							</a>
 						</div>
