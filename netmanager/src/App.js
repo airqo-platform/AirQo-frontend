@@ -127,6 +127,14 @@ class App extends Component {
                   component={Dashboard}
                   layout={MainLayout}
                 />
+
+                <PrivateRoute
+                  exact
+                  path="/download"
+                  component={DownloadView}
+                  layout={MainLayout}
+                />
+
                 <PrivateRoute
                   exact
                   path="/locate"

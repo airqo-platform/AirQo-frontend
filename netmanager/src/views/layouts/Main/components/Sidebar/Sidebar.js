@@ -16,6 +16,7 @@ import AddIcon from "@material-ui/icons/Add";
 import EditLocationIcon from "@material-ui/icons/EditLocation";
 import AspectRatioIcon from "@material-ui/icons/AspectRatio";
 import SupervisedUserCircleIcon from "@material-ui/icons/SupervisedUserCircle";
+import CloudDownloadIcon from "@material-ui/icons/CloudDownload";
 
 import { Profile, SidebarNav } from "./components";
 
@@ -57,6 +58,12 @@ const Sidebar = (props) => {
       title: "Dashboard",
       href: "/dashboard",
       icon: <DashboardIcon />,
+    },
+
+    {
+      title: "Export",
+      href: "/download",
+      icon: <CloudDownloadIcon />,
     },
     {
       title: "Locate",
