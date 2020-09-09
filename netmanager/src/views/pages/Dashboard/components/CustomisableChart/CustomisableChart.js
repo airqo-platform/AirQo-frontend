@@ -1,4 +1,5 @@
 import React from "react";
+import { useDispatch } from "react-redux";
 import clsx from "clsx";
 import PropTypes from "prop-types";
 import { makeStyles, withStyles } from "@material-ui/styles";
@@ -36,6 +37,8 @@ import Menu from "@material-ui/core/Menu";
 import MenuItem from "@material-ui/core/MenuItem";
 import domtoimage from "dom-to-image";
 import JsPDF from "jspdf";
+import { useFilterLocationData } from "../../../../../redux/Dashboard/selectors";
+import { refreshFilterLocationData } from "../../../../../redux/Dashboard/operations";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -109,6 +112,7 @@ const CustomisableChart = (props) => {
   const { className, idSuffix, ...rest } = props;
 
   const classes = useStyles();
+  const dispatch = useDispatch();
 
   const [formState, setFormState] = useState({
     isValid: false,
@@ -161,18 +165,12 @@ const CustomisableChart = (props) => {
     setSelectedEndDate(date);
   };
 
-  const [filterLocations, setFilterLocations] = useState([]);
+  const filterLocationsOptions = useFilterLocationData();
 
-  useEffect(() => {
-    fetch(constants.GET_MONITORING_SITES_LOCATIONS_URI)
-      .then((res) => res.json())
-      .then((filterLocationsData) => {
-        setFilterLocations(filterLocationsData.airquality_monitoring_sites);
-      })
-      .catch(console.log);
-  }, []);
-
-  const filterLocationsOptions = filterLocations;
+  if (!filterLocationsOptions.length) {
+    // Ensure to load the filterLocation data if empty
+    dispatch(refreshFilterLocationData());
+  }
 
   const [values, setReactSelectValue] = useState({ selectedOption: [] });
 
