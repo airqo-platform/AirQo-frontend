@@ -4,6 +4,7 @@ import errorReducer from "./Join/reducers/errorReducer";
 import userReducer from "./Join/reducers/userReducer";
 import mapReducer from "./Maps/reducers";
 import dashboardReducer from "./Dashboard/reducers/dashboardReducer";
+import orgReducer from "./Join/reducers/orgReducer";
 
 export default combineReducers({
   auth: authReducer,
@@ -11,4 +12,5 @@ export default combineReducers({
   userState: userReducer,
   mapDefaults: mapReducer,
   dashboard: dashboardReducer,
+  organisation: orgReducer,
 });
