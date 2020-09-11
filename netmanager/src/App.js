@@ -74,6 +74,7 @@ import {
 import ForgotPassword from "./views/pages/ForgotPassword";
 import ResetPassword from "./views/pages/ResetPassword";
 import Login from "./views/pages/SignUp/Login";
+import { loadUserDefaultGraphData } from "./redux/Dashboard/operations";
 
 // Check for token to keep user logged in
 if (localStorage.jwtToken) {
@@ -93,6 +94,7 @@ if (localStorage.jwtToken) {
     window.location.href = "./login";
   }
 }
+store.dispatch(loadUserDefaultGraphData())
 
 class App extends Component {
   render() {
