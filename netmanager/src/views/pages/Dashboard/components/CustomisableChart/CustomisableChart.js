@@ -38,7 +38,7 @@ import MenuItem from "@material-ui/core/MenuItem";
 import domtoimage from "dom-to-image";
 import JsPDF from "jspdf";
 import { useFilterLocationData } from "../../../../../redux/Dashboard/selectors";
-import { refreshFilterLocationData } from "../../../../../redux/Dashboard/operations";
+import { refreshFilterLocationData, setUserDefaultGraphData } from "../../../../../redux/Dashboard/operations";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -307,6 +307,7 @@ const CustomisableChart = (props) => {
     e.preventDefault();
 
     let newFilter = {
+      ...defaultFilter,
       locations: values.selectedOption,
       startDate: selectedDate,
       endDate: selectedEndDate,
@@ -315,9 +316,9 @@ const CustomisableChart = (props) => {
       pollutant: selectedPollutant.value,
       organisation_name: "KCCA",
     };
-
-    await fetchAndSetGraphData(newFilter);
     setGraphFilter(newFilter);
+    setUserDefaultGraphData(newFilter);
+    await fetchAndSetGraphData(newFilter);
   };
 
   useEffect(() => {
