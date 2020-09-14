@@ -149,6 +149,7 @@ const CustomisableChart = (props) => {
 
   const handleClickOpen = () => {
     setOpen(true);
+    setAnchorEl(null);
   };
 
   const handleClose = () => {
