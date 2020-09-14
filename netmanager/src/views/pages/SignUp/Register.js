@@ -409,7 +409,7 @@ class Register extends Component {
                     type="submit"
                     className="btn btn-large waves-effect waves-light hoverable blue accent-3"
                   >
-                    JOIN
+                    REQUEST
                   </button>
                 ) : null}
               </div>
