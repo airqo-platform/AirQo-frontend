@@ -263,7 +263,7 @@ function runConfig(env) {
   switch (env) {
     case "development":
       return devConfig;
-    case "stage":
+    case "staging":
       return stageConfig;
     case "production":
       return prodConfig;

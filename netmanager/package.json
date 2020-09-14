@@ -72,7 +72,7 @@
         "start": "serve -s build",
         "prestart": "npm install -g serve",
         "dev-mac": "REACT_APP_ENV=development react-scripts start",
-        "stage-mac": "REACT_APP_ENV=stage react-scripts start",
+        "stage-mac": "REACT_APP_ENV=staging react-scripts start",
         "prod-mac": "REACT_APP_ENV=production react-scripts start",
         "dev-pc": "set REACT_APP_ENV=development&&react-scripts start",
         "stage-pc": "set REACT_APP_ENV=stage&&react-scripts start",
