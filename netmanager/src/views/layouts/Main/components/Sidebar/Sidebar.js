@@ -86,11 +86,11 @@ const Sidebar = (props) => {
       href: "/admin/users",
       icon: <PeopleIcon />,
     },
-    // {
-    //   title: "Candidates",
-    //   href: "/candidates",
-    //   icon: <SupervisedUserCircleIcon />,
-    // },
+    {
+      title: "Candidates",
+      href: "/candidates",
+      icon: <SupervisedUserCircleIcon />,
+    },
     {
       title: "Account",
       href: "/account",
@@ -137,7 +137,6 @@ const Sidebar = (props) => {
         <SidebarNav className={classes.nav} pages={pages} />
         <Divider className={classes.divider} />
         <SidebarNav className={classes.nav} pages={userPages} />
-        {/* <UpgradePlan /> */}
       </div>
     </Drawer>
   );
