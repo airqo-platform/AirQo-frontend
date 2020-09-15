@@ -3,14 +3,16 @@ import React, { Component } from "react";
 import { Link, withRouter } from "react-router-dom";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
-import { registerCandidate } from "../../../redux/Join/actions";
+import { registerCandidate } from "redux/Join/actions";
 import classnames from "classnames";
 import TextField from "@material-ui/core/TextField";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
 import Checkbox from "@material-ui/core/Checkbox";
-import countries from "../../../utils/countries";
+import countries from "utils/countries";
+import categories from "utils/categories";
 import { Alert, AlertTitle } from "@material-ui/lab";
-import { withStyles, InputLabel } from "@material-ui/core";
+import { withStyles, InputLabel, Typography } from "@material-ui/core";
+import { Input } from "@material-ui/core";
 
 const styles = (theme) => ({
   root: {
@@ -46,6 +48,8 @@ class Register extends Component {
       jobTitle: "",
       description: "",
       organization: "",
+      category: "",
+      website: "",
       errors: {},
       isChecked: {},
     };
@@ -103,14 +107,16 @@ class Register extends Component {
       case "jobTitle":
         errors.jobTitle = value.length === 0 ? "job title is required" : "";
         break;
-      case "phoneNumber":
-        errors.phoneNumber =
-          value.length === 0 ? "phone number  is required" : "";
+      case "category":
+        errors.category = value.length === 0 ? "category is required" : "";
         break;
-      case "country":
-        errors.country = value.length === 0 ? "country is required" : "";
+      case "website":
+        errors.website = value.length === 0 ? "website is required" : "";
         break;
-
+      case "description":
+        errors.description =
+          value.length === 0 ? "description is required" : "";
+        break;
       default:
         break;
     }
@@ -136,13 +142,12 @@ class Register extends Component {
       firstName: "",
       lastName: "",
       email: "",
-      country: "",
-      phoneNumber: "",
       jobTitle: "",
       description: "",
+      category: "",
       organization: "",
       errors: {},
-      isChecked: {},
+      website: "",
     };
     this.setState(initialState);
   };
@@ -161,9 +166,7 @@ class Register extends Component {
 
     switch (id) {
       case "firstName":
-        console.log("the firstName error");
         errors.firstName = mappedErrors.errors.firstName;
-        console.log(errors.firstName);
         break;
       case "lastName":
         errors.lastName = mappedErrors.errors.lastName;
@@ -177,14 +180,14 @@ class Register extends Component {
       case "jobTitle":
         errors.jobTitle = mappedErrors.errors.jobTitle;
         break;
-      case "phoneNumber":
-        errors.phoneNumber = mappedErrors.errors.phoneNumber;
-        break;
-      case "country":
-        errors.country = mappedErrors.errors.country;
-        break;
       case "description":
         errors.description = mappedErrors.errors.description;
+        break;
+      case "category":
+        errors.category = mappedErrors.errors.category;
+        break;
+      case "website":
+        errors.category = mappedErrors.errors.category;
         break;
       default:
         break;
@@ -196,10 +199,9 @@ class Register extends Component {
       email: this.state.email,
       organization: this.state.company,
       jobTitle: this.state.jobTitle,
-      phoneNumber: this.state.phoneNumber,
-      country: this.state.country,
       description: this.state.description,
       organization: this.state.organization,
+      category: this.state.category,
     };
     console.log(newUser);
     this.props.registerCandidate(newUser);
@@ -263,6 +265,7 @@ class Register extends Component {
                 <label htmlFor="firstName">First Name</label>
                 <span className="red-text">{errors.firstName}</span>
               </div>
+
               <div className="input-field col s12">
                 <input
                   onChange={this.onChange}
@@ -281,16 +284,16 @@ class Register extends Component {
               <div className="input-field col s12">
                 <input
                   onChange={this.onChange}
-                  value={this.state.jobTitle}
-                  error={errors.jobTitle}
-                  id="jobTitle"
-                  type="text"
+                  value={this.state.email}
+                  error={errors.email}
+                  id="email"
+                  type="email"
                   className={classnames("", {
-                    invalid: errors.jobTitle,
+                    invalid: errors.email,
                   })}
                 />
-                <label htmlFor="jobTitle">Job Title</label>
-                <span className="red-text">{errors.jobTitle}</span>
+                <label htmlFor="email">Official Email</label>
+                <span className="red-text">{errors.email}</span>
               </div>
 
               <div className="input-field col s12">
@@ -311,92 +314,96 @@ class Register extends Component {
               <div className="input-field col s12">
                 <input
                   onChange={this.onChange}
-                  value={this.state.email}
-                  error={errors.email}
-                  id="email"
-                  type="email"
+                  value={this.state.jobTitle}
+                  error={errors.jobTitle}
+                  id="jobTitle"
+                  type="text"
                   className={classnames("", {
-                    invalid: errors.email,
+                    invalid: errors.jobTitle,
                   })}
                 />
-                <label htmlFor="email">Email</label>
-                <span className="red-text">{errors.email}</span>
+                <label htmlFor="jobTitle">Job Title</label>
+                <span className="red-text">{errors.jobTitle}</span>
               </div>
+
+              {/* 
+       website */}
 
               <div className="input-field col s12">
                 <input
                   onChange={this.onChange}
-                  value={this.state.phoneNumber}
-                  error={errors.phoneNumber}
-                  id="phoneNumber"
-                  type="tel"
+                  value={this.state.website}
+                  error={errors.website}
+                  id="website"
+                  type="text"
                   className={classnames("", {
-                    invalid: errors.phoneNumber,
+                    invalid: errors.website,
                   })}
                 />
-                <label htmlFor="phoneNumber">Phone Number</label>
-                <span className="red-text">{errors.phoneNumber}</span>
+                <label htmlFor="website">Website</label>
+                <span className="red-text">{errors.website}</span>
               </div>
 
-              <div className="input-field col s12">
+              {/* What best desribes you? */}
+              <div>
+                <TextField
+                  id="category"
+                  select
+                  label="category"
+                  value={this.state.category}
+                  error={errors.category}
+                  onChange={this.onChange}
+                  fullWidth={true}
+                  SelectProps={{
+                    native: true,
+                  }}
+                  helperText="What best describes you?"
+                  variant="outlined"
+                >
+                  {categories.array.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </TextField>
+              </div>
+
+              <div
+                className={classnames("", {
+                  invalid: errors.description,
+                })}
+              >
                 <TextField
                   id="description"
-                  label="Description"
+                  label="Outline in detailed nature your interest in AirQuality"
                   multiline
-                  fullWidth
+                  fullWidth={true}
                   rowsMax="5"
                   value={this.state.description}
                   onChange={this.onChange}
                   className={classes.textField}
                   margin="normal"
-                  helperText="Briefly outline your interest in air quality data"
+                  helperText="Outline in detailed nature your interest in AirQuality"
                   variant="outlined"
                   error={errors.description}
                 />
-                <label htmlFor="description">Description</label>
                 <span className="red-text">{errors.description}</span>
               </div>
-              <div className="input-field col s12">
-                <TextField
-                  id="country"
-                  select
-                  label="Country"
-                  className={classes.textField}
-                  error={errors.country}
-                  value={this.state.country}
-                  onChange={this.onChange}
-                  SelectProps={{
-                    native: true,
-                    MenuProps: {
-                      className: classes.menu,
-                    },
-                  }}
-                  helperText="Please select your country"
-                  margin="normal"
-                  variant="outlined"
-                >
-                  {countries.array.map((option) => (
-                    <option key={option.label} value={option.label}>
-                      {option.label}
-                    </option>
-                  ))}
-                </TextField>
-                <label htmlFor="country">Country</label>
-                <span className="red-text">{errors.country}</span>
-              </div>
+
               <div>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      id="isChecked"
-                      value={this.state.isChecked}
-                      onChange={this.onChange}
-                      color="primary"
-                    />
-                  }
-                  label="Agree to our terms and conditions?"
-                />
+                <Typography color="textSecondary" variant="body1">
+                  <Link
+                    color="primary"
+                    component={Link}
+                    to="#"
+                    underline="always"
+                    variant="h6"
+                  >
+                    Terms and Conditions
+                  </Link>
+                </Typography>
               </div>
+
               <div className="col s12" style={{ paddingLeft: "11.250px" }}>
                 {this.state.isChecked ? (
                   <button
@@ -416,8 +423,8 @@ class Register extends Component {
               {this.props.auth.newUser && (
                 <Alert severity="success">
                   <AlertTitle>Success</AlertTitle>
-                  Successfully registered the user —{" "}
-                  <strong>check it out!</strong>
+                  Your request has been successfully received! —{" "}
+                  <strong>Thank you!</strong>
                 </Alert>
               )}
             </form>
