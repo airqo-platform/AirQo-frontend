@@ -116,7 +116,14 @@ const Sidebar = (props) => {
       });
     } else {
       userPages = userManagementPages.filter(function (element) {
-        return element.title !== "Users" && element.title !== "Candidates";
+        return (
+          element.title !== "Users" &&
+          element.title !== "Candidates" &&
+          element.title !== "Locate" &&
+          element.title !== "Device Management" &&
+          element.title !== "Location Registry" &&
+          element.title !== "Device Registry"
+        );
       });
     }
   } catch (e) {
