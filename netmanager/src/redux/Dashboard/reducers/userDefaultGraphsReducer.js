@@ -37,10 +37,28 @@ const initialUserDefaultGraphsState = [
   },
 ];
 
+const filterState = (newValues, state) => {
+  if (newValues.length >= 4) {
+    return newValues;
+  }
+  state.filter((element) => {
+    const index = 0;
+
+    while (index < newValues.length) {
+      if (element.chartTitle === newValues[0].chartTitle) {
+        return false;
+      }
+    }
+    return true;
+  });
+
+  return [...newValues, ...state];
+};
+
 export default function (state = initialUserDefaultGraphsState, action) {
   switch (action.type) {
     case LOAD_USER_DEFAULT_GRAPHS_SUCCESS:
-      return action.payload;
+      return filterState(action.payload, state);
     default:
       return state;
   }

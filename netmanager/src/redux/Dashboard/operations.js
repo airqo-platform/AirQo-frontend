@@ -36,9 +36,10 @@ export const loadUserDefaultGraphData = () => {
       .get(constants.DEFAULTS_URI, { params: { user } })
       .then((res) => res.data)
       .then((userDefaultsData) => {
+        const { defaults } = userDefaultsData;
         dispatch({
           type: LOAD_USER_DEFAULT_GRAPHS_SUCCESS,
-          payload: userDefaultsData.defaults,
+          payload: defaults,
         });
       })
       .catch((err) => {
