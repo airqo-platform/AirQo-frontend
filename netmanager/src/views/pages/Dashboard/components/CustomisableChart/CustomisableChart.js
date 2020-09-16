@@ -345,8 +345,8 @@ const CustomisableChart = (props) => {
     }));
   }, [formState.values]);
 
-  useEffect(async () => {
-    await fetchAndSetGraphData(graphFilter);
+  useEffect(() => {
+    fetchAndSetGraphData(graphFilter);
   }, []);
 
   /*

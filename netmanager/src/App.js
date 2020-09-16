@@ -93,8 +93,8 @@ if (localStorage.jwtToken) {
     // Redirect to login
     window.location.href = "./login";
   }
+  store.dispatch(loadUserDefaultGraphData())
 }
-store.dispatch(loadUserDefaultGraphData())
 
 class App extends Component {
   render() {
