@@ -22,6 +22,7 @@ import { logoutUser } from "redux/Join/actions";
 const useStyles = makeStyles((theme) => ({
   root: {
     boxShadow: "none",
+    backgroundColor: "#3067e2",
   },
   flexGrow: {
     flexGrow: 1,
