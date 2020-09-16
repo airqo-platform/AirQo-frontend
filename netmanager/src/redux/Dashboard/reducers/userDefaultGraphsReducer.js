@@ -41,7 +41,7 @@ const filterState = (newValues, state) => {
   if (newValues.length >= 4) {
     return newValues;
   }
-  state.filter((element) => {
+  const newState = state.filter((element) => {
     const index = 0;
 
     while (index < newValues.length) {
@@ -52,7 +52,7 @@ const filterState = (newValues, state) => {
     return true;
   });
 
-  return [...newValues, ...state];
+  return [...newValues, ...newState];
 };
 
 export default function (state = initialUserDefaultGraphsState, action) {
