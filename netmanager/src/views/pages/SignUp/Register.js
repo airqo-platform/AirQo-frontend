@@ -28,12 +28,16 @@ const validEmailRegex = RegExp(
 );
 
 const validateForm = (errors) => {
-  let valid = true;
-  Object.values(errors).forEach(
-    // if we have an error string set valid to false
-    (val) => val.length > 0 && (valid = false)
-  );
-  return valid;
+  try {
+    let valid = true;
+    Object.values(errors).forEach(
+      // if we have an error string set valid to false
+      (val) => val.length > 0 && (valid = false)
+    );
+    return valid;
+  } catch (e) {
+    console.log("validate form error", e.message);
+  }
 };
 
 class Register extends Component {
@@ -43,8 +47,6 @@ class Register extends Component {
       firstName: "",
       lastName: "",
       email: "",
-      country: "",
-      phoneNumber: "",
       jobTitle: "",
       description: "",
       organization: "",
@@ -238,10 +240,10 @@ class Register extends Component {
             className="col s8 offset-s2"
             style={{ backgroundColor: "#fff", padding: "1em" }}
           >
-            {/* <Link to="/" className="btn-flat waves-effect">
+            <Link to="/" className="btn-flat waves-effect">
               <i className="material-icons left">keyboard_backspace</i> Back to
               home
-            </Link> */}
+            </Link>
             <div className="col s12" style={{ paddingLeft: "11.250px" }}>
               <h4>
                 <b>Request Access</b>
