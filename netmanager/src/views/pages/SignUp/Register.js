@@ -227,7 +227,7 @@ class Register extends Component {
     const { classes } = this.props;
     return (
       <div className="container">
-        <div className="row">
+        <div style={{marginTop: "4rem"}} className="row">
           <div
             className="col s8 offset-s2"
             style={{
@@ -240,10 +240,6 @@ class Register extends Component {
             className="col s8 offset-s2"
             style={{ backgroundColor: "#fff", padding: "1em" }}
           >
-            <Link to="/" className="btn-flat waves-effect">
-              <i className="material-icons left">keyboard_backspace</i> Back to
-              home
-            </Link>
             <div className="col s12" style={{ paddingLeft: "11.250px" }}>
               <h4>
                 <b>Request Access</b>
@@ -392,19 +388,19 @@ class Register extends Component {
                 <span className="red-text">{errors.description}</span>
               </div>
 
-              <div>
-                <Typography color="textSecondary" variant="body1">
-                  <Link
-                    color="primary"
-                    component={Link}
-                    to="#"
-                    underline="always"
-                    variant="h6"
-                  >
-                    Terms and Conditions
-                  </Link>
-                </Typography>
-              </div>
+              {/*<div>*/}
+              {/*  <Typography color="textSecondary" variant="body1">*/}
+              {/*    <Link*/}
+              {/*      color="primary"*/}
+              {/*      component={Link}*/}
+              {/*      to="#"*/}
+              {/*      underline="always"*/}
+              {/*      variant="h6"*/}
+              {/*    >*/}
+              {/*      Terms and Conditions*/}
+              {/*    </Link>*/}
+              {/*  </Typography>*/}
+              {/*</div>*/}
 
               <div className="col s12" style={{ paddingLeft: "11.250px" }}>
                 {this.state.isChecked ? (

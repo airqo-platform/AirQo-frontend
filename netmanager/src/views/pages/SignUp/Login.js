@@ -4,6 +4,7 @@ import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { loginUser } from "../../../redux/Join/actions";
 import classnames from "classnames";
+import KeyboardBackspaceIcon from '@material-ui/icons/KeyboardBackspace';
 //import styles from './Login.css'
 
 class Login extends Component {
@@ -90,9 +91,9 @@ class Login extends Component {
     return (
       <div className="container">
         <div
-          style={{ marginTop: "4rem" }}
+          // style={{  border: "1px solid red" }}
           className="row"
-          style={{ height: "auto", backgroundColor: "#3067e2" }}
+          style={{ marginTop: "4rem", height: "auto", backgroundColor: "#3067e2" }}
         >
           <div
             className="col s4"
@@ -104,10 +105,6 @@ class Login extends Component {
             className="col s8"
             style={{ backgroundColor: "#fff", padding: "1em" }}
           >
-            <Link to="/" className="btn-flat waves-effect">
-              <i className="material-icons left">keyboard_backspace</i> Back to
-              home
-            </Link>
             <div className="col s12" style={{ paddingLeft: "11.250px" }}>
               <h4>
                 <b>Login</b>
