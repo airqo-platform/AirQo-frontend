@@ -8,6 +8,8 @@ import {
   SET_USER_DEFAULTS_GRAPHS_SUCCESS,
   SET_USER_DEFAULTS_GRAPHS_ERROR,
 } from "./actions";
+import { KCCAInitialUserDefaultGraphsState } from "./constants";
+import { filterDefaults } from "./utils";
 import constants from "../../config/constants";
 
 export const refreshFilterLocationData = () => {
@@ -39,7 +41,7 @@ export const loadUserDefaultGraphData = () => {
         const { defaults } = userDefaultsData;
         dispatch({
           type: LOAD_USER_DEFAULT_GRAPHS_SUCCESS,
-          payload: defaults,
+          payload: filterDefaults(defaults, KCCAInitialUserDefaultGraphsState),
         });
       })
       .catch((err) => {
