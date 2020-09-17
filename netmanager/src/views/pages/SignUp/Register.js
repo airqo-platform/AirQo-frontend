@@ -41,6 +41,18 @@ const validateForm = (errors) => {
   }
 };
 
+const isFormFullyFilled = (state) => {
+  let errors = {}
+  let testState = omit(state, "errors", "isChecked");
+
+  Object.keys(testState).forEach((key) => {
+      if(testState[key] === "") {
+        errors[key] = `${key} is required`;
+      }
+  })
+  return errors
+}
+
 class Register extends Component {
   constructor() {
     super();
@@ -168,6 +180,20 @@ class Register extends Component {
       console.error("Invalid Form");
     }
 
+    const emptyFields = isFormFullyFilled(this.state)
+
+    if (!isEmpty(emptyFields)) {
+      console.log('blocked blocked')
+      this.setState({
+        ...this.state,
+        errors: {
+          ...this.state.errors,
+          ...emptyFields
+        }
+      })
+      return
+    }
+
     const { id, value } = e.target;
     let errors = this.state.errors;
     // const { errors } = this.state;
@@ -201,18 +227,7 @@ class Register extends Component {
         break;
     }
 
-    const newUser = {
-      firstName: this.state.firstName,
-      lastName: this.state.lastName,
-      email: this.state.email,
-      organization: this.state.company,
-      jobTitle: this.state.jobTitle,
-      description: this.state.description,
-      organization: this.state.organization,
-      category: this.state.category,
-    };
-    console.log(newUser);
-    this.props.registerCandidate(newUser);
+    this.props.registerCandidate(this.state);
     this.clearState();
     if (errors) {
       this.setState(
