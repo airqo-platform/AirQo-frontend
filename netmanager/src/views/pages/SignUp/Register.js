@@ -274,7 +274,7 @@ class Register extends Component {
                 <input
                   onChange={this.onChange}
                   value={this.state.firstName}
-                  error={errors.firstName}
+                  error={!!errors.firstName}
                   id="firstName"
                   type="text"
                   className={classnames("", {
@@ -289,7 +289,7 @@ class Register extends Component {
                 <input
                   onChange={this.onChange}
                   value={this.state.lastName}
-                  error={errors.lastName}
+                  error={!!errors.lastName}
                   id="lastName"
                   type="text"
                   className={classnames("", {
@@ -304,7 +304,7 @@ class Register extends Component {
                 <input
                   onChange={this.onChange}
                   value={this.state.email}
-                  error={errors.email}
+                  error={!!errors.email}
                   id="email"
                   type="email"
                   className={classnames("", {
@@ -319,7 +319,7 @@ class Register extends Component {
                 <input
                   onChange={this.onChange}
                   value={this.state.organization}
-                  error={errors.organization}
+                  error={!!errors.organization}
                   id="organization"
                   type="text"
                   className={classnames("", {
@@ -334,7 +334,7 @@ class Register extends Component {
                 <input
                   onChange={this.onChange}
                   value={this.state.jobTitle}
-                  error={errors.jobTitle}
+                  error={!!errors.jobTitle}
                   id="jobTitle"
                   type="text"
                   className={classnames("", {
@@ -352,7 +352,7 @@ class Register extends Component {
                 <input
                   onChange={this.onChange}
                   value={this.state.website}
-                  error={errors.website}
+                  error={!!errors.website}
                   id="website"
                   type="text"
                   className={classnames("", {
@@ -370,7 +370,7 @@ class Register extends Component {
                   select
                   label="category"
                   value={this.state.category}
-                  error={errors.category}
+                  error={!!errors.category}
                   onChange={this.onChange}
                   fullWidth={true}
                   SelectProps={{
@@ -404,7 +404,7 @@ class Register extends Component {
                   margin="normal"
                   helperText="Outline in detailed nature your interest in AirQuality"
                   variant="outlined"
-                  error={errors.description}
+                  error={!!errors.description}
                 />
                 <span className="red-text">{errors.description}</span>
               </div>
