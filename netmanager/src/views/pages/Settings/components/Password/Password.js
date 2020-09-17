@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import PropTypes from "prop-types";
 import clsx from "clsx";
 import { makeStyles } from "@material-ui/styles";
+import { isEqual } from "underscore";
 import { updatePassword } from "redux/Join/actions";
 import {
   Card,
@@ -30,15 +31,15 @@ const Password = (props) => {
     password2: "",
   };
 
-  const [values, setValues] = useState(initialState);
+  const [newPassword, setNewPassword] = useState(initialState);
 
   const clearState = () => {
-    setValues({ ...initialState });
+    setNewPassword({ ...initialState });
   };
 
   const handleChange = (event) => {
-    setValues({
-      ...values,
+    setNewPassword({
+      ...newPassword,
       [event.target.id]: event.target.value,
     });
   };
@@ -47,8 +48,8 @@ const Password = (props) => {
     e.preventDefault();
     const userData = {
       id: user._id,
-      password: values.password,
-      password2: values.password2,
+      password: newPassword.password,
+      password2: newPassword.password2,
     };
     console.log("sending them through...");
     console.log(userData);
@@ -67,7 +68,7 @@ const Password = (props) => {
           id="password"
           onChange={handleChange}
           type="password"
-          value={values.password}
+          value={newPassword.password}
           variant="outlined"
         />
         <TextField
@@ -77,13 +78,13 @@ const Password = (props) => {
           onChange={handleChange}
           style={{ marginTop: "1rem" }}
           type="password"
-          value={values.password2}
+          value={newPassword.password2}
           variant="outlined"
         />
       </CardContent>
       <Divider />
       <CardActions>
-        <Button color="primary" variant="outlined" onClick={onSubmit} disabled>
+        <Button color="primary" variant="outlined" onClick={onSubmit} disabled={isEqual(initialState, newPassword)}>
           Update
         </Button>
       </CardActions>
