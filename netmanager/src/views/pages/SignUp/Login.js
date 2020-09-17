@@ -110,7 +110,7 @@ class Login extends Component {
                 <b>Login</b>
               </h4>
               <p className="grey-text text-darken-1">
-                Don't have an account? <Link to="/register">Register</Link>
+                Don't have an account? <Link to="/request-access">Register</Link>
               </p>
             </div>
             <form noValidate onSubmit={this.onSubmit}>

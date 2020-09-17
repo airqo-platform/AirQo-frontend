@@ -9,7 +9,7 @@ class Landing extends Component {
             <br />
             <div className="col s6">
               <Link
-                to="/register"
+                to="/request-access"
                 style={{
                   width: "140px",
                   borderRadius: "3px",
