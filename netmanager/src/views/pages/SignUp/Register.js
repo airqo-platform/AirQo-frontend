@@ -13,6 +13,7 @@ import categories from "utils/categories";
 import { Alert, AlertTitle } from "@material-ui/lab";
 import { withStyles, InputLabel, Typography } from "@material-ui/core";
 import { Input } from "@material-ui/core";
+import { isEmpty, isEqual, omit } from "underscore";
 
 const styles = (theme) => ({
   root: {
@@ -31,8 +32,8 @@ const validateForm = (errors) => {
   try {
     let valid = true;
     Object.values(errors).forEach(
-      // if we have an error string set valid to false
-      (val) => val.length > 0 && (valid = false)
+        // if we have an error string set valid to false
+        (val) => val && val.length > 0 && (valid = false)
     );
     return valid;
   } catch (e) {
@@ -122,9 +123,9 @@ class Register extends Component {
       default:
         break;
     }
-
     this.setState(
       {
+        ...this.state,
         errors,
         [id]: value,
       },
@@ -139,19 +140,24 @@ class Register extends Component {
     this.setState({ isChecked: this.state.isChecked });
   };
 
-  clearState = () => {
-    const initialState = {
-      firstName: "",
-      lastName: "",
-      email: "",
-      jobTitle: "",
-      description: "",
-      category: "",
-      organization: "",
-      errors: {},
-      website: "",
+  getInitialState = () => {
+      return {
+        firstName: "",
+        lastName: "",
+        email: "",
+        jobTitle: "",
+        description: "",
+        category: "",
+        organization: "",
+        website: "",
+        errors: {},
+        isChecked: {},
+      }
     };
-    this.setState(initialState);
+
+  clearState = () => {
+
+    this.setState(this.getInitialState());
   };
 
   onSubmit = (e) => {
@@ -189,7 +195,7 @@ class Register extends Component {
         errors.category = mappedErrors.errors.category;
         break;
       case "website":
-        errors.category = mappedErrors.errors.category;
+        errors.website = mappedErrors.errors.website;
         break;
       default:
         break;
@@ -413,6 +419,10 @@ class Register extends Component {
                     }}
                     type="submit"
                     className="btn btn-large waves-effect waves-light hoverable blue accent-3"
+                    disabled={
+                      isEqual(this.getInitialState(), { ...this.state, errors: {}, isChecked: {} }) ||
+                         !validateForm(this.state.errors)
+                    }
                   >
                     REQUEST
                   </button>
