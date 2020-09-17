@@ -33,11 +33,9 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const AccountDetails = (props) => {
-  const { className, mappeduserState, mappedAuth, ...rest } = props;
+  const { className, mappedAuth, ...rest } = props;
 
   const { user } = mappedAuth;
-  console.log("the user is here: ");
-  console.dir(user);
 
   const classes = useStyles();
 
@@ -106,12 +104,12 @@ const AccountDetails = (props) => {
             </Grid>{" "}
             <Grid item md={6} xs={12}>
               <TextField
-                // fullWidth
+                fullWidth
                 label="Last name"
                 margin="dense"
                 id="lastName"
                 onChange={handleChange}
-                // required
+                required
                 value={form.lastName}
                 variant="outlined"
               />

@@ -642,26 +642,24 @@ export const fetchDefaultsFailed = error => {
 };
 
 /********************* update authenticated user ************************/
-export const updateAuthenticatedUser = newData => dispatch => {
+export const updateAuthenticatedUser = newData => (dispatch, getState) => {
   dispatch(updateAuthenticatedUserRequest());
-
-  return axios({
-    method: 'put',
-    url: constants.GET_USERS_URI + `${newData.id}`,
-    data: newData
-  })
-    .then(response => {
-      if (response) {
-        dispatch(
-          updateAuthenticatedUserSuccess(response.data, response.data.message)
-        );
-      } else {
-        dispatch(updateAuthenticatedUserFailed(response.data.message));
-      }
-    })
-    .catch(e => {
-      dispatch(updateAuthenticatedUserFailed(e));
-    });
+  const id = getState().auth.user._id
+  const tenant = getState().organisation.name
+  return axios
+      .put(constants.GET_USERS_URI, newData, { params: {id, tenant}})
+      .then(response => {
+        if (response) {
+          dispatch(
+            updateAuthenticatedUserSuccess(response.data, response.data.message)
+          );
+        } else {
+          dispatch(updateAuthenticatedUserFailed(response.data.message));
+        }
+      })
+      .catch(e => {
+        dispatch(updateAuthenticatedUserFailed(e));
+      });
 };
 
 export const updateAuthenticatedUserRequest = () => {
