@@ -315,7 +315,7 @@ export const deleteUserFailed = error => {
 
 /************************* Register a new User  *****************************/
 export const registerCandidate = userData => dispatch => {
-  const tenant = "kcca";
+  const tenant = "KCCA";
   axios
     .post(constants.REGISTER_CANDIDATE_URI, userData, { params: { tenant }})
     .then(res => {
@@ -336,7 +336,7 @@ export const registerCandidate = userData => dispatch => {
       console.dir(err.response.data);
       dispatch({
         type: GET_ERRORS,
-        payload: err.response.data.errors
+        payload: err.response.data
       });
     });
 };
