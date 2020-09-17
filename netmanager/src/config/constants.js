@@ -84,6 +84,7 @@ const prodConfig = {
   GET_HISTORICAL_DAILY_MEAN_AVERAGES_FOR_LAST_28_DAYS_URI:
     "http://34.78.78.202:30003/api/v1/dashboard/historical/daily/devices",
   GENERATE_DEVICE_GRAPH_URI: "http://34.78.78.202:30003/api/v1/device/graph",
+  DOWNLOAD_DATA: "http://34.78.78.202:30003/api/v1/data/download?type=",
   DOWNLOAD_CUSTOMISED_DATA_URI:
     "http://34.78.78.202:30003/api/v1/data/download",
   GET_DEFAULT_REPORT_TEMPLATE_URI:
