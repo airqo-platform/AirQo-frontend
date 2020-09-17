@@ -315,8 +315,9 @@ export const deleteUserFailed = error => {
 
 /************************* Register a new User  *****************************/
 export const registerCandidate = userData => dispatch => {
+  const tenant = "kcca";
   axios
-    .post(constants.REGISTER_CANDIDATE_URI, userData)
+    .post(constants.REGISTER_CANDIDATE_URI, userData, { params: { tenant }})
     .then(res => {
       if (res.data.success == true) {
         console.log('registration response:');

@@ -6,7 +6,7 @@ const prodConfig = {
   LOGIN_USER_URI: "http://34.78.78.202:30000/api/v1/users/loginUser",
   REGISTER_USER_URI: "http://34.78.78.202:30000/api/v1/users/registerUser",
   REGISTER_CANDIDATE_URI:
-    "http://34.78.78.202:30000/api/v1/users/registerCandidate",
+    "http://34.78.78.202:30000/api/v1/users/register/new/candidate",
   REJECT_USER_URI: "http://34.78.78.202:30000/api/v1/users/deny",
   ACCEPT_USER_URI: "http://34.78.78.202:30000/api/v1/users/accept",
   GET_USERS_URI: "http://34.78.78.202:30000/api/v1/users/",
