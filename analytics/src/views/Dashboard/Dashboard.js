@@ -45,7 +45,7 @@ const useStyles = makeStyles((theme) => ({
     color: theme.palette.text.secondary,
   },
   chartContainer: {
-    height: 180,
+    height: 250,
     position: "relative",
   },
   actions: {
@@ -213,7 +213,7 @@ const Dashboard = (props) => {
       ],
     },
     responsive: true,
-    maintainAspectRatio: false,
+    //maintainAspectRatio: false,
     animation: false,
     legend: { display: false },
     cornerRadius: 0,
