@@ -10,6 +10,7 @@ const prodConfig = {
   REJECT_USER_URI: "http://34.78.78.202:30000/api/v1/users/deny",
   ACCEPT_USER_URI: "http://34.78.78.202:30000/api/v1/users/accept",
   GET_USERS_URI: "http://34.78.78.202:30000/api/v1/users/",
+  DEFAULTS_URI: "http://34.78.78.202:30000/api/v1/users/defaults",
   /**netmanager */
   ALL_LOCATIONS_URI:
     "http://34.78.78.202:30005/api/v1/location_registry/locations",
