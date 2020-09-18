@@ -1,6 +1,7 @@
 import React, { useState, Component, useEffect } from "react";
 import clsx from "clsx";
 import PropTypes from "prop-types";
+import { Link as RouterLink } from "react-router-dom";
 import { connect } from "react-redux";
 import { makeStyles } from "@material-ui/styles";
 import {
@@ -21,6 +22,7 @@ import { logoutUser } from "redux/Join/actions";
 const useStyles = makeStyles((theme) => ({
   root: {
     boxShadow: "none",
+    backgroundColor: "#3067e2",
   },
   flexGrow: {
     flexGrow: 1,
@@ -46,16 +48,23 @@ const Topbar = (props) => {
   const classes = useStyles();
 
   const [notifications] = useState([]);
-  const logo_style = {
-    height: "4em",
+  const kcca_logo_style = {
+    height: "3.5em",
     width: "4em",
-    borderRadius: "50%",
+    borderRadius: "15%",
+    paddingTop: ".2em",
+    marginRight: ".4em",
+  };
+  const mak_logo_style = {
+    height: "3.3em",
+    width: "4em",
+    borderRadius: "15%",
     paddingTop: ".2em",
     marginRight: ".4em",
   };
   const airqo_logo_style = {
-    height: "4em",
-    width: "4em",
+    height: "3.5em",
+    width: "5em",
     paddingTop: ".2em",
     marginRight: ".4em",
   };
@@ -124,6 +133,27 @@ const Topbar = (props) => {
   return (
     <AppBar {...rest} className={clsx(classes.root, className)}>
       <Toolbar>
+        <RouterLink to="/">
+          <img
+            alt="Logo"
+            style={kcca_logo_style}
+            src="/images/logos/kcca_logo_updated.jpg"
+          />
+        </RouterLink>
+        <RouterLink to="/">
+          <img
+            alt="airqo.net"
+            style={airqo_logo_style}
+            src="/images/logos/airqo_logo.png"
+          />
+        </RouterLink>
+        <RouterLink to="/">
+          <img
+            alt="mak.ac.ug"
+            style={mak_logo_style}
+            src="/images/logos/mak_logo.jpg"
+          />
+        </RouterLink>
         <p style={{ fontSize: 20, marginLeft: "50%", fontWeight: "bold" }}>
           {date.toLocaleString()}
         </p>
