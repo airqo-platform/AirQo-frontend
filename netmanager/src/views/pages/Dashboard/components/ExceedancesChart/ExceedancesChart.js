@@ -499,7 +499,7 @@ const ExceedancesChart = props => {
             }],
           },
         
-          maintainAspectRatio: false,
+          maintainAspectRatio: true,
           responsive: true
           }}/>
         </div>
