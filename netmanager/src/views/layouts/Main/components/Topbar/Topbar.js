@@ -137,7 +137,7 @@ const Topbar = (props) => {
           <img
             alt="Logo"
             style={kcca_logo_style}
-            src="/images/logos/kcca_logo.jpg"
+            src="/images/logos/kcca_logo_updated.jpg"
           />
         </RouterLink>
         <RouterLink to="/">
