@@ -315,8 +315,9 @@ export const deleteUserFailed = error => {
 
 /************************* Register a new User  *****************************/
 export const registerCandidate = userData => dispatch => {
+  const tenant = "KCCA";
   axios
-    .post(constants.REGISTER_CANDIDATE_URI, userData)
+    .post(constants.REGISTER_CANDIDATE_URI, userData, { params: { tenant }})
     .then(res => {
       if (res.data.success == true) {
         console.log('registration response:');
@@ -335,7 +336,7 @@ export const registerCandidate = userData => dispatch => {
       console.dir(err.response.data);
       dispatch({
         type: GET_ERRORS,
-        payload: err.response.data.errors
+        payload: err.response.data
       });
     });
 };
@@ -350,8 +351,9 @@ export const registrationSuccess = data => {
 /************************* Login a new User  *********************************/
 export const loginUser = userData => dispatch => {
   console.log('the login URL ' + constants.LOGIN_USER_URI);
+  const tenant = 'kcca'
   axios
-    .post(constants.LOGIN_USER_URI, userData)
+    .post(constants.LOGIN_USER_URI, userData, { params: { tenant }})
     .then(res => {
       try {
         // Save to localStorage

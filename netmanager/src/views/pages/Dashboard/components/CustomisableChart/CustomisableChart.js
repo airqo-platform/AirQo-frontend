@@ -1,4 +1,5 @@
 import React from "react";
+import { useDispatch } from "react-redux";
 import clsx from "clsx";
 import PropTypes from "prop-types";
 import { makeStyles, withStyles } from "@material-ui/styles";
@@ -36,6 +37,11 @@ import Menu from "@material-ui/core/Menu";
 import MenuItem from "@material-ui/core/MenuItem";
 import domtoimage from "dom-to-image";
 import JsPDF from "jspdf";
+import { useFilterLocationData } from "../../../../../redux/Dashboard/selectors";
+import {
+  refreshFilterLocationData,
+  setUserDefaultGraphData,
+} from "../../../../../redux/Dashboard/operations";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -54,6 +60,30 @@ const useStyles = makeStyles((theme) => ({
     fontWeight: 500,
   },
 }));
+
+const capitalize = (str) => {
+  str = str.split(" ");
+
+  for (let i = 0, x = str.length; i < x; i++) {
+    str[i] = str[i][0].toUpperCase() + str[i].substr(1);
+  }
+
+  return str.join(" ");
+};
+
+const valueLabelToString = (valueLabelArray) => {
+  return valueLabelArray.map((element) => element.value);
+};
+
+const toValueLabelObject = (value) => {
+  return { value, label: capitalize(value) };
+};
+
+const toValueLabelArray = (arr) => {
+  const newArr = [];
+  arr.map((value) => newArr.push(toValueLabelObject(value)));
+  return newArr;
+};
 
 const styles = (theme) => ({
   root: {
@@ -106,9 +136,9 @@ const schema = {
 };
 
 const CustomisableChart = (props) => {
-  const { className, idSuffix, ...rest } = props;
-
+  const { className, idSuffix, defaultFilter, ...rest } = props;
   const classes = useStyles();
+  const dispatch = useDispatch();
 
   const [formState, setFormState] = useState({
     isValid: false,
@@ -116,17 +146,6 @@ const CustomisableChart = (props) => {
     touched: {},
     errors: {},
   });
-
-  useEffect(() => {
-    // const errors = validate(formState.values, schema);
-    const errors = {};
-
-    setFormState((formState) => ({
-      ...formState,
-      isValid: errors ? false : true,
-      errors: errors || {},
-    }));
-  }, [formState.values]);
 
   var startDate = new Date();
   startDate.setMonth(startDate.getMonth() - 1);
@@ -137,14 +156,14 @@ const CustomisableChart = (props) => {
 
   const handleClickOpen = () => {
     setOpen(true);
+    setAnchorEl(null);
   };
 
   const handleClose = () => {
     setOpen(false);
   };
-
   const [customChartTitle, setCustomChartTitle] = useState(
-    "Custom Chart Title"
+    defaultFilter.chartTitle
   );
   const [
     customChartTitleSecondSection,
@@ -161,20 +180,16 @@ const CustomisableChart = (props) => {
     setSelectedEndDate(date);
   };
 
-  const [filterLocations, setFilterLocations] = useState([]);
+  const filterLocationsOptions = useFilterLocationData();
 
-  useEffect(() => {
-    fetch(constants.GET_MONITORING_SITES_LOCATIONS_URI)
-      .then((res) => res.json())
-      .then((filterLocationsData) => {
-        setFilterLocations(filterLocationsData.airquality_monitoring_sites);
-      })
-      .catch(console.log);
-  }, []);
+  if (!filterLocationsOptions.length) {
+    // Ensure to load the filterLocation data if empty
+    dispatch(refreshFilterLocationData());
+  }
 
-  const filterLocationsOptions = filterLocations;
-
-  const [values, setReactSelectValue] = useState({ selectedOption: [] });
+  const [values, setReactSelectValue] = useState({
+    selectedOption: toValueLabelArray(defaultFilter.locations),
+  });
 
   const handleMultiChange = (selectedOption) => {
     setReactSelectValue({ selectedOption });
@@ -186,7 +201,9 @@ const CustomisableChart = (props) => {
     { value: "pie", label: "Pie" },
   ];
 
-  const [selectedChart, setSelectedChartType] = useState();
+  const [selectedChart, setSelectedChartType] = useState(
+    toValueLabelObject(defaultFilter.chartType)
+  );
 
   const handleChartTypeChange = (selectedChartType) => {
     setSelectedChartType(selectedChartType);
@@ -210,7 +227,9 @@ const CustomisableChart = (props) => {
     { value: "monthly", label: "Monthly" },
   ];
 
-  const [selectedFrequency, setSelectedFrequency] = useState();
+  const [selectedFrequency, setSelectedFrequency] = useState(
+    toValueLabelObject(defaultFilter.frequency)
+  );
 
   const handleFrequencyChange = (selectedFrequencyOption) => {
     setSelectedFrequency(selectedFrequencyOption);
@@ -222,18 +241,23 @@ const CustomisableChart = (props) => {
     { value: "NO2", label: "NO2" },
   ];
 
-  const [selectedPollutant, setSelectedPollutant] = useState();
+  const [selectedPollutant, setSelectedPollutant] = useState(
+    toValueLabelObject(defaultFilter.pollutant)
+  );
+
+  const [graphFilter, setGraphFilter] = useState({
+    locations: values.selectedOption,
+    startDate: selectedDate,
+    endDate: selectedEndDate,
+    chartType: selectedChart.value,
+    frequency: selectedFrequency.value,
+    pollutant: selectedPollutant.value,
+    organisation_name: "KCCA",
+  });
 
   const handlePollutantChange = (selectedPollutantOption) => {
     setSelectedPollutant(selectedPollutantOption);
   };
-
-  function appendLeadingZeroes(n) {
-    if (n <= 9) {
-      return "0" + n;
-    }
-    return n;
-  }
 
   const [customisedGraphLabel, setCustomisedGraphLabel] = useState(
     "PM2.5(µg/m3)"
@@ -246,37 +270,11 @@ const CustomisableChart = (props) => {
 
   const [customGraphData, setCustomisedGraphData] = useState([]);
 
-  useEffect(() => {
-    axios
-      .get(constants.GET_CUSTOMISABLE_CHART_INITIAL_DATA_URI)
-      .then((res) => res.data)
-      .then((customisedChartData) => {
-        setCustomisedGraphData(customisedChartData);
-        setCustomChartTitle(customisedChartData.custom_chart_title);
-        setCustomChartTitleSecondSection(
-          customisedChartData.custom_chart_title_second_section
-        );
-      })
-      .catch(console.log);
-  }, []);
-
   const hasError = (field) =>
     formState.touched[field] && formState.errors[field] ? true : false;
 
-  let handleSubmit = (e) => {
-    e.preventDefault();
-
-    let filter = {
-      locations: values.selectedOption,
-      startDate: selectedDate,
-      endDate: selectedEndDate,
-      chartType: selectedChart.value,
-      frequency: selectedFrequency.value,
-      pollutant: selectedPollutant.value,
-      organisation_name: "KCCA",
-    };
-
-    axios
+  const fetchAndSetGraphData = async (filter) => {
+    return await axios
       .post(
         constants.GENERATE_CUSTOMISABLE_CHARTS_URI,
         JSON.stringify(filter),
@@ -312,6 +310,44 @@ const CustomisableChart = (props) => {
       })
       .catch(console.log);
   };
+
+  let handleSubmit = async (e) => {
+    e.preventDefault();
+
+    let newFilter = {
+      ...defaultFilter,
+      locations: values.selectedOption,
+      startDate: selectedDate,
+      endDate: selectedEndDate,
+      chartType: selectedChart.value,
+      frequency: selectedFrequency.value,
+      pollutant: selectedPollutant.value,
+      organisation_name: "KCCA",
+    };
+    dispatch(
+      setUserDefaultGraphData({
+        ...newFilter,
+        locations: valueLabelToString(values.selectedOption),
+      })
+    );
+    setGraphFilter(newFilter);
+    await fetchAndSetGraphData(newFilter);
+  };
+
+  useEffect(() => {
+    // const errors = validate(formState.values, schema);
+    const errors = {};
+
+    setFormState((formState) => ({
+      ...formState,
+      isValid: errors ? false : true,
+      errors: errors || {},
+    }));
+  }, [formState.values]);
+
+  useEffect(() => {
+    fetchAndSetGraphData(graphFilter);
+  }, []);
 
   /*
   if (customGraphData.results  && customGraphData.results[0].chart_type !== 'pie' && customGraphData.results[0].frequency !== 'monthly'){
@@ -762,6 +798,7 @@ const CustomisableChart = (props) => {
 
 CustomisableChart.propTypes = {
   className: PropTypes.string,
+  defaultFilter: PropTypes.object,
   idSuffix: PropTypes.string,
 };
 
