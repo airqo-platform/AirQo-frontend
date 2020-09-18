@@ -35,6 +35,7 @@ import MenuItem from "@material-ui/core/MenuItem";
 import MoreVertIcon from "@material-ui/icons/MoreVert";
 import domtoimage from "dom-to-image";
 import JsPDF from "jspdf";
+import { useUserDefaultGraphsData } from "../../../redux/Dashboard/selectors";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -45,7 +46,7 @@ const useStyles = makeStyles((theme) => ({
     color: theme.palette.text.secondary,
   },
   chartContainer: {
-    height: 180,
+    height: 250,
     position: "relative",
   },
   mapContainer: {
@@ -73,6 +74,8 @@ const Dashboard = (props) => {
     ...rest
   } = props;
   // const { user, isAuthenticated } = mappedAuth;
+
+  const userDefaultGraphs = useUserDefaultGraphsData();
 
   function appendLeadingZeroes(n) {
     if (n <= 9) {
@@ -218,7 +221,7 @@ const Dashboard = (props) => {
       ],
     },
     responsive: true,
-    maintainAspectRatio: false,
+    maintainAspectRatio: true,
     animation: false,
     legend: { display: false },
     cornerRadius: 0,
@@ -383,7 +386,9 @@ const Dashboard = (props) => {
 
   return (
     <div className={classes.root}>
-      <h4>Number of nodes at each AQI risk level</h4>
+      <h4>Welcome to the AirQo ANALYTICS dashboard</h4>
+      <br />
+      <h6>Number of nodes at each AQI risk level</h6>
       <br />
       <Grid container spacing={4}>
         <Grid item lg={2} sm={6} xl={2} xs={12}>
@@ -530,40 +535,31 @@ const Dashboard = (props) => {
 
         <Grid item lg={6} md={6} sm={12} xl={6} xs={12}>
           <Grid item lg={12} sm={12} xl={12} xs={12}>
-          <div className={classes.mapContainer}>
-              <Map/>
+            <div className={classes.mapContainer}>
+              <Map />
             </div>
           </Grid>
-
-          
         </Grid>
-
-        <Grid item lg={6} md={6} sm={12} xl={6} xs={12}>
-          <CustomisableChart
-            className={clsx(classes.chartCard)}
-            idSuffix="custom-one"
-          />
-        </Grid>
-        <Grid item lg={6} md={6} sm={12} xl={6} xs={12}>
-          <CustomisableChart
-            className={clsx(classes.chartCard)}
-            idSuffix="custom-two"
-          />
-        </Grid>
-
-        <Grid item lg={6} md={6} sm={12} xl={6} xs={12}>
-          <CustomisableChart
-            className={clsx(classes.chartCard)}
-            idSuffix="custom-three"
-          />
-        </Grid>
-
-        <Grid item lg={6} md={6} sm={12} xl={6} xs={12}>
-          <CustomisableChart
-            className={clsx(classes.chartCard)}
-            idSuffix="custom-four"
-          />
-        </Grid>
+        {userDefaultGraphs &&
+          userDefaultGraphs.map((filter, key) => {
+            return (
+              <Grid
+                item
+                lg={6}
+                md={6}
+                sm={12}
+                xl={6}
+                xs={12}
+                key={`userDefaultGraphs-${key}`}
+              >
+                <CustomisableChart
+                  className={clsx(classes.chartCard)}
+                  defaultFilter={filter}
+                  idSuffix={`custom-${key + 1}`}
+                />
+              </Grid>
+            );
+          })}
       </Grid>
     </div>
   );
