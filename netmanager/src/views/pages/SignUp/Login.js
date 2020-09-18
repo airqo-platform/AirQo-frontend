@@ -4,7 +4,7 @@ import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { loginUser } from "../../../redux/Join/actions";
 import classnames from "classnames";
-import KeyboardBackspaceIcon from '@material-ui/icons/KeyboardBackspace';
+import KeyboardBackspaceIcon from "@material-ui/icons/KeyboardBackspace";
 //import styles from './Login.css'
 
 class Login extends Component {
@@ -93,7 +93,11 @@ class Login extends Component {
         <div
           // style={{  border: "1px solid red" }}
           className="row"
-          style={{ marginTop: "4rem", height: "auto", backgroundColor: "#3067e2" }}
+          style={{
+            marginTop: "4rem",
+            height: "auto",
+            backgroundColor: "#3067e2",
+          }}
         >
           <div
             className="col s4"
@@ -110,7 +114,8 @@ class Login extends Component {
                 <b>Login</b>
               </h4>
               <p className="grey-text text-darken-1">
-                Don't have an account? <Link to="/request-access">Register</Link>
+                Don't have an account?{" "}
+                <Link to="/request-access">Request Access</Link>
               </p>
             </div>
             <form noValidate onSubmit={this.onSubmit}>
