@@ -90,8 +90,8 @@ if (localStorage.jwtToken) {
   if (decoded.exp < currentTime) {
     // Logout user
     store.dispatch(logoutUser());
-    // Redirect to login
-    window.location.href = "./login";
+    // Redirect to the landing page
+    window.location.href = "./";
   }
   store.dispatch(loadUserDefaultGraphData())
 }
@@ -103,10 +103,10 @@ class App extends Component {
         <ThemeProvider theme={theme}>
           <Router>
             <div className="App">
-              <Route exact path="/" component={ConnectedLogin} />
-              <Route exact path="/register" component={ConnectedRegister} />
-              <Route exact path="/sign-up" component={ConnectedSignUp} />
-              <Route component={ConnectedLogin} exact path="/login" />
+              <Route exact path="/" component={Landing} />
+              <Route exact path="/request-access" component={ConnectedRegister} />
+              {/*<Route exact path="/sign-up" component={ConnectedSignUp} />*/}
+              <Route exact path="/login" component={ConnectedLogin} />
               <Route exact path="/forgot" component={ForgotPassword} />
               <Route exact path="/reset/:token" component={ResetPassword} />
               <Switch>
@@ -117,12 +117,12 @@ class App extends Component {
                   layout={MainLayout}
                 />
 
-                <RouteWithLayout
-                  component={ConnectedSignIn}
-                  exact
-                  layout={MinimalLayout}
-                  path="/sign-in"
-                />
+                {/*<RouteWithLayout*/}
+                {/*  component={ConnectedSignIn}*/}
+                {/*  exact*/}
+                {/*  layout={MinimalLayout}*/}
+                {/*  path="/sign-in"*/}
+                {/*/>*/}
                 <PrivateRoute
                   exact
                   path="/overview"
@@ -216,8 +216,6 @@ class App extends Component {
                   component={Manager}
                   layout={MainLayout}
                 />
-                {/* 
-                <Redirect to="/not-found" /> */}
               </Switch>
             </div>
           </Router>

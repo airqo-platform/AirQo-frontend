@@ -42,12 +42,18 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+const excludePages = (pages, excludedArr) => {
+  return pages.filter((element) => {
+    return !excludedArr.includes(element.title);
+  });
+};
+
 const Sidebar = (props) => {
   const { open, variant, onClose, className, ...rest } = props;
 
   const classes = useStyles();
 
-  const pages = [
+  let pages = [
     {
       title: "Overview",
       href: "/overview",
@@ -86,11 +92,11 @@ const Sidebar = (props) => {
       href: "/admin/users",
       icon: <PeopleIcon />,
     },
-    // {
-    //   title: "Candidates",
-    //   href: "/candidates",
-    //   icon: <SupervisedUserCircleIcon />,
-    // },
+    {
+      title: "Candidates",
+      href: "/candidates",
+      icon: <SupervisedUserCircleIcon />,
+    },
     {
       title: "Account",
       href: "/account",
@@ -111,13 +117,24 @@ const Sidebar = (props) => {
     if (user.privilege === "super") {
       userPages = userManagementPages;
     } else if (user.privilege === "admin") {
-      userPages = userManagementPages.filter(function (element) {
-        return element.title !== "Candidates";
-      });
+      userPages = excludePages(userManagementPages, ["Candidates"]);
     } else {
-      userPages = userManagementPages.filter(function (element) {
-        return element.title !== "Users" && element.title !== "Candidates";
-      });
+      userPages = excludePages(userManagementPages, [
+        "Users",
+        "Candidates",
+        "Locate",
+        "Device Management",
+        "Location Registry",
+        "Device Registry",
+      ]);
+      pages = excludePages(pages, [
+        "Users",
+        "Candidates",
+        "Locate",
+        "Device Management",
+        "Location Registry",
+        "Device Registry",
+      ]);
     }
   } catch (e) {
     console.log(e);
@@ -137,7 +154,6 @@ const Sidebar = (props) => {
         <SidebarNav className={classes.nav} pages={pages} />
         <Divider className={classes.divider} />
         <SidebarNav className={classes.nav} pages={userPages} />
-        {/* <UpgradePlan /> */}
       </div>
     </Drawer>
   );
