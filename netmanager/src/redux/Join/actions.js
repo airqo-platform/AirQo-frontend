@@ -351,8 +351,9 @@ export const registrationSuccess = data => {
 /************************* Login a new User  *********************************/
 export const loginUser = userData => dispatch => {
   console.log('the login URL ' + constants.LOGIN_USER_URI);
+  const tenant = 'kcca'
   axios
-    .post(constants.LOGIN_USER_URI, userData)
+    .post(constants.LOGIN_USER_URI, userData, { params: { tenant }})
     .then(res => {
       try {
         // Save to localStorage
