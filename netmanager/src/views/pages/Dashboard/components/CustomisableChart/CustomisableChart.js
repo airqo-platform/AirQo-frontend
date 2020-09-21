@@ -37,6 +37,7 @@ import Menu from "@material-ui/core/Menu";
 import MenuItem from "@material-ui/core/MenuItem";
 import domtoimage from "dom-to-image";
 import JsPDF from "jspdf";
+import { isEmpty } from "underscore";
 import { useFilterLocationData } from "../../../../../redux/Dashboard/selectors";
 import {
   refreshFilterLocationData,
@@ -359,12 +360,12 @@ const CustomisableChart = (props) => {
   }*/
 
   const customisedGraphData = {
-    chart_type: customGraphData.results
-      ? customGraphData.results[0].chart_type
-      : null,
-    labels: customGraphData.results
-      ? customGraphData.results[0].chart_data.labels
-      : null,
+    chart_type: isEmpty(customGraphData.results)
+      ? null
+      : customGraphData.results[0].chart_type,
+    labels: isEmpty(customGraphData.results)
+      ? null
+      : customGraphData.results[0].chart_data.labels,
     datasets: customGraphData.datasets,
   };
 
