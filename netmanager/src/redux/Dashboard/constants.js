@@ -33,4 +33,11 @@ export const KCCAInitialUserDefaultGraphsState = [
     chartTitle: "Mean Daily PM 2.5 for Nakawa division",
     locations: ["Nakawa", "Kiswa", "Luzira", "Naguru I", "Kyanja"],
   },
+  {
+    pollutant: "PM 2.5",
+    frequency: "daily",
+    chartType: "line",
+    chartTitle: "Mean Daily PM 2.5 for Central division",
+    locations: ["Civic Centre", "Nakasero II", "Kisenyi II", "Kamwokya II"],
+  },
 ];
