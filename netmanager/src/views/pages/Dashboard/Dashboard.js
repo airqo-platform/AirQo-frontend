@@ -387,7 +387,7 @@ const Dashboard = (props) => {
   return (
     <div className={classes.root}>
       <header
-        style={{ display: "inline-flex", flexWrap: "wrap", width: "674px" }}
+        style={{ display: "inline-flex", flexWrap: "wrap", width: "674px", padding: "0 0 30px 0" }}
       >
         <h4>Welcome to the AirQo ANALYTICS dashboard</h4>
         <br />
