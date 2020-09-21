@@ -499,12 +499,20 @@ const CustomisableChart = (props) => {
     }
   };
 
-  const exportToJpeg = (chart) =>
+  const exportToJpeg = (chart) => {
+    setAnchorEl(null);
     exportToImage(chart, "jpeg", domtoimage.toJpeg);
+  };
 
-  const exportToPng = (chart) => exportToImage(chart, "png", domtoimage.toPng);
+  const exportToPng = (chart) => {
+    setAnchorEl(null);
+
+    exportToImage(chart, "png", domtoimage.toPng);
+  };
 
   const exportToPdf = async (chart) => {
+    setAnchorEl(null);
+
     const width = chart.offsetWidth;
     const height = chart.offsetHeight;
     try {
@@ -525,6 +533,7 @@ const CustomisableChart = (props) => {
   };
 
   const print = async (chart) => {
+    setAnchorEl(null);
     try {
       const dataUrl = await domtoimage.toJpeg(chart, { filter });
       let html = "<html><head><title></title></head>";
