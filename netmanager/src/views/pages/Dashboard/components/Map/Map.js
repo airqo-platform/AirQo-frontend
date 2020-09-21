@@ -241,8 +241,8 @@ const Map = (props) => {
                 <span>
                   Last Refreshed: {getDateString(contact.LastHour)} (EAT)
                 </span>
-                <Divider />
-                <Link to={`/location/${contact.Parish}`}>More Details</Link>
+                {/*<Divider />*/}
+                {/*<Link to={`/location/${contact.Parish}`}>More Details</Link>*/}
               </Popup>
             </Marker>
           ))}
