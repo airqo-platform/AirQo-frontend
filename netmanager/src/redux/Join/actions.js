@@ -1,7 +1,7 @@
 /* eslint-disable */
-import axios from 'axios';
-import setAuthToken from '../../utils/setAuthToken';
-import jwt_decode from 'jwt-decode';
+import axios from "axios";
+import setAuthToken from "../../utils/setAuthToken";
+import jwt_decode from "jwt-decode";
 import {
   GET_ERRORS,
   SET_CURRENT_USER,
@@ -47,23 +47,26 @@ import {
   UPDATE_AUTHENTICATED_USER_REQUEST,
   UPDATE_AUTHENTICATED_USER_FAILED,
   UPDATE_AUTHENTICATED_USER_SUCCESS,
-  REGISTER_CANDIDATE_URI
-} from './types';
-import constants from '../../config/constants';
+  REGISTER_CANDIDATE_URI,
+  RECOVERY_EMAIL_REQUEST,
+  RECOVERY_EMAIL_FAILED,
+  RECOVERY_EMAIL_SUCCESS,
+} from "./types";
+import constants from "../../config/constants";
 
 /***************************fetching users ********************************* */
 export const fetchUsers = () => {
-  return dispatch => {
+  return (dispatch) => {
     dispatch(fetchUsersRequest());
     // Returns a promise
-    console.log('we are now fetching users using the action for fetching ');
-    return fetch(constants.GET_USERS_URI).then(response => {
+    console.log("we are now fetching users using the action for fetching ");
+    return fetch(constants.GET_USERS_URI).then((response) => {
       if (response.ok) {
-        response.json().then(data => {
+        response.json().then((data) => {
           dispatch(fetchUsersSuccess(data.users, data.message));
         });
       } else {
-        response.json().then(error => {
+        response.json().then((error) => {
           dispatch(fetchUsersFailed(error));
         });
       }
@@ -73,42 +76,42 @@ export const fetchUsers = () => {
 
 export const fetchUsersRequest = () => {
   return {
-    type: GET_USERS_REQUEST
+    type: GET_USERS_REQUEST,
   };
 };
 
 export const fetchUsersSuccess = (users, message) => {
-  console.log('these are the users we are sending: ');
+  console.log("these are the users we are sending: ");
   console.dir(users);
   return {
     type: GET_USERS_SUCCESS,
     users: users,
     message: message,
-    receiveAt: Date.now
+    receiveAt: Date.now,
   };
 };
 
-export const fetchUsersFailed = error => {
+export const fetchUsersFailed = (error) => {
   return {
     type: GET_USERS_FAILED,
-    error
+    error,
   };
 };
 
 /*********************** fetching Candidatess ********************************/
 
-export const fetchCandidates = id => {
-  return dispatch => {
+export const fetchCandidates = (id) => {
+  return (dispatch) => {
     dispatch(fetchCandidatesRequest());
     // Returns a promise
-    console.log('we are now fetching users using the action for fetching ');
-    return fetch(constants.GET_CANDIDATES_URI).then(response => {
+    console.log("we are now fetching users using the action for fetching ");
+    return fetch(constants.GET_CANDIDATES_URI).then((response) => {
       if (response.ok) {
-        response.json().then(data => {
+        response.json().then((data) => {
           dispatch(fetchCandidatesSuccess(data.users, data.message));
         });
       } else {
-        response.json().then(error => {
+        response.json().then((error) => {
           dispatch(fetchCandidatesFailed(error));
         });
       }
@@ -118,35 +121,35 @@ export const fetchCandidates = id => {
 
 export const fetchCandidatesRequest = () => {
   return {
-    type: GET_CANDIDATES_REQUEST
+    type: GET_CANDIDATES_REQUEST,
   };
 };
 
 export const fetchCandidatesSuccess = (candidates, message) => {
-  console.log('these are the users we are sending: ');
+  console.log("these are the users we are sending: ");
   console.dir(candidates);
   return {
     type: GET_CANDIDATES_SUCCESS,
     candidates: candidates,
     message: message,
-    receiveAt: Date.now
+    receiveAt: Date.now,
   };
 };
 
-export const fetchCandidatesFailed = error => {
+export const fetchCandidatesFailed = (error) => {
   return {
     type: GET_CANDIDATES_FAILED,
-    error
+    error,
   };
 };
 
 /********************* Add a new user ***********************************/
-export const addNewUser = user => {
-  return dispatch => {
+export const addNewUser = (user) => {
+  return (dispatch) => {
     dispatch(addNewUserRequest(user));
     axios
       .post(constants.REGISTER_USER_URI, user)
-      .then(res => {
+      .then((res) => {
         const { savedData, message } = res.data;
         try {
           dispatch(addNewUserRequestSuccess(savedData, message));
@@ -154,16 +157,16 @@ export const addNewUser = user => {
           console.log(e);
         }
       })
-      .catch(error => {
+      .catch((error) => {
         dispatch(addNewUserRequestFailed(error));
       });
   };
 };
 
-export const addNewUserRequest = user => {
+export const addNewUserRequest = (user) => {
   return {
     type: REGISTER_USER_REQUEST,
-    user
+    user,
   };
 };
 
@@ -171,47 +174,47 @@ export const addNewUserRequestSuccess = (user, message) => {
   return {
     type: REGISTER_USER_SUCCESS,
     user: user,
-    message: message
+    message: message,
   };
 };
 
-export const addNewUserRequestFailed = error => {
+export const addNewUserRequestFailed = (error) => {
   return {
     type: REGISTER_USER_FAILED,
-    error
+    error,
   };
 };
 
 export const showAddDialog = () => {
   return {
-    type: SHOW_REGISTER_DIALOG
+    type: SHOW_REGISTER_DIALOG,
   };
 };
 
 export const hideAddDialog = () => {
   return {
-    type: HIDE_REGISTER_DIALOG
+    type: HIDE_REGISTER_DIALOG,
   };
 };
 
 /********************* Edit a user ***********************************/
 
-export const showEditDialog = userToEdit => {
+export const showEditDialog = (userToEdit) => {
   return {
     type: SHOW_EDIT_DIALOG,
-    user: userToEdit
+    user: userToEdit,
   };
 };
 
 export const hideEditDialog = () => {
   return {
-    type: HIDE_EDIT_DIALOG
+    type: HIDE_EDIT_DIALOG,
   };
 };
 
-export const editUser = userToEdit => dispatch => {
+export const editUser = (userToEdit) => (dispatch) => {
   dispatch(editUserRequest(userToEdit));
-  console.log('user to edit: ');
+  console.log("user to edit: ");
   //console.log(userToEdit.values());
   let dataToSend = {};
   for (const [key, value] of userToEdit.entries()) {
@@ -219,26 +222,26 @@ export const editUser = userToEdit => dispatch => {
   }
   console.dir(dataToSend);
   return axios({
-    method: 'put',
+    method: "put",
     url: constants.GET_USERS_URI + `${dataToSend.id}`,
-    data: dataToSend
+    data: dataToSend,
   })
-    .then(response => {
+    .then((response) => {
       if (response) {
         dispatch(editUserSuccess(response.data, response.data.message));
       } else {
         dispatch(editUserFailed(response.data.message));
       }
     })
-    .catch(e => {
+    .catch((e) => {
       dispatch(editUserFailed(e));
     });
 };
 
-export const editUserRequest = userToEdit => {
+export const editUserRequest = (userToEdit) => {
   return {
     type: EDIT_USER_REQUEST,
-    userToEdit: userToEdit
+    userToEdit: userToEdit,
   };
 };
 
@@ -246,44 +249,44 @@ export const editUserSuccess = (userToEdit, message) => {
   return {
     type: EDIT_USER_SUCCESS,
     userToEdit: userToEdit,
-    message: message
+    message: message,
   };
 };
 
-export const editUserFailed = error => {
+export const editUserFailed = (error) => {
   return {
     type: EDIT_USER_FAILED,
-    error
+    error,
   };
 };
 
 /********************* Delete a user ***********************************/
 
-export const deleteUserDialog = userToDelete => {
+export const deleteUserDialog = (userToDelete) => {
   return {
     type: SHOW_DELETE_DIALOG,
-    user: userToDelete
+    user: userToDelete,
   };
 };
 
 export const hideDeleteDialog = () => {
   return {
-    type: HIDE_DELETE_DIALOG
+    type: HIDE_DELETE_DIALOG,
   };
 };
 
-export const deleteUser = userToDelete => {
-  return dispatch => {
+export const deleteUser = (userToDelete) => {
+  return (dispatch) => {
     dispatch(deleteUserRequest(userToDelete));
     return fetch(constants.GET_USERS_URI + userToDelete._id, {
-      method: 'delete'
-    }).then(response => {
+      method: "delete",
+    }).then((response) => {
       if (response.ok) {
-        response.json().then(data => {
+        response.json().then((data) => {
           dispatch(deleteUserSuccess(data.user, data.message));
         });
       } else {
-        response.json().then(error => {
+        response.json().then((error) => {
           dispatch(deleteUserFailed(error));
         });
       }
@@ -291,10 +294,10 @@ export const deleteUser = userToDelete => {
   };
 };
 
-export const deleteUserRequest = userToDelete => {
+export const deleteUserRequest = (userToDelete) => {
   return {
     type: DELETE_USER_REQUEST,
-    userToDelete
+    userToDelete,
   };
 };
 
@@ -302,64 +305,64 @@ export const deleteUserSuccess = (userToDelete, message) => {
   return {
     type: DELETE_USER_SUCCESS,
     userToDelete: userToDelete,
-    message: message
+    message: message,
   };
 };
 
-export const deleteUserFailed = error => {
+export const deleteUserFailed = (error) => {
   return {
     type: DELETE_USER_FAILED,
-    error
+    error,
   };
 };
 
 /************************* Register a new User  *****************************/
-export const registerCandidate = userData => dispatch => {
+export const registerCandidate = (userData) => (dispatch) => {
   const tenant = "KCCA";
   axios
-    .post(constants.REGISTER_CANDIDATE_URI, userData, { params: { tenant }})
-    .then(res => {
+    .post(constants.REGISTER_CANDIDATE_URI, userData, { params: { tenant } })
+    .then((res) => {
       if (res.data.success == true) {
-        console.log('registration response:');
+        console.log("registration response:");
         console.dir(res.data);
         dispatch(registrationSuccess(res.data));
       } else {
         dispatch({
           type: GET_ERRORS,
-          payload: res.data.message
+          payload: res.data.message,
         });
       }
     })
     // re-direct to login on successful register
-    .catch(err => {
-      console.log('this is the err');
+    .catch((err) => {
+      console.log("this is the err");
       console.dir(err.response.data);
       dispatch({
         type: GET_ERRORS,
-        payload: err.response.data
+        payload: err.response.data,
       });
     });
 };
 
-export const registrationSuccess = data => {
+export const registrationSuccess = (data) => {
   return {
     type: REGISTRATION_SUCCESS,
-    payload: data.savedData
+    payload: data.savedData,
   };
 };
 
 /************************* Login a new User  *********************************/
-export const loginUser = userData => dispatch => {
-  console.log('the login URL ' + constants.LOGIN_USER_URI);
-  const tenant = 'kcca'
+export const loginUser = (userData) => (dispatch) => {
+  console.log("the login URL " + constants.LOGIN_USER_URI);
+  const tenant = "kcca";
   axios
-    .post(constants.LOGIN_USER_URI, userData, { params: { tenant }})
-    .then(res => {
+    .post(constants.LOGIN_USER_URI, userData, { params: { tenant } })
+    .then((res) => {
       try {
         // Save to localStorage
         // Set token to localStorage
         const { token } = res.data;
-        localStorage.setItem('jwtToken', token);
+        localStorage.setItem("jwtToken", token);
         // Set token to Auth header
         setAuthToken(token);
         // Decode token to get user data
@@ -370,84 +373,89 @@ export const loginUser = userData => dispatch => {
         console.log(e);
       }
     })
-    .catch(err =>
+    .catch((err) =>
       dispatch({
         type: GET_ERRORS,
-        payload: err.response
+        payload: err.response,
       })
     );
 };
 
 // Login - forgot password
-export const forgotPassword = userData => dispatch => {
+export const forgotPassword = (userData) => (dispatch) => {
+  dispatch({
+    type: RECOVERY_EMAIL_REQUEST,
+  });
   axios
     .post(constants.FORGOT_PWD_URI, userData)
-    .then(response => {
+    .then((response) => {
       console.log(response.data);
-      if (response.data === 'email not recognized') {
-        this.setState({
-          showError: true,
-          messageFromServer: ''
+      if (response.data.email === "Email does not exist") {
+        dispatch({
+          type: RECOVERY_EMAIL_FAILED,
         });
-      } else if (response.data === 'recovery email sent') {
-        this.setState({
-          showError: false,
-          messageFromServer: ''
+      } else if (response.data.email === "unable to send email") {
+        dispatch({
+          type: RECOVERY_EMAIL_FAILED,
+        });
+      } else if (response.data.email === "recovery email sent") {
+        dispatch({
+          type: RECOVERY_EMAIL_SUCCESS,
         });
       }
     })
-    .catch(err =>
+    .catch((err) =>
       dispatch({
         type: GET_ERRORS,
-        payload: err.response
+        payload: err.response,
       })
     );
 };
 
 //Reset Password - verify Token
 
-export const verifyToken = async token => {
+export const verifyToken = async (token) => {
   await axios
     .get(constants.VERIFY_TOKEN_URI, token)
-    .then(response => {
+    .then((response) => {
       console.log(response);
-      if (response.data.message === 'password reset link a-ok') {
+      if (response.data.message === "password reset link a-ok") {
         this.setState({
           username: response.data.username,
           update: false,
           isLoading: false,
-          error: false
+          error: false,
         });
       } else {
         this.setState({
           update: false,
           isLoading: false,
-          error: true
+          error: true,
         });
       }
     })
-    .catch(error => {
+    .catch((error) => {
       console.log(error.data);
     });
 };
 
 // Set logged in user
-export const setCurrentUser = decoded => {
+export const setCurrentUser = (decoded) => {
   return {
     type: SET_CURRENT_USER,
-    payload: decoded
+    payload: decoded,
   };
 };
 // User loading
 export const setUserLoading = () => {
   return {
-    type: USER_LOADING
+    type: USER_LOADING,
   };
 };
 // Log user out
-export const logoutUser = () => dispatch => {
+export const logoutUser = () => (dispatch) => {
   // Remove token from local storage
-  localStorage.removeItem('jwtToken');
+  localStorage.removeItem("jwtToken");
   // Remove auth header for future requests
   setAuthToken(false);
   // Set current user to empty object {} which will set isAuthenticated to false
@@ -458,36 +466,36 @@ export const logoutUser = () => dispatch => {
 export const confirmUserDialog = (userToConfirm, message) => {
   return {
     type: SHOW_CONFIRM_DIALOG,
-    user: userToConfirm
+    user: userToConfirm,
   };
 };
 
 export const hideConfirmDialog = () => {
   return {
-    type: HIDE_CONFIRM_DIALOG
+    type: HIDE_CONFIRM_DIALOG,
   };
 };
 
-export const confirmUser = userToConfirm => dispatch => {
+export const confirmUser = (userToConfirm) => (dispatch) => {
   dispatch(confirmUserRequest(userToConfirm));
   return axios
     .post(constants.GET_USERS_URI, userToConfirm)
-    .then(response => {
+    .then((response) => {
       if (response) {
         dispatch(confirmUserSuccess(response.data.user, response.data.message));
       } else {
         dispatch(confirmUserFailed(response.data.message));
       }
     })
-    .catch(e => {
+    .catch((e) => {
       dispatch(confirmUserFailed(e));
     });
 };
 
-export const confirmUserRequest = userToConfirm => {
+export const confirmUserRequest = (userToConfirm) => {
   return {
     type: CONFIRM_USER_REQUEST,
-    user: userToConfirm
+    user: userToConfirm,
   };
 };
 
@@ -495,76 +503,76 @@ export const confirmUserSuccess = (userToConfirm, message) => {
   return {
     type: CONFIRM_USER_SUCCESS,
     userToConfirm: userToConfirm,
-    message: message
+    message: message,
   };
 };
 
-export const confirmUserFailed = error => {
+export const confirmUserFailed = (error) => {
   return {
     type: CONFIRM_USER_FAILED,
-    error
+    error,
   };
 };
 
 /**********************update the user password  ***********************************/
-export const updatePassword = userData => dispatch => {
+export const updatePassword = (userData) => (dispatch) => {
   axios
     .put(constants.UPDATE_PWD_IN_URI, userData)
-    .then(response => {
+    .then((response) => {
       console.log(response.data);
       if (response.data.success === true) {
         dispatch({
           type: UPDATE_PASSWORD_SUCCESS,
-          payload: response.data.result
+          payload: response.data.result,
         });
       } else {
         dispatch({
           type: UPDATE_PASSWORD_FAILED,
-          payload: response.data.err
+          payload: response.data.err,
         });
       }
     })
-    .catch(error => {
+    .catch((error) => {
       console.log(error.data);
       dispatch({
         type: GET_ERRORS,
-        payload: error.response
+        payload: error.response,
       });
     });
 };
 
 /***************************update the user profile ******************** */
 
-export const updateProfile = userData => dispatch => {
+export const updateProfile = (userData) => (dispatch) => {
   dispatch({ type: UPDATE_PROFILE_REQUEST });
   return axios({
-    method: 'put',
+    method: "put",
     url: constants.GET_USERS_URI,
-    data: userData
+    data: userData,
   })
-    .then(response => {
+    .then((response) => {
       if (response) {
         dispatch({
-          type: UPDATE_PROFILE_SUCCESS
+          type: UPDATE_PROFILE_SUCCESS,
         });
       } else {
         dispatch({
-          type: UPDATE_PROFILE_FAILED
+          type: UPDATE_PROFILE_FAILED,
         });
       }
     })
-    .catch(e => {
+    .catch((e) => {
       dispatch({});
     });
 };
 
 //*********************************** default settings ************************************/
-export const setDefaults = (values, id) => dispatch => {
-  console.log('the sent id is: ' + `${values.id}`);
+export const setDefaults = (values, id) => (dispatch) => {
+  console.log("the sent id is: " + `${values.id}`);
   dispatch(setDefaultsRequest(values));
   return axios
-    .put(constants.DEFAULTS_URI + '/' + `${values.id}`, values)
-    .then(response => {
+    .put(constants.DEFAULTS_URI + "/" + `${values.id}`, values)
+    .then((response) => {
       if (response) {
         dispatch(
           setDefaultsSuccess(response.data.saved, response.data.message)
@@ -573,14 +581,14 @@ export const setDefaults = (values, id) => dispatch => {
         dispatch(setDefaultsFailed(response.data.message));
       }
     })
-    .catch(e => {
+    .catch((e) => {
       dispatch(confirmUserFailed(e));
     });
 };
 
-export const setDefaultsRequest = values => {
+export const setDefaultsRequest = (values) => {
   return {
-    type: SET_DEFAULTS_REQUEST
+    type: SET_DEFAULTS_REQUEST,
   };
 };
 
@@ -588,70 +596,72 @@ export const setDefaultsSuccess = (data, mes) => {
   return {
     type: SET_DEFAULTS_SUCCESS,
     message: mes,
-    defaults: data
+    defaults: data,
   };
 };
 
-export const setDefaultsFailed = error => {
+export const setDefaultsFailed = (error) => {
   return {
     type: SET_DEFAULTS_FAILED,
-    error
+    error,
   };
 };
 
 //********************** fetching default settings ***************************/
-export const fetchDefaults = userId => {
-  return dispatch => {
+export const fetchDefaults = (userId) => {
+  return (dispatch) => {
     dispatch(fetchDefaultsRequest());
-    return fetch(constants.DEFAULTS_URI + '/' + `${userId}`).then(response => {
-      if (response.ok) {
-        response.json().then(data => {
-          dispatch(fetchDefaultsSuccess(data.defaults, data.message));
-          console.log('the default settings:  ');
-          console.dir(data.defaults);
-        });
-      } else {
-        response.json().then(error => {
-          dispatch(fetchDefaultsFailed(error));
-        });
+    return fetch(constants.DEFAULTS_URI + "/" + `${userId}`).then(
+      (response) => {
+        if (response.ok) {
+          response.json().then((data) => {
+            dispatch(fetchDefaultsSuccess(data.defaults, data.message));
+            console.log("the default settings:  ");
+            console.dir(data.defaults);
+          });
+        } else {
+          response.json().then((error) => {
+            dispatch(fetchDefaultsFailed(error));
+          });
+        }
       }
-    });
+    );
   };
 };
 
 export const fetchDefaultsRequest = () => {
   return {
-    type: GET_DEFAULTS_REQUEST
+    type: GET_DEFAULTS_REQUEST,
   };
 };
 
 export const fetchDefaultsSuccess = (defaults, message) => {
-  console.log('these are the defaults we have received: ');
+  console.log("these are the defaults we have received: ");
   console.dir(defaults);
   return {
     type: GET_DEFAULTS_SUCCESS,
     defaults: defaults,
-    message: message
+    message: message,
   };
 };
 
-export const fetchDefaultsFailed = error => {
+export const fetchDefaultsFailed = (error) => {
   return {
     type: GET_DEFAULTS_FAILED,
-    error
+    error,
   };
 };
 
 /********************* update authenticated user ************************/
-export const updateAuthenticatedUser = newData => dispatch => {
+export const updateAuthenticatedUser = (newData) => (dispatch) => {
   dispatch(updateAuthenticatedUserRequest());
 
   return axios({
-    method: 'put',
+    method: "put",
     url: constants.GET_USERS_URI + `${newData.id}`,
-    data: newData
+    data: newData,
   })
-    .then(response => {
+    .then((response) => {
       if (response) {
         dispatch(
           updateAuthenticatedUserSuccess(response.data, response.data.message)
@@ -660,14 +670,14 @@ export const updateAuthenticatedUser = newData => dispatch => {
         dispatch(updateAuthenticatedUserFailed(response.data.message));
       }
     })
-    .catch(e => {
+    .catch((e) => {
       dispatch(updateAuthenticatedUserFailed(e));
     });
 };
 
 export const updateAuthenticatedUserRequest = () => {
   return {
-    type: UPDATE_AUTHENTICATED_USER_REQUEST
+    type: UPDATE_AUTHENTICATED_USER_REQUEST,
   };
 };
 
@@ -675,13 +685,13 @@ export const updateAuthenticatedUserSuccess = (updatedUser, message) => {
   return {
     type: UPDATE_AUTHENTICATED_USER_SUCCESS,
     payload: updatedUser,
-    message: message
+    message: message,
   };
 };
 
-export const updateAuthenticatedUserFailed = error => {
+export const updateAuthenticatedUserFailed = (error) => {
   return {
     type: UPDATE_AUTHENTICATED_USER_FAILED,
-    error
+    error,
   };
 };

@@ -38,10 +38,13 @@ import {
   UPDATE_PASSWORD_FAILED,
   UPDATE_PROFILE_REQUEST,
   UPDATE_PROFILE_SUCCESS,
-  UPDATE_PROFILE_FAILED
-} from '../types';
+  UPDATE_PROFILE_FAILED,
+  RECOVERY_EMAIL_REQUEST,
+  RECOVERY_EMAIL_FAILED,
+  RECOVERY_EMAIL_SUCCESS,
+} from "../types";
 
-const isEmpty = require('is-empty');
+const isEmpty = require("is-empty");
 
 const initialState = {
   users: [],
@@ -58,10 +61,12 @@ const initialState = {
   userToConfirm: null,
   showConfirmDialog: null,
   userDefaults: [],
-  isUpdating: false
+  isUpdating: false,
+  showForgotPassword: true,
+  isSendingEmail: false,
 };
 
-export default function(state = initialState, action) {
+export default function (state = initialState, action) {
   switch (action.type) {
     /************************* fetch users ****************************************** */
     case GET_USERS_REQUEST:
@@ -76,7 +81,7 @@ export default function(state = initialState, action) {
         showDeleteDialog: false,
         userToDelete: null,
         showEditDialog: false,
-        userToEdit: null
+        userToEdit: null,
       };
     case GET_USERS_SUCCESS:
       return {
@@ -90,7 +95,7 @@ export default function(state = initialState, action) {
         showDeleteDialog: false,
         userToDelete: null,
         showEditDialog: false,
-        userToEdit: null
+        userToEdit: null,
       };
     case GET_USERS_FAILED:
       return {
@@ -104,7 +109,7 @@ export default function(state = initialState, action) {
         showDeleteDialog: false,
         userToDelete: null,
         showEditDialog: false,
-        userToEdit: null
+        userToEdit: null,
       };
 
     /************************* fetch candidates ****************************************** */
@@ -121,7 +126,7 @@ export default function(state = initialState, action) {
         showDeleteDialog: false,
         userToDelete: null,
         showEditDialog: false,
-        userToEdit: null
+        userToEdit: null,
       };
     case GET_CANDIDATES_SUCCESS:
       return {
@@ -135,7 +140,7 @@ export default function(state = initialState, action) {
         showDeleteDialog: false,
         userToDelete: null,
         showEditDialog: false,
-        userToEdit: null
+        userToEdit: null,
       };
     case GET_CANDIDATES_FAILED:
       return {
@@ -149,7 +154,7 @@ export default function(state = initialState, action) {
         showDeleteDialog: false,
         userToDelete: null,
         showEditDialog: false,
-        userToEdit: null
+        userToEdit: null,
       };
 
     /************************* fetch defaults ****************************************** */
@@ -165,7 +170,7 @@ export default function(state = initialState, action) {
         showDeleteDialog: false,
         userToDelete: null,
         showEditDialog: false,
-        userToEdit: null
+        userToEdit: null,
       };
     case GET_DEFAULTS_SUCCESS:
       return {
@@ -179,7 +184,7 @@ export default function(state = initialState, action) {
         showDeleteDialog: false,
         userToDelete: null,
         showEditDialog: false,
-        userToEdit: null
+        userToEdit: null,
       };
     case GET_DEFAULTS_FAILED:
       return {
@@ -193,7 +198,7 @@ export default function(state = initialState, action) {
         showDeleteDialog: false,
         userToDelete: null,
         showEditDialog: false,
-        userToEdit: null
+        userToEdit: null,
       };
 
     /************************* Add/register user ****************************************** */
@@ -211,7 +216,7 @@ export default function(state = initialState, action) {
         showEditDialog: false,
         userToEdit: null,
         newUser: null,
-        showAddDialog: true
+        showAddDialog: true,
       };
 
     case HIDE_REGISTER_DIALOG:
@@ -228,7 +233,7 @@ export default function(state = initialState, action) {
         showEditDialog: false,
         userToEdit: null,
         newUser: null,
-        showAddDialog: false
+        showAddDialog: false,
       };
 
     case REGISTER_USER_REQUEST:
@@ -245,7 +250,7 @@ export default function(state = initialState, action) {
         showEditDialog: false,
         userToEdit: null,
         newUser: action.user,
-        showAddDialog: true
+        showAddDialog: true,
       };
     case REGISTER_USER_FAILED:
       return {
@@ -261,7 +266,7 @@ export default function(state = initialState, action) {
         showEditDialog: false,
         userToEdit: null,
         newUser: null,
-        showAddDialog: false
+        showAddDialog: false,
       };
     case REGISTER_USER_SUCCESS:
       return {
@@ -277,7 +282,7 @@ export default function(state = initialState, action) {
         showEditDialog: false,
         userToEdit: null,
         newUser: action.user,
-        showAddDialog: true
+        showAddDialog: true,
       };
 
     /************************* edit user ****************************************** */
@@ -294,7 +299,7 @@ export default function(state = initialState, action) {
         userToDelete: null,
         showEditDialog: true,
         userToEdit: action.user,
-        newUser: null
+        newUser: null,
       };
 
     case HIDE_EDIT_DIALOG:
@@ -310,7 +315,7 @@ export default function(state = initialState, action) {
         userToDelete: null,
         showEditDialog: false,
         userToEdit: null,
-        newUser: null
+        newUser: null,
       };
     case EDIT_USER_REQUEST:
       return {
@@ -325,11 +330,11 @@ export default function(state = initialState, action) {
         userToDelete: null,
         showEditDialog: true,
         userToEdit: action.userToEdit,
-        newUser: null
+        newUser: null,
       };
 
     case EDIT_USER_SUCCESS:
-      const updatedUsers = state.users.map(user => {
+      const updatedUsers = state.users.map((user) => {
         if (user._id !== action.userToEdit._id) {
           //this is not the item of interest
           return user;
@@ -349,7 +354,7 @@ export default function(state = initialState, action) {
         userToDelete: null,
         showEditDialog: true,
         userToEdit: action.userToEdit,
-        newUser: null
+        newUser: null,
       };
 
     case EDIT_USER_FAILED:
@@ -365,7 +370,7 @@ export default function(state = initialState, action) {
         userToDelete: null,
         showEditDialog: true,
         userToEdit: action.userToEdit,
-        newUser: null
+        newUser: null,
       };
     /************************* delete user ****************************************** */
     case SHOW_DELETE_DIALOG:
@@ -381,7 +386,7 @@ export default function(state = initialState, action) {
         userToDelete: action.user,
         showEditDialog: false,
         userToEdit: null,
-        newUser: null
+        newUser: null,
       };
 
     case HIDE_DELETE_DIALOG:
@@ -397,7 +402,7 @@ export default function(state = initialState, action) {
         userToDelete: null,
         showEditDialog: false,
         userToEdit: null,
-        newUser: null
+        newUser: null,
       };
 
     case DELETE_USER_REQUEST:
@@ -413,12 +418,12 @@ export default function(state = initialState, action) {
         userToDelete: action.userToDelete,
         showEditDialog: false,
         userToEdit: null,
-        newUser: null
+        newUser: null,
       };
 
     case DELETE_USER_SUCCESS:
       const filteredUsers = state.users.filter(
-        user => user._id !== state.userToDelete._id
+        (user) => user._id !== state.userToDelete._id
       );
       return {
         ...state,
@@ -432,7 +437,7 @@ export default function(state = initialState, action) {
         userToDelete: action.userToDelete,
         showEditDialog: false,
         userToEdit: null,
-        newUser: null
+        newUser: null,
       };
 
     case DELETE_USER_FAILED:
@@ -448,12 +453,33 @@ export default function(state = initialState, action) {
         userToDelete: action.userToDelete,
         showEditDialog: false,
         userToEdit: null,
-        newUser: null
+        newUser: null,
       };
     case TOGGLE_REGISTER_USER:
       return {
         ...state,
-        showAddDialog: !state.showAddDialog
+        showAddDialog: !state.showAddDialog,
+      };
+
+    /***** FORGOT PASSWORD PAGE *******************************************************/
+    case RECOVERY_EMAIL_REQUEST:
+      return {
+        ...state,
+        isSendingEmail: true,
+      };
+
+    case RECOVERY_EMAIL_FAILED:
+      return {
+        ...state,
+        showForgotPassword: !state.showForgotPassword,
+        isSendingEmail: false,
+      };
+
+    case RECOVERY_EMAIL_SUCCESS:
+      return {
+        ...state,
+        showForgotPassword: !state.showForgotPassword,
+        isSendingEmail: false,
       };
 
     /************************* confirm user ****************************************** */
@@ -470,7 +496,7 @@ export default function(state = initialState, action) {
         userToDelete: action.user,
         showEditDialog: false,
         userToEdit: null,
-        newUser: null
+        newUser: null,
       };
     case HIDE_CONFIRM_DIALOG:
       return {
@@ -485,7 +511,7 @@ export default function(state = initialState, action) {
         userToDelete: null,
         showEditDialog: false,
         userToEdit: null,
-        newUser: null
+        newUser: null,
       };
     case CONFIRM_USER_REQUEST:
       return {
@@ -500,7 +526,7 @@ export default function(state = initialState, action) {
         userToDelete: action.userToConfirm,
         showEditDialog: false,
         userToEdit: null,
-        newUser: null
+        newUser: null,
       };
     case CONFIRM_USER_SUCCESS:
       return {
@@ -515,7 +541,7 @@ export default function(state = initialState, action) {
         userToDelete: action.userToConfirm,
         showEditDialog: false,
         userToEdit: null,
-        newUser: null
+        newUser: null,
       };
     case CONFIRM_USER_FAILED:
       return {
@@ -530,7 +556,7 @@ export default function(state = initialState, action) {
         userToDelete: action.userToConfirm,
         showEditDialog: false,
         userToEdit: null,
-        newUser: null
+        newUser: null,
       };
 
     /************************ save password  *********************************************/
@@ -539,21 +565,21 @@ export default function(state = initialState, action) {
         ...state,
         users: state.users,
         candidates: state.candidates,
-        userDefaults: state.userDefaults
+        userDefaults: state.userDefaults,
       };
     case UPDATE_PASSWORD_SUCCESS:
       return {
         ...state,
         users: state.users,
         candidates: state.candidates,
-        userDefaults: state.userDefaults
+        userDefaults: state.userDefaults,
       };
     case UPDATE_PASSWORD_FAILED:
       return {
         ...state,
         users: state.users,
         candidates: state.candidates,
-        userDefaults: state.userDefaults
+        userDefaults: state.userDefaults,
       };
 
     /************************ set defaults *********************************************/
@@ -564,7 +590,7 @@ export default function(state = initialState, action) {
         users: state.users,
         candidates: state.candidates,
         userDefaults: state.userDefaults,
-        successMsg: null
+        successMsg: null,
       };
     case SET_DEFAULTS_SUCCESS:
       return {
@@ -578,7 +604,7 @@ export default function(state = initialState, action) {
         showDeleteDialog: false,
         showEditDialog: false,
         userToEdit: null,
-        newUser: null
+        newUser: null,
       };
     case SET_DEFAULTS_FAILED:
       return {
@@ -593,7 +619,7 @@ export default function(state = initialState, action) {
         userToDelete: action.userToConfirm,
         showEditDialog: false,
         userToEdit: null,
-        newUser: null
+        newUser: null,
       };
 
     default:
