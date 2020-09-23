@@ -62,21 +62,15 @@ export const updateOrganization = (orgData) => (dispatch) => {
 
 /***************************fetching users ********************************* */
 export const fetchUsers = () => {
-  return dispatch => {
+  return (dispatch, getState) => {
+    const tenant = getState().organisation.name;
     dispatch(fetchUsersRequest());
-    // Returns a promise
     console.log('we are now fetching users using the action for fetching ');
-    return fetch(constants.GET_USERS_URI).then(response => {
-      if (response.ok) {
-        response.json().then(data => {
-          dispatch(fetchUsersSuccess(data.users, data.message));
-        });
-      } else {
-        response.json().then(error => {
-          dispatch(fetchUsersFailed(error));
-        });
-      }
-    });
+    return axios
+        .get(constants.GET_USERS_URI, { params: { tenant }})
+        .then(response => response.data)
+        .then(responseData => {dispatch(fetchUsersSuccess(responseData.users, responseData.message));})
+        .catch(err => {dispatch(fetchUsersFailed(err.response.data))});
   };
 };
 
@@ -87,8 +81,6 @@ export const fetchUsersRequest = () => {
 };
 
 export const fetchUsersSuccess = (users, message) => {
-  console.log('these are the users we are sending: ');
-  console.dir(users);
   return {
     type: GET_USERS_SUCCESS,
     users: users,
