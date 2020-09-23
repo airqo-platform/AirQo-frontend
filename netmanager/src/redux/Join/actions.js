@@ -47,9 +47,18 @@ import {
   UPDATE_AUTHENTICATED_USER_REQUEST,
   UPDATE_AUTHENTICATED_USER_FAILED,
   UPDATE_AUTHENTICATED_USER_SUCCESS,
+  UPDATE_ORGANIZATION_SUCCESS,
   REGISTER_CANDIDATE_URI
 } from './types';
 import constants from '../../config/constants';
+
+/***************************organization actions ********************************* */
+export const updateOrganization = (orgData) => (dispatch) => {
+  dispatch({
+    type: UPDATE_ORGANIZATION_SUCCESS,
+    payload: orgData,
+  })
+}
 
 /***************************fetching users ********************************* */
 export const fetchUsers = () => {
@@ -366,6 +375,7 @@ export const loginUser = userData => dispatch => {
         const decoded = jwt_decode(token);
         // Set current user
         dispatch(setCurrentUser(decoded));
+        dispatch(updateOrganization({name: decoded.organization}))
       } catch (e) {
         console.log(e);
       }
