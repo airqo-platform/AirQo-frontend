@@ -14,6 +14,7 @@ import { Alert, AlertTitle } from "@material-ui/lab";
 import { withStyles, InputLabel, Typography } from "@material-ui/core";
 import { Input } from "@material-ui/core";
 import { isEmpty, isEqual, omit } from "underscore";
+import { isFormFullyFilled } from "./utils";
 
 const styles = (theme) => ({
   root: {
@@ -40,18 +41,6 @@ const validateForm = (errors) => {
     console.log("validate form error", e.message);
   }
 };
-
-const isFormFullyFilled = (state) => {
-  let errors = {}
-  let testState = omit(state, "errors", "isChecked");
-
-  Object.keys(testState).forEach((key) => {
-      if(testState[key] === "") {
-        errors[key] = `${key} is required`;
-      }
-  })
-  return errors
-}
 
 class Register extends Component {
   constructor() {
@@ -183,7 +172,6 @@ class Register extends Component {
     const emptyFields = isFormFullyFilled(this.state)
 
     if (!isEmpty(emptyFields)) {
-      console.log('blocked blocked')
       this.setState({
         ...this.state,
         errors: {

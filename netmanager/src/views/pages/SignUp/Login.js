@@ -4,7 +4,8 @@ import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { loginUser } from "../../../redux/Join/actions";
 import classnames from "classnames";
-import { omit } from "underscore";
+import { isEmpty, omit } from "underscore";
+import { isFormFullyFilled } from "./utils";
 import KeyboardBackspaceIcon from "@material-ui/icons/KeyboardBackspace";
 //import styles from './Login.css'
 
@@ -81,7 +82,19 @@ class Login extends Component {
 
   onSubmit = (e) => {
     e.preventDefault();
+    const emptyFields = isFormFullyFilled(this.state);
     const userData = omit(this.state, "errors");
+
+    if (!isEmpty(emptyFields)) {
+      this.setState({
+        ...this.state,
+        errors: {
+          ...this.state.errors,
+          ...emptyFields,
+        },
+      });
+      return;
+    }
     console.log(userData);
     this.props.loginUser(userData);
     // since we handle the redirect within our component, we don't need to pass in this.props.history as a parameter
