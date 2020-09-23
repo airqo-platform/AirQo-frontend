@@ -4,6 +4,7 @@ import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { loginUser } from "../../../redux/Join/actions";
 import classnames from "classnames";
+import { omit } from "underscore";
 import KeyboardBackspaceIcon from "@material-ui/icons/KeyboardBackspace";
 //import styles from './Login.css'
 
@@ -11,6 +12,7 @@ class Login extends Component {
   constructor() {
     super();
     this.state = {
+      organization: this.query.get("organization") || "",
       userName: "",
       password: "",
       errors: {},
@@ -51,9 +53,6 @@ class Login extends Component {
   }
 
   onChange = (e) => {
-    //this.setState({ [e.target.id]: e.target.value });
-    //
-
     e.preventDefault();
     const { id, value } = e.target;
     let errors = this.props.errors;
@@ -66,6 +65,8 @@ class Login extends Component {
         break;
     }
 
+    errors[id] = value.length === 0 ? `${id.toLowerCase()} is required` : "";
+
     this.setState(
       {
         errors,
@@ -76,12 +77,10 @@ class Login extends Component {
       }
     );
   };
+
   onSubmit = (e) => {
     e.preventDefault();
-    const userData = {
-      userName: this.state.userName,
-      password: this.state.password,
-    };
+    const userData = omit(this.state, "errors");
     console.log(userData);
     this.props.loginUser(userData);
     // since we handle the redirect within our component, we don't need to pass in this.props.history as a parameter
@@ -91,7 +90,6 @@ class Login extends Component {
     return (
       <div className="container">
         <div
-          // style={{  border: "1px solid red" }}
           className="row"
           style={{
             marginTop: "4rem",
@@ -119,6 +117,23 @@ class Login extends Component {
               </p>
             </div>
             <form noValidate onSubmit={this.onSubmit}>
+              <div className="input-field col s12">
+                <input
+                  onChange={this.onChange}
+                  value={this.state.organization}
+                  error={errors.organization}
+                  id="organization"
+                  type="text"
+                  className={classnames("", {
+                    invalid: errors.organization || errors.credentialsnotfound,
+                  })}
+                />
+                <label htmlFor="organization">Organization</label>
+                <span className="red-text">
+                  {errors.organization}
+                  {errors.credentialsnotfound}
+                </span>
+              </div>
               <div className="input-field col s12">
                 <input
                   onChange={this.onChange}

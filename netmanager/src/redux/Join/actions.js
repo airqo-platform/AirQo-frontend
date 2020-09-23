@@ -351,7 +351,7 @@ export const registrationSuccess = data => {
 /************************* Login a new User  *********************************/
 export const loginUser = userData => dispatch => {
   console.log('the login URL ' + constants.LOGIN_USER_URI);
-  const tenant = 'kcca'
+  const tenant = userData.organization || "kcca"
   axios
     .post(constants.LOGIN_USER_URI, userData, { params: { tenant }})
     .then(res => {
