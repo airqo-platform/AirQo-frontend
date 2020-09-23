@@ -386,10 +386,14 @@ const Dashboard = (props) => {
 
   return (
     <div className={classes.root}>
-      <h4>Welcome to the AirQo ANALYTICS dashboard</h4>
-      <br />
-      <h6>Number of nodes at each AQI risk level</h6>
-      <br />
+      <header
+        style={{ display: "inline-flex", flexWrap: "wrap", width: "674px", padding: "0 0 30px 0" }}
+      >
+        <h4>Welcome to the AirQo ANALYTICS dashboard</h4>
+        <br />
+        <h6>Number of nodes at each AQI risk level</h6>
+        <br />
+      </header>
       <Grid container spacing={4}>
         <Grid item lg={2} sm={6} xl={2} xs={12}>
           <PollutantCategory
