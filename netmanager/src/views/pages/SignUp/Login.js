@@ -9,8 +9,9 @@ import KeyboardBackspaceIcon from "@material-ui/icons/KeyboardBackspace";
 //import styles from './Login.css'
 
 class Login extends Component {
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
+    this.query = new URLSearchParams(this.props.location.search);
     this.state = {
       organization: this.query.get("organization") || "",
       userName: "",
@@ -57,12 +58,12 @@ class Login extends Component {
     const { id, value } = e.target;
     let errors = this.props.errors;
 
-    switch (id) {
-      case "userName":
-        errors.userName = value.length === 0 ? " username is required" : "";
-        break;
-      default:
-        break;
+    if (id === "organization") {
+      window.history.pushState(
+        {},
+        null,
+        `${window.location.pathname}?${id}=${value}`
+      );
     }
 
     errors[id] = value.length === 0 ? `${id.toLowerCase()} is required` : "";
@@ -197,6 +198,7 @@ Login.propTypes = {
   loginUser: PropTypes.func.isRequired,
   auth: PropTypes.object.isRequired,
   errors: PropTypes.object.isRequired,
+  location: PropTypes.object,
 };
 const mapStateToProps = (state) => ({
   auth: state.auth,
