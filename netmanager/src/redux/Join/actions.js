@@ -211,30 +211,27 @@ export const hideEditDialog = () => {
   };
 };
 
-export const editUser = userToEdit => dispatch => {
+export const editUser = userToEdit => (dispatch, getState) => {
   dispatch(editUserRequest(userToEdit));
-  console.log('user to edit: ');
-  //console.log(userToEdit.values());
   let dataToSend = {};
   for (const [key, value] of userToEdit.entries()) {
     dataToSend[key] = value;
   }
   console.dir(dataToSend);
-  return axios({
-    method: 'put',
-    url: constants.GET_USERS_URI + `${dataToSend.id}`,
-    data: dataToSend
-  })
-    .then(response => {
-      if (response) {
-        dispatch(editUserSuccess(response.data, response.data.message));
-      } else {
-        dispatch(editUserFailed(response.data.message));
-      }
-    })
-    .catch(e => {
-      dispatch(editUserFailed(e));
-    });
+  const id = dataToSend.id
+  const tenant = getState().organisation.name
+  return axios
+      .put(constants.GET_USERS_URI, dataToSend, { params: { id, tenant }})
+      .then(response => {
+          if (response) {
+            dispatch(editUserSuccess(response.data, response.data.message));
+          } else {
+            dispatch(editUserFailed(response.data.message));
+          }
+      })
+      .catch(e => {
+          dispatch(editUserFailed(e));
+      });
 };
 
 export const editUserRequest = userToEdit => {
@@ -275,21 +272,15 @@ export const hideDeleteDialog = () => {
 };
 
 export const deleteUser = userToDelete => {
-  return dispatch => {
+  return (dispatch, getState) => {
+    const id = userToDelete._id
+    const tenant = getState().organisation.name
     dispatch(deleteUserRequest(userToDelete));
-    return fetch(constants.GET_USERS_URI + userToDelete._id, {
-      method: 'delete'
-    }).then(response => {
-      if (response.ok) {
-        response.json().then(data => {
-          dispatch(deleteUserSuccess(data.user, data.message));
-        });
-      } else {
-        response.json().then(error => {
-          dispatch(deleteUserFailed(error));
-        });
-      }
-    });
+    return axios
+        .delete(constants.GET_USERS_URI, { params: { id, tenant }})
+        .then(response => response.data)
+        .then(data => dispatch(deleteUserSuccess(data.user, data.message)))
+        .catch(err => dispatch(deleteUserFailed(err.response.data)))
   };
 };
 
