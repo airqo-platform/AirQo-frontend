@@ -143,10 +143,11 @@ export const fetchCandidatesFailed = error => {
 
 /********************* Add a new user ***********************************/
 export const addNewUser = user => {
-  return dispatch => {
+  return (dispatch, getState)  => {
+    const tenant = getState().organisation.name
     dispatch(addNewUserRequest(user));
     axios
-      .post(constants.REGISTER_USER_URI, user)
+      .post(constants.REGISTER_USER_URI, user, { params: { tenant }})
       .then(res => {
         const { savedData, message } = res.data;
         try {
