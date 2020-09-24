@@ -9,7 +9,7 @@ export const KCCAInitialUserDefaultGraphsState = [
       "Kyebando",
       "Komamboga",
       "Kazo Angola",
-      "Wandegeya",
+      "Wandegeya ",
     ],
   },
   {

@@ -94,8 +94,8 @@ if (localStorage.jwtToken) {
     // Redirect to the landing page
     window.location.href = "./";
   }
-  store.dispatch(loadUserDefaultGraphData())
   store.dispatch(setOrganization())
+  store.dispatch(loadUserDefaultGraphData())
 }
 
 class App extends Component {
