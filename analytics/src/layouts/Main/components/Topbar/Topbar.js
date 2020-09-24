@@ -1,39 +1,37 @@
 /* eslint-disable */
-import React, { useState, Component } from 'react';
-import { Link as RouterLink } from 'react-router-dom';
-import clsx from 'clsx';
-import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
-import { makeStyles } from '@material-ui/core/styles';
-import { AppBar, Toolbar, Badge, Hidden, IconButton } from '@material-ui/core';
-import MenuIcon from '@material-ui/icons/Menu';
-import NotificationsIcon from '@material-ui/icons/NotificationsOutlined';
-import InputIcon from '@material-ui/icons/Input';
-import { logoutUser } from '../../../../redux/Join/actions';
+import React, { useState, Component } from "react";
+import { Link as RouterLink } from "react-router-dom";
+import clsx from "clsx";
+import PropTypes from "prop-types";
+import { connect } from "react-redux";
+import { makeStyles } from "@material-ui/core/styles";
+import { AppBar, Toolbar, Badge, Hidden, IconButton } from "@material-ui/core";
+import MenuIcon from "@material-ui/icons/Menu";
+import NotificationsIcon from "@material-ui/icons/NotificationsOutlined";
+import InputIcon from "@material-ui/icons/Input";
+import { logoutUser } from "../../../../redux/Join/actions";
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   root: {
-    boxShadow: 'none'
+    boxShadow: "none",
+    backgroundColor: "#3067e2",
   },
   flexGrow: {
-    flexGrow: 1
+    flexGrow: 1,
   },
   signOutButton: {
-    marginLeft: theme.spacing(1)
-  }
+    marginLeft: theme.spacing(1),
+  },
 }));
 
 function withMyHook(Component) {
   return function WrappedComponent(props) {
     const classes = useStyles();
-    return <Component
-      {...props}
-      classes={classes}
-           />;
+    return <Component {...props} classes={classes} />;
   };
 }
 
-const Topbar = props => {
+const Topbar = (props) => {
   const divProps = Object.assign({}, props);
   delete divProps.layout;
   const { className, onSidebarOpen, ...rest } = props;
@@ -43,35 +41,32 @@ const Topbar = props => {
 
   const [notifications] = useState([]);
   const kcca_logo_style = {
-    height: '3.5em',
-    width: '4em',
-    borderRadius: '15%',
-    paddingTop: '.2em',
-    marginRight: '.4em'
+    height: "3.5em",
+    width: "4em",
+    borderRadius: "15%",
+    paddingTop: ".2em",
+    marginRight: ".4em",
   };
   const mak_logo_style = {
-    height: '3.3em',
-    width: '4em',
-    borderRadius: '15%',
-    paddingTop: '.2em',
-    marginRight: '.4em'
+    height: "3.3em",
+    width: "4em",
+    borderRadius: "15%",
+    paddingTop: ".2em",
+    marginRight: ".4em",
   };
   const airqo_logo_style = {
-    height: '3.5em',
-    width: '5em',
-    paddingTop: '.2em',
-    marginRight: '.4em'
+    height: "3.5em",
+    width: "5em",
+    paddingTop: ".2em",
+    marginRight: ".4em",
   };
-  const onLogoutClick = e => {
+  const onLogoutClick = (e) => {
     e.preventDefault();
     props.logoutUser();
   };
 
   return (
-    <AppBar
-      {...rest}
-      className={clsx(classes.root, className)}
-    >
+    <AppBar {...rest} className={clsx(classes.root, className)}>
       <Toolbar>
         <RouterLink to="/">
           <img
@@ -114,10 +109,7 @@ const Topbar = props => {
           </IconButton>
         </Hidden>
         <Hidden lgUp>
-          <IconButton
-            color="inherit"
-            onClick={props.onLogoutClick}
-          >
+          <IconButton color="inherit" onClick={props.onLogoutClick}>
             <MenuIcon />
           </IconButton>
         </Hidden>
@@ -130,11 +122,11 @@ Topbar.propTypes = {
   className: PropTypes.string,
   onSidebarOpen: PropTypes.func,
   logoutUser: PropTypes.func.isRequired,
-  auth: PropTypes.object.isRequired
+  auth: PropTypes.object.isRequired,
 };
 
-const mapStateToProps = state => ({
-  auth: state.auth
+const mapStateToProps = (state) => ({
+  auth: state.auth,
 });
 
 export default connect(mapStateToProps, { logoutUser })(withMyHook(Topbar));

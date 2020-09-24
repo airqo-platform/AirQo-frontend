@@ -2,7 +2,7 @@ import React from 'react';
 import clsx from 'clsx';
 import PropTypes from 'prop-types';
 import { makeStyles,withStyles } from '@material-ui/styles';
-import { Card, CardContent,CardHeader, CardActions,Divider,  Grid,Button, Dialog,
+import { Card, CardContent,CardHeader, CardActions, Divider,  Grid,Button, Dialog,
   DialogActions,DialogContent,  IconButton} from '@material-ui/core';
 import Select from 'react-select';
 import { useEffect, useState } from 'react';
@@ -20,6 +20,11 @@ import Typography from '@material-ui/core/Typography';
 import {MoreHoriz, Close} from '@material-ui/icons';
 import MuiDialogTitle from '@material-ui/core/DialogTitle';
 import validate from 'validate.js';
+import constants from '../../../../config/constants'
+import Menu from '@material-ui/core/Menu';
+import MenuItem from '@material-ui/core/MenuItem';
+import domtoimage from 'dom-to-image';
+import JsPDF from 'jspdf';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -31,6 +36,12 @@ const useStyles = makeStyles(theme => ({
     height: 56,
     width: 56
   },
+
+  subheader:{
+    color: '#263238' ,
+    fontSize: 16,    
+    fontWeight: 500
+}
 
     
 }));
@@ -45,7 +56,8 @@ const styles = (theme) => ({
     right: theme.spacing(1),
     top: theme.spacing(1),
     color: theme.palette.grey[500],
-  },
+  }
+ 
 });
 
 const DialogTitle = withStyles(styles)((props) => {
@@ -85,9 +97,11 @@ const schema = {
 };
 
 const CustomisableChart = props => {
-  const { className, ...rest } = props;
+  const { className, idSuffix, ...rest } = props;
 
   const classes = useStyles();
+
+  
 
   const [formState, setFormState] = useState({
     isValid: false,
@@ -124,6 +138,8 @@ const CustomisableChart = props => {
   };
 
   const [customChartTitle, setCustomChartTitle] = useState('Custom Chart Title');
+  const [customChartTitleSecondSection, setCustomChartTitleSecondSection] = useState('Custom Chart Title');
+
   
 
   const handleDateChange = (date) => {
@@ -139,8 +155,7 @@ const CustomisableChart = props => {
   const [filterLocations,setFilterLocations] = useState([]);
   
   useEffect(() => {
-    fetch('https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/monitoringsites/locations?organisation_name=KCCA')
-    //fetch('http://127.0.0.1:5000/api/v1/dashboard/monitoringsites/locations?organisation_name=KCCA')
+    fetch(constants.GET_MONITORING_SITES_LOCATIONS_URI)    
       .then(res => res.json())
       .then((filterLocationsData) => {
         setFilterLocations(filterLocationsData.airquality_monitoring_sites)
@@ -219,12 +234,12 @@ const CustomisableChart = props => {
 
   useEffect(() => {
     
-    axios.get('https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/customisedchart/random')
-    //axios.get('http://127.0.0.1:5000/api/v1/dashboard/customisedchart/random')
+    axios.get(constants.GET_CUSTOMISABLE_CHART_INITIAL_DATA_URI)   
       .then(res => res.data)
       .then((customisedChartData) => {
         setCustomisedGraphData(customisedChartData)
         setCustomChartTitle(customisedChartData.custom_chart_title)
+        setCustomChartTitleSecondSection(customisedChartData.custom_chart_title_second_section)
       })
       .catch(console.log)
   },[]);
@@ -244,18 +259,15 @@ const CustomisableChart = props => {
       pollutant: selectedPollutant.value,
       organisation_name: 'KCCA'     
     }
-    //console.log(JSON.stringify(filter));
-
-    axios.post(
-      'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/dashboard/customisedchart',      
-      //'http://127.0.0.1:5000/api/v1/dashboard/customisedchart', 
+   
+    axios.post(constants.GENERATE_CUSTOMISABLE_CHARTS_URI, 
       JSON.stringify(filter),
       { headers: { 'Content-Type': 'application/json' } }
     ).then(res => res.data)
       .then((customisedChartData) => {
-        setCustomisedGraphData(customisedChartData)    
-        console.log(customisedChartData)
-
+        setCustomisedGraphData(customisedChartData) 
+        
+        setCustomChartTitleSecondSection(customisedChartData.custom_chart_title_second_section)
         setCustomChartTitle(customisedChartData.custom_chart_title)
         setCustomisedGraphLabel(customisedChartData.results?customisedChartData.results[0].chart_label:'')
         console.log(customisedChartData.results[0].chart_label)
@@ -384,23 +396,146 @@ const CustomisableChart = props => {
     }
   };
 
+  const rootCustomChartContainerId = 'rootCustomChartContainerId'+ idSuffix;
+  const iconButton = 'exportIconButton';
+  const [anchorEl, setAnchorEl] = useState(null);
+
+  const filter = node => (node.id !== iconButton);
+
+  const ITEM_HEIGHT = 48;
+  const paperProps = {
+    style: {
+      maxHeight: ITEM_HEIGHT * 4.5,
+      width: 150,
+    },
+  };
+
+  const exportToImage = async (chart, format, exportFunc) => {
+    try {
+      const dataUrl = await exportFunc(chart, { filter });
+      const link = document.createElement('a');
+      document.body.appendChild(link);
+      link.download = `chart.${format}`;
+      link.href = dataUrl;
+      link.click();
+      link.remove();
+    } catch (err) {      
+      console.error('oops, something went wrong!', err);
+    }
+  };
+
+  const exportToJpeg = chart => exportToImage(chart, 'jpeg', domtoimage.toJpeg);
+
+  const exportToPng = chart => exportToImage(chart, 'png', domtoimage.toPng);
+
+  const exportToPdf = async (chart) => {
+    const width = chart.offsetWidth;
+    const height = chart.offsetHeight;
+    try {
+      const dataUrl = await domtoimage.toJpeg(chart, { filter });      
+      const doc = new JsPDF({
+        orientation: 'landscape',
+        unit: 'px',
+        format: [width, height],
+      });
+      const pdfWidth = doc.internal.pageSize.getWidth();
+      const pdfHeight = doc.internal.pageSize.getHeight();
+      doc.addImage(dataUrl, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+      doc.save('chart');
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('oops, something went wrong!', err);
+    }
+  };
+
+  const print = async (chart) => {
+    try {
+      const dataUrl = await domtoimage.toJpeg(chart, { filter });
+      let html = '<html><head><title></title></head>';
+      html += '<body style="width: 100%; padding: 0; margin: 0;"';
+      html += ' onload="window.focus(); window.print(); window.close()">';
+      html += `<img src="${dataUrl}" /></body></html>`;
+
+      const printWindow = window.open('', 'print');
+      printWindow.document.open();
+      printWindow.document.write(html);
+      printWindow.document.close();
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('oops, something went wrong!', err);
+    }
+  };
+
+  const menuOptions = [
+    { key: 'Customise', action: handleClickOpen, text: 'Customise Chart' },
+    { key: 'Print', action: print, text: 'Print' },
+    { key: 'JPEG', action: exportToJpeg, text: 'Save as JPEG' },
+    { key: 'PNG', action: exportToPng, text: 'Save as PNG' },
+    { key: 'PDF', action: exportToPdf, text: 'Save as PDF' },
+  ];
+
+  const handleClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+
+  const handleExportCustomChart = ({ action }) => () => {
+    const chart = document.querySelector(`#${rootCustomChartContainerId}`);
+    handleClose();
+    action(chart);
+  };
+
+  const openMenu = Boolean(anchorEl);
+  
   
   
   return (
     <Card
       {...rest}
       className={ className}
+      id = {rootCustomChartContainerId}
     >
       <CardHeader  
+              
         action={
-          <IconButton size="small" color="primary" onClick={handleClickOpen}>
-            <MoreHoriz />
-          </IconButton>
-        }      
+          <Grid>
+          <IconButton
+          size="small" 
+          color="primary"
+          id={iconButton}
+          onClick={handleClick}
+          className={classes.chartSaveButton}
+        >
+           <MoreHoriz />
+          
+        </IconButton>
+        <Menu
+          anchorEl={anchorEl}
+          open={openMenu}
+          onClose={handleMenuClose}
+          PaperProps={paperProps}
+        >
+          {menuOptions.map(option => (
+            <MenuItem key={option.key} onClick={handleExportCustomChart(option)}>
+              {option.text}
+            </MenuItem>
+          ))}
+        </Menu>
+        </Grid>
+        }
         
-        title= {customChartTitle}
+        title= {customChartTitle} 
+        subheader={customChartTitleSecondSection}
         style={{ textAlign: 'center' }}
+        classes={{subheader: classes.subheader }}
+       
       />
+        
+
       <Divider />
       <CardContent>
                 
@@ -678,7 +813,8 @@ const CustomisableChart = props => {
 };
 
 CustomisableChart.propTypes = {
-  className: PropTypes.string
+  className: PropTypes.string,
+  idSuffix: PropTypes.string
 };
 
 export default CustomisableChart;
