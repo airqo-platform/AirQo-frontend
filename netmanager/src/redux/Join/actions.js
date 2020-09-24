@@ -53,6 +53,11 @@ import {
 import constants from '../../config/constants';
 
 /***************************organization actions ********************************* */
+export const setOrganization = () => (dispatch, getState) => {
+  const name = getState().auth.user.organization
+  dispatch(updateOrganization({ name }))
+}
+
 export const updateOrganization = (orgData) => (dispatch) => {
   dispatch({
     type: UPDATE_ORGANIZATION_SUCCESS,
@@ -99,21 +104,14 @@ export const fetchUsersFailed = error => {
 /*********************** fetching Candidatess ********************************/
 
 export const fetchCandidates = id => {
-  return dispatch => {
+  return (dispatch, getState) => {
     dispatch(fetchCandidatesRequest());
-    // Returns a promise
-    console.log('we are now fetching users using the action for fetching ');
-    return fetch(constants.GET_CANDIDATES_URI).then(response => {
-      if (response.ok) {
-        response.json().then(data => {
-          dispatch(fetchCandidatesSuccess(data.users, data.message));
-        });
-      } else {
-        response.json().then(error => {
-          dispatch(fetchCandidatesFailed(error));
-        });
-      }
-    });
+    const tenant = getState().organisation.name
+    return axios
+        .get(constants.GET_CANDIDATES_URI, { params: { tenant }})
+        .then(response => response.data)
+        .then(data => dispatch(fetchCandidatesSuccess(data.users, data.message)))
+        .catch(err => dispatch(fetchCandidatesFailed(err.response.data)))
   };
 };
 
@@ -308,7 +306,7 @@ export const deleteUserFailed = error => {
 
 /************************* Register a new User  *****************************/
 export const registerCandidate = userData => dispatch => {
-  const tenant = "KCCA";
+  const tenant = userData.organization;
   axios
     .post(constants.REGISTER_CANDIDATE_URI, userData, { params: { tenant }})
     .then(res => {
