@@ -4,7 +4,6 @@ import PropTypes from "prop-types";
 import clsx from "clsx";
 import { makeStyles } from "@material-ui/styles";
 import { isEqual } from "underscore";
-import { updatePassword } from "redux/Join/actions";
 import {
   Card,
   CardHeader,
@@ -14,6 +13,9 @@ import {
   Button,
   TextField,
 } from "@material-ui/core";
+import Alert from '@material-ui/lab/Alert';
+import { updateUserPasswordApi } from "../../../../apis/authService";
+import { useOrgData } from "../../../../../redux/Join/selectors";
 
 const useStyles = makeStyles(() => ({
   root: {},
@@ -27,25 +29,51 @@ const Password = (props) => {
   const classes = useStyles();
 
   const initialState = {
+    currentPassword: "",
     password: "",
     password2: "",
   };
 
+  const alertInitialState = {
+    show: false,
+    message: "",
+    type: "success"
+  }
+
   const [newPassword, setNewPassword] = useState(initialState);
+  const [errors, setErrors] = useState(initialState)
+  const [alert, setAlert] = useState(alertInitialState)
+
 
   const clearState = () => {
     setNewPassword({ ...initialState });
   };
 
+  const closeAlert = () => {
+    setAlert(alertInitialState)
+  }
+
+  const setFieldError = (error) => {
+    setErrors({...errors, ...error})
+  }
+
   const handleChange = (event) => {
+    const id = event.target.id;
+    const value =event.target.value;
+    if (["password", "password2"].includes(id)) {
+      value !== newPassword.password ? setFieldError({ password2: "passwords don't match"}) :
+      setFieldError({ password2: ""})
+    }
     setNewPassword({
       ...newPassword,
       [event.target.id]: event.target.value,
     });
   };
 
-  const onSubmit = (e) => {
+  const onSubmit = async (e) => {
     e.preventDefault();
+    const userId = user._id;
+    const tenant = orgData.name
     const userData = {
       id: user._id,
       password: newPassword.password,
@@ -64,22 +92,34 @@ const Password = (props) => {
       <CardContent>
         <TextField
           fullWidth
-          label="Password"
+          label="Current Password"
+          id="currentPassword"
+          onChange={handleChange}
+          type="password"
+          value={newPassword.currentPassword}
+          variant="outlined"
+        />
+        <TextField
+          fullWidth
+          label="New Password"
           id="password"
           onChange={handleChange}
           type="password"
           value={newPassword.password}
           variant="outlined"
+          style={{ marginTop: "1rem" }}
         />
         <TextField
           fullWidth
-          label="Confirm password"
+          label="Confirm New Password"
           id="password2"
           onChange={handleChange}
           style={{ marginTop: "1rem" }}
           type="password"
           value={newPassword.password2}
           variant="outlined"
+          error={!!errors.password2}
+          helperText={errors.password2}
         />
       </CardContent>
       <Divider />

@@ -506,30 +506,15 @@ export const confirmUserFailed = error => {
 };
 
 /**********************update the user password  ***********************************/
-export const updatePassword = userData => dispatch => {
+export const updatePassword = userData => (dispatch, getState) => {
+  const state = getState()
+  const id = state.auth.user._id
+  const tenant = state.organisation.name
   axios
-    .put(constants.UPDATE_PWD_IN_URI, userData)
-    .then(response => {
-      console.log(response.data);
-      if (response.data.success === true) {
-        dispatch({
-          type: UPDATE_PASSWORD_SUCCESS,
-          payload: response.data.result
-        });
-      } else {
-        dispatch({
-          type: UPDATE_PASSWORD_FAILED,
-          payload: response.data.err
-        });
-      }
-    })
-    .catch(error => {
-      console.log(error.data);
-      dispatch({
-        type: GET_ERRORS,
-        payload: error.response
-      });
-    });
+      .put(constants.UPDATE_PWD_IN_URI, userData, { params: { id, tenant } })
+      .then(response => response.data)
+      .then(data => dispatch({ type: UPDATE_PASSWORD_SUCCESS, payload: data.result}))
+      .catch(error => dispatch({type: GET_ERRORS, payload: error.response}));
 };
 
 /***************************update the user profile ******************** */
