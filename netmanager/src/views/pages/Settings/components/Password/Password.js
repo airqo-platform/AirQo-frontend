@@ -24,7 +24,8 @@ const useStyles = makeStyles(() => ({
 const Password = (props) => {
   const { className, mappedAuth, mappeduserState, ...rest } = props;
   const { user } = mappedAuth;
-  const userState = mappeduserState;
+
+  const orgData = useOrgData();
 
   const classes = useStyles();
 
@@ -75,13 +76,25 @@ const Password = (props) => {
     const userId = user._id;
     const tenant = orgData.name
     const userData = {
-      id: user._id,
-      password: newPassword.password,
-      password2: newPassword.password2,
+      ...newPassword,
+      old_pwd: newPassword.currentPassword,
     };
-    console.log("sending them through...");
-    console.log(userData);
-    props.mappedUpdatePassword(userData);
+
+    await updateUserPasswordApi(userId, tenant, userData)
+        .then(data => {
+          setAlert({
+            show: true,
+            message: "Password update success",
+            type: "success"
+          })
+        })
+        .catch(err => {
+          setAlert({
+            show: true,
+            message: err.response.data.message || err.response.data.password2,
+            type: "error"
+          })
+        })
     clearState();
   };
 
@@ -122,7 +135,13 @@ const Password = (props) => {
           helperText={errors.password2}
         />
       </CardContent>
+
       <Divider />
+
+      <CardContent style={alert.show ? {} : {display: "none"}}>
+          <Alert severity={alert.type} onClose={closeAlert}>{alert.message}</Alert>
+      </CardContent>
+
       <CardActions>
         <Button color="primary" variant="outlined" onClick={onSubmit} disabled={isEqual(initialState, newPassword)}>
           Update
