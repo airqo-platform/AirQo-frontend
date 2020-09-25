@@ -14,6 +14,7 @@ import {
   TextField,
 } from "@material-ui/core";
 import Alert from '@material-ui/lab/Alert';
+import { CircularLoader } from "../../../../components/Loader/CircularLoader";
 import { updateUserPasswordApi } from "../../../../apis/authService";
 import { useOrgData } from "../../../../../redux/Join/selectors";
 
@@ -44,6 +45,7 @@ const Password = (props) => {
   const [newPassword, setNewPassword] = useState(initialState);
   const [errors, setErrors] = useState(initialState)
   const [alert, setAlert] = useState(alertInitialState)
+  const [loading, setLoading] = useState(false);
 
 
   const clearState = () => {
@@ -79,7 +81,7 @@ const Password = (props) => {
       ...newPassword,
       old_pwd: newPassword.currentPassword,
     };
-
+    setLoading(true);
     await updateUserPasswordApi(userId, tenant, userData)
         .then(data => {
           setAlert({
@@ -95,6 +97,7 @@ const Password = (props) => {
             type: "error"
           })
         })
+    setLoading(false);
     clearState();
   };
 
@@ -146,6 +149,7 @@ const Password = (props) => {
         <Button color="primary" variant="outlined" onClick={onSubmit} disabled={isEqual(initialState, newPassword)}>
           Update
         </Button>
+        <CircularLoader loading={loading} />
       </CardActions>
     </Card>
   );
