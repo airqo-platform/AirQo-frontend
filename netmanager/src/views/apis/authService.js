@@ -8,3 +8,9 @@ export const updateUserPasswordApi = async (userId, tenant, userData) => {
     })
     .then((response) => response.data);
 };
+
+export const updateAuthenticatedUserApi = async (userId, tenant, userData) => {
+  return await axios
+    .put(constants.GET_USERS_URI, userData, { params: { tenant, id: userId } })
+    .then((response) => response.data);
+};

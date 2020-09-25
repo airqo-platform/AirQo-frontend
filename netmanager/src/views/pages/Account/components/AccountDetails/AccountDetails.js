@@ -13,6 +13,10 @@ import {
   Button,
   TextField,
 } from "@material-ui/core";
+import { useOrgData } from "../../../../../redux/Join/selectors";
+import { updateAuthenticatedUserApi } from "../../../../apis/authService";
+import Alert from "@material-ui/lab/Alert";
+import { CircularLoader } from "../../../../components/Loader/CircularLoader";
 
 const useStyles = makeStyles((theme) => ({
   container: {
@@ -46,7 +50,16 @@ const AccountDetails = (props) => {
     phoneNumber: "",
   };
 
+  const alertInitialState = {
+    show: false,
+    message: "",
+    type: "success",
+  };
+
+  const orgData = useOrgData();
   const [form, setState] = useState(initialState);
+  const [alert, setAlert] = useState(alertInitialState);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     var anchorElem = document.createElement("link");
@@ -57,6 +70,10 @@ const AccountDetails = (props) => {
     anchorElem.setAttribute("rel", "stylesheet");
     anchorElem.setAttribute("id", "logincdn");
   });
+
+  const closeAlert = () => {
+    setAlert(alertInitialState);
+  };
 
   const handleChange = (e) => {
     setState({
@@ -69,17 +86,28 @@ const AccountDetails = (props) => {
     setState({ ...initialState });
   };
 
-  const onSubmit = (e) => {
+  const onSubmit = async (e) => {
     e.preventDefault();
-    const userData = {
-      id: user._id,
-      firstName: form.firstName,
-      lastName: form.lastName,
-      email: form.email,
-      phoneNumber: form.phoneNumber,
-    };
-    props.mappedUpdateAuthenticatedUser(userData);
-    clearState();
+    const userId = user._id;
+    const tenant = orgData.name;
+    setLoading(true);
+    await updateAuthenticatedUserApi(userId, tenant, form)
+      .then((data) => {
+        setAlert({
+          show: true,
+          message: data.message,
+          type: "success",
+        });
+      })
+      .catch((err) => {
+        setAlert({
+          show: true,
+          message: err.response.message,
+          type: "error",
+        });
+        clearState();
+      });
+    setLoading(false);
   };
 
   return (
@@ -140,6 +168,11 @@ const AccountDetails = (props) => {
           </Grid>{" "}
         </CardContent>{" "}
         <Divider />
+        <CardContent style={alert.show ? {} : { display: "none" }}>
+          <Alert severity={alert.type} onClose={closeAlert}>
+            {alert.message}
+          </Alert>
+        </CardContent>
         <CardActions>
           <Button
             color="primary"
@@ -149,6 +182,7 @@ const AccountDetails = (props) => {
           >
             Save details{" "}
           </Button>{" "}
+          <CircularLoader loading={loading} />
         </CardActions>{" "}
       </form>{" "}
     </Card>
