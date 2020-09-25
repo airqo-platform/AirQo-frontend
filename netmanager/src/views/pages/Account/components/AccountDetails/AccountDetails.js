@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useDispatch } from "react-redux";
 import { isEqual } from "underscore";
 import clsx from "clsx";
 import PropTypes from "prop-types";
@@ -17,6 +18,7 @@ import { useOrgData } from "../../../../../redux/Join/selectors";
 import { updateAuthenticatedUserApi } from "../../../../apis/authService";
 import Alert from "@material-ui/lab/Alert";
 import { CircularLoader } from "../../../../components/Loader/CircularLoader";
+import { updateAuthenticatedUserSuccess } from "../../../../../redux/Join/actions";
 
 const useStyles = makeStyles((theme) => ({
   container: {
@@ -42,6 +44,8 @@ const AccountDetails = (props) => {
   const { user } = mappedAuth;
 
   const classes = useStyles();
+
+  const dispatch = useDispatch();
 
   const initialState = {
     firstName: user.firstName,
@@ -93,6 +97,8 @@ const AccountDetails = (props) => {
     setLoading(true);
     await updateAuthenticatedUserApi(userId, tenant, form)
       .then((data) => {
+        localStorage.setItem("currentUser", JSON.stringify(data.user));
+        dispatch(updateAuthenticatedUserSuccess(data.user, data.message));
         setAlert({
           show: true,
           message: data.message,
