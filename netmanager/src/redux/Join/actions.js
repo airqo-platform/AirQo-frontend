@@ -3,6 +3,7 @@ import axios from 'axios';
 import setAuthToken from '../../utils/setAuthToken';
 import jwt_decode from 'jwt-decode';
 import {
+  CLEAR_ERRORS,
   GET_ERRORS,
   SET_CURRENT_USER,
   USER_LOADING,
@@ -51,6 +52,12 @@ import {
   REGISTER_CANDIDATE_URI
 } from './types';
 import constants from '../../config/constants';
+
+/***************************errors ********************************* */
+
+export const clearErrors = () => dispatch => {
+  dispatch({ type: CLEAR_ERRORS })
+}
 
 /***************************organization actions ********************************* */
 export const setOrganization = () => (dispatch, getState) => {
@@ -342,7 +349,7 @@ export const registrationSuccess = data => {
 /************************* Login a new User  *********************************/
 export const loginUser = userData => dispatch => {
   console.log('the login URL ' + constants.LOGIN_USER_URI);
-  const tenant = userData.organization || "kcca"
+  const tenant = userData.organization;
   axios
     .post(constants.LOGIN_USER_URI, userData, { params: { tenant }})
     .then(res => {

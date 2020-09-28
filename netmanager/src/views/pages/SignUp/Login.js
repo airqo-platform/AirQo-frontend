@@ -2,7 +2,9 @@ import React, { Component } from "react";
 import { Link } from "react-router-dom";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
-import { loginUser } from "../../../redux/Join/actions";
+import { CardContent } from "@material-ui/core";
+import Alert from "@material-ui/lab/Alert";
+import { clearErrors, loginUser } from "../../../redux/Join/actions";
 import classnames from "classnames";
 import { isEmpty, omit } from "underscore";
 import { isFormFullyFilled } from "./utils";
@@ -95,7 +97,7 @@ class Login extends Component {
       });
       return;
     }
-    console.log(userData);
+    this.props.clearErrors();
     this.props.loginUser(userData);
     // since we handle the redirect within our component, we don't need to pass in this.props.history as a parameter
   };
@@ -131,6 +133,20 @@ class Login extends Component {
               </p>
             </div>
             <form noValidate onSubmit={this.onSubmit}>
+              <CardContent
+                style={
+                  isEmpty(this.props.errors.data) ? { display: "none" } : {}
+                }
+              >
+                <Alert
+                  severity="error"
+                  onClose={() => {
+                    this.props.clearErrors();
+                  }}
+                >
+                  {this.props.errors.data && this.props.errors.data.message}
+                </Alert>
+              </CardContent>
               <div className="input-field col s12">
                 <input
                   onChange={this.onChange}
@@ -208,6 +224,7 @@ class Login extends Component {
   }
 }
 Login.propTypes = {
+  clearErrors: PropTypes.func.isRequired,
   loginUser: PropTypes.func.isRequired,
   auth: PropTypes.object.isRequired,
   errors: PropTypes.object.isRequired,
@@ -217,4 +234,4 @@ const mapStateToProps = (state) => ({
   auth: state.auth,
   errors: state.errors,
 });
-export default connect(mapStateToProps, { loginUser })(Login);
+export default connect(mapStateToProps, { clearErrors, loginUser })(Login);
