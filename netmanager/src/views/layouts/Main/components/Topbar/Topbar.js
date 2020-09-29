@@ -74,6 +74,15 @@ const Topbar = (props) => {
     props.logoutUser();
   };
 
+  const timer_style = {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: "100%",
+    fontSize: 20,
+    fontWeight: "bold",
+  };
+
   /***
    * Handling the menue details.
    */
@@ -154,8 +163,8 @@ const Topbar = (props) => {
             src="/images/logos/mak_logo.jpg"
           />
         </RouterLink>
-        <p style={{ fontSize: 20, marginLeft: "50%", fontWeight: "bold" }}>
-          {date.toLocaleString()}
+        <p style={timer_style}>
+          <span>{date.toLocaleString()}</span>
         </p>
         <div className={classes.flexGrow} />
         <Hidden mdDown>
