@@ -1,13 +1,11 @@
 import React from "react";
 import { useDispatch } from "react-redux";
-import clsx from "clsx";
 import PropTypes from "prop-types";
 import { makeStyles, withStyles } from "@material-ui/styles";
 import {
   Card,
   CardContent,
   CardHeader,
-  CardActions,
   Divider,
   Grid,
   Button,
@@ -38,6 +36,7 @@ import MenuItem from "@material-ui/core/MenuItem";
 import domtoimage from "dom-to-image";
 import JsPDF from "jspdf";
 import { isEmpty } from "underscore";
+import LabelledSelect from "../../../../components/CustomSelects/LabelledSelect";
 import { useFilterLocationData } from "../../../../../redux/Dashboard/selectors";
 import {
   refreshFilterLocationData,
@@ -110,25 +109,6 @@ const DialogTitle = withStyles(styles)((props) => {
     </MuiDialogTitle>
   );
 });
-
-const schema = {
-  location: {
-    presence: { allowEmpty: false, message: "is required" },
-  },
-  chartType: {
-    presence: { allowEmpty: false, message: "is required" },
-  },
-  chartFrequency: {
-    presence: { allowEmpty: false, message: "is required" },
-  },
-  pollutant: {
-    presence: { allowEmpty: false, message: "is required" },
-  },
-  policy: {
-    presence: { allowEmpty: false, message: "is required" },
-    checked: true,
-  },
-};
 
 const CustomisableChart = (props) => {
   const { className, idSuffix, defaultFilter, ...rest } = props;
@@ -222,6 +202,18 @@ const CustomisableChart = (props) => {
     { value: "monthly", label: "Monthly" },
   ];
 
+  const periodOptions = [
+    { value: "Last 30 days", label: "Last 30 days" },
+    { value: "Last 90 days", label: "Last 90 days" },
+    { value: "Custom range", label: "Custom range" },
+  ];
+
+  const [selectedPeriod, setSelectedPeriod] = useState(periodOptions[0]);
+
+  const handlePeriodChange = (selectedPriodOption) => {
+    setSelectedPeriod(selectedPriodOption);
+  };
+
   const [selectedFrequency, setSelectedFrequency] = useState(
     toValueLabelObject(defaultFilter.frequency)
   );
@@ -264,9 +256,6 @@ const CustomisableChart = (props) => {
   });
 
   const [customGraphData, setCustomisedGraphData] = useState([]);
-
-  const hasError = (field) =>
-    formState.touched[field] && formState.errors[field] ? true : false;
 
   const fetchAndSetGraphData = async (filter) => {
     return await axios
@@ -647,8 +636,8 @@ const CustomisableChart = (props) => {
                       />
                     </Grid>
 
-                    <Grid item md={4} xs={12}>
-                      <Select
+                    <Grid item md={6} xs={12}>
+                      <LabelledSelect
                         fullWidth
                         label="Chart Type"
                         className="reactSelect"
@@ -660,17 +649,11 @@ const CustomisableChart = (props) => {
                         variant="outlined"
                         margin="dense"
                         required
-                        error={hasError("chartType")}
-                        helperText={
-                          hasError("chartType")
-                            ? formState.errors.chartType[0]
-                            : null
-                        }
                       />
                     </Grid>
 
-                    <Grid item md={4} xs={12}>
-                      <Select
+                    <Grid item md={6} xs={12}>
+                      <LabelledSelect
                         fullWidth
                         label="Frequency"
                         className=""
@@ -684,8 +667,8 @@ const CustomisableChart = (props) => {
                         required
                       />
                     </Grid>
-                    <Grid item md={4} xs={12}>
-                      <Select
+                    <Grid item md={6} xs={12}>
+                      <LabelledSelect
                         fullWidth
                         label="Pollutant"
                         className=""
@@ -694,6 +677,21 @@ const CustomisableChart = (props) => {
                         value={selectedPollutant}
                         options={pollutantOptions}
                         onChange={handlePollutantChange}
+                        variant="outlined"
+                        margin="dense"
+                        required
+                      />
+                    </Grid>
+
+                    <Grid item md={6} xs={12}>
+                      <LabelledSelect
+                        fullWidth
+                        label="Time range"
+                        name="Time range"
+                        placeholder="Time range"
+                        value={selectedPeriod}
+                        options={periodOptions}
+                        onChange={handlePeriodChange}
                         variant="outlined"
                         margin="dense"
                         required
