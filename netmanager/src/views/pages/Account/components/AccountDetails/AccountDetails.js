@@ -97,12 +97,20 @@ const AccountDetails = (props) => {
     setLoading(true);
     await updateAuthenticatedUserApi(userId, tenant, form)
       .then((data) => {
-        localStorage.setItem("currentUser", JSON.stringify(data.user));
-        dispatch(updateAuthenticatedUserSuccess(data.user, data.message));
+        if (data.success) {
+          localStorage.setItem("currentUser", JSON.stringify(data.user));
+          dispatch(updateAuthenticatedUserSuccess(data.user, data.message));
+          setAlert({
+            show: true,
+            message: data.message,
+            type: "success",
+          });
+          return;
+        }
         setAlert({
           show: true,
           message: data.message,
-          type: "success",
+          type: "error",
         });
       })
       .catch((err) => {
