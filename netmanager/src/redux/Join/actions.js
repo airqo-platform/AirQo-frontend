@@ -230,6 +230,7 @@ export const editUser = userToEdit => (dispatch, getState) => {
       .then(response => {
           if (response) {
             dispatch(editUserSuccess(response.data, response.data.message));
+            dispatch(fetchUsers())
           } else {
             dispatch(editUserFailed(response.data.message));
           }
