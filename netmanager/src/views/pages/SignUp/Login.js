@@ -2,15 +2,21 @@ import React, { Component } from "react";
 import { Link } from "react-router-dom";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
-import { loginUser } from "../../../redux/Join/actions";
+import { CardContent } from "@material-ui/core";
+import Alert from "@material-ui/lab/Alert";
+import { clearErrors, loginUser } from "../../../redux/Join/actions";
 import classnames from "classnames";
+import { isEmpty, omit } from "underscore";
+import { isFormFullyFilled } from "./utils";
 import KeyboardBackspaceIcon from "@material-ui/icons/KeyboardBackspace";
 //import styles from './Login.css'
 
 class Login extends Component {
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
+    this.query = new URLSearchParams(this.props.location.search);
     this.state = {
+      organization: this.query.get("organization") || "",
       userName: "",
       password: "",
       errors: {},
@@ -51,20 +57,19 @@ class Login extends Component {
   }
 
   onChange = (e) => {
-    //this.setState({ [e.target.id]: e.target.value });
-    //
-
     e.preventDefault();
     const { id, value } = e.target;
     let errors = this.props.errors;
 
-    switch (id) {
-      case "userName":
-        errors.userName = value.length === 0 ? " username is required" : "";
-        break;
-      default:
-        break;
+    if (id === "organization") {
+      window.history.pushState(
+        {},
+        null,
+        `${window.location.pathname}?${id}=${value}`
+      );
     }
+
+    errors[id] = value.length === 0 ? `${id.toLowerCase()} is required` : "";
 
     this.setState(
       {
@@ -76,13 +81,23 @@ class Login extends Component {
       }
     );
   };
+
   onSubmit = (e) => {
     e.preventDefault();
-    const userData = {
-      userName: this.state.userName,
-      password: this.state.password,
-    };
-    console.log(userData);
+    const emptyFields = isFormFullyFilled(this.state);
+    const userData = omit(this.state, "errors");
+
+    if (!isEmpty(emptyFields)) {
+      this.setState({
+        ...this.state,
+        errors: {
+          ...this.state.errors,
+          ...emptyFields,
+        },
+      });
+      return;
+    }
+    this.props.clearErrors();
     this.props.loginUser(userData);
     // since we handle the redirect within our component, we don't need to pass in this.props.history as a parameter
   };
@@ -91,7 +106,6 @@ class Login extends Component {
     return (
       <div className="container">
         <div
-          // style={{  border: "1px solid red" }}
           className="row"
           style={{
             marginTop: "4rem",
@@ -119,6 +133,37 @@ class Login extends Component {
               </p>
             </div>
             <form noValidate onSubmit={this.onSubmit}>
+              <CardContent
+                style={
+                  isEmpty(this.props.errors.data) ? { display: "none" } : {}
+                }
+              >
+                <Alert
+                  severity="error"
+                  onClose={() => {
+                    this.props.clearErrors();
+                  }}
+                >
+                  {this.props.errors.data && this.props.errors.data.message}
+                </Alert>
+              </CardContent>
+              <div className="input-field col s12">
+                <input
+                  onChange={this.onChange}
+                  value={this.state.organization}
+                  error={errors.organization}
+                  id="organization"
+                  type="text"
+                  className={classnames("", {
+                    invalid: errors.organization || errors.credentialsnotfound,
+                  })}
+                />
+                <label htmlFor="organization">Organization</label>
+                <span className="red-text">
+                  {errors.organization}
+                  {errors.credentialsnotfound}
+                </span>
+              </div>
               <div className="input-field col s12">
                 <input
                   onChange={this.onChange}
@@ -179,12 +224,14 @@ class Login extends Component {
   }
 }
 Login.propTypes = {
+  clearErrors: PropTypes.func.isRequired,
   loginUser: PropTypes.func.isRequired,
   auth: PropTypes.object.isRequired,
   errors: PropTypes.object.isRequired,
+  location: PropTypes.object,
 };
 const mapStateToProps = (state) => ({
   auth: state.auth,
   errors: state.errors,
 });
-export default connect(mapStateToProps, { loginUser })(Login);
+export default connect(mapStateToProps, { clearErrors, loginUser })(Login);
