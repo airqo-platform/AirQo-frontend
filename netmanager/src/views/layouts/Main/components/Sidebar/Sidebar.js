@@ -17,6 +17,7 @@ import EditLocationIcon from "@material-ui/icons/EditLocation";
 import AspectRatioIcon from "@material-ui/icons/AspectRatio";
 import SupervisedUserCircleIcon from "@material-ui/icons/SupervisedUserCircle";
 import CloudDownloadIcon from "@material-ui/icons/CloudDownload";
+import { useOrgData } from "redux/Join/selectors";
 
 import { Profile, SidebarNav } from "./components";
 
@@ -53,6 +54,8 @@ const Sidebar = (props) => {
   const { open, variant, onClose, className, ...rest } = props;
 
   const classes = useStyles();
+
+  const orgData = useOrgData();
 
   let pages = [
     {
@@ -145,6 +148,12 @@ const Sidebar = (props) => {
     }
   } catch (e) {
     console.log(e);
+  }
+
+  if (orgData.name.toLowerCase() === "airqo") {
+    pages = excludePages(pages, ["Dashboard", "Export"]);
+  } else {
+    pages = excludePages(pages, ["Device Management", "Locate"]);
   }
 
   return (
