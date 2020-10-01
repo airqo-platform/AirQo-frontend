@@ -147,7 +147,18 @@ const CustomisableChart = (props) => {
     },
   ];
 
-  const [selectedPeriod, setSelectedPeriod] = useState(periodOptions[0]);
+  const initialPeriod = () => {
+    let period = periodOptions[0];
+    if (defaultFilter.period !== undefined) {
+      try {
+        period = JSON.parse(defaultFilter.period);
+        // eslint-disable-next-line no-empty
+      } catch (err) {}
+    }
+    return period;
+  };
+
+  const [selectedPeriod, setSelectedPeriod] = useState(initialPeriod());
   const [disableDatePickers, setDisableDatePickers] = useState(true);
 
   const generateStartAndEndDates = (period) => {
@@ -177,12 +188,10 @@ const CustomisableChart = (props) => {
     return period.label.toLowerCase() === "Custom range".toLowerCase();
   };
 
-  var startDate = new Date();
-  startDate.setMonth(startDate.getMonth() - 1);
-  startDate.setHours(0, 0, 0, 0);
+  let [startDate, endDate] = generateStartAndEndDates(initialPeriod());
 
   const [selectedDate, setSelectedStartDate] = useState(startDate);
-  const [selectedEndDate, setSelectedEndDate] = useState(new Date());
+  const [selectedEndDate, setSelectedEndDate] = useState(endDate);
 
   const handleEndDateChange = (date) => {
     setSelectedEndDate(date);
@@ -350,12 +359,9 @@ const CustomisableChart = (props) => {
       period = { ...period, endDate: null };
     }
 
-    console.log("period", period);
-    console.log("period stringified");
-    console.log(JSON.stringify(period));
-
     let newFilter = {
       ...defaultFilter,
+      period: JSON.stringify(period),
       locations: values.selectedOption,
       startDate: selectedDate,
       endDate: selectedEndDate,
@@ -386,6 +392,7 @@ const CustomisableChart = (props) => {
   }, [formState.values]);
 
   useEffect(() => {
+    handlePeriodChange(selectedPeriod);
     fetchAndSetGraphData(graphFilter);
   }, []);
 
