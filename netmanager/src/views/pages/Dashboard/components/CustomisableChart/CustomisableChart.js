@@ -80,6 +80,10 @@ const toValueLabelArray = (arr) => {
   return newArr;
 };
 
+const formatDate = (date) => {
+  return date.toISOString().split("T")[0];
+};
+
 const styles = (theme) => ({
   root: {
     margin: 0,
@@ -318,12 +322,19 @@ const CustomisableChart = (props) => {
       )
       .then((res) => res.data)
       .then((customisedChartData) => {
+        let modifiedChartTitle = customisedChartData.custom_chart_title;
+        let splitChartTitleArray = customisedChartData.custom_chart_title.split(
+          " Between "
+        );
+        if (!isEmpty(splitChartTitleArray)) {
+          modifiedChartTitle = splitChartTitleArray[0];
+        }
         setCustomisedGraphData(customisedChartData);
 
         setCustomChartTitleSecondSection(
-          customisedChartData.custom_chart_title_second_section
+          `Between ${formatDate(selectedDate)} and ${formatDate(selectedEndDate)}`
         );
-        setCustomChartTitle(customisedChartData.custom_chart_title);
+        setCustomChartTitle(modifiedChartTitle);
         setCustomisedGraphLabel(
           customisedChartData.results
             ? customisedChartData.results[0].chart_label
