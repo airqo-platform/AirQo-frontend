@@ -42,6 +42,7 @@ import {
   refreshFilterLocationData,
   setUserDefaultGraphData,
 } from "../../../../../redux/Dashboard/operations";
+import { omit } from "underscore";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -122,6 +123,60 @@ const CustomisableChart = (props) => {
     errors: {},
   });
 
+  const periodOptions = [
+    {
+      value: "Last 30 days",
+      label: "Last 30 days",
+      unitValue: 30,
+      unit: "day",
+      endDate: null,
+    },
+    {
+      value: "Last 90 days",
+      label: "Last 90 days",
+      unitValue: 90,
+      unit: "day",
+      endDate: null,
+    },
+    {
+      value: "Custom range",
+      label: "Custom range",
+      unitValue: 30,
+      unit: "day",
+      endDate: null,
+    },
+  ];
+
+  const [selectedPeriod, setSelectedPeriod] = useState(periodOptions[0]);
+  const [disableDatePickers, setDisableDatePickers] = useState(true)
+
+  const generateStartAndEndDates = (period) => {
+    let endDate = period.endDate ? new Date(period.endDate) : new Date();
+    let startDate = new Date(
+      endDate.getFullYear(),
+      endDate.getMonth(),
+      endDate.getDate() - period.unitValue
+    );
+
+    return [startDate, endDate];
+  };
+
+  const handlePeriodChange = (selectedPeriodOption) => {
+    if (isCustomPeriod(selectedPeriodOption)) {
+      setDisableDatePickers(false);
+      return;
+    }
+    const [startDate, endDate] = generateStartAndEndDates(selectedPeriodOption);
+    setSelectedStartDate(startDate);
+    setSelectedEndDate(endDate);
+    setSelectedPeriod(selectedPeriodOption);
+    setDisableDatePickers(true);
+  };
+
+  const isCustomPeriod = (period) => {
+    return period.label.toLowerCase() === "Custom range".toLowerCase();
+  };
+
   var startDate = new Date();
   startDate.setMonth(startDate.getMonth() - 1);
   startDate.setHours(0, 0, 0, 0);
@@ -201,18 +256,6 @@ const CustomisableChart = (props) => {
     { value: "daily", label: "Daily" },
     { value: "monthly", label: "Monthly" },
   ];
-
-  const periodOptions = [
-    { value: "Last 30 days", label: "Last 30 days" },
-    { value: "Last 90 days", label: "Last 90 days" },
-    { value: "Custom range", label: "Custom range" },
-  ];
-
-  const [selectedPeriod, setSelectedPeriod] = useState(periodOptions[0]);
-
-  const handlePeriodChange = (selectedPriodOption) => {
-    setSelectedPeriod(selectedPriodOption);
-  };
 
   const [selectedFrequency, setSelectedFrequency] = useState(
     toValueLabelObject(defaultFilter.frequency)
@@ -703,6 +746,7 @@ const CustomisableChart = (props) => {
                         <Grid container spacing={1}>
                           <Grid item lg={6} md={6} sm={6} xl={6} xs={12}>
                             <KeyboardDatePicker
+                                disabled={disableDatePickers}
                               disableToolbar
                               variant="dialog"
                               format="yyyy-MM-dd"
