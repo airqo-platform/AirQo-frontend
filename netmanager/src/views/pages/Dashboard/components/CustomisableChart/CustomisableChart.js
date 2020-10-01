@@ -341,6 +341,19 @@ const CustomisableChart = (props) => {
   let handleSubmit = async (e) => {
     e.preventDefault();
 
+    let period = omit(
+      { ...selectedPeriod, endDate: selectedEndDate },
+      "startDate"
+    );
+
+    if (!isCustomPeriod(period)) {
+      period = { ...period, endDate: null };
+    }
+
+    console.log("period", period);
+    console.log("period stringified");
+    console.log(JSON.stringify(period));
+
     let newFilter = {
       ...defaultFilter,
       locations: values.selectedOption,
