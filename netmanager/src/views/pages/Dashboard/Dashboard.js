@@ -97,7 +97,7 @@ const Dashboard = (props) => {
     if (orgData.name.toLowerCase() === "airqo") {
       props.history.push("/overview");
     }
-  }, []);
+  });
 
   //load JIRA Helpdek widget
   // console.log(user._id);
