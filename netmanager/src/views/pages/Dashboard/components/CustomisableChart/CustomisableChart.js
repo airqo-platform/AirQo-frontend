@@ -148,7 +148,7 @@ const CustomisableChart = (props) => {
   ];
 
   const [selectedPeriod, setSelectedPeriod] = useState(periodOptions[0]);
-  const [disableDatePickers, setDisableDatePickers] = useState(true)
+  const [disableDatePickers, setDisableDatePickers] = useState(true);
 
   const generateStartAndEndDates = (period) => {
     let endDate = period.endDate ? new Date(period.endDate) : new Date();
@@ -182,6 +182,16 @@ const CustomisableChart = (props) => {
   startDate.setHours(0, 0, 0, 0);
 
   const [selectedDate, setSelectedStartDate] = useState(startDate);
+  const [selectedEndDate, setSelectedEndDate] = useState(new Date());
+
+  const handleEndDateChange = (date) => {
+    setSelectedEndDate(date);
+  };
+
+  const handleDateChange = (date) => {
+    setSelectedStartDate(date);
+  };
+
   const [open, setOpen] = useState(false);
 
   const handleClickOpen = () => {
@@ -199,16 +209,6 @@ const CustomisableChart = (props) => {
     customChartTitleSecondSection,
     setCustomChartTitleSecondSection,
   ] = useState("Custom Chart Title");
-
-  const handleDateChange = (date) => {
-    setSelectedStartDate(date);
-  };
-
-  const [selectedEndDate, setSelectedEndDate] = useState(new Date());
-
-  const handleEndDateChange = (date) => {
-    setSelectedEndDate(date);
-  };
 
   const filterLocationsOptions = useFilterLocationData();
 
@@ -746,7 +746,7 @@ const CustomisableChart = (props) => {
                         <Grid container spacing={1}>
                           <Grid item lg={6} md={6} sm={6} xl={6} xs={12}>
                             <KeyboardDatePicker
-                                disabled={disableDatePickers}
+                              disabled={disableDatePickers}
                               disableToolbar
                               variant="dialog"
                               format="yyyy-MM-dd"
@@ -764,6 +764,7 @@ const CustomisableChart = (props) => {
                           </Grid>
                           <Grid item lg={6} md={6} sm={6} xl={6} xs={12}>
                             <KeyboardTimePicker
+                              disabled={disableDatePickers}
                               variant="dialog"
                               margin="normal"
                               id="time-picker"
@@ -779,6 +780,7 @@ const CustomisableChart = (props) => {
 
                           <Grid item lg={6} md={6} sm={6} xl={6} xs={12}>
                             <KeyboardDatePicker
+                              disabled={disableDatePickers}
                               disableToolbar
                               variant="dialog"
                               format="yyyy-MM-dd"
@@ -796,6 +798,7 @@ const CustomisableChart = (props) => {
                           </Grid>
                           <Grid item lg={6} md={6} sm={6} xl={6} xs={12}>
                             <KeyboardTimePicker
+                              disabled={disableDatePickers}
                               variant="dialog"
                               margin="normal"
                               id="time-picker"
