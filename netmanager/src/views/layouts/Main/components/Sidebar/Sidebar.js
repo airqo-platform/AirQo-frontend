@@ -153,7 +153,7 @@ const Sidebar = (props) => {
   if (orgData.name.toLowerCase() === "airqo") {
     pages = excludePages(pages, ["Dashboard", "Export"]);
   } else {
-    pages = excludePages(pages, ["Device Management"]);
+    pages = excludePages(pages, ["Device Management", "Locate"]);
   }
 
   return (
