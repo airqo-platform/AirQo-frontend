@@ -230,6 +230,7 @@ export const editUser = userToEdit => (dispatch, getState) => {
       .then(response => {
           if (response) {
             dispatch(editUserSuccess(response.data, response.data.message));
+            dispatch(fetchUsers())
           } else {
             dispatch(editUserFailed(response.data.message));
           }
@@ -362,6 +363,7 @@ export const loginUser = userData => dispatch => {
         setAuthToken(token);
         // Decode token to get user data
         const decoded = jwt_decode(token);
+        localStorage.setItem('currentUser', JSON.stringify(decoded))
         // Set current user
         dispatch(setCurrentUser(decoded));
         dispatch(updateOrganization({name: decoded.organization}))
@@ -506,30 +508,15 @@ export const confirmUserFailed = error => {
 };
 
 /**********************update the user password  ***********************************/
-export const updatePassword = userData => dispatch => {
+export const updatePassword = userData => (dispatch, getState) => {
+  const state = getState()
+  const id = state.auth.user._id
+  const tenant = state.organisation.name
   axios
-    .put(constants.UPDATE_PWD_IN_URI, userData)
-    .then(response => {
-      console.log(response.data);
-      if (response.data.success === true) {
-        dispatch({
-          type: UPDATE_PASSWORD_SUCCESS,
-          payload: response.data.result
-        });
-      } else {
-        dispatch({
-          type: UPDATE_PASSWORD_FAILED,
-          payload: response.data.err
-        });
-      }
-    })
-    .catch(error => {
-      console.log(error.data);
-      dispatch({
-        type: GET_ERRORS,
-        payload: error.response
-      });
-    });
+      .put(constants.UPDATE_PWD_IN_URI, userData, { params: { id, tenant } })
+      .then(response => response.data)
+      .then(data => dispatch({ type: UPDATE_PASSWORD_SUCCESS, payload: data.result}))
+      .catch(error => dispatch({type: GET_ERRORS, payload: error.response}));
 };
 
 /***************************update the user profile ******************** */
@@ -642,26 +629,24 @@ export const fetchDefaultsFailed = error => {
 };
 
 /********************* update authenticated user ************************/
-export const updateAuthenticatedUser = newData => dispatch => {
+export const updateAuthenticatedUser = newData => (dispatch, getState) => {
   dispatch(updateAuthenticatedUserRequest());
-
-  return axios({
-    method: 'put',
-    url: constants.GET_USERS_URI + `${newData.id}`,
-    data: newData
-  })
-    .then(response => {
-      if (response) {
-        dispatch(
-          updateAuthenticatedUserSuccess(response.data, response.data.message)
-        );
-      } else {
-        dispatch(updateAuthenticatedUserFailed(response.data.message));
-      }
-    })
-    .catch(e => {
-      dispatch(updateAuthenticatedUserFailed(e));
-    });
+  const id = getState().auth.user._id
+  const tenant = getState().organisation.name
+  return axios
+      .put(constants.GET_USERS_URI, newData, { params: {id, tenant}})
+      .then(response => {
+        if (response) {
+          dispatch(
+            updateAuthenticatedUserSuccess(response.data, response.data.message)
+          );
+        } else {
+          dispatch(updateAuthenticatedUserFailed(response.data.message));
+        }
+      })
+      .catch(e => {
+        dispatch(updateAuthenticatedUserFailed(e));
+      });
 };
 
 export const updateAuthenticatedUserRequest = () => {
