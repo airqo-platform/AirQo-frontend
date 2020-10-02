@@ -1,6 +1,7 @@
 import React, { useState, Component, useEffect } from "react";
 import clsx from "clsx";
 import PropTypes from "prop-types";
+import { Link as RouterLink } from "react-router-dom";
 import { connect } from "react-redux";
 import { makeStyles } from "@material-ui/styles";
 import {
@@ -16,11 +17,13 @@ import {
 import MenuIcon from "@material-ui/icons/Menu";
 import NotificationsIcon from "@material-ui/icons/NotificationsOutlined";
 import InputIcon from "@material-ui/icons/Input";
-import { logoutUser } from "../../../../../redux/Join/actions";
+import { logoutUser } from "redux/Join/actions";
+import { useOrgData } from "../../../../../redux/Join/selectors";
 
 const useStyles = makeStyles((theme) => ({
   root: {
     boxShadow: "none",
+    backgroundColor: "#3067e2",
   },
   flexGrow: {
     flexGrow: 1,
@@ -41,21 +44,29 @@ const Topbar = (props) => {
   const divProps = Object.assign({}, props);
   delete divProps.layout;
   const { className, onSidebarOpen, ...rest } = props;
-  const { user } = props.auth;
 
   const classes = useStyles();
 
   const [notifications] = useState([]);
-  const logo_style = {
-    height: "4em",
+  const orgData = useOrgData();
+
+  const kcca_logo_style = {
+    height: "3.5em",
     width: "4em",
-    borderRadius: "50%",
+    borderRadius: "15%",
+    paddingTop: ".2em",
+    marginRight: ".4em",
+  };
+  const mak_logo_style = {
+    height: "3.3em",
+    width: "4em",
+    borderRadius: "15%",
     paddingTop: ".2em",
     marginRight: ".4em",
   };
   const airqo_logo_style = {
-    height: "4em",
-    width: "4em",
+    height: "3.5em",
+    width: "5em",
     paddingTop: ".2em",
     marginRight: ".4em",
   };
@@ -63,6 +74,15 @@ const Topbar = (props) => {
   const onLogoutClick = (e) => {
     e.preventDefault();
     props.logoutUser();
+  };
+
+  const timer_style = {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: "100%",
+    fontSize: 20,
+    fontWeight: "bold",
   };
 
   /***
@@ -77,6 +97,14 @@ const Topbar = (props) => {
   };
 
   const handleCloseMenu = () => {
+    setAnchorEl(null);
+  };
+
+  const handleAccountClick = () => {
+    setAnchorEl(null);
+  };
+
+  const handleProfileClick = () => {
     setAnchorEl(null);
   };
 
@@ -116,8 +144,39 @@ const Topbar = (props) => {
   return (
     <AppBar {...rest} className={clsx(classes.root, className)}>
       <Toolbar>
-        <p style={{ fontSize: 20, marginLeft: "50%", fontWeight: "bold" }}>
-          {date.toLocaleString()}
+        <RouterLink to="/">
+          <img
+            alt="Logo"
+            style={kcca_logo_style}
+            src="/images/logos/kcca-logo.jpg"
+          />
+        </RouterLink>
+        <RouterLink to="/">
+          <img
+            alt="airqo.net"
+            style={airqo_logo_style}
+            src="/images/logos/airqo_logo.png"
+          />
+        </RouterLink>
+        <RouterLink to="/">
+          <img
+            alt="mak.ac.ug"
+            style={mak_logo_style}
+            src="/images/logos/mak_logo.jpg"
+          />
+        </RouterLink>
+        <div
+          style={{
+            textTransform: "uppercase",
+            marginLeft: "10px",
+            fontSize: 20,
+            fontWeight: "bold",
+          }}
+        >
+          {orgData.name}
+        </div>
+        <p style={timer_style}>
+          <span>{date.toLocaleString()}</span>
         </p>
         <div className={classes.flexGrow} />
         <Hidden mdDown>
@@ -152,16 +211,11 @@ const Topbar = (props) => {
             open={open}
             onClose={handleCloseMenu}
           >
-            <MenuItem onClick={handleCloseMenu}>Profile</MenuItem>
-            <MenuItem onClick={handleCloseMenu}>My account</MenuItem>
+            <MenuItem onClick={handleProfileClick}>Settings</MenuItem>
+            <MenuItem onClick={handleAccountClick}>Account</MenuItem>
             <MenuItem onClick={onLogoutClick}>Logout</MenuItem>
           </Menu>
         </Hidden>
-        {/* <Hidden lgUp>
-          <IconButton color="inherit" onClick={onLogoutClick}>
-            <MenuIcon />
-          </IconButton>
-        </Hidden> */}
       </Toolbar>
     </AppBar>
   );

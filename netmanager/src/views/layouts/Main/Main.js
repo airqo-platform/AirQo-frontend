@@ -6,6 +6,8 @@ import { useMediaQuery } from "@material-ui/core";
 
 import { Sidebar, Topbar, Footer } from "./components";
 
+import { connectedSideBar as ConnectedSideBar } from "views/hocs/Users";
+
 const useStyles = makeStyles((theme) => ({
   root: {
     paddingTop: 56,
@@ -51,7 +53,7 @@ const Main = (props) => {
       })}
     >
       <Topbar onSidebarOpen={handleSidebarOpen} />
-      <Sidebar
+      <ConnectedSideBar
         onClose={handleSidebarClose}
         open={shouldOpenSidebar}
         variant={isDesktop ? "persistent" : "temporary"}

@@ -13,7 +13,11 @@ import SettingsIcon from "@material-ui/icons/Settings";
 import LocateIcon from "@material-ui/icons/AddLocation";
 import ManageIcon from "@material-ui/icons/Build";
 import AddIcon from "@material-ui/icons/Add";
-import EditLocationIcon from '@material-ui/icons/EditLocation';
+import EditLocationIcon from "@material-ui/icons/EditLocation";
+import AspectRatioIcon from "@material-ui/icons/AspectRatio";
+import SupervisedUserCircleIcon from "@material-ui/icons/SupervisedUserCircle";
+import CloudDownloadIcon from "@material-ui/icons/CloudDownload";
+import { useOrgData } from "redux/Join/selectors";
 
 import { Profile, SidebarNav } from "./components";
 
@@ -40,26 +44,40 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+const excludePages = (pages, excludedArr) => {
+  return pages.filter((element) => {
+    return !excludedArr.includes(element.title);
+  });
+};
+
 const Sidebar = (props) => {
   const { open, variant, onClose, className, ...rest } = props;
 
   const classes = useStyles();
 
-  const pages = [
+  const orgData = useOrgData();
+
+  let pages = [
+    {
+      title: "Overview",
+      href: "/overview",
+      icon: <AspectRatioIcon />,
+    },
     {
       title: "Dashboard",
       href: "/dashboard",
       icon: <DashboardIcon />,
     },
+
+    {
+      title: "Export",
+      href: "/download",
+      icon: <CloudDownloadIcon />,
+    },
     {
       title: "Locate",
       href: "/locate",
       icon: <LocateIcon />,
-    },
-    {
-      title: "Incentives",
-      href: "/incentives",
-      icon: <PaymentIcon />,
     },
     {
       title: "Device Management",
@@ -75,14 +93,19 @@ const Sidebar = (props) => {
     {
       title: "Location Registry",
       href: "/location",
-      icon: < EditLocationIcon /> ,
-   },
+      icon: <EditLocationIcon />,
+    },
   ];
   const userManagementPages = [
     {
       title: "Users",
       href: "/admin/users",
       icon: <PeopleIcon />,
+    },
+    {
+      title: "Candidates",
+      href: "/candidates",
+      icon: <SupervisedUserCircleIcon />,
     },
     {
       title: "Account",
@@ -95,6 +118,43 @@ const Sidebar = (props) => {
       icon: <SettingsIcon />,
     },
   ];
+
+  const { mappedAuth } = props;
+  let { user } = mappedAuth;
+  let userPages = [];
+
+  try {
+    if (user.privilege === "super") {
+      userPages = userManagementPages;
+    } else if (user.privilege === "admin") {
+      userPages = excludePages(userManagementPages, ["Candidates"]);
+    } else {
+      userPages = excludePages(userManagementPages, [
+        "Users",
+        "Candidates",
+        "Locate",
+        "Device Management",
+        "Location Registry",
+        "Device Registry",
+      ]);
+      pages = excludePages(pages, [
+        "Users",
+        "Candidates",
+        "Locate",
+        "Device Management",
+        "Location Registry",
+        "Device Registry",
+      ]);
+    }
+  } catch (e) {
+    console.log(e);
+  }
+
+  if (orgData.name.toLowerCase() === "airqo") {
+    pages = excludePages(pages, ["Dashboard", "Export"]);
+  } else {
+    pages = excludePages(pages, ["Device Management", "Locate"]);
+  }
 
   return (
     <Drawer
@@ -109,8 +169,7 @@ const Sidebar = (props) => {
         <Divider className={classes.divider} />
         <SidebarNav className={classes.nav} pages={pages} />
         <Divider className={classes.divider} />
-        <SidebarNav className={classes.nav} pages={userManagementPages} />
-        {/* <UpgradePlan /> */}
+        <SidebarNav className={classes.nav} pages={userPages} />
       </div>
     </Drawer>
   );

@@ -1,3 +1,4 @@
+/* eslint-disable */
 import React, { Component } from "react";
 import "./App.css";
 import {
@@ -19,29 +20,62 @@ import theme from "./assets/theme";
 import Navbar from "./views/components/Navbars/Navbar";
 import Landing from "./views/layouts/Landing";
 import Admin from "./views/layouts/Admin";
-import Register from "./views/components/Inputs/Register";
-import ForgotPassword from "./views/components/Inputs/ForgotPassword";
-import ResetPassword from "./views/components/Inputs/ResetPassword";
-import RegisterAnalytics from "./views/components/Inputs/RegisterAnalytics";
 import {
   Main as MainLayout,
   Maps as MapLayout,
   Minimal as MinimalLayout,
-} from "../src/views/layouts/";
-import Login from "./views/components/Inputs/Login";
-import Profile from "./views/components/Inputs/UserProfile";
-import Settings from "./views/components/Inputs/Settings";
+} from "views/layouts/";
+// import Profile from "./views/components/Inputs/UserProfile";
+// import Settings from "./views/components/Inputs/Settings";
 import PrivateRoute from "./views/components/PrivateRoute/PrivateRoute";
 import Dashboard from "./views/components/Dashboard/Dashboard";
 import Map from "./views/components/Map";
 import Devices from "./views/components/DataDisplay/Devices";
-import DeviceView from "./views/components/DataDisplay/DeviceView"
-import Users from "./views/components/DataDisplay/Users";
+import DeviceView from "./views/components/DataDisplay/DeviceView";
+
 import Manager from "./views/components/DataDisplay/DeviceManagement";
+import AnalyticsDashboard from "./views/pages/Dashboard";
 import Incentives from "./views/components/DataDisplay/Incentives";
-import { LocationList, LocationRegister, LocationView, LocationEdit } from "./views/components/LocationList";
-//import { LocationRegister }from "./views/components/LocationRegister";
-//import { LocationRegister } from "./views/components/LocationList/LocationRegister";
+import {
+  LocationList,
+  LocationRegister,
+  LocationView,
+  LocationEdit,
+} from "./views/components/LocationList";
+
+import {
+  SignUp as SignUpView,
+  Login as LoginView,
+  Register as RegisterView,
+} from "./views/pages/SignUp";
+import { Settings as SettingsView } from "./views/pages/Settings";
+import { Account as AccountView } from "./views/pages/Account";
+import { Download as DownloadView } from "./views/pages/Download";
+import { ReportTemplate as ReportTemplateView } from "./views/pages/ReportTemplate";
+import { Reports as ReportView } from "./views/pages/Reports";
+import { NotFound as NotFoundView } from "./views/pages/NotFound";
+import { LocationList as LocationListView } from "./views/pages/LocationList";
+
+import { IndexRoute } from "react-router";
+
+import { RouteWithLayout } from "./views/components/RouteWithLayout";
+
+import {
+  connectedUserList as ConnectedUserList,
+  connectedCandidateList as ConnectedCandidateList,
+  connectedSetDefaults as ConnectedSetDefaults,
+  connectedSignUp as ConnectedSignUp,
+  connectedSignIn as ConnectedSignIn,
+  connectedLogin as ConnectedLogin,
+  connectedRegister as ConnectedRegister,
+  connectedDashboard as DashboardView,
+} from "views/hocs/Users";
+
+import ForgotPassword from "./views/pages/ForgotPassword";
+import ResetPassword from "./views/pages/ResetPassword";
+import Login from "./views/pages/SignUp/Login";
+import { loadUserDefaultGraphData } from "./redux/Dashboard/operations";
+import { setOrganization } from "./redux/Join/actions";
 
 // Check for token to keep user logged in
 if (localStorage.jwtToken) {
@@ -50,16 +84,25 @@ if (localStorage.jwtToken) {
   setAuthToken(token);
   // Decode token and get user info and exp
   const decoded = jwt_decode(token);
+  let currentUser = decoded
+
+  if (localStorage.currentUser) {
+    try {
+      currentUser = JSON.parse(localStorage.currentUser)
+    } catch(error){}
+  }
   // Set user and isAuthenticated
-  store.dispatch(setCurrentUser(decoded));
+  store.dispatch(setCurrentUser(currentUser));
   // Check for expired token
   const currentTime = Date.now() / 1000; // to get in milliseconds
   if (decoded.exp < currentTime) {
     // Logout user
     store.dispatch(logoutUser());
-    // Redirect to login
-    window.location.href = "./login";
+    // Redirect to the landing page
+    window.location.href = "./";
   }
+  store.dispatch(setOrganization())
+  store.dispatch(loadUserDefaultGraphData())
 }
 
 class App extends Component {
@@ -70,18 +113,39 @@ class App extends Component {
           <Router>
             <div className="App">
               <Route exact path="/" component={Landing} />
-              <Route exact path="/register" component={Register} />
-              <Route exact path="/login" component={Login} />
+              <Route exact path="/request-access" component={ConnectedRegister} />
+              {/*<Route exact path="/sign-up" component={ConnectedSignUp} />*/}
+              <Route exact path="/login" component={ConnectedLogin} />
               <Route exact path="/forgot" component={ForgotPassword} />
               <Route exact path="/reset/:token" component={ResetPassword} />
-              <Route exact path="/analytics" component={RegisterAnalytics} />
               <Switch>
                 <PrivateRoute
                   exact
                   path="/dashboard"
+                  component={AnalyticsDashboard}
+                  layout={MainLayout}
+                />
+
+                {/*<RouteWithLayout*/}
+                {/*  component={ConnectedSignIn}*/}
+                {/*  exact*/}
+                {/*  layout={MinimalLayout}*/}
+                {/*  path="/sign-in"*/}
+                {/*/>*/}
+                <PrivateRoute
+                  exact
+                  path="/overview"
                   component={Dashboard}
                   layout={MainLayout}
                 />
+
+                <PrivateRoute
+                  exact
+                  path="/download"
+                  component={DownloadView}
+                  layout={MainLayout}
+                />
+
                 <PrivateRoute
                   exact
                   path="/locate"
@@ -106,13 +170,27 @@ class App extends Component {
                   component={LocationList}
                   layout={MainLayout}
                 />
+
+                <PrivateRoute
+                  component={NotFoundView}
+                  exact
+                  layout={MinimalLayout}
+                  path="/not-found"
+                />
+                <PrivateRoute
+                  component={ConnectedCandidateList}
+                  exact
+                  layout={MainLayout}
+                  path="/candidates"
+                />
+
                 <PrivateRoute
                   extact
                   path="/register_location"
                   component={LocationRegister}
                   layout={MainLayout}
                 />
-                 <PrivateRoute
+                <PrivateRoute
                   exact
                   path="/edit/:loc_ref"
                   component={LocationEdit}
@@ -127,34 +205,32 @@ class App extends Component {
                 <PrivateRoute
                   exact
                   path="/admin/users"
-                  component={Users}
+                  component={ConnectedUserList}
                   layout={MainLayout}
                 />
+
                 <PrivateRoute
+                  component={ReportView}
                   exact
+                  layout={MainLayout}
+                  path="/reports"
+                />
+                <PrivateRoute
+                  component={AccountView}
+                  exact
+                  layout={MainLayout}
                   path="/account"
-                  component={Profile}
-                  layout={MainLayout}
                 />
-
                 <PrivateRoute
+                  component={SettingsView}
                   exact
-                  path="/settings"
-                  component={Settings}
                   layout={MainLayout}
+                  path="/settings"
                 />
-
                 <PrivateRoute
                   exact
                   path="/manager"
                   component={Manager}
-                  layout={MainLayout}
-                />
-
-                <PrivateRoute
-                  exact
-                  path="/incentives"
-                  component={Incentives}
                   layout={MainLayout}
                 />
               </Switch>

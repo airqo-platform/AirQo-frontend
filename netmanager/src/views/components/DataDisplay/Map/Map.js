@@ -12,7 +12,7 @@ import L, { control } from 'leaflet';
 import Filter from './FilterPowerSource.jsx';
 import axios from "axios";
 import ReactDOM from 'react-dom';
-// import '../../../../assets/scss/index.scss';
+import constants from '../../../../config/constants'
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -50,7 +50,7 @@ const Map = props => {
   const [contacts,setContacts ] = useState([]);
 
   useEffect(() => {
-   fetch('http://127.0.0.1:4001/api/v1/monitor/devices/online_offline')
+   fetch(constants.GET_ONLINE_OFFLINE_MAINTENANCE_STATUS)
       .then(res => res.json())
       .then((contactData) => {
         let devices = contactData["online_offline_devices"]
