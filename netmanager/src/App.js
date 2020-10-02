@@ -75,6 +75,7 @@ import ForgotPassword from "./views/pages/ForgotPassword";
 import ResetPassword from "./views/pages/ResetPassword";
 import Login from "./views/pages/SignUp/Login";
 import { loadUserDefaultGraphData } from "./redux/Dashboard/operations";
+import { setOrganization } from "./redux/Join/actions";
 
 // Check for token to keep user logged in
 if (localStorage.jwtToken) {
@@ -83,8 +84,15 @@ if (localStorage.jwtToken) {
   setAuthToken(token);
   // Decode token and get user info and exp
   const decoded = jwt_decode(token);
+  let currentUser = decoded
+
+  if (localStorage.currentUser) {
+    try {
+      currentUser = JSON.parse(localStorage.currentUser)
+    } catch(error){}
+  }
   // Set user and isAuthenticated
-  store.dispatch(setCurrentUser(decoded));
+  store.dispatch(setCurrentUser(currentUser));
   // Check for expired token
   const currentTime = Date.now() / 1000; // to get in milliseconds
   if (decoded.exp < currentTime) {
@@ -93,6 +101,7 @@ if (localStorage.jwtToken) {
     // Redirect to the landing page
     window.location.href = "./";
   }
+  store.dispatch(setOrganization())
   store.dispatch(loadUserDefaultGraphData())
 }
 

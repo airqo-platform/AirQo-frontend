@@ -14,28 +14,23 @@ import { Line, Bar } from "react-chartjs-2";
 import clsx from "clsx";
 import PropTypes from "prop-types";
 import {
-  Pm25Levels,
   Map,
   CustomisableChart,
   PollutantCategory,
   ExceedancesChart,
-  TotalProfit,
 } from "./components";
 import { useEffect, useState } from "react";
 import "chartjs-plugin-annotation";
 import palette from "theme/palette";
-import ArrowDropDownIcon from "@material-ui/icons/ArrowDropDown";
-import ArrowRightIcon from "@material-ui/icons/ArrowRight";
-//import Legend from './components/Map/Legend'
 import axios from "axios";
 import constants from "config/constants";
 import { MoreHoriz } from "@material-ui/icons";
 import Menu from "@material-ui/core/Menu";
 import MenuItem from "@material-ui/core/MenuItem";
-import MoreVertIcon from "@material-ui/icons/MoreVert";
 import domtoimage from "dom-to-image";
 import JsPDF from "jspdf";
-import { useUserDefaultGraphsData } from "../../../redux/Dashboard/selectors";
+import { useUserDefaultGraphsData } from "redux/Dashboard/selectors";
+import { useOrgData } from "redux/Join/selectors";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -73,9 +68,9 @@ const Dashboard = (props) => {
     mappedErrors,
     ...rest
   } = props;
-  // const { user, isAuthenticated } = mappedAuth;
 
   const userDefaultGraphs = useUserDefaultGraphsData();
+  const orgData = useOrgData();
 
   function appendLeadingZeroes(n) {
     if (n <= 9) {
@@ -93,28 +88,16 @@ const Dashboard = (props) => {
       todaysDate.getFullYear()
   );
 
-  const [backgroundColors, setBackgroundColors] = useState([]);
-
   const [
     pm25CategoriesLocationCount,
     setPm25CategoriesLocationCount,
   ] = useState([]);
 
-  // useEffect(() => {
-  //   try{
-  //       props.fetchDefaults(user._id);
-  //   }
-  //   catch(e){
-  //   console.log(e);
-  //   }
-  //     }, []);
-
-  //   useEffect(() => {
-  // return ()=>{
-  //   props.fetchDefaults(user._id);
-  // }
-
-  //   }, []);
+  useEffect(() => {
+    if (orgData.name.toLowerCase() === "airqo") {
+      props.history.push("/overview");
+    }
+  });
 
   //load JIRA Helpdek widget
   // console.log(user._id);
@@ -387,7 +370,12 @@ const Dashboard = (props) => {
   return (
     <div className={classes.root}>
       <header
-        style={{ display: "inline-flex", flexWrap: "wrap", width: "674px", padding: "0 0 30px 0" }}
+        style={{
+          display: "inline-flex",
+          flexWrap: "wrap",
+          width: "674px",
+          padding: "0 0 30px 0",
+        }}
       >
         <h4>Welcome to the AirQo ANALYTICS dashboard</h4>
         <br />

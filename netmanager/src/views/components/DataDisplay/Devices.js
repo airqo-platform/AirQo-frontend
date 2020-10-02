@@ -28,6 +28,7 @@ import CreatableSelect from 'react-select/creatable';
 import MenuItem from '@material-ui/core/MenuItem';
 import ListItemText from '@material-ui/core/ListItemText';
 import Autocomplete from '@material-ui/lab/Autocomplete';
+import { useOrgData } from "redux/Join/selectors";
 
 const useStyles = makeStyles(theme => ({
   root: {},
@@ -83,6 +84,7 @@ const MenuProps = {
     },
   },
 };
+const orgData = useOrgData();
   const { className, users, ...rest } = props;
   const classes = useStyles();
   const [data, setData] = useState([]);   
@@ -528,7 +530,9 @@ const MenuProps = {
         const ref = res.data;
         console.log('Devices loading')
         console.log(ref);
-        setData(ref);
+        if(orgData.name.toLowerCase() === "airqo") {
+                  setData(ref);
+        }
 
     }).catch(
       console.log

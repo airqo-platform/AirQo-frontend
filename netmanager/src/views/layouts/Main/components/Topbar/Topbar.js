@@ -18,6 +18,7 @@ import MenuIcon from "@material-ui/icons/Menu";
 import NotificationsIcon from "@material-ui/icons/NotificationsOutlined";
 import InputIcon from "@material-ui/icons/Input";
 import { logoutUser } from "redux/Join/actions";
+import { useOrgData } from "../../../../../redux/Join/selectors";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -43,11 +44,12 @@ const Topbar = (props) => {
   const divProps = Object.assign({}, props);
   delete divProps.layout;
   const { className, onSidebarOpen, ...rest } = props;
-  const { user } = props.auth;
 
   const classes = useStyles();
 
   const [notifications] = useState([]);
+  const orgData = useOrgData();
+
   const kcca_logo_style = {
     height: "3.5em",
     width: "4em",
@@ -163,6 +165,16 @@ const Topbar = (props) => {
             src="/images/logos/mak_logo.jpg"
           />
         </RouterLink>
+        <div
+          style={{
+            textTransform: "uppercase",
+            marginLeft: "10px",
+            fontSize: 20,
+            fontWeight: "bold",
+          }}
+        >
+          {orgData.name}
+        </div>
         <p style={timer_style}>
           <span>{date.toLocaleString()}</span>
         </p>

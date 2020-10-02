@@ -33,9 +33,11 @@ export const refreshFilterLocationData = () => {
 
 export const loadUserDefaultGraphData = () => {
   return async (dispatch, getState) => {
-    const user = getState().auth.user._id;
+    const state = getState();
+    const user = state.auth.user._id;
+    const tenant = state.organisation.name;
     return await axios
-      .get(constants.DEFAULTS_URI, { params: { user } })
+      .get(constants.DEFAULTS_URI, { params: { tenant, user } })
       .then((res) => res.data)
       .then((userDefaultsData) => {
         const { defaults } = userDefaultsData;
@@ -55,10 +57,12 @@ export const loadUserDefaultGraphData = () => {
 
 export const setUserDefaultGraphData = (filter) => {
   return async (dispatch, getState) => {
-    const user = getState().auth.user._id;
+    const state = getState();
+    const user = state.auth.user._id;
+    const tenant = state.organisation.name;
     const { chartTitle } = filter;
     return await axios
-      .put(constants.DEFAULTS_URI, filter, { params: { user, chartTitle } })
+      .put(constants.DEFAULTS_URI, filter, { params: { user, chartTitle, tenant } })
       .then((res) => res.data)
       .then((responseData) => {
         dispatch({

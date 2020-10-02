@@ -3,6 +3,7 @@ import axios from 'axios';
 import setAuthToken from '../../utils/setAuthToken';
 import jwt_decode from 'jwt-decode';
 import {
+  CLEAR_ERRORS,
   GET_ERRORS,
   SET_CURRENT_USER,
   USER_LOADING,
@@ -47,27 +48,41 @@ import {
   UPDATE_AUTHENTICATED_USER_REQUEST,
   UPDATE_AUTHENTICATED_USER_FAILED,
   UPDATE_AUTHENTICATED_USER_SUCCESS,
+  UPDATE_ORGANIZATION_SUCCESS,
   REGISTER_CANDIDATE_URI
 } from './types';
 import constants from '../../config/constants';
 
+/***************************errors ********************************* */
+
+export const clearErrors = () => dispatch => {
+  dispatch({ type: CLEAR_ERRORS })
+}
+
+/***************************organization actions ********************************* */
+export const setOrganization = () => (dispatch, getState) => {
+  const name = getState().auth.user.organization
+  dispatch(updateOrganization({ name }))
+}
+
+export const updateOrganization = (orgData) => (dispatch) => {
+  dispatch({
+    type: UPDATE_ORGANIZATION_SUCCESS,
+    payload: orgData,
+  })
+}
+
 /***************************fetching users ********************************* */
 export const fetchUsers = () => {
-  return dispatch => {
+  return (dispatch, getState) => {
+    const tenant = getState().organisation.name;
     dispatch(fetchUsersRequest());
-    // Returns a promise
     console.log('we are now fetching users using the action for fetching ');
-    return fetch(constants.GET_USERS_URI).then(response => {
-      if (response.ok) {
-        response.json().then(data => {
-          dispatch(fetchUsersSuccess(data.users, data.message));
-        });
-      } else {
-        response.json().then(error => {
-          dispatch(fetchUsersFailed(error));
-        });
-      }
-    });
+    return axios
+        .get(constants.GET_USERS_URI, { params: { tenant }})
+        .then(response => response.data)
+        .then(responseData => {dispatch(fetchUsersSuccess(responseData.users, responseData.message));})
+        .catch(err => {dispatch(fetchUsersFailed(err.response.data))});
   };
 };
 
@@ -78,8 +93,6 @@ export const fetchUsersRequest = () => {
 };
 
 export const fetchUsersSuccess = (users, message) => {
-  console.log('these are the users we are sending: ');
-  console.dir(users);
   return {
     type: GET_USERS_SUCCESS,
     users: users,
@@ -98,21 +111,14 @@ export const fetchUsersFailed = error => {
 /*********************** fetching Candidatess ********************************/
 
 export const fetchCandidates = id => {
-  return dispatch => {
+  return (dispatch, getState) => {
     dispatch(fetchCandidatesRequest());
-    // Returns a promise
-    console.log('we are now fetching users using the action for fetching ');
-    return fetch(constants.GET_CANDIDATES_URI).then(response => {
-      if (response.ok) {
-        response.json().then(data => {
-          dispatch(fetchCandidatesSuccess(data.users, data.message));
-        });
-      } else {
-        response.json().then(error => {
-          dispatch(fetchCandidatesFailed(error));
-        });
-      }
-    });
+    const tenant = getState().organisation.name
+    return axios
+        .get(constants.GET_CANDIDATES_URI, { params: { tenant }})
+        .then(response => response.data)
+        .then(data => dispatch(fetchCandidatesSuccess(data.users, data.message)))
+        .catch(err => dispatch(fetchCandidatesFailed(err.response.data)))
   };
 };
 
@@ -142,10 +148,11 @@ export const fetchCandidatesFailed = error => {
 
 /********************* Add a new user ***********************************/
 export const addNewUser = user => {
-  return dispatch => {
+  return (dispatch, getState)  => {
+    const tenant = getState().organisation.name
     dispatch(addNewUserRequest(user));
     axios
-      .post(constants.REGISTER_USER_URI, user)
+      .post(constants.REGISTER_USER_URI, user, { params: { tenant }})
       .then(res => {
         const { savedData, message } = res.data;
         try {
@@ -209,30 +216,28 @@ export const hideEditDialog = () => {
   };
 };
 
-export const editUser = userToEdit => dispatch => {
+export const editUser = userToEdit => (dispatch, getState) => {
   dispatch(editUserRequest(userToEdit));
-  console.log('user to edit: ');
-  //console.log(userToEdit.values());
   let dataToSend = {};
   for (const [key, value] of userToEdit.entries()) {
     dataToSend[key] = value;
   }
   console.dir(dataToSend);
-  return axios({
-    method: 'put',
-    url: constants.GET_USERS_URI + `${dataToSend.id}`,
-    data: dataToSend
-  })
-    .then(response => {
-      if (response) {
-        dispatch(editUserSuccess(response.data, response.data.message));
-      } else {
-        dispatch(editUserFailed(response.data.message));
-      }
-    })
-    .catch(e => {
-      dispatch(editUserFailed(e));
-    });
+  const id = dataToSend.id
+  const tenant = getState().organisation.name
+  return axios
+      .put(constants.GET_USERS_URI, dataToSend, { params: { id, tenant }})
+      .then(response => {
+          if (response) {
+            dispatch(editUserSuccess(response.data, response.data.message));
+            dispatch(fetchUsers())
+          } else {
+            dispatch(editUserFailed(response.data.message));
+          }
+      })
+      .catch(e => {
+          dispatch(editUserFailed(e));
+      });
 };
 
 export const editUserRequest = userToEdit => {
@@ -273,21 +278,15 @@ export const hideDeleteDialog = () => {
 };
 
 export const deleteUser = userToDelete => {
-  return dispatch => {
+  return (dispatch, getState) => {
+    const id = userToDelete._id
+    const tenant = getState().organisation.name
     dispatch(deleteUserRequest(userToDelete));
-    return fetch(constants.GET_USERS_URI + userToDelete._id, {
-      method: 'delete'
-    }).then(response => {
-      if (response.ok) {
-        response.json().then(data => {
-          dispatch(deleteUserSuccess(data.user, data.message));
-        });
-      } else {
-        response.json().then(error => {
-          dispatch(deleteUserFailed(error));
-        });
-      }
-    });
+    return axios
+        .delete(constants.GET_USERS_URI, { params: { id, tenant }})
+        .then(response => response.data)
+        .then(data => dispatch(deleteUserSuccess(data.user, data.message)))
+        .catch(err => dispatch(deleteUserFailed(err.response.data)))
   };
 };
 
@@ -315,7 +314,7 @@ export const deleteUserFailed = error => {
 
 /************************* Register a new User  *****************************/
 export const registerCandidate = userData => dispatch => {
-  const tenant = "KCCA";
+  const tenant = userData.organization;
   axios
     .post(constants.REGISTER_CANDIDATE_URI, userData, { params: { tenant }})
     .then(res => {
@@ -351,7 +350,7 @@ export const registrationSuccess = data => {
 /************************* Login a new User  *********************************/
 export const loginUser = userData => dispatch => {
   console.log('the login URL ' + constants.LOGIN_USER_URI);
-  const tenant = 'kcca'
+  const tenant = userData.organization;
   axios
     .post(constants.LOGIN_USER_URI, userData, { params: { tenant }})
     .then(res => {
@@ -364,8 +363,10 @@ export const loginUser = userData => dispatch => {
         setAuthToken(token);
         // Decode token to get user data
         const decoded = jwt_decode(token);
+        localStorage.setItem('currentUser', JSON.stringify(decoded))
         // Set current user
         dispatch(setCurrentUser(decoded));
+        dispatch(updateOrganization({name: decoded.organization}))
       } catch (e) {
         console.log(e);
       }
@@ -507,30 +508,15 @@ export const confirmUserFailed = error => {
 };
 
 /**********************update the user password  ***********************************/
-export const updatePassword = userData => dispatch => {
+export const updatePassword = userData => (dispatch, getState) => {
+  const state = getState()
+  const id = state.auth.user._id
+  const tenant = state.organisation.name
   axios
-    .put(constants.UPDATE_PWD_IN_URI, userData)
-    .then(response => {
-      console.log(response.data);
-      if (response.data.success === true) {
-        dispatch({
-          type: UPDATE_PASSWORD_SUCCESS,
-          payload: response.data.result
-        });
-      } else {
-        dispatch({
-          type: UPDATE_PASSWORD_FAILED,
-          payload: response.data.err
-        });
-      }
-    })
-    .catch(error => {
-      console.log(error.data);
-      dispatch({
-        type: GET_ERRORS,
-        payload: error.response
-      });
-    });
+      .put(constants.UPDATE_PWD_IN_URI, userData, { params: { id, tenant } })
+      .then(response => response.data)
+      .then(data => dispatch({ type: UPDATE_PASSWORD_SUCCESS, payload: data.result}))
+      .catch(error => dispatch({type: GET_ERRORS, payload: error.response}));
 };
 
 /***************************update the user profile ******************** */
@@ -643,26 +629,24 @@ export const fetchDefaultsFailed = error => {
 };
 
 /********************* update authenticated user ************************/
-export const updateAuthenticatedUser = newData => dispatch => {
+export const updateAuthenticatedUser = newData => (dispatch, getState) => {
   dispatch(updateAuthenticatedUserRequest());
-
-  return axios({
-    method: 'put',
-    url: constants.GET_USERS_URI + `${newData.id}`,
-    data: newData
-  })
-    .then(response => {
-      if (response) {
-        dispatch(
-          updateAuthenticatedUserSuccess(response.data, response.data.message)
-        );
-      } else {
-        dispatch(updateAuthenticatedUserFailed(response.data.message));
-      }
-    })
-    .catch(e => {
-      dispatch(updateAuthenticatedUserFailed(e));
-    });
+  const id = getState().auth.user._id
+  const tenant = getState().organisation.name
+  return axios
+      .put(constants.GET_USERS_URI, newData, { params: {id, tenant}})
+      .then(response => {
+        if (response) {
+          dispatch(
+            updateAuthenticatedUserSuccess(response.data, response.data.message)
+          );
+        } else {
+          dispatch(updateAuthenticatedUserFailed(response.data.message));
+        }
+      })
+      .catch(e => {
+        dispatch(updateAuthenticatedUserFailed(e));
+      });
 };
 
 export const updateAuthenticatedUserRequest = () => {

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import clsx from "clsx";
+import { omit } from "underscore";
 import { makeStyles } from "@material-ui/styles";
 import {
   Button,
@@ -23,6 +24,8 @@ import { Alert, AlertTitle } from "@material-ui/lab";
 import { useMinimalSelectStyles } from "@mui-treasury/styles/select/minimal";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import { SearchInput } from "views/components/SearchInput";
+import { useOrgData } from "../../../../../redux/Join/selectors";
+
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -94,14 +97,13 @@ const UsersToolbar = (props) => {
   const { className, mappeduserState, mappedErrors, ...rest } = props;
 
   const [open, setOpen] = useState(false);
-  const [added, setAdded] = useState(false);
-  const [failed, setFailed] = useState(false);
-  const [adding, setAdding] = useState(false);
+ const orgData = useOrgData();
 
   const initialState = {
     userName: "",
     firstName: "",
     lastName: "",
+    organization: orgData.name,
     email: "",
     password: "",
     password2: "",
@@ -213,16 +215,7 @@ const UsersToolbar = (props) => {
       default:
         break;
     }
-    const userData = {
-      userName: form.userName,
-      firstName: form.firstName,
-      lastName: form.lastName,
-      email: form.email,
-      password: form.password,
-      password2: form.password2,
-      privilege: form.privilege,
-    };
-    console.log(userData);
+    const userData = omit(form)
     if (userData.password !== userData.password2) {
       alert("Passwords don't match");
     } else {
@@ -326,6 +319,21 @@ const UsersToolbar = (props) => {
                       error={form.errors.lastName}
                       onChange={onChange}
                       value={form.lastName}
+                      variant="outlined"
+                      fullWidth
+                    />
+
+                    <TextField
+                      margin="dense"
+                      id="organization"
+                      label="organization"
+                      name="organization"
+                      type="text"
+                      helperText={form.errors.organization}
+                      error={form.errors.organization}
+                      onChange={onChange}
+                      value={form.organization}
+                      disabled
                       variant="outlined"
                       fullWidth
                     />

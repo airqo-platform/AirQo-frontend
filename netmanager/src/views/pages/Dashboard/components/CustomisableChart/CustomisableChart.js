@@ -1,13 +1,11 @@
 import React from "react";
 import { useDispatch } from "react-redux";
-import clsx from "clsx";
 import PropTypes from "prop-types";
 import { makeStyles, withStyles } from "@material-ui/styles";
 import {
   Card,
   CardContent,
   CardHeader,
-  CardActions,
   Divider,
   Grid,
   Button,
@@ -38,11 +36,13 @@ import MenuItem from "@material-ui/core/MenuItem";
 import domtoimage from "dom-to-image";
 import JsPDF from "jspdf";
 import { isEmpty } from "underscore";
+import LabelledSelect from "../../../../components/CustomSelects/LabelledSelect";
 import { useFilterLocationData } from "../../../../../redux/Dashboard/selectors";
 import {
   refreshFilterLocationData,
   setUserDefaultGraphData,
 } from "../../../../../redux/Dashboard/operations";
+import { omit } from "underscore";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -63,17 +63,11 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const capitalize = (str) => {
-  str = str.split(" ");
-
-  for (let i = 0, x = str.length; i < x; i++) {
-    str[i] = str[i][0].toUpperCase() + str[i].substr(1);
-  }
-
-  return str.join(" ");
+  return str.charAt(0).toUpperCase() + str.slice(1);
 };
 
 const valueLabelToString = (valueLabelArray) => {
-  return valueLabelArray.map((element) => element.value);
+  return valueLabelArray.map((element) => element.label);
 };
 
 const toValueLabelObject = (value) => {
@@ -84,6 +78,10 @@ const toValueLabelArray = (arr) => {
   const newArr = [];
   arr.map((value) => newArr.push(toValueLabelObject(value)));
   return newArr;
+};
+
+const formatDate = (date) => {
+  return date.toISOString().split("T")[0];
 };
 
 const styles = (theme) => ({
@@ -117,25 +115,6 @@ const DialogTitle = withStyles(styles)((props) => {
   );
 });
 
-const schema = {
-  location: {
-    presence: { allowEmpty: false, message: "is required" },
-  },
-  chartType: {
-    presence: { allowEmpty: false, message: "is required" },
-  },
-  chartFrequency: {
-    presence: { allowEmpty: false, message: "is required" },
-  },
-  pollutant: {
-    presence: { allowEmpty: false, message: "is required" },
-  },
-  policy: {
-    presence: { allowEmpty: false, message: "is required" },
-    checked: true,
-  },
-};
-
 const CustomisableChart = (props) => {
   const { className, idSuffix, defaultFilter, ...rest } = props;
   const classes = useStyles();
@@ -148,11 +127,84 @@ const CustomisableChart = (props) => {
     errors: {},
   });
 
-  var startDate = new Date();
-  startDate.setMonth(startDate.getMonth() - 1);
-  startDate.setHours(0, 0, 0, 0);
+  const periodOptions = [
+    {
+      value: "Last 30 days",
+      label: "Last 30 days",
+      unitValue: 30,
+      unit: "day",
+      endDate: null,
+    },
+    {
+      value: "Last 90 days",
+      label: "Last 90 days",
+      unitValue: 90,
+      unit: "day",
+      endDate: null,
+    },
+    {
+      value: "Custom range",
+      label: "Custom range",
+      unitValue: 30,
+      unit: "day",
+      endDate: null,
+    },
+  ];
+
+  const initialPeriod = () => {
+    let period = periodOptions[0];
+    if (defaultFilter.period !== undefined) {
+      try {
+        period = JSON.parse(defaultFilter.period);
+        // eslint-disable-next-line no-empty
+      } catch (err) {}
+    }
+    return period;
+  };
+
+  const [selectedPeriod, setSelectedPeriod] = useState(initialPeriod());
+  const [disableDatePickers, setDisableDatePickers] = useState(true);
+
+  const generateStartAndEndDates = (period) => {
+    let endDate = period.endDate ? new Date(period.endDate) : new Date();
+    let startDate = new Date(
+      endDate.getFullYear(),
+      endDate.getMonth(),
+      endDate.getDate() - period.unitValue
+    );
+
+    return [startDate, endDate];
+  };
+
+  const handlePeriodChange = (selectedPeriodOption) => {
+    if (isCustomPeriod(selectedPeriodOption)) {
+      setDisableDatePickers(false);
+      return;
+    }
+    const [startDate, endDate] = generateStartAndEndDates(selectedPeriodOption);
+    setSelectedStartDate(startDate);
+    setSelectedEndDate(endDate);
+    setSelectedPeriod(selectedPeriodOption);
+    setDisableDatePickers(true);
+  };
+
+  const isCustomPeriod = (period) => {
+    return period.label.toLowerCase() === "Custom range".toLowerCase();
+  };
+
+  let [startDate, endDate] = generateStartAndEndDates(initialPeriod());
 
   const [selectedDate, setSelectedStartDate] = useState(startDate);
+  const [selectedEndDate, setSelectedEndDate] = useState(endDate);
+
+  const handleEndDateChange = (date) => {
+    setSelectedEndDate(date);
+  };
+
+  const handleDateChange = (date) => {
+    setSelectedStartDate(date);
+  };
+
   const [open, setOpen] = useState(false);
 
   const handleClickOpen = () => {
@@ -170,16 +222,6 @@ const CustomisableChart = (props) => {
     customChartTitleSecondSection,
     setCustomChartTitleSecondSection,
   ] = useState("Custom Chart Title");
-
-  const handleDateChange = (date) => {
-    setSelectedStartDate(date);
-  };
-
-  const [selectedEndDate, setSelectedEndDate] = useState(new Date());
-
-  const handleEndDateChange = (date) => {
-    setSelectedEndDate(date);
-  };
 
   const filterLocationsOptions = useFilterLocationData();
 
@@ -271,9 +313,6 @@ const CustomisableChart = (props) => {
 
   const [customGraphData, setCustomisedGraphData] = useState([]);
 
-  const hasError = (field) =>
-    formState.touched[field] && formState.errors[field] ? true : false;
-
   const fetchAndSetGraphData = async (filter) => {
     return await axios
       .post(
@@ -283,12 +322,19 @@ const CustomisableChart = (props) => {
       )
       .then((res) => res.data)
       .then((customisedChartData) => {
+        let modifiedChartTitle = customisedChartData.custom_chart_title;
+        let splitChartTitleArray = customisedChartData.custom_chart_title.split(
+          " Between "
+        );
+        if (!isEmpty(splitChartTitleArray)) {
+          modifiedChartTitle = splitChartTitleArray[0];
+        }
         setCustomisedGraphData(customisedChartData);
 
         setCustomChartTitleSecondSection(
-          customisedChartData.custom_chart_title_second_section
+          `Between ${formatDate(selectedDate)} and ${formatDate(selectedEndDate)}`
         );
-        setCustomChartTitle(customisedChartData.custom_chart_title);
+        setCustomChartTitle(modifiedChartTitle);
         setCustomisedGraphLabel(
           customisedChartData.results
             ? customisedChartData.results[0].chart_label
@@ -315,8 +361,18 @@ const CustomisableChart = (props) => {
   let handleSubmit = async (e) => {
     e.preventDefault();
 
+    let period = omit(
+      { ...selectedPeriod, endDate: selectedEndDate },
+      "startDate"
+    );
+
+    if (!isCustomPeriod(period)) {
+      period = { ...period, endDate: null };
+    }
+
     let newFilter = {
       ...defaultFilter,
+      period: JSON.stringify(period),
       locations: values.selectedOption,
       startDate: selectedDate,
       endDate: selectedEndDate,
@@ -347,6 +403,7 @@ const CustomisableChart = (props) => {
   }, [formState.values]);
 
   useEffect(() => {
+    handlePeriodChange(selectedPeriod);
     fetchAndSetGraphData(graphFilter);
   }, []);
 
@@ -653,8 +710,8 @@ const CustomisableChart = (props) => {
                       />
                     </Grid>
 
-                    <Grid item md={4} xs={12}>
-                      <Select
+                    <Grid item md={6} xs={12}>
+                      <LabelledSelect
                         fullWidth
                         label="Chart Type"
                         className="reactSelect"
@@ -666,17 +723,11 @@ const CustomisableChart = (props) => {
                         variant="outlined"
                         margin="dense"
                         required
-                        error={hasError("chartType")}
-                        helperText={
-                          hasError("chartType")
-                            ? formState.errors.chartType[0]
-                            : null
-                        }
                       />
                     </Grid>
 
-                    <Grid item md={4} xs={12}>
-                      <Select
+                    <Grid item md={6} xs={12}>
+                      <LabelledSelect
                         fullWidth
                         label="Frequency"
                         className=""
@@ -690,8 +741,8 @@ const CustomisableChart = (props) => {
                         required
                       />
                     </Grid>
-                    <Grid item md={4} xs={12}>
-                      <Select
+                    <Grid item md={6} xs={12}>
+                      <LabelledSelect
                         fullWidth
                         label="Pollutant"
                         className=""
@@ -706,11 +757,27 @@ const CustomisableChart = (props) => {
                       />
                     </Grid>
 
+                    <Grid item md={6} xs={12}>
+                      <LabelledSelect
+                        fullWidth
+                        label="Time range"
+                        name="Time range"
+                        placeholder="Time range"
+                        value={selectedPeriod}
+                        options={periodOptions}
+                        onChange={handlePeriodChange}
+                        variant="outlined"
+                        margin="dense"
+                        required
+                      />
+                    </Grid>
+
                     <Grid item md={12} xs={12}>
                       <MuiPickersUtilsProvider utils={DateFnsUtils}>
                         <Grid container spacing={1}>
                           <Grid item lg={6} md={6} sm={6} xl={6} xs={12}>
                             <KeyboardDatePicker
+                              disabled={disableDatePickers}
                               disableToolbar
                               variant="dialog"
                               format="yyyy-MM-dd"
@@ -728,6 +795,7 @@ const CustomisableChart = (props) => {
                           </Grid>
                           <Grid item lg={6} md={6} sm={6} xl={6} xs={12}>
                             <KeyboardTimePicker
+                              disabled={disableDatePickers}
                               variant="dialog"
                               margin="normal"
                               id="time-picker"
@@ -743,6 +811,7 @@ const CustomisableChart = (props) => {
 
                           <Grid item lg={6} md={6} sm={6} xl={6} xs={12}>
                             <KeyboardDatePicker
+                              disabled={disableDatePickers}
                               disableToolbar
                               variant="dialog"
                               format="yyyy-MM-dd"
@@ -760,6 +829,7 @@ const CustomisableChart = (props) => {
                           </Grid>
                           <Grid item lg={6} md={6} sm={6} xl={6} xs={12}>
                             <KeyboardTimePicker
+                              disabled={disableDatePickers}
                               variant="dialog"
                               margin="normal"
                               id="time-picker"

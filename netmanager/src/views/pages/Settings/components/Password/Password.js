@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import PropTypes from "prop-types";
 import clsx from "clsx";
 import { makeStyles } from "@material-ui/styles";
-import { updatePassword } from "redux/Join/actions";
+import { isEqual } from "underscore";
 import {
   Card,
   CardHeader,
@@ -13,6 +13,10 @@ import {
   Button,
   TextField,
 } from "@material-ui/core";
+import Alert from '@material-ui/lab/Alert';
+import { CircularLoader } from "../../../../components/Loader/CircularLoader";
+import { updateUserPasswordApi } from "../../../../apis/authService";
+import { useOrgData } from "../../../../../redux/Join/selectors";
 
 const useStyles = makeStyles(() => ({
   root: {},
@@ -21,38 +25,79 @@ const useStyles = makeStyles(() => ({
 const Password = (props) => {
   const { className, mappedAuth, mappeduserState, ...rest } = props;
   const { user } = mappedAuth;
-  const userState = mappeduserState;
+
+  const orgData = useOrgData();
 
   const classes = useStyles();
 
   const initialState = {
+    currentPassword: "",
     password: "",
     password2: "",
   };
 
-  const [values, setValues] = useState(initialState);
+  const alertInitialState = {
+    show: false,
+    message: "",
+    type: "success"
+  }
+
+  const [newPassword, setNewPassword] = useState(initialState);
+  const [errors, setErrors] = useState(initialState)
+  const [alert, setAlert] = useState(alertInitialState)
+  const [loading, setLoading] = useState(false);
+
 
   const clearState = () => {
-    setValues({ ...initialState });
+    setNewPassword({ ...initialState });
   };
 
+  const closeAlert = () => {
+    setAlert(alertInitialState)
+  }
+
+  const setFieldError = (error) => {
+    setErrors({...errors, ...error})
+  }
+
   const handleChange = (event) => {
-    setValues({
-      ...values,
+    const id = event.target.id;
+    const value =event.target.value;
+    if (["password", "password2"].includes(id)) {
+      value !== newPassword.password ? setFieldError({ password2: "passwords don't match"}) :
+      setFieldError({ password2: ""})
+    }
+    setNewPassword({
+      ...newPassword,
       [event.target.id]: event.target.value,
     });
   };
 
-  const onSubmit = (e) => {
+  const onSubmit = async (e) => {
     e.preventDefault();
+    const userId = user._id;
+    const tenant = orgData.name
     const userData = {
-      id: user._id,
-      password: values.password,
-      password2: values.password2,
+      ...newPassword,
+      old_pwd: newPassword.currentPassword,
     };
-    console.log("sending them through...");
-    console.log(userData);
-    props.mappedUpdatePassword(userData);
+    setLoading(true);
+    await updateUserPasswordApi(userId, tenant, userData)
+        .then(data => {
+          setAlert({
+            show: true,
+            message: "Password update success",
+            type: "success"
+          })
+        })
+        .catch(err => {
+          setAlert({
+            show: true,
+            message: err.response.data.message || err.response.data.password2,
+            type: "error"
+          })
+        })
+    setLoading(false);
     clearState();
   };
 
@@ -63,29 +108,48 @@ const Password = (props) => {
       <CardContent>
         <TextField
           fullWidth
-          label="Password"
-          id="password"
+          label="Current Password"
+          id="currentPassword"
           onChange={handleChange}
           type="password"
-          value={values.password}
+          value={newPassword.currentPassword}
           variant="outlined"
         />
         <TextField
           fullWidth
-          label="Confirm password"
+          label="New Password"
+          id="password"
+          onChange={handleChange}
+          type="password"
+          value={newPassword.password}
+          variant="outlined"
+          style={{ marginTop: "1rem" }}
+        />
+        <TextField
+          fullWidth
+          label="Confirm New Password"
           id="password2"
           onChange={handleChange}
           style={{ marginTop: "1rem" }}
           type="password"
-          value={values.password2}
+          value={newPassword.password2}
           variant="outlined"
+          error={!!errors.password2}
+          helperText={errors.password2}
         />
       </CardContent>
+
       <Divider />
+
+      <CardContent style={alert.show ? {} : {display: "none"}}>
+          <Alert severity={alert.type} onClose={closeAlert}>{alert.message}</Alert>
+      </CardContent>
+
       <CardActions>
-        <Button color="primary" variant="outlined" onClick={onSubmit} disabled>
+        <Button color="primary" variant="outlined" onClick={onSubmit} disabled={isEqual(initialState, newPassword)}>
           Update
         </Button>
+        <CircularLoader loading={loading} />
       </CardActions>
     </Card>
   );
