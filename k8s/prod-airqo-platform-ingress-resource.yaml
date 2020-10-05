@@ -1,0 +1,13 @@
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: ingress-platform-resource
+  namespace: production
+spec:
+  rules:
+    - host: platform.airqo.net
+      http:
+        paths:
+          - backend:
+              serviceName: airqo-platform-svc
+              servicePort: 80
