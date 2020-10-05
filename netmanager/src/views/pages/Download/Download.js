@@ -24,6 +24,7 @@ import axios from "axios";
 import jsonexport from "jsonexport";
 //import {CSVDownload} from 'react-csv';
 import constants from "config/constants.js";
+import { getMonitoringSitesLocationsApi } from "../../apis/location";
 
 const {
   Parser,
@@ -59,12 +60,11 @@ const Download = (props) => {
   const [filterLocations, setFilterLocations] = useState([]);
 
   useEffect(() => {
-    fetch(constants.GET_MONITORING_SITES_LOCATIONS_URI)
-      .then((res) => res.json())
-      .then((filterLocationsData) => {
-        setFilterLocations(filterLocationsData.airquality_monitoring_sites);
-      })
-      .catch(console.log);
+    getMonitoringSitesLocationsApi()
+      .then((responseData) =>
+        setFilterLocations(responseData.airquality_monitoring_sites)
+      )
+      .catch((err) => console.log(err));
   }, []);
 
   const filterLocationsOptions = filterLocations;
