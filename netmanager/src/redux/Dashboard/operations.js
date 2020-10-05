@@ -11,15 +11,15 @@ import {
 import { KCCAInitialUserDefaultGraphsState } from "./constants";
 import { filterDefaults } from "./utils";
 import constants from "../../config/constants";
+import { getMonitoringSitesLocationsApi } from "../../views/apis/location";
 
 export const refreshFilterLocationData = () => {
   return async (dispatch) => {
-    return await fetch(constants.GET_MONITORING_SITES_LOCATIONS_URI)
-      .then((res) => res.json())
-      .then((filterLocationsData) => {
+    return await getMonitoringSitesLocationsApi()
+      .then((responseData) => {
         dispatch({
           type: REFRESH_FILTER_LOCATION_DATA_SUCCESS,
-          payload: filterLocationsData.airquality_monitoring_sites,
+          payload: responseData.airquality_monitoring_sites,
         });
       })
       .catch((err) => {
@@ -33,11 +33,9 @@ export const refreshFilterLocationData = () => {
 
 export const loadUserDefaultGraphData = () => {
   return async (dispatch, getState) => {
-    const state = getState();
-    const user = state.auth.user._id;
-    const tenant = state.organisation.name;
+    const user = getState().auth.user._id;
     return await axios
-      .get(constants.DEFAULTS_URI, { params: { tenant, user } })
+      .get(constants.DEFAULTS_URI, { params: { user } })
       .then((res) => res.data)
       .then((userDefaultsData) => {
         const { defaults } = userDefaultsData;
@@ -57,12 +55,12 @@ export const loadUserDefaultGraphData = () => {
 
 export const setUserDefaultGraphData = (filter) => {
   return async (dispatch, getState) => {
-    const state = getState();
-    const user = state.auth.user._id;
-    const tenant = state.organisation.name;
+    const user = getState().auth.user._id;
     const { chartTitle } = filter;
     return await axios
-      .put(constants.DEFAULTS_URI, filter, { params: { user, chartTitle, tenant } })
+      .put(constants.DEFAULTS_URI, filter, {
+        params: { user, chartTitle },
+      })
       .then((res) => res.data)
       .then((responseData) => {
         dispatch({
