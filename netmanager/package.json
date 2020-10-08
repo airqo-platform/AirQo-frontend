@@ -80,7 +80,7 @@
         "prod-pc": "set REACT_APP_ENV=production&&react-scripts start",
         "build": "react-scripts --max_old_space_size=4096 build",
         "SMD-build-mac": "GENERATE_SOURCEMAP=false react-scripts build",
-        "SMD-build-pc": "set GENERATE_SOURCEMAP=false && react-scripts build",
+        "SMD-build-pc": "set GENERATE_SOURCEMAP=false&&react-scripts build",
         "test": "react-scripts test",
         "eject": "react-scripts eject",
         "create-env": "printenv > .env"
