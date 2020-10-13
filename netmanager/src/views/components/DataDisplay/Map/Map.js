@@ -13,6 +13,7 @@ import Filter from './FilterPowerSource.jsx';
 import axios from "axios";
 import ReactDOM from 'react-dom';
 import constants from '../../../../config/constants'
+import { onlineOfflineMaintenanceStatusApi } from "../../../apis/deviceMonitoring";
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -50,8 +51,7 @@ const Map = props => {
   const [contacts,setContacts ] = useState([]);
 
   useEffect(() => {
-   fetch(constants.GET_ONLINE_OFFLINE_MAINTENANCE_STATUS)
-      .then(res => res.json())
+   onlineOfflineMaintenanceStatusApi()
       .then((contactData) => {
         let devices = contactData["online_offline_devices"]
         console.log(devices)
