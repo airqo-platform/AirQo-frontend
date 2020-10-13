@@ -50,15 +50,8 @@ const Topbar = (props) => {
   const [notifications] = useState([]);
   const orgData = useOrgData();
 
-  const kcca_logo_style = {
+  const logo_style = {
     height: "3.5em",
-    width: "4em",
-    borderRadius: "15%",
-    paddingTop: ".2em",
-    marginRight: ".4em",
-  };
-  const mak_logo_style = {
-    height: "3.3em",
     width: "4em",
     borderRadius: "15%",
     paddingTop: ".2em",
@@ -144,27 +137,51 @@ const Topbar = (props) => {
   return (
     <AppBar {...rest} className={clsx(classes.root, className)}>
       <Toolbar>
-        <RouterLink to="/">
+        {orgData.name != 'airqo' && 
+          <>
+         <RouterLink to="/">
           <img
-            alt="Logo"
-            style={kcca_logo_style}
-            src="/images/logos/kcca-logo.jpg"
+            alt="mak.ac.ug"
+            style={logo_style}
+            src="https://res.cloudinary.com/drgm88r3l/image/upload/v1602488051/airqo_org_logos/mak_logo.png"
           />
         </RouterLink>
         <RouterLink to="/">
           <img
             alt="airqo.net"
             style={airqo_logo_style}
-            src="/images/logos/airqo_logo.png"
+            src="https://res.cloudinary.com/drgm88r3l/image/upload/v1602488051/airqo_org_logos/airqo_logo.png"
           />
         </RouterLink>
         <RouterLink to="/">
           <img
+              alt={orgData.name}
+              style={logo_style}
+              src={"https://res.cloudinary.com/drgm88r3l/image/upload/v1602488051/airqo_org_logos/" + orgData.name + "_logo.png"}
+          />
+          </RouterLink>
+          </>
+        }
+        {orgData.name == 'airqo' && 
+          <>
+          <RouterLink to="/">
+          <img
             alt="mak.ac.ug"
-            style={mak_logo_style}
-            src="/images/logos/mak_logo.jpg"
+            style={logo_style}
+            src="https://res.cloudinary.com/drgm88r3l/image/upload/v1602488051/airqo_org_logos/mak_logo.png"
+          />
+          </RouterLink>
+        <RouterLink to="/">
+          <img
+            alt="airqo.net"
+            style={airqo_logo_style}
+            src="https://res.cloudinary.com/drgm88r3l/image/upload/v1602488051/airqo_org_logos/airqo_logo.png"
           />
         </RouterLink>
+        
+          </>
+        }
+        
         <div
           style={{
             textTransform: "uppercase",
