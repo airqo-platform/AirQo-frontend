@@ -17,7 +17,8 @@ import {
 import MenuIcon from "@material-ui/icons/Menu";
 import NotificationsIcon from "@material-ui/icons/NotificationsOutlined";
 import InputIcon from "@material-ui/icons/Input";
-import EditLocationIcon from "@material-ui/icons/EditLocation";
+import FindInPageIcon from '@material-ui/icons/FindInPage';
+import HelpIcon from '@material-ui/icons/Help';
 import { logoutUser } from "redux/Join/actions";
 import { useOrgData } from "../../../../../redux/Join/selectors";
 
@@ -188,7 +189,8 @@ const Topbar = (props) => {
             fontWeight: "bold",
             color:'#fff' ,
           }} href="https://docs.airqo.net/airqo-handbook/-MHlrqORW-vI38ybYLVC/" target='_blank'>
-          Documentation
+          
+          <HelpIcon/>
         </a>
        
           <IconButton color="inherit">
