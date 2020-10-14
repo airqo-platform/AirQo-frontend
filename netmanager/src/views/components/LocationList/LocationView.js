@@ -94,7 +94,6 @@ const LocationView = props => {
   useEffect(() => {
     setIsLoading(true);
     axios.get(
-      //'http://127.0.0.1:4000/api/v1/location_registry/location?loc_ref='+params.loc_ref
       constants.VIEW_LOCATION_URI+params.loc_ref
     )
     .then(
@@ -356,7 +355,7 @@ const LocationView = props => {
               {/*<TableCell className = {classes.table}>Subcounty: <b>{locData.subcounty}</b></TableCell>  */}
               {
               loaded?
-                    <TableCell className = {classes.table}>Local Activities: <b>{locData.local_activities.join()}</b></TableCell>
+                    <TableCell className = {classes.table}>Local Activities: <b>{locData.local_activities && locData.local_activities.join()}</b></TableCell>
                     :
                     <TableCell className = {classes.table}>Local Activities: <b>{locData.local_activities}</b></TableCell>
                 }

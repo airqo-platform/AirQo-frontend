@@ -29,7 +29,6 @@ import constants from '../../../config/constants.js';
 
 import MaterialTable, { MTablePagination, Paper} from 'material-table';
 import { configs } from 'eslint-plugin-prettier';
-import { useOrgData } from "redux/Join/selectors";
 
 
 const useStyles = makeStyles(theme => ({
@@ -63,8 +62,6 @@ const LocationsTable = props => {
   const { className, users, ...rest } = props;
 
   const classes = useStyles();
-
-  const orgData = useOrgData();
 
   const [data, setData] = useState([]);   
 
@@ -106,9 +103,7 @@ const LocationsTable = props => {
         setIsLoading(false);
         const ref = res.data;
         console.log(ref);
-        if (orgData.name.toLowerCase() === "airqo") {
-          setData(ref);
-        }
+        setData(ref)
 
     }).catch(
       console.log
