@@ -14,3 +14,10 @@ export const updateAuthenticatedUserApi = async (userId, tenant, userData) => {
     .put(constants.GET_USERS_URI, userData, { params: { tenant, id: userId } })
     .then((response) => response.data);
 };
+
+export const forgotPasswordResetApi = async (userData) => {
+    const tenant = userData.organisation;
+    return await axios
+    .post(constants.FORGOT_PWD_URI, userData, { params: { tenant } })
+        .then((response) => response.data)
+}
