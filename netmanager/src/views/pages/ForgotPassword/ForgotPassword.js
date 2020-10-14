@@ -22,6 +22,7 @@ class ForgotPassword extends Component {
 
     this.state = {
       email: "",
+      organisation: "",
       showError: false,
       messageFromServer: "",
       errors: {},
@@ -57,6 +58,7 @@ class ForgotPassword extends Component {
     this.props.forgotPassword(userData);
     this.setState({
       email: "",
+      organisation: "",
     });
   };
 
@@ -77,6 +79,23 @@ class ForgotPassword extends Component {
               </h4>
             </div>
             <form noValidate onSubmit={this.onSubmit}>
+              <div className="input-field col s12">
+                <input
+                  onChange={this.onChange}
+                  value={this.state.organisation}
+                  error={errors.organisation}
+                  id="organisation"
+                  type="text"
+                  className={classnames("", {
+                    invalid: errors.organisation,
+                  })}
+                />
+                <label htmlFor="organisation">Organisation</label>
+                <span className="red-text">
+                  {errors.email}
+                  {errors.emailnotfound}
+                </span>
+              </div>
               <div className="input-field col s12">
                 <input
                   onChange={this.onChange}
