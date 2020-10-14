@@ -17,6 +17,7 @@ import {
 import MenuIcon from "@material-ui/icons/Menu";
 import NotificationsIcon from "@material-ui/icons/NotificationsOutlined";
 import InputIcon from "@material-ui/icons/Input";
+import EditLocationIcon from "@material-ui/icons/EditLocation";
 import { logoutUser } from "redux/Join/actions";
 import { useOrgData } from "../../../../../redux/Join/selectors";
 
@@ -180,6 +181,16 @@ const Topbar = (props) => {
         </p>
         <div className={classes.flexGrow} />
         <Hidden mdDown>
+        <a style={{
+            textTransform: "uppercase",
+            marginLeft: "10px",
+            fontSize: 16,
+            fontWeight: "bold",
+            color:'#fff' ,
+          }} href="https://docs.airqo.net/airqo-handbook/-MHlrqORW-vI38ybYLVC/" target='_blank'>
+          Documentation
+        </a>
+       
           <IconButton color="inherit">
             <Badge
               badgeContent={notifications.length}
