@@ -50,6 +50,12 @@ const Topbar = (props) => {
   const [notifications] = useState([]);
   const orgData = useOrgData();
 
+  const logoContainerStyle = {
+    display: "flex",
+    // justifyContent: "space-around",
+    width: "330px",
+  }
+
   const logo_style = {
     height: "3.8em",
     width: "5em",
@@ -131,50 +137,52 @@ const Topbar = (props) => {
   return (
     <AppBar {...rest} className={clsx(classes.root, className)}>
       <Toolbar>
-        {orgData.name != 'airqo' && 
-          <>
-         <RouterLink to="/">
-          <img
-            alt="mak.ac.ug"
-            style={logo_style}
-            src="https://res.cloudinary.com/drgm88r3l/image/upload/v1602488051/airqo_org_logos/mak_logo.png"
-          />
-        </RouterLink>
-        <RouterLink to="/">
-          <img
-            alt="airqo.net"
-            style={logo_style}
-            src="https://res.cloudinary.com/drgm88r3l/image/upload/v1602488051/airqo_org_logos/airqo_logo.png"
-          />
-        </RouterLink>
-        <RouterLink to="/">
-          <img
-              alt={orgData.name}
+        <div style={logoContainerStyle}>
+          {orgData.name != 'airqo' &&
+            <>
+           <RouterLink to="/">
+            <img
+              alt="mak.ac.ug"
               style={logo_style}
-              src={"https://res.cloudinary.com/drgm88r3l/image/upload/v1602488051/airqo_org_logos/" + orgData.name + "_logo.png"}
-          />
+              src="https://res.cloudinary.com/drgm88r3l/image/upload/v1602488051/airqo_org_logos/mak_logo.png"
+            />
           </RouterLink>
-          </>
-        }
-        {orgData.name == 'airqo' && 
-          <>
           <RouterLink to="/">
-          <img
-            alt="mak.ac.ug"
-            style={logo_style}
-            src="https://res.cloudinary.com/drgm88r3l/image/upload/v1602488051/airqo_org_logos/mak_logo.png"
-          />
+            <img
+              alt="airqo.net"
+              style={logo_style}
+              src="https://res.cloudinary.com/drgm88r3l/image/upload/v1602488051/airqo_org_logos/airqo_logo.png"
+            />
           </RouterLink>
-        <RouterLink to="/">
-          <img
-            alt="airqo.net"
-            style={logo_style}
-            src="https://res.cloudinary.com/drgm88r3l/image/upload/v1602488051/airqo_org_logos/airqo_logo.png"
-          />
-        </RouterLink>
-        
-          </>
-        }
+          <RouterLink to="/">
+            <img
+                alt={orgData.name}
+                style={logo_style}
+                src={"https://res.cloudinary.com/drgm88r3l/image/upload/v1602488051/airqo_org_logos/" + orgData.name + "_logo.png"}
+            />
+            </RouterLink>
+            </>
+          }
+          {orgData.name == 'airqo' &&
+            <>
+            <RouterLink to="/">
+            <img
+              alt="mak.ac.ug"
+              style={logo_style}
+              src="https://res.cloudinary.com/drgm88r3l/image/upload/v1602488051/airqo_org_logos/mak_logo.png"
+            />
+            </RouterLink>
+          <RouterLink to="/">
+            <img
+              alt="airqo.net"
+              style={logo_style}
+              src="https://res.cloudinary.com/drgm88r3l/image/upload/v1602488051/airqo_org_logos/airqo_logo.png"
+            />
+          </RouterLink>
+
+            </>
+          }
+        </div>
         
         <div
           style={{
