@@ -51,15 +51,9 @@ const Topbar = (props) => {
   const orgData = useOrgData();
 
   const logo_style = {
-    height: "3.5em",
-    width: "4em",
-    borderRadius: "15%",
-    paddingTop: ".2em",
-    marginRight: ".4em",
-  };
-  const airqo_logo_style = {
-    height: "3.5em",
+    height: "3.8em",
     width: "5em",
+    borderRadius: "15%",
     paddingTop: ".2em",
     marginRight: ".4em",
   };
@@ -149,7 +143,7 @@ const Topbar = (props) => {
         <RouterLink to="/">
           <img
             alt="airqo.net"
-            style={airqo_logo_style}
+            style={logo_style}
             src="https://res.cloudinary.com/drgm88r3l/image/upload/v1602488051/airqo_org_logos/airqo_logo.png"
           />
         </RouterLink>
@@ -174,7 +168,7 @@ const Topbar = (props) => {
         <RouterLink to="/">
           <img
             alt="airqo.net"
-            style={airqo_logo_style}
+            style={logo_style}
             src="https://res.cloudinary.com/drgm88r3l/image/upload/v1602488051/airqo_org_logos/airqo_logo.png"
           />
         </RouterLink>
