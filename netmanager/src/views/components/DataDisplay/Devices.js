@@ -45,7 +45,8 @@ import CreatableSelect from "react-select/creatable";
 import MenuItem from "@material-ui/core/MenuItem";
 import ListItemText from "@material-ui/core/ListItemText";
 import Autocomplete from "@material-ui/lab/Autocomplete";
-import { getAllDevicesApi } from "../../apis/deviceRegistry";
+import { getAllDevicesApi, createDeviceComponentApi } from "../../apis/deviceRegistry";
+
 
 const useStyles = makeStyles((theme) => ({
   root: {},
@@ -75,6 +76,8 @@ const useStyles = makeStyles((theme) => ({
   },
   formControl: {
     minWidth: 200,
+    height: 50,
+    margin: "15 0"
   },
   input: {
     color: "black",
@@ -85,7 +88,20 @@ const useStyles = makeStyles((theme) => ({
   },
   paper: {
     minWidth: "400px",
+    minHeight: "400px",
   },
+  selectField: {
+    height: 120,
+    margin: "40 0",
+    // border: "1px solid red"
+  },
+  fieldMargin: {
+    margin: "20px 0"
+  },
+  button: {
+    margin: "10px",
+    width: "60px"
+  }
 }));
 
 const DevicesTable = (props) => {
@@ -223,6 +239,16 @@ const DevicesTable = (props) => {
   ];
 
   const [deviceName, setDeviceName] = useState("");
+
+  const handDeviceNameChange = (e) => {
+    setDeviceName(e.target.value)
+  }
+
+  const [componentType, setComponentType] = useState("")
+
+  const handleComponentTypeChange = (e) => {
+    setComponentType(e.target.value)
+  }
   const [maintenanceType, setMaintenanceType] = useState("");
   const handleMaintenanceTypeChange = (type) => {
     setMaintenanceType(type.target.value);
@@ -795,32 +821,24 @@ const DevicesTable = (props) => {
   };
 
   let handleSensorSubmit = (e) => {
-    console.log("Quantity Kind");
-    console.log(quantityKind);
     let filter = {
       description: sensorName, //e.g. pms5003
       measurement: convertQuantityOptions(quantityKind), //e.g. [{"quantityKind":"humidity", "measurementUnit":"%"}]
     };
-    console.log(JSON.stringify(filter));
-    console.log(constants.ADD_COMPONENT_URI + deviceName);
+    createDeviceComponentApi(deviceName, componentType, filter)
+        .then(responseData => {
 
-    axios
-      .post(constants.ADD_COMPONENT_URI + deviceName, JSON.stringify(filter), {
-        headers: { "Content-Type": "application/json" },
-      })
-      .then((res) => {
-        const myData = res.data;
-        console.log(myData.message);
-        setDialogResponseMessage("Component successfully added");
-        handleSensorClose();
-        setResponseOpen(true);
-      })
-      .catch((error) => {
-        console.log(error.message);
-        setDialogResponseMessage("An error occured. Please try again");
-        handleSensorClose();
-        setResponseOpen(true);
-      });
+          console.log(responseData.message);
+          setDialogResponseMessage(responseData.message);
+          handleSensorClose();
+          setResponseOpen(true);
+        })
+        .catch(error => {
+          console.log(error.response.data.message);
+          setDialogResponseMessage(error.response.data.message);
+          handleSensorClose();
+          setResponseOpen(true);
+        })
   };
 
   return (
@@ -1708,25 +1726,68 @@ const DevicesTable = (props) => {
           </DialogTitle>
           <DialogContent>
             <div>
-              <TextField
-                id="deviceName"
-                label="Device Name"
-                value={deviceName}
-                fullWidth={true}
-                required
-                //onChange={handleDeviceNameChange}
-              />{" "}
-              <br />
-              <FormControl required fullWidth={true}>
-                <InputLabel htmlFor="demo-dialog-native">
-                  {" "}
+              <div className={classes.fieldMargin}>
+                <TextField
+                  fullWidth
+                  id="deviceName"
+                  label="Device Name"
+                  margin="dense"
+                  required
+                  // value={deviceName}
+                  onChange={handDeviceNameChange}
+                  variant="standard"
+                />
+              </div>
+
+              <div className={classes.fieldMargin}>
+                <FormControl required fullWidth={true} className={classes.formControl}>
+                <InputLabel shrink htmlFor="demo-dialog-native-1">
+                  Component Type
+                </InputLabel>
+                <Select
+                  native
+                  className={classes.selectField}
+                  value={componentType}
+                  onChange={handleComponentTypeChange}
+                  InputLabelProps={{
+                    shrink: true,
+                  }}
+                  inputProps={{
+                    name: "Component Type",
+                    id: "demo-dialog-native-1",
+                    styles: "border: 1px solid green !important"
+                  }}
+                >
+                  <option aria-label="None" value="" />
+                  <option value="pm2_5">PM 2.5</option>
+                  <option value="pm10">PM 10</option>
+                  <option value="s2_pm2_5">Sensor 2 PM 2.5</option>
+                  <option value="s2_pm10">Sensor 2 PM 10</option>
+                  <option value="temperature">Temperature</option>
+                  <option value="battery">Battery</option>
+                  <option value="humidity">Humidity</option>
+                </Select>
+              </FormControl>
+              </div>
+
+              <div className={classes.fieldMargin}>
+                <FormControl required fullWidth={true} className={classes.formControl}>
+                <InputLabel shrink htmlFor="demo-dialog-native-1">
                   Component Name
                 </InputLabel>
                 <Select
                   native
+                  className={classes.selectField}
                   value={sensorName}
                   onChange={handleSensorNameChange}
-                  input={<Input id="demo-dialog-native" />}
+                  InputLabelProps={{
+                    shrink: true,
+                  }}
+                  inputProps={{
+                    name: "Component Name",
+                    id: "demo-dialog-native-1",
+                    styles: "border: 1px solid green !important"
+                  }}
                 >
                   <option aria-label="None" value="" />
                   <option value="Alphasense OPC-N2">Alphasense OPC-N2</option>
@@ -1738,17 +1799,20 @@ const DevicesTable = (props) => {
                   <option value="Bosch BME280">Bosch BME280</option>
                 </Select>
               </FormControl>
-              <br />
-              <FormControl
-                required
-                className={classes.formControl}
-                fullWidth={true}
-              >
-                <InputLabel htmlFor="demo-dialog-native">
+              </div>
+
+              <div className={classes.fieldMargin}>
+                 <FormControl
+                    required
+                    className={classes.formControl}
+                    fullWidth={true}
+                  >
+                <InputLabel shrink htmlFor="demo-dialog-native">
                   Quantity Measured
                 </InputLabel>
                 <Select
                   multiple
+                  className={classes.selectField}
                   value={quantityKind}
                   onChange={handleQuantityKindChange}
                   input={<Input />}
@@ -1764,33 +1828,33 @@ const DevicesTable = (props) => {
                   ))}
                 </Select>
               </FormControl>
-              <br />
+              </div>
+
             </div>
           </DialogContent>
 
           <DialogActions>
             <Grid
               container
-              alignItems="center"
-              alignContent="center"
-              justify="center"
+              alignItems="flex-end"
+              alignContent="flex-end"
+              justify="flex-end"
             >
               <Button
                 variant="contained"
-                color="primary"
-                onClick={handleSensorSubmit}
+                className={classes.button}
+                onClick={handleSensorClose}
               >
-                {" "}
-                Add
+                Cancel
               </Button>
-              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
               <Button
                 variant="contained"
                 color="primary"
-                onClick={handleSensorClose}
+                className={classes.button}
+                onClick={handleSensorSubmit}
               >
-                {" "}
-                Cancel
+                Add
               </Button>
             </Grid>
           </DialogActions>
