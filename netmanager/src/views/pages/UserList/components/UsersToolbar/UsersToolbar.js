@@ -394,20 +394,20 @@ const UsersToolbar = (props) => {
                     <TextField
                       id="privilege"
                       select
+                      fullWidth
                       label="Role"
-                      className={classes.textField}
+                      style={{marginTop: "15px"}}
                       value={form.privilege}
                       onChange={onChange}
-                      variant="outlined"
                       SelectProps={{
                         native: true,
+                        style: { width: "100%", height: "50px" },
                         MenuProps: {
                           className: classes.menu,
                         },
                       }}
                       helperText={form.errors.privilege}
                       error={form.errors.privilege}
-                      margin="normal"
                       variant="outlined"
                     >
                       {roles.map((option) => (
@@ -448,7 +448,7 @@ const UsersToolbar = (props) => {
                   >
                     Cancel
                   </Button>
-                  <Button onClick={onSubmit} color="primary" variant="outlined">
+                  <Button style={{margin: "0 15px"}} onClick={onSubmit} color="primary" variant="contained">
                     Submit
                   </Button>
                 </div>
