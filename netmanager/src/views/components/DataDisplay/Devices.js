@@ -74,10 +74,12 @@ const useStyles = makeStyles((theme) => ({
   table: {
     fontFamily: "Open Sans",
   },
+  modelWidth: {
+    minWidth: 450,
+  },
   formControl: {
-    minWidth: 200,
-    height: 50,
-    margin: "15 0"
+    height: 40,
+    margin: "15px 0"
   },
   input: {
     color: "black",
@@ -101,7 +103,10 @@ const useStyles = makeStyles((theme) => ({
   button: {
     margin: "10px",
     width: "60px"
-  }
+  },
+  textFieldMargin: {
+    margin: "15 0"
+  },
 }));
 
 const DevicesTable = (props) => {
@@ -1416,62 +1421,57 @@ const DevicesTable = (props) => {
           <DialogTitle id="form-dialog-title">Add a device</DialogTitle>
 
           <DialogContent>
-            <form className={classes.formControl}>
+            <form className={classes.modelWidth}>
               <TextField
                 required
+                className={classes.textFieldMargin}
                 id="deviceName"
                 value={registerName}
                 onChange={handleRegisterNameChange}
                 label="Device Name"
-                fullWidth={true}
+                fullWidth
               />
-              <br />
               <TextField
                 id="standard-basic"
+                className={classes.textFieldMargin}
                 label="Description"
                 value={description}
                 onChange={handleDescriptionChange}
-                fullWidth={true}
+                fullWidth
                 required
               />
-              <br />
               <TextField
                 id="standard-basic"
                 label="Manufacturer"
                 value={manufacturer}
                 onChange={handleManufacturerChange}
-                fullWidth={true}
+                fullWidth
               />
-              <br />
               <TextField
                 id="standard-basic"
                 label="Product Name"
                 value={productName}
                 onChange={handleProductNameChange}
-                fullWidth={true}
+                fullWidth
               />
-              <br />
               <TextField
                 id="standard-basic"
                 label="Latitude"
                 value={latitude}
                 onChange={handleLatitudeChange}
-                fullWidth={true}
+                fullWidth
                 required
               />
-              <br />
               <TextField
                 id="standard-basic"
                 label="Longitude"
                 value={longitude}
                 onChange={handleLongitudeChange}
-                fullWidth={true}
+                fullWidth
                 required
               />
-              <br />
-              <FormControl required fullWidth={true}>
+              <FormControl required fullWidth>
                 <InputLabel htmlFor="demo-dialog-native">
-                  {" "}
                   Data Access
                 </InputLabel>
                 <Select
@@ -1479,7 +1479,10 @@ const DevicesTable = (props) => {
                   native
                   value={visibility}
                   onChange={handleVisibilityChange}
-                  input={<Input id="demo-dialog-native" />}
+                  inputProps={{
+                    native: true,
+                    style: {height: "40px", marginTop: "10px", border: "1px solid red"},
+                  }}
                 >
                   <option aria-label="None" value="" />
                   <option value="true">True</option>
@@ -1492,19 +1495,20 @@ const DevicesTable = (props) => {
                 label="Owner"
                 value={owner}
                 onChange={handleOwnerChange}
-                fullWidth={true}
+                fullWidth
               />
-              <br />
-              <FormControl fullWidth={true}>
+              <FormControl fullWidth>
                 <InputLabel htmlFor="demo-dialog-native">
-                  {" "}
                   Internet Service Provider
                 </InputLabel>
                 <Select
                   native
                   value={ISP}
                   onChange={handleISPChange}
-                  input={<Input id="demo-dialog-native" />}
+                  inputProps={{
+                    native: true,
+                    style: {height: "40px", marginTop: "10px", border: "1px solid red"},
+                  }}
                 >
                   <option aria-label="None" value="" />
                   <option value="MTN">MTN</option>
@@ -1517,39 +1521,35 @@ const DevicesTable = (props) => {
                 label="Phone Number"
                 value={phone}
                 onChange={handlePhoneChange}
-                fullWidth={true}
+                fullWidth
               />
-              <br />
             </form>
           </DialogContent>
 
           <DialogActions>
             <Grid
               container
-              alignItems="center"
-              alignContent="center"
-              justify="center"
+              alignItems="flex-end"
+              alignContent="flex-end"
+              justify="flex-end"
             >
+              <Button
+                variant="contained"
+                type="button"
+                onClick={handleRegisterClose}
+              >
+                Cancel
+              </Button>
               <Button
                 variant="contained"
                 color="primary"
                 type="submit"
                 onClick={handleRegisterSubmit}
+                style={{margin: "0 15px"}}
               >
-                {" "}
                 Register
               </Button>
-              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-              <Button
-                variant="contained"
-                color="primary"
-                type="button"
-                onClick={handleRegisterClose}
-              >
-                {" "}
-                Cancel
-              </Button>
-            </Grid>{" "}
+            </Grid>
             <br />
           </DialogActions>
         </Dialog>
@@ -1740,7 +1740,7 @@ const DevicesTable = (props) => {
               </div>
 
               <div className={classes.fieldMargin}>
-                <FormControl required fullWidth={true} className={classes.formControl}>
+                <FormControl required fullWidth={true} className={`${classes.modelWidth} ${classes.formControl}`}>
                 <InputLabel shrink htmlFor="demo-dialog-native-1">
                   Component Type
                 </InputLabel>
