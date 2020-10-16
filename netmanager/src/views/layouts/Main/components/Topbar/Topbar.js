@@ -182,16 +182,16 @@ const Topbar = (props) => {
         </p>
         <div className={classes.flexGrow} />
         <Hidden mdDown>
-        <a style={{
-            textTransform: "uppercase",
-            marginLeft: "10px",
-            fontSize: 16,
-            fontWeight: "bold",
-            color:'#fff' ,
-          }} href="https://docs.airqo.net/airqo-handbook/-MHlrqORW-vI38ybYLVC/" target='_blank'>
-          
-          <HelpIcon/>
-        </a>
+
+          <IconButton color="inherit" href="https://docs.airqo.net/airqo-handbook/-MHlrqORW-vI38ybYLVC/" target="_blank">
+            <Badge
+              badgeContent={notifications.length}
+              color="primary"
+              variant="dot"
+            >
+              <HelpIcon />
+            </Badge>
+          </IconButton>
        
           <IconButton color="inherit">
             <Badge
