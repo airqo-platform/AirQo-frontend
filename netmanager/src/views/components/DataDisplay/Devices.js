@@ -1204,7 +1204,7 @@ const DevicesTable = (props) => {
           </DialogTitle>
 
           <DialogContent>
-            <Grid container spacing={1}>
+            <Grid container spacing={1} className={classes.modelWidth}>
               <Grid container item xs={12} spacing={3}>
                 <Grid item xs={6}>
                   <TextField
@@ -1212,7 +1212,7 @@ const DevicesTable = (props) => {
                     label="Device Name"
                     value={deviceName}
                     required
-                    fullWidth={true}
+                    fullWidth
                   />
                 </Grid>
                 <Grid item xs={6}>
@@ -1221,7 +1221,7 @@ const DevicesTable = (props) => {
                     label="height"
                     value={height}
                     onChange={handleHeightChange}
-                    fullWidth={true}
+                    fullWidth
                   />
                 </Grid>
               </Grid>
@@ -1229,8 +1229,7 @@ const DevicesTable = (props) => {
                 <Grid item xs={6}>
                   <FormControl
                     required
-                    className={classes.formControl}
-                    fullWidth={true}
+                    fullWidth
                   >
                     <InputLabel htmlFor="demo-dialog-native">
                       Location ID
@@ -1240,6 +1239,10 @@ const DevicesTable = (props) => {
                       required
                       value={locationID}
                       onChange={handleLocationIDChange}
+                      inputProps={{
+                        native: true,
+                        style: {height: "40px", marginTop: "10px"},
+                      }}
                       input={<Input id="demo-dialog-native" />}
                     >
                       <option aria-label="None" value="" />
@@ -1262,7 +1265,7 @@ const DevicesTable = (props) => {
                 </Grid>
 
                 <Grid item xs={6}>
-                  <FormControl className={classes.formControl} fullWidth={true}>
+                  <FormControl fullWidth>
                     <InputLabel htmlFor="demo-dialog-native">
                       Power Type
                     </InputLabel>
@@ -1270,6 +1273,10 @@ const DevicesTable = (props) => {
                       native
                       value={power}
                       onChange={handlePowerChange}
+                      inputProps={{
+                        native: true,
+                        style: {height: "40px", marginTop: "10px"},
+                      }}
                       input={<Input id="demo-dialog-native" />}
                     >
                       <option aria-label="None" value="" />
@@ -1320,6 +1327,7 @@ const DevicesTable = (props) => {
                       />
                     }
                     label="I wish to make this my primary device in this location"
+                    style={{ margin: "10px 0 0 5px" }}
                   />
                   <FormControlLabel
                     control={
@@ -1331,6 +1339,7 @@ const DevicesTable = (props) => {
                       />
                     }
                     label="This deployment is a formal collocation"
+                    style={{ marginLeft: "5px" }}
                   />
                 </Grid>{" "}
               </div>
@@ -1340,26 +1349,23 @@ const DevicesTable = (props) => {
           <DialogActions>
             <Grid
               container
-              alignItems="center"
-              alignContent="center"
-              justify="center"
+              alignItems="flex-end"
+              alignContent="flex-end"
+              justify="flex-end"
             >
+              <Button
+                variant="contained"
+                onClick={handleDeployClose}
+              >
+                Cancel
+              </Button>
               <Button
                 variant="contained"
                 color="primary"
                 onClick={handleDeploySubmit}
+                style={{ margin: "0 15px" }}
               >
-                {" "}
                 Deploy
-              </Button>
-              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={handleDeployClose}
-              >
-                {" "}
-                Cancel
               </Button>
             </Grid>
           </DialogActions>
