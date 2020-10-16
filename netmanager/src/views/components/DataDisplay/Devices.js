@@ -1082,18 +1082,18 @@ const DevicesTable = (props) => {
           </DialogTitle>
 
           <DialogContent>
-            <div style={{ width: 300 }}>
+            <form className={classes.modelWidth} >
+            <div>
               <TextField
                 id="deviceName"
                 label="Device Name"
                 value={deviceName}
-                fullWidth={true}
-              />{" "}
-              <br />
+                fullWidth
+                disabled
+              />
               <FormControl
                 required
-                className={classes.formControl}
-                fullWidth={true}
+                fullWidth
               >
                 <InputLabel htmlFor="demo-dialog-native">
                   Type of Maintenance
@@ -1102,6 +1102,10 @@ const DevicesTable = (props) => {
                   native
                   value={maintenanceType}
                   onChange={handleMaintenanceTypeChange}
+                  inputProps={{
+                    native: true,
+                    style: {height: "40px", marginTop: "10px"},
+                  }}
                   input={<Input id="demo-dialog-native" />}
                 >
                   <option aria-label="None" value="" />
@@ -1112,8 +1116,8 @@ const DevicesTable = (props) => {
               <br />
               <FormControl
                 required
-                className={classes.formControl}
-                fullWidth={true}
+                className
+                fullWidth
               >
                 <InputLabel htmlFor="demo-dialog-native">
                   Description of Activities
@@ -1122,7 +1126,7 @@ const DevicesTable = (props) => {
                   multiple
                   value={maintenanceDescription}
                   onChange={handleMaintenanceDescriptionChange}
-                  input={<Input />}
+                  input={<Input style={{height: "50px", marginTop: "10px"}}/>}
                   renderValue={(selected) => selected.join(", ")}
                   MenuProps={MenuProps}
                 >
@@ -1156,31 +1160,29 @@ const DevicesTable = (props) => {
                 />
               </MuiPickersUtilsProvider>
             </div>
+            </form>
           </DialogContent>
 
           <DialogActions>
             <Grid
               container
-              alignItems="center"
-              alignContent="center"
-              justify="center"
+              alignItems="flex-end"
+              alignContent="flex-end"
+              justify="flex-end"
             >
+              <Button
+                variant="contained"
+                onClick={handleMaintenanceClose}
+              >
+                Cancel
+              </Button>
               <Button
                 variant="contained"
                 color="primary"
                 onClick={handleMaintenanceSubmit}
+                style={{ margin: "0 15px" }}
               >
-                {" "}
                 Update
-              </Button>
-              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={handleMaintenanceClose}
-              >
-                {" "}
-                Cancel
               </Button>
             </Grid>
           </DialogActions>
