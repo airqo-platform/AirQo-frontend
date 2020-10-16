@@ -1386,33 +1386,30 @@ const DevicesTable = (props) => {
           </DialogTitle>
 
           <DialogContent>
-            Are you sure you want to recall device {deviceName} from location{" "}
-            {locationID}?
+            Are you sure you want to recall device <strong>{deviceName}</strong> from location{" "}
+            <strong>{locationID}</strong>?
           </DialogContent>
 
           <DialogActions>
             <Grid
               container
-              alignItems="center"
-              alignContent="center"
-              justify="center"
+              alignItems="flex-end"
+              alignContent="flex-end"
+              justify="flex-end"
             >
+              <Button
+                variant="contained"
+                onClick={handleRecallClose}
+              >
+                NO
+              </Button>
               <Button
                 variant="contained"
                 color="primary"
                 onClick={handleRecallSubmit}
+                style={{ margin: "0 15px" }}
               >
-                {" "}
                 YES
-              </Button>
-              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={handleRecallClose}
-              >
-                {" "}
-                NO
               </Button>
             </Grid>
           </DialogActions>
