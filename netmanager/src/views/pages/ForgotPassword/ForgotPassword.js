@@ -1,16 +1,13 @@
 /* eslint-disable */
 import React, { Component } from "react";
-import TextField from "@material-ui/core/TextField";
-import axios from "axios";
-
-//new imports
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { forgotPassword } from "../../../redux/Join/actions";
 import { Link, withRouter } from "react-router-dom";
 import classnames from "classnames";
-import { verifyToken } from "../../../redux/Join/utils";
-import constants from "../../../config/constants";
+import { forgotPasswordResetApi } from "../../apis/authService";
+import Alert from "@material-ui/lab/Alert";
+import { CardContent } from "@material-ui/core";
 
 const title = {
   pageTitle: "Forgot Password Screen",
@@ -22,9 +19,15 @@ class ForgotPassword extends Component {
 
     this.state = {
       email: "",
+      organisation: "",
       showError: false,
       messageFromServer: "",
       errors: {},
+      alert: {
+        show: false,
+        message: "",
+        type: "error"
+      },
     };
   }
 
@@ -41,23 +44,55 @@ class ForgotPassword extends Component {
     el.remove(); 
   }
 
+  onAlertClose = () => {
+    this.setState({
+      ...this.state,
+      alert: { ...this.state.alert, show: false }
+    })
+  }
+
+  setAlert = (alert) => {
+    this.setState({
+      ...this.state,
+      alert
+    })
+  }
+
   onChange = (e) => {
     this.setState({
       [e.target.id]: e.target.value,
     });
   };
 
-  onSubmit = (e) => {
+  onSubmit = async (e) => {
     e.preventDefault();
-    const { email } = this.state;
+    const { email, organisation } = this.state;
     const userData = {
       email,
+      organisation,
     };
 
-    this.props.forgotPassword(userData);
-    this.setState({
-      email: "",
-    });
+    await forgotPasswordResetApi(userData)
+        .then(responseData => {
+          this.setAlert({
+            show: true,
+            message: responseData.message,
+            type: "success"
+          })
+          this.setState({
+            email: "",
+            organisation: "",
+          })
+        })
+        .catch(err => {
+          debugger
+          this.setAlert({
+            show: true,
+            message: err.response.data.message,
+            type: "error"
+          })
+        });
+    ;
   };
 
   render() {
@@ -77,6 +112,28 @@ class ForgotPassword extends Component {
               </h4>
             </div>
             <form noValidate onSubmit={this.onSubmit}>
+              <CardContent style={this.state.alert.show ? {} : { display: "none" }}>
+                <Alert severity={this.state.alert.type} onClose={this.onAlertClose}>
+                  {this.state.alert.message}
+                </Alert>
+              </CardContent>
+              <div className="input-field col s12">
+                <input
+                  onChange={this.onChange}
+                  value={this.state.organisation}
+                  error={errors.organisation}
+                  id="organisation"
+                  type="text"
+                  className={classnames("", {
+                    invalid: errors.organisation,
+                  })}
+                />
+                <label htmlFor="organisation">Organisation</label>
+                <span className="red-text">
+                  {errors.email}
+                  {errors.emailnotfound}
+                </span>
+              </div>
               <div className="input-field col s12">
                 <input
                   onChange={this.onChange}
