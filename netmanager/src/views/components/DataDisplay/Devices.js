@@ -1481,7 +1481,7 @@ const DevicesTable = (props) => {
                   onChange={handleVisibilityChange}
                   inputProps={{
                     native: true,
-                    style: {height: "40px", marginTop: "10px", border: "1px solid red"},
+                    style: {height: "40px", marginTop: "10px"},
                   }}
                 >
                   <option aria-label="None" value="" />
@@ -1507,7 +1507,7 @@ const DevicesTable = (props) => {
                   onChange={handleISPChange}
                   inputProps={{
                     native: true,
-                    style: {height: "40px", marginTop: "10px", border: "1px solid red"},
+                    style: {height: "40px", marginTop: "10px"},
                   }}
                 >
                   <option aria-label="None" value="" />
@@ -1565,66 +1565,60 @@ const DevicesTable = (props) => {
           <DialogTitle id="form-dialog-title">Edit a device</DialogTitle>
 
           <DialogContent>
-            <form className={classes.formControl}>
+            <form className={classes.modelWidth}>
               <TextField
                 required
                 id="standard-basic"
                 label="Device Name"
                 value={registerName}
-                fullWidth={true}
+                fullWidth
+                disabled
                 onChange={handleRegisterNameChange}
                 InputProps={{
                   readOnly: true,
                 }}
-              />{" "}
-              <br />
+              />
               <TextField
                 id="standard-basic"
                 label="Description"
                 value={description}
                 onChange={handleDescriptionChange}
-                fullWidth={true}
+                fullWidth
                 required
               />
-              <br />
               <TextField
                 id="standard-basic"
                 label="Manufacturer"
                 value={manufacturer}
                 onChange={handleManufacturerChange}
-                fullWidth={true}
+                fullWidth
               />
-              <br />
               <TextField
                 id="standard-basic"
                 label="Product Name"
                 value={productName}
                 onChange={handleProductNameChange}
-                fullWidth={true}
+                fullWidth
               />
-              <br />
               <TextField
                 id="standard-basic"
                 label="Latitude"
                 value={latitude}
                 onChange={handleLatitudeChange}
-                fullWidth={true}
+                fullWidth
                 required
               />
-              <br />
               <TextField
                 id="standard-basic"
                 label="Longitude"
                 value={longitude}
                 onChange={handleLongitudeChange}
-                fullWidth={true}
+                fullWidth
                 required
               />
-              <br />
               <FormControl
                 required
-                className={classes.formControl}
-                fullWidth={true}
+                fullWidth
               >
                 <InputLabel htmlFor="demo-dialog-native">
                   Data Access
@@ -1633,6 +1627,10 @@ const DevicesTable = (props) => {
                   native
                   value={visibility}
                   onChange={handleVisibilityChange}
+                  inputProps={{
+                    native: true,
+                    style: {height: "40px", marginTop: "10px", border: "1px solid red"},
+                  }}
                   input={<Input id="demo-dialog-native" />}
                 >
                   <option aria-label="None" value="" />
@@ -1645,19 +1643,21 @@ const DevicesTable = (props) => {
                 label="Owner"
                 value={owner}
                 onChange={handleOwnerChange}
-                fullWidth={true}
+                fullWidth
                 required
               />
-              <br />
-              <FormControl className={classes.formControl} fullWidth={true}>
+              <FormControl fullWidth>
                 <InputLabel htmlFor="demo-dialog-native">
-                  {" "}
                   Internet Service Provider
                 </InputLabel>
                 <Select
                   native
                   value={ISP}
                   onChange={handleISPChange}
+                  inputProps={{
+                    native: true,
+                    style: {height: "40px", marginTop: "10px"},
+                  }}
                   input={<Input id="demo-dialog-native" />}
                 >
                   <option aria-label="None" value="" />
@@ -1671,39 +1671,35 @@ const DevicesTable = (props) => {
                 label="Phone Number"
                 value={phone}
                 onChange={handlePhoneChange}
-                fullWidth={true}
+                fullWidth
               />
-              <br />
             </form>
           </DialogContent>
 
           <DialogActions>
             <Grid
               container
-              alignItems="center"
-              alignContent="center"
-              justify="center"
+              alignItems="flex-end"
+              alignContent="flex-end"
+              justify="flex-end"
             >
+              <Button
+                variant="contained"
+                type="button"
+                onClick={handleEditClose}
+              >
+                Cancel
+              </Button>
               <Button
                 variant="contained"
                 type="submit"
                 color="primary"
                 onClick={handleEditSubmit}
+                style={{ margin: "0 15px" }}
               >
-                {" "}
                 Update
               </Button>
-              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-              <Button
-                variant="contained"
-                color="primary"
-                type="button"
-                onClick={handleEditClose}
-              >
-                {" "}
-                Cancel
-              </Button>
-            </Grid>{" "}
+            </Grid>
             <br />
           </DialogActions>
         </Dialog>
