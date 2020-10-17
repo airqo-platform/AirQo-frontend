@@ -55,6 +55,7 @@ import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Checkbox from '@material-ui/core/Checkbox';
 import MenuItem from '@material-ui/core/MenuItem';
 import ListItemText from '@material-ui/core/ListItemText';
+import { getFilteredDevicesApi } from "../../apis/deviceRegistry";
 
 const useStyles = makeStyles(styles);
 
@@ -451,55 +452,17 @@ export default function DeviceView() {
   const [loaded, setLoaded] = useState(false);
   const [deviceData, setDeviceData] = useState([]);
   const [deviceName, setDeviceName] = useState('');
-  useEffect(() => {
-    let deviceID = params.channelId
-    axios.get(
-      constants.ALL_DEVICES_URI
-    )
-    .then(
-      res=>{
-        const ref = res.data;
-        for (var i=0; i<ref.length; i++){
-          if (ref[i].channelID==deviceID){
-            //console.log('ref[i].name');
-            //console.log(ref[i].name);
-            setDeviceData(ref[i]);
-            setDeviceName(ref[i].name);
-            console.log('getting maintenance logs')
-            console.log(logs(ref[i].name));
-            console.log(getComponents(ref[i].name));
-            setLoaded(true);
-          }
-        }
-    }).catch(
-      console.log
-    )
-  }, []);
 
   const [componentData, setComponentData] = useState([]);
-  //const [deviceName, setDeviceName] = useState('');
+
   useEffect(() => {
-    let deviceID = params.channelId
-    axios.get(
-      constants.ALL_DEVICES_URI
-    )
-    .then(
-      res=>{
-        const ref = res.data;
-        for (var i=0; i<ref.length; i++){
-          if (ref[i].channelID==deviceID){
-            console.log('ref[i].name');
-            console.log(ref[i].name);
-            setDeviceData(ref[i]);
-            setDeviceName(ref[i].name);
-            console.log('getting maintenance logs')
-            console.log(logs(ref[i].name));
-            setLoaded(true);
-          }
-        }
-    }).catch(
-      console.log
-    )
+    getFilteredDevicesApi({ chid: params.channelId })
+        .then(responseData => {
+          setDeviceData(responseData.device);
+          setDeviceName(responseData.device.name);
+          setLoaded(true);
+        })
+        .catch(console.log)
   }, []);
 
   //Edit dialog parameters
@@ -855,6 +818,12 @@ export default function DeviceView() {
                  </TableRow>
                  <TableRow>
                    <TableCell><b>Phone Number: </b>{"0"+deviceData.phoneNumber}</TableCell>
+                 </TableRow>
+                 <TableRow>
+                   <TableCell><b>Read Key: </b>{deviceData.readKey}</TableCell>
+                 </TableRow>
+                 <TableRow>
+                   <TableCell><b>Write Key: </b>{deviceData.writeKey}</TableCell>
                  </TableRow>
                </TableBody>
             </Table>

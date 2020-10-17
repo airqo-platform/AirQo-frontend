@@ -13,3 +13,9 @@ export const createDeviceComponentApi = async (deviceName, componentType, data) 
       .post(constants.ADD_COMPONENT_URI + deviceName, data, { params: { ctype }})
       .then((response) => response.data)
 }
+
+export const getFilteredDevicesApi = async (params) => {
+  return await axios
+    .get(constants.ALL_DEVICES_URI, { params })
+    .then((response) => response.data);
+};
