@@ -50,6 +50,8 @@ import ListItemText from "@material-ui/core/ListItemText";
 import { createDeviceComponentApi } from "../../apis/deviceRegistry";
 import { loadDevicesData } from "redux/DeviceRegistry/operations";
 import { useDevicesData } from "redux/DeviceRegistry/selectors";
+import { useLocationsData } from "redux/LocationRegistry/selectors";
+import { loadLocationsData } from "redux/LocationRegistry/operations";
 import { generatePaginateOptions } from "utils/pagination";
 
 
@@ -129,7 +131,8 @@ const DevicesTable = (props) => {
   const classes = useStyles();
 
   const dispatch = useDispatch();
-  const devices = useDevicesData()
+  const devices = useDevicesData();
+  const locations = useLocationsData();
   const [isLoading, setIsLoading] = useState(false);
   const [dialogResponseMessage, setDialogResponseMessage] = useState("");
 
@@ -344,19 +347,6 @@ const DevicesTable = (props) => {
     return newArray;
   };
 
-  function getStyles(name, personName, theme) {
-    return {
-      fontWeight:
-        personName.indexOf(name) === -1
-          ? theme.typography.fontWeightRegular
-          : theme.typography.fontWeightMedium,
-    };
-  }
-
-  const [sensorID, setSensorID] = useState("");
-  const handleSensorIDChange = (id) => {
-    setSensorID(id.target.value);
-  };
   const [sensorName, setSensorName] = useState("");
   const handleSensorNameChange = (name) => {
     setSensorName(name.target.value);
@@ -385,43 +375,21 @@ const DevicesTable = (props) => {
     setQuantityKind(quantity.target.value);
   };
 
-  const getQuantityName = (name, quantityOptions) => {
-    for (let i = 0; i < quantityOptions.length; i++) {
-      if (quantityOptions[i].name === name) {
-        return quantityOptions[i].name;
-      }
-    }
-    return "";
-  };
-  const [measurementUnit, setMeasurementUnit] = useState([]);
-  const handleMeasurementUnitChange = (unit) => {
-    setMeasurementUnit(unit.target.value);
-  };
-
   //deployment parameters
   const [recallDate, setRecallDate] = useState(new Date());
   const [locationsOptions, setLocationsOptions] = useState([]);
 
   useEffect(() => {
-    axios
-      .get(constants.ALL_LOCATIONS_URI)
-      .then((res) => {
-        const ref = res.data;
-        console.log(ref);
-        let locationArray = [];
-        for (var i = 0; i < ref.length; i++) {
-          locationArray.push({
-            loc_ref: ref[i].loc_ref,
-            loc_name: ref[i].location_name,
-            loc_desc: ref[i].description,
-          });
-        }
-        console.log("location array");
-        console.log(locationArray);
-        setLocationsOptions(locationArray);
-      })
-      .catch(console.log);
-  }, []);
+    let locationArr = []
+    locations.map((location) => {
+      locationArr.push({
+          loc_ref: location.loc_ref,
+          loc_name: location.location_name,
+          loc_desc: location.description,
+        });
+    })
+    setLocationsOptions(locationArr);
+  }, [locations]);
 
   const [devicesInLocation, setDevicesInLocation] = useState([]);
   const [devicesLabel, setDevicesLabel] = useState("");
@@ -502,6 +470,9 @@ const DevicesTable = (props) => {
       setIsLoading(true);
       dispatch(loadDevicesData());
       setIsLoading(false);
+    }
+    if (isEmpty(locations)) {
+      dispatch(loadLocationsData())
     }
   }, []);
 
