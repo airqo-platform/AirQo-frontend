@@ -1,34 +1,21 @@
 import React, { useState, useEffect } from 'react';
+import { useDispatch } from "react-redux";
 import clsx from 'clsx';
 import PropTypes from 'prop-types';
 import PerfectScrollbar from 'react-perfect-scrollbar';
-import axios from 'axios';
 import { Link } from "react-router-dom";
 import { makeStyles } from '@material-ui/styles';
 import {
   Card,
-  CardActions,
   CardContent,
-  Avatar,
-  Checkbox,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-  Typography,
-  TablePagination
 } from '@material-ui/core';
 import LoadingOverlay from 'react-loading-overlay';
-import {CSVLink, CSVDownload} from 'react-csv';
-import { Button } from "@material-ui/core";
-//import './assets/css/location-registry.css';
 import '../../../assets/css/location-registry.css';
-import { SearchInput } from "../SearchInput";
-import constants from '../../../config/constants.js';
 
-import MaterialTable, { MTablePagination, Paper} from 'material-table';
-import { configs } from 'eslint-plugin-prettier';
+import MaterialTable from 'material-table';
+import { isEmpty } from "underscore";
+import { useLocationsData } from "redux/LocationRegistry/selectors";
+import { loadLocationsData } from "redux/LocationRegistry/operations";
 
 
 const useStyles = makeStyles(theme => ({
@@ -63,7 +50,8 @@ const LocationsTable = props => {
 
   const classes = useStyles();
 
-  const [data, setData] = useState([]);   
+  const dispatch = useDispatch()
+  const locations = useLocationsData()
 
   const [selectedLocations, setSelectedLocations] = useState([]);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -75,39 +63,14 @@ const LocationsTable = props => {
     const value = filter.target.value || undefined
     setFilterInput(value);
   }
-
- 
-
-  /*
-  useEffect(() => {
-    const GetData = async () => {
-      const result = await axios.get('http://127.0.0.1:4000/api/v1/location_registry/locations');
-      setData(result.data);
-    }
-    
-    GetData();
-    console.log('we did it');    
-    console.log(data);
-  }, []); */
-
   
   useEffect(() => {
     //code to retrieve all locations data
-    setIsLoading(true);
-    axios.get(
-      //'http://127.0.0.1:4000/api/v1/location_registry/locations'
-      constants.ALL_LOCATIONS_URI
-    )
-    .then(
-      res=>{
-        setIsLoading(false);
-        const ref = res.data;
-        console.log(ref);
-        setData(ref)
-
-    }).catch(
-      console.log
-    )
+    if (isEmpty(locations)) {
+      setIsLoading(true);
+      dispatch(loadLocationsData());
+      setIsLoading(false);
+    }
   }, []);
 
   const handleSelectAll = event => {
@@ -158,60 +121,12 @@ const LocationsTable = props => {
       spinner
       text='Loading Locations...'
     >
-      {/*
-      <div className={classes.row}>
-    
-        <SearchInput
-          className={classes.searchInput}
-          placeholder="Search location"
-          modifier='material'
-          onChange={handleFilterChange}
-          value = {filterInput}
-        />
-      </div> */}
     <Card
       {...rest}
       className={clsx(classes.root, className)}
     >
       <CardContent className={classes.content}>
         <PerfectScrollbar>
-          {/*
-                  <TableCell className = {classes.table}><b>Location Ref</b></TableCell>
-                  <TableCell className = {classes.table}><b>Location Name</b></TableCell>
-                  <TableCell className = {classes.table}><b>Mobility</b></TableCell>
-                  <TableCell className = {classes.table}><b>Latitude</b></TableCell>
-                  <TableCell className = {classes.table}><b>Longitude</b></TableCell>
-                  <TableCell className = {classes.table}><b>Country</b></TableCell>
-                  <TableCell className = {classes.table}><b>District</b></TableCell>
-                  <TableCell className = {classes.table}><b>Subcounty</b></TableCell>  
-                  <TableCell className = {classes.table}><b>Parish</b></TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-              {data.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(row => {
-                return (
-                <TableRow >
-                  <TableCell> 
-                    <Link className={classes.link} to={`/locations/${row.loc_ref}`}>{row.loc_ref}</Link>
-                  </TableCell>
-                  <TableCell className = {classes.table}>{row.location_name}</TableCell>
-                  <TableCell className = {classes.table}>{row.mobility}</TableCell>
-                  <TableCell className = {classes.table}>{row.latitude}</TableCell>
-                  <TableCell className = {classes.table}>{row.longitude}</TableCell>
-                  <TableCell className = {classes.table}>{row.country}</TableCell>
-                  <TableCell className = {classes.table}>{row.district}</TableCell>
-                  <TableCell className = {classes.table}>{row.subcounty}</TableCell>
-                  <TableCell className = {classes.table}>{row.parish}</TableCell>
-                </TableRow>
-                 );  
-               })}  
-                 
-                 
-                
-                    
-              </TableBody>
-            </Table>
-          </div> */}
           <MaterialTable
             className = {classes.table}
             title="Location Registry"
@@ -228,9 +143,8 @@ const LocationsTable = props => {
              { title: 'District', field: 'district', cellStyle:{ fontFamily: 'Open Sans'} },
              { title: 'Subcounty', field: 'subcounty', cellStyle:{ fontFamily: 'Open Sans'} },
              { title: 'Parish', field: 'parish', cellStyle:{ fontFamily: 'Open Sans'} },
-             //{title: 'Birth Place',mfield: 'birthCity', lookup: { 34: 'İstanbul', 63: 'Şanlıurfa' },},
       ]}   
-      data = {data}  
+      data = {locations}
       options={{
         search: true,
         exportButton: true,
@@ -245,54 +159,13 @@ const LocationsTable = props => {
           fontSize: 16,
           fontWeight: 600
         },
-        pageSizeOptions : [10, 25, 50, data.length],
+        pageSizeOptions : [10, 25, 50, Object.values(locations).length],
         pageSize: 10
       }}
     />
-        </PerfectScrollbar> 
-        {/*
-        <br/>
-        <CSVLink data={data} 
-         align = "center">
-        <Button 
-        className={classes.exportButton}
-        variant="contained" 
-        color="primary"
-        align = "centre"
-        >Export as CSV
-        </Button>
-              </CSVLink>*/}
+        </PerfectScrollbar>
       </CardContent> 
-      {/*<CardActions className = {classes.actions}>*/}
-      {/*
-      <CardContent className={classes.content}>
-      <br/>
-      <CSVLink 
-        data={data} 
-        filename="locations_data.csv"
-        align = "center">
-        <Button 
-          className={classes.exportButton}
-          variant="contained" 
-          color="primary"
-          align = "centre"
-        >Export to CSV
-        </Button>
-      </CSVLink>
-      </CardContent>
-      
-      {/*
-        <TablePagination 
-          component="div"
-          count={data.length}
-          onChangePage={handlePageChange}
-          onChangeRowsPerPage={handleRowsPerPageChange}
-          page={page}
-          rowsPerPage={rowsPerPage}
-          rowsPerPageOptions={[5, 10, 25]}
-        /> 
 
-      {/*</CardActions>*/}
       </Card>
 
     </LoadingOverlay>
