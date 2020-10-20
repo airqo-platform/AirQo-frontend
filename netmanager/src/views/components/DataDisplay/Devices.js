@@ -50,6 +50,7 @@ import ListItemText from "@material-ui/core/ListItemText";
 import { createDeviceComponentApi } from "../../apis/deviceRegistry";
 import { loadDevicesData } from "redux/DeviceRegistry/operations";
 import { useDevicesData } from "redux/DeviceRegistry/selectors";
+import { generatePaginateOptions } from "utils/pagination";
 
 
 const useStyles = makeStyles((theme) => ({
@@ -1018,7 +1019,7 @@ const DevicesTable = (props) => {
                     fontSize: 16,
                     fontWeight: 600,
                   },
-                  pageSizeOptions: [10, 25, 50, Object.values(devices).length],
+                  pageSizeOptions: generatePaginateOptions(Object.values(devices).length),
                   pageSize: 10,
                 }}
               />

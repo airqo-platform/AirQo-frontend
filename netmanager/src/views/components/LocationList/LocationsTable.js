@@ -11,11 +11,11 @@ import {
 } from '@material-ui/core';
 import LoadingOverlay from 'react-loading-overlay';
 import '../../../assets/css/location-registry.css';
-
 import MaterialTable from 'material-table';
 import { isEmpty } from "underscore";
 import { useLocationsData } from "redux/LocationRegistry/selectors";
 import { loadLocationsData } from "redux/LocationRegistry/operations";
+import { generatePaginateOptions } from "utils/pagination";
 
 
 const useStyles = makeStyles(theme => ({
@@ -63,6 +63,8 @@ const LocationsTable = props => {
     const value = filter.target.value || undefined
     setFilterInput(value);
   }
+
+
   
   useEffect(() => {
     //code to retrieve all locations data
@@ -159,7 +161,7 @@ const LocationsTable = props => {
           fontSize: 16,
           fontWeight: 600
         },
-        pageSizeOptions : [10, 25, 50, Object.values(locations).length],
+        pageSizeOptions : generatePaginateOptions(locations.length),
         pageSize: 10
       }}
     />
