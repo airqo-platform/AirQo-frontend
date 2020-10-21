@@ -13,21 +13,21 @@ import WbSunnyIcon from "@material-ui/icons/WbSunny";
 import PowerIcon from "@material-ui/icons/Power";
 import NotificationsNoneIcon from "@material-ui/icons/NotificationsNone";
 import ScheduleIcon from "@material-ui/icons/Schedule";
-import TasksWithoutEdits from "../Tasks/TasksWithoutEdits";
+import TasksWithoutEdits from "../../Tasks/TasksWithoutEdits";
 // core components
-import GridItem from "../Grid/GridItem.js";
-import GridContainer from "../Grid/GridContainer.js";
+import GridItem from "../../Grid/GridItem.js";
+import GridContainer from "../../Grid/GridContainer.js";
 import FormControl from '@material-ui/core/FormControl';
 import TextField from '@material-ui/core/TextField';
 import Select from '@material-ui/core/Select';
 //import Table from "../Table/Table.js";
-import Tasks from "../Tasks/Tasks.js";
-import CustomTabs from "../CustomTabs/CustomTabs";
-import Card from "../Card/Card.js";
-import CardHeader from "../Card/CardHeader.js";
-import CardIcon from "../Card/CardIcon.js";
-import CardBody from "../Card/CardBody.js";
-import CardFooter from "../Card/CardFooter.js";
+import Tasks from "../../Tasks/Tasks.js";
+import CustomTabs from "../../CustomTabs/CustomTabs";
+import Card from "../../Card/Card.js";
+import CardHeader from "../../Card/CardHeader.js";
+import CardIcon from "../../Card/CardIcon.js";
+import CardBody from "../../Card/CardBody.js";
+import CardFooter from "../../Card/CardFooter.js";
 import { Map, TileLayer, Marker, Popup } from "react-leaflet";
 import { TableContainer, Table, TableBody, TableCell, TableHead, TableRow, Paper } from "@material-ui/core";
 import { DeleteOutlined, EditOutlined } from '@material-ui/icons';
@@ -35,18 +35,18 @@ import Tooltip from '@material-ui/core/Tooltip';
 import { Link } from "react-router-dom";
 import { useParams } from 'react-router-dom';
 import { Grid, Button, Dialog, DialogActions, DialogContent, DialogTitle } from '@material-ui/core';
-import { bugs, website, server } from "../../variables/general.js";
+import { bugs, website, server } from "../../../variables/general.js";
 import {
   dailySalesChart,
   emailsSubscriptionChart,
   completedTasksChart,
   OnlineStatusChart,
-} from "../../variables/charts.js";
+} from "../../../variables/charts.js";
 
 import styles from "assets/jss/material-dashboard-react/views/dashboardStyle.js";
-import constants from "../../../config/constants";
+import constants from "../../../../config/constants";
 import axios from "axios";
-import palette from "../../../assets/theme/palette";
+import palette from "../../../../assets/theme/palette";
 import { Line, Bar, Pie } from "react-chartjs-2";
 import 'chartjs-plugin-annotation';
 import Input from '@material-ui/core/Input';
@@ -55,7 +55,8 @@ import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Checkbox from '@material-ui/core/Checkbox';
 import MenuItem from '@material-ui/core/MenuItem';
 import ListItemText from '@material-ui/core/ListItemText';
-import { getFilteredDevicesApi } from "../../apis/deviceRegistry";
+import { DeviceToolBar } from "./DeviceToolBar";
+import { getFilteredDevicesApi } from "../../../apis/deviceRegistry";
 
 const useStyles = makeStyles(styles);
 
@@ -676,8 +677,7 @@ export default function DeviceView() {
 
   return (
     <div>
-      
-      <h4 style={{color: "#3f51b5"}}><b>{deviceData.name} : {deviceData.channelID}</b></h4>
+      <DeviceToolBar deviceName={deviceData.name}/>
       
      
       <GridContainer>
