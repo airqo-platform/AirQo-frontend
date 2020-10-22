@@ -1,4 +1,5 @@
 import React from 'react';
+import { useHistory, useRouteMatch } from "react-router-dom"
 import { makeStyles } from "@material-ui/styles";
 import AppBar from '@material-ui/core/AppBar'
 import Toolbar from '@material-ui/core/Toolbar';
@@ -56,9 +57,14 @@ const LinkTab = (props) => {
 
 export const DeviceToolBar = ({ deviceName }) => {
     const classes = useStyles();
-    const [value, setValue] = React.useState(0);
+    const match = useRouteMatch();
+    const history = useHistory()
+    const [value, setValue] = React.useState(`${match.url}/overview`);
 
-    const handleChange = (event, newValue) => { setValue(newValue); };
+    const handleChange = (event, newValue) => {
+        setValue(newValue);
+        history.push(newValue);
+    };
 
     return (
         <div className={`${classes.root} ${classes.margin}`}>
