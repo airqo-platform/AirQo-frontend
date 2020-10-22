@@ -17,9 +17,11 @@ const a11yProps = (index) => {
 const useStyles = makeStyles(theme => ({
     root: {
         flexGrow: 1,
+        backgroundColor: theme.palette.background.paper,
+    },
+    margin: {
         width: '98%',
         margin: '2vh 1%',
-        backgroundColor: theme.palette.background.paper,
     },
     appBar: {
         position: "relative",
@@ -59,7 +61,7 @@ export const DeviceToolBar = ({ deviceName }) => {
     const handleChange = (event, newValue) => { setValue(newValue); };
 
     return (
-        <div className={classes.root}>
+        <div className={`${classes.root} ${classes.margin}`}>
             <AppBar className={classes.appBar} color="default" >
               <Toolbar>
                 <Typography variant="h2" className={classes.title}>
@@ -73,15 +75,22 @@ export const DeviceToolBar = ({ deviceName }) => {
                   textColor="primary"
                   aria-label="nav tabs example"
                 >
-                  <LinkTab label="Overview" href="/drafts" {...a11yProps(0)} />
-                  <LinkTab label="Edit" href="/trash" {...a11yProps(1)} />
-                  <LinkTab label="Maintenance logs" href="/spam" {...a11yProps(2)} />
-                  <LinkTab label="Deploy status" href="/spam" {...a11yProps(3)} />
-                  <LinkTab label="Components" href="/spam" {...a11yProps(4)} />
-                  <LinkTab label="Photos" href="/spam" {...a11yProps(5)} />
+                  <LinkTab label="Overview" value={`${match.url}/overview`}/>
+                  <LinkTab label="Edit" value={`${match.url}/edit`} />
+                  <LinkTab label="Maintenance logs" value={`${match.url}/maintenance-logs`} />
+                  <LinkTab label="Deploy status" value={`${match.url}/deploy-status`} />
+                  <LinkTab label="Components" value={`${match.url}/components`} />
+                  <LinkTab label="Photos" value={`${match.url}/photos`} />
                 </Tabs>
               </Toolbar>
             </AppBar>
         </div>
+    )
+}
+
+export const DeviceToolBarContainer = ({ children }) => {
+    const classes = useStyles();
+    return (
+        <div className={classes.margin}>{children}</div>
     )
 }
