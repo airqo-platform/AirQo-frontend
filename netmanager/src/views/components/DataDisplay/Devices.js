@@ -885,7 +885,7 @@ const DevicesTable = (props) => {
                             <Tooltip title="View Device Details">
                               <Link
                                 className={classes.link}
-                                to={`/device/${rowData.channelID}`}
+                                to={`/device/${rowData.id}`}
                               >
                                 <PageviewOutlined></PageviewOutlined>
                               </Link>
