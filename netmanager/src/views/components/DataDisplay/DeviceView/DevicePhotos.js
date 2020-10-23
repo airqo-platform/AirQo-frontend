@@ -15,7 +15,7 @@ const spanStyles = {
     border: "1px dotted grey"
 }
 
-export const DevicePhotos = () => {
+export default function DevicePhotos() {
     return (
         <div style={styles}>
             <span style={spanStyles}>coming soon...</span>
