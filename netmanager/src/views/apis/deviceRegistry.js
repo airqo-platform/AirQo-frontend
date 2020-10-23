@@ -20,8 +20,8 @@ export const getFilteredDevicesApi = async (params) => {
     .then((response) => response.data);
 };
 
-export const getDeviceUptimeByChannelIdApi = async (channelId) => {
+export const getDeviceMaintenanceLogsApi = async (deviceName) => {
   return await axios
-    .get(constants.GET_DEVICE_UPTIME+channelId)
+    .get(constants.DEVICE_MAINTENANCE_LOG_URI + deviceName)
     .then((response) => response.data);
 };
