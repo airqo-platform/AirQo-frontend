@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { isEmpty } from "underscore";
-import Table from "./Table";
+import MaintenanceLogsTable from "./Table";
 import { loadDeviceMaintenanceLogs } from "redux/DeviceRegistry/operations";
 import { useDeviceLogsData } from "redux/DeviceRegistry/selectors";
+import {Paper, Table, TableBody, TableCell, TableContainer, TableRow} from "@material-ui/core";
+import CardHeader from "../../Card/CardHeader";
 
 const logsColumns = [
     { title: "Activity Type", field: "activityType"},
     { title: "Description", field: "description"},
-    { title: "Location", field: "location"},
     { title: "Next Maintenance", field: "nextMaintenance"},
-    { title: "Date Created", field: "createdAt"},
 ]
 
 const titleStyles = {
@@ -19,6 +19,7 @@ const titleStyles = {
 
 const wrapperStyles = {
     display: "flex",
+    justifyContent: "space-between",
 }
 
 const TableTitle = ({ deviceName }) => {
@@ -28,10 +29,53 @@ const TableTitle = ({ deviceName }) => {
         </div>
     )
 }
+
+const LogDetailView = ({ log }) => {
+    console.log('current log', log)
+    return (
+        <div>
+            <TableContainer component={Paper} >
+                <CardHeader >
+                  <h4>Log Details</h4>
+                </CardHeader>
+                 <Table stickyHeader  aria-label="sticky table" alignItems="left" alignContent="left">
+                   <TableBody style = {{alignContent:"left", alignItems:"left"}} >
+                     <TableRow style={{ align: 'left' }} >
+                       <TableCell><b>Activity Type</b></TableCell>
+                       <TableCell>{log.activityType}</TableCell>
+                     </TableRow>
+                     <TableRow>
+                       <TableCell ><b>Description</b></TableCell>
+                       <TableCell >{log.description}</TableCell>
+                     </TableRow>
+                     <TableRow>
+                       <TableCell><b>Location</b></TableCell>
+                       <TableCell>{log.location}</TableCell>
+                     </TableRow>
+                     <TableRow>
+                      <TableCell><b>Next Maintenance</b></TableCell>
+                      <TableCell>{log.nextMaintenance}</TableCell>
+                     </TableRow>
+                     <TableRow>
+                       <TableCell><b>Updated At</b></TableCell>
+                       <TableCell>{log.updatedAt}</TableCell>
+                     </TableRow>
+                     <TableRow>
+                       <TableCell><b>Created At</b></TableCell>
+                       <TableCell>{log.createdAt}</TableCell>
+                     </TableRow>
+                   </TableBody>
+                </Table>
+            </TableContainer>
+        </div>
+    )
+}
+
+
 export default function DeviceLogs({ deviceName }) {
 
     const dispatch = useDispatch();
-    const [selectedRow, setSelectedRow] = useState(null);
+    const [selectedRow, setSelectedRow] = useState(0);
     const maintenanceLogs = useDeviceLogsData(deviceName);
 
     useEffect(() => {
@@ -42,8 +86,8 @@ export default function DeviceLogs({ deviceName }) {
 
     return (
         <div style={wrapperStyles}>
-            <Table
-                style={{width: "60%"}}
+            <MaintenanceLogsTable
+                style={{width: "62%"}}
                 title={<TableTitle deviceName={deviceName} />}
                 columns={logsColumns}
                 data={maintenanceLogs}
@@ -54,7 +98,9 @@ export default function DeviceLogs({ deviceName }) {
                     })
                 }}
             />
-            <div>form</div>
+            <div style={{width: "35%"}}>
+                <LogDetailView log={maintenanceLogs[selectedRow] || {}} />
+            </div>
         </div>
     )
 }
