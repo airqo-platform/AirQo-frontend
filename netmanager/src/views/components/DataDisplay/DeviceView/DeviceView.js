@@ -4,10 +4,11 @@ import {Route, Switch, Redirect, useParams, useRouteMatch} from "react-router-do
 import 'chartjs-plugin-annotation';
 import { isEmpty } from "underscore";
 import { DeviceToolBar, DeviceToolBarContainer } from "./DeviceToolBar";
-import { DevicePhotos } from "./DevicePhotos";
+import DeviceLogs from "./DeviceLogs";
+import DevicePhotos from "./DevicePhotos";
 import DeviceOverview from "./DeviceOverview";
 import { useDevicesData } from "redux/DeviceRegistry/selectors";
-import { loadDevicesData } from "../../../../redux/DeviceRegistry/operations";
+import { loadDevicesData } from "redux/DeviceRegistry/operations";
 
 
 
@@ -37,6 +38,11 @@ export default function DeviceView() {
               exact
               path={'/device/:deviceId/overview'}
               component={DeviceOverview}
+          />
+          <Route
+              exact
+              path={'/device/:deviceId/maintenance-logs'}
+              component={() => <DeviceLogs deviceName={deviceData.name}/>}
           />
           <Route
               exact
