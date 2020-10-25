@@ -59,7 +59,7 @@ const prodConfig = {
   DEVICES_IN_LOCATION_URI:
     "http://34.78.78.202:30002/api/v1/devices/by/location?loc=",
   DEPLOY_DEVICE_URI:
-    "http://34.78.78.202:30002/api/v1/devices/ts/deploy/device",
+    "http://34.78.78.202:30002/api/v1/devices/ts/activity?type=",
   DELETE_DEVICE_URI:
     "http://34.78.78.202:30002/api/v1/devices/ts/delete?device=",
   GET_NETWORK_BEST_PERFORMING_DEVICES:
@@ -273,7 +273,7 @@ const stageConfig = {
   DEVICES_IN_LOCATION_URI:
     "http://34.78.78.202:31002/api/v1/devices/by/location?loc=",
   DEPLOY_DEVICE_URI:
-    "http://34.78.78.202:31002/api/v1/devices/ts/deploy/device",
+    "http://34.78.78.202:31002/api/v1/devices/ts/activity?type=",
   DELETE_DEVICE_URI:
     "http://34.78.78.202:31002/api/v1/devices/ts/delete?device=",
   GET_NETWORK_BEST_PERFORMING_DEVICES:
