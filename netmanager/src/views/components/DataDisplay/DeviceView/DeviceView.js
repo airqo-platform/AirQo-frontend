@@ -42,7 +42,7 @@ export default function DeviceView() {
           <Route
               exact
               path={'/device/:deviceId/maintenance-logs'}
-              component={() => <DeviceLogs deviceName={deviceData.name}/>}
+              component={() => <DeviceLogs deviceName={deviceData.name} deviceLocation={deviceData.locationID}/>}
           />
           <Route
               exact

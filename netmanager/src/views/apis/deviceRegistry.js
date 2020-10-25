@@ -25,3 +25,9 @@ export const getDeviceMaintenanceLogsApi = async (deviceName) => {
     .get(constants.DEVICE_MAINTENANCE_LOG_URI + deviceName)
     .then((response) => response.data);
 };
+
+export const addMaintenanceLogApi = async (logData) => {
+  return await axios
+      .post(constants.DEPLOY_DEVICE_URI + 'maintain', logData)
+      .then(response => response.data);
+}

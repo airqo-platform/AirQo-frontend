@@ -1002,7 +1002,7 @@ export default function DeviceOverview() {
            //style = {{ minWidth: "500px" }}
          >
            <DialogTitle id="form-dialog-title" style={{alignContent:'center'}}>Edit a component</DialogTitle>
-           <DialogContent>
+           <DialogContent >
                 <div>
                   <TextField
                    id="deviceName"
