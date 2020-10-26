@@ -12,7 +12,13 @@ export const createDeviceComponentApi = async (deviceName, componentType, data) 
   return await axios
       .post(constants.ADD_COMPONENT_URI + deviceName, data, { params: { ctype }})
       .then((response) => response.data)
-}
+};
+
+export const getDeviceComponentsApi = async (deviceName) => {
+  return await axios
+      .get(constants.GET_COMPONENTS_URI + deviceName)
+      .then(response => response.data)
+};
 
 export const getFilteredDevicesApi = async (params) => {
   return await axios
@@ -30,4 +36,4 @@ export const addMaintenanceLogApi = async (logData) => {
   return await axios
       .post(constants.DEPLOY_DEVICE_URI + 'maintain', logData)
       .then(response => response.data);
-}
+};
