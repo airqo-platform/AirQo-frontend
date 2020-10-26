@@ -4,9 +4,15 @@ import {
     LOAD_ALL_DEVICES_FAILURE,
     LOAD_MAINTENANCE_LOGS_SUCCESS,
     LOAD_MAINTENANCE_LOGS_FAILURE,
+    LOAD_DEVICE_COMPONENTS_SUCCESS,
+    LOAD_DEVICE_COMPONENTS_FAILURE,
 } from "./actions";
 import { transformArray } from "../utils";
-import { getAllDevicesApi, getDeviceMaintenanceLogsApi } from "../../views/apis/deviceRegistry";
+import {
+    getAllDevicesApi,
+    getDeviceMaintenanceLogsApi,
+    getDeviceComponentsApi }
+    from "../../views/apis/deviceRegistry";
 
 
 export const loadDevicesData = () => {
@@ -44,6 +50,24 @@ export const loadDeviceMaintenanceLogs = (deviceName) => {
                   type: LOAD_MAINTENANCE_LOGS_FAILURE,
                   payload: err,
                 });
+            })
+    }
+}
+
+export const loadDeviceComponentsData = (deviceName) => {
+    return async (dispatch) => {
+        return await getDeviceComponentsApi(deviceName)
+            .then(responseData => {
+                dispatch({
+                    type: LOAD_DEVICE_COMPONENTS_SUCCESS,
+                    payload: { [deviceName]: responseData.components }
+                })
+            })
+            .catch(err => {
+                dispatch({
+                    type: LOAD_DEVICE_COMPONENTS_FAILURE,
+                    payload: err,
+                })
             })
     }
 }
