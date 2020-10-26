@@ -6,6 +6,7 @@ import { isEmpty } from "underscore";
 import { DeviceToolBar, DeviceToolBarContainer } from "./DeviceToolBar";
 import DeviceLogs from "./DeviceLogs";
 import DevicePhotos from "./DevicePhotos";
+import DeviceComponents from "./DeviceComponents";
 import DeviceOverview from "./DeviceOverview";
 import { useDevicesData } from "redux/DeviceRegistry/selectors";
 import { loadDevicesData } from "redux/DeviceRegistry/operations";
@@ -42,7 +43,12 @@ export default function DeviceView() {
           <Route
               exact
               path={'/device/:deviceId/maintenance-logs'}
-              component={() => <DeviceLogs deviceName={deviceData.name} deviceLocation={deviceData.locationID}/>}
+              component={() => <DeviceLogs deviceName={deviceData.name} deviceLocation={deviceData.locationID} />}
+          />
+          <Route
+              exact
+              path={'/device/:deviceId/components'}
+              component={() => <DeviceComponents deviceName={deviceData.name} />}
           />
           <Route
               exact
