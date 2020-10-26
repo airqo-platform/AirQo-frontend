@@ -144,11 +144,10 @@ const AddLogForm = ({ deviceName, deviceLocation }) => {
         const logData = {
             deviceName,
             locationName: deviceLocation,
-            date: selectedDate,
+            date: selectedDate.toISOString(),
             tags: maintenanceDescription,
             description: maintenanceType,
         }
-        console.log('log data', logData)
         addMaintenanceLogApi(logData)
             .then(responseData => {
                 console.log('responseData', responseData)
@@ -305,6 +304,7 @@ export default function DeviceLogs({ deviceName, deviceLocation }) {
                         setSelectedRow(selectedRow.tableData.id)
                     })}
                     options={{
+                        pageSize: 10,
                         rowStyle: rowData => ({
                             backgroundColor: (selectedRow === rowData.tableData.id) ? '#EEE' : '#FFF'
                         })
