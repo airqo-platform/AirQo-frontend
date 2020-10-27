@@ -91,7 +91,7 @@ const LogDetailView = ({ log }) => {
     )
 }
 
-const AddLogForm = ({ deviceName, deviceLocation }) => {
+const AddLogForm = ({ deviceName, deviceLocation, toggleShow }) => {
 
     const [maintenanceType, setMaintenanceType] = useState("")
     const [maintenanceDescription, setMaintenanceDescription] = useState([]);
@@ -243,7 +243,7 @@ const AddLogForm = ({ deviceName, deviceLocation }) => {
                 >
                   <Button
                     variant="contained"
-                    // onClick={handleMaintenanceClose}
+                    onClick={toggleShow}
                   >
                     Cancel
                   </Button>
@@ -253,7 +253,7 @@ const AddLogForm = ({ deviceName, deviceLocation }) => {
                     onClick={handleSubmit}
                     style={{ marginLeft: "10px" }}
                   >
-                    Add
+                    Add Log
                   </Button>
                 </Grid>
                 </form>
@@ -312,7 +312,11 @@ export default function DeviceLogs({ deviceName, deviceLocation }) {
                 />
                 <div style={{width: "35%"}}>
                     { addLog ?
-                        <AddLogForm deviceName={deviceName} deviceLocation={deviceLocation} />
+                        <AddLogForm
+                            deviceName={deviceName}
+                            deviceLocation={deviceLocation}
+                            toggleShow={event => setAddLog(!addLog)}
+                        />
                         :
                         <LogDetailView log={maintenanceLogs[selectedRow] || {}} />
                     }
