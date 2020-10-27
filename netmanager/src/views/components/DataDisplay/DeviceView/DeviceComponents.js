@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
-import {Button} from "@material-ui/core";
+import {Button, Paper, Table, TableBody, TableCell, TableContainer, TableRow} from "@material-ui/core";
 import DeviceComponentsTable from "./Table";
 import { useDispatch } from "react-redux";
 import {isEmpty} from "underscore";
 import { useDeviceComponentsData } from "redux/DeviceRegistry/selectors";
 import { loadDeviceComponentsData } from "redux/DeviceRegistry/operations";
+import CardHeader from "../../Card/CardHeader";
 
 const wrapperStyles = {
     display: "flex",
@@ -31,6 +32,57 @@ const TableTitle = ({ deviceName }) => {
     return (
         <div>
             Components for <strong>{deviceName || ""}</strong>
+        </div>
+    )
+}
+
+const ComponentDetailView = ({ component }) => {
+
+    return (
+        <div>
+            <TableContainer component={Paper} >
+                <CardHeader >
+                  <h4>Component Details</h4>
+                </CardHeader>
+                 <Table stickyHeader  aria-label="sticky table" alignItems="left" alignContent="left">
+                   <TableBody style = {{alignContent:"left", alignItems:"left"}} >
+                     <TableRow style={{ align: 'left' }} >
+                       <TableCell><b>Name</b></TableCell>
+                       <TableCell>{component.name}</TableCell>
+                     </TableRow>
+                     <TableRow>
+                       <TableCell ><b>Description</b></TableCell>
+                       <TableCell >{component.description}</TableCell>
+                     </TableRow>
+                     <TableRow>
+                       <TableCell><b>Measurement(s)</b></TableCell>
+                       <TableCell>
+                           <ul style={{listStyle: "square inside none"}}>
+                               {component.measurement && component.measurement.map(val => {
+                                   return <li>- {`${val.quantityKind}(${val.measurementUnit})`}</li>
+                               })}
+                           </ul>
+                       </TableCell>
+                     </TableRow>
+                     <TableRow>
+                      <TableCell><b>Date Created</b></TableCell>
+                      <TableCell>{component.createdAt}</TableCell>
+                     </TableRow>
+                     <TableRow>
+                       <TableCell><b>Calibration</b></TableCell>
+                       <TableCell>
+                           <b>Max Value(s)</b>
+                           <br/>Sensor value: {component.calibration && component.calibration.valueMax.sensorValue}
+                           <br/>Real value: {component.calibration && component.calibration.valueMax.sensorValue}
+                           <br/>
+                           <br/><b>Min Value(s)</b>
+                           <br/>Sensor value: {component.calibration && component.calibration.valueMin.sensorValue}
+                           <br/>Real value: {component.calibration && component.calibration.valueMin.sensorValue}
+                       </TableCell>
+                     </TableRow>
+                   </TableBody>
+                </Table>
+            </TableContainer>
         </div>
     )
 }
@@ -85,6 +137,7 @@ export default function DeviceComponents({ deviceName }) {
                     }}
                 />
                 <div style={{width: "35%"}}>
+                    <ComponentDetailView component={deviceComponents[selectedRow] || {}} />
                     {/*{ addLog ?*/}
                     {/*    <AddLogForm deviceName={deviceName} deviceLocation={deviceLocation} />*/}
                     {/*    :*/}
