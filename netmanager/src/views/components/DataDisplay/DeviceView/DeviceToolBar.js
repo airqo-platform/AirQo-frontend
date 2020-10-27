@@ -38,6 +38,7 @@ const useStyles = makeStyles(theme => ({
     },
     appBar: {
         position: "relative",
+        zIndex: 20,
     },
     tabs: {
         margin: "0 auto",

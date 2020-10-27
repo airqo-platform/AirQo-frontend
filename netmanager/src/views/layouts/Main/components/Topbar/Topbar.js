@@ -1,26 +1,29 @@
 import React, { useState, Component, useEffect } from "react";
+import { useDispatch } from "react-redux";
 import clsx from "clsx";
 import PropTypes from "prop-types";
 import { Link as RouterLink } from "react-router-dom";
 import { connect } from "react-redux";
-import { makeStyles } from "@material-ui/styles";
+import { makeStyles, createStyles } from "@material-ui/styles";
 import {
   AppBar,
+  Collapse,
   Toolbar,
   Badge,
   Hidden,
   IconButton,
-  Typography,
   MenuItem,
   Menu,
 } from "@material-ui/core";
-import MenuIcon from "@material-ui/icons/Menu";
+import Alert from '@material-ui/lab/Alert';
 import NotificationsIcon from "@material-ui/icons/NotificationsOutlined";
+import CloseIcon from '@material-ui/icons/Close';
 import InputIcon from "@material-ui/icons/Input";
-import FindInPageIcon from '@material-ui/icons/FindInPage';
 import HelpIcon from '@material-ui/icons/Help';
 import { logoutUser } from "redux/Join/actions";
-import { useOrgData } from "../../../../../redux/Join/selectors";
+import { useOrgData } from "redux/Join/selectors";
+import { useMainAlertData } from "redux/MainAlert/selectors";
+import { hideMainAlert } from "redux/MainAlert/operations";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -34,6 +37,52 @@ const useStyles = makeStyles((theme) => ({
     marginLeft: theme.spacing(1),
   },
 }));
+
+const useAlertStyles = makeStyles((theme) =>
+  createStyles({
+    alertRoot: {
+      padding: "10px 100px",
+      borderRadius: "unset",
+    },
+    root: {
+      width: '100%',
+      '& > * + *': {
+        marginTop: theme.spacing(2),
+      },
+    },
+  }),
+);
+
+export const TransitionAlerts = () => {
+  const classes = useAlertStyles();
+  const mainAlertData = useMainAlertData();
+  const dispatch = useDispatch();
+
+  return (
+    <div className={classes.root}>
+      <Collapse in={mainAlertData.show}>
+        <Alert
+            className={classes.alertRoot}
+            action={
+            <IconButton
+              aria-label="close"
+              color="inherit"
+              size="small"
+              onClick={() => {
+                dispatch(hideMainAlert());
+              }}
+            >
+              <CloseIcon fontSize="inherit" />
+            </IconButton>
+          }
+            severity={mainAlertData.severity}
+        >
+          {mainAlertData.message}
+        </Alert>
+      </Collapse>
+    </div>
+  );
+}
 
 function withMyHook(Component) {
   return function WrappedComponent(props) {
@@ -249,6 +298,7 @@ const Topbar = (props) => {
           </Menu>
         </Hidden>
       </Toolbar>
+      <TransitionAlerts />
     </AppBar>
   );
 };
