@@ -26,6 +26,7 @@ import MaintenanceLogsTable from "./Table";
 import { loadDeviceMaintenanceLogs } from "redux/DeviceRegistry/operations";
 import { useDeviceLogsData } from "redux/DeviceRegistry/selectors";
 import { addMaintenanceLogApi } from "../../../apis/deviceRegistry";
+import { updateMainAlert } from "redux/MainAlert/operations";
 
 const logsColumns = [
     { title: "Activity Type", field: "activityType"},
@@ -93,6 +94,8 @@ const LogDetailView = ({ log }) => {
 
 const AddLogForm = ({ deviceName, deviceLocation, toggleShow }) => {
 
+    const dispatch = useDispatch();
+    const [loading, setLoading] = useState(false);
     const [maintenanceType, setMaintenanceType] = useState("")
     const [maintenanceDescription, setMaintenanceDescription] = useState([]);
     const [selectedDate, setSelectedDate] = useState(new Date());
@@ -139,7 +142,7 @@ const AddLogForm = ({ deviceName, deviceLocation, toggleShow }) => {
         },
     };
 
-    const handleSubmit = (evt) => {
+    const handleSubmit = async (evt) => {
         evt.preventDefault();
         const logData = {
             deviceName,
@@ -148,13 +151,23 @@ const AddLogForm = ({ deviceName, deviceLocation, toggleShow }) => {
             tags: maintenanceDescription,
             description: maintenanceType,
         }
-        addMaintenanceLogApi(logData)
+        setLoading(true);
+        await addMaintenanceLogApi(logData)
             .then(responseData => {
-                console.log('responseData', responseData)
+                dispatch(updateMainAlert({
+                    message: responseData.message,
+                    show: true,
+                    severity: "success"
+                }))
             })
             .catch(err => {
-                console.log('err', err)
+                dispatch(updateMainAlert({
+                    message: err.response.data.message,
+                    show: true,
+                    severity: "error"
+                }))
             });
+        setLoading(false);
     }
 
     return (
@@ -248,6 +261,7 @@ const AddLogForm = ({ deviceName, deviceLocation, toggleShow }) => {
                     Cancel
                   </Button>
                   <Button
+                      disabled={loading}
                     variant="contained"
                     color="primary"
                     onClick={handleSubmit}

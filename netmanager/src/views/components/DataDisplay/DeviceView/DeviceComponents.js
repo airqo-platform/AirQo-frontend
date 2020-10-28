@@ -25,6 +25,7 @@ import Checkbox from "@material-ui/core/Checkbox";
 import ListItemText from "@material-ui/core/ListItemText";
 import { makeStyles } from "@material-ui/styles";
 import { createDeviceComponentApi } from "../../../apis/deviceRegistry";
+import { updateMainAlert } from "redux/MainAlert/operations";
 
 
 const useStyles = makeStyles(theme => ({
@@ -64,6 +65,8 @@ const TableTitle = ({ deviceName }) => {
 
 const AddDeviceComponent = ({ deviceName, toggleShow }) => {
     const classes = useStyles();
+    const dispatch = useDispatch();
+    const [loading, setLoading] = useState(false);
     const [componentType, setComponentType] = useState("")
     const [sensorName, setSensorName] = useState("");
     const [quantityKind, setQuantityKind] = useState([]);
@@ -133,21 +136,30 @@ const AddDeviceComponent = ({ deviceName, toggleShow }) => {
         return modifiedQuantity
     }
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         let filter = {
           description: sensorName, //e.g. pms5003
           measurement: convertQuantityOptions(quantityKind), //e.g. [{"quantityKind":"humidity", "measurementUnit":"%"}]
         };
-
-        createDeviceComponentApi(deviceName, componentType, filter)
+        setLoading(true);
+        await createDeviceComponentApi(deviceName, componentType, filter)
             .then(responseData => {
-              console.log(responseData.message);
+              dispatch(updateMainAlert({
+                    message: responseData.message,
+                    show: true,
+                    severity: "success"
+                }))
 
             })
             .catch(error => {
-              console.log(error.response.data);
+               dispatch(updateMainAlert({
+                    message: error.response.data.message,
+                    show: true,
+                    severity: "error"
+                }))
 
             })
+        setLoading(false)
     };
 
     return (
@@ -271,6 +283,7 @@ const AddDeviceComponent = ({ deviceName, toggleShow }) => {
                   </Button>
                   <Button
                     variant="contained"
+                    disabled={loading}
                     color="primary"
                     onClick={handleSubmit}
                     style={{ marginLeft: "10px" }}
