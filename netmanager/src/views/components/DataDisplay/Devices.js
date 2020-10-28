@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useDispatch } from "react-redux";
 import MaterialTable from "material-table";
 import clsx from "clsx";
 import PropTypes from "prop-types";
@@ -6,6 +7,7 @@ import PerfectScrollbar from "react-perfect-scrollbar";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import { makeStyles } from "@material-ui/styles";
+import { isEmpty } from "underscore";
 import {
   Card,
   CardContent,
@@ -44,8 +46,13 @@ import Checkbox from "@material-ui/core/Checkbox";
 import CreatableSelect from "react-select/creatable";
 import MenuItem from "@material-ui/core/MenuItem";
 import ListItemText from "@material-ui/core/ListItemText";
-import Autocomplete from "@material-ui/lab/Autocomplete";
-import { getAllDevicesApi, createDeviceComponentApi } from "../../apis/deviceRegistry";
+
+import { createDeviceComponentApi } from "../../apis/deviceRegistry";
+import { loadDevicesData } from "redux/DeviceRegistry/operations";
+import { useDevicesData } from "redux/DeviceRegistry/selectors";
+import { useLocationsData } from "redux/LocationRegistry/selectors";
+import { loadLocationsData } from "redux/LocationRegistry/operations";
+import { generatePaginateOptions } from "utils/pagination";
 
 
 const useStyles = makeStyles((theme) => ({
@@ -122,9 +129,11 @@ const DevicesTable = (props) => {
   };
   const { className, users, ...rest } = props;
   const classes = useStyles();
-  const [data, setData] = useState([]);
+
+  const dispatch = useDispatch();
+  const devices = useDevicesData();
+  const locations = useLocationsData();
   const [isLoading, setIsLoading] = useState(false);
-  const [devicesLoading, setDevicesLoading] = useState(false);
   const [dialogResponseMessage, setDialogResponseMessage] = useState("");
 
   const [registerOpen, setRegisterOpen] = useState(false);
@@ -224,7 +233,6 @@ const DevicesTable = (props) => {
     setResponseOpen(false);
   };
 
-  const [hasError, setHasError] = useState(false);
   //maintenance log parameters
   const maintenanceOptions = [
     "Dust blowing and sensor cleaning",
@@ -267,7 +275,7 @@ const DevicesTable = (props) => {
       setMaintenanceDescription([]);
     }
   };
-  //const [maintenanceDescription, setMaintenanceDescription] = useState('');
+
   const [maintenanceDescription, setMaintenanceDescription] = useState([]);
   const handleMaintenanceDescriptionChange = (description) => {
     setMaintenanceDescription(description.target.value);
@@ -339,19 +347,6 @@ const DevicesTable = (props) => {
     return newArray;
   };
 
-  function getStyles(name, personName, theme) {
-    return {
-      fontWeight:
-        personName.indexOf(name) === -1
-          ? theme.typography.fontWeightRegular
-          : theme.typography.fontWeightMedium,
-    };
-  }
-
-  const [sensorID, setSensorID] = useState("");
-  const handleSensorIDChange = (id) => {
-    setSensorID(id.target.value);
-  };
   const [sensorName, setSensorName] = useState("");
   const handleSensorNameChange = (name) => {
     setSensorName(name.target.value);
@@ -380,43 +375,21 @@ const DevicesTable = (props) => {
     setQuantityKind(quantity.target.value);
   };
 
-  const getQuantityName = (name, quantityOptions) => {
-    for (let i = 0; i < quantityOptions.length; i++) {
-      if (quantityOptions[i].name === name) {
-        return quantityOptions[i].name;
-      }
-    }
-    return "";
-  };
-  const [measurementUnit, setMeasurementUnit] = useState([]);
-  const handleMeasurementUnitChange = (unit) => {
-    setMeasurementUnit(unit.target.value);
-  };
-
   //deployment parameters
   const [recallDate, setRecallDate] = useState(new Date());
   const [locationsOptions, setLocationsOptions] = useState([]);
 
   useEffect(() => {
-    axios
-      .get(constants.ALL_LOCATIONS_URI)
-      .then((res) => {
-        const ref = res.data;
-        console.log(ref);
-        let locationArray = [];
-        for (var i = 0; i < ref.length; i++) {
-          locationArray.push({
-            loc_ref: ref[i].loc_ref,
-            loc_name: ref[i].location_name,
-            loc_desc: ref[i].description,
-          });
-        }
-        console.log("location array");
-        console.log(locationArray);
-        setLocationsOptions(locationArray);
-      })
-      .catch(console.log);
-  }, []);
+    let locationArr = []
+    locations.map((location) => {
+      locationArr.push({
+          loc_ref: location.loc_ref,
+          loc_name: location.location_name,
+          loc_desc: location.description,
+        });
+    })
+    setLocationsOptions(locationArr);
+  }, [locations]);
 
   const [devicesInLocation, setDevicesInLocation] = useState([]);
   const [devicesLabel, setDevicesLabel] = useState("");
@@ -491,22 +464,16 @@ const DevicesTable = (props) => {
   //Edit parameters
   const [deviceID, setDeviceID] = useState("");
 
-  //Register and Edit parameters
-  const [sensorsOptions, setSensorsOptions] = useState([]);
 
   useEffect(() => {
-    axios
-      .get(constants.ALL_SENSORS_URI)
-      .then((res) => {
-        const ref = res.data;
-        console.log(ref);
-        let sensorArray = [];
-        for (var i = 0; i < ref.length; i++) {
-          sensorArray.push(ref[i]);
-        }
-        setSensorsOptions(sensorArray);
-      })
-      .catch(console.log);
+    if(isEmpty(devices)) {
+      setIsLoading(true);
+      dispatch(loadDevicesData());
+      setIsLoading(false);
+    }
+    if (isEmpty(locations)) {
+      dispatch(loadLocationsData())
+    }
   }, []);
 
   const [registerName, setRegisterName] = useState("");
@@ -559,15 +526,6 @@ const DevicesTable = (props) => {
       setPhone(event.target.value);
     }
   };
-
-  useEffect(() => {
-    getAllDevicesApi()
-      .then((responseData) => {
-        setIsLoading(false);
-        setData(responseData.devices || []);
-      })
-      .catch((err) => console.log(err));
-  }, []);
 
   function appendLeadingZeroes(n) {
     if (n <= 9) {
@@ -927,7 +885,7 @@ const DevicesTable = (props) => {
                             <Tooltip title="View Device Details">
                               <Link
                                 className={classes.link}
-                                to={`/device/${rowData.channelID}`}
+                                to={`/device/${rowData.id}`}
                               >
                                 <PageviewOutlined></PageviewOutlined>
                               </Link>
@@ -1017,7 +975,7 @@ const DevicesTable = (props) => {
                     },
                   },
                 ]}
-                data={data}
+                data={Object.values(devices)}
                 options={{
                   search: true,
                   exportButton: true,
@@ -1032,7 +990,7 @@ const DevicesTable = (props) => {
                     fontSize: 16,
                     fontWeight: 600,
                   },
-                  pageSizeOptions: [10, 25, 50, data.length],
+                  pageSizeOptions: generatePaginateOptions(Object.values(devices).length),
                   pageSize: 10,
                 }}
               />

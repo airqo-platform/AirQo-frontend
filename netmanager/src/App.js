@@ -159,8 +159,7 @@ class App extends Component {
                   layout={MainLayout}
                 />
                 <PrivateRoute
-                  exact
-                  path="/device/:channelId"
+                  path="/device/:deviceId"
                   component={DeviceView}
                   layout={MainLayout}
                 />

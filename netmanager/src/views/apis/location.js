@@ -6,3 +6,9 @@ export const getMonitoringSitesLocationsApi = async () => {
     .get(constants.GET_MONITORING_SITES_LOCATIONS_URI)
     .then((response) => response.data);
 };
+
+export const getAllLocationsApi = async () => {
+  return await axios
+    .get(constants.ALL_LOCATIONS_URI)
+    .then((response) => response.data);
+};

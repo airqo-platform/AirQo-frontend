@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useDispatch } from "react-redux";
 import ChartistGraph from "react-chartist";
 import { makeStyles } from "@material-ui/core/styles";
 import Icon from "@material-ui/core/Icon";
@@ -13,21 +14,21 @@ import WbSunnyIcon from "@material-ui/icons/WbSunny";
 import PowerIcon from "@material-ui/icons/Power";
 import NotificationsNoneIcon from "@material-ui/icons/NotificationsNone";
 import ScheduleIcon from "@material-ui/icons/Schedule";
-import TasksWithoutEdits from "../Tasks/TasksWithoutEdits";
+import TasksWithoutEdits from "../../Tasks/TasksWithoutEdits";
 // core components
-import GridItem from "../Grid/GridItem.js";
-import GridContainer from "../Grid/GridContainer.js";
+import GridItem from "../../Grid/GridItem.js";
+import GridContainer from "../../Grid/GridContainer.js";
 import FormControl from '@material-ui/core/FormControl';
 import TextField from '@material-ui/core/TextField';
 import Select from '@material-ui/core/Select';
 //import Table from "../Table/Table.js";
-import Tasks from "../Tasks/Tasks.js";
-import CustomTabs from "../CustomTabs/CustomTabs";
-import Card from "../Card/Card.js";
-import CardHeader from "../Card/CardHeader.js";
-import CardIcon from "../Card/CardIcon.js";
-import CardBody from "../Card/CardBody.js";
-import CardFooter from "../Card/CardFooter.js";
+import Tasks from "../../Tasks/Tasks.js";
+import CustomTabs from "../../CustomTabs/CustomTabs";
+import Card from "../../Card/Card.js";
+import CardHeader from "../../Card/CardHeader.js";
+import CardIcon from "../../Card/CardIcon.js";
+import CardBody from "../../Card/CardBody.js";
+import CardFooter from "../../Card/CardFooter.js";
 import { Map, TileLayer, Marker, Popup } from "react-leaflet";
 import { TableContainer, Table, TableBody, TableCell, TableHead, TableRow, Paper } from "@material-ui/core";
 import { DeleteOutlined, EditOutlined } from '@material-ui/icons';
@@ -35,18 +36,18 @@ import Tooltip from '@material-ui/core/Tooltip';
 import { Link } from "react-router-dom";
 import { useParams } from 'react-router-dom';
 import { Grid, Button, Dialog, DialogActions, DialogContent, DialogTitle } from '@material-ui/core';
-import { bugs, website, server } from "../../variables/general.js";
+import { bugs, website, server } from "../../../variables/general.js";
 import {
   dailySalesChart,
   emailsSubscriptionChart,
   completedTasksChart,
   OnlineStatusChart,
-} from "../../variables/charts.js";
+} from "../../../variables/charts.js";
 
 import styles from "assets/jss/material-dashboard-react/views/dashboardStyle.js";
-import constants from "../../../config/constants";
+import constants from "../../../../config/constants";
 import axios from "axios";
-import palette from "../../../assets/theme/palette";
+import palette from "../../../../assets/theme/palette";
 import { Line, Bar, Pie } from "react-chartjs-2";
 import 'chartjs-plugin-annotation';
 import Input from '@material-ui/core/Input';
@@ -55,11 +56,15 @@ import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Checkbox from '@material-ui/core/Checkbox';
 import MenuItem from '@material-ui/core/MenuItem';
 import ListItemText from '@material-ui/core/ListItemText';
-import { getFilteredDevicesApi } from "../../apis/deviceRegistry";
+import { isEmpty } from "underscore";
+import { DeviceToolBar } from "./DeviceToolBar";
+import { getFilteredDevicesApi } from "../../../apis/deviceRegistry";
+import { loadDevicesData } from "redux/DeviceRegistry/operations";
+import {useDevicesData } from "redux/DeviceRegistry/selectors";
 
 const useStyles = makeStyles(styles);
 
-export default function DeviceView() {
+export default function DeviceOverview() {
   let params = useParams();
   const ITEM_HEIGHT = 48;
   const ITEM_PADDING_TOP = 8;
@@ -71,10 +76,12 @@ export default function DeviceView() {
       },
     },
   };
-  
+
   const classes = useStyles();
+  const dispatch = useDispatch();
+  const devices = useDevicesData();
   const [maintenanceData, setMaintenanceData] = useState([]);
-  
+
   function logs(name) {
     console.log(constants.DEVICE_MAINTENANCE_LOG_URI+name)
     axios
@@ -111,7 +118,7 @@ export default function DeviceView() {
       )
       .catch(error => {
         console.log(error)
-  
+
     })
     }
   function jsonArrayToString(myJsonArray){
@@ -122,7 +129,7 @@ export default function DeviceView() {
     }
     return myArray.join(", ")
   }
-  
+
   const [onlineStatusUpdateTime, setOnlineStatusUpdateTime] = useState();
   const [onlineStatusChart, setOnlineStatusChart] = useState({
     data: {},
@@ -134,24 +141,24 @@ export default function DeviceView() {
     axios
       .get(constants.GET_DEVICE_STATUS_FOR_PIECHART_DISPLAY)
       .then(({ data }) => {
-       
+
         setDeviceStatusValues([
           data["data"]["offline_devices_percentage"],
           data["data"]["online_devices_percentage"],
         ]);
-      
-       
+
+
         setOnlineStatusUpdateTime(data["data"]["created_at"]);
-        
+
       });
   }, []);
 
 
-    
+
   const [networkUptime, setNetworkUptime] = useState([]);
 
   useEffect(() => {
-    let channelID = params.channelId
+    let channelID = deviceData.channelID
     axios.get(constants.GET_DEVICE_UPTIME+channelID).then(({ data }) => {
       console.log(data);
       setNetworkUptime(data);
@@ -258,7 +265,7 @@ export default function DeviceView() {
   const [deviceBatteryVoltage, setDeviceBatteryVoltage] = useState([]);
 
   useEffect(() => {
-    let channelID = params.channelId
+    let channelID = deviceData.channelID
     axios.get(constants.GET_DEVICE_BATTERY_VOLTAGE+channelID).then(({ data }) => {
       console.log(data);
       setDeviceBatteryVoltage(data);
@@ -278,7 +285,7 @@ export default function DeviceView() {
     ],
   };
 
-  const options_ = {    
+  const options_ = {
     responsive: true,
     maintainAspectRatio: false,
     animation: false,
@@ -341,11 +348,11 @@ export default function DeviceView() {
     },
   };
 
-  
+
   const [deviceSensorCorrelation, setDeviceSensorCorrelation] = useState([]);
 
   useEffect(() => {
-    let channelID = params.channelId
+    let channelID = devices.channelID
     axios.get(constants.GET_DEVICE_SENSOR_CORRELATION+channelID).then(({ data }) => {
       setDeviceSensorCorrelation(data);
     });
@@ -371,7 +378,7 @@ export default function DeviceView() {
     ],
   };
 
-  const options_sensor_correlation = {    
+  const options_sensor_correlation = {
     responsive: true,
     maintainAspectRatio: false,
     animation: false,
@@ -394,7 +401,7 @@ export default function DeviceView() {
         {
           barThickness: 35,
           //maxBarThickness: 10,
-          barPercentage: 1,          
+          barPercentage: 1,
           ticks: {
             fontColor: palette.text.secondary,
           },
@@ -450,31 +457,31 @@ export default function DeviceView() {
    }
 
   const [loaded, setLoaded] = useState(false);
-  const [deviceData, setDeviceData] = useState([]);
+  const [deviceData, setDeviceData] = useState({});
   const [deviceName, setDeviceName] = useState('');
 
   const [componentData, setComponentData] = useState([]);
 
   useEffect(() => {
-    getFilteredDevicesApi({ chid: params.channelId })
-        .then(responseData => {
-          setDeviceData(responseData.device);
-          setDeviceName(responseData.device.name);
-          setLoaded(true);
-        })
-        .catch(console.log)
+    if (isEmpty(devices)) {
+      dispatch(loadDevicesData());
+    }
   }, []);
+
+  useEffect(() => {
+    setDeviceData(devices[params.deviceId] || {})
+  }, [devices]);
 
   //Edit dialog parameters
   const [editComponentOpen, setEditComponentOpen] = useState(false);
   const [componentName, setComponentName] = useState('');
   const [sensorName, setSensorName] = useState('');
-  
+
   const [quantityKind, setQuantityKind] = useState([]);
   const handleQuantityKindChange = quantity => {
     console.log(quantity.target.value);
     setQuantityKind(quantity.target.value);
-  } 
+  }
 
 
   function convertQuantities(myArray){
@@ -515,8 +522,8 @@ export default function DeviceView() {
     }
   }
 
-  const quantityOptions = ["PM 1(µg/m3)", "PM 2.5(µg/m3)", "PM 10(µg/m3)", "External Temperature(\xB0C)", 
-  "External Temperature(\xB0F)", "External Humidity(%)", "Internal Temperature(\xB0C)", "Internal Humidity(%)", 
+  const quantityOptions = ["PM 1(µg/m3)", "PM 2.5(µg/m3)", "PM 10(µg/m3)", "External Temperature(\xB0C)",
+  "External Temperature(\xB0F)", "External Humidity(%)", "Internal Temperature(\xB0C)", "Internal Humidity(%)",
   "Battery Voltage(V)", "GPS"];
 
   const convertQuantityOptions= (myArray) => {
@@ -555,7 +562,7 @@ export default function DeviceView() {
       else{
         newArray.push({"quantityKind":"unknown", "measurementUnit":"unknown"})
       }
-     
+
     }
     return newArray;
   }
@@ -566,7 +573,7 @@ export default function DeviceView() {
     setEditComponentOpen(true);
   };
   const handleEditComponentClose = () => {
-    setEditComponentOpen(false);  
+    setEditComponentOpen(false);
     //setComponentName('');
   }
   let handleEditComponentClick = (name, id, component, quantity) => {
@@ -588,7 +595,7 @@ export default function DeviceView() {
     }
     console.log(JSON.stringify(filter));
     console.log(constants.UPDATE_COMPONENT_URI+deviceName+"&comp="+componentName);
-    
+
     axios.put(
       constants.UPDATE_COMPONENT_URI+deviceName+"&comp="+componentName,
       JSON.stringify(filter),
@@ -612,7 +619,7 @@ export default function DeviceView() {
   }
 
 
- 
+
   //delete  dialog parameters
   const [deleteOpen, setDeleteOpen] = useState(false);
   const handleDeleteOpen = () => {
@@ -621,7 +628,7 @@ export default function DeviceView() {
   const handleDeleteClose = () => {
     setDeleteOpen(false);
     setComponentName('');
-   
+
   };
   //response dialog
   const [dialogResponseMessage, setDialogResponseMessage] = useState('');
@@ -643,13 +650,13 @@ export default function DeviceView() {
     }
   }
   let handleDeleteSubmit = (e) => {
-    let filter ={ 
+    let filter ={
       deviceName: deviceName,
-      componentName: componentName,      
+      componentName: componentName,
     }
     console.log(JSON.stringify(filter));
     console.log(constants.DELETE_COMPONENT_URI+componentName+"&device="+deviceName);
-  
+
     axios.delete(
       constants.DELETE_COMPONENT_URI+componentName+"&device="+deviceName,
       JSON.stringify(filter),
@@ -667,7 +674,7 @@ export default function DeviceView() {
     }).catch(error => {
       setDialogResponseMessage('An error occured. Please try again');
       handleDeleteClose();
-      setResponseOpen(true); 
+      setResponseOpen(true);
 
   })
 
@@ -676,10 +683,6 @@ export default function DeviceView() {
 
   return (
     <div>
-      
-      <h4 style={{color: "#3f51b5"}}><b>{deviceData.name} : {deviceData.channelID}</b></h4>
-      
-     
       <GridContainer>
         <GridItem xs={12} sm={12} md={4}>
           <Card>
@@ -701,23 +704,6 @@ export default function DeviceView() {
           </Card>
         </GridItem>
 
-        {/*}
-
-        <GridItem xs={12} sm={12} md={4}>
-          <Card>
-            <CardHeader color="info">
-              <h4 className={classes.cardTitle}>Device Online Status</h4>
-            </CardHeader>
-            <CardBody>
-             
-            </CardBody>
-            <CardFooter chart>
-              <div className={classes.stats}>
-                <AccessTime /> Last updated on {onlineStatusUpdateTime}
-              </div>
-            </CardFooter>
-          </Card>
-  </GridItem> */}
   <GridItem xs={12} sm={12} md={4}>
           <Card>
             <CardHeader color="info">
@@ -726,42 +712,29 @@ export default function DeviceView() {
             {loaded? (
             <CardBody>
               {(deviceData.longitude==null) || (deviceData.longitude==0)?
-              <Map 
-              center={[1.3733, 32.2903]} 
-              zoom={13} 
+              <Map
+              center={[1.3733, 32.2903]}
+              zoom={13}
               scrollWheelZoom={false}
               style = {{width: '90%', height: '250px', }}
-             //style={{ width: '30%', height: '250px', align:'center'}}
              >
               <TileLayer
                url ="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-             /> 
-             {/*<Marker position={[deviceData.latitude, deviceData.longitude]}>
-             <Popup>
-              <span>
-              <span>
-                {/*{deviceData.name}
-                {deviceName}
-              </span>
-              </span>
-            </Popup>
-            </Marker>*/}
+             />
             </Map>
-               :<Map 
-                 center={[deviceData.latitude, deviceData.longitude]} 
-                 zoom={13} 
+               :<Map
+                 center={[deviceData.latitude, deviceData.longitude]}
+                 zoom={13}
                  scrollWheelZoom={false}
                  style = {{width: '90%', height: '250px', }}
-                //style={{ width: '30%', height: '250px', align:'center'}}
                 >
                  <TileLayer
                   url ="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                /> 
+                />
                 <Marker position={[deviceData.latitude, deviceData.longitude]}>
                 <Popup>
                  <span>
                  <span>
-                   {/*{deviceData.name}*/}
                    {deviceName}
                  </span>
                  </span>
@@ -769,19 +742,19 @@ export default function DeviceView() {
                </Marker>
                </Map> }
             </CardBody>
-      
-         ):  
+
+         ):
        (
         <CardBody>
-        <Map center={[0.3476, 32.5825]} 
-       zoom={13} 
+        <Map center={[0.3476, 32.5825]}
+       zoom={13}
        scrollWheelZoom={false}
        style={{ width: '30%', height: '250px', align:'center'}}
-       > 
+       >
        <TileLayer
             url ="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
-      </Map> 
+      </Map>
       </CardBody>
        )
     }
@@ -797,10 +770,10 @@ export default function DeviceView() {
             </CardHeader>
             <CardBody>
             <div alignContent = "left" style = {{alignContent:"left", alignItems:"left"}}>
-            <TableContainer component={Paper} className = {classes.table}>  
-             <Table stickyHeader  aria-label="sticky table" alignItems="left" alignContent="left">  
-               <TableBody style = {{alignContent:"left", alignItems:"left"}} >  
-                 <TableRow style={{ align: 'left' }} >  
+            <TableContainer component={Paper} className = {classes.table}>
+             <Table stickyHeader  aria-label="sticky table" alignItems="left" alignContent="left">
+               <TableBody style = {{alignContent:"left", alignItems:"left"}} >
+                 <TableRow style={{ align: 'left' }} >
                    <TableCell><b>Power Type: </b>{deviceData.powerType}</TableCell>
                    {/*<TableCell className = {classes.table}>: <b>{deviceData.powerType}</b></TableCell> */}
                  </TableRow>
@@ -828,16 +801,16 @@ export default function DeviceView() {
                </TableBody>
             </Table>
           </TableContainer>
-                
+
             </div>
-             
+
             </CardBody>
           </Card>
         </GridItem>
       </GridContainer>
 
       <GridContainer>
-        
+
         <GridItem xs={12} sm={12} md={4}>
           <Card>
             <CardHeader color="primary">
@@ -846,11 +819,11 @@ export default function DeviceView() {
 
             <CardBody>
         <div alignContent = "left" style = {{alignContent:"left", alignItems:"left"}}>
-            <TableContainer component={Paper} className = {classes.table}>  
-             <Table stickyHeader  aria-label="sticky table" alignItems="left" alignContent="left">  
-               <TableBody style = {{alignContent:"left", alignItems:"left"}} >  
+            <TableContainer component={Paper} className = {classes.table}>
+             <Table stickyHeader  aria-label="sticky table" alignItems="left" alignContent="left">
+               <TableBody style = {{alignContent:"left", alignItems:"left"}} >
                 {maintenanceData.map( (log) => (
-                 <TableRow style={{ align: 'left' }} >  
+                 <TableRow style={{ align: 'left' }} >
                   <TableCell>{formatDate(new Date(log.date))}</TableCell>
                   <TableCell>{typeof log.tags=== 'string'? log.tags:log.tags.join(', ')}</TableCell>
                 </TableRow>))
@@ -858,7 +831,7 @@ export default function DeviceView() {
                </TableBody>
             </Table>
           </TableContainer>
-                
+
               </div>
             </CardBody>
           </Card>
@@ -879,11 +852,11 @@ export default function DeviceView() {
             </CardBody>
             <CardFooter chart>
               <div className={classes.stats}>
-                {/*<AccessTime /> Last updated on {onlineStatusUpdateTime} */} 
+                {/*<AccessTime /> Last updated on {onlineStatusUpdateTime} */}
               </div>
             </CardFooter>
           </Card>
-          </GridItem> 
+          </GridItem>
 
         <GridItem xs={12} sm={12} md={4}>
           <Card>
@@ -897,11 +870,11 @@ export default function DeviceView() {
             <div className={classes.chartContainer}>
                 <Line height={250} data={deviceSensorCorrelationData} options={options_sensor_correlation} />
               </div>
-             
+
             </CardBody>
             <CardFooter chart>
               <div className={classes.stats}>
-                 Pearson Correlation Value: {deviceSensorCorrelation.correlation_value}  
+                 Pearson Correlation Value: {deviceSensorCorrelation.correlation_value}
               </div>
             </CardFooter>
           </Card>
@@ -916,46 +889,46 @@ export default function DeviceView() {
             </CardHeader>
             <CardBody>
             <div alignContent = "left" style = {{alignContent:"left", alignItems:"left"}}>
-            <TableContainer component={Paper} className = {classes.table}>  
+            <TableContainer component={Paper} className = {classes.table}>
              <Table stickyHeader  aria-label="sticky table" alignItems="left" alignContent="left">
                <TableHead>
-                 <TableRow style={{ align: 'left' }} >  
-                  <TableCell>Description</TableCell>                  
+                 <TableRow style={{ align: 'left' }} >
+                  <TableCell>Description</TableCell>
                   <TableCell>Quantities</TableCell>
                   <TableCell>Actions</TableCell>
                 </TableRow>
-                 
-              </TableHead>  
-               <TableBody style = {{alignContent:"left", alignItems:"left"}} >  
+
+              </TableHead>
+               <TableBody style = {{alignContent:"left", alignItems:"left"}} >
                {componentsData.map( (component) => (
-                 <TableRow style={{ align: 'left' }} >  
-                  <TableCell>{component.description}</TableCell>                  
+                 <TableRow style={{ align: 'left' }} >
+                  <TableCell>{component.description}</TableCell>
                   <TableCell>{jsonArrayToString(component.measurement)}</TableCell>
                   <TableCell>
-                  
+
                   <Tooltip title="Edit">
                     <Link onClick= {handleEditComponentClick(deviceName, component.name, component.description, jsonArrayToString(component.measurement).split(", "))} style = {{"color":"black"}}>
-                    <EditOutlined> </EditOutlined> 
+                    <EditOutlined> </EditOutlined>
                     </Link>
                     </Tooltip>
                   <Tooltip title="Delete">
                     <Link onClick= {handleDeleteComponentClick(component.name)} style = {{"color":"black"}}>
-                    <DeleteOutlined> </DeleteOutlined> 
+                    <DeleteOutlined> </DeleteOutlined>
                     </Link>
                   </Tooltip>
-                  
+
                   </TableCell>
                 </TableRow>))
                 }
                </TableBody>
             </Table>
           </TableContainer>
-                
+
               </div>
-             
+
             </CardBody>
           </Card>
-      </GridItem> 
+      </GridItem>
       </GridContainer>
 
       {responseOpen?
@@ -968,24 +941,24 @@ export default function DeviceView() {
       >
         <DialogContent>
           {dialogResponseMessage}
-        </DialogContent> 
-        
+        </DialogContent>
+
         <DialogActions>
           <Grid container alignItems="center" alignContent="center" justify="center">
-            <Button 
-              variant="contained" 
-              color="primary"              
+            <Button
+              variant="contained"
+              color="primary"
               onClick={handleResponseClose}
             > OK
             </Button>
           </Grid>
         </DialogActions>
     </Dialog>
-    ): null   
+    ): null
   }
 
 {deleteOpen? (
-       
+
        <Dialog
            open={deleteOpen}
            onClose={handleDeleteClose}
@@ -993,23 +966,23 @@ export default function DeviceView() {
            aria-describedby="form-dialog-description"
          >
            <DialogTitle id="form-dialog-title" style={{alignContent:'center'}}>Delete a component</DialogTitle>
-           
+
                 <DialogContent>
                   Are you sure you want to delete component {componentName} from device {deviceName}?
-                </DialogContent> 
-          
+                </DialogContent>
+
                 <DialogActions>
                 <Grid container alignItems="center" alignContent="center" justify="center">
-                 <Button 
-                  variant="contained" 
-                  color="primary"              
+                 <Button
+                  variant="contained"
+                  color="primary"
                   onClick = {handleDeleteSubmit}
                  > YES
                 </Button>
                 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-               <Button 
-                variant="contained" 
-                color="primary"              
+               <Button
+                variant="contained"
+                color="primary"
                 onClick = {handleDeleteClose}
                > NO
                </Button>
@@ -1019,7 +992,7 @@ export default function DeviceView() {
          ) : null}
 
        {editComponentOpen? (
-       
+
        <Dialog
            open={editComponentOpen}
            onClose={handleEditComponentClose}
@@ -1029,10 +1002,10 @@ export default function DeviceView() {
            //style = {{ minWidth: "500px" }}
          >
            <DialogTitle id="form-dialog-title" style={{alignContent:'center'}}>Edit a component</DialogTitle>
-           <DialogContent>
+           <DialogContent >
                 <div>
-                  <TextField 
-                   id="deviceName" 
+                  <TextField
+                   id="deviceName"
                    label="Device Name"
                    value = {deviceName}
                    fullWidth={true}
@@ -1080,31 +1053,31 @@ export default function DeviceView() {
                       </Select>
                   </FormControl><br/>
                  </div>
-                 
-                  </DialogContent> 
-          
+
+                  </DialogContent>
+
                  <DialogActions>
                  <Grid container alignItems="center" alignContent="center" justify="center">
-                 <Button 
-                  variant="contained" 
-                  color="primary"              
+                 <Button
+                  variant="contained"
+                  color="primary"
                   onClick={handleEditComponentSubmit}
                  > Update
                 </Button>
                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-               <Button 
-                variant="contained" 
-                color="primary"              
+               <Button
+                variant="contained"
+                color="primary"
                 onClick = {handleEditComponentClose}
                > Cancel
                </Button>
                </Grid>
            </DialogActions>
-              
+
          </Dialog>
          ) : null}
 
-     
+
     </div>
   );
 }
