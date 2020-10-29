@@ -5,9 +5,21 @@ import InputLabel from "@material-ui/core/InputLabel";
 import Select from "@material-ui/core/Select";
 import Input from "@material-ui/core/Input";
 import { KeyboardDatePicker, MuiPickersUtilsProvider } from "@material-ui/pickers";
+import CheckBoxIcon from '@material-ui/icons/CheckBox';
 import DateFnsUtils from "@date-io/date-fns";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
 import Checkbox from "@material-ui/core/Checkbox";
+import green from '@material-ui/core/colors/green';
+import { makeStyles } from "@material-ui/styles";
+import { isEmpty, omit } from "underscore";
+import { getDeviceRecentFeedByChannelIdApi } from "../../../apis/deviceRegistry";
+
+
+const useStyles = makeStyles(theme => ({
+    root: {
+        color: green[500],
+    }
+}))
 
 
 const emptyTestStyles = {
@@ -17,22 +29,76 @@ const emptyTestStyles = {
     minHeight: "93%",
 }
 
-const EmptyDeviceTest = () => {
+const senorListStyle = {
+    display: "flex",
+    flexWrap: "wrap",
+    alignItems: "center",
+    justifyContent: "space-around",
+    width: "100%"
+}
+
+const sensorFeedNameMapper = {
+    pm2_5: "PM 2.5",
+    pm10: "PM 10",
+    s2_pm2_5: "Sensor-2 PM 2.5",
+    s2_pm10: "Sensor-2 PM 10",
+    latitude: "Latitude",
+    longitude: "Longitude",
+    battery: "Battery",
+    altitude: "Altitude",
+    speed: "Speed",
+    satellites: "Satellites",
+    hdop: "Hdop",
+    internalTemperature: "Internal Temp",
+    internalHumidity: "Internal Humidity",
+}
+
+const EmptyDeviceTest = ({loading, onClick}) => {
     return (
         <div style={emptyTestStyles}>
             <span>No devices test results, please click
                 <Button
                     color="primary"
+                    disabled={loading}
+                    onClick={onClick}
                     style={{textTransform: "lowercase"}}
                 >
                     run
-                </Button> to initiate the test</span>
+                </Button> to initiate the test
+            </span>
         </div>
     );
 };
 
 
-export default function DeviceDeployStatus({ deviceName }) {
+const DeviceRecentFeedView = ({ recentFeed }) => {
+    const classes = useStyles();
+    const feedKeys = Object.keys(omit(recentFeed, "isCache", "created_at"));
+
+    return (
+        <div>
+            <h4>Sensors</h4>
+            <div style={{
+                display: "flex",
+                flexWrap: "wrap",
+                alignItems: "center",
+                margin: "10px 30px",
+            }}>
+                {feedKeys.map(key => (
+                    <div style={senorListStyle}>
+                        <span style={{width: "30%"}}><CheckBoxIcon className={classes.root} /></span>
+                        <span style={{width: "30%"}}>{sensorFeedNameMapper[key]} </span>
+                        <span style={{width: "30%"}}>{recentFeed[key]}</span>
+                    </div>
+                ))}
+
+            </div>
+        </div>
+    );
+}
+
+
+export default function DeviceDeployStatus({ deviceData }) {
 
     const [height, setHeight] = useState("");
     const [power, setPower] = useState("");
@@ -40,6 +106,8 @@ export default function DeviceDeployStatus({ deviceName }) {
     const [deploymentDate, setDeploymentDate] = useState(new Date());
     const [primaryChecked, setPrimaryChecked] = useState(true);
     const [collocationChecked, setCollocationChecked] = useState(false);
+    const [recentFeed, setRecentFeed] = useState({});
+    const [deviceTestLoading, setDeviceTestLoading] = useState(false);
     // const [locationID, setLocationID] = useState("");
 
     const handleHeightChange = (enteredHeight) => {
@@ -48,6 +116,16 @@ export default function DeviceDeployStatus({ deviceName }) {
           setHeight(enteredHeight.target.value);
         }
     };
+
+    const runDeviceTest = async () => {
+        setDeviceTestLoading(true);
+        await getDeviceRecentFeedByChannelIdApi(deviceData.channelID)
+            .then(responseData => {
+                setRecentFeed(responseData);
+            })
+            .catch(err => err);
+        setDeviceTestLoading(false);
+    }
 
     return (
         <>
@@ -61,7 +139,6 @@ export default function DeviceDeployStatus({ deviceName }) {
                 <Button
                   variant="contained"
                   color="primary"
-                  // onClick={(evt => {setAddLog(true)})}
                  > Recall Device
                 </Button>
             </div>
@@ -72,7 +149,7 @@ export default function DeviceDeployStatus({ deviceName }) {
                         id="standard-basic"
                         label="Device Name"
                         disabled
-                        value={deviceName}
+                        value={deviceData.name}
                         required
                         fullWidth
                       />
@@ -185,16 +262,21 @@ export default function DeviceDeployStatus({ deviceName }) {
                           justify="flex-end"
                         >
                           <Button
-                              // disabled={loading}
-                            // variant="contained"
                             color="primary"
-                            // onClick={handleSubmit}
-                            style={{ marginLeft: "10px" }}
+                            disabled={deviceTestLoading}
+                            onClick={runDeviceTest}
+                            style={{ marginLeft: "10px 10px" }}
                           >
                             Run device test
                           </Button>
                         </Grid>
-                        <EmptyDeviceTest />
+                        {isEmpty(recentFeed)
+                            ?
+                            <EmptyDeviceTest loading={deviceTestLoading} onClick={runDeviceTest} />
+                            :
+                            <DeviceRecentFeedView recentFeed={recentFeed} />
+                        }
+
                     </Grid>
 
                       <Grid
