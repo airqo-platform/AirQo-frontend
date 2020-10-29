@@ -6,10 +6,12 @@ import Select from "@material-ui/core/Select";
 import Input from "@material-ui/core/Input";
 import { KeyboardDatePicker, MuiPickersUtilsProvider } from "@material-ui/pickers";
 import CheckBoxIcon from '@material-ui/icons/CheckBox';
+import ErrorIcon from '@material-ui/icons/Error';
 import DateFnsUtils from "@date-io/date-fns";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
 import Checkbox from "@material-ui/core/Checkbox";
 import green from '@material-ui/core/colors/green';
+import red from '@material-ui/core/colors/red';
 import { makeStyles } from "@material-ui/styles";
 import { isEmpty, omit } from "underscore";
 import { getDeviceRecentFeedByChannelIdApi } from "../../../apis/deviceRegistry";
@@ -18,7 +20,10 @@ import { getDeviceRecentFeedByChannelIdApi } from "../../../apis/deviceRegistry"
 const useStyles = makeStyles(theme => ({
     root: {
         color: green[500],
-    }
+    },
+    error: {
+        color: red[500],
+    },
 }))
 
 
@@ -71,28 +76,43 @@ const EmptyDeviceTest = ({loading, onClick}) => {
 };
 
 
-const DeviceRecentFeedView = ({ recentFeed }) => {
+const DeviceRecentFeedView = ({ recentFeed, runReport }) => {
     const classes = useStyles();
     const feedKeys = Object.keys(omit(recentFeed, "isCache", "created_at"));
 
     return (
-        <div>
+        <div style={{height: "94%"}}>
             <h4>Sensors</h4>
-            <div style={{
-                display: "flex",
-                flexWrap: "wrap",
-                alignItems: "center",
-                margin: "10px 30px",
-            }}>
-                {feedKeys.map(key => (
-                    <div style={senorListStyle}>
-                        <span style={{width: "30%"}}><CheckBoxIcon className={classes.root} /></span>
-                        <span style={{width: "30%"}}>{sensorFeedNameMapper[key]} </span>
-                        <span style={{width: "30%"}}>{recentFeed[key]}</span>
-                    </div>
-                ))}
+            { runReport.successfulTestRun &&
+                <div style={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    alignItems: "center",
+                    margin: "10px 30px",
+                }}>
+                    {feedKeys.map(key => (
+                        <div style={senorListStyle}>
+                            <span style={{width: "30%"}}><CheckBoxIcon className={classes.root}/></span>
+                            <span style={{width: "30%"}}>{sensorFeedNameMapper[key]} </span>
+                            <span style={{width: "30%"}}>{recentFeed[key]}</span>
+                        </div>
+                    ))}
 
-            </div>
+                </div>
+            }
+            { !runReport.successfulTestRun &&
+                <div style={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    margin: "10px 30px",
+                    height: "70%",
+                    color: "red",
+                }}>
+                    <ErrorIcon className={classes.error}/> Can not query device
+                </div>
+            }
         </div>
     );
 }
@@ -107,6 +127,7 @@ export default function DeviceDeployStatus({ deviceData }) {
     const [primaryChecked, setPrimaryChecked] = useState(true);
     const [collocationChecked, setCollocationChecked] = useState(false);
     const [recentFeed, setRecentFeed] = useState({});
+    const [runReport, setRunReport] = useState({ranTest: false, successfulTestRun: false});
     const [deviceTestLoading, setDeviceTestLoading] = useState(false);
     // const [locationID, setLocationID] = useState("");
 
@@ -122,8 +143,11 @@ export default function DeviceDeployStatus({ deviceData }) {
         await getDeviceRecentFeedByChannelIdApi(deviceData.channelID)
             .then(responseData => {
                 setRecentFeed(responseData);
+                setRunReport({ranTest: true, successfulTestRun: true});
             })
-            .catch(err => err);
+            .catch(err => {
+               setRunReport({ranTest: true, successfulTestRun: false});
+            });
         setDeviceTestLoading(false);
     }
 
@@ -270,11 +294,11 @@ export default function DeviceDeployStatus({ deviceData }) {
                             Run device test
                           </Button>
                         </Grid>
-                        {isEmpty(recentFeed)
+                        {isEmpty(recentFeed) && !runReport.ranTest
                             ?
                             <EmptyDeviceTest loading={deviceTestLoading} onClick={runDeviceTest} />
                             :
-                            <DeviceRecentFeedView recentFeed={recentFeed} />
+                            <DeviceRecentFeedView recentFeed={recentFeed} runReport={runReport} />
                         }
 
                     </Grid>
