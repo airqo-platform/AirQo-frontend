@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useDispatch } from "react-redux";
 import { Button, Grid, Paper, TextField } from "@material-ui/core";
 import FormControl from "@material-ui/core/FormControl";
 import InputLabel from "@material-ui/core/InputLabel";
@@ -15,7 +16,8 @@ import green from '@material-ui/core/colors/green';
 import red from '@material-ui/core/colors/red';
 import { makeStyles } from "@material-ui/styles";
 import { isEmpty, omit } from "underscore";
-import { getDeviceRecentFeedByChannelIdApi } from "../../../apis/deviceRegistry";
+import { deployDeviceApi, getDeviceRecentFeedByChannelIdApi } from "../../../apis/deviceRegistry";
+import { updateMainAlert } from "redux/MainAlert/operations";
 
 
 const useStyles = makeStyles(theme => ({
@@ -128,6 +130,7 @@ const DeviceRecentFeedView = ({ recentFeed, runReport }) => {
 
 export default function DeviceDeployStatus({ deviceData }) {
 
+    const dispatch = useDispatch();
     const [height, setHeight] = useState("");
     const [power, setPower] = useState("");
     const [installationType, setInstallationType] = useState("");
@@ -137,9 +140,10 @@ export default function DeviceDeployStatus({ deviceData }) {
     const [recentFeed, setRecentFeed] = useState({});
     const [runReport, setRunReport] = useState({ranTest: false, successfulTestRun: false});
     const [deviceTestLoading, setDeviceTestLoading] = useState(false);
-    const [manualCoordinate, setManualCoordinate] = useState(false)
-    const [longitude, setLongitude] = useState("")
-    const [latitude, setLatitude] = useState("")
+    const [manualCoordinate, setManualCoordinate] = useState(false);
+    const [longitude, setLongitude] = useState("");
+    const [latitude, setLatitude] = useState("");
+    const [deployLoading, setDeployLoading] = useState(false);
 
     useEffect(() => {
         if (recentFeed.longitude && recentFeed.latitude) {
@@ -166,6 +170,46 @@ export default function DeviceDeployStatus({ deviceData }) {
                setRunReport({ranTest: true, successfulTestRun: false});
             });
         setDeviceTestLoading(false);
+    }
+
+    const handleDeploySubmit = async () => {
+        const deployData = {
+          deviceName: deviceData.name,
+          mountType: installationType,
+          height: height,
+          powerType: power,
+          date: deploymentDate.toISOString(),
+          latitude: latitude.toString(),
+          longitude: longitude.toString(),
+          isPrimaryInLocation: primaryChecked,
+          isUserForCollocaton: collocationChecked,
+        };
+
+        console.log("deploy data", deployData)
+        setDeployLoading(true);
+        await deployDeviceApi(deployData)
+            .then(responseData => {
+                dispatch(updateMainAlert({
+                   message: responseData.message,
+                   show: true,
+                   severity: "success",
+                }));
+            })
+            .catch(err => {
+                dispatch(updateMainAlert({
+                   message: err.response.data.message,
+                   show: true,
+                   severity: "error",
+                }));
+            });
+        setDeployLoading(false);
+    }
+
+    const weightedBool = (primary, secondary) => {
+        if (primary) {
+            return primary;
+        }
+        return secondary;
     }
 
     return (
@@ -345,7 +389,6 @@ export default function DeviceDeployStatus({ deviceData }) {
 
                               <Button
                                 variant="contained"
-                                // onClick={toggleShow}
                               >
                                 Cancel
                               </Button>
@@ -360,8 +403,8 @@ export default function DeviceDeployStatus({ deviceData }) {
                                   <Button
                                     variant="contained"
                                     color="primary"
-                                    disabled={!runReport.successfulTestRun}
-                                    // onClick={handleSubmit}
+                                    disabled={weightedBool(deployLoading, !runReport.successfulTestRun)}
+                                    onClick={handleDeploySubmit}
                                     style={{ marginLeft: "10px" }}
                                   >
                                     Deploy
