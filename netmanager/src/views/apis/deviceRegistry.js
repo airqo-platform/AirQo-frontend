@@ -55,3 +55,9 @@ export const getDeviceRecentFeedByChannelIdApi = async (channelId) => {
       .get(constants.DEVICE_RECENT_FEEDS, { params: { channel: channelId } })
       .then(response => response.data);
 };
+
+export const updateDeviceDetails = async (deviceName, updateData) => {
+  return await axios
+      .put(constants.EDIT_DEVICE_URI + deviceName, updateData)
+      .then(response => response.data);
+};
