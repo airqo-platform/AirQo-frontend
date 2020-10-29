@@ -1,13 +1,35 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import { Button, Grid, Paper, TextField } from "@material-ui/core";
 import FormControl from "@material-ui/core/FormControl";
 import InputLabel from "@material-ui/core/InputLabel";
 import Select from "@material-ui/core/Select";
 import Input from "@material-ui/core/Input";
-import {KeyboardDatePicker, MuiPickersUtilsProvider} from "@material-ui/pickers";
+import { KeyboardDatePicker, MuiPickersUtilsProvider } from "@material-ui/pickers";
 import DateFnsUtils from "@date-io/date-fns";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
 import Checkbox from "@material-ui/core/Checkbox";
+
+
+const emptyTestStyles = {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: "93%",
+}
+
+const EmptyDeviceTest = () => {
+    return (
+        <div style={emptyTestStyles}>
+            <span>No devices test results, please click
+                <Button
+                    color="primary"
+                    style={{textTransform: "lowercase"}}
+                >
+                    run
+                </Button> to initiate the test</span>
+        </div>
+    );
+};
 
 
 export default function DeviceDeployStatus({ deviceName }) {
@@ -137,7 +159,8 @@ export default function DeviceDeployStatus({ deviceName }) {
                               />
                             }
                             label="I wish to make this my primary device in this location"
-                            style={{ margin: "10px 0 0 5px" }}
+
+                            style={{ margin: "10px 0 0 5px", width: "100%" }}
                           />
                           <FormControlLabel
                             control={
@@ -171,6 +194,7 @@ export default function DeviceDeployStatus({ deviceName }) {
                             Run device test
                           </Button>
                         </Grid>
+                        <EmptyDeviceTest />
                     </Grid>
 
                       <Grid
