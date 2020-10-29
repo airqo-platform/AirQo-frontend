@@ -38,6 +38,12 @@ export const addMaintenanceLogApi = async (logData) => {
       .then(response => response.data);
 };
 
+export const deployDeviceApi =  async (deployData) => {
+  return axios
+      .post(constants.DEPLOY_DEVICE_URI + 'deploy', deployData)
+      .then(response => response.data)
+}
+
 export const getDeviceRecentFeedByChannelIdApi = async (channelId) => {
   return await axios
       .get(constants.DEVICE_RECENT_FEEDS, { params: { channel: channelId } })
