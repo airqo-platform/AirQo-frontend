@@ -5,6 +5,7 @@ import InputLabel from "@material-ui/core/InputLabel";
 import Select from "@material-ui/core/Select";
 import Input from "@material-ui/core/Input";
 import { KeyboardDatePicker, MuiPickersUtilsProvider } from "@material-ui/pickers";
+import Tooltip from "@material-ui/core/Tooltip"
 import CheckBoxIcon from '@material-ui/icons/CheckBox';
 import ErrorIcon from '@material-ui/icons/Error';
 import DateFnsUtils from "@date-io/date-fns";
@@ -310,21 +311,32 @@ export default function DeviceDeployStatus({ deviceData }) {
                       justify="flex-end"
                       xs={12}
                       >
-                          <Button
-                            variant="contained"
-                            // onClick={toggleShow}
+
+                              <Button
+                                variant="contained"
+                                // onClick={toggleShow}
+                              >
+                                Cancel
+                              </Button>
+                          <Tooltip
+                              title="Run device test to activate"
+                              placement="top"
+                              disableFocusListener={runReport.successfulTestRun}
+                              disableHoverListener={runReport.successfulTestRun}
+                              disableTouchListener={runReport.successfulTestRun}
                           >
-                            Cancel
-                          </Button>
-                          <Button
-                              // disabled={loading}
-                            variant="contained"
-                            color="primary"
-                            // onClick={handleSubmit}
-                            style={{ marginLeft: "10px" }}
-                          >
-                            Deploy
-                          </Button>
+                              <span>
+                                  <Button
+                                    variant="contained"
+                                    color="primary"
+                                    disabled={!runReport.successfulTestRun}
+                                    // onClick={handleSubmit}
+                                    style={{ marginLeft: "10px" }}
+                                  >
+                                    Deploy
+                                  </Button>
+                              </span>
+                          </Tooltip>
                       </Grid>
 
 
