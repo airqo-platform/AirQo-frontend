@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch } from "react-redux";
-import { Button, Grid, Paper, TextField } from "@material-ui/core";
+import {Button, Dialog, DialogActions, DialogContent, DialogTitle, Grid, Paper, TextField} from "@material-ui/core";
 import FormControl from "@material-ui/core/FormControl";
 import InputLabel from "@material-ui/core/InputLabel";
 import Select from "@material-ui/core/Select";
@@ -16,7 +16,7 @@ import green from '@material-ui/core/colors/green';
 import red from '@material-ui/core/colors/red';
 import { makeStyles } from "@material-ui/styles";
 import { isEmpty, omit } from "underscore";
-import { deployDeviceApi, getDeviceRecentFeedByChannelIdApi } from "../../../apis/deviceRegistry";
+import { deployDeviceApi, getDeviceRecentFeedByChannelIdApi, recallDeviceApi } from "../../../apis/deviceRegistry";
 import { updateMainAlert } from "redux/MainAlert/operations";
 
 
@@ -86,6 +86,55 @@ const EmptyDeviceTest = ({loading, onClick}) => {
 };
 
 
+const RecallDevice = ({deviceData, handleRecall, open, toggleOpen}) => {
+    return (
+        <Dialog
+          open={open}
+          onClose={toggleOpen}
+          aria-labelledby="form-dialog-title"
+          aria-describedby="form-dialog-description"
+          style={{padding: "20px 10px"}}
+        >
+          <DialogTitle
+            id="form-dialog-title"
+            style={{ textTransform: "uppercase", alignContent: "center", fontSize: "1.1rem" }}
+          >
+            Recall device
+          </DialogTitle>
+
+          <DialogContent>
+            Are you sure you want to recall device <strong>{deviceData.name}</strong> from location{" "}
+            <strong>{deviceData.locationID}</strong>?
+          </DialogContent>
+
+          <DialogActions>
+            <Grid
+              container
+              alignItems="flex-end"
+              alignContent="flex-end"
+              justify="flex-end"
+            >
+              <Button
+                variant="contained"
+                onClick={toggleOpen}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleRecall}
+                style={{ margin: "0 15px" }}
+              >
+                Recall device
+              </Button>
+            </Grid>
+          </DialogActions>
+        </Dialog>
+    );
+};
+
+
 const DeviceRecentFeedView = ({ recentFeed, runReport }) => {
     const classes = useStyles();
     const feedKeys = Object.keys(omit(recentFeed, "isCache", "created_at"));
@@ -144,6 +193,7 @@ export default function DeviceDeployStatus({ deviceData }) {
     const [longitude, setLongitude] = useState("");
     const [latitude, setLatitude] = useState("");
     const [deployLoading, setDeployLoading] = useState(false);
+    const [recallOpen, setRecallOpen] = useState(false);
 
     useEffect(() => {
         if (recentFeed.longitude && recentFeed.latitude) {
@@ -185,7 +235,6 @@ export default function DeviceDeployStatus({ deviceData }) {
           isUserForCollocaton: collocationChecked,
         };
 
-        console.log("deploy data", deployData)
         setDeployLoading(true);
         await deployDeviceApi(deployData)
             .then(responseData => {
@@ -205,12 +254,41 @@ export default function DeviceDeployStatus({ deviceData }) {
         setDeployLoading(false);
     }
 
+    const handleRecallSubmit = async () => {
+        const currentDate = new Date();
+        const recallData = {
+            deviceName: deviceData.name,
+            locationName: deviceData.locationID,
+            date: currentDate.toISOString(),
+        };
+
+        setRecallOpen(!recallOpen);
+
+        await recallDeviceApi(recallData)
+            .then(responseData => {
+                dispatch(updateMainAlert({
+                   message: responseData.message,
+                   show: true,
+                   severity: "success",
+                }));
+            })
+            .catch(err => {
+                dispatch(updateMainAlert({
+                   message: err.response.data.message,
+                   show: true,
+                   severity: "error",
+                }));
+            })
+    }
+
     const weightedBool = (primary, secondary) => {
         if (primary) {
             return primary;
         }
         return secondary;
     }
+
+    console.log("device data", deviceData);
 
     return (
         <>
@@ -221,12 +299,31 @@ export default function DeviceDeployStatus({ deviceData }) {
                     margin: "10px 0",
                 }}
             >
-                <Button
-                  variant="contained"
-                  color="primary"
-                 > Recall Device
-                </Button>
+                <Tooltip
+                    title={"Device is not yet deployed"}
+                    disableTouchListener={deviceData.isActive}
+                    disableHoverListener={deviceData.isActive}
+                    disableFocusListener={deviceData.isActive}
+                >
+                    <span>
+                        <Button
+                          variant="contained"
+                          color="primary"
+                          disabled={!deviceData.isActive}
+                          onClick={() => setRecallOpen(!recallOpen)}
+                         > Recall Device
+                        </Button>
+                    </span>
+                </Tooltip>
             </div>
+
+            <RecallDevice
+                deviceData={deviceData}
+                open={recallOpen}
+                toggleOpen={() => setRecallOpen(!recallOpen)}
+                handleRecall={handleRecallSubmit}
+            />
+
             <Paper style={{ margin: "0 auto", minHeight: "400px", padding: "20px 20px", maxWidth: "1500px"}}>
                 <Grid container spacing={1}>
                     <Grid items xs={6}>
@@ -270,7 +367,7 @@ export default function DeviceDeployStatus({ deviceData }) {
 
                       <TextField
                           id="standard-basic"
-                          label="Installation Type"
+                          label="Mount Type"
                           value={installationType}
                           onChange={event => setInstallationType(event.target .value)}
                           fullWidth
