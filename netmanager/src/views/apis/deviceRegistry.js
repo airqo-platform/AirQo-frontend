@@ -37,3 +37,9 @@ export const addMaintenanceLogApi = async (logData) => {
       .post(constants.DEPLOY_DEVICE_URI + 'maintain', logData)
       .then(response => response.data);
 };
+
+export const getDeviceRecentFeedByChannelIdApi = async (channelId) => {
+  return await axios
+      .get(constants.DEVICE_RECENT_FEEDS, { params: { channel: channelId } })
+      .then(response => response.data);
+};
