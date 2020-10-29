@@ -5,6 +5,7 @@ import 'chartjs-plugin-annotation';
 import { isEmpty } from "underscore";
 import { DeviceToolBar, DeviceToolBarContainer } from "./DeviceToolBar";
 import DeviceDeployStatus from "./DeviceDeployStatus";
+import DeviceEdit from "./DeviceEdit";
 import DeviceLogs from "./DeviceLogs";
 import DevicePhotos from "./DevicePhotos";
 import DeviceComponents from "./DeviceComponents";
@@ -40,6 +41,11 @@ export default function DeviceView() {
               exact
               path={'/device/:deviceId/overview'}
               component={DeviceOverview}
+          />
+          <Route
+              exact
+              path={'/device/:deviceId/edit'}
+              component={() => <DeviceEdit deviceData={deviceData} />}
           />
           <Route
               exact
