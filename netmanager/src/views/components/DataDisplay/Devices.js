@@ -496,7 +496,7 @@ const DevicesTable = (props) => {
   const handleDescriptionChange = (event) => {
     setDescription(event.target.value);
   };
-  const [visibility, setVisibility] = useState("");
+  const [visibility, setVisibility] = useState(false);
   const handleVisibilityChange = (event) => {
     setVisibility(event.target.value);
   };
@@ -1417,22 +1417,6 @@ const DevicesTable = (props) => {
                 onChange={handleProductNameChange}
                 fullWidth
               />
-              <TextField
-                id="standard-basic"
-                label="Latitude"
-                value={latitude}
-                onChange={handleLatitudeChange}
-                fullWidth
-                required
-              />
-              <TextField
-                id="standard-basic"
-                label="Longitude"
-                value={longitude}
-                onChange={handleLongitudeChange}
-                fullWidth
-                required
-              />
               <FormControl required fullWidth>
                 <InputLabel htmlFor="demo-dialog-native">
                   Data Access
@@ -1447,9 +1431,8 @@ const DevicesTable = (props) => {
                     style: {height: "40px", marginTop: "10px"},
                   }}
                 >
-                  <option aria-label="None" value="" />
-                  <option value="true">True</option>
-                  <option value="false">False</option>
+                  <option value={true}>True</option>
+                  <option value={false}>False</option>
                 </Select>
               </FormControl>
               <TextField
