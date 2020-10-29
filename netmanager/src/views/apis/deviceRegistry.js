@@ -38,6 +38,12 @@ export const addMaintenanceLogApi = async (logData) => {
       .then(response => response.data);
 };
 
+export const recallDeviceApi = async (recallData) => {
+  return await axios
+      .post(constants.DEPLOY_DEVICE_URI + "recall", recallData)
+      .then(response => response.data);
+}
+
 export const deployDeviceApi =  async (deployData) => {
   return axios
       .post(constants.DEPLOY_DEVICE_URI + 'deploy', deployData)
