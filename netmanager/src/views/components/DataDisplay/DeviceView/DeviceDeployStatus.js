@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button, Grid, Paper, TextField } from "@material-ui/core";
 import FormControl from "@material-ui/core/FormControl";
 import InputLabel from "@material-ui/core/InputLabel";
@@ -41,6 +41,13 @@ const senorListStyle = {
     alignItems: "center",
     justifyContent: "space-around",
     width: "100%"
+}
+
+const coordinatesActivateStyles = {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "flex-end",
+    fontSize: ".8rem"
 }
 
 const sensorFeedNameMapper = {
@@ -130,7 +137,16 @@ export default function DeviceDeployStatus({ deviceData }) {
     const [recentFeed, setRecentFeed] = useState({});
     const [runReport, setRunReport] = useState({ranTest: false, successfulTestRun: false});
     const [deviceTestLoading, setDeviceTestLoading] = useState(false);
-    // const [locationID, setLocationID] = useState("");
+    const [manualCoordinate, setManualCoordinate] = useState(false)
+    const [longitude, setLongitude] = useState("")
+    const [latitude, setLatitude] = useState("")
+
+    useEffect(() => {
+        if (recentFeed.longitude && recentFeed.latitude) {
+            setLongitude(recentFeed.longitude);
+            setLatitude(recentFeed.latitude);
+        }
+    }, [recentFeed])
 
     const handleHeightChange = (enteredHeight) => {
         let re = /\s*|\d+(\.d+)?/;
@@ -235,21 +251,36 @@ export default function DeviceDeployStatus({ deviceData }) {
                       <TextField
                         id="standard-basic"
                         label="Longitude"
-                        value={height}
-                        onChange={handleHeightChange}
+                        disabled={!manualCoordinate}
+                        value={longitude}
+                        onChange={event => setLongitude(event.target.value)}
                         fullWidth
+                        required
                       />
 
                       <TextField
                         id="standard-basic"
                         label="Latitude"
-                        value={height}
-                        onChange={handleHeightChange}
+                        disabled={!manualCoordinate}
+                        value={latitude}
+                        onChange={event => setLatitude(event.target.value)}
                         fullWidth
+                        required
                       />
+                      <span
+                          style={coordinatesActivateStyles}
+                          onClick={event => setManualCoordinate(!manualCoordinate)}
+                      >
+                          Manually fill in coordinates
+                          <Checkbox
+                              checked={manualCoordinate}
+                              name="primaryDevice"
+                              color="primary"
+                          />
+                      </span>
 
 
-                      <div style={{ margin: "10px 0" }}>
+                      <div style={{ margin: "30px 0 20px 0" }}>
                         <Grid container item xs={12} spacing={3}>
                           <FormControlLabel
                             control={
