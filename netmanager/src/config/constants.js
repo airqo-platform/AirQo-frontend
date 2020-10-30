@@ -53,6 +53,7 @@ const prodConfig = {
     "http://34.78.78.202:30006/api/v1/device/monitor/maintenance_logs/",
   ADD_MAINTENANCE_URI:
     "http://34.78.78.202:30001/api/v1/data/channels/maintenance/add",
+  DEVICE_RECENT_FEEDS: "http://34.78.78.202:30001/api/v1/data/feeds/transform/recent",
   REGISTER_DEVICE_URI: "http://34.78.78.202:30002/api/v1/devices/ts",
   ALL_DEVICES_URI: "http://34.78.78.202:30002/api/v1/devices",
   EDIT_DEVICE_URI: "http://34.78.78.202:30002/api/v1/devices/ts/update?device=",
@@ -190,6 +191,7 @@ const devConfig = {
   UPDATE_LOCATION_URI: "http://127.0.0.1:4000/api/v1/location_registry/update",
   ADD_MAINTENANCE_URI:
     "http://localhost:3000/api/v1/data/channels/maintenance/add",
+  DEVICE_RECENT_FEEDS: "http://localhost:3000/api/v1/data/feeds/transform/recent",
   REGISTER_DEVICE_URI: "http://localhost:3000/api/v1/devices/ts",
   ALL_DEVICES_URI: "http://localhost:3000/api/v1/devices",
   EDIT_DEVICE_URI: "http://localhost:3000/api/v1/devices/ts/update?device=",
@@ -267,6 +269,7 @@ const stageConfig = {
     "http://34.78.78.202:31006/api/v1/device/monitor/maintenance_logs/",
   ADD_MAINTENANCE_URI:
     "http://34.78.78.202:31001/api/v1/data/channels/maintenance/add",
+  DEVICE_RECENT_FEEDS: "http://34.78.78.202:31001/api/v1/data/feeds/transform/recent",
   REGISTER_DEVICE_URI: "http://34.78.78.202:31002/api/v1/devices/ts",
   ALL_DEVICES_URI: "http://34.78.78.202:31002/api/v1/devices",
   EDIT_DEVICE_URI: "http://34.78.78.202:31002/api/v1/devices/ts/update?device=",

@@ -37,3 +37,27 @@ export const addMaintenanceLogApi = async (logData) => {
       .post(constants.DEPLOY_DEVICE_URI + 'maintain', logData)
       .then(response => response.data);
 };
+
+export const recallDeviceApi = async (recallData) => {
+  return await axios
+      .post(constants.DEPLOY_DEVICE_URI + "recall", recallData)
+      .then(response => response.data);
+}
+
+export const deployDeviceApi =  async (deployData) => {
+  return axios
+      .post(constants.DEPLOY_DEVICE_URI + 'deploy', deployData)
+      .then(response => response.data)
+}
+
+export const getDeviceRecentFeedByChannelIdApi = async (channelId) => {
+  return await axios
+      .get(constants.DEVICE_RECENT_FEEDS, { params: { channel: channelId } })
+      .then(response => response.data);
+};
+
+export const updateDeviceDetails = async (deviceName, updateData) => {
+  return await axios
+      .put(constants.EDIT_DEVICE_URI + deviceName, updateData)
+      .then(response => response.data);
+};

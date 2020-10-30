@@ -4,6 +4,8 @@ import {Route, Switch, Redirect, useParams, useRouteMatch} from "react-router-do
 import 'chartjs-plugin-annotation';
 import { isEmpty } from "underscore";
 import { DeviceToolBar, DeviceToolBarContainer } from "./DeviceToolBar";
+import DeviceDeployStatus from "./DeviceDeployStatus";
+import DeviceEdit from "./DeviceEdit";
 import DeviceLogs from "./DeviceLogs";
 import DevicePhotos from "./DevicePhotos";
 import DeviceComponents from "./DeviceComponents";
@@ -42,8 +44,18 @@ export default function DeviceView() {
           />
           <Route
               exact
+              path={'/device/:deviceId/edit'}
+              component={() => <DeviceEdit deviceData={deviceData} />}
+          />
+          <Route
+              exact
               path={'/device/:deviceId/maintenance-logs'}
               component={() => <DeviceLogs deviceName={deviceData.name} deviceLocation={deviceData.locationID} />}
+          />
+          <Route
+              exact
+              path={'/device/:deviceId/deploy-status'}
+              component={() => <DeviceDeployStatus deviceData={deviceData} /> }
           />
           <Route
               exact
