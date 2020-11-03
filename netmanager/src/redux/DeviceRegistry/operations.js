@@ -6,6 +6,9 @@ import {
     LOAD_MAINTENANCE_LOGS_FAILURE,
     LOAD_DEVICE_COMPONENTS_SUCCESS,
     LOAD_DEVICE_COMPONENTS_FAILURE,
+    RESET_DEVICE_SUCCESS,
+    RESET_DEVICE_COMPONENTS_SUCCESS,
+    RESET_MAINTENANCE_LOGS,
 } from "./actions";
 import { transformArray } from "../utils";
 import {
@@ -70,4 +73,10 @@ export const loadDeviceComponentsData = (deviceName) => {
                 })
             })
     }
+}
+
+export const resetDeviceRegistryState = () => dispatch => {
+    dispatch({ type: RESET_DEVICE_SUCCESS });
+    dispatch({ type: RESET_DEVICE_COMPONENTS_SUCCESS });
+    dispatch({ type: RESET_MAINTENANCE_LOGS });
 }

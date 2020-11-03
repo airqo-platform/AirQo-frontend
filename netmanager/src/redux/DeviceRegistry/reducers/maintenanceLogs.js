@@ -1,7 +1,10 @@
-import { LOAD_MAINTENANCE_LOGS_SUCCESS } from "../actions";
+import { LOAD_MAINTENANCE_LOGS_SUCCESS, RESET_MAINTENANCE_LOGS } from "../actions";
 
-export default function (state = {}, action) {
+const initialState = {};
+export default function (state = initialState, action) {
   switch (action.type) {
+    case RESET_MAINTENANCE_LOGS:
+      return initialState;
     case LOAD_MAINTENANCE_LOGS_SUCCESS:
       return { ...state, ...action.payload };
     default:
