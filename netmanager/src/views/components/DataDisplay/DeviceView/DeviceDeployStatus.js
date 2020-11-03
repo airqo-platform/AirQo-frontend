@@ -64,8 +64,11 @@ const sensorFeedNameMapper = {
     speed: "Speed",
     satellites: "Satellites",
     hdop: "Hdop",
-    internalTemperature: "Internal Temp",
+    internalTemperature: "Internal Temperature",
+    externalTemperature: "External Temperature",
     internalHumidity: "Internal Humidity",
+    ExternalHumidity: "External Humidity",
+    ExternalPressure: "External Pressure",
 }
 
 const EmptyDeviceTest = ({loading, onClick}) => {
@@ -152,7 +155,7 @@ const DeviceRecentFeedView = ({ recentFeed, runReport }) => {
                     {feedKeys.map(key => (
                         <div style={senorListStyle}>
                             <span style={{width: "30%"}}><CheckBoxIcon className={classes.root}/></span>
-                            <span style={{width: "30%"}}>{sensorFeedNameMapper[key]} </span>
+                            <span style={{width: "30%"}}>{sensorFeedNameMapper[key] || key} </span>
                             <span style={{width: "30%"}}>{recentFeed[key]}</span>
                         </div>
                     ))}
@@ -490,17 +493,22 @@ export default function DeviceDeployStatus({ deviceData }) {
                                 Cancel
                               </Button>
                           <Tooltip
-                              title="Run device test to activate"
+                              title={deviceData.isActive ? "Device already deployed" : "Run device test to activate" }
                               placement="top"
-                              disableFocusListener={runReport.successfulTestRun}
-                              disableHoverListener={runReport.successfulTestRun}
-                              disableTouchListener={runReport.successfulTestRun}
+                              disableFocusListener={runReport.successfulTestRun && !deviceData.isActive}
+                              disableHoverListener={runReport.successfulTestRun && !deviceData.isActive}
+                              disableTouchListener={runReport.successfulTestRun && !deviceData.isActive}
                           >
                               <span>
                                   <Button
                                     variant="contained"
                                     color="primary"
-                                    disabled={weightedBool(deployLoading, !runReport.successfulTestRun)}
+                                    disabled={
+                                        weightedBool(
+                                            deployLoading,
+                                            deviceData.isActive || !runReport.successfulTestRun
+                                        )
+                                    }
                                     onClick={handleDeploySubmit}
                                     style={{ marginLeft: "10px" }}
                                   >

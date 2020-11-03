@@ -369,8 +369,8 @@ const DevicesTable = (props) => {
                   style: {height: "40px", marginTop: "10px"},
                 }}
               >
-                <option value={true}>True</option>
-                <option value={false}>False</option>
+                <option value={true}>Public</option>
+                <option value={false}>Private</option>
               </Select>
             </FormControl>
             <TextField
