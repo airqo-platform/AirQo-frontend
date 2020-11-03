@@ -53,6 +53,7 @@ import {
   RESET_ORGANIZATION_SUCCESS,
 } from './types';
 import { resetMapState } from "../Maps/actions";
+import { resetDashboardState } from "../Dashboard/operations";
 import constants from '../../config/constants';
 
 /***************************errors ********************************* */
@@ -462,6 +463,7 @@ export const clearState = () => dispatch => {
   dispatch(resetErrorsState());
   dispatch(resetUsersState());
   dispatch(resetMapState());
+  dispatch(resetDashboardState());
   dispatch(resetOrgState());
 };
 
