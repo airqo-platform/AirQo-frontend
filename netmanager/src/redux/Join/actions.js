@@ -55,6 +55,8 @@ import {
 import { resetMapState } from "../Maps/actions";
 import { resetDashboardState } from "../Dashboard/operations";
 import { resetDeviceRegistryState } from "../DeviceRegistry/operations";
+import { resetLocationState } from "../LocationRegistry/operations";
+import { resetAlertState } from "../MainAlert/operations";
 import constants from '../../config/constants';
 
 /***************************errors ********************************* */
@@ -466,7 +468,9 @@ export const clearState = () => dispatch => {
   dispatch(resetMapState());
   dispatch(resetDashboardState());
   dispatch(resetDeviceRegistryState());
+  dispatch(resetLocationState());
   dispatch(resetOrgState());
+  dispatch(resetAlertState())
 };
 
 export const logoutUser = () => dispatch => {
