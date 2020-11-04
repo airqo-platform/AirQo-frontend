@@ -24,7 +24,7 @@ import { Alert, AlertTitle } from "@material-ui/lab";
 import { useMinimalSelectStyles } from "@mui-treasury/styles/select/minimal";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import { SearchInput } from "views/components/SearchInput";
-import { useOrgData } from "../../../../../redux/Join/selectors";
+import { useOrgData } from "redux/Join/selectors";
 
 
 const useStyles = makeStyles((theme) => ({
@@ -70,20 +70,20 @@ const useStyles = makeStyles((theme) => ({
 
 const roles = [
   {
-    value: "none",
-    label: "none",
-  },
-  {
-    value: "admin",
-    label: "admin",
-  },
-  {
     value: "user",
     label: "user",
   },
   {
     value: "collaborator",
     label: "collaborator",
+  },
+  {
+    value: "netmanager",
+    label: "netmanager",
+  },
+  {
+    value: "admin",
+    label: "admin",
   },
 ];
 
@@ -107,7 +107,7 @@ const UsersToolbar = (props) => {
     email: "",
     password: "",
     password2: "",
-    privilege: "",
+    privilege: roles[0].value,
     errors: {},
   };
 
