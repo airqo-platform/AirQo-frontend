@@ -151,7 +151,7 @@ const Sidebar = (props) => {
 
   const { mappedAuth } = props;
   let { user } = mappedAuth;
-  const excludedPages = roleExcludePageMapper[user.privilege ] || roleExcludePageMapper.user;
+  const excludedPages = roleExcludePageMapper[user.privilege] || roleExcludePageMapper.user;
   let pages = excludePages(allMainPages, excludedPages);
   const userPages = excludePages(allUserManagementPages, excludedPages);
 
