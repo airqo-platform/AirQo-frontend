@@ -8,6 +8,7 @@ import Input from "@material-ui/core/Input";
 import { KeyboardDatePicker, MuiPickersUtilsProvider } from "@material-ui/pickers";
 import Tooltip from "@material-ui/core/Tooltip"
 import CheckBoxIcon from '@material-ui/icons/CheckBox';
+import CancelIcon from '@material-ui/icons/Cancel';
 import ErrorIcon from '@material-ui/icons/Error';
 import DateFnsUtils from "@date-io/date-fns";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
@@ -52,24 +53,32 @@ const coordinatesActivateStyles = {
     fontSize: ".8rem"
 }
 
+const defaultSensorRange = {min: Infinity, max: Infinity};
+
 const sensorFeedNameMapper = {
-    pm2_5: "PM 2.5",
-    pm10: "PM 10",
-    s2_pm2_5: "Sensor-2 PM 2.5",
-    s2_pm10: "Sensor-2 PM 10",
-    latitude: "Latitude",
-    longitude: "Longitude",
-    battery: "Battery",
-    altitude: "Altitude",
-    speed: "Speed",
-    satellites: "Satellites",
-    hdop: "Hdop",
-    internalTemperature: "Internal Temperature",
-    externalTemperature: "External Temperature",
-    internalHumidity: "Internal Humidity",
-    ExternalHumidity: "External Humidity",
-    ExternalPressure: "External Pressure",
+    pm2_5: { label: "PM 2.5", range: {min: 1, max: 1000} },
+    pm10: { label: "PM 10", range: {min: 1, max: 1000} },
+    s2_pm2_5: { label: "Sensor-2 PM 2.5", range: {min: 1, max: 1000} },
+    s2_pm10: { label: "Sensor-2 PM 10", range: {min: 1, max: 1000} },
+    latitude: { label: "Latitude", range: {min: -90, max: 90} },
+    longitude: { label: "Longitude", range: {min: -180, max: 80} },
+    battery: { label: "Battery", range: {min: 2.7, max: 5} },
+    altitude: { label: "Altitude", range: {min: 1, max: Infinity} },
+    speed: { label: "Speed", range: {min: 1, max: Infinity} },
+    satellites: { label: "Satellites", range: {min: 1, max: 50} },
+    hdop: { label: "Hdop", range: {min: 1, max: Infinity} },
+    internalTemperature: { label: "Internal Temperature", range: {min: 1, max: 100} },
+    externalTemperature: { label: "External Temperature", range: {min: 1, max: 100} },
+    internalHumidity: { label: "Internal Humidity", range: {min: 1, max: 100} },
+    ExternalHumidity: { label: "External Humidity", range: {min: 1, max: 100} },
+    ExternalPressure: { label: "External Pressure", range: {min: 1, max: 100} },
 }
+
+
+const isValidSensorValue = (sensorValue, range) => {
+    return range.min - 1 <= sensorValue && sensorValue <= range.max;
+
+};
 
 const EmptyDeviceTest = ({loading, onClick}) => {
     return (
@@ -154,8 +163,19 @@ const DeviceRecentFeedView = ({ recentFeed, runReport }) => {
                 }}>
                     {feedKeys.map(key => (
                         <div style={senorListStyle}>
-                            <span style={{width: "30%"}}><CheckBoxIcon className={classes.root}/></span>
-                            <span style={{width: "30%"}}>{sensorFeedNameMapper[key] || key} </span>
+                            {isValidSensorValue(
+                                recentFeed[key],
+                                sensorFeedNameMapper[key] && sensorFeedNameMapper[key].range || defaultSensorRange
+                            )
+                                ?
+                                <span style={{width: "30%"}}><CheckBoxIcon className={classes.root}/></span>
+                                :
+                                <Tooltip title={"Value outside the valid range"} >
+                                    <span style={{width: "30%"}}><CancelIcon className={classes.error}/></span>
+                                </Tooltip>
+
+                            }
+                            <span style={{width: "30%"}}>{sensorFeedNameMapper[key] && sensorFeedNameMapper[key].label || key} </span>
                             <span style={{width: "30%"}}>{recentFeed[key]}</span>
                         </div>
                     ))}
