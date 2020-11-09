@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import ImageUploading from "react-images-uploading";
+import { makeStyles } from "@material-ui/styles";
 import { Button } from "@material-ui/core";
+import { PhotoOutlined } from "@material-ui/icons";
 import { cloudinaryImageUpload } from "../../../apis/cloudinary";
 
 const galleryContainerStyles = {
@@ -13,6 +15,36 @@ const galleryContainerStyles = {
 const galleryItemStyles = {
   margin: "10px",
   height: "400px",
+};
+
+const useStyles = makeStyles((theme) => ({
+  root: {
+    fontSize: "100px",
+  },
+}));
+
+const ImgWithSkeleton = ({ key, image }) => {
+  const classes = useStyles();
+  const [loaded, setLoaded] = useState(false);
+
+  return (
+    <div
+      key={key}
+      className={"device-img-skeleton-wrapper"}
+      style={galleryItemStyles}
+    >
+      {loaded ? (
+        <img src={image["data_url"]} alt="" width="auto" height="100%" />
+      ) : (
+        <div
+          className={"device-img-skeleton"}
+          style={{ width: "400px", height: "100%" }}
+        >
+          <PhotoOutlined className={classes.root} />
+        </div>
+      )}
+    </div>
+  );
 };
 
 const Gallery = ({
@@ -46,13 +78,7 @@ const Gallery = ({
       </div>
       <div style={galleryContainerStyles}>
         {imageList.map((image, index) => (
-          <div key={index} style={galleryItemStyles}>
-            <img src={image["data_url"]} alt="" width="auto" height="100%" />
-            {/*<div className="image-item__btn-wrapper">*/}
-            {/*  <button onClick={() => onImageUpdate(index)}>Update new</button>*/}
-            {/*  <button onClick={() => onImageRemove(index)}>Remove new</button>*/}
-            {/*</div>*/}
-          </div>
+          <ImgWithSkeleton image={image} key={index} />
         ))}
       </div>
     </>
@@ -78,17 +104,6 @@ export default function DevicePhotos() {
           debugger;
         });
     });
-    // const formData = new FormData();
-    // formData.append("file", images[0].file);
-    // formData.append("upload_preset", process.env.REACT_APP_CLOUDINARY_PRESET);
-    //
-    // cloudinaryImageUpload(formData)
-    //   .then((responseData) => {
-    //     console.log("cloudinary response", responseData);
-    //   })
-    //   .catch((err) => {
-    //     console.log("cloudinary error", err);
-    //   });
   };
 
   const onChange = (imageList, addUpdateIndex) => {

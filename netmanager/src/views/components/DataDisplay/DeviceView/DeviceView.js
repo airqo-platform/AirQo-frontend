@@ -3,6 +3,11 @@ import { useDispatch } from "react-redux";
 import {Route, Switch, Redirect, useParams, useRouteMatch} from "react-router-dom";
 import 'chartjs-plugin-annotation';
 import { isEmpty } from "underscore";
+
+//css
+import "assets/css/device-view.css";
+
+// others
 import { DeviceToolBar, DeviceToolBarContainer } from "./DeviceToolBar";
 import DeviceDeployStatus from "./DeviceDeployStatus";
 import DeviceEdit from "./DeviceEdit";
@@ -12,8 +17,6 @@ import DeviceComponents from "./DeviceComponents";
 import DeviceOverview from "./DeviceOverview";
 import { useDevicesData } from "redux/DeviceRegistry/selectors";
 import { loadDevicesData } from "redux/DeviceRegistry/operations";
-
-
 
 export default function DeviceView() {
   const dispatch = useDispatch();
