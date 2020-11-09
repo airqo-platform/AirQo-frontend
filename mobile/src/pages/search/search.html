@@ -1,0 +1,23 @@
+<ion-header>
+  <ion-navbar>
+    <ion-buttons start>
+      <button (click)="closeModal()" color="blue" ion-button icon-only round clear>
+        <ion-icon name="arrow-back"></ion-icon>
+        Back
+      </button>
+    </ion-buttons>
+    <ion-searchbar type="text" color="light" placeholder="Search city or area" clearInput [formControl]="textInput"></ion-searchbar>
+  </ion-navbar>
+</ion-header>
+
+<ion-content padding (swipe)="closeModal()">
+  <!-- <p class="title">{{ nodes? nodes.length: '0' }}</p> -->
+  <ion-list>
+    <ion-item *ngFor="let node of nodes" (click)="viewDetails(node)">
+      <ion-icon name="pin" color="grey" item-start></ion-icon>
+      <div class="area-title">{{ node.name }}</div>
+      <div class="area-sub-title">{{ node.location }}</div>
+      <ion-icon name="md-star" color="primary" item-end (click)="addToFavoritesList(node, $event)"></ion-icon>
+    </ion-item>
+  </ion-list>
+</ion-content>

@@ -1,0 +1,51 @@
+page-sign-up {
+
+  ion-grid {
+    margin: 0;
+    padding: 0;
+  }
+
+  ion-col {
+    margin: 0;
+    padding: 0;
+  }
+
+  .logo-section {
+    img {
+      position: relative;
+      margin: auto;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      width: 15rem;
+      height: 15rem;
+    }
+  }
+
+  .signin-form-section {
+    
+  }
+
+  .user-preference {
+    ion-item {
+      margin: 0;
+      padding: 0;
+    }
+  }
+
+
+  .password-icon {
+    font-size: 2rem !important;
+    position: relative !important;
+    top: 22px !important;
+    margin: 0 auto !important;
+  }
+
+  .or-divider {
+    text-align: center;
+    padding: 1rem 0;
+    color: color($colors, blue);
+  }
+
+}
