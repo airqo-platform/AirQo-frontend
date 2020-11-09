@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import ImageUploading from "react-images-uploading";
 import { Button } from "@material-ui/core";
-
+import { cloudinaryImageUpload } from "../../../apis/cloudinary";
 
 const galleryContainerStyles = {
   display: "flex",
@@ -47,12 +47,7 @@ const Gallery = ({
       <div style={galleryContainerStyles}>
         {imageList.map((image, index) => (
           <div key={index} style={galleryItemStyles}>
-            <img
-              src={image["data_url"]}
-              alt=""
-              width="auto"
-              height="100%"
-            />
+            <img src={image["data_url"]} alt="" width="auto" height="100%" />
             {/*<div className="image-item__btn-wrapper">*/}
             {/*  <button onClick={() => onImageUpdate(index)}>Update new</button>*/}
             {/*  <button onClick={() => onImageRemove(index)}>Remove new</button>*/}
@@ -68,6 +63,34 @@ export default function DevicePhotos() {
   const [images, setImages] = useState([]);
   const maxNumber = 69;
 
+  const uploadImages = async () => {
+    images.map((image) => {
+      const formData = new FormData();
+      formData.append("file", image.file);
+      formData.append("upload_preset", process.env.REACT_APP_CLOUDINARY_PRESET);
+      console.log("preset", process.env.REACT_APP_CLOUDINARY_PRESET);
+      cloudinaryImageUpload(formData)
+        .then((responseData) => {
+          console.log("cloudinary response", responseData);
+        })
+        .catch((err) => {
+          console.log("cloudinary error", err);
+          debugger;
+        });
+    });
+    // const formData = new FormData();
+    // formData.append("file", images[0].file);
+    // formData.append("upload_preset", process.env.REACT_APP_CLOUDINARY_PRESET);
+    //
+    // cloudinaryImageUpload(formData)
+    //   .then((responseData) => {
+    //     console.log("cloudinary response", responseData);
+    //   })
+    //   .catch((err) => {
+    //     console.log("cloudinary error", err);
+    //   });
+  };
+
   const onChange = (imageList, addUpdateIndex) => {
     // data for submit
     console.log(imageList, addUpdateIndex);
@@ -76,6 +99,9 @@ export default function DevicePhotos() {
 
   return (
     <div className="App">
+      <Button variant="contained" color="primary" onClick={uploadImages}>
+        upload
+      </Button>
       <ImageUploading
         multiple
         value={images}
@@ -106,4 +132,3 @@ export default function DevicePhotos() {
     </div>
   );
 }
-

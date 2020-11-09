@@ -19,7 +19,6 @@
         "chartist": "^0.11.4",
         "chartjs-plugin-annotation": "^0.5.7",
         "classnames": "^2.2.6",
-        "cloudinary": "^1.23.0",
         "clsx": "^1.1.0",
         "dom-to-image": "^2.6.0",
         "draft-js": "^0.11.7",
