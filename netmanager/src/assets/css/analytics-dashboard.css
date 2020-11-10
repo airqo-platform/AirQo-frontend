@@ -1,0 +1,16 @@
+.map-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    height: 500px;
+    margin: 2vh 0;
+
+}
+
+.map-item {
+    height: 100%;
+    width: 49%;
+    /*max-width: 580px;*/
+    position: relative;;
+}
