@@ -63,12 +63,12 @@ export default function DeviceView() {
           <Route
               exact
               path={'/device/:deviceId/components'}
-              component={() => <DeviceComponents deviceName={deviceData.name} />}
+              component={() => <DeviceComponents deviceName={deviceData.name} /> }
           />
           <Route
               exact
               path={'/device/:deviceId/photos'}
-              component={DevicePhotos}
+              component={() => <DevicePhotos deviceData={deviceData} /> }
           />
           <Redirect to={`${match.url}/overview`} />
         </Switch>

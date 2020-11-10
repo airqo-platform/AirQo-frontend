@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import ImageUploading from "react-images-uploading";
 import { makeStyles } from "@material-ui/styles";
 import { Button } from "@material-ui/core";
@@ -23,19 +23,21 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const ImgWithSkeleton = ({ key, image }) => {
+const ImgWithSkeleton = ({ src }) => {
   const classes = useStyles();
   const [loaded, setLoaded] = useState(false);
 
   return (
-    <div
-      key={key}
-      className={"device-img-skeleton-wrapper"}
-      style={galleryItemStyles}
-    >
-      {loaded ? (
-        <img src={image["data_url"]} alt="" width="auto" height="100%" />
-      ) : (
+    <div className={"device-img-skeleton-wrapper"} style={galleryItemStyles}>
+      <img
+        src={src}
+        alt=""
+        width="auto"
+        height="100%"
+        style={{ display: loaded ? "inline" : "none" }}
+        onLoad={() => setLoaded(true)}
+      />
+      {!loaded && (
         <div
           className={"device-img-skeleton"}
           style={{ width: "400px", height: "100%" }}
@@ -58,24 +60,6 @@ const Gallery = ({
 }) => {
   return (
     <>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "flex-end",
-          margin: "10px 0",
-        }}
-      >
-        <Button
-          variant="contained"
-          color="primary"
-          style={isDragging ? { color: "red" } : undefined}
-          onClick={onImageUpload}
-          {...dragProps}
-        >
-          {" "}
-          Add Photo(s)
-        </Button>
-      </div>
       <div style={galleryContainerStyles}>
         {imageList.map((image, index) => (
           <ImgWithSkeleton image={image} key={index} />
@@ -85,65 +69,106 @@ const Gallery = ({
   );
 };
 
-export default function DevicePhotos() {
-  const [images, setImages] = useState([]);
+export default function DevicePhotos({ deviceData }) {
+  const [images, setImages] = useState(deviceData.pictures || []);
+  const [newImages, setNewImages] = useState([]);
+  const [loadingImages, setLoadingImages] = useState({
+    status: false,
+    imgCount: 0,
+  });
+  const [updateIndex, setUpdateIndex] = useState(-1);
   const maxNumber = 69;
 
-  const uploadImages = async () => {
-    images.map((image) => {
+  useEffect(() => {
+    console.log('images', images)
+  }, [loadingImages]);
+
+  useEffect(() => {
+    if (updateIndex >= 0) {
+      let updatedImages = [...images];
+      updatedImages[updateIndex] = newImages[updateIndex] && newImages[updateIndex].data_url || images[updateIndex];
+      console.log("updated after", updatedImages);
+      console.log("key", updateIndex);
+      console.log("images new", newImages);
+      console.log("images old", images);
+      setImages(updatedImages);
+    }
+  }, [updateIndex]);
+
+  useEffect(() => {
+    console.log("new images", images);
+  }, [images]);
+
+  const uploadImages = (imagesToUpload) => {
+    imagesToUpload.map((image, index) => {
       const formData = new FormData();
       formData.append("file", image.file);
       formData.append("upload_preset", process.env.REACT_APP_CLOUDINARY_PRESET);
-      console.log("preset", process.env.REACT_APP_CLOUDINARY_PRESET);
       cloudinaryImageUpload(formData)
         .then((responseData) => {
-          console.log("cloudinary response", responseData);
+          setUpdateIndex(index);
+          setLoadingImages({
+            status: loadingImages.imgCount - 1 > 0,
+            imgCount: loadingImages.imgCount - 1,
+          });
         })
         .catch((err) => {
-          console.log("cloudinary error", err);
-          debugger;
+          setLoadingImages({
+            status: loadingImages.imgCount - 1 > 0,
+            imgCount: loadingImages.imgCount - 1,
+          });
         });
     });
   };
 
-  const onChange = (imageList, addUpdateIndex) => {
-    // data for submit
-    console.log(imageList, addUpdateIndex);
-    setImages(imageList);
+  const createImagePlaceholders = (images, value) => {
+    let placeHolders = [];
+    images.map(() => {
+      placeHolders.push(value || "");
+    });
+    return placeHolders;
+  };
+
+  const onChange = async (imageList) => {
+    await setLoadingImages({ status: true, imgCount: imageList.length });
+    await setImages([...createImagePlaceholders(imageList), ...images]);
+    await setNewImages(imageList);
+    uploadImages(imageList);
   };
 
   return (
     <div className="App">
-      <Button variant="contained" color="primary" onClick={uploadImages}>
-        upload
-      </Button>
       <ImageUploading
         multiple
-        value={images}
+        value={[]}
         onChange={onChange}
         maxNumber={maxNumber}
         dataURLKey="data_url"
       >
-        {({
-          imageList,
-          onImageUpload,
-          onImageRemoveAll,
-          onImageUpdate,
-          onImageRemove,
-          isDragging,
-          dragProps,
-        }) => (
-          <Gallery
-            imageList={imageList}
-            onImageUpload={onImageUpload}
-            onImageRemoveAll={onImageRemoveAll}
-            onImageUpdate={onImageUpdate}
-            onImageRemove={onImageRemove}
-            isDragging={isDragging}
-            dragProps={dragProps}
-          />
+        {({ onImageUpload }) => (
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "flex-end",
+              margin: "10px 0",
+            }}
+          >
+            <Button
+              disabled={loadingImages.status}
+              variant="contained"
+              color="primary"
+              onClick={onImageUpload}
+            >
+              Add Photo(s)
+            </Button>
+          </div>
         )}
       </ImageUploading>
+      <div style={galleryContainerStyles}>
+        {images.map((src, index) => (
+          <ImgWithSkeleton src={src} key={index} />
+        ))}
+      </div>
     </div>
   );
 }
