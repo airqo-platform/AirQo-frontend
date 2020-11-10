@@ -4,6 +4,28 @@ import HeatmapLayer from "react-leaflet-heatmap-layer";
 import { heatmapPredictApi } from "../../../../apis/predict";
 import FullscreenControl from "react-leaflet-fullscreen";
 
+
+// values calculated by dividing x by 500. x for each category [0, 12, 35.4, 55.4, 150.4, 250, 500] respectively
+// const heatMapGradient = {
+//   0: "#797979",
+//   0.024: "#44e527",
+//   0.0708: "#f8fe39",
+//   0.1108: "#ee8327",
+//   0.3008: "#fe0023",
+//   0.5: "#8639c0",
+//   1: "#81202e",
+// };
+
+// values calculated by dividing x by 250. x for each category [0, 12, 35.4, 55.4, 150.4, 250] respectively
+const heatMapGradient = {
+  0: "#44e527",
+  0.048: "#f8fe39",
+  0.1416: "#ee8327",
+  0.2216: "#fe0023",
+  0.6016: "#8639c0",
+  1: "#81202e",
+};
+
 const HeatMap = () => {
   const [heatMapData, setHeatMapData] = useState([]);
 
@@ -39,6 +61,7 @@ const HeatMap = () => {
         fitBoundsOnLoad
         fitBoundsOnUpdate
         points={heatMapData}
+        gradient={heatMapGradient}
         longitudeExtractor={(marker) => marker.long}
         latitudeExtractor={(marker) => marker.lat}
         intensityExtractor={(marker) => parseFloat(marker.mean)}
