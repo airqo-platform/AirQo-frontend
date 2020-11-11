@@ -5,16 +5,12 @@ import { Button } from "@material-ui/core";
 import { PhotoOutlined } from "@material-ui/icons";
 import { cloudinaryImageUpload } from "../../../apis/cloudinary";
 
+const sleep = (delay) => new Promise((resolve) => setTimeout(resolve, delay));
 const galleryContainerStyles = {
   display: "flex",
   flexWrap: "wrap",
   alignItems: "center",
   justifyContent: "center",
-};
-
-const galleryItemStyles = {
-  margin: "10px",
-  height: "400px",
 };
 
 const useStyles = makeStyles((theme) => ({
@@ -23,117 +19,112 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const ImgWithSkeleton = ({ src }) => {
+const ImgWithSkeleton = ({
+  srcOrSrcObject,
+  cloudinaryUrls,
+  updateCloudinaryUrls,
+}) => {
   const classes = useStyles();
+  const unpackSrcObject = (srcOrSrcObject) => {
+    if (typeof srcOrSrcObject === "string") {
+      return [srcOrSrcObject, () => {}];
+    }
+    return [srcOrSrcObject.src, srcOrSrcObject.asyncSrcCallback];
+  };
+  const poison = "poison";
+  const [src, asyncSrcCallback] = unpackSrcObject(srcOrSrcObject);
+  const [newSrc, setNewSrc] = useState(src);
+  const [response, setResponse] = useState(poison);
   const [loaded, setLoaded] = useState(false);
 
+  useEffect(() => {
+    const call = async () => {
+      const [responseData, imageFile] = await asyncSrcCallback();
+
+      if (responseData) {
+        setNewSrc(imageFile.data_url);
+      }
+      setResponse((responseData && responseData.secure_url) || null);
+    };
+
+    if (typeof srcOrSrcObject === "object") {
+      call();
+    }
+  }, []);
+
+  useEffect(() => {
+    if (response !== poison) {
+      updateCloudinaryUrls([...cloudinaryUrls, response]);
+    }
+  }, [response]);
+
+  const onLoad = () => {
+    if (newSrc === "") {
+      return;
+    }
+    return setLoaded(true);
+  };
+
   return (
-    <div className={"device-img-skeleton-wrapper"} style={galleryItemStyles}>
+    <div className={"device-img-skeleton-wrapper"}>
       <img
-        src={src}
+        src={newSrc}
         alt=""
         width="auto"
         height="100%"
         style={{ display: loaded ? "inline" : "none" }}
-        onLoad={() => setLoaded(true)}
+        onLoad={onLoad}
       />
-      {!loaded && (
-        <div
-          className={"device-img-skeleton"}
-          style={{ width: "400px", height: "100%" }}
-        >
-          <PhotoOutlined className={classes.root} />
-        </div>
-      )}
+      <div
+        className={loaded ? "skeleton-hidden" : "device-img-skeleton"}
+        style={{ width: "300px", height: "100%" }}
+      >
+        <PhotoOutlined className={classes.root} />
+      </div>
     </div>
   );
 };
 
-const Gallery = ({
-  imageList,
-  onImageUpload,
-  onImageRemoveAll,
-  onImageUpdate,
-  onImageRemove,
-  isDragging,
-  dragProps,
-}) => {
-  return (
-    <>
-      <div style={galleryContainerStyles}>
-        {imageList.map((image, index) => (
-          <ImgWithSkeleton image={image} key={index} />
-        ))}
-      </div>
-    </>
-  );
-};
-
 export default function DevicePhotos({ deviceData }) {
-  const [images, setImages] = useState(deviceData.pictures || []);
+  const [images, setImages] = useState(
+    deviceData.pictures || [
+      "https://res.cloudinary.com/dbibjvyhm/image/upload/v1604569404/sample.jpg",
+    ]
+  );
   const [newImages, setNewImages] = useState([]);
+  const [cloudinaryUrls, setCloudinaryUrls] = useState([]);
   const [loadingImages, setLoadingImages] = useState({
     status: false,
     imgCount: 0,
   });
-  const [updateIndex, setUpdateIndex] = useState(-1);
   const maxNumber = 69;
 
   useEffect(() => {
-    console.log('images', images)
-  }, [loadingImages]);
+    console.log("cloudinary urls", cloudinaryUrls);
+  }, [cloudinaryUrls]);
 
-  useEffect(() => {
-    if (updateIndex >= 0) {
-      let updatedImages = [...images];
-      updatedImages[updateIndex] = newImages[updateIndex] && newImages[updateIndex].data_url || images[updateIndex];
-      console.log("updated after", updatedImages);
-      console.log("key", updateIndex);
-      console.log("images new", newImages);
-      console.log("images old", images);
-      setImages(updatedImages);
-    }
-  }, [updateIndex]);
-
-  useEffect(() => {
-    console.log("new images", images);
-  }, [images]);
-
-  const uploadImages = (imagesToUpload) => {
-    imagesToUpload.map((image, index) => {
+  const onChange = (imageFiles) => {
+    const newImages = [];
+    setLoadingImages({ status: true, imgCount: imageFiles.length });
+    imageFiles.map((imageFile) => {
       const formData = new FormData();
-      formData.append("file", image.file);
+      formData.append("file", imageFile.file);
       formData.append("upload_preset", process.env.REACT_APP_CLOUDINARY_PRESET);
-      cloudinaryImageUpload(formData)
-        .then((responseData) => {
-          setUpdateIndex(index);
-          setLoadingImages({
-            status: loadingImages.imgCount - 1 > 0,
-            imgCount: loadingImages.imgCount - 1,
-          });
-        })
-        .catch((err) => {
-          setLoadingImages({
-            status: loadingImages.imgCount - 1 > 0,
-            imgCount: loadingImages.imgCount - 1,
-          });
-        });
-    });
-  };
 
-  const createImagePlaceholders = (images, value) => {
-    let placeHolders = [];
-    images.map(() => {
-      placeHolders.push(value || "");
-    });
-    return placeHolders;
-  };
+      const callbackWrapper = async () => {
+        return await cloudinaryImageUpload(formData)
+          .then((responseData) => {
+            return [responseData, imageFile];
+          })
+          .catch(() => {
+            return [null, null];
+          });
+      };
 
-  const onChange = async (imageList) => {
-    await setLoadingImages({ status: true, imgCount: imageList.length });
-    await setImages([...createImagePlaceholders(imageList), ...images]);
-    await setNewImages(imageList);
-    uploadImages(imageList);
+      newImages.push({ src: "", asyncSrcCallback: callbackWrapper });
+    });
+
+    setNewImages(newImages);
   };
 
   return (
@@ -164,9 +155,30 @@ export default function DevicePhotos({ deviceData }) {
           </div>
         )}
       </ImageUploading>
+      {newImages.length > 0 && (
+        <div style={galleryContainerStyles}>
+          <div style={{ width: "100%", color: "blue" }}>New Image(s)</div>
+          {newImages.map((srcOrObject, index) => (
+            <ImgWithSkeleton
+              srcOrSrcObject={srcOrObject}
+              cloudinaryUrls={cloudinaryUrls}
+              updateCloudinaryUrls={setCloudinaryUrls}
+              key={index}
+            />
+          ))}
+        </div>
+      )}
       <div style={galleryContainerStyles}>
-        {images.map((src, index) => (
-          <ImgWithSkeleton src={src} key={index} />
+        {newImages.length > 0 && images.length > 0 && (
+          <div style={{ width: "100%", color: "blue" }}>Old Image(s)</div>
+        )}
+        {images.map((srcOrObject, index) => (
+          <ImgWithSkeleton
+            srcOrSrcObject={srcOrObject}
+            cloudinaryUrls={cloudinaryUrls}
+            updateCloudinaryUrls={setCloudinaryUrls}
+            key={index}
+          />
         ))}
       </div>
     </div>
