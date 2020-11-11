@@ -7,6 +7,7 @@ import {
   LOAD_DEVICE_COMPONENTS_SUCCESS,
   LOAD_DEVICE_COMPONENTS_FAILURE,
   INSERT_MAINTENANCE_LOGS_SUCCESS,
+    INSERT_NEW_COMPONENT_SUCCESS,
   RESET_DEVICE_SUCCESS,
   RESET_DEVICE_COMPONENTS_SUCCESS,
   RESET_MAINTENANCE_LOGS,
@@ -84,5 +85,12 @@ export const insertMaintenanceLog = (deviceName, log) => (dispatch) => {
   dispatch({
     type: INSERT_MAINTENANCE_LOGS_SUCCESS,
     payload: { deviceName, log },
+  });
+};
+
+export const insertDeviceComponent = (deviceName, component) => (dispatch) => {
+  dispatch({
+    type: INSERT_NEW_COMPONENT_SUCCESS,
+    payload: { deviceName, component },
   });
 };
