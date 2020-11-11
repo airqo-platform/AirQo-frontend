@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from "react";
+import { useDispatch } from "react-redux";
 import ImageUploading from "react-images-uploading";
 import { makeStyles } from "@material-ui/styles";
 import { Button } from "@material-ui/core";
 import { PhotoOutlined } from "@material-ui/icons";
 import { cloudinaryImageUpload } from "../../../apis/cloudinary";
+import { updateMainAlert } from "redux/MainAlert/operations";
+import { updateDeviceDetails } from "../../../apis/deviceRegistry";
 
 const galleryContainerStyles = {
   display: "flex",
@@ -88,6 +91,7 @@ const ImgWithSkeleton = ({
 };
 
 export default function DevicePhotos({ deviceData }) {
+  const dispatch = useDispatch();
   const [images, setImages] = useState(
     deviceData.pictures || [
       "https://res.cloudinary.com/dbibjvyhm/image/upload/v1604569404/sample.jpg",
@@ -102,8 +106,32 @@ export default function DevicePhotos({ deviceData }) {
   const maxNumber = 69;
 
   useEffect(() => {
-    if (cloudinaryUrls.length >= loadingImages.imgCount) {
+    if (
+      loadingImages.imgCount > 0 &&
+      cloudinaryUrls.length >= loadingImages.imgCount
+    ) {
       setLoadingImages({ status: false, imgCount: 0 });
+      const pictures = cloudinaryUrls.filter((url) => url !== null);
+      pictures.length > 0 &&
+        updateDeviceDetails(deviceData.name, { pictures })
+          .then((responseData) => {
+            dispatch(
+              updateMainAlert({
+                message: responseData.message,
+                show: true,
+                severity: "success",
+              })
+            );
+          })
+          .catch(() => {
+            dispatch(
+              updateMainAlert({
+                message: "Could not persist images",
+                show: true,
+                severity: "error",
+              })
+            );
+          });
     }
   }, [cloudinaryUrls]);
 
