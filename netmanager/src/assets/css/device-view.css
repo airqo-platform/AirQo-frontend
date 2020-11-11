@@ -8,7 +8,8 @@
     position: relative;
     overflow: hidden;
     height: 300px;
-    margin: 20px
+    margin: 20px;
+    cursor: pointer;
 }
 
 .device-img-skeleton {
@@ -28,6 +29,19 @@
     width: 150px;
     background: linear-gradient(to right, transparent 0%, #E8E8E8 50%, transparent 100%);
     animation: load 1s cubic-bezier(0.4, 0.0, 0.2, 1) infinite;
+}
+
+.broken-image {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+}
+
+.broken-image>svg {
+    fill: #bcb9b9;
+    width: 50%;
+    transform: rotate(9deg);
 }
 
 @keyframes load {

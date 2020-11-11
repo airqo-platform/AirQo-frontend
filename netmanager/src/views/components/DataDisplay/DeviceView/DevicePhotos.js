@@ -7,6 +7,7 @@ import { PhotoOutlined } from "@material-ui/icons";
 import { cloudinaryImageUpload } from "../../../apis/cloudinary";
 import { updateMainAlert } from "redux/MainAlert/operations";
 import { updateDeviceDetails } from "../../../apis/deviceRegistry";
+import BrokenImage from "assets/img/BrokenImage";
 
 const galleryContainerStyles = {
   display: "flex",
@@ -41,6 +42,7 @@ const ImgWithSkeleton = ({
   const [newSrc, setNewSrc] = useState(src);
   const [response, setResponse] = useState(poison);
   const [loaded, setLoaded] = useState(false);
+  const [broken, setBroken] = useState(false);
 
   useEffect(() => {
     const call = async () => {
@@ -70,6 +72,13 @@ const ImgWithSkeleton = ({
     return setLoaded(true);
   };
 
+  const onError = () => {
+    if (newSrc) {
+      setBroken(true);
+      setLoaded(true);
+    }
+  };
+
   return (
     <div className={"device-img-skeleton-wrapper"}>
       <img
@@ -77,9 +86,11 @@ const ImgWithSkeleton = ({
         alt=""
         width="auto"
         height="100%"
-        style={{ display: loaded ? "inline" : "none" }}
+        style={{ display: loaded && !broken ? "inline" : "none" }}
         onLoad={onLoad}
+        onError={onError}
       />
+      {broken && <BrokenImage className={"broken-image"} />}
       <div
         className={loaded ? "skeleton-hidden" : "device-img-skeleton"}
         style={{ width: "300px", height: "100%" }}
