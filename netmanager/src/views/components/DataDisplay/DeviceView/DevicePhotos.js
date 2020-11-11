@@ -5,7 +5,6 @@ import { Button } from "@material-ui/core";
 import { PhotoOutlined } from "@material-ui/icons";
 import { cloudinaryImageUpload } from "../../../apis/cloudinary";
 
-const sleep = (delay) => new Promise((resolve) => setTimeout(resolve, delay));
 const galleryContainerStyles = {
   display: "flex",
   flexWrap: "wrap",
@@ -29,6 +28,9 @@ const ImgWithSkeleton = ({
     if (typeof srcOrSrcObject === "string") {
       return [srcOrSrcObject, () => {}];
     }
+    if (srcOrSrcObject.moved) {
+      return [srcOrSrcObject.data_url, srcOrSrcObject.asyncSrcCallback];
+    }
     return [srcOrSrcObject.src, srcOrSrcObject.asyncSrcCallback];
   };
   const poison = "poison";
@@ -39,15 +41,15 @@ const ImgWithSkeleton = ({
 
   useEffect(() => {
     const call = async () => {
-      const [responseData, imageFile] = await asyncSrcCallback();
+      const responseData = await asyncSrcCallback();
 
       if (responseData) {
-        setNewSrc(imageFile.data_url);
+        setNewSrc(srcOrSrcObject.data_url);
       }
       setResponse((responseData && responseData.secure_url) || null);
     };
 
-    if (typeof srcOrSrcObject === "object") {
+    if (typeof srcOrSrcObject === "object" && !srcOrSrcObject.moved) {
       call();
     }
   }, []);
@@ -100,11 +102,25 @@ export default function DevicePhotos({ deviceData }) {
   const maxNumber = 69;
 
   useEffect(() => {
-    console.log("cloudinary urls", cloudinaryUrls);
+    if (cloudinaryUrls.length >= loadingImages.imgCount) {
+      setLoadingImages({ status: false, imgCount: 0 });
+    }
   }, [cloudinaryUrls]);
 
-  const onChange = (imageFiles) => {
+  const moveNewImagesToOldSection = async () => {
+    if (newImages.length > 0) {
+      const movedImages = [];
+      newImages.map((image) => {
+        movedImages.push({ ...image, moved: true });
+      });
+      await setNewImages([]);
+      setImages([...images, ...movedImages]);
+    }
+  };
+
+  const onChange = async (imageFiles) => {
     const newImages = [];
+    await moveNewImagesToOldSection();
     setLoadingImages({ status: true, imgCount: imageFiles.length });
     imageFiles.map((imageFile) => {
       const formData = new FormData();
@@ -114,14 +130,18 @@ export default function DevicePhotos({ deviceData }) {
       const callbackWrapper = async () => {
         return await cloudinaryImageUpload(formData)
           .then((responseData) => {
-            return [responseData, imageFile];
+            return responseData;
           })
           .catch(() => {
-            return [null, null];
+            return null;
           });
       };
-
-      newImages.push({ src: "", asyncSrcCallback: callbackWrapper });
+      newImages.push({
+        src: "",
+        asyncSrcCallback: callbackWrapper,
+        data_url: imageFile.data_url,
+        moved: false,
+      });
     });
 
     setNewImages(newImages);
