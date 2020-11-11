@@ -1,8 +1,14 @@
+.skeleton-hidden {
+    display: none
+}
+
 .device-img-skeleton-wrapper {
     box-shadow: 0 4px 10px 0 rgba(33, 33, 33, 0.15);
     border-radius: 4px;
     position: relative;
     overflow: hidden;
+    height: 300px;
+    margin: 20px
 }
 
 .device-img-skeleton {
