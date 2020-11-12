@@ -2,6 +2,7 @@
 import {
     LOAD_ALL_LOCATIONS_SUCCESS,
     LOAD_ALL_LOCATIONS_FAILURE,
+    RESET_LOCATIONS_SUCCESS,
 } from "./actions";
 import { getAllLocationsApi } from "../../views/apis/location";
 
@@ -23,3 +24,7 @@ export const loadLocationsData = () => {
       });
   };
 };
+
+export const resetLocationState = () => dispatch => {
+    dispatch({ type: RESET_LOCATIONS_SUCCESS });
+}

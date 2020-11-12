@@ -28,7 +28,6 @@ import {
   DELETE_USER_SUCCESS,
   DELETE_USER_FAILED,
   UPDATE_PASSWORD_SUCCESS,
-  UPDATE_PASSWORD_FAILED,
   HIDE_CONFIRM_DIALOG,
   CONFIRM_USER_REQUEST,
   CONFIRM_USER_SUCCESS,
@@ -49,8 +48,15 @@ import {
   UPDATE_AUTHENTICATED_USER_FAILED,
   UPDATE_AUTHENTICATED_USER_SUCCESS,
   UPDATE_ORGANIZATION_SUCCESS,
-  REGISTER_CANDIDATE_URI
+  RESET_ERRORS_SUCCESS,
+  RESET_USER_STATE_SUCCESS,
+  RESET_ORGANIZATION_SUCCESS,
 } from './types';
+import { resetMapState } from "../Maps/actions";
+import { resetDashboardState } from "../Dashboard/operations";
+import { resetDeviceRegistryState } from "../DeviceRegistry/operations";
+import { resetLocationState } from "../LocationRegistry/operations";
+import { resetAlertState } from "../MainAlert/operations";
 import constants from '../../config/constants';
 
 /***************************errors ********************************* */
@@ -435,6 +441,18 @@ export const setCurrentUser = decoded => {
     payload: decoded
   };
 };
+
+export const resetErrorsState = () => {
+  return { type: RESET_ERRORS_SUCCESS }
+}
+
+export const resetUsersState = () => {
+  return { type: RESET_USER_STATE_SUCCESS }
+}
+
+export const resetOrgState = () => {
+  return { type: RESET_ORGANIZATION_SUCCESS }
+}
 // User loading
 export const setUserLoading = () => {
   return {
@@ -442,13 +460,26 @@ export const setUserLoading = () => {
   };
 };
 // Log user out
+
+export const clearState = () => dispatch => {
+  dispatch(setCurrentUser({}));
+  dispatch(resetErrorsState());
+  dispatch(resetUsersState());
+  dispatch(resetMapState());
+  dispatch(resetDashboardState());
+  dispatch(resetDeviceRegistryState());
+  dispatch(resetLocationState());
+  dispatch(resetOrgState());
+  dispatch(resetAlertState())
+};
+
 export const logoutUser = () => dispatch => {
   // Remove token from local storage
   localStorage.removeItem('jwtToken');
   // Remove auth header for future requests
   setAuthToken(false);
-  // Set current user to empty object {} which will set isAuthenticated to false
-  dispatch(setCurrentUser({}));
+  // clear redux state on logout
+  dispatch(clearState());
 };
 
 /*********************************** confirming users************************************/

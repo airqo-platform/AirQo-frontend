@@ -31,7 +31,6 @@ import { loadLocationsData } from "redux/LocationRegistry/operations";
 import { generatePaginateOptions } from "utils/pagination";
 import { updateMainAlert } from "redux/MainAlert/operations";
 
-
 const useStyles = makeStyles((theme) => ({
   root: {},
   content: {
@@ -63,7 +62,7 @@ const useStyles = makeStyles((theme) => ({
   },
   formControl: {
     height: 40,
-    margin: "15px 0"
+    margin: "15px 0",
   },
   input: {
     color: "black",
@@ -82,20 +81,20 @@ const useStyles = makeStyles((theme) => ({
     // border: "1px solid red"
   },
   fieldMargin: {
-    margin: "20px 0"
+    margin: "20px 0",
   },
   button: {
     margin: "10px",
-    width: "60px"
+    width: "60px",
   },
   textFieldMargin: {
-    margin: "15 0"
+    margin: "15 0",
   },
   tableWrapper: {
-    '& tbody>.MuiTableRow-root:hover': {
-      background: '#EEE',
+    "& tbody>.MuiTableRow-root:hover": {
+      background: "#EEE",
       cursor: "pointer",
-    }
+    },
   },
 }));
 
@@ -107,6 +106,7 @@ const DevicesTable = (props) => {
   const dispatch = useDispatch();
   const devices = useDevicesData();
   const locations = useLocationsData();
+  const [deviceList, setDeviceList] = useState(Object.values(devices));
   const [isLoading, setIsLoading] = useState(false);
 
   const [registerOpen, setRegisterOpen] = useState(false);
@@ -126,15 +126,19 @@ const DevicesTable = (props) => {
   };
 
   useEffect(() => {
-    if(isEmpty(devices)) {
+    if (isEmpty(devices)) {
       setIsLoading(true);
       dispatch(loadDevicesData());
       setIsLoading(false);
     }
     if (isEmpty(locations)) {
-      dispatch(loadLocationsData())
+      dispatch(loadLocationsData());
     }
   }, []);
+
+  useEffect(() => {
+    setDeviceList(Object.values(devices));
+  }, [devices]);
 
   const [registerName, setRegisterName] = useState("");
   const handleRegisterNameChange = (name) => {
@@ -191,9 +195,7 @@ const DevicesTable = (props) => {
     return time;
   };
 
-
   let handleRegisterSubmit = (e) => {
-    console.log("Registering");
     let filter = {
       name: registerName,
       visibility: visibility,
@@ -204,27 +206,30 @@ const DevicesTable = (props) => {
       phoneNumber: phone,
       description: description,
     };
-    console.log(JSON.stringify(filter));
 
     axios
       .post(constants.REGISTER_DEVICE_URI, JSON.stringify(filter), {
         headers: { "Content-Type": "application/json" },
       })
-        .then(res => res.data)
+      .then((res) => res.data)
       .then((resData) => {
-          dispatch(updateMainAlert({
+        setDeviceList([resData.device, ...deviceList]);
+        dispatch(
+          updateMainAlert({
             message: resData.message,
             show: true,
-            severity: "success"
-          }));
-          dispatch(loadDevicesData());
+            severity: "success",
+          })
+        );
       })
       .catch((error) => {
-        dispatch(updateMainAlert({
+        dispatch(
+          updateMainAlert({
             message: error.response.data.message,
             show: true,
-            severity: "error"
-          }));
+            severity: "error",
+          })
+        );
       });
     handleRegisterClose();
   };
@@ -251,67 +256,68 @@ const DevicesTable = (props) => {
           <CardContent className={classes.content}>
             <PerfectScrollbar>
               <div className={classes.tableWrapper}>
-              <MaterialTable
-                className={classes.table}
-                title="Device Registry"
-                columns={[
-                  {
-                    title: "Device Name",
-                    field: "name",
-                    cellStyle: { fontFamily: "Open Sans" },
-                  },
-                  {
-                    title: "Description",
-                    field: "description",
-                    cellStyle: { fontFamily: "Open Sans" },
-                  },
-                  {
-                    title: "Device ID",
-                    field: "channelID",
-                    cellStyle: { fontFamily: "Open Sans" },
-                  }, //should be channel ID
-                  {
-                    title: "Registration Date",
-                    field: "createdAt",
-                    cellStyle: { fontFamily: "Open Sans" },
-                    render: (rowData) =>
-                      formatDate(new Date(rowData.createdAt)),
-                  },
-                  {
-                    title: "Location ID",
-                    field: "locationID",
-                    cellStyle: { fontFamily: "Open Sans" },
-                  },
-                ]}
-                data={Object.values(devices)}
-                onRowClick={((evt, selectedRow) => {
-                    const rowData = Object.values(devices)[selectedRow.tableData.id];
-                    history.push(`/device/${rowData.id}/overview`)
-                })}
-                options={{
-                  search: true,
-                  exportButton: true,
-                  searchFieldAlignment: "left",
-                  showTitle: false,
-                  searchFieldStyle: {
-                    fontFamily: "Open Sans",
-                    border: "2px solid #7575FF",
-                  },
-                  headerStyle: {
-                    fontFamily: "Open Sans",
-                    fontSize: 16,
-                    fontWeight: 600,
-                  },
-                  pageSizeOptions: generatePaginateOptions(Object.values(devices).length),
-                  pageSize: 10,
-                }}
-              />
+                <MaterialTable
+                  className={classes.table}
+                  title="Device Registry"
+                  columns={[
+                    {
+                      title: "Device Name",
+                      field: "name",
+                      cellStyle: { fontFamily: "Open Sans" },
+                    },
+                    {
+                      title: "Description",
+                      field: "description",
+                      cellStyle: { fontFamily: "Open Sans" },
+                    },
+                    {
+                      title: "Device ID",
+                      field: "channelID",
+                      cellStyle: { fontFamily: "Open Sans" },
+                    }, //should be channel ID
+                    {
+                      title: "Registration Date",
+                      field: "createdAt",
+                      cellStyle: { fontFamily: "Open Sans" },
+                      render: (rowData) =>
+                        formatDate(new Date(rowData.createdAt)),
+                    },
+                    {
+                      title: "Location ID",
+                      field: "locationID",
+                      cellStyle: { fontFamily: "Open Sans" },
+                    },
+                  ]}
+                  data={deviceList}
+                  onRowClick={(evt, selectedRow) => {
+                    const rowData = Object.values(devices)[
+                      selectedRow.tableData.id
+                    ];
+                    history.push(`/device/${rowData.id}/overview`);
+                  }}
+                  options={{
+                    search: true,
+                    exportButton: true,
+                    searchFieldAlignment: "left",
+                    showTitle: false,
+                    searchFieldStyle: {
+                      fontFamily: "Open Sans",
+                      border: "2px solid #7575FF",
+                    },
+                    headerStyle: {
+                      fontFamily: "Open Sans",
+                      fontSize: 16,
+                      fontWeight: 600,
+                    },
+                    pageSizeOptions: generatePaginateOptions(deviceList.length),
+                    pageSize: 10,
+                  }}
+                />
               </div>
             </PerfectScrollbar>
           </CardContent>
         </Card>
       </LoadingOverlay>
-
 
       <Dialog
         open={registerOpen}
@@ -356,9 +362,7 @@ const DevicesTable = (props) => {
               fullWidth
             />
             <FormControl required fullWidth>
-              <InputLabel htmlFor="demo-dialog-native">
-                Data Access
-              </InputLabel>
+              <InputLabel htmlFor="demo-dialog-native">Data Access</InputLabel>
               <Select
                 required
                 native
@@ -366,11 +370,11 @@ const DevicesTable = (props) => {
                 onChange={handleVisibilityChange}
                 inputProps={{
                   native: true,
-                  style: {height: "40px", marginTop: "10px"},
+                  style: { height: "40px", marginTop: "10px" },
                 }}
               >
-                <option value={true}>True</option>
-                <option value={false}>False</option>
+                <option value={true}>Public</option>
+                <option value={false}>Private</option>
               </Select>
             </FormControl>
             <TextField
@@ -391,7 +395,7 @@ const DevicesTable = (props) => {
                 onChange={handleISPChange}
                 inputProps={{
                   native: true,
-                  style: {height: "40px", marginTop: "10px"},
+                  style: { height: "40px", marginTop: "10px" },
                 }}
               >
                 <option aria-label="None" value="" />
@@ -429,7 +433,7 @@ const DevicesTable = (props) => {
               color="primary"
               type="submit"
               onClick={handleRegisterSubmit}
-              style={{margin: "0 15px"}}
+              style={{ margin: "0 15px" }}
             >
               Register
             </Button>
@@ -437,7 +441,6 @@ const DevicesTable = (props) => {
           <br />
         </DialogActions>
       </Dialog>
-
     </div>
   );
 };

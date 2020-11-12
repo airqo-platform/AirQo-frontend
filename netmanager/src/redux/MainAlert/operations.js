@@ -2,6 +2,7 @@
 import {
     UPDATE_ALERT_SUCCESS,
     HIDE_ALERT_SUCCESS,
+    RESET_ALERT_SUCCESS,
 } from "./actions";
 
 
@@ -21,4 +22,8 @@ export const hideMainAlert = () => {
             payload: { show: false, message: "", severity: "success" },
         })
     }
+};
+
+export const resetAlertState = () => dispatch => {
+    dispatch({ type: RESET_ALERT_SUCCESS });
 };
