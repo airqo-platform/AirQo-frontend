@@ -43,6 +43,7 @@ const ImgWithSkeleton = ({
   const [response, setResponse] = useState(poison);
   const [loaded, setLoaded] = useState(false);
   const [broken, setBroken] = useState(false);
+  const [previewMode, setPreviewMode] = useState(false);
 
   useEffect(() => {
     const call = async () => {
@@ -80,12 +81,17 @@ const ImgWithSkeleton = ({
   };
 
   return (
-    <div className={"device-img-skeleton-wrapper"}>
+    <div
+      className={`device-img-skeleton-wrapper ${
+        loaded && !broken && previewMode ? "img-wrapper-preview" : ""
+      }`}
+      onClick={() => setPreviewMode(!previewMode)}
+    >
       <img
+        className={`device-img ${
+          loaded && !broken && previewMode ? "device-img-preview" : ""
+        }`}
         src={newSrc}
-        alt=""
-        width="auto"
-        height="100%"
         style={{ display: loaded && !broken ? "inline" : "none" }}
         onLoad={onLoad}
         onError={onError}
@@ -103,11 +109,7 @@ const ImgWithSkeleton = ({
 
 export default function DevicePhotos({ deviceData }) {
   const dispatch = useDispatch();
-  const [images, setImages] = useState(
-    deviceData.pictures || [
-      "https://res.cloudinary.com/dbibjvyhm/image/upload/v1604569404/sample.jpg",
-    ]
-  );
+  const [images, setImages] = useState(deviceData.pictures || []);
   const [newImages, setNewImages] = useState([]);
   const [cloudinaryUrls, setCloudinaryUrls] = useState([]);
   const [loadingImages, setLoadingImages] = useState({
