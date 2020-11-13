@@ -221,14 +221,10 @@ export const hideEditDialog = () => {
 
 export const editUser = userToEdit => dispatch => {
   dispatch(editUserRequest(userToEdit));
-  let dataToSend = {};
-  for (const [key, value] of userToEdit.entries()) {
-    dataToSend[key] = value;
-  }
-  console.dir(dataToSend);
-  const id = dataToSend.id
+
+  const id = userToEdit.id
   return axios
-      .put(constants.GET_USERS_URI, dataToSend, { params: { id }})
+      .put(constants.GET_USERS_URI, userToEdit, { params: { id }})
       .then(response => {
           if (response) {
             dispatch(editUserSuccess(response.data, response.data.message));
