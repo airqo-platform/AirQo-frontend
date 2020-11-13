@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from "react";
 import clsx from "clsx";
 import PropTypes from "prop-types";
-import moment from "moment";
 import PerfectScrollbar from "react-perfect-scrollbar";
 import { makeStyles } from "@material-ui/styles";
 import {
@@ -19,9 +18,7 @@ import {
   Typography,
   TablePagination,
   Button,
-  Modal,
   Dialog,
-  Switch,
   DialogTitle,
   DialogContent,
   DialogContentText,
@@ -30,13 +27,8 @@ import {
 } from "@material-ui/core";
 
 import { Alert, AlertTitle } from "@material-ui/lab";
-
-import { Check, CheckCircleOutline } from "@material-ui/icons";
-
-import { connect } from "react-redux";
 import { getInitials } from "helpers";
-import { showEditDialog } from "redux/Join/actions";
-import { UserEditForm } from "views/pages/UserList/components";
+
 
 const roles = [
   {
@@ -116,7 +108,7 @@ const UsersTable = (props) => {
     setShowEditPopup(true);
   };
 
-  const hideEditDialog = async () => {
+  const hideEditDialog = () => {
     props.mappedhideEditDialog();
     setUpdatedUser({});
     setShowEditPopup(false)
@@ -128,8 +120,6 @@ const UsersTable = (props) => {
       const data = { ...updatedUser, id: props.mappeduserState.userToEdit._id };
       hideEditDialog()
       props.mappedEditUser(data);
-    } else {
-      return;
     }
   };
 
@@ -143,18 +133,6 @@ const UsersTable = (props) => {
 
   const cofirmDeleteUser = () => {
     props.mappedConfirmDeleteUser(mappeduserState.userToDelete);
-  };
-
-  const showConfirmDialog = (userToConfirm) => {
-    props.mappedShowConfirmDialog(userToConfirm);
-  };
-
-  const hideConfirmDialog = () => {
-    props.mappedhideConfirmDialog();
-  };
-
-  const approveConfirmUser = () => {
-    props.mappedApproveConfirmUser(mappeduserState.userToConfirm);
   };
 
   const classes = useStyles();
@@ -399,7 +377,6 @@ const UsersTable = (props) => {
 
         </DialogContent>
         <DialogActions>
-          {/*{!mappeduserState.successMsg && !mappeduserState.isFetching && (*/}
           <div>
             <Button
                 color="primary"

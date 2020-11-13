@@ -56,7 +56,7 @@ import { resetMapState } from "../Maps/actions";
 import { resetDashboardState } from "../Dashboard/operations";
 import { resetDeviceRegistryState } from "../DeviceRegistry/operations";
 import { resetLocationState } from "../LocationRegistry/operations";
-import { resetAlertState } from "../MainAlert/operations";
+import { resetAlertState, updateMainAlert } from "../MainAlert/operations";
 import constants from '../../config/constants';
 
 /***************************errors ********************************* */
@@ -227,10 +227,20 @@ export const editUser = userToEdit => dispatch => {
       .put(constants.GET_USERS_URI, userToEdit, { params: { id }})
       .then(response => {
           if (response) {
+            dispatch(updateMainAlert({
+              message: response.data.message,
+              show: true,
+              severity: "success",
+            }))
             dispatch(editUserSuccess(response.data, response.data.message));
             dispatch(fetchUsers())
           } else {
             dispatch(editUserFailed(response.data.message));
+            dispatch(updateMainAlert({
+              message: response.data.message,
+              show: true,
+              severity: "error",
+            }))
           }
       })
       .catch(e => {
