@@ -1,4 +1,4 @@
-import { RENDER_MAP_DEFAULTS } from "./types";
+import { RENDER_MAP_DEFAULTS, RESET_MAP_DEFAULTS_SUCCESS } from "./types";
 
 // create initial state
 
@@ -13,6 +13,8 @@ const initialState = {
 
 export default function (state = initialState, action) {
   switch (action.type) {
+    case RESET_MAP_DEFAULTS_SUCCESS:
+      return initialState;
     case RENDER_MAP_DEFAULTS:
       return {
         ...state,

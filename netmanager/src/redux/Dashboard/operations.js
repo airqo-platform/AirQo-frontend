@@ -7,6 +7,8 @@ import {
   LOAD_USER_DEFAULT_GRAPHS_ERROR,
   SET_USER_DEFAULTS_GRAPHS_SUCCESS,
   SET_USER_DEFAULTS_GRAPHS_ERROR,
+  RESET_USER_GRAPH_DEFAULTS_SUCCESS,
+  RESET_LOCATION_FILTER_SUCCESS,
 } from "./actions";
 import { KCCAInitialUserDefaultGraphsState } from "./constants";
 import { filterDefaults } from "./utils";
@@ -75,4 +77,9 @@ export const setUserDefaultGraphData = (filter) => {
         });
       });
   };
+};
+
+export const resetDashboardState = () => dispatch => {
+  dispatch({ type: RESET_LOCATION_FILTER_SUCCESS });
+  dispatch({ type: RESET_USER_GRAPH_DEFAULTS_SUCCESS });
 };

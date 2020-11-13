@@ -50,14 +50,35 @@ const excludePages = (pages, excludedArr) => {
   });
 };
 
-const Sidebar = (props) => {
-  const { open, variant, onClose, className, ...rest } = props;
+const roleExcludePageMapper = {
+    collaborator: [
+        "Users",
+        "Candidates",
+        "Locate",
+        "Device Management",
+        "Location Registry",
+        "Device Registry",
+    ],
+    user : [
+        "Users",
+        "Candidates",
+        "Locate",
+        "Device Management",
+        "Location Registry",
+        "Device Registry",
+    ],
+    netmanager: [
+        "Users",
+        "Candidates",
+    ],
+    admin: [
+        "Candidates",
+    ],
+    super: [],
 
-  const classes = useStyles();
+  }
 
-  const orgData = useOrgData();
-
-  let pages = [
+const allMainPages = [
     {
       title: "Overview",
       href: "/overview",
@@ -96,7 +117,8 @@ const Sidebar = (props) => {
       icon: <EditLocationIcon />,
     },
   ];
-  const userManagementPages = [
+
+ const allUserManagementPages = [
     {
       title: "Users",
       href: "/admin/users",
@@ -119,36 +141,20 @@ const Sidebar = (props) => {
     },
   ];
 
+
+const Sidebar = (props) => {
+  const { open, variant, onClose, className, ...rest } = props;
+
+  const classes = useStyles();
+
+  const orgData = useOrgData();
+
   const { mappedAuth } = props;
   let { user } = mappedAuth;
-  let userPages = [];
+  const excludedPages = roleExcludePageMapper[user.privilege] || roleExcludePageMapper.user;
+  let pages = excludePages(allMainPages, excludedPages);
+  const userPages = excludePages(allUserManagementPages, excludedPages);
 
-  try {
-    if (user.privilege === "super") {
-      userPages = userManagementPages;
-    } else if (user.privilege === "admin") {
-      userPages = excludePages(userManagementPages, ["Candidates"]);
-    } else {
-      userPages = excludePages(userManagementPages, [
-        "Users",
-        "Candidates",
-        "Locate",
-        "Device Management",
-        "Location Registry",
-        "Device Registry",
-      ]);
-      pages = excludePages(pages, [
-        "Users",
-        "Candidates",
-        "Locate",
-        "Device Management",
-        "Location Registry",
-        "Device Registry",
-      ]);
-    }
-  } catch (e) {
-    console.log(e);
-  }
 
   if (orgData.name.toLowerCase() === "airqo") {
     pages = excludePages(pages, ["Dashboard", "Export"]);
