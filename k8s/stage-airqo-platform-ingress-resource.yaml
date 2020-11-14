@@ -30,7 +30,7 @@ spec:
               servicePort: 8080
           - path: /api/v1/data
             backend:
-              serviceName: airqo-stage-data-mgt-api
+              serviceName: airqo-stage-data-mgt-api-svc
               servicePort: 3000
           - path: /api/v1/map
             backend:
@@ -44,7 +44,11 @@ spec:
             backend:
               serviceName: airqo-stage-prediction-api-svc
               servicePort: 5000
-          - path: /api/v1/device_monitor
+          - path: /api/v2/predict
+            backend:
+              serviceName: airqo-stage-prediction-api-svc
+              servicePort: 5000
+          - path: /api/v1/monitor
             backend:
               serviceName: airqo-stage-device-monitor-api-svc
               servicePort: 4001
@@ -52,3 +56,7 @@ spec:
             backend:
               serviceName: airqo-stage-calibrate-api-svc
               servicePort: 4001
+          - path: /api/v1/incentives
+            backend:
+              serviceName: airqo-stage-incentives-api-svc
+              servicePort: 3000
