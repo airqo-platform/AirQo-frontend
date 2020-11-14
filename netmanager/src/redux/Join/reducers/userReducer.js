@@ -36,12 +36,8 @@ import {
   UPDATE_PASSWORD_REQUEST,
   UPDATE_PASSWORD_SUCCESS,
   UPDATE_PASSWORD_FAILED,
-  UPDATE_PROFILE_REQUEST,
-  UPDATE_PROFILE_SUCCESS,
-  UPDATE_PROFILE_FAILED
+  RESET_USER_STATE_SUCCESS,
 } from '../types';
-
-const isEmpty = require('is-empty');
 
 const initialState = {
   users: [],
@@ -64,6 +60,9 @@ const initialState = {
 export default function(state = initialState, action) {
   switch (action.type) {
     /************************* fetch users ****************************************** */
+    case RESET_USER_STATE_SUCCESS:
+      return initialState;
+
     case GET_USERS_REQUEST:
       return {
         ...state,

@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from "react";
 import clsx from "clsx";
 import PropTypes from "prop-types";
-import moment from "moment";
 import PerfectScrollbar from "react-perfect-scrollbar";
 import { makeStyles } from "@material-ui/styles";
 import {
@@ -19,9 +18,7 @@ import {
   Typography,
   TablePagination,
   Button,
-  Modal,
   Dialog,
-  Switch,
   DialogTitle,
   DialogContent,
   DialogContentText,
@@ -30,13 +27,27 @@ import {
 } from "@material-ui/core";
 
 import { Alert, AlertTitle } from "@material-ui/lab";
-
-import { Check, CheckCircleOutline } from "@material-ui/icons";
-
-import { connect } from "react-redux";
 import { getInitials } from "helpers";
-import { showEditDialog } from "redux/Join/actions";
-import { UserEditForm } from "views/pages/UserList/components";
+
+
+const roles = [
+  {
+    value: "user",
+    label: "user",
+  },
+  {
+    value: "collaborator",
+    label: "collaborator",
+  },
+  {
+    value: "netmanager",
+    label: "netmanager",
+  },
+  {
+    value: "admin",
+    label: "admin",
+  },
+];
 
 const useStyles = makeStyles((theme) => ({
   root: {},
@@ -81,33 +92,34 @@ const UsersTable = (props) => {
   const users = mappeduserState.users;
   const collaborators = mappeduserState.collaborators;
   const editUser = mappeduserState.userToEdit;
+  const [updatedUser, setUpdatedUser] = useState({});
+  const [showEditPopup, setShowEditPopup] = useState(false);
   const userToDelete = mappeduserState.userToDelete;
 
   //the methods:
 
+  const handleUpdateUserChange = (field) => (event) => {
+    event.preventDefault();
+    setUpdatedUser({ ...updatedUser, [field]: event.target.value });
+  }
+
   const showEditDialog = (userToEdit) => {
     props.mappedshowEditDialog(userToEdit);
+    setShowEditPopup(true);
   };
 
   const hideEditDialog = () => {
     props.mappedhideEditDialog();
+    setUpdatedUser({});
+    setShowEditPopup(false)
   };
 
   const submitEditUser = (e) => {
     e.preventDefault();
-    const editForm = document.getElementById("EditUserForm");
-    const userData = props.mappeduserState;
-    if (editForm.userName.value !== "") {
-      const data = new FormData();
-      data.append("id", userData.userToEdit._id);
-      data.append("userName", editForm.userName.value);
-      data.append("firstName", editForm.firstName.value);
-      data.append("lastName", editForm.lastName.value);
-      data.append("email", editForm.email.value);
-      //add the role in the near future.
+    if (updatedUser.userName !== "") {
+      const data = { ...updatedUser, id: props.mappeduserState.userToEdit._id };
+      hideEditDialog()
       props.mappedEditUser(data);
-    } else {
-      return;
     }
   };
 
@@ -121,18 +133,6 @@ const UsersTable = (props) => {
 
   const cofirmDeleteUser = () => {
     props.mappedConfirmDeleteUser(mappeduserState.userToDelete);
-  };
-
-  const showConfirmDialog = (userToConfirm) => {
-    props.mappedShowConfirmDialog(userToConfirm);
-  };
-
-  const hideConfirmDialog = () => {
-    props.mappedhideConfirmDialog();
-  };
-
-  const approveConfirmUser = () => {
-    props.mappedApproveConfirmUser(mappeduserState.userToConfirm);
   };
 
   const classes = useStyles();
@@ -295,50 +295,108 @@ const UsersTable = (props) => {
       </CardActions>
 
       {/*************************** the edit dialog **********************************************/}
+      {editUser &&
       <Dialog
-        open={props.mappeduserState.showEditDialog}
-        onClose={hideEditDialog}
-        aria-labelledby="form-dialog-title"
+          open={showEditPopup}
+          onClose={hideEditDialog}
+          aria-labelledby="form-dialog-title"
       >
-        <DialogTitle></DialogTitle>
-        <DialogContent></DialogContent>
+        <DialogTitle>Edit User</DialogTitle>
         <DialogContent>
-          <DialogContentText>Edit the user's details</DialogContentText>
 
-          {editUser && (
-            <UserEditForm userData={editUser} editUser={submitEditUser} />
-          )}
+          <div>
+            <TextField
+                margin="dense"
+                id="email"
+                name="Email Address"
+                type="text"
+                label="email"
+                variant="outlined"
+                value={updatedUser && updatedUser.email || editUser.email}
+                onChange={handleUpdateUserChange("email")}
+                fullWidth
+            />
+            <TextField
+                margin="dense"
+                id="firstName"
+                name="firstName"
+                label="first name"
+                type="text"
+                value={updatedUser && updatedUser.firstName || editUser.firstName}
+                onChange={handleUpdateUserChange("firstName")}
+                variant="outlined"
+                fullWidth
+            />
+            <TextField
+                margin="dense"
+                id="lastName"
+                label="last name"
+                name="lastName"
+                type="text"
+                value={updatedUser && updatedUser.lastName || editUser.lastName}
+                onChange={handleUpdateUserChange("lastName")}
+                variant="outlined"
+                fullWidth
+            />
+            <TextField
+                margin="dense"
+                id="userName"
+                name="userName"
+                label="user name"
+                type="text"
+                value={updatedUser && updatedUser.userName || editUser.userName}
+                onChange={handleUpdateUserChange("userName")}
+                variant="outlined"
+                fullWidth
+            />
+            <TextField
+                id="privilege"
+                select
+                fullWidth
+                label="Role"
+                style={{marginTop: "15px"}}
+                value={updatedUser && updatedUser.privilege || editUser.privilege}
+                onChange={handleUpdateUserChange("privilege")}
+                SelectProps={{
+                  native: true,
+                  style: {width: "100%", height: "50px"},
+                  MenuProps: {
+                    className: classes.menu,
+                  },
+                }}
 
-          {editUser && mappeduserState.isFetching && (
-            <Alert icon={<Check fontSize="inherit" />} severity="success">
-              Updating....
-            </Alert>
-          )}
+                variant="outlined"
+            >
+              {roles.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+              ))}
+            </TextField>
+          </div>
 
-          {editUser && !mappeduserState.isFetching && mappeduserState.error && (
-            <Alert severity="error">
-              <AlertTitle>Failed</AlertTitle>
-              <strong> {mappeduserState.error} </strong>
-            </Alert>
-          )}
-
-          {editUser &&
-            !mappeduserState.isFetching &&
-            mappeduserState.successMsg && (
-              <Alert severity="success">
-                <AlertTitle>Success</AlertTitle>
-                <strong>{editUser.firstName}</strong>{" "}
-                {mappeduserState.successMsg}
-              </Alert>
-            )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={hideEditDialog} color="primary" variant="contained">
-            cancel
-          </Button>
+          <div>
+            <Button
+                color="primary"
+                variant="outlined"
+                onClick={hideEditDialog}
+            >
+              Cancel
+            </Button>
+            <Button
+                style={{margin: "0 15px"}}
+                onClick={submitEditUser}
+                color="primary"
+                variant="contained">
+              Submit
+            </Button>
+          </div>
+
         </DialogActions>
       </Dialog>
-
+      }
       {/***************************************** deleting a user ***********************************/}
 
       <Dialog
