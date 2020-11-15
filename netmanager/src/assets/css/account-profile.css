@@ -1,0 +1,42 @@
+.crop-container {
+    width: 40vw;
+    background-color: #ffffff;
+    border: 1px solid #e3e6e8;
+    border-radius: 5px;
+    padding: 5px;
+}
+
+.crop-container>:first-child {
+    display: flex;
+    font-weight: bold;
+    font-size: 1.2rem;
+    text-transform: uppercase;
+}
+
+.crop-container>:last-child {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.react-crop {
+    width: 100%;
+    height: auto;
+    border: 1px solid red;
+}
+
+.img-crop-preview {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: -10vh;
+    left: -10vw;
+    height: 120vh;
+    width: 120vw;
+    z-index: 10000;
+    background: rgba(0,0,0,0.5);
+}
+
+.hidden {
+    display: none;
+}
