@@ -67,6 +67,14 @@ const coordinatesActivateStyles = {
   fontSize: ".8rem",
 };
 
+const spanStyle = {
+  width: "30%",
+  whiteSpace: "nowrap",
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  padding: "0 20px",
+};
+
 const defaultSensorRange = { min: Infinity, max: Infinity };
 
 const sensorFeedNameMapper = {
@@ -191,7 +199,7 @@ const DeviceRecentFeedView = ({ recentFeed, runReport }) => {
                   sensorFeedNameMapper[key].range) ||
                   defaultSensorRange
               ) ? (
-                <span style={{ width: "30%" }}>
+                <span style={spanStyle}>
                   <CheckBoxIcon className={classes.root} />
                 </span>
               ) : (
@@ -201,12 +209,12 @@ const DeviceRecentFeedView = ({ recentFeed, runReport }) => {
                   </span>
                 </Tooltip>
               )}
-              <span style={{ width: "30%" }}>
+              <span style={spanStyle}>
                 {(sensorFeedNameMapper[key] &&
                   sensorFeedNameMapper[key].label) ||
                   key}{" "}
               </span>
-              <span style={{ width: "30%" }}>{recentFeed[key]}</span>
+              <span style={spanStyle}>{recentFeed[key]}</span>
             </div>
           ))}
         </div>
