@@ -98,8 +98,9 @@ const AccountDetails = (props) => {
     await updateAuthenticatedUserApi(userId, tenant, form)
       .then((data) => {
         if (data.success) {
-          localStorage.setItem("currentUser", JSON.stringify(data.user));
-          dispatch(updateAuthenticatedUserSuccess(data.user, data.message));
+          const newUser = { ...user, ...form };
+          localStorage.setItem("currentUser", JSON.stringify(newUser));
+          dispatch(updateAuthenticatedUserSuccess(newUser, data.message));
           setAlert({
             show: true,
             message: data.message,
