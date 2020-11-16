@@ -52,8 +52,10 @@ const AccountProfile = (props) => {
 
   const [crop, setCrop] = useState({ aspect: 1 / 1, width: 30, unit: "%" });
   const [uploadedFile, setUploadedFile] = useState("");
+  const [croppedImage, setCroppedImage] = useState(null);
   const [showCrop, setShowCrop] = useState(false);
   const hiddenFileInput = useRef(null);
+  const imageRef = useRef(null);
 
   const cancelCrop = (event) => {
     event.preventDefault();
@@ -73,6 +75,58 @@ const AccountProfile = (props) => {
       });
       reader.readAsDataURL(event.target.files[0]);
     }
+  };
+
+  const onImageLoaded = (image) => {
+    imageRef.current = image;
+  };
+
+  const makeClientCrop = async () => {
+    if (imageRef && crop.width && crop.height) {
+      const croppedImageDataUrl = await getCroppedImg(
+        imageRef.current,
+        crop,
+        "croppedImage.jpeg"
+      );
+      setCroppedImage(croppedImageDataUrl);
+      console.log("cropped Image", croppedImageDataUrl);
+    }
+  };
+
+  const getCroppedImg = (image, crop, fileName) => {
+    const canvas = document.createElement("canvas");
+    const scaleX = image.naturalWidth / image.width;
+    const scaleY = image.naturalHeight / image.height;
+    canvas.width = crop.width;
+    canvas.height = crop.height;
+    const ctx = canvas.getContext("2d");
+
+    ctx.drawImage(
+      image,
+      crop.x * scaleX,
+      crop.y * scaleY,
+      crop.width * scaleX,
+      crop.height * scaleY,
+      0,
+      0,
+      crop.width,
+      crop.height
+    );
+
+    return new Promise((resolve, reject) => {
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          //reject(new Error('Canvas is empty'));
+          console.error("Canvas is empty");
+          return;
+        }
+        const reader = new FileReader();
+        reader.addEventListener("load", () => {
+          resolve(reader.result);
+        });
+        reader.readAsDataURL(blob);
+      }, "image/jpeg");
+    });
   };
 
   return (
@@ -138,6 +192,7 @@ const AccountProfile = (props) => {
             className={"react-crop"}
             style={{ maxHeight: "80vh", overflow: "scroll" }}
             imageStyle={{ width: "100%", height: "auto" }}
+            onImageLoaded={onImageLoaded}
             onChange={(newCrop) => setCrop(newCrop)}
           />
           <div>
@@ -153,9 +208,9 @@ const AccountProfile = (props) => {
               className={classes.uploadButton}
               color="primary"
               variant="contained"
-              onClick={onPictureUploadClick}
+              onClick={makeClientCrop}
             >
-              Save
+              Upload Photo
             </Button>
           </div>
         </div>
