@@ -86,6 +86,37 @@ const AccountProfile = (props) => {
     imageRef.current = image;
   };
 
+  const handleRemoveImage = async (event) => {
+    event.preventDefault();
+    const updateData = { profilePicture: "" };
+    return await updateAuthenticatedUserApi(
+      user._id,
+      user.organization,
+      updateData
+    )
+      .then((responseData) => {
+        const newUser = { ...user, ...updateData };
+        localStorage.setItem("currentUser", JSON.stringify(newUser));
+        dispatch(updateAuthenticatedUserSuccess(newUser, responseData.message));
+        dispatch(
+          updateMainAlert({
+            message: responseData.message,
+            show: true,
+            severity: "success",
+          })
+        );
+      })
+      .catch((err) => {
+        dispatch(
+          updateMainAlert({
+            message: err.response.data.message,
+            show: true,
+            severity: "error",
+          })
+        );
+      });
+  };
+
   const makeClientCrop = async () => {
     setShowCrop(false);
     if (imageRef && crop.width && crop.height) {
@@ -224,7 +255,9 @@ const AccountProfile = (props) => {
             onChange={handleInputChange}
             style={{ display: "none" }}
           />
-          <Button variant="text">Remove picture</Button>
+          <Button variant="text" onClick={handleRemoveImage}>
+            Remove picture
+          </Button>
         </CardActions>
       </Card>
       <div className={`img-crop-preview ${showCrop ? "" : "hidden"}`}>
