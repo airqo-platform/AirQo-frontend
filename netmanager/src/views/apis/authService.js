@@ -11,13 +11,13 @@ export const updateUserPasswordApi = async (userId, tenant, userData) => {
 
 export const updateAuthenticatedUserApi = async (userId, tenant, userData) => {
   return await axios
-    .put(constants.GET_USERS_URI, userData, { params: { tenant, id: userId } })
+    .put(constants.GET_USERS_URI, userData, { params: { id: userId } })
     .then((response) => response.data);
 };
 
 export const forgotPasswordResetApi = async (userData) => {
-    const tenant = userData.organisation;
-    return await axios
+  const tenant = userData.organisation;
+  return await axios
     .post(constants.FORGOT_PWD_URI, userData, { params: { tenant } })
-        .then((response) => response.data)
-}
+    .then((response) => response.data);
+};

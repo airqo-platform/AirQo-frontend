@@ -1,4 +1,5 @@
 import React, { useState, useRef } from "react";
+import { useDispatch } from "react-redux";
 import PropTypes from "prop-types";
 import ReactCrop from "react-image-crop";
 import clsx from "clsx";
@@ -14,6 +15,10 @@ import {
   Button,
   LinearProgress,
 } from "@material-ui/core";
+import { cloudinaryImageUpload } from "views/apis/cloudinary";
+import { updateMainAlert } from "redux/MainAlert/operations";
+import { updateAuthenticatedUserApi } from "views/apis/authService";
+import { updateAuthenticatedUserSuccess } from "redux/Join/actions";
 
 // css
 import "react-image-crop/dist/ReactCrop.css";
@@ -49,11 +54,11 @@ const AccountProfile = (props) => {
   const classes = useStyles();
 
   const { user } = mappedAuth;
-
+  const dispatch = useDispatch();
   const [crop, setCrop] = useState({ aspect: 1 / 1, width: 30, unit: "%" });
   const [uploadedFile, setUploadedFile] = useState("");
-  const [croppedImage, setCroppedImage] = useState(null);
   const [showCrop, setShowCrop] = useState(false);
+  const [profileUploading, setProfileUploading] = useState(false);
   const hiddenFileInput = useRef(null);
   const imageRef = useRef(null);
 
@@ -82,14 +87,52 @@ const AccountProfile = (props) => {
   };
 
   const makeClientCrop = async () => {
+    setShowCrop(false);
     if (imageRef && crop.width && crop.height) {
       const croppedImageDataUrl = await getCroppedImg(
         imageRef.current,
         crop,
         "croppedImage.jpeg"
       );
-      setCroppedImage(croppedImageDataUrl);
-      console.log("cropped Image", croppedImageDataUrl);
+      const formData = new FormData();
+      formData.append("file", croppedImageDataUrl);
+      formData.append("upload_preset", process.env.REACT_APP_CLOUDINARY_PRESET);
+
+      setProfileUploading(true);
+      await cloudinaryImageUpload(formData)
+        .then(async (responseData) => {
+          const updateData = { profilePicture: responseData.secure_url };
+          return await updateAuthenticatedUserApi(
+            user._id,
+            user.organization,
+            updateData
+          )
+            .then((responseData) => {
+              const newUser = { ...user, ...updateData };
+              localStorage.setItem("currentUser", JSON.stringify(newUser));
+              dispatch(
+                updateAuthenticatedUserSuccess(newUser, responseData.message)
+              );
+              dispatch(
+                updateMainAlert({
+                  message: responseData.message,
+                  show: true,
+                  severity: "success",
+                })
+              );
+            })
+            .catch((err) => {
+              dispatch(
+                updateMainAlert({
+                  message: err.response.data.message,
+                  show: true,
+                  severity: "error",
+                })
+              );
+            });
+        })
+        .catch((err) => {});
+      setProfileUploading(false);
     }
   };
 
@@ -156,7 +199,7 @@ const AccountProfile = (props) => {
                 {moment().format("hh:mm A")} ({"GMT+3"})
               </Typography>
             </div>
-            <Avatar className={classes.avatar} src={user.avatar} />
+            <Avatar className={classes.avatar} src={user.profilePicture} />
           </div>
           <div className={classes.progress}>
             <Typography variant="body1">Profile Completeness: 70%</Typography>
@@ -170,6 +213,7 @@ const AccountProfile = (props) => {
             color="primary"
             variant="text"
             onClick={onPictureUploadClick}
+            disabled={profileUploading}
           >
             Upload picture
           </Button>
