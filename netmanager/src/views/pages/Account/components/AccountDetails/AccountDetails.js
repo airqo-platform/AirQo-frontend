@@ -14,11 +14,11 @@ import {
   Button,
   TextField,
 } from "@material-ui/core";
-import { useOrgData } from "../../../../../redux/Join/selectors";
-import { updateAuthenticatedUserApi } from "../../../../apis/authService";
+import { useOrgData } from "redux/Join/selectors";
+import { updateAuthenticatedUserApi } from "views/apis/authService";
 import Alert from "@material-ui/lab/Alert";
 import { CircularLoader } from "../../../../components/Loader/CircularLoader";
-import { updateAuthenticatedUserSuccess } from "../../../../../redux/Join/actions";
+import { updateAuthenticatedUserSuccess } from "redux/Join/actions";
 
 const useStyles = makeStyles((theme) => ({
   container: {
