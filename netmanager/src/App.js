@@ -51,6 +51,7 @@ import {
 import { Settings as SettingsView } from "./views/pages/Settings";
 import { Account as AccountView } from "./views/pages/Account";
 import { Download as DownloadView } from "./views/pages/Download";
+import OverlayMap from "./views/pages/Map";
 import { ReportTemplate as ReportTemplateView } from "./views/pages/ReportTemplate";
 import { Reports as ReportView } from "./views/pages/Reports";
 import { NotFound as NotFoundView } from "./views/pages/NotFound";
@@ -123,6 +124,12 @@ class App extends Component {
                   exact
                   path="/dashboard"
                   component={AnalyticsDashboard}
+                  layout={MainLayout}
+                />
+                <PrivateRoute
+                  exact
+                  path="/map"
+                  component={OverlayMap}
                   layout={MainLayout}
                 />
 

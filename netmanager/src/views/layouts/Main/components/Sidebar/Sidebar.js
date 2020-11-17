@@ -5,10 +5,8 @@ import { makeStyles } from "@material-ui/styles";
 import { Divider, Drawer } from "@material-ui/core";
 import DashboardIcon from "@material-ui/icons/Dashboard";
 import PeopleIcon from "@material-ui/icons/People";
-import BarChartIcon from "@material-ui/icons/BarChart";
-import TimelineIcon from "@material-ui/icons/Timeline";
-import PaymentIcon from "@material-ui/icons/Payment";
 import AccountBoxIcon from "@material-ui/icons/AccountBox";
+import MapIcon from "@material-ui/icons/Map";
 import SettingsIcon from "@material-ui/icons/Settings";
 import LocateIcon from "@material-ui/icons/AddLocation";
 import ManageIcon from "@material-ui/icons/Build";
@@ -83,6 +81,11 @@ const allMainPages = [
       title: "Overview",
       href: "/overview",
       icon: <AspectRatioIcon />,
+    },
+    {
+      title: "Map",
+      href: "/map",
+      icon: <MapIcon />,
     },
     {
       title: "Dashboard",
