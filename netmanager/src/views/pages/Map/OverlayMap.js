@@ -22,6 +22,7 @@ export const OverlayMap = ({ center, zoom, heatMapData }) => {
       style: "mapbox://styles/mapbox/dark-v10",
       center,
       zoom,
+      maxZoom: 18,
     });
     map.addControl(new mapboxgl.NavigationControl(), "bottom-right");
 
@@ -38,9 +39,10 @@ export const OverlayMap = ({ center, zoom, heatMapData }) => {
       });
     });
 
-    // map.on("moveend", async () => {
-    //   map.getSource("heatmap-data").setData(heatMapData);
-    // });
+    map.on("click", async () => {
+      console.log('zoom', map.getZoom())
+      // console.log('map', map)
+    });
 
     setMap(map);
 
