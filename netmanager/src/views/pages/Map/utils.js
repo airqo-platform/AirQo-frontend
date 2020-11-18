@@ -1,12 +1,15 @@
-export const transformDataToGeoJson = (data) => {
+export const transformDataToGeoJson = (
+  data,
+  { longitude, latitude, ...rest }
+) => {
   let features = [];
   data.map((feature) => {
     features.push({
       type: "Feature",
-      properties: { ...feature },
+      properties: { ...rest, ...feature },
       geometry: {
         type: "Point",
-        coordinates: [feature.long, feature.lat],
+        coordinates: [feature[longitude], feature[latitude]],
       },
     });
   });

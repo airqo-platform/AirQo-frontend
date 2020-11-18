@@ -65,7 +65,10 @@ export const OverlayMap = ({ center, zoom, heatMapData }) => {
 };
 
 const MapContainer = () => {
-  const [heatMapData, setHeatMapData] = useState(transformDataToGeoJson([]));
+  const [heatMapData, setHeatMapData] = useState(
+    transformDataToGeoJson([], { longitude: "long", latitude: "lat" })
+  );
+  const [monitoringSiteData, setMonitoringSiteMapData] = useState([]);
 
   useEffect(() => {
     const locationData = {
@@ -74,9 +77,19 @@ const MapContainer = () => {
       min_lat: 0.1,
       max_lat: 0.5,
     };
-    heatmapPredictApi(locationData).then((responseData) => {
-      setHeatMapData(transformDataToGeoJson(responseData.data || []));
-    });
+    // getMonitoringSitesInfoApi('').then((responseData) => {
+    //   setMonitoringSiteMapData(responseData.airquality_monitoring_sites)
+    // }).catch((err) => {})
+    heatmapPredictApi(locationData)
+      .then((responseData) => {
+        setHeatMapData(
+          transformDataToGeoJson(responseData.data || [], {
+            longitude: "long",
+            latitude: "lat",
+          })
+        );
+      })
+      .catch((err) => {});
   }, []);
 
   return (
