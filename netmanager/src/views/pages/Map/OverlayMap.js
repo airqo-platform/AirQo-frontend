@@ -5,6 +5,7 @@ import { getMonitoringSitesInfoApi } from "views/apis/analytics";
 import { heatMapPaint } from "./paints";
 import { transformDataToGeoJson } from "./utils";
 import { formatDateString } from "utils/dateTime";
+import Filter from "../Dashboard/components/Map/Filter";
 
 // css
 import "assets/css/map.css";
@@ -123,7 +124,7 @@ export const OverlayMap = ({
             )
             .addTo(map);
         })}
-      :
+      <Filter fetchFilteredData={monitoringSiteData.features} />
     </div>
   );
 };
