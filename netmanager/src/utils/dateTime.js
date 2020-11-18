@@ -1,3 +1,12 @@
+import moment from "moment-timezone";
+
+export const formatDateString = (t, tz) => {
+  return moment
+      .utc(t, "YYYY-MM-DD HH:mm")
+      .tz(tz || "Africa/Kampala")
+      .format("YYYY-MM-DD HH:mm");
+};
+
 export const getElapsedDurationMapper = (dateTimeStr) => {
   let delta = Math.abs(new Date() - new Date(dateTimeStr)) / 1000;
   let seconds = delta;

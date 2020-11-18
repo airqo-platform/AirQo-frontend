@@ -4,30 +4,32 @@ import { heatmapPredictApi } from "views/apis/predict";
 import { getMonitoringSitesInfoApi } from "views/apis/analytics";
 import { heatMapPaint } from "./paints";
 import { transformDataToGeoJson } from "./utils";
+import { formatDateString } from "utils/dateTime";
 
 // css
 import "assets/css/map.css";
 
-const markerClasses = {
-  0: "marker-good",
-  12.1: "marker-moderate",
-  35.5: "marker-uhfsg",
-  55.5: "marker-unhealthy",
-  150.5: "marker-v-unhealthy",
-  250.5: "marker-hazardous",
+const markerDetails = {
+  0: ["marker-unknown", "UnCategorised"],
+  0.0000000001: ["marker-good", "Good"],
+  12.1: ["marker-moderate", "Moderate"],
+  35.5: ["marker-uhfsg", "Unhealthy for sensitive groups"],
+  55.5: ["marker-unhealthy", "Unhealthy"],
+  150.5: ["marker-v-unhealthy", "VeryUnhealthy"],
+  250.5: ["marker-hazardous", "Harzadous"],
 };
 
-const getMarkerClass = (markerValue) => {
-  let keys = Object.keys(markerClasses);
+const getMarkerDetail = (markerValue) => {
+  let keys = Object.keys(markerDetails);
   // in-place reverse sorting
   keys.sort((key1, key2) => -(key1 - key2));
 
   for (let i = 0; i < keys.length; i++) {
     if (markerValue >= keys[i]) {
-      return markerClasses[keys[i]];
+      return markerDetails[keys[i]];
     }
   }
-  return "";
+  return ["marker-unknown", "UnCategorised"];
 };
 
 mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_TOKEN;
@@ -93,13 +95,32 @@ export const OverlayMap = ({
     <div className="overlay-map-container" ref={mapContainerRef}>
       {map &&
         monitoringSiteData.features.forEach((feature) => {
-          const el = document.createElement("div");
-          el.className = `marker ${getMarkerClass(
+          const [markerClass, desc] = getMarkerDetail(
             feature.properties.Last_Hour_PM25_Value
-          )}`;
+          );
+
+          const el = document.createElement("div");
+          el.className = `marker ${markerClass}`;
           el.innerText = feature.properties.Last_Hour_PM25_Value;
+
           new mapboxgl.Marker(el)
             .setLngLat(feature.geometry.coordinates)
+            .setPopup(
+              new mapboxgl.Popup({ offset: 25 }).setHTML(
+                `<div>
+                    <div>${feature.properties.Parish} - ${
+                  feature.properties.Division
+                } Division</div>
+                    <span>${feature.properties.LocationCode}</span>
+                    <div class="${"popup-body " + markerClass}"> AQI: ${
+                  feature.properties.Last_Hour_PM25_Value
+                } - ${desc}</div>
+                    <span>Last Refreshed: ${formatDateString(
+                      feature.properties.LastHour
+                    )} (EAT)</span>
+                </div>`
+              )
+            )
             .addTo(map);
         })}
       :
