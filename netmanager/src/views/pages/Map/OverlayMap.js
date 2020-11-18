@@ -35,6 +35,24 @@ const getMarkerDetail = (markerValue) => {
 
 mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_TOKEN;
 
+const MapToggleController = ({ controls }) => {
+  return (
+    <div className="map-toggle-controller">
+      {controls.map((control, index) => (
+        <span
+          className={`control-item ${
+            control.active ? "" : "control-item-disabled"
+          }`}
+          onClick={control.toggleState}
+          key={index}
+        >
+          {control.label}
+        </span>
+      ))}
+    </div>
+  );
+};
+
 export const OverlayMap = ({
   center,
   zoom,
@@ -43,8 +61,8 @@ export const OverlayMap = ({
 }) => {
   const mapContainerRef = useRef(null);
   const [map, setMap] = useState(null);
-
-  console.log("heatmap data", heatMapData);
+  const [showSensors, setShowSensors] = useState(true);
+  const [showHeatMap, setShowHeatMap] = useState(true);
 
   useEffect(() => {
     const map = new mapboxgl.Map({
@@ -92,9 +110,33 @@ export const OverlayMap = ({
     }
   });
 
+  const toggleSensors = () => {
+    try {
+      const markers = document.getElementsByClassName("marker");
+      for (let i = 0; i < markers.length; i++) {
+        markers[i].style.visibility = !showSensors ? "visible" : "hidden";
+      }
+      setShowSensors(!showSensors);
+      // eslint-disable-next-line no-empty
+    } catch (err) {}
+  };
+
+  const toggleHeatMap = () => {
+    try {
+      map.setLayoutProperty(
+        "circular-points-layer",
+        "visibility",
+        !showHeatMap ? "visible" : "none"
+      );
+      setShowHeatMap(!showHeatMap);
+      // eslint-disable-next-line no-empty
+    } catch (err) {}
+  };
+
   return (
     <div className="overlay-map-container" ref={mapContainerRef}>
-      {map &&
+      {showSensors &&
+        map &&
         monitoringSiteData.features.forEach((feature) => {
           const [markerClass, desc] = getMarkerDetail(
             feature.properties.Last_Hour_PM25_Value
@@ -125,6 +167,22 @@ export const OverlayMap = ({
             .addTo(map);
         })}
       <Filter fetchFilteredData={monitoringSiteData.features} />
+      {map && (
+        <MapToggleController
+          controls={[
+            {
+              label: "sensor",
+              active: showSensors,
+              toggleState: toggleSensors,
+            },
+            {
+              label: "heatmap",
+              active: showHeatMap,
+              toggleState: toggleHeatMap,
+            },
+          ]}
+        />
+      )}
     </div>
   );
 };
