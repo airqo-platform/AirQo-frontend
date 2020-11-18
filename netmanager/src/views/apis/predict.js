@@ -1,7 +1,8 @@
 import axios from "axios";
+import constants from "../../config/constants";
 
 export const heatmapPredictApi = async (locationData) => {
   return await axios
-    .post("http://127.0.0.1:3000/api/v1/predict/heatmap", locationData)
+    .post(constants.GET_HEATMAP_DATA, locationData)
     .then((response) => response.data);
 };
