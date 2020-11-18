@@ -8,7 +8,7 @@ import { formatDateString } from "utils/dateTime";
 import Filter from "../Dashboard/components/Map/Filter";
 
 // css
-import "assets/css/map.css";
+import "assets/css/overlay-map.css";
 
 const markerDetails = {
   0: ["marker-unknown", "UnCategorised"],
@@ -93,8 +93,7 @@ export const OverlayMap = ({
     });
 
     map.on("click", async () => {
-      console.log('zoom', map.getZoom())
-      // console.log('map', map)
+      console.log("zoom", map.getZoom());
     });
 
     setMap(map);
@@ -228,7 +227,7 @@ const MapContainer = () => {
     <div>
       <OverlayMap
         center={[32.5600613, 0.3341424]}
-        zoom={9}
+        zoom={11}
         heatMapData={heatMapData}
         monitoringSiteData={monitoringSiteData}
       />

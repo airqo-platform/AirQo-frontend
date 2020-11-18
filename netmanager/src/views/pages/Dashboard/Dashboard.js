@@ -5,17 +5,13 @@ import {
   Card,
   CardContent,
   CardHeader,
-  Button,
   Divider,
-  CardActions,
   IconButton,
 } from "@material-ui/core";
-import { Line, Bar } from "react-chartjs-2";
+import { Bar } from "react-chartjs-2";
 import clsx from "clsx";
 import PropTypes from "prop-types";
 import {
-  Map,
-  HeatMap,
   CustomisableChart,
   PollutantCategory,
   ExceedancesChart,
@@ -33,9 +29,6 @@ import JsPDF from "jspdf";
 import { useUserDefaultGraphsData } from "redux/Dashboard/selectors";
 import { useOrgData } from "redux/Join/selectors";
 
-// css import
-import "assets/css/analytics-dashboard.css";
-
 const useStyles = makeStyles((theme) => ({
   root: {
     padding: theme.spacing(4),
@@ -45,7 +38,7 @@ const useStyles = makeStyles((theme) => ({
     color: theme.palette.text.secondary,
   },
   chartContainer: {
-    height: 250,
+    minHeight: 250,
     position: "relative",
   },
   actions: {
@@ -368,19 +361,6 @@ const Dashboard = (props) => {
 
   return (
     <div className={classes.root}>
-      {/*<header*/}
-      {/*  style={{*/}
-      {/*    display: "inline-flex",*/}
-      {/*    flexWrap: "wrap",*/}
-      {/*    width: "674px",*/}
-      {/*    padding: "0 0 30px 0",*/}
-      {/*  }}*/}
-      {/*>*/}
-      {/*  <h4>Welcome to the AirQo ANALYTICS dashboard</h4>*/}
-      {/*  <br />*/}
-      {/*  <h6>Number of nodes at each AQI risk level</h6>*/}
-      {/*  <br />*/}
-      {/*</header>*/}
       <Grid container spacing={4}>
         <Grid item lg={2} sm={6} xl={2} xs={12}>
           <PollutantCategory
@@ -471,15 +451,6 @@ const Dashboard = (props) => {
         </Grid>
       </Grid>
 
-      <div className={"map-wrapper"}>
-        <div className={"map-item"}>
-          <Map />
-        </div>
-        <div className={"map-item"}>
-          <HeatMap />
-        </div>
-      </div>
-
       <Grid container spacing={4}>
         <Grid item lg={6} md={6} sm={12} xl={6} xs={12} container spacing={2}>
           <Grid item lg={12} md={12} sm={12} xl={12} xs={12}>
@@ -527,6 +498,9 @@ const Dashboard = (props) => {
               </CardContent>
             </Card>
           </Grid>
+        </Grid>
+
+        <Grid item lg={6} md={6} sm={12} xl={6} xs={12} container spacing={2}>
           <Grid item lg={12} md={12} sm={12} xl={12} xs={12}>
             <ExceedancesChart
               className={clsx(classes.chartCard)}
@@ -535,6 +509,7 @@ const Dashboard = (props) => {
             />
           </Grid>
         </Grid>
+
         {userDefaultGraphs &&
           userDefaultGraphs.map((filter, key) => {
             return (

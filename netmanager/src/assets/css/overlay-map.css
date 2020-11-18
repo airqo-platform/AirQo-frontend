@@ -1,3 +1,9 @@
+.overlay-map-container {
+    height: calc(100vh - 64px);
+    height: -moz-calc(100vh - 64px);
+    height: -webkit-calc(100vh - 64px);
+}
+
 .map-wrapper {
     display: flex;
     flex-wrap: wrap;
