@@ -24,6 +24,10 @@ export const OverlayMap = ({ center, zoom, heatMapData }) => {
       zoom,
       maxZoom: 18,
     });
+    map.addControl(
+      new mapboxgl.FullscreenControl({ container: mapContainerRef.current }),
+      "bottom-right"
+    );
     map.addControl(new mapboxgl.NavigationControl(), "bottom-right");
 
     map.on("load", () => {
