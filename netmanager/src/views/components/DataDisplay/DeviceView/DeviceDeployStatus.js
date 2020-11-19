@@ -121,7 +121,7 @@ const sensorFeedNameMapper = {
 const isValidSensorValue = (sensorValue, sensorValidator) => {
   if (
     sensorValidator.badValues &&
-    sensorValidator.badValues.includes(sensorValue)
+    sensorValidator.badValues.includes(parseFloat(sensorValue))
   ) {
     return false;
   }
