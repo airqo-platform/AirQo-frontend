@@ -14,11 +14,11 @@ import {
   Button,
   TextField,
 } from "@material-ui/core";
-import { useOrgData } from "../../../../../redux/Join/selectors";
-import { updateAuthenticatedUserApi } from "../../../../apis/authService";
+import { useOrgData } from "redux/Join/selectors";
+import { updateAuthenticatedUserApi } from "views/apis/authService";
 import Alert from "@material-ui/lab/Alert";
 import { CircularLoader } from "../../../../components/Loader/CircularLoader";
-import { updateAuthenticatedUserSuccess } from "../../../../../redux/Join/actions";
+import { updateAuthenticatedUserSuccess } from "redux/Join/actions";
 
 const useStyles = makeStyles((theme) => ({
   container: {
@@ -98,8 +98,9 @@ const AccountDetails = (props) => {
     await updateAuthenticatedUserApi(userId, tenant, form)
       .then((data) => {
         if (data.success) {
-          localStorage.setItem("currentUser", JSON.stringify(data.user));
-          dispatch(updateAuthenticatedUserSuccess(data.user, data.message));
+          const newUser = { ...user, ...form };
+          localStorage.setItem("currentUser", JSON.stringify(newUser));
+          dispatch(updateAuthenticatedUserSuccess(newUser, data.message));
           setAlert({
             show: true,
             message: data.message,

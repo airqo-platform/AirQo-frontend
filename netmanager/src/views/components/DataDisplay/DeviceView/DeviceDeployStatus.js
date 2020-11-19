@@ -67,35 +67,68 @@ const coordinatesActivateStyles = {
   fontSize: ".8rem",
 };
 
-const defaultSensorRange = { min: Infinity, max: Infinity };
+const spanStyle = {
+  width: "30%",
+  whiteSpace: "nowrap",
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  padding: "0 20px",
+};
+
+const defaultSensorRange = { range: { min: Infinity, max: Infinity } };
 
 const sensorFeedNameMapper = {
   pm2_5: { label: "PM 2.5", range: { min: 1, max: 1000 } },
   pm10: { label: "PM 10", range: { min: 1, max: 1000 } },
   s2_pm2_5: { label: "Sensor-2 PM 2.5", range: { min: 1, max: 1000 } },
   s2_pm10: { label: "Sensor-2 PM 10", range: { min: 1, max: 1000 } },
-  latitude: { label: "Latitude", range: { min: -90, max: 90 } },
-  longitude: { label: "Longitude", range: { min: -180, max: 80 } },
+  latitude: {
+    label: "Latitude",
+    range: { min: -90, max: 90 },
+    badValues: [0, 1000],
+  },
+  longitude: {
+    label: "Longitude",
+    range: { min: -180, max: 80 },
+    badValues: [0, 1000],
+  },
   battery: { label: "Battery", range: { min: 2.7, max: 5 } },
-  altitude: { label: "Altitude", range: { min: 1, max: Infinity } },
-  speed: { label: "Speed", range: { min: 1, max: Infinity } },
-  satellites: { label: "Satellites", range: { min: 1, max: 50 } },
-  hdop: { label: "Hdop", range: { min: 1, max: Infinity } },
+  altitude: {
+    label: "Altitude",
+    range: { min: 0, max: Infinity },
+    badValues: [0],
+  },
+  speed: { label: "Speed", range: { min: 0, max: Infinity }, badValues: [0] },
+  satellites: {
+    label: "Satellites",
+    range: { min: 0, max: 50 },
+    badValues: [0],
+  },
+  hdop: { label: "Hdop", range: { min: 0, max: Infinity }, badValues: [0] },
   internalTemperature: {
     label: "Internal Temperature",
-    range: { min: 1, max: 100 },
+    range: { min: 0, max: 100 },
   },
   externalTemperature: {
     label: "External Temperature",
-    range: { min: 1, max: 100 },
+    range: { min: 0, max: 100 },
   },
-  internalHumidity: { label: "Internal Humidity", range: { min: 1, max: 100 } },
-  ExternalHumidity: { label: "External Humidity", range: { min: 1, max: 100 } },
-  ExternalPressure: { label: "External Pressure", range: { min: 1, max: 100 } },
+  internalHumidity: { label: "Internal Humidity", range: { min: 0, max: 100 } },
+  ExternalHumidity: { label: "External Humidity", range: { min: 0, max: 100 } },
+  ExternalPressure: { label: "External Pressure", range: { min: 0, max: 100 } },
 };
 
-const isValidSensorValue = (sensorValue, range) => {
-  return range.min - 1 <= sensorValue && sensorValue <= range.max;
+const isValidSensorValue = (sensorValue, sensorValidator) => {
+  if (
+    sensorValidator.badValues &&
+    sensorValidator.badValues.includes(parseFloat(sensorValue))
+  ) {
+    return false;
+  }
+  return (
+    sensorValidator.range.min <= sensorValue &&
+    sensorValue <= sensorValidator.range.max
+  );
 };
 
 const EmptyDeviceTest = ({ loading, onClick }) => {
@@ -187,11 +220,9 @@ const DeviceRecentFeedView = ({ recentFeed, runReport }) => {
             <div style={senorListStyle}>
               {isValidSensorValue(
                 recentFeed[key],
-                (sensorFeedNameMapper[key] &&
-                  sensorFeedNameMapper[key].range) ||
-                  defaultSensorRange
+                sensorFeedNameMapper[key] || defaultSensorRange
               ) ? (
-                <span style={{ width: "30%" }}>
+                <span style={spanStyle}>
                   <CheckBoxIcon className={classes.root} />
                 </span>
               ) : (
@@ -201,12 +232,12 @@ const DeviceRecentFeedView = ({ recentFeed, runReport }) => {
                   </span>
                 </Tooltip>
               )}
-              <span style={{ width: "30%" }}>
+              <span style={spanStyle}>
                 {(sensorFeedNameMapper[key] &&
                   sensorFeedNameMapper[key].label) ||
                   key}{" "}
               </span>
-              <span style={{ width: "30%" }}>{recentFeed[key]}</span>
+              <span style={spanStyle}>{recentFeed[key]}</span>
             </div>
           ))}
         </div>
