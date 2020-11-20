@@ -37,6 +37,7 @@ import {
 } from "../../../apis/deviceRegistry";
 import { updateMainAlert } from "redux/MainAlert/operations";
 import { getElapsedDurationMapper } from "utils/dateTime";
+import { updateDevice } from "redux/DeviceRegistry/operations";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -444,6 +445,7 @@ export default function DeviceDeployStatus({ deviceData }) {
             severity: "success",
           })
         );
+        dispatch(updateDevice(deviceData.id, {isActive: true}));
       })
       .catch((err) => {
         dispatch(
@@ -476,6 +478,7 @@ export default function DeviceDeployStatus({ deviceData }) {
             severity: "success",
           })
         );
+        dispatch(updateDevice(deviceData.id, {isActive: false}));
       })
       .catch((err) => {
         dispatch(

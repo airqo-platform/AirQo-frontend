@@ -7,17 +7,19 @@ import {
   LOAD_DEVICE_COMPONENTS_SUCCESS,
   LOAD_DEVICE_COMPONENTS_FAILURE,
   INSERT_MAINTENANCE_LOGS_SUCCESS,
-    INSERT_NEW_COMPONENT_SUCCESS,
+  INSERT_NEW_COMPONENT_SUCCESS,
   RESET_DEVICE_SUCCESS,
   RESET_DEVICE_COMPONENTS_SUCCESS,
   RESET_MAINTENANCE_LOGS,
+  UPDATE_SINGLE_DEVICE_SUCCESS,
+  UPDATE_SINGLE_DEVICE_ERROR,
 } from "./actions";
 import { transformArray } from "../utils";
 import {
   getAllDevicesApi,
   getDeviceMaintenanceLogsApi,
   getDeviceComponentsApi,
-} from "../../views/apis/deviceRegistry";
+} from "views/apis/deviceRegistry";
 
 export const loadDevicesData = () => {
   return async (dispatch) => {
@@ -37,6 +39,13 @@ export const loadDevicesData = () => {
         });
       });
   };
+};
+
+export const updateDevice = (deviceId, data) => (dispatch) => {
+  dispatch({
+    type: UPDATE_SINGLE_DEVICE_SUCCESS,
+    payload: { deviceId, data },
+  });
 };
 
 export const loadDeviceMaintenanceLogs = (deviceName) => {
