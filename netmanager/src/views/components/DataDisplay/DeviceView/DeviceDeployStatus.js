@@ -411,6 +411,36 @@ export default function DeviceDeployStatus({ deviceData }) {
         </Tooltip>
       </div>
 
+      <div
+        style={{
+          display: "flex",
+          alignItems: "baseline",
+          justifyContent: "flex-end",
+          margin: "0 auto",
+          padding: "10px 20px",
+          maxWidth: "1500px",
+          fontSize: "1.2rem",
+        }}
+      >
+        <span
+          style={{
+            fontSize: "0.7rem",
+            marginRight: "10px",
+            background: "#ffffff",
+            border: "1px solid #ffffff",
+            borderRadius: "5px",
+            padding: "0 5px",
+          }}
+        >
+          Deploy status
+        </span>{" "}
+        {deviceData.isActive ? (
+          <span style={{ color: "green" }}>Deployed</span>
+        ) : (
+          <span style={{ color: "red" }}>Not Deployed</span>
+        )}
+      </div>
+
       <RecallDevice
         deviceData={deviceData}
         open={recallOpen}
