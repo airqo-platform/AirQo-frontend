@@ -35,8 +35,8 @@ import { addMaintenanceLogApi } from "../../../apis/deviceRegistry";
 import { updateMainAlert } from "redux/MainAlert/operations";
 
 const logsColumns = [
-  { title: "Activity Type", field: "activityType" },
-  { title: "Description", field: "description" },
+  { title: "Maintenance Type", field: "description" },
+  { title: "Description/tags", field: "tags" },
   { title: "Next Maintenance", field: "nextMaintenance" },
 ];
 
@@ -73,15 +73,17 @@ const LogDetailView = ({ log }) => {
           <TableBody style={{ alignContent: "left", alignItems: "left" }}>
             <TableRow style={{ align: "left" }}>
               <TableCell>
-                <b>Activity Type</b>
+                <b>Maintenance Type</b>
               </TableCell>
-              <TableCell>{log.activityType}</TableCell>
+              <TableCell>{log.description}</TableCell>
             </TableRow>
             <TableRow>
               <TableCell>
-                <b>Description</b>
+                <b>Description/tags</b>
               </TableCell>
-              <TableCell>{log.description}</TableCell>
+              <TableCell>
+                {log.tags && log.tags.map((tag, index) => <div key={index}>{tag}</div>)}
+              </TableCell>
             </TableRow>
             <TableRow>
               <TableCell>
