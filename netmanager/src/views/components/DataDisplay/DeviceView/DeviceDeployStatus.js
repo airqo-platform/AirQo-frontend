@@ -66,6 +66,18 @@ const getFirstNDurations = (duration, n) => {
   return format;
 };
 
+const errorStyles = {
+  color: "red",
+  margin: 0,
+  fontSize: "11px",
+  marginTop: "3px",
+  textAlign: "left",
+  fontFamily: "Roboto, Helvetica, Arial, sans-serif",
+  fontWeight: 400,
+  lineHeight: "13px",
+  letterSpacing: "0.33px",
+};
+
 const emptyTestStyles = {
   display: "flex",
   alignItems: "center",
@@ -341,6 +353,13 @@ export default function DeviceDeployStatus({ deviceData }) {
   const [latitude, setLatitude] = useState("");
   const [deployLoading, setDeployLoading] = useState(false);
   const [recallOpen, setRecallOpen] = useState(false);
+  const [errors, setErrors] = useState({
+    height: "",
+    power: "",
+    installationType: "",
+    longitude: "",
+    latitude: "",
+  });
 
   useEffect(() => {
     if (recentFeed.longitude && recentFeed.latitude) {
@@ -353,6 +372,10 @@ export default function DeviceDeployStatus({ deviceData }) {
     let re = /\s*|\d+(\.d+)?/;
     if (re.test(enteredHeight.target.value)) {
       setHeight(enteredHeight.target.value);
+      setErrors({
+        ...errors,
+        height: enteredHeight.target.value.length > 0 ? "" : errors.height,
+      });
     }
   };
 
@@ -369,7 +392,36 @@ export default function DeviceDeployStatus({ deviceData }) {
     setDeviceTestLoading(false);
   };
 
+  const checkErrors = () => {
+    const state = { height, installationType, power, longitude, latitude };
+    let newErrors = {};
+
+    Object.keys(state).map((key) => {
+      if (isEmpty(state[key])) {
+        newErrors[key] = "This field is required";
+      }
+    });
+    ["longitude", "latitude"].map((key) => {
+      if (
+        !isValidSensorValue(
+          state[key],
+          sensorFeedNameMapper[key] || defaultSensorRange
+        )
+      ) {
+        newErrors[key] = `Invalid ${key} value`;
+      }
+    });
+    if (!isEmpty(newErrors)) {
+      setErrors({ ...errors, ...newErrors });
+      return true;
+    }
+    return false;
+  };
+
   const handleDeploySubmit = async () => {
+    if (checkErrors()) {
+      return;
+    }
     const deployData = {
       deviceName: deviceData.name,
       mountType: installationType,
@@ -535,14 +587,24 @@ export default function DeviceDeployStatus({ deviceData }) {
               value={height}
               onChange={handleHeightChange}
               fullWidth
+              required
+              error={!!errors.height}
+              helperText={errors.height}
             />
 
-            <FormControl fullWidth>
+            <FormControl required fullWidth error={!!errors.power}>
               <InputLabel htmlFor="demo-dialog-native">Power Type</InputLabel>
               <Select
                 native
+                required
                 value={power}
-                onChange={(event) => setPower(event.target.value)}
+                onChange={(event) => {
+                  setPower(event.target.value);
+                  setErrors({
+                    ...errors,
+                    power: event.target.value.length > 0 ? "" : errors.power,
+                  });
+                }}
                 inputProps={{
                   native: true,
                   style: { height: "40px", marginTop: "10px" },
@@ -555,12 +617,25 @@ export default function DeviceDeployStatus({ deviceData }) {
                 <option value="Battery">Battery</option>
               </Select>
             </FormControl>
+            {errors.power && <div style={errorStyles}>{errors.power}</div>}
 
             <TextField
               id="standard-basic"
               label="Mount Type"
+              required
               value={installationType}
-              onChange={(event) => setInstallationType(event.target.value)}
+              error={!!errors.installationType}
+              helperText={errors.installationType}
+              onChange={(event) => {
+                setInstallationType(event.target.value);
+                setErrors({
+                  ...errors,
+                  installationType:
+                    event.target.value.length > 0
+                      ? ""
+                      : errors.installationType,
+                });
+              }}
               fullWidth
             />
 
@@ -585,8 +660,17 @@ export default function DeviceDeployStatus({ deviceData }) {
               label="Longitude"
               disabled={!manualCoordinate}
               value={longitude}
-              onChange={(event) => setLongitude(event.target.value)}
+              onChange={(event) => {
+                setLongitude(event.target.value);
+                setErrors({
+                  ...errors,
+                  longitude:
+                    event.target.value.length > 0 ? "" : errors.longitude,
+                });
+              }}
               fullWidth
+              error={!!errors.longitude}
+              helperText={errors.longitude}
               required
             />
 
@@ -595,8 +679,17 @@ export default function DeviceDeployStatus({ deviceData }) {
               label="Latitude"
               disabled={!manualCoordinate}
               value={latitude}
-              onChange={(event) => setLatitude(event.target.value)}
+              onChange={(event) => {
+                setLatitude(event.target.value);
+                setErrors({
+                  ...errors,
+                  latitude:
+                    event.target.value.length > 0 ? "" : errors.latitude,
+                });
+              }}
               fullWidth
+              error={!!errors.latitude}
+              helperText={errors.latitude}
               required
             />
             <span
