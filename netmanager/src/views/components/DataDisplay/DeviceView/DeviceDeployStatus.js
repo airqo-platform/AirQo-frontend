@@ -27,6 +27,7 @@ import FormControlLabel from "@material-ui/core/FormControlLabel";
 import Checkbox from "@material-ui/core/Checkbox";
 import green from "@material-ui/core/colors/green";
 import red from "@material-ui/core/colors/red";
+import grey from "@material-ui/core/colors/grey";
 import { makeStyles } from "@material-ui/styles";
 import { isEmpty, omit } from "underscore";
 import {
@@ -35,6 +36,7 @@ import {
   recallDeviceApi,
 } from "../../../apis/deviceRegistry";
 import { updateMainAlert } from "redux/MainAlert/operations";
+import { getElapsedDurationMapper } from "utils/dateTime";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -43,7 +45,26 @@ const useStyles = makeStyles((theme) => ({
   error: {
     color: red[500],
   },
+  grey: {
+    color: grey[200],
+  },
 }));
+
+const getFirstNDurations = (duration, n) => {
+  let format = "";
+  let count = n;
+  const keys = ["year", "month", "week", "day", "hour", "minute", "second"];
+  for (const key of keys) {
+    const elapsedTime = duration[key];
+    if (elapsedTime > 0) {
+      format = `${format} ${elapsedTime} ${key}(s),`;
+      count -= 1;
+    }
+
+    if (count <= 0) break;
+  }
+  return format;
+};
 
 const emptyTestStyles = {
   display: "flex",
@@ -203,43 +224,83 @@ const RecallDevice = ({ deviceData, handleRecall, open, toggleOpen }) => {
 const DeviceRecentFeedView = ({ recentFeed, runReport }) => {
   const classes = useStyles();
   const feedKeys = Object.keys(omit(recentFeed, "isCache", "created_at"));
+  const [
+    elapsedDurationSeconds,
+    elapsedDurationMapper,
+  ] = getElapsedDurationMapper(recentFeed.created_at);
+  const elapseLimit = 5 * 3600; // 5 hours
 
   return (
     <div style={{ height: "94%" }}>
       <h4>Sensors</h4>
       {runReport.successfulTestRun && (
-        <div
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            alignItems: "center",
-            margin: "10px 30px",
-          }}
-        >
-          {feedKeys.map((key) => (
-            <div style={senorListStyle}>
-              {isValidSensorValue(
-                recentFeed[key],
-                sensorFeedNameMapper[key] || defaultSensorRange
-              ) ? (
-                <span style={spanStyle}>
-                  <CheckBoxIcon className={classes.root} />
-                </span>
-              ) : (
-                <Tooltip title={"Value outside the valid range"}>
-                  <span style={{ width: "30%" }}>
-                    <CancelIcon className={classes.error} />
+        <div>
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              alignItems: "center",
+              justifyContent: "center",
+              width: "100%",
+              marginBottom: "30px",
+            }}
+          >
+            <span>
+              Device last pushed data{" "}
+              <span
+                className={
+                  elapsedDurationSeconds > elapseLimit
+                    ? classes.error
+                    : classes.root
+                }
+              >
+                {getFirstNDurations(elapsedDurationMapper, 2)}
+              </span>{" "}
+              ago.
+            </span>
+          </div>
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              alignItems: "center",
+              margin: "10px 30px",
+              color: elapsedDurationSeconds > elapseLimit ? "grey" : "inherit",
+            }}
+          >
+            {feedKeys.map((key, index) => (
+              <div style={senorListStyle} key={index}>
+                {isValidSensorValue(
+                  recentFeed[key],
+                  sensorFeedNameMapper[key] || defaultSensorRange
+                ) ? (
+                  <span style={spanStyle}>
+                    <CheckBoxIcon
+                      className={
+                        elapsedDurationSeconds > elapseLimit
+                          ? classes.grey
+                          : classes.root
+                      }
+                    />
                   </span>
+                ) : (
+                  <Tooltip arrow title={"Value outside the valid range"}>
+                    <span style={{ width: "30%" }}>
+                      <CancelIcon className={classes.error} />
+                    </span>
+                  </Tooltip>
+                )}
+                <span style={spanStyle}>
+                  {(sensorFeedNameMapper[key] &&
+                    sensorFeedNameMapper[key].label) ||
+                    key}{" "}
+                </span>
+                <Tooltip arrow title={recentFeed[key]}>
+                  <span style={spanStyle}>{recentFeed[key]}</span>
                 </Tooltip>
-              )}
-              <span style={spanStyle}>
-                {(sensorFeedNameMapper[key] &&
-                  sensorFeedNameMapper[key].label) ||
-                  key}{" "}
-              </span>
-              <span style={spanStyle}>{recentFeed[key]}</span>
-            </div>
-          ))}
+              </div>
+            ))}
+          </div>
         </div>
       )}
       {!runReport.successfulTestRun && (
@@ -392,6 +453,7 @@ export default function DeviceDeployStatus({ deviceData }) {
         }}
       >
         <Tooltip
+          arrow
           title={"Device is not yet deployed"}
           disableTouchListener={deviceData.isActive}
           disableHoverListener={deviceData.isActive}
@@ -618,6 +680,7 @@ export default function DeviceDeployStatus({ deviceData }) {
           >
             <Button variant="contained">Cancel</Button>
             <Tooltip
+              arrow
               title={
                 deviceData.isActive
                   ? "Device already deployed"
