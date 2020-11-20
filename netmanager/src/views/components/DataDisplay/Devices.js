@@ -283,6 +283,17 @@ const DevicesTable = (props) => {
                         formatDate(new Date(rowData.createdAt)),
                     },
                     {
+                      title: "Deployment status",
+                      field: "isActive",
+                      cellStyle: { fontFamily: "Open Sans" },
+                      render: (rowData) =>
+                        rowData.isActive ? (
+                          <span style={{ color: "green" }}>Deployed</span>
+                        ) : (
+                          <span style={{ color: "red" }}>Not Deployed</span>
+                        ),
+                    },
+                    {
                       title: "Location ID",
                       field: "locationID",
                       cellStyle: { fontFamily: "Open Sans" },
