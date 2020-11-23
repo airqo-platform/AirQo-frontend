@@ -27,6 +27,7 @@ import FormControlLabel from "@material-ui/core/FormControlLabel";
 import Checkbox from "@material-ui/core/Checkbox";
 import green from "@material-ui/core/colors/green";
 import red from "@material-ui/core/colors/red";
+import grey from "@material-ui/core/colors/grey";
 import { makeStyles } from "@material-ui/styles";
 import { isEmpty, omit } from "underscore";
 import {
@@ -35,6 +36,8 @@ import {
   recallDeviceApi,
 } from "../../../apis/deviceRegistry";
 import { updateMainAlert } from "redux/MainAlert/operations";
+import { getElapsedDurationMapper } from "utils/dateTime";
+import { updateDevice } from "redux/DeviceRegistry/operations";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -43,7 +46,38 @@ const useStyles = makeStyles((theme) => ({
   error: {
     color: red[500],
   },
+  grey: {
+    color: grey[200],
+  },
 }));
+
+const getFirstNDurations = (duration, n) => {
+  let format = "";
+  let count = n;
+  const keys = ["year", "month", "week", "day", "hour", "minute", "second"];
+  for (const key of keys) {
+    const elapsedTime = duration[key];
+    if (elapsedTime > 0) {
+      format = `${format} ${elapsedTime} ${key}(s),`;
+      count -= 1;
+    }
+
+    if (count <= 0) break;
+  }
+  return format;
+};
+
+const errorStyles = {
+  color: "red",
+  margin: 0,
+  fontSize: "11px",
+  marginTop: "3px",
+  textAlign: "left",
+  fontFamily: "Roboto, Helvetica, Arial, sans-serif",
+  fontWeight: 400,
+  lineHeight: "13px",
+  letterSpacing: "0.33px",
+};
 
 const emptyTestStyles = {
   display: "flex",
@@ -203,43 +237,83 @@ const RecallDevice = ({ deviceData, handleRecall, open, toggleOpen }) => {
 const DeviceRecentFeedView = ({ recentFeed, runReport }) => {
   const classes = useStyles();
   const feedKeys = Object.keys(omit(recentFeed, "isCache", "created_at"));
+  const [
+    elapsedDurationSeconds,
+    elapsedDurationMapper,
+  ] = getElapsedDurationMapper(recentFeed.created_at);
+  const elapseLimit = 5 * 3600; // 5 hours
 
   return (
     <div style={{ height: "94%" }}>
       <h4>Sensors</h4>
       {runReport.successfulTestRun && (
-        <div
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            alignItems: "center",
-            margin: "10px 30px",
-          }}
-        >
-          {feedKeys.map((key) => (
-            <div style={senorListStyle}>
-              {isValidSensorValue(
-                recentFeed[key],
-                sensorFeedNameMapper[key] || defaultSensorRange
-              ) ? (
-                <span style={spanStyle}>
-                  <CheckBoxIcon className={classes.root} />
-                </span>
-              ) : (
-                <Tooltip title={"Value outside the valid range"}>
-                  <span style={{ width: "30%" }}>
-                    <CancelIcon className={classes.error} />
+        <div>
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              alignItems: "center",
+              justifyContent: "center",
+              width: "100%",
+              marginBottom: "30px",
+            }}
+          >
+            <span>
+              Device last pushed data{" "}
+              <span
+                className={
+                  elapsedDurationSeconds > elapseLimit
+                    ? classes.error
+                    : classes.root
+                }
+              >
+                {getFirstNDurations(elapsedDurationMapper, 2)}
+              </span>{" "}
+              ago.
+            </span>
+          </div>
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              alignItems: "center",
+              margin: "10px 30px",
+              color: elapsedDurationSeconds > elapseLimit ? "grey" : "inherit",
+            }}
+          >
+            {feedKeys.map((key, index) => (
+              <div style={senorListStyle} key={index}>
+                {isValidSensorValue(
+                  recentFeed[key],
+                  sensorFeedNameMapper[key] || defaultSensorRange
+                ) ? (
+                  <span style={spanStyle}>
+                    <CheckBoxIcon
+                      className={
+                        elapsedDurationSeconds > elapseLimit
+                          ? classes.grey
+                          : classes.root
+                      }
+                    />
                   </span>
+                ) : (
+                  <Tooltip arrow title={"Value outside the valid range"}>
+                    <span style={{ width: "30%" }}>
+                      <CancelIcon className={classes.error} />
+                    </span>
+                  </Tooltip>
+                )}
+                <span style={spanStyle}>
+                  {(sensorFeedNameMapper[key] &&
+                    sensorFeedNameMapper[key].label) ||
+                    key}{" "}
+                </span>
+                <Tooltip arrow title={recentFeed[key]}>
+                  <span style={spanStyle}>{recentFeed[key]}</span>
                 </Tooltip>
-              )}
-              <span style={spanStyle}>
-                {(sensorFeedNameMapper[key] &&
-                  sensorFeedNameMapper[key].label) ||
-                  key}{" "}
-              </span>
-              <span style={spanStyle}>{recentFeed[key]}</span>
-            </div>
-          ))}
+              </div>
+            ))}
+          </div>
         </div>
       )}
       {!runReport.successfulTestRun && (
@@ -280,6 +354,13 @@ export default function DeviceDeployStatus({ deviceData }) {
   const [latitude, setLatitude] = useState("");
   const [deployLoading, setDeployLoading] = useState(false);
   const [recallOpen, setRecallOpen] = useState(false);
+  const [errors, setErrors] = useState({
+    height: "",
+    power: "",
+    installationType: "",
+    longitude: "",
+    latitude: "",
+  });
 
   useEffect(() => {
     if (recentFeed.longitude && recentFeed.latitude) {
@@ -292,6 +373,10 @@ export default function DeviceDeployStatus({ deviceData }) {
     let re = /\s*|\d+(\.d+)?/;
     if (re.test(enteredHeight.target.value)) {
       setHeight(enteredHeight.target.value);
+      setErrors({
+        ...errors,
+        height: enteredHeight.target.value.length > 0 ? "" : errors.height,
+      });
     }
   };
 
@@ -308,7 +393,36 @@ export default function DeviceDeployStatus({ deviceData }) {
     setDeviceTestLoading(false);
   };
 
+  const checkErrors = () => {
+    const state = { height, installationType, power, longitude, latitude };
+    let newErrors = {};
+
+    Object.keys(state).map((key) => {
+      if (isEmpty(state[key])) {
+        newErrors[key] = "This field is required";
+      }
+    });
+    ["longitude", "latitude"].map((key) => {
+      if (
+        !isValidSensorValue(
+          state[key],
+          sensorFeedNameMapper[key] || defaultSensorRange
+        )
+      ) {
+        newErrors[key] = `Invalid ${key} value`;
+      }
+    });
+    if (!isEmpty(newErrors)) {
+      setErrors({ ...errors, ...newErrors });
+      return true;
+    }
+    return false;
+  };
+
   const handleDeploySubmit = async () => {
+    if (checkErrors()) {
+      return;
+    }
     const deployData = {
       deviceName: deviceData.name,
       mountType: installationType,
@@ -331,6 +445,7 @@ export default function DeviceDeployStatus({ deviceData }) {
             severity: "success",
           })
         );
+        dispatch(updateDevice(deviceData.id, {isActive: true}));
       })
       .catch((err) => {
         dispatch(
@@ -363,6 +478,7 @@ export default function DeviceDeployStatus({ deviceData }) {
             severity: "success",
           })
         );
+        dispatch(updateDevice(deviceData.id, {isActive: false}));
       })
       .catch((err) => {
         dispatch(
@@ -392,6 +508,7 @@ export default function DeviceDeployStatus({ deviceData }) {
         }}
       >
         <Tooltip
+          arrow
           title={"Device is not yet deployed"}
           disableTouchListener={deviceData.isActive}
           disableHoverListener={deviceData.isActive}
@@ -409,6 +526,36 @@ export default function DeviceDeployStatus({ deviceData }) {
             </Button>
           </span>
         </Tooltip>
+      </div>
+
+      <div
+        style={{
+          display: "flex",
+          alignItems: "baseline",
+          justifyContent: "flex-end",
+          margin: "0 auto",
+          padding: "10px 20px",
+          maxWidth: "1500px",
+          fontSize: "1.2rem",
+        }}
+      >
+        <span
+          style={{
+            fontSize: "0.7rem",
+            marginRight: "10px",
+            background: "#ffffff",
+            border: "1px solid #ffffff",
+            borderRadius: "5px",
+            padding: "0 5px",
+          }}
+        >
+          Deploy status
+        </span>{" "}
+        {deviceData.isActive ? (
+          <span style={{ color: "green" }}>Deployed</span>
+        ) : (
+          <span style={{ color: "red" }}>Not Deployed</span>
+        )}
       </div>
 
       <RecallDevice
@@ -443,14 +590,24 @@ export default function DeviceDeployStatus({ deviceData }) {
               value={height}
               onChange={handleHeightChange}
               fullWidth
+              required
+              error={!!errors.height}
+              helperText={errors.height}
             />
 
-            <FormControl fullWidth>
+            <FormControl required fullWidth error={!!errors.power}>
               <InputLabel htmlFor="demo-dialog-native">Power Type</InputLabel>
               <Select
                 native
+                required
                 value={power}
-                onChange={(event) => setPower(event.target.value)}
+                onChange={(event) => {
+                  setPower(event.target.value);
+                  setErrors({
+                    ...errors,
+                    power: event.target.value.length > 0 ? "" : errors.power,
+                  });
+                }}
                 inputProps={{
                   native: true,
                   style: { height: "40px", marginTop: "10px" },
@@ -463,12 +620,25 @@ export default function DeviceDeployStatus({ deviceData }) {
                 <option value="Battery">Battery</option>
               </Select>
             </FormControl>
+            {errors.power && <div style={errorStyles}>{errors.power}</div>}
 
             <TextField
               id="standard-basic"
               label="Mount Type"
+              required
               value={installationType}
-              onChange={(event) => setInstallationType(event.target.value)}
+              error={!!errors.installationType}
+              helperText={errors.installationType}
+              onChange={(event) => {
+                setInstallationType(event.target.value);
+                setErrors({
+                  ...errors,
+                  installationType:
+                    event.target.value.length > 0
+                      ? ""
+                      : errors.installationType,
+                });
+              }}
               fullWidth
             />
 
@@ -493,8 +663,17 @@ export default function DeviceDeployStatus({ deviceData }) {
               label="Longitude"
               disabled={!manualCoordinate}
               value={longitude}
-              onChange={(event) => setLongitude(event.target.value)}
+              onChange={(event) => {
+                setLongitude(event.target.value);
+                setErrors({
+                  ...errors,
+                  longitude:
+                    event.target.value.length > 0 ? "" : errors.longitude,
+                });
+              }}
               fullWidth
+              error={!!errors.longitude}
+              helperText={errors.longitude}
               required
             />
 
@@ -503,8 +682,17 @@ export default function DeviceDeployStatus({ deviceData }) {
               label="Latitude"
               disabled={!manualCoordinate}
               value={latitude}
-              onChange={(event) => setLatitude(event.target.value)}
+              onChange={(event) => {
+                setLatitude(event.target.value);
+                setErrors({
+                  ...errors,
+                  latitude:
+                    event.target.value.length > 0 ? "" : errors.latitude,
+                });
+              }}
               fullWidth
+              error={!!errors.latitude}
+              helperText={errors.latitude}
               required
             />
             <span
@@ -588,6 +776,7 @@ export default function DeviceDeployStatus({ deviceData }) {
           >
             <Button variant="contained">Cancel</Button>
             <Tooltip
+              arrow
               title={
                 deviceData.isActive
                   ? "Device already deployed"

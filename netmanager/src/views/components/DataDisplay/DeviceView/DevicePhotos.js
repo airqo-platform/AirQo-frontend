@@ -51,8 +51,12 @@ const ImgWithSkeleton = ({
 
       if (responseData) {
         setNewSrc(srcOrSrcObject.data_url);
+        setResponse((responseData && responseData.secure_url) || null);
+        return;
       }
       setResponse((responseData && responseData.secure_url) || null);
+      setBroken(true);
+      setLoaded(true);
     };
 
     if (typeof srcOrSrcObject === "object" && !srcOrSrcObject.moved) {
