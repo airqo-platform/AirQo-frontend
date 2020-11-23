@@ -79,7 +79,8 @@ import { useDevicesData } from "redux/DeviceRegistry/selectors";
 
 const useStyles = makeStyles(styles);
 
-export default function DeviceOverview() {
+export default function DeviceOverview({ deviceData }) {
+  console.log("device data", deviceData);
   let params = useParams();
   const ITEM_HEIGHT = 48;
   const ITEM_PADDING_TOP = 8;
@@ -463,7 +464,6 @@ export default function DeviceOverview() {
   };
 
   const [loaded, setLoaded] = useState(false);
-  const [deviceData, setDeviceData] = useState({});
   const [deviceName, setDeviceName] = useState("");
 
   const [componentData, setComponentData] = useState([]);
@@ -474,9 +474,9 @@ export default function DeviceOverview() {
     }
   }, []);
 
-  useEffect(() => {
-    setDeviceData(devices[params.deviceId] || {});
-  }, [devices]);
+  // useEffect(() => {
+  //   setDeviceData(devices[params.deviceId] || {});
+  // }, [devices]);
 
   //Edit dialog parameters
   const [editComponentOpen, setEditComponentOpen] = useState(false);
@@ -698,78 +698,86 @@ export default function DeviceOverview() {
       <GridContainer>
         <GridItem xs={12} sm={12} md={4}>
           <Card>
-            <CardHeader color="primary">
-              <h4 className={classes.cardTitleWhite}>Device Details</h4>
-            </CardHeader>
-            <CardBody>
-              <div
-                alignContent="left"
-                style={{ alignContent: "left", alignItems: "left" }}
-              >
-                <TableContainer component={Paper} className={classes.table}>
-                  <Table
-                    stickyHeader
-                    aria-label="sticky table"
-                    alignItems="left"
-                    alignContent="left"
-                  >
-                    <TableBody
-                      style={{ alignContent: "left", alignItems: "left" }}
-                    >
-                      <TableRow style={{ align: "left" }}>
-                        <TableCell>
-                          <b>Power Type: </b>
-                          {deviceData.powerType}
-                        </TableCell>
-                        {/*<TableCell className = {classes.table}>: <b>{deviceData.powerType}</b></TableCell> */}
-                      </TableRow>
-                      <TableRow>
-                        <TableCell align="left">
-                          {" "}
-                          <b>Owner: </b>
-                          {deviceData.owner}{" "}
-                        </TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell>
-                          <b>Manufacturer:</b> {deviceData.device_manufacturer}
-                        </TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell>
-                          <b>Product Name: </b>
-                          {deviceData.productName}
-                        </TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell>
-                          <b>ISP: </b>
-                          {deviceData.ISP}
-                        </TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell>
-                          <b>Phone Number: </b>
-                          {"0" + deviceData.phoneNumber}
-                        </TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell>
-                          <b>Read Key: </b>
-                          {deviceData.readKey}
-                        </TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell>
-                          <b>Write Key: </b>
-                          {deviceData.writeKey}
-                        </TableCell>
-                      </TableRow>
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              </div>
-            </CardBody>
+            <h4 className={classes.cardTitleBlue}>Device Details</h4>
+            <div
+              alignContent="left"
+              style={{ alignContent: "left", alignItems: "left" }}
+            >
+              <TableContainer component={Paper} className={classes.table}>
+                <Table stickyHeader aria-label="sticky table">
+                  <TableBody>
+                    <TableRow>
+                      <TableCell>
+                        <b>Deployment status</b>
+                      </TableCell>
+                      <TableCell>
+                        {deviceData.isActive ? (
+                          <span style={{ color: "green" }}>Deployed</span>
+                        ) : (
+                          <span style={{ color: "red" }}>Not deployed</span>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell>
+                        <b>Channel</b>
+                      </TableCell>
+                      <TableCell>{deviceData.channelID}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell>
+                        <b>Power Type</b>
+                      </TableCell>
+                      <TableCell>{deviceData.powerType}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell>
+                        <b>Owner</b>
+                      </TableCell>
+                      <TableCell>{deviceData.owner}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell>
+                        <b>Manufacturer</b>
+                      </TableCell>
+                      <TableCell>{deviceData.device_manufacturer}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell>
+                        <b>Product Name</b>
+                      </TableCell>
+                      <TableCell>{deviceData.productName}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell>
+                        <b>ISP</b>
+                      </TableCell>
+                      <TableCell>{deviceData.ISP}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell>
+                        <b>Phone Number</b>
+                      </TableCell>
+                      <TableCell>
+                        {deviceData.phoneNumber && `0${deviceData.phoneNumber}`}
+                      </TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell>
+                        <b>Read Key</b>
+                      </TableCell>
+                      <TableCell>{deviceData.readKey}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell>
+                        <b>Write Key</b>
+                      </TableCell>
+                      <TableCell>{deviceData.writeKey}</TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </div>
           </Card>
         </GridItem>
 
