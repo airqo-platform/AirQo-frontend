@@ -241,7 +241,7 @@ const UsersTable = (props) => {
                     </TableCell>
                     <TableCell>
                       <div className={classes.nameContainer}>
-                        <Avatar className={classes.avatar} src={user.avatarUrl}>
+                        <Avatar className={classes.avatar} src={user.profilePicture}>
                           {getInitials(
                             `${user.firstName + " " + user.lastName}`
                           )}
