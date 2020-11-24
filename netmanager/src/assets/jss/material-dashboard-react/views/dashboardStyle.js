@@ -114,6 +114,10 @@ const dashboardStyle = {
       lineHeight: "1",
     },
   },
+  cardBody: {
+    minHeight: "430px",
+    margin: 0,
+  },
   mapContainer: {
     height: "400px",
   },

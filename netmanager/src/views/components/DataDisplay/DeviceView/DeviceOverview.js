@@ -74,13 +74,20 @@ import ListItemText from "@material-ui/core/ListItemText";
 import { isEmpty } from "underscore";
 import { DeviceToolBar } from "./DeviceToolBar";
 import { getFilteredDevicesApi } from "../../../apis/deviceRegistry";
-import { loadDevicesData } from "redux/DeviceRegistry/operations";
-import { useDevicesData } from "redux/DeviceRegistry/selectors";
+import {
+  loadDevicesData,
+  loadDeviceUpTime,
+} from "redux/DeviceRegistry/operations";
+import {
+  useDevicesData,
+  useDeviceUpTimeData,
+} from "redux/DeviceRegistry/selectors";
+import device from "../../../../redux/DeviceRegistry/reducers/device";
 
 const useStyles = makeStyles(styles);
 
 export default function DeviceOverview({ deviceData }) {
-  console.log("device data", deviceData);
+  // console.log("device data", deviceData);
   let params = useParams();
   const ITEM_HEIGHT = 48;
   const ITEM_PADDING_TOP = 8;
@@ -96,6 +103,7 @@ export default function DeviceOverview({ deviceData }) {
   const classes = useStyles();
   const dispatch = useDispatch();
   const devices = useDevicesData();
+  const deviceUptime = useDeviceUpTimeData(deviceData.name);
   const [maintenanceData, setMaintenanceData] = useState([]);
 
   function logs(name) {
@@ -169,12 +177,18 @@ export default function DeviceOverview({ deviceData }) {
     });
   }, []);
 
+  useEffect(() => {
+    if (isEmpty(deviceUptime) && deviceData.name) {
+      dispatch(loadDeviceUpTime(deviceData.name));
+    }
+  }, []);
+
   const uptimeData = {
-    labels: networkUptime.uptime_labels,
+    labels: deviceUptime.uptime_labels || [],
     datasets: [
       {
         label: "Device Uptime",
-        data: networkUptime.uptime_values,
+        data: deviceUptime.uptime_values || [],
         fill: false,
         borderColor: palette.primary.main,
         backgroundColor: "#BCBD22",
@@ -697,13 +711,13 @@ export default function DeviceOverview({ deviceData }) {
     <div>
       <GridContainer>
         <GridItem xs={12} sm={12} md={4}>
-          <Card>
-            <h4 className={classes.cardTitleBlue}>Device Details</h4>
+          <h4 className={classes.cardTitleBlue}>Device Details</h4>
+          <Card className={classes.cardBody}>
             <div
               alignContent="left"
               style={{ alignContent: "left", alignItems: "left" }}
             >
-              <TableContainer component={Paper} className={classes.table}>
+              <TableContainer component={Paper}>
                 <Table stickyHeader aria-label="sticky table">
                   <TableBody>
                     <TableRow>
@@ -726,12 +740,6 @@ export default function DeviceOverview({ deviceData }) {
                     </TableRow>
                     <TableRow>
                       <TableCell>
-                        <b>Power Type</b>
-                      </TableCell>
-                      <TableCell>{deviceData.powerType}</TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell>
                         <b>Owner</b>
                       </TableCell>
                       <TableCell>{deviceData.owner}</TableCell>
@@ -741,12 +749,6 @@ export default function DeviceOverview({ deviceData }) {
                         <b>Manufacturer</b>
                       </TableCell>
                       <TableCell>{deviceData.device_manufacturer}</TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell>
-                        <b>Product Name</b>
-                      </TableCell>
-                      <TableCell>{deviceData.productName}</TableCell>
                     </TableRow>
                     <TableRow>
                       <TableCell>
@@ -782,73 +784,48 @@ export default function DeviceOverview({ deviceData }) {
         </GridItem>
 
         <GridItem xs={12} sm={12} md={4}>
-          <Card>
-            <CardHeader color="info">
-              <h4 className={classes.cardTitle}>Device Location</h4>
-            </CardHeader>
-            {loaded ? (
-              <CardBody>
-                {deviceData.longitude == null || deviceData.longitude == 0 ? (
-                  <Map
-                    center={[1.3733, 32.2903]}
-                    zoom={13}
-                    scrollWheelZoom={false}
-                    style={{ width: "90%", height: "250px" }}
-                  >
-                    <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                  </Map>
-                ) : (
-                  <Map
-                    center={[deviceData.latitude, deviceData.longitude]}
-                    zoom={13}
-                    scrollWheelZoom={false}
-                    style={{ width: "90%", height: "250px" }}
-                  >
-                    <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                    <Marker
-                      position={[deviceData.latitude, deviceData.longitude]}
-                    >
-                      <Popup>
-                        <span>
-                          <span>{deviceName}</span>
-                        </span>
-                      </Popup>
-                    </Marker>
-                  </Map>
-                )}
-              </CardBody>
-            ) : (
-              <CardBody>
+          <h4 className={classes.cardTitleGreen}>Device Location</h4>
+          <Paper>
+            <Card className={classes.cardBody}>
+              {deviceData.latitude && deviceData.longitude ? (
                 <Map
-                  center={[0.3476, 32.5825]}
+                  center={[deviceData.latitude, deviceData.longitude]}
                   zoom={13}
                   scrollWheelZoom={false}
-                  style={{ width: "30%", height: "250px", align: "center" }}
+                  style={{ width: "100%" }}
                 >
                   <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                  <Marker
+                    position={[deviceData.latitude, deviceData.longitude]}
+                  >
+                    <Popup>
+                      <span>
+                        <span>{deviceData.name}</span>
+                      </span>
+                    </Popup>
+                  </Marker>
                 </Map>
-              </CardBody>
-            )}
-          </Card>
+              ) : (
+                <span style={{ margin: "auto" }}>
+                  Coordinates not set for this device
+                </span>
+              )}
+            </Card>
+          </Paper>
         </GridItem>
 
         <GridItem xs={12} sm={12} md={4}>
-          <Card>
-            <CardHeader color="primary">
-              <h4 className={classes.cardTitleWhite}>Device Uptime</h4>
-            </CardHeader>
-
-            <CardBody>
-              <div className={classes.chartContainer}>
-                <Bar height={250} data={uptimeData} options={options_main} />
-              </div>
-            </CardBody>
-
-            <CardFooter>
-              <div className={classes.stats}>
-                <AccessTime /> Last updated {networkUptime.created_at}
-              </div>
-            </CardFooter>
+          <h4 className={classes.cardTitleBlue}>Device Uptime</h4>
+          <Card className={classes.cardBody}>
+            <div className={classes.chartContainer}>
+              <Bar height={"410px"} data={uptimeData} options={options_main} />
+            </div>
+            <div className={classes.stats}>
+              <AccessTime />
+              <span>
+                Last updated <b>{deviceUptime.created_at || ""}</b>
+              </span>
+            </div>
           </Card>
         </GridItem>
       </GridContainer>
