@@ -24,3 +24,9 @@ export const useDeviceComponentsData = (deviceName) => {
 export const useDeviceUpTimeData = (deviceName) => {
   return useSelector((state) => state.deviceRegistry.upTime[deviceName] || {});
 };
+
+export const useDeviceBatteryVoltageData = (deviceName) => {
+  return useSelector(
+    (state) => state.deviceRegistry.batteryVoltage[deviceName] || {}
+  );
+};
