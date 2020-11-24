@@ -43,7 +43,6 @@ const dashboardStyle = {
     marginBottom: "0",
   },
   cardCategoryWhite: {
-    color: "rgba(" + hexToRgb(whiteColor) + ",.62)",
     margin: "0",
     fontSize: "14px",
     marginTop: "0",

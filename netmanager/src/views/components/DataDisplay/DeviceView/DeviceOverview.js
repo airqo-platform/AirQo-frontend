@@ -78,11 +78,13 @@ import {
   loadDevicesData,
   loadDeviceUpTime,
   loadDeviceMaintenanceLogs,
+  load, loadDeviceBatteryVoltage
 } from "redux/DeviceRegistry/operations";
 import {
   useDevicesData,
   useDeviceUpTimeData,
   useDeviceLogsData,
+    useDeviceBatteryVoltageData,
 } from "redux/DeviceRegistry/selectors";
 import device from "../../../../redux/DeviceRegistry/reducers/device";
 
@@ -107,6 +109,7 @@ export default function DeviceOverview({ deviceData }) {
   const devices = useDevicesData();
   const deviceUptime = useDeviceUpTimeData(deviceData.name);
   const deviceMaintenanceLogs = useDeviceLogsData(deviceData.name);
+  const deviceBatteryVoltage = useDeviceBatteryVoltageData(deviceData.name);
   const [maintenanceData, setMaintenanceData] = useState([]);
 
   function logs(name) {
@@ -187,6 +190,10 @@ export default function DeviceOverview({ deviceData }) {
 
     if (isEmpty(deviceMaintenanceLogs) && deviceData.name) {
       dispatch(loadDeviceMaintenanceLogs(deviceData.name));
+    }
+
+    if(isEmpty(deviceBatteryVoltage) && deviceData.name) {
+      dispatch(loadDeviceBatteryVoltage(deviceData.name));
     }
   }, []);
 
@@ -286,24 +293,24 @@ export default function DeviceOverview({ deviceData }) {
     },
   };
 
-  const [deviceBatteryVoltage, setDeviceBatteryVoltage] = useState([]);
+  // const [deviceBatteryVoltage, setDeviceBatteryVoltage] = useState([]);
 
-  useEffect(() => {
-    let channelID = deviceData.channelID;
-    axios
-      .get(constants.GET_DEVICE_BATTERY_VOLTAGE + channelID)
-      .then(({ data }) => {
-        console.log(data);
-        setDeviceBatteryVoltage(data);
-      });
-  }, []);
+  // useEffect(() => {
+  //   let channelID = deviceData.channelID;
+  //   axios
+  //     .get(constants.GET_DEVICE_BATTERY_VOLTAGE + channelID)
+  //     .then(({ data }) => {
+  //       console.log(data);
+  //       setDeviceBatteryVoltage(data);
+  //     });
+  // }, []);
 
   const batteryVoltageData = {
-    labels: deviceBatteryVoltage.battery_voltage_labels,
+    labels: deviceBatteryVoltage.battery_voltage_labels || [],
     datasets: [
       {
         label: "Device Battery Voltage",
-        data: deviceBatteryVoltage.battery_voltage_values,
+        data: deviceBatteryVoltage.battery_voltage_values || [],
         fill: false,
         borderColor: palette.primary.main,
         backgroundColor: "#BCBD22",
@@ -873,22 +880,16 @@ export default function DeviceOverview({ deviceData }) {
         <GridItem xs={12} sm={12} md={4}>
           <h4 className={classes.cardTitleGreen}>Device Battery Voltage</h4>
           <Card className={classes.cardBody}>
-            {/*<CardHeader color="info">*/}
-
-            {/*  <p className={classes.cardCategoryWhite}>*/}
-            {/*    Average daily battery voltage in the past 28 days*/}
-            {/*  </p>*/}
-            {/*</CardHeader>*/}
-            {/*<CardBody>*/}
+            <p className={classes.cardCategoryWhite}>
+              Average daily battery voltage in the past 28 days
+            </p>
             <div className={classes.chartContainer}>
-              <Line height={250} data={batteryVoltageData} options={options_} />
+              <Line
+                height={"410px"}
+                data={batteryVoltageData}
+                options={options_}
+              />
             </div>
-            {/*</CardBody>*/}
-            {/*<CardFooter chart>*/}
-            {/*  <div className={classes.stats}>*/}
-            {/*    /!*<AccessTime /> Last updated on {onlineStatusUpdateTime} *!/*/}
-            {/*  </div>*/}
-            {/*</CardFooter>*/}
           </Card>
         </GridItem>
 
