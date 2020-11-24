@@ -18,6 +18,7 @@ const dashboardStyle = {
     display: "inline-flex",
     fontSize: "12px",
     lineHeight: "22px",
+    marginLeft: "5px",
     "& svg": {
       top: "4px",
       width: "16px",

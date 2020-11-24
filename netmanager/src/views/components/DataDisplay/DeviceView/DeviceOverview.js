@@ -78,13 +78,15 @@ import {
   loadDevicesData,
   loadDeviceUpTime,
   loadDeviceMaintenanceLogs,
-  load, loadDeviceBatteryVoltage
+  loadDeviceBatteryVoltage,
+  loadDeviceSesnorCorrelation,
 } from "redux/DeviceRegistry/operations";
 import {
   useDevicesData,
   useDeviceUpTimeData,
   useDeviceLogsData,
-    useDeviceBatteryVoltageData,
+  useDeviceBatteryVoltageData,
+  useDeviceSensorCorrelationData,
 } from "redux/DeviceRegistry/selectors";
 import device from "../../../../redux/DeviceRegistry/reducers/device";
 
@@ -110,6 +112,9 @@ export default function DeviceOverview({ deviceData }) {
   const deviceUptime = useDeviceUpTimeData(deviceData.name);
   const deviceMaintenanceLogs = useDeviceLogsData(deviceData.name);
   const deviceBatteryVoltage = useDeviceBatteryVoltageData(deviceData.name);
+  const deviceSensorCorrelation = useDeviceSensorCorrelationData(
+    deviceData.name
+  );
   const [maintenanceData, setMaintenanceData] = useState([]);
 
   function logs(name) {
@@ -173,15 +178,15 @@ export default function DeviceOverview({ deviceData }) {
       });
   }, []);
 
-  const [networkUptime, setNetworkUptime] = useState([]);
-
-  useEffect(() => {
-    let channelID = deviceData.channelID;
-    axios.get(constants.GET_DEVICE_UPTIME + channelID).then(({ data }) => {
-      console.log(data);
-      setNetworkUptime(data);
-    });
-  }, []);
+  // const [networkUptime, setNetworkUptime] = useState([]);
+  //
+  // useEffect(() => {
+  //   let channelID = deviceData.channelID;
+  //   axios.get(constants.GET_DEVICE_UPTIME + channelID).then(({ data }) => {
+  //     console.log(data);
+  //     setNetworkUptime(data);
+  //   });
+  // }, []);
 
   useEffect(() => {
     if (isEmpty(deviceUptime) && deviceData.name) {
@@ -192,8 +197,12 @@ export default function DeviceOverview({ deviceData }) {
       dispatch(loadDeviceMaintenanceLogs(deviceData.name));
     }
 
-    if(isEmpty(deviceBatteryVoltage) && deviceData.name) {
+    if (isEmpty(deviceBatteryVoltage) && deviceData.name) {
       dispatch(loadDeviceBatteryVoltage(deviceData.name));
+    }
+
+    if (isEmpty(deviceSensorCorrelation) && deviceData.name) {
+      dispatch(loadDeviceSesnorCorrelation(deviceData.name));
     }
   }, []);
 
@@ -381,23 +390,23 @@ export default function DeviceOverview({ deviceData }) {
     },
   };
 
-  const [deviceSensorCorrelation, setDeviceSensorCorrelation] = useState([]);
+  // const [deviceSensorCorrelation, setDeviceSensorCorrelation] = useState([]);
 
-  useEffect(() => {
-    let channelID = devices.channelID;
-    axios
-      .get(constants.GET_DEVICE_SENSOR_CORRELATION + channelID)
-      .then(({ data }) => {
-        setDeviceSensorCorrelation(data);
-      });
-  }, []);
+  // useEffect(() => {
+  //   let channelID = devices.channelID;
+  //   axios
+  //     .get(constants.GET_DEVICE_SENSOR_CORRELATION + channelID)
+  //     .then(({ data }) => {
+  //       setDeviceSensorCorrelation(data);
+  //     });
+  // }, []);
 
   const deviceSensorCorrelationData = {
-    labels: deviceSensorCorrelation.labels,
+    labels: deviceSensorCorrelation.labels || [],
     datasets: [
       {
         label: "Sensor One PM2.5",
-        data: deviceSensorCorrelation.sensor_one_values,
+        data: deviceSensorCorrelation.sensor_one_values || [],
         fill: false,
         borderColor: palette.primary.main,
         backgroundColor: "#BCBD22",
@@ -894,28 +903,22 @@ export default function DeviceOverview({ deviceData }) {
         </GridItem>
 
         <GridItem xs={12} sm={12} md={4}>
-          <Card>
-            <CardHeader color="primary">
-              <h4 className={classes.cardTitleWhite}>Sensor Correlation</h4>
-              <p className={classes.cardCategoryWhite}>
-                Daily sensor I and sensor II readings in the past 28 days
-              </p>
-            </CardHeader>
-            <CardBody>
-              <div className={classes.chartContainer}>
-                <Line
-                  height={250}
-                  data={deviceSensorCorrelationData}
-                  options={options_sensor_correlation}
-                />
-              </div>
-            </CardBody>
-            <CardFooter chart>
-              <div className={classes.stats}>
-                Pearson Correlation Value:{" "}
-                {deviceSensorCorrelation.correlation_value}
-              </div>
-            </CardFooter>
+          <h4 className={classes.cardTitleBlue}>Sensor Correlation</h4>
+          <Card className={classes.cardBody}>
+            <p className={classes.cardCategoryWhite}>
+              Daily sensor I and sensor II readings in the past 28 days
+            </p>
+            <div className={classes.chartContainer}>
+              <Line
+                height={"390px"}
+                data={deviceSensorCorrelationData}
+                options={options_sensor_correlation}
+              />
+            </div>
+            <div className={classes.stats}>
+              Pearson Correlation Value:{" "}
+              {deviceSensorCorrelation.correlation_value}
+            </div>
           </Card>
         </GridItem>
       </GridContainer>
