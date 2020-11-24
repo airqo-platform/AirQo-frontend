@@ -80,6 +80,7 @@ import {
   loadDeviceMaintenanceLogs,
   loadDeviceBatteryVoltage,
   loadDeviceSesnorCorrelation,
+    loadDeviceComponentsData,
 } from "redux/DeviceRegistry/operations";
 import {
   useDevicesData,
@@ -87,6 +88,7 @@ import {
   useDeviceLogsData,
   useDeviceBatteryVoltageData,
   useDeviceSensorCorrelationData,
+    useDeviceComponentsData,
 } from "redux/DeviceRegistry/selectors";
 import device from "../../../../redux/DeviceRegistry/reducers/device";
 
@@ -115,6 +117,7 @@ export default function DeviceOverview({ deviceData }) {
   const deviceSensorCorrelation = useDeviceSensorCorrelationData(
     deviceData.name
   );
+  const deviceComponents = useDeviceComponentsData(deviceData.name);
   const [maintenanceData, setMaintenanceData] = useState([]);
 
   function logs(name) {
@@ -203,6 +206,10 @@ export default function DeviceOverview({ deviceData }) {
 
     if (isEmpty(deviceSensorCorrelation) && deviceData.name) {
       dispatch(loadDeviceSesnorCorrelation(deviceData.name));
+    }
+
+    if (isEmpty(deviceComponents) && deviceData.name) {
+      dispatch(loadDeviceComponentsData(deviceData.name));
     }
   }, []);
 
@@ -917,7 +924,7 @@ export default function DeviceOverview({ deviceData }) {
             </div>
             <div className={classes.stats}>
               Pearson Correlation Value:{" "}
-              {deviceSensorCorrelation.correlation_value}
+              <b>{deviceSensorCorrelation.correlation_value}</b>
             </div>
           </Card>
         </GridItem>
@@ -925,72 +932,40 @@ export default function DeviceOverview({ deviceData }) {
 
       <GridContainer>
         <GridItem xs={12} sm={12} md={4}>
-          <Card>
-            <CardHeader color="info">
-              <h4 className={classes.cardTitle}>Device Components</h4>
-            </CardHeader>
-            <CardBody>
-              <div
-                alignContent="left"
-                style={{ alignContent: "left", alignItems: "left" }}
-              >
-                <TableContainer component={Paper} className={classes.table}>
-                  <Table
-                    stickyHeader
-                    aria-label="sticky table"
-                    alignItems="left"
-                    alignContent="left"
+          <h4 className={classes.cardTitleBlue}>Device Components</h4>
+          <Card className={classes.cardBody}>
+            <div
+              alignContent="left"
+              style={{ alignContent: "left", alignItems: "left" }}
+            >
+              <TableContainer component={Paper} className={classes.table}>
+                <Table
+                  stickyHeader
+                  aria-label="sticky table"
+                  alignItems="left"
+                  alignContent="left"
+                >
+                  <TableHead>
+                    <TableRow style={{ align: "left" }}>
+                      <TableCell>Description</TableCell>
+                      <TableCell>Quantities</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody
+                    style={{ alignContent: "left", alignItems: "left" }}
                   >
-                    <TableHead>
-                      <TableRow style={{ align: "left" }}>
-                        <TableCell>Description</TableCell>
-                        <TableCell>Quantities</TableCell>
-                        <TableCell>Actions</TableCell>
+                    {deviceComponents.slice(0, 7).map((component, index) => (
+                      <TableRow key={index} style={{ align: "left" }}>
+                        <TableCell>{component.description}</TableCell>
+                        <TableCell>
+                          {jsonArrayToString(component.measurement)}
+                        </TableCell>
                       </TableRow>
-                    </TableHead>
-                    <TableBody
-                      style={{ alignContent: "left", alignItems: "left" }}
-                    >
-                      {componentsData.map((component) => (
-                        <TableRow style={{ align: "left" }}>
-                          <TableCell>{component.description}</TableCell>
-                          <TableCell>
-                            {jsonArrayToString(component.measurement)}
-                          </TableCell>
-                          <TableCell>
-                            <Tooltip title="Edit">
-                              <Link
-                                onClick={handleEditComponentClick(
-                                  deviceName,
-                                  component.name,
-                                  component.description,
-                                  jsonArrayToString(
-                                    component.measurement
-                                  ).split(", ")
-                                )}
-                                style={{ color: "black" }}
-                              >
-                                <EditOutlined> </EditOutlined>
-                              </Link>
-                            </Tooltip>
-                            <Tooltip title="Delete">
-                              <Link
-                                onClick={handleDeleteComponentClick(
-                                  component.name
-                                )}
-                                style={{ color: "black" }}
-                              >
-                                <DeleteOutlined> </DeleteOutlined>
-                              </Link>
-                            </Tooltip>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              </div>
-            </CardBody>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </div>
           </Card>
         </GridItem>
       </GridContainer>
