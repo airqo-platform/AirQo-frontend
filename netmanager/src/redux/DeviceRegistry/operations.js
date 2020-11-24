@@ -15,8 +15,10 @@ import {
   UPDATE_SINGLE_DEVICE_ERROR,
   LOAD_DEVICE_UPTIME_SUCCESS,
   LOAD_DEVICE_UPTIME_FAILURE,
-    LOAD_DEVICE_BATTERY_VOLTAGE_SUCCESS,
-    LOAD_DEVICE_BATTERY_VOLTAGE_FAILURE,
+  LOAD_DEVICE_BATTERY_VOLTAGE_SUCCESS,
+  LOAD_DEVICE_BATTERY_VOLTAGE_FAILURE,
+  LOAD_DEVICE_SENSOR_CORRELATION_SUCCESS,
+  LOAD_DEVICE_SENSOR_CORRELATION_FAILURE,
 } from "./actions";
 import { transformArray } from "../utils";
 import {
@@ -24,7 +26,11 @@ import {
   getDeviceMaintenanceLogsApi,
   getDeviceComponentsApi,
 } from "views/apis/deviceRegistry";
-import { getDeviceUptimeApi, getDeviceBatteryVoltageApi } from "views/apis/deviceMonitoring";
+import {
+  getDeviceUptimeApi,
+  getDeviceBatteryVoltageApi,
+  getDeviceSensorCorrelationApi,
+} from "views/apis/deviceMonitoring";
 
 export const loadDevicesData = () => {
   return async (dispatch) => {
@@ -157,6 +163,30 @@ export const loadDeviceBatteryVoltage = (deviceName) => async (dispatch) => {
     .catch(() => {
       dispatch({
         type: LOAD_DEVICE_BATTERY_VOLTAGE_FAILURE,
+      });
+    });
+};
+
+export const loadDeviceSesnorCorrelation = (deviceName) => async (dispatch) => {
+  return await getDeviceSensorCorrelationApi({ device_name: deviceName })
+    .then((responseData) => {
+      if (
+        typeof responseData.success !== "undefined" &&
+        !responseData.success
+      ) {
+        dispatch({
+          type: LOAD_DEVICE_SENSOR_CORRELATION_FAILURE,
+        });
+        return;
+      }
+      dispatch({
+        type: LOAD_DEVICE_SENSOR_CORRELATION_SUCCESS,
+        payload: { deviceName, data: responseData },
+      });
+    })
+    .catch(() => {
+      dispatch({
+        type: LOAD_DEVICE_SENSOR_CORRELATION_FAILURE,
       });
     });
 };

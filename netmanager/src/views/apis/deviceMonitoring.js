@@ -18,3 +18,9 @@ export const getDeviceBatteryVoltageApi = async (params) => {
     .get(constants.GET_DEVICE_BATTERY_VOLTAGE, { params })
     .then((response) => response.data);
 };
+
+export const getDeviceSensorCorrelationApi = async (params) => {
+  return await axios
+    .get(constants.GET_DEVICE_SENSOR_CORRELATION, { params })
+    .then((response) => response.data);
+};

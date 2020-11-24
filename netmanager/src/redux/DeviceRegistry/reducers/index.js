@@ -4,6 +4,7 @@ import maintenanceLogs from "./maintenanceLogs";
 import components from "./components";
 import upTime from "./uptime";
 import batteryVoltage from "./batteryVoltage";
+import sensorCorrelation from "./sensorCorrelation";
 
 export default combineReducers({
   devices,
@@ -11,4 +12,5 @@ export default combineReducers({
   components,
   upTime,
   batteryVoltage,
+  sensorCorrelation,
 });

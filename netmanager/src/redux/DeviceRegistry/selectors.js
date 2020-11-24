@@ -30,3 +30,9 @@ export const useDeviceBatteryVoltageData = (deviceName) => {
     (state) => state.deviceRegistry.batteryVoltage[deviceName] || {}
   );
 };
+
+export const useDeviceSensorCorrelationData = (deviceName) => {
+  return useSelector(
+    (state) => state.deviceRegistry.sensorCorrelation[deviceName] || {}
+  );
+};
