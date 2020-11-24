@@ -44,7 +44,7 @@ const prodConfig = {
   GET_LATEST_OFFLINE_DEVICES:
     "http://34.78.78.202:30006/api/v1/monitor/devices/offline",
   GET_NETWORK_UPTIME: "http://34.78.78.202:30006/api/v1/monitor/network/uptime",
-  GET_DEVICE_UPTIME: "http://34.78.78.202:30006/api/v1/monitor/device/uptime/",
+  GET_DEVICE_UPTIME: "http://34.78.78.202:30006/api/v1/monitor/device/uptime",
   GET_DEVICE_BATTERY_VOLTAGE:
     "http://34.78.78.202:30006/api/v1/monitor/device/batteryvoltage/",
   GET_DEVICE_SENSOR_CORRELATION:
@@ -170,7 +170,7 @@ const devConfig = {
   GET_LATEST_OFFLINE_DEVICES:
     "http://localhost:4001/api/v1/monitor/devices/offline",
   GET_NETWORK_UPTIME: "http://localhost:4001/api/v1/monitor/network/uptime",
-  GET_DEVICE_UPTIME: "http://localhost:4001/api/v1/monitor/device/uptime/",
+  GET_DEVICE_UPTIME: "http://localhost:4001/api/v1/monitor/device/uptime",
   GET_DEVICE_BATTERY_VOLTAGE:
     "http://127.0.0.1:4001/api/v1/monitor/device/batteryvoltage/",
   GET_DEVICE_SENSOR_CORRELATION:
@@ -260,7 +260,7 @@ const stageConfig = {
   GET_LATEST_OFFLINE_DEVICES:
     "http://34.78.78.202:31006/api/v1/monitor/devices/offline",
   GET_NETWORK_UPTIME: "http://34.78.78.202:31006/api/v1/monitor/network/uptime",
-  GET_DEVICE_UPTIME: "http://34.78.78.202:31006/api/v1/monitor/device/uptime/",
+  GET_DEVICE_UPTIME: "http://34.78.78.202:31006/api/v1/monitor/device/uptime",
   GET_DEVICE_BATTERY_VOLTAGE:
     "http://34.78.78.202:31006/api/v1/monitor/device/batteryvoltage/",
   GET_DEVICE_SENSOR_CORRELATION:
