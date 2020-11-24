@@ -365,237 +365,234 @@ export default function DeviceOverview({ deviceData }) {
   };
 
   return (
-    <div>
-      <GridContainer>
-        <GridItem xs={12} sm={12} md={4}>
-          <h4 className={classes.cardTitleBlue}>Device Details</h4>
-          <Card className={classes.cardBody}>
-            <div
-              alignContent="left"
-              style={{ alignContent: "left", alignItems: "left" }}
-            >
-              <TableContainer component={Paper}>
-                <Table stickyHeader aria-label="sticky table">
-                  <TableBody>
-                    <TableRow>
-                      <TableCell>
-                        <b>Deployment status</b>
-                      </TableCell>
-                      <TableCell>
-                        {deviceData.isActive ? (
-                          <span style={{ color: "green" }}>Deployed</span>
-                        ) : (
-                          <span style={{ color: "red" }}>Not deployed</span>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell>
-                        <b>Channel</b>
-                      </TableCell>
-                      <TableCell>{deviceData.channelID}</TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell>
-                        <b>Owner</b>
-                      </TableCell>
-                      <TableCell>{deviceData.owner}</TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell>
-                        <b>Manufacturer</b>
-                      </TableCell>
-                      <TableCell>{deviceData.device_manufacturer}</TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell>
-                        <b>ISP</b>
-                      </TableCell>
-                      <TableCell>{deviceData.ISP}</TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell>
-                        <b>Phone Number</b>
-                      </TableCell>
-                      <TableCell>
-                        {deviceData.phoneNumber && `0${deviceData.phoneNumber}`}
-                      </TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell>
-                        <b>Read Key</b>
-                      </TableCell>
-                      <TableCell>{deviceData.readKey}</TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell>
-                        <b>Write Key</b>
-                      </TableCell>
-                      <TableCell>{deviceData.writeKey}</TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </div>
-          </Card>
-        </GridItem>
+    <div
+      style={{
+        display: "flex",
+        flexWrap: "wrap",
+        alignItems: "center",
+        justifyContent: "space-around",
+      }}
+    >
+      <div className={classes.itemContainer} style={{ minWidth: "550px" }}>
+        <h4 className={classes.cardTitleBlue}>Device Details</h4>
+        <Card className={classes.cardBody}>
+          <div
+            alignContent="left"
+            style={{ alignContent: "left", alignItems: "left" }}
+          >
+            <TableContainer component={Paper}>
+              <Table stickyHeader aria-label="sticky table">
+                <TableBody>
+                  <TableRow>
+                    <TableCell>
+                      <b>Deployment status</b>
+                    </TableCell>
+                    <TableCell>
+                      {deviceData.isActive ? (
+                        <span style={{ color: "green" }}>Deployed</span>
+                      ) : (
+                        <span style={{ color: "red" }}>Not deployed</span>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>
+                      <b>Channel</b>
+                    </TableCell>
+                    <TableCell>{deviceData.channelID}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>
+                      <b>Owner</b>
+                    </TableCell>
+                    <TableCell>{deviceData.owner}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>
+                      <b>Manufacturer</b>
+                    </TableCell>
+                    <TableCell>{deviceData.device_manufacturer}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>
+                      <b>ISP</b>
+                    </TableCell>
+                    <TableCell>{deviceData.ISP}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>
+                      <b>Phone Number</b>
+                    </TableCell>
+                    <TableCell>
+                      {deviceData.phoneNumber && `0${deviceData.phoneNumber}`}
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>
+                      <b>Read Key</b>
+                    </TableCell>
+                    <TableCell>{deviceData.readKey}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>
+                      <b>Write Key</b>
+                    </TableCell>
+                    <TableCell>{deviceData.writeKey}</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </div>
+        </Card>
+      </div>
 
-        <GridItem xs={12} sm={12} md={4}>
-          <h4 className={classes.cardTitleGreen}>Device Location</h4>
-          <Paper>
-            <Card className={classes.cardBody}>
-              {deviceData.latitude && deviceData.longitude ? (
-                <Map
-                  center={[deviceData.latitude, deviceData.longitude]}
-                  zoom={13}
-                  scrollWheelZoom={false}
-                  style={{ width: "100%" }}
-                >
-                  <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                  <Marker
-                    position={[deviceData.latitude, deviceData.longitude]}
-                  >
-                    <Popup>
-                      <span>
-                        <span>{deviceData.name}</span>
-                      </span>
-                    </Popup>
-                  </Marker>
-                </Map>
-              ) : (
-                <span style={{ margin: "auto" }}>
-                  Coordinates not set for this device
-                </span>
-              )}
-            </Card>
-          </Paper>
-        </GridItem>
-
-        <GridItem xs={12} sm={12} md={4}>
-          <h4 className={classes.cardTitleBlue}>Device Uptime</h4>
+      <div className={classes.itemContainer} style={{ minWidth: "600px" }}>
+        <h4 className={classes.cardTitleGreen}>Device Location</h4>
+        <Paper>
           <Card className={classes.cardBody}>
-            <div className={classes.chartContainer}>
-              <Bar height={"410px"} data={uptimeData} options={options_main} />
-            </div>
-            <div className={classes.stats}>
-              <AccessTime />
-              <span>
-                Last updated <b>{deviceUptime.created_at || ""}</b>
+            {deviceData.latitude && deviceData.longitude ? (
+              <Map
+                center={[deviceData.latitude, deviceData.longitude]}
+                zoom={13}
+                scrollWheelZoom={false}
+                style={{ width: "100%" }}
+              >
+                <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                <Marker position={[deviceData.latitude, deviceData.longitude]}>
+                  <Popup>
+                    <span>
+                      <span>{deviceData.name}</span>
+                    </span>
+                  </Popup>
+                </Marker>
+              </Map>
+            ) : (
+              <span style={{ margin: "auto" }}>
+                Coordinates not set for this device
               </span>
-            </div>
+            )}
           </Card>
-        </GridItem>
-      </GridContainer>
+        </Paper>
+      </div>
 
-      <GridContainer>
-        <GridItem xs={12} sm={12} md={4}>
-          <h4 className={classes.cardTitleBlue}>Maintenance History</h4>
-          <Card className={classes.cardBody}>
-            <div
-              alignContent="left"
-              style={{ alignContent: "left", alignItems: "left" }}
-            >
-              <TableContainer component={Paper} className={classes.table}>
-                <Table
-                  stickyHeader
-                  aria-label="sticky table"
-                  alignItems="left"
-                  alignContent="left"
-                >
-                  <TableBody>
-                    {deviceMaintenanceLogs.slice(0, 8).map((log, index) => (
-                      <TableRow key={index}>
-                        <TableCell>{formatDate(new Date(log.date))}</TableCell>
-                        <TableCell>
-                          {typeof log.tags === "string"
-                            ? log.tags
-                            : log.tags && log.tags.join(", ")}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </div>
-          </Card>
-        </GridItem>
+      <div className={classes.itemContainer} style={{ minWidth: "550px" }}>
+        <h4 className={classes.cardTitleBlue}>Device Uptime</h4>
+        <Card className={classes.cardBody}>
+          <div className={classes.chartContainer}>
+            <Bar height={"410px"} data={uptimeData} options={options_main} />
+          </div>
+          <div className={classes.stats}>
+            <AccessTime />
+            <span>
+              Last updated <b>{deviceUptime.created_at || ""}</b>
+            </span>
+          </div>
+        </Card>
+      </div>
 
-        <GridItem xs={12} sm={12} md={4}>
-          <h4 className={classes.cardTitleGreen}>Device Battery Voltage</h4>
-          <Card className={classes.cardBody}>
-            <p className={classes.cardCategoryWhite}>
-              Average daily battery voltage in the past 28 days
-            </p>
-            <div className={classes.chartContainer}>
-              <Line
-                height={"410px"}
-                data={batteryVoltageData}
-                options={options_}
-              />
-            </div>
-          </Card>
-        </GridItem>
-
-        <GridItem xs={12} sm={12} md={4}>
-          <h4 className={classes.cardTitleBlue}>Sensor Correlation</h4>
-          <Card className={classes.cardBody}>
-            <p className={classes.cardCategoryWhite}>
-              Daily sensor I and sensor II readings in the past 28 days
-            </p>
-            <div className={classes.chartContainer}>
-              <Line
-                height={"390px"}
-                data={deviceSensorCorrelationData}
-                options={options_sensor_correlation}
-              />
-            </div>
-            <div className={classes.stats}>
-              Pearson Correlation Value:{" "}
-              <b>{deviceSensorCorrelation.correlation_value}</b>
-            </div>
-          </Card>
-        </GridItem>
-      </GridContainer>
-
-      <GridContainer>
-        <GridItem xs={12} sm={12} md={4}>
-          <h4 className={classes.cardTitleBlue}>Device Components</h4>
-          <Card className={classes.cardBody}>
-            <div
-              alignContent="left"
-              style={{ alignContent: "left", alignItems: "left" }}
-            >
-              <TableContainer component={Paper} className={classes.table}>
-                <Table
-                  stickyHeader
-                  aria-label="sticky table"
-                  alignItems="left"
-                  alignContent="left"
-                >
-                  <TableHead>
-                    <TableRow style={{ align: "left" }}>
-                      <TableCell>Description</TableCell>
-                      <TableCell>Quantities</TableCell>
+      <div className={classes.itemContainer} style={{ minWidth: "600px" }}>
+        <h4 className={classes.cardTitleBlue}>Maintenance History</h4>
+        <Card className={classes.cardBody}>
+          <div
+            alignContent="left"
+            style={{ alignContent: "left", alignItems: "left" }}
+          >
+            <TableContainer component={Paper} className={classes.table}>
+              <Table
+                stickyHeader
+                aria-label="sticky table"
+                alignItems="left"
+                alignContent="left"
+              >
+                <TableBody>
+                  {deviceMaintenanceLogs.slice(0, 8).map((log, index) => (
+                    <TableRow key={index}>
+                      <TableCell>{formatDate(new Date(log.date))}</TableCell>
+                      <TableCell>
+                        {typeof log.tags === "string"
+                          ? log.tags
+                          : log.tags && log.tags.join(", ")}
+                      </TableCell>
                     </TableRow>
-                  </TableHead>
-                  <TableBody
-                    style={{ alignContent: "left", alignItems: "left" }}
-                  >
-                    {deviceComponents.slice(0, 7).map((component, index) => (
-                      <TableRow key={index} style={{ align: "left" }}>
-                        <TableCell>{component.description}</TableCell>
-                        <TableCell>
-                          {jsonArrayToString(component.measurement)}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </div>
-          </Card>
-        </GridItem>
-      </GridContainer>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </div>
+        </Card>
+      </div>
+
+      <div className={classes.itemContainer} style={{ minWidth: "550px" }}>
+        <h4 className={classes.cardTitleGreen}>Device Battery Voltage</h4>
+        <Card className={classes.cardBody}>
+          <p className={classes.cardCategoryWhite}>
+            Average daily battery voltage in the past 28 days
+          </p>
+          <div className={classes.chartContainer}>
+            <Line
+              height={"410px"}
+              data={batteryVoltageData}
+              options={options_}
+            />
+          </div>
+        </Card>
+      </div>
+
+      <div className={classes.itemContainer} style={{ minWidth: "600px" }}>
+        <h4 className={classes.cardTitleBlue}>Sensor Correlation</h4>
+        <Card className={classes.cardBody}>
+          <p className={classes.cardCategoryWhite}>
+            Daily sensor I and sensor II readings in the past 28 days
+          </p>
+          <div className={classes.chartContainer}>
+            <Line
+              height={"390px"}
+              data={deviceSensorCorrelationData}
+              options={options_sensor_correlation}
+            />
+          </div>
+          <div className={classes.stats}>
+            Pearson Correlation Value:{" "}
+            <b>{deviceSensorCorrelation.correlation_value}</b>
+          </div>
+        </Card>
+      </div>
+
+      <div className={classes.itemContainer} style={{ minWidth: "550px" }}>
+        <h4 className={classes.cardTitleBlue}>Device Components</h4>
+        <Card className={classes.cardBody}>
+          <div
+            alignContent="left"
+            style={{ alignContent: "left", alignItems: "left" }}
+          >
+            <TableContainer component={Paper} className={classes.table}>
+              <Table
+                stickyHeader
+                aria-label="sticky table"
+                alignItems="left"
+                alignContent="left"
+              >
+                <TableHead>
+                  <TableRow style={{ align: "left" }}>
+                    <TableCell>Description</TableCell>
+                    <TableCell>Quantities</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody style={{ alignContent: "left", alignItems: "left" }}>
+                  {deviceComponents.slice(0, 7).map((component, index) => (
+                    <TableRow key={index} style={{ align: "left" }}>
+                      <TableCell>{component.description}</TableCell>
+                      <TableCell>
+                        {jsonArrayToString(component.measurement)}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </div>
+        </Card>
+      </div>
     </div>
   );
 }

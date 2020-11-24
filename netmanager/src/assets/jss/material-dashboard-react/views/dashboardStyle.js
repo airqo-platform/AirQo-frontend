@@ -63,6 +63,9 @@ const dashboardStyle = {
       lineHeight: "1",
     },
   },
+  itemContainer: {
+    margin: "20px 0",
+  },
   cardTitleWhite: {
     color: whiteColor,
     backgroundColor: "#2f67e2",
