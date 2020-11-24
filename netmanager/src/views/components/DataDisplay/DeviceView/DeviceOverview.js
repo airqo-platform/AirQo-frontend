@@ -77,10 +77,12 @@ import { getFilteredDevicesApi } from "../../../apis/deviceRegistry";
 import {
   loadDevicesData,
   loadDeviceUpTime,
+  loadDeviceMaintenanceLogs,
 } from "redux/DeviceRegistry/operations";
 import {
   useDevicesData,
   useDeviceUpTimeData,
+  useDeviceLogsData,
 } from "redux/DeviceRegistry/selectors";
 import device from "../../../../redux/DeviceRegistry/reducers/device";
 
@@ -104,6 +106,7 @@ export default function DeviceOverview({ deviceData }) {
   const dispatch = useDispatch();
   const devices = useDevicesData();
   const deviceUptime = useDeviceUpTimeData(deviceData.name);
+  const deviceMaintenanceLogs = useDeviceLogsData(deviceData.name);
   const [maintenanceData, setMaintenanceData] = useState([]);
 
   function logs(name) {
@@ -180,6 +183,10 @@ export default function DeviceOverview({ deviceData }) {
   useEffect(() => {
     if (isEmpty(deviceUptime) && deviceData.name) {
       dispatch(loadDeviceUpTime(deviceData.name));
+    }
+
+    if (isEmpty(deviceMaintenanceLogs) && deviceData.name) {
+      dispatch(loadDeviceMaintenanceLogs(deviceData.name));
     }
   }, []);
 
@@ -832,68 +839,56 @@ export default function DeviceOverview({ deviceData }) {
 
       <GridContainer>
         <GridItem xs={12} sm={12} md={4}>
-          <Card>
-            <CardHeader color="primary">
-              <h4 className={classes.cardTitleWhite}>Maintenance History</h4>
-            </CardHeader>
-
-            <CardBody>
-              <div
-                alignContent="left"
-                style={{ alignContent: "left", alignItems: "left" }}
-              >
-                <TableContainer component={Paper} className={classes.table}>
-                  <Table
-                    stickyHeader
-                    aria-label="sticky table"
-                    alignItems="left"
-                    alignContent="left"
-                  >
-                    <TableBody
-                      style={{ alignContent: "left", alignItems: "left" }}
-                    >
-                      {maintenanceData.map((log) => (
-                        <TableRow style={{ align: "left" }}>
-                          <TableCell>
-                            {formatDate(new Date(log.date))}
-                          </TableCell>
-                          <TableCell>
-                            {typeof log.tags === "string"
-                              ? log.tags
-                              : log.tags.join(", ")}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              </div>
-            </CardBody>
+          <h4 className={classes.cardTitleBlue}>Maintenance History</h4>
+          <Card className={classes.cardBody}>
+            <div
+              alignContent="left"
+              style={{ alignContent: "left", alignItems: "left" }}
+            >
+              <TableContainer component={Paper} className={classes.table}>
+                <Table
+                  stickyHeader
+                  aria-label="sticky table"
+                  alignItems="left"
+                  alignContent="left"
+                >
+                  <TableBody>
+                    {deviceMaintenanceLogs.slice(0, 8).map((log, index) => (
+                      <TableRow key={index}>
+                        <TableCell>{formatDate(new Date(log.date))}</TableCell>
+                        <TableCell>
+                          {typeof log.tags === "string"
+                            ? log.tags
+                            : log.tags && log.tags.join(", ")}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </div>
           </Card>
         </GridItem>
 
         <GridItem xs={12} sm={12} md={4}>
-          <Card>
-            <CardHeader color="info">
-              <h4 className={classes.cardTitle}>Device Battery Voltage</h4>
-              <p className={classes.cardCategoryWhite}>
-                Average daily battery voltage in the past 28 days
-              </p>
-            </CardHeader>
-            <CardBody>
-              <div className={classes.chartContainer}>
-                <Line
-                  height={250}
-                  data={batteryVoltageData}
-                  options={options_}
-                />
-              </div>
-            </CardBody>
-            <CardFooter chart>
-              <div className={classes.stats}>
-                {/*<AccessTime /> Last updated on {onlineStatusUpdateTime} */}
-              </div>
-            </CardFooter>
+          <h4 className={classes.cardTitleGreen}>Device Battery Voltage</h4>
+          <Card className={classes.cardBody}>
+            {/*<CardHeader color="info">*/}
+
+            {/*  <p className={classes.cardCategoryWhite}>*/}
+            {/*    Average daily battery voltage in the past 28 days*/}
+            {/*  </p>*/}
+            {/*</CardHeader>*/}
+            {/*<CardBody>*/}
+            <div className={classes.chartContainer}>
+              <Line height={250} data={batteryVoltageData} options={options_} />
+            </div>
+            {/*</CardBody>*/}
+            {/*<CardFooter chart>*/}
+            {/*  <div className={classes.stats}>*/}
+            {/*    /!*<AccessTime /> Last updated on {onlineStatusUpdateTime} *!/*/}
+            {/*  </div>*/}
+            {/*</CardFooter>*/}
           </Card>
         </GridItem>
 

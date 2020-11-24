@@ -55,6 +55,10 @@ export const loadDeviceMaintenanceLogs = (deviceName) => {
   return async (dispatch) => {
     return await getDeviceMaintenanceLogsApi(deviceName)
       .then((responseData) => {
+        // sort logs in reversed order
+        responseData.sort(
+          (log1, log2) => -(new Date(log1.date) - new Date(log2.date))
+        );
         dispatch({
           type: LOAD_MAINTENANCE_LOGS_SUCCESS,
           payload: { [deviceName]: responseData },
@@ -110,7 +114,6 @@ export const insertDeviceComponent = (deviceName, component) => (dispatch) => {
 export const loadDeviceUpTime = (deviceName) => async (dispatch) => {
   return await getDeviceUptimeApi({ device_name: deviceName })
     .then((responseData) => {
-      console.log("uptime response", responseData)
       if (
         typeof responseData.success !== "undefined" &&
         !responseData.success
