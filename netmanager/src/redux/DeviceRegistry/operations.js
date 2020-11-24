@@ -13,6 +13,8 @@ import {
   RESET_MAINTENANCE_LOGS,
   UPDATE_SINGLE_DEVICE_SUCCESS,
   UPDATE_SINGLE_DEVICE_ERROR,
+  LOAD_DEVICE_UPTIME_SUCCESS,
+  LOAD_DEVICE_UPTIME_FAILURE,
 } from "./actions";
 import { transformArray } from "../utils";
 import {
@@ -20,6 +22,7 @@ import {
   getDeviceMaintenanceLogsApi,
   getDeviceComponentsApi,
 } from "views/apis/deviceRegistry";
+import { getDeviceUptimeApi } from "views/apis/deviceMonitoring";
 
 export const loadDevicesData = () => {
   return async (dispatch) => {
@@ -102,4 +105,29 @@ export const insertDeviceComponent = (deviceName, component) => (dispatch) => {
     type: INSERT_NEW_COMPONENT_SUCCESS,
     payload: { deviceName, component },
   });
+};
+
+export const loadDeviceUpTime = (deviceName) => async (dispatch) => {
+  return await getDeviceUptimeApi({ device_name: deviceName })
+    .then((responseData) => {
+      console.log("uptime response", responseData)
+      if (
+        typeof responseData.success !== "undefined" &&
+        !responseData.success
+      ) {
+        dispatch({
+          type: LOAD_DEVICE_UPTIME_FAILURE,
+        });
+        return;
+      }
+      dispatch({
+        type: LOAD_DEVICE_UPTIME_SUCCESS,
+        payload: { deviceName, data: responseData },
+      });
+    })
+    .catch(() => {
+      dispatch({
+        type: LOAD_DEVICE_UPTIME_FAILURE,
+      });
+    });
 };
