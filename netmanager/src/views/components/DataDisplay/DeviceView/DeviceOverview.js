@@ -373,7 +373,7 @@ export default function DeviceOverview({ deviceData }) {
         justifyContent: "space-around",
       }}
     >
-      <div className={classes.itemContainer} style={{ minWidth: "550px" }}>
+      <div className={"overview-item-container"} style={{ minWidth: "550px" }}>
         <h4 className={classes.cardTitleBlue}>Device Details</h4>
         <Card className={classes.cardBody}>
           <div
@@ -446,7 +446,7 @@ export default function DeviceOverview({ deviceData }) {
         </Card>
       </div>
 
-      <div className={classes.itemContainer} style={{ minWidth: "600px" }}>
+      <div className={"overview-item-container"} style={{ minWidth: "600px" }}>
         <h4 className={classes.cardTitleGreen}>Device Location</h4>
         <Paper>
           <Card className={classes.cardBody}>
@@ -475,7 +475,7 @@ export default function DeviceOverview({ deviceData }) {
         </Paper>
       </div>
 
-      <div className={classes.itemContainer} style={{ minWidth: "550px" }}>
+      <div className={"overview-item-container"} style={{ minWidth: "550px" }}>
         <h4 className={classes.cardTitleBlue}>Device Uptime</h4>
         <Card className={classes.cardBody}>
           <div className={classes.chartContainer}>
@@ -490,7 +490,7 @@ export default function DeviceOverview({ deviceData }) {
         </Card>
       </div>
 
-      <div className={classes.itemContainer} style={{ minWidth: "600px" }}>
+      <div className={"overview-item-container"} style={{ minWidth: "600px" }}>
         <h4 className={classes.cardTitleBlue}>Maintenance History</h4>
         <Card className={classes.cardBody}>
           <div
@@ -519,10 +519,11 @@ export default function DeviceOverview({ deviceData }) {
               </Table>
             </TableContainer>
           </div>
+          {deviceMaintenanceLogs.length <= 0 && <span style={{ margin: "auto" }}>No maintenance logs</span>}
         </Card>
       </div>
 
-      <div className={classes.itemContainer} style={{ minWidth: "550px" }}>
+      <div className={"overview-item-container"} style={{ minWidth: "550px" }}>
         <h4 className={classes.cardTitleGreen}>Device Battery Voltage</h4>
         <Card className={classes.cardBody}>
           <p className={classes.cardCategoryWhite}>
@@ -538,7 +539,7 @@ export default function DeviceOverview({ deviceData }) {
         </Card>
       </div>
 
-      <div className={classes.itemContainer} style={{ minWidth: "600px" }}>
+      <div className={"overview-item-container"} style={{ minWidth: "600px" }}>
         <h4 className={classes.cardTitleBlue}>Sensor Correlation</h4>
         <Card className={classes.cardBody}>
           <p className={classes.cardCategoryWhite}>
@@ -558,7 +559,7 @@ export default function DeviceOverview({ deviceData }) {
         </Card>
       </div>
 
-      <div className={classes.itemContainer} style={{ minWidth: "550px" }}>
+      <div className={"overview-item-container"} style={{ minWidth: "550px" }}>
         <h4 className={classes.cardTitleBlue}>Device Components</h4>
         <Card className={classes.cardBody}>
           <div
@@ -572,12 +573,6 @@ export default function DeviceOverview({ deviceData }) {
                 alignItems="left"
                 alignContent="left"
               >
-                <TableHead>
-                  <TableRow style={{ align: "left" }}>
-                    <TableCell>Description</TableCell>
-                    <TableCell>Quantities</TableCell>
-                  </TableRow>
-                </TableHead>
                 <TableBody style={{ alignContent: "left", alignItems: "left" }}>
                   {deviceComponents.slice(0, 7).map((component, index) => (
                     <TableRow key={index} style={{ align: "left" }}>
@@ -591,6 +586,7 @@ export default function DeviceOverview({ deviceData }) {
               </Table>
             </TableContainer>
           </div>
+          {deviceComponents.length <= 0 && <span style={{ margin: "auto" }}>No components</span>}
         </Card>
       </div>
     </div>

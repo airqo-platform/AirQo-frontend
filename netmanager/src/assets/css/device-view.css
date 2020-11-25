@@ -86,3 +86,15 @@
         left: 100%;
     }
 }
+
+.overview-item-container {
+    margin: 20px 0;
+    width: 31%;
+    height: 510px;
+    overflow: scroll;
+}
+
+.overview-item-container::-webkit-scrollbar {
+    width: 0;
+    background: transparent; /* make scrollbar transparent */
+}

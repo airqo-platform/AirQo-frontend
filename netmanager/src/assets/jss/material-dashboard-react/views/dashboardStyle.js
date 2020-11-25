@@ -66,6 +66,8 @@ const dashboardStyle = {
   itemContainer: {
     margin: "20px 0",
     width: "31%",
+    height: "495px",
+    overflow: "scroll",
   },
   cardTitleWhite: {
     color: whiteColor,
@@ -84,6 +86,9 @@ const dashboardStyle = {
   cardTitleBlue: {
     color: whiteColor,
     backgroundColor: "#2f67e2",
+    position: "sticky",
+    top: 0,
+    zIndex: 20,
     padding: "10px",
     borderRadius: "5px 5px 0 0",
     marginTop: "0px",
@@ -101,6 +106,9 @@ const dashboardStyle = {
   cardTitleGreen: {
     color: whiteColor,
     backgroundColor: "#22b0c5",
+    position: "sticky",
+    top: 0,
+    zIndex: 20,
     padding: "10px",
     borderRadius: "5px 5px 0 0",
     marginTop: "0px",
