@@ -65,12 +65,10 @@ const dashboardStyle = {
   },
   itemContainer: {
     margin: "20px 0",
+    width: "31%",
   },
   cardTitleWhite: {
     color: whiteColor,
-    backgroundColor: "#2f67e2",
-    padding: "10px",
-    borderRadius: "5px 5px 0 0",
     marginTop: "0px",
     minHeight: "auto",
     fontWeight: "300",
