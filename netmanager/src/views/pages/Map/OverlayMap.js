@@ -114,7 +114,7 @@ export const OverlayMap = ({
         const reducer = (accumulator, feature) =>
           accumulator + parseFloat(feature.properties.predicted_value);
         let average_predicted_value =
-          features.reduce(reducer, 0.00) / features.length;
+          features.reduce(reducer, 0) / features.length;
 
         popup
           .setLngLat(e.lngLat)
