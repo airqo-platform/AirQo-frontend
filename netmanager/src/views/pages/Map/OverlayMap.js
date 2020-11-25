@@ -114,11 +114,11 @@ export const OverlayMap = ({
         const reducer = (accumulator, feature) =>
           accumulator + parseFloat(feature.properties.predicted_value);
         let average_predicted_value =
-          features.reduce(reducer, 0) / features.length;
+          features.reduce(reducer, 0.00) / features.length;
 
         popup
           .setLngLat(e.lngLat)
-          .setText(`${average_predicted_value}`)
+          .setText(`${average_predicted_value.toFixed(2)}`)
           .addTo(map);
       });
     });
