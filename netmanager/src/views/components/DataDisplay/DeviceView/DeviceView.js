@@ -1,7 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
-import {Route, Switch, Redirect, useParams, useRouteMatch} from "react-router-dom";
-import 'chartjs-plugin-annotation';
+import {
+  Route,
+  Switch,
+  Redirect,
+  useParams,
+  useRouteMatch,
+} from "react-router-dom";
+import "chartjs-plugin-annotation";
 import { isEmpty } from "underscore";
 
 //css
@@ -25,14 +31,14 @@ export default function DeviceView() {
   const devices = useDevicesData();
   const [deviceData, setDeviceData] = useState(devices[params.deviceId] || {});
 
-  useEffect(()  => {
+  useEffect(() => {
     if (isEmpty(devices)) {
-      dispatch(loadDevicesData())
+      dispatch(loadDevicesData());
     }
   }, []);
 
-  useEffect(()  => {
-    setDeviceData(devices[params.deviceId] || {})
+  useEffect(() => {
+    setDeviceData(devices[params.deviceId] || {});
   }, [devices]);
 
   return (
@@ -41,34 +47,39 @@ export default function DeviceView() {
       <DeviceToolBarContainer>
         <Switch>
           <Route
-              exact
-              path={'/device/:deviceId/overview'}
-              component={DeviceOverview}
+            exact
+            path={"/device/:deviceId/overview"}
+            component={() => <DeviceOverview deviceData={deviceData} />}
           />
           <Route
-              exact
-              path={'/device/:deviceId/edit'}
-              component={() => <DeviceEdit deviceData={deviceData} />}
+            exact
+            path={"/device/:deviceId/edit"}
+            component={() => <DeviceEdit deviceData={deviceData} />}
           />
           <Route
-              exact
-              path={'/device/:deviceId/maintenance-logs'}
-              component={() => <DeviceLogs deviceName={deviceData.name} deviceLocation={deviceData.locationID} />}
+            exact
+            path={"/device/:deviceId/maintenance-logs"}
+            component={() => (
+              <DeviceLogs
+                deviceName={deviceData.name}
+                deviceLocation={deviceData.locationID}
+              />
+            )}
           />
           <Route
-              exact
-              path={'/device/:deviceId/deploy-status'}
-              component={() => <DeviceDeployStatus deviceData={deviceData} /> }
+            exact
+            path={"/device/:deviceId/deploy-status"}
+            component={() => <DeviceDeployStatus deviceData={deviceData} />}
           />
           <Route
-              exact
-              path={'/device/:deviceId/components'}
-              component={() => <DeviceComponents deviceName={deviceData.name} /> }
+            exact
+            path={"/device/:deviceId/components"}
+            component={() => <DeviceComponents deviceName={deviceData.name} />}
           />
           <Route
-              exact
-              path={'/device/:deviceId/photos'}
-              component={() => <DevicePhotos deviceData={deviceData} /> }
+            exact
+            path={"/device/:deviceId/photos"}
+            component={() => <DevicePhotos deviceData={deviceData} />}
           />
           <Redirect to={`${match.url}/overview`} />
         </Switch>

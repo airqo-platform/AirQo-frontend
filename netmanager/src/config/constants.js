@@ -44,11 +44,11 @@ const prodConfig = {
   GET_LATEST_OFFLINE_DEVICES:
     "http://34.78.78.202:30006/api/v1/monitor/devices/offline",
   GET_NETWORK_UPTIME: "http://34.78.78.202:30006/api/v1/monitor/network/uptime",
-  GET_DEVICE_UPTIME: "http://34.78.78.202:30006/api/v1/monitor/device/uptime/",
+  GET_DEVICE_UPTIME: "http://34.78.78.202:30006/api/v1/monitor/device/uptime",
   GET_DEVICE_BATTERY_VOLTAGE:
-    "http://34.78.78.202:30006/api/v1/monitor/device/batteryvoltage/",
+    "http://34.78.78.202:30006/api/v1/monitor/device/batteryvoltage",
   GET_DEVICE_SENSOR_CORRELATION:
-    "http://34.78.78.202:30006/api/v1/monitor/device/sensors/correlation/",
+    "http://34.78.78.202:30006/api/v1/monitor/device/sensors/correlation",
   DEVICE_MAINTENANCE_LOG_URI:
     "http://34.78.78.202:30006/api/v1/device/monitor/maintenance_logs/",
   ADD_MAINTENANCE_URI:
@@ -170,11 +170,11 @@ const devConfig = {
   GET_LATEST_OFFLINE_DEVICES:
     "http://localhost:4001/api/v1/monitor/devices/offline",
   GET_NETWORK_UPTIME: "http://localhost:4001/api/v1/monitor/network/uptime",
-  GET_DEVICE_UPTIME: "http://localhost:4001/api/v1/monitor/device/uptime/",
+  GET_DEVICE_UPTIME: "http://localhost:4001/api/v1/monitor/device/uptime",
   GET_DEVICE_BATTERY_VOLTAGE:
-    "http://127.0.0.1:4001/api/v1/monitor/device/batteryvoltage/",
+    "http://127.0.0.1:4001/api/v1/monitor/device/batteryvoltage",
   GET_DEVICE_SENSOR_CORRELATION:
-    "http://127.0.0.1:4001/api/v1/monitor/device/sensors/correlation/",
+    "http://127.0.0.1:4001/api/v1/monitor/device/sensors/correlation",
   GET_NETWORK_BEST_PERFORMING_DEVICES:
     "http://localhost:4001/api/v1/monitor/network/devices/bestperforming",
   GET_NETWORK_WORST_PERFORMING_DEVICES:
@@ -260,11 +260,11 @@ const stageConfig = {
   GET_LATEST_OFFLINE_DEVICES:
     "http://34.78.78.202:31006/api/v1/monitor/devices/offline",
   GET_NETWORK_UPTIME: "http://34.78.78.202:31006/api/v1/monitor/network/uptime",
-  GET_DEVICE_UPTIME: "http://34.78.78.202:31006/api/v1/monitor/device/uptime/",
+  GET_DEVICE_UPTIME: "http://34.78.78.202:31006/api/v1/monitor/device/uptime",
   GET_DEVICE_BATTERY_VOLTAGE:
-    "http://34.78.78.202:31006/api/v1/monitor/device/batteryvoltage/",
+    "http://34.78.78.202:31006/api/v1/monitor/device/batteryvoltage",
   GET_DEVICE_SENSOR_CORRELATION:
-    "http://34.78.78.202:31006/api/v1/monitor/device/sensors/correlation/",
+    "http://34.78.78.202:31006/api/v1/monitor/device/sensors/correlation",
   DEVICE_MAINTENANCE_LOG_URI:
     "http://34.78.78.202:31006/api/v1/device/monitor/maintenance_logs/",
   ADD_MAINTENANCE_URI:

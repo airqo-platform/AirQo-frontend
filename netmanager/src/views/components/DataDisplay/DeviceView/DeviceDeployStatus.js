@@ -328,7 +328,8 @@ const DeviceRecentFeedView = ({ recentFeed, runReport }) => {
             color: "red",
           }}
         >
-          <ErrorIcon className={classes.error} /> Can not query device
+          <ErrorIcon className={classes.error} /> Device test has failed, please
+          cross check the functionality of device
         </div>
       )}
     </div>
@@ -445,7 +446,7 @@ export default function DeviceDeployStatus({ deviceData }) {
             severity: "success",
           })
         );
-        dispatch(updateDevice(deviceData.id, {isActive: true}));
+        dispatch(updateDevice(deviceData.id, { isActive: true }));
       })
       .catch((err) => {
         dispatch(
@@ -478,7 +479,7 @@ export default function DeviceDeployStatus({ deviceData }) {
             severity: "success",
           })
         );
-        dispatch(updateDevice(deviceData.id, {isActive: false}));
+        dispatch(updateDevice(deviceData.id, { isActive: false }));
       })
       .catch((err) => {
         dispatch(
