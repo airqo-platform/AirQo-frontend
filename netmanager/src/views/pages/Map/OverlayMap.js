@@ -63,6 +63,10 @@ export const OverlayMap = ({
   const [map, setMap] = useState(null);
   const [showSensors, setShowSensors] = useState(true);
   const [showHeatMap, setShowHeatMap] = useState(true);
+  const popup = new mapboxgl.Popup({
+    closeButton: false,
+    offset: 25,
+  });
 
   useEffect(() => {
     const map = new mapboxgl.Map({
@@ -89,6 +93,33 @@ export const OverlayMap = ({
         source: "heatmap-data",
         type: "circle",
         paint: heatMapPaint,
+      });
+      map.on("mousemove", function (e) {
+        const features = map.queryRenderedFeatures(e.point, {
+          layers: ["circular-points-layer"],
+        });
+        // Change the cursor style as a UI indicator.
+        map.getCanvas().style.cursor = features.length ? "pointer" : "";
+
+        if (map.getZoom() < 9) {
+          popup.remove();
+          return;
+        }
+
+        if (!features.length) {
+          popup.remove();
+          return;
+        }
+
+        const reducer = (accumulator, feature) =>
+          accumulator + parseFloat(feature.properties.predicted_value);
+        let average_predicted_value =
+          features.reduce(reducer, 0) / features.length;
+
+        popup
+          .setLngLat(e.lngLat)
+          .setText(`${average_predicted_value}`)
+          .addTo(map);
       });
     });
 
