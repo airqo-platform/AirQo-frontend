@@ -2,7 +2,7 @@ import {
   LOAD_PM25_HEATMAP_DATA_SUCCESS,
   LOAD_PM25_SENSOR_DATA_SUCCESS,
 } from "./actions";
-import { transformDataToGeoJson } from "../../views/pages/Map/utils";
+import { transformDataToGeoJson } from "views/pages/Map/utils";
 
 const initialState = {
   pm25HeatMapData: transformDataToGeoJson([], {
