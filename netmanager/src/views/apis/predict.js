@@ -1,8 +1,8 @@
 import axios from "axios";
 import constants from "../../config/constants";
 
-export const heatmapPredictApi = async (locationData) => {
+export const heatmapPredictApi = async () => {
   return await axios
-    .post(constants.GET_HEATMAP_DATA, locationData)
+    .get(constants.GET_HEATMAP_DATA)
     .then((response) => response.data);
 };

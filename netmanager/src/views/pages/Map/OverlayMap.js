@@ -242,12 +242,12 @@ const MapContainer = () => {
         );
       })
       .catch((err) => {});
-    heatmapPredictApi(locationData)
+    heatmapPredictApi()
       .then((responseData) => {
         setHeatMapData(
           transformDataToGeoJson(responseData.data || [], {
-            longitude: "long",
-            latitude: "lat",
+            longitude: "longitude",
+            latitude: "latitude",
           })
         );
       })
