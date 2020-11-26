@@ -32,15 +32,15 @@ const prodConfig = {
   UPDATE_LOCATE_MAP: "http://34.78.78.202:30004/api/v1/map/updatelocatemap/",
   DELETE_LOCATE_MAP: "http://34.78.78.202:30004/api/v1/map/deletelocatemap/",
   GET_DEVICE_STATUS_SUMMARY:
-    "http://34.78.78.202:30006/api/v1/device/monitor/status",
+    "http://34.78.78.202:30006/api/v1/monitor/device/status",
   GET_MAINTENANCE_LOGS:
-    "http://34.78.78.202:30006/api/v1/device/monitor/maintenance_logs",
+    "http://34.78.78.202:30006/api/v1/monitor/device/maintenance_logs",
   GET_DEVICE_MAINTENANCE_LOG:
-    "http://34.78.78.202:30006/api/v1/device/monitor/maintenance_logs/",
+    "http://34.78.78.202:30006/api/v1/monitor/device/maintenance_logs/",
   GET_DEVICE_POWER_TYPE:
-    "http://34.78.78.202:30006/api/v1/device/monitor/power_type",
+    "http://34.78.78.202:30006/api/v1/monitor/device/power_type",
   GET_DEVICE_STATUS_FOR_PIECHART_DISPLAY:
-    "http://34.78.78.202:30006/api/v1/device/monitor/status/latest",
+    "http://34.78.78.202:30006/api/v1/monitor/device/status/latest",
   GET_LATEST_OFFLINE_DEVICES:
     "http://34.78.78.202:30006/api/v1/monitor/devices/offline",
   GET_NETWORK_UPTIME: "http://34.78.78.202:30006/api/v1/monitor/network/uptime",
@@ -50,7 +50,7 @@ const prodConfig = {
   GET_DEVICE_SENSOR_CORRELATION:
     "http://34.78.78.202:30006/api/v1/monitor/device/sensors/correlation",
   DEVICE_MAINTENANCE_LOG_URI:
-    "http://34.78.78.202:30006/api/v1/device/monitor/maintenance_logs/",
+    "http://34.78.78.202:30006/api/v1/monitor/device/maintenance_logs/",
   ADD_MAINTENANCE_URI:
     "http://34.78.78.202:30001/api/v1/data/channels/maintenance/add",
   DEVICE_RECENT_FEEDS: "http://34.78.78.202:30001/api/v1/data/feeds/transform/recent",
@@ -160,15 +160,15 @@ const devConfig = {
   UPDATE_LOCATE_MAP: "http://localhost:4000/api/v1/map/updatelocatemap/",
   DELETE_LOCATE_MAP: "http://localhost:4000/api/v1/map/deletelocatemap/",
   GET_DEVICE_STATUS_SUMMARY:
-    "http://localhost:4001/api/v1/device/monitor/status",
+    "http://localhost:4001/api/v1/monitor/device/status",
   GET_MAINTENANCE_LOGS:
-    "http://localhost:4001/api/v1/device/monitor/maintenance_logs",
+    "http://localhost:4001/api/v1/monitor/device/maintenance_logs",
   GET_DEVICE_MAINTENANCE_LOG:
-    "http://localhost:4001/api/v1/device/monitor/maintenance_logs/",
+    "http://localhost:4001/api/v1/monitor/device/maintenance_logs/",
   GET_DEVICE_POWER_TYPE:
-    "http://localhost:4001/api/v1/device/monitor/power_type",
+    "http://localhost:4001/api/v1/monitor/device/power_type",
   GET_DEVICE_STATUS_FOR_PIECHART_DISPLAY:
-    "http://localhost:4001/api/v1/device/monitor/status/latest",
+    "http://localhost:4001/api/v1/monitor/device/status/latest",
   GET_LATEST_OFFLINE_DEVICES:
     "http://localhost:4001/api/v1/monitor/devices/offline",
   GET_NETWORK_UPTIME: "http://localhost:4001/api/v1/monitor/network/uptime",
@@ -202,7 +202,7 @@ const devConfig = {
     "http://localhost:3000/api/v1/devices/by/location?loc=",
   DEPLOY_DEVICE_URI: "http://localhost:3000/api/v1/devices/ts/activity?type=",
   DEVICE_MAINTENANCE_LOG_URI:
-    "http://localhost:4001/api/v1/device/monitor/maintenance_logs/",
+    "http://localhost:4001/api/v1/monitor/device/maintenance_logs/",
   //DELETE_DEVICE_URI: "http://127.0.0.1:3000/api/api/v1/devices/ts/delete?device="
   GET_ONLINE_OFFLINE_MAINTENANCE_STATUS:
     "http://127.0.0.1:4001/api/v1/monitor/devices/online_offline",
@@ -250,15 +250,15 @@ const stageConfig = {
   UPDATE_LOCATE_MAP: "http://34.78.78.202:31004/api/v1/map/updatelocatemap/",
   DELETE_LOCATE_MAP: "http://34.78.78.202:31004/api/v1/map/deletelocatemap/",
   GET_DEVICE_STATUS_SUMMARY:
-    "http://34.78.78.202:31006/api/v1/device/monitor/status",
+    "http://34.78.78.202:31006/api/v1/monitor/device/status",
   GET_MAINTENANCE_LOGS:
-    "http://34.78.78.202:31006/api/v1/device/monitor/maintenance_logs",
+    "http://34.78.78.202:31006/api/v1/monitor/device/maintenance_logs",
   GET_DEVICE_MAINTENANCE_LOG:
-    "http://34.78.78.202:31006/api/v1/device/monitor/maintenance_logs/",
+    "http://34.78.78.202:31006/api/v1/monitor/device/maintenance_logs/",
   GET_DEVICE_POWER_TYPE:
-    "http://34.78.78.202:31006/api/v1/device/monitor/power_type",
+    "http://34.78.78.202:31006/api/v1/monitor/device/power_type",
   GET_DEVICE_STATUS_FOR_PIECHART_DISPLAY:
-    "http://34.78.78.202:31006/api/v1/device/monitor/status/latest",
+    "http://34.78.78.202:31006/api/v1/monitor/device/status/latest",
   GET_LATEST_OFFLINE_DEVICES:
     "http://34.78.78.202:31006/api/v1/monitor/devices/offline",
   GET_NETWORK_UPTIME: "http://34.78.78.202:31006/api/v1/monitor/network/uptime",
@@ -268,7 +268,7 @@ const stageConfig = {
   GET_DEVICE_SENSOR_CORRELATION:
     "http://34.78.78.202:31006/api/v1/monitor/device/sensors/correlation",
   DEVICE_MAINTENANCE_LOG_URI:
-    "http://34.78.78.202:31006/api/v1/device/monitor/maintenance_logs/",
+    "http://34.78.78.202:31006/api/v1/monitor/device/maintenance_logs/",
   ADD_MAINTENANCE_URI:
     "http://34.78.78.202:31001/api/v1/data/channels/maintenance/add",
   DEVICE_RECENT_FEEDS: "http://34.78.78.202:31001/api/v1/data/feeds/transform/recent",

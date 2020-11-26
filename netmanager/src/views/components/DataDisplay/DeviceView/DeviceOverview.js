@@ -3,8 +3,6 @@ import { useDispatch } from "react-redux";
 import { makeStyles } from "@material-ui/core/styles";
 import AccessTime from "@material-ui/icons/AccessTime";
 // core components
-import GridItem from "../../Grid/GridItem.js";
-import GridContainer from "../../Grid/GridContainer.js";
 import Card from "../../Card/Card.js";
 import { Map, TileLayer, Marker, Popup } from "react-leaflet";
 import {
@@ -12,7 +10,6 @@ import {
   Table,
   TableBody,
   TableCell,
-  TableHead,
   TableRow,
   Paper,
 } from "@material-ui/core";
@@ -505,7 +502,7 @@ export default function DeviceOverview({ deviceData }) {
                 alignContent="left"
               >
                 <TableBody>
-                  {deviceMaintenanceLogs.slice(0, 8).map((log, index) => (
+                  {deviceMaintenanceLogs.map((log, index) => (
                     <TableRow key={index}>
                       <TableCell>{formatDate(new Date(log.date))}</TableCell>
                       <TableCell>
@@ -574,7 +571,7 @@ export default function DeviceOverview({ deviceData }) {
                 alignContent="left"
               >
                 <TableBody style={{ alignContent: "left", alignItems: "left" }}>
-                  {deviceComponents.slice(0, 7).map((component, index) => (
+                  {deviceComponents.map((component, index) => (
                     <TableRow key={index} style={{ align: "left" }}>
                       <TableCell>{component.description}</TableCell>
                       <TableCell>
