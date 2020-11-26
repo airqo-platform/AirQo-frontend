@@ -1,11 +1,15 @@
 import React, { useRef, useEffect, useState } from "react";
+import { useDispatch } from "react-redux";
 import mapboxgl from "mapbox-gl";
-import { heatmapPredictApi } from "views/apis/predict";
-import { getMonitoringSitesInfoApi } from "views/apis/analytics";
+import { isEmpty } from "underscore";
 import { heatMapPaint } from "./paints";
-import { transformDataToGeoJson } from "./utils";
 import { formatDateString } from "utils/dateTime";
 import Filter from "../Dashboard/components/Map/Filter";
+import {
+  loadPM25HeatMapData,
+  loadPM25SensorData,
+} from "redux/MapData/operations";
+import { usePM25HeatMapData, usePM25SensorData } from "redux/MapData/selectors";
 
 // css
 import "assets/css/overlay-map.css";
@@ -218,40 +222,25 @@ export const OverlayMap = ({
 };
 
 const MapContainer = () => {
-  const [heatMapData, setHeatMapData] = useState(
-    transformDataToGeoJson([], { longitude: "long", latitude: "lat" })
-  );
-  const [monitoringSiteData, setMonitoringSiteMapData] = useState(
-    transformDataToGeoJson([], { longitude: "Longitude", latitude: "Latitude" })
-  );
+  const dispatch = useDispatch();
+  const heatMapData = usePM25HeatMapData();
+  const monitoringSiteData = usePM25SensorData();
 
   useEffect(() => {
-    const locationData = {
-      min_long: 32.4,
-      max_long: 32.8,
-      min_lat: 0.1,
-      max_lat: 0.5,
-    };
-    getMonitoringSitesInfoApi("")
-      .then((responseData) => {
-        setMonitoringSiteMapData(
-          transformDataToGeoJson(responseData.airquality_monitoring_sites, {
-            longitude: "Longitude",
-            latitude: "Latitude",
-          })
-        );
-      })
-      .catch((err) => {});
-    heatmapPredictApi()
-      .then((responseData) => {
-        setHeatMapData(
-          transformDataToGeoJson(responseData.data || [], {
-            longitude: "longitude",
-            latitude: "latitude",
-          })
-        );
-      })
-      .catch((err) => {});
+    // const locationData = {
+    //   min_long: 32.4,
+    //   max_long: 32.8,
+    //   min_lat: 0.1,
+    //   max_lat: 0.5,
+    // };
+
+    if (isEmpty(heatMapData.features)) {
+      dispatch(loadPM25HeatMapData());
+    }
+
+    if (isEmpty(monitoringSiteData.features)) {
+      dispatch(loadPM25SensorData());
+    }
   }, []);
 
   return (
