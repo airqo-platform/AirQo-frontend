@@ -1,0 +1,109 @@
+.overlay-map-container {
+    height: calc(100vh - 64px);
+    height: -moz-calc(100vh - 64px);
+    height: -webkit-calc(100vh - 64px);
+}
+
+.map-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    height: 500px;
+    margin: 2vh 0;
+
+}
+
+.map-item {
+    height: 100%;
+    width: 49%;
+    /*max-width: 580px;*/
+    position: relative;;
+}
+
+.marker {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    background: blue;
+    width: 40px;
+     height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    color: white;
+}
+
+.marker-good {
+    background: #44e527;
+}
+
+.marker-moderate {
+    background: #f8fe39;
+    color: #474545;
+}
+
+.marker-uhfsg {
+    background: #ee8327;
+}
+
+.marker-unhealthy {
+    background: #fe0023;
+}
+
+.marker-v-unhealthy {
+    background: #8639c0;
+}
+
+.marker-hazardous {
+    background: #81202e;
+}
+
+.marker-unknown {
+    background: grey;
+}
+
+.popup-body {
+    padding: 10px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    color: black;
+}
+
+.map-toggle-controller {
+    display: flex;
+    flex-wrap: wrap;
+    position: relative;
+    top: 0;
+    left: 0;
+    margin: 10px 5px;
+    background: transparent;
+    width: 100px;
+    z-index: 100;
+    border-radius: 5px;
+    cursor: pointer;
+    text-transform: capitalize;
+    font-size: 1.05rem;
+}
+
+.control-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 30px;
+    margin: 5px;
+    background: #ffffff;
+    border-radius: 5px;
+    padding: 5px;
+}
+
+.control-item-disabled {
+    background: #678091;
+    color: white;
+}
+
+.control-item-disabled:hover {
+    background: #516573;
+    color: white;
+}

@@ -107,6 +107,7 @@ const prodConfig = {
     "http://34.78.78.202:30003/api/v1/dashboard/monitoringsites?organisation_name=KCCA",
   GET_DATA_MAP:
     "http://34.78.78.202:30003/api/v1/dashboard/monitoringsites?organisation_name=KCCA&pm25_category=",
+  GET_HEATMAP_DATA: "http://34.78.78.202:30009/api/v1/predict/heatmap",
 };
 
 const devConfig = {
@@ -152,6 +153,7 @@ const devConfig = {
     "http://127.0.0.1:5000/api/v1/dashboard/monitoringsites?organisation_name=KCCA",
   GET_DATA_MAP:
     "http://127.0.0.1:5000/api/v1/dashboard/monitoringsites?organisation_name=KCCA&pm25_category=",
+  GET_HEATMAP_DATA: "http://localhost:5000/api/v1/predict/heatmap",
   RUN_LOCATE_MODEL: "http://localhost:4000/api/v1/map/parishes",
   SAVE_LOCATE_MAP: "http://localhost:4000/api/v1/map/savelocatemap",
   GET_LOCATE_MAP: "http://localhost:4000/api/v1/map/getlocatemap/",
@@ -321,6 +323,7 @@ const stageConfig = {
     "http://34.78.78.202:31003/api/v1/dashboard/monitoringsites?organisation_name=KCCA",
   GET_DATA_MAP:
     "http://34.78.78.202:31003/api/v1/dashboard/monitoringsites?organisation_name=KCCA&pm25_category=",
+  GET_HEATMAP_DATA: "http://34.78.78.202:31009/api/v1/predict/heatmap",
 };
 
 const defaultConfig = {
