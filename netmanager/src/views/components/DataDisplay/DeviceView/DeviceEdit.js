@@ -65,6 +65,9 @@ export default function DeviceEdit({ deviceData, locationsData }) {
   };
 
   const handleLocationChange = (location) => {
+    if(!location) {
+      return;
+    }
     setEditData({
       ...editData,
       locationID: location.value,
@@ -255,35 +258,49 @@ export default function DeviceEdit({ deviceData, locationsData }) {
             </FormControl>
           </Grid>
 
-          {/*<Grid items xs={6} style={gridItemStyle}>*/}
-          {/*  <TextField*/}
-          {/*    id="powerType"*/}
-          {/*    label="Power Type"*/}
-          {/*    value={editData.powerType}*/}
-          {/*    onChange={handleTextFieldChange}*/}
-          {/*    fullWidth*/}
-          {/*  />*/}
-          {/*</Grid>*/}
+          <Grid items xs={6} style={gridItemStyle}>
+            <FormControl fullWidth>
+              <InputLabel htmlFor="demo-dialog-native">
+                Power Type
+              </InputLabel>
+              <Select
+                native
+                value={editData.powerType}
+                onChange={handleSelectFieldChange("powerType")}
+                inputProps={{
+                  native: true,
+                  style: { height: "40px", marginTop: "10px" },
+                }}
+                input={<Input id="demo-dialog-native" />}
+              >
+                <option aria-label="None" value="" />
+                <option value="Mains">Mains</option>
+                <option value="Solar">Solar</option>
+                <option value="Battery">Battery</option>
+              </Select>
+            </FormControl>
+          </Grid>
 
-          {/*<Grid items xs={6} style={gridItemStyle}>*/}
-          {/*  <TextField*/}
-          {/*    id="height"*/}
-          {/*    label="Height"*/}
-          {/*    value={editData.height}*/}
-          {/*    onChange={handleTextFieldChange}*/}
-          {/*    fullWidth*/}
-          {/*  />*/}
-          {/*</Grid>*/}
+          <Grid items xs={6} style={gridItemStyle}>
+            <TextField
+              id="height"
+              label="Height"
+              value={editData.height}
+              onChange={handleTextFieldChange}
+              fullWidth
+              disabled
+            />
+          </Grid>
 
-          {/*<Grid items xs={6} style={gridItemStyle}>*/}
-          {/*  <TextField*/}
-          {/*    id="mountType"*/}
-          {/*    label="Mount Type"*/}
-          {/*    value={editData.mountType}*/}
-          {/*    onChange={handleTextFieldChange}*/}
-          {/*    fullWidth*/}
-          {/*  />*/}
-          {/*</Grid>*/}
+          <Grid items xs={6} style={gridItemStyle}>
+            <TextField
+              id="mountType"
+              label="Mount Type"
+              value={editData.mountType}
+              onChange={handleTextFieldChange}
+              fullWidth
+            />
+          </Grid>
 
           <Grid
             container
