@@ -14,17 +14,14 @@ const Label = ({ label, isFloating }) => {
   const fontSize = isFloating ? `0.65rem` : `1rem`;
 
   const labelStyle = {
-    left: "10px",
     top: top,
-    pointerEvents: "none",
-    position: "absolute",
-    transition: "0.2s ease all",
-    MozTransition: "0.2s ease all",
-    WebkitTransition: "0.2s ease all",
     fontSize: fontSize,
-    zIndex: 10,
   };
-  return <label style={labelStyle}>{label}</label>;
+  return (
+    <label className={"react-select-label"} style={labelStyle}>
+      {label}
+    </label>
+  );
 };
 
 Label.propTypes = {
