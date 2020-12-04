@@ -98,3 +98,15 @@
     width: 0;
     background: transparent; /* make scrollbar transparent */
 }
+
+.react-select-label {
+    left: 10px;
+    pointer-events: none;
+    position: absolute;
+    transition: 0.2s ease all;
+    -moz-transition: 0.2s ease all;
+    -webkit-transition: 0.2s ease all;
+    font-family: Roboto, Helvetica, Arial, sans-serif;
+    z-index: 10;
+    color: #263238;
+}

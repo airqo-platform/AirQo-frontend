@@ -338,9 +338,9 @@ const DeviceRecentFeedView = ({ recentFeed, runReport }) => {
 
 export default function DeviceDeployStatus({ deviceData }) {
   const dispatch = useDispatch();
-  const [height, setHeight] = useState("");
-  const [power, setPower] = useState("");
-  const [installationType, setInstallationType] = useState("");
+  const [height, setHeight] = useState(deviceData.height || "");
+  const [power, setPower] = useState(deviceData.powerType || "");
+  const [installationType, setInstallationType] = useState(deviceData.mountType || "");
   const [deploymentDate, setDeploymentDate] = useState(new Date());
   const [primaryChecked, setPrimaryChecked] = useState(true);
   const [collocationChecked, setCollocationChecked] = useState(false);

@@ -254,6 +254,7 @@ const AddLogForm = ({ deviceName, deviceLocation, toggleShow }) => {
           <KeyboardDatePicker
             fullWidth={true}
             disableToolbar
+            autoOk
             variant="inline"
             format="yyyy-MM-dd"
             margin="normal"

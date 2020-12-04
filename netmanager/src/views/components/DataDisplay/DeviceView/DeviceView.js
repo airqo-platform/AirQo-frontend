@@ -23,17 +23,23 @@ import DeviceComponents from "./DeviceComponents";
 import DeviceOverview from "./DeviceOverview";
 import { useDevicesData } from "redux/DeviceRegistry/selectors";
 import { loadDevicesData } from "redux/DeviceRegistry/operations";
+import { loadLocationsData } from "redux/LocationRegistry/operations";
+import { useLocationsData } from "redux/LocationRegistry/selectors";
 
 export default function DeviceView() {
   const dispatch = useDispatch();
   const match = useRouteMatch();
   const params = useParams();
   const devices = useDevicesData();
+  const locations = useLocationsData();
   const [deviceData, setDeviceData] = useState(devices[params.deviceId] || {});
 
   useEffect(() => {
     if (isEmpty(devices)) {
       dispatch(loadDevicesData());
+    }
+    if (isEmpty(locations)) {
+      dispatch(loadLocationsData());
     }
   }, []);
 
@@ -54,7 +60,9 @@ export default function DeviceView() {
           <Route
             exact
             path={"/device/:deviceId/edit"}
-            component={() => <DeviceEdit deviceData={deviceData} />}
+            component={() => (
+              <DeviceEdit deviceData={deviceData} locationsData={locations} />
+            )}
           />
           <Route
             exact

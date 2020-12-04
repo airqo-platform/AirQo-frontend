@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
+import PropTypes from "prop-types";
 import TextField from "@material-ui/core/TextField";
 import FormControl from "@material-ui/core/FormControl";
 import Paper from "@material-ui/core/Paper";
@@ -7,15 +8,45 @@ import InputLabel from "@material-ui/core/InputLabel";
 import Select from "@material-ui/core/Select";
 import Input from "@material-ui/core/Input";
 import { Button, Grid } from "@material-ui/core";
-import { isEqual } from "underscore";
+import LabelledSelect from "../../CustomSelects/LabelledSelect";
+import { isEmpty, isEqual } from "underscore";
 import { updateMainAlert } from "redux/MainAlert/operations";
-import { updateDeviceDetails } from "../../../apis/deviceRegistry";
+import { updateDeviceDetails } from "views/apis/deviceRegistry";
+
+const transformLocationOptions = (locationsData) => {
+  const transFormedOptions = [];
+  locationsData.map(
+    ({ location_name, county, description, loc_ref, ...rest }) => {
+      transFormedOptions.push({
+        ...{ location_name, county, description, ...rest },
+        label: `${location_name || county || description}`,
+        value: loc_ref,
+      });
+    }
+  );
+  return transFormedOptions;
+};
+
+const filterLocation = (locations, location_ref) => {
+  const currentLocation = locations.filter(
+    (location) => location.loc_ref === location_ref
+  );
+  if (isEmpty(currentLocation)) {
+    return { label: "Unknown or no location", value: null };
+  }
+  const { location_name, county, description, loc_ref } = currentLocation[0];
+  return {
+    ...currentLocation[0],
+    label: `${location_name || county || description}`,
+    value: loc_ref,
+  };
+};
 
 const gridItemStyle = {
   padding: "5px",
 };
 
-export default function DeviceEdit({ deviceData }) {
+export default function DeviceEdit({ deviceData, locationsData }) {
   const dispatch = useDispatch();
   const [editData, setEditData] = useState(deviceData);
   const [editLoading, setEditLoading] = useState(false);
@@ -30,6 +61,16 @@ export default function DeviceEdit({ deviceData }) {
     setEditData({
       ...editData,
       [id]: event.target.value,
+    });
+  };
+
+  const handleLocationChange = (location) => {
+    if(!location) {
+      return;
+    }
+    setEditData({
+      ...editData,
+      locationID: location.value,
     });
   };
 
@@ -199,6 +240,66 @@ export default function DeviceEdit({ deviceData }) {
                 <option value="Airtel">Airtel</option>
               </Select>
             </FormControl>
+          </Grid>
+
+          <Grid items xs={6} style={gridItemStyle}>
+            <FormControl fullWidth>
+              <InputLabel htmlFor="demo-dialog-native">Location</InputLabel>
+              <LabelledSelect
+                label={"location"}
+                isClearable
+                defaultValue={filterLocation(
+                  locationsData,
+                  editData.locationID
+                )}
+                options={transformLocationOptions(locationsData)}
+                onChange={handleLocationChange}
+              />
+            </FormControl>
+          </Grid>
+
+          <Grid items xs={6} style={gridItemStyle}>
+            <FormControl fullWidth>
+              <InputLabel htmlFor="demo-dialog-native">
+                Power Type
+              </InputLabel>
+              <Select
+                native
+                value={editData.powerType}
+                onChange={handleSelectFieldChange("powerType")}
+                inputProps={{
+                  native: true,
+                  style: { height: "40px", marginTop: "10px" },
+                }}
+                input={<Input id="demo-dialog-native" />}
+              >
+                <option aria-label="None" value="" />
+                <option value="Mains">Mains</option>
+                <option value="Solar">Solar</option>
+                <option value="Battery">Battery</option>
+              </Select>
+            </FormControl>
+          </Grid>
+
+          <Grid items xs={6} style={gridItemStyle}>
+            <TextField
+              id="height"
+              label="Height"
+              value={editData.height}
+              onChange={handleTextFieldChange}
+              fullWidth
+              disabled
+            />
+          </Grid>
+
+          <Grid items xs={6} style={gridItemStyle}>
+            <TextField
+              id="mountType"
+              label="Mount Type"
+              value={editData.mountType}
+              onChange={handleTextFieldChange}
+              fullWidth
+            />
           </Grid>
 
           <Grid

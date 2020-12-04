@@ -1,4 +1,5 @@
 import React from "react";
+import { useDispatch } from "react-redux";
 import { makeStyles } from "@material-ui/styles";
 import {
   Grid,
@@ -27,7 +28,9 @@ import MenuItem from "@material-ui/core/MenuItem";
 import domtoimage from "dom-to-image";
 import JsPDF from "jspdf";
 import { useUserDefaultGraphsData } from "redux/Dashboard/selectors";
+import { loadUserDefaultGraphData } from "redux/Dashboard/operations";
 import { useOrgData } from "redux/Join/selectors";
+import { isEmpty } from "underscore";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -61,6 +64,7 @@ const Dashboard = (props) => {
     ...rest
   } = props;
 
+  const dispatch = useDispatch();
   const userDefaultGraphs = useUserDefaultGraphsData();
   const orgData = useOrgData();
 
@@ -84,6 +88,12 @@ const Dashboard = (props) => {
     pm25CategoriesLocationCount,
     setPm25CategoriesLocationCount,
   ] = useState([]);
+
+  useEffect(() => {
+    if (isEmpty(userDefaultGraphs)) {
+      dispatch(loadUserDefaultGraphData());
+    }
+  }, []);
 
   useEffect(() => {
     if (orgData.name.toLowerCase() === "airqo") {
