@@ -31,7 +31,6 @@ import CardBody from "../Card/CardBody.js";
 import CardFooter from "../Card/CardFooter.js";
 import Map from "./Map/Map";
 
-
 import { bugs, website, server } from "../../variables/general.js";
 
 import {
@@ -46,7 +45,7 @@ import constants from "../../../config/constants";
 import axios from "axios";
 import palette from "../../../assets/theme/palette";
 import { Line, Bar, Pie } from "react-chartjs-2";
-import 'chartjs-plugin-annotation';
+import "chartjs-plugin-annotation";
 
 const useStyles = makeStyles(styles);
 
@@ -440,7 +439,7 @@ export default function DeviceManagement() {
             fontColor: palette.text.secondary,
             beginAtZero: true,
             min: 0,
-            max:100
+            max: 100,
           },
           gridLines: {
             borderDash: [2],
@@ -518,7 +517,7 @@ export default function DeviceManagement() {
             <CardFooter stats>
               <p className={classes.cardCategory}>
                 {" "}
-               {/* <br />*/}
+                {/* <br />*/}
                 Solar powered
               </p>
             </CardFooter>
@@ -555,7 +554,7 @@ export default function DeviceManagement() {
               {" "}
               <p className={classes.cardCategory}>
                 {" "}
-               {/*} <br />*/}
+                {/*} <br />*/}
                 Mains Powered
               </p>
             </CardFooter>
@@ -573,36 +572,41 @@ export default function DeviceManagement() {
         </GridItem>
       </GridContainer>
 
-      <GridContainer>
-        <GridItem xs={12} sm={12} md={4}>
-          <Card>
-            <CardHeader color="primary">
-              <h4 className={classes.cardTitleWhite}>Network Uptime</h4>
-            </CardHeader>
+      <div
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          alignItems: "center",
+          justifyContent: "space-around",
+        }}
+      >
+        <div
+          className={"overview-item-container"}
+          style={{ minWidth: "550px", minHeight: "700px" }}
+        >
+          <h4 className={classes.cardTitleBlue}>Network Uptime</h4>
 
-            <CardBody>
-              <div className={classes.chartContainer}>
-                <Bar height={250} data={uptimeData} options={options_main} />
-              </div>
-            </CardBody>
+          <Card className={classes.cardBody}>
+            <div className={classes.chartContainer}>
+              <Bar height={"500px"} data={uptimeData} options={options_main} />
+            </div>
 
-            <CardFooter>
-              <div className={classes.stats}>
-                <AccessTime /> Last updated {networkUptime.created_at}
-              </div>
-            </CardFooter>
+            <div className={classes.stats}>
+              <AccessTime /> Last updated {networkUptime.created_at}
+            </div>
           </Card>
-        </GridItem>
+        </div>
 
-        <GridItem xs={12} sm={12} md={4}>
-          <Card>
-            <CardHeader color="info">
-              <h4 className={classes.cardTitle}>Online Status</h4>
-            </CardHeader>
-            <CardBody>
+        <div
+          className={"overview-item-container"}
+          style={{ minWidth: "550px", minHeight: "700px" }}
+        >
+          <h4 className={classes.cardTitleGreen}>Online Status</h4>
+          <Card className={classes.cardBody}>
+            <div className={classes.chartContainer}>
               <Pie
                 id="pie"
-                height={200}
+                height={"200px"}
                 data={{
                   labels: ["Offline", "Online"],
                   datasets: [
@@ -637,83 +641,25 @@ export default function DeviceManagement() {
                   responsive: true,
                 }}
               />
-            </CardBody>
+            </div>
             <CardFooter chart>
               <div className={classes.stats}>
                 <AccessTime /> Last updated on {onlineStatusUpdateTime}
               </div>
             </CardFooter>
           </Card>
-        </GridItem>
+        </div>
 
-        <GridItem xs={12} sm={12} md={4}>
-          <Card>
-            <CardHeader color="primary">
-              <h4 className={classes.cardTitleWhite}>
-                Offline Devices({inActiveDevicesCount})
-              </h4>
-            </CardHeader>
-            <CardBody>
-              <Table
-                tableHeaderColor="primary"
-                tableHead={["Device", "Time Offline", "Type", "Power Supply"]}
-                tableData={inActiveDevices}
-              />
-            </CardBody>
-          </Card>
-        </GridItem>
-      </GridContainer>
-      <GridContainer>
-        <GridItem xs={12} sm={12} md={6}>
-          <CustomTabs
-            title="Incident Report:"
-            headerColor="primary"
-            tabs={[
-              {
-                tabName: "Issues",
-                tabIcon: BugReport,
-                tabContent: (
-                  <TasksWithoutEdits
-                    checkedIndexes={[0]}
-                    tasksIndexes={[0, 1, 2, 3]}
-                    tasks={bugs}
-                  />
-                ),
-              },
-              {
-                tabName: "Schedule",
-                tabIcon: ScheduleIcon,
-                tabContent: (
-                  <TasksWithoutEdits
-                    checkedIndexes={[0]}
-                    tasksIndexes={[0, 1]}
-                    tasks={website}
-                  />
-                ),
-              },
-              {
-                tabName: "Alerts",
-                tabIcon: NotificationsNoneIcon,
-                tabContent: (
-                  <TasksWithoutEdits
-                    checkedIndexes={[0]}
-                    tasksIndexes={[0]}
-                    tasks={server}
-                  />
-                ),
-              },
-            ]}
-          />
-        </GridItem>
+        <div
+          className={"overview-item-container"}
+          style={{ minWidth: "550px", minHeight: "700px" }}
+        >
+          <h4 className={classes.cardTitleBlue}>Leaderboard</h4>
+          <Card className={classes.cardBody}>
+            <p className={classes.cardCategoryWhite}>
+              Best performing 5 devices on network in the past 28 days
+            </p>
 
-        <GridItem xs={12} sm={12} md={3} lg={3}>
-          <Card>
-            <CardHeader color="primary">
-              <h4 className={classes.cardTitleWhite}>Leaderboard</h4>
-              <p className={classes.cardCategoryWhite}>
-                Best performing 5 devices on network in the past 28 days
-              </p>
-            </CardHeader>
             <CardBody>
               <Table
                 tableHeaderColor="primary"
@@ -722,25 +668,178 @@ export default function DeviceManagement() {
               />
             </CardBody>
           </Card>
-        </GridItem>
-        <GridItem xs={12} sm={12} md={3} lg={3}>
-          <Card>
-            <CardHeader color="primary">
-              <h4 className={classes.cardTitleWhite}>Leaderboard</h4>
-              <p className={classes.cardCategoryWhite}>
-                Worst performing 5 devices on network in the past 28 days
-              </p>
-            </CardHeader>
-            <CardBody>
-              <Table
-                tableHeaderColor="primary"
-                tableHead={["Device Channel", "Uptime(%)", "Downtime(%)"]}
-                tableData={worstPerformingDevicesInTwentyEightDays}
-              />
-            </CardBody>
-          </Card>
-        </GridItem>
-      </GridContainer>
+        </div>
+
+      </div>
+
+      {/*<GridContainer>*/}
+      {/*  <GridItem xs={12} sm={12} md={4}>*/}
+      {/*    <Card>*/}
+      {/*      <CardHeader color="primary">*/}
+      {/*        <h4 className={classes.cardTitleWhite}>Network Uptime</h4>*/}
+      {/*      </CardHeader>*/}
+
+      {/*      <CardBody>*/}
+      {/*        <div className={classes.chartContainer}>*/}
+      {/*          <Bar height={250} data={uptimeData} options={options_main} />*/}
+      {/*        </div>*/}
+      {/*      </CardBody>*/}
+
+      {/*      <CardFooter>*/}
+      {/*        <div className={classes.stats}>*/}
+      {/*          <AccessTime /> Last updated {networkUptime.created_at}*/}
+      {/*        </div>*/}
+      {/*      </CardFooter>*/}
+      {/*    </Card>*/}
+      {/*  </GridItem>*/}
+
+      {/*  <GridItem xs={12} sm={12} md={4}>*/}
+      {/*    <Card>*/}
+      {/*      <CardHeader color="info">*/}
+      {/*        <h4 className={classes.cardTitle}>Online Status</h4>*/}
+      {/*      </CardHeader>*/}
+      {/*      <CardBody>*/}
+      {/*        <Pie*/}
+      {/*          id="pie"*/}
+      {/*          height={200}*/}
+      {/*          data={{*/}
+      {/*            labels: ["Offline", "Online"],*/}
+      {/*            datasets: [*/}
+      {/*              {*/}
+      {/*                label: "Device Status",*/}
+      {/*                data: deviceStatusValues,*/}
+      {/*                backgroundColor: ["#BCBD22", "#17BECF"],*/}
+      {/*              },*/}
+      {/*            ],*/}
+      {/*          }}*/}
+      {/*          options={{*/}
+      {/*            tooltips: {*/}
+      {/*              callbacks: {*/}
+      {/*                label: function (tooltipItem, data) {*/}
+      {/*                  var allData =*/}
+      {/*                    data.datasets[tooltipItem.datasetIndex].data;*/}
+      {/*                  var tooltipLabel = data.labels[tooltipItem.index];*/}
+      {/*                  var tooltipData = allData[tooltipItem.index];*/}
+      {/*                  var total = 0;*/}
+      {/*                  for (var i in allData) {*/}
+      {/*                    total += allData[i];*/}
+      {/*                  }*/}
+      {/*                  var tooltipPercentage = Math.round(*/}
+      {/*                    (tooltipData / total) * 100*/}
+      {/*                  );*/}
+      {/*                  return tooltipLabel + ": " + tooltipPercentage + "%";*/}
+      {/*                },*/}
+      {/*              },*/}
+      {/*            },*/}
+
+      {/*            maintainAspectRatio: true,*/}
+      {/*            responsive: true,*/}
+      {/*          }}*/}
+      {/*        />*/}
+      {/*      </CardBody>*/}
+      {/*      <CardFooter chart>*/}
+      {/*        <div className={classes.stats}>*/}
+      {/*          <AccessTime /> Last updated on {onlineStatusUpdateTime}*/}
+      {/*        </div>*/}
+      {/*      </CardFooter>*/}
+      {/*    </Card>*/}
+      {/*  </GridItem>*/}
+
+      {/*  <GridItem xs={12} sm={12} md={4}>*/}
+      {/*    <Card>*/}
+      {/*      <CardHeader color="primary">*/}
+      {/*        <h4 className={classes.cardTitleWhite}>*/}
+      {/*          Offline Devices({inActiveDevicesCount})*/}
+      {/*        </h4>*/}
+      {/*      </CardHeader>*/}
+      {/*      <CardBody>*/}
+      {/*        <Table*/}
+      {/*          tableHeaderColor="primary"*/}
+      {/*          tableHead={["Device", "Time Offline", "Type", "Power Supply"]}*/}
+      {/*          tableData={inActiveDevices}*/}
+      {/*        />*/}
+      {/*      </CardBody>*/}
+      {/*    </Card>*/}
+      {/*  </GridItem>*/}
+      {/*</GridContainer>*/}
+      {/*<GridContainer>*/}
+      {/*  <GridItem xs={12} sm={12} md={6}>*/}
+      {/*    <CustomTabs*/}
+      {/*      title="Incident Report:"*/}
+      {/*      headerColor="primary"*/}
+      {/*      tabs={[*/}
+      {/*        {*/}
+      {/*          tabName: "Issues",*/}
+      {/*          tabIcon: BugReport,*/}
+      {/*          tabContent: (*/}
+      {/*            <TasksWithoutEdits*/}
+      {/*              checkedIndexes={[0]}*/}
+      {/*              tasksIndexes={[0, 1, 2, 3]}*/}
+      {/*              tasks={bugs}*/}
+      {/*            />*/}
+      {/*          ),*/}
+      {/*        },*/}
+      {/*        {*/}
+      {/*          tabName: "Schedule",*/}
+      {/*          tabIcon: ScheduleIcon,*/}
+      {/*          tabContent: (*/}
+      {/*            <TasksWithoutEdits*/}
+      {/*              checkedIndexes={[0]}*/}
+      {/*              tasksIndexes={[0, 1]}*/}
+      {/*              tasks={website}*/}
+      {/*            />*/}
+      {/*          ),*/}
+      {/*        },*/}
+      {/*        {*/}
+      {/*          tabName: "Alerts",*/}
+      {/*          tabIcon: NotificationsNoneIcon,*/}
+      {/*          tabContent: (*/}
+      {/*            <TasksWithoutEdits*/}
+      {/*              checkedIndexes={[0]}*/}
+      {/*              tasksIndexes={[0]}*/}
+      {/*              tasks={server}*/}
+      {/*            />*/}
+      {/*          ),*/}
+      {/*        },*/}
+      {/*      ]}*/}
+      {/*    />*/}
+      {/*  </GridItem>*/}
+
+      {/*  <GridItem xs={12} sm={12} md={3} lg={3}>*/}
+      {/*    <Card>*/}
+      {/*      <CardHeader color="primary">*/}
+      {/*        <h4 className={classes.cardTitleWhite}>Leaderboard</h4>*/}
+      {/*        <p className={classes.cardCategoryWhite}>*/}
+      {/*          Best performing 5 devices on network in the past 28 days*/}
+      {/*        </p>*/}
+      {/*      </CardHeader>*/}
+      {/*      <CardBody>*/}
+      {/*        <Table*/}
+      {/*          tableHeaderColor="primary"*/}
+      {/*          tableHead={["Device Channel", "Uptime(%)", "Downtime(%)"]}*/}
+      {/*          tableData={bestPerformingDevicesInTwentyEightDays}*/}
+      {/*        />*/}
+      {/*      </CardBody>*/}
+      {/*    </Card>*/}
+      {/*  </GridItem>*/}
+        {/*<GridItem xs={12} sm={12} md={3} lg={3}>*/}
+        {/*  <Card>*/}
+        {/*    <CardHeader color="primary">*/}
+        {/*      <h4 className={classes.cardTitleWhite}>Leaderboard</h4>*/}
+        {/*      <p className={classes.cardCategoryWhite}>*/}
+        {/*        Worst performing 5 devices on network in the past 28 days*/}
+        {/*      </p>*/}
+        {/*    </CardHeader>*/}
+        {/*    <CardBody>*/}
+        {/*      <Table*/}
+        {/*        tableHeaderColor="primary"*/}
+        {/*        tableHead={["Device Channel", "Uptime(%)", "Downtime(%)"]}*/}
+        {/*        tableData={worstPerformingDevicesInTwentyEightDays}*/}
+        {/*      />*/}
+        {/*    </CardBody>*/}
+        {/*  </Card>*/}
+        {/*</GridItem>*/}
+      {/*</GridContainer>*/}
     </div>
   );
 }
