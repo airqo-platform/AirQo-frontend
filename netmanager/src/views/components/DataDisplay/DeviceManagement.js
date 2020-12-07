@@ -40,14 +40,31 @@ import {
   OnlineStatusChart,
 } from "../../variables/charts.js";
 
-import styles from "assets/jss/material-dashboard-react/views/dashboardStyle.js";
 import constants from "../../../config/constants";
 import axios from "axios";
 import palette from "../../../assets/theme/palette";
 import { Line, Bar, Pie } from "react-chartjs-2";
+
+import styles from "assets/jss/material-dashboard-react/views/dashboardStyle.js";
 import "chartjs-plugin-annotation";
+import "assets/scss/device-management.sass";
 
 const useStyles = makeStyles(styles);
+
+const OverviewCard = ({ label, icon, value }) => {
+  return (
+    <div className={"card-container"}>
+      <Card style={{ margin: 0 }}>
+        <div className={"card-title-wrapper"}>
+          <span className={"card-title-icon"}>{icon}</span>
+          <h3 className={"card-title"}>{value}</h3>
+          <div className={"card-divider"} />
+          <p className={"card-category"}>{label}</p>
+        </div>
+      </Card>
+    </div>
+  );
+};
 
 export default function DeviceManagement() {
   const [inActiveDevices, setInActiveDevices] = useState([]);
@@ -461,116 +478,59 @@ export default function DeviceManagement() {
 
   return (
     <div>
-      <GridContainer>
-        <GridItem xs={12} sm={2} md={2}>
-          <Card>
-            <CardHeader color="primary" stats icon>
-              <CardIcon color="primary">
-                <DevicesIcon />
-              </CardIcon>
-              {/* <p className={classes.cardCategory}>Devices on the network</p> */}
-              <h3 className={classes.cardTitle}>{noOfDevices}</h3>
-            </CardHeader>
-            <CardFooter stats>
-              <p className={classes.cardCategory}>Devices on the network</p>
-            </CardFooter>
-          </Card>
-        </GridItem>
-        <GridItem xs={12} sm={2} md={2}>
-          <Card>
-            <CardHeader color="primary" stats icon>
-              <CardIcon color="primary">
-                <RestoreIcon />
-              </CardIcon>
-              {/* <p className={classes.cardCategory}>Due for maintenance</p> */}
-              <h3 className={classes.cardTitle}>{noDueMaintenance}</h3>
-            </CardHeader>
-            <CardFooter stats>
-              <p className={classes.cardCategory}>Due for maintenance</p>
-            </CardFooter>
-          </Card>
-        </GridItem>
-        <GridItem xs={12} sm={2} md={2}>
-          <Card>
-            <CardHeader color="primary" stats icon>
-              <CardIcon color="primary">
-                <ReportProblem />
-              </CardIcon>
-              {/* <p className={classes.cardCategory}>Overdue for maintenance</p> */}
-              <h3 className={classes.cardTitle}>{noOverDueMaintenance}</h3>
-            </CardHeader>
-            <CardFooter stats>
-              {" "}
-              <p className={classes.cardCategory}>Overdue for maintenance</p>
-            </CardFooter>
-          </Card>
-        </GridItem>
-        <GridItem xs={12} sm={2} md={2}>
-          <Card>
-            <CardHeader color="primary" stats icon>
-              <CardIcon color="primary">
-                <WbSunnyIcon />
-              </CardIcon>
-              {/* <p className={classes.cardCategory}>Solar powered</p> */}
-              <h3 className={classes.cardTitle}> {solarPowered}</h3>
-            </CardHeader>
-            <CardFooter stats>
-              <p className={classes.cardCategory}>
-                {" "}
-                {/* <br />*/}
-                Solar powered
-              </p>
-            </CardFooter>
-          </Card>
-        </GridItem>
-        <GridItem xs={12} sm={2} md={2}>
-          <Card>
-            <CardHeader color="primary" stats icon>
-              <CardIcon color="primary">
-                <BatteryFullIcon />
-              </CardIcon>
-              {/* <p className={classes.cardCategory}>Battery powered</p> */}
-              <h3 className={classes.cardTitle}> {batteryPowered}</h3>
-            </CardHeader>
-            <CardFooter stats>
-              {" "}
-              <p className={classes.cardCategory}>
-                {" "}
-                {/*<br />*/}
-                Alternator
-              </p>
-            </CardFooter>
-          </Card>
-        </GridItem>
-        <GridItem xs={12} sm={2} md={2}>
-          <Card>
-            <CardHeader color="primary" stats icon>
-              <CardIcon color="primary">
-                <PowerIcon />
-              </CardIcon>
-              <h3 className={classes.cardTitle}>{mainPowered}</h3>
-            </CardHeader>
-            <CardFooter stats>
-              {" "}
-              <p className={classes.cardCategory}>
-                {" "}
-                {/*} <br />*/}
-                Mains Powered
-              </p>
-            </CardFooter>
-          </Card>
-        </GridItem>
-      </GridContainer>
+      <div
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          alignItems: "center",
+          justifyContent: "space-around",
+          margin: "20px 0",
+        }}
+      >
+        <OverviewCard
+          label={"Devices on the network"}
+          value={noOfDevices}
+          icon={<DevicesIcon />}
+        />
 
-      <GridContainer>
-        <GridItem xs={12} sm={12} md={12}>
-          <Card>
-            <div className={classes.mapContainer}>
-              <Map />
-            </div>
-          </Card>
-        </GridItem>
-      </GridContainer>
+        <OverviewCard
+          label={"Due for maintenance"}
+          value={noDueMaintenance}
+          icon={<RestoreIcon />}
+        />
+
+        <OverviewCard
+          label={"Overdue for maintenance"}
+          value={noOverDueMaintenance}
+          icon={<ReportProblem />}
+        />
+
+        <OverviewCard
+          label={"Solar powered"}
+          value={solarPowered}
+          icon={<WbSunnyIcon />}
+        />
+
+        <OverviewCard
+          label={"Alternator"}
+          value={batteryPowered}
+          icon={<BatteryFullIcon />}
+        />
+
+        <OverviewCard
+          label={"Mains Powered"}
+          value={mainPowered}
+          icon={<PowerIcon />}
+        />
+      </div>
+
+      <div className={"map-container"}>
+        <Card style={{ height: "100%" }}>
+          <div style={{ height: "100%" }}>
+            <Map />
+          </div>
+        </Card>
+      </div>
 
       <div
         style={{
@@ -582,13 +542,13 @@ export default function DeviceManagement() {
       >
         <div
           className={"overview-item-container"}
-          style={{ minWidth: "550px", minHeight: "700px" }}
+          style={{ minWidth: "550px" }}
         >
           <h4 className={classes.cardTitleBlue}>Network Uptime</h4>
 
           <Card className={classes.cardBody}>
             <div className={classes.chartContainer}>
-              <Bar height={"500px"} data={uptimeData} options={options_main} />
+              <Bar height={"400px"} data={uptimeData} options={options_main} />
             </div>
 
             <div className={classes.stats}>
@@ -599,14 +559,14 @@ export default function DeviceManagement() {
 
         <div
           className={"overview-item-container"}
-          style={{ minWidth: "550px", minHeight: "700px" }}
+          style={{ minWidth: "550px" }}
         >
           <h4 className={classes.cardTitleGreen}>Online Status</h4>
           <Card className={classes.cardBody}>
             <div className={classes.chartContainer}>
               <Pie
                 id="pie"
-                height={"200px"}
+                height={"162px"}
                 data={{
                   labels: ["Offline", "Online"],
                   datasets: [
@@ -652,7 +612,7 @@ export default function DeviceManagement() {
 
         <div
           className={"overview-item-container"}
-          style={{ minWidth: "550px", minHeight: "700px" }}
+          style={{ minWidth: "550px" }}
         >
           <h4 className={classes.cardTitleBlue}>Leaderboard</h4>
           <Card className={classes.cardBody}>
@@ -669,7 +629,6 @@ export default function DeviceManagement() {
             </CardBody>
           </Card>
         </div>
-
       </div>
 
       {/*<GridContainer>*/}
@@ -822,23 +781,23 @@ export default function DeviceManagement() {
       {/*      </CardBody>*/}
       {/*    </Card>*/}
       {/*  </GridItem>*/}
-        {/*<GridItem xs={12} sm={12} md={3} lg={3}>*/}
-        {/*  <Card>*/}
-        {/*    <CardHeader color="primary">*/}
-        {/*      <h4 className={classes.cardTitleWhite}>Leaderboard</h4>*/}
-        {/*      <p className={classes.cardCategoryWhite}>*/}
-        {/*        Worst performing 5 devices on network in the past 28 days*/}
-        {/*      </p>*/}
-        {/*    </CardHeader>*/}
-        {/*    <CardBody>*/}
-        {/*      <Table*/}
-        {/*        tableHeaderColor="primary"*/}
-        {/*        tableHead={["Device Channel", "Uptime(%)", "Downtime(%)"]}*/}
-        {/*        tableData={worstPerformingDevicesInTwentyEightDays}*/}
-        {/*      />*/}
-        {/*    </CardBody>*/}
-        {/*  </Card>*/}
-        {/*</GridItem>*/}
+      {/*<GridItem xs={12} sm={12} md={3} lg={3}>*/}
+      {/*  <Card>*/}
+      {/*    <CardHeader color="primary">*/}
+      {/*      <h4 className={classes.cardTitleWhite}>Leaderboard</h4>*/}
+      {/*      <p className={classes.cardCategoryWhite}>*/}
+      {/*        Worst performing 5 devices on network in the past 28 days*/}
+      {/*      </p>*/}
+      {/*    </CardHeader>*/}
+      {/*    <CardBody>*/}
+      {/*      <Table*/}
+      {/*        tableHeaderColor="primary"*/}
+      {/*        tableHead={["Device Channel", "Uptime(%)", "Downtime(%)"]}*/}
+      {/*        tableData={worstPerformingDevicesInTwentyEightDays}*/}
+      {/*      />*/}
+      {/*    </CardBody>*/}
+      {/*  </Card>*/}
+      {/*</GridItem>*/}
       {/*</GridContainer>*/}
     </div>
   );

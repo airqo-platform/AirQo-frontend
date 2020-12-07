@@ -50,6 +50,7 @@ const dashboardStyle = {
     marginBottom: "0",
   },
   cardTitle: {
+    // width:  "50%",
     color: grayColor[2],
     marginTop: "0px",
     minHeight: "auto",
@@ -62,6 +63,7 @@ const dashboardStyle = {
       fontWeight: "400",
       lineHeight: "1",
     },
+    border: "1px solid yellow",
   },
   itemContainer: {
     margin: "20px 0",
@@ -126,9 +128,6 @@ const dashboardStyle = {
   cardBody: {
     minHeight: "430px",
     margin: 0,
-  },
-  mapContainer: {
-    height: "400px",
   },
 
   leafletMarkerIcon: {
