@@ -9,7 +9,8 @@ if (localStorage.userPreference) {
 export default function (state = initialState, action) {
   switch (action.type) {
     case UPDATE_USER_PREFERENCE_SUCCESS:
-      return { ...state, ...action.payload };
+      localStorage.setItem("userPreference", JSON.stringify(action.payload));
+      return action.payload;
     default:
       return state;
   }
