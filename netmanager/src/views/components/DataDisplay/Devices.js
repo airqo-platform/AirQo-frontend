@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useDispatch } from "react-redux";
 import MaterialTable from "material-table";
 import clsx from "clsx";
@@ -28,8 +28,14 @@ import { loadDevicesData } from "redux/DeviceRegistry/operations";
 import { useDevicesData } from "redux/DeviceRegistry/selectors";
 import { useLocationsData } from "redux/LocationRegistry/selectors";
 import { loadLocationsData } from "redux/LocationRegistry/operations";
-import { generatePaginateOptions } from "utils/pagination";
+import {
+  generatePaginateOptions,
+  getPaginationOptionIndexMapper,
+  getPaginationOption,
+} from "utils/pagination";
 import { updateMainAlert } from "redux/MainAlert/operations";
+import { updateUserPreferenceData } from "redux/UserPreference/operators";
+import { useUserPreferencePaginationData } from "redux/UserPreference/selectors";
 
 const useStyles = makeStyles((theme) => ({
   root: {},
@@ -109,6 +115,14 @@ const DevicesTable = (props) => {
   const [deviceList, setDeviceList] = useState(Object.values(devices));
   const [isLoading, setIsLoading] = useState(false);
 
+  const tableRef = useRef(null);
+  const userPreferencePaginationData = useUserPreferencePaginationData();
+  const pageSizeOptions = generatePaginateOptions(deviceList.length);
+  const [defaultPageSize, setDefaultPageSize] = useState(
+    getPaginationOption(userPreferencePaginationData.devices, pageSizeOptions)
+  );
+  const pageSizeMapper = getPaginationOptionIndexMapper(pageSizeOptions);
+
   const [registerOpen, setRegisterOpen] = useState(false);
   const handleRegisterOpen = () => {
     setRegisterOpen(true);
@@ -139,6 +153,17 @@ const DevicesTable = (props) => {
   useEffect(() => {
     setDeviceList(Object.values(devices));
   }, [devices]);
+
+  useEffect(() => {
+    const newPageSize = getPaginationOption(
+      userPreferencePaginationData.devices,
+      pageSizeOptions
+    );
+    setDefaultPageSize(newPageSize);
+    if (tableRef.current) {
+      tableRef.current.dataManager.changePageSize(newPageSize);
+    }
+  }, [pageSizeOptions]);
 
   const [registerName, setRegisterName] = useState("");
   const handleRegisterNameChange = (name) => {
@@ -258,6 +283,7 @@ const DevicesTable = (props) => {
               <div className={classes.tableWrapper}>
                 <MaterialTable
                   className={classes.table}
+                  tableRef={tableRef}
                   title="Device Registry"
                   columns={[
                     {
@@ -300,11 +326,18 @@ const DevicesTable = (props) => {
                     },
                   ]}
                   data={deviceList}
+                  // key={100}
                   onRowClick={(evt, selectedRow) => {
                     const rowData = Object.values(devices)[
                       selectedRow.tableData.id
                     ];
                     history.push(`/device/${rowData.id}/overview`);
+                  }}
+                  onChangeRowsPerPage={(pageSize) => {
+                    const devices = pageSizeMapper[pageSize] || defaultPageSize;
+                    dispatch(
+                      updateUserPreferenceData("pagination", { devices })
+                    );
                   }}
                   options={{
                     search: true,
@@ -320,8 +353,8 @@ const DevicesTable = (props) => {
                       fontSize: 16,
                       fontWeight: 600,
                     },
-                    pageSizeOptions: generatePaginateOptions(deviceList.length),
-                    pageSize: 10,
+                    pageSizeOptions: pageSizeOptions,
+                    pageSize: defaultPageSize,
                   }}
                 />
               </div>
