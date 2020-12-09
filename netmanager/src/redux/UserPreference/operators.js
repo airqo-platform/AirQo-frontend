@@ -3,7 +3,7 @@ import {
   UPDATE_USER_PREFERENCE_FAILURE,
 } from "./actions";
 
-export const updateUserPreference = (preferenceKey, newValue) => (
+export const updateUserPreferenceData = (preferenceKey, newValue) => (
   dispatch,
   getState
 ) => {

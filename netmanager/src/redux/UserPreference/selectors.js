@@ -4,3 +4,7 @@ import { useSelector } from "react-redux";
 export const useUserPreferenceData = () => {
   return useSelector((state) => state.userPreference);
 };
+
+export const useUserPreferencePaginationData = () => {
+  return useSelector((state) => state.userPreference.pagination || {});
+};
