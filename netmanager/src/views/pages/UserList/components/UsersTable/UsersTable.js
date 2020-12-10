@@ -6,17 +6,9 @@ import PerfectScrollbar from "react-perfect-scrollbar";
 import { makeStyles } from "@material-ui/styles";
 import {
   Card,
-  CardActions,
   CardContent,
   Avatar,
-  Checkbox,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
   Typography,
-  TablePagination,
   Button,
   Dialog,
   DialogTitle,
@@ -28,6 +20,7 @@ import {
 
 import { Alert, AlertTitle } from "@material-ui/lab";
 import { getInitials } from "helpers";
+import CustomMaterialTable from "views/components/Table/CustomMaterialTable";
 
 
 const roles = [
@@ -136,50 +129,6 @@ const UsersTable = (props) => {
   };
 
   const classes = useStyles();
-  const [selectedUsers, setSelectedUsers] = useState([]);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [page, setPage] = useState(0);
-
-  const handleSelectAll = (event) => {
-    let selectedUsers;
-
-    if (event.target.checked) {
-      selectedUsers = users.map((user) => user._id);
-    } else {
-      selectedUsers = [];
-    }
-
-    setSelectedUsers(selectedUsers);
-  };
-
-  const handleSelectOne = (event, id) => {
-    const selectedIndex = selectedUsers.indexOf(id);
-    let newSelectedUsers = [];
-
-    if (selectedIndex === -1) {
-      newSelectedUsers = newSelectedUsers.concat(selectedUsers, id);
-    } else if (selectedIndex === 0) {
-      newSelectedUsers = newSelectedUsers.concat(selectedUsers.slice(1));
-    } else if (selectedIndex === selectedUsers.length - 1) {
-      newSelectedUsers = newSelectedUsers.concat(selectedUsers.slice(0, -1));
-    } else if (selectedIndex > 0) {
-      newSelectedUsers = newSelectedUsers.concat(
-        selectedUsers.slice(0, selectedIndex),
-        selectedUsers.slice(selectedIndex + 1)
-      );
-    }
-
-    setSelectedUsers(newSelectedUsers);
-  };
-
-  const handlePageChange = (event, page) => {
-    setPage(page);
-  };
-
-  const handleRowsPerPageChange = (event) => {
-    setRowsPerPage(event.target.value);
-  };
-  //
 
   useEffect(() => {
     props.fetchUsers();
@@ -201,98 +150,70 @@ const UsersTable = (props) => {
       <CardContent className={classes.content}>
         <PerfectScrollbar>
           <div className={classes.inner}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell padding="checkbox">
-                    <Checkbox
-                      checked={selectedUsers.length === users.length}
-                      color="primary"
-                      indeterminate={
-                        selectedUsers.length > 0 &&
-                        selectedUsers.length < users.length
-                      }
-                      onChange={handleSelectAll}
-                    />
-                  </TableCell>
-                  <TableCell>Full Name</TableCell>
-                  <TableCell>email</TableCell>
-                  <TableCell>Username</TableCell>
-                  <TableCell>Role</TableCell>
-                  <TableCell>Action</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {/* this is where we iterate the users array */}
-                {users.slice(0, rowsPerPage).map((user) => (
-                  <TableRow
-                    className={classes.tableRow}
-                    hover
-                    key={user._id}
-                    selected={selectedUsers.indexOf(user.firstName) !== -1}
-                  >
-                    <TableCell padding="checkbox">
-                      <Checkbox
-                        checked={selectedUsers.indexOf(user._id) !== -1}
-                        color="primary"
-                        onChange={(event) => handleSelectOne(event, user._id)}
-                        value="true"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <div className={classes.nameContainer}>
-                        <Avatar className={classes.avatar} src={user.profilePicture}>
-                          {getInitials(
-                            `${user.firstName + " " + user.lastName}`
-                          )}
-                        </Avatar>
-                        <Typography variant="body1">
-                          {" "}
-                          {user.firstName + " " + user.lastName}
-                        </Typography>
-                      </div>
-                    </TableCell>
-                    <TableCell>{user.email}</TableCell>
-                    {/* <TableCell>
-                      {moment(user.createdAt).format('DD/MM/YYYY')}
-                    </TableCell> */}
-                    <TableCell>{user.userName}</TableCell>
-                    <TableCell>{user.privilege}</TableCell>
-                    <TableCell>
-                      <Button
-                        color="primary"
-                        onClick={() => showEditDialog(user)}
-                      >
-                        Update
-                      </Button>{" "}
-                      |
-                      <Button onClick={() => showDeleteDialog(user)}>
-                        Delete
-                      </Button>{" "}
-                      {/* |
-                      <Button onClick={() => showConfirmDialog(user)}>
-                        Confirm
-                      </Button> */}
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {/* the map ends here */}
-              </TableBody>
-            </Table>
+            <CustomMaterialTable
+                title={"Users"}
+                userPreferencePaginationKey={"users"}
+                data={users}
+                columns={[
+                  {
+                    title: "Full Name",
+                    render: (rowData) => {
+                      return (
+                          <div className={classes.nameContainer}>
+                            <Avatar className={classes.avatar} src={rowData.profilePicture}>
+                              {getInitials(
+                                `${rowData.firstName + " " + rowData.lastName}`
+                              )}
+                            </Avatar>
+                            <Typography variant="body1">
+                              {" "}
+                              {rowData.firstName + " " + rowData.lastName}
+                            </Typography>
+                          </div>
+                      )
+                    }
+                  },
+                  {
+                    title: "Email",
+                    field: "email",
+                  },
+                  {
+                    title: "Username",
+                    field: "userName",
+                  },
+                  {
+                    title: "Role",
+                    field: "privilege",
+                  },
+                  {
+                    title: "Action",
+                    render: (user) => {
+                      return (
+                          <div>
+                          <Button
+                            color="primary"
+                            onClick={() => showEditDialog(user)}
+                          >
+                            Update
+                          </Button>
+                          |
+                          <Button onClick={() => showDeleteDialog(user)}>
+                            Delete
+                          </Button>
+                          </div>
+                      )
+                    }
+                  }
+                ]}
+                options={{
+                  search: true,
+                  searchFieldAlignment: "left",
+                  showTitle: false,
+                }}
+            />
           </div>
         </PerfectScrollbar>
       </CardContent>
-      <CardActions className={classes.actions}>
-        <TablePagination
-          component="div"
-          count={users.length}
-          onChangePage={handlePageChange}
-          onChangeRowsPerPage={handleRowsPerPageChange}
-          page={page}
-          rowsPerPage={rowsPerPage}
-          rowsPerPageOptions={[5, 10, 25]}
-        />
-      </CardActions>
 
       {/*************************** the edit dialog **********************************************/}
       {editUser &&
