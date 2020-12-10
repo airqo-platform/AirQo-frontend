@@ -28,14 +28,8 @@ import { loadDevicesData } from "redux/DeviceRegistry/operations";
 import { useDevicesData } from "redux/DeviceRegistry/selectors";
 import { useLocationsData } from "redux/LocationRegistry/selectors";
 import { loadLocationsData } from "redux/LocationRegistry/operations";
-import {
-  generatePaginateOptions,
-  getPaginationOptionIndexMapper,
-  getPaginationOption,
-} from "utils/pagination";
 import { updateMainAlert } from "redux/MainAlert/operations";
-import { updateUserPreferenceData } from "redux/UserPreference/operators";
-import { useUserPreferencePaginationData } from "redux/UserPreference/selectors";
+import CustomMaterialTable from "../Table/CustomMaterialTable";
 
 const useStyles = makeStyles((theme) => ({
   root: {},
@@ -104,6 +98,64 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+function appendLeadingZeroes(n) {
+  if (n <= 9) {
+    return "0" + n;
+  }
+  return n;
+}
+
+let formatDate = (date) => {
+  let time =
+    appendLeadingZeroes(date.getDate()) +
+    "-" +
+    appendLeadingZeroes(date.getMonth() + 1) +
+    "-" +
+    date.getFullYear();
+
+  return time;
+};
+
+const deviceColumns = [
+  {
+    title: "Device Name",
+    field: "name",
+    cellStyle: { fontFamily: "Open Sans" },
+  },
+  {
+    title: "Description",
+    field: "description",
+    cellStyle: { fontFamily: "Open Sans" },
+  },
+  {
+    title: "Device ID",
+    field: "channelID",
+    cellStyle: { fontFamily: "Open Sans" },
+  }, //should be channel ID
+  {
+    title: "Registration Date",
+    field: "createdAt",
+    cellStyle: { fontFamily: "Open Sans" },
+    render: (rowData) => formatDate(new Date(rowData.createdAt)),
+  },
+  {
+    title: "Deployment status",
+    field: "isActive",
+    cellStyle: { fontFamily: "Open Sans" },
+    render: (rowData) =>
+      rowData.isActive ? (
+        <span style={{ color: "green" }}>Deployed</span>
+      ) : (
+        <span style={{ color: "red" }}>Not Deployed</span>
+      ),
+  },
+  {
+    title: "Location ID",
+    field: "locationID",
+    cellStyle: { fontFamily: "Open Sans" },
+  },
+];
+
 const DevicesTable = (props) => {
   const { className, users, ...rest } = props;
   const classes = useStyles();
@@ -114,14 +166,6 @@ const DevicesTable = (props) => {
   const locations = useLocationsData();
   const [deviceList, setDeviceList] = useState(Object.values(devices));
   const [isLoading, setIsLoading] = useState(false);
-
-  const tableRef = useRef(null);
-  const userPreferencePaginationData = useUserPreferencePaginationData();
-  const pageSizeOptions = generatePaginateOptions(deviceList.length);
-  const [defaultPageSize, setDefaultPageSize] = useState(
-    getPaginationOption(userPreferencePaginationData.devices, pageSizeOptions)
-  );
-  const pageSizeMapper = getPaginationOptionIndexMapper(pageSizeOptions);
 
   const [registerOpen, setRegisterOpen] = useState(false);
   const handleRegisterOpen = () => {
@@ -153,17 +197,6 @@ const DevicesTable = (props) => {
   useEffect(() => {
     setDeviceList(Object.values(devices));
   }, [devices]);
-
-  useEffect(() => {
-    const newPageSize = getPaginationOption(
-      userPreferencePaginationData.devices,
-      pageSizeOptions
-    );
-    setDefaultPageSize(newPageSize);
-    if (tableRef.current) {
-      tableRef.current.dataManager.changePageSize(newPageSize);
-    }
-  }, [pageSizeOptions]);
 
   const [registerName, setRegisterName] = useState("");
   const handleRegisterNameChange = (name) => {
@@ -200,24 +233,6 @@ const DevicesTable = (props) => {
     if (re.test(event.target.value)) {
       setPhone(event.target.value);
     }
-  };
-
-  function appendLeadingZeroes(n) {
-    if (n <= 9) {
-      return "0" + n;
-    }
-    return n;
-  }
-
-  let formatDate = (date) => {
-    let time =
-      appendLeadingZeroes(date.getDate()) +
-      "-" +
-      appendLeadingZeroes(date.getMonth() + 1) +
-      "-" +
-      date.getFullYear();
-
-    return time;
   };
 
   let handleRegisterSubmit = (e) => {
@@ -281,63 +296,17 @@ const DevicesTable = (props) => {
           <CardContent className={classes.content}>
             <PerfectScrollbar>
               <div className={classes.tableWrapper}>
-                <MaterialTable
+                <CustomMaterialTable
                   className={classes.table}
-                  tableRef={tableRef}
                   title="Device Registry"
-                  columns={[
-                    {
-                      title: "Device Name",
-                      field: "name",
-                      cellStyle: { fontFamily: "Open Sans" },
-                    },
-                    {
-                      title: "Description",
-                      field: "description",
-                      cellStyle: { fontFamily: "Open Sans" },
-                    },
-                    {
-                      title: "Device ID",
-                      field: "channelID",
-                      cellStyle: { fontFamily: "Open Sans" },
-                    }, //should be channel ID
-                    {
-                      title: "Registration Date",
-                      field: "createdAt",
-                      cellStyle: { fontFamily: "Open Sans" },
-                      render: (rowData) =>
-                        formatDate(new Date(rowData.createdAt)),
-                    },
-                    {
-                      title: "Deployment status",
-                      field: "isActive",
-                      cellStyle: { fontFamily: "Open Sans" },
-                      render: (rowData) =>
-                        rowData.isActive ? (
-                          <span style={{ color: "green" }}>Deployed</span>
-                        ) : (
-                          <span style={{ color: "red" }}>Not Deployed</span>
-                        ),
-                    },
-                    {
-                      title: "Location ID",
-                      field: "locationID",
-                      cellStyle: { fontFamily: "Open Sans" },
-                    },
-                  ]}
+                  userPreferencePaginationKey={"devices"}
+                  columns={deviceColumns}
                   data={deviceList}
-                  // key={100}
                   onRowClick={(evt, selectedRow) => {
                     const rowData = Object.values(devices)[
                       selectedRow.tableData.id
                     ];
                     history.push(`/device/${rowData.id}/overview`);
-                  }}
-                  onChangeRowsPerPage={(pageSize) => {
-                    const devices = pageSizeMapper[pageSize] || defaultPageSize;
-                    dispatch(
-                      updateUserPreferenceData("pagination", { devices })
-                    );
                   }}
                   options={{
                     search: true,
@@ -353,8 +322,6 @@ const DevicesTable = (props) => {
                       fontSize: 16,
                       fontWeight: 600,
                     },
-                    pageSizeOptions: pageSizeOptions,
-                    pageSize: defaultPageSize,
                   }}
                 />
               </div>
