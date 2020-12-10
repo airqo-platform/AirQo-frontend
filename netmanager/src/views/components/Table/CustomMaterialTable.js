@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useDispatch } from "react-redux";
+import { makeStyles } from "@material-ui/styles";
 import MaterialTable from "material-table";
+import PropTypes from "prop-types";
 import { useUserPreferencePaginationData } from "redux/UserPreference/selectors";
 import {
   generatePaginateOptions,
@@ -9,12 +11,25 @@ import {
 } from "utils/pagination";
 import { updateUserPreferenceData } from "redux/UserPreference/operators";
 
-export default function ({
+const useStyles = makeStyles((theme) => ({
+  tableWrapper: {
+    "& tbody>.MuiTableRow-root:hover": {
+      background: "#EEE",
+    },
+  },
+  cursorPointer: {
+    cursor: "pointer",
+  },
+}));
+
+export default function CustomMaterialTable({
   className,
   style,
   userPreferencePaginationKey,
+  pointerCursor,
   ...props
 }) {
+  const classes = useStyles();
   const dispatch = useDispatch();
   const tableRef = useRef(null);
   const userPreferencePaginationData = useUserPreferencePaginationData();
@@ -56,8 +71,23 @@ export default function ({
     },
   };
   return (
-    <div className={className || ""} style={style || {}}>
+    <div
+      className={
+        className ||
+        `${classes.tableWrapper} ${pointerCursor ? classes.cursorPointer : ""}`
+      }
+      style={style || {}}
+    >
       <MaterialTable {...props} />
     </div>
   );
+}
+
+CustomMaterialTable.propTypes = {
+  className: PropTypes.string,
+  style: PropTypes.object,
+  userPreferencePaginationKey: PropTypes.string,
+  pointerCursor: PropTypes.bool,
+  data: PropTypes.array,
+  options: PropTypes.object,
 }
