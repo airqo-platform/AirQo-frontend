@@ -17,9 +17,15 @@ import Map from "./Map/Map";
 import constants from "../../../config/constants";
 import axios from "axios";
 import palette from "../../../assets/theme/palette";
-import { Bar, Pie } from "react-chartjs-2";
-import { useDevicesStatusData } from "redux/DeviceManagement/selectors";
-import { loadDevicesStatusData } from "redux/DeviceManagement/operations";
+import { Line, Pie } from "react-chartjs-2";
+import {
+  useDevicesStatusData,
+  useNetworkUptimeData,
+} from "redux/DeviceManagement/selectors";
+import {
+  loadDevicesStatusData,
+  loadNetworkUptimeData,
+} from "redux/DeviceManagement/operations";
 
 import styles from "assets/jss/material-dashboard-react/views/dashboardStyle.js";
 import "chartjs-plugin-annotation";
@@ -43,7 +49,9 @@ const OverviewCard = ({ label, icon, value }) => {
 };
 
 export default function DeviceManagement() {
+  const classes = useStyles();
   const devicesStatusData = useDevicesStatusData();
+  const networkUptimeData = useNetworkUptimeData();
   const dispatch = useDispatch();
   const [solarPowered, setSolarPowered] = useState(0);
   const [batteryPowered, setBatteryPowered] = useState(0);
@@ -51,12 +59,34 @@ export default function DeviceManagement() {
   const [noDueMaintenance, setNoDueMaintenance] = useState(0);
   const [noOverDueMaintenance, setNoOverDueMaintenance] = useState(0);
   const [pieChartStatusValues, setPieChartStatusValues] = useState([]);
+  const [networkUptimeLineValues, setNetworkUptimeLineValues] = useState([
+    [],
+    [],
+  ]);
 
   useEffect(() => {
     if (isEmpty(devicesStatusData)) {
       dispatch(loadDevicesStatusData());
     }
+    if (isEmpty(networkUptimeData)) {
+      dispatch(loadNetworkUptimeData(28));
+    }
   }, []);
+
+  useEffect(() => {
+    let label = [];
+    let values = [];
+    if (isEmpty(networkUptimeData)) {
+      return;
+    }
+
+    networkUptimeData.map((val) => {
+      label.push(val.created_at.split("T")[0]);
+      values.push(parseFloat(val.uptime).toFixed(2));
+    });
+
+    setNetworkUptimeLineValues([label, values]);
+  }, [networkUptimeData]);
 
   useEffect(() => {
     let dueMaintenance = 0;
@@ -101,23 +131,12 @@ export default function DeviceManagement() {
     ]);
   }, [devicesStatusData]);
 
-  const classes = useStyles();
-
-  const [networkUptime, setNetworkUptime] = useState([]);
-
-  useEffect(() => {
-    axios.get(constants.GET_NETWORK_UPTIME).then(({ data }) => {
-      console.log(data);
-      setNetworkUptime(data);
-    });
-  }, []);
-
   const uptimeData = {
-    labels: networkUptime.uptime_labels,
+    labels: networkUptimeLineValues[0],
     datasets: [
       {
         label: "Network Uptime",
-        data: networkUptime.uptime_values,
+        data: networkUptimeLineValues[1],
         fill: false,
         borderColor: palette.primary.main,
         backgroundColor: "#BCBD22",
@@ -125,27 +144,7 @@ export default function DeviceManagement() {
     ],
   };
 
-  const options_main = {
-    annotation: {
-      annotations: [
-        {
-          type: "line",
-          mode: "horizontal",
-          scaleID: "y-axis-0",
-          value: 80,
-          borderColor: palette.text.secondary,
-          borderWidth: 2,
-          label: {
-            enabled: true,
-            content: "Threshold",
-            //backgroundColor: palette.white,
-            titleFontColor: palette.text.primary,
-            bodyFontColor: palette.text.primary,
-            position: "right",
-          },
-        },
-      ],
-    },
+  const optionsNetworkUptime = {
     responsive: true,
     maintainAspectRatio: false,
     animation: false,
@@ -179,7 +178,7 @@ export default function DeviceManagement() {
           },
           scaleLabel: {
             display: true,
-            labelString: "Time Periods",
+            labelString: "Date",
           },
         },
       ],
@@ -189,7 +188,6 @@ export default function DeviceManagement() {
             fontColor: palette.text.secondary,
             beginAtZero: true,
             min: 0,
-            max: 100,
           },
           gridLines: {
             borderDash: [2],
@@ -202,7 +200,7 @@ export default function DeviceManagement() {
           },
           scaleLabel: {
             display: true,
-            labelString: "Uptime(%)",
+            labelString: "Battery Voltage",
           },
         },
       ],
@@ -281,11 +279,16 @@ export default function DeviceManagement() {
 
           <Card className={classes.cardBody}>
             <div className={classes.chartContainer}>
-              <Bar height={"400px"} data={uptimeData} options={options_main} />
+              <Line
+                height={"400px"}
+                data={uptimeData}
+                options={optionsNetworkUptime}
+              />
             </div>
 
             <div className={classes.stats}>
-              <AccessTime /> Last updated {networkUptime.created_at}
+              <AccessTime /> Last updated{" "}
+              {networkUptimeData.length > 0 && networkUptimeData[0].created_at}
             </div>
           </Card>
         </div>
