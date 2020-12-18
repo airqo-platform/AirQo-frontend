@@ -68,8 +68,7 @@ const prodConfig = {
     "http://34.78.78.202:30006/api/v1/monitor/network/devices/bestperforming",
   GET_NETWORK_WORST_PERFORMING_DEVICES:
     "http://34.78.78.202:30006/api/v1/monitor/network/devices/worstperforming",
-  ALL_DEVICES_STATUS:
-    "http://34.78.78.202:30006/api/v1/monitor/network/devices/status",
+  ALL_DEVICES_STATUS: "http://34.78.78.202:30006/api/v1/monitor/devices/status",
   ADD_COMPONENT_URI:
     "http://34.78.78.202:30002/api/v1/devices/add/components?device=",
   GET_ONLINE_OFFLINE_MAINTENANCE_STATUS:
@@ -176,8 +175,7 @@ const devConfig = {
     "http://localhost:4001/api/v1/monitor/devices/offline",
   GET_NETWORK_UPTIME: "http://localhost:4001/api/v1/monitor/network/uptime",
   GET_DEVICE_UPTIME: "http://localhost:4001/api/v1/monitor/device/uptime",
-  ALL_DEVICES_STATUS:
-    "http://localhost:4001/api/v1/monitor/network/devices/status",
+  ALL_DEVICES_STATUS: "http://localhost:4001/api/v1/monitor/devices/status",
   GET_DEVICE_BATTERY_VOLTAGE:
     "http://127.0.0.1:4001/api/v1/monitor/device/batteryvoltage",
   GET_DEVICE_SENSOR_CORRELATION:
@@ -263,8 +261,7 @@ const stageConfig = {
     "http://34.78.78.202:31006/api/v1/monitor/device/maintenance_logs/",
   GET_DEVICE_POWER_TYPE:
     "http://34.78.78.202:31006/api/v1/monitor/device/power_type",
-  ALL_DEVICES_STATUS:
-    "http://34.78.78.202:31006/api/v1/monitor/network/devices/status",
+  ALL_DEVICES_STATUS: "http://34.78.78.202:31006/api/v1/monitor/devices/status",
   GET_DEVICE_STATUS_FOR_PIECHART_DISPLAY:
     "http://34.78.78.202:31006/api/v1/monitor/device/status/latest",
   GET_LATEST_OFFLINE_DEVICES:
