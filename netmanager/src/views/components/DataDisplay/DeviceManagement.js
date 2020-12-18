@@ -1,49 +1,25 @@
 import React, { useState, useEffect } from "react";
-// react plugin for creating charts
-import ChartistGraph from "react-chartist";
-// @material-ui/core
+import { useDispatch } from "react-redux";
 import { makeStyles } from "@material-ui/core/styles";
-import Icon from "@material-ui/core/Icon";
-// @material-ui/icons
 import DevicesIcon from "@material-ui/icons/Devices";
 import ReportProblem from "@material-ui/icons/ReportProblem";
 import BatteryFullIcon from "@material-ui/icons/BatteryFull";
 import AccessTime from "@material-ui/icons/AccessTime";
-import BugReport from "@material-ui/icons/BugReport";
-import Code from "@material-ui/icons/Code";
-import Cloud from "@material-ui/icons/Cloud";
 import RestoreIcon from "@material-ui/icons/Restore";
 import WbSunnyIcon from "@material-ui/icons/WbSunny";
 import PowerIcon from "@material-ui/icons/Power";
-import NotificationsNoneIcon from "@material-ui/icons/NotificationsNone";
-import ScheduleIcon from "@material-ui/icons/Schedule";
-import TasksWithoutEdits from "../Tasks/TasksWithoutEdits";
-// core components
-import GridItem from "../Grid/GridItem.js";
-import GridContainer from "../Grid/GridContainer.js";
 import Table from "../Table/Table.js";
-import Tasks from "../Tasks/Tasks.js";
-import CustomTabs from "../CustomTabs/CustomTabs";
 import Card from "../Card/Card.js";
-import CardHeader from "../Card/CardHeader.js";
-import CardIcon from "../Card/CardIcon.js";
 import CardBody from "../Card/CardBody.js";
 import CardFooter from "../Card/CardFooter.js";
+import { isEmpty } from "underscore";
 import Map from "./Map/Map";
-
-import { bugs, website, server } from "../../variables/general.js";
-
-import {
-  dailySalesChart,
-  emailsSubscriptionChart,
-  completedTasksChart,
-  OnlineStatusChart,
-} from "../../variables/charts.js";
-
 import constants from "../../../config/constants";
 import axios from "axios";
 import palette from "../../../assets/theme/palette";
-import { Line, Bar, Pie } from "react-chartjs-2";
+import { Bar, Pie } from "react-chartjs-2";
+import { useDevicesStatusData } from "redux/DeviceManagement/selectors";
+import { loadDevicesStatusData } from "redux/DeviceManagement/operations";
 
 import styles from "assets/jss/material-dashboard-react/views/dashboardStyle.js";
 import "chartjs-plugin-annotation";
@@ -67,308 +43,65 @@ const OverviewCard = ({ label, icon, value }) => {
 };
 
 export default function DeviceManagement() {
-  const [inActiveDevices, setInActiveDevices] = useState([]);
-  const [inActiveDevicesCount, setInActiveDevicesCount] = useState(0);
-
-  useEffect(() => {
-    axios.get(constants.GET_LATEST_OFFLINE_DEVICES).then(({ data }) => {
-      console.log(data);
-
-      let devices = data.map((x) => [
-        x["name"],
-        x["time_offline"],
-        x["mobility"],
-        x["power"],
-      ]);
-      setInActiveDevices(devices.slice(2, 7));
-      setInActiveDevicesCount(data.length);
-    });
-  }, []);
-
-  const [
-    worstPerformingDevicesInTwentyFourHours,
-    setWorstPerformingDevicesInTwentyFourHours,
-  ] = useState([]);
-  const [
-    worstPerformingDevicesAllTime,
-    setWorstPerformingDevicesAllTime,
-  ] = useState([]);
-  const [
-    worstPerformingDevicesInTwentyEightDays,
-    setWorstPerformingDevicesInTwentyEightDays,
-  ] = useState([]);
-  const [
-    worstPerformingDevicesInTwelveMonths,
-    setWorstPerformingInTwelveMonths,
-  ] = useState([]);
-  const [
-    worstPerformingDevicesInSevenDays,
-    setWorstPerformingDevicesInSevenDays,
-  ] = useState([]);
-  useEffect(() => {
-    axios
-      .get(constants.GET_NETWORK_WORST_PERFORMING_DEVICES)
-      .then(({ data }) => {
-        console.log(data);
-        let twenty_four_data = data["24 hours"];
-        let all_time_data = data["all time"];
-        let seven_days_data = data["7 days"];
-        let twenty_eight_days_data = data["28 days"];
-        let twelve_months_data = data["12 months"];
-
-        let devicesSevenDays = seven_days_data.map((x) => [
-          x["device_channel_id"],
-          x["device_uptime_in_percentage"],
-          x["device_downtime_in_percentage"],
-        ]);
-        setWorstPerformingDevicesInSevenDays(devicesSevenDays.slice(0, 5));
-
-        let devices_all_time = all_time_data.map((x) => [
-          x["device_channel_id"],
-          x["device_uptime_in_percentage"],
-          x["device_downtime_in_percentage"],
-        ]);
-        setWorstPerformingDevicesAllTime(devices_all_time.slice(0, 5));
-
-        let devicesTwentyFourHour = twenty_four_data.map((x) => [
-          x["device_channel_id"],
-          x["device_uptime_in_percentage"],
-          x["device_downtime_in_percentage"],
-        ]);
-        setWorstPerformingDevicesInTwentyFourHours(
-          devicesTwentyFourHour.slice(0, 5)
-        );
-
-        let devicesTwentyEightDays = twenty_eight_days_data.map((x) => [
-          x["device_channel_id"],
-          x["device_uptime_in_percentage"],
-          x["device_downtime_in_percentage"],
-        ]);
-        setWorstPerformingDevicesInTwentyEightDays(
-          devicesTwentyEightDays.slice(0, 5)
-        );
-
-        let devicesTwelveMonths = twelve_months_data.map((x) => [
-          x["device_channel_id"],
-          x["device_uptime_in_percentage"],
-          x["device_downtime_in_percentage"],
-        ]);
-        setWorstPerformingInTwelveMonths(devicesTwelveMonths.slice(0, 5));
-      });
-  }, []);
-
-  const [
-    bestPerformingDevicesInTwentyFourHours,
-    setBestPerformingDevicesInTwentyFourHours,
-  ] = useState([]);
-  const [
-    bestPerformingDevicesAllTime,
-    setBestPerformingDevicesAllTime,
-  ] = useState([]);
-  const [
-    bestPerformingDevicesInTwentyEightDays,
-    setBestPerformingDevicesInTwentyEightDays,
-  ] = useState([]);
-  const [
-    bestPerformingDevicesInTwelveMonths,
-    setBestPerformingInTwelveMonths,
-  ] = useState([]);
-  const [
-    bestPerformingDevicesInSevenDays,
-    setBestPerformingDevicesInSevenDays,
-  ] = useState([]);
-
-  useEffect(() => {
-    axios
-      .get(constants.GET_NETWORK_BEST_PERFORMING_DEVICES)
-      .then(({ data }) => {
-        console.log(data);
-        let twenty_four_data = data["24 hours"];
-        let all_time_data = data["all time"];
-        let seven_days_data = data["7 days"];
-        let twenty_eight_days_data = data["28 days"];
-        let twelve_months_data = data["12 months"];
-
-        let devicesSevenDays = seven_days_data.map((x) => [
-          x["device_channel_id"],
-          x["device_uptime_in_percentage"],
-          x["device_downtime_in_percentage"],
-        ]);
-        setBestPerformingDevicesInSevenDays(devicesSevenDays.slice(0, 5));
-
-        let devices_all_time = all_time_data.map((x) => [
-          x["device_channel_id"],
-          x["device_uptime_in_percentage"],
-          x["device_downtime_in_percentage"],
-        ]);
-        setBestPerformingDevicesAllTime(devices_all_time.slice(0, 5));
-
-        let devicesTwentyFourHour = twenty_four_data.map((x) => [
-          x["device_channel_id"],
-          x["device_uptime_in_percentage"],
-          x["device_downtime_in_percentage"],
-        ]);
-        setBestPerformingDevicesInTwentyFourHours(
-          devicesTwentyFourHour.slice(0, 5)
-        );
-
-        let devicesTwentyEightDays = twenty_eight_days_data.map((x) => [
-          x["device_channel_id"],
-          x["device_uptime_in_percentage"],
-          x["device_downtime_in_percentage"],
-        ]);
-        setBestPerformingDevicesInTwentyEightDays(
-          devicesTwentyEightDays.slice(0, 5)
-        );
-
-        let devicesTwelveMonths = twelve_months_data.map((x) => [
-          x["device_channel_id"],
-          x["device_uptime_in_percentage"],
-          x["device_downtime_in_percentage"],
-        ]);
-        setBestPerformingInTwelveMonths(devicesTwelveMonths.slice(0, 5));
-      });
-  }, []);
-
-  const [onlineStatusUpdateTime, setOnlineStatusUpdateTime] = useState();
-  const [onlineStatusChart, setOnlineStatusChart] = useState({
-    data: {},
-    options: {},
-  });
-  const [deviceStatusValues, setDeviceStatusValues] = useState([]);
-
-  useEffect(() => {
-    axios
-      .get(constants.GET_DEVICE_STATUS_FOR_PIECHART_DISPLAY)
-      .then(({ data }) => {
-        console.log("data values");
-        console.log(data);
-        console.log("offline:" + data["data"]["offline_devices_percentage"]);
-        console.log("online:" + data["data"]["online_devices_percentage"]);
-
-        setDeviceStatusValues([
-          data["data"]["offline_devices_percentage"],
-          data["data"]["online_devices_percentage"],
-        ]);
-        let onlineStatusChartData = {
-          data: {
-            series: [
-              data["data"]["offline_devices_percentage"],
-              data["data"]["online_devices_percentage"],
-            ],
-            //labels: ['Offline', 'Online']
-          },
-          options: {
-            donut: true,
-            donutWidth: 60,
-            donutSolid: true,
-            startAngle: 270,
-            showLabel: true,
-          },
-        };
-        setOnlineStatusChart(onlineStatusChartData);
-        setOnlineStatusUpdateTime(data["data"]["created_at"]);
-        console.log(onlineStatusChartData);
-      });
-  }, []);
-
-  //set states for storing device status
-  const [deviceStatusSummary, setStatusSummary] = useState();
-  const [noOfDevices, setNoOfDevices] = useState(0);
+  const devicesStatusData = useDevicesStatusData();
+  const dispatch = useDispatch();
   const [solarPowered, setSolarPowered] = useState(0);
   const [batteryPowered, setBatteryPowered] = useState(0);
   const [mainPowered, setMainPowered] = useState(0);
   const [noDueMaintenance, setNoDueMaintenance] = useState(0);
   const [noOverDueMaintenance, setNoOverDueMaintenance] = useState(0);
-
-  //const [noOfDevicesTS, setNoOfDevicesTS] = useState(0); //TS= ThinkSpeak
-
-  const classes = useStyles();
+  const [pieChartStatusValues, setPieChartStatusValues] = useState([]);
 
   useEffect(() => {
-    // get total number of devices on the network
-    axios.get(constants.GET_DEVICE_STATUS_SUMMARY).then(({ data }) => {
-      //console.log(data[0].loc_power_suppy);
-      let no_devices = 0;
-      data.map((item) => {
-        //Priscilla added array to data- Daniel needs to cross check why api is not returning array
-        no_devices++;
-      });
-      setStatusSummary(data);
-      setNoOfDevices(no_devices);
-    });
-
-    // get total number of devices on solar power or main power
-    axios.get(constants.GET_DEVICE_POWER_TYPE).then(({ data }) => {
-      //console.log(data[0].loc_power_suppy);
-      let no_solar = 0,
-        no_main = 0,
-        no_battery = 0;
-      data.map((item) => {
-        if (item.power == "Solar") {
-          no_solar = no_solar + 1;
-        }
-        if (item.power == "Mains") {
-          no_main = no_main + 1;
-        }
-        if (item.power == "Battery") {
-          no_battery = no_battery + 1;
-        }
-      });
-
-      setSolarPowered(no_solar);
-      setMainPowered(no_main);
-      setBatteryPowered(no_battery);
-    });
-
-    // get number of devices due for maintenance,
-    // look for the nextMaintenance field in devices collection
-    // device is due for maintenance, 1 day, 1 week to nextMaintenance date
-    axios.get(constants.GET_DEVICE_STATUS_SUMMARY).then(({ data }) => {
-      let due_maintenance = 0;
-      let overdue_maintenance = 0;
-
-      data.map((item) => {
-        //Priscilla added array to data- Daniel needs to cross check why api is not returning array
-        let nextMaintenance = item.nextMaintenance;
-        // next maintenance === "" assume overdue for maintenance
-        if (nextMaintenance == "") {
-          overdue_maintenance = overdue_maintenance + 1;
-        } else {
-          let nextMain = new Date(nextMaintenance);
-          let current_date = new Date();
-          let difference_in_time = nextMain.getTime() - current_date.getTime();
-          let difference_in_days = difference_in_time / (1000 * 3600 * 24);
-          console.log(
-            "Next: " + nextMain,
-            " Current: " + current_date,
-            " days: " + difference_in_days
-          );
-
-          // 1. logic for overdue maintenance goes here
-          if (difference_in_days <= 0) {
-            // took two months without maintenance activity
-            overdue_maintenance = overdue_maintenance + 1;
-          }
-
-          // 1. logic for due maintenance goes here
-          // 2 weeks to maintenance date
-          if (difference_in_days > 0 && difference_in_days < 16) {
-            due_maintenance = due_maintenance + 1;
-          }
-        }
-      });
-
-      setNoDueMaintenance(due_maintenance);
-      setNoOverDueMaintenance(overdue_maintenance);
-    });
-
-    //axios.get(constants.GET_TOTAL_DEVICES).then(({ data }) => {
-    // getting total number of devices directly from thinkspeak
-    //console.log(data.count);
-    // setNoOfDevicesTS(data.count);
-    //});
+    if (isEmpty(devicesStatusData)) {
+      dispatch(loadDevicesStatusData());
+    }
   }, []);
+
+  useEffect(() => {
+    let dueMaintenance = 0;
+    let overDueMaintenance = 0;
+    let mains = 0;
+    let battery = 0;
+    let solar = 0;
+    if (isEmpty(devicesStatusData)) {
+      return;
+    }
+    [
+      ...devicesStatusData.online_devices,
+      ...devicesStatusData.offline_devices,
+    ].map((device) => {
+      if (device.maintenance_status === "overdue") {
+        overDueMaintenance += 1;
+      }
+      if (device.maintenance_status === "due") {
+        dueMaintenance += 1;
+      }
+      if ((device.power || device.powerType || "").toLowerCase() === "mains") {
+        mains += 1;
+      }
+      if ((device.power || device.powerType || "").toLowerCase() === "solar") {
+        solar += 1;
+      }
+      if (
+        (device.power || device.powerType || "").toLowerCase() === "battery"
+      ) {
+        battery += 1;
+      }
+    });
+
+    setSolarPowered(solar);
+    setBatteryPowered(battery);
+    setMainPowered(mains);
+    setNoDueMaintenance(dueMaintenance);
+    setNoOverDueMaintenance(overDueMaintenance);
+    setPieChartStatusValues([
+      devicesStatusData.count_of_offline_devices,
+      devicesStatusData.count_of_online_devices,
+    ]);
+  }, [devicesStatusData]);
+
+  const classes = useStyles();
 
   const [networkUptime, setNetworkUptime] = useState([]);
 
@@ -489,7 +222,7 @@ export default function DeviceManagement() {
       >
         <OverviewCard
           label={"Devices on the network"}
-          value={noOfDevices}
+          value={devicesStatusData.total_active_device_count}
           icon={<DevicesIcon />}
         />
 
@@ -572,7 +305,7 @@ export default function DeviceManagement() {
                   datasets: [
                     {
                       label: "Device Status",
-                      data: deviceStatusValues,
+                      data: pieChartStatusValues,
                       backgroundColor: ["#BCBD22", "#17BECF"],
                     },
                   ],
@@ -604,7 +337,7 @@ export default function DeviceManagement() {
             </div>
             <CardFooter chart>
               <div className={classes.stats}>
-                <AccessTime /> Last updated on {onlineStatusUpdateTime}
+                <AccessTime /> Last updated on {devicesStatusData.created_at}
               </div>
             </CardFooter>
           </Card>
@@ -624,181 +357,13 @@ export default function DeviceManagement() {
               <Table
                 tableHeaderColor="primary"
                 tableHead={["Device Channel", "Uptime(%)", "Downtime(%)"]}
-                tableData={bestPerformingDevicesInTwentyEightDays}
+                // tableData={bestPerformingDevicesInTwentyEightDays}
+                tableData={[]}
               />
             </CardBody>
           </Card>
         </div>
       </div>
-
-      {/*<GridContainer>*/}
-      {/*  <GridItem xs={12} sm={12} md={4}>*/}
-      {/*    <Card>*/}
-      {/*      <CardHeader color="primary">*/}
-      {/*        <h4 className={classes.cardTitleWhite}>Network Uptime</h4>*/}
-      {/*      </CardHeader>*/}
-
-      {/*      <CardBody>*/}
-      {/*        <div className={classes.chartContainer}>*/}
-      {/*          <Bar height={250} data={uptimeData} options={options_main} />*/}
-      {/*        </div>*/}
-      {/*      </CardBody>*/}
-
-      {/*      <CardFooter>*/}
-      {/*        <div className={classes.stats}>*/}
-      {/*          <AccessTime /> Last updated {networkUptime.created_at}*/}
-      {/*        </div>*/}
-      {/*      </CardFooter>*/}
-      {/*    </Card>*/}
-      {/*  </GridItem>*/}
-
-      {/*  <GridItem xs={12} sm={12} md={4}>*/}
-      {/*    <Card>*/}
-      {/*      <CardHeader color="info">*/}
-      {/*        <h4 className={classes.cardTitle}>Online Status</h4>*/}
-      {/*      </CardHeader>*/}
-      {/*      <CardBody>*/}
-      {/*        <Pie*/}
-      {/*          id="pie"*/}
-      {/*          height={200}*/}
-      {/*          data={{*/}
-      {/*            labels: ["Offline", "Online"],*/}
-      {/*            datasets: [*/}
-      {/*              {*/}
-      {/*                label: "Device Status",*/}
-      {/*                data: deviceStatusValues,*/}
-      {/*                backgroundColor: ["#BCBD22", "#17BECF"],*/}
-      {/*              },*/}
-      {/*            ],*/}
-      {/*          }}*/}
-      {/*          options={{*/}
-      {/*            tooltips: {*/}
-      {/*              callbacks: {*/}
-      {/*                label: function (tooltipItem, data) {*/}
-      {/*                  var allData =*/}
-      {/*                    data.datasets[tooltipItem.datasetIndex].data;*/}
-      {/*                  var tooltipLabel = data.labels[tooltipItem.index];*/}
-      {/*                  var tooltipData = allData[tooltipItem.index];*/}
-      {/*                  var total = 0;*/}
-      {/*                  for (var i in allData) {*/}
-      {/*                    total += allData[i];*/}
-      {/*                  }*/}
-      {/*                  var tooltipPercentage = Math.round(*/}
-      {/*                    (tooltipData / total) * 100*/}
-      {/*                  );*/}
-      {/*                  return tooltipLabel + ": " + tooltipPercentage + "%";*/}
-      {/*                },*/}
-      {/*              },*/}
-      {/*            },*/}
-
-      {/*            maintainAspectRatio: true,*/}
-      {/*            responsive: true,*/}
-      {/*          }}*/}
-      {/*        />*/}
-      {/*      </CardBody>*/}
-      {/*      <CardFooter chart>*/}
-      {/*        <div className={classes.stats}>*/}
-      {/*          <AccessTime /> Last updated on {onlineStatusUpdateTime}*/}
-      {/*        </div>*/}
-      {/*      </CardFooter>*/}
-      {/*    </Card>*/}
-      {/*  </GridItem>*/}
-
-      {/*  <GridItem xs={12} sm={12} md={4}>*/}
-      {/*    <Card>*/}
-      {/*      <CardHeader color="primary">*/}
-      {/*        <h4 className={classes.cardTitleWhite}>*/}
-      {/*          Offline Devices({inActiveDevicesCount})*/}
-      {/*        </h4>*/}
-      {/*      </CardHeader>*/}
-      {/*      <CardBody>*/}
-      {/*        <Table*/}
-      {/*          tableHeaderColor="primary"*/}
-      {/*          tableHead={["Device", "Time Offline", "Type", "Power Supply"]}*/}
-      {/*          tableData={inActiveDevices}*/}
-      {/*        />*/}
-      {/*      </CardBody>*/}
-      {/*    </Card>*/}
-      {/*  </GridItem>*/}
-      {/*</GridContainer>*/}
-      {/*<GridContainer>*/}
-      {/*  <GridItem xs={12} sm={12} md={6}>*/}
-      {/*    <CustomTabs*/}
-      {/*      title="Incident Report:"*/}
-      {/*      headerColor="primary"*/}
-      {/*      tabs={[*/}
-      {/*        {*/}
-      {/*          tabName: "Issues",*/}
-      {/*          tabIcon: BugReport,*/}
-      {/*          tabContent: (*/}
-      {/*            <TasksWithoutEdits*/}
-      {/*              checkedIndexes={[0]}*/}
-      {/*              tasksIndexes={[0, 1, 2, 3]}*/}
-      {/*              tasks={bugs}*/}
-      {/*            />*/}
-      {/*          ),*/}
-      {/*        },*/}
-      {/*        {*/}
-      {/*          tabName: "Schedule",*/}
-      {/*          tabIcon: ScheduleIcon,*/}
-      {/*          tabContent: (*/}
-      {/*            <TasksWithoutEdits*/}
-      {/*              checkedIndexes={[0]}*/}
-      {/*              tasksIndexes={[0, 1]}*/}
-      {/*              tasks={website}*/}
-      {/*            />*/}
-      {/*          ),*/}
-      {/*        },*/}
-      {/*        {*/}
-      {/*          tabName: "Alerts",*/}
-      {/*          tabIcon: NotificationsNoneIcon,*/}
-      {/*          tabContent: (*/}
-      {/*            <TasksWithoutEdits*/}
-      {/*              checkedIndexes={[0]}*/}
-      {/*              tasksIndexes={[0]}*/}
-      {/*              tasks={server}*/}
-      {/*            />*/}
-      {/*          ),*/}
-      {/*        },*/}
-      {/*      ]}*/}
-      {/*    />*/}
-      {/*  </GridItem>*/}
-
-      {/*  <GridItem xs={12} sm={12} md={3} lg={3}>*/}
-      {/*    <Card>*/}
-      {/*      <CardHeader color="primary">*/}
-      {/*        <h4 className={classes.cardTitleWhite}>Leaderboard</h4>*/}
-      {/*        <p className={classes.cardCategoryWhite}>*/}
-      {/*          Best performing 5 devices on network in the past 28 days*/}
-      {/*        </p>*/}
-      {/*      </CardHeader>*/}
-      {/*      <CardBody>*/}
-      {/*        <Table*/}
-      {/*          tableHeaderColor="primary"*/}
-      {/*          tableHead={["Device Channel", "Uptime(%)", "Downtime(%)"]}*/}
-      {/*          tableData={bestPerformingDevicesInTwentyEightDays}*/}
-      {/*        />*/}
-      {/*      </CardBody>*/}
-      {/*    </Card>*/}
-      {/*  </GridItem>*/}
-      {/*<GridItem xs={12} sm={12} md={3} lg={3}>*/}
-      {/*  <Card>*/}
-      {/*    <CardHeader color="primary">*/}
-      {/*      <h4 className={classes.cardTitleWhite}>Leaderboard</h4>*/}
-      {/*      <p className={classes.cardCategoryWhite}>*/}
-      {/*        Worst performing 5 devices on network in the past 28 days*/}
-      {/*      </p>*/}
-      {/*    </CardHeader>*/}
-      {/*    <CardBody>*/}
-      {/*      <Table*/}
-      {/*        tableHeaderColor="primary"*/}
-      {/*        tableHead={["Device Channel", "Uptime(%)", "Downtime(%)"]}*/}
-      {/*        tableData={worstPerformingDevicesInTwentyEightDays}*/}
-      {/*      />*/}
-      {/*    </CardBody>*/}
-      {/*  </Card>*/}
-      {/*</GridItem>*/}
-      {/*</GridContainer>*/}
     </div>
   );
 }
