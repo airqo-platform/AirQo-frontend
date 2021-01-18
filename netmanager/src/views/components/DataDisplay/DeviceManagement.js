@@ -53,6 +53,9 @@ export default function DeviceManagement() {
   const devicesStatusData = useDevicesStatusData();
   const networkUptimeData = useNetworkUptimeData();
   const dispatch = useDispatch();
+  const [devices, setDevices] = useState([]);
+  const [filteredDevices, setFilteredDevices] = useState(devices);
+  const [deviceFilters, setDeviceFilters] = useState(DEFAULT_DEVICE_FILTERS);
   const [pieChartStatusValues, setPieChartStatusValues] = useState([]);
   const [networkUptimeLineValues, setNetworkUptimeLineValues] = useState([
     [],
@@ -84,6 +87,12 @@ export default function DeviceManagement() {
   }, [networkUptimeData]);
 
   useEffect(() => {
+    const devices = [
+      ...updateDevices(devicesStatusData.offline_devices, { isOnline: false }),
+      ...updateDevices(devicesStatusData.online_devices, { isOnline: true }),
+    ];
+    setDevices(devices);
+    setFilteredDevices(devices);
     setPieChartStatusValues([
       devicesStatusData.count_of_offline_devices,
       devicesStatusData.count_of_online_devices,
@@ -217,10 +226,7 @@ export default function DeviceManagement() {
       <div className={"map-container"}>
         <Card style={{ height: "100%" }}>
           <div style={{ height: "100%" }}>
-            <Map
-              onlineDevices={devicesStatusData.online_devices || []}
-              offlineDevices={devicesStatusData.offline_devices || []}
-            />
+            <Map devices={filteredDevices} />
           </div>
         </Card>
       </div>
