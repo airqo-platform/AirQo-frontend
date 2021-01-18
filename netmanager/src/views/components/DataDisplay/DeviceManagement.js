@@ -33,13 +33,36 @@ import "assets/scss/device-management.sass";
 
 const useStyles = makeStyles(styles);
 
-const OverviewCard = ({ label, icon, value }) => {
+const DEFAULT_DEVICE_FILTERS = {
+  all: true,
+  due: true,
+  overDue: true,
+  solar: true,
+  alternator: true,
+  mains: true,
+};
+
+const OverviewCard = ({ label, icon, value, filterActive, onClick }) => {
   return (
-    <div className={"card-container"}>
-      <Card style={{ margin: 0 }}>
+    <div className={"card-container"} onClick={onClick}>
+      <Card
+        style={
+          filterActive ? { margin: 0 } : { margin: 0, background: "#f2f2f2" }
+        }
+      >
         <div className={"card-title-wrapper"}>
-          <span className={"card-title-icon"}>{icon}</span>
-          <h3 className={"card-title"}>{value}</h3>
+          <span
+            className={"card-title-icon"}
+            style={filterActive ? {} : { background: "#6d94ea" }}
+          >
+            {icon}
+          </span>
+          <h3
+            className={"card-title"}
+            style={filterActive ? {} : { color: "#999" }}
+          >
+            {value}
+          </h3>
           <div className={"card-divider"} />
           <p className={"card-category"}>{label}</p>
         </div>
@@ -61,6 +84,18 @@ export default function DeviceManagement() {
     [],
     [],
   ]);
+
+  const updateDevices = (devices, newValues) => {
+    const newDevices = [];
+    (devices || []).map((device) => {
+      newDevices.push({ ...device, ...newValues });
+    });
+    return newDevices;
+  };
+
+  const toggleDeviceFilter = (key) => () => {
+    setDeviceFilters({ ...deviceFilters, [key]: !deviceFilters[key] });
+  };
 
   useEffect(() => {
     if (isEmpty(devicesStatusData)) {
@@ -190,36 +225,48 @@ export default function DeviceManagement() {
           label={"Devices on the network"}
           value={devicesStatusData.total_active_device_count}
           icon={<DevicesIcon />}
+          filterActive={deviceFilters.all}
+          onClick={toggleDeviceFilter("all")}
         />
 
         <OverviewCard
           label={"Due for maintenance"}
           value={devicesStatusData.count_due_maintenance}
           icon={<RestoreIcon />}
+          filterActive={deviceFilters.due}
+          onClick={toggleDeviceFilter("due")}
         />
 
         <OverviewCard
           label={"Overdue for maintenance"}
           value={devicesStatusData.count_overdue_maintenance}
           icon={<ReportProblem />}
+          filterActive={deviceFilters.overDue}
+          onClick={toggleDeviceFilter("overDue")}
         />
 
         <OverviewCard
           label={"Solar powered"}
           value={devicesStatusData.count_of_solar_devices}
           icon={<WbSunnyIcon />}
+          filterActive={deviceFilters.solar}
+          onClick={toggleDeviceFilter("solar")}
         />
 
         <OverviewCard
           label={"Alternator"}
           value={devicesStatusData.count_of_alternator_devices}
           icon={<BatteryFullIcon />}
+          filterActive={deviceFilters.alternator}
+          onClick={toggleDeviceFilter("alternator")}
         />
 
         <OverviewCard
           label={"Mains Powered"}
           value={devicesStatusData.count_of_mains}
           icon={<PowerIcon />}
+          filterActive={deviceFilters.mains}
+          onClick={toggleDeviceFilter("mains")}
         />
       </div>
 
