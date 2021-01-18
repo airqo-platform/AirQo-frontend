@@ -53,11 +53,6 @@ export default function DeviceManagement() {
   const devicesStatusData = useDevicesStatusData();
   const networkUptimeData = useNetworkUptimeData();
   const dispatch = useDispatch();
-  const [solarPowered, setSolarPowered] = useState(0);
-  const [batteryPowered, setBatteryPowered] = useState(0);
-  const [mainPowered, setMainPowered] = useState(0);
-  const [noDueMaintenance, setNoDueMaintenance] = useState(0);
-  const [noOverDueMaintenance, setNoOverDueMaintenance] = useState(0);
   const [pieChartStatusValues, setPieChartStatusValues] = useState([]);
   const [networkUptimeLineValues, setNetworkUptimeLineValues] = useState([
     [],
@@ -89,42 +84,6 @@ export default function DeviceManagement() {
   }, [networkUptimeData]);
 
   useEffect(() => {
-    let dueMaintenance = 0;
-    let overDueMaintenance = 0;
-    let mains = 0;
-    let battery = 0;
-    let solar = 0;
-    if (isEmpty(devicesStatusData)) {
-      return;
-    }
-    [
-      ...devicesStatusData.online_devices,
-      ...devicesStatusData.offline_devices,
-    ].map((device) => {
-      if (device.maintenance_status === "overdue") {
-        overDueMaintenance += 1;
-      }
-      if (device.maintenance_status === "due") {
-        dueMaintenance += 1;
-      }
-      if ((device.power || device.powerType || "").toLowerCase() === "mains") {
-        mains += 1;
-      }
-      if ((device.power || device.powerType || "").toLowerCase() === "solar") {
-        solar += 1;
-      }
-      if (
-        (device.power || device.powerType || "").toLowerCase() === "battery"
-      ) {
-        battery += 1;
-      }
-    });
-
-    setSolarPowered(solar);
-    setBatteryPowered(battery);
-    setMainPowered(mains);
-    setNoDueMaintenance(dueMaintenance);
-    setNoOverDueMaintenance(overDueMaintenance);
     setPieChartStatusValues([
       devicesStatusData.count_of_offline_devices,
       devicesStatusData.count_of_online_devices,
@@ -226,31 +185,31 @@ export default function DeviceManagement() {
 
         <OverviewCard
           label={"Due for maintenance"}
-          value={noDueMaintenance}
+          value={devicesStatusData.count_due_maintenance}
           icon={<RestoreIcon />}
         />
 
         <OverviewCard
           label={"Overdue for maintenance"}
-          value={noOverDueMaintenance}
+          value={devicesStatusData.count_overdue_maintenance}
           icon={<ReportProblem />}
         />
 
         <OverviewCard
           label={"Solar powered"}
-          value={solarPowered}
+          value={devicesStatusData.count_of_solar_devices}
           icon={<WbSunnyIcon />}
         />
 
         <OverviewCard
           label={"Alternator"}
-          value={batteryPowered}
+          value={devicesStatusData.count_of_alternator_devices}
           icon={<BatteryFullIcon />}
         />
 
         <OverviewCard
           label={"Mains Powered"}
-          value={mainPowered}
+          value={devicesStatusData.count_of_mains}
           icon={<PowerIcon />}
         />
       </div>
@@ -258,7 +217,10 @@ export default function DeviceManagement() {
       <div className={"map-container"}>
         <Card style={{ height: "100%" }}>
           <div style={{ height: "100%" }}>
-            <Map />
+            <Map
+              onlineDevices={devicesStatusData.online_devices || []}
+              offlineDevices={devicesStatusData.offline_devices || []}
+            />
           </div>
         </Card>
       </div>
