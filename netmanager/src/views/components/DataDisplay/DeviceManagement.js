@@ -103,7 +103,10 @@ export default function DeviceManagement() {
   };
 
   const filterDevices = (devices, key) => {
-    const filters = DEVICE_FILTER_FIELDS[key];
+    const filter = DEVICE_FILTER_FIELDS[key];
+    if (key === "all") {
+      return !deviceFilters[key] ? devices : [];
+    }
     if (!deviceFilters[key]) {
       const prevFiltered = filteredDevices.filter(
         (device) => device[filter.key] !== filter.value
@@ -121,8 +124,23 @@ export default function DeviceManagement() {
     return filtered;
   };
 
-  const toggleDeviceFilter = (key) => () => {
-    setDeviceFilters({ ...deviceFilters, [key]: !deviceFilters[key] });
+  const toggleDeviceFilter = (key) => {
+    if (key === "all") {
+      if (!deviceFilters[key]) {
+        return mapObject(deviceFilters, () => true);
+      }
+      return mapObject(deviceFilters, () => false);
+    }
+    const all = values(
+      omit({ ...deviceFilters, [key]: !deviceFilters[key] }, "all")
+    ).every((value) => value === true);
+
+    return { ...deviceFilters, all, [key]: !deviceFilters[key] };
+  };
+
+  const handleDeviceFilterClick = (key) => () => {
+    setFilteredDevices(filterDevices(devices, key));
+    setDeviceFilters(toggleDeviceFilter(key));
   };
 
   useEffect(() => {
