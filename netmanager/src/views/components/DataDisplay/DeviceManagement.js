@@ -42,6 +42,24 @@ const DEFAULT_DEVICE_FILTERS = {
   mains: true,
 };
 
+const DEVICE_FILTER_FIELDS = {
+  all: [],
+  due: [{ key: "maintenance_status", value: "due" }],
+  overDue: [{ key: "maintenance_status", value: "overdue" }],
+  solar: [
+    { key: "power", value: "Solar" },
+    { key: "powerType", value: "Solar" },
+  ],
+  alternator: [
+    { key: "power", value: "Battery" },
+    { key: "powerType", value: "Battery" },
+  ],
+  mains: [
+    { key: "power", value: "Mains" },
+    { key: "powerType", value: "Mains" },
+  ],
+};
+
 const OverviewCard = ({ label, icon, value, filterActive, onClick }) => {
   return (
     <div className={"card-container"} onClick={onClick}>
@@ -91,6 +109,37 @@ export default function DeviceManagement() {
       newDevices.push({ ...device, ...newValues });
     });
     return newDevices;
+  };
+
+  const filterDevices = (devices, key) => {
+    const filters = DEVICE_FILTER_FIELDS[key];
+    if (!deviceFilters[key]) {
+      for (let i = 0; i < filters.length; i++) {
+        const filter = filters[i];
+        const prevFiltered = filteredDevices.filter(
+          (device) => device[filter.key] !== filter.value
+        );
+        const filtered = devices.filter(
+          (device) => device[filter.key] === filter.value
+        );
+
+        if (!isEmpty(filtered)) {
+          return [...prevFiltered, ...filtered];
+        }
+      }
+    } else {
+      for (let i = 0; i < filters.length; i++) {
+        const filter = filters[i];
+        const filtered = filteredDevices.filter(
+          (device) => device[filter.key] !== filter.value
+        );
+
+        if (!isEmpty(filtered)) {
+          return filtered;
+        }
+      }
+    }
+    return devices;
   };
 
   const toggleDeviceFilter = (key) => () => {
