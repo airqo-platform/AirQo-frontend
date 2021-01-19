@@ -12,7 +12,7 @@ import Table from "../Table/Table.js";
 import Card from "../Card/Card.js";
 import CardBody from "../Card/CardBody.js";
 import CardFooter from "../Card/CardFooter.js";
-import { isEmpty } from "underscore";
+import { isEmpty, mapObject, omit, values } from "underscore";
 import Map from "./Map/Map";
 import constants from "../../../config/constants";
 import axios from "axios";
@@ -43,21 +43,12 @@ const DEFAULT_DEVICE_FILTERS = {
 };
 
 const DEVICE_FILTER_FIELDS = {
-  all: [],
-  due: [{ key: "maintenance_status", value: "due" }],
-  overDue: [{ key: "maintenance_status", value: "overdue" }],
-  solar: [
-    { key: "power", value: "Solar" },
-    { key: "powerType", value: "Solar" },
-  ],
-  alternator: [
-    { key: "power", value: "Battery" },
-    { key: "powerType", value: "Battery" },
-  ],
-  mains: [
-    { key: "power", value: "Mains" },
-    { key: "powerType", value: "Mains" },
-  ],
+  all: {},
+  due: { key: "maintenance_status", value: "due" },
+  overDue: { key: "maintenance_status", value: "overdue" },
+  solar: { key: "power", value: "Solar" },
+  alternator: { key: "power", value: "Battery" },
+  mains: { key: "power", value: "Mains" },
 };
 
 const OverviewCard = ({ label, icon, value, filterActive, onClick }) => {
@@ -114,32 +105,20 @@ export default function DeviceManagement() {
   const filterDevices = (devices, key) => {
     const filters = DEVICE_FILTER_FIELDS[key];
     if (!deviceFilters[key]) {
-      for (let i = 0; i < filters.length; i++) {
-        const filter = filters[i];
-        const prevFiltered = filteredDevices.filter(
-          (device) => device[filter.key] !== filter.value
-        );
-        const filtered = devices.filter(
-          (device) => device[filter.key] === filter.value
-        );
+      const prevFiltered = filteredDevices.filter(
+        (device) => device[filter.key] !== filter.value
+      );
+      const filtered = devices.filter(
+        (device) => device[filter.key] === filter.value
+      );
 
-        if (!isEmpty(filtered)) {
-          return [...prevFiltered, ...filtered];
-        }
-      }
-    } else {
-      for (let i = 0; i < filters.length; i++) {
-        const filter = filters[i];
-        const filtered = filteredDevices.filter(
-          (device) => device[filter.key] !== filter.value
-        );
-
-        if (!isEmpty(filtered)) {
-          return filtered;
-        }
-      }
+      return [...prevFiltered, ...filtered];
     }
-    return devices;
+
+    const filtered = filteredDevices.filter(
+      (device) => device[filter.key] !== filter.value
+    );
+    return filtered;
   };
 
   const toggleDeviceFilter = (key) => () => {
@@ -275,7 +254,7 @@ export default function DeviceManagement() {
           value={devicesStatusData.total_active_device_count}
           icon={<DevicesIcon />}
           filterActive={deviceFilters.all}
-          onClick={toggleDeviceFilter("all")}
+          onClick={handleDeviceFilterClick("all")}
         />
 
         <OverviewCard
@@ -283,7 +262,7 @@ export default function DeviceManagement() {
           value={devicesStatusData.count_due_maintenance}
           icon={<RestoreIcon />}
           filterActive={deviceFilters.due}
-          onClick={toggleDeviceFilter("due")}
+          onClick={handleDeviceFilterClick("due")}
         />
 
         <OverviewCard
@@ -291,7 +270,7 @@ export default function DeviceManagement() {
           value={devicesStatusData.count_overdue_maintenance}
           icon={<ReportProblem />}
           filterActive={deviceFilters.overDue}
-          onClick={toggleDeviceFilter("overDue")}
+          onClick={handleDeviceFilterClick("overDue")}
         />
 
         <OverviewCard
@@ -299,7 +278,7 @@ export default function DeviceManagement() {
           value={devicesStatusData.count_of_solar_devices}
           icon={<WbSunnyIcon />}
           filterActive={deviceFilters.solar}
-          onClick={toggleDeviceFilter("solar")}
+          onClick={handleDeviceFilterClick("solar")}
         />
 
         <OverviewCard
@@ -307,7 +286,7 @@ export default function DeviceManagement() {
           value={devicesStatusData.count_of_alternator_devices}
           icon={<BatteryFullIcon />}
           filterActive={deviceFilters.alternator}
-          onClick={toggleDeviceFilter("alternator")}
+          onClick={handleDeviceFilterClick("alternator")}
         />
 
         <OverviewCard
@@ -315,7 +294,7 @@ export default function DeviceManagement() {
           value={devicesStatusData.count_of_mains}
           icon={<PowerIcon />}
           filterActive={deviceFilters.mains}
-          onClick={toggleDeviceFilter("mains")}
+          onClick={handleDeviceFilterClick("mains")}
         />
       </div>
 
