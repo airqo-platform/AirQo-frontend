@@ -1,55 +1,13 @@
 import React from "react";
-import clsx from "clsx";
 import PropTypes from "prop-types";
-import { makeStyles } from "@material-ui/styles";
 import { Map as LeafletMap, TileLayer, Popup, Marker } from "react-leaflet";
-import { Link } from "react-router-dom";
-import { Card, CardContent, CardHeader, Divider } from "@material-ui/core";
-import { useEffect, useState } from "react";
 import FullscreenControl from "react-leaflet-fullscreen";
 import "react-leaflet-fullscreen/dist/styles.css";
 import L, { control } from "leaflet";
-import Filter from "./FilterPowerSource.jsx";
-import axios from "axios";
-import ReactDOM from "react-dom";
-import constants from "../../../../config/constants";
-import { onlineOfflineMaintenanceStatusApi } from "../../../apis/deviceMonitoring";
 
 import "assets/scss/device-management-map.sass";
 
-const useStyles = makeStyles((theme) => ({
-  root: {
-    // height: '100%',
-    padding: "0",
-    margin: 0,
-    border: 0,
-  },
-  content: {
-    alignItems: "center",
-    display: "flex",
-  },
-  title: {
-    fontWeight: 700,
-  },
-  avatar: {
-    backgroundColor: theme.palette.primary.main,
-    color: theme.palette.primary.contrastText,
-    height: 56,
-    width: 56,
-  },
-  icon: {
-    height: 32,
-    width: 32,
-  },
-  progress: {
-    marginTop: theme.spacing(3),
-  },
-}));
-
 const Map = ({ className, devices, ...rest }) => {
-  const classes = useStyles();
-  // const [contacts, setContacts] = useState(groupDevices());
-
   let CategoryColorClass = (isOnline) => {
     return isOnline === true
       ? "deviceOnline"

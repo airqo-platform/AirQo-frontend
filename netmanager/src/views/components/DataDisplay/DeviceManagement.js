@@ -14,8 +14,6 @@ import CardBody from "../Card/CardBody.js";
 import CardFooter from "../Card/CardFooter.js";
 import { isEmpty, mapObject, omit, values } from "underscore";
 import Map from "./Map/Map";
-import constants from "../../../config/constants";
-import axios from "axios";
 import palette from "../../../assets/theme/palette";
 import { Line, Pie } from "react-chartjs-2";
 import {
