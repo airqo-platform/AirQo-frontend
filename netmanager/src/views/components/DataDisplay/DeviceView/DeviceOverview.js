@@ -39,6 +39,8 @@ import {
 
 const useStyles = makeStyles(styles);
 
+const BLANK_PLACE_HOLDER = "-";
+
 export default function DeviceOverview({ deviceData }) {
   const classes = useStyles();
   const dispatch = useDispatch();
@@ -382,6 +384,14 @@ export default function DeviceOverview({ deviceData }) {
                 <TableBody>
                   <TableRow>
                     <TableCell>
+                      <b>Name</b>
+                    </TableCell>
+                    <TableCell>
+                      {deviceData.name || BLANK_PLACE_HOLDER}
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>
                       <b>Deployment status</b>
                     </TableCell>
                     <TableCell>
@@ -396,45 +406,59 @@ export default function DeviceOverview({ deviceData }) {
                     <TableCell>
                       <b>Channel</b>
                     </TableCell>
-                    <TableCell>{deviceData.channelID}</TableCell>
+                    <TableCell>
+                      {deviceData.channelID || BLANK_PLACE_HOLDER}
+                    </TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell>
                       <b>Owner</b>
                     </TableCell>
-                    <TableCell>{deviceData.owner}</TableCell>
+                    <TableCell>
+                      {deviceData.owner || BLANK_PLACE_HOLDER}
+                    </TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell>
                       <b>Manufacturer</b>
                     </TableCell>
-                    <TableCell>{deviceData.device_manufacturer}</TableCell>
+                    <TableCell>
+                      {deviceData.device_manufacturer || BLANK_PLACE_HOLDER}
+                    </TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell>
                       <b>ISP</b>
                     </TableCell>
-                    <TableCell>{deviceData.ISP}</TableCell>
+                    <TableCell>
+                      {deviceData.ISP || BLANK_PLACE_HOLDER}
+                    </TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell>
                       <b>Phone Number</b>
                     </TableCell>
                     <TableCell>
-                      {deviceData.phoneNumber && `0${deviceData.phoneNumber}`}
+                      {(deviceData.phoneNumber &&
+                        `0${deviceData.phoneNumber}`) ||
+                        BLANK_PLACE_HOLDER}
                     </TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell>
                       <b>Read Key</b>
                     </TableCell>
-                    <TableCell>{deviceData.readKey}</TableCell>
+                    <TableCell>
+                      {deviceData.readKey || BLANK_PLACE_HOLDER}
+                    </TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell>
                       <b>Write Key</b>
                     </TableCell>
-                    <TableCell>{deviceData.writeKey}</TableCell>
+                    <TableCell>
+                      {deviceData.writeKey || BLANK_PLACE_HOLDER}
+                    </TableCell>
                   </TableRow>
                 </TableBody>
               </Table>
@@ -516,7 +540,9 @@ export default function DeviceOverview({ deviceData }) {
               </Table>
             </TableContainer>
           </div>
-          {deviceMaintenanceLogs.length <= 0 && <span style={{ margin: "auto" }}>No maintenance logs</span>}
+          {deviceMaintenanceLogs.length <= 0 && (
+            <span style={{ margin: "auto" }}>No maintenance logs</span>
+          )}
         </Card>
       </div>
 
@@ -583,7 +609,9 @@ export default function DeviceOverview({ deviceData }) {
               </Table>
             </TableContainer>
           </div>
-          {deviceComponents.length <= 0 && <span style={{ margin: "auto" }}>No components</span>}
+          {deviceComponents.length <= 0 && (
+            <span style={{ margin: "auto" }}>No components</span>
+          )}
         </Card>
       </div>
     </div>
