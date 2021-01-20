@@ -3,7 +3,8 @@ import PropTypes from "prop-types";
 import { Map as LeafletMap, TileLayer, Popup, Marker } from "react-leaflet";
 import FullscreenControl from "react-leaflet-fullscreen";
 import "react-leaflet-fullscreen/dist/styles.css";
-import L, { control } from "leaflet";
+import L from "leaflet";
+import { MapKey } from "./MapKey";
 
 import "assets/scss/device-management-map.sass";
 
@@ -23,7 +24,7 @@ const Map = ({ className, devices, ...rest }) => {
       ? "orange"
       : maintenanceStatus === -1
       ? "grey"
-      : "green";
+      : "b-success";
   };
 
   return (
@@ -104,6 +105,7 @@ const Map = ({ className, devices, ...rest }) => {
         </Marker>
       ))}
       <FullscreenControl position="topleft" />
+      <MapKey />
     </LeafletMap>
   );
 };
