@@ -1,4 +1,5 @@
 import React from "react";
+import { useHistory } from "react-router-dom";
 import PropTypes from "prop-types";
 import { Map as LeafletMap, TileLayer, Popup, Marker } from "react-leaflet";
 import FullscreenControl from "react-leaflet-fullscreen";
@@ -9,6 +10,7 @@ import { MapKey } from "./MapKey";
 import "assets/scss/device-management-map.sass";
 
 const Map = ({ className, devices, ...rest }) => {
+  const history = useHistory();
   let CategoryColorClass = (isOnline) => {
     return isOnline === true
       ? "deviceOnline"
@@ -25,6 +27,11 @@ const Map = ({ className, devices, ...rest }) => {
       : maintenanceStatus === -1
       ? "grey"
       : "b-success";
+  };
+
+  const handleDetailsClick = (device) => (event) => {
+    event.preventDefault();
+    history.push(`/device/${device._id}/overview`);
   };
 
   return (
@@ -97,7 +104,10 @@ const Map = ({ className, devices, ...rest }) => {
                   </span>
                 )}
               </span>
-              <a className={"popup-more-details"} href={"#"}>
+              <a
+                className={"popup-more-details"}
+                onClick={handleDetailsClick(device)}
+              >
                 Device details
               </a>
             </div>
