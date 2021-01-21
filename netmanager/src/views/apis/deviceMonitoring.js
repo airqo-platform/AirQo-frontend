@@ -36,3 +36,9 @@ export const getNetworkUptimeApi = async (params) => {
     .get(constants.GET_NETWORK_UPTIME, { params })
     .then((response) => response.data);
 };
+
+export const getDevicesUptimeApi = async (params) => {
+  return await axios
+    .get(constants.ALL_DEVICES_UPTIME, params)
+    .then((response) => response.data);
+};
