@@ -8,7 +8,6 @@ import AccessTime from "@material-ui/icons/AccessTime";
 import RestoreIcon from "@material-ui/icons/Restore";
 import WbSunnyIcon from "@material-ui/icons/WbSunny";
 import PowerIcon from "@material-ui/icons/Power";
-import Table from "../Table/Table.js";
 import Card from "../Card/Card.js";
 import CardBody from "../Card/CardBody.js";
 import CardFooter from "../Card/CardFooter.js";
@@ -26,6 +25,7 @@ import {
   loadNetworkUptimeData,
   loadAllDevicesUptimeData,
 } from "redux/DeviceManagement/operations";
+import { SortAscendingIcon, SortDescendingIcon } from "assets/img";
 
 import styles from "assets/jss/material-dashboard-react/views/dashboardStyle.js";
 import "chartjs-plugin-annotation";
@@ -87,6 +87,7 @@ export default function DeviceManagement() {
   const networkUptimeData = useNetworkUptimeData();
   const dispatch = useDispatch();
   const [devicesUptime, setDevicesUptime] = useState([]);
+  const [devicesUptimeDescending, setDevicesUptimeDescendibg] = useState(true);
   const [devices, setDevices] = useState([]);
   const [filteredDevices, setFilteredDevices] = useState(devices);
   const [deviceFilters, setDeviceFilters] = useState(DEFAULT_DEVICE_FILTERS);
@@ -159,12 +160,18 @@ export default function DeviceManagement() {
         uptime: uptimeSum / deviceUptime.length,
       });
     });
+    // reverse sorting
     averageUptime.sort((device1, device2) => {
-      if (device1.uptime < device2.uptime) return -1;
-      if (device1.uptime > device2.uptime) return 1;
+      if (device1.uptime < device2.uptime) return 1;
+      if (device1.uptime > device2.uptime) return -1;
       return 0;
     });
     return averageUptime;
+  };
+
+  const handleSortIconClick = () => {
+    setDevicesUptime(devicesUptime.reverse());
+    setDevicesUptimeDescendibg(!devicesUptimeDescending);
   };
 
   useEffect(() => {
@@ -209,6 +216,7 @@ export default function DeviceManagement() {
 
   useEffect(() => {
     setDevicesUptime(calculateAverageUptime(allDevicesUptimeData));
+    setDevicesUptimeDescendibg(true);
   }, [allDevicesUptimeData]);
 
   const uptimeData = {
@@ -444,12 +452,21 @@ export default function DeviceManagement() {
         >
           <h4 className={classes.cardTitleBlue}>
             Leaderboard <span style={{ fontSize: "1rem" }}>(last 28 days)</span>
+            {devicesUptimeDescending ? (
+              <SortDescendingIcon
+                className={"uptime-icon"}
+                onClick={handleSortIconClick}
+              />
+            ) : (
+              <SortAscendingIcon
+                className={"uptime-icon"}
+                onClick={handleSortIconClick}
+              />
+            )}
           </h4>
           <Card className={classes.cardBody}>
             <CardBody>
-              <div
-                className={`m-device-uptime-row uptime-table-header`}
-              >
+              <div className={`m-device-uptime-row uptime-table-header`}>
                 <span>device name</span>
                 <span>downtime (%)</span>
                 <span>uptime (%)</span>
