@@ -9,3 +9,6 @@ export const useNetworkUptimeData = () => {
   return useSelector((state) => state.deviceManagement.networkUptime);
 };
 
+export const useDevicesUptimeData = () => {
+  return useSelector((state) => state.deviceManagement.devicesUptime);
+};
