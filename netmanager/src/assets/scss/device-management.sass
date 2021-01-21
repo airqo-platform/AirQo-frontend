@@ -69,3 +69,41 @@
   margin: 0 auto
   height: calc(100vh - 300px)
 
+.m-device-uptime-row
+  display: flex
+  align-items: center
+  justify-content: center
+  font-size: 1.1rem
+  padding: 5px 0
+  border: 1px solid #f4f6f8
+
+  &:hover
+    cursor: pointer
+    background: #f4f6f8
+
+  >span
+    width: 30%
+    height: 100%
+
+.uptime-table-header
+  font-weight: bold
+  text-transform: uppercase
+  margin-bottom: 5px
+  border: none
+
+  &:hover
+    cursor: unset
+    background: none
+
+.uptime-success
+  color: white
+  background: rgba(0, 128, 0, 1)
+
+.uptime-warning
+  color: white
+  background: rgba(255, 165, 0, 1)
+
+.uptime-danger
+  color: white
+  background: rgba(255, 0, 0, 1)
+

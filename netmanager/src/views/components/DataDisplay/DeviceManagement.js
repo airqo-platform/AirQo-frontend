@@ -18,11 +18,13 @@ import palette from "../../../assets/theme/palette";
 import { Line, Pie } from "react-chartjs-2";
 import {
   useDevicesStatusData,
+  useDevicesUptimeData,
   useNetworkUptimeData,
 } from "redux/DeviceManagement/selectors";
 import {
   loadDevicesStatusData,
   loadNetworkUptimeData,
+  loadAllDevicesUptimeData,
 } from "redux/DeviceManagement/operations";
 
 import styles from "assets/jss/material-dashboard-react/views/dashboardStyle.js";
@@ -81,8 +83,10 @@ const OverviewCard = ({ label, icon, value, filterActive, onClick }) => {
 export default function DeviceManagement() {
   const classes = useStyles();
   const devicesStatusData = useDevicesStatusData();
+  const allDevicesUptimeData = useDevicesUptimeData();
   const networkUptimeData = useNetworkUptimeData();
   const dispatch = useDispatch();
+  const [devicesUptime, setDevicesUptime] = useState([]);
   const [devices, setDevices] = useState([]);
   const [filteredDevices, setFilteredDevices] = useState(devices);
   const [deviceFilters, setDeviceFilters] = useState(DEFAULT_DEVICE_FILTERS);
@@ -141,12 +145,37 @@ export default function DeviceManagement() {
     setDeviceFilters(toggleDeviceFilter(key));
   };
 
+  const calculateAverageUptime = (devicesUptime) => {
+    const keys = Object.keys(devicesUptime);
+    const averageUptime = [];
+    keys.map((deviceName) => {
+      const deviceUptime = devicesUptime[deviceName];
+      let uptimeSum = 0;
+      deviceUptime.map((uptime) => {
+        uptimeSum += uptime.uptime;
+      });
+      averageUptime.push({
+        deviceName,
+        uptime: uptimeSum / deviceUptime.length,
+      });
+    });
+    averageUptime.sort((device1, device2) => {
+      if (device1.uptime < device2.uptime) return -1;
+      if (device1.uptime > device2.uptime) return 1;
+      return 0;
+    });
+    return averageUptime;
+  };
+
   useEffect(() => {
     if (isEmpty(devicesStatusData)) {
       dispatch(loadDevicesStatusData());
     }
     if (isEmpty(networkUptimeData)) {
       dispatch(loadNetworkUptimeData(28));
+    }
+    if (isEmpty(allDevicesUptimeData)) {
+      dispatch(loadAllDevicesUptimeData(28));
     }
   }, []);
 
@@ -177,6 +206,10 @@ export default function DeviceManagement() {
       devicesStatusData.count_of_online_devices,
     ]);
   }, [devicesStatusData]);
+
+  useEffect(() => {
+    setDevicesUptime(calculateAverageUptime(allDevicesUptimeData));
+  }, [allDevicesUptimeData]);
 
   const uptimeData = {
     labels: networkUptimeLineValues[0],
@@ -409,19 +442,36 @@ export default function DeviceManagement() {
           className={"overview-item-container"}
           style={{ minWidth: "550px" }}
         >
-          <h4 className={classes.cardTitleBlue}>Leaderboard</h4>
+          <h4 className={classes.cardTitleBlue}>
+            Leaderboard <span style={{ fontSize: "1rem" }}>(last 28 days)</span>
+          </h4>
           <Card className={classes.cardBody}>
-            <p className={classes.cardCategoryWhite}>
-              Best performing 5 devices on network in the past 28 days
-            </p>
-
             <CardBody>
-              <Table
-                tableHeaderColor="primary"
-                tableHead={["Device Channel", "Uptime(%)", "Downtime(%)"]}
-                // tableData={bestPerformingDevicesInTwentyEightDays}
-                tableData={[]}
-              />
+              <div
+                className={`m-device-uptime-row uptime-table-header`}
+              >
+                <span>device name</span>
+                <span>downtime (%)</span>
+                <span>uptime (%)</span>
+              </div>
+              {devicesUptime.map(({ deviceName, uptime }, index) => {
+                const style =
+                  uptime >= 80
+                    ? "uptime-success"
+                    : uptime >= 50
+                    ? "uptime-warning"
+                    : "uptime-danger";
+                return (
+                  <div
+                    className={`m-device-uptime-row`}
+                    key={`device-${deviceName}-${index}`}
+                  >
+                    <span>{deviceName}</span>
+                    <span>{(100 - uptime).toFixed(2)}</span>
+                    <span className={`${style}`}>{uptime.toFixed(2)}</span>
+                  </div>
+                );
+              })}
             </CardBody>
           </Card>
         </div>
