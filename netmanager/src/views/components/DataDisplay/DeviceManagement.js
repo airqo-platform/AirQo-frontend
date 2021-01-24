@@ -13,8 +13,7 @@ import CardBody from "../Card/CardBody.js";
 import CardFooter from "../Card/CardFooter.js";
 import { isEmpty, mapObject, omit, values } from "underscore";
 import Map from "./Map/Map";
-import palette from "../../../assets/theme/palette";
-import { Line, Pie } from "react-chartjs-2";
+import { Bar, Line, Pie } from "react-chartjs-2";
 import {
   useDevicesStatusData,
   useDevicesUptimeData,
@@ -25,8 +24,14 @@ import {
   loadNetworkUptimeData,
   loadAllDevicesUptimeData,
 } from "redux/DeviceManagement/operations";
-import { SortAscendingIcon, SortDescendingIcon } from "assets/img";
+import {
+  BarChartIcon,
+  PieChartIcon,
+  SortAscendingIcon,
+  SortDescendingIcon,
+} from "assets/img";
 import { multiFilter } from "utils/filters";
+import { createChartData, createChartOptions } from "utils/charts";
 
 import styles from "assets/jss/material-dashboard-react/views/dashboardStyle.js";
 import "chartjs-plugin-annotation";
@@ -88,15 +93,16 @@ export default function DeviceManagement() {
   const networkUptimeData = useNetworkUptimeData();
   const dispatch = useDispatch();
   const [devicesUptime, setDevicesUptime] = useState([]);
-  const [devicesUptimeDescending, setDevicesUptimeDescendibg] = useState(true);
+  const [showBarChart, setShowBarChart] = useState(false);
+  const [devicesUptimeDescending, setDevicesUptimeDescending] = useState(true);
   const [devices, setDevices] = useState([]);
   const [filteredDevices, setFilteredDevices] = useState(devices);
   const [deviceFilters, setDeviceFilters] = useState(DEFAULT_DEVICE_FILTERS);
   const [pieChartStatusValues, setPieChartStatusValues] = useState([]);
-  const [networkUptimeLineValues, setNetworkUptimeLineValues] = useState([
-    [],
-    [],
-  ]);
+  const [networkUptimeDataset, setNetworkUptimeDataset] = useState({
+    bar: { label: [], data: [] },
+    line: { label: [], data: [] },
+  });
 
   const updateDevices = (devices, newValues) => {
     const newDevices = [];
@@ -170,9 +176,13 @@ export default function DeviceManagement() {
     return averageUptime;
   };
 
+  const handleNetworkUptimeClick = () => {
+    setShowBarChart(!showBarChart);
+  };
+
   const handleSortIconClick = () => {
     setDevicesUptime(devicesUptime.reverse());
-    setDevicesUptimeDescendibg(!devicesUptimeDescending);
+    setDevicesUptimeDescending(!devicesUptimeDescending);
   };
 
   const handlePieChartClick = (event) => {
@@ -198,18 +208,49 @@ export default function DeviceManagement() {
   }, []);
 
   useEffect(() => {
-    let label = [];
-    let values = [];
+    let lineLabel = [],
+      lineData = [];
+    let barLabel = [],
+      barData = [];
     if (isEmpty(networkUptimeData)) {
       return;
     }
+    networkUptimeData.sort(
+      (a, b) => new Date(a.created_at) - new Date(b.created_at)
+    );
 
     networkUptimeData.map((val) => {
-      label.push(val.created_at.split("T")[0]);
-      values.push(parseFloat(val.uptime).toFixed(2));
+      lineLabel.push(val.created_at.split("T")[0]);
+      lineData.push(parseFloat(val.uptime).toFixed(2));
     });
 
-    setNetworkUptimeLineValues([label, values]);
+    networkUptimeData.reverse();
+    let sum = 0;
+    let total = 0;
+
+    networkUptimeData.map((val) => {
+      sum += val.uptime;
+      total += 1;
+
+      if (total === 1) {
+        barLabel.push("last 24 hours");
+        barData.push(sum.toFixed(2));
+      } else if (total === 7) {
+        barLabel.push("last 7 days");
+        barData.push((sum / total).toFixed(2));
+      } else if (total === 14) {
+        barLabel.push("last 14 days");
+        barData.push((sum / total).toFixed(2));
+      } else if (total === 28) {
+        barLabel.push("last 28 days");
+        barData.push((sum / total).toFixed(2));
+      }
+    });
+
+    setNetworkUptimeDataset({
+      line: { label: lineLabel, data: lineData },
+      bar: { label: barLabel, data: barData },
+    });
   }, [networkUptimeData]);
 
   useEffect(() => {
@@ -227,84 +268,8 @@ export default function DeviceManagement() {
 
   useEffect(() => {
     setDevicesUptime(calculateAverageUptime(allDevicesUptimeData));
-    setDevicesUptimeDescendibg(true);
+    setDevicesUptimeDescending(true);
   }, [allDevicesUptimeData]);
-
-  const uptimeData = {
-    labels: networkUptimeLineValues[0],
-    datasets: [
-      {
-        label: "Network Uptime",
-        data: networkUptimeLineValues[1],
-        fill: false,
-        borderColor: palette.primary.main,
-        backgroundColor: "#BCBD22",
-      },
-    ],
-  };
-
-  const optionsNetworkUptime = {
-    responsive: true,
-    maintainAspectRatio: false,
-    animation: false,
-    legend: { display: false },
-    cornerRadius: 0,
-    tooltips: {
-      enabled: true,
-      mode: "index",
-      intersect: false,
-      borderWidth: 1,
-      borderColor: palette.divider,
-      backgroundColor: palette.white,
-      titleFontColor: palette.text.primary,
-      bodyFontColor: palette.text.secondary,
-      footerFontColor: palette.text.secondary,
-    },
-    layout: { padding: 0 },
-    scales: {
-      xAxes: [
-        {
-          barThickness: 35,
-          //maxBarThickness: 10,
-          barPercentage: 1,
-          //categoryPercentage: 0.5,
-          ticks: {
-            fontColor: palette.text.secondary,
-          },
-          gridLines: {
-            display: false,
-            drawBorder: false,
-          },
-          scaleLabel: {
-            display: true,
-            labelString: "Date",
-          },
-        },
-      ],
-      yAxes: [
-        {
-          ticks: {
-            fontColor: palette.text.secondary,
-            beginAtZero: true,
-            min: 0,
-          },
-          gridLines: {
-            borderDash: [2],
-            borderDashOffset: [2],
-            color: palette.divider,
-            drawBorder: false,
-            zeroLineBorderDash: [2],
-            zeroLineBorderDashOffset: [2],
-            zeroLineColor: palette.divider,
-          },
-          scaleLabel: {
-            display: true,
-            labelString: "Battery Voltage",
-          },
-        },
-      ],
-    },
-  };
 
   return (
     <div>
@@ -386,15 +351,43 @@ export default function DeviceManagement() {
           className={"overview-item-container"}
           style={{ minWidth: "550px" }}
         >
-          <h4 className={classes.cardTitleBlue}>Network Uptime</h4>
+          <h4 className={classes.cardTitleBlue}>
+            Network Uptime{" "}
+            <span style={{ fontSize: "1rem" }}>(last 28 days)</span>
+            {showBarChart ? (
+              <PieChartIcon
+                className={"uptime-icon"}
+                onClick={handleNetworkUptimeClick}
+              />
+            ) : (
+              <BarChartIcon
+                className={"uptime-icon"}
+                onClick={handleNetworkUptimeClick}
+              />
+            )}
+          </h4>
 
           <Card className={classes.cardBody}>
             <div className={classes.chartContainer}>
-              <Line
-                height={"400px"}
-                data={uptimeData}
-                options={optionsNetworkUptime}
-              />
+              {showBarChart ? (
+                <Bar
+                  height={"400px"}
+                  data={createChartData(
+                    networkUptimeDataset.bar.label,
+                    networkUptimeDataset.bar.data
+                  )}
+                  options={createChartOptions("Time Period", "Uptime(%)")}
+                />
+              ) : (
+                <Line
+                  height={"400px"}
+                  data={createChartData(
+                    networkUptimeDataset.line.label,
+                    networkUptimeDataset.line.data
+                  )}
+                  options={createChartOptions("Date", "Uptime(%)")}
+                />
+              )}
             </div>
 
             <div className={classes.stats}>
