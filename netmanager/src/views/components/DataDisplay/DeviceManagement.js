@@ -26,6 +26,7 @@ import {
   loadAllDevicesUptimeData,
 } from "redux/DeviceManagement/operations";
 import { SortAscendingIcon, SortDescendingIcon } from "assets/img";
+import { multiFilter } from "utils/filters";
 
 import styles from "assets/jss/material-dashboard-react/views/dashboardStyle.js";
 import "chartjs-plugin-annotation";
@@ -172,6 +173,16 @@ export default function DeviceManagement() {
   const handleSortIconClick = () => {
     setDevicesUptime(devicesUptime.reverse());
     setDevicesUptimeDescendibg(!devicesUptimeDescending);
+  };
+
+  const handlePieChartClick = (event) => {
+    const chartElement = event[0];
+    if (chartElement === undefined) return;
+    const onlineIndex = 1;
+    setFilteredDevices(
+      multiFilter(devices, { isOnline: chartElement._index === onlineIndex })
+    );
+    setDeviceFilters({ ...mapObject(deviceFilters, () => false), all: true });
   };
 
   useEffect(() => {
@@ -403,6 +414,7 @@ export default function DeviceManagement() {
               <Pie
                 id="pie"
                 height={"162px"}
+                onElementsClick={handlePieChartClick}
                 data={{
                   labels: ["Offline", "Online"],
                   datasets: [
