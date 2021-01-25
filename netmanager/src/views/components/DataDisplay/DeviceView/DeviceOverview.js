@@ -24,15 +24,12 @@ import {
   loadDevicesData,
   loadDeviceUpTime,
   loadDeviceMaintenanceLogs,
-  loadDeviceBatteryVoltage,
-  loadDeviceSesnorCorrelation,
   loadDeviceComponentsData,
 } from "redux/DeviceRegistry/operations";
 import {
   useDevicesData,
   useDeviceUpTimeData,
   useDeviceLogsData,
-  useDeviceSensorCorrelationData,
   useDeviceComponentsData,
 } from "redux/DeviceRegistry/selectors";
 import {
@@ -41,6 +38,7 @@ import {
   createChartOptions,
 } from "utils/charts";
 import { BarChartIcon, PieChartIcon } from "assets/img";
+import { pearsonCorrelation } from "utils/statistics";
 
 const useStyles = makeStyles(styles);
 
@@ -60,9 +58,11 @@ export default function DeviceOverview({ deviceData }) {
     label: [],
     data: [],
   });
-  const deviceSensorCorrelation = useDeviceSensorCorrelationData(
-    deviceData.name
-  );
+  const [deviceSensorCorrelation, setDeviceSensorCorrelation] = useState({
+    label: [],
+    sensor1: [],
+    sensor2: [],
+  });
   const deviceMaintenanceLogs = useDeviceLogsData(deviceData.name);
   const deviceComponents = useDeviceComponentsData(deviceData.name);
 
@@ -92,14 +92,6 @@ export default function DeviceOverview({ deviceData }) {
       dispatch(loadDeviceMaintenanceLogs(deviceData.name));
     }
 
-    if (isEmpty(deviceBatteryVoltage) && deviceData.name) {
-      dispatch(loadDeviceBatteryVoltage(deviceData.name));
-    }
-
-    if (isEmpty(deviceSensorCorrelation) && deviceData.name) {
-      dispatch(loadDeviceSesnorCorrelation(deviceData.name));
-    }
-
     if (isEmpty(deviceComponents) && deviceData.name) {
       dispatch(loadDeviceComponentsData(deviceData.name));
     }
@@ -114,11 +106,15 @@ export default function DeviceOverview({ deviceData }) {
     const label = [];
     const uptimeLineData = [];
     const batteryVoltageData = [];
+    const sensor1 = [];
+    const sensor2 = [];
     data.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
     data.map((status) => {
       label.push(status.created_at.split("T")[0]);
       uptimeLineData.push(parseFloat(status.uptime).toFixed(2));
       batteryVoltageData.push(parseFloat(status.battery_voltage).toFixed(2));
+      sensor1.push(parseFloat(parseFloat(status.sensor_one_pm2_5).toFixed(2)));
+      sensor2.push(parseFloat(parseFloat(status.sensor_two_pm2_5).toFixed(2)));
     });
     data.reverse();
     const uptimeBarChartData = createBarChartData(data, "uptime");
@@ -127,21 +123,22 @@ export default function DeviceOverview({ deviceData }) {
       bar: { label: uptimeBarChartData.label, data: uptimeBarChartData.data },
     });
     setDeviceBatteryVoltage({ label, data: batteryVoltageData });
+    setDeviceSensorCorrelation({ label, sensor1, sensor2 });
   }, [deviceStatus]);
 
   const deviceSensorCorrelationData = {
-    labels: deviceSensorCorrelation.labels || [],
+    labels: deviceSensorCorrelation.label,
     datasets: [
       {
         label: "Sensor One PM2.5",
-        data: deviceSensorCorrelation.sensor_one_values || [],
+        data: deviceSensorCorrelation.sensor1,
         fill: false,
         borderColor: palette.primary.main,
         backgroundColor: "#BCBD22",
       },
       {
         label: "Sensor Two PM2.5",
-        data: deviceSensorCorrelation.sensor_two_values,
+        data: deviceSensorCorrelation.sensor2,
         fill: false,
         borderColor: palette.primary.main,
         backgroundColor: "#17BECF",
@@ -149,67 +146,6 @@ export default function DeviceOverview({ deviceData }) {
     ],
   };
 
-  const options_sensor_correlation = {
-    responsive: true,
-    maintainAspectRatio: false,
-    animation: false,
-    legend: { display: false },
-    cornerRadius: 0,
-    tooltips: {
-      enabled: true,
-      mode: "index",
-      intersect: false,
-      borderWidth: 1,
-      borderColor: palette.divider,
-      backgroundColor: palette.white,
-      titleFontColor: palette.text.primary,
-      bodyFontColor: palette.text.secondary,
-      footerFontColor: palette.text.secondary,
-    },
-    layout: { padding: 0 },
-    scales: {
-      xAxes: [
-        {
-          barThickness: 35,
-          //maxBarThickness: 10,
-          barPercentage: 1,
-          ticks: {
-            fontColor: palette.text.secondary,
-          },
-          gridLines: {
-            display: false,
-            drawBorder: false,
-          },
-          scaleLabel: {
-            display: true,
-            labelString: "Date",
-          },
-        },
-      ],
-      yAxes: [
-        {
-          ticks: {
-            fontColor: palette.text.secondary,
-            beginAtZero: true,
-            min: 0,
-          },
-          gridLines: {
-            borderDash: [2],
-            borderDashOffset: [2],
-            color: palette.divider,
-            drawBorder: false,
-            zeroLineBorderDash: [2],
-            zeroLineBorderDashOffset: [2],
-            zeroLineColor: palette.divider,
-          },
-          scaleLabel: {
-            display: true,
-            labelString: "PM2.5(µg/m3)",
-          },
-        },
-      ],
-    },
-  };
   function appendLeadingZeroes(n) {
     if (n <= 9) {
       return "0" + n;
@@ -466,21 +402,26 @@ export default function DeviceOverview({ deviceData }) {
       </div>
 
       <div className={"overview-item-container"} style={{ minWidth: "600px" }}>
-        <h4 className={classes.cardTitleBlue}>Sensor Correlation</h4>
+        <h4 className={classes.cardTitleBlue}>
+          Sensor Correlation{" "}
+          <span style={{ fontSize: "1rem" }}>(last 28 days)</span>
+        </h4>
         <Card className={classes.cardBody}>
-          <p className={classes.cardCategoryWhite}>
-            Daily sensor I and sensor II readings in the past 28 days
-          </p>
           <div className={classes.chartContainer}>
             <Line
-              height={"390px"}
+              height={"410px"}
               data={deviceSensorCorrelationData}
-              options={options_sensor_correlation}
+              options={createChartOptions("Date", "PM2.5(µg/m3)")}
             />
           </div>
           <div className={classes.stats}>
-            Pearson Correlation Value:{" "}
-            <b>{deviceSensorCorrelation.correlation_value}</b>
+            Pearson Correlation Value:&nbsp;
+            <b>
+              {pearsonCorrelation(
+                deviceSensorCorrelation.sensor1,
+                deviceSensorCorrelation.sensor2
+              ).toFixed(4)}
+            </b>
           </div>
         </Card>
       </div>
