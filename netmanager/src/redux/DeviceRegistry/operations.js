@@ -119,18 +119,9 @@ export const insertDeviceComponent = (deviceName, component) => (dispatch) => {
   });
 };
 
-export const loadDeviceUpTime = (deviceName) => async (dispatch) => {
-  return await getDeviceUptimeApi({ device_name: deviceName })
+export const loadDeviceUpTime = (deviceName, options) => async (dispatch) => {
+  return await getDeviceUptimeApi({ ...options, device_name: deviceName })
     .then((responseData) => {
-      if (
-        typeof responseData.success !== "undefined" &&
-        !responseData.success
-      ) {
-        dispatch({
-          type: LOAD_DEVICE_UPTIME_FAILURE,
-        });
-        return;
-      }
       dispatch({
         type: LOAD_DEVICE_UPTIME_SUCCESS,
         payload: { deviceName, data: responseData },
