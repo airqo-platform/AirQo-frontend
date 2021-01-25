@@ -32,7 +32,6 @@ import {
   useDevicesData,
   useDeviceUpTimeData,
   useDeviceLogsData,
-  useDeviceBatteryVoltageData,
   useDeviceSensorCorrelationData,
   useDeviceComponentsData,
 } from "redux/DeviceRegistry/selectors";
@@ -52,16 +51,19 @@ export default function DeviceOverview({ deviceData }) {
   const dispatch = useDispatch();
   const devices = useDevicesData();
   const deviceStatus = useDeviceUpTimeData(deviceData.name);
+  const [showBarChart, setShowBarChart] = useState(false);
   const [deviceUptime, setDeviceUptime] = useState({
     bar: { label: [], data: [] },
     line: { label: [], data: [] },
   });
-  const [showBarChart, setShowBarChart] = useState(false);
-  const deviceMaintenanceLogs = useDeviceLogsData(deviceData.name);
-  const deviceBatteryVoltage = useDeviceBatteryVoltageData(deviceData.name);
+  const [deviceBatteryVoltage, setDeviceBatteryVoltage] = useState({
+    label: [],
+    data: [],
+  });
   const deviceSensorCorrelation = useDeviceSensorCorrelationData(
     deviceData.name
   );
+  const deviceMaintenanceLogs = useDeviceLogsData(deviceData.name);
   const deviceComponents = useDeviceComponentsData(deviceData.name);
 
   function jsonArrayToString(myJsonArray) {
@@ -111,10 +113,12 @@ export default function DeviceOverview({ deviceData }) {
     const data = deviceStatus.data;
     const label = [];
     const uptimeLineData = [];
+    const batteryVoltageData = [];
     data.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
     data.map((status) => {
       label.push(status.created_at.split("T")[0]);
       uptimeLineData.push(parseFloat(status.uptime).toFixed(2));
+      batteryVoltageData.push(parseFloat(status.battery_voltage).toFixed(2));
     });
     data.reverse();
     const uptimeBarChartData = createBarChartData(data, "uptime");
@@ -122,83 +126,8 @@ export default function DeviceOverview({ deviceData }) {
       line: { label, data: uptimeLineData },
       bar: { label: uptimeBarChartData.label, data: uptimeBarChartData.data },
     });
+    setDeviceBatteryVoltage({ label, data: batteryVoltageData });
   }, [deviceStatus]);
-
-  const batteryVoltageData = {
-    labels: deviceBatteryVoltage.battery_voltage_labels || [],
-    datasets: [
-      {
-        label: "Device Battery Voltage",
-        data: deviceBatteryVoltage.battery_voltage_values || [],
-        fill: false,
-        borderColor: palette.primary.main,
-        backgroundColor: "#BCBD22",
-      },
-    ],
-  };
-
-  const options_ = {
-    responsive: true,
-    maintainAspectRatio: false,
-    animation: false,
-    legend: { display: false },
-    cornerRadius: 0,
-    tooltips: {
-      enabled: true,
-      mode: "index",
-      intersect: false,
-      borderWidth: 1,
-      borderColor: palette.divider,
-      backgroundColor: palette.white,
-      titleFontColor: palette.text.primary,
-      bodyFontColor: palette.text.secondary,
-      footerFontColor: palette.text.secondary,
-    },
-    layout: { padding: 0 },
-    scales: {
-      xAxes: [
-        {
-          barThickness: 35,
-          //maxBarThickness: 10,
-          barPercentage: 1,
-          //categoryPercentage: 0.5,
-          ticks: {
-            fontColor: palette.text.secondary,
-          },
-          gridLines: {
-            display: false,
-            drawBorder: false,
-          },
-          scaleLabel: {
-            display: true,
-            labelString: "Date",
-          },
-        },
-      ],
-      yAxes: [
-        {
-          ticks: {
-            fontColor: palette.text.secondary,
-            beginAtZero: true,
-            min: 0,
-          },
-          gridLines: {
-            borderDash: [2],
-            borderDashOffset: [2],
-            color: palette.divider,
-            drawBorder: false,
-            zeroLineBorderDash: [2],
-            zeroLineBorderDashOffset: [2],
-            zeroLineColor: palette.divider,
-          },
-          scaleLabel: {
-            display: true,
-            labelString: "Battery Voltage",
-          },
-        },
-      ],
-    },
-  };
 
   const deviceSensorCorrelationData = {
     labels: deviceSensorCorrelation.labels || [],
@@ -434,7 +363,7 @@ export default function DeviceOverview({ deviceData }) {
 
       <div className={"overview-item-container"} style={{ minWidth: "550px" }}>
         <h4 className={classes.cardTitleBlue}>
-          Device Uptime <span style={{ fontSize: "1rem" }}>(last 28 days)</span>
+          Uptime <span style={{ fontSize: "1rem" }}>(last 28 days)</span>
           {showBarChart ? (
             <PieChartIcon
               className={"uptime-icon"}
@@ -518,16 +447,19 @@ export default function DeviceOverview({ deviceData }) {
       </div>
 
       <div className={"overview-item-container"} style={{ minWidth: "550px" }}>
-        <h4 className={classes.cardTitleGreen}>Device Battery Voltage</h4>
+        <h4 className={classes.cardTitleGreen}>
+          Battery Voltage{" "}
+          <span style={{ fontSize: "1rem" }}>(last 28 days)</span>
+        </h4>
         <Card className={classes.cardBody}>
-          <p className={classes.cardCategoryWhite}>
-            Average daily battery voltage in the past 28 days
-          </p>
           <div className={classes.chartContainer}>
             <Line
               height={"410px"}
-              data={batteryVoltageData}
-              options={options_}
+              data={createChartData(
+                deviceBatteryVoltage.label,
+                deviceBatteryVoltage.data
+              )}
+              options={createChartOptions("Date", "Voltage")}
             />
           </div>
         </Card>
