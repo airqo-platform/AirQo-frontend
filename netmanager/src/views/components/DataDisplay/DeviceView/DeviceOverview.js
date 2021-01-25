@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { makeStyles } from "@material-ui/core/styles";
 import AccessTime from "@material-ui/icons/AccessTime";
@@ -36,6 +36,12 @@ import {
   useDeviceSensorCorrelationData,
   useDeviceComponentsData,
 } from "redux/DeviceRegistry/selectors";
+import {
+  createBarChartData,
+  createChartData,
+  createChartOptions,
+} from "utils/charts";
+import { BarChartIcon, PieChartIcon } from "assets/img";
 
 const useStyles = makeStyles(styles);
 
@@ -45,7 +51,12 @@ export default function DeviceOverview({ deviceData }) {
   const classes = useStyles();
   const dispatch = useDispatch();
   const devices = useDevicesData();
-  const deviceUptime = useDeviceUpTimeData(deviceData.name);
+  const deviceStatus = useDeviceUpTimeData(deviceData.name);
+  const [deviceUptime, setDeviceUptime] = useState({
+    bar: { label: [], data: [] },
+    line: { label: [], data: [] },
+  });
+  const [showBarChart, setShowBarChart] = useState(false);
   const deviceMaintenanceLogs = useDeviceLogsData(deviceData.name);
   const deviceBatteryVoltage = useDeviceBatteryVoltageData(deviceData.name);
   const deviceSensorCorrelation = useDeviceSensorCorrelationData(
@@ -71,8 +82,8 @@ export default function DeviceOverview({ deviceData }) {
       dispatch(loadDevicesData());
     }
 
-    if (isEmpty(deviceUptime) && deviceData.name) {
-      dispatch(loadDeviceUpTime(deviceData.name));
+    if (isEmpty(deviceStatus) && deviceData.name) {
+      dispatch(loadDeviceUpTime(deviceData.name, { days: 28 }));
     }
 
     if (isEmpty(deviceMaintenanceLogs) && deviceData.name) {
@@ -92,101 +103,26 @@ export default function DeviceOverview({ deviceData }) {
     }
   }, []);
 
-  const uptimeData = {
-    labels: deviceUptime.uptime_labels || [],
-    datasets: [
-      {
-        label: "Device Uptime",
-        data: deviceUptime.uptime_values || [],
-        fill: false,
-        borderColor: palette.primary.main,
-        backgroundColor: "#BCBD22",
-      },
-    ],
-  };
+  useEffect(() => {
+    if (isEmpty(deviceStatus)) {
+      return;
+    }
 
-  const options_main = {
-    annotation: {
-      annotations: [
-        {
-          type: "line",
-          mode: "horizontal",
-          scaleID: "y-axis-0",
-          value: 80,
-          borderColor: palette.text.secondary,
-          borderWidth: 2,
-          label: {
-            enabled: true,
-            content: "Threshold",
-            //backgroundColor: palette.white,
-            titleFontColor: palette.text.primary,
-            bodyFontColor: palette.text.primary,
-            position: "right",
-          },
-        },
-      ],
-    },
-    responsive: true,
-    maintainAspectRatio: false,
-    animation: false,
-    legend: { display: false },
-    cornerRadius: 0,
-    tooltips: {
-      enabled: true,
-      mode: "index",
-      intersect: false,
-      borderWidth: 1,
-      borderColor: palette.divider,
-      backgroundColor: palette.white,
-      titleFontColor: palette.text.primary,
-      bodyFontColor: palette.text.secondary,
-      footerFontColor: palette.text.secondary,
-    },
-    layout: { padding: 0 },
-    scales: {
-      xAxes: [
-        {
-          barThickness: 35,
-          //maxBarThickness: 10,
-          barPercentage: 1,
-          //categoryPercentage: 0.5,
-          ticks: {
-            fontColor: palette.text.secondary,
-          },
-          gridLines: {
-            display: false,
-            drawBorder: false,
-          },
-          scaleLabel: {
-            display: true,
-            labelString: "Time Periods",
-          },
-        },
-      ],
-      yAxes: [
-        {
-          ticks: {
-            fontColor: palette.text.secondary,
-            beginAtZero: true,
-            min: 0,
-          },
-          gridLines: {
-            borderDash: [2],
-            borderDashOffset: [2],
-            color: palette.divider,
-            drawBorder: false,
-            zeroLineBorderDash: [2],
-            zeroLineBorderDashOffset: [2],
-            zeroLineColor: palette.divider,
-          },
-          scaleLabel: {
-            display: true,
-            labelString: "Uptime(%)",
-          },
-        },
-      ],
-    },
-  };
+    const data = deviceStatus.data;
+    const label = [];
+    const uptimeLineData = [];
+    data.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+    data.map((status) => {
+      label.push(status.created_at.split("T")[0]);
+      uptimeLineData.push(parseFloat(status.uptime).toFixed(2));
+    });
+    data.reverse();
+    const uptimeBarChartData = createBarChartData(data, "uptime");
+    setDeviceUptime({
+      line: { label, data: uptimeLineData },
+      bar: { label: uptimeBarChartData.label, data: uptimeBarChartData.data },
+    });
+  }, [deviceStatus]);
 
   const batteryVoltageData = {
     labels: deviceBatteryVoltage.battery_voltage_labels || [],
@@ -497,10 +433,45 @@ export default function DeviceOverview({ deviceData }) {
       </div>
 
       <div className={"overview-item-container"} style={{ minWidth: "550px" }}>
-        <h4 className={classes.cardTitleBlue}>Device Uptime</h4>
+        <h4 className={classes.cardTitleBlue}>
+          Device Uptime <span style={{ fontSize: "1rem" }}>(last 28 days)</span>
+          {showBarChart ? (
+            <PieChartIcon
+              className={"uptime-icon"}
+              onClick={() => setShowBarChart(!showBarChart)}
+            />
+          ) : (
+            <BarChartIcon
+              className={"uptime-icon"}
+              onClick={() => setShowBarChart(!showBarChart)}
+            />
+          )}
+        </h4>
         <Card className={classes.cardBody}>
           <div className={classes.chartContainer}>
-            <Bar height={"410px"} data={uptimeData} options={options_main} />
+            {showBarChart ? (
+              <Bar
+                height={"410px"}
+                data={createChartData(
+                  deviceUptime.bar.label,
+                  deviceUptime.bar.data
+                )}
+                options={createChartOptions("Time Period", "Uptime(%)", {
+                  threshold: 80,
+                })}
+              />
+            ) : (
+              <Line
+                height={"410px"}
+                data={createChartData(
+                  deviceUptime.line.label,
+                  deviceUptime.line.data
+                )}
+                options={createChartOptions("Time Period", "Uptime(%)", {
+                  threshold: 80,
+                })}
+              />
+            )}
           </div>
           <div className={classes.stats}>
             <AccessTime />
