@@ -37,7 +37,7 @@ import {
   createChartData,
   createChartOptions,
 } from "utils/charts";
-import { BarChartIcon, PieChartIcon } from "assets/img";
+import { BarChartIcon, LineChartIcon } from "assets/img";
 import { pearsonCorrelation } from "utils/statistics";
 
 const useStyles = makeStyles(styles);
@@ -301,7 +301,7 @@ export default function DeviceOverview({ deviceData }) {
         <h4 className={classes.cardTitleBlue}>
           Uptime <span style={{ fontSize: "1rem" }}>(last 28 days)</span>
           {showBarChart ? (
-            <PieChartIcon
+            <LineChartIcon
               className={"uptime-icon"}
               onClick={() => setShowBarChart(!showBarChart)}
             />

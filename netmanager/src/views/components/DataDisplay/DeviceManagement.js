@@ -26,7 +26,7 @@ import {
 } from "redux/DeviceManagement/operations";
 import {
   BarChartIcon,
-  PieChartIcon,
+  LineChartIcon,
   SortAscendingIcon,
   SortDescendingIcon,
 } from "assets/img";
@@ -339,7 +339,7 @@ export default function DeviceManagement() {
             Network Uptime{" "}
             <span style={{ fontSize: "1rem" }}>(last 28 days)</span>
             {showBarChart ? (
-              <PieChartIcon
+              <LineChartIcon
                 className={"uptime-icon"}
                 onClick={handleNetworkUptimeClick}
               />
