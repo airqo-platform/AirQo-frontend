@@ -31,7 +31,11 @@ import {
   SortDescendingIcon,
 } from "assets/img";
 import { multiFilter } from "utils/filters";
-import { createChartData, createChartOptions } from "utils/charts";
+import {
+  createBarChartData,
+  createChartData,
+  createChartOptions,
+} from "utils/charts";
 
 import styles from "assets/jss/material-dashboard-react/views/dashboardStyle.js";
 import "chartjs-plugin-annotation";
@@ -208,10 +212,8 @@ export default function DeviceManagement() {
   }, []);
 
   useEffect(() => {
-    let lineLabel = [],
-      lineData = [];
-    let barLabel = [],
-      barData = [];
+    let lineLabel = [];
+    let lineData = [];
     if (isEmpty(networkUptimeData)) {
       return;
     }
@@ -224,32 +226,14 @@ export default function DeviceManagement() {
       lineData.push(parseFloat(val.uptime).toFixed(2));
     });
 
-    networkUptimeData.reverse();
-    let sum = 0;
-    let total = 0;
-
-    networkUptimeData.map((val) => {
-      sum += val.uptime;
-      total += 1;
-
-      if (total === 1) {
-        barLabel.push("last 24 hours");
-        barData.push(sum.toFixed(2));
-      } else if (total === 7) {
-        barLabel.push("last 7 days");
-        barData.push((sum / total).toFixed(2));
-      } else if (total === 14) {
-        barLabel.push("last 14 days");
-        barData.push((sum / total).toFixed(2));
-      } else if (total === 28) {
-        barLabel.push("last 28 days");
-        barData.push((sum / total).toFixed(2));
-      }
-    });
+    const barChartData = createBarChartData(
+      networkUptimeData.reverse(),
+      "uptime"
+    );
 
     setNetworkUptimeDataset({
       line: { label: lineLabel, data: lineData },
-      bar: { label: barLabel, data: barData },
+      bar: { label: barChartData.label, data: barChartData.data },
     });
   }, [networkUptimeData]);
 

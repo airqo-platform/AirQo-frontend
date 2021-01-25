@@ -79,3 +79,30 @@ export const createChartOptions = (xLabel, yLabel) => {
     },
   };
 };
+
+export const createBarChartData = (inputArr, key) => {
+  let sum = 0;
+  let total = 0;
+  const label = [];
+  const data = [];
+
+  inputArr.map((val) => {
+    sum += parseFloat(val[key]);
+    total += 1;
+
+    if (total === 1) {
+      label.push("last 24 hours");
+      data.push(sum.toFixed(2));
+    } else if (total === 7) {
+      label.push("last 7 days");
+      data.push((sum / total).toFixed(2));
+    } else if (total === 14) {
+      label.push("last 14 days");
+      data.push((sum / total).toFixed(2));
+    } else if (total === 28) {
+      label.push("last 28 days");
+      data.push((sum / total).toFixed(2));
+    }
+  });
+  return { label, data };
+};
