@@ -15,8 +15,31 @@ export const createChartData = (label, data) => {
   };
 };
 
-export const createChartOptions = (xLabel, yLabel) => {
+export const createChartOptions = (xLabel, yLabel, options) => {
   return {
+    annotation:
+      options && options.threshold
+        ? {
+            annotations: [
+              {
+                type: "line",
+                mode: "horizontal",
+                scaleID: "y-axis-0",
+                value: options.threshold,
+                borderColor: palette.text.secondary,
+                borderWidth: 2,
+                label: {
+                  enabled: true,
+                  content: "Threshold",
+                  //backgroundColor: palette.white,
+                  titleFontColor: palette.text.primary,
+                  bodyFontColor: palette.text.primary,
+                  position: "right",
+                },
+              },
+            ],
+          }
+        : {},
     responsive: true,
     maintainAspectRatio: false,
     animation: false,
