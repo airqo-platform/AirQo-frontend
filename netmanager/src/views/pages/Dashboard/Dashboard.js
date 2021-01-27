@@ -161,10 +161,10 @@ const Dashboard = (props) => {
     fetch(constants.GET_HISTORICAL_DAILY_MEAN_AVERAGES_FOR_LAST_28_DAYS_URI)
       .then((res) => res.json())
       .then((locationsData) => {
-        const background_colors = locationsData.results.background_colors;
         const zippedArr = zip(
           locationsData.results.labels,
-          locationsData.results.average_pm25_values
+          locationsData.results.average_pm25_values,
+          locationsData.results.background_colors
         );
         zippedArr.sort((a, b) => {
           const a0 = a[0].trim(),
@@ -173,7 +173,9 @@ const Dashboard = (props) => {
           if (a0 > b0) return 1;
           return 0;
         });
-        const [labels, average_pm25_values] = unzip(zippedArr);
+        const [labels, average_pm25_values, background_colors] = unzip(
+          zippedArr
+        );
         setLocations({ labels, average_pm25_values, background_colors });
       })
       .catch((e) => {
