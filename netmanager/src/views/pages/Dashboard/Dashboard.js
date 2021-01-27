@@ -47,10 +47,7 @@ const useStyles = makeStyles((theme) => ({
   actions: {
     justifyContent: "flex-end",
   },
-  chartSaveButton: {
-    width: "50px",
-    height: "50px",
-  },
+  chartSaveButton: {},
 }));
 
 const Dashboard = (props) => {
@@ -462,62 +459,55 @@ const Dashboard = (props) => {
       </Grid>
 
       <Grid container spacing={4}>
-        <Grid item lg={6} md={6} sm={12} xl={6} xs={12} container spacing={2}>
-          <Grid item lg={12} md={12} sm={12} xl={12} xs={12}>
-            <Card
-              {...rest}
-              className={clsx(classes.chartCard)}
-              id={rootContainerId}
-            >
-              <CardHeader
-                title={`Mean Daily PM2.5 for Past 28 Days From ${dateValue}`}
-                action={
-                  <Grid>
-                    <IconButton
-                      size="small"
-                      color="primary"
-                      id={iconButton}
-                      onClick={handleClick}
-                      className={classes.chartSaveButton}
-                    >
-                      <MoreHoriz />
-                    </IconButton>
-                    <Menu
-                      anchorEl={anchorEl}
-                      open={open}
-                      onClose={handleClose}
-                      PaperProps={paperProps}
-                    >
-                      {options.map((option) => (
-                        <MenuItem
-                          key={option.key}
-                          onClick={handleExport(option)}
-                        >
-                          {option.text}
-                        </MenuItem>
-                      ))}
-                    </Menu>
-                  </Grid>
-                }
-              />
-              <Divider />
-              <CardContent>
-                <div className={classes.chartContainer}>
-                  <Bar data={locationsGraphData} options={options_main} />
-                </div>
-              </CardContent>
-            </Card>
-          </Grid>
+        <Grid item lg={6} md={6} sm={12} xl={6} xs={12}>
+          <Card
+            {...rest}
+            className={clsx(classes.chartCard)}
+            id={rootContainerId}
+          >
+            <CardHeader
+              title={`Mean Daily PM2.5 for Past 28 Days From ${dateValue}`}
+              action={
+                <Grid>
+                  <IconButton
+                    size="small"
+                    color="primary"
+                    id={iconButton}
+                    onClick={handleClick}
+                    className={classes.chartSaveButton}
+                  >
+                    <MoreHoriz />
+                  </IconButton>
+                  <Menu
+                    anchorEl={anchorEl}
+                    open={open}
+                    onClose={handleClose}
+                    PaperProps={paperProps}
+                  >
+                    {options.map((option) => (
+                      <MenuItem key={option.key} onClick={handleExport(option)}>
+                        {option.text}
+                      </MenuItem>
+                    ))}
+                  </Menu>
+                </Grid>
+              }
+            />
+            <Divider />
+            <CardContent>
+              <div className={classes.chartContainer}>
+                <Bar data={locationsGraphData} options={options_main} />
+              </div>
+            </CardContent>
+          </Card>
         </Grid>
 
-        <Grid item lg={6} md={6} sm={12} xl={6} xs={12} container spacing={2}>
-          <Grid item lg={12} md={12} sm={12} xl={12} xs={12}>
-            <ExceedancesChart
-              className={clsx(classes.chartCard)}
-              chartContainer={classes.chartContainer}
-              idSuffix="exceedances"
-            />
-          </Grid>
+        <Grid item lg={6} md={6} sm={12} xl={6} xs={12}>
+          <ExceedancesChart
+            className={clsx(classes.chartCard)}
+            chartContainer={classes.chartContainer}
+            idSuffix="exceedances"
+          />
         </Grid>
 
         {userDefaultGraphs &&
