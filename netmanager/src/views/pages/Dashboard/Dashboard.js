@@ -30,7 +30,7 @@ import JsPDF from "jspdf";
 import { useUserDefaultGraphsData } from "redux/Dashboard/selectors";
 import { loadUserDefaultGraphData } from "redux/Dashboard/operations";
 import { useOrgData } from "redux/Join/selectors";
-import { isEmpty } from "underscore";
+import { isEmpty, unzip, zip } from "underscore";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -161,7 +161,20 @@ const Dashboard = (props) => {
     fetch(constants.GET_HISTORICAL_DAILY_MEAN_AVERAGES_FOR_LAST_28_DAYS_URI)
       .then((res) => res.json())
       .then((locationsData) => {
-        setLocations(locationsData.results);
+        const background_colors = locationsData.results.background_colors;
+        const zippedArr = zip(
+          locationsData.results.labels,
+          locationsData.results.average_pm25_values
+        );
+        zippedArr.sort((a, b) => {
+          const a0 = a[0].trim(),
+            b0 = b[0].trim();
+          if (a0 < b0) return -1;
+          if (a0 > b0) return 1;
+          return 0;
+        });
+        const [labels, average_pm25_values] = unzip(zippedArr);
+        setLocations({ labels, average_pm25_values, background_colors });
       })
       .catch((e) => {
         console.log(e);
@@ -466,7 +479,7 @@ const Dashboard = (props) => {
             id={rootContainerId}
           >
             <CardHeader
-              title={`Mean Daily PM2.5 for Past 28 Days From ${dateValue}`}
+              title={`Mean Daily PM2.5 for Past 28 Days`}
               action={
                 <Grid>
                   <IconButton

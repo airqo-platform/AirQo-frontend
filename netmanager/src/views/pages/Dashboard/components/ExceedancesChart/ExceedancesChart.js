@@ -96,6 +96,13 @@ const ExceedancesChart = (props) => {
         const myData = res.data;
         //setLoading(false);
         console.log(myData);
+        myData.sort((a, b) => {
+          const a0 = a.location.trim(),
+            b0 = b.location.trim();
+          if (a0 < b0) return -1;
+          if (a0 > b0) return 1;
+          return 0;
+        });
         setMyStandard(standard.value);
         setMyPollutant(pollutant.value);
         let myValues = [];
@@ -234,6 +241,13 @@ const ExceedancesChart = (props) => {
         const myData = res.data;
         console.log(myData);
         //setLoading(false);
+        myData.sort((a, b) => {
+          const a0 = a.location.trim(),
+            b0 = b.location.trim();
+          if (a0 < b0) return -1;
+          if (a0 > b0) return 1;
+          return 0;
+        });
         setMyStandard(standard.value);
         setMyPollutant(pollutant.value);
         let myValues = [];
