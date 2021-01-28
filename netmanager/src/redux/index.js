@@ -9,6 +9,7 @@ import deviceRegistryReducer from "./DeviceRegistry/reducers";
 import locationRegistryReducer from "./LocationRegistry/reducers";
 import mainAlertReducer from "./MainAlert/reducers";
 import mapDataReducer from "./MapData/reducers";
+import deviceManagementReducer from "./DeviceManagement/reducers";
 import userPreferenceReducer from "./UserPreference/reducer";
 
 export default combineReducers({
@@ -18,6 +19,7 @@ export default combineReducers({
   mapDefaults: mapReducer,
   dashboard: dashboardReducer,
   organisation: orgReducer,
+  deviceManagement: deviceManagementReducer,
   deviceRegistry: deviceRegistryReducer,
   locationRegistry: locationRegistryReducer,
   mainAlert: mainAlertReducer,

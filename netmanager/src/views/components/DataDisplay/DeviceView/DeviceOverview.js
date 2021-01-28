@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { makeStyles } from "@material-ui/core/styles";
 import AccessTime from "@material-ui/icons/AccessTime";
@@ -24,31 +24,46 @@ import {
   loadDevicesData,
   loadDeviceUpTime,
   loadDeviceMaintenanceLogs,
-  loadDeviceBatteryVoltage,
-  loadDeviceSesnorCorrelation,
   loadDeviceComponentsData,
 } from "redux/DeviceRegistry/operations";
 import {
   useDevicesData,
   useDeviceUpTimeData,
   useDeviceLogsData,
-  useDeviceBatteryVoltageData,
-  useDeviceSensorCorrelationData,
   useDeviceComponentsData,
 } from "redux/DeviceRegistry/selectors";
+import {
+  createBarChartData,
+  createChartData,
+  createChartOptions,
+} from "utils/charts";
+import { BarChartIcon, LineChartIcon } from "assets/img";
+import { pearsonCorrelation } from "utils/statistics";
 
 const useStyles = makeStyles(styles);
+
+const BLANK_PLACE_HOLDER = "-";
 
 export default function DeviceOverview({ deviceData }) {
   const classes = useStyles();
   const dispatch = useDispatch();
   const devices = useDevicesData();
-  const deviceUptime = useDeviceUpTimeData(deviceData.name);
+  const deviceStatus = useDeviceUpTimeData(deviceData.name);
+  const [showBarChart, setShowBarChart] = useState(false);
+  const [deviceUptime, setDeviceUptime] = useState({
+    bar: { label: [], data: [] },
+    line: { label: [], data: [] },
+  });
+  const [deviceBatteryVoltage, setDeviceBatteryVoltage] = useState({
+    label: [],
+    data: [],
+  });
+  const [deviceSensorCorrelation, setDeviceSensorCorrelation] = useState({
+    label: [],
+    sensor1: [],
+    sensor2: [],
+  });
   const deviceMaintenanceLogs = useDeviceLogsData(deviceData.name);
-  const deviceBatteryVoltage = useDeviceBatteryVoltageData(deviceData.name);
-  const deviceSensorCorrelation = useDeviceSensorCorrelationData(
-    deviceData.name
-  );
   const deviceComponents = useDeviceComponentsData(deviceData.name);
 
   function jsonArrayToString(myJsonArray) {
@@ -69,20 +84,12 @@ export default function DeviceOverview({ deviceData }) {
       dispatch(loadDevicesData());
     }
 
-    if (isEmpty(deviceUptime) && deviceData.name) {
-      dispatch(loadDeviceUpTime(deviceData.name));
+    if (isEmpty(deviceStatus) && deviceData.name) {
+      dispatch(loadDeviceUpTime(deviceData.name, { days: 28 }));
     }
 
     if (isEmpty(deviceMaintenanceLogs) && deviceData.name) {
       dispatch(loadDeviceMaintenanceLogs(deviceData.name));
-    }
-
-    if (isEmpty(deviceBatteryVoltage) && deviceData.name) {
-      dispatch(loadDeviceBatteryVoltage(deviceData.name));
-    }
-
-    if (isEmpty(deviceSensorCorrelation) && deviceData.name) {
-      dispatch(loadDeviceSesnorCorrelation(deviceData.name));
     }
 
     if (isEmpty(deviceComponents) && deviceData.name) {
@@ -90,191 +97,48 @@ export default function DeviceOverview({ deviceData }) {
     }
   }, []);
 
-  const uptimeData = {
-    labels: deviceUptime.uptime_labels || [],
-    datasets: [
-      {
-        label: "Device Uptime",
-        data: deviceUptime.uptime_values || [],
-        fill: false,
-        borderColor: palette.primary.main,
-        backgroundColor: "#BCBD22",
-      },
-    ],
-  };
+  useEffect(() => {
+    if (isEmpty(deviceStatus)) {
+      return;
+    }
 
-  const options_main = {
-    annotation: {
-      annotations: [
-        {
-          type: "line",
-          mode: "horizontal",
-          scaleID: "y-axis-0",
-          value: 80,
-          borderColor: palette.text.secondary,
-          borderWidth: 2,
-          label: {
-            enabled: true,
-            content: "Threshold",
-            //backgroundColor: palette.white,
-            titleFontColor: palette.text.primary,
-            bodyFontColor: palette.text.primary,
-            position: "right",
-          },
-        },
-      ],
-    },
-    responsive: true,
-    maintainAspectRatio: false,
-    animation: false,
-    legend: { display: false },
-    cornerRadius: 0,
-    tooltips: {
-      enabled: true,
-      mode: "index",
-      intersect: false,
-      borderWidth: 1,
-      borderColor: palette.divider,
-      backgroundColor: palette.white,
-      titleFontColor: palette.text.primary,
-      bodyFontColor: palette.text.secondary,
-      footerFontColor: palette.text.secondary,
-    },
-    layout: { padding: 0 },
-    scales: {
-      xAxes: [
-        {
-          barThickness: 35,
-          //maxBarThickness: 10,
-          barPercentage: 1,
-          //categoryPercentage: 0.5,
-          ticks: {
-            fontColor: palette.text.secondary,
-          },
-          gridLines: {
-            display: false,
-            drawBorder: false,
-          },
-          scaleLabel: {
-            display: true,
-            labelString: "Time Periods",
-          },
-        },
-      ],
-      yAxes: [
-        {
-          ticks: {
-            fontColor: palette.text.secondary,
-            beginAtZero: true,
-            min: 0,
-          },
-          gridLines: {
-            borderDash: [2],
-            borderDashOffset: [2],
-            color: palette.divider,
-            drawBorder: false,
-            zeroLineBorderDash: [2],
-            zeroLineBorderDashOffset: [2],
-            zeroLineColor: palette.divider,
-          },
-          scaleLabel: {
-            display: true,
-            labelString: "Uptime(%)",
-          },
-        },
-      ],
-    },
-  };
-
-  const batteryVoltageData = {
-    labels: deviceBatteryVoltage.battery_voltage_labels || [],
-    datasets: [
-      {
-        label: "Device Battery Voltage",
-        data: deviceBatteryVoltage.battery_voltage_values || [],
-        fill: false,
-        borderColor: palette.primary.main,
-        backgroundColor: "#BCBD22",
-      },
-    ],
-  };
-
-  const options_ = {
-    responsive: true,
-    maintainAspectRatio: false,
-    animation: false,
-    legend: { display: false },
-    cornerRadius: 0,
-    tooltips: {
-      enabled: true,
-      mode: "index",
-      intersect: false,
-      borderWidth: 1,
-      borderColor: palette.divider,
-      backgroundColor: palette.white,
-      titleFontColor: palette.text.primary,
-      bodyFontColor: palette.text.secondary,
-      footerFontColor: palette.text.secondary,
-    },
-    layout: { padding: 0 },
-    scales: {
-      xAxes: [
-        {
-          barThickness: 35,
-          //maxBarThickness: 10,
-          barPercentage: 1,
-          //categoryPercentage: 0.5,
-          ticks: {
-            fontColor: palette.text.secondary,
-          },
-          gridLines: {
-            display: false,
-            drawBorder: false,
-          },
-          scaleLabel: {
-            display: true,
-            labelString: "Date",
-          },
-        },
-      ],
-      yAxes: [
-        {
-          ticks: {
-            fontColor: palette.text.secondary,
-            beginAtZero: true,
-            min: 0,
-          },
-          gridLines: {
-            borderDash: [2],
-            borderDashOffset: [2],
-            color: palette.divider,
-            drawBorder: false,
-            zeroLineBorderDash: [2],
-            zeroLineBorderDashOffset: [2],
-            zeroLineColor: palette.divider,
-          },
-          scaleLabel: {
-            display: true,
-            labelString: "Battery Voltage",
-          },
-        },
-      ],
-    },
-  };
+    const data = deviceStatus.data;
+    const label = [];
+    const uptimeLineData = [];
+    const batteryVoltageData = [];
+    const sensor1 = [];
+    const sensor2 = [];
+    data.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+    data.map((status) => {
+      label.push(status.created_at.split("T")[0]);
+      uptimeLineData.push(parseFloat(status.uptime).toFixed(2));
+      batteryVoltageData.push(parseFloat(status.battery_voltage).toFixed(2));
+      sensor1.push(parseFloat(parseFloat(status.sensor_one_pm2_5).toFixed(2)));
+      sensor2.push(parseFloat(parseFloat(status.sensor_two_pm2_5).toFixed(2)));
+    });
+    data.reverse();
+    const uptimeBarChartData = createBarChartData(data, "uptime");
+    setDeviceUptime({
+      line: { label, data: uptimeLineData },
+      bar: { label: uptimeBarChartData.label, data: uptimeBarChartData.data },
+    });
+    setDeviceBatteryVoltage({ label, data: batteryVoltageData });
+    setDeviceSensorCorrelation({ label, sensor1, sensor2 });
+  }, [deviceStatus]);
 
   const deviceSensorCorrelationData = {
-    labels: deviceSensorCorrelation.labels || [],
+    labels: deviceSensorCorrelation.label,
     datasets: [
       {
         label: "Sensor One PM2.5",
-        data: deviceSensorCorrelation.sensor_one_values || [],
+        data: deviceSensorCorrelation.sensor1,
         fill: false,
         borderColor: palette.primary.main,
         backgroundColor: "#BCBD22",
       },
       {
         label: "Sensor Two PM2.5",
-        data: deviceSensorCorrelation.sensor_two_values,
+        data: deviceSensorCorrelation.sensor2,
         fill: false,
         borderColor: palette.primary.main,
         backgroundColor: "#17BECF",
@@ -282,67 +146,6 @@ export default function DeviceOverview({ deviceData }) {
     ],
   };
 
-  const options_sensor_correlation = {
-    responsive: true,
-    maintainAspectRatio: false,
-    animation: false,
-    legend: { display: false },
-    cornerRadius: 0,
-    tooltips: {
-      enabled: true,
-      mode: "index",
-      intersect: false,
-      borderWidth: 1,
-      borderColor: palette.divider,
-      backgroundColor: palette.white,
-      titleFontColor: palette.text.primary,
-      bodyFontColor: palette.text.secondary,
-      footerFontColor: palette.text.secondary,
-    },
-    layout: { padding: 0 },
-    scales: {
-      xAxes: [
-        {
-          barThickness: 35,
-          //maxBarThickness: 10,
-          barPercentage: 1,
-          ticks: {
-            fontColor: palette.text.secondary,
-          },
-          gridLines: {
-            display: false,
-            drawBorder: false,
-          },
-          scaleLabel: {
-            display: true,
-            labelString: "Date",
-          },
-        },
-      ],
-      yAxes: [
-        {
-          ticks: {
-            fontColor: palette.text.secondary,
-            beginAtZero: true,
-            min: 0,
-          },
-          gridLines: {
-            borderDash: [2],
-            borderDashOffset: [2],
-            color: palette.divider,
-            drawBorder: false,
-            zeroLineBorderDash: [2],
-            zeroLineBorderDashOffset: [2],
-            zeroLineColor: palette.divider,
-          },
-          scaleLabel: {
-            display: true,
-            labelString: "PM2.5(µg/m3)",
-          },
-        },
-      ],
-    },
-  };
   function appendLeadingZeroes(n) {
     if (n <= 9) {
       return "0" + n;
@@ -382,6 +185,14 @@ export default function DeviceOverview({ deviceData }) {
                 <TableBody>
                   <TableRow>
                     <TableCell>
+                      <b>Name</b>
+                    </TableCell>
+                    <TableCell>
+                      {deviceData.name || BLANK_PLACE_HOLDER}
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>
                       <b>Deployment status</b>
                     </TableCell>
                     <TableCell>
@@ -396,45 +207,59 @@ export default function DeviceOverview({ deviceData }) {
                     <TableCell>
                       <b>Channel</b>
                     </TableCell>
-                    <TableCell>{deviceData.channelID}</TableCell>
+                    <TableCell>
+                      {deviceData.channelID || BLANK_PLACE_HOLDER}
+                    </TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell>
                       <b>Owner</b>
                     </TableCell>
-                    <TableCell>{deviceData.owner}</TableCell>
+                    <TableCell>
+                      {deviceData.owner || BLANK_PLACE_HOLDER}
+                    </TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell>
                       <b>Manufacturer</b>
                     </TableCell>
-                    <TableCell>{deviceData.device_manufacturer}</TableCell>
+                    <TableCell>
+                      {deviceData.device_manufacturer || BLANK_PLACE_HOLDER}
+                    </TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell>
                       <b>ISP</b>
                     </TableCell>
-                    <TableCell>{deviceData.ISP}</TableCell>
+                    <TableCell>
+                      {deviceData.ISP || BLANK_PLACE_HOLDER}
+                    </TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell>
                       <b>Phone Number</b>
                     </TableCell>
                     <TableCell>
-                      {deviceData.phoneNumber && `0${deviceData.phoneNumber}`}
+                      {(deviceData.phoneNumber &&
+                        `0${deviceData.phoneNumber}`) ||
+                        BLANK_PLACE_HOLDER}
                     </TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell>
                       <b>Read Key</b>
                     </TableCell>
-                    <TableCell>{deviceData.readKey}</TableCell>
+                    <TableCell>
+                      {deviceData.readKey || BLANK_PLACE_HOLDER}
+                    </TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell>
                       <b>Write Key</b>
                     </TableCell>
-                    <TableCell>{deviceData.writeKey}</TableCell>
+                    <TableCell>
+                      {deviceData.writeKey || BLANK_PLACE_HOLDER}
+                    </TableCell>
                   </TableRow>
                 </TableBody>
               </Table>
@@ -473,10 +298,45 @@ export default function DeviceOverview({ deviceData }) {
       </div>
 
       <div className={"overview-item-container"} style={{ minWidth: "550px" }}>
-        <h4 className={classes.cardTitleBlue}>Device Uptime</h4>
+        <h4 className={classes.cardTitleBlue}>
+          Uptime <span style={{ fontSize: "1rem" }}>(last 28 days)</span>
+          {showBarChart ? (
+            <LineChartIcon
+              className={"uptime-icon"}
+              onClick={() => setShowBarChart(!showBarChart)}
+            />
+          ) : (
+            <BarChartIcon
+              className={"uptime-icon"}
+              onClick={() => setShowBarChart(!showBarChart)}
+            />
+          )}
+        </h4>
         <Card className={classes.cardBody}>
           <div className={classes.chartContainer}>
-            <Bar height={"410px"} data={uptimeData} options={options_main} />
+            {showBarChart ? (
+              <Bar
+                height={"410px"}
+                data={createChartData(
+                  deviceUptime.bar.label,
+                  deviceUptime.bar.data
+                )}
+                options={createChartOptions("Time Period", "Uptime(%)", {
+                  threshold: 80,
+                })}
+              />
+            ) : (
+              <Line
+                height={"410px"}
+                data={createChartData(
+                  deviceUptime.line.label,
+                  deviceUptime.line.data
+                )}
+                options={createChartOptions("Time Period", "Uptime(%)", {
+                  threshold: 80,
+                })}
+              />
+            )}
           </div>
           <div className={classes.stats}>
             <AccessTime />
@@ -516,42 +376,52 @@ export default function DeviceOverview({ deviceData }) {
               </Table>
             </TableContainer>
           </div>
-          {deviceMaintenanceLogs.length <= 0 && <span style={{ margin: "auto" }}>No maintenance logs</span>}
+          {deviceMaintenanceLogs.length <= 0 && (
+            <span style={{ margin: "auto" }}>No maintenance logs</span>
+          )}
         </Card>
       </div>
 
       <div className={"overview-item-container"} style={{ minWidth: "550px" }}>
-        <h4 className={classes.cardTitleGreen}>Device Battery Voltage</h4>
+        <h4 className={classes.cardTitleGreen}>
+          Battery Voltage{" "}
+          <span style={{ fontSize: "1rem" }}>(last 28 days)</span>
+        </h4>
         <Card className={classes.cardBody}>
-          <p className={classes.cardCategoryWhite}>
-            Average daily battery voltage in the past 28 days
-          </p>
           <div className={classes.chartContainer}>
             <Line
               height={"410px"}
-              data={batteryVoltageData}
-              options={options_}
+              data={createChartData(
+                deviceBatteryVoltage.label,
+                deviceBatteryVoltage.data
+              )}
+              options={createChartOptions("Date", "Voltage")}
             />
           </div>
         </Card>
       </div>
 
       <div className={"overview-item-container"} style={{ minWidth: "600px" }}>
-        <h4 className={classes.cardTitleBlue}>Sensor Correlation</h4>
+        <h4 className={classes.cardTitleBlue}>
+          Sensor Correlation{" "}
+          <span style={{ fontSize: "1rem" }}>(last 28 days)</span>
+        </h4>
         <Card className={classes.cardBody}>
-          <p className={classes.cardCategoryWhite}>
-            Daily sensor I and sensor II readings in the past 28 days
-          </p>
           <div className={classes.chartContainer}>
             <Line
-              height={"390px"}
+              height={"410px"}
               data={deviceSensorCorrelationData}
-              options={options_sensor_correlation}
+              options={createChartOptions("Date", "PM2.5(µg/m3)")}
             />
           </div>
           <div className={classes.stats}>
-            Pearson Correlation Value:{" "}
-            <b>{deviceSensorCorrelation.correlation_value}</b>
+            Pearson Correlation Value:&nbsp;
+            <b>
+              {pearsonCorrelation(
+                deviceSensorCorrelation.sensor1,
+                deviceSensorCorrelation.sensor2
+              ).toFixed(4)}
+            </b>
           </div>
         </Card>
       </div>
@@ -583,7 +453,9 @@ export default function DeviceOverview({ deviceData }) {
               </Table>
             </TableContainer>
           </div>
-          {deviceComponents.length <= 0 && <span style={{ margin: "auto" }}>No components</span>}
+          {deviceComponents.length <= 0 && (
+            <span style={{ margin: "auto" }}>No components</span>
+          )}
         </Card>
       </div>
     </div>

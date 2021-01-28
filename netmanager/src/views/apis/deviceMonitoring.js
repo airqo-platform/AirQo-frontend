@@ -24,3 +24,21 @@ export const getDeviceSensorCorrelationApi = async (params) => {
     .get(constants.GET_DEVICE_SENSOR_CORRELATION, { params })
     .then((response) => response.data);
 };
+
+export const getDevicesStatusApi = async () => {
+  return await axios
+    .get(constants.ALL_DEVICES_STATUS)
+    .then((response) => response.data);
+};
+
+export const getNetworkUptimeApi = async (params) => {
+  return await axios
+    .get(constants.GET_NETWORK_UPTIME, { params })
+    .then((response) => response.data);
+};
+
+export const getAllDevicesUptimeApi = async (params) => {
+  return await axios
+    .get(constants.ALL_DEVICES_UPTIME, { params })
+    .then((response) => response.data);
+};

@@ -1,0 +1,118 @@
+.card-container
+  width: 15%
+  min-width: 175px
+  padding: 0
+
+  &:hover
+    cursor: pointer
+
+.card-title-wrapper
+  display: flex
+  flex-wrap: wrap
+  width: 90%
+  margin: 10px auto
+
+  >p
+    display: flex
+    align-items: center
+    justify-content: center
+    padding: 0
+    width: 100%
+    white-space: nowrap
+    overflow: hidden
+    text-overflow: ellipsis
+
+.card-title-icon
+  display: flex
+  align-items: center
+  justify-content: center
+  width: 60px
+  height: 60px
+  background: #2f67e2
+  border-radius: 2px
+
+  svg
+    color: #fff
+    font-size: 2.5rem
+
+.card-title
+  display: flex
+  align-items: center
+  justify-content: flex-end
+  width: calc(100% - 80px)
+  color: #3C4858
+  margin-top: 0
+  font-weight: 300
+  font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif
+  margin-bottom: 3px
+  text-decoration: none
+  //border: 1px solid yellow
+
+  small
+    color: #999
+    font-weight: 400
+    line-height: 1
+
+.card-category
+  color: #999
+  margin: 0
+  font-size: 14px
+  padding-top: 10px
+
+.card-divider
+  width: 100%
+  border-top: 1px solid #eeeeee
+  margin: 10px 0
+
+.map-container
+  width: 98%
+  margin: 0 auto
+  height: calc(100vh - 300px)
+
+.m-device-uptime-row
+  display: flex
+  align-items: center
+  justify-content: center
+  font-size: 1.1rem
+  padding: 5px 0
+  border: 1px solid #f4f6f8
+
+  &:hover
+    cursor: pointer
+    background: #f4f6f8
+
+  >span
+    width: 30%
+    height: 100%
+
+.uptime-table-header
+  font-weight: bold
+  text-transform: uppercase
+  margin-bottom: 5px
+  border: none
+
+  &:hover
+    cursor: unset
+    background: none
+
+.uptime-success
+  color: white
+  background: rgba(0, 128, 0, 1)
+
+.uptime-warning
+  color: white
+  background: rgba(255, 165, 0, 1)
+
+.uptime-danger
+  color: white
+  background: rgba(255, 0, 0, 1)
+
+.uptime-icon
+  fill: #ffffff
+  position: absolute
+  right: 5%
+  top: 25%
+
+  &:hover
+    fill: #fecc50
+    cursor: pointer
