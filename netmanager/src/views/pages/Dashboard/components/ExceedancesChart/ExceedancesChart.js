@@ -417,6 +417,7 @@ const ExceedancesChart = (props) => {
           </Grid>
         }
         title={customChartTitle}
+        subheader={`from ${props.date}`}
         style={{ textAlign: "center" }}
       />
       <Divider />
@@ -428,76 +429,78 @@ const ExceedancesChart = (props) => {
                 labels: locations,
                 datasets: generateExceedanceData(myStandard),
               }}
-              options={{
-                layout: { padding: 0 },
-                tooltips: {
-                  enabled: true,
-                  mode: "index",
-                  intersect: false,
-                  borderWidth: 1,
-                  borderColor: palette.divider,
-                  backgroundColor: palette.white,
-                  titleFontColor: palette.text.primary,
-                  bodyFontColor: palette.text.secondary,
-                  footerFontColor: palette.text.secondary,
-                },
-                scales: {
-                  yAxes: [
-                    {
-                      stacked: true,
-                      scaleLabel: {
-                        display: true,
-                        labelString: "Exceedances",
-                        fontWeight: 4,
-                        fontColor: "black",
-                        fontSize: 15,
-                        padding: 10,
+              options={
+                props.options || {
+                  layout: { padding: 0 },
+                  tooltips: {
+                    enabled: true,
+                    mode: "index",
+                    intersect: false,
+                    borderWidth: 1,
+                    borderColor: palette.divider,
+                    backgroundColor: palette.white,
+                    titleFontColor: palette.text.primary,
+                    bodyFontColor: palette.text.secondary,
+                    footerFontColor: palette.text.secondary,
+                  },
+                  scales: {
+                    yAxes: [
+                      {
+                        stacked: true,
+                        scaleLabel: {
+                          display: true,
+                          labelString: "Exceedances",
+                          // fontWeight: 4,
+                          // fontColor: "black",
+                          fontSize: 15,
+                          padding: 10,
+                        },
+                        ticks: {
+                          fontColor: palette.text.secondary,
+                          beginAtZero: true,
+                          min: 0,
+                        },
+                        gridLines: {
+                          borderDash: [2],
+                          borderDashOffset: [2],
+                          color: palette.divider,
+                          drawBorder: false,
+                          zeroLineBorderDash: [2],
+                          zeroLineBorderDashOffset: [2],
+                          zeroLineColor: palette.divider,
+                        },
                       },
-                      ticks: {
-                        fontColor: palette.text.secondary,
-                        beginAtZero: true,
-                        min: 0,
+                    ],
+                    xAxes: [
+                      {
+                        barThickness: 12,
+                        maxBarThickness: 10,
+                        barPercentage: 0.5,
+                        categoryPercentage: 0.5,
+                        stacked: true,
+                        scaleLabel: {
+                          display: true,
+                          labelString: "Locations",
+                          // fontWeight: 4,
+                          // fontColor: "black",
+                          fontSize: 15,
+                          padding: 10,
+                        },
+                        ticks: {
+                          fontColor: "black",
+                        },
+                        gridLines: {
+                          display: false,
+                          drawBorder: false,
+                        },
                       },
-                      gridLines: {
-                        borderDash: [2],
-                        borderDashOffset: [2],
-                        color: palette.divider,
-                        drawBorder: false,
-                        zeroLineBorderDash: [2],
-                        zeroLineBorderDashOffset: [2],
-                        zeroLineColor: palette.divider,
-                      },
-                    },
-                  ],
-                  xAxes: [
-                    {
-                      barThickness: 12,
-                      maxBarThickness: 10,
-                      barPercentage: 0.5,
-                      categoryPercentage: 0.5,
-                      stacked: true,
-                      scaleLabel: {
-                        display: true,
-                        labelString: "Locations",
-                        fontWeight: 4,
-                        fontColor: "black",
-                        fontSize: 15,
-                        padding: 10,
-                      },
-                      ticks: {
-                        fontColor: "black",
-                      },
-                      gridLines: {
-                        display: false,
-                        drawBorder: false,
-                      },
-                    },
-                  ],
-                },
+                    ],
+                  },
 
-                maintainAspectRatio: true,
-                responsive: true,
-              }}
+                  maintainAspectRatio: true,
+                  responsive: true,
+                }
+              }
             />
           </div>
         </Grid>

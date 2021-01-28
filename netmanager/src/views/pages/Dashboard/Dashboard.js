@@ -248,7 +248,8 @@ const Dashboard = (props) => {
           barPercentage: 0.5,
           categoryPercentage: 0.5,
           ticks: {
-            fontColor: palette.text.secondary,
+            // fontColor: palette.text.secondary,
+            fontColor: "black",
             //fontSize:10
           },
           gridLines: {
@@ -482,6 +483,7 @@ const Dashboard = (props) => {
           >
             <CardHeader
               title={`Mean Daily PM2.5 for Past 28 Days`}
+              subheader={`from ${dateValue}`}
               action={
                 <Grid>
                   <IconButton
@@ -520,6 +522,7 @@ const Dashboard = (props) => {
         <Grid item lg={6} md={6} sm={12} xl={6} xs={12}>
           <ExceedancesChart
             className={clsx(classes.chartCard)}
+            date={dateValue}
             chartContainer={classes.chartContainer}
             idSuffix="exceedances"
           />
