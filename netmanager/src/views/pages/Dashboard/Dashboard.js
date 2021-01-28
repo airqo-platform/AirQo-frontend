@@ -30,7 +30,7 @@ import JsPDF from "jspdf";
 import { useUserDefaultGraphsData } from "redux/Dashboard/selectors";
 import { loadUserDefaultGraphData } from "redux/Dashboard/operations";
 import { useOrgData } from "redux/Join/selectors";
-import { isEmpty } from "underscore";
+import { isEmpty, unzip, zip } from "underscore";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -47,10 +47,7 @@ const useStyles = makeStyles((theme) => ({
   actions: {
     justifyContent: "flex-end",
   },
-  chartSaveButton: {
-    width: "50px",
-    height: "50px",
-  },
+  chartSaveButton: {},
 }));
 
 const Dashboard = (props) => {
@@ -164,7 +161,22 @@ const Dashboard = (props) => {
     fetch(constants.GET_HISTORICAL_DAILY_MEAN_AVERAGES_FOR_LAST_28_DAYS_URI)
       .then((res) => res.json())
       .then((locationsData) => {
-        setLocations(locationsData.results);
+        const zippedArr = zip(
+          locationsData.results.labels,
+          locationsData.results.average_pm25_values,
+          locationsData.results.background_colors
+        );
+        zippedArr.sort((a, b) => {
+          const a0 = a[0].trim(),
+            b0 = b[0].trim();
+          if (a0 < b0) return -1;
+          if (a0 > b0) return 1;
+          return 0;
+        });
+        const [labels, average_pm25_values, background_colors] = unzip(
+          zippedArr
+        );
+        setLocations({ labels, average_pm25_values, background_colors });
       })
       .catch((e) => {
         console.log(e);
@@ -236,7 +248,8 @@ const Dashboard = (props) => {
           barPercentage: 0.5,
           categoryPercentage: 0.5,
           ticks: {
-            fontColor: palette.text.secondary,
+            // fontColor: palette.text.secondary,
+            fontColor: "black",
             //fontSize:10
           },
           gridLines: {
@@ -462,62 +475,57 @@ const Dashboard = (props) => {
       </Grid>
 
       <Grid container spacing={4}>
-        <Grid item lg={6} md={6} sm={12} xl={6} xs={12} container spacing={2}>
-          <Grid item lg={12} md={12} sm={12} xl={12} xs={12}>
-            <Card
-              {...rest}
-              className={clsx(classes.chartCard)}
-              id={rootContainerId}
-            >
-              <CardHeader
-                title={`Mean Daily PM2.5 for Past 28 Days From ${dateValue}`}
-                action={
-                  <Grid>
-                    <IconButton
-                      size="small"
-                      color="primary"
-                      id={iconButton}
-                      onClick={handleClick}
-                      className={classes.chartSaveButton}
-                    >
-                      <MoreHoriz />
-                    </IconButton>
-                    <Menu
-                      anchorEl={anchorEl}
-                      open={open}
-                      onClose={handleClose}
-                      PaperProps={paperProps}
-                    >
-                      {options.map((option) => (
-                        <MenuItem
-                          key={option.key}
-                          onClick={handleExport(option)}
-                        >
-                          {option.text}
-                        </MenuItem>
-                      ))}
-                    </Menu>
-                  </Grid>
-                }
-              />
-              <Divider />
-              <CardContent>
-                <div className={classes.chartContainer}>
-                  <Bar data={locationsGraphData} options={options_main} />
-                </div>
-              </CardContent>
-            </Card>
-          </Grid>
+        <Grid item lg={6} md={6} sm={12} xl={6} xs={12}>
+          <Card
+            {...rest}
+            className={clsx(classes.chartCard)}
+            id={rootContainerId}
+          >
+            <CardHeader
+              title={`Mean Daily PM2.5 for Past 28 Days`}
+              subheader={`from ${dateValue}`}
+              action={
+                <Grid>
+                  <IconButton
+                    size="small"
+                    color="primary"
+                    id={iconButton}
+                    onClick={handleClick}
+                    className={classes.chartSaveButton}
+                  >
+                    <MoreHoriz />
+                  </IconButton>
+                  <Menu
+                    anchorEl={anchorEl}
+                    open={open}
+                    onClose={handleClose}
+                    PaperProps={paperProps}
+                  >
+                    {options.map((option) => (
+                      <MenuItem key={option.key} onClick={handleExport(option)}>
+                        {option.text}
+                      </MenuItem>
+                    ))}
+                  </Menu>
+                </Grid>
+              }
+            />
+            <Divider />
+            <CardContent>
+              <div className={classes.chartContainer}>
+                <Bar data={locationsGraphData} options={options_main} />
+              </div>
+            </CardContent>
+          </Card>
         </Grid>
 
-        <Grid item lg={6} md={6} sm={12} xl={6} xs={12} container spacing={2}>
-          <Grid item lg={12} md={12} sm={12} xl={12} xs={12}>
-            <ExceedancesChart
-              className={clsx(classes.chartCard)}
-              chartContainer={classes.chartContainer}
-              idSuffix="exceedances"
-            />
-          </Grid>
+        <Grid item lg={6} md={6} sm={12} xl={6} xs={12}>
+          <ExceedancesChart
+            className={clsx(classes.chartCard)}
+            date={dateValue}
+            chartContainer={classes.chartContainer}
+            idSuffix="exceedances"
+          />
         </Grid>
 
         {userDefaultGraphs &&

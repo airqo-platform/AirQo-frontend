@@ -18,6 +18,8 @@ import { CircularLoader } from "../../../../components/Loader/CircularLoader";
 import { updateUserPasswordApi } from "../../../../apis/authService";
 import { useOrgData } from "../../../../../redux/Join/selectors";
 
+const validPasswordRegex = RegExp(/(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,}/);
+
 const useStyles = makeStyles(() => ({
   root: {},
 }));
@@ -63,10 +65,18 @@ const Password = (props) => {
   const handleChange = (event) => {
     const id = event.target.id;
     const value =event.target.value;
-    if (["password", "password2"].includes(id)) {
-      value !== newPassword.password ? setFieldError({ password2: "passwords don't match"}) :
-      setFieldError({ password2: ""})
+    const newErrors = {}
+    if (id === "password") {
+      newErrors.password = validPasswordRegex.test(value)
+          ? ""
+          : "Minimum six characters, at least one uppercase letter, one lowercase letter and one number!";
     }
+    if (["password", "password2"].includes(id)) {
+      if (value !== newPassword.password) {
+        newErrors.password2 = "passwords don't match"
+      } else { newErrors.password2 = "" }
+    }
+    setFieldError({ ...errors, ...newErrors })
     setNewPassword({
       ...newPassword,
       [event.target.id]: event.target.value,
@@ -124,6 +134,8 @@ const Password = (props) => {
           value={newPassword.password}
           variant="outlined"
           style={{ marginTop: "1rem" }}
+          error={!!errors.password}
+          helperText={errors.password}
         />
         <TextField
           fullWidth

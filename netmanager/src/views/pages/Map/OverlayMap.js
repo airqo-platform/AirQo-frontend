@@ -66,7 +66,7 @@ export const OverlayMap = ({
   const mapContainerRef = useRef(null);
   const [map, setMap] = useState(null);
   const [showSensors, setShowSensors] = useState(true);
-  const [showHeatMap, setShowHeatMap] = useState(true);
+  const [showHeatMap, setShowHeatMap] = useState(false);
   const popup = new mapboxgl.Popup({
     closeButton: false,
     offset: 25,
@@ -75,8 +75,8 @@ export const OverlayMap = ({
   useEffect(() => {
     const map = new mapboxgl.Map({
       container: mapContainerRef.current,
-      // style: "mapbox://styles/mapbox/streets-v11",
-      style: "mapbox://styles/mapbox/dark-v10",
+      style: "mapbox://styles/mapbox/streets-v11",
+      // style: "mapbox://styles/mapbox/dark-v10",
       center,
       zoom,
       maxZoom: 18,
@@ -98,6 +98,11 @@ export const OverlayMap = ({
         type: "circle",
         paint: heatMapPaint,
       });
+      map.setLayoutProperty(
+        "circular-points-layer",
+        "visibility",
+        showHeatMap ? "visible" : "none"
+      );
       map.on("mousemove", function (e) {
         const features = map.queryRenderedFeatures(e.point, {
           layers: ["circular-points-layer"],
@@ -199,7 +204,8 @@ export const OverlayMap = ({
               )
             )
             .addTo(map);
-        })}
+        })
+      }
       <Filter fetchFilteredData={monitoringSiteData.features} />
       {map && (
         <MapToggleController
