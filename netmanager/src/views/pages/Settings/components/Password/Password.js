@@ -74,7 +74,7 @@ const Password = (props) => {
     if (["password", "password2"].includes(id)) {
       if (value !== newPassword.password) {
         newErrors.password2 = "passwords don't match"
-      } else { newErrors.password2 = "passwords don't match" }
+      } else { newErrors.password2 = "" }
     }
     setFieldError({ ...errors, ...newErrors })
     setNewPassword({
