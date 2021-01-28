@@ -98,6 +98,11 @@ export const OverlayMap = ({
         type: "circle",
         paint: heatMapPaint,
       });
+      map.setLayoutProperty(
+        "circular-points-layer",
+        "visibility",
+        showHeatMap ? "visible" : "none"
+      );
       map.on("mousemove", function (e) {
         const features = map.queryRenderedFeatures(e.point, {
           layers: ["circular-points-layer"],
@@ -199,7 +204,8 @@ export const OverlayMap = ({
               )
             )
             .addTo(map);
-        })}
+        })
+      }
       <Filter fetchFilteredData={monitoringSiteData.features} />
       {map && (
         <MapToggleController
