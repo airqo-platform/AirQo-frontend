@@ -47,73 +47,81 @@ const Map = ({ className, devices, ...rest }) => {
       zoomControl
     >
       <TileLayer url="http://{s}.tile.osm.org/{z}/{x}/{y}.png" />
-      {devices.map((device, index) => (
-        <Marker
-          position={[device.latitude, device.longitude]}
-          fill="true"
-          key={`device-maintenance-${device.channelId}-${index}`}
-          clickable="true"
-          icon={L.divIcon({
-            //html:`${contact.isOnline}`,
-            iconSize: 38,
-            className: `leafletMarkerIcon ${CategoryColorClass2(
-              device.maintenance_status
-            )}`,
-          })}
-        />
-      ))}
+      {devices.map(
+        (device, index) =>
+          device.latitude &&
+          device.longitude && (
+            <Marker
+              position={[device.latitude, device.longitude]}
+              fill="true"
+              key={`device-maintenance-${device.channelId}-${index}`}
+              clickable="true"
+              icon={L.divIcon({
+                //html:`${contact.isOnline}`,
+                iconSize: 38,
+                className: `leafletMarkerIcon ${CategoryColorClass2(
+                  device.maintenance_status
+                )}`,
+              })}
+            />
+          )
+      )}
 
-      {devices.map((device, index) => (
-        <Marker
-          position={[device.latitude, device.longitude]}
-          fill="false"
-          key={`device-status-${device.channelId}-${index}`}
-          clickable="true"
-          icon={L.divIcon({
-            //html:`${contact.isOnline}`,
-            iconSize: 30,
-            className: `leafletMarkerIcon ${CategoryColorClass(
-              device.isOnline
-            )}`,
-          })}
-        >
-          <Popup>
-            <div className={"popup-container"}>
-              <span>
-                <b>Device Name</b>: {device.name}
-              </span>
-              <span>
-                <b>Status</b>:{" "}
-                {device.isOnline ? (
-                  <span className={"popup-success"}>online</span>
-                ) : (
-                  <span className={"popup-danger"}>offline</span>
-                )}
-              </span>
-              <span>
-                <b>Maintenance Status</b>:{" "}
-                {device.maintenance_status === "overdue" ? (
-                  <span className={"popup-danger"}>
-                    {device.maintenance_status}
+      {devices.map(
+        (device, index) =>
+          device.latitude &&
+          device.longitude && (
+            <Marker
+              position={[device.latitude, device.longitude]}
+              fill="false"
+              key={`device-status-${device.channelId}-${index}`}
+              clickable="true"
+              icon={L.divIcon({
+                //html:`${contact.isOnline}`,
+                iconSize: 30,
+                className: `leafletMarkerIcon ${CategoryColorClass(
+                  device.isOnline
+                )}`,
+              })}
+            >
+              <Popup>
+                <div className={"popup-container"}>
+                  <span>
+                    <b>Device Name</b>: {device.name}
                   </span>
-                ) : device.maintenance_status === -1 ? (
-                  <span className={"popup-grey"}>not set</span>
-                ) : (
-                  <span className={"popup-success"}>
-                    {device.maintenance_status}
+                  <span>
+                    <b>Status</b>:{" "}
+                    {device.isOnline ? (
+                      <span className={"popup-success"}>online</span>
+                    ) : (
+                      <span className={"popup-danger"}>offline</span>
+                    )}
                   </span>
-                )}
-              </span>
-              <a
-                className={"popup-more-details"}
-                onClick={handleDetailsClick(device)}
-              >
-                Device details
-              </a>
-            </div>
-          </Popup>
-        </Marker>
-      ))}
+                  <span>
+                    <b>Maintenance Status</b>:{" "}
+                    {device.maintenance_status === "overdue" ? (
+                      <span className={"popup-danger"}>
+                        {device.maintenance_status}
+                      </span>
+                    ) : device.maintenance_status === -1 ? (
+                      <span className={"popup-grey"}>not set</span>
+                    ) : (
+                      <span className={"popup-success"}>
+                        {device.maintenance_status}
+                      </span>
+                    )}
+                  </span>
+                  <a
+                    className={"popup-more-details"}
+                    onClick={handleDetailsClick(device)}
+                  >
+                    Device details
+                  </a>
+                </div>
+              </Popup>
+            </Marker>
+          )
+      )}
       <FullscreenControl position="topleft" />
       <MapKey />
     </LeafletMap>
