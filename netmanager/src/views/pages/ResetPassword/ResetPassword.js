@@ -1,246 +1,174 @@
 /* eslint-disable */
-import React, { Component } from "react";
+import React, { useState } from "react";
 import axios from "axios";
-
-//new imports
+import Alert from "@material-ui/lab/Alert";
+import Collapse from "@material-ui/core/Collapse";
 import PropTypes from "prop-types";
-import { connect } from "react-redux";
-import { verifyToken, updatePassword } from "../../../redux/Join/actions";
-import { Link, withRouter } from "react-router-dom";
+
+import { Link, useLocation, BrowserRouter as Router } from "react-router-dom";
+
 import classnames from "classnames";
 import constants from "../../../config/constants";
-const loading = {
-  margin: "1em",
-  fontSize: "24px",
-};
 
-const title = {
-  pageTitle: "Password Reset Screen",
-};
+export default function ResetPassword() {
+  const [state, setState] = useState({
+    password: "",
+    confirmPassword: "",
+  });
 
-class ResetPassword extends Component {
-  constructor() {
-    super();
+  const [errors, setErrors] = useState({
+    password: "",
+    confirmPassword: "",
+  });
 
-    this.state = {
-      userName: "",
-      password: "",
-      confirmPassword: "",
-      update: false,
-      isLoading: true,
-      error: false,
-      errors: {},
-    };
-  }
-  //fires as soon as the page is reached
-  //extract token and DATE from URL params and
-  //passes it back to server's reset route for verification
-  async componentDidMount() {
-    var anchorElem = document.createElement("link");
-    anchorElem.setAttribute(
-      "href",
-      "https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"
-    );
-    anchorElem.setAttribute("rel", "stylesheet");
-    anchorElem.setAttribute("id", "logincdn");
+  const [alert, setAlert] = useState({
+    open: false,
+    message: "",
+    severity: "",
+  });
 
-    //document.body.appendChild(anchorElem);
-    document.getElementsByTagName("head")[0].appendChild(anchorElem);
+  const [updated, setUpdated] = useState(false);
 
-    const {
-      match: {
-        params: { token },
-      },
-    } = this.props;
+  const query = new URLSearchParams(useLocation().search);
+  console.log("query: ", query);
 
-    await axios
-      .get(constants.VERIFY_TOKEN_URI, {
-        params: {
-          resetPasswordToken: token,
-        },
-      })
-      .then((response) => {
-        console.log("this is my response: ");
-        console.log(response);
-        if (response.data.message === "password reset link a-ok") {
-          this.setState({
-            userName: response.data.userName,
-            updated: false,
-            isLoading: false,
-            error: false,
-          });
-        } else {
-          this.setState({
-            updated: false,
-            isLoading: false,
-            error: true,
-          });
-        }
-      })
-      .catch((error) => {
-        console.log(error.data);
-      });
-  }
-
-  onChange = (e) => {
-    this.setState({
+  const onChange = (e) => {
+    setState({
+      ...state,
       [e.target.id]: e.target.value,
     });
   };
 
-  //if the user is authenticated and allowed to reset their password.
-  //update password while logged into the app, as well
-  onSubmit = (e) => {
+  const onSubmit = (e) => {
     e.preventDefault();
-    /**
-     * so we shall not just provide the token from here and
-     * 1. Verify the token
-     * 2. Get the username using the verified token
-     * 3. Carry out the password update accordingly
-     **/
 
-    const { password, password2 } = this.state;
-    const {
-      match: {
-        params: { token },
-      },
-    } = this.props;
+    const { password } = state;
+
+    const token = query.get("token");
+    const tenant = query.get("tenant");
+
+    console.log("the token: ", token);
+    console.log("the tenant: ", tenant);
 
     return axios
-      .put(constants.UPDATE_PWD_URI, {
-        password,
-        resetPasswordToken: token,
-      })
-      .then((response) => {
-        if (response.data.message === "password updated") {
-          this.setState({
-            updated: true,
-            error: false,
-          });
-        } else {
-          this.setState({
-            updated: false,
-            error: true,
-          });
+      .put(
+        constants.UPDATE_PWD_URI,
+        {
+          password,
+          resetPasswordToken: token,
+        },
+        {
+          params: {
+            tenant,
+          },
         }
+      )
+      .then((response) => {
+        console.log("response: ", response.data);
+        setState({
+          password: "",
+          confirmPassword: "",
+        });
+        setAlert({
+          open: true,
+          message: response.data.message,
+          severity: "success",
+        });
+        setUpdated(true);
       })
       .catch((e) => {
+        setAlert({
+          open: true,
+          message: e.response.data.message,
+          severity: "error",
+        });
         console.log(e.data);
       });
   };
 
-  render() {
-    // const { errors } = this.state;
-    const {
-      userName,
-      password,
-      password2,
-      error,
-      isLoading,
-      updated,
-      errors,
-    } = this.state;
+  return (
+    <div className="container">
+      <div className="row">
+        <div className="col s8 offset-s2">
+          <div className="col s12" style={{ paddingLeft: "11.250px" }}>
+            <h4>
+              <b>Reset Password</b>
+            </h4>
+          </div>
 
-    if (error) {
-      return (
-        <div>
-          <div>
-            <h4>Problem resetting password. Please send another reset link.</h4>
-            <Link to="/" className="btn-flat waves-effect">
-              <i className="material-icons left">keyboard_backspace</i> Back to
-              home
-            </Link>
+          <form noValidate onSubmit={onSubmit}>
+            <div className="input-field col s12">
+              <Collapse in={alert.open}>
+                <Alert
+                  severity={alert.severity}
+                  onClose={() => setAlert({ ...alert, open: false })}
+                >
+                  {alert.message}
+                </Alert>
+              </Collapse>
+            </div>
+            <div className="input-field col s12">
+              <input
+                onChange={onChange}
+                value={state.password}
+                error={errors.password}
+                id="password"
+                type="password"
+                className={classnames("", {
+                  invalid: errors.password,
+                })}
+              />
+              <label htmlFor="password">Password</label>
+              <span className="red-text">{errors.password}</span>
+            </div>
+            <div className="input-field col s12">
+              <input
+                onChange={onChange}
+                value={state.confirmPassword}
+                error={errors.confirmPassword}
+                id="confirmPassword"
+                type="password"
+                className={classnames("", {
+                  invalid: errors.confirmPassword,
+                })}
+              />
+              <label htmlFor="confirmPassword">Confirm Password</label>
+              <span className="red-text">{errors.confirmPassword}</span>
+            </div>
             <div className="col s12" style={{ paddingLeft: "11.250px" }}>
-              <h4>
-                <b>Reset Password Error</b>
-              </h4>
+              <button
+                style={{
+                  width: "150px",
+                  borderRadius: "3px",
+                  letterSpacing: "1.5px",
+                  marginTop: "1rem",
+                }}
+                type="submit"
+                className="btn btn-large waves-effect waves-light hoverable blue accent-3"
+              >
+                Reset
+              </button>
+            </div>
+          </form>
+          {updated && (
+            <div>
+              <Link to="/" className="btn-flat waves-effect">
+                <i className="material-icons left">keyboard_backspace</i> Back
+                to home
+              </Link>
+              <p>
+                Your password has been successfully reset, please try logging in
+                again.
+              </p>
               <p className="grey-text text-darken-1">
-                Don't have an account? <Link to="/register">Register</Link>
+                Already have an account? <Link to="/login">Log in</Link>
               </p>
             </div>
-            <div className="col s12" style={{ paddingTop: "20px" }}>
-              <Link to="/forgot"> Forgotten Password?</Link>
-            </div>
-          </div>
+          )}
         </div>
-      );
-    } else if (isLoading) {
-      return <div>Loading User Data...</div>;
-    } else if (!isLoading && !error) {
-      return (
-        <div className="container">
-          <div className="row">
-            <div className="col s8 offset-s2">
-              <div className="col s12" style={{ paddingLeft: "11.250px" }}>
-                <h4>
-                  <b>Reset Password</b>
-                </h4>
-              </div>
-              <form noValidate onSubmit={this.onSubmit}>
-                <div className="input-field col s12">
-                  <input
-                    onChange={this.onChange}
-                    value={password}
-                    error={errors.password}
-                    id="password"
-                    type="password"
-                    className={classnames("", {
-                      invalid: errors.password,
-                    })}
-                  />
-                  <label htmlFor="password">Password</label>
-                  <span className="red-text">{errors.password}</span>
-                </div>
-                <div className="input-field col s12">
-                  <input
-                    onChange={this.onChange}
-                    value={password2}
-                    error={errors.password2}
-                    id="password2"
-                    type="password"
-                    className={classnames("", {
-                      invalid: errors.password2,
-                    })}
-                  />
-                  <label htmlFor="password2">Confirm Password</label>
-                  <span className="red-text">{errors.password2}</span>
-                </div>
-                <div className="col s12" style={{ paddingLeft: "11.250px" }}>
-                  <button
-                    style={{
-                      width: "150px",
-                      borderRadius: "3px",
-                      letterSpacing: "1.5px",
-                      marginTop: "1rem",
-                    }}
-                    type="submit"
-                    className="btn btn-large waves-effect waves-light hoverable blue accent-3"
-                  >
-                    Reset
-                  </button>
-                </div>
-              </form>
-              {updated && (
-                <div>
-                  <Link to="/" className="btn-flat waves-effect">
-                    <i className="material-icons left">keyboard_backspace</i>{" "}
-                    Back to home
-                  </Link>
-                  <p>
-                    Your password has been successfully reset, please try
-                    logging in again.
-                  </p>
-                  <p className="grey-text text-darken-1">
-                    Already have an account? <Link to="/login">Log in</Link>
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      );
-    }
-  }
+      </div>
+    </div>
+  );
 }
 
 ResetPassword.propTypes = {
@@ -255,5 +183,3 @@ ResetPassword.propTypes = {
 const mapSateToProps = (state) => ({
   errors: state.errors,
 });
-
-export default ResetPassword;
