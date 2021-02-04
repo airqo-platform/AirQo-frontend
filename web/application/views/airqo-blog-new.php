@@ -35,9 +35,10 @@
 									</ul>
 								</div>
 							</a>
-							<?php	
-						}
-						if($posts == null){
+                            <?php
+                            	
+                        }
+                        if($posts == null){
 							?>
 							<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
 								<p>No Posts Available</p>

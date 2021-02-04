@@ -234,6 +234,7 @@
 											<a href="<?= site_url('a-edit-post/' . $row['p_id']); ?>" class="btn btn-xs btn-primary btn-block"> <i class="fa fa-edit"></i> </a>
 											<button class="btn btn-xs btn-danger btn-block" data-target=".DeletePost" data-toggle="modal" title="Delete Post" data-id="<?= $row['p_id']; ?>"><i class="fa fa-trash"></i></button>
 											<?= $btnactions; ?>
+                                            <a class="btn btn-xs btn-block btn-primary" href="<?= site_url('blog-post-preview/' . $row['p_slug']); ?>">Preview</a>
 										</td>
 									</tr>
 								<?php

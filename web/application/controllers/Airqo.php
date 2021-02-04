@@ -118,6 +118,27 @@ class Airqo extends CI_Controller
 		$this->load->view('lib/header',$data);
 		$this->load->view('airqo-blog-single',$data);
 		$this->load->view('lib/footer',$data);
+    }
+    
+    public function previewblogdetails($slug) {
+		$data['post_id'] = $this->AirqoModel->get_preview_post_id_by_slug($slug);
+		if($data['post_id'] == null) {
+			show_404();
+		}
+
+		$post				= $data['post_id']['p_id'];
+		$data['post'] 		= $this->AirqoModel->get_post($post);
+		$data['postmeta'] 	= $this->AirqoModel->get_postmeta($post);
+		$data['posts'] = $this->AirqoModel->get_post();
+		$data['suggestions'] = $this->AirqoModel->get_home_random();
+		$data['categories'] = $this->AirqoModel->get_categories();
+		$data['title'] = $data['post']['p_title'];
+
+		$this->logVisitedPage($data['title']);
+
+		$this->load->view('lib/header',$data);
+		$this->load->view('airqo-blog-single',$data);
+		$this->load->view('lib/footer',$data);
 	}
 
 	public function contactUs()

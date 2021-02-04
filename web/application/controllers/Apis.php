@@ -17,7 +17,7 @@ class Apis extends CI_Controller
                 $response["nodes"] = array();
                 $nodes = array();
 
-                $json_url_lt = "https://forecast-dot-airqo-250220.appspot.com/api/v1/forecast/feeds/recent/".$channel;
+                $json_url_lt = "https://data-manager-dot-airqo-250220.uc.r.appspot.com/api/v1/data/feeds/recent/".$channel;
                 $ch_lt = curl_init();
                 curl_setopt($ch_lt, CURLOPT_URL, $json_url_lt);
                 curl_setopt($ch_lt, CURLOPT_RETURNTRANSFER, 1);
@@ -102,7 +102,7 @@ class Apis extends CI_Controller
                         $nodes["lat"]        = $prow["an_lat"];
                         $nodes["lng"]        = $prow["an_lng"];
 
-                        $json_url_lt = "https://forecast-dot-airqo-250220.appspot.com/api/v1/forecast/feeds/recent/".$channel;
+                        $json_url_lt = "https://data-manager-dot-airqo-250220.uc.r.appspot.com/api/v1/data/feeds/recent/".$channel;
                         $ch_lt = curl_init();
                         curl_setopt($ch_lt, CURLOPT_URL, $json_url_lt);
                         curl_setopt($ch_lt, CURLOPT_RETURNTRANSFER, 1);
@@ -138,7 +138,7 @@ class Apis extends CI_Controller
 
     public function airqoPlacesCached()
     {
-        $this->ApisModel->init();
+        $this->ApisModel->init(); 
         $this->form_validation->set_rules('api', 'API', 'trim|required');
         if ($this->form_validation->run() == false) {
             echo $this->ApisModel->api_error();
@@ -339,7 +339,7 @@ class Apis extends CI_Controller
                         $nodes["lat"]        = $prow["an_lat"];
                         $nodes["lng"]        = $prow["an_lng"];
 
-                        $json_url_lt = "https://forecast-dot-airqo-250220.appspot.com/api/v1/forecast/feeds/recent/".$channel;
+                        $json_url_lt = "https://data-manager-dot-airqo-250220.uc.r.appspot.com/api/v1/data/feeds/recent/".$channel;
                         $ch_lt = curl_init();
                         curl_setopt($ch_lt, CURLOPT_URL, $json_url_lt);
                         curl_setopt($ch_lt, CURLOPT_RETURNTRANSFER, 1);
@@ -404,7 +404,7 @@ class Apis extends CI_Controller
                     $response["lat"]         = $prow["an_lat"];
                     $response["lng"]         = $prow["an_lng"];
 
-                    $json_url_lt = "https://forecast-dot-airqo-250220.appspot.com/api/v1/forecast/feeds/recent/".$channel;
+                    $json_url_lt = "https://data-manager-dot-airqo-250220.uc.r.appspot.com/api/v1/data/feeds/recent/".$channel;
                     $ch_lt = curl_init();
                     curl_setopt($ch_lt, CURLOPT_URL, $json_url_lt);
                     curl_setopt($ch_lt, CURLOPT_RETURNTRANSFER, 1);
@@ -997,9 +997,10 @@ class Apis extends CI_Controller
         if ($query_pick_nodes->num_rows() > 0) {
             $pnodes = $query_pick_nodes->result_array();
             $total = 0;
+            $mr = "";
             foreach ($pnodes as $prow) {
                 $channel = $prow["an_channel_id"];
-                $json_url_lt = "https://forecast-dot-airqo-250220.appspot.com/api/v1/forecast/feeds/recent/".$channel;
+                $json_url_lt = "https://data-manager-dot-airqo-250220.uc.r.appspot.com/api/v1/data/feeds/recent/".$channel;
                 $json = file_get_contents($json_url_lt);
                 $json = json_decode($json);
                 if ($json) {
@@ -1011,7 +1012,7 @@ class Apis extends CI_Controller
                     $update_node = $this->db->query("UPDATE tbl_app_nodes SET an_lat = '$lat', an_lng = '$lng', time = '$date', reading = '$reading', an_dateUpdated = NOW()
                                                     WHERE an_channel_id = '$channel' LIMIT 1");
                     if($update_node){
-                        
+                        $mr .= "" . $reading;
                     }
 
                 }
@@ -1035,52 +1036,124 @@ class Apis extends CI_Controller
     }
 
 
-public function placeForecast()
+// public function placeForecast()
+//     {   
+//         $response = array();
+//         $this->ApisModel->init();
+//         $this->form_validation->set_rules('lat', 'Place latitude', 'trim|required');
+//         $this->form_validation->set_rules('lng', 'Place longitude', 'trim|required');
+//         $this->form_validation->set_rules('api', 'API', 'trim|required');
+//         if ($this->form_validation->run() == false) {
+//             echo $this->ApisModel->api_error();
+//         } else {
+//             $lat = $this->ApisModel->escape($this->input->post("lat"));
+//             $lng = $this->ApisModel->escape($this->input->post("lng"));
+//             $api = $this->ApisModel->escape($this->input->post("api"));
+//             $validate = $this->ApisModel->validateAPI($api);
+//             if ($validate == $this->ApisModel->stateOk()) {
+
+//                 // $url = "https://ml-service-dot-airqo-250220.appspot.com/api/v1/predict/";
+//                 $url = "http://34.78.78.202:30009/api/v1/predict/";
+//                 $ch = curl_init($url);
+
+//                 $lat = $this->ApisModel->escape($this->input->post("lat"));
+//                 $lng = $this->ApisModel->escape($this->input->post("lng"));
+
+//                 date_default_timezone_set('Africa/Kampala');
+//                 $now  =  date("Y-m-d H:i:s");
+//                 $time = strtotime($now);
+//                 $time = $time - (60*60);
+//                 $selected_datetime = date("Y-m-d H:i", $time);
+
+//                 $data = array(
+//                     'selected_datetime' => $selected_datetime,
+//                     'latitude' => $lat,
+//                     'longitude' => $lng
+//                 );
+
+//                 $payload = json_encode($data);
+//                 curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+//                 $headers = array();
+//                 curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+//                 curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
+//                 curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type:application/json'));
+//                 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+//                 $result = curl_exec($ch);
+
+//                 curl_close($ch);
+
+//                 $response = json_decode($result, true);
+
+//                 // $curl = curl_init();
+
+//                 // curl_setopt_array($curl, array(
+//                 //     CURLOPT_URL => "http://34.78.78.202:30009/api/v1/predict/",
+//                 //     CURLOPT_RETURNTRANSFER => true,
+//                 //     CURLOPT_ENCODING => "",
+//                 //     CURLOPT_MAXREDIRS => 10,
+//                 //     CURLOPT_TIMEOUT => 0,
+//                 //     CURLOPT_FOLLOWLOCATION => true,
+//                 //     CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+//                 //     CURLOPT_CUSTOMREQUEST => "POST",
+//                 //     CURLOPT_POSTFIELDS => $data,
+//                 //     CURLOPT_HTTPHEADER => array(
+//                 //         "Content-Type: application/json"
+//                 //     ),
+//                 // ));
+
+//                 // $result = curl_exec($curl);
+
+//                 // curl_close($curl);
+//                 // $response = json_decode($result, true);
+                
+//                 $state      = $this->ApisModel->stateOk();
+//                 $state_name = "success";
+//                 $state_code = 100;
+//                 $message    = "Sucessful";
+//                 $debug      = "API Config OK";
+//                 echo  $this->ApisModel->api_response($response, $state, $state_name, $state_code, $message, $debug);
+//             } else {
+//                 echo $validate;
+//             }
+//         }
+//     }
+
+    public function placeForecast()
     {   
         $response = array();
-        $this->ApisModel->init();
-        $this->form_validation->set_rules('lat', 'Place latitude', 'trim|required');
-        $this->form_validation->set_rules('lng', 'Place longitude', 'trim|required');
+        $this->ApisModel->init(); 
+        $this->form_validation->set_rules('channel', 'Channel ID', 'trim|required');
         $this->form_validation->set_rules('api', 'API', 'trim|required');
         if ($this->form_validation->run() == false) {
             echo $this->ApisModel->api_error();
         } else {
-            $lat = $this->ApisModel->escape($this->input->post("lat"));
-            $lng = $this->ApisModel->escape($this->input->post("lng"));
+            $channel = $this->ApisModel->escape($this->input->post("channel"));
             $api = $this->ApisModel->escape($this->input->post("api"));
             $validate = $this->ApisModel->validateAPI($api);
             if ($validate == $this->ApisModel->stateOk()) {
 
-                $url = "https://ml-service-dot-airqo-250220.appspot.com/api/v1/predict/";
-                $ch = curl_init($url);
-
-                $lat = $this->ApisModel->escape($this->input->post("lat"));
-                $lng = $this->ApisModel->escape($this->input->post("lng"));
-
                 date_default_timezone_set('Africa/Kampala');
                 $now  =  date("Y-m-d H:i:s");
                 $time = strtotime($now);
-                $time = $time - (60*60);
-                $selected_datetime = date("Y-m-d H:i", $time);
+                // $time = $time - (60*60);
+                // $selected_datetime = date("Y-m-d H:i", $time);
+                $selected_time = time();
 
-                $data = array(
-                    'selected_datetime' => $selected_datetime,
-                    'latitude' => $lat,
-                    'longitude' => $lng
-                );
+                $ch = curl_init();
 
-                $payload = json_encode($data);
-                curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+                curl_setopt($ch, CURLOPT_URL, "http://34.78.78.202:31009/api/v2/predict/".$channel."/" . $selected_time);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+                curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET');
+
+
                 $headers = array();
+                $headers[] = 'Content-Type: application/json';
                 curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-                curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
-                curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type:application/json'));
-                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                $result = curl_exec($ch);
 
+                $result = curl_exec($ch);
+                $response = json_decode($result, true);
                 curl_close($ch);
 
-                $response = json_decode($result, true);
                 
                 $state      = $this->ApisModel->stateOk();
                 $state_name = "success";

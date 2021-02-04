@@ -1,5 +1,7 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
+// YSfm,L;6;b9g
+//appsbayp_admin
 $active_group = 'default';
 $query_builder = TRUE;
 

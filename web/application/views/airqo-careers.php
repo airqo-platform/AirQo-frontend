@@ -79,15 +79,20 @@
 					if($careers != null){
 						foreach ($careers as $career) {
 							?>
-							<div class="col-md-4 features15-col-text">
+							<!--<div class="col-md-4 features15-col-text">
 								<div class="features15-para" style="border-left: 2px solid #3067e2; padding: 2em;">
 									<p style="font-size:1.5em; line-height: normal;"><a href="<?= site_url('career/' . $career['ca_id']); ?>"><?= $career['ca_title']; ?></a></p>
 								</div>
-							</div>
+							</div>-->
 							<?php
 						}
 					}
-				?>
+                ?>
+                    <div class="col-md-4 features15-col-text">
+                        <div class="features15-para" style="border-left: 2px solid #3067e2; padding: 2em;">
+                            <p style="font-size:1.5em; line-height: normal;">No Open Positions Available</p>
+                        </div>
+                    </div>
                </div>
                <p>&nbsp;</p>
                <p>&nbsp;</p>
@@ -108,7 +113,7 @@
 			<a href="https://itunes.apple.com/ug/app/airqo-monitoring-air-quality/id1337573091?mt=8" class="btn mr-2">
 				<img src="<?= base_url(); ?>assets/images/download2.png" width="200" class="img-fluid">
 			</a>
-			<a href="https://play.google.com/store/apps/details?id=com.airqo.net&hl=en"btn mr-2">
+			<a href="https://play.google.com/store/apps/details?id=com.airqo.net&hl=en" class="btn mr-2">
 				<img src="<?= base_url(); ?>assets/images/download1.png" style="height: 62px !important;" width="200" class="img-fluid">
 			</a>
 			

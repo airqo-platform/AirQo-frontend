@@ -138,9 +138,6 @@
 		</div>
 	</div>
 </div>
-<div class="w3l-index-block1">
-	<div id="leafletmap" style="position: relative; width: 100%; height:650px; border:1px solid #999 !important; z-index:0; background-color: rgb(38, 38, 38);"></div>
-</div>
 
 <section class="w3l-index-block3">
 	<div class="section-info py-5">
@@ -148,9 +145,7 @@
 			<div class="row cwp17-two align-items-center">
 				<div class="col-md-6 cwp17-text" style="border-right: 1px solid #cdcdcd; padding: 20px;">
 					<p class="text-justify">
-						With over 80 installations, we are continuously scaling up our low-cost air quality monitoring network in Uganda,
-						making us the leading air quality data monitoring, analysis and modelling platform within the region.
-						Collaborate with us as we use data to improve air quality.
+						AirQo is Africa's leading air quality monitoring, research and analytics network. We use low cost technologies and AI to close the gaps in air quality data across the continent. Work with us to find data-driven solutions to your air quality challenges
 					</p>
 				</div>
 				<div class="col-md-6 cwp17-text" style="padding-left: 50px;">
@@ -168,6 +163,89 @@
 		</div>
 	</div>
 </section>
+
+<div class="w3l-index-block1">
+     <div class="content py-0">
+          <div class="container">
+               <div class="row align-items-center py-md-0 py-0">
+                    <div class="col-md-12 content-left pt-md-0 pt-0">
+                        <div id="leafletmap" style="position: relative; width: 100%; height:650px; border:1px solid #999 !important; z-index:0; background-color: rgb(38, 38, 38);"></div>              
+                    </div>
+               </div>
+               <div class="col-md-12 content-left pt-md-0 pt-5">
+                    <p class="mt-3 mb-md-5 mb-4">
+                        <b>AQI Key</b>
+                    </p>
+                    <div class="container">
+                        <div class="row">
+                            <div class="card col-md-2 text-center" style="background-color: #45e50d; color: #000;">
+                                <img src="<?= base_url(); ?>assets/images/face_good.png" style="width: 20px;" /> Good (0-12)
+                            </div>
+                            <div class="card col-md-2 text-center" style="background-color: #f8fe28; color: #000;">
+                                <img src="<?= base_url(); ?>assets/images/face_moderate.png" style="width: 20px;" /> Moderate (12.1 - 35.4)
+                            </div>
+                            <div class="card col-md-2 text-center" style="background-color: #ee8310; color: #fff;">
+                                <img src="<?= base_url(); ?>assets/images/face_unhealthy.png" style="width: 20px;" /> Unhealthy for sensitive groups (35.6 - 55.4)
+                            </div>
+                            <div class="card col-md-2 text-center" style="background-color: #fe0000; color: #fff;">
+                                <img src="<?= base_url(); ?>assets/images/face_unhealthy1.png" style="width: 20px;" /> Unhealthy (55.5 - 150.4)
+                            </div>
+                            <div class="card col-md-2 text-center" style="background-color: #8639c0; color: #fff;">
+                                <img src="<?= base_url(); ?>assets/images/face_vunhealthy.png" style="width: 20px;" /> Very Unhealthy (150.5 - 250.4)
+                            </div>
+                            <div class="card col-md-2 text-center" style="background-color: #81202e; color: #fff;">
+                                <img src="<?= base_url(); ?>assets/images/face_hazardous.png" style="width: 20px;" /> Hazardous (250.5 - 500.4)
+                            </div>
+                        </div>
+                    </div>
+                    <p class="mt-3 mb-md-5 mb-4">
+                        <b>PM<sub>2.5</sub> - Particulate Matter</b>
+                    </p>
+                </div>
+               <div class="clear"></div>
+          </div>
+     </div>
+</div>
+
+<!--<div class="w3l-index-block1">
+     <div class="content py-5">
+          <div class="container">
+               <div class="row align-items-center py-md-5 py-3">
+                    <div class="col-md-12 content-left pt-md-0 pt-5">
+                        <p class="mt-3 mb-md-5 mb-4">
+                            <b>AQI Key</b>
+                        </p>
+                        <div class="container">
+                            <div class="row">
+                                <div class="card col-md-2 text-center" style="background-color: #45e50d; color: #000;">
+                                    <img src="<?= base_url(); ?>assets/images/face_good.png" style="width: 20px;" /> Good (0-12)
+                                </div>
+                                <div class="card col-md-2 text-center" style="background-color: #f8fe28; color: #000;">
+                                    <img src="<?= base_url(); ?>assets/images/face_moderate.png" style="width: 20px;" /> Moderate (12.1 - 35.4)
+                                </div>
+                                <div class="card col-md-2 text-center" style="background-color: #ee8310; color: #fff;">
+                                    <img src="<?= base_url(); ?>assets/images/face_unhealthy.png" style="width: 20px;" /> Unhealthy for sensitive groups (35.6 - 55.4)
+                                </div>
+                                <div class="card col-md-2 text-center" style="background-color: #fe0000; color: #fff;">
+                                    <img src="<?= base_url(); ?>assets/images/face_unhealthy1.png" style="width: 20px;" /> Unhealthy (55.5 - 150.4)
+                                </div>
+                                <div class="card col-md-2 text-center" style="background-color: #8639c0; color: #fff;">
+                                    <img src="<?= base_url(); ?>assets/images/face_vunhealthy.png" style="width: 20px;" /> Very Unhealthy (150.5 - 250.4)
+                                </div>
+                                <div class="card col-md-2 text-center" style="background-color: #81202e; color: #fff;">
+                                    <img src="<?= base_url(); ?>assets/images/face_hazardous.png" style="width: 20px;" /> Hazardous (250.5 - 500.4)
+                                </div>
+                            </div>
+                        </div>
+                        <p class="mt-3 mb-md-5 mb-4">
+                            <b>PM<sub>2.5</sub> - Particulate Matter</b>
+                        </p>
+                    </div>
+               </div>
+               <div class="clear"></div>
+          </div>
+     </div>
+</div>-->
 
 <div class="w3l-index-block1">
 	<div class="content py-3">
@@ -198,7 +276,7 @@
 							</a>
 						</div>
 						<div class="col-md-6" style="padding: 15px;">
-							<a href="https://play.google.com/store/apps/details?id=com.airqo.net&hl=en="_blank">
+							<a href="https://play.google.com/store/apps/details?id=com.airqo.net&hl=en" target="_blank">
 								<img src="<?= base_url(); ?>assets/images/download1.png" style="height: 100px; width: 100%" class="img-fluid">
 							</a>
 						</div>
@@ -299,12 +377,12 @@
 	}
 
 	$(window).load(function() {
-		var map = L.map('leafletmap', {dragging: false}).setView([0.328015, 32.595011], 7);
+		var map = L.map('leafletmap', {dragging: true}).setView([0.328015, 32.595011], 8);
 		map.addControl(new L.Control.Fullscreen());
 		if (L.Browser.mobile) {
 			map.scrollWheelZoom.disable();
 		}
-		map.scrollWheelZoom.disable();
+		// map.scrollWheelZoom.disable();
 
 		L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 			attribution: ''
@@ -314,7 +392,7 @@
 			type: 'POST',
 			url: '<?= site_url("Apis/airqoPlacesCached"); ?>',
 			data: {
-				api: ""
+				api: "AQ_9ec70a070c75E6af14FCca86/0621d1D83"
 			},
 			dataType: 'json',
 			beforeSend: function() {
@@ -322,7 +400,7 @@
 			},
 			success: function(data) {
 				var nodes = data.nodes;
-				// console.log(nodes);
+				//  console.log(nodes);
 				// var markers = L.markerClusterGroup();
 
 				for (let i = 0; i < nodes.length; i++) {
