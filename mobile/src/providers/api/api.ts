@@ -320,6 +320,8 @@ export class ApiProvider {
   // ISO string date to readable format
   // --------------------------------------------------------------------------------------------------------------------
   public getReadableInternationalDateFormatFromISOString(date) {
+    // TODO: There's a need to check if the 'date' that is passed is in ISO format or regular format.
+
     return new Date(date);
   }
 
