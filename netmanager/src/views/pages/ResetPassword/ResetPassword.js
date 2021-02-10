@@ -115,82 +115,119 @@ export default function ResetPassword() {
     <div className="container">
       <div className="row">
         <div className="col s8 offset-s2">
-          <div className="col s12" style={{ paddingLeft: "11.250px" }}>
-            <h4>
-              <b>Reset Password</b>
-            </h4>
-          </div>
-
           {!updated && (
-            <form noValidate onSubmit={onSubmit}>
-              <div className="input-field col s12">
-                <Collapse in={alert.open}>
-                  <Alert
-                    severity={alert.severity}
-                    onClose={() => setAlert({ ...alert, open: false })}
-                  >
-                    {alert.message}
-                  </Alert>
-                </Collapse>
-              </div>
-              <div className="input-field col s12">
-                <input
-                  onChange={onChange}
-                  value={newPassword.password}
-                  error={errors.password}
-                  id="password"
-                  type="password"
-                  className={classnames("", {
-                    invalid: errors.password,
-                  })}
-                />
-                <label htmlFor="password">Password</label>
-                <span className="red-text">{errors.password}</span>
-              </div>
-              <div className="input-field col s12">
-                <input
-                  onChange={onChange}
-                  value={newPassword.confirmPassword}
-                  error={errors.confirmPassword}
-                  id="confirmPassword"
-                  type="password"
-                  className={classnames("", {
-                    invalid: errors.confirmPassword,
-                  })}
-                />
-                <label htmlFor="confirmPassword">Confirm Password</label>
-                <span className="red-text">{errors.confirmPassword}</span>
-              </div>
-              <div className="col s12" style={{ paddingLeft: "11.250px" }}>
-                <button
-                  style={{
-                    width: "150px",
-                    borderRadius: "3px",
-                    letterSpacing: "1.5px",
-                    marginTop: "1rem",
-                  }}
-                  type="submit"
-                  disabled={!isEnabled}
-                  className="btn btn-large waves-effect waves-light hoverable blue accent-3"
-                >
-                  Reset
-                </button>
-              </div>
-            </form>
+              <>
+                <div className="col s12" style={{ paddingLeft: "11.250px" }}>
+                  <h4>
+                    <b>Reset Password</b>
+                  </h4>
+                </div>
+                <form noValidate onSubmit={onSubmit}>
+                  <div className="input-field col s12">
+                    <Collapse in={alert.open}>
+                      <Alert
+                        severity={alert.severity}
+                        onClose={() => setAlert({ ...alert, open: false })}
+                      >
+                        {alert.message}
+                      </Alert>
+                    </Collapse>
+                  </div>
+                  <div className="input-field col s12">
+                    <input
+                      onChange={onChange}
+                      value={newPassword.password}
+                      error={errors.password}
+                      id="password"
+                      type="password"
+                      className={classnames("", {
+                        invalid: errors.password,
+                      })}
+                    />
+                    <label htmlFor="password">Password</label>
+                    <span className="red-text">{errors.password}</span>
+                  </div>
+                  <div className="input-field col s12">
+                    <input
+                      onChange={onChange}
+                      value={newPassword.confirmPassword}
+                      error={errors.confirmPassword}
+                      id="confirmPassword"
+                      type="password"
+                      className={classnames("", {
+                        invalid: errors.confirmPassword,
+                      })}
+                    />
+                    <label htmlFor="confirmPassword">Confirm Password</label>
+                    <span className="red-text">{errors.confirmPassword}</span>
+                  </div>
+                  <div className="col s12" style={{ paddingLeft: "11.250px" }}>
+                    <button
+                      style={{
+                        width: "150px",
+                        borderRadius: "3px",
+                        letterSpacing: "1.5px",
+                        marginTop: "1rem",
+                      }}
+                      type="submit"
+                      disabled={!isEnabled}
+                      className="btn btn-large waves-effect waves-light hoverable blue accent-3"
+                    >
+                      Reset
+                    </button>
+                  </div>
+                </form>
+              </>
           )}
           {updated && (
             <div>
-              <Link to="/" className="btn-flat waves-effect">
-                <i className="material-icons left">keyboard_backspace</i> Back
-                to home
-              </Link>
+              <div className="col s12" style={{ paddingLeft: "11.250px" }}>
+                <h4>
+                  <b>Password Reset Successful</b>
+                </h4>
+              </div>
+
               <p>
-                Your password has been successfully reset, please try to login
-                again.
+                Your password has been successfully reset, please <Link to="/login">log in</Link> or return back to {" "}
+                <Link to="/">home</Link>.
               </p>
-              <p className="grey-text text-darken-1">
-                Navigate to the Login Page <Link to="/login">Log in</Link>
-              </p>
+
+              <div style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                margin: "20px 0",
+              }}>
+                <br />
+                <div >
+                  <Link
+                    to="/"
+                    style={{
+                      width: "140px",
+                      borderRadius: "3px",
+                      letterSpacing: "1.5px",
+                      margin: "0 10px",
+                    }}
+                    className="btn btn-large btn-flat waves-effect white black-text"
+                  >
+                    Home
+                  </Link>
+                </div>
+                <div >
+                  <Link
+                    to="/login"
+                    style={{
+                      width: "140px",
+                      borderRadius: "3px",
+                      letterSpacing: "1.5px",
+                      margin: "0 10px",
+                    }}
+                    className="btn btn-large waves-effect waves-light hoverable blue accent-3"
+                  >
+                    login
+                  </Link>
+                </div>
+              </div>
             </div>
           )}
         </div>
