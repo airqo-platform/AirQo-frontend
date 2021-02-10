@@ -31,7 +31,7 @@ import {
 
 import Landing from "views/layouts/Landing";
 import ForgotPassword from "views/pages/ForgotPassword";
-import ResetPassword from "views/pagesResetPassword";
+import ResetPassword from "views/pages/ResetPassword";
 import Login from "views/pages/SignUp/Login";
 
 const Routes = () => {
@@ -129,12 +129,8 @@ const Routes = () => {
       <Route component={Landing} exact path="/landing" />
       <Route component={Login} exact path="/login" />
       <Route component={ForgotPassword} exact path="/forgot" />
-      <RouteWithLayout component={ResetPassword} exact path="/reset" />
-      <Route exact path="/forgot" component={ForgotPassword} />
-
+      <Route component={ResetPassword} exact path="/reset" />
       <Route exact path="/register" component={ConnectedRegister} />
-
-      <Route exact path="/reset" component={ResetPassword} />
 
       <RouteWithLayout
         component={SignUpView}
@@ -142,10 +138,6 @@ const Routes = () => {
         layout={MinimalLayout}
         path="/sign-up"
       />
-
-      <Route exact path="/reset/:token" component={ResetPassword} />
-
-      <RouteWithLayout exact path="/reset" component={ResetPassword} />
 
       <Redirect to="/not-found" />
     </Switch>

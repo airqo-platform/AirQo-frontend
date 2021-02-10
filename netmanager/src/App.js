@@ -1,11 +1,7 @@
 /* eslint-disable */
 import React, { Component } from "react";
 import "./App.css";
-import {
-  BrowserRouter as Router,
-  Route,
-  Switch,
-} from "react-router-dom";
+import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 
 import jwt_decode from "jwt-decode";
 import setAuthToken from "./utils/setAuthToken";
@@ -17,10 +13,7 @@ import { ThemeProvider } from "@material-ui/styles";
 import theme from "./assets/theme";
 
 import Landing from "./views/layouts/Landing";
-import {
-  Main as MainLayout,
-  Minimal as MinimalLayout,
-} from "views/layouts/";
+import { Main as MainLayout, Minimal as MinimalLayout } from "views/layouts/";
 import PrivateRoute from "./views/components/PrivateRoute/PrivateRoute";
 import Dashboard from "./views/components/Dashboard/Dashboard";
 import Map from "./views/components/Map";
@@ -61,12 +54,12 @@ if (localStorage.jwtToken) {
   setAuthToken(token);
   // Decode token and get user info and exp
   const decoded = jwt_decode(token);
-  let currentUser = decoded
+  let currentUser = decoded;
 
   if (localStorage.currentUser) {
     try {
-      currentUser = JSON.parse(localStorage.currentUser)
-    } catch(error){}
+      currentUser = JSON.parse(localStorage.currentUser);
+    } catch (error) {}
   }
   // Set user and isAuthenticated
   store.dispatch(setCurrentUser(currentUser));
@@ -78,7 +71,7 @@ if (localStorage.jwtToken) {
     // Redirect to the landing page
     window.location.href = "./";
   }
-  store.dispatch(setOrganization())
+  store.dispatch(setOrganization());
 }
 
 class App extends Component {
@@ -89,10 +82,14 @@ class App extends Component {
           <Router>
             <div className="App">
               <Route exact path="/" component={Landing} />
-              <Route exact path="/request-access" component={ConnectedRegister} />
+              <Route
+                exact
+                path="/request-access"
+                component={ConnectedRegister}
+              />
               <Route exact path="/login" component={ConnectedLogin} />
               <Route exact path="/forgot" component={ForgotPassword} />
-              <Route exact path="/reset/:token" component={ResetPassword} />
+              <Route exact path="/reset" component={ResetPassword} />
               <Switch>
                 <PrivateRoute
                   exact
