@@ -2,41 +2,27 @@
 import React, { useState, useEffect } from "react";
 import clsx from "clsx";
 import PropTypes from "prop-types";
-import moment from "moment";
 import PerfectScrollbar from "react-perfect-scrollbar";
 import { makeStyles } from "@material-ui/styles";
 import {
   Card,
-  CardActions,
   CardContent,
   Avatar,
-  Checkbox,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
   Typography,
-  TablePagination,
   Button,
-  Modal,
   Dialog,
-  Switch,
   DialogTitle,
   DialogContent,
   DialogContentText,
-  TextField,
   DialogActions,
 } from "@material-ui/core";
 
 import { Alert, AlertTitle } from "@material-ui/lab";
 
-import { Check, CheckCircleOutline } from "@material-ui/icons";
-
-import { connect } from "react-redux";
+import { Check} from "@material-ui/icons";
 import { getInitials } from "helpers";
-import { showEditDialog } from "redux/Join/actions";
 import CandidateEditForm from "views/pages/UserList/components/UserEditForm";
+import CustomMaterialTable from "views/components/Table/CustomMaterialTable";
 
 const useStyles = makeStyles((theme) => ({
   root: {},
@@ -58,13 +44,6 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-function withMyHook(Component) {
-  return function WrappedComponent(props) {
-    const classes = useStyles();
-    return <Component {...props} classes={classes} />;
-  };
-}
-
 const CandidatesTable = (props) => {
   //the props
   //need to get the ones from the state
@@ -83,12 +62,7 @@ const CandidatesTable = (props) => {
   const editCandidate = mappeduserState.userToEdit;
   const userToDelete = mappeduserState.userToDelete;
 
-  //the methods:
-
-  const showEditDialog = (userToEdit) => {
-    props.mappedshowEditDialog(userToEdit);
-  };
-
+  //the methods
   const hideEditDialog = () => {
     props.mappedhideEditDialog();
   };
@@ -111,9 +85,6 @@ const CandidatesTable = (props) => {
     }
   };
 
-  const showDeleteDialog = (userToDelete) => {
-    props.mappedShowDeleteDialog(userToDelete);
-  };
 
   const hideDeleteDialog = () => {
     props.mappedHideDeleteDialog();
@@ -123,70 +94,12 @@ const CandidatesTable = (props) => {
     props.mappedConfirmDeleteCandidate(mappeduserState.userToDelete);
   };
 
-  const showConfirmDialog = (userToConfirm) => {
-    props.mappedShowConfirmDialog(userToConfirm);
-  };
 
   const hideConfirmDialog = () => {
     props.mappedhideConfirmDialog();
   };
 
-  const approveConfirmCandidate = () => {
-    props.mappedApproveConfirmCandidate(mappeduserState.userToConfirm);
-  };
-
   const classes = useStyles();
-  const [selectedCandidates, setSelectedCandidates] = useState([]);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [page, setPage] = useState(0);
-
-  const handleSelectAll = (event) => {
-    let selectedCandidates;
-
-    if (event.target.checked) {
-      selectedCandidates = users.map((user) => user._id);
-    } else {
-      selectedCandidates = [];
-    }
-
-    setSelectedCandidates(selectedCandidates);
-  };
-
-  const handleSelectOne = (event, id) => {
-    const selectedIndex = selectedCandidates.indexOf(id);
-    let newSelectedCandidates = [];
-
-    if (selectedIndex === -1) {
-      newSelectedCandidates = newSelectedCandidates.concat(
-        selectedCandidates,
-        id
-      );
-    } else if (selectedIndex === 0) {
-      newSelectedCandidates = newSelectedCandidates.concat(
-        selectedCandidates.slice(1)
-      );
-    } else if (selectedIndex === selectedCandidates.length - 1) {
-      newSelectedCandidates = newSelectedCandidates.concat(
-        selectedCandidates.slice(0, -1)
-      );
-    } else if (selectedIndex > 0) {
-      newSelectedCandidates = newSelectedCandidates.concat(
-        selectedCandidates.slice(0, selectedIndex),
-        selectedCandidates.slice(selectedIndex + 1)
-      );
-    }
-
-    setSelectedCandidates(newSelectedCandidates);
-  };
-
-  const handlePageChange = (event, page) => {
-    setPage(page);
-  };
-
-  const handleRowsPerPageChange = (event) => {
-    setRowsPerPage(event.target.value);
-  };
-  //
 
   useEffect(() => {
     props.fetchCandidates();
@@ -208,91 +121,67 @@ const CandidatesTable = (props) => {
       <CardContent className={classes.content}>
         <PerfectScrollbar>
           <div className={classes.inner}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell padding="checkbox">
-                    <Checkbox
-                      checked={selectedCandidates.length === users.length}
-                      color="primary"
-                      indeterminate={
-                        selectedCandidates.length > 0 &&
-                        selectedCandidates.length < users.length
-                      }
-                      onChange={handleSelectAll}
-                    />
-                  </TableCell>
-                  <TableCell>Full Name</TableCell>
-                  <TableCell>Email</TableCell>
-                  <TableCell>Description</TableCell>
-                  <TableCell>Organization</TableCell>
-                  <TableCell>Country</TableCell>
-                  <TableCell>Job Title</TableCell>
-                  <TableCell>Phone Number</TableCell>
-                  <TableCell>Action</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {/* this is where we iterate the users array */}
-                {users.slice(0, rowsPerPage).map((user) => (
-                  <TableRow
-                    className={classes.tableRow}
-                    hover
-                    key={user._id}
-                    selected={selectedCandidates.indexOf(user.firstName) !== -1}
-                  >
-                    <TableCell padding="checkbox">
-                      <Checkbox
-                        checked={selectedCandidates.indexOf(user._id) !== -1}
-                        color="primary"
-                        onChange={(event) => handleSelectOne(event, user._id)}
-                        value="true"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <div className={classes.nameContainer}>
-                        <Avatar className={classes.avatar} src={user.avatarUrl}>
-                          {getInitials(
-                            `${user.firstName + " " + user.lastName}`
-                          )}
-                        </Avatar>
-                        <Typography variant="body1">
-                          {" "}
-                          {user.firstName + " " + user.lastName}
-                        </Typography>
-                      </div>
-                    </TableCell>
-                    <TableCell>{user.email}</TableCell>
-                    {/* <TableCell>
-                      {moment(user.createdAt).format('DD/MM/YYYY')}
-                    </TableCell> */}
-                    <TableCell>{user.description}</TableCell>
-                    <TableCell>{user.organization}</TableCell>
-                    <TableCell>{user.country}</TableCell>
-                    <TableCell>{user.jobTitle}</TableCell>
-                    <TableCell>{user.phoneNumber}</TableCell>
-                    <TableCell>
-                      <Button color="primary">Confirm</Button>{" "}
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {/* the map ends here */}
-              </TableBody>
-            </Table>
+            <CustomMaterialTable
+                title={"candidate"}
+                userPreferencePaginationKey={"candidates"}
+                data={users}
+                columns={[
+                  {
+                    title: "Full Name",
+                    render: (user) => {
+                      return (
+                          <div className={classes.nameContainer}>
+                            <Avatar className={classes.avatar} src={user.avatarUrl}>
+                              {getInitials(
+                                `${user.firstName + " " + user.lastName}`
+                              )}
+                            </Avatar>
+                            <Typography variant="body1">
+                              {" "}
+                              {user.firstName + " " + user.lastName}
+                            </Typography>
+                          </div>
+                      )
+                    }
+                  },
+                  {
+                    title: "Email",
+                    field: "email",
+                  },
+                  {
+                    title: "Description",
+                    field: "description",
+                  },
+                  {
+                    title: "Organization",
+                    field: "organization",
+                  },
+                  {
+                    title: "Country",
+                    field: "country",
+                  },
+                  {
+                    title: "Job Title",
+                    field: "jobTitle",
+                  },
+                  {
+                    title: "Phone Number",
+                    field: "phoneNumber"
+                  },
+                  {
+                    title: "Action",
+                    render: (candidate) => <Button color="primary">Confirm</Button>,
+                  },
+                ]}
+                options={{
+                  search: true,
+                  searchFieldAlignment: "left",
+                  showTitle: false,
+                }}
+            />
           </div>
         </PerfectScrollbar>
       </CardContent>
-      <CardActions className={classes.actions}>
-        <TablePagination
-          component="div"
-          count={users.length}
-          onChangePage={handlePageChange}
-          onChangeRowsPerPage={handleRowsPerPageChange}
-          page={page}
-          rowsPerPage={rowsPerPage}
-          rowsPerPageOptions={[5, 10, 25]}
-        />
-      </CardActions>
 
       {/*************************** the edit dialog **********************************************/}
       <Dialog

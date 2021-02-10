@@ -8,6 +8,7 @@ import classnames from "classnames";
 import { forgotPasswordResetApi } from "../../apis/authService";
 import Alert from "@material-ui/lab/Alert";
 import { CardContent } from "@material-ui/core";
+import ArrowBackIcon from '@material-ui/icons/ArrowBack';
 
 const title = {
   pageTitle: "Forgot Password Screen",
@@ -102,10 +103,17 @@ class ForgotPassword extends Component {
       <div className="container">
         <div style={{ marginTop: "4rem" }} className="row">
           <div className="col s8 offset-s2">
-            <Link to="/" className="btn-flat waves-effect">
-              <i className="material-icons left">keyboard_backspace</i> Back to
-              home
-            </Link>
+            <div >
+              <Link
+                  to="/"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    textTransform: "uppercase",
+                    color: "#2979FF"}}>
+                <ArrowBackIcon /><span>Back to home</span>
+              </Link>
+            </div>
             <div className="col s12" style={{ paddingLeft: "11.250px" }}>
               <h4>
                 <b>Forgot Password</b>

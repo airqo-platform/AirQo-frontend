@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useDispatch } from "react-redux";
 import MaterialTable from "material-table";
 import clsx from "clsx";
@@ -28,8 +28,8 @@ import { loadDevicesData } from "redux/DeviceRegistry/operations";
 import { useDevicesData } from "redux/DeviceRegistry/selectors";
 import { useLocationsData } from "redux/LocationRegistry/selectors";
 import { loadLocationsData } from "redux/LocationRegistry/operations";
-import { generatePaginateOptions } from "utils/pagination";
 import { updateMainAlert } from "redux/MainAlert/operations";
+import CustomMaterialTable from "../Table/CustomMaterialTable";
 
 const useStyles = makeStyles((theme) => ({
   root: {},
@@ -97,6 +97,64 @@ const useStyles = makeStyles((theme) => ({
     },
   },
 }));
+
+function appendLeadingZeroes(n) {
+  if (n <= 9) {
+    return "0" + n;
+  }
+  return n;
+}
+
+let formatDate = (date) => {
+  let time =
+    appendLeadingZeroes(date.getDate()) +
+    "-" +
+    appendLeadingZeroes(date.getMonth() + 1) +
+    "-" +
+    date.getFullYear();
+
+  return time;
+};
+
+const deviceColumns = [
+  {
+    title: "Device Name",
+    field: "name",
+    cellStyle: { fontFamily: "Open Sans" },
+  },
+  {
+    title: "Description",
+    field: "description",
+    cellStyle: { fontFamily: "Open Sans" },
+  },
+  {
+    title: "Device ID",
+    field: "channelID",
+    cellStyle: { fontFamily: "Open Sans" },
+  }, //should be channel ID
+  {
+    title: "Registration Date",
+    field: "createdAt",
+    cellStyle: { fontFamily: "Open Sans" },
+    render: (rowData) => formatDate(new Date(rowData.createdAt)),
+  },
+  {
+    title: "Deployment status",
+    field: "isActive",
+    cellStyle: { fontFamily: "Open Sans" },
+    render: (rowData) =>
+      rowData.isActive ? (
+        <span style={{ color: "green" }}>Deployed</span>
+      ) : (
+        <span style={{ color: "red" }}>Not Deployed</span>
+      ),
+  },
+  {
+    title: "Location ID",
+    field: "locationID",
+    cellStyle: { fontFamily: "Open Sans" },
+  },
+];
 
 const DevicesTable = (props) => {
   const { className, users, ...rest } = props;
@@ -177,24 +235,6 @@ const DevicesTable = (props) => {
     }
   };
 
-  function appendLeadingZeroes(n) {
-    if (n <= 9) {
-      return "0" + n;
-    }
-    return n;
-  }
-
-  let formatDate = (date) => {
-    let time =
-      appendLeadingZeroes(date.getDate()) +
-      "-" +
-      appendLeadingZeroes(date.getMonth() + 1) +
-      "-" +
-      date.getFullYear();
-
-    return time;
-  };
-
   let handleRegisterSubmit = (e) => {
     let filter = {
       name: registerName,
@@ -256,49 +296,11 @@ const DevicesTable = (props) => {
           <CardContent className={classes.content}>
             <PerfectScrollbar>
               <div className={classes.tableWrapper}>
-                <MaterialTable
+                <CustomMaterialTable
                   className={classes.table}
                   title="Device Registry"
-                  columns={[
-                    {
-                      title: "Device Name",
-                      field: "name",
-                      cellStyle: { fontFamily: "Open Sans" },
-                    },
-                    {
-                      title: "Description",
-                      field: "description",
-                      cellStyle: { fontFamily: "Open Sans" },
-                    },
-                    {
-                      title: "Device ID",
-                      field: "channelID",
-                      cellStyle: { fontFamily: "Open Sans" },
-                    }, //should be channel ID
-                    {
-                      title: "Registration Date",
-                      field: "createdAt",
-                      cellStyle: { fontFamily: "Open Sans" },
-                      render: (rowData) =>
-                        formatDate(new Date(rowData.createdAt)),
-                    },
-                    {
-                      title: "Deployment status",
-                      field: "isActive",
-                      cellStyle: { fontFamily: "Open Sans" },
-                      render: (rowData) =>
-                        rowData.isActive ? (
-                          <span style={{ color: "green" }}>Deployed</span>
-                        ) : (
-                          <span style={{ color: "red" }}>Not Deployed</span>
-                        ),
-                    },
-                    {
-                      title: "Location ID",
-                      field: "locationID",
-                      cellStyle: { fontFamily: "Open Sans" },
-                    },
-                  ]}
+                  userPreferencePaginationKey={"devices"}
+                  columns={deviceColumns}
                   data={deviceList}
                   onRowClick={(evt, selectedRow) => {
                     const rowData = Object.values(devices)[
@@ -320,8 +322,6 @@ const DevicesTable = (props) => {
                       fontSize: 16,
                       fontWeight: 600,
                     },
-                    pageSizeOptions: generatePaginateOptions(deviceList.length),
-                    pageSize: 10,
                   }}
                 />
               </div>

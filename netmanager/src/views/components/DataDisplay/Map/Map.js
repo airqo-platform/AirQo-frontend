@@ -1,132 +1,133 @@
-import React from 'react';
-import clsx from 'clsx';
-import PropTypes from 'prop-types';
-import { makeStyles } from '@material-ui/styles';
-import { Map as LeafletMap, TileLayer, Popup, Marker} from 'react-leaflet';
-import {Link } from 'react-router-dom';
-import {Card, CardContent, CardHeader, Divider} from '@material-ui/core';
-import { useEffect, useState } from 'react';
-import FullscreenControl from 'react-leaflet-fullscreen';
-import 'react-leaflet-fullscreen/dist/styles.css';
-import L, { control } from 'leaflet';
-import Filter from './FilterPowerSource.jsx';
-import axios from "axios";
-import ReactDOM from 'react-dom';
-import constants from '../../../../config/constants'
-import { onlineOfflineMaintenanceStatusApi } from "../../../apis/deviceMonitoring";
+import React from "react";
+import { useHistory } from "react-router-dom";
+import PropTypes from "prop-types";
+import { Map as LeafletMap, TileLayer, Popup, Marker } from "react-leaflet";
+import FullscreenControl from "react-leaflet-fullscreen";
+import "react-leaflet-fullscreen/dist/styles.css";
+import L from "leaflet";
+import { MapKey } from "./MapKey";
 
-const useStyles = makeStyles(theme => ({
-  root: {
-    // height: '100%',
-    padding: '0',
-	  margin: 0,
-	  border: 0,  
-  },
-  content: {
-    alignItems: 'center',
-    display: 'flex'
-  },
-  title: {
-    fontWeight: 700
-  },
-  avatar: {
-    backgroundColor: theme.palette.primary.main,
-    color: theme.palette.primary.contrastText,
-    height: 56,
-    width: 56
-  },
-  icon: {
-    height: 32,
-    width: 32
-  },
-  progress: {
-    marginTop: theme.spacing(3)
-  },
-}));
+import "assets/scss/device-management-map.sass";
 
-const Map = props => {
-  const { className, ...rest } = props;
+const Map = ({ className, devices, ...rest }) => {
+  const history = useHistory();
+  let CategoryColorClass = (isOnline) => {
+    return isOnline === true
+      ? "deviceOnline"
+      : isOnline === false
+      ? "deviceOffline"
+      : "UnCategorise";
+  };
 
-  const classes = useStyles();
-  const [contacts,setContacts ] = useState([]);
+  let CategoryColorClass2 = (maintenanceStatus) => {
+    return maintenanceStatus === "overdue"
+      ? "red"
+      : maintenanceStatus === "due"
+      ? "orange"
+      : maintenanceStatus === -1
+      ? "grey"
+      : "b-success";
+  };
 
-  useEffect(() => {
-   onlineOfflineMaintenanceStatusApi()
-      .then((contactData) => {
-        let devices = contactData["online_offline_devices"]
-        console.log(devices)
-        setContacts(devices)
-        console.log(contacts)
-      })
-      .catch(console.log)
-  },[]);
-
-  let CategoryColorClass = (isOnline) =>{
-    return isOnline == true  ? 'deviceOnline' :
-      isOnline == false  ? 'deviceOffline' :
-                'UnCategorise';
-  }
-
-  let CategoryColorClass2 = (isDue) =>{
-    return isDue == "codeGreen"  ? 'green' :
-      isDue == "codeRed"  ? 'red' :
-                'orange';
-  }
+  const handleDetailsClick = (device) => (event) => {
+    event.preventDefault();
+    history.push(`/device/${device._id}/overview`);
+  };
 
   return (
-        <LeafletMap
-          animate
-          attributionControl
-          center={[0.3341424,32.5600613]}
-          doubleClickZoom
-          dragging
-          easeLinearity={0.35}
-          scrollWheelZoom
-          zoom={7}
-          zoomControl        
-        >
-          <TileLayer
-            url="http://{s}.tile.osm.org/{z}/{x}/{y}.png"
-          />           
-          {contacts.map((contact) => (
-            <Marker 
-              position={[contact.latitude,contact.longitude]}
+    <LeafletMap
+      animate
+      attributionControl
+      center={[0.3341424, 32.5600613]}
+      doubleClickZoom
+      dragging
+      easeLinearity={0.35}
+      scrollWheelZoom
+      zoom={7}
+      zoomControl
+    >
+      <TileLayer url="http://{s}.tile.osm.org/{z}/{x}/{y}.png" />
+      {devices.map(
+        (device, index) =>
+          device.latitude &&
+          device.longitude && (
+            <Marker
+              position={[device.latitude, device.longitude]}
               fill="true"
-              key={contact.channelId} 
-              clickable="true"  
-              icon={
-                L.divIcon({
+              key={`device-maintenance-${device.channelId}-${index}`}
+              clickable="true"
+              icon={L.divIcon({
                 //html:`${contact.isOnline}`,
                 iconSize: 38,
-                className:`leafletMarkerIcon ${CategoryColorClass2(contact.isDueMaintenance)}`
-                 })}
-              >
-            </Marker>   
-          ))}  
+                className: `leafletMarkerIcon ${CategoryColorClass2(
+                  device.maintenance_status
+                )}`,
+              })}
+            />
+          )
+      )}
 
-          {contacts.map((contact) => (
-            <Marker 
-              position={[contact.latitude,contact.longitude]}
+      {devices.map(
+        (device, index) =>
+          device.latitude &&
+          device.longitude && (
+            <Marker
+              position={[device.latitude, device.longitude]}
               fill="false"
-              key={contact.channelId} 
-              clickable="true"  
-              icon={
-                L.divIcon({
+              key={`device-status-${device.channelId}-${index}`}
+              clickable="true"
+              icon={L.divIcon({
                 //html:`${contact.isOnline}`,
                 iconSize: 30,
-                className:`leafletMarkerIcon ${CategoryColorClass(contact.isOnline)}`
-                 })}
-              >
-              {/* <Popup> 
-              </Popup> */}
-            </Marker>   
-          ))} 
-          <FullscreenControl position="topleft" />
-        </LeafletMap>
- 
+                className: `leafletMarkerIcon ${CategoryColorClass(
+                  device.isOnline
+                )}`,
+              })}
+            >
+              <Popup>
+                <div className={"popup-container"}>
+                  <span>
+                    <b>Device Name</b>: {device.name}
+                  </span>
+                  <span>
+                    <b>Status</b>:{" "}
+                    {device.isOnline ? (
+                      <span className={"popup-success"}>online</span>
+                    ) : (
+                      <span className={"popup-danger"}>offline</span>
+                    )}
+                  </span>
+                  <span>
+                    <b>Maintenance Status</b>:{" "}
+                    {device.maintenance_status === "overdue" ? (
+                      <span className={"popup-danger"}>
+                        {device.maintenance_status}
+                      </span>
+                    ) : device.maintenance_status === -1 ? (
+                      <span className={"popup-grey"}>not set</span>
+                    ) : (
+                      <span className={"popup-success"}>
+                        {device.maintenance_status}
+                      </span>
+                    )}
+                  </span>
+                  <a
+                    className={"popup-more-details"}
+                    onClick={handleDetailsClick(device)}
+                  >
+                    Device details
+                  </a>
+                </div>
+              </Popup>
+            </Marker>
+          )
+      )}
+      <FullscreenControl position="topleft" />
+      <MapKey />
+    </LeafletMap>
   );
 };
 Map.propTypes = {
-  className: PropTypes.string
+  className: PropTypes.string,
 };
 export default Map;

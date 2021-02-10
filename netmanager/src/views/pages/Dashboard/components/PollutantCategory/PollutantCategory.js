@@ -49,7 +49,7 @@ const TotalUsers = (props) => {
     <Card {...rest} className={clsx(classes.root, className)}>
       <CardContent>
         <Grid container justify="space-between">
-          <Grid item>
+          <Grid item style={{ maxWidth: "50%" }}>
             <Typography
               className={classes.title}
               color="textSecondary"

@@ -1,20 +1,18 @@
 import React from "react";
+import { useDispatch } from "react-redux";
 import { makeStyles } from "@material-ui/styles";
 import {
   Grid,
   Card,
   CardContent,
   CardHeader,
-  Button,
   Divider,
-  CardActions,
   IconButton,
 } from "@material-ui/core";
-import { Line, Bar } from "react-chartjs-2";
+import { Bar } from "react-chartjs-2";
 import clsx from "clsx";
 import PropTypes from "prop-types";
 import {
-  Map,
   CustomisableChart,
   PollutantCategory,
   ExceedancesChart,
@@ -30,7 +28,9 @@ import MenuItem from "@material-ui/core/MenuItem";
 import domtoimage from "dom-to-image";
 import JsPDF from "jspdf";
 import { useUserDefaultGraphsData } from "redux/Dashboard/selectors";
+import { loadUserDefaultGraphData } from "redux/Dashboard/operations";
 import { useOrgData } from "redux/Join/selectors";
+import { isEmpty, unzip, zip } from "underscore";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -41,21 +41,13 @@ const useStyles = makeStyles((theme) => ({
     color: theme.palette.text.secondary,
   },
   chartContainer: {
-    height: 250,
-    position: "relative",
-  },
-  mapContainer: {
-    height: 590,
-    width: 580,
+    minHeight: 250,
     position: "relative",
   },
   actions: {
     justifyContent: "flex-end",
   },
-  chartSaveButton: {
-    width: "50px",
-    height: "50px",
-  },
+  chartSaveButton: {},
 }));
 
 const Dashboard = (props) => {
@@ -69,6 +61,7 @@ const Dashboard = (props) => {
     ...rest
   } = props;
 
+  const dispatch = useDispatch();
   const userDefaultGraphs = useUserDefaultGraphsData();
   const orgData = useOrgData();
 
@@ -92,6 +85,12 @@ const Dashboard = (props) => {
     pm25CategoriesLocationCount,
     setPm25CategoriesLocationCount,
   ] = useState([]);
+
+  useEffect(() => {
+    if (isEmpty(userDefaultGraphs)) {
+      dispatch(loadUserDefaultGraphData());
+    }
+  }, []);
 
   useEffect(() => {
     if (orgData.name.toLowerCase() === "airqo") {
@@ -162,7 +161,22 @@ const Dashboard = (props) => {
     fetch(constants.GET_HISTORICAL_DAILY_MEAN_AVERAGES_FOR_LAST_28_DAYS_URI)
       .then((res) => res.json())
       .then((locationsData) => {
-        setLocations(locationsData.results);
+        const zippedArr = zip(
+          locationsData.results.labels,
+          locationsData.results.average_pm25_values,
+          locationsData.results.background_colors
+        );
+        zippedArr.sort((a, b) => {
+          const a0 = a[0].trim(),
+            b0 = b[0].trim();
+          if (a0 < b0) return -1;
+          if (a0 > b0) return 1;
+          return 0;
+        });
+        const [labels, average_pm25_values, background_colors] = unzip(
+          zippedArr
+        );
+        setLocations({ labels, average_pm25_values, background_colors });
       })
       .catch((e) => {
         console.log(e);
@@ -234,7 +248,8 @@ const Dashboard = (props) => {
           barPercentage: 0.5,
           categoryPercentage: 0.5,
           ticks: {
-            fontColor: palette.text.secondary,
+            // fontColor: palette.text.secondary,
+            fontColor: "black",
             //fontSize:10
           },
           gridLines: {
@@ -369,19 +384,6 @@ const Dashboard = (props) => {
 
   return (
     <div className={classes.root}>
-      <header
-        style={{
-          display: "inline-flex",
-          flexWrap: "wrap",
-          width: "674px",
-          padding: "0 0 30px 0",
-        }}
-      >
-        <h4>Welcome to the AirQo ANALYTICS dashboard</h4>
-        <br />
-        <h6>Number of nodes at each AQI risk level</h6>
-        <br />
-      </header>
       <Grid container spacing={4}>
         <Grid item lg={2} sm={6} xl={2} xs={12}>
           <PollutantCategory
@@ -470,68 +472,62 @@ const Dashboard = (props) => {
             iconClass="pm25Harzadous"
           />
         </Grid>
-        <Grid item lg={6} md={6} sm={12} xl={6} xs={12} container spacing={2}>
-          <Grid item lg={12} md={12} sm={12} xl={12} xs={12}>
-            <Card
-              {...rest}
-              className={clsx(classes.chartCard)}
-              id={rootContainerId}
-            >
-              <CardHeader
-                title={`Mean Daily PM2.5 for Past 28 Days From ${dateValue}`}
-                action={
-                  <Grid>
-                    <IconButton
-                      size="small"
-                      color="primary"
-                      id={iconButton}
-                      onClick={handleClick}
-                      className={classes.chartSaveButton}
-                    >
-                      <MoreHoriz />
-                    </IconButton>
-                    <Menu
-                      anchorEl={anchorEl}
-                      open={open}
-                      onClose={handleClose}
-                      PaperProps={paperProps}
-                    >
-                      {options.map((option) => (
-                        <MenuItem
-                          key={option.key}
-                          onClick={handleExport(option)}
-                        >
-                          {option.text}
-                        </MenuItem>
-                      ))}
-                    </Menu>
-                  </Grid>
-                }
-              />
-              <Divider />
-              <CardContent>
-                <div className={classes.chartContainer}>
-                  <Bar data={locationsGraphData} options={options_main} />
-                </div>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item lg={12} md={12} sm={12} xl={12} xs={12}>
-            <ExceedancesChart
-              className={clsx(classes.chartCard)}
-              chartContainer={classes.chartContainer}
-              idSuffix="exceedances"
+      </Grid>
+
+      <Grid container spacing={4}>
+        <Grid item lg={6} md={6} sm={12} xl={6} xs={12}>
+          <Card
+            {...rest}
+            className={clsx(classes.chartCard)}
+            id={rootContainerId}
+          >
+            <CardHeader
+              title={`Mean Daily PM2.5 for Past 28 Days`}
+              subheader={`from ${dateValue}`}
+              action={
+                <Grid>
+                  <IconButton
+                    size="small"
+                    color="primary"
+                    id={iconButton}
+                    onClick={handleClick}
+                    className={classes.chartSaveButton}
+                  >
+                    <MoreHoriz />
+                  </IconButton>
+                  <Menu
+                    anchorEl={anchorEl}
+                    open={open}
+                    onClose={handleClose}
+                    PaperProps={paperProps}
+                  >
+                    {options.map((option) => (
+                      <MenuItem key={option.key} onClick={handleExport(option)}>
+                        {option.text}
+                      </MenuItem>
+                    ))}
+                  </Menu>
+                </Grid>
+              }
             />
-          </Grid>
+            <Divider />
+            <CardContent>
+              <div className={classes.chartContainer}>
+                <Bar data={locationsGraphData} options={options_main} />
+              </div>
+            </CardContent>
+          </Card>
         </Grid>
 
         <Grid item lg={6} md={6} sm={12} xl={6} xs={12}>
-          <Grid item lg={12} sm={12} xl={12} xs={12}>
-            <div className={classes.mapContainer}>
-              <Map />
-            </div>
-          </Grid>
+          <ExceedancesChart
+            className={clsx(classes.chartCard)}
+            date={dateValue}
+            chartContainer={classes.chartContainer}
+            idSuffix="exceedances"
+          />
         </Grid>
+
         {userDefaultGraphs &&
           userDefaultGraphs.map((filter, key) => {
             return (

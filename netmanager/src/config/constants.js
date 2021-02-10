@@ -32,28 +32,29 @@ const prodConfig = {
   UPDATE_LOCATE_MAP: "http://34.78.78.202:30004/api/v1/map/updatelocatemap/",
   DELETE_LOCATE_MAP: "http://34.78.78.202:30004/api/v1/map/deletelocatemap/",
   GET_DEVICE_STATUS_SUMMARY:
-    "http://34.78.78.202:30006/api/v1/device/monitor/status",
+    "http://34.78.78.202:30006/api/v1/monitor/device/status",
   GET_MAINTENANCE_LOGS:
-    "http://34.78.78.202:30006/api/v1/device/monitor/maintenance_logs",
+    "http://34.78.78.202:30006/api/v1/monitor/device/maintenance_logs",
   GET_DEVICE_MAINTENANCE_LOG:
-    "http://34.78.78.202:30006/api/v1/device/monitor/maintenance_logs/",
+    "http://34.78.78.202:30006/api/v1/monitor/device/maintenance_logs/",
   GET_DEVICE_POWER_TYPE:
-    "http://34.78.78.202:30006/api/v1/device/monitor/power_type",
+    "http://34.78.78.202:30006/api/v1/monitor/device/power_type",
   GET_DEVICE_STATUS_FOR_PIECHART_DISPLAY:
-    "http://34.78.78.202:30006/api/v1/device/monitor/status/latest",
+    "http://34.78.78.202:30006/api/v1/monitor/device/status/latest",
   GET_LATEST_OFFLINE_DEVICES:
     "http://34.78.78.202:30006/api/v1/monitor/devices/offline",
   GET_NETWORK_UPTIME: "http://34.78.78.202:30006/api/v1/monitor/network/uptime",
-  GET_DEVICE_UPTIME: "http://34.78.78.202:30006/api/v1/monitor/device/uptime/",
+  GET_DEVICE_UPTIME: "http://34.78.78.202:30006/api/v1/monitor/device/uptime",
   GET_DEVICE_BATTERY_VOLTAGE:
-    "http://34.78.78.202:30006/api/v1/monitor/device/batteryvoltage/",
+    "http://34.78.78.202:30006/api/v1/monitor/device/batteryvoltage",
   GET_DEVICE_SENSOR_CORRELATION:
-    "http://34.78.78.202:30006/api/v1/monitor/device/sensors/correlation/",
+    "http://34.78.78.202:30006/api/v1/monitor/device/sensors/correlation",
   DEVICE_MAINTENANCE_LOG_URI:
-    "http://34.78.78.202:30006/api/v1/device/monitor/maintenance_logs/",
+    "http://34.78.78.202:30006/api/v1/monitor/device/maintenance_logs/",
   ADD_MAINTENANCE_URI:
     "http://34.78.78.202:30001/api/v1/data/channels/maintenance/add",
-  DEVICE_RECENT_FEEDS: "http://34.78.78.202:30001/api/v1/data/feeds/transform/recent",
+  DEVICE_RECENT_FEEDS:
+    "http://34.78.78.202:30001/api/v1/data/feeds/transform/recent",
   REGISTER_DEVICE_URI: "http://34.78.78.202:30002/api/v1/devices/ts",
   ALL_DEVICES_URI: "http://34.78.78.202:30002/api/v1/devices",
   EDIT_DEVICE_URI: "http://34.78.78.202:30002/api/v1/devices/ts/update?device=",
@@ -67,6 +68,8 @@ const prodConfig = {
     "http://34.78.78.202:30006/api/v1/monitor/network/devices/bestperforming",
   GET_NETWORK_WORST_PERFORMING_DEVICES:
     "http://34.78.78.202:30006/api/v1/monitor/network/devices/worstperforming",
+  ALL_DEVICES_STATUS: "http://34.78.78.202:30006/api/v1/monitor/devices/status",
+  ALL_DEVICES_UPTIME: "http://34.78.78.202:30006/api/v1/monitor/devices/uptime",
   ADD_COMPONENT_URI:
     "http://34.78.78.202:30002/api/v1/devices/add/components?device=",
   GET_ONLINE_OFFLINE_MAINTENANCE_STATUS:
@@ -107,6 +110,7 @@ const prodConfig = {
     "http://34.78.78.202:30003/api/v1/dashboard/monitoringsites?organisation_name=KCCA",
   GET_DATA_MAP:
     "http://34.78.78.202:30003/api/v1/dashboard/monitoringsites?organisation_name=KCCA&pm25_category=",
+  GET_HEATMAP_DATA: "http://34.78.78.202:30009/api/v1/predict/heatmap",
 };
 
 const devConfig = {
@@ -152,29 +156,32 @@ const devConfig = {
     "http://127.0.0.1:5000/api/v1/dashboard/monitoringsites?organisation_name=KCCA",
   GET_DATA_MAP:
     "http://127.0.0.1:5000/api/v1/dashboard/monitoringsites?organisation_name=KCCA&pm25_category=",
+  GET_HEATMAP_DATA: "http://localhost:5000/api/v1/predict/heatmap",
   RUN_LOCATE_MODEL: "http://localhost:4000/api/v1/map/parishes",
   SAVE_LOCATE_MAP: "http://localhost:4000/api/v1/map/savelocatemap",
   GET_LOCATE_MAP: "http://localhost:4000/api/v1/map/getlocatemap/",
   UPDATE_LOCATE_MAP: "http://localhost:4000/api/v1/map/updatelocatemap/",
   DELETE_LOCATE_MAP: "http://localhost:4000/api/v1/map/deletelocatemap/",
   GET_DEVICE_STATUS_SUMMARY:
-    "http://localhost:4001/api/v1/device/monitor/status",
+    "http://localhost:4001/api/v1/monitor/device/status",
   GET_MAINTENANCE_LOGS:
-    "http://localhost:4001/api/v1/device/monitor/maintenance_logs",
+    "http://localhost:4001/api/v1/monitor/device/maintenance_logs",
   GET_DEVICE_MAINTENANCE_LOG:
-    "http://localhost:4001/api/v1/device/monitor/maintenance_logs/",
+    "http://localhost:4001/api/v1/monitor/device/maintenance_logs/",
   GET_DEVICE_POWER_TYPE:
-    "http://localhost:4001/api/v1/device/monitor/power_type",
+    "http://localhost:4001/api/v1/monitor/device/power_type",
   GET_DEVICE_STATUS_FOR_PIECHART_DISPLAY:
-    "http://localhost:4001/api/v1/device/monitor/status/latest",
+    "http://localhost:4001/api/v1/monitor/device/status/latest",
   GET_LATEST_OFFLINE_DEVICES:
     "http://localhost:4001/api/v1/monitor/devices/offline",
   GET_NETWORK_UPTIME: "http://localhost:4001/api/v1/monitor/network/uptime",
-  GET_DEVICE_UPTIME: "http://localhost:4001/api/v1/monitor/device/uptime/",
+  GET_DEVICE_UPTIME: "http://localhost:4001/api/v1/monitor/device/uptime",
+  ALL_DEVICES_STATUS: "http://localhost:4001/api/v1/monitor/devices/status",
+  ALL_DEVICES_UPTIME: "http://localhost:4001/api/v1/monitor/devices/uptime",
   GET_DEVICE_BATTERY_VOLTAGE:
-    "http://127.0.0.1:4001/api/v1/monitor/device/batteryvoltage/",
+    "http://127.0.0.1:4001/api/v1/monitor/device/batteryvoltage",
   GET_DEVICE_SENSOR_CORRELATION:
-    "http://127.0.0.1:4001/api/v1/monitor/device/sensors/correlation/",
+    "http://127.0.0.1:4001/api/v1/monitor/device/sensors/correlation",
   GET_NETWORK_BEST_PERFORMING_DEVICES:
     "http://localhost:4001/api/v1/monitor/network/devices/bestperforming",
   GET_NETWORK_WORST_PERFORMING_DEVICES:
@@ -191,7 +198,8 @@ const devConfig = {
   UPDATE_LOCATION_URI: "http://127.0.0.1:4000/api/v1/location_registry/update",
   ADD_MAINTENANCE_URI:
     "http://localhost:3000/api/v1/data/channels/maintenance/add",
-  DEVICE_RECENT_FEEDS: "http://localhost:3000/api/v1/data/feeds/transform/recent",
+  DEVICE_RECENT_FEEDS:
+    "http://localhost:3000/api/v1/data/feeds/transform/recent",
   REGISTER_DEVICE_URI: "http://localhost:3000/api/v1/devices/ts",
   ALL_DEVICES_URI: "http://localhost:3000/api/v1/devices",
   EDIT_DEVICE_URI: "http://localhost:3000/api/v1/devices/ts/update?device=",
@@ -200,7 +208,7 @@ const devConfig = {
     "http://localhost:3000/api/v1/devices/by/location?loc=",
   DEPLOY_DEVICE_URI: "http://localhost:3000/api/v1/devices/ts/activity?type=",
   DEVICE_MAINTENANCE_LOG_URI:
-    "http://localhost:4001/api/v1/device/monitor/maintenance_logs/",
+    "http://localhost:4001/api/v1/monitor/device/maintenance_logs/",
   //DELETE_DEVICE_URI: "http://127.0.0.1:3000/api/api/v1/devices/ts/delete?device="
   GET_ONLINE_OFFLINE_MAINTENANCE_STATUS:
     "http://127.0.0.1:4001/api/v1/monitor/devices/online_offline",
@@ -248,28 +256,31 @@ const stageConfig = {
   UPDATE_LOCATE_MAP: "http://34.78.78.202:31004/api/v1/map/updatelocatemap/",
   DELETE_LOCATE_MAP: "http://34.78.78.202:31004/api/v1/map/deletelocatemap/",
   GET_DEVICE_STATUS_SUMMARY:
-    "http://34.78.78.202:31006/api/v1/device/monitor/status",
+    "http://34.78.78.202:31006/api/v1/monitor/device/status",
   GET_MAINTENANCE_LOGS:
-    "http://34.78.78.202:31006/api/v1/device/monitor/maintenance_logs",
+    "http://34.78.78.202:31006/api/v1/monitor/device/maintenance_logs",
   GET_DEVICE_MAINTENANCE_LOG:
-    "http://34.78.78.202:31006/api/v1/device/monitor/maintenance_logs/",
+    "http://34.78.78.202:31006/api/v1/monitor/device/maintenance_logs/",
+  ALL_DEVICES_UPTIME: "http://34.78.78.202:31006/api/v1/monitor/devices/uptime",
   GET_DEVICE_POWER_TYPE:
-    "http://34.78.78.202:31006/api/v1/device/monitor/power_type",
+    "http://34.78.78.202:31006/api/v1/monitor/device/power_type",
+  ALL_DEVICES_STATUS: "http://34.78.78.202:31006/api/v1/monitor/devices/status",
   GET_DEVICE_STATUS_FOR_PIECHART_DISPLAY:
-    "http://34.78.78.202:31006/api/v1/device/monitor/status/latest",
+    "http://34.78.78.202:31006/api/v1/monitor/device/status/latest",
   GET_LATEST_OFFLINE_DEVICES:
     "http://34.78.78.202:31006/api/v1/monitor/devices/offline",
   GET_NETWORK_UPTIME: "http://34.78.78.202:31006/api/v1/monitor/network/uptime",
-  GET_DEVICE_UPTIME: "http://34.78.78.202:31006/api/v1/monitor/device/uptime/",
+  GET_DEVICE_UPTIME: "http://34.78.78.202:31006/api/v1/monitor/device/uptime",
   GET_DEVICE_BATTERY_VOLTAGE:
-    "http://34.78.78.202:31006/api/v1/monitor/device/batteryvoltage/",
+    "http://34.78.78.202:31006/api/v1/monitor/device/batteryvoltage",
   GET_DEVICE_SENSOR_CORRELATION:
-    "http://34.78.78.202:31006/api/v1/monitor/device/sensors/correlation/",
+    "http://34.78.78.202:31006/api/v1/monitor/device/sensors/correlation",
   DEVICE_MAINTENANCE_LOG_URI:
-    "http://34.78.78.202:31006/api/v1/device/monitor/maintenance_logs/",
+    "http://34.78.78.202:31006/api/v1/monitor/device/maintenance_logs/",
   ADD_MAINTENANCE_URI:
     "http://34.78.78.202:31001/api/v1/data/channels/maintenance/add",
-  DEVICE_RECENT_FEEDS: "http://34.78.78.202:31001/api/v1/data/feeds/transform/recent",
+  DEVICE_RECENT_FEEDS:
+    "http://34.78.78.202:31001/api/v1/data/feeds/transform/recent",
   REGISTER_DEVICE_URI: "http://34.78.78.202:31002/api/v1/devices/ts",
   ALL_DEVICES_URI: "http://34.78.78.202:31002/api/v1/devices",
   EDIT_DEVICE_URI: "http://34.78.78.202:31002/api/v1/devices/ts/update?device=",
@@ -321,6 +332,7 @@ const stageConfig = {
     "http://34.78.78.202:31003/api/v1/dashboard/monitoringsites?organisation_name=KCCA",
   GET_DATA_MAP:
     "http://34.78.78.202:31003/api/v1/dashboard/monitoringsites?organisation_name=KCCA&pm25_category=",
+  GET_HEATMAP_DATA: "http://34.78.78.202:31009/api/v1/predict/heatmap",
 };
 
 const defaultConfig = {

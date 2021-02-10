@@ -232,10 +232,6 @@ const AccountProfile = (props) => {
             </div>
             <Avatar className={classes.avatar} src={user.profilePicture} />
           </div>
-          <div className={classes.progress}>
-            <Typography variant="body1">Profile Completeness: 70%</Typography>
-            <LinearProgress value={70} variant="determinate" />
-          </div>
         </CardContent>
         <Divider />
         <CardActions className={classes.buttonContainer}>

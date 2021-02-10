@@ -1,12 +1,7 @@
 /* eslint-disable */
 import React, { Component } from "react";
 import "./App.css";
-import {
-  BrowserRouter as Router,
-  Route,
-  Switch,
-  Redirect,
-} from "react-router-dom";
+import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 
 import jwt_decode from "jwt-decode";
 import setAuthToken from "./utils/setAuthToken";
@@ -17,16 +12,8 @@ import store from "./store";
 import { ThemeProvider } from "@material-ui/styles";
 import theme from "./assets/theme";
 
-import Navbar from "./views/components/Navbars/Navbar";
 import Landing from "./views/layouts/Landing";
-import Admin from "./views/layouts/Admin";
-import {
-  Main as MainLayout,
-  Maps as MapLayout,
-  Minimal as MinimalLayout,
-} from "views/layouts/";
-// import Profile from "./views/components/Inputs/UserProfile";
-// import Settings from "./views/components/Inputs/Settings";
+import { Main as MainLayout, Minimal as MinimalLayout } from "views/layouts/";
 import PrivateRoute from "./views/components/PrivateRoute/PrivateRoute";
 import Dashboard from "./views/components/Dashboard/Dashboard";
 import Map from "./views/components/Map";
@@ -35,7 +22,6 @@ import DeviceView from "./views/components/DataDisplay/DeviceView";
 
 import Manager from "./views/components/DataDisplay/DeviceManagement";
 import AnalyticsDashboard from "./views/pages/Dashboard";
-import Incentives from "./views/components/DataDisplay/Incentives";
 import {
   LocationList,
   LocationRegister,
@@ -43,38 +29,22 @@ import {
   LocationEdit,
 } from "./views/components/LocationList";
 
-import {
-  SignUp as SignUpView,
-  Login as LoginView,
-  Register as RegisterView,
-} from "./views/pages/SignUp";
 import { Settings as SettingsView } from "./views/pages/Settings";
 import { Account as AccountView } from "./views/pages/Account";
 import { Download as DownloadView } from "./views/pages/Download";
-import { ReportTemplate as ReportTemplateView } from "./views/pages/ReportTemplate";
+import OverlayMap from "./views/pages/Map";
 import { Reports as ReportView } from "./views/pages/Reports";
 import { NotFound as NotFoundView } from "./views/pages/NotFound";
-import { LocationList as LocationListView } from "./views/pages/LocationList";
-
-import { IndexRoute } from "react-router";
-
-import { RouteWithLayout } from "./views/components/RouteWithLayout";
 
 import {
   connectedUserList as ConnectedUserList,
   connectedCandidateList as ConnectedCandidateList,
-  connectedSetDefaults as ConnectedSetDefaults,
-  connectedSignUp as ConnectedSignUp,
-  connectedSignIn as ConnectedSignIn,
   connectedLogin as ConnectedLogin,
   connectedRegister as ConnectedRegister,
-  connectedDashboard as DashboardView,
 } from "views/hocs/Users";
 
 import ForgotPassword from "./views/pages/ForgotPassword";
 import ResetPassword from "./views/pages/ResetPassword";
-import Login from "./views/pages/SignUp/Login";
-import { loadUserDefaultGraphData } from "./redux/Dashboard/operations";
 import { setOrganization } from "./redux/Join/actions";
 
 // Check for token to keep user logged in
@@ -84,12 +54,12 @@ if (localStorage.jwtToken) {
   setAuthToken(token);
   // Decode token and get user info and exp
   const decoded = jwt_decode(token);
-  let currentUser = decoded
+  let currentUser = decoded;
 
   if (localStorage.currentUser) {
     try {
-      currentUser = JSON.parse(localStorage.currentUser)
-    } catch(error){}
+      currentUser = JSON.parse(localStorage.currentUser);
+    } catch (error) {}
   }
   // Set user and isAuthenticated
   store.dispatch(setCurrentUser(currentUser));
@@ -101,8 +71,7 @@ if (localStorage.jwtToken) {
     // Redirect to the landing page
     window.location.href = "./";
   }
-  store.dispatch(setOrganization())
-  store.dispatch(loadUserDefaultGraphData())
+  store.dispatch(setOrganization());
 }
 
 class App extends Component {
@@ -113,11 +82,14 @@ class App extends Component {
           <Router>
             <div className="App">
               <Route exact path="/" component={Landing} />
-              <Route exact path="/request-access" component={ConnectedRegister} />
-              {/*<Route exact path="/sign-up" component={ConnectedSignUp} />*/}
+              <Route
+                exact
+                path="/request-access"
+                component={ConnectedRegister}
+              />
               <Route exact path="/login" component={ConnectedLogin} />
               <Route exact path="/forgot" component={ForgotPassword} />
-              <Route exact path="/reset/:token" component={ResetPassword} />
+              <Route exact path="/reset" component={ResetPassword} />
               <Switch>
                 <PrivateRoute
                   exact
@@ -125,13 +97,12 @@ class App extends Component {
                   component={AnalyticsDashboard}
                   layout={MainLayout}
                 />
-
-                {/*<RouteWithLayout*/}
-                {/*  component={ConnectedSignIn}*/}
-                {/*  exact*/}
-                {/*  layout={MinimalLayout}*/}
-                {/*  path="/sign-in"*/}
-                {/*/>*/}
+                <PrivateRoute
+                  exact
+                  path="/map"
+                  component={OverlayMap}
+                  layout={MainLayout}
+                />
                 <PrivateRoute
                   exact
                   path="/overview"

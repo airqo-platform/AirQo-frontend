@@ -5,10 +5,8 @@ import { makeStyles } from "@material-ui/styles";
 import { Divider, Drawer } from "@material-ui/core";
 import DashboardIcon from "@material-ui/icons/Dashboard";
 import PeopleIcon from "@material-ui/icons/People";
-import BarChartIcon from "@material-ui/icons/BarChart";
-import TimelineIcon from "@material-ui/icons/Timeline";
-import PaymentIcon from "@material-ui/icons/Payment";
 import AccountBoxIcon from "@material-ui/icons/AccountBox";
+import MapIcon from "@material-ui/icons/Map";
 import SettingsIcon from "@material-ui/icons/Settings";
 import LocateIcon from "@material-ui/icons/AddLocation";
 import ManageIcon from "@material-ui/icons/Build";
@@ -51,96 +49,94 @@ const excludePages = (pages, excludedArr) => {
 };
 
 const roleExcludePageMapper = {
-    collaborator: [
-        "Users",
-        "Candidates",
-        "Locate",
-        "Device Management",
-        "Location Registry",
-        "Device Registry",
-    ],
-    user : [
-        "Users",
-        "Candidates",
-        "Locate",
-        "Device Management",
-        "Location Registry",
-        "Device Registry",
-    ],
-    netmanager: [
-        "Users",
-        "Candidates",
-    ],
-    admin: [
-        "Candidates",
-    ],
-    super: [],
-
-  }
+  collaborator: [
+    "Users",
+    "Candidates",
+    "Locate",
+    "Device Management",
+    "Location Registry",
+    "Device Registry",
+  ],
+  user: [
+    "Users",
+    "Candidates",
+    "Locate",
+    "Device Management",
+    "Location Registry",
+    "Device Registry",
+  ],
+  netmanager: ["Users", "Candidates"],
+  admin: ["Candidates"],
+  super: [],
+};
 
 const allMainPages = [
-    {
-      title: "Overview",
-      href: "/overview",
-      icon: <AspectRatioIcon />,
-    },
-    {
-      title: "Dashboard",
-      href: "/dashboard",
-      icon: <DashboardIcon />,
-    },
+  {
+    title: "Overview",
+    href: "/overview",
+    icon: <AspectRatioIcon />,
+  },
+  {
+    title: "Map",
+    href: "/map",
+    icon: <MapIcon />,
+  },
+  {
+    title: "Dashboard",
+    href: "/dashboard",
+    icon: <DashboardIcon />,
+  },
 
-    {
-      title: "Export",
-      href: "/download",
-      icon: <CloudDownloadIcon />,
-    },
-    {
-      title: "Locate",
-      href: "/locate",
-      icon: <LocateIcon />,
-    },
-    {
-      title: "Device Management",
-      href: "/manager",
-      icon: <ManageIcon />,
-      collapse: true,
-    },
-    {
-      title: "Device Registry",
-      href: "/registry",
-      icon: <AddIcon />,
-    },
-    {
-      title: "Location Registry",
-      href: "/location",
-      icon: <EditLocationIcon />,
-    },
-  ];
+  {
+    title: "Export",
+    href: "/download",
+    icon: <CloudDownloadIcon />,
+  },
+  {
+    title: "Locate",
+    href: "/locate",
+    icon: <LocateIcon />,
+  },
+  {
+    title: "Device Management",
+    href: "/manager",
+    icon: <ManageIcon />,
+    collapse: true,
+  },
+  {
+    title: "Device Registry",
+    href: "/registry",
+    icon: <AddIcon />,
+  },
+  {
+    title: "Location Registry",
+    href: "/location",
+    icon: <EditLocationIcon />,
+  },
+];
 
- const allUserManagementPages = [
-    {
-      title: "Users",
-      href: "/admin/users",
-      icon: <PeopleIcon />,
-    },
-    {
-      title: "Candidates",
-      href: "/candidates",
-      icon: <SupervisedUserCircleIcon />,
-    },
-    {
-      title: "Account",
-      href: "/account",
-      icon: <AccountBoxIcon />,
-    },
-    {
-      title: "Settings",
-      href: "/settings",
-      icon: <SettingsIcon />,
-    },
-  ];
-
+const allUserManagementPages = [
+  {
+    title: "Users",
+    href: "/admin/users",
+    icon: <PeopleIcon />,
+  },
+  {
+    title: "Candidates",
+    href: "/candidates",
+    icon: <SupervisedUserCircleIcon />,
+  },
+  {
+    title: "Account",
+    href: "/account",
+    icon: <AccountBoxIcon />,
+  },
+  {
+    title: "Settings",
+    href: "/settings",
+    icon: <SettingsIcon />,
+  },
+];
 
 const Sidebar = (props) => {
   const { open, variant, onClose, className, ...rest } = props;
@@ -151,15 +147,15 @@ const Sidebar = (props) => {
 
   const { mappedAuth } = props;
   let { user } = mappedAuth;
-  const excludedPages = roleExcludePageMapper[user.privilege] || roleExcludePageMapper.user;
+  const excludedPages =
+    roleExcludePageMapper[user.privilege] || roleExcludePageMapper.user;
   let pages = excludePages(allMainPages, excludedPages);
   const userPages = excludePages(allUserManagementPages, excludedPages);
-
 
   if (orgData.name.toLowerCase() === "airqo") {
     pages = excludePages(pages, ["Dashboard", "Export"]);
   } else {
-    pages = excludePages(pages, ["Device Management", "Locate"]);
+    pages = excludePages(pages, ["Overview", "Device Management", "Locate"]);
   }
 
   return (

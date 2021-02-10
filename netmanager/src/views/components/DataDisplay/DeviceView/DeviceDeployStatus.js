@@ -328,7 +328,8 @@ const DeviceRecentFeedView = ({ recentFeed, runReport }) => {
             color: "red",
           }}
         >
-          <ErrorIcon className={classes.error} /> Can not query device
+          <ErrorIcon className={classes.error} /> Device test has failed, please
+          cross check the functionality of device
         </div>
       )}
     </div>
@@ -337,9 +338,9 @@ const DeviceRecentFeedView = ({ recentFeed, runReport }) => {
 
 export default function DeviceDeployStatus({ deviceData }) {
   const dispatch = useDispatch();
-  const [height, setHeight] = useState("");
-  const [power, setPower] = useState("");
-  const [installationType, setInstallationType] = useState("");
+  const [height, setHeight] = useState(deviceData.height || "");
+  const [power, setPower] = useState(deviceData.powerType || "");
+  const [installationType, setInstallationType] = useState(deviceData.mountType || "");
   const [deploymentDate, setDeploymentDate] = useState(new Date());
   const [primaryChecked, setPrimaryChecked] = useState(true);
   const [collocationChecked, setCollocationChecked] = useState(false);
@@ -445,7 +446,7 @@ export default function DeviceDeployStatus({ deviceData }) {
             severity: "success",
           })
         );
-        dispatch(updateDevice(deviceData.id, {isActive: true}));
+        dispatch(updateDevice(deviceData.id, { isActive: true }));
       })
       .catch((err) => {
         dispatch(
@@ -478,7 +479,7 @@ export default function DeviceDeployStatus({ deviceData }) {
             severity: "success",
           })
         );
-        dispatch(updateDevice(deviceData.id, {isActive: false}));
+        dispatch(updateDevice(deviceData.id, { isActive: false }));
       })
       .catch((err) => {
         dispatch(

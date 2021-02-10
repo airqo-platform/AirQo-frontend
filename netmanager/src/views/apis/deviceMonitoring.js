@@ -7,8 +7,38 @@ export const onlineOfflineMaintenanceStatusApi = async () => {
     .then((response) => response.data);
 };
 
-export const getDeviceUptimeByChannelIdApi = async (channelId) => {
+export const getDeviceUptimeApi = async (params) => {
   return await axios
-    .get(constants.GET_DEVICE_UPTIME+channelId)
+    .get(constants.GET_DEVICE_UPTIME, { params })
+    .then((response) => response.data);
+};
+
+export const getDeviceBatteryVoltageApi = async (params) => {
+  return await axios
+    .get(constants.GET_DEVICE_BATTERY_VOLTAGE, { params })
+    .then((response) => response.data);
+};
+
+export const getDeviceSensorCorrelationApi = async (params) => {
+  return await axios
+    .get(constants.GET_DEVICE_SENSOR_CORRELATION, { params })
+    .then((response) => response.data);
+};
+
+export const getDevicesStatusApi = async () => {
+  return await axios
+    .get(constants.ALL_DEVICES_STATUS)
+    .then((response) => response.data);
+};
+
+export const getNetworkUptimeApi = async (params) => {
+  return await axios
+    .get(constants.GET_NETWORK_UPTIME, { params })
+    .then((response) => response.data);
+};
+
+export const getAllDevicesUptimeApi = async (params) => {
+  return await axios
+    .get(constants.ALL_DEVICES_UPTIME, { params })
     .then((response) => response.data);
 };

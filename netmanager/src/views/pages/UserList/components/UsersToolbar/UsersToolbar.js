@@ -8,22 +8,15 @@ import { makeStyles } from "@material-ui/styles";
 import {
   Button,
   TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  Input,
-  MenuItem,
   DialogTitle,
   DialogContent,
   Dialog,
   DialogActions,
-  DialogContentText,
 } from "@material-ui/core";
 
 import { Alert, AlertTitle } from "@material-ui/lab";
 import { useMinimalSelectStyles } from "@mui-treasury/styles/select/minimal";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
-import { SearchInput } from "views/components/SearchInput";
 import { useOrgData } from "redux/Join/selectors";
 
 
@@ -261,10 +254,6 @@ const UsersToolbar = (props) => {
       className={clsx(classes.root, className)}
     >
       <div className={classes.row}>
-        <SearchInput
-          className={classes.searchInput}
-          placeholder="Search user"
-        />
         <span className={classes.spacer} />
         <div>
           <Button variant="contained" color="primary" onClick={handleClickOpen}>
