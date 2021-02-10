@@ -47,12 +47,7 @@ const AccountDetails = (props) => {
 
   const dispatch = useDispatch();
 
-  const initialState = {
-    firstName: user.firstName,
-    lastName: user.lastName,
-    email: user.email,
-    phoneNumber: "",
-  };
+  const initialState = { ...user };
 
   const alertInitialState = {
     show: false,
