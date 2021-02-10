@@ -4,7 +4,6 @@ import { Storage } from '@ionic/storage';
 import { HttpClient } from '@angular/common/http';
 import { ApiProvider } from '../../providers/api/api';
 import { HomePage } from '../home/home';
-import { SignInPage } from '../sign-in/sign-in';
 
 @Component({
   selector: 'page-feedback',
