@@ -40,6 +40,7 @@ import {
 import styles from "assets/jss/material-dashboard-react/views/dashboardStyle.js";
 import "chartjs-plugin-annotation";
 import "assets/scss/device-management.sass";
+import { useHistory } from "react-router-dom";
 
 const useStyles = makeStyles(styles);
 
@@ -92,6 +93,7 @@ const OverviewCard = ({ label, icon, value, filterActive, onClick }) => {
 
 export default function DeviceManagement() {
   const classes = useStyles();
+  const history = useHistory();
   const devicesStatusData = useDevicesStatusData();
   const allDevicesUptimeData = useDevicesUptimeData();
   const networkUptimeData = useNetworkUptimeData();
@@ -471,6 +473,9 @@ export default function DeviceManagement() {
                   <div
                     className={`m-device-uptime-row`}
                     key={`device-${deviceName}-${index}`}
+                    onClick={() =>
+                      history.push(`/device/${deviceName}/overview`)
+                    }
                   >
                     <span>{deviceName}</span>
                     <span>{(100 - uptime).toFixed(2)}</span>
