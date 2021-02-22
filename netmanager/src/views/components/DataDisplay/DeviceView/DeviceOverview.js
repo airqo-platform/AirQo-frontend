@@ -319,7 +319,8 @@ export default function DeviceOverview({ deviceData }) {
                 height={"410px"}
                 data={createChartData(
                   deviceUptime.bar.label,
-                  deviceUptime.bar.data
+                  deviceUptime.bar.data,
+                  "Device Uptime"
                 )}
                 options={createChartOptions("Time Period", "Uptime(%)", {
                   threshold: 80,
@@ -330,7 +331,8 @@ export default function DeviceOverview({ deviceData }) {
                 height={"410px"}
                 data={createChartData(
                   deviceUptime.line.label,
-                  deviceUptime.line.data
+                  deviceUptime.line.data,
+                  "Device Uptime"
                 )}
                 options={createChartOptions("Time Period", "Uptime(%)", {
                   threshold: 80,
@@ -393,7 +395,8 @@ export default function DeviceOverview({ deviceData }) {
               height={"410px"}
               data={createChartData(
                 deviceBatteryVoltage.label,
-                deviceBatteryVoltage.data
+                deviceBatteryVoltage.data,
+                "Device Voltage"
               )}
               options={createChartOptions("Date", "Voltage")}
             />

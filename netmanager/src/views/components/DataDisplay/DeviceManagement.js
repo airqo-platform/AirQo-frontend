@@ -360,7 +360,8 @@ export default function DeviceManagement() {
                   height={"400px"}
                   data={createChartData(
                     networkUptimeDataset.bar.label,
-                    networkUptimeDataset.bar.data
+                    networkUptimeDataset.bar.data,
+                    "Network Uptime"
                   )}
                   options={createChartOptions("Time Period", "Uptime(%)")}
                 />
@@ -369,7 +370,8 @@ export default function DeviceManagement() {
                   height={"400px"}
                   data={createChartData(
                     networkUptimeDataset.line.label,
-                    networkUptimeDataset.line.data
+                    networkUptimeDataset.line.data,
+                    "Network Uptime"
                   )}
                   options={createChartOptions("Date", "Uptime(%)")}
                 />
