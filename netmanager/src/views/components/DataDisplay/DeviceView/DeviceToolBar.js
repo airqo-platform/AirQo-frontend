@@ -1,5 +1,5 @@
-import React from "react";
-import { useHistory, useRouteMatch } from "react-router-dom";
+import React, { useEffect } from "react";
+import { useHistory, useRouteMatch, useLocation } from "react-router-dom";
 import { makeStyles } from "@material-ui/styles";
 import AppBar from "@material-ui/core/AppBar";
 import Toolbar from "@material-ui/core/Toolbar";
@@ -79,6 +79,12 @@ export const DeviceToolBar = ({ deviceName }) => {
   const match = useRouteMatch();
   const history = useHistory();
   const [value, setValue] = React.useState(history.location.pathname);
+
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    setValue(pathname);
+  }, [pathname]);
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
