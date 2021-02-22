@@ -7,13 +7,12 @@ import Typography from "@material-ui/core/Typography";
 import Tabs from "@material-ui/core/Tabs";
 import Tab from "@material-ui/core/Tab";
 import {
+  ArrowBackIosRounded,
   Update,
   AddOutlined,
   EditOutlined,
   CloudUploadOutlined,
-  UndoOutlined,
   PageviewOutlined,
-  EventBusy,
   PhotoOutlined,
 } from "@material-ui/icons";
 
@@ -50,6 +49,7 @@ const useStyles = makeStyles((theme) => ({
   title: {
     color: "#3f51b5",
     width: "20%",
+    textTransform: "uppercase",
   },
 }));
 
@@ -89,6 +89,10 @@ export const DeviceToolBar = ({ deviceName }) => {
     <div className={`${classes.root} ${classes.margin}`}>
       <AppBar className={classes.appBar} color="default">
         <Toolbar>
+          <ArrowBackIosRounded
+            style={{ color: "#3f51b5", cursor: "pointer" }}
+            onClick={() => history.goBack()}
+          />
           <Typography variant="h2" className={classes.title}>
             {deviceName}
           </Typography>
