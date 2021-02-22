@@ -306,7 +306,7 @@ const DevicesTable = (props) => {
                     const rowData = Object.values(devices)[
                       selectedRow.tableData.id
                     ];
-                    history.push(`/device/${rowData.id}/overview`);
+                    history.push(`/device/${rowData.name}/overview`);
                   }}
                   options={{
                     search: true,

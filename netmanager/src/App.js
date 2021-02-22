@@ -130,7 +130,7 @@ class App extends Component {
                   layout={MainLayout}
                 />
                 <PrivateRoute
-                  path="/device/:deviceId"
+                  path="/device/:deviceName"
                   component={DeviceView}
                   layout={MainLayout}
                 />

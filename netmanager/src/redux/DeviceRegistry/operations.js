@@ -39,7 +39,7 @@ export const loadDevicesData = () => {
         if (responseData.devices) {
           dispatch({
             type: LOAD_ALL_DEVICES_SUCCESS,
-            payload: transformArray(responseData.devices, "id"),
+            payload: transformArray(responseData.devices, "name"),
           });
         }
       })
@@ -52,10 +52,10 @@ export const loadDevicesData = () => {
   };
 };
 
-export const updateDevice = (deviceId, data) => (dispatch) => {
+export const updateDevice = (deviceName, data) => (dispatch) => {
   dispatch({
     type: UPDATE_SINGLE_DEVICE_SUCCESS,
-    payload: { deviceId, data },
+    payload: { deviceName, data },
   });
 };
 

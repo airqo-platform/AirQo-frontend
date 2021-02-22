@@ -32,7 +32,9 @@ export default function DeviceView() {
   const params = useParams();
   const devices = useDevicesData();
   const locations = useLocationsData();
-  const [deviceData, setDeviceData] = useState(devices[params.deviceId] || {});
+  const [deviceData, setDeviceData] = useState(
+    devices[params.deviceName] || {}
+  );
 
   useEffect(() => {
     if (isEmpty(devices)) {
@@ -44,7 +46,7 @@ export default function DeviceView() {
   }, []);
 
   useEffect(() => {
-    setDeviceData(devices[params.deviceId] || {});
+    setDeviceData(devices[params.deviceName] || {});
   }, [devices]);
 
   return (
