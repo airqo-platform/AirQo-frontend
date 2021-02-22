@@ -25,6 +25,7 @@ import { useDevicesData } from "redux/DeviceRegistry/selectors";
 import { loadDevicesData } from "redux/DeviceRegistry/operations";
 import { loadLocationsData } from "redux/LocationRegistry/operations";
 import { useLocationsData } from "redux/LocationRegistry/selectors";
+import { useInitScrollTop } from "utils/customHooks";
 
 export default function DeviceView() {
   const dispatch = useDispatch();
@@ -35,6 +36,8 @@ export default function DeviceView() {
   const [deviceData, setDeviceData] = useState(
     devices[params.deviceName] || {}
   );
+
+  useInitScrollTop();
 
   useEffect(() => {
     if (isEmpty(devices)) {
@@ -56,19 +59,19 @@ export default function DeviceView() {
         <Switch>
           <Route
             exact
-            path={"/device/:deviceId/overview"}
+            path={`${match.url}/overview`}
             component={() => <DeviceOverview deviceData={deviceData} />}
           />
           <Route
             exact
-            path={"/device/:deviceId/edit"}
+            path={`${match.url}/edit`}
             component={() => (
               <DeviceEdit deviceData={deviceData} locationsData={locations} />
             )}
           />
           <Route
             exact
-            path={"/device/:deviceId/maintenance-logs"}
+            path={`${match.url}/maintenance-logs`}
             component={() => (
               <DeviceLogs
                 deviceName={deviceData.name}
@@ -78,17 +81,17 @@ export default function DeviceView() {
           />
           <Route
             exact
-            path={"/device/:deviceId/deploy-status"}
+            path={`${match.url}/deploy-status`}
             component={() => <DeviceDeployStatus deviceData={deviceData} />}
           />
           <Route
             exact
-            path={"/device/:deviceId/components"}
+            path={`${match.url}/components`}
             component={() => <DeviceComponents deviceName={deviceData.name} />}
           />
           <Route
             exact
-            path={"/device/:deviceId/photos"}
+            path={`${match.url}/photos`}
             component={() => <DevicePhotos deviceData={deviceData} />}
           />
           <Redirect to={`${match.url}/overview`} />
