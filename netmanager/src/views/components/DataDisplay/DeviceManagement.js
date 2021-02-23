@@ -468,6 +468,7 @@ export default function DeviceManagement() {
                 <span>uptime (%)</span>
               </div>
               {devicesUptime.map(({ deviceName, uptime }, index) => {
+                uptime = uptime <= 100 ? uptime : 100;
                 const style =
                   uptime >= 80
                     ? "uptime-success"
