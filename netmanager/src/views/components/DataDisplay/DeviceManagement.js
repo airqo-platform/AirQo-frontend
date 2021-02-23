@@ -40,7 +40,8 @@ import {
 import styles from "assets/jss/material-dashboard-react/views/dashboardStyle.js";
 import "chartjs-plugin-annotation";
 import "assets/scss/device-management.sass";
-import { useHistory } from "react-router-dom";
+import { useHistory, useLocation } from "react-router-dom";
+import { updateDeviceBackUrl } from "redux/Urls/operations";
 
 const useStyles = makeStyles(styles);
 
@@ -94,6 +95,7 @@ const OverviewCard = ({ label, icon, value, filterActive, onClick }) => {
 export default function DeviceManagement() {
   const classes = useStyles();
   const history = useHistory();
+  const location = useLocation();
   const devicesStatusData = useDevicesStatusData();
   const allDevicesUptimeData = useDevicesUptimeData();
   const networkUptimeData = useNetworkUptimeData();
@@ -211,6 +213,7 @@ export default function DeviceManagement() {
     if (isEmpty(allDevicesUptimeData)) {
       dispatch(loadAllDevicesUptimeData(28));
     }
+    dispatch(updateDeviceBackUrl(location.pathname));
   }, []);
 
   useEffect(() => {

@@ -15,6 +15,7 @@ import {
   PageviewOutlined,
   PhotoOutlined,
 } from "@material-ui/icons";
+import { useDeviceOverviewBackUrlsData } from "redux/Urls/selectors";
 
 const a11yProps = (index) => {
   return {
@@ -78,6 +79,7 @@ export const DeviceToolBar = ({ deviceName }) => {
   const classes = useStyles();
   const match = useRouteMatch();
   const history = useHistory();
+  const goBackUrl = useDeviceOverviewBackUrlsData();
   const [value, setValue] = React.useState(history.location.pathname);
 
   const { pathname } = useLocation();
@@ -97,7 +99,7 @@ export const DeviceToolBar = ({ deviceName }) => {
         <Toolbar>
           <ArrowBackIosRounded
             style={{ color: "#3f51b5", cursor: "pointer" }}
-            onClick={() => history.goBack()}
+            onClick={() => history.push(goBackUrl)}
           />
           <Typography variant="h2" className={classes.title}>
             {deviceName}
