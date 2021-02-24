@@ -40,6 +40,8 @@ import {
 import styles from "assets/jss/material-dashboard-react/views/dashboardStyle.js";
 import "chartjs-plugin-annotation";
 import "assets/scss/device-management.sass";
+import { useHistory, useLocation } from "react-router-dom";
+import { updateDeviceBackUrl } from "redux/Urls/operations";
 
 const useStyles = makeStyles(styles);
 
@@ -92,6 +94,8 @@ const OverviewCard = ({ label, icon, value, filterActive, onClick }) => {
 
 export default function DeviceManagement() {
   const classes = useStyles();
+  const history = useHistory();
+  const location = useLocation();
   const devicesStatusData = useDevicesStatusData();
   const allDevicesUptimeData = useDevicesUptimeData();
   const networkUptimeData = useNetworkUptimeData();
@@ -209,6 +213,7 @@ export default function DeviceManagement() {
     if (isEmpty(allDevicesUptimeData)) {
       dispatch(loadAllDevicesUptimeData(28));
     }
+    dispatch(updateDeviceBackUrl(location.pathname));
   }, []);
 
   useEffect(() => {
@@ -358,7 +363,8 @@ export default function DeviceManagement() {
                   height={"400px"}
                   data={createChartData(
                     networkUptimeDataset.bar.label,
-                    networkUptimeDataset.bar.data
+                    networkUptimeDataset.bar.data,
+                    "Network Uptime"
                   )}
                   options={createChartOptions("Time Period", "Uptime(%)")}
                 />
@@ -367,7 +373,8 @@ export default function DeviceManagement() {
                   height={"400px"}
                   data={createChartData(
                     networkUptimeDataset.line.label,
-                    networkUptimeDataset.line.data
+                    networkUptimeDataset.line.data,
+                    "Network Uptime"
                   )}
                   options={createChartOptions("Date", "Uptime(%)")}
                 />
@@ -461,6 +468,7 @@ export default function DeviceManagement() {
                 <span>uptime (%)</span>
               </div>
               {devicesUptime.map(({ deviceName, uptime }, index) => {
+                uptime = uptime <= 100 ? uptime : 100;
                 const style =
                   uptime >= 80
                     ? "uptime-success"
@@ -471,6 +479,9 @@ export default function DeviceManagement() {
                   <div
                     className={`m-device-uptime-row`}
                     key={`device-${deviceName}-${index}`}
+                    onClick={() =>
+                      history.push(`/device/${deviceName}/overview`)
+                    }
                   >
                     <span>{deviceName}</span>
                     <span>{(100 - uptime).toFixed(2)}</span>

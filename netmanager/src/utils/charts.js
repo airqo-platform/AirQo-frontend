@@ -1,11 +1,11 @@
 import palette from "assets/theme/palette";
 
-export const createChartData = (label, data) => {
+export const createChartData = (label, data, dataLabel) => {
   return {
     labels: label,
     datasets: [
       {
-        label: "Network Uptime",
+        label: dataLabel || "value",
         data: data,
         fill: false,
         borderColor: palette.primary.main,

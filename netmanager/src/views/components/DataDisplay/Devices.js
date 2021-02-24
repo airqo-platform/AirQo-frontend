@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
-import MaterialTable from "material-table";
 import clsx from "clsx";
 import PropTypes from "prop-types";
 import PerfectScrollbar from "react-perfect-scrollbar";
 import axios from "axios";
-import { useHistory } from "react-router-dom";
+import { useHistory, useLocation } from "react-router-dom";
 import { makeStyles } from "@material-ui/styles";
 import { isEmpty } from "underscore";
 import {
@@ -29,6 +28,7 @@ import { useDevicesData } from "redux/DeviceRegistry/selectors";
 import { useLocationsData } from "redux/LocationRegistry/selectors";
 import { loadLocationsData } from "redux/LocationRegistry/operations";
 import { updateMainAlert } from "redux/MainAlert/operations";
+import { updateDeviceBackUrl } from "redux/Urls/operations";
 import CustomMaterialTable from "../Table/CustomMaterialTable";
 
 const useStyles = makeStyles((theme) => ({
@@ -161,6 +161,7 @@ const DevicesTable = (props) => {
   const classes = useStyles();
 
   const history = useHistory();
+  const location = useLocation();
   const dispatch = useDispatch();
   const devices = useDevicesData();
   const locations = useLocationsData();
@@ -192,6 +193,7 @@ const DevicesTable = (props) => {
     if (isEmpty(locations)) {
       dispatch(loadLocationsData());
     }
+    dispatch(updateDeviceBackUrl(location.pathname));
   }, []);
 
   useEffect(() => {
@@ -306,7 +308,7 @@ const DevicesTable = (props) => {
                     const rowData = Object.values(devices)[
                       selectedRow.tableData.id
                     ];
-                    history.push(`/device/${rowData.id}/overview`);
+                    history.push(`/device/${rowData.name}/overview`);
                   }}
                   options={{
                     search: true,

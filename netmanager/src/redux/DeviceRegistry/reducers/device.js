@@ -15,8 +15,8 @@ export default function (state = initialState, action) {
     case UPDATE_SINGLE_DEVICE_SUCCESS:
       return {
         ...state,
-        [action.payload.deviceId]: {
-          ...(state[action.payload.deviceId] || {}),
+        [action.payload.deviceName]: {
+          ...(state[action.payload.deviceName] || {}),
           ...action.payload.data,
         },
       };

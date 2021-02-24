@@ -446,7 +446,7 @@ export default function DeviceDeployStatus({ deviceData }) {
             severity: "success",
           })
         );
-        dispatch(updateDevice(deviceData.id, { isActive: true }));
+        dispatch(updateDevice(deviceData.name, { isActive: true }));
       })
       .catch((err) => {
         dispatch(
@@ -479,7 +479,7 @@ export default function DeviceDeployStatus({ deviceData }) {
             severity: "success",
           })
         );
-        dispatch(updateDevice(deviceData.id, { isActive: false }));
+        dispatch(updateDevice(deviceData.name, { isActive: false }));
       })
       .catch((err) => {
         dispatch(
