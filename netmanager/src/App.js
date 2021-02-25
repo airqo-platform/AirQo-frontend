@@ -47,7 +47,6 @@ import ForgotPassword from "./views/pages/ForgotPassword";
 import ResetPassword from "./views/pages/ResetPassword";
 import { setOrganization } from "./redux/Join/actions";
 import { useJiraHelpDesk } from "utils/customHooks";
-import ChatIcon from '@material-ui/icons/Chat';
 
 // Check for token to keep user logged in
 if (localStorage.jwtToken) {
