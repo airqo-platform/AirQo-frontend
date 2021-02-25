@@ -1,5 +1,5 @@
 /* eslint-disable */
-import React, { Component } from "react";
+import React from "react";
 import "./App.css";
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 
@@ -46,6 +46,8 @@ import {
 import ForgotPassword from "./views/pages/ForgotPassword";
 import ResetPassword from "./views/pages/ResetPassword";
 import { setOrganization } from "./redux/Join/actions";
+import { useJiraHelpDesk } from "utils/customHooks";
+import ChatIcon from '@material-ui/icons/Chat';
 
 // Check for token to keep user logged in
 if (localStorage.jwtToken) {
@@ -74,141 +76,152 @@ if (localStorage.jwtToken) {
   store.dispatch(setOrganization());
 }
 
-class App extends Component {
-  render() {
-    return (
-      <Provider store={store}>
-        <ThemeProvider theme={theme}>
-          <Router>
-            <div className="App">
-              <Route exact path="/" component={Landing} />
-              <Route
+const App = () => {
+
+  useJiraHelpDesk();
+
+  return (
+    <Provider store={store}>
+      <ThemeProvider theme={theme}>
+        <Router>
+          <div className="App">
+            <Route exact path="/" component={Landing} />
+            <Route
+              exact
+              path="/request-access"
+              component={ConnectedRegister}
+            />
+            <Route exact path="/login" component={ConnectedLogin} />
+            <Route exact path="/forgot" component={ForgotPassword} />
+            <Route exact path="/reset" component={ResetPassword} />
+            <Switch>
+              <PrivateRoute
                 exact
-                path="/request-access"
-                component={ConnectedRegister}
+                path="/dashboard"
+                component={AnalyticsDashboard}
+                layout={MainLayout}
               />
-              <Route exact path="/login" component={ConnectedLogin} />
-              <Route exact path="/forgot" component={ForgotPassword} />
-              <Route exact path="/reset" component={ResetPassword} />
-              <Switch>
-                <PrivateRoute
-                  exact
-                  path="/dashboard"
-                  component={AnalyticsDashboard}
-                  layout={MainLayout}
-                />
-                <PrivateRoute
-                  exact
-                  path="/map"
-                  component={OverlayMap}
-                  layout={MainLayout}
-                />
-                <PrivateRoute
-                  exact
-                  path="/overview"
-                  component={Dashboard}
-                  layout={MainLayout}
-                />
+              <PrivateRoute
+                exact
+                path="/map"
+                component={OverlayMap}
+                layout={MainLayout}
+              />
+              <PrivateRoute
+                exact
+                path="/overview"
+                component={Dashboard}
+                layout={MainLayout}
+              />
 
-                <PrivateRoute
-                  exact
-                  path="/download"
-                  component={DownloadView}
-                  layout={MainLayout}
-                />
+              <PrivateRoute
+                exact
+                path="/download"
+                component={DownloadView}
+                layout={MainLayout}
+              />
 
-                <PrivateRoute
-                  exact
-                  path="/locate"
-                  component={Map}
-                  layout={MainLayout}
-                />
-                <PrivateRoute
-                  extact
-                  path="/registry"
-                  component={Devices}
-                  layout={MainLayout}
-                />
-                <PrivateRoute
-                  path="/device/:deviceName"
-                  component={DeviceView}
-                  layout={MainLayout}
-                />
-                <PrivateRoute
-                  extact
-                  path="/location"
-                  component={LocationList}
-                  layout={MainLayout}
-                />
+              <PrivateRoute
+                exact
+                path="/locate"
+                component={Map}
+                layout={MainLayout}
+              />
+              <PrivateRoute
+                extact
+                path="/registry"
+                component={Devices}
+                layout={MainLayout}
+              />
+              <PrivateRoute
+                path="/device/:deviceName"
+                component={DeviceView}
+                layout={MainLayout}
+              />
+              <PrivateRoute
+                extact
+                path="/location"
+                component={LocationList}
+                layout={MainLayout}
+              />
 
-                <PrivateRoute
-                  component={NotFoundView}
-                  exact
-                  layout={MinimalLayout}
-                  path="/not-found"
-                />
-                <PrivateRoute
-                  component={ConnectedCandidateList}
-                  exact
-                  layout={MainLayout}
-                  path="/candidates"
-                />
+              <PrivateRoute
+                component={NotFoundView}
+                exact
+                layout={MinimalLayout}
+                path="/not-found"
+              />
+              <PrivateRoute
+                component={ConnectedCandidateList}
+                exact
+                layout={MainLayout}
+                path="/candidates"
+              />
 
-                <PrivateRoute
-                  extact
-                  path="/register_location"
-                  component={LocationRegister}
-                  layout={MainLayout}
-                />
-                <PrivateRoute
-                  exact
-                  path="/edit/:loc_ref"
-                  component={LocationEdit}
-                  layout={MainLayout}
-                />
-                <PrivateRoute
-                  exact
-                  path="/locations/:loc_ref"
-                  component={LocationView}
-                  layout={MainLayout}
-                />
-                <PrivateRoute
-                  exact
-                  path="/admin/users"
-                  component={ConnectedUserList}
-                  layout={MainLayout}
-                />
+              <PrivateRoute
+                extact
+                path="/register_location"
+                component={LocationRegister}
+                layout={MainLayout}
+              />
+              <PrivateRoute
+                exact
+                path="/edit/:loc_ref"
+                component={LocationEdit}
+                layout={MainLayout}
+              />
+              <PrivateRoute
+                exact
+                path="/locations/:loc_ref"
+                component={LocationView}
+                layout={MainLayout}
+              />
+              <PrivateRoute
+                exact
+                path="/admin/users"
+                component={ConnectedUserList}
+                layout={MainLayout}
+              />
 
-                <PrivateRoute
-                  component={ReportView}
-                  exact
-                  layout={MainLayout}
-                  path="/reports"
-                />
-                <PrivateRoute
-                  component={AccountView}
-                  exact
-                  layout={MainLayout}
-                  path="/account"
-                />
-                <PrivateRoute
-                  component={SettingsView}
-                  exact
-                  layout={MainLayout}
-                  path="/settings"
-                />
-                <PrivateRoute
-                  exact
-                  path="/manager"
-                  component={Manager}
-                  layout={MainLayout}
-                />
-              </Switch>
+              <PrivateRoute
+                component={ReportView}
+                exact
+                layout={MainLayout}
+                path="/reports"
+              />
+              <PrivateRoute
+                component={AccountView}
+                exact
+                layout={MainLayout}
+                path="/account"
+              />
+              <PrivateRoute
+                component={SettingsView}
+                exact
+                layout={MainLayout}
+                path="/settings"
+              />
+              <PrivateRoute
+                exact
+                path="/manager"
+                component={Manager}
+                layout={MainLayout}
+              />
+            </Switch>
+            <div
+                style={{
+                  position: "fixed",
+                  bottom: 0,
+                  right: 0,
+                  marginRight: "10px",
+                  marginBottom: "20px",
+            }}>
+                <div id="jira-help-desk" />
             </div>
-          </Router>
-        </ThemeProvider>
-      </Provider>
-    );
-  }
+          </div>
+        </Router>
+      </ThemeProvider>
+    </Provider>
+  );
 }
 export default App;
