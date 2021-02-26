@@ -13,10 +13,7 @@ export function useJiraHelpDesk() {
       let jhdScript = document.createElement("script");
       jhdScript.type = "text/javascript";
       jhdScript.setAttribute("data-jsd-embedded", null);
-      jhdScript.setAttribute(
-        "data-key",
-        "cf4a44fc-f333-4e48-8e6c-6b94f97cea15"
-      );
+      jhdScript.setAttribute("data-key", process.env.REACT_APP_JIRA_KEY);
       jhdScript.setAttribute(
         "data-base-url",
         "https://jsd-widget.atlassian.com"
