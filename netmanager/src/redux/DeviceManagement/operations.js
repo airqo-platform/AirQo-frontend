@@ -16,9 +16,17 @@ import {
 export const loadDevicesStatusData = () => async (dispatch) => {
   return await getDevicesStatusApi()
     .then((responseData) => {
+      let data;
+      try {
+        data = responseData.data.data[0];
+      } catch (err) {
+        data = JSON.parse(responseData.data.replace(/\bNaN\b/g, "null"))
+          .data[0];
+      }
+
       dispatch({
         type: LOAD_DEVICES_STATUS_SUCCESS,
-        payload: responseData.data[0],
+        payload: data,
       });
     })
     .catch((err) => {
