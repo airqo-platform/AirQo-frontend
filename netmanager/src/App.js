@@ -23,11 +23,11 @@ import DeviceView from "./views/components/DataDisplay/DeviceView";
 import Manager from "./views/components/DataDisplay/DeviceManagement";
 import AnalyticsDashboard from "./views/pages/Dashboard";
 import {
-  LocationList,
-  LocationRegister,
-  LocationView,
+  SiteList,
+  SiteRegister,
+  SiteView,
   LocationEdit,
-} from "./views/components/LocationList";
+} from "./views/components/SiteList";
 
 import { Settings as SettingsView } from "./views/pages/Settings";
 import { Account as AccountView } from "./views/pages/Account";
@@ -76,7 +76,6 @@ if (localStorage.jwtToken) {
 }
 
 const App = () => {
-
   useJiraHelpDesk();
 
   return (
@@ -85,11 +84,7 @@ const App = () => {
         <Router>
           <div className="App">
             <Route exact path="/" component={Landing} />
-            <Route
-              exact
-              path="/request-access"
-              component={ConnectedRegister}
-            />
+            <Route exact path="/request-access" component={ConnectedRegister} />
             <Route exact path="/login" component={ConnectedLogin} />
             <Route exact path="/forgot" component={ForgotPassword} />
             <Route exact path="/reset" component={ResetPassword} />
@@ -139,8 +134,8 @@ const App = () => {
               />
               <PrivateRoute
                 extact
-                path="/location"
-                component={LocationList}
+                path="/site"
+                component={SiteList}
                 layout={MainLayout}
               />
 
@@ -159,8 +154,8 @@ const App = () => {
 
               <PrivateRoute
                 extact
-                path="/register_location"
-                component={LocationRegister}
+                path="/register_site"
+                component={SiteRegister}
                 layout={MainLayout}
               />
               <PrivateRoute
@@ -171,8 +166,8 @@ const App = () => {
               />
               <PrivateRoute
                 exact
-                path="/locations/:loc_ref"
-                component={LocationView}
+                path="/sites/:loc_ref"
+                component={SiteView}
                 layout={MainLayout}
               />
               <PrivateRoute
@@ -208,19 +203,20 @@ const App = () => {
               />
             </Switch>
             <div
-                style={{
-                  position: "fixed",
-                  bottom: 0,
-                  right: 0,
-                  marginRight: "10px",
-                  marginBottom: "20px",
-            }}>
-                <div id="jira-help-desk" />
+              style={{
+                position: "fixed",
+                bottom: 0,
+                right: 0,
+                marginRight: "10px",
+                marginBottom: "20px",
+              }}
+            >
+              <div id="jira-help-desk" />
             </div>
           </div>
         </Router>
       </ThemeProvider>
     </Provider>
   );
-}
+};
 export default App;

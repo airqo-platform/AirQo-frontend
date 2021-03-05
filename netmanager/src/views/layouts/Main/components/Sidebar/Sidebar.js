@@ -54,7 +54,7 @@ const roleExcludePageMapper = {
     "Candidates",
     "Locate",
     "Device Management",
-    "Location Registry",
+    "Site Registry",
     "Device Registry",
   ],
   user: [
@@ -62,7 +62,7 @@ const roleExcludePageMapper = {
     "Candidates",
     "Locate",
     "Device Management",
-    "Location Registry",
+    "Site Registry",
     "Device Registry",
   ],
   netmanager: ["Users", "Candidates"],
@@ -109,8 +109,8 @@ const allMainPages = [
     icon: <AddIcon />,
   },
   {
-    title: "Location Registry",
-    href: "/location",
+    title: "Site Registry",
+    href: "/site",
     icon: <EditLocationIcon />,
   },
 ];

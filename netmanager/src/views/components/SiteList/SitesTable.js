@@ -40,7 +40,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const LocationsTable = (props) => {
+const SitesTable = (props) => {
   const { className, users, ...rest } = props;
 
   const classes = useStyles();
@@ -67,7 +67,7 @@ const LocationsTable = (props) => {
             <CustomMaterialTable
               className={classes.table}
               userPreferencePaginationKey={"locations"}
-              title="Location Registry"
+              title="Site Registry"
               columns={[
                 {
                   title: "Reference",
@@ -146,9 +146,9 @@ const LocationsTable = (props) => {
   );
 };
 
-LocationsTable.propTypes = {
+SitesTable.propTypes = {
   className: PropTypes.string,
   users: PropTypes.array.isRequired,
 };
 
-export default LocationsTable;
+export default SitesTable;
