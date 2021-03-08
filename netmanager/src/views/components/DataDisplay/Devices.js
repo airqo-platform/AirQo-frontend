@@ -119,50 +119,71 @@ let formatDate = (date) => {
   return time;
 };
 
-const deviceColumns = [
+const Cell = ({ fieldValue, data }) => {
+  const history = useHistory();
+  return (
+    <div
+      style={{ fontFamily: "Open Sans", minHeight: "20px" }}
+      onClick={() => history.push(`/device/${data.name}/overview`)}
+    >
+      {fieldValue}
+    </div>
+  );
+};
+
+const createDeviceColumns = (history) => [
   {
     title: "Device Name",
     field: "name",
-    cellStyle: { fontFamily: "Open Sans" },
+    render: (data) => <Cell data={data} fieldValue={data.name} />,
   },
   {
     title: "Description",
     field: "description",
-    cellStyle: { fontFamily: "Open Sans" },
+    render: (data) => <Cell data={data} fieldValue={data.description} />,
   },
   {
     title: "Device ID",
     field: "channelID",
-    cellStyle: { fontFamily: "Open Sans" },
-  }, //should be channel ID
+    render: (data) => <Cell data={data} fieldValue={data.channelID} />,
+  },
   {
     title: "Registration Date",
     field: "createdAt",
-    cellStyle: { fontFamily: "Open Sans" },
-    render: (rowData) => formatDate(new Date(rowData.createdAt)),
+    render: (data) => (
+      <Cell data={data} fieldValue={formatDate(new Date(data.createdAt))} />
+    ),
   },
   {
     title: "Deployment status",
     field: "isActive",
-    cellStyle: { fontFamily: "Open Sans" },
-    render: (rowData) =>
-      rowData.isActive ? (
-        <span style={{ color: "green" }}>Deployed</span>
-      ) : (
-        <span style={{ color: "red" }}>Not Deployed</span>
-      ),
+    render: (data) => (
+      <Cell
+        data={data}
+        fieldValue={
+          data.isActive ? (
+            <span style={{ color: "green" }}>Deployed</span>
+          ) : (
+            <span style={{ color: "red" }}>Not Deployed</span>
+          )
+        }
+      />
+    ),
   },
   {
     title: "Location ID",
     field: "locationID",
-    cellStyle: { fontFamily: "Open Sans" },
+    render: (data) => <Cell data={data} fieldValue={data.LocationID} />,
   },
   {
     title: "Actions",
     render: (rowData) => (
       <div>
         <Tooltip title="Edit">
-          <EditIcon style={{ margin: "0 5px" }} />
+          <EditIcon
+            style={{ margin: "0 5px" }}
+            onClick={() => history.push(`/device/${rowData.name}/edit`)}
+          />
         </Tooltip>
         <Tooltip title="Delete">
           <DeleteIcon style={{ margin: "0 5px" }} />
@@ -183,6 +204,7 @@ const DevicesTable = (props) => {
   const locations = useLocationsData();
   const [deviceList, setDeviceList] = useState(Object.values(devices));
   const [isLoading, setIsLoading] = useState(false);
+  const deviceColumns = createDeviceColumns(history);
 
   const [registerOpen, setRegisterOpen] = useState(false);
   const handleRegisterOpen = () => {
@@ -320,12 +342,6 @@ const DevicesTable = (props) => {
                   userPreferencePaginationKey={"devices"}
                   columns={deviceColumns}
                   data={deviceList}
-                  onRowClick={(evt, selectedRow) => {
-                    const rowData = Object.values(devices)[
-                      selectedRow.tableData.id
-                    ];
-                    history.push(`/device/${rowData.name}/overview`);
-                  }}
                   options={{
                     search: true,
                     exportButton: true,
