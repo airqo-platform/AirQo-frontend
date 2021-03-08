@@ -23,6 +23,9 @@ import TextField from "@material-ui/core/TextField";
 import Select from "@material-ui/core/Select";
 import FormControl from "@material-ui/core/FormControl";
 import InputLabel from "@material-ui/core/InputLabel";
+import DeleteIcon from "@material-ui/icons/DeleteOutlineOutlined";
+import EditIcon from "@material-ui/icons/EditOutlined";
+import Tooltip from "@material-ui/core/Tooltip";
 import { loadDevicesData } from "redux/DeviceRegistry/operations";
 import { useDevicesData } from "redux/DeviceRegistry/selectors";
 import { useLocationsData } from "redux/LocationRegistry/selectors";
@@ -153,6 +156,19 @@ const deviceColumns = [
     title: "Location ID",
     field: "locationID",
     cellStyle: { fontFamily: "Open Sans" },
+  },
+  {
+    title: "Actions",
+    render: (rowData) => (
+      <div>
+        <Tooltip title="Edit">
+          <EditIcon style={{ margin: "0 5px" }} />
+        </Tooltip>
+        <Tooltip title="Delete">
+          <DeleteIcon style={{ margin: "0 5px" }} />
+        </Tooltip>
+      </div>
+    ),
   },
 ];
 
