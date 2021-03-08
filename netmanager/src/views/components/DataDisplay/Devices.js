@@ -26,7 +26,7 @@ import InputLabel from "@material-ui/core/InputLabel";
 import DeleteIcon from "@material-ui/icons/DeleteOutlineOutlined";
 import EditIcon from "@material-ui/icons/EditOutlined";
 import Tooltip from "@material-ui/core/Tooltip";
-import { loadDevicesData } from "redux/DeviceRegistry/operations";
+import { deleteDevice, loadDevicesData } from "redux/DeviceRegistry/operations";
 import { useDevicesData } from "redux/DeviceRegistry/selectors";
 import { useLocationsData } from "redux/LocationRegistry/selectors";
 import { loadLocationsData } from "redux/LocationRegistry/operations";
@@ -131,7 +131,7 @@ const Cell = ({ fieldValue, data }) => {
   );
 };
 
-const createDeviceColumns = (history) => [
+const createDeviceColumns = (history, setDelState) => [
   {
     title: "Device Name",
     field: "name",
@@ -186,7 +186,10 @@ const createDeviceColumns = (history) => [
           />
         </Tooltip>
         <Tooltip title="Delete">
-          <DeleteIcon style={{ margin: "0 5px" }} />
+          <DeleteIcon
+            style={{ margin: "0 5px" }}
+            onClick={() => setDelState({ open: true, name: rowData.name })}
+          />
         </Tooltip>
       </div>
     ),
@@ -204,7 +207,17 @@ const DevicesTable = (props) => {
   const locations = useLocationsData();
   const [deviceList, setDeviceList] = useState(Object.values(devices));
   const [isLoading, setIsLoading] = useState(false);
-  const deviceColumns = createDeviceColumns(history);
+
+  const [delDevice, setDelDevice] = useState({ open: false, name: "" });
+
+  const deviceColumns = createDeviceColumns(history, setDelDevice);
+
+  const handleDeleteDevice = () => {
+    if (delDevice.name) {
+      dispatch(deleteDevice(delDevice.name));
+    }
+    setDelDevice({ open: false, name: "" });
+  };
 
   const [registerOpen, setRegisterOpen] = useState(false);
   const handleRegisterOpen = () => {
@@ -481,6 +494,44 @@ const DevicesTable = (props) => {
               style={{ margin: "0 15px" }}
             >
               Register
+            </Button>
+          </Grid>
+          <br />
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={delDevice.open}
+        aria-labelledby="form-dialog-title-del"
+        aria-describedby="form-dialog-description"
+      >
+        <DialogTitle id="form-dialog-title-del">Delete a device</DialogTitle>
+
+        <DialogContent>
+          Are you sure you want to delete device <b>{delDevice.name}</b>?
+        </DialogContent>
+
+        <DialogActions>
+          <Grid
+            container
+            alignItems="flex-end"
+            alignContent="flex-end"
+            justify="flex-end"
+          >
+            <Button
+              variant="contained"
+              type="button"
+              onClick={() => setDelDevice({ open: false, name: "" })}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="contained"
+              type="submit"
+              onClick={handleDeleteDevice}
+              style={{ margin: "0 15px", background: "#c00", color: "white" }}
+            >
+              Delete
             </Button>
           </Grid>
           <br />

@@ -25,12 +25,15 @@ import {
   getAllDevicesApi,
   getDeviceMaintenanceLogsApi,
   getDeviceComponentsApi,
+  deleteDeviceApi,
 } from "views/apis/deviceRegistry";
 import {
   getDeviceUptimeApi,
   getDeviceBatteryVoltageApi,
   getDeviceSensorCorrelationApi,
 } from "views/apis/deviceMonitoring";
+
+import { updateMainAlert } from "../MainAlert/operations";
 
 export const loadDevicesData = () => {
   return async (dispatch) => {
@@ -179,5 +182,34 @@ export const loadDeviceSesnorCorrelation = (deviceName) => async (dispatch) => {
       dispatch({
         type: LOAD_DEVICE_SENSOR_CORRELATION_FAILURE,
       });
+    });
+};
+
+export const deleteDevice = (deviceName) => async (dispatch, getState) => {
+  return await deleteDeviceApi(deviceName)
+    .then(() => {
+      const state = getState();
+      const devices = state.deviceRegistry.devices;
+      delete devices[deviceName];
+      dispatch({
+        type: LOAD_ALL_DEVICES_SUCCESS,
+        payload: devices,
+      });
+      dispatch(
+        updateMainAlert({
+          show: true,
+          message: `device ${deviceName} deleted successfully`,
+          severity: "success",
+        })
+      );
+    })
+    .catch((err) => {
+      dispatch(
+        updateMainAlert({
+          show: true,
+          message: `deletion of  ${deviceName} failed`,
+          severity: "error",
+        })
+      );
     });
 };
