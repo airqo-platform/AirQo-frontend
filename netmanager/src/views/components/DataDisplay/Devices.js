@@ -26,7 +26,8 @@ import InputLabel from "@material-ui/core/InputLabel";
 import DeleteIcon from "@material-ui/icons/DeleteOutlineOutlined";
 import EditIcon from "@material-ui/icons/EditOutlined";
 import Tooltip from "@material-ui/core/Tooltip";
-import { deleteDevice, loadDevicesData } from "redux/DeviceRegistry/operations";
+import { deleteDeviceApi } from "../../apis/deviceRegistry";
+import { loadDevicesData } from "redux/DeviceRegistry/operations";
 import { useDevicesData } from "redux/DeviceRegistry/selectors";
 import { useLocationsData } from "redux/LocationRegistry/selectors";
 import { loadLocationsData } from "redux/LocationRegistry/operations";
@@ -212,9 +213,33 @@ const DevicesTable = (props) => {
 
   const deviceColumns = createDeviceColumns(history, setDelDevice);
 
-  const handleDeleteDevice = () => {
+  const handleDeleteDevice = async () => {
     if (delDevice.name) {
-      dispatch(deleteDevice(delDevice.name));
+      deleteDeviceApi(delDevice.name)
+        .then(() => {
+          delete devices[delDevice.name];
+          setDeviceList(Object.values(devices));
+          dispatch(
+            updateMainAlert({
+              show: true,
+              message: `device ${delDevice.name} deleted successfully`,
+              severity: "success",
+            })
+          );
+        })
+        .catch((err) => {
+          let msg = `deletion of  ${delDevice.name} failed`;
+          if (err.response && err.response.data) {
+            msg = err.response.data.message || msg;
+          }
+          dispatch(
+            updateMainAlert({
+              show: true,
+              message: msg,
+              severity: "error",
+            })
+          );
+        });
     }
     setDelDevice({ open: false, name: "" });
   };
