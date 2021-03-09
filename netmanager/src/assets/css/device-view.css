@@ -110,3 +110,36 @@
     z-index: 10;
     color: #263238;
 }
+
+.table-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+  white-space: nowrap
+}
+
+.table-full {
+  overflow: unset;
+  text-overflow: ellipsis;
+  width: 100%;
+  white-space: normal;
+}
+
+.ml-table-details {
+    display: flex;
+    padding-left: 55px;
+    /*background: #CDD0D5;*/
+    /*background: #2f67e2;*/
+    /*background: #7D9DFF;*/
+    background: #B7CFFF;
+}
+
+.ml-table-details>span {
+    width: 20%;
+}
+
+.li-circle {
+    font-size: 14px;
+    margin-left: 10px;
+    list-style-type: circle !important;
+ }

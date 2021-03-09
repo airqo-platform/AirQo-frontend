@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, forwardRef } from "react";
 import { useDispatch } from "react-redux";
 import { isEmpty } from "underscore";
 import {
@@ -20,6 +20,8 @@ import Input from "@material-ui/core/Input";
 import MenuItem from "@material-ui/core/MenuItem";
 import Checkbox from "@material-ui/core/Checkbox";
 import ListItemText from "@material-ui/core/ListItemText";
+import ChevronLeft from "@material-ui/icons/ChevronLeft";
+import ChevronRight from "@material-ui/icons/ChevronRight";
 import {
   KeyboardDatePicker,
   MuiPickersUtilsProvider,
@@ -33,12 +35,6 @@ import {
 import { useDeviceLogsData } from "redux/DeviceRegistry/selectors";
 import { addMaintenanceLogApi } from "../../../apis/deviceRegistry";
 import { updateMainAlert } from "redux/MainAlert/operations";
-
-const logsColumns = [
-  { title: "Maintenance Type", field: "description" },
-  { title: "Description/tags", field: "tags" },
-  { title: "Next Maintenance", field: "nextMaintenance" },
-];
 
 const titleStyles = {
   fontFamily: "Roboto, Helvetica, Arial, sans-serif",
@@ -82,7 +78,8 @@ const LogDetailView = ({ log }) => {
                 <b>Description/tags</b>
               </TableCell>
               <TableCell>
-                {log.tags && log.tags.map((tag, index) => <div key={index}>{tag}</div>)}
+                {log.tags &&
+                  log.tags.map((tag, index) => <div key={index}>{tag}</div>)}
               </TableCell>
             </TableRow>
             <TableRow>
@@ -298,6 +295,42 @@ export default function DeviceLogs({ deviceName, deviceLocation }) {
   const [addLog, setAddLog] = useState(false);
   const maintenanceLogs = useDeviceLogsData(deviceName);
 
+  const logsColumns = [
+    { title: "Maintenance type", field: "maintenanceType" },
+    {
+      title: "Description",
+      field: "description",
+      cellStyle: { width: 100, maxWidth: 100 },
+      render: (rowData) => (
+        <div className={"table-truncate"}>{rowData.description}</div>
+      ),
+    },
+    {
+      title: "Tags",
+      field: "tags",
+      cellStyle: { width: 100, maxWidth: 100 },
+      render: (rowData) => {
+        return (
+          <div className={"table-truncate"}>
+            {rowData.tags && rowData.tags.join(", ")}
+          </div>
+        );
+      },
+    },
+    {
+      title: "Next Maintenance",
+      field: "nextMaintenance",
+      cellStyle: { width: 100, maxWidth: 100 },
+      render: (rowData) => (
+        <div className={"table-truncate"}>{rowData.nextMaintenance}</div>
+      ),
+    },
+    {
+      title: "Actions",
+      render: (rowData) => <div>actions</div>,
+    },
+  ];
+
   useEffect(() => {
     if (isEmpty(maintenanceLogs)) {
       if (typeof deviceName !== "undefined") {
@@ -325,6 +358,46 @@ export default function DeviceLogs({ deviceName, deviceLocation }) {
           {" "}
           Add Log
         </Button>
+      </div>
+      <div>
+        <MaintenanceLogsTable
+          title={<TableTitle deviceName={deviceName} />}
+          columns={logsColumns}
+          data={maintenanceLogs}
+          options={{
+            pageSize: 10,
+            rowStyle: (rowData) => ({
+              backgroundColor:
+                selectedRow === rowData.tableData.id ? "#EEE" : "#FFF",
+            }),
+          }}
+          detailPanel={[
+            {
+              tooltip: "Show Details",
+              render: (rowData) => {
+                return (
+                  <div className={"ml-table-details"}>
+                    <span>{rowData.maintenanceType}</span>
+                    <span>{rowData.description}</span>
+                    <span>
+                      <ul>
+                        {rowData.tags &&
+                          rowData.tags.map((tag, key) => {
+                            return (
+                              <li className="li-circle" key={key}>
+                                {tag}
+                              </li>
+                            );
+                          })}
+                      </ul>
+                    </span>
+                    <span>{rowData.nextMaintenance}</span>
+                  </div>
+                );
+              },
+            },
+          ]}
+        />
       </div>
       <div style={wrapperStyles}>
         <MaintenanceLogsTable
