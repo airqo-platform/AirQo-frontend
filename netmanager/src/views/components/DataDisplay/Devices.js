@@ -35,6 +35,9 @@ import { updateMainAlert } from "redux/MainAlert/operations";
 import { updateDeviceBackUrl } from "redux/Urls/operations";
 import CustomMaterialTable from "../Table/CustomMaterialTable";
 
+// css
+import "assets/css/device-registry.css";
+
 const useStyles = makeStyles((theme) => ({
   root: {},
   content: {
@@ -182,12 +185,14 @@ const createDeviceColumns = (history, setDelState) => [
       <div>
         <Tooltip title="Edit">
           <EditIcon
+            className={"hover-blue"}
             style={{ margin: "0 5px" }}
             onClick={() => history.push(`/device/${rowData.name}/edit`)}
           />
         </Tooltip>
         <Tooltip title="Delete">
           <DeleteIcon
+            className={"hover-red"}
             style={{ margin: "0 5px" }}
             onClick={() => setDelState({ open: true, name: rowData.name })}
           />
