@@ -20,8 +20,6 @@ import Input from "@material-ui/core/Input";
 import MenuItem from "@material-ui/core/MenuItem";
 import Checkbox from "@material-ui/core/Checkbox";
 import ListItemText from "@material-ui/core/ListItemText";
-import ChevronLeft from "@material-ui/icons/ChevronLeft";
-import ChevronRight from "@material-ui/icons/ChevronRight";
 import {
   KeyboardDatePicker,
   MuiPickersUtilsProvider,
@@ -35,6 +33,7 @@ import {
 import { useDeviceLogsData } from "redux/DeviceRegistry/selectors";
 import { addMaintenanceLogApi } from "../../../apis/deviceRegistry";
 import { updateMainAlert } from "redux/MainAlert/operations";
+import { CreatableLabelledSelect } from "views/components/CustomSelects/LabelledSelect";
 
 const titleStyles = {
   fontFamily: "Roboto, Helvetica, Arial, sans-serif",
@@ -116,7 +115,9 @@ const LogDetailView = ({ log }) => {
 const AddLogForm = ({ deviceName, deviceLocation, toggleShow }) => {
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
-  const [maintenanceType, setMaintenanceType] = useState("");
+  const [maintenanceType, setMaintenanceType] = useState(null);
+  const [description, setDescription] = useState([]);
+  const [tags, setTags] = useState([]);
   const [maintenanceDescription, setMaintenanceDescription] = useState([]);
   const [selectedDate, setSelectedDate] = useState(new Date());
 
@@ -148,6 +149,25 @@ const AddLogForm = ({ deviceName, deviceLocation, toggleShow }) => {
     "PCB works/replacement",
     "Temp/humidity sensor works/replacement",
     "Air quality sensor(s) works/replacement",
+  ];
+
+  const createTagOption = (tag) => ({ label: tag, value: tag });
+
+  const tagsOptions = [
+    createTagOption("Dust blowing and sensor cleaning"),
+    createTagOption("Site update check"),
+    createTagOption("Device equipment check"),
+    createTagOption("Power circuitry and components works"),
+    createTagOption("GPS module works/replacement"),
+    createTagOption("GSM module works/replacement"),
+    createTagOption("Battery works/replacement"),
+    createTagOption("Power supply works/replacement"),
+    createTagOption("Antenna works/replacement"),
+    createTagOption("Mounts replacement"),
+    createTagOption("Software checks/re-installation"),
+    createTagOption("PCB works/replacement"),
+    createTagOption("Temp/humidity sensor works/replacement"),
+    createTagOption("Air quality sensor(s) works/replacement"),
   ];
 
   const ITEM_HEIGHT = 48;
@@ -195,64 +215,64 @@ const AddLogForm = ({ deviceName, deviceLocation, toggleShow }) => {
     setLoading(false);
   };
 
+  const maintenanceTypeOptions = [
+    { value: "preventive", label: "Preventive" },
+    { value: "Corrective", label: "Corrective" },
+  ];
+
   return (
     <Paper style={{ minHeight: "400px", padding: "5px 10px" }}>
       <h4>Add Log</h4>
       <form>
-        <TextField
-          id="deviceName"
-          label="Device Name"
-          value={deviceName}
-          fullWidth
-          disabled
-        />
-        <FormControl required fullWidth>
-          <InputLabel htmlFor="demo-dialog-native">
-            Type of Maintenance
-          </InputLabel>
-          <Select
-            native
+        <div style={{ margin: "5px 0" }}>
+          <TextField
+            id="deviceName"
+            label="Device Name"
+            variant="outlined"
+            value={deviceName}
+            fullWidth
+            disabled
+          />
+        </div>
+        <div style={{ margin: "5px 0" }}>
+          <CreatableLabelledSelect
+            label={"Type of Maintenance"}
+            options={maintenanceTypeOptions}
+            isClearable
             value={maintenanceType}
-            onChange={handleMaintenanceTypeChange}
-            inputProps={{
-              native: true,
-              style: { height: "40px", marginTop: "10px" },
-            }}
-            input={<Input id="demo-dialog-native" />}
-          >
-            <option aria-label="None" value="" />
-            <option value="preventive">Preventive</option>
-            <option value="corrective">Corrective</option>
-          </Select>
-        </FormControl>
-        <br />
-        <FormControl required className fullWidth>
-          <InputLabel htmlFor="demo-dialog-native">
-            Description of Activities
-          </InputLabel>
-          <Select
-            multiple
-            value={maintenanceDescription}
-            onChange={(evt) => setMaintenanceDescription(evt.target.value)}
-            input={<Input style={{ height: "50px", marginTop: "10px" }} />}
-            renderValue={(selected) => selected.join(", ")}
-            MenuProps={MenuProps}
-          >
-            <option aria-label="None" value="" />
-            {maintenanceOptions.map((name) => (
-              <MenuItem key={name} value={name}>
-                <Checkbox checked={maintenanceDescription.indexOf(name) > -1} />
-                <ListItemText primary={name} />
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+            onChange={(newValue: any, actionMeta: any) =>
+              setMaintenanceType(newValue)
+            }
+          />
+        </div>
+        <div style={{ margin: "5px 0" }}>
+          <TextField
+            id="deviceName"
+            label="Description"
+            variant="outlined"
+            multiline
+            rows={10}
+            fullWidth
+            value={description}
+            onChange={(event) => setDescription(event.target.value)}
+          />
+        </div>
+        <div style={{ marginTop: "5px" }}>
+          <CreatableLabelledSelect
+            label={"Tags"}
+            isMulti
+            options={tagsOptions}
+            isClearable
+            value={tags}
+            onChange={(newValue: any, actionMeta: any) => setTags(newValue)}
+          />
+        </div>
         <MuiPickersUtilsProvider utils={DateFnsUtils} fullWidth={true}>
           <KeyboardDatePicker
             fullWidth={true}
             disableToolbar
             autoOk
-            variant="inline"
+            inputVariant="outlined"
             format="yyyy-MM-dd"
             margin="normal"
             id="maintenanceDate"
@@ -351,9 +371,10 @@ export default function DeviceLogs({ deviceName, deviceLocation }) {
         <Button
           variant="contained"
           color="primary"
-          onClick={(evt) => {
-            setAddLog(true);
-          }}
+          disabled={show.addLog}
+          onClick={() => {
+            console.log("setting state")
+            setShow({logTable: false, addLog: true, editLog: false})}}
         >
           {" "}
           Add Log
