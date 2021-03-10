@@ -14,6 +14,7 @@ import {
   UPDATE_SINGLE_DEVICE_SUCCESS,
   UPDATE_SINGLE_DEVICE_ERROR,
   UPDATE_SINGLE_MAINTENANCE_LOGS_SUCCESS,
+  UPDATE_SINGLE_COMPONENT_SUCCESS,
   DELETE_SINGLE_MAINTENANCE_LOGS_SUCCESS,
   LOAD_DEVICE_UPTIME_SUCCESS,
   LOAD_DEVICE_UPTIME_FAILURE,
@@ -94,9 +95,13 @@ export const loadDeviceComponentsData = (deviceName) => {
   return async (dispatch) => {
     return await getDeviceComponentsApi(deviceName)
       .then((responseData) => {
+        const indexedComponent = [];
+        responseData.components.map((comp, tableIndex) =>
+          indexedComponent.push({ ...comp, tableIndex })
+        );
         dispatch({
           type: LOAD_DEVICE_COMPONENTS_SUCCESS,
-          payload: { [deviceName]: responseData.components },
+          payload: { [deviceName]: indexedComponent },
         });
       })
       .catch((err) => {
@@ -139,6 +144,15 @@ export const insertDeviceComponent = (deviceName, component) => (dispatch) => {
   dispatch({
     type: INSERT_NEW_COMPONENT_SUCCESS,
     payload: { deviceName, component },
+  });
+};
+
+export const updateDeviceComponent = (deviceName, index, component) => (
+  dispatch
+) => {
+  dispatch({
+    type: UPDATE_SINGLE_COMPONENT_SUCCESS,
+    payload: { deviceName, index, component },
   });
 };
 
