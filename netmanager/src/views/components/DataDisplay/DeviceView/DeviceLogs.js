@@ -3,6 +3,10 @@ import { useDispatch } from "react-redux";
 import { isEmpty } from "underscore";
 import {
   Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   Grid,
   Paper,
   Table,
@@ -30,17 +34,20 @@ import {
   loadDeviceMaintenanceLogs,
   insertMaintenanceLog,
   updateMaintenanceLog,
+  deleteMaintenanceLog,
 } from "redux/DeviceRegistry/operations";
 import { useDeviceLogsData } from "redux/DeviceRegistry/selectors";
 import {
   addMaintenanceLogApi,
   updateMaintenanceLogApi,
+  deleteMaintenanceLogApi,
 } from "../../../apis/deviceRegistry";
 import { updateMainAlert } from "redux/MainAlert/operations";
 import { CreatableLabelledSelect } from "views/components/CustomSelects/LabelledSelect";
 import Tooltip from "@material-ui/core/Tooltip";
 import EditIcon from "@material-ui/icons/EditOutlined";
 import DeleteIcon from "@material-ui/icons/DeleteOutlineOutlined";
+import Modal from "@material-ui/core/Modal";
 
 const titleStyles = {
   fontFamily: "Roboto, Helvetica, Arial, sans-serif",
@@ -303,7 +310,11 @@ const AddLogForm = ({ deviceName, deviceLocation, toggleShow }) => {
       .catch((err) => {
         dispatch(
           updateMainAlert({
-            message: err.response.data.message,
+            message:
+              (err.response &&
+                err.response.data &&
+                err.response.data.message) ||
+              "could not add log",
             show: true,
             severity: "error",
           })
@@ -406,14 +417,13 @@ export default function DeviceLogs({ deviceName, deviceLocation }) {
   const dispatch = useDispatch();
   const [selectedRow, setSelectedRow] = useState(0);
   const [selectedLog, setSelectedLog] = useState({});
+  const [delState, setDelState] = useState({ open: false, data: {} });
   const [show, setShow] = useState({
     logTable: true,
     addLog: false,
     editLog: false,
   });
   const maintenanceLogs = useDeviceLogsData(deviceName);
-
-  console.log("ml", maintenanceLogs);
 
   const logsColumns = [
     { title: "Maintenance type", field: "maintenanceType" },
@@ -464,13 +474,62 @@ export default function DeviceLogs({ deviceName, deviceLocation }) {
             <DeleteIcon
               className={"hover-red"}
               style={{ margin: "0 5px" }}
-              // onClick={() => setDelState({ open: true, name: rowData.name })}
+              onClick={() => setDelState({ open: true, data: rowData })}
             />
           </Tooltip>
         </div>
       ),
     },
   ];
+
+  const handleLogDelete = async () => {
+    setDelState({ ...delState, open: false });
+
+    if (delState.data._id) {
+      await deleteMaintenanceLogApi(delState.data._id)
+        .then(async (responseData) => {
+          dispatch(
+            updateMainAlert({
+              message: responseData.message,
+              show: true,
+              severity: "success",
+            })
+          );
+          setTimeout(
+            () =>
+              dispatch(
+                updateMainAlert({
+                  message: "refreshing page",
+                  show: true,
+                  severity: "info",
+                })
+              ),
+            1000
+          );
+          await dispatch(loadDeviceMaintenanceLogs(deviceName));
+          dispatch(
+            updateMainAlert({
+              message: "page refresh successful",
+              show: true,
+              severity: "success",
+            })
+          );
+        })
+        .catch((err) => {
+          dispatch(
+            updateMainAlert({
+              message:
+                (err.response &&
+                  err.response.data &&
+                  err.response.data.message) ||
+                "could not delete log",
+              show: true,
+              severity: "error",
+            })
+          );
+        });
+    }
+  };
 
   useEffect(() => {
     if (isEmpty(maintenanceLogs)) {
@@ -575,6 +634,42 @@ export default function DeviceLogs({ deviceName, deviceLocation }) {
           />
         )}
       </div>
+      <Dialog
+        open={delState.open}
+        onClose={() => setDelState({ open: false, data: {} })}
+        aria-labelledby="form-dialog-title-del"
+        aria-describedby="form-dialog-description"
+      >
+        <DialogTitle id="form-dialog-title-del">Delete a device</DialogTitle>
+
+        <DialogContent>Are you sure you want to delete this log?</DialogContent>
+
+        <DialogActions>
+          <Grid
+            container
+            alignItems="flex-end"
+            alignContent="flex-end"
+            justify="flex-end"
+          >
+            <Button
+              variant="contained"
+              type="button"
+              onClick={() => setDelState({ open: false, data: {} })}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="contained"
+              type="submit"
+              onClick={handleLogDelete}
+              style={{ margin: "0 15px", background: "#c00", color: "white" }}
+            >
+              Delete
+            </Button>
+          </Grid>
+          <br />
+        </DialogActions>
+      </Dialog>
     </>
   );
 }
