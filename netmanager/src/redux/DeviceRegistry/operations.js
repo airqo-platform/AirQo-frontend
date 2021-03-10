@@ -13,6 +13,7 @@ import {
   RESET_MAINTENANCE_LOGS,
   UPDATE_SINGLE_DEVICE_SUCCESS,
   UPDATE_SINGLE_DEVICE_ERROR,
+  UPDATE_SINGLE_MAINTENANCE_LOGS_SUCCESS,
   LOAD_DEVICE_UPTIME_SUCCESS,
   LOAD_DEVICE_UPTIME_FAILURE,
   LOAD_DEVICE_BATTERY_VOLTAGE_SUCCESS,
@@ -66,13 +67,17 @@ export const loadDeviceMaintenanceLogs = (deviceName) => {
   return async (dispatch) => {
     return await getDeviceMaintenanceLogsApi(deviceName)
       .then((responseData) => {
+        const indexedLogs = [];
         // sort logs in reversed order
         responseData.sort(
           (log1, log2) => -(new Date(log1.date) - new Date(log2.date))
         );
+        responseData.map((log, tableIndex) =>
+          indexedLogs.push({ ...log, tableIndex })
+        );
         dispatch({
           type: LOAD_MAINTENANCE_LOGS_SUCCESS,
-          payload: { [deviceName]: responseData },
+          payload: { [deviceName]: indexedLogs },
         });
       })
       .catch((err) => {
@@ -112,6 +117,13 @@ export const insertMaintenanceLog = (deviceName, log) => (dispatch) => {
   dispatch({
     type: INSERT_MAINTENANCE_LOGS_SUCCESS,
     payload: { deviceName, log },
+  });
+};
+
+export const updateMaintenanceLog = (deviceName, index, log) => (dispatch) => {
+  dispatch({
+    type: UPDATE_SINGLE_MAINTENANCE_LOGS_SUCCESS,
+    payload: { deviceName, index, log },
   });
 };
 
