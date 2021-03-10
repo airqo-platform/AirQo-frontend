@@ -114,6 +114,8 @@ const prodConfig = {
     "http://34.78.78.202:30002/api/v1/devices/ts/activity/update",
   DELETE_ACTIVITY_LOG:
     "http://34.78.78.202:30002/api/v1/devices/ts/activity/delete",
+  UPDATE_COMPONENT:
+    "http://34.78.78.202:30002/api/v1/devices/update/components",
 };
 
 const devConfig = {
@@ -227,6 +229,7 @@ const devConfig = {
     "http://localhost:3000/api/v1/devices/ts/activity/update",
   DELETE_ACTIVITY_LOG:
     "http://localhost:3000/api/v1/devices/ts/activity/delete",
+  UPDATE_COMPONENT: "http://localhost:3000/api/v1/devices/update/components",
 };
 
 const stageConfig = {
@@ -343,6 +346,8 @@ const stageConfig = {
     "http://34.78.78.202:31002/api/v1/devices/ts/activity/update",
   DELETE_ACTIVITY_LOG:
     "http://34.78.78.202:31002/api/v1/devices/ts/activity/delete",
+  UPDATE_COMPONENT:
+    "http://34.78.78.202:31002/api/v1/devices/update/components",
 };
 
 const defaultConfig = {
