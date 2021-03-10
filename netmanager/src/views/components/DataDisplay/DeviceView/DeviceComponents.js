@@ -1,37 +1,23 @@
 import React, { useEffect, useState } from "react";
 import {
-  Button, Dialog, DialogActions, DialogContent, DialogTitle,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   Grid,
   Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableRow,
 } from "@material-ui/core";
 import DeviceComponentsTable from "./Table";
 import { useDispatch } from "react-redux";
 import { isEmpty } from "underscore";
 import { useDeviceComponentsData } from "redux/DeviceRegistry/selectors";
-import {
-  loadDeviceComponentsData, loadDeviceMaintenanceLogs,
-  updateMaintenanceLog,
-} from "redux/DeviceRegistry/operations";
-import CardHeader from "../../Card/CardHeader";
+import { loadDeviceComponentsData } from "redux/DeviceRegistry/operations";
 import TextField from "@material-ui/core/TextField";
-import FormControl from "@material-ui/core/FormControl";
-import InputLabel from "@material-ui/core/InputLabel";
-import Select from "@material-ui/core/Select";
-import Input from "@material-ui/core/Input";
-import MenuItem from "@material-ui/core/MenuItem";
-import Checkbox from "@material-ui/core/Checkbox";
-import ListItemText from "@material-ui/core/ListItemText";
-import { makeStyles } from "@material-ui/styles";
 import {
   createDeviceComponentApi,
   updateComponentApi,
-  updateMaintenanceLogApi,
-  deleteComponentApi, deleteMaintenanceLogApi,
+  deleteComponentApi,
 } from "../../../apis/deviceRegistry";
 import { updateMainAlert } from "redux/MainAlert/operations";
 import {
@@ -41,20 +27,7 @@ import {
 import Tooltip from "@material-ui/core/Tooltip";
 import EditIcon from "@material-ui/icons/EditOutlined";
 import DeleteIcon from "@material-ui/icons/DeleteOutlineOutlined";
-import LabelledSelect, {
-  CreatableLabelledSelect,
-} from "../../CustomSelects/LabelledSelect";
-
-const useStyles = makeStyles((theme) => ({
-  fieldMargin: {
-    margin: "20px 0",
-  },
-}));
-
-const wrapperStyles = {
-  display: "flex",
-  justifyContent: "space-between",
-};
+import LabelledSelect from "../../CustomSelects/LabelledSelect";
 
 const TableTitle = ({ deviceName }) => {
   return (
@@ -544,7 +517,6 @@ export default function DeviceComponents({ deviceName }) {
   const dispatch = useDispatch();
   const [selectedRow, setSelectedRow] = useState(0);
   const [selectedComponent, setSelectedComponent] = useState({});
-  const [addComponent, setAddComponent] = useState(false);
   const deviceComponents = useDeviceComponentsData(deviceName);
   const [delState, setDelState] = useState({ open: false, data: {} });
   const [show, setShow] = useState({
@@ -695,7 +667,7 @@ export default function DeviceComponents({ deviceName }) {
           );
         });
     }
-  }
+  };
 
   useEffect(() => {
     if (isEmpty(deviceComponents)) {
@@ -744,7 +716,6 @@ export default function DeviceComponents({ deviceName }) {
             columns={componentColumns}
             data={deviceComponents}
             onRowClick={(evt, selectedRow) => {
-              setAddComponent(false);
               setSelectedRow(selectedRow.tableData.id);
             }}
             detailPanel={[
@@ -838,7 +809,9 @@ export default function DeviceComponents({ deviceName }) {
       >
         <DialogTitle id="form-dialog-title-del">Delete a device</DialogTitle>
 
-        <DialogContent>Are you sure you want to delete component <b>{delState.data.name}</b>?</DialogContent>
+        <DialogContent>
+          Are you sure you want to delete component <b>{delState.data.name}</b>?
+        </DialogContent>
 
         <DialogActions>
           <Grid
@@ -866,37 +839,6 @@ export default function DeviceComponents({ deviceName }) {
           <br />
         </DialogActions>
       </Dialog>
-      {/*<div style={wrapperStyles}>*/}
-      {/*  <DeviceComponentsTable*/}
-      {/*    style={{ width: "62%" }}*/}
-      {/*    title={<TableTitle deviceName={deviceName} />}*/}
-      {/*    columns={componentColumns}*/}
-      {/*    data={deviceComponents}*/}
-      {/*    onRowClick={(evt, selectedRow) => {*/}
-      {/*      setAddComponent(false);*/}
-      {/*      setSelectedRow(selectedRow.tableData.id);*/}
-      {/*    }}*/}
-      {/*    options={{*/}
-      {/*      pageSize: 10,*/}
-      {/*      rowStyle: (rowData) => ({*/}
-      {/*        backgroundColor:*/}
-      {/*          selectedRow === rowData.tableData.id ? "#EEE" : "#FFF",*/}
-      {/*      }),*/}
-      {/*    }}*/}
-      {/*  />*/}
-      {/*  <div style={{ width: "35%" }}>*/}
-      {/*    {addComponent ? (*/}
-      {/*      <AddDeviceComponent*/}
-      {/*        deviceName={deviceName}*/}
-      {/*        toggleShow={(event) => setAddComponent(!addComponent)}*/}
-      {/*      />*/}
-      {/*    ) : (*/}
-      {/*      <ComponentDetailView*/}
-      {/*        component={deviceComponents[selectedRow] || {}}*/}
-      {/*      />*/}
-      {/*    )}*/}
-      {/*  </div>*/}
-      {/*</div>*/}
     </>
   );
 }
