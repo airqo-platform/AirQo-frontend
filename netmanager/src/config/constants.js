@@ -112,6 +112,8 @@ const prodConfig = {
   GET_HEATMAP_DATA: "http://34.78.78.202:30009/api/v1/predict/heatmap",
   UPDATE_ACTIVITY_LOG:
     "http://34.78.78.202:30002/api/v1/devices/ts/activity/update",
+  DELETE_ACTIVITY_LOG:
+    "http://34.78.78.202:30002/api/v1/devices/ts/activity/delete",
 };
 
 const devConfig = {
@@ -223,6 +225,8 @@ const devConfig = {
     "http://localhost:3000/api/v1/devices/update/components?device=",
   UPDATE_ACTIVITY_LOG:
     "http://localhost:3000/api/v1/devices/ts/activity/update",
+  DELETE_ACTIVITY_LOG:
+    "http://localhost:3000/api/v1/devices/ts/activity/delete",
 };
 
 const stageConfig = {
@@ -337,6 +341,8 @@ const stageConfig = {
   GET_HEATMAP_DATA: "http://34.78.78.202:31009/api/v1/predict/heatmap",
   UPDATE_ACTIVITY_LOG:
     "http://34.78.78.202:31002/api/v1/devices/ts/activity/update",
+  DELETE_ACTIVITY_LOG:
+    "http://34.78.78.202:31002/api/v1/devices/ts/activity/delete",
 };
 
 const defaultConfig = {

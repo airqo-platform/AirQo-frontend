@@ -77,3 +77,9 @@ export const updateMaintenanceLogApi = async (deviceId, logData) => {
     .put(constants.UPDATE_ACTIVITY_LOG, logData, { params: { id: deviceId } })
     .then((response) => response.data);
 };
+
+export const deleteMaintenanceLogApi = (deviceId) => {
+  return axios
+    .delete(constants.DELETE_ACTIVITY_LOG, { params: { id: deviceId } })
+    .then((response) => response.data);
+};
