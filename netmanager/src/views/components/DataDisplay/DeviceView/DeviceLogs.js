@@ -29,9 +29,13 @@ import MaintenanceLogsTable from "./Table";
 import {
   loadDeviceMaintenanceLogs,
   insertMaintenanceLog,
+  updateMaintenanceLog,
 } from "redux/DeviceRegistry/operations";
 import { useDeviceLogsData } from "redux/DeviceRegistry/selectors";
-import { addMaintenanceLogApi } from "../../../apis/deviceRegistry";
+import {
+  addMaintenanceLogApi,
+  updateMaintenanceLogApi,
+} from "../../../apis/deviceRegistry";
 import { updateMainAlert } from "redux/MainAlert/operations";
 import { CreatableLabelledSelect } from "views/components/CustomSelects/LabelledSelect";
 import Tooltip from "@material-ui/core/Tooltip";
@@ -74,7 +78,7 @@ const EditLog = ({ deviceName, deviceLocation, toggleShow, log }) => {
       (log.maintenanceType && createOption(log.maintenanceType)) ||
       null
   );
-  const [description, setDescription] = useState();
+  const [description, setDescription] = useState(log.description);
   const [tags, setTags] = useState(createListOptions(log.tags || []));
   const [selectedDate, setSelectedDate] = useState(new Date(log.date));
 
@@ -101,6 +105,54 @@ const EditLog = ({ deviceName, deviceLocation, toggleShow, log }) => {
     { value: "preventive", label: "Preventive" },
     { value: "Corrective", label: "Corrective" },
   ];
+
+  const handleSubmit = async (evt) => {
+    evt.preventDefault();
+    const extracted_tags = [];
+    tags && tags.map((tag) => extracted_tags.push(tag.value));
+    const logData = {
+      deviceName,
+      locationName: deviceLocation,
+      date: selectedDate.toISOString(),
+      tags: extracted_tags,
+      maintenanceType: (maintenanceType && maintenanceType.value) || "",
+      description: description,
+    };
+
+    setLoading(true);
+    toggleShow();
+    await updateMaintenanceLogApi(log._id, logData)
+      .then((responseData) => {
+        dispatch(
+          updateMaintenanceLog(
+            deviceName,
+            log.tableIndex,
+            responseData.updatedActivity
+          )
+        );
+        dispatch(
+          updateMainAlert({
+            message: responseData.message,
+            show: true,
+            severity: "success",
+          })
+        );
+      })
+      .catch((err) => {
+        dispatch(
+          updateMainAlert({
+            message:
+              (err.response &&
+                err.response.data &&
+                err.response.data.message) ||
+              "could not update log",
+            show: true,
+            severity: "error",
+          })
+        );
+      });
+    setLoading(false);
+  };
 
   return (
     <Paper style={{ minHeight: "400px", padding: "5px 10px" }}>
@@ -135,7 +187,7 @@ const EditLog = ({ deviceName, deviceLocation, toggleShow, log }) => {
             multiline
             rows={10}
             fullWidth
-            value={description}
+            value={description || ""}
             onChange={(event) => setDescription(event.target.value)}
           />
         </div>
@@ -180,7 +232,7 @@ const EditLog = ({ deviceName, deviceLocation, toggleShow, log }) => {
             disabled={loading}
             variant="contained"
             color="primary"
-            // onClick={handleSubmit}
+            onClick={handleSubmit}
             style={{ marginLeft: "10px" }}
           >
             Edit Log
@@ -293,7 +345,7 @@ const AddLogForm = ({ deviceName, deviceLocation, toggleShow }) => {
             multiline
             rows={10}
             fullWidth
-            value={description}
+            value={description || ""}
             onChange={(event) => setDescription(event.target.value)}
           />
         </div>
