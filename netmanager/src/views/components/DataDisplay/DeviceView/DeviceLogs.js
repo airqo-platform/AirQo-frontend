@@ -278,7 +278,12 @@ const AddLogForm = ({ deviceName, deviceLocation, toggleShow }) => {
     setLoading(true);
     await addMaintenanceLogApi(logData)
       .then((responseData) => {
-        dispatch(insertMaintenanceLog(deviceName, responseData.activityBody));
+        dispatch(
+          insertMaintenanceLog(
+            deviceName,
+            responseData.activityBody || responseData.activityLog
+          )
+        );
         dispatch(
           updateMainAlert({
             message: responseData.message,
