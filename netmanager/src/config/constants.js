@@ -110,6 +110,8 @@ const prodConfig = {
   GET_DATA_MAP:
     "http://34.78.78.202:30003/api/v1/dashboard/monitoringsites?organisation_name=KCCA&pm25_category=",
   GET_HEATMAP_DATA: "http://34.78.78.202:30009/api/v1/predict/heatmap",
+  UPDATE_ACTIVITY_LOG:
+    "http://34.78.78.202:30002/api/v1/devices/ts/activity/update",
 };
 
 const devConfig = {
@@ -219,6 +221,8 @@ const devConfig = {
     "http://localhost:3000/api/v1/devices/delete/components?comp=",
   UPDATE_COMPONENT_URI:
     "http://localhost:3000/api/v1/devices/update/components?device=",
+  UPDATE_ACTIVITY_LOG:
+    "http://localhost:3000/api/v1/devices/ts/activity/update",
 };
 
 const stageConfig = {
@@ -331,6 +335,8 @@ const stageConfig = {
   GET_DATA_MAP:
     "http://34.78.78.202:31003/api/v1/dashboard/monitoringsites?organisation_name=KCCA&pm25_category=",
   GET_HEATMAP_DATA: "http://34.78.78.202:31009/api/v1/predict/heatmap",
+  UPDATE_ACTIVITY_LOG:
+    "http://34.78.78.202:31002/api/v1/devices/ts/activity/update",
 };
 
 const defaultConfig = {
