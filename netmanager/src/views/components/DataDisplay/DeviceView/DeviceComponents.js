@@ -27,6 +27,9 @@ import { makeStyles } from "@material-ui/styles";
 import { createDeviceComponentApi } from "../../../apis/deviceRegistry";
 import { updateMainAlert } from "redux/MainAlert/operations";
 import { insertDeviceComponent } from "redux/DeviceRegistry/operations";
+import Tooltip from "@material-ui/core/Tooltip";
+import EditIcon from "@material-ui/icons/EditOutlined";
+import DeleteIcon from "@material-ui/icons/DeleteOutlineOutlined";
 
 const useStyles = makeStyles((theme) => ({
   fieldMargin: {
@@ -38,22 +41,6 @@ const wrapperStyles = {
   display: "flex",
   justifyContent: "space-between",
 };
-
-const componentColumns = [
-  { title: "Name", field: "name" },
-  { title: "Description", field: "description" },
-  {
-    title: "Measurement(s)",
-    field: "measurement",
-    render: (rowData) => {
-      let measurement = "";
-      rowData.measurement.map((val) => {
-        measurement += `${val.quantityKind}(${val.measurementUnit}), `;
-      });
-      return measurement;
-    },
-  },
-];
 
 const TableTitle = ({ deviceName }) => {
   return (
@@ -144,7 +131,7 @@ const AddDeviceComponent = ({ deviceName, toggleShow }) => {
     setLoading(true);
     await createDeviceComponentApi(deviceName, componentType, filter)
       .then((responseData) => {
-        dispatch(insertDeviceComponent(deviceName, responseData.component))
+        dispatch(insertDeviceComponent(deviceName, responseData.component));
         dispatch(
           updateMainAlert({
             message: responseData.message,
@@ -380,6 +367,90 @@ export default function DeviceComponents({ deviceName }) {
   const [addComponent, setAddComponent] = useState(false);
   const deviceComponents = useDeviceComponentsData(deviceName);
 
+  const componentColumns = [
+    {
+      title: "Name",
+      field: "name",
+      cellStyle: { width: 100, maxWidth: 100 },
+      return: (rowData) => (
+        <div className={"table-truncate"}>{rowData.name}</div>
+      ),
+    },
+    {
+      title: "Description",
+      field: "description",
+      cellStyle: { width: 100, maxWidth: 100 },
+      return: (rowData) => (
+        <div className={"table-truncate"}>{rowData.description}</div>
+      ),
+    },
+    {
+      title: "Measurement(s)",
+      field: "measurement",
+      cellStyle: { width: 100, maxWidth: 100 },
+      render: (rowData) => {
+        let measurement = "";
+        rowData.measurement.map((val) => {
+          measurement += `${val.quantityKind}(${val.measurementUnit}), `;
+        });
+        return <div className={"table-truncate"}>{measurement}</div>;
+      },
+    },
+    {
+      title: "Calibration",
+      field: "calibration",
+      cellStyle: { width: 100, maxWidth: 100 },
+      render: (rowData) => {
+        return (
+          <div className={"table-truncate"}>
+            <b>Max Value(s)</b> ( Sensor value:
+            {rowData.calibration && rowData.calibration.valueMax.sensorValue},
+            Real value:
+            {rowData.calibration && rowData.calibration.valueMax.sensorValue})
+            <b>Min Value(s)</b> (Sensor value:
+            {rowData.calibration && rowData.calibration.valueMin.sensorValue},
+            Real value:
+            {rowData.calibration && rowData.calibration.valueMin.sensorValue}>
+          </div>
+        );
+      },
+    },
+
+    {
+      title: "Date Created",
+      field: "createdAt",
+      cellStyle: { width: 100, maxWidth: 100 },
+      return: (rowData) => (
+        <div className={"table-truncate"}>{rowData.createdAt}</div>
+      ),
+    },
+    {
+      title: "Actions",
+      render: (rowData) => (
+        <div>
+          <Tooltip title="Edit">
+            <EditIcon
+              className={"hover-blue"}
+              style={{ margin: "0 5px" }}
+              // onClick={() => {
+              //   setSelectedLog(rowData);
+              //   setSelectedRow(rowData.tableIndex);
+              //   setShow({ logTable: false, addLog: false, editLog: true });
+              // }}
+            />
+          </Tooltip>
+          <Tooltip title="Delete">
+            <DeleteIcon
+              className={"hover-red"}
+              style={{ margin: "0 5px" }}
+              // onClick={() => setDelState({ open: true, data: rowData })}
+            />
+          </Tooltip>
+        </div>
+      ),
+    },
+  ];
+
   useEffect(() => {
     if (isEmpty(deviceComponents)) {
       if (typeof deviceName !== "undefined") {
@@ -407,9 +478,9 @@ export default function DeviceComponents({ deviceName }) {
           Add Component
         </Button>
       </div>
-      <div style={wrapperStyles}>
+      <div>
         <DeviceComponentsTable
-          style={{ width: "62%" }}
+          // style={{ width: "62%" }}
           title={<TableTitle deviceName={deviceName} />}
           columns={componentColumns}
           data={deviceComponents}
@@ -417,6 +488,60 @@ export default function DeviceComponents({ deviceName }) {
             setAddComponent(false);
             setSelectedRow(selectedRow.tableData.id);
           }}
+          detailPanel={[
+            {
+              tooltip: "Show Details",
+              render: (rowData) => {
+                return (
+                  <div className={"ml-table-details-6"}>
+                    <span>{rowData.name}</span>
+                    <span>{rowData.description}</span>
+                    <span>
+                      <ul>
+                        {rowData.measurement &&
+                          rowData.measurement.map((val, key) => {
+                            return (
+                              <li className="li-circle" key={key}>
+                                {`${val.quantityKind} (${val.measurementUnit}), `}
+                              </li>
+                            );
+                          })}
+                      </ul>
+                    </span>
+                    <span>
+                      <b>Max Value(s)</b>
+                      <ul style={{ marginLeft: "20px" }}>
+                        <li className="li-circle">
+                          Sensor value:{" "}
+                          {rowData.calibration &&
+                            rowData.calibration.valueMax.sensorValue}
+                        </li>
+                        <li className="li-circle">
+                          Real value:{" "}
+                          {rowData.calibration &&
+                            rowData.calibration.valueMax.sensorValue}
+                        </li>
+                      </ul>
+                      <b>Min Value(s)</b>
+                      <ul style={{ marginLeft: "20px" }}>
+                        <li className="li-circle">
+                          Sensor value:{" "}
+                          {rowData.calibration &&
+                            rowData.calibration.valueMin.sensorValue}
+                        </li>
+                        <li className="li-circle">
+                          Real value:{" "}
+                          {rowData.calibration &&
+                            rowData.calibration.valueMin.sensorValue}
+                        </li>
+                      </ul>
+                    </span>
+                    <span>{rowData.createdAt}</span>
+                  </div>
+                );
+              },
+            },
+          ]}
           options={{
             pageSize: 10,
             rowStyle: (rowData) => ({

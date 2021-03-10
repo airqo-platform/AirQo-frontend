@@ -138,6 +138,19 @@
     width: 20%;
 }
 
+.ml-table-details-6 {
+    display: flex;
+    padding-left: 55px;
+    /*background: #CDD0D5;*/
+    /*background: #2f67e2;*/
+    /*background: #7D9DFF;*/
+    background: #B7CFFF;
+}
+
+.ml-table-details-6>span {
+    width: 16.8%;
+}
+
 .li-circle {
     font-size: 14px;
     margin-left: 10px;
