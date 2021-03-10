@@ -13,7 +13,10 @@ import DeviceComponentsTable from "./Table";
 import { useDispatch } from "react-redux";
 import { isEmpty } from "underscore";
 import { useDeviceComponentsData } from "redux/DeviceRegistry/selectors";
-import { loadDeviceComponentsData } from "redux/DeviceRegistry/operations";
+import {
+  loadDeviceComponentsData,
+  updateMaintenanceLog,
+} from "redux/DeviceRegistry/operations";
 import CardHeader from "../../Card/CardHeader";
 import TextField from "@material-ui/core/TextField";
 import FormControl from "@material-ui/core/FormControl";
@@ -24,9 +27,16 @@ import MenuItem from "@material-ui/core/MenuItem";
 import Checkbox from "@material-ui/core/Checkbox";
 import ListItemText from "@material-ui/core/ListItemText";
 import { makeStyles } from "@material-ui/styles";
-import { createDeviceComponentApi } from "../../../apis/deviceRegistry";
+import {
+  createDeviceComponentApi,
+  updateComponentApi,
+  updateMaintenanceLogApi,
+} from "../../../apis/deviceRegistry";
 import { updateMainAlert } from "redux/MainAlert/operations";
-import { insertDeviceComponent } from "redux/DeviceRegistry/operations";
+import {
+  insertDeviceComponent,
+  updateDeviceComponent,
+} from "redux/DeviceRegistry/operations";
 import Tooltip from "@material-ui/core/Tooltip";
 import EditIcon from "@material-ui/icons/EditOutlined";
 import DeleteIcon from "@material-ui/icons/DeleteOutlineOutlined";
@@ -263,92 +273,276 @@ const AddDeviceComponent = ({ deviceName, toggleShow }) => {
   );
 };
 
-const ComponentDetailView = ({ component }) => {
+const EditComponent = ({ deviceName, toggleShow, component }) => {
+  const createOption = (option) => ({ value: option, label: option });
+
+  const createOptions = (options) => {
+    const opts = [];
+    options.map((option) => opts.push(createOption(option)));
+    return opts;
+  };
+  const dispatch = useDispatch();
+  const [loading, setLoading] = useState(false);
+  const [sensorName, setSensorName] = useState(
+    (component.description && createOption(component.description)) || null
+  );
+  const [quantityKind, setQuantityKind] = useState([]);
+
+  const [maxSensorValue, setMaxSensorValue] = useState(
+    (component.calibration && component.calibration.valueMax.sensorValue) || 0
+  );
+  const [minSensorValue, setMinSensorValue] = useState(
+    (component.calibration && component.calibration.valueMin.sensorValue) || 0
+  );
+  const [maxRealValue, setMaxRealValue] = useState(
+    (component.calibration && component.calibration.valueMax.realValue) || 0
+  );
+  const [minRealValue, setMinRealValue] = useState(
+    (component.calibration && component.calibration.valueMin.realValue) || 0
+  );
+
+  const componentNameOptions = [
+    { value: "Alphasense OPC-N2", label: "Alphasense OPC-N2" },
+    { value: "pms5003", label: "pms5003" },
+    { value: "DHT11", label: "DHT11" },
+    { value: "Lithium Ion 18650", label: "Lithium Ion 18650" },
+    { value: "Generic", label: "Generic" },
+    { value: "Purple Air II", label: "Purple Air II" },
+    { value: "Bosch BME280", label: "Bosch BME280" },
+  ];
+
+  const quantityOptions = [
+    createOption("PM 1(µg/m3)"),
+    createOption("PM 2.5(µg/m3)"),
+    createOption("PM 10(µg/m3)"),
+    createOption("External Temperature(\xB0C)"),
+    createOption("External Temperature(\xB0F)"),
+    createOption("External Humidity(%)"),
+    createOption("Internal Temperature(\xB0C)"),
+    createOption("Internal Humidity(%)"),
+    createOption("Battery Voltage(V)"),
+    createOption("GPS"),
+  ];
+
+  const sensorNameMapper = {
+    "Alphasense OPC-N2": createOptions([
+      "PM 1(µg/m3)",
+      "PM 2.5(µg/m3)",
+      "PM 10(µg/m3)",
+    ]),
+    pms5003: createOptions(["PM 2.5(µg/m3)", "PM 10(µg/m3)"]),
+    DHT11: createOptions([
+      "Internal Temperature(\xB0C)",
+      "Internal Humidity(%)",
+    ]),
+    "Lithium Ion 18650": createOptions(["Battery Voltage(V)"]),
+    Generic: createOptions(["GPS"]),
+    "Purple Air II": createOptions(["PM 1(µg/m3)"]),
+    "Bosch BME280": createOptions([
+      "External Temperature(\xB0C)",
+      "External Humidity(%)",
+    ]),
+  };
+
+  const convertQuantityOptions = (quantityKind) => {
+    const modifiedQuantity = [];
+    quantityKind.map((quantity) => {
+      if (typeof quantity === "string") {
+        const newQuantity = quantity.replace(")", "");
+        const newQuantityArr = newQuantity.split("(");
+        if (newQuantityArr.length >= 2) {
+          modifiedQuantity.push({
+            quantityKind: newQuantityArr[0],
+            measurementUnit: newQuantityArr[1],
+          });
+        } else {
+          modifiedQuantity.push({
+            quantityKind: "unknown",
+            measurementUnit: "unknown",
+          });
+        }
+      }
+    });
+    return modifiedQuantity;
+  };
+
+  const handleSubmit = async (evt) => {
+    evt.preventDefault();
+    const convertedQuantityKind = [];
+    quantityKind.map((val) => convertedQuantityKind.push(val.value));
+    let filter = {
+      description: (sensorName && sensorName.value) || "", //e.g. pms5003
+      measurement: convertQuantityOptions(convertedQuantityKind), //e.g. [{"quantityKind":"humidity", "measurementUnit":"%"}]
+      calibration: {
+        valueMax: {
+          sensorValue: maxSensorValue,
+          realValue: maxRealValue,
+        },
+        valueMin: {
+          sensorValue: minSensorValue,
+          realValue: minRealValue,
+        },
+      },
+    };
+
+    setLoading(true);
+    await updateComponentApi(deviceName, component.name, filter)
+      .then((responseData) => {
+        dispatch(
+          updateDeviceComponent(
+            deviceName,
+            component.tableIndex,
+            responseData.updatedComponent
+          )
+        );
+        dispatch(
+          updateMainAlert({
+            message: responseData.message,
+            show: true,
+            severity: "success",
+          })
+        );
+      })
+      .catch((err) => {
+        dispatch(
+          updateMainAlert({
+            message:
+              (err.response &&
+                err.response.data &&
+                err.response.data.message) ||
+              "could not update component",
+            show: true,
+            severity: "error",
+          })
+        );
+      });
+    setLoading(false);
+    toggleShow();
+  };
+
+  useEffect(() => {
+    if (sensorName && sensorName.value) {
+      setQuantityKind(sensorNameMapper[sensorName.value]);
+    }
+  }, [sensorName]);
+
   return (
-    <div>
-      <TableContainer component={Paper}>
-        <CardHeader>
-          <h4>Component Details</h4>
-        </CardHeader>
-        <Table
-          stickyHeader
-          aria-label="sticky table"
-          alignItems="left"
-          alignContent="left"
+    <Paper style={{ minHeight: "400px", padding: "5px 10px" }}>
+      <h4>Edit Component</h4>
+      <div>
+        <div style={{ margin: "5px 0" }}>
+          <TextField
+            id="deviceName"
+            label="Device Name"
+            variant="outlined"
+            value={deviceName}
+            fullWidth
+            disabled
+          />
+        </div>
+
+        <div style={{ margin: "5px 0" }}>
+          <LabelledSelect
+            label={"Component Name"}
+            options={componentNameOptions}
+            isClearable
+            value={sensorName}
+            onChange={(newValue: any, actionMeta: any) =>
+              setSensorName(newValue)
+            }
+          />
+        </div>
+
+        <div style={{ margin: "5px 0" }}>
+          <LabelledSelect
+            label={"Quantity Measured"}
+            options={quantityOptions}
+            isClearable
+            isMulti
+            value={quantityKind}
+            onChange={(newValue: any, actionMeta: any) =>
+              setQuantityKind(newValue)
+            }
+          />
+        </div>
+
+        <div style={{ margin: "5px 0" }}>
+          <TextField
+            id="sensorMaxVal"
+            label="Sensor Max Value"
+            variant="outlined"
+            fullWidth
+            type={"number"}
+            value={maxSensorValue}
+            onChange={(event) => setMaxSensorValue(event.target.value)}
+          />
+        </div>
+
+        <div style={{ margin: "5px 0" }}>
+          <TextField
+            id="sensorMinVal"
+            label="Sensor Min Value"
+            variant="outlined"
+            fullWidth
+            type={"number"}
+            value={minSensorValue}
+            onChange={(event) => setMinSensorValue(event.target.value)}
+          />
+        </div>
+
+        <div style={{ margin: "5px 0" }}>
+          <TextField
+            id="realMaxVal"
+            label="Real Max Value"
+            variant="outlined"
+            fullWidth
+            type={"number"}
+            value={maxRealValue}
+            onChange={(event) => setMaxRealValue(event.target.value)}
+          />
+        </div>
+
+        <div style={{ margin: "5px 0" }}>
+          <TextField
+            id="realMinVal"
+            label="Real Min Value"
+            variant="outlined"
+            fullWidth
+            type={"number"}
+            value={minRealValue}
+            onChange={(event) => setMinRealValue(event.target.value)}
+          />
+        </div>
+      </div>
+
+      <Grid
+        container
+        alignItems="flex-end"
+        alignContent="flex-end"
+        justify="flex-end"
+        style={{ marginTop: "30px" }}
+      >
+        <Button variant="contained" onClick={toggleShow}>
+          Cancel
+        </Button>
+        <Button
+          variant="contained"
+          disabled={loading}
+          color="primary"
+          onClick={handleSubmit}
+          style={{ marginLeft: "10px" }}
         >
-          <TableBody style={{ alignContent: "left", alignItems: "left" }}>
-            <TableRow style={{ align: "left" }}>
-              <TableCell>
-                <b>Name</b>
-              </TableCell>
-              <TableCell>{component.name}</TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell>
-                <b>Description</b>
-              </TableCell>
-              <TableCell>{component.description}</TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell>
-                <b>Measurement(s)</b>
-              </TableCell>
-              <TableCell>
-                <ul style={{ listStyle: "square inside none" }}>
-                  {component.measurement &&
-                    component.measurement.map((val, key) => {
-                      return (
-                        <li key={key}>
-                          - {`${val.quantityKind}(${val.measurementUnit})`}
-                        </li>
-                      );
-                    })}
-                </ul>
-              </TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell>
-                <b>Date Created</b>
-              </TableCell>
-              <TableCell>{component.createdAt}</TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell>
-                <b>Calibration</b>
-              </TableCell>
-              <TableCell>
-                <b>Max Value(s)</b>
-                <br />
-                Sensor value:{" "}
-                {component.calibration &&
-                  component.calibration.valueMax.sensorValue}
-                <br />
-                Real value:{" "}
-                {component.calibration &&
-                  component.calibration.valueMax.sensorValue}
-                <br />
-                <br />
-                <b>Min Value(s)</b>
-                <br />
-                Sensor value:{" "}
-                {component.calibration &&
-                  component.calibration.valueMin.sensorValue}
-                <br />
-                Real value:{" "}
-                {component.calibration &&
-                  component.calibration.valueMin.sensorValue}
-              </TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
-      </TableContainer>
-    </div>
+          Edit Component
+        </Button>
+      </Grid>
+    </Paper>
   );
 };
 
 export default function DeviceComponents({ deviceName }) {
   const dispatch = useDispatch();
   const [selectedRow, setSelectedRow] = useState(0);
+  const [selectedComponent, setSelectedComponent] = useState({});
   const [addComponent, setAddComponent] = useState(false);
   const deviceComponents = useDeviceComponentsData(deviceName);
   const [show, setShow] = useState({
@@ -422,11 +616,11 @@ export default function DeviceComponents({ deviceName }) {
             <EditIcon
               className={"hover-blue"}
               style={{ margin: "0 5px" }}
-              // onClick={() => {
-              //   setSelectedLog(rowData);
-              //   setSelectedRow(rowData.tableIndex);
-              //   setShow({ logTable: false, addLog: false, editLog: true });
-              // }}
+              onClick={() => {
+                setSelectedComponent(rowData);
+                setSelectedRow(rowData.tableIndex);
+                setShow({ compTable: false, editComp: true, addComp: false });
+              }}
             />
           </Tooltip>
           <Tooltip title="Delete">
@@ -522,7 +716,7 @@ export default function DeviceComponents({ deviceName }) {
                           <li className="li-circle">
                             Real value:{" "}
                             {rowData.calibration &&
-                              rowData.calibration.valueMax.sensorValue}
+                              rowData.calibration.valueMax.realValue}
                           </li>
                         </ul>
                         <b>Min Value(s)</b>
@@ -535,7 +729,7 @@ export default function DeviceComponents({ deviceName }) {
                           <li className="li-circle">
                             Real value:{" "}
                             {rowData.calibration &&
-                              rowData.calibration.valueMin.sensorValue}
+                              rowData.calibration.valueMin.realValue}
                           </li>
                         </ul>
                       </span>
@@ -561,6 +755,16 @@ export default function DeviceComponents({ deviceName }) {
             toggleShow={(event) =>
               setShow({ compTable: true, editComp: false, addComp: false })
             }
+          />
+        )}
+
+        {show.editComp && (
+          <EditComponent
+            deviceName={deviceName}
+            toggleShow={(event) =>
+              setShow({ compTable: true, editComp: false, addComp: false })
+            }
+            component={selectedComponent}
           />
         )}
       </div>
