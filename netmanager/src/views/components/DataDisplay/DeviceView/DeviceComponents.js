@@ -30,6 +30,9 @@ import { insertDeviceComponent } from "redux/DeviceRegistry/operations";
 import Tooltip from "@material-ui/core/Tooltip";
 import EditIcon from "@material-ui/icons/EditOutlined";
 import DeleteIcon from "@material-ui/icons/DeleteOutlineOutlined";
+import LabelledSelect, {
+  CreatableLabelledSelect,
+} from "../../CustomSelects/LabelledSelect";
 
 const useStyles = makeStyles((theme) => ({
   fieldMargin: {
@@ -51,55 +54,78 @@ const TableTitle = ({ deviceName }) => {
 };
 
 const AddDeviceComponent = ({ deviceName, toggleShow }) => {
-  const classes = useStyles();
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
-  const [componentType, setComponentType] = useState("");
-  const [sensorName, setSensorName] = useState("");
+  const [componentType, setComponentType] = useState(null);
+  const [sensorName, setSensorName] = useState(null);
   const [quantityKind, setQuantityKind] = useState([]);
 
-  const sensorNameMapper = {
-    "Alphasense OPC-N2": ["PM 1(µg/m3)", "PM 2.5(µg/m3)", "PM 10(µg/m3)"],
-    pms5003: ["PM 2.5(µg/m3)", "PM 10(µg/m3)"],
-    DHT11: ["Internal Temperature(\xB0C)", "Internal Humidity(%)"],
-    "Lithium Ion 18650": ["Battery Voltage(V)"],
-    Generic: ["GPS"],
-    "Purple Air II": ["PM 1(µg/m3)"],
-    "Bosch BME280": ["External Temperature(\xB0C)", "External Humidity(%)"],
+  const componentTypeOption = [
+    { value: "pm2_5", label: "PM 2.5" },
+    { value: "pm10", label: "PM 10" },
+    { value: "s2_pm2_5", label: "Sensor 2 PM 2.5" },
+    { value: "s2_pm10", label: "Sensor 2 PM 10" },
+    { value: "temperature", label: "Temperature" },
+    { value: "battery", label: "Battery" },
+    { value: "humidity", label: "Humidity" },
+  ];
+
+  const componentNameOptions = [
+    { value: "Alphasense OPC-N2", label: "Alphasense OPC-N2" },
+    { value: "pms5003", label: "pms5003" },
+    { value: "DHT11", label: "DHT11" },
+    { value: "Lithium Ion 18650", label: "Lithium Ion 18650" },
+    { value: "Generic", label: "Generic" },
+    { value: "Purple Air II", label: "Purple Air II" },
+    { value: "Bosch BME280", label: "Bosch BME280" },
+  ];
+
+  const createOption = (option) => ({ value: option, label: option });
+
+  const createOptions = (options) => {
+    const opts = [];
+    options.map((option) => opts.push(createOption(option)));
+    return opts;
   };
 
   const quantityOptions = [
-    "PM 1(µg/m3)",
-    "PM 2.5(µg/m3)",
-    "PM 10(µg/m3)",
-    "External Temperature(\xB0C)",
-    "External Temperature(\xB0F)",
-    "External Humidity(%)",
-    "Internal Temperature(\xB0C)",
-    "Internal Humidity(%)",
-    "Battery Voltage(V)",
-    "GPS",
+    createOption("PM 1(µg/m3)"),
+    createOption("PM 2.5(µg/m3)"),
+    createOption("PM 10(µg/m3)"),
+    createOption("External Temperature(\xB0C)"),
+    createOption("External Temperature(\xB0F)"),
+    createOption("External Humidity(%)"),
+    createOption("Internal Temperature(\xB0C)"),
+    createOption("Internal Humidity(%)"),
+    createOption("Battery Voltage(V)"),
+    createOption("GPS"),
   ];
 
-  const handleSensorNameChange = (event) => {
-    setSensorName(event.target.value);
-    setQuantityKind(sensorNameMapper[event.target.value] || []);
+  const sensorNameMapper = {
+    "Alphasense OPC-N2": createOptions([
+      "PM 1(µg/m3)",
+      "PM 2.5(µg/m3)",
+      "PM 10(µg/m3)",
+    ]),
+    pms5003: createOptions(["PM 2.5(µg/m3)", "PM 10(µg/m3)"]),
+    DHT11: createOptions([
+      "Internal Temperature(\xB0C)",
+      "Internal Humidity(%)",
+    ]),
+    "Lithium Ion 18650": createOptions(["Battery Voltage(V)"]),
+    Generic: createOptions(["GPS"]),
+    "Purple Air II": createOptions(["PM 1(µg/m3)"]),
+    "Bosch BME280": createOptions([
+      "External Temperature(\xB0C)",
+      "External Humidity(%)",
+    ]),
   };
 
-  const handleComponentTypeChange = (e) => {
-    setComponentType(e.target.value);
-  };
-
-  const ITEM_HEIGHT = 48;
-  const ITEM_PADDING_TOP = 8;
-  const MenuProps = {
-    PaperProps: {
-      style: {
-        maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
-        width: 350,
-      },
-    },
-  };
+  useEffect(() => {
+    if (sensorName && sensorName.value) {
+      setQuantityKind(sensorNameMapper[sensorName.value]);
+    }
+  }, [sensorName]);
 
   const convertQuantityOptions = (quantityKind) => {
     const modifiedQuantity = [];
@@ -123,13 +149,20 @@ const AddDeviceComponent = ({ deviceName, toggleShow }) => {
     return modifiedQuantity;
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async () => {
+    const convertedQuantityKind = [];
+    quantityKind.map((val) => convertedQuantityKind.push(val.value));
     let filter = {
-      description: sensorName, //e.g. pms5003
-      measurement: convertQuantityOptions(quantityKind), //e.g. [{"quantityKind":"humidity", "measurementUnit":"%"}]
+      description: (sensorName && sensorName.value) || "", //e.g. pms5003
+      measurement: convertQuantityOptions(convertedQuantityKind), //e.g. [{"quantityKind":"humidity", "measurementUnit":"%"}]
     };
+
     setLoading(true);
-    await createDeviceComponentApi(deviceName, componentType, filter)
+    await createDeviceComponentApi(
+      deviceName,
+      (componentType && componentType.value) || "",
+      filter
+    )
       .then((responseData) => {
         dispatch(insertDeviceComponent(deviceName, responseData.component));
         dispatch(
@@ -150,107 +183,59 @@ const AddDeviceComponent = ({ deviceName, toggleShow }) => {
         );
       });
     setLoading(false);
+    toggleShow();
   };
 
   return (
     <Paper style={{ minHeight: "400px", padding: "5px 10px" }}>
       <h4>Add Component</h4>
       <div>
-        <div className={classes.fieldMargin}>
+        <div style={{ margin: "5px 0" }}>
           <TextField
-            fullWidth
             id="deviceName"
             label="Device Name"
-            margin="dense"
-            required
+            variant="outlined"
             value={deviceName}
+            fullWidth
             disabled
-            variant="standard"
           />
         </div>
 
-        <div className={classes.fieldMargin}>
-          <FormControl required fullWidth>
-            <InputLabel shrink htmlFor="demo-dialog-native-1">
-              Component Type
-            </InputLabel>
-            <Select
-              native
-              value={componentType}
-              onChange={handleComponentTypeChange}
-              InputLabelProps={{
-                shrink: true,
-              }}
-              inputProps={{
-                name: "Component Type",
-                id: "demo-dialog-native-1",
-                styles: "border: 1px solid green !important",
-              }}
-            >
-              <option aria-label="None" value="" />
-              <option value="pm2_5">PM 2.5</option>
-              <option value="pm10">PM 10</option>
-              <option value="s2_pm2_5">Sensor 2 PM 2.5</option>
-              <option value="s2_pm10">Sensor 2 PM 10</option>
-              <option value="temperature">Temperature</option>
-              <option value="battery">Battery</option>
-              <option value="humidity">Humidity</option>
-            </Select>
-          </FormControl>
+        <div style={{ margin: "5px 0" }}>
+          <LabelledSelect
+            label={"Component Type"}
+            options={componentTypeOption}
+            isClearable
+            value={componentType}
+            onChange={(newValue: any, actionMeta: any) =>
+              setComponentType(newValue)
+            }
+          />
         </div>
 
-        <div className={classes.fieldMargin}>
-          <FormControl required fullWidth>
-            <InputLabel shrink htmlFor="demo-dialog-native-1">
-              Component Name
-            </InputLabel>
-            <Select
-              native
-              value={sensorName}
-              onChange={handleSensorNameChange}
-              InputLabelProps={{
-                shrink: true,
-              }}
-              inputProps={{
-                name: "Component Name",
-                id: "demo-dialog-native-1",
-                styles: "border: 1px solid green !important",
-              }}
-            >
-              <option aria-label="None" value="" />
-              <option value="Alphasense OPC-N2">Alphasense OPC-N2</option>
-              <option value="pms5003">pms5003</option>
-              <option value="DHT11">DHT11</option>
-              <option value="Lithium Ion 18650">Lithium Ion 18650</option>
-              <option value="Generic">Generic</option>
-              <option value="Purple Air II">Purple Air II</option>
-              <option value="Bosch BME280">Bosch BME280</option>
-            </Select>
-          </FormControl>
+        <div style={{ margin: "5px 0" }}>
+          <LabelledSelect
+            label={"Component Name"}
+            options={componentNameOptions}
+            isClearable
+            value={sensorName}
+            onChange={(newValue: any, actionMeta: any) =>
+              setSensorName(newValue)
+            }
+          />
         </div>
 
-        <div>
-          <FormControl required fullWidth>
-            <InputLabel shrink htmlFor="demo-dialog-native">
-              Quantity Measured
-            </InputLabel>
-            <Select
-              multiple
-              value={quantityKind}
-              onChange={(event) => setQuantityKind(event.target.value)}
-              input={<Input />}
-              renderValue={(selected) => selected.join(", ")}
-              MenuProps={MenuProps}
-            >
-              <option aria-label="None" value="" />
-              {quantityOptions.map((quantity) => (
-                <MenuItem key={quantity} value={quantity}>
-                  <Checkbox checked={quantityKind.indexOf(quantity) > -1} />
-                  <ListItemText primary={quantity} />
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+        <div style={{ margin: "5px 0" }}>
+          <LabelledSelect
+            label={"Quantity Measured"}
+            options={quantityOptions}
+            isClearable
+            isMulti
+            value={quantityKind}
+            onChange={(newValue: any, actionMeta: any) =>
+              setQuantityKind(newValue)
+            }
+          />
         </div>
       </div>
 
@@ -366,6 +351,11 @@ export default function DeviceComponents({ deviceName }) {
   const [selectedRow, setSelectedRow] = useState(0);
   const [addComponent, setAddComponent] = useState(false);
   const deviceComponents = useDeviceComponentsData(deviceName);
+  const [show, setShow] = useState({
+    compTable: true,
+    editComp: false,
+    addComp: false,
+  });
 
   const componentColumns = [
     {
@@ -468,101 +458,143 @@ export default function DeviceComponents({ deviceName }) {
         }}
       >
         <Button
+          style={{ marginRight: "5px" }}
           variant="contained"
           color="primary"
-          onClick={(evt) => {
-            setAddComponent(true);
-          }}
+          disabled={show.compTable}
+          onClick={() =>
+            setShow({ compTable: true, editComp: false, addComp: false })
+          }
+        >
+          {" "}
+          Components Table
+        </Button>
+        <Button
+          variant="contained"
+          color="primary"
+          disabled={show.addComp}
+          onClick={() =>
+            setShow({ compTable: false, editComp: false, addComp: true })
+          }
         >
           {" "}
           Add Component
         </Button>
       </div>
       <div>
-        <DeviceComponentsTable
-          // style={{ width: "62%" }}
-          title={<TableTitle deviceName={deviceName} />}
-          columns={componentColumns}
-          data={deviceComponents}
-          onRowClick={(evt, selectedRow) => {
-            setAddComponent(false);
-            setSelectedRow(selectedRow.tableData.id);
-          }}
-          detailPanel={[
-            {
-              tooltip: "Show Details",
-              render: (rowData) => {
-                return (
-                  <div className={"ml-table-details-6"}>
-                    <span>{rowData.name}</span>
-                    <span>{rowData.description}</span>
-                    <span>
-                      <ul>
-                        {rowData.measurement &&
-                          rowData.measurement.map((val, key) => {
-                            return (
-                              <li className="li-circle" key={key}>
-                                {`${val.quantityKind} (${val.measurementUnit}), `}
-                              </li>
-                            );
-                          })}
-                      </ul>
-                    </span>
-                    <span>
-                      <b>Max Value(s)</b>
-                      <ul style={{ marginLeft: "20px" }}>
-                        <li className="li-circle">
-                          Sensor value:{" "}
-                          {rowData.calibration &&
-                            rowData.calibration.valueMax.sensorValue}
-                        </li>
-                        <li className="li-circle">
-                          Real value:{" "}
-                          {rowData.calibration &&
-                            rowData.calibration.valueMax.sensorValue}
-                        </li>
-                      </ul>
-                      <b>Min Value(s)</b>
-                      <ul style={{ marginLeft: "20px" }}>
-                        <li className="li-circle">
-                          Sensor value:{" "}
-                          {rowData.calibration &&
-                            rowData.calibration.valueMin.sensorValue}
-                        </li>
-                        <li className="li-circle">
-                          Real value:{" "}
-                          {rowData.calibration &&
-                            rowData.calibration.valueMin.sensorValue}
-                        </li>
-                      </ul>
-                    </span>
-                    <span>{rowData.createdAt}</span>
-                  </div>
-                );
+        {show.compTable && (
+          <DeviceComponentsTable
+            title={<TableTitle deviceName={deviceName} />}
+            columns={componentColumns}
+            data={deviceComponents}
+            onRowClick={(evt, selectedRow) => {
+              setAddComponent(false);
+              setSelectedRow(selectedRow.tableData.id);
+            }}
+            detailPanel={[
+              {
+                tooltip: "Show Details",
+                render: (rowData) => {
+                  return (
+                    <div className={"ml-table-details-6"}>
+                      <span>{rowData.name}</span>
+                      <span>{rowData.description}</span>
+                      <span>
+                        <ul>
+                          {rowData.measurement &&
+                            rowData.measurement.map((val, key) => {
+                              return (
+                                <li className="li-circle" key={key}>
+                                  {`${val.quantityKind} (${val.measurementUnit}), `}
+                                </li>
+                              );
+                            })}
+                        </ul>
+                      </span>
+                      <span>
+                        <b>Max Value(s)</b>
+                        <ul style={{ marginLeft: "20px" }}>
+                          <li className="li-circle">
+                            Sensor value:{" "}
+                            {rowData.calibration &&
+                              rowData.calibration.valueMax.sensorValue}
+                          </li>
+                          <li className="li-circle">
+                            Real value:{" "}
+                            {rowData.calibration &&
+                              rowData.calibration.valueMax.sensorValue}
+                          </li>
+                        </ul>
+                        <b>Min Value(s)</b>
+                        <ul style={{ marginLeft: "20px" }}>
+                          <li className="li-circle">
+                            Sensor value:{" "}
+                            {rowData.calibration &&
+                              rowData.calibration.valueMin.sensorValue}
+                          </li>
+                          <li className="li-circle">
+                            Real value:{" "}
+                            {rowData.calibration &&
+                              rowData.calibration.valueMin.sensorValue}
+                          </li>
+                        </ul>
+                      </span>
+                      <span>{rowData.createdAt}</span>
+                    </div>
+                  );
+                },
               },
-            },
-          ]}
-          options={{
-            pageSize: 10,
-            rowStyle: (rowData) => ({
-              backgroundColor:
-                selectedRow === rowData.tableData.id ? "#EEE" : "#FFF",
-            }),
-          }}
-        />
-        <div style={{ width: "35%" }}>
-          {addComponent ? (
-            <AddDeviceComponent
-              deviceName={deviceName}
-              toggleShow={(event) => setAddComponent(!addComponent)}
-            />
-          ) : (
-            <ComponentDetailView
-              component={deviceComponents[selectedRow] || {}}
-            />
-          )}
-        </div>
+            ]}
+            options={{
+              pageSize: 10,
+              rowStyle: (rowData) => ({
+                backgroundColor:
+                  selectedRow === rowData.tableData.id ? "#EEE" : "#FFF",
+              }),
+            }}
+          />
+        )}
+
+        {show.addComp && (
+          <AddDeviceComponent
+            deviceName={deviceName}
+            toggleShow={(event) =>
+              setShow({ compTable: true, editComp: false, addComp: false })
+            }
+          />
+        )}
       </div>
+      {/*<div style={wrapperStyles}>*/}
+      {/*  <DeviceComponentsTable*/}
+      {/*    style={{ width: "62%" }}*/}
+      {/*    title={<TableTitle deviceName={deviceName} />}*/}
+      {/*    columns={componentColumns}*/}
+      {/*    data={deviceComponents}*/}
+      {/*    onRowClick={(evt, selectedRow) => {*/}
+      {/*      setAddComponent(false);*/}
+      {/*      setSelectedRow(selectedRow.tableData.id);*/}
+      {/*    }}*/}
+      {/*    options={{*/}
+      {/*      pageSize: 10,*/}
+      {/*      rowStyle: (rowData) => ({*/}
+      {/*        backgroundColor:*/}
+      {/*          selectedRow === rowData.tableData.id ? "#EEE" : "#FFF",*/}
+      {/*      }),*/}
+      {/*    }}*/}
+      {/*  />*/}
+      {/*  <div style={{ width: "35%" }}>*/}
+      {/*    {addComponent ? (*/}
+      {/*      <AddDeviceComponent*/}
+      {/*        deviceName={deviceName}*/}
+      {/*        toggleShow={(event) => setAddComponent(!addComponent)}*/}
+      {/*      />*/}
+      {/*    ) : (*/}
+      {/*      <ComponentDetailView*/}
+      {/*        component={deviceComponents[selectedRow] || {}}*/}
+      {/*      />*/}
+      {/*    )}*/}
+      {/*  </div>*/}
+      {/*</div>*/}
     </>
   );
 }
