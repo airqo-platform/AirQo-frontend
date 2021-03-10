@@ -34,6 +34,9 @@ import { useDeviceLogsData } from "redux/DeviceRegistry/selectors";
 import { addMaintenanceLogApi } from "../../../apis/deviceRegistry";
 import { updateMainAlert } from "redux/MainAlert/operations";
 import { CreatableLabelledSelect } from "views/components/CustomSelects/LabelledSelect";
+import Tooltip from "@material-ui/core/Tooltip";
+import EditIcon from "@material-ui/icons/EditOutlined";
+import DeleteIcon from "@material-ui/icons/DeleteOutlineOutlined";
 
 const titleStyles = {
   fontFamily: "Roboto, Helvetica, Arial, sans-serif",
@@ -52,63 +55,139 @@ const TableTitle = ({ deviceName }) => {
   );
 };
 
-const LogDetailView = ({ log }) => {
+const EditLog = ({ deviceName, deviceLocation, toggleShow, log }) => {
+  const dispatch = useDispatch();
+  const maintenanceTypeMapper = {
+    preventive: { value: "preventive", label: "Preventive" },
+    corrective: { value: "corrective", label: "Corrective" },
+  };
+  const createOption = (option) => ({ label: option, value: option });
+  const createListOptions = (options) => {
+    const extracted = [];
+
+    options.map((option) => extracted.push(createOption(option)));
+    return extracted;
+  };
+  const [loading, setLoading] = useState(false);
+  const [maintenanceType, setMaintenanceType] = useState(
+    maintenanceTypeMapper[log.maintenanceType] ||
+      (log.maintenanceType && createOption(log.maintenanceType)) ||
+      null
+  );
+  const [description, setDescription] = useState();
+  const [tags, setTags] = useState(createListOptions(log.tags || []));
+  const [selectedDate, setSelectedDate] = useState(new Date(log.date));
+
+  const createTagOption = (tag) => ({ label: tag, value: tag });
+
+  const tagsOptions = [
+    createTagOption("Dust blowing and sensor cleaning"),
+    createTagOption("Site update check"),
+    createTagOption("Device equipment check"),
+    createTagOption("Power circuitry and components works"),
+    createTagOption("GPS module works/replacement"),
+    createTagOption("GSM module works/replacement"),
+    createTagOption("Battery works/replacement"),
+    createTagOption("Power supply works/replacement"),
+    createTagOption("Antenna works/replacement"),
+    createTagOption("Mounts replacement"),
+    createTagOption("Software checks/re-installation"),
+    createTagOption("PCB works/replacement"),
+    createTagOption("Temp/humidity sensor works/replacement"),
+    createTagOption("Air quality sensor(s) works/replacement"),
+  ];
+
+  const maintenanceTypeOptions = [
+    { value: "preventive", label: "Preventive" },
+    { value: "Corrective", label: "Corrective" },
+  ];
+
   return (
-    <div>
-      <TableContainer component={Paper}>
-        <CardHeader>
-          <h4>Log Details</h4>
-        </CardHeader>
-        <Table
-          stickyHeader
-          aria-label="sticky table"
-          alignItems="left"
-          alignContent="left"
+    <Paper style={{ minHeight: "400px", padding: "5px 10px" }}>
+      <h4>Edit Log</h4>
+      <form>
+        <div style={{ margin: "5px 0" }}>
+          <TextField
+            id="deviceName"
+            label="Device Name"
+            variant="outlined"
+            value={deviceName}
+            fullWidth
+            disabled
+          />
+        </div>
+        <div style={{ margin: "5px 0" }}>
+          <CreatableLabelledSelect
+            label={"Type of Maintenance"}
+            options={maintenanceTypeOptions}
+            isClearable
+            value={maintenanceType}
+            onChange={(newValue: any, actionMeta: any) =>
+              setMaintenanceType(newValue)
+            }
+          />
+        </div>
+        <div style={{ margin: "5px 0" }}>
+          <TextField
+            id="deviceName"
+            label="Description"
+            variant="outlined"
+            multiline
+            rows={10}
+            fullWidth
+            value={description}
+            onChange={(event) => setDescription(event.target.value)}
+          />
+        </div>
+        <div style={{ marginTop: "5px" }}>
+          <CreatableLabelledSelect
+            label={"Tags"}
+            isMulti
+            options={tagsOptions}
+            isClearable
+            value={tags}
+            onChange={(newValue: any, actionMeta: any) => setTags(newValue)}
+          />
+        </div>
+        <MuiPickersUtilsProvider utils={DateFnsUtils} fullWidth={true}>
+          <KeyboardDatePicker
+            fullWidth={true}
+            disableToolbar
+            autoOk
+            inputVariant="outlined"
+            format="yyyy-MM-dd"
+            margin="normal"
+            id="maintenanceDate"
+            label="Date of Maintenance"
+            value={selectedDate}
+            onChange={(date) => setSelectedDate(date)}
+            KeyboardButtonProps={{
+              "aria-label": "change date",
+            }}
+          />
+        </MuiPickersUtilsProvider>
+
+        <Grid
+          container
+          alignItems="flex-end"
+          alignContent="flex-end"
+          justify="flex-end"
         >
-          <TableBody style={{ alignContent: "left", alignItems: "left" }}>
-            <TableRow style={{ align: "left" }}>
-              <TableCell>
-                <b>Maintenance Type</b>
-              </TableCell>
-              <TableCell>{log.description}</TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell>
-                <b>Description/tags</b>
-              </TableCell>
-              <TableCell>
-                {log.tags &&
-                  log.tags.map((tag, index) => <div key={index}>{tag}</div>)}
-              </TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell>
-                <b>Location</b>
-              </TableCell>
-              <TableCell>{log.location}</TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell>
-                <b>Next Maintenance</b>
-              </TableCell>
-              <TableCell>{log.nextMaintenance}</TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell>
-                <b>Updated At</b>
-              </TableCell>
-              <TableCell>{log.updatedAt}</TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell>
-                <b>Created At</b>
-              </TableCell>
-              <TableCell>{log.createdAt}</TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
-      </TableContainer>
-    </div>
+          <Button variant="contained" onClick={toggleShow}>
+            Cancel
+          </Button>
+          <Button
+            disabled={loading}
+            variant="contained"
+            color="primary"
+            // onClick={handleSubmit}
+            style={{ marginLeft: "10px" }}
+          >
+            Edit Log
+          </Button>
+        </Grid>
+      </form>
+    </Paper>
   );
 };
 
@@ -141,7 +220,7 @@ const AddLogForm = ({ deviceName, deviceLocation, toggleShow }) => {
 
   const maintenanceTypeOptions = [
     { value: "preventive", label: "Preventive" },
-    { value: "Corrective", label: "Corrective" },
+    { value: "corrective", label: "Corrective" },
   ];
 
   const handleSubmit = async (evt) => {
