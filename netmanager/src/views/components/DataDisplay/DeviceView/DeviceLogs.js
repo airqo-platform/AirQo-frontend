@@ -1,4 +1,4 @@
-import React, { useState, useEffect, forwardRef } from "react";
+import React, { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { isEmpty } from "underscore";
 import {
@@ -9,21 +9,8 @@ import {
   DialogTitle,
   Grid,
   Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableRow,
 } from "@material-ui/core";
-import CardHeader from "../../Card/CardHeader";
 import TextField from "@material-ui/core/TextField";
-import FormControl from "@material-ui/core/FormControl";
-import InputLabel from "@material-ui/core/InputLabel";
-import Select from "@material-ui/core/Select";
-import Input from "@material-ui/core/Input";
-import MenuItem from "@material-ui/core/MenuItem";
-import Checkbox from "@material-ui/core/Checkbox";
-import ListItemText from "@material-ui/core/ListItemText";
 import {
   KeyboardDatePicker,
   MuiPickersUtilsProvider,
@@ -34,7 +21,6 @@ import {
   loadDeviceMaintenanceLogs,
   insertMaintenanceLog,
   updateMaintenanceLog,
-  deleteMaintenanceLog,
 } from "redux/DeviceRegistry/operations";
 import { useDeviceLogsData } from "redux/DeviceRegistry/selectors";
 import {
@@ -47,15 +33,9 @@ import { CreatableLabelledSelect } from "views/components/CustomSelects/Labelled
 import Tooltip from "@material-ui/core/Tooltip";
 import EditIcon from "@material-ui/icons/EditOutlined";
 import DeleteIcon from "@material-ui/icons/DeleteOutlineOutlined";
-import Modal from "@material-ui/core/Modal";
 
 const titleStyles = {
   fontFamily: "Roboto, Helvetica, Arial, sans-serif",
-};
-
-const wrapperStyles = {
-  display: "flex",
-  justifyContent: "space-between",
 };
 
 const TableTitle = ({ deviceName }) => {
