@@ -116,40 +116,9 @@ const AddLogForm = ({ deviceName, deviceLocation, toggleShow }) => {
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
   const [maintenanceType, setMaintenanceType] = useState(null);
-  const [description, setDescription] = useState([]);
+  const [description, setDescription] = useState("");
   const [tags, setTags] = useState([]);
-  const [maintenanceDescription, setMaintenanceDescription] = useState([]);
   const [selectedDate, setSelectedDate] = useState(new Date());
-
-  const handleMaintenanceTypeChange = (event) => {
-    setMaintenanceType(event.target.value);
-    if (event.target.value === "preventive") {
-      setMaintenanceDescription([
-        "Dust blowing and sensor cleaning",
-        "Site update check",
-        "Device equipment check",
-      ]);
-    } else {
-      setMaintenanceDescription([]);
-    }
-  };
-
-  const maintenanceOptions = [
-    "Dust blowing and sensor cleaning",
-    "Site update check",
-    "Device equipment check",
-    "Power circuitry and components works",
-    "GPS module works/replacement",
-    "GSM module works/replacement",
-    "Battery works/replacement",
-    "Power supply works/replacement",
-    "Antenna works/replacement",
-    "Mounts replacement",
-    "Software checks/re-installation",
-    "PCB works/replacement",
-    "Temp/humidity sensor works/replacement",
-    "Air quality sensor(s) works/replacement",
-  ];
 
   const createTagOption = (tag) => ({ label: tag, value: tag });
 
@@ -170,27 +139,24 @@ const AddLogForm = ({ deviceName, deviceLocation, toggleShow }) => {
     createTagOption("Air quality sensor(s) works/replacement"),
   ];
 
-  const ITEM_HEIGHT = 48;
-  const ITEM_PADDING_TOP = 8;
-
-  const MenuProps = {
-    PaperProps: {
-      style: {
-        maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
-        width: 350,
-      },
-    },
-  };
+  const maintenanceTypeOptions = [
+    { value: "preventive", label: "Preventive" },
+    { value: "Corrective", label: "Corrective" },
+  ];
 
   const handleSubmit = async (evt) => {
     evt.preventDefault();
+    const extracted_tags = [];
+    tags && tags.map((tag) => extracted_tags.push(tag.value));
     const logData = {
       deviceName,
       locationName: deviceLocation,
       date: selectedDate.toISOString(),
-      tags: maintenanceDescription,
-      description: maintenanceType,
+      tags: extracted_tags,
+      maintenanceType: (maintenanceType && maintenanceType.value) || "",
+      description: description,
     };
+
     setLoading(true);
     await addMaintenanceLogApi(logData)
       .then((responseData) => {
@@ -214,11 +180,6 @@ const AddLogForm = ({ deviceName, deviceLocation, toggleShow }) => {
       });
     setLoading(false);
   };
-
-  const maintenanceTypeOptions = [
-    { value: "preventive", label: "Preventive" },
-    { value: "Corrective", label: "Corrective" },
-  ];
 
   return (
     <Paper style={{ minHeight: "400px", padding: "5px 10px" }}>
