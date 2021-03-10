@@ -120,7 +120,6 @@ const EditLog = ({ deviceName, deviceLocation, toggleShow, log }) => {
     };
 
     setLoading(true);
-    toggleShow();
     await updateMaintenanceLogApi(log._id, logData)
       .then((responseData) => {
         dispatch(
@@ -152,6 +151,7 @@ const EditLog = ({ deviceName, deviceLocation, toggleShow, log }) => {
         );
       });
     setLoading(false);
+    toggleShow();
   };
 
   return (
@@ -310,6 +310,7 @@ const AddLogForm = ({ deviceName, deviceLocation, toggleShow }) => {
         );
       });
     setLoading(false);
+    toggleShow();
   };
 
   return (
@@ -404,8 +405,15 @@ const AddLogForm = ({ deviceName, deviceLocation, toggleShow }) => {
 export default function DeviceLogs({ deviceName, deviceLocation }) {
   const dispatch = useDispatch();
   const [selectedRow, setSelectedRow] = useState(0);
-  const [addLog, setAddLog] = useState(false);
+  const [selectedLog, setSelectedLog] = useState({});
+  const [show, setShow] = useState({
+    logTable: true,
+    addLog: false,
+    editLog: false,
+  });
   const maintenanceLogs = useDeviceLogsData(deviceName);
+
+  console.log("ml", maintenanceLogs);
 
   const logsColumns = [
     { title: "Maintenance type", field: "maintenanceType" },
@@ -439,7 +447,28 @@ export default function DeviceLogs({ deviceName, deviceLocation }) {
     },
     {
       title: "Actions",
-      render: (rowData) => <div>actions</div>,
+      render: (rowData) => (
+        <div>
+          <Tooltip title="Edit">
+            <EditIcon
+              className={"hover-blue"}
+              style={{ margin: "0 5px" }}
+              onClick={() => {
+                setSelectedLog(rowData);
+                setSelectedRow(rowData.tableIndex);
+                setShow({ logTable: false, addLog: false, editLog: true });
+              }}
+            />
+          </Tooltip>
+          <Tooltip title="Delete">
+            <DeleteIcon
+              className={"hover-red"}
+              style={{ margin: "0 5px" }}
+              // onClick={() => setDelState({ open: true, name: rowData.name })}
+            />
+          </Tooltip>
+        </div>
+      ),
     },
   ];
 
@@ -461,86 +490,90 @@ export default function DeviceLogs({ deviceName, deviceLocation }) {
         }}
       >
         <Button
+          style={{ marginRight: "5px" }}
+          variant="contained"
+          color="primary"
+          disabled={show.logTable}
+          onClick={() =>
+            setShow({ logTable: true, addLog: false, editLog: false })
+          }
+        >
+          {" "}
+          Logs Table
+        </Button>
+        <Button
           variant="contained"
           color="primary"
           disabled={show.addLog}
           onClick={() => {
-            console.log("setting state")
-            setShow({logTable: false, addLog: true, editLog: false})}}
+            setShow({ logTable: false, addLog: true, editLog: false });
+          }}
         >
           {" "}
           Add Log
         </Button>
       </div>
       <div>
-        <MaintenanceLogsTable
-          title={<TableTitle deviceName={deviceName} />}
-          columns={logsColumns}
-          data={maintenanceLogs}
-          options={{
-            pageSize: 10,
-            rowStyle: (rowData) => ({
-              backgroundColor:
-                selectedRow === rowData.tableData.id ? "#EEE" : "#FFF",
-            }),
-          }}
-          detailPanel={[
-            {
-              tooltip: "Show Details",
-              render: (rowData) => {
-                return (
-                  <div className={"ml-table-details"}>
-                    <span>{rowData.maintenanceType}</span>
-                    <span>{rowData.description}</span>
-                    <span>
-                      <ul>
-                        {rowData.tags &&
-                          rowData.tags.map((tag, key) => {
-                            return (
-                              <li className="li-circle" key={key}>
-                                {tag}
-                              </li>
-                            );
-                          })}
-                      </ul>
-                    </span>
-                    <span>{rowData.nextMaintenance}</span>
-                  </div>
-                );
+        {show.logTable && (
+          <MaintenanceLogsTable
+            title={<TableTitle deviceName={deviceName} />}
+            columns={logsColumns}
+            data={maintenanceLogs}
+            options={{
+              pageSize: 10,
+              rowStyle: (rowData) => ({
+                backgroundColor:
+                  selectedRow === rowData.tableData.id ? "#EEE" : "#FFF",
+              }),
+            }}
+            detailPanel={[
+              {
+                tooltip: "Show Details",
+                render: (rowData) => {
+                  return (
+                    <div className={"ml-table-details"}>
+                      <span>{rowData.maintenanceType}</span>
+                      <span>{rowData.description}</span>
+                      <span>
+                        <ul>
+                          {rowData.tags &&
+                            rowData.tags.map((tag, key) => {
+                              return (
+                                <li className="li-circle" key={key}>
+                                  {tag}
+                                </li>
+                              );
+                            })}
+                        </ul>
+                      </span>
+                      <span>{rowData.nextMaintenance}</span>
+                    </div>
+                  );
+                },
               },
-            },
-          ]}
-        />
-      </div>
-      <div style={wrapperStyles}>
-        <MaintenanceLogsTable
-          style={{ width: "62%" }}
-          title={<TableTitle deviceName={deviceName} />}
-          columns={logsColumns}
-          data={maintenanceLogs}
-          onRowClick={(evt, selectedRow) => {
-            setAddLog(false);
-            setSelectedRow(selectedRow.tableData.id);
-          }}
-          options={{
-            pageSize: 10,
-            rowStyle: (rowData) => ({
-              backgroundColor:
-                selectedRow === rowData.tableData.id ? "#EEE" : "#FFF",
-            }),
-          }}
-        />
-        <div style={{ width: "35%" }}>
-          {addLog ? (
-            <AddLogForm
-              deviceName={deviceName}
-              deviceLocation={deviceLocation}
-              toggleShow={(event) => setAddLog(!addLog)}
-            />
-          ) : (
-            <LogDetailView log={maintenanceLogs[selectedRow] || {}} />
-          )}
-        </div>
+            ]}
+          />
+        )}
+        {show.addLog && (
+          <AddLogForm
+            deviceName={deviceName}
+            deviceLocation={deviceLocation}
+            toggleShow={() =>
+              setShow({ logTable: true, addLog: false, editLog: false })
+            }
+          />
+        )}
+        {show.editLog && (
+          <EditLog
+            deviceName={deviceName}
+            deviceLocation={deviceLocation}
+            toggleShow={() =>
+              setShow({ logTable: true, addLog: false, editLog: false })
+            }
+            log={selectedLog}
+            updateSelectedRow={setSelectedRow}
+          />
+        )}
       </div>
     </>
   );
