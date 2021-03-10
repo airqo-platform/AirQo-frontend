@@ -494,6 +494,17 @@ export default function DeviceLogs({ deviceName, deviceLocation }) {
               severity: "success",
             })
           );
+          setTimeout(
+            () =>
+              dispatch(
+                updateMainAlert({
+                  message: "refreshing page",
+                  show: false,
+                  severity: "info",
+                })
+              ),
+            100
+          );
         })
         .catch((err) => {
           dispatch(

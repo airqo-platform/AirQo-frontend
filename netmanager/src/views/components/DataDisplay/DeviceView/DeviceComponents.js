@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
-  Button,
+  Button, Dialog, DialogActions, DialogContent, DialogTitle,
   Grid,
   Paper,
   Table,
@@ -14,7 +14,7 @@ import { useDispatch } from "react-redux";
 import { isEmpty } from "underscore";
 import { useDeviceComponentsData } from "redux/DeviceRegistry/selectors";
 import {
-  loadDeviceComponentsData,
+  loadDeviceComponentsData, loadDeviceMaintenanceLogs,
   updateMaintenanceLog,
 } from "redux/DeviceRegistry/operations";
 import CardHeader from "../../Card/CardHeader";
@@ -31,6 +31,7 @@ import {
   createDeviceComponentApi,
   updateComponentApi,
   updateMaintenanceLogApi,
+  deleteComponentApi, deleteMaintenanceLogApi,
 } from "../../../apis/deviceRegistry";
 import { updateMainAlert } from "redux/MainAlert/operations";
 import {
@@ -545,6 +546,7 @@ export default function DeviceComponents({ deviceName }) {
   const [selectedComponent, setSelectedComponent] = useState({});
   const [addComponent, setAddComponent] = useState(false);
   const deviceComponents = useDeviceComponentsData(deviceName);
+  const [delState, setDelState] = useState({ open: false, data: {} });
   const [show, setShow] = useState({
     compTable: true,
     editComp: false,
@@ -627,13 +629,73 @@ export default function DeviceComponents({ deviceName }) {
             <DeleteIcon
               className={"hover-red"}
               style={{ margin: "0 5px" }}
-              // onClick={() => setDelState({ open: true, data: rowData })}
+              onClick={() => setDelState({ open: true, data: rowData })}
             />
           </Tooltip>
         </div>
       ),
     },
   ];
+
+  const handleComponentDelete = async () => {
+    setDelState({ ...delState, open: false });
+
+    if (delState.data.name) {
+      await deleteComponentApi(deviceName, delState.data.name)
+        .then(async (responseData) => {
+          dispatch(
+            updateMainAlert({
+              message: responseData.message,
+              show: true,
+              severity: "success",
+            })
+          );
+          setTimeout(
+            () =>
+              dispatch(
+                updateMainAlert({
+                  message: "refreshing page",
+                  show: true,
+                  severity: "info",
+                })
+              ),
+            1000
+          );
+          await dispatch(loadDeviceComponentsData(deviceName));
+          dispatch(
+            updateMainAlert({
+              message: "page refresh successful",
+              show: true,
+              severity: "success",
+            })
+          );
+          setTimeout(
+            () =>
+              dispatch(
+                updateMainAlert({
+                  message: "refreshing page",
+                  show: false,
+                  severity: "info",
+                })
+              ),
+            100
+          );
+        })
+        .catch((err) => {
+          dispatch(
+            updateMainAlert({
+              message:
+                (err.response &&
+                  err.response.data &&
+                  err.response.data.message) ||
+                "could not delete component",
+              show: true,
+              severity: "error",
+            })
+          );
+        });
+    }
+  }
 
   useEffect(() => {
     if (isEmpty(deviceComponents)) {
@@ -768,6 +830,42 @@ export default function DeviceComponents({ deviceName }) {
           />
         )}
       </div>
+      <Dialog
+        open={delState.open}
+        onClose={() => setDelState({ open: false, data: {} })}
+        aria-labelledby="form-dialog-title-del"
+        aria-describedby="form-dialog-description"
+      >
+        <DialogTitle id="form-dialog-title-del">Delete a device</DialogTitle>
+
+        <DialogContent>Are you sure you want to delete component <b>{delState.data.name}</b>?</DialogContent>
+
+        <DialogActions>
+          <Grid
+            container
+            alignItems="flex-end"
+            alignContent="flex-end"
+            justify="flex-end"
+          >
+            <Button
+              variant="contained"
+              type="button"
+              onClick={() => setDelState({ open: false, data: {} })}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="contained"
+              type="submit"
+              onClick={handleComponentDelete}
+              style={{ margin: "0 15px", background: "#c00", color: "white" }}
+            >
+              Delete
+            </Button>
+          </Grid>
+          <br />
+        </DialogActions>
+      </Dialog>
       {/*<div style={wrapperStyles}>*/}
       {/*  <DeviceComponentsTable*/}
       {/*    style={{ width: "62%" }}*/}
