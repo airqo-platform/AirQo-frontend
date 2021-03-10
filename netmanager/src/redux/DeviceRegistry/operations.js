@@ -14,6 +14,7 @@ import {
   UPDATE_SINGLE_DEVICE_SUCCESS,
   UPDATE_SINGLE_DEVICE_ERROR,
   UPDATE_SINGLE_MAINTENANCE_LOGS_SUCCESS,
+  DELETE_SINGLE_MAINTENANCE_LOGS_SUCCESS,
   LOAD_DEVICE_UPTIME_SUCCESS,
   LOAD_DEVICE_UPTIME_FAILURE,
   LOAD_DEVICE_BATTERY_VOLTAGE_SUCCESS,
@@ -124,6 +125,13 @@ export const updateMaintenanceLog = (deviceName, index, log) => (dispatch) => {
   dispatch({
     type: UPDATE_SINGLE_MAINTENANCE_LOGS_SUCCESS,
     payload: { deviceName, index, log },
+  });
+};
+
+export const deleteMaintenanceLog = (deviceName, index) => (dispatch) => {
+  dispatch({
+    type: DELETE_SINGLE_MAINTENANCE_LOGS_SUCCESS,
+    payload: { deviceName, index },
   });
 };
 
