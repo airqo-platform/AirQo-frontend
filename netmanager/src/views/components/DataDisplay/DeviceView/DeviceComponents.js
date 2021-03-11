@@ -394,11 +394,10 @@ const EditComponent = ({ deviceName, toggleShow, component }) => {
     await updateComponentApi(deviceName, component.name, filter)
       .then((responseData) => {
         dispatch(
-          updateDeviceComponent(
-            deviceName,
-            component.tableIndex,
-            responseData.updatedComponent
-          )
+          updateDeviceComponent(deviceName, component.tableIndex, {
+            ...(responseData.updatedComponent || {}),
+            tableIndex: component.tableIndex,
+          })
         );
         dispatch(
           updateMainAlert({
@@ -424,12 +423,6 @@ const EditComponent = ({ deviceName, toggleShow, component }) => {
     setLoading(false);
     toggleShow();
   };
-
-  useEffect(() => {
-    if (sensorName && sensorName.value) {
-      setQuantityKind(sensorNameMapper[sensorName.value]);
-    }
-  }, [sensorName]);
 
   return (
     <Paper style={{ minHeight: "400px", padding: "5px 10px" }}>

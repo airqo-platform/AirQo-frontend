@@ -110,11 +110,10 @@ const EditLog = ({ deviceName, deviceLocation, toggleShow, log }) => {
     await updateMaintenanceLogApi(log._id, logData)
       .then((responseData) => {
         dispatch(
-          updateMaintenanceLog(
-            deviceName,
-            log.tableIndex,
-            responseData.updatedActivity
-          )
+          updateMaintenanceLog(deviceName, log.tableIndex, {
+            ...(responseData.updatedActivity || {}),
+            tableIndex: log.tableIndex,
+          })
         );
         dispatch(
           updateMainAlert({
