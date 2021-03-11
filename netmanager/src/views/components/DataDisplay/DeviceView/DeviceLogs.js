@@ -277,19 +277,50 @@ const AddLogForm = ({ deviceName, deviceLocation, toggleShow }) => {
 
     setLoading(true);
     await addMaintenanceLogApi(logData)
-      .then((responseData) => {
-        dispatch(
-          insertMaintenanceLog(
-            deviceName,
-            responseData.activityBody || responseData.activityLog
-          )
-        );
+      .then(async (responseData) => {
+        // dispatch(
+        //   insertMaintenanceLog(
+        //     deviceName,
+        //     responseData.activityBody || responseData.activityLog
+        //   )
+        // );
         dispatch(
           updateMainAlert({
             message: responseData.message,
             show: true,
             severity: "success",
           })
+        );
+        toggleShow();
+        setTimeout(
+          () =>
+            dispatch(
+              updateMainAlert({
+                message: "refreshing page",
+                show: true,
+                severity: "info",
+              })
+            ),
+          500
+        );
+        await dispatch(loadDeviceMaintenanceLogs(deviceName));
+        dispatch(
+          updateMainAlert({
+            message: "page refresh successful",
+            show: true,
+            severity: "success",
+          })
+        );
+        setTimeout(
+          () =>
+            dispatch(
+              updateMainAlert({
+                message: "refreshing page",
+                show: false,
+                severity: "info",
+              })
+            ),
+          500
         );
       })
       .catch((err) => {
@@ -469,11 +500,10 @@ export default function DeviceLogs({ deviceName, deviceLocation }) {
 
   const handleLogDelete = async () => {
     setDelState({ ...delState, open: false });
-
     if (delState.data._id) {
       await deleteMaintenanceLogApi(delState.data._id)
         .then(async (responseData) => {
-          dispatch(
+          await dispatch(
             updateMainAlert({
               message: responseData.message,
               show: true,
@@ -489,7 +519,7 @@ export default function DeviceLogs({ deviceName, deviceLocation }) {
                   severity: "info",
                 })
               ),
-            1000
+            500
           );
           await dispatch(loadDeviceMaintenanceLogs(deviceName));
           dispatch(
@@ -508,7 +538,7 @@ export default function DeviceLogs({ deviceName, deviceLocation }) {
                   severity: "info",
                 })
               ),
-            100
+            500
           );
         })
         .catch((err) => {

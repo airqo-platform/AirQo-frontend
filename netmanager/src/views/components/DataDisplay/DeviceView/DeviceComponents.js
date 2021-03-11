@@ -147,14 +147,45 @@ const AddDeviceComponent = ({ deviceName, toggleShow }) => {
       (componentType && componentType.value) || "",
       filter
     )
-      .then((responseData) => {
-        dispatch(insertDeviceComponent(deviceName, responseData.component));
+      .then(async (responseData) => {
+        // dispatch(insertDeviceComponent(deviceName, responseData.component));
         dispatch(
           updateMainAlert({
             message: responseData.message,
             show: true,
             severity: "success",
           })
+        );
+        toggleShow();
+        setTimeout(
+          () =>
+            dispatch(
+              updateMainAlert({
+                message: "refreshing page",
+                show: true,
+                severity: "info",
+              })
+            ),
+          500
+        );
+        await dispatch(loadDeviceComponentsData(deviceName));
+        dispatch(
+          updateMainAlert({
+            message: "page refresh successful",
+            show: true,
+            severity: "success",
+          })
+        );
+        setTimeout(
+          () =>
+            dispatch(
+              updateMainAlert({
+                message: "refreshing page",
+                show: false,
+                severity: "info",
+              })
+            ),
+          500
         );
       })
       .catch((error) => {
@@ -564,11 +595,11 @@ export default function DeviceComponents({ deviceName }) {
             <b>Max Value(s)</b> ( Sensor value:
             {rowData.calibration && rowData.calibration.valueMax.sensorValue},
             Real value:
-            {rowData.calibration && rowData.calibration.valueMax.sensorValue})
+            {rowData.calibration && rowData.calibration.valueMax.realValue})
             <b>Min Value(s)</b> (Sensor value:
             {rowData.calibration && rowData.calibration.valueMin.sensorValue},
             Real value:
-            {rowData.calibration && rowData.calibration.valueMin.sensorValue}>
+            {rowData.calibration && rowData.calibration.valueMin.realValue}>
           </div>
         );
       },
@@ -615,7 +646,7 @@ export default function DeviceComponents({ deviceName }) {
     if (delState.data.name) {
       await deleteComponentApi(deviceName, delState.data.name)
         .then(async (responseData) => {
-          dispatch(
+          await dispatch(
             updateMainAlert({
               message: responseData.message,
               show: true,
@@ -631,7 +662,7 @@ export default function DeviceComponents({ deviceName }) {
                   severity: "info",
                 })
               ),
-            1000
+            500
           );
           await dispatch(loadDeviceComponentsData(deviceName));
           dispatch(
@@ -650,7 +681,7 @@ export default function DeviceComponents({ deviceName }) {
                   severity: "info",
                 })
               ),
-            100
+            500
           );
         })
         .catch((err) => {
