@@ -281,6 +281,16 @@ const AddDeviceComponent = ({ deviceName, toggleShow }) => {
 const EditComponent = ({ deviceName, toggleShow, component }) => {
   const createOption = (option) => ({ value: option, label: option });
 
+  const transformMeasurements = (measurements) => {
+    const transformed = [];
+
+    measurements.map((m) =>
+      transformed.push(createOption(`${m.quantityKind}(${m.measurementUnit})`))
+    );
+
+    return transformed;
+  };
+
   const createOptions = (options) => {
     const opts = [];
     options.map((option) => opts.push(createOption(option)));
@@ -291,7 +301,7 @@ const EditComponent = ({ deviceName, toggleShow, component }) => {
   const [sensorName, setSensorName] = useState(
     (component.description && createOption(component.description)) || null
   );
-  const [quantityKind, setQuantityKind] = useState([]);
+  const [quantityKind, setQuantityKind] = useState(transformMeasurements(component.measurement));
 
   const [maxSensorValue, setMaxSensorValue] = useState(
     (component.calibration && component.calibration.valueMax.sensorValue) || 0
@@ -328,26 +338,6 @@ const EditComponent = ({ deviceName, toggleShow, component }) => {
     createOption("Battery Voltage(V)"),
     createOption("GPS"),
   ];
-
-  const sensorNameMapper = {
-    "Alphasense OPC-N2": createOptions([
-      "PM 1(µg/m3)",
-      "PM 2.5(µg/m3)",
-      "PM 10(µg/m3)",
-    ]),
-    pms5003: createOptions(["PM 2.5(µg/m3)", "PM 10(µg/m3)"]),
-    DHT11: createOptions([
-      "Internal Temperature(\xB0C)",
-      "Internal Humidity(%)",
-    ]),
-    "Lithium Ion 18650": createOptions(["Battery Voltage(V)"]),
-    Generic: createOptions(["GPS"]),
-    "Purple Air II": createOptions(["PM 1(µg/m3)"]),
-    "Bosch BME280": createOptions([
-      "External Temperature(\xB0C)",
-      "External Humidity(%)",
-    ]),
-  };
 
   const convertQuantityOptions = (quantityKind) => {
     const modifiedQuantity = [];
