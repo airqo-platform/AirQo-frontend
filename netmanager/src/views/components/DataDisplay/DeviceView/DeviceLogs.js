@@ -166,7 +166,7 @@ const EditLog = ({ deviceName, deviceLocation, toggleShow, log }) => {
             }
           />
         </div>
-        <div style={{ margin: "5px 0" }}>
+        <div style={{ margin: "10px 0" }}>
           <TextField
             id="deviceName"
             label="Description"
@@ -334,7 +334,7 @@ const AddLogForm = ({ deviceName, deviceLocation, toggleShow }) => {
             }
           />
         </div>
-        <div style={{ margin: "5px 0" }}>
+        <div style={{ margin: "10px 0" }}>
           <TextField
             id="deviceName"
             label="Description"

@@ -440,7 +440,7 @@ const EditComponent = ({ deviceName, toggleShow, component }) => {
           />
         </div>
 
-        <div style={{ margin: "5px 0" }}>
+        <div style={{ margin: "10px 0" }}>
           <TextField
             id="sensorMaxVal"
             label="Sensor Max Value"
@@ -452,7 +452,7 @@ const EditComponent = ({ deviceName, toggleShow, component }) => {
           />
         </div>
 
-        <div style={{ margin: "5px 0" }}>
+        <div style={{ margin: "10px 0" }}>
           <TextField
             id="sensorMinVal"
             label="Sensor Min Value"
@@ -464,7 +464,7 @@ const EditComponent = ({ deviceName, toggleShow, component }) => {
           />
         </div>
 
-        <div style={{ margin: "5px 0" }}>
+        <div style={{ margin: "10px 0" }}>
           <TextField
             id="realMaxVal"
             label="Real Max Value"
@@ -476,7 +476,7 @@ const EditComponent = ({ deviceName, toggleShow, component }) => {
           />
         </div>
 
-        <div style={{ margin: "5px 0" }}>
+        <div style={{ margin: "10px 0" }}>
           <TextField
             id="realMinVal"
             label="Real Min Value"
