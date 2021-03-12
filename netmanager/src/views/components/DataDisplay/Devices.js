@@ -23,6 +23,10 @@ import TextField from "@material-ui/core/TextField";
 import Select from "@material-ui/core/Select";
 import FormControl from "@material-ui/core/FormControl";
 import InputLabel from "@material-ui/core/InputLabel";
+import DeleteIcon from "@material-ui/icons/DeleteOutlineOutlined";
+import EditIcon from "@material-ui/icons/EditOutlined";
+import Tooltip from "@material-ui/core/Tooltip";
+import { deleteDeviceApi } from "../../apis/deviceRegistry";
 import { loadDevicesData } from "redux/DeviceRegistry/operations";
 import { useDevicesData } from "redux/DeviceRegistry/selectors";
 import { useLocationsData } from "redux/LocationRegistry/selectors";
@@ -30,6 +34,9 @@ import { loadLocationsData } from "redux/LocationRegistry/operations";
 import { updateMainAlert } from "redux/MainAlert/operations";
 import { updateDeviceBackUrl } from "redux/Urls/operations";
 import CustomMaterialTable from "../Table/CustomMaterialTable";
+
+// css
+import "assets/css/device-registry.css";
 
 const useStyles = makeStyles((theme) => ({
   root: {},
@@ -116,43 +123,82 @@ let formatDate = (date) => {
   return time;
 };
 
-const deviceColumns = [
+const Cell = ({ fieldValue, data }) => {
+  const history = useHistory();
+  return (
+    <div
+      style={{ fontFamily: "Open Sans", minHeight: "20px" }}
+      onClick={() => history.push(`/device/${data.name}/overview`)}
+    >
+      {fieldValue}
+    </div>
+  );
+};
+
+const createDeviceColumns = (history, setDelState) => [
   {
     title: "Device Name",
     field: "name",
-    cellStyle: { fontFamily: "Open Sans" },
+    render: (data) => <Cell data={data} fieldValue={data.name} />,
   },
   {
     title: "Description",
     field: "description",
-    cellStyle: { fontFamily: "Open Sans" },
+    render: (data) => <Cell data={data} fieldValue={data.description} />,
   },
   {
     title: "Device ID",
     field: "channelID",
-    cellStyle: { fontFamily: "Open Sans" },
-  }, //should be channel ID
+    render: (data) => <Cell data={data} fieldValue={data.channelID} />,
+  },
   {
     title: "Registration Date",
     field: "createdAt",
-    cellStyle: { fontFamily: "Open Sans" },
-    render: (rowData) => formatDate(new Date(rowData.createdAt)),
+    render: (data) => (
+      <Cell data={data} fieldValue={formatDate(new Date(data.createdAt))} />
+    ),
   },
   {
     title: "Deployment status",
     field: "isActive",
-    cellStyle: { fontFamily: "Open Sans" },
-    render: (rowData) =>
-      rowData.isActive ? (
-        <span style={{ color: "green" }}>Deployed</span>
-      ) : (
-        <span style={{ color: "red" }}>Not Deployed</span>
-      ),
+    render: (data) => (
+      <Cell
+        data={data}
+        fieldValue={
+          data.isActive ? (
+            <span style={{ color: "green" }}>Deployed</span>
+          ) : (
+            <span style={{ color: "red" }}>Not Deployed</span>
+          )
+        }
+      />
+    ),
   },
   {
     title: "Location ID",
     field: "locationID",
-    cellStyle: { fontFamily: "Open Sans" },
+    render: (data) => <Cell data={data} fieldValue={data.LocationID} />,
+  },
+  {
+    title: "Actions",
+    render: (rowData) => (
+      <div>
+        <Tooltip title="Edit">
+          <EditIcon
+            className={"hover-blue"}
+            style={{ margin: "0 5px" }}
+            onClick={() => history.push(`/device/${rowData.name}/edit`)}
+          />
+        </Tooltip>
+        <Tooltip title="Delete">
+          <DeleteIcon
+            className={"hover-red"}
+            style={{ margin: "0 5px" }}
+            onClick={() => setDelState({ open: true, name: rowData.name })}
+          />
+        </Tooltip>
+      </div>
+    ),
   },
 ];
 
@@ -167,6 +213,41 @@ const DevicesTable = (props) => {
   const locations = useLocationsData();
   const [deviceList, setDeviceList] = useState(Object.values(devices));
   const [isLoading, setIsLoading] = useState(false);
+
+  const [delDevice, setDelDevice] = useState({ open: false, name: "" });
+
+  const deviceColumns = createDeviceColumns(history, setDelDevice);
+
+  const handleDeleteDevice = async () => {
+    if (delDevice.name) {
+      deleteDeviceApi(delDevice.name)
+        .then(() => {
+          delete devices[delDevice.name];
+          setDeviceList(Object.values(devices));
+          dispatch(
+            updateMainAlert({
+              show: true,
+              message: `device ${delDevice.name} deleted successfully`,
+              severity: "success",
+            })
+          );
+        })
+        .catch((err) => {
+          let msg = `deletion of  ${delDevice.name} failed`;
+          if (err.response && err.response.data) {
+            msg = err.response.data.message || msg;
+          }
+          dispatch(
+            updateMainAlert({
+              show: true,
+              message: msg,
+              severity: "error",
+            })
+          );
+        });
+    }
+    setDelDevice({ open: false, name: "" });
+  };
 
   const [registerOpen, setRegisterOpen] = useState(false);
   const handleRegisterOpen = () => {
@@ -304,12 +385,6 @@ const DevicesTable = (props) => {
                   userPreferencePaginationKey={"devices"}
                   columns={deviceColumns}
                   data={deviceList}
-                  onRowClick={(evt, selectedRow) => {
-                    const rowData = Object.values(devices)[
-                      selectedRow.tableData.id
-                    ];
-                    history.push(`/device/${rowData.name}/overview`);
-                  }}
                   options={{
                     search: true,
                     exportButton: true,
@@ -449,6 +524,44 @@ const DevicesTable = (props) => {
               style={{ margin: "0 15px" }}
             >
               Register
+            </Button>
+          </Grid>
+          <br />
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={delDevice.open}
+        aria-labelledby="form-dialog-title-del"
+        aria-describedby="form-dialog-description"
+      >
+        <DialogTitle id="form-dialog-title-del">Delete a device</DialogTitle>
+
+        <DialogContent>
+          Are you sure you want to delete device <b>{delDevice.name}</b>?
+        </DialogContent>
+
+        <DialogActions>
+          <Grid
+            container
+            alignItems="flex-end"
+            alignContent="flex-end"
+            justify="flex-end"
+          >
+            <Button
+              variant="contained"
+              type="button"
+              onClick={() => setDelDevice({ open: false, name: "" })}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="contained"
+              type="submit"
+              onClick={handleDeleteDevice}
+              style={{ margin: "0 15px", background: "#c00", color: "white" }}
+            >
+              Delete
             </Button>
           </Grid>
           <br />

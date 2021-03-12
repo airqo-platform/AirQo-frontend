@@ -62,8 +62,7 @@ const prodConfig = {
     "http://34.78.78.202:30002/api/v1/devices/by/location?loc=",
   DEPLOY_DEVICE_URI:
     "http://34.78.78.202:30002/api/v1/devices/ts/activity?type=",
-  DELETE_DEVICE_URI:
-    "http://34.78.78.202:30002/api/v1/devices/ts/delete?device=",
+  DELETE_DEVICE_URI: "http://34.78.78.202:30002/api/v1/devices/ts/delete",
   GET_NETWORK_BEST_PERFORMING_DEVICES:
     "http://34.78.78.202:30006/api/v1/monitor/network/devices/bestperforming",
   GET_NETWORK_WORST_PERFORMING_DEVICES:
@@ -111,6 +110,14 @@ const prodConfig = {
   GET_DATA_MAP:
     "http://34.78.78.202:30003/api/v1/dashboard/monitoringsites?organisation_name=KCCA&pm25_category=",
   GET_HEATMAP_DATA: "http://34.78.78.202:30009/api/v1/predict/heatmap",
+  UPDATE_ACTIVITY_LOG:
+    "http://34.78.78.202:30002/api/v1/devices/ts/activity/update",
+  DELETE_ACTIVITY_LOG:
+    "http://34.78.78.202:30002/api/v1/devices/ts/activity/delete",
+  UPDATE_COMPONENT:
+    "http://34.78.78.202:30002/api/v1/devices/update/components",
+  DELETE_COMPONENT:
+    "http://34.78.78.202:30002/api/v1/devices/delete/components",
 };
 
 const devConfig = {
@@ -209,7 +216,7 @@ const devConfig = {
   DEPLOY_DEVICE_URI: "http://localhost:3000/api/v1/devices/ts/activity?type=",
   DEVICE_MAINTENANCE_LOG_URI:
     "http://localhost:4001/api/v1/monitor/device/maintenance_logs/",
-  //DELETE_DEVICE_URI: "http://127.0.0.1:3000/api/api/v1/devices/ts/delete?device="
+  DELETE_DEVICE_URI: "http://127.0.0.1:3000/api/api/v1/devices/ts/delete",
   GET_ONLINE_OFFLINE_MAINTENANCE_STATUS:
     "http://127.0.0.1:4001/api/v1/monitor/devices/online_offline",
   ADD_COMPONENT_URI:
@@ -220,6 +227,12 @@ const devConfig = {
     "http://localhost:3000/api/v1/devices/delete/components?comp=",
   UPDATE_COMPONENT_URI:
     "http://localhost:3000/api/v1/devices/update/components?device=",
+  UPDATE_ACTIVITY_LOG:
+    "http://localhost:3000/api/v1/devices/ts/activity/update",
+  DELETE_ACTIVITY_LOG:
+    "http://localhost:3000/api/v1/devices/ts/activity/delete",
+  UPDATE_COMPONENT: "http://localhost:3000/api/v1/devices/update/components",
+  DELETE_COMPONENT: "http://localhost:3000/api/v1/devices/delete/components",
 };
 
 const stageConfig = {
@@ -288,8 +301,7 @@ const stageConfig = {
     "http://34.78.78.202:31002/api/v1/devices/by/location?loc=",
   DEPLOY_DEVICE_URI:
     "http://34.78.78.202:31002/api/v1/devices/ts/activity?type=",
-  DELETE_DEVICE_URI:
-    "http://34.78.78.202:31002/api/v1/devices/ts/delete?device=",
+  DELETE_DEVICE_URI: "http://34.78.78.202:31002/api/v1/devices/ts/delete",
   GET_NETWORK_BEST_PERFORMING_DEVICES:
     "http://34.78.78.202:31006/api/v1/monitor/network/devices/bestperforming",
   GET_NETWORK_WORST_PERFORMING_DEVICES:
@@ -333,6 +345,14 @@ const stageConfig = {
   GET_DATA_MAP:
     "http://34.78.78.202:31003/api/v1/dashboard/monitoringsites?organisation_name=KCCA&pm25_category=",
   GET_HEATMAP_DATA: "http://34.78.78.202:31009/api/v1/predict/heatmap",
+  UPDATE_ACTIVITY_LOG:
+    "http://34.78.78.202:31002/api/v1/devices/ts/activity/update",
+  DELETE_ACTIVITY_LOG:
+    "http://34.78.78.202:31002/api/v1/devices/ts/activity/delete",
+  UPDATE_COMPONENT:
+    "http://34.78.78.202:31002/api/v1/devices/update/components",
+  DELETE_COMPONENT:
+    "http://34.78.78.202:31002/api/v1/devices/delete/components",
 };
 
 const defaultConfig = {

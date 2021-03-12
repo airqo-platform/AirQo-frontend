@@ -1,5 +1,6 @@
 import React from "react";
 import Select, { components } from "react-select";
+import CreatableSelect from "react-select/creatable";
 import PropTypes from "prop-types";
 
 const customSelectStyles = {
@@ -47,9 +48,25 @@ const LabelledSelect = ({ label, components, ...props }) => {
       styles={customSelectStyles}
       label={label}
       components={{ ...components, Control }}
-      {...props}
+      {...{ ...props, placeholder: "" }}
     />
   );
+};
+
+export const CreatableLabelledSelect = ({ label, components, ...props }) => {
+  return (
+    <CreatableSelect
+      styles={customSelectStyles}
+      label={label}
+      components={{ ...components, Control }}
+      {...{ ...props, placeholder: "" }}
+    />
+  );
+};
+
+CreatableLabelledSelect.propTypes = {
+  label: PropTypes.string.isRequired,
+  components: PropTypes.object,
 };
 
 LabelledSelect.propTypes = {
