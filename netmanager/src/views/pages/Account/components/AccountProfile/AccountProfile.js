@@ -13,12 +13,12 @@ import {
   Typography,
   Divider,
   Button,
-  LinearProgress,
 } from "@material-ui/core";
 import { cloudinaryImageUpload } from "views/apis/cloudinary";
 import { updateMainAlert } from "redux/MainAlert/operations";
 import { updateAuthenticatedUserApi } from "views/apis/authService";
 import { updateAuthenticatedUserSuccess } from "redux/Join/actions";
+import containerConnector from "views/stateConnectors/containerConnector";
 
 // css
 import "react-image-crop/dist/ReactCrop.css";
@@ -298,4 +298,4 @@ AccountProfile.propTypes = {
   mappeduserState: PropTypes.object.isRequired,
 };
 
-export default AccountProfile;
+export default containerConnector(AccountProfile);
