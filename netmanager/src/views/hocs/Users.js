@@ -6,8 +6,8 @@ import UsersTable from "views/pages/UserList/components/UsersTable/UsersTable";
 import UsersToolBar from "views/pages/UserList/components/UsersToolbar/UsersToolbar";
 
 import { AccountDetails, AccountProfile } from "views/pages/Account/components";
-import SettingsNotifications from "views/pages/Settings/components/Notifications/Notifications";
-import SettingsPassword from "views/pages/Settings/components/Password/Password";
+import SettingsNotifications from "views/pages/Settings/components/Notifications/SettingsNotifications";
+import SettingsPassword from "views/pages/Settings/components/Password/SettingsPassword";
 import Dashboard from "views/pages/Dashboard/Dashboard";
 import SideBar from "views/layouts/Main/components/Sidebar/Sidebar";
 import CandidateList from "views/pages/CandidateList/CandidateList";
@@ -65,13 +65,13 @@ const mapDispatchToProps = (dispatch) => {
 
 const containerCreator = connect(mapStateToProps, mapDispatchToProps);
 
-const connectedUserList = containerCreator(UserList);
+// const connectedUserList = containerCreator(UserList);
 
 const connectedUsersTable = containerCreator(UsersTable);
 
 const connectedUsersToolbar = containerCreator(UsersToolBar);
 
-const connectedCandidateList = containerCreator(CandidateList);
+// const connectedCandidateList = containerCreator(CandidateList);
 
 const connectedCandidatesTable = containerCreator(CandidatesTable);
 
@@ -81,37 +81,37 @@ const connectedAccountsDetails = containerCreator(AccountDetails);
 
 const connectedAccountProfile = containerCreator(AccountProfile);
 
-const connectedSettingsNotifications = containerCreator(SettingsNotifications);
+// const connectedSettingsNotifications = containerCreator(SettingsNotifications);
 
-const connnectedSettingsPassword = containerCreator(SettingsPassword);
+// const connnectedSettingsPassword = containerCreator(SettingsPassword);
 
 const connectedSideBar = containerCreator(SideBar);
 
 const connectedDashboard = containerCreator(Dashboard);
 
-const connectedRegister = containerCreator(Register);
+// const connectedRegister = containerCreator(Register);
 
-const connectedSignUp = containerCreator(SignUp);
+// const connectedSignUp = containerCreator(SignUp);
 
-const connectedLogin = containerCreator(Login);
+// const connectedLogin = containerCreator(Login);
 
-const connectedSignIn = containerCreator(SignIn);
+// const connectedSignIn = containerCreator(SignIn);
 
 export {
-  connectedUserList,
+  // connectedUserList,
   connectedUsersTable,
   connectedUsersToolbar,
-  connectedCandidateList,
+  // connectedCandidateList,
   connectedCandidatesTable,
   connectedCandidatesToolbar,
   connectedAccountsDetails,
   connectedAccountProfile,
-  connectedSettingsNotifications,
-  connnectedSettingsPassword,
+  // connectedSettingsNotifications,
+  // connnectedSettingsPassword,
   connectedSideBar,
   connectedDashboard,
-  connectedSignUp,
-  connectedRegister,
-  connectedLogin,
-  connectedSignIn,
+  // connectedSignUp,
+  // connectedRegister,
+  // connectedLogin,
+  // connectedSignIn,
 };
