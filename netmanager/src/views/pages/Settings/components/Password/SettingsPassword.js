@@ -14,9 +14,10 @@ import {
   TextField,
 } from "@material-ui/core";
 import Alert from '@material-ui/lab/Alert';
-import { CircularLoader } from "../../../../components/Loader/CircularLoader";
-import { updateUserPasswordApi } from "../../../../apis/authService";
-import { useOrgData } from "../../../../../redux/Join/selectors";
+import { CircularLoader } from "views/components/Loader/CircularLoader";
+import { updateUserPasswordApi } from "views/apis/authService";
+import { useOrgData } from "redux/Join/selectors";
+import containerConnector from "views/stateConnectors/containerConnector";
 
 const validPasswordRegex = RegExp(/(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,}/);
 
@@ -24,7 +25,7 @@ const useStyles = makeStyles(() => ({
   root: {},
 }));
 
-const Password = (props) => {
+const SettingsPassword = (props) => {
   const { className, mappedAuth, mappeduserState, ...rest } = props;
   const { user } = mappedAuth;
 
@@ -167,7 +168,7 @@ const Password = (props) => {
   );
 };
 
-Password.propTypes = {
+SettingsPassword.propTypes = {
   className: PropTypes.string,
   mappedAuth: PropTypes.object.isRequired,
   mappeduserState: PropTypes.object.isRequired,
@@ -179,4 +180,4 @@ const mapStateToProps = (state) => ({
   userState: state.userState,
 });
 
-export default Password;
+export default containerConnector(SettingsPassword);
