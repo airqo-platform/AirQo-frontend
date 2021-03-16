@@ -67,6 +67,7 @@
         "redux": "^4.0.5",
         "redux-devtools-extension": "^2.13.8",
         "redux-thunk": "^2.3.0",
+        "source-map-explorer": "^2.5.2",
         "spin.js": "^4.1.0",
         "styled-components": "^5.1.0",
         "underscore": "^1.11.0",
@@ -74,6 +75,7 @@
         "yarn": "^1.22.4"
     },
     "scripts": {
+        "analyze": "source-map-explorer 'build/static/js/*.js'",
         "start": "serve -s build",
         "prestart": "npm install -g serve",
         "dev-mac": "REACT_APP_ENV=development react-scripts start",
