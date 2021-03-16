@@ -16,8 +16,8 @@ import AspectRatioIcon from "@material-ui/icons/AspectRatio";
 import SupervisedUserCircleIcon from "@material-ui/icons/SupervisedUserCircle";
 import CloudDownloadIcon from "@material-ui/icons/CloudDownload";
 import { useOrgData } from "redux/Join/selectors";
-
 import { Profile, SidebarNav } from "./components";
+import containerConnector from "../../../../stateConnectors/containerConnector";
 
 const useStyles = makeStyles((theme) => ({
   drawer: {
@@ -184,4 +184,4 @@ Sidebar.propTypes = {
   variant: PropTypes.string.isRequired,
 };
 
-export default Sidebar;
+export default containerConnector(Sidebar);

@@ -4,9 +4,11 @@ import clsx from "clsx";
 import { makeStyles, useTheme } from "@material-ui/styles";
 import { useMediaQuery } from "@material-ui/core";
 
-import { Sidebar, Topbar, Footer } from "./components";
+import { Topbar, Footer } from "./components";
 
-import { connectedSideBar as ConnectedSideBar } from "views/hocs/Users";
+// import { connectedSideBar as ConnectedSideBar } from "views/hocs/Users";
+
+import Sidebar from "./components/Sidebar";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -53,7 +55,7 @@ const Main = (props) => {
       })}
     >
       <Topbar onSidebarOpen={handleSidebarOpen} />
-      <ConnectedSideBar
+      <Sidebar
         onClose={handleSidebarClose}
         open={shouldOpenSidebar}
         variant={isDesktop ? "persistent" : "temporary"}
