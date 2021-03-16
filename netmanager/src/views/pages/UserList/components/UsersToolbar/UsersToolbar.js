@@ -18,6 +18,7 @@ import { Alert, AlertTitle } from "@material-ui/lab";
 import { useMinimalSelectStyles } from "@mui-treasury/styles/select/minimal";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import { useOrgData } from "redux/Join/selectors";
+import containerConnector from "views/stateConnectors/containerConnector";
 
 
 const useStyles = makeStyles((theme) => ({
@@ -470,4 +471,4 @@ const mapStateToProps = (state) => ({
   auth: state.auth,
   errors: state.errors,
 });
-export default connect(mapStateToProps)(UsersToolbar);
+export default containerConnector(connect(mapStateToProps)(UsersToolbar));

@@ -21,6 +21,7 @@ import {
 import { Alert, AlertTitle } from "@material-ui/lab";
 import { getInitials } from "helpers";
 import CustomMaterialTable from "views/components/Table/CustomMaterialTable";
+import containerConnector from "views/stateConnectors/containerConnector";
 
 
 const roles = [
@@ -390,4 +391,4 @@ UsersTable.propTypes = {
   fetchUsers: PropTypes.func.isRequired,
 };
 
-export default UsersTable;
+export default containerConnector(UsersTable);
