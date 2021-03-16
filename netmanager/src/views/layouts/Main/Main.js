@@ -22,7 +22,7 @@ const useStyles = makeStyles((theme) => ({
     paddingLeft: 240,
   },
   content: {
-    height: "100%",
+    height: "calc(100vh - 114px)",
   },
 }));
 
@@ -60,10 +60,8 @@ const Main = (props) => {
         open={shouldOpenSidebar}
         variant={isDesktop ? "persistent" : "temporary"}
       />
-      <main className={classes.content}>
-        {children}
-        <Footer />
-      </main>
+      <main className={classes.content}>{children}</main>
+      <Footer />
     </div>
   );
 };
