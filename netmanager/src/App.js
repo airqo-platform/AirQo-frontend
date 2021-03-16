@@ -1,5 +1,5 @@
 /* eslint-disable */
-import React from "react";
+import React, { Suspense, lazy } from "react";
 import "./App.css";
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 
@@ -11,17 +11,18 @@ import { Provider } from "react-redux";
 import store from "./store";
 import { ThemeProvider } from "@material-ui/styles";
 import theme from "./assets/theme";
+import PrivateRoute from "./views/components/PrivateRoute/PrivateRoute";
+import { setOrganization } from "./redux/Join/actions";
+import { useJiraHelpDesk } from "utils/customHooks";
 
+// core imports. imported on initial page load
+import Dashboard from "./views/components/Dashboard/Dashboard";
+import Devices from "./views/components/DataDisplay/Devices";
+import { Download as DownloadView } from "./views/pages/Download";
 import Landing from "./views/layouts/Landing";
 import { Main as MainLayout, Minimal as MinimalLayout } from "views/layouts/";
-import PrivateRoute from "./views/components/PrivateRoute/PrivateRoute";
-import Dashboard from "./views/components/Dashboard/Dashboard";
-import Map from "./views/components/Map";
-import Devices from "./views/components/DataDisplay/Devices";
-import DeviceView from "./views/components/DataDisplay/DeviceView";
+import { NotFound as NotFoundView } from "./views/pages/NotFound";
 
-import Manager from "./views/components/DataDisplay/DeviceManagement";
-import AnalyticsDashboard from "./views/pages/Dashboard";
 import {
   LocationList,
   LocationRegister,
@@ -29,24 +30,20 @@ import {
   LocationEdit,
 } from "./views/components/LocationList";
 
-import { Settings as SettingsView } from "./views/pages/Settings";
-import { Account as AccountView } from "./views/pages/Account";
-import { Download as DownloadView } from "./views/pages/Download";
-import OverlayMap from "./views/pages/Map";
-import { Reports as ReportView } from "./views/pages/Reports";
-import { NotFound as NotFoundView } from "./views/pages/NotFound";
 
-import {
-  connectedUserList as ConnectedUserList,
-  connectedCandidateList as ConnectedCandidateList,
-  connectedLogin as ConnectedLogin,
-  connectedRegister as ConnectedRegister,
-} from "views/hocs/Users";
-
-import ForgotPassword from "./views/pages/ForgotPassword";
-import ResetPassword from "./views/pages/ResetPassword";
-import { setOrganization } from "./redux/Join/actions";
-import { useJiraHelpDesk } from "utils/customHooks";
+const Account = lazy(() => import("./views/pages/Account"));
+const AnalyticsDashboard = lazy(() => import("./views/pages/Dashboard"));
+const DeviceView = lazy(() => import("./views/components/DataDisplay/DeviceView"));
+const Manager = lazy(() => import("./views/components/DataDisplay/DeviceManagement"));
+const Map = lazy(() => import("./views/components/Map"));
+const OverlayMap = lazy(() => import("./views/pages/Map"));
+const ForgotPassword = lazy(() => import("./views/pages/ForgotPassword"));
+const ResetPassword = lazy(() => import("./views/pages/ResetPassword"));
+const Login = lazy(() => import("./views/pages/SignUp/Login"));
+const Register  = lazy(() => import("./views/pages/SignUp/Register"));
+const UserList = lazy(() => import("./views/pages/UserList"));
+const CandidateList = lazy(() => import("./views/pages/CandidateList"));
+const Settings = lazy(() => import("./views/pages/Settings"));
 
 // Check for token to keep user logged in
 if (localStorage.jwtToken) {
@@ -85,19 +82,52 @@ const App = () => {
         <Router>
           <div className="App">
             <Route exact path="/" component={Landing} />
-            <Route
-              exact
-              path="/request-access"
-              component={ConnectedRegister}
-            />
-            <Route exact path="/login" component={ConnectedLogin} />
-            <Route exact path="/forgot" component={ForgotPassword} />
-            <Route exact path="/reset" component={ResetPassword} />
-            <Switch>
+
+            <Suspense fallback={<div>Loading...</div>}>
+              <Route exact path="/login" component={Login} />
+              <Route exact path="/forgot" component={ForgotPassword} />
+              <Route exact path="/reset" component={ResetPassword} />
+              <Route
+                exact
+                path="/request-access"
+                component={Register}
+              />
+            </Suspense>
+            <Suspense fallback={<div>Loading 2...</div>}>
               <PrivateRoute
                 exact
                 path="/dashboard"
                 component={AnalyticsDashboard}
+                layout={MainLayout}
+              />
+              <PrivateRoute
+                exact
+                path="/admin/users"
+                component={UserList}
+                layout={MainLayout}
+              />
+              <PrivateRoute
+                component={CandidateList}
+                exact
+                layout={MainLayout}
+                path="/candidates"
+              />
+              <PrivateRoute
+                component={Settings}
+                exact
+                layout={MainLayout}
+                path="/settings"
+              />
+
+              <PrivateRoute
+                path="/device/:deviceName"
+                component={DeviceView}
+                layout={MainLayout}
+              />
+              <PrivateRoute
+                exact
+                path="/locate"
+                component={Map}
                 layout={MainLayout}
               />
               <PrivateRoute
@@ -107,23 +137,30 @@ const App = () => {
                 layout={MainLayout}
               />
               <PrivateRoute
+                component={Account}
+                exact
+                layout={MainLayout}
+                path="/account"
+              />
+              <PrivateRoute
+                exact
+                path="/manager"
+                component={Manager}
+                layout={MainLayout}
+              />
+            </Suspense>
+
+            <Switch>
+              <PrivateRoute
                 exact
                 path="/overview"
                 component={Dashboard}
                 layout={MainLayout}
               />
-
               <PrivateRoute
                 exact
                 path="/download"
                 component={DownloadView}
-                layout={MainLayout}
-              />
-
-              <PrivateRoute
-                exact
-                path="/locate"
-                component={Map}
                 layout={MainLayout}
               />
               <PrivateRoute
@@ -132,11 +169,7 @@ const App = () => {
                 component={Devices}
                 layout={MainLayout}
               />
-              <PrivateRoute
-                path="/device/:deviceName"
-                component={DeviceView}
-                layout={MainLayout}
-              />
+
               <PrivateRoute
                 extact
                 path="/location"
@@ -149,12 +182,6 @@ const App = () => {
                 exact
                 layout={MinimalLayout}
                 path="/not-found"
-              />
-              <PrivateRoute
-                component={ConnectedCandidateList}
-                exact
-                layout={MainLayout}
-                path="/candidates"
               />
 
               <PrivateRoute
@@ -173,37 +200,6 @@ const App = () => {
                 exact
                 path="/locations/:loc_ref"
                 component={LocationView}
-                layout={MainLayout}
-              />
-              <PrivateRoute
-                exact
-                path="/admin/users"
-                component={ConnectedUserList}
-                layout={MainLayout}
-              />
-
-              <PrivateRoute
-                component={ReportView}
-                exact
-                layout={MainLayout}
-                path="/reports"
-              />
-              <PrivateRoute
-                component={AccountView}
-                exact
-                layout={MainLayout}
-                path="/account"
-              />
-              <PrivateRoute
-                component={SettingsView}
-                exact
-                layout={MainLayout}
-                path="/settings"
-              />
-              <PrivateRoute
-                exact
-                path="/manager"
-                component={Manager}
                 layout={MainLayout}
               />
             </Switch>
