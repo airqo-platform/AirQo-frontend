@@ -23,6 +23,7 @@ import { Check} from "@material-ui/icons";
 import { getInitials } from "helpers";
 import CandidateEditForm from "views/pages/UserList/components/UserEditForm";
 import CustomMaterialTable from "views/components/Table/CustomMaterialTable";
+import containerConnector from "views/stateConnectors/containerConnector";
 
 const useStyles = makeStyles((theme) => ({
   root: {},
@@ -304,4 +305,4 @@ CandidatesTable.propTypes = {
   fetchCandidates: PropTypes.func.isRequired,
 };
 
-export default CandidatesTable;
+export default containerConnector(CandidatesTable);

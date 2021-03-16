@@ -1,11 +1,9 @@
 /* eslint-disable */
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { makeStyles } from "@material-ui/styles";
 import PropTypes from "prop-types";
-import {
-  connectedCandidatesTable as CandidatesTable,
-  connectedCandidatesToolbar as CandidatesToolbar,
-} from "views/hocs/Users";
+import containerConnector from "../../stateConnectors/containerConnector";
+import CandidatesTable from "./components/CandidatesTable";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -36,4 +34,4 @@ CandidateList.propTypes = {
   errors: PropTypes.object.isRequired,
 };
 
-export default CandidateList;
+export default containerConnector(CandidateList);

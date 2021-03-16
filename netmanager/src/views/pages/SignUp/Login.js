@@ -8,8 +8,7 @@ import { clearErrors, loginUser } from "../../../redux/Join/actions";
 import classnames from "classnames";
 import { isEmpty, omit } from "underscore";
 import { isFormFullyFilled } from "./utils";
-import KeyboardBackspaceIcon from "@material-ui/icons/KeyboardBackspace";
-//import styles from './Login.css'
+import containerConnector from "../../stateConnectors/containerConnector";
 
 class Login extends Component {
   constructor(props) {
@@ -234,4 +233,6 @@ const mapStateToProps = (state) => ({
   auth: state.auth,
   errors: state.errors,
 });
-export default connect(mapStateToProps, { clearErrors, loginUser })(Login);
+export default containerConnector(
+  connect(mapStateToProps, { clearErrors, loginUser })(Login)
+);
