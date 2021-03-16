@@ -23,14 +23,7 @@ import Landing from "./views/layouts/Landing";
 import { Main as MainLayout, Minimal as MinimalLayout } from "views/layouts/";
 import { NotFound as NotFoundView } from "./views/pages/NotFound";
 
-import {
-  LocationList,
-  LocationRegister,
-  LocationView,
-  LocationEdit,
-} from "./views/components/LocationList";
-
-
+// lazy imports
 const Account = lazy(() => import("./views/pages/Account"));
 const AnalyticsDashboard = lazy(() => import("./views/pages/Dashboard"));
 const DeviceView = lazy(() => import("./views/components/DataDisplay/DeviceView"));
@@ -44,6 +37,10 @@ const Register  = lazy(() => import("./views/pages/SignUp/Register"));
 const UserList = lazy(() => import("./views/pages/UserList"));
 const CandidateList = lazy(() => import("./views/pages/CandidateList"));
 const Settings = lazy(() => import("./views/pages/Settings"));
+const LocationList = lazy(() => import("./views/components/LocationList/LocationList"));
+const LocationRegister  = lazy(() => import("./views/components/LocationList/LocationRegister"));
+const LocationView = lazy(() => import("./views/components/LocationList/LocationView"));
+const LocationEdit = lazy(() => import("./views/components/LocationList/LocationEdit"));
 
 // Check for token to keep user logged in
 if (localStorage.jwtToken) {
@@ -148,6 +145,30 @@ const App = () => {
                 component={Manager}
                 layout={MainLayout}
               />
+              <PrivateRoute
+                extact
+                path="/location"
+                component={LocationList}
+                layout={MainLayout}
+              />
+              <PrivateRoute
+                exact
+                path="/edit/:loc_ref"
+                component={LocationEdit}
+                layout={MainLayout}
+              />
+              <PrivateRoute
+                exact
+                path="/locations/:loc_ref"
+                component={LocationView}
+                layout={MainLayout}
+              />
+              <PrivateRoute
+                extact
+                path="/register_location"
+                component={LocationRegister}
+                layout={MainLayout}
+              />
             </Suspense>
 
             <Switch>
@@ -169,38 +190,11 @@ const App = () => {
                 component={Devices}
                 layout={MainLayout}
               />
-
-              <PrivateRoute
-                extact
-                path="/location"
-                component={LocationList}
-                layout={MainLayout}
-              />
-
               <PrivateRoute
                 component={NotFoundView}
                 exact
                 layout={MinimalLayout}
                 path="/not-found"
-              />
-
-              <PrivateRoute
-                extact
-                path="/register_location"
-                component={LocationRegister}
-                layout={MainLayout}
-              />
-              <PrivateRoute
-                exact
-                path="/edit/:loc_ref"
-                component={LocationEdit}
-                layout={MainLayout}
-              />
-              <PrivateRoute
-                exact
-                path="/locations/:loc_ref"
-                component={LocationView}
-                layout={MainLayout}
               />
             </Switch>
             <div
