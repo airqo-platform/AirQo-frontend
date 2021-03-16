@@ -22,6 +22,7 @@ import { Download as DownloadView } from "./views/pages/Download";
 import Landing from "./views/layouts/Landing";
 import { Main as MainLayout, Minimal as MinimalLayout } from "views/layouts/";
 import { NotFound as NotFoundView } from "./views/pages/NotFound";
+import {LargeCircularLoader } from "views/components/Loader/CircularLoader";
 
 // lazy imports
 const Account = lazy(() => import("./views/pages/Account"));
@@ -80,7 +81,7 @@ const App = () => {
           <div className="App">
             <Route exact path="/" component={Landing} />
 
-            <Suspense fallback={<div>Loading...</div>}>
+            <Suspense fallback={<LargeCircularLoader loading={true} />}>
               <Route exact path="/login" component={Login} />
               <Route exact path="/forgot" component={ForgotPassword} />
               <Route exact path="/reset" component={ResetPassword} />
