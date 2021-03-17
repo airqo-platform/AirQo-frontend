@@ -1,4 +1,5 @@
 import {
+  INSERT_NEW_DEVICE_SUCCESS,
   LOAD_ALL_DEVICES_SUCCESS,
   RESET_DEVICE_SUCCESS,
   UPDATE_SINGLE_DEVICE_SUCCESS,
@@ -19,6 +20,11 @@ export default function (state = initialState, action) {
           ...(state[action.payload.deviceName] || {}),
           ...action.payload.data,
         },
+      };
+    case INSERT_NEW_DEVICE_SUCCESS:
+      return {
+        ...state,
+        [action.payload.deviceName]: action.payload,
       };
     default:
       return state;

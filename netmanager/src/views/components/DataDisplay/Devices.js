@@ -37,7 +37,6 @@ import CustomMaterialTable from "../Table/CustomMaterialTable";
 
 // css
 import "assets/css/device-registry.css";
-import { Create } from "@material-ui/icons";
 
 const useStyles = makeStyles((theme) => ({
   root: {},

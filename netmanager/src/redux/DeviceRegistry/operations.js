@@ -8,11 +8,11 @@ import {
   LOAD_DEVICE_COMPONENTS_FAILURE,
   INSERT_MAINTENANCE_LOGS_SUCCESS,
   INSERT_NEW_COMPONENT_SUCCESS,
+  INSERT_NEW_DEVICE_SUCCESS,
   RESET_DEVICE_SUCCESS,
   RESET_DEVICE_COMPONENTS_SUCCESS,
   RESET_MAINTENANCE_LOGS,
   UPDATE_SINGLE_DEVICE_SUCCESS,
-  UPDATE_SINGLE_DEVICE_ERROR,
   UPDATE_SINGLE_MAINTENANCE_LOGS_SUCCESS,
   UPDATE_SINGLE_COMPONENT_SUCCESS,
   DELETE_SINGLE_MAINTENANCE_LOGS_SUCCESS,
@@ -217,6 +217,13 @@ export const loadDeviceSesnorCorrelation = (deviceName) => async (dispatch) => {
         type: LOAD_DEVICE_SENSOR_CORRELATION_FAILURE,
       });
     });
+};
+
+export const insertNewDevice = (newDevice) => (dispatch) => {
+  dispatch({
+    type: INSERT_NEW_DEVICE_SUCCESS,
+    payload: newDevice,
+  });
 };
 
 export const deleteDevice = (deviceName) => async (dispatch, getState) => {
