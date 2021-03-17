@@ -214,6 +214,8 @@ const CreateDevice = ({ open, setOpen, devices, setDevices }) => {
     ISP: "",
     phoneNumber: "",
     description: "",
+    locationName: "",
+    siteName: "",
   };
 
   const [newDevice, setNewDevice] = useState(newDeviceInitState);
@@ -240,6 +242,7 @@ const CreateDevice = ({ open, setOpen, devices, setDevices }) => {
       })
       .then((res) => res.data)
       .then((resData) => {
+        console.log("new device", resData.device);
         setDevices([resData.device, ...devices]);
         dispatch(
           updateMainAlert({
@@ -300,6 +303,18 @@ const CreateDevice = ({ open, setOpen, devices, setDevices }) => {
             onChange={handleDeviceDataChange("product_name")}
             fullWidth
           />
+          <TextField
+            label="Location Name"
+            value={newDevice.locationName}
+            onChange={handleDeviceDataChange("locationName")}
+            fullWidth
+          />
+          <TextField
+            label="Site Name"
+            value={newDevice.siteName}
+            onChange={handleDeviceDataChange("siteName")}
+            fullWidth
+          />
           <FormControl required fullWidth>
             <InputLabel htmlFor="demo-dialog-native">Data Access</InputLabel>
             <Select
@@ -308,7 +323,7 @@ const CreateDevice = ({ open, setOpen, devices, setDevices }) => {
               value={newDevice.visibility}
               onChange={handleDeviceDataChange("visibility")}
               inputProps={{
-                native: true,
+                native: "true",
                 style: { height: "40px", marginTop: "10px" },
               }}
             >
@@ -332,7 +347,7 @@ const CreateDevice = ({ open, setOpen, devices, setDevices }) => {
               value={newDevice.ISP}
               onChange={handleDeviceDataChange("ISP")}
               inputProps={{
-                native: true,
+                native: "true",
                 style: { height: "40px", marginTop: "10px" },
               }}
             >
