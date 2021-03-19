@@ -48,7 +48,11 @@ const gridItemStyle = {
 
 export default function DeviceEdit({ deviceData, locationsData }) {
   const dispatch = useDispatch();
-  const [editData, setEditData] = useState(deviceData);
+  const [editData, setEditData] = useState({
+    locationName: "",
+    siteName: "",
+    ...deviceData,
+  });
   const [editLoading, setEditLoading] = useState(false);
   const handleTextFieldChange = (event) => {
     setEditData({
@@ -65,7 +69,7 @@ export default function DeviceEdit({ deviceData, locationsData }) {
   };
 
   const handleLocationChange = (location) => {
-    if(!location) {
+    if (!location) {
       return;
     }
     setEditData({
@@ -115,20 +119,20 @@ export default function DeviceEdit({ deviceData, locationsData }) {
         }}
       >
         <Grid container spacing={1}>
-          <Grid items xs={6} style={gridItemStyle}>
-            <TextField
-              required
-              id="name"
-              label="Device Name"
-              value={editData.name}
-              fullWidth
-              disabled
-              onChange={handleTextFieldChange}
-              InputProps={{
-                readOnly: true,
-              }}
-            />
-          </Grid>
+          {/*<Grid items xs={6} style={gridItemStyle}>*/}
+          {/*  <TextField*/}
+          {/*    required*/}
+          {/*    id="name"*/}
+          {/*    label="Device Name"*/}
+          {/*    value={editData.name}*/}
+          {/*    fullWidth*/}
+          {/*    disabled*/}
+          {/*    onChange={handleTextFieldChange}*/}
+          {/*    InputProps={{*/}
+          {/*      readOnly: true,*/}
+          {/*    }}*/}
+          {/*  />*/}
+          {/*</Grid>*/}
           <Grid items xs={6} style={gridItemStyle}>
             <TextField
               id="owner"
@@ -154,6 +158,24 @@ export default function DeviceEdit({ deviceData, locationsData }) {
               id="device_manufacturer"
               label="Manufacturer"
               value={editData.device_manufacturer}
+              onChange={handleTextFieldChange}
+              fullWidth
+            />
+          </Grid>
+          <Grid items xs={6} style={gridItemStyle}>
+            <TextField
+              id="locationName"
+              label="Map Address"
+              value={editData.locationName}
+              onChange={handleTextFieldChange}
+              fullWidth
+            />
+          </Grid>
+          <Grid items xs={6} style={gridItemStyle}>
+            <TextField
+              id="siteName"
+              label="Site Name"
+              value={editData.siteName}
               onChange={handleTextFieldChange}
               fullWidth
             />
@@ -260,9 +282,7 @@ export default function DeviceEdit({ deviceData, locationsData }) {
 
           <Grid items xs={6} style={gridItemStyle}>
             <FormControl fullWidth>
-              <InputLabel htmlFor="demo-dialog-native">
-                Power Type
-              </InputLabel>
+              <InputLabel htmlFor="demo-dialog-native">Power Type</InputLabel>
               <Select
                 native
                 value={editData.powerType}
@@ -281,16 +301,16 @@ export default function DeviceEdit({ deviceData, locationsData }) {
             </FormControl>
           </Grid>
 
-          <Grid items xs={6} style={gridItemStyle}>
-            <TextField
-              id="height"
-              label="Height"
-              value={editData.height}
-              onChange={handleTextFieldChange}
-              fullWidth
-              disabled
-            />
-          </Grid>
+          {/*<Grid items xs={6} style={gridItemStyle}>*/}
+          {/*  <TextField*/}
+          {/*    id="height"*/}
+          {/*    label="Height"*/}
+          {/*    value={editData.height}*/}
+          {/*    onChange={handleTextFieldChange}*/}
+          {/*    fullWidth*/}
+          {/*    disabled*/}
+          {/*  />*/}
+          {/*</Grid>*/}
 
           <Grid items xs={6} style={gridItemStyle}>
             <TextField

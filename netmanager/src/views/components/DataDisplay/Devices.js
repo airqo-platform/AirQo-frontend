@@ -304,7 +304,7 @@ const CreateDevice = ({ open, setOpen, devices, setDevices }) => {
             fullWidth
           />
           <TextField
-            label="Location Name"
+            label="Map Address"
             value={newDevice.locationName}
             onChange={handleDeviceDataChange("locationName")}
             fullWidth
