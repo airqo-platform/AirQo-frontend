@@ -236,13 +236,14 @@ const CreateDevice = ({ open, setOpen, devices, setDevices }) => {
   };
 
   let handleRegisterSubmit = (e) => {
+    setOpen(false);
     axios
       .post(constants.REGISTER_DEVICE_URI, JSON.stringify(newDevice), {
         headers: { "Content-Type": "application/json" },
       })
       .then((res) => res.data)
       .then((resData) => {
-        console.log("new device", resData.device);
+        handleRegisterClose();
         setDevices([resData.device, ...devices]);
         dispatch(
           updateMainAlert({
@@ -261,7 +262,6 @@ const CreateDevice = ({ open, setOpen, devices, setDevices }) => {
           })
         );
       });
-    handleRegisterClose();
   };
 
   return (
