@@ -11,7 +11,7 @@ import { Alert, AlertTitle } from "@material-ui/lab";
 import { withStyles } from "@material-ui/core";
 import { isEmpty, isEqual, omit } from "underscore";
 import { isFormFullyFilled } from "./utils";
-import containerConnector from "../../stateConnectors/containerConnector";
+import usrsStateConnector from "views/stateConnectors/usersStateConnector";
 
 const styles = (theme) => ({
   root: {
@@ -441,6 +441,6 @@ const mapStateToProps = (state) => ({
 });
 
 // export default Register;
-export default containerConnector(connect(mapStateToProps, { registerCandidate })(
+export default usrsStateConnector(connect(mapStateToProps, { registerCandidate })(
   withRouter(withStyles(styles, { withTheme: true })(Register))
 ));

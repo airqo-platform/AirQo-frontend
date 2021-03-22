@@ -2,7 +2,7 @@
 import React, { useEffect } from "react";
 import { makeStyles } from "@material-ui/styles";
 import PropTypes from "prop-types";
-import containerConnector from "../../stateConnectors/containerConnector";
+import usersStateConnector from "views/stateConnectors/usersStateConnector";
 import CandidatesTable from "./components/CandidatesTable";
 
 const useStyles = makeStyles((theme) => ({
@@ -34,4 +34,4 @@ CandidateList.propTypes = {
   errors: PropTypes.object.isRequired,
 };
 
-export default containerConnector(CandidateList);
+export default usersStateConnector(CandidateList);

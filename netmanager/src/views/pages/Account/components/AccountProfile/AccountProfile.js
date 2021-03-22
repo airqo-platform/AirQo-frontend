@@ -18,7 +18,7 @@ import { cloudinaryImageUpload } from "views/apis/cloudinary";
 import { updateMainAlert } from "redux/MainAlert/operations";
 import { updateAuthenticatedUserApi } from "views/apis/authService";
 import { updateAuthenticatedUserSuccess } from "redux/Join/actions";
-import containerConnector from "views/stateConnectors/containerConnector";
+import usersStateConnector from "views/stateConnectors/usersStateConnector";
 
 // css
 import "react-image-crop/dist/ReactCrop.css";
@@ -298,4 +298,4 @@ AccountProfile.propTypes = {
   mappeduserState: PropTypes.object.isRequired,
 };
 
-export default containerConnector(AccountProfile);
+export default usersStateConnector(AccountProfile);

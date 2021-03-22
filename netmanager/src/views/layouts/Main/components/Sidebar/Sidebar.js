@@ -17,7 +17,7 @@ import SupervisedUserCircleIcon from "@material-ui/icons/SupervisedUserCircle";
 import CloudDownloadIcon from "@material-ui/icons/CloudDownload";
 import { useOrgData } from "redux/Join/selectors";
 import { Profile, SidebarNav } from "./components";
-import containerConnector from "../../../../stateConnectors/containerConnector";
+import usersStateConnector from "views/stateConnectors/usersStateConnector";
 
 const useStyles = makeStyles((theme) => ({
   drawer: {
@@ -184,4 +184,4 @@ Sidebar.propTypes = {
   variant: PropTypes.string.isRequired,
 };
 
-export default containerConnector(Sidebar);
+export default usersStateConnector(Sidebar);

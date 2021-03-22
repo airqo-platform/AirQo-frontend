@@ -2,7 +2,7 @@
 import React, { useEffect } from "react";
 import { makeStyles } from "@material-ui/styles";
 import PropTypes from "prop-types";
-import containerConnector from "../../stateConnectors/containerConnector";
+import usrsStateConnector from "views/stateConnectors/usersStateConnector";
 
 import UsersTable from "./components/UsersTable";
 import UsersToolbar from "./components/UsersToolbar";
@@ -41,4 +41,4 @@ UserList.propTypes = {
   userState: PropTypes.object.isRequired,
 };
 
-export default containerConnector(UserList);
+export default usrsStateConnector(UserList);

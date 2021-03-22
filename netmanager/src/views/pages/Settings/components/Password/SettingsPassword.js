@@ -17,7 +17,7 @@ import Alert from '@material-ui/lab/Alert';
 import { CircularLoader } from "views/components/Loader/CircularLoader";
 import { updateUserPasswordApi } from "views/apis/authService";
 import { useOrgData } from "redux/Join/selectors";
-import containerConnector from "views/stateConnectors/containerConnector";
+import usersStateConnector from "views/stateConnectors/usersStateConnector";
 
 const validPasswordRegex = RegExp(/(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,}/);
 
@@ -180,4 +180,4 @@ const mapStateToProps = (state) => ({
   userState: state.userState,
 });
 
-export default containerConnector(SettingsPassword);
+export default usersStateConnector(SettingsPassword);

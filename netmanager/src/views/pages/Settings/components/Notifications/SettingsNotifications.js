@@ -13,7 +13,7 @@ import {
   Checkbox,
   Button,
 } from "@material-ui/core";
-import containerConnector from "views/stateConnectors/containerConnector";
+import usersStateConnector from "views/stateConnectors/usersStateConnector";
 
 const useStyles = makeStyles(() => ({
   root: {},
@@ -93,4 +93,4 @@ SettingsNotifications.propTypes = {
   mappeduserState: PropTypes.object.isRequired,
 };
 
-export default containerConnector(SettingsNotifications);
+export default usersStateConnector(SettingsNotifications);
