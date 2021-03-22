@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useHistory, useLocation } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { makeStyles } from "@material-ui/core/styles";
 import DevicesIcon from "@material-ui/icons/Devices";
@@ -36,12 +37,14 @@ import {
   createChartData,
   createChartOptions,
 } from "utils/charts";
+import { updateDeviceBackUrl } from "redux/Urls/operations";
 
+// css style
 import styles from "assets/jss/material-dashboard-react/views/dashboardStyle.js";
 import "chartjs-plugin-annotation";
 import "assets/scss/device-management.sass";
-import { useHistory, useLocation } from "react-router-dom";
-import { updateDeviceBackUrl } from "redux/Urls/operations";
+import "assets/css/device-view.css"; // there are some shared styles here too :)
+
 
 const useStyles = makeStyles(styles);
 
