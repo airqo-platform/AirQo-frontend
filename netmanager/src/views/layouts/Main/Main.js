@@ -6,8 +6,6 @@ import { useMediaQuery } from "@material-ui/core";
 
 import { Topbar, Footer } from "./components";
 
-// import { connectedSideBar as ConnectedSideBar } from "views/hocs/Users";
-
 import Sidebar from "./components/Sidebar";
 
 const useStyles = makeStyles((theme) => ({
@@ -22,7 +20,7 @@ const useStyles = makeStyles((theme) => ({
     paddingLeft: 240,
   },
   content: {
-    height: "calc(100vh - 114px)",
+    minHeight: "calc(100vh - 114px)",
   },
 }));
 
