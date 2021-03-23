@@ -520,7 +520,7 @@ const EditComponent = ({ deviceName, toggleShow, component }) => {
           onClick={handleSubmit}
           style={{ marginLeft: "10px" }}
         >
-          Edit Component
+          Save Changes
         </Button>
       </Grid>
     </Paper>

@@ -221,7 +221,7 @@ const EditLog = ({ deviceName, deviceLocation, toggleShow, log }) => {
             onClick={handleSubmit}
             style={{ marginLeft: "10px" }}
           >
-            Edit Log
+            Save Changes
           </Button>
         </Grid>
       </form>
