@@ -1,31 +1,3 @@
-.skeleton-hidden {
-    display: none
-}
-
-.device-img-skeleton-wrapper {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: #fff;
-    box-shadow: 0 4px 10px 0 rgba(33, 33, 33, 0.15);
-    border-radius: 4px;
-    position: relative;
-    overflow: hidden;
-    height: 300px;
-    margin: 20px;
-    cursor: pointer;
-    /*transition: height 0.1s linear, width 0.1s linear, background-color 0.5s ease-in-out;*/
-}
-
-.device-img {
-    height: auto;
-    width: 300px;
-}
-
-.device-img-skeleton-wrapper:hover {
-    box-shadow: 0 8px 20px 0 rgba(33, 33, 33, 0.15);
-}
-
 .device-image-wrapper {
     width: 250px;
     height: 250px;
@@ -55,6 +27,11 @@
     align-items: center;
     height: 15%;
     border-top: 1px solid rgba(33, 33, 33, 0.15);
+}
+
+.image-del {
+    margin-left: 10px;
+    color: rgba(0,0,0,0.5);
 }
 
 .image-del:hover {
