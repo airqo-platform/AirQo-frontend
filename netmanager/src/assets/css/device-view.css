@@ -39,6 +39,9 @@
     cursor: pointer;
 }
 
+.d-img:hover {
+    cursor: pointer
+}
 
 .img-wrapper-preview {
     display: flex;

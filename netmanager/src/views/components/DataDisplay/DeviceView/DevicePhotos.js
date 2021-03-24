@@ -32,7 +32,7 @@ const ImgLoadStatus = ({ message, error, onClose }) => {
       }}
     >
       {message}
-      <ClearIcon onClick={onClose} />
+      <ClearIcon className={"d-img"} onClick={onClose} />
     </div>
   );
 };
