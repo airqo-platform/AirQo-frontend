@@ -4,6 +4,7 @@ import ImageUploading from "react-images-uploading";
 import { Button } from "@material-ui/core";
 import { cloudinaryImageUpload } from "views/apis/cloudinary";
 import DeleteOutlineIcon from "@material-ui/icons/DeleteOutline";
+import ClearIcon from "@material-ui/icons/Clear";
 import { updateMainAlert } from "redux/MainAlert/operations";
 import { updateDeviceDetails } from "views/apis/deviceRegistry";
 import BrokenImage from "assets/img/BrokenImage";
@@ -13,41 +14,88 @@ const galleryContainerStyles = {
   flexWrap: "wrap",
 };
 
+const ImgLoadStatus = ({ message, error, onClose }) => {
+  const moreStyles = error
+    ? { background: "rgb(252, 235, 234)", color: "rgb(91, 22, 21)" }
+    : { background: "rgb(232, 243, 252)", color: "rgb(12, 54, 91)" };
+  return (
+    <div
+      style={{
+        display: "flex",
+        width: "100%",
+        height: "100%",
+        alignItems: "center",
+        justifyContent: "space-between",
+        padding: "0 10px",
+        textTransform: "capitalize",
+        ...moreStyles,
+      }}
+    >
+      {message}
+      <ClearIcon onClick={onClose} />
+    </div>
+  );
+};
+
 const Img = ({ src, uploadOptions }) => {
   const { upload, deviceName } = uploadOptions || {
     upload: false,
     deviceName: "",
   };
   const [broken, setBroken] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState(false);
   const dispatch = useDispatch();
+
+  const closeLoader = () => {
+    setUploading(false);
+    setUploadError(false);
+  };
+
+  const showUploading = () => {
+    setUploading(true);
+    setUploadError(false);
+  };
+
+  const showUploadError = () => {
+    setUploading(false);
+    setUploadError(true);
+  };
 
   const uploadImage = async (src) => {
     const formData = new FormData();
     formData.append("file", src);
     formData.append("upload_preset", process.env.REACT_APP_CLOUDINARY_PRESET);
     formData.append("folder", `devices/${deviceName}`);
-    return await cloudinaryImageUpload(formData).then((responseData) => {
-      const pictures = [responseData.secure_url];
-      updateDeviceDetails(deviceName, { pictures })
-        .then((responseData) => {
-          dispatch(
-            updateMainAlert({
-              message: responseData.message,
-              show: true,
-              severity: "success",
-            })
-          );
-        })
-        .catch(() => {
-          dispatch(
-            updateMainAlert({
-              message: "Could not persist images",
-              show: true,
-              severity: "error",
-            })
-          );
-        });
-    });
+    showUploading();
+    return await cloudinaryImageUpload(formData)
+      .then((responseData) => {
+        const pictures = [responseData.secure_url];
+        updateDeviceDetails(deviceName, { pictures })
+          .then((responseData) => {
+            dispatch(
+              updateMainAlert({
+                message: responseData.message,
+                show: true,
+                severity: "success",
+              })
+            );
+            closeLoader();
+          })
+          .catch(() => {
+            dispatch(
+              updateMainAlert({
+                message: "Could not persist images",
+                show: true,
+                severity: "error",
+              })
+            );
+            showUploadError();
+          });
+      })
+      .catch(() => {
+        showUploadError();
+      });
   };
 
   useEffect(() => {
@@ -71,7 +119,19 @@ const Img = ({ src, uploadOptions }) => {
         {(!src || broken) && <BrokenImage className={"broken-image"} />}
       </div>
       <div className={"image-controls"}>
-        <DeleteOutlineIcon className={"image-del"} />
+        {!uploading && !uploadError && (
+          <DeleteOutlineIcon className={"image-del"} />
+        )}
+        {uploading && (
+          <ImgLoadStatus message={"uploading image..."} onClose={closeLoader} />
+        )}
+        {uploadError && (
+          <ImgLoadStatus
+            message={"upload failed"}
+            error
+            onClose={closeLoader}
+          />
+        )}
       </div>
     </div>
   );
