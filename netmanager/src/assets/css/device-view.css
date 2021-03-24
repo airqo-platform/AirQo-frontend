@@ -26,6 +26,43 @@
     box-shadow: 0 8px 20px 0 rgba(33, 33, 33, 0.15);
 }
 
+.device-image-wrapper {
+    width: 250px;
+    height: 250px;
+    background-color: #fff;
+    margin: 5px;
+    box-shadow: 0 4px 10px 0 rgba(33, 33, 33, 0.15);
+}
+
+.device-image-wrapper:hover {
+    box-shadow: 0 8px 20px 0 rgba(33, 33, 33, 0.15);
+}
+
+.img-wrapper {
+    height: 85%;
+    padding: 1px 0;
+}
+
+.image {
+    height: 100%;
+    width: 100%;
+    object-fit: contain;
+}
+
+
+.image-controls {
+    display: flex;
+    align-items: center;
+    height: 15%;
+    border-top: 1px solid rgba(33, 33, 33, 0.15);
+}
+
+.image-del:hover {
+    color: red;
+    cursor: pointer;
+}
+
+
 .img-wrapper-preview {
     display: flex;
     align-items: center;
@@ -37,6 +74,7 @@
     width: 120vw;
     z-index: 10000;
     background: rgba(0,0,0,0.5);
+    border: 1px solid red;
 }
 
 .device-img-preview {

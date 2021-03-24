@@ -1,195 +1,94 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import ImageUploading from "react-images-uploading";
-import { makeStyles } from "@material-ui/styles";
 import { Button } from "@material-ui/core";
-import { PhotoOutlined } from "@material-ui/icons";
-import { cloudinaryImageUpload } from "../../../apis/cloudinary";
+import { cloudinaryImageUpload } from "views/apis/cloudinary";
+import DeleteOutlineIcon from "@material-ui/icons/DeleteOutline";
 import { updateMainAlert } from "redux/MainAlert/operations";
-import { updateDeviceDetails } from "../../../apis/deviceRegistry";
+import { updateDeviceDetails } from "views/apis/deviceRegistry";
 import BrokenImage from "assets/img/BrokenImage";
 
 const galleryContainerStyles = {
   display: "flex",
   flexWrap: "wrap",
-  alignItems: "center",
-  justifyContent: "center",
 };
 
-const useStyles = makeStyles((theme) => ({
-  root: {
-    fontSize: "100px",
-  },
-}));
-
-const ImgWithSkeleton = ({
-  srcOrSrcObject,
-  cloudinaryUrls,
-  updateCloudinaryUrls,
-}) => {
-  const classes = useStyles();
-  const unpackSrcObject = (srcOrSrcObject) => {
-    if (typeof srcOrSrcObject === "string") {
-      return [srcOrSrcObject, () => {}];
-    }
-    if (srcOrSrcObject.moved) {
-      return [srcOrSrcObject.data_url, srcOrSrcObject.asyncSrcCallback];
-    }
-    return [srcOrSrcObject.src, srcOrSrcObject.asyncSrcCallback];
+const Img = ({ src, uploadOptions }) => {
+  const { upload, deviceName } = uploadOptions || {
+    upload: false,
+    deviceName: "",
   };
-  const poison = "poison";
-  const [src, asyncSrcCallback] = unpackSrcObject(srcOrSrcObject);
-  const [newSrc, setNewSrc] = useState(src);
-  const [response, setResponse] = useState(poison);
-  const [loaded, setLoaded] = useState(false);
   const [broken, setBroken] = useState(false);
-  const [previewMode, setPreviewMode] = useState(false);
+  const dispatch = useDispatch();
+
+  const uploadImage = async (src) => {
+    const formData = new FormData();
+    formData.append("file", src);
+    formData.append("upload_preset", process.env.REACT_APP_CLOUDINARY_PRESET);
+    // formData.append("folder", `devices/${deviceName}`);
+    return await cloudinaryImageUpload(formData).then((responseData) => {
+      const pictures = [responseData.secure_url];
+      updateDeviceDetails(deviceName, { pictures })
+        .then((responseData) => {
+          dispatch(
+            updateMainAlert({
+              message: responseData.message,
+              show: true,
+              severity: "success",
+            })
+          );
+        })
+        .catch(() => {
+          dispatch(
+            updateMainAlert({
+              message: "Could not persist images",
+              show: true,
+              severity: "error",
+            })
+          );
+        });
+    });
+  };
 
   useEffect(() => {
-    const call = async () => {
-      const responseData = await asyncSrcCallback();
-
-      if (responseData) {
-        setNewSrc(srcOrSrcObject.data_url);
-        setResponse((responseData && responseData.secure_url) || null);
-        return;
-      }
-      setResponse((responseData && responseData.secure_url) || null);
-      setBroken(true);
-      setLoaded(true);
-    };
-
-    if (typeof srcOrSrcObject === "object" && !srcOrSrcObject.moved) {
-      call();
+    if (upload) {
+      uploadImage(src);
     }
   }, []);
 
-  useEffect(() => {
-    if (response !== poison) {
-      updateCloudinaryUrls([...cloudinaryUrls, response]);
-    }
-  }, [response]);
-
-  const onLoad = () => {
-    if (newSrc === "") {
-      return;
-    }
-    return setLoaded(true);
-  };
-
-  const onError = () => {
-    if (newSrc) {
-      setBroken(true);
-      setLoaded(true);
-    }
-  };
-
   return (
-    <div
-      className={`device-img-skeleton-wrapper ${
-        loaded && !broken && previewMode ? "img-wrapper-preview" : ""
-      }`}
-      onClick={() => setPreviewMode(!previewMode)}
-    >
-      <img
-        className={`device-img ${
-          loaded && !broken && previewMode ? "device-img-preview" : ""
-        }`}
-        src={newSrc}
-        style={{ display: loaded && !broken ? "inline" : "none" }}
-        onLoad={onLoad}
-        onError={onError}
-      />
-      {broken && <BrokenImage className={"broken-image"} />}
-      <div
-        className={loaded ? "skeleton-hidden" : "device-img-skeleton"}
-        style={{ width: "300px", height: "100%" }}
-      >
-        <PhotoOutlined className={classes.root} />
+    <div className={"device-image-wrapper"}>
+      <div className={"img-wrapper"}>
+        {!broken && src && (
+          <img
+            className={"image"}
+            src={src}
+            alt={"image"}
+            // style={{background: `url(${src})`}}
+            onError={() => setBroken(true)}
+          />
+        )}
+        {(!src || broken) && <BrokenImage className={"broken-image"} />}
+      </div>
+      <div className={"image-controls"}>
+        <DeleteOutlineIcon className={"image-del"} />
       </div>
     </div>
   );
 };
 
 export default function DevicePhotos({ deviceData }) {
-  const dispatch = useDispatch();
   const [images, setImages] = useState(deviceData.pictures || []);
   const [newImages, setNewImages] = useState([]);
-  const [cloudinaryUrls, setCloudinaryUrls] = useState([]);
-  const [loadingImages, setLoadingImages] = useState({
-    status: false,
-    imgCount: 0,
-  });
   const maxNumber = 69;
 
-  useEffect(() => {
-    if (
-      loadingImages.imgCount > 0 &&
-      cloudinaryUrls.length >= loadingImages.imgCount
-    ) {
-      setLoadingImages({ status: false, imgCount: 0 });
-      const pictures = cloudinaryUrls.filter((url) => url !== null);
-      pictures.length > 0 &&
-        updateDeviceDetails(deviceData.name, { pictures })
-          .then((responseData) => {
-            dispatch(
-              updateMainAlert({
-                message: responseData.message,
-                show: true,
-                severity: "success",
-              })
-            );
-          })
-          .catch(() => {
-            dispatch(
-              updateMainAlert({
-                message: "Could not persist images",
-                show: true,
-                severity: "error",
-              })
-            );
-          });
-    }
-  }, [cloudinaryUrls]);
-
-  const moveNewImagesToOldSection = async () => {
-    if (newImages.length > 0) {
-      const movedImages = [];
-      newImages.map((image) => {
-        movedImages.push({ ...image, moved: true });
-      });
-      await setNewImages([]);
-      setImages([...images, ...movedImages]);
-    }
-  };
-
   const onChange = async (imageFiles) => {
-    const newImages = [];
-    await moveNewImagesToOldSection();
-    setLoadingImages({ status: true, imgCount: imageFiles.length });
-    imageFiles.map((imageFile) => {
-      const formData = new FormData();
-      formData.append("file", imageFile.file);
-      formData.append("upload_preset", process.env.REACT_APP_CLOUDINARY_PRESET);
+    const uploadImages = [];
+    await setImages([...images, ...newImages]);
+    await setNewImages([]);
+    imageFiles.map((imageFile) => uploadImages.push(imageFile.data_url));
 
-      const callbackWrapper = async () => {
-        return await cloudinaryImageUpload(formData)
-          .then((responseData) => {
-            return responseData;
-          })
-          .catch(() => {
-            return null;
-          });
-      };
-      newImages.push({
-        src: "",
-        asyncSrcCallback: callbackWrapper,
-        data_url: imageFile.data_url,
-        moved: false,
-      });
-    });
-
-    setNewImages(newImages);
+    setNewImages(uploadImages);
   };
 
   return (
@@ -209,12 +108,7 @@ export default function DevicePhotos({ deviceData }) {
               margin: "10px 0",
             }}
           >
-            <Button
-              disabled={loadingImages.status}
-              variant="contained"
-              color="primary"
-              onClick={onImageUpload}
-            >
+            <Button variant="contained" color="primary" onClick={onImageUpload}>
               Add Photo(s)
             </Button>
           </div>
