@@ -117,11 +117,10 @@ export default function DevicePhotos({ deviceData }) {
       {newImages.length > 0 && (
         <div style={galleryContainerStyles}>
           <div style={{ width: "100%", color: "blue" }}>New Image(s)</div>
-          {newImages.map((srcOrObject, index) => (
-            <ImgWithSkeleton
-              srcOrSrcObject={srcOrObject}
-              cloudinaryUrls={cloudinaryUrls}
-              updateCloudinaryUrls={setCloudinaryUrls}
+          {newImages.map((src, index) => (
+            <Img
+              src={src}
+              uploadOptions={{ upload: true, deviceName: deviceData.name }}
               key={index}
             />
           ))}
@@ -131,13 +130,8 @@ export default function DevicePhotos({ deviceData }) {
         {newImages.length > 0 && images.length > 0 && (
           <div style={{ width: "100%", color: "blue" }}>Old Image(s)</div>
         )}
-        {images.map((srcOrObject, index) => (
-          <ImgWithSkeleton
-            srcOrSrcObject={srcOrObject}
-            cloudinaryUrls={cloudinaryUrls}
-            updateCloudinaryUrls={setCloudinaryUrls}
-            key={index}
-          />
+        {images.map((src, index) => (
+          <Img src={src} key={index} />
         ))}
       </div>
     </div>
