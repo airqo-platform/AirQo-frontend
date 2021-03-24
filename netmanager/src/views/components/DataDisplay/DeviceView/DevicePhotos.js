@@ -25,7 +25,7 @@ const Img = ({ src, uploadOptions }) => {
     const formData = new FormData();
     formData.append("file", src);
     formData.append("upload_preset", process.env.REACT_APP_CLOUDINARY_PRESET);
-    // formData.append("folder", `devices/${deviceName}`);
+    formData.append("folder", `devices/${deviceName}`);
     return await cloudinaryImageUpload(formData).then((responseData) => {
       const pictures = [responseData.secure_url];
       updateDeviceDetails(deviceName, { pictures })
