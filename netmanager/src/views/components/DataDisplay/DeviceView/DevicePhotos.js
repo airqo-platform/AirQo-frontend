@@ -9,6 +9,7 @@ import { updateMainAlert } from "redux/MainAlert/operations";
 import { updateDeviceDetails } from "views/apis/deviceRegistry";
 import BrokenImage from "assets/img/BrokenImage";
 import ConfirmDialog from "views/containers/ConfirmDialog";
+import { deleteDevicePhotos } from "views/apis/deviceRegistry";
 
 const galleryContainerStyles = {
   display: "flex",
@@ -154,6 +155,7 @@ const Img = ({ src, uploadOptions, setDelState }) => {
 };
 
 export default function DevicePhotos({ deviceData }) {
+  const dispatch = useDispatch();
   const [images, setImages] = useState(deviceData.pictures || []);
   const [newImages, setNewImages] = useState([]);
   const [photoDelState, setPhotoDelState] = useState({
@@ -169,6 +171,37 @@ export default function DevicePhotos({ deviceData }) {
     imageFiles.map((imageFile) => uploadImages.push(imageFile.data_url));
 
     setNewImages(uploadImages);
+  };
+
+  const handlePictureDeletion = async () => {
+    await setPhotoDelState({ ...photoDelState, open: false });
+    if (photoDelState.url) {
+      await deleteDevicePhotos(deviceData.name, [photoDelState.url])
+        .then((responseData) => {
+          setImages(responseData.pictures || []);
+          setNewImages([]);
+          dispatch(
+            updateMainAlert({
+              message: responseData.message,
+              show: true,
+              severity: "success",
+            })
+          );
+        })
+        .catch((err) => {
+          dispatch(
+            updateMainAlert({
+              message: "Could not delete image",
+              show: true,
+              severity: "error",
+            })
+          );
+        });
+      setPhotoDelState({
+        open: false,
+        url: null,
+      });
+    }
   };
 
   return (
@@ -225,7 +258,7 @@ export default function DevicePhotos({ deviceData }) {
             url: null,
           })
         }
-        confirm={() => {}}
+        confirm={handlePictureDeletion}
         error
       />
     </div>
