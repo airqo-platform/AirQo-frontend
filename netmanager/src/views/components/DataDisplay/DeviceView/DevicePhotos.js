@@ -8,6 +8,7 @@ import ClearIcon from "@material-ui/icons/Clear";
 import { updateMainAlert } from "redux/MainAlert/operations";
 import { updateDeviceDetails } from "views/apis/deviceRegistry";
 import BrokenImage from "assets/img/BrokenImage";
+import ConfirmDialog from "views/containers/ConfirmDialog";
 
 const galleryContainerStyles = {
   display: "flex",
@@ -42,11 +43,12 @@ const ImgLoadStatus = ({ message, error, onClose }) => {
   );
 };
 
-const Img = ({ src, uploadOptions }) => {
+const Img = ({ src, uploadOptions, setDelState }) => {
   const { upload, deviceName } = uploadOptions || {
     upload: false,
     deviceName: "",
   };
+  const [url, setUrl] = useState(src);
   const [broken, setBroken] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState(false);
@@ -76,6 +78,7 @@ const Img = ({ src, uploadOptions }) => {
     return await cloudinaryImageUpload(formData)
       .then((responseData) => {
         const pictures = [responseData.secure_url];
+        setUrl(responseData.secure_url);
         updateDeviceDetails(deviceName, { pictures })
           .then((responseData) => {
             dispatch(
@@ -125,7 +128,15 @@ const Img = ({ src, uploadOptions }) => {
       </div>
       <div className={"image-controls"}>
         {!uploading && !uploadError && (
-          <DeleteOutlineIcon className={"image-del"} />
+          <DeleteOutlineIcon
+            className={"image-del"}
+            onClick={() =>
+              setDelState({
+                open: true,
+                url: url,
+              })
+            }
+          />
         )}
         {uploading && (
           <ImgLoadStatus message={"uploading image..."} onClose={closeLoader} />
@@ -145,6 +156,10 @@ const Img = ({ src, uploadOptions }) => {
 export default function DevicePhotos({ deviceData }) {
   const [images, setImages] = useState(deviceData.pictures || []);
   const [newImages, setNewImages] = useState([]);
+  const [photoDelState, setPhotoDelState] = useState({
+    open: false,
+    url: null,
+  });
   const maxNumber = 69;
 
   const onChange = async (imageFiles) => {
@@ -186,6 +201,7 @@ export default function DevicePhotos({ deviceData }) {
             <Img
               src={src}
               uploadOptions={{ upload: true, deviceName: deviceData.name }}
+              setDelState={setPhotoDelState}
               key={index}
             />
           ))}
@@ -196,9 +212,22 @@ export default function DevicePhotos({ deviceData }) {
           <div style={{ width: "100%", color: "blue" }}>Old Image(s)</div>
         )}
         {images.map((src, index) => (
-          <Img src={src} key={index} />
+          <Img src={src} setDelState={setPhotoDelState} key={index} />
         ))}
       </div>
+      <ConfirmDialog
+        open={photoDelState.open}
+        title={"Delete photo?"}
+        message={`Are you sure delete this ${photoDelState.url} photo?`}
+        close={() =>
+          setPhotoDelState({
+            open: false,
+            url: null,
+          })
+        }
+        confirm={() => {}}
+        error
+      />
     </div>
   );
 }
