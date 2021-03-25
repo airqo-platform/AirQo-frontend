@@ -99,3 +99,12 @@ export const deleteComponentApi = async (deviceName, componentName) => {
     })
     .then((response) => response.data);
 };
+
+export const deleteDevicePhotos = async (deviceName, pictures) => {
+  return await axios
+    .delete(constants.DELETE_PHOTO, {
+      params: { device: deviceName },
+      data: { photos: pictures },
+    })
+    .then((response) => response.data);
+};
