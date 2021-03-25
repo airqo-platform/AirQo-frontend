@@ -28,6 +28,7 @@ import Tooltip from "@material-ui/core/Tooltip";
 import EditIcon from "@material-ui/icons/EditOutlined";
 import DeleteIcon from "@material-ui/icons/DeleteOutlineOutlined";
 import LabelledSelect from "../../CustomSelects/LabelledSelect";
+import ConfirmDialog from "views/containers/ConfirmDialog";
 
 const TableTitle = ({ deviceName }) => {
   return (
@@ -815,44 +816,14 @@ export default function DeviceComponents({ deviceName }) {
           />
         )}
       </div>
-      <Dialog
+      <ConfirmDialog
         open={delState.open}
-        onClose={() => setDelState({ open: false, data: {} })}
-        aria-labelledby="form-dialog-title-del"
-        aria-describedby="form-dialog-description"
-      >
-        <DialogTitle id="form-dialog-title-del">Delete a device</DialogTitle>
-
-        <DialogContent>
-          Are you sure you want to delete component <b>{delState.data.name}</b>?
-        </DialogContent>
-
-        <DialogActions>
-          <Grid
-            container
-            alignItems="flex-end"
-            alignContent="flex-end"
-            justify="flex-end"
-          >
-            <Button
-              variant="contained"
-              type="button"
-              onClick={() => setDelState({ open: false, data: {} })}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="contained"
-              type="submit"
-              onClick={handleComponentDelete}
-              style={{ margin: "0 15px", background: "#c00", color: "white" }}
-            >
-              Delete
-            </Button>
-          </Grid>
-          <br />
-        </DialogActions>
-      </Dialog>
+        title={"Delete a device component?"}
+        message={`Are you sure you want to delete this ${delState.data.name} component`}
+        close={() => setDelState({ open: false, data: {} })}
+        confirm={handleComponentDelete}
+        error
+      />
     </>
   );
 }
