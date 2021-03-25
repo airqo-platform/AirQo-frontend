@@ -13,7 +13,7 @@ const ImagePreview = ({ open, src, close }) => {
       maxWidth={"lg"}
     >
       <div className={"full-image-preview"}>
-        <img className={"image"} src={src} alt={"image"} />
+        <img className={"image"} src={src || ""} alt={"image"} />
       </div>
     </Dialog>
   );

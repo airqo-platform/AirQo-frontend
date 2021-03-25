@@ -10,6 +10,7 @@ import { updateDeviceDetails } from "views/apis/deviceRegistry";
 import BrokenImage from "assets/img/BrokenImage";
 import ConfirmDialog from "views/containers/ConfirmDialog";
 import { deleteDevicePhotos } from "views/apis/deviceRegistry";
+import ImagePreview from "views/containers/ImagePreview";
 
 const galleryContainerStyles = {
   display: "flex",
@@ -44,7 +45,7 @@ const ImgLoadStatus = ({ message, error, onClose }) => {
   );
 };
 
-const Img = ({ src, uploadOptions, setDelState }) => {
+const Img = ({ src, uploadOptions, setDelState, setPreviewState }) => {
   const { upload, deviceName } = uploadOptions || {
     upload: false,
     deviceName: "",
@@ -123,6 +124,7 @@ const Img = ({ src, uploadOptions, setDelState }) => {
             alt={"image"}
             // style={{background: `url(${src})`}}
             onError={() => setBroken(true)}
+            onClick={() => setPreviewState({ open: true, url: url })}
           />
         )}
         {(!src || broken) && <BrokenImage className={"broken-image"} />}
@@ -159,6 +161,10 @@ export default function DevicePhotos({ deviceData }) {
   const [images, setImages] = useState(deviceData.pictures || []);
   const [newImages, setNewImages] = useState([]);
   const [photoDelState, setPhotoDelState] = useState({
+    open: false,
+    url: null,
+  });
+  const [photoPreview, setPhotoPreview] = useState({
     open: false,
     url: null,
   });
@@ -235,6 +241,7 @@ export default function DevicePhotos({ deviceData }) {
               src={src}
               uploadOptions={{ upload: true, deviceName: deviceData.name }}
               setDelState={setPhotoDelState}
+              setPreviewState={setPhotoPreview}
               key={index}
             />
           ))}
@@ -245,7 +252,12 @@ export default function DevicePhotos({ deviceData }) {
           <div style={{ width: "100%", color: "blue" }}>Old Image(s)</div>
         )}
         {images.map((src, index) => (
-          <Img src={src} setDelState={setPhotoDelState} key={index} />
+          <Img
+            src={src}
+            setDelState={setPhotoDelState}
+            setPreviewState={setPhotoPreview}
+            key={index}
+          />
         ))}
       </div>
       <ConfirmDialog
@@ -260,6 +272,11 @@ export default function DevicePhotos({ deviceData }) {
         }
         confirm={handlePictureDeletion}
         error
+      />
+      <ImagePreview
+        open={photoPreview.open}
+        src={photoPreview.url}
+        close={() => setPhotoPreview({ open: false, url: null })}
       />
     </div>
   );

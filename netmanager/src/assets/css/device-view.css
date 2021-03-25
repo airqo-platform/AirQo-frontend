@@ -17,6 +17,7 @@
 .img-wrapper {
     height: 85%;
     padding: 1px 0;
+    cursor: pointer;
 }
 
 .image {
