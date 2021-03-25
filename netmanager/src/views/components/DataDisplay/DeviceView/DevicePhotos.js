@@ -28,6 +28,11 @@ const ImgLoadStatus = ({ message, error, onClose }) => {
         justifyContent: "space-between",
         padding: "0 10px",
         textTransform: "capitalize",
+        fontFamily: "Roboto, Helvetica, Arial, sans-serif",
+        fontSize: "12px",
+        fontWeight: 400,
+        lineHeight: "18px",
+        letterSpacing: "-0.04px",
         ...moreStyles,
       }}
     >

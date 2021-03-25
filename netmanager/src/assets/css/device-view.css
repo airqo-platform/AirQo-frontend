@@ -39,6 +39,10 @@
     cursor: pointer;
 }
 
+.d-img {
+    transform: scale(0.6);
+}
+
 .d-img:hover {
     cursor: pointer
 }
