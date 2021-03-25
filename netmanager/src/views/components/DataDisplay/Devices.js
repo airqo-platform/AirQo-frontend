@@ -193,9 +193,10 @@ const createDeviceColumns = (history, setDelState) => [
         </Tooltip>
         <Tooltip title="Delete">
           <DeleteIcon
-            className={"hover-red"}
-            style={{ margin: "0 5px" }}
-            onClick={() => setDelState({ open: true, name: rowData.name })}
+            // className={"hover-red"}
+            style={{ margin: "0 5px", cursor: "not-allowed", color: "grey" }}
+            // disable deletion for now
+            // onClick={() => setDelState({ open: true, name: rowData.name })}
           />
         </Tooltip>
       </div>
