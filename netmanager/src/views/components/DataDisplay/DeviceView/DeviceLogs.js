@@ -33,6 +33,7 @@ import { CreatableLabelledSelect } from "views/components/CustomSelects/Labelled
 import Tooltip from "@material-ui/core/Tooltip";
 import EditIcon from "@material-ui/icons/EditOutlined";
 import DeleteIcon from "@material-ui/icons/DeleteOutlineOutlined";
+import ConfirmDialog from "views/containers/ConfirmDialog";
 
 const titleStyles = {
   fontFamily: "Roboto, Helvetica, Arial, sans-serif",
@@ -659,42 +660,14 @@ export default function DeviceLogs({ deviceName, deviceLocation }) {
           />
         )}
       </div>
-      <Dialog
+      <ConfirmDialog
         open={delState.open}
-        onClose={() => setDelState({ open: false, data: {} })}
-        aria-labelledby="form-dialog-title-del"
-        aria-describedby="form-dialog-description"
-      >
-        <DialogTitle id="form-dialog-title-del">Delete a device</DialogTitle>
-
-        <DialogContent>Are you sure you want to delete this log?</DialogContent>
-
-        <DialogActions>
-          <Grid
-            container
-            alignItems="flex-end"
-            alignContent="flex-end"
-            justify="flex-end"
-          >
-            <Button
-              variant="contained"
-              type="button"
-              onClick={() => setDelState({ open: false, data: {} })}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="contained"
-              type="submit"
-              onClick={handleLogDelete}
-              style={{ margin: "0 15px", background: "#c00", color: "white" }}
-            >
-              Delete
-            </Button>
-          </Grid>
-          <br />
-        </DialogActions>
-      </Dialog>
+        title={"Delete a maintenance log?"}
+        message={"Are you sure you want to delete this maintenance log?"}
+        close={() => setDelState({ open: false, data: {} })}
+        confirm={handleLogDelete}
+        error
+      />
     </>
   );
 }
