@@ -34,6 +34,7 @@ import { loadLocationsData } from "redux/LocationRegistry/operations";
 import { updateMainAlert } from "redux/MainAlert/operations";
 import { updateDeviceBackUrl } from "redux/Urls/operations";
 import CustomMaterialTable from "../Table/CustomMaterialTable";
+import ConfirmDialog from "views/containers/ConfirmDialog";
 
 // css
 import "assets/css/device-registry.css";
@@ -192,9 +193,10 @@ const createDeviceColumns = (history, setDelState) => [
         </Tooltip>
         <Tooltip title="Delete">
           <DeleteIcon
-            className={"hover-red"}
-            style={{ margin: "0 5px" }}
-            onClick={() => setDelState({ open: true, name: rowData.name })}
+            // className={"hover-red"}
+            style={{ margin: "0 5px", cursor: "not-allowed", color: "grey" }}
+            // disable deletion for now
+            // onClick={() => setDelState({ open: true, name: rowData.name })}
           />
         </Tooltip>
       </div>
@@ -418,6 +420,7 @@ const DevicesTable = (props) => {
         .then(() => {
           delete devices[delDevice.name];
           setDeviceList(Object.values(devices));
+          dispatch(loadDevicesData());
           dispatch(
             updateMainAlert({
               show: true,
@@ -517,44 +520,14 @@ const DevicesTable = (props) => {
         devices={deviceList}
         setDevices={setDeviceList}
       />
-
-      <Dialog
+      <ConfirmDialog
         open={delDevice.open}
-        aria-labelledby="form-dialog-title-del"
-        aria-describedby="form-dialog-description"
-      >
-        <DialogTitle id="form-dialog-title-del">Delete a device</DialogTitle>
-
-        <DialogContent>
-          Are you sure you want to delete device <b>{delDevice.name}</b>?
-        </DialogContent>
-
-        <DialogActions>
-          <Grid
-            container
-            alignItems="flex-end"
-            alignContent="flex-end"
-            justify="flex-end"
-          >
-            <Button
-              variant="contained"
-              type="button"
-              onClick={() => setDelDevice({ open: false, name: "" })}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="contained"
-              type="submit"
-              onClick={handleDeleteDevice}
-              style={{ margin: "0 15px", background: "#c00", color: "white" }}
-            >
-              Delete
-            </Button>
-          </Grid>
-          <br />
-        </DialogActions>
-      </Dialog>
+        title={"Delete a device?"}
+        message={`Are you sure you want to delete this ${delDevice.name} device`}
+        close={() => setDelDevice({ open: false, name: "" })}
+        confirm={handleDeleteDevice}
+        error
+      />
     </div>
   );
 };

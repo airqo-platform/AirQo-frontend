@@ -13,7 +13,6 @@ import {
   Typography,
   Divider,
   Button,
-  LinearProgress,
 } from "@material-ui/core";
 import { cloudinaryImageUpload } from "views/apis/cloudinary";
 import { updateMainAlert } from "redux/MainAlert/operations";
@@ -128,6 +127,7 @@ const AccountProfile = (props) => {
       const formData = new FormData();
       formData.append("file", croppedImageDataUrl);
       formData.append("upload_preset", process.env.REACT_APP_CLOUDINARY_PRESET);
+      formData.append("folder", "profiles");
 
       setProfileUploading(true);
       await cloudinaryImageUpload(formData)
