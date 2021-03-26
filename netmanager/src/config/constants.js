@@ -118,7 +118,7 @@ const prodConfig = {
     "http://34.78.78.202:30002/api/v1/devices/update/components",
   DELETE_COMPONENT:
     "http://34.78.78.202:30002/api/v1/devices/delete/components",
-  DELETE_PHOTO: "http://34.78.78.202:30002/api/v1/devices/photos",
+  DELETE_DEVICE_PHOTO: "http://34.78.78.202:30002/api/v1/devices/photos",
 };
 
 const devConfig = {
@@ -234,7 +234,7 @@ const devConfig = {
     "http://localhost:3000/api/v1/devices/ts/activity/delete",
   UPDATE_COMPONENT: "http://localhost:3000/api/v1/devices/update/components",
   DELETE_COMPONENT: "http://localhost:3000/api/v1/devices/delete/components",
-  DELETE_PHOTO: "http://localhost:3000/api/v1/devices/photos",
+  DELETE_DEVICE_PHOTO: "http://localhost:3000/api/v1/devices/photos",
 };
 
 const stageConfig = {
@@ -355,7 +355,7 @@ const stageConfig = {
     "http://34.78.78.202:31002/api/v1/devices/update/components",
   DELETE_COMPONENT:
     "http://34.78.78.202:31002/api/v1/devices/delete/components",
-  DELETE_PHOTO: "http://34.78.78.202:31002/api/v1/devices/photos",
+  DELETE_DEVICE_PHOTO: "http://34.78.78.202:31002/api/v1/devices/photos",
 };
 
 const defaultConfig = {
