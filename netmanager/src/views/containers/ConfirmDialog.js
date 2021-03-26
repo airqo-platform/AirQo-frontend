@@ -29,7 +29,7 @@ const ConfirmDialog = ({
         <div className={"confirm-dialog-controls"}>
           <Button
             variant="contained"
-            style={{ background: "#c6d1db" }}
+            // style={{ background: "#c6d1db" }}
             onClick={close}
           >
             Cancel

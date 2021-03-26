@@ -184,7 +184,11 @@ export default function DevicePhotos({ deviceData }) {
     if (photoDelState.url) {
       await deleteDevicePhotos(deviceData.name, [photoDelState.url])
         .then((responseData) => {
-          setImages(responseData.pictures || []);
+          setImages(
+            (responseData.updatedDevice &&
+              responseData.updatedDevice.pictures) ||
+              []
+          );
           setNewImages([]);
           dispatch(
             updateMainAlert({
