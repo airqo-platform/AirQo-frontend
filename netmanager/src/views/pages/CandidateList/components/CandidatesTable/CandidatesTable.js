@@ -1,5 +1,5 @@
 /* eslint-disable */
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import clsx from "clsx";
 import PropTypes from "prop-types";
 import PerfectScrollbar from "react-perfect-scrollbar";
@@ -20,7 +20,7 @@ import {
 import { Alert, AlertTitle } from "@material-ui/lab";
 
 import { Check} from "@material-ui/icons";
-import { getInitials } from "helpers";
+import { getInitials } from "utils/users";
 import CandidateEditForm from "views/pages/UserList/components/UserEditForm";
 import CustomMaterialTable from "views/components/Table/CustomMaterialTable";
 import usersStateConnector from "views/stateConnectors/usersStateConnector";
