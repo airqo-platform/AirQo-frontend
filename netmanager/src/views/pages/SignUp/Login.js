@@ -117,7 +117,7 @@ class Login extends Component {
             style={{
               padding: "1em",
             }}
-          ></div>
+          />
           <div
             className="col s8"
             style={{ backgroundColor: "#fff", padding: "1em" }}
