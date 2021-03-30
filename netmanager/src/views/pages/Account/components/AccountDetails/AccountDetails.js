@@ -17,8 +17,9 @@ import {
 import { useOrgData } from "redux/Join/selectors";
 import { updateAuthenticatedUserApi } from "views/apis/authService";
 import Alert from "@material-ui/lab/Alert";
-import { CircularLoader } from "../../../../components/Loader/CircularLoader";
+import { CircularLoader } from "views/components/Loader/CircularLoader";
 import { updateAuthenticatedUserSuccess } from "redux/Join/actions";
+import usersStateConnector from "views/stateConnectors/usersStateConnector";
 
 const useStyles = makeStyles((theme) => ({
   container: {
@@ -204,4 +205,4 @@ AccountDetails.propTypes = {
   mappedAuth: PropTypes.object.isRequired,
 };
 
-export default AccountDetails;
+export default usersStateConnector(AccountDetails);

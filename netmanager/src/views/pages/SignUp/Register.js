@@ -5,16 +5,13 @@ import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { registerCandidate } from "redux/Join/actions";
 import classnames from "classnames";
-import TextField from "@material-ui/core/TextField";
-import FormControlLabel from "@material-ui/core/FormControlLabel";
-import Checkbox from "@material-ui/core/Checkbox";
-import countries from "utils/countries";
+import TextField from "@material-ui/core/TextField";;
 import categories from "utils/categories";
 import { Alert, AlertTitle } from "@material-ui/lab";
-import { withStyles, InputLabel, Typography } from "@material-ui/core";
-import { Input } from "@material-ui/core";
+import { withStyles } from "@material-ui/core";
 import { isEmpty, isEqual, omit } from "underscore";
 import { isFormFullyFilled } from "./utils";
+import usrsStateConnector from "views/stateConnectors/usersStateConnector";
 
 const styles = (theme) => ({
   root: {
@@ -397,20 +394,6 @@ class Register extends Component {
                 <span className="red-text">{errors.description}</span>
               </div>
 
-              {/*<div>*/}
-              {/*  <Typography color="textSecondary" variant="body1">*/}
-              {/*    <Link*/}
-              {/*      color="primary"*/}
-              {/*      component={Link}*/}
-              {/*      to="#"*/}
-              {/*      underline="always"*/}
-              {/*      variant="h6"*/}
-              {/*    >*/}
-              {/*      Terms and Conditions*/}
-              {/*    </Link>*/}
-              {/*  </Typography>*/}
-              {/*</div>*/}
-
               <div className="col s12" style={{ paddingLeft: "11.250px" }}>
                 {this.state.isChecked ? (
                   <button
@@ -458,6 +441,6 @@ const mapStateToProps = (state) => ({
 });
 
 // export default Register;
-export default connect(mapStateToProps, { registerCandidate })(
+export default usrsStateConnector(connect(mapStateToProps, { registerCandidate })(
   withRouter(withStyles(styles, { withTheme: true })(Register))
-);
+));

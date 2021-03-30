@@ -16,7 +16,7 @@ const Footer = (props) => {
   const classes = useStyles();
 
   return (
-    <div {...rest} className={clsx(classes.root, className)}>
+    <footer {...rest} className={clsx(classes.root, className)}>
       <Typography variant="body1">
         &copy;{" "}
         <Link component="a" href="https://airqo.net" target="_blank">
@@ -25,7 +25,7 @@ const Footer = (props) => {
         . 2020
       </Typography>
       <Typography variant="caption">Air Quality Initiative</Typography>
-    </div>
+    </footer>
   );
 };
 
