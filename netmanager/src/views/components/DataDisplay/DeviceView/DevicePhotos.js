@@ -1,136 +1,87 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import ImageUploading from "react-images-uploading";
-import { makeStyles } from "@material-ui/styles";
 import { Button } from "@material-ui/core";
-import { PhotoOutlined } from "@material-ui/icons";
-import { cloudinaryImageUpload } from "../../../apis/cloudinary";
+import { cloudinaryImageUpload } from "views/apis/cloudinary";
+import DeleteOutlineIcon from "@material-ui/icons/DeleteOutline";
+import ClearIcon from "@material-ui/icons/Clear";
 import { updateMainAlert } from "redux/MainAlert/operations";
-import { updateDeviceDetails } from "../../../apis/deviceRegistry";
+import { updateDeviceDetails } from "views/apis/deviceRegistry";
 import BrokenImage from "assets/img/BrokenImage";
+import ConfirmDialog from "views/containers/ConfirmDialog";
+import { deleteDevicePhotos } from "views/apis/deviceRegistry";
+import ImagePreview from "views/containers/ImagePreview";
 
 const galleryContainerStyles = {
   display: "flex",
   flexWrap: "wrap",
-  alignItems: "center",
-  justifyContent: "center",
 };
 
-const useStyles = makeStyles((theme) => ({
-  root: {
-    fontSize: "100px",
-  },
-}));
-
-const ImgWithSkeleton = ({
-  srcOrSrcObject,
-  cloudinaryUrls,
-  updateCloudinaryUrls,
-}) => {
-  const classes = useStyles();
-  const unpackSrcObject = (srcOrSrcObject) => {
-    if (typeof srcOrSrcObject === "string") {
-      return [srcOrSrcObject, () => {}];
-    }
-    if (srcOrSrcObject.moved) {
-      return [srcOrSrcObject.data_url, srcOrSrcObject.asyncSrcCallback];
-    }
-    return [srcOrSrcObject.src, srcOrSrcObject.asyncSrcCallback];
-  };
-  const poison = "poison";
-  const [src, asyncSrcCallback] = unpackSrcObject(srcOrSrcObject);
-  const [newSrc, setNewSrc] = useState(src);
-  const [response, setResponse] = useState(poison);
-  const [loaded, setLoaded] = useState(false);
-  const [broken, setBroken] = useState(false);
-  const [previewMode, setPreviewMode] = useState(false);
-
-  useEffect(() => {
-    const call = async () => {
-      const responseData = await asyncSrcCallback();
-
-      if (responseData) {
-        setNewSrc(srcOrSrcObject.data_url);
-        setResponse((responseData && responseData.secure_url) || null);
-        return;
-      }
-      setResponse((responseData && responseData.secure_url) || null);
-      setBroken(true);
-      setLoaded(true);
-    };
-
-    if (typeof srcOrSrcObject === "object" && !srcOrSrcObject.moved) {
-      call();
-    }
-  }, []);
-
-  useEffect(() => {
-    if (response !== poison) {
-      updateCloudinaryUrls([...cloudinaryUrls, response]);
-    }
-  }, [response]);
-
-  const onLoad = () => {
-    if (newSrc === "") {
-      return;
-    }
-    return setLoaded(true);
-  };
-
-  const onError = () => {
-    if (newSrc) {
-      setBroken(true);
-      setLoaded(true);
-    }
-  };
-
+const ImgLoadStatus = ({ message, error, onClose }) => {
+  const moreStyles = error
+    ? { background: "rgb(252, 235, 234)", color: "rgb(91, 22, 21)" }
+    : { background: "rgb(232, 243, 252)", color: "rgb(12, 54, 91)" };
   return (
     <div
-      className={`device-img-skeleton-wrapper ${
-        loaded && !broken && previewMode ? "img-wrapper-preview" : ""
-      }`}
-      onClick={() => setPreviewMode(!previewMode)}
+      style={{
+        display: "flex",
+        width: "100%",
+        height: "100%",
+        alignItems: "center",
+        justifyContent: "space-between",
+        padding: "0 10px",
+        textTransform: "capitalize",
+        fontFamily: "Roboto, Helvetica, Arial, sans-serif",
+        fontSize: "12px",
+        fontWeight: 400,
+        lineHeight: "18px",
+        letterSpacing: "-0.04px",
+        ...moreStyles,
+      }}
     >
-      <img
-        className={`device-img ${
-          loaded && !broken && previewMode ? "device-img-preview" : ""
-        }`}
-        src={newSrc}
-        style={{ display: loaded && !broken ? "inline" : "none" }}
-        onLoad={onLoad}
-        onError={onError}
-      />
-      {broken && <BrokenImage className={"broken-image"} />}
-      <div
-        className={loaded ? "skeleton-hidden" : "device-img-skeleton"}
-        style={{ width: "300px", height: "100%" }}
-      >
-        <PhotoOutlined className={classes.root} />
-      </div>
+      {message}
+      <ClearIcon className={"d-img"} onClick={onClose} />
     </div>
   );
 };
 
-export default function DevicePhotos({ deviceData }) {
+const Img = ({ src, uploadOptions, setDelState, setPreviewState }) => {
+  const { upload, deviceName } = uploadOptions || {
+    upload: false,
+    deviceName: "",
+  };
+  const [url, setUrl] = useState(src);
+  const [broken, setBroken] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState(false);
   const dispatch = useDispatch();
-  const [images, setImages] = useState(deviceData.pictures || []);
-  const [newImages, setNewImages] = useState([]);
-  const [cloudinaryUrls, setCloudinaryUrls] = useState([]);
-  const [loadingImages, setLoadingImages] = useState({
-    status: false,
-    imgCount: 0,
-  });
-  const maxNumber = 69;
 
-  useEffect(() => {
-    if (
-      loadingImages.imgCount > 0 &&
-      cloudinaryUrls.length >= loadingImages.imgCount
-    ) {
-      setLoadingImages({ status: false, imgCount: 0 });
-      const pictures = cloudinaryUrls.filter((url) => url !== null);
-      pictures.length > 0 &&
-        updateDeviceDetails(deviceData.name, { pictures })
+  const closeLoader = () => {
+    setUploading(false);
+    setUploadError(false);
+  };
+
+  const showUploading = () => {
+    setUploading(true);
+    setUploadError(false);
+  };
+
+  const showUploadError = () => {
+    setUploading(false);
+    setUploadError(true);
+  };
+
+  const uploadImage = async (src) => {
+    const formData = new FormData();
+    formData.append("file", src);
+    formData.append("upload_preset", process.env.REACT_APP_CLOUDINARY_PRESET);
+    formData.append("folder", `devices/${deviceName}`);
+    showUploading();
+    return await cloudinaryImageUpload(formData)
+      .then((responseData) => {
+        const pictures = [responseData.secure_url];
+        setUrl(responseData.secure_url);
+        updateDeviceDetails(deviceName, { pictures })
           .then((responseData) => {
             dispatch(
               updateMainAlert({
@@ -139,6 +90,7 @@ export default function DevicePhotos({ deviceData }) {
                 severity: "success",
               })
             );
+            closeLoader();
           })
           .catch(() => {
             dispatch(
@@ -148,48 +100,118 @@ export default function DevicePhotos({ deviceData }) {
                 severity: "error",
               })
             );
+            showUploadError();
           });
-    }
-  }, [cloudinaryUrls]);
-
-  const moveNewImagesToOldSection = async () => {
-    if (newImages.length > 0) {
-      const movedImages = [];
-      newImages.map((image) => {
-        movedImages.push({ ...image, moved: true });
+      })
+      .catch(() => {
+        showUploadError();
       });
-      await setNewImages([]);
-      setImages([...images, ...movedImages]);
-    }
   };
 
+  useEffect(() => {
+    if (upload) {
+      uploadImage(src);
+    }
+  }, []);
+
+  return (
+    <div className={"device-image-wrapper"}>
+      <div className={"img-wrapper"}>
+        {!broken && src && (
+          <img
+            className={"image"}
+            src={src}
+            alt={"image"}
+            // style={{background: `url(${src})`}}
+            onError={() => setBroken(true)}
+            onClick={() => setPreviewState({ open: true, url: url })}
+          />
+        )}
+        {(!src || broken) && <BrokenImage className={"broken-image"} />}
+      </div>
+      <div className={"image-controls"}>
+        {!uploading && !uploadError && (
+          <DeleteOutlineIcon
+            className={"image-del"}
+            onClick={() =>
+              setDelState({
+                open: true,
+                url: url,
+              })
+            }
+          />
+        )}
+        {uploading && (
+          <ImgLoadStatus message={"uploading image..."} onClose={closeLoader} />
+        )}
+        {uploadError && (
+          <ImgLoadStatus
+            message={"upload failed"}
+            error
+            onClose={closeLoader}
+          />
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default function DevicePhotos({ deviceData }) {
+  const dispatch = useDispatch();
+  const [images, setImages] = useState(deviceData.pictures || []);
+  const [newImages, setNewImages] = useState([]);
+  const [photoDelState, setPhotoDelState] = useState({
+    open: false,
+    url: null,
+  });
+  const [photoPreview, setPhotoPreview] = useState({
+    open: false,
+    url: null,
+  });
+  const maxNumber = 69;
+
   const onChange = async (imageFiles) => {
-    const newImages = [];
-    await moveNewImagesToOldSection();
-    setLoadingImages({ status: true, imgCount: imageFiles.length });
-    imageFiles.map((imageFile) => {
-      const formData = new FormData();
-      formData.append("file", imageFile.file);
-      formData.append("upload_preset", process.env.REACT_APP_CLOUDINARY_PRESET);
+    const uploadImages = [];
+    await setImages([...images, ...newImages]);
+    await setNewImages([]);
+    imageFiles.map((imageFile) => uploadImages.push(imageFile.data_url));
 
-      const callbackWrapper = async () => {
-        return await cloudinaryImageUpload(formData)
-          .then((responseData) => {
-            return responseData;
-          })
-          .catch(() => {
-            return null;
-          });
-      };
-      newImages.push({
-        src: "",
-        asyncSrcCallback: callbackWrapper,
-        data_url: imageFile.data_url,
-        moved: false,
+    setNewImages(uploadImages);
+  };
+
+  const handlePictureDeletion = async () => {
+    await setPhotoDelState({ ...photoDelState, open: false });
+    if (photoDelState.url) {
+      await deleteDevicePhotos(deviceData.name, [photoDelState.url])
+        .then((responseData) => {
+          setImages(
+            (responseData.updatedDevice &&
+              responseData.updatedDevice.pictures) ||
+              []
+          );
+          setNewImages([]);
+          dispatch(
+            updateMainAlert({
+              message: responseData.message,
+              show: true,
+              severity: "success",
+            })
+          );
+        })
+        .catch((err) => {
+          dispatch(
+            updateMainAlert({
+              message: "Could not delete image",
+              show: true,
+              severity: "error",
+            })
+          );
+        });
+      setPhotoDelState({
+        open: false,
+        url: null,
       });
-    });
-
-    setNewImages(newImages);
+    }
   };
 
   return (
@@ -209,12 +231,7 @@ export default function DevicePhotos({ deviceData }) {
               margin: "10px 0",
             }}
           >
-            <Button
-              disabled={loadingImages.status}
-              variant="contained"
-              color="primary"
-              onClick={onImageUpload}
-            >
+            <Button variant="contained" color="primary" onClick={onImageUpload}>
               Add Photo(s)
             </Button>
           </div>
@@ -223,11 +240,12 @@ export default function DevicePhotos({ deviceData }) {
       {newImages.length > 0 && (
         <div style={galleryContainerStyles}>
           <div style={{ width: "100%", color: "blue" }}>New Image(s)</div>
-          {newImages.map((srcOrObject, index) => (
-            <ImgWithSkeleton
-              srcOrSrcObject={srcOrObject}
-              cloudinaryUrls={cloudinaryUrls}
-              updateCloudinaryUrls={setCloudinaryUrls}
+          {newImages.map((src, index) => (
+            <Img
+              src={src}
+              uploadOptions={{ upload: true, deviceName: deviceData.name }}
+              setDelState={setPhotoDelState}
+              setPreviewState={setPhotoPreview}
               key={index}
             />
           ))}
@@ -237,15 +255,33 @@ export default function DevicePhotos({ deviceData }) {
         {newImages.length > 0 && images.length > 0 && (
           <div style={{ width: "100%", color: "blue" }}>Old Image(s)</div>
         )}
-        {images.map((srcOrObject, index) => (
-          <ImgWithSkeleton
-            srcOrSrcObject={srcOrObject}
-            cloudinaryUrls={cloudinaryUrls}
-            updateCloudinaryUrls={setCloudinaryUrls}
+        {images.map((src, index) => (
+          <Img
+            src={src}
+            setDelState={setPhotoDelState}
+            setPreviewState={setPhotoPreview}
             key={index}
           />
         ))}
       </div>
+      <ConfirmDialog
+        open={photoDelState.open}
+        title={"Delete photo?"}
+        message={`Are you sure delete this ${photoDelState.url} photo?`}
+        close={() =>
+          setPhotoDelState({
+            open: false,
+            url: null,
+          })
+        }
+        confirm={handlePictureDeletion}
+        error
+      />
+      <ImagePreview
+        open={photoPreview.open}
+        src={photoPreview.url}
+        close={() => setPhotoPreview({ open: false, url: null })}
+      />
     </div>
   );
 }

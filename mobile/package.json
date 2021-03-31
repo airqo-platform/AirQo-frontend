@@ -19,22 +19,33 @@
     "@angular/forms": "5.2.11",
     "@angular/platform-browser": "5.2.11",
     "@angular/platform-browser-dynamic": "5.2.11",
+    "@ionic-native/app-rate": "^4.20.0",
+    "@ionic-native/camera": "^4.20.0",
     "@ionic-native/core": "4.20.0",
+    "@ionic-native/device": "^4.20.0",
+    "@ionic-native/geolocation": "^4.20.0",
+    "@ionic-native/network": "^4.20.0",
+    "@ionic-native/onesignal": "^4.20.0",
+    "@ionic-native/social-sharing": "^4.20.0",
     "@ionic-native/splash-screen": "4.20.0",
+    "@ionic-native/sqlite": "^4.20.0",
     "@ionic-native/status-bar": "4.20.0",
     "@ionic/storage": "2.2.0",
-    "cordova-android": "^8.1.0",
+    "chart.js": "^2.9.3",
+    "cordova-plugin-camera-preview": "^0.12.0",
     "cordova-plugin-dialogs": "^2.0.2",
     "cordova-plugin-nativestorage": "^2.3.2",
     "es6-promise-plugin": "^4.2.2",
     "ionic-angular": "3.9.9",
     "ionicons": "3.0.0",
+    "leaflet": "^1.7.1",
     "rxjs": "5.5.11",
     "sw-toolbox": "3.6.0",
     "zone.js": "0.8.29"
   },
   "devDependencies": {
-    "@ionic/app-scripts": "3.2.4",
+    "@ionic/app-scripts": "^3.2.4",
+    "cordova-android": "^9.0.0",
     "cordova-plugin-apprate": "^1.5.0",
     "cordova-plugin-device": "^2.0.3",
     "cordova-plugin-geolocation": "^4.0.2",
@@ -44,7 +55,7 @@
     "cordova-plugin-splashscreen": "5.0.2",
     "cordova-plugin-statusbar": "^2.4.2",
     "cordova-plugin-x-socialsharing": "^5.6.3",
-    "cordova-sqlite-storage": "^4.0.0",
+    "cordova-sqlite-storage": "^5.1.0",
     "typescript": "2.6.2"
   },
   "description": "An Ionic project",
@@ -56,18 +67,18 @@
         "ANDROID_SUPPORT_ANNOTATIONS_VERSION": "27.+"
       },
       "cordova-plugin-ionic-keyboard": {},
-      "cordova-sqlite-storage": {},
-      "cordova-plugin-device": {},
       "cordova-plugin-x-socialsharing": {
         "ANDROID_SUPPORT_V4_VERSION": "24.1.1+",
         "PHOTO_LIBRARY_ADD_USAGE_DESCRIPTION": "This app requires photo library access to function properly.",
         "PHOTO_LIBRARY_USAGE_DESCRIPTION": "This app requires photo library access to function properly."
       },
-      "cordova-plugin-network-information": {},
       "cordova-plugin-apprate": {},
       "cordova-plugin-geolocation": {
-        "GEOLOCATION_USAGE_DESCRIPTION": "To locate you so as to provide readings relevant to your area"
-      }
+        "GEOLOCATION_USAGE_DESCRIPTION": "To provide you with accurate reading of Air Quality in your area"
+      },
+      "cordova-sqlite-storage": {},
+      "cordova-plugin-network-information": {},
+      "cordova-plugin-device": {}
     },
     "platforms": [
       "android"

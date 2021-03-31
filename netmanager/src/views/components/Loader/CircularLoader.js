@@ -45,4 +45,20 @@ CircularLoader.propTypes = {
   size: PropTypes.number,
 };
 
+export const LargeCircularLoader = ({ loading, size, height }) => {
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        width: "100%",
+        height: height || "100vh",
+      }}
+    >
+      <CircularLoader loading={loading} size={size} />
+    </div>
+  );
+};
+
 export default CircularLoader;

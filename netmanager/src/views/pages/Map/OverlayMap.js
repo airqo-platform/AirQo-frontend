@@ -206,7 +206,7 @@ export const OverlayMap = ({
             .addTo(map);
         })
       }
-      <Filter fetchFilteredData={monitoringSiteData.features} />
+      <Filter fetchFilteredData={(m) => monitoringSiteData.features} />
       {map && (
         <MapToggleController
           controls={[

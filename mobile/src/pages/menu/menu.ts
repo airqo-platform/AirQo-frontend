@@ -7,9 +7,7 @@ import { Device } from '@ionic-native/device';
 
 import { KeyPage } from './../key/key';
 import { MapPage } from './../map/map';
-import { SignInPage } from './../sign-in/sign-in';
 import { SettingsPage } from './../settings/settings';
-import { CameraPage } from './../camera/camera';
 import { FavoritesPage } from './../favorites/favorites';
 
 @Component({
@@ -174,30 +172,10 @@ export class MenuPage {
 
 
   // --------------------------------------------------------------------------------------------------------------------
-  // Go To Camera Page
-  // --------------------------------------------------------------------------------------------------------------------
-  goToCameraPage() {
-    this.navCtrl.push(CameraPage);
-  }
-
-
-  // --------------------------------------------------------------------------------------------------------------------
   // Go To Settings Page
   // --------------------------------------------------------------------------------------------------------------------
   goToSettings() {
     this.navCtrl.push(SettingsPage);
-  }
-
-
-  // --------------------------------------------------------------------------------------------------------------------
-  // Check if user is signed in
-  // --------------------------------------------------------------------------------------------------------------------
-  checkSessionStatus() {
-    if(Object.keys(this.user).length > 0) {
-      this.signOut();
-    } else {
-      this.navCtrl.push(SignInPage);
-    }
   }
 
 

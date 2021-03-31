@@ -11,6 +11,7 @@ import mainAlertReducer from "./MainAlert/reducers";
 import mapDataReducer from "./MapData/reducers";
 import deviceManagementReducer from "./DeviceManagement/reducers";
 import userPreferenceReducer from "./UserPreference/reducer";
+import urlsReducer from "./Urls/reducers";
 
 export default combineReducers({
   auth: authReducer,
@@ -25,4 +26,5 @@ export default combineReducers({
   mainAlert: mainAlertReducer,
   mapData: mapDataReducer,
   userPreference: userPreferenceReducer,
+  urls: urlsReducer,
 });

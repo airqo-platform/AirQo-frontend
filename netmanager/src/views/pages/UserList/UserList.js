@@ -1,14 +1,11 @@
 /* eslint-disable */
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { makeStyles } from "@material-ui/styles";
 import PropTypes from "prop-types";
-import { connect } from "react-redux";
-import {
-  connectedUsersTable as UsersTable,
-  connectedUsersToolbar as UsersToolbar,
-} from "views/hocs/Users";
+import usrsStateConnector from "views/stateConnectors/usersStateConnector";
 
-import mockData from "./data";
+import UsersTable from "./components/UsersTable";
+import UsersToolbar from "./components/UsersToolbar";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -44,4 +41,4 @@ UserList.propTypes = {
   userState: PropTypes.object.isRequired,
 };
 
-export default UserList;
+export default usrsStateConnector(UserList);

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useHistory } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { makeStyles } from "@material-ui/core/styles";
 import AccessTime from "@material-ui/icons/AccessTime";
@@ -46,6 +47,7 @@ const BLANK_PLACE_HOLDER = "-";
 
 export default function DeviceOverview({ deviceData }) {
   const classes = useStyles();
+  const history = useHistory();
   const dispatch = useDispatch();
   const devices = useDevicesData();
   const deviceStatus = useDeviceUpTimeData(deviceData.name);
@@ -164,6 +166,10 @@ export default function DeviceOverview({ deviceData }) {
     return time;
   };
 
+  function goTo(path) {
+    return history.push(`/device/${deviceData.name}/${path}`);
+  }
+
   return (
     <div
       style={{
@@ -181,7 +187,12 @@ export default function DeviceOverview({ deviceData }) {
             style={{ alignContent: "left", alignItems: "left" }}
           >
             <TableContainer component={Paper}>
-              <Table stickyHeader aria-label="sticky table">
+              <Table
+                stickyHeader
+                aria-label="sticky table"
+                style={{ cursor: "pointer" }}
+                onClick={() => goTo("edit")}
+              >
                 <TableBody>
                   <TableRow>
                     <TableCell>
@@ -319,7 +330,8 @@ export default function DeviceOverview({ deviceData }) {
                 height={"410px"}
                 data={createChartData(
                   deviceUptime.bar.label,
-                  deviceUptime.bar.data
+                  deviceUptime.bar.data,
+                  "Device Uptime"
                 )}
                 options={createChartOptions("Time Period", "Uptime(%)", {
                   threshold: 80,
@@ -330,7 +342,8 @@ export default function DeviceOverview({ deviceData }) {
                 height={"410px"}
                 data={createChartData(
                   deviceUptime.line.label,
-                  deviceUptime.line.data
+                  deviceUptime.line.data,
+                  "Device Uptime"
                 )}
                 options={createChartOptions("Time Period", "Uptime(%)", {
                   threshold: 80,
@@ -349,7 +362,11 @@ export default function DeviceOverview({ deviceData }) {
 
       <div className={"overview-item-container"} style={{ minWidth: "600px" }}>
         <h4 className={classes.cardTitleBlue}>Maintenance History</h4>
-        <Card className={classes.cardBody}>
+        <Card
+          className={classes.cardBody}
+          style={{ cursor: "pointer" }}
+          onClick={() => goTo("maintenance-logs")}
+        >
           <div
             alignContent="left"
             style={{ alignContent: "left", alignItems: "left" }}
@@ -393,7 +410,8 @@ export default function DeviceOverview({ deviceData }) {
               height={"410px"}
               data={createChartData(
                 deviceBatteryVoltage.label,
-                deviceBatteryVoltage.data
+                deviceBatteryVoltage.data,
+                "Device Voltage"
               )}
               options={createChartOptions("Date", "Voltage")}
             />
@@ -428,7 +446,7 @@ export default function DeviceOverview({ deviceData }) {
 
       <div className={"overview-item-container"} style={{ minWidth: "550px" }}>
         <h4 className={classes.cardTitleBlue}>Device Components</h4>
-        <Card className={classes.cardBody}>
+        <Card className={classes.cardBody} onClick={() => goTo("components")}>
           <div
             alignContent="left"
             style={{ alignContent: "left", alignItems: "left" }}
@@ -439,6 +457,8 @@ export default function DeviceOverview({ deviceData }) {
                 aria-label="sticky table"
                 alignItems="left"
                 alignContent="left"
+                style={{ cursor: "pointer" }}
+                onClick={() => goTo("components")}
               >
                 <TableBody style={{ alignContent: "left", alignItems: "left" }}>
                   {deviceComponents.map((component, index) => (

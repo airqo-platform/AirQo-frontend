@@ -8,11 +8,14 @@ import {
   LOAD_DEVICE_COMPONENTS_FAILURE,
   INSERT_MAINTENANCE_LOGS_SUCCESS,
   INSERT_NEW_COMPONENT_SUCCESS,
+  INSERT_NEW_DEVICE_SUCCESS,
   RESET_DEVICE_SUCCESS,
   RESET_DEVICE_COMPONENTS_SUCCESS,
   RESET_MAINTENANCE_LOGS,
   UPDATE_SINGLE_DEVICE_SUCCESS,
-  UPDATE_SINGLE_DEVICE_ERROR,
+  UPDATE_SINGLE_MAINTENANCE_LOGS_SUCCESS,
+  UPDATE_SINGLE_COMPONENT_SUCCESS,
+  DELETE_SINGLE_MAINTENANCE_LOGS_SUCCESS,
   LOAD_DEVICE_UPTIME_SUCCESS,
   LOAD_DEVICE_UPTIME_FAILURE,
   LOAD_DEVICE_BATTERY_VOLTAGE_SUCCESS,
@@ -25,12 +28,15 @@ import {
   getAllDevicesApi,
   getDeviceMaintenanceLogsApi,
   getDeviceComponentsApi,
+  deleteDeviceApi,
 } from "views/apis/deviceRegistry";
 import {
   getDeviceUptimeApi,
   getDeviceBatteryVoltageApi,
   getDeviceSensorCorrelationApi,
 } from "views/apis/deviceMonitoring";
+
+import { updateMainAlert } from "../MainAlert/operations";
 
 export const loadDevicesData = () => {
   return async (dispatch) => {
@@ -39,7 +45,7 @@ export const loadDevicesData = () => {
         if (responseData.devices) {
           dispatch({
             type: LOAD_ALL_DEVICES_SUCCESS,
-            payload: transformArray(responseData.devices, "id"),
+            payload: transformArray(responseData.devices, "name"),
           });
         }
       })
@@ -52,10 +58,10 @@ export const loadDevicesData = () => {
   };
 };
 
-export const updateDevice = (deviceId, data) => (dispatch) => {
+export const updateDevice = (deviceName, data) => (dispatch) => {
   dispatch({
     type: UPDATE_SINGLE_DEVICE_SUCCESS,
-    payload: { deviceId, data },
+    payload: { deviceName, data },
   });
 };
 
@@ -63,13 +69,17 @@ export const loadDeviceMaintenanceLogs = (deviceName) => {
   return async (dispatch) => {
     return await getDeviceMaintenanceLogsApi(deviceName)
       .then((responseData) => {
+        const indexedLogs = [];
         // sort logs in reversed order
         responseData.sort(
           (log1, log2) => -(new Date(log1.date) - new Date(log2.date))
         );
+        responseData.map((log, tableIndex) =>
+          indexedLogs.push({ ...log, tableIndex })
+        );
         dispatch({
           type: LOAD_MAINTENANCE_LOGS_SUCCESS,
-          payload: { [deviceName]: responseData },
+          payload: { [deviceName]: indexedLogs },
         });
       })
       .catch((err) => {
@@ -85,9 +95,13 @@ export const loadDeviceComponentsData = (deviceName) => {
   return async (dispatch) => {
     return await getDeviceComponentsApi(deviceName)
       .then((responseData) => {
+        const indexedComponent = [];
+        responseData.components.map((comp, tableIndex) =>
+          indexedComponent.push({ ...comp, tableIndex })
+        );
         dispatch({
           type: LOAD_DEVICE_COMPONENTS_SUCCESS,
-          payload: { [deviceName]: responseData.components },
+          payload: { [deviceName]: indexedComponent },
         });
       })
       .catch((err) => {
@@ -112,10 +126,33 @@ export const insertMaintenanceLog = (deviceName, log) => (dispatch) => {
   });
 };
 
+export const updateMaintenanceLog = (deviceName, index, log) => (dispatch) => {
+  dispatch({
+    type: UPDATE_SINGLE_MAINTENANCE_LOGS_SUCCESS,
+    payload: { deviceName, index, log },
+  });
+};
+
+export const deleteMaintenanceLog = (deviceName, index) => (dispatch) => {
+  dispatch({
+    type: DELETE_SINGLE_MAINTENANCE_LOGS_SUCCESS,
+    payload: { deviceName, index },
+  });
+};
+
 export const insertDeviceComponent = (deviceName, component) => (dispatch) => {
   dispatch({
     type: INSERT_NEW_COMPONENT_SUCCESS,
     payload: { deviceName, component },
+  });
+};
+
+export const updateDeviceComponent = (deviceName, index, component) => (
+  dispatch
+) => {
+  dispatch({
+    type: UPDATE_SINGLE_COMPONENT_SUCCESS,
+    payload: { deviceName, index, component },
   });
 };
 
@@ -179,5 +216,41 @@ export const loadDeviceSesnorCorrelation = (deviceName) => async (dispatch) => {
       dispatch({
         type: LOAD_DEVICE_SENSOR_CORRELATION_FAILURE,
       });
+    });
+};
+
+export const insertNewDevice = (newDevice) => (dispatch) => {
+  dispatch({
+    type: INSERT_NEW_DEVICE_SUCCESS,
+    payload: newDevice,
+  });
+};
+
+export const deleteDevice = (deviceName) => async (dispatch, getState) => {
+  return await deleteDeviceApi(deviceName)
+    .then(() => {
+      const state = getState();
+      const devices = state.deviceRegistry.devices;
+      delete devices[deviceName];
+      dispatch({
+        type: LOAD_ALL_DEVICES_SUCCESS,
+        payload: devices,
+      });
+      dispatch(
+        updateMainAlert({
+          show: true,
+          message: `device ${deviceName} deleted successfully`,
+          severity: "success",
+        })
+      );
+    })
+    .catch((err) => {
+      dispatch(
+        updateMainAlert({
+          show: true,
+          message: `deletion of  ${deviceName} failed`,
+          severity: "error",
+        })
+      );
     });
 };

@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
-import MaterialTable from "material-table";
 import clsx from "clsx";
 import PropTypes from "prop-types";
 import PerfectScrollbar from "react-perfect-scrollbar";
 import axios from "axios";
-import { useHistory } from "react-router-dom";
+import { useHistory, useLocation } from "react-router-dom";
 import { makeStyles } from "@material-ui/styles";
 import { isEmpty } from "underscore";
 import {
@@ -24,12 +23,21 @@ import TextField from "@material-ui/core/TextField";
 import Select from "@material-ui/core/Select";
 import FormControl from "@material-ui/core/FormControl";
 import InputLabel from "@material-ui/core/InputLabel";
+import DeleteIcon from "@material-ui/icons/DeleteOutlineOutlined";
+import EditIcon from "@material-ui/icons/EditOutlined";
+import Tooltip from "@material-ui/core/Tooltip";
+import { deleteDeviceApi } from "../../apis/deviceRegistry";
 import { loadDevicesData } from "redux/DeviceRegistry/operations";
 import { useDevicesData } from "redux/DeviceRegistry/selectors";
 import { useLocationsData } from "redux/LocationRegistry/selectors";
 import { loadLocationsData } from "redux/LocationRegistry/operations";
 import { updateMainAlert } from "redux/MainAlert/operations";
+import { updateDeviceBackUrl } from "redux/Urls/operations";
 import CustomMaterialTable from "../Table/CustomMaterialTable";
+import ConfirmDialog from "views/containers/ConfirmDialog";
+
+// css
+import "assets/css/device-registry.css";
 
 const useStyles = makeStyles((theme) => ({
   root: {},
@@ -116,144 +124,129 @@ let formatDate = (date) => {
   return time;
 };
 
-const deviceColumns = [
+const Cell = ({ fieldValue, data }) => {
+  const history = useHistory();
+  return (
+    <div
+      style={{ fontFamily: "Open Sans", minHeight: "20px" }}
+      onClick={() => history.push(`/device/${data.name}/overview`)}
+    >
+      {fieldValue}
+    </div>
+  );
+};
+
+const createDeviceColumns = (history, setDelState) => [
   {
     title: "Device Name",
     field: "name",
-    cellStyle: { fontFamily: "Open Sans" },
+    render: (data) => <Cell data={data} fieldValue={data.name} />,
   },
   {
     title: "Description",
     field: "description",
-    cellStyle: { fontFamily: "Open Sans" },
+    render: (data) => <Cell data={data} fieldValue={data.description} />,
   },
   {
     title: "Device ID",
     field: "channelID",
-    cellStyle: { fontFamily: "Open Sans" },
-  }, //should be channel ID
+    render: (data) => <Cell data={data} fieldValue={data.channelID} />,
+  },
   {
     title: "Registration Date",
     field: "createdAt",
-    cellStyle: { fontFamily: "Open Sans" },
-    render: (rowData) => formatDate(new Date(rowData.createdAt)),
+    render: (data) => (
+      <Cell data={data} fieldValue={formatDate(new Date(data.createdAt))} />
+    ),
   },
   {
     title: "Deployment status",
     field: "isActive",
-    cellStyle: { fontFamily: "Open Sans" },
-    render: (rowData) =>
-      rowData.isActive ? (
-        <span style={{ color: "green" }}>Deployed</span>
-      ) : (
-        <span style={{ color: "red" }}>Not Deployed</span>
-      ),
+    render: (data) => (
+      <Cell
+        data={data}
+        fieldValue={
+          data.isActive ? (
+            <span style={{ color: "green" }}>Deployed</span>
+          ) : (
+            <span style={{ color: "red" }}>Not Deployed</span>
+          )
+        }
+      />
+    ),
   },
   {
     title: "Location ID",
     field: "locationID",
-    cellStyle: { fontFamily: "Open Sans" },
+    render: (data) => <Cell data={data} fieldValue={data.LocationID} />,
+  },
+  {
+    title: "Actions",
+    render: (rowData) => (
+      <div>
+        <Tooltip title="Edit">
+          <EditIcon
+            className={"hover-blue"}
+            style={{ margin: "0 5px" }}
+            onClick={() => history.push(`/device/${rowData.name}/edit`)}
+          />
+        </Tooltip>
+        <Tooltip title="Delete">
+          <DeleteIcon
+            // className={"hover-red"}
+            style={{ margin: "0 5px", cursor: "not-allowed", color: "grey" }}
+            // disable deletion for now
+            // onClick={() => setDelState({ open: true, name: rowData.name })}
+          />
+        </Tooltip>
+      </div>
+    ),
   },
 ];
 
-const DevicesTable = (props) => {
-  const { className, users, ...rest } = props;
+const CreateDevice = ({ open, setOpen, devices, setDevices }) => {
   const classes = useStyles();
-
-  const history = useHistory();
   const dispatch = useDispatch();
-  const devices = useDevicesData();
-  const locations = useLocationsData();
-  const [deviceList, setDeviceList] = useState(Object.values(devices));
-  const [isLoading, setIsLoading] = useState(false);
-
-  const [registerOpen, setRegisterOpen] = useState(false);
-  const handleRegisterOpen = () => {
-    setRegisterOpen(true);
+  const newDeviceInitState = {
+    name: "",
+    visibility: false,
+    device_manufacturer: "",
+    product_name: "",
+    owner: "",
+    ISP: "",
+    phoneNumber: "",
+    description: "",
+    locationName: "",
+    siteName: "",
   };
+
+  const [newDevice, setNewDevice] = useState(newDeviceInitState);
+
+  const handleDeviceDataChange = (key) => (event) => {
+    if (key === "phoneNumber") {
+      let re = /\s*|\d+(\.d+)?/;
+      if (!re.test(event.target.value)) {
+        return;
+      }
+    }
+    return setNewDevice({ ...newDevice, [key]: event.target.value });
+  };
+
   const handleRegisterClose = () => {
-    setRegisterOpen(false);
-    setRegisterName("");
-    setVisibility("");
-    setManufacturer("");
-    setProductName("");
-    setOwner("");
-    setISP("");
-    setPhone(null);
-    setDescription("");
-  };
-
-  useEffect(() => {
-    if (isEmpty(devices)) {
-      setIsLoading(true);
-      dispatch(loadDevicesData());
-      setIsLoading(false);
-    }
-    if (isEmpty(locations)) {
-      dispatch(loadLocationsData());
-    }
-  }, []);
-
-  useEffect(() => {
-    setDeviceList(Object.values(devices));
-  }, [devices]);
-
-  const [registerName, setRegisterName] = useState("");
-  const handleRegisterNameChange = (name) => {
-    setRegisterName(name.target.value);
-  };
-  const [manufacturer, setManufacturer] = useState("");
-  const handleManufacturerChange = (manufacturer) => {
-    setManufacturer(manufacturer.target.value);
-  };
-  const [productName, setProductName] = useState("");
-  const handleProductNameChange = (name) => {
-    setProductName(name.target.value);
-  };
-  const [owner, setOwner] = useState("");
-  const handleOwnerChange = (name) => {
-    setOwner(name.target.value);
-  };
-  const [description, setDescription] = useState("");
-  const handleDescriptionChange = (event) => {
-    setDescription(event.target.value);
-  };
-  const [visibility, setVisibility] = useState(false);
-  const handleVisibilityChange = (event) => {
-    setVisibility(event.target.value);
-  };
-  const [ISP, setISP] = useState("");
-  const handleISPChange = (event) => {
-    setISP(event.target.value);
-  };
-
-  const [phone, setPhone] = useState(null);
-  const handlePhoneChange = (event) => {
-    let re = /\s*|\d+(\.d+)?/;
-    if (re.test(event.target.value)) {
-      setPhone(event.target.value);
-    }
+    setOpen(false);
+    setNewDevice(newDeviceInitState);
   };
 
   let handleRegisterSubmit = (e) => {
-    let filter = {
-      name: registerName,
-      visibility: visibility,
-      device_manufacturer: manufacturer,
-      product_name: productName,
-      owner: owner,
-      ISP: ISP,
-      phoneNumber: phone,
-      description: description,
-    };
-
+    setOpen(false);
     axios
-      .post(constants.REGISTER_DEVICE_URI, JSON.stringify(filter), {
+      .post(constants.REGISTER_DEVICE_URI, JSON.stringify(newDevice), {
         headers: { "Content-Type": "application/json" },
       })
       .then((res) => res.data)
       .then((resData) => {
-        setDeviceList([resData.device, ...deviceList]);
+        handleRegisterClose();
+        setDevices([resData.device, ...devices]);
         dispatch(
           updateMainAlert({
             message: resData.message,
@@ -271,8 +264,205 @@ const DevicesTable = (props) => {
           })
         );
       });
-    handleRegisterClose();
   };
+
+  return (
+    <Dialog
+      open={open}
+      onClose={handleRegisterClose}
+      aria-labelledby="form-dialog-title"
+      aria-describedby="form-dialog-description"
+    >
+      <DialogTitle id="form-dialog-title">Add a device</DialogTitle>
+
+      <DialogContent>
+        <form className={classes.modelWidth}>
+          <TextField
+            required
+            className={classes.textFieldMargin}
+            value={newDevice.name}
+            onChange={handleDeviceDataChange("name")}
+            label="Device Name"
+            fullWidth
+          />
+          <TextField
+            className={classes.textFieldMargin}
+            label="Description"
+            value={newDevice.description}
+            onChange={handleDeviceDataChange("description")}
+            fullWidth
+            required
+          />
+          <TextField
+            label="Manufacturer"
+            value={newDevice.device_manufacturer}
+            onChange={handleDeviceDataChange("device_manufacturer")}
+            fullWidth
+          />
+          <TextField
+            label="Product Name"
+            value={newDevice.product_name}
+            onChange={handleDeviceDataChange("product_name")}
+            fullWidth
+          />
+          <TextField
+            label="Map Address"
+            value={newDevice.locationName}
+            onChange={handleDeviceDataChange("locationName")}
+            fullWidth
+          />
+          <TextField
+            label="Site Name"
+            value={newDevice.siteName}
+            onChange={handleDeviceDataChange("siteName")}
+            fullWidth
+          />
+          <FormControl required fullWidth>
+            <InputLabel htmlFor="demo-dialog-native">Data Access</InputLabel>
+            <Select
+              required
+              native
+              value={newDevice.visibility}
+              onChange={handleDeviceDataChange("visibility")}
+              inputProps={{
+                native: "true",
+                style: { height: "40px", marginTop: "10px" },
+              }}
+            >
+              <option value={true}>Public</option>
+              <option value={false}>Private</option>
+            </Select>
+          </FormControl>
+          <TextField
+            required
+            label="Owner"
+            value={newDevice.owner}
+            onChange={handleDeviceDataChange("owner")}
+            fullWidth
+          />
+          <FormControl fullWidth>
+            <InputLabel htmlFor="demo-dialog-native">
+              Internet Service Provider
+            </InputLabel>
+            <Select
+              native
+              value={newDevice.ISP}
+              onChange={handleDeviceDataChange("ISP")}
+              inputProps={{
+                native: "true",
+                style: { height: "40px", marginTop: "10px" },
+              }}
+            >
+              <option aria-label="None" value="" />
+              <option value="MTN">MTN</option>
+              <option value="Africell">Africell</option>
+              <option value="Airtel">Airtel</option>
+            </Select>
+          </FormControl>
+          <TextField
+            label="Phone Number"
+            value={newDevice.phoneNumber}
+            onChange={handleDeviceDataChange("phoneNumber")}
+            fullWidth
+          />
+        </form>
+      </DialogContent>
+
+      <DialogActions>
+        <Grid
+          container
+          alignItems="flex-end"
+          alignContent="flex-end"
+          justify="flex-end"
+        >
+          <Button
+            variant="contained"
+            type="button"
+            onClick={handleRegisterClose}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            color="primary"
+            type="submit"
+            onClick={handleRegisterSubmit}
+            style={{ margin: "0 15px" }}
+          >
+            Register
+          </Button>
+        </Grid>
+        <br />
+      </DialogActions>
+    </Dialog>
+  );
+};
+
+const DevicesTable = (props) => {
+  const { className, users, ...rest } = props;
+  const classes = useStyles();
+
+  const history = useHistory();
+  const location = useLocation();
+  const dispatch = useDispatch();
+  const devices = useDevicesData();
+  const locations = useLocationsData();
+  const [deviceList, setDeviceList] = useState(Object.values(devices));
+  const [isLoading, setIsLoading] = useState(false);
+
+  const [delDevice, setDelDevice] = useState({ open: false, name: "" });
+
+  const deviceColumns = createDeviceColumns(history, setDelDevice);
+
+  const handleDeleteDevice = async () => {
+    if (delDevice.name) {
+      deleteDeviceApi(delDevice.name)
+        .then(() => {
+          delete devices[delDevice.name];
+          setDeviceList(Object.values(devices));
+          dispatch(loadDevicesData());
+          dispatch(
+            updateMainAlert({
+              show: true,
+              message: `device ${delDevice.name} deleted successfully`,
+              severity: "success",
+            })
+          );
+        })
+        .catch((err) => {
+          let msg = `deletion of  ${delDevice.name} failed`;
+          if (err.response && err.response.data) {
+            msg = err.response.data.message || msg;
+          }
+          dispatch(
+            updateMainAlert({
+              show: true,
+              message: msg,
+              severity: "error",
+            })
+          );
+        });
+    }
+    setDelDevice({ open: false, name: "" });
+  };
+
+  const [registerOpen, setRegisterOpen] = useState(false);
+
+  useEffect(() => {
+    if (isEmpty(devices)) {
+      setIsLoading(true);
+      dispatch(loadDevicesData());
+      setIsLoading(false);
+    }
+    if (isEmpty(locations)) {
+      dispatch(loadLocationsData());
+    }
+    dispatch(updateDeviceBackUrl(location.pathname));
+  }, []);
+
+  useEffect(() => {
+    setDeviceList(Object.values(devices));
+  }, [devices]);
 
   return (
     <div className={classes.root}>
@@ -283,7 +473,7 @@ const DevicesTable = (props) => {
           color="primary"
           type="submit"
           align="right"
-          onClick={handleRegisterOpen}
+          onClick={() => setRegisterOpen(true)}
         >
           {" "}
           Add Device
@@ -302,12 +492,6 @@ const DevicesTable = (props) => {
                   userPreferencePaginationKey={"devices"}
                   columns={deviceColumns}
                   data={deviceList}
-                  onRowClick={(evt, selectedRow) => {
-                    const rowData = Object.values(devices)[
-                      selectedRow.tableData.id
-                    ];
-                    history.push(`/device/${rowData.id}/overview`);
-                  }}
                   options={{
                     search: true,
                     exportButton: true,
@@ -330,128 +514,20 @@ const DevicesTable = (props) => {
         </Card>
       </LoadingOverlay>
 
-      <Dialog
+      <CreateDevice
         open={registerOpen}
-        onClose={handleRegisterClose}
-        aria-labelledby="form-dialog-title"
-        aria-describedby="form-dialog-description"
-      >
-        <DialogTitle id="form-dialog-title">Add a device</DialogTitle>
-
-        <DialogContent>
-          <form className={classes.modelWidth}>
-            <TextField
-              required
-              className={classes.textFieldMargin}
-              id="deviceName"
-              value={registerName}
-              onChange={handleRegisterNameChange}
-              label="Device Name"
-              fullWidth
-            />
-            <TextField
-              id="standard-basic"
-              className={classes.textFieldMargin}
-              label="Description"
-              value={description}
-              onChange={handleDescriptionChange}
-              fullWidth
-              required
-            />
-            <TextField
-              id="standard-basic"
-              label="Manufacturer"
-              value={manufacturer}
-              onChange={handleManufacturerChange}
-              fullWidth
-            />
-            <TextField
-              id="standard-basic"
-              label="Product Name"
-              value={productName}
-              onChange={handleProductNameChange}
-              fullWidth
-            />
-            <FormControl required fullWidth>
-              <InputLabel htmlFor="demo-dialog-native">Data Access</InputLabel>
-              <Select
-                required
-                native
-                value={visibility}
-                onChange={handleVisibilityChange}
-                inputProps={{
-                  native: true,
-                  style: { height: "40px", marginTop: "10px" },
-                }}
-              >
-                <option value={true}>Public</option>
-                <option value={false}>Private</option>
-              </Select>
-            </FormControl>
-            <TextField
-              required
-              id="standard-basic"
-              label="Owner"
-              value={owner}
-              onChange={handleOwnerChange}
-              fullWidth
-            />
-            <FormControl fullWidth>
-              <InputLabel htmlFor="demo-dialog-native">
-                Internet Service Provider
-              </InputLabel>
-              <Select
-                native
-                value={ISP}
-                onChange={handleISPChange}
-                inputProps={{
-                  native: true,
-                  style: { height: "40px", marginTop: "10px" },
-                }}
-              >
-                <option aria-label="None" value="" />
-                <option value="MTN">MTN</option>
-                <option value="Africell">Africell</option>
-                <option value="Airtel">Airtel</option>
-              </Select>
-            </FormControl>
-            <TextField
-              id="standard-basic"
-              label="Phone Number"
-              value={phone}
-              onChange={handlePhoneChange}
-              fullWidth
-            />
-          </form>
-        </DialogContent>
-
-        <DialogActions>
-          <Grid
-            container
-            alignItems="flex-end"
-            alignContent="flex-end"
-            justify="flex-end"
-          >
-            <Button
-              variant="contained"
-              type="button"
-              onClick={handleRegisterClose}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="contained"
-              color="primary"
-              type="submit"
-              onClick={handleRegisterSubmit}
-              style={{ margin: "0 15px" }}
-            >
-              Register
-            </Button>
-          </Grid>
-          <br />
-        </DialogActions>
-      </Dialog>
+        setOpen={setRegisterOpen}
+        devices={deviceList}
+        setDevices={setDeviceList}
+      />
+      <ConfirmDialog
+        open={delDevice.open}
+        title={"Delete a device?"}
+        message={`Are you sure you want to delete this ${delDevice.name} device`}
+        close={() => setDelDevice({ open: false, name: "" })}
+        confirm={handleDeleteDevice}
+        error
+      />
     </div>
   );
 };

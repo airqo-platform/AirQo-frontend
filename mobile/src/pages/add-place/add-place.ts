@@ -43,10 +43,10 @@ export class AddPlacePage {
 
 
   // --------------------------------------------------------------------------------------------------------------------
-  // Fires everytime page loads
+  // Fires every time page loads
   // --------------------------------------------------------------------------------------------------------------------
-  ionViewDidEnter() {
-    this.onlineLoadNodes();
+  async ionViewDidEnter() {
+    await this.onlineLoadNodes();
   }
 
 
@@ -80,7 +80,7 @@ export class AddPlacePage {
     loader.present().then(() => {
       this.http.post(this.get_places_nodes_list_api, params).subscribe((result: any) => {
         console.log(result);
-        loader.dismiss(); 
+        loader.dismiss();
 
         this.places_nodes_list_api_success = result.success;
         if (result.success == '100') {

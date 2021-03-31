@@ -13,12 +13,12 @@ import {
   Typography,
   Divider,
   Button,
-  LinearProgress,
 } from "@material-ui/core";
 import { cloudinaryImageUpload } from "views/apis/cloudinary";
 import { updateMainAlert } from "redux/MainAlert/operations";
 import { updateAuthenticatedUserApi } from "views/apis/authService";
 import { updateAuthenticatedUserSuccess } from "redux/Join/actions";
+import usersStateConnector from "views/stateConnectors/usersStateConnector";
 
 // css
 import "react-image-crop/dist/ReactCrop.css";
@@ -128,6 +128,7 @@ const AccountProfile = (props) => {
       const formData = new FormData();
       formData.append("file", croppedImageDataUrl);
       formData.append("upload_preset", process.env.REACT_APP_CLOUDINARY_PRESET);
+      formData.append("folder", "profiles");
 
       setProfileUploading(true);
       await cloudinaryImageUpload(formData)
@@ -298,4 +299,4 @@ AccountProfile.propTypes = {
   mappeduserState: PropTypes.object.isRequired,
 };
 
-export default AccountProfile;
+export default usersStateConnector(AccountProfile);

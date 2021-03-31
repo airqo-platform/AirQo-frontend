@@ -31,7 +31,7 @@ const Map = ({ className, devices, ...rest }) => {
 
   const handleDetailsClick = (device) => (event) => {
     event.preventDefault();
-    history.push(`/device/${device._id}/overview`);
+    history.push(`/device/${device.name}/overview`);
   };
 
   return (

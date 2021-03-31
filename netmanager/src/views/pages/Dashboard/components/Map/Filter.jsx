@@ -17,7 +17,9 @@ class Filter extends Component {
 
   componentDidUpdate(prevProps, prevState) {
     if (this.state.magnitudeFilter !== prevState.magnitudeFilter) {
-      this.props.fetchFilteredData(this.state.magnitudeFilter);
+      try {
+        this.props.fetchFilteredData(this.state.magnitudeFilter);
+      } catch (e) {}
     }
   }
   render() {

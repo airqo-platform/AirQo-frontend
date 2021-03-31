@@ -1,29 +1,55 @@
-.skeleton-hidden {
-    display: none
+.full-image-preview {
+    width: 80vw;
+    height: 90vh;
+}
+.device-image-wrapper {
+    width: 250px;
+    height: 250px;
+    background-color: #fff;
+    margin: 5px;
+    box-shadow: 0 4px 10px 0 rgba(33, 33, 33, 0.15);
 }
 
-.device-img-skeleton-wrapper {
+.device-image-wrapper:hover {
+    box-shadow: 0 8px 20px 0 rgba(33, 33, 33, 0.15);
+}
+
+.img-wrapper {
+    height: 85%;
+    padding: 1px 0;
+    cursor: pointer;
+}
+
+.image {
+    height: 100%;
+    width: 100%;
+    object-fit: contain;
+}
+
+
+.image-controls {
     display: flex;
     align-items: center;
-    justify-content: center;
-    background-color: #fff;
-    box-shadow: 0 4px 10px 0 rgba(33, 33, 33, 0.15);
-    border-radius: 4px;
-    position: relative;
-    overflow: hidden;
-    height: 300px;
-    margin: 20px;
+    height: 15%;
+    border-top: 1px solid rgba(33, 33, 33, 0.15);
+}
+
+.image-del {
+    margin-left: 10px;
+    color: rgba(0,0,0,0.5);
+}
+
+.image-del:hover {
+    color: red;
     cursor: pointer;
-    /*transition: height 0.1s linear, width 0.1s linear, background-color 0.5s ease-in-out;*/
 }
 
-.device-img {
-    height: auto;
-    width: 300px;
+.d-img {
+    transform: scale(0.6);
 }
 
-.device-img-skeleton-wrapper:hover {
-    box-shadow: 0 8px 20px 0 rgba(33, 33, 33, 0.15);
+.d-img:hover {
+    cursor: pointer
 }
 
 .img-wrapper-preview {
@@ -37,6 +63,7 @@
     width: 120vw;
     z-index: 10000;
     background: rgba(0,0,0,0.5);
+    border: 1px solid red;
 }
 
 .device-img-preview {
@@ -110,3 +137,49 @@
     z-index: 10;
     color: #263238;
 }
+
+.table-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+  white-space: nowrap
+}
+
+.table-full {
+  overflow: unset;
+  text-overflow: ellipsis;
+  width: 100%;
+  white-space: normal;
+}
+
+.ml-table-details {
+    display: flex;
+    padding-left: 55px;
+    /*background: #CDD0D5;*/
+    /*background: #2f67e2;*/
+    /*background: #7D9DFF;*/
+    background: #B7CFFF;
+}
+
+.ml-table-details>span {
+    width: 20%;
+}
+
+.ml-table-details-6 {
+    display: flex;
+    padding-left: 55px;
+    /*background: #CDD0D5;*/
+    /*background: #2f67e2;*/
+    /*background: #7D9DFF;*/
+    background: #B7CFFF;
+}
+
+.ml-table-details-6>span {
+    width: 16.8%;
+}
+
+.li-circle {
+    font-size: 14px;
+    margin-left: 10px;
+    list-style-type: circle !important;
+ }
