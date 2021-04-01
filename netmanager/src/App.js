@@ -91,7 +91,7 @@ const App = () => {
                 component={Register}
               />
             </Suspense>
-            <Suspense fallback={<MainLayout><LargeCircularLoader loading={true} height={"100%"} /></MainLayout>}>
+            <Suspense fallback={<MainLayout><LargeCircularLoader loading={true} height={"calc(100vh - 114px)"} /></MainLayout>}>
               <PrivateRoute
                 exact
                 path="/dashboard"

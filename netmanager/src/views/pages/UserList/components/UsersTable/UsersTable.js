@@ -19,7 +19,7 @@ import {
 } from "@material-ui/core";
 
 import { Alert, AlertTitle } from "@material-ui/lab";
-import { getInitials } from "helpers";
+import { getInitials } from "utils/users";
 import CustomMaterialTable from "views/components/Table/CustomMaterialTable";
 import usersStateConnector from "views/stateConnectors/usersStateConnector";
 
