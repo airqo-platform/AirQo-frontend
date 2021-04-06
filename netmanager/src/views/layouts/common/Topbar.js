@@ -8,6 +8,7 @@ import { makeStyles, createStyles } from "@material-ui/styles";
 import {
   AppBar,
   Collapse,
+  Divider,
   Toolbar,
   Badge,
   Hidden,
@@ -20,6 +21,8 @@ import NotificationsIcon from "@material-ui/icons/NotificationsOutlined";
 import CloseIcon from "@material-ui/icons/Close";
 import InputIcon from "@material-ui/icons/Input";
 import HelpIcon from "@material-ui/icons/Help";
+import MoreVertIcon from "@material-ui/icons/MoreVert";
+import MenuIcon from '@material-ui/icons/Menu';
 import { logoutUser } from "redux/Join/actions";
 import { useOrgData } from "redux/Join/selectors";
 import { useMainAlertData } from "redux/MainAlert/selectors";
@@ -94,7 +97,7 @@ function withMyHook(Component) {
 const Topbar = (props) => {
   const divProps = Object.assign({}, props);
   delete divProps.layout;
-  const { className, onSidebarOpen, ...rest } = props;
+  const { className, toggleSidebar, ...rest } = props;
 
   const classes = useStyles();
 
@@ -151,6 +154,13 @@ const Topbar = (props) => {
   const handleProfileClick = () => {
     setAnchorEl(null);
   };
+  const handleDocsClick = () => {
+    window.open(
+      "https://docs.airqo.net/airqo-handbook/-MHlrqORW-vI38ybYLVC/",
+      "_blank"
+    );
+    setAnchorEl(null);
+  };
 
   const [date, setDate] = React.useState(new Date());
   useEffect(() => {
@@ -188,56 +198,60 @@ const Topbar = (props) => {
   return (
     <AppBar {...rest} className={clsx(classes.root, className)}>
       <Toolbar>
-        <div style={logoContainerStyle}>
-          {orgData.name !== "airqo" && (
-            <>
-              <RouterLink to="/">
-                <img
-                  alt="mak.ac.ug"
-                  style={logo_style}
-                  src="https://res.cloudinary.com/drgm88r3l/image/upload/v1602488051/airqo_org_logos/mak_logo.png"
-                />
-              </RouterLink>
-              <RouterLink to="/">
-                <img
-                  alt="airqo.net"
-                  style={logo_style}
-                  src="https://res.cloudinary.com/drgm88r3l/image/upload/v1602488051/airqo_org_logos/airqo_logo.png"
-                />
-              </RouterLink>
-              <RouterLink to="/">
-                <img
-                  alt={orgData.name}
-                  style={logo_style}
-                  src={
-                    "https://res.cloudinary.com/drgm88r3l/image/upload/v1602488051/airqo_org_logos/" +
-                    orgData.name +
-                    "_logo.png"
-                  }
-                />
-              </RouterLink>
-            </>
-          )}
-          {orgData.name === "airqo" && (
-            <>
-              <RouterLink to="/">
-                <img
-                  alt="mak.ac.ug"
-                  style={logo_style}
-                  src="https://res.cloudinary.com/drgm88r3l/image/upload/v1602488051/airqo_org_logos/mak_logo.png"
-                />
-              </RouterLink>
-              <RouterLink to="/">
-                <img
-                  alt="airqo.net"
-                  style={logo_style}
-                  src="https://res.cloudinary.com/drgm88r3l/image/upload/v1602488051/airqo_org_logos/airqo_logo.png"
-                />
-              </RouterLink>
-            </>
-          )}
-        </div>
-
+        <Hidden lgUp>
+          <MenuIcon onClick={toggleSidebar} />
+        </Hidden>
+        <Hidden mdDown>
+          <div style={logoContainerStyle}>
+            {orgData.name !== "airqo" && (
+              <>
+                <RouterLink to="/">
+                  <img
+                    alt="mak.ac.ug"
+                    style={logo_style}
+                    src="https://res.cloudinary.com/drgm88r3l/image/upload/v1602488051/airqo_org_logos/mak_logo.png"
+                  />
+                </RouterLink>
+                <RouterLink to="/">
+                  <img
+                    alt="airqo.net"
+                    style={logo_style}
+                    src="https://res.cloudinary.com/drgm88r3l/image/upload/v1602488051/airqo_org_logos/airqo_logo.png"
+                  />
+                </RouterLink>
+                <RouterLink to="/">
+                  <img
+                    alt={orgData.name}
+                    style={logo_style}
+                    src={
+                      "https://res.cloudinary.com/drgm88r3l/image/upload/v1602488051/airqo_org_logos/" +
+                      orgData.name +
+                      "_logo.png"
+                    }
+                  />
+                </RouterLink>
+              </>
+            )}
+            {orgData.name === "airqo" && (
+              <>
+                <RouterLink to="/">
+                  <img
+                    alt="mak.ac.ug"
+                    style={logo_style}
+                    src="https://res.cloudinary.com/drgm88r3l/image/upload/v1602488051/airqo_org_logos/mak_logo.png"
+                  />
+                </RouterLink>
+                <RouterLink to="/">
+                  <img
+                    alt="airqo.net"
+                    style={logo_style}
+                    src="https://res.cloudinary.com/drgm88r3l/image/upload/v1602488051/airqo_org_logos/airqo_logo.png"
+                  />
+                </RouterLink>
+              </>
+            )}
+          </div>
+        </Hidden>
         <div
           style={{
             textTransform: "uppercase",
@@ -248,10 +262,45 @@ const Topbar = (props) => {
         >
           {orgData.name}
         </div>
-        <p style={timer_style}>
-          <span>{date.toLocaleString()}</span>
-        </p>
+
+        <Hidden mdDown>
+          <p style={timer_style}>
+            <span>{date.toLocaleString()}</span>
+          </p>
+        </Hidden>
+
         <div className={classes.flexGrow} />
+
+        <Hidden lgUp>
+          <IconButton
+            className={classes.signOutButton}
+            color="inherit"
+            onClick={handleOpenMenu}
+          >
+            <MoreVertIcon />
+          </IconButton>
+          <Menu
+            id="menu-appbar"
+            anchorEl={anchorEl}
+            anchorOrigin={{
+              vertical: "top",
+              horizontal: "right",
+            }}
+            keepMounted
+            transformOrigin={{
+              vertical: "top",
+              horizontal: "right",
+            }}
+            open={open}
+            onClose={handleCloseMenu}
+          >
+            <MenuItem onClick={handleDocsClick}>Docs</MenuItem>
+            <Divider />
+            <MenuItem onClick={handleProfileClick}>Settings</MenuItem>
+            <MenuItem onClick={handleAccountClick}>Account</MenuItem>
+            <MenuItem onClick={onLogoutClick}>Logout</MenuItem>
+          </Menu>
+        </Hidden>
         <Hidden mdDown>
           <IconButton
             color="inherit"
@@ -311,7 +360,7 @@ const Topbar = (props) => {
 
 Topbar.propTypes = {
   className: PropTypes.string,
-  onSidebarOpen: PropTypes.func,
+  toggleSidebar: PropTypes.func,
   logoutUser: PropTypes.func.isRequired,
   auth: PropTypes.object.isRequired,
 };
