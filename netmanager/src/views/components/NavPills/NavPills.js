@@ -12,6 +12,8 @@ import Tab from "@material-ui/core/Tab";
 
 import styles from "assets/jss/material-kit-react/components/navPillsStyle.js";
 
+import "assets/css/overview.css";
+
 const useStyles = makeStyles(styles);
 
 export default function NavPills(props) {
@@ -73,6 +75,50 @@ export default function NavPills(props) {
       </Tabs>
     </div>
   );
+  const tabButtonsMini = (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <Tabs
+        classes={{
+          root: classes.root,
+          fixed: classes.fixed,
+          flexContainer: flexContainerClasses,
+          indicator: classes.displayNone,
+        }}
+        value={active}
+        onChange={handleChange}
+        centered={alignCenter}
+      >
+        {tabs.map((prop, key) => {
+          var icon = {};
+          if (prop.tabIcon !== undefined) {
+            icon["icon"] = <prop.tabIcon className={classes.tabIcon} />;
+          }
+          const pillsClasses = classNames({
+            [classes.pillsMini]: true,
+            [classes.horizontalPills]: horizontal !== undefined,
+            [classes.pillsWithIcons]: prop.tabIcon !== undefined,
+          });
+          return (
+            <Tab
+              key={key}
+              {...icon}
+              classes={{
+                root: pillsClasses,
+                selected: classes[color],
+                wrapper: classes.tabWrapper,
+              }}
+            />
+          );
+        })}
+      </Tabs>
+    </div>
+  );
   const tabContent = (
     <div className={classes.contentWrapper}>
       <SwipeableViews
@@ -92,7 +138,8 @@ export default function NavPills(props) {
   );
   return (
     <div style={{ width: "80%", maxWidth: "1000px" }}>
-      {tabButtons}
+      <div className={"nav-pill-tabs"}>{tabButtons}</div>
+      <div className={"nav-pill-tabs-mini"}>{tabButtonsMini}</div>
       {tabContent}
     </div>
   );

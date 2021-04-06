@@ -1,0 +1,15 @@
+.nav-pill-tabs {
+    display: block;
+}
+.nav-pill-tabs-mini {
+   display: none;
+}
+
+@media only screen and (max-width: 800px) {
+    .nav-pill-tabs {
+        display: none;
+    }
+    .nav-pill-tabs-mini {
+       display: block;
+    }
+}
