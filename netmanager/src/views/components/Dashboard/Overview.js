@@ -21,7 +21,7 @@ function withMyHook(Component) {
   };
 }
 
-function Dashboard(props) {
+function Overview(props) {
   return (
     <div
       style={{
@@ -133,11 +133,11 @@ function Dashboard(props) {
     </div>
   );
 }
-Dashboard.propTypes = {
+Overview.propTypes = {
   logoutUser: PropTypes.func.isRequired,
   auth: PropTypes.object.isRequired,
 };
 const mapStateToProps = (state) => ({
   auth: state.auth,
 });
-export default connect(mapStateToProps, { logoutUser })(withMyHook(Dashboard));
+export default connect(mapStateToProps, { logoutUser })(withMyHook(Overview));
