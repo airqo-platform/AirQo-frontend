@@ -15,11 +15,11 @@ import {
   MenuItem,
   Menu,
 } from "@material-ui/core";
-import Alert from '@material-ui/lab/Alert';
+import Alert from "@material-ui/lab/Alert";
 import NotificationsIcon from "@material-ui/icons/NotificationsOutlined";
-import CloseIcon from '@material-ui/icons/Close';
+import CloseIcon from "@material-ui/icons/Close";
 import InputIcon from "@material-ui/icons/Input";
-import HelpIcon from '@material-ui/icons/Help';
+import HelpIcon from "@material-ui/icons/Help";
 import { logoutUser } from "redux/Join/actions";
 import { useOrgData } from "redux/Join/selectors";
 import { useMainAlertData } from "redux/MainAlert/selectors";
@@ -45,12 +45,12 @@ const useAlertStyles = makeStyles((theme) =>
       borderRadius: "unset",
     },
     root: {
-      width: '100%',
-      '& > * + *': {
+      width: "100%",
+      "& > * + *": {
         marginTop: theme.spacing(2),
       },
     },
-  }),
+  })
 );
 
 export const TransitionAlerts = () => {
@@ -62,8 +62,8 @@ export const TransitionAlerts = () => {
     <div className={classes.root}>
       <Collapse in={mainAlertData.show}>
         <Alert
-            className={classes.alertRoot}
-            action={
+          className={classes.alertRoot}
+          action={
             <IconButton
               aria-label="close"
               color="inherit"
@@ -75,14 +75,14 @@ export const TransitionAlerts = () => {
               <CloseIcon fontSize="inherit" />
             </IconButton>
           }
-            severity={mainAlertData.severity}
+          severity={mainAlertData.severity}
         >
           {mainAlertData.message}
         </Alert>
       </Collapse>
     </div>
   );
-}
+};
 
 function withMyHook(Component) {
   return function WrappedComponent(props) {
@@ -105,7 +105,7 @@ const Topbar = (props) => {
     display: "flex",
     // justifyContent: "space-around",
     width: "330px",
-  }
+  };
 
   const logo_style = {
     height: "3.8em",
@@ -189,52 +189,55 @@ const Topbar = (props) => {
     <AppBar {...rest} className={clsx(classes.root, className)}>
       <Toolbar>
         <div style={logoContainerStyle}>
-          {orgData.name != 'airqo' &&
+          {orgData.name !== "airqo" && (
             <>
-           <RouterLink to="/">
-            <img
-              alt="mak.ac.ug"
-              style={logo_style}
-              src="https://res.cloudinary.com/drgm88r3l/image/upload/v1602488051/airqo_org_logos/mak_logo.png"
-            />
-          </RouterLink>
-          <RouterLink to="/">
-            <img
-              alt="airqo.net"
-              style={logo_style}
-              src="https://res.cloudinary.com/drgm88r3l/image/upload/v1602488051/airqo_org_logos/airqo_logo.png"
-            />
-          </RouterLink>
-          <RouterLink to="/">
-            <img
-                alt={orgData.name}
-                style={logo_style}
-                src={"https://res.cloudinary.com/drgm88r3l/image/upload/v1602488051/airqo_org_logos/" + orgData.name + "_logo.png"}
-            />
-            </RouterLink>
+              <RouterLink to="/">
+                <img
+                  alt="mak.ac.ug"
+                  style={logo_style}
+                  src="https://res.cloudinary.com/drgm88r3l/image/upload/v1602488051/airqo_org_logos/mak_logo.png"
+                />
+              </RouterLink>
+              <RouterLink to="/">
+                <img
+                  alt="airqo.net"
+                  style={logo_style}
+                  src="https://res.cloudinary.com/drgm88r3l/image/upload/v1602488051/airqo_org_logos/airqo_logo.png"
+                />
+              </RouterLink>
+              <RouterLink to="/">
+                <img
+                  alt={orgData.name}
+                  style={logo_style}
+                  src={
+                    "https://res.cloudinary.com/drgm88r3l/image/upload/v1602488051/airqo_org_logos/" +
+                    orgData.name +
+                    "_logo.png"
+                  }
+                />
+              </RouterLink>
             </>
-          }
-          {orgData.name == 'airqo' &&
+          )}
+          {orgData.name === "airqo" && (
             <>
-            <RouterLink to="/">
-            <img
-              alt="mak.ac.ug"
-              style={logo_style}
-              src="https://res.cloudinary.com/drgm88r3l/image/upload/v1602488051/airqo_org_logos/mak_logo.png"
-            />
-            </RouterLink>
-          <RouterLink to="/">
-            <img
-              alt="airqo.net"
-              style={logo_style}
-              src="https://res.cloudinary.com/drgm88r3l/image/upload/v1602488051/airqo_org_logos/airqo_logo.png"
-            />
-          </RouterLink>
-
+              <RouterLink to="/">
+                <img
+                  alt="mak.ac.ug"
+                  style={logo_style}
+                  src="https://res.cloudinary.com/drgm88r3l/image/upload/v1602488051/airqo_org_logos/mak_logo.png"
+                />
+              </RouterLink>
+              <RouterLink to="/">
+                <img
+                  alt="airqo.net"
+                  style={logo_style}
+                  src="https://res.cloudinary.com/drgm88r3l/image/upload/v1602488051/airqo_org_logos/airqo_logo.png"
+                />
+              </RouterLink>
             </>
-          }
+          )}
         </div>
-        
+
         <div
           style={{
             textTransform: "uppercase",
@@ -250,8 +253,11 @@ const Topbar = (props) => {
         </p>
         <div className={classes.flexGrow} />
         <Hidden mdDown>
-
-          <IconButton color="inherit" href="https://docs.airqo.net/airqo-handbook/-MHlrqORW-vI38ybYLVC/" target="_blank">
+          <IconButton
+            color="inherit"
+            href="https://docs.airqo.net/airqo-handbook/-MHlrqORW-vI38ybYLVC/"
+            target="_blank"
+          >
             <Badge
               badgeContent={notifications.length}
               color="primary"
@@ -260,7 +266,7 @@ const Topbar = (props) => {
               <HelpIcon />
             </Badge>
           </IconButton>
-       
+
           <IconButton color="inherit">
             <Badge
               badgeContent={notifications.length}
