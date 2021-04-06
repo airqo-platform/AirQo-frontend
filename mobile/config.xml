@@ -2,7 +2,7 @@
 <widget id="com.airqo.app" version="1.21.4" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>AirQo</name>
     <description>Air Quality Monitoring</description>
-    <author email="info@airqo.net" href="https://airqo.net/">AirQo Team</author>
+    <author email="info@airqo.net" href="https://airqo.net/">The AirQo Team</author>
     <content src="index.html" />
     <access origin="*" />
     <allow-intent href="http://*/*" />
