@@ -65488,33 +65488,6 @@ page-add-place .area-sub-title {
   color: grey;
 }
 
-page-camera .btn-camera {
-  width: 10rem;
-  height: 10rem;
-  background-color: #ece9e9 !important;
-  border-radius: 50%;
-}
-
-page-camera .btn-label {
-  font-size: 2rem;
-}
-
-page-camera .picture-section {
-  margin: 1rem;
-  text-align: center;
-}
-
-page-camera .preview-image {
-  max-height: 20rem;
-  -o-object-fit: cover;
-  object-fit: cover;
-}
-
-page-camera .face {
-  width: 3rem;
-  height: 3rem;
-}
-
 page-favorites .area-title {
   font-size: 1.8rem;
   font-weight: 560;
@@ -65522,44 +65495,6 @@ page-favorites .area-title {
 
 page-favorites .area-sub-title {
   font-color: #7a7a7a;
-}
-
-page-forgot-password ion-grid {
-  margin: 0;
-  padding: 0;
-}
-
-page-forgot-password ion-col {
-  margin: 0;
-  padding: 0;
-}
-
-page-forgot-password .logo-section img {
-  position: relative;
-  margin: auto;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  width: 15rem;
-  height: 15rem;
-}
-
-page-forgot-password .user-preference ion-item {
-  margin: 0;
-  padding: 0;
-}
-
-page-forgot-password .password-icon {
-  font-size: 2rem !important;
-  position: relative !important;
-  top: 22px !important;
-  margin: 0 auto !important;
-}
-
-page-forgot-password .or-divider {
-  text-align: center;
-  padding: 1rem 0;
 }
 
 page-home .nav-image {
@@ -66333,81 +66268,4 @@ page-node .moderate-bold {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
   }
-}
-
-page-sign-in ion-grid {
-  margin: 0;
-  padding: 0;
-}
-
-page-sign-in ion-col {
-  margin: 0;
-  padding: 0;
-}
-
-page-sign-in .logo-section img {
-  position: relative;
-  margin: auto;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  width: 15rem;
-  height: 15rem;
-}
-
-page-sign-in .user-preference ion-item {
-  margin: 0;
-  padding: 0;
-}
-
-page-sign-in .password-icon {
-  font-size: 2rem !important;
-  position: relative !important;
-  top: 22px !important;
-  margin: 0 auto !important;
-}
-
-page-sign-in .or-divider {
-  text-align: center;
-  padding: 1rem 0;
-}
-
-page-sign-up ion-grid {
-  margin: 0;
-  padding: 0;
-}
-
-page-sign-up ion-col {
-  margin: 0;
-  padding: 0;
-}
-
-page-sign-up .logo-section img {
-  position: relative;
-  margin: auto;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  width: 15rem;
-  height: 15rem;
-}
-
-page-sign-up .user-preference ion-item {
-  margin: 0;
-  padding: 0;
-}
-
-page-sign-up .password-icon {
-  font-size: 2rem !important;
-  position: relative !important;
-  top: 22px !important;
-  margin: 0 auto !important;
-}
-
-page-sign-up .or-divider {
-  text-align: center;
-  padding: 1rem 0;
-  color: #3067e2;
 }
