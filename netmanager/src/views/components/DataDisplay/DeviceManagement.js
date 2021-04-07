@@ -45,7 +45,6 @@ import "chartjs-plugin-annotation";
 import "assets/scss/device-management.sass";
 import "assets/css/device-view.css"; // there are some shared styles here too :)
 
-
 const useStyles = makeStyles(styles);
 
 const DEFAULT_DEVICE_FILTERS = {
@@ -64,6 +63,37 @@ const DEVICE_FILTER_FIELDS = {
   solar: { key: "power", value: "Solar" },
   alternator: { key: "power", value: "Battery" },
   mains: { key: "power", value: "Mains" },
+};
+
+const OverviewCardMini = ({ label, icon, value, filterActive, onClick }) => {
+  return (
+    <Tooltip title={label}>
+      <div className={"card-container-mini"} onClick={onClick}>
+        <Card
+          style={
+            filterActive
+              ? { margin: 0, borderRadius: 0 }
+              : { margin: 0, background: "#f2f2f2", borderRadius: 0 }
+          }
+        >
+          <div className={"card-title-wrapper-mini"}>
+            <span
+              className={"card-title-icon-mini"}
+              style={filterActive ? {} : { background: "#6d94ea" }}
+            >
+              {icon}
+            </span>
+            <h3
+              className={"card-title-mini"}
+              style={filterActive ? {} : { color: "#999" }}
+            >
+              {value}
+            </h3>
+          </div>
+        </Card>
+      </div>
+    </Tooltip>
+  );
 };
 
 const OverviewCard = ({ label, icon, value, filterActive, onClick }) => {
