@@ -9,6 +9,8 @@ import AccessTime from "@material-ui/icons/AccessTime";
 import RestoreIcon from "@material-ui/icons/Restore";
 import WbSunnyIcon from "@material-ui/icons/WbSunny";
 import PowerIcon from "@material-ui/icons/Power";
+import Hidden from "@material-ui/core/Hidden";
+import Tooltip from "@material-ui/core/Tooltip";
 import Card from "../Card/Card.js";
 import CardBody from "../Card/CardBody.js";
 import CardFooter from "../Card/CardFooter.js";
@@ -236,6 +238,51 @@ export default function DeviceManagement() {
     setDeviceFilters({ ...mapObject(deviceFilters, () => false), all: true });
   };
 
+  const cardsData = [
+    {
+      label: "Devices on the network",
+      value: devicesStatusData.total_active_device_count,
+      icon: <DevicesIcon />,
+      filterActive: deviceFilters.all,
+      onClick: handleDeviceFilterClick("all"),
+    },
+    {
+      label: "Due for maintenance",
+      value: devicesStatusData.count_due_maintenance,
+      icon: <RestoreIcon />,
+      filterActive: deviceFilters.due,
+      onClick: handleDeviceFilterClick("due"),
+    },
+    {
+      label: "Overdue for maintenance",
+      value: devicesStatusData.count_overdue_maintenance,
+      icon: <ReportProblem />,
+      filterActive: deviceFilters.overDue,
+      onClick: handleDeviceFilterClick("overDue"),
+    },
+    {
+      label: "Solar powered",
+      value: devicesStatusData.count_of_solar_devices,
+      icon: <WbSunnyIcon />,
+      filterActive: deviceFilters.solar,
+      onClick: handleDeviceFilterClick("solar"),
+    },
+    {
+      label: "Alternator",
+      value: devicesStatusData.count_of_alternator_devices,
+      icon: <BatteryFullIcon />,
+      filterActive: deviceFilters.alternator,
+      onClick: handleDeviceFilterClick("alternator"),
+    },
+    {
+      label: "Mains Powered",
+      value: devicesStatusData.count_of_mains,
+      icon: <PowerIcon />,
+      filterActive: deviceFilters.mains,
+      onClick: handleDeviceFilterClick("mains"),
+    },
+  ];
+
   useEffect(() => {
     if (isEmpty(devicesStatusData)) {
       dispatch(loadDevicesStatusData());
@@ -304,53 +351,34 @@ export default function DeviceManagement() {
           margin: "20px 0",
         }}
       >
-        <OverviewCard
-          label={"Devices on the network"}
-          value={devicesStatusData.total_active_device_count}
-          icon={<DevicesIcon />}
-          filterActive={deviceFilters.all}
-          onClick={handleDeviceFilterClick("all")}
-        />
-
-        <OverviewCard
-          label={"Due for maintenance"}
-          value={devicesStatusData.count_due_maintenance}
-          icon={<RestoreIcon />}
-          filterActive={deviceFilters.due}
-          onClick={handleDeviceFilterClick("due")}
-        />
-
-        <OverviewCard
-          label={"Overdue for maintenance"}
-          value={devicesStatusData.count_overdue_maintenance}
-          icon={<ReportProblem />}
-          filterActive={deviceFilters.overDue}
-          onClick={handleDeviceFilterClick("overDue")}
-        />
-
-        <OverviewCard
-          label={"Solar powered"}
-          value={devicesStatusData.count_of_solar_devices}
-          icon={<WbSunnyIcon />}
-          filterActive={deviceFilters.solar}
-          onClick={handleDeviceFilterClick("solar")}
-        />
-
-        <OverviewCard
-          label={"Alternator"}
-          value={devicesStatusData.count_of_alternator_devices}
-          icon={<BatteryFullIcon />}
-          filterActive={deviceFilters.alternator}
-          onClick={handleDeviceFilterClick("alternator")}
-        />
-
-        <OverviewCard
-          label={"Mains Powered"}
-          value={devicesStatusData.count_of_mains}
-          icon={<PowerIcon />}
-          filterActive={deviceFilters.mains}
-          onClick={handleDeviceFilterClick("mains")}
-        />
+        <Hidden mdDown>
+          {cardsData.map((data, key) => {
+            return (
+              <OverviewCard
+                label={data.label}
+                value={data.value}
+                icon={data.icon}
+                filterActive={data.filterActive}
+                onClick={data.onClick}
+                key={key}
+              />
+            );
+          })}
+        </Hidden>
+        <Hidden lgUp>
+          {cardsData.map((data, key) => {
+            return (
+              <OverviewCardMini
+                label={data.label}
+                value={data.value}
+                icon={data.icon}
+                filterActive={data.filterActive}
+                onClick={data.onClick}
+                key={key}
+              />
+            );
+          })}
+        </Hidden>
       </div>
 
       <div className={"map-container"}>
