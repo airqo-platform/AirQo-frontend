@@ -500,7 +500,6 @@ const DevicesTable = (props) => {
               showTitle: false,
               searchFieldStyle: {
                 fontFamily: "Open Sans",
-                border: "2px solid #7575FF",
               },
               headerStyle: {
                 fontFamily: "Open Sans",
