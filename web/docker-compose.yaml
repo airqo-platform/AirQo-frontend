@@ -1,0 +1,44 @@
+version: "3"
+services:
+  web:
+    container_name: airqo-web
+    build:
+      context: .
+      dockerfile: docker/apache/Dockerfile.dev
+      args:
+        uid: ${UID}
+    environment:
+      - APACHE_RUN_USER=#${UID}
+      - APACHE_RUN_GROUP=#${UID}
+    restart: unless-stopped
+    volumes:
+      - .:/var/www/html
+      - ./apache_log:/var/log/apache2
+    ports:
+      - 8000:80
+    depends_on:
+      - db
+    links:
+      - db
+  db:
+    container_name: airqo-db
+    build:
+      context: .
+      dockerfile: docker/mysql/Dockerfile.dev
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    command: --default-authentication-plugin=mysql_native_password
+    restart: unless-stopped
+    volumes:
+      - ./db_data/:/docker-entrypoint-initdb.d
+    ports:
+      - 8806:3306
+  adminer:
+    container_name: airqo-db-ui
+    image: adminer
+    restart: unless-stopped
+    ports:
+      - 8001:8080
+volumes:
+  db_data:
