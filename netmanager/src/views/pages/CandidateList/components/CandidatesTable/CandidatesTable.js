@@ -120,68 +120,64 @@ const CandidatesTable = (props) => {
       {/* To use the different tables, it will just have to be different APIs */}
 
       <CardContent className={classes.content}>
-        <PerfectScrollbar>
-          <div className={classes.inner}>
-            <CustomMaterialTable
-                title={"candidate"}
-                userPreferencePaginationKey={"candidates"}
-                data={users}
-                columns={[
-                  {
-                    title: "Full Name",
-                    render: (user) => {
-                      return (
-                          <div className={classes.nameContainer}>
-                            <Avatar className={classes.avatar} src={user.avatarUrl}>
-                              {getInitials(
-                                `${user.firstName + " " + user.lastName}`
-                              )}
-                            </Avatar>
-                            <Typography variant="body1">
-                              {" "}
-                              {user.firstName + " " + user.lastName}
-                            </Typography>
-                          </div>
-                      )
-                    }
-                  },
-                  {
-                    title: "Email",
-                    field: "email",
-                  },
-                  {
-                    title: "Description",
-                    field: "description",
-                  },
-                  {
-                    title: "Organization",
-                    field: "organization",
-                  },
-                  {
-                    title: "Country",
-                    field: "country",
-                  },
-                  {
-                    title: "Job Title",
-                    field: "jobTitle",
-                  },
-                  {
-                    title: "Phone Number",
-                    field: "phoneNumber"
-                  },
-                  {
-                    title: "Action",
-                    render: (candidate) => <Button color="primary">Confirm</Button>,
-                  },
-                ]}
-                options={{
-                  search: true,
-                  searchFieldAlignment: "left",
-                  showTitle: false,
-                }}
-            />
-          </div>
-        </PerfectScrollbar>
+        <CustomMaterialTable
+            title={"candidate"}
+            userPreferencePaginationKey={"candidates"}
+            data={users}
+            columns={[
+              {
+                title: "Full Name",
+                render: (user) => {
+                  return (
+                      <div className={classes.nameContainer}>
+                        <Avatar className={classes.avatar} src={user.avatarUrl}>
+                          {getInitials(
+                            `${user.firstName + " " + user.lastName}`
+                          )}
+                        </Avatar>
+                        <Typography variant="body1">
+                          {" "}
+                          {user.firstName + " " + user.lastName}
+                        </Typography>
+                      </div>
+                  )
+                }
+              },
+              {
+                title: "Email",
+                field: "email",
+              },
+              {
+                title: "Description",
+                field: "description",
+              },
+              {
+                title: "Organization",
+                field: "organization",
+              },
+              {
+                title: "Country",
+                field: "country",
+              },
+              {
+                title: "Job Title",
+                field: "jobTitle",
+              },
+              {
+                title: "Phone Number",
+                field: "phoneNumber"
+              },
+              {
+                title: "Action",
+                render: (candidate) => <Button color="primary">Confirm</Button>,
+              },
+            ]}
+            options={{
+              search: true,
+              searchFieldAlignment: "left",
+              showTitle: false,
+            }}
+        />
       </CardContent>
 
       {/*************************** the edit dialog **********************************************/}
