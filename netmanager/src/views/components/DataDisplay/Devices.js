@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import clsx from "clsx";
 import PropTypes from "prop-types";
-import PerfectScrollbar from "react-perfect-scrollbar";
 import axios from "axios";
 import { useHistory, useLocation } from "react-router-dom";
 import { makeStyles } from "@material-ui/styles";
@@ -40,7 +39,9 @@ import ConfirmDialog from "views/containers/ConfirmDialog";
 import "assets/css/device-registry.css";
 
 const useStyles = makeStyles((theme) => ({
-  root: {},
+  root: {
+    padding: theme.spacing(3),
+  },
   content: {
     padding: 0,
   },
@@ -467,7 +468,13 @@ const DevicesTable = (props) => {
   return (
     <div className={classes.root}>
       <br />
-      <Grid container alignItems="right" alignContent="right" justify="center">
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "flex-end",
+        }}
+      >
         <Button
           variant="contained"
           color="primary"
@@ -478,40 +485,34 @@ const DevicesTable = (props) => {
           {" "}
           Add Device
         </Button>
-      </Grid>
+      </div>
       <br />
 
       <LoadingOverlay active={isLoading} spinner text="Loading Devices...">
-        <Card {...rest} className={clsx(classes.root, className)}>
-          <CardContent className={classes.content}>
-            <PerfectScrollbar>
-              <div className={classes.tableWrapper}>
-                <CustomMaterialTable
-                  className={classes.table}
-                  title="Device Registry"
-                  userPreferencePaginationKey={"devices"}
-                  columns={deviceColumns}
-                  data={deviceList}
-                  options={{
-                    search: true,
-                    exportButton: true,
-                    searchFieldAlignment: "left",
-                    showTitle: false,
-                    searchFieldStyle: {
-                      fontFamily: "Open Sans",
-                      border: "2px solid #7575FF",
-                    },
-                    headerStyle: {
-                      fontFamily: "Open Sans",
-                      fontSize: 16,
-                      fontWeight: 600,
-                    },
-                  }}
-                />
-              </div>
-            </PerfectScrollbar>
-          </CardContent>
-        </Card>
+        <div className={classes.tableWrapper}>
+          <CustomMaterialTable
+            className={classes.table}
+            title="Device Registry"
+            userPreferencePaginationKey={"devices"}
+            columns={deviceColumns}
+            data={deviceList}
+            options={{
+              search: true,
+              exportButton: true,
+              searchFieldAlignment: "left",
+              showTitle: false,
+              searchFieldStyle: {
+                fontFamily: "Open Sans",
+                border: "2px solid #7575FF",
+              },
+              headerStyle: {
+                fontFamily: "Open Sans",
+                fontSize: 16,
+                fontWeight: 600,
+              },
+            }}
+          />
+        </div>
       </LoadingOverlay>
 
       <CreateDevice
