@@ -35,8 +35,8 @@ const Main = (props) => {
 
   const [openSidebar, setOpenSidebar] = useState(false);
 
-  const handleSidebarOpen = () => {
-    setOpenSidebar(true);
+  const toggleSidebar = () => {
+    setOpenSidebar(!openSidebar);
   };
 
   const handleSidebarClose = () => {
@@ -52,7 +52,7 @@ const Main = (props) => {
         [classes.shiftContent]: isDesktop,
       })}
     >
-      <Topbar onSidebarOpen={handleSidebarOpen} />
+      <Topbar toggleSidebar={toggleSidebar} />
       <Sidebar
         onClose={handleSidebarClose}
         open={shouldOpenSidebar}

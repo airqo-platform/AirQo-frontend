@@ -1,6 +1,15 @@
 .card-container
-  width: 15%
-  min-width: 175px
+  width: 13%
+  min-width: 150px
+  padding: 0
+
+  &:hover
+    cursor: pointer
+
+.card-container-mini
+  width: 10%
+  min-width: 60px
+  height: 50px
   padding: 0
 
   &:hover
@@ -22,6 +31,16 @@
     overflow: hidden
     text-overflow: ellipsis
 
+.card-title-wrapper-mini
+  display: flex
+  flex-wrap: wrap
+  align-items: center
+  justify-content: space-between
+  padding: 0 2px
+  width: 100%
+  height: 45px
+  border-radius: 0
+
 .card-title-icon
   display: flex
   align-items: center
@@ -34,6 +53,18 @@
   svg
     color: #fff
     font-size: 2.5rem
+
+.card-title-icon-mini
+  display: flex
+  align-items: center
+  justify-content: center
+  width: 30px
+  height: 30px
+  background: #2f67e2
+
+  svg
+    color: #fff
+    font-size: 1.5rem
 
 .card-title
   display: flex
@@ -52,6 +83,17 @@
     color: #999
     font-weight: 400
     line-height: 1
+
+.card-title-mini
+  display: flex
+  align-items: center
+  color: #3C4858
+  margin: 0
+  font-weight: 300
+  font-size: 1.5rem
+  font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif
+  text-decoration: none
+  height: 100%
 
 .card-category
   color: #999

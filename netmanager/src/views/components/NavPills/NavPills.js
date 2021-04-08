@@ -10,11 +10,9 @@ import { makeStyles } from "@material-ui/core/styles";
 import Tabs from "@material-ui/core/Tabs";
 import Tab from "@material-ui/core/Tab";
 
-// core components
-import GridContainer from "../Grid/GridContainer.js";
-import GridItem from "../Grid/GridItem.js";
-
 import styles from "assets/jss/material-kit-react/components/navPillsStyle.js";
+
+import "assets/css/overview.css";
 
 const useStyles = makeStyles(styles);
 
@@ -33,41 +31,93 @@ export default function NavPills(props) {
     [classes.horizontalDisplay]: horizontal !== undefined,
   });
   const tabButtons = (
-    <Tabs
-      classes={{
-        root: classes.root,
-        fixed: classes.fixed,
-        flexContainer: flexContainerClasses,
-        indicator: classes.displayNone,
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
       }}
-      value={active}
-      onChange={handleChange}
-      centered={alignCenter}
     >
-      {tabs.map((prop, key) => {
-        var icon = {};
-        if (prop.tabIcon !== undefined) {
-          icon["icon"] = <prop.tabIcon className={classes.tabIcon} />;
-        }
-        const pillsClasses = classNames({
-          [classes.pills]: true,
-          [classes.horizontalPills]: horizontal !== undefined,
-          [classes.pillsWithIcons]: prop.tabIcon !== undefined,
-        });
-        return (
-          <Tab
-            label={prop.tabButton}
-            key={key}
-            {...icon}
-            classes={{
-              root: pillsClasses,
-              selected: classes[color],
-              wrapper: classes.tabWrapper,
-            }}
-          />
-        );
-      })}
-    </Tabs>
+      <Tabs
+        classes={{
+          root: classes.root,
+          fixed: classes.fixed,
+          flexContainer: flexContainerClasses,
+          indicator: classes.displayNone,
+        }}
+        value={active}
+        onChange={handleChange}
+        centered={alignCenter}
+      >
+        {tabs.map((prop, key) => {
+          var icon = {};
+          if (prop.tabIcon !== undefined) {
+            icon["icon"] = <prop.tabIcon className={classes.tabIcon} />;
+          }
+          const pillsClasses = classNames({
+            [classes.pills]: true,
+            [classes.horizontalPills]: horizontal !== undefined,
+            [classes.pillsWithIcons]: prop.tabIcon !== undefined,
+          });
+          return (
+            <Tab
+              label={prop.tabButton}
+              key={key}
+              {...icon}
+              classes={{
+                root: pillsClasses,
+                selected: classes[color],
+                wrapper: classes.tabWrapper,
+              }}
+            />
+          );
+        })}
+      </Tabs>
+    </div>
+  );
+  const tabButtonsMini = (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <Tabs
+        classes={{
+          root: classes.root,
+          fixed: classes.fixed,
+          flexContainer: flexContainerClasses,
+          indicator: classes.displayNone,
+        }}
+        value={active}
+        onChange={handleChange}
+        centered={alignCenter}
+      >
+        {tabs.map((prop, key) => {
+          var icon = {};
+          if (prop.tabIcon !== undefined) {
+            icon["icon"] = <prop.tabIcon className={classes.tabIcon} />;
+          }
+          const pillsClasses = classNames({
+            [classes.pillsMini]: true,
+            [classes.horizontalPills]: horizontal !== undefined,
+            [classes.pillsWithIcons]: prop.tabIcon !== undefined,
+          });
+          return (
+            <Tab
+              key={key}
+              {...icon}
+              classes={{
+                root: pillsClasses,
+                selected: classes[color],
+                wrapper: classes.tabWrapper,
+              }}
+            />
+          );
+        })}
+      </Tabs>
+    </div>
   );
   const tabContent = (
     <div className={classes.contentWrapper}>
@@ -86,14 +136,10 @@ export default function NavPills(props) {
       </SwipeableViews>
     </div>
   );
-  return horizontal !== undefined ? (
-    <GridContainer>
-      <GridItem {...horizontal.tabsGrid}>{tabButtons}</GridItem>
-      <GridItem {...horizontal.contentGrid}>{tabContent}</GridItem>
-    </GridContainer>
-  ) : (
-    <div>
-      {tabButtons}
+  return (
+    <div style={{ width: "80%", maxWidth: "1000px" }}>
+      <div className={"nav-pill-tabs"}>{tabButtons}</div>
+      <div className={"nav-pill-tabs-mini"}>{tabButtonsMini}</div>
       {tabContent}
     </div>
   );

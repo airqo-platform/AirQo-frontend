@@ -24,9 +24,11 @@ const CandidateList = (props) => {
   }, []);
 
   return (
-    <div className={classes.content}>
-      <CandidatesTable candidates={candidates} />
-    </div>
+      <div className={classes.root}>
+        <div className={classes.content}>
+          <CandidatesTable candidates={candidates} />
+        </div>
+      </div>
   );
 };
 
