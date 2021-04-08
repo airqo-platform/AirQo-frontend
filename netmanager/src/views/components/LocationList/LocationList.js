@@ -27,8 +27,6 @@ const LocationList = () => {
     <div className={classes.root}>
       <LocationsToolbar />
       <div className={classes.content}>
-        {/*<LocationsTable users={users} />*/}
-        <h5 className={classes.title}> Location Registry </h5>
         <LocationsTable />
       </div>
     </div>
