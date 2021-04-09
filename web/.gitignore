@@ -3,3 +3,4 @@ airqo_db.sql
 apache_log
 db_data/airqo_db.sql
 .env
+system
