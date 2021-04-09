@@ -4,7 +4,7 @@ import PropTypes from "prop-types";
 import ReactCrop from "react-image-crop";
 import clsx from "clsx";
 import moment from "moment";
-import { makeStyles } from "@material-ui/styles";
+import { makeStyles, useTheme } from "@material-ui/styles";
 import {
   Card,
   CardActions,
@@ -13,6 +13,7 @@ import {
   Typography,
   Divider,
   Button,
+  useMediaQuery,
 } from "@material-ui/core";
 import { cloudinaryImageUpload } from "views/apis/cloudinary";
 import { updateMainAlert } from "redux/MainAlert/operations";
@@ -28,9 +29,15 @@ const useStyles = makeStyles((theme) => ({
   root: {},
   details: {
     display: "flex",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+  },
+  detailsMini: {
+    display: "flex",
+    flexWrap: "wrap",
+    justifyContent: "center",
   },
   avatar: {
-    marginLeft: "30%",
     height: "202px",
     width: "170px",
     flexShrink: 0,
@@ -52,6 +59,10 @@ const AccountProfile = (props) => {
   const { className, mappedAuth, ...rest } = props;
 
   const classes = useStyles();
+  const theme = useTheme();
+  const isDesktop = useMediaQuery(theme.breakpoints.up("lg"), {
+    defaultMatches: true,
+  });
 
   const { user } = mappedAuth;
   const dispatch = useDispatch();
@@ -208,7 +219,7 @@ const AccountProfile = (props) => {
     <>
       <Card {...rest} className={clsx(classes.root, className)}>
         <CardContent>
-          <div className={classes.details}>
+          <div className={isDesktop ? classes.details : classes.detailsMini}>
             <div>
               <Typography gutterBottom variant="h2">
                 {`${user.firstName} ${user.lastName}`}

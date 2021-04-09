@@ -40,6 +40,7 @@ import {
 } from "utils/charts";
 import { BarChartIcon, LineChartIcon } from "assets/img";
 import { pearsonCorrelation } from "utils/statistics";
+import Copyable from "views/components/Copy/Copyable";
 
 const useStyles = makeStyles(styles);
 
@@ -187,12 +188,7 @@ export default function DeviceOverview({ deviceData }) {
             style={{ alignContent: "left", alignItems: "left" }}
           >
             <TableContainer component={Paper}>
-              <Table
-                stickyHeader
-                aria-label="sticky table"
-                style={{ cursor: "pointer" }}
-                onClick={() => goTo("edit")}
-              >
+              <Table stickyHeader aria-label="sticky table">
                 <TableBody>
                   <TableRow>
                     <TableCell>
@@ -261,7 +257,9 @@ export default function DeviceOverview({ deviceData }) {
                       <b>Read Key</b>
                     </TableCell>
                     <TableCell>
-                      {deviceData.readKey || BLANK_PLACE_HOLDER}
+                      <Copyable
+                        value={deviceData.readKey || BLANK_PLACE_HOLDER}
+                      />
                     </TableCell>
                   </TableRow>
                   <TableRow>
@@ -269,7 +267,9 @@ export default function DeviceOverview({ deviceData }) {
                       <b>Write Key</b>
                     </TableCell>
                     <TableCell>
-                      {deviceData.writeKey || BLANK_PLACE_HOLDER}
+                      <Copyable
+                        value={deviceData.writeKey || BLANK_PLACE_HOLDER}
+                      />
                     </TableCell>
                   </TableRow>
                 </TableBody>

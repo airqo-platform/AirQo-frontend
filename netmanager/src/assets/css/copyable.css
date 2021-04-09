@@ -1,0 +1,8 @@
+.copyable-icon {
+    fill: #58606a;
+    cursor: pointer;
+}
+
+.copyable-icon:hover {
+    fill: #0366d6;
+}
