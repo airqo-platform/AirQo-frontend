@@ -4,14 +4,13 @@ import { Link, withRouter } from "react-router-dom";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { registerCandidate } from "redux/Join/actions";
-import classnames from "classnames";
-import TextField from "@material-ui/core/TextField";;
+import TextField from "@material-ui/core/TextField";
 import categories from "utils/categories";
 import { Alert, AlertTitle } from "@material-ui/lab";
 import { withStyles } from "@material-ui/core";
-import { isEmpty, isEqual, omit } from "underscore";
+import { isEmpty, isEqual } from "underscore";
 import { isFormFullyFilled } from "./utils";
-import usrsStateConnector from "views/stateConnectors/usersStateConnector";
+import usersStateConnector from "views/stateConnectors/usersStateConnector";
 
 const styles = (theme) => ({
   root: {
@@ -89,37 +88,14 @@ class Register extends Component {
 
     e.preventDefault();
     const { id, value } = e.target;
-    let errors = this.props.errors;
-
-    switch (id) {
-      case "firstName":
-        errors.firstName = value.length === 0 ? "first name is required" : "";
-        break;
-      case "lastName":
-        errors.lastName = value.length === 0 ? "last name is required" : "";
-        break;
-      case "email":
-        errors.email = validEmailRegex.test(value) ? "" : "Email is not valid!";
-        break;
-      case "organization":
-        errors.organization =
-          value.length === 0 ? "organization is required" : "";
-        break;
-      case "jobTitle":
-        errors.jobTitle = value.length === 0 ? "job title is required" : "";
-        break;
-      case "category":
-        errors.category = value.length === 0 ? "category is required" : "";
-        break;
-      case "website":
-        errors.website = value.length === 0 ? "website is required" : "";
-        break;
-      case "description":
-        errors.description =
-          value.length === 0 ? "description is required" : "";
-        break;
-      default:
-        break;
+    let errors = this.state.errors;
+    if (id === "email") {
+      if (value.length === 0)
+        errors[id] = "This field is required";
+      else
+        errors[id] = validEmailRegex.test(value) ? "" : "This is not a valid email";
+    } else {
+      errors[id] = value.length === 0 ? "This field is required" : "";
     }
     this.setState(
       {
@@ -166,7 +142,7 @@ class Register extends Component {
       console.error("Invalid Form");
     }
 
-    const emptyFields = isFormFullyFilled(this.state)
+    const emptyFields = isFormFullyFilled(this.state, "This field is required")
 
     if (!isEmpty(emptyFields)) {
       this.setState({
@@ -182,35 +158,7 @@ class Register extends Component {
     const { id, value } = e.target;
     let errors = this.state.errors;
     // const { errors } = this.state;
-
-    switch (id) {
-      case "firstName":
-        errors.firstName = mappedErrors.errors.firstName;
-        break;
-      case "lastName":
-        errors.lastName = mappedErrors.errors.lastName;
-        break;
-      case "email":
-        errors.email = mappedErrors.errors.email;
-        break;
-      case "organization":
-        errors.organization = mappedErrors.errors.organization;
-        break;
-      case "jobTitle":
-        errors.jobTitle = mappedErrors.errors.jobTitle;
-        break;
-      case "description":
-        errors.description = mappedErrors.errors.description;
-        break;
-      case "category":
-        errors.category = mappedErrors.errors.category;
-        break;
-      case "website":
-        errors.website = mappedErrors.errors.website;
-        break;
-      default:
-        break;
-    }
+    errors[id] = mappedErrors.errors[id];
 
     this.props.registerCandidate(this.state);
     this.clearState();
@@ -241,7 +189,7 @@ class Register extends Component {
               height: "15vh",
               padding: "1em",
             }}
-          ></div>
+          />
           <div
             className="col s8 offset-s2"
             style={{ backgroundColor: "#fff", padding: "1em" }}
@@ -255,143 +203,109 @@ class Register extends Component {
               </p>
             </div>
             <form noValidate onSubmit={this.onSubmit}>
-              <div className="input-field col s12">
-                <input
-                  onChange={this.onChange}
-                  value={this.state.firstName}
-                  error={!!errors.firstName}
-                  id="firstName"
-                  type="text"
-                  className={classnames("", {
-                    invalid: errors.firstName,
-                  })}
-                />
-                <label htmlFor="firstName">First Name</label>
-                <span className="red-text">{errors.firstName}</span>
-              </div>
-
-              <div className="input-field col s12">
-                <input
-                  onChange={this.onChange}
-                  value={this.state.lastName}
-                  error={!!errors.lastName}
-                  id="lastName"
-                  type="text"
-                  className={classnames("", {
-                    invalid: errors.lastName,
-                  })}
-                />
-                <label htmlFor="lastName">Last Name</label>
-                <span className="red-text">{errors.lastName}</span>
-              </div>
-
-              <div className="input-field col s12">
-                <input
-                  onChange={this.onChange}
-                  value={this.state.email}
-                  error={!!errors.email}
-                  id="email"
-                  type="email"
-                  className={classnames("", {
-                    invalid: errors.email,
-                  })}
-                />
-                <label htmlFor="email">Official Email</label>
-                <span className="red-text">{errors.email}</span>
-              </div>
-
-              <div className="input-field col s12">
-                <input
-                  onChange={this.onChange}
-                  value={this.state.organization}
-                  error={!!errors.organization}
-                  id="organization"
-                  type="text"
-                  className={classnames("", {
-                    invalid: errors.organization,
-                  })}
-                />
-                <label htmlFor="organization">Organization</label>
-                <span className="red-text">{errors.organization}</span>
-              </div>
-
-              <div className="input-field col s12">
-                <input
-                  onChange={this.onChange}
-                  value={this.state.jobTitle}
-                  error={!!errors.jobTitle}
-                  id="jobTitle"
-                  type="text"
-                  className={classnames("", {
-                    invalid: errors.jobTitle,
-                  })}
-                />
-                <label htmlFor="jobTitle">Job Title</label>
-                <span className="red-text">{errors.jobTitle}</span>
-              </div>
-
-              {/* 
-       website */}
-
-              <div className="input-field col s12">
-                <input
-                  onChange={this.onChange}
-                  value={this.state.website}
-                  error={!!errors.website}
-                  id="website"
-                  type="text"
-                  className={classnames("", {
-                    invalid: errors.website,
-                  })}
-                />
-                <label htmlFor="website">Website</label>
-                <span className="red-text">{errors.website}</span>
-              </div>
-
-              {/* What best desribes you? */}
-              <div>
+              <div className="col s12">
                 <TextField
-                  id="category"
-                  select
-                  label="category"
-                  value={this.state.category}
-                  error={!!errors.category}
-                  onChange={this.onChange}
-                  fullWidth={true}
-                  SelectProps={{
-                    native: true,
-                  }}
-                  helperText="What best describes you?"
-                  variant="outlined"
+                    onChange={this.onChange}
+                    value={this.state.firstName}
+                    error={!!errors.firstName}
+                    id="firstName"
+                    label="first Name"
+                    fullWidth
+                    margin="normal"
+                    variant="outlined"
+                    helperText={errors.firstName}
+                />
+                <TextField
+                    onChange={this.onChange}
+                    value={this.state.lastName}
+                    error={!!errors.lastName}
+                    id="lastName"
+                    label="Last Name"
+                    fullWidth
+                    margin="normal"
+                    variant="outlined"
+                    helperText={errors.lastName}
+                />
+                <TextField
+                    onChange={this.onChange}
+                    value={this.state.email}
+                    error={!!errors.email}
+                    id="email"
+                    label="Official Email"
+                    fullWidth
+                    margin="normal"
+                    variant="outlined"
+                    helperText={errors.email}
+                />
+                <TextField
+                    onChange={this.onChange}
+                    value={this.state.organization}
+                    error={!!errors.organization}
+                    id="organization"
+                    label="Organization"
+                    fullWidth
+                    margin="normal"
+                    variant="outlined"
+                    helperText={errors.organization}
+                />
+                <TextField
+                    onChange={this.onChange}
+                    value={this.state.jobTitle}
+                    error={!!errors.jobTitle}
+                    id="jobTitle"
+                    label="Job Title"
+                    fullWidth
+                    margin="normal"
+                    variant="outlined"
+                    helperText={errors.jobTitle}
+                />
+                <TextField
+                    onChange={this.onChange}
+                    value={this.state.website}
+                    error={!!errors.website}
+                    id="website"
+                    label="Website"
+                    fullWidth
+                    margin="normal"
+                    variant="outlined"
+                    helperText={errors.website}
+                />
+                <TextField
+                    id="category"
+                    select
+                    label="What best describes you?"
+                    value={this.state.category}
+                    error={!!errors.category}
+                    onChange={this.onChange}
+                    fullWidth
+                    SelectProps={{
+                      native: true,
+                      style: { width: "100%", height: "50px" },
+                    }}
+                    variant="outlined"
+                    helperText={errors.category}
+
                 >
                   {categories.array.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
                   ))}
                 </TextField>
-              </div>
 
-              <div
-                className={classnames("", {
-                  invalid: errors.description,
-                })}
-              >
                 <TextField
-                  id="description"
-                  label="Outline in detailed nature your interest in AirQuality"
-                  multiline
-                  fullWidth={true}
-                  rowsMax="5"
-                  value={this.state.description}
-                  onChange={this.onChange}
-                  className={classes.textField}
-                  margin="normal"
-                  helperText="Outline in detailed nature your interest in AirQuality"
-                  variant="outlined"
-                  error={!!errors.description}
+                    id="description"
+                    label="Outline in detailed nature your interest in AirQuality"
+                    fullWidth
+                    rows="2"
+                    rowsMax="5"
+                    value={this.state.description}
+                    onChange={this.onChange}
+                    margin="normal"
+                    variant="outlined"
+                    error={!!errors.description}
+                    helperText={errors.description}
                 />
-                <span className="red-text">{errors.description}</span>
               </div>
 
               <div className="col s12" style={{ paddingLeft: "11.250px" }}>
@@ -441,6 +355,6 @@ const mapStateToProps = (state) => ({
 });
 
 // export default Register;
-export default usrsStateConnector(connect(mapStateToProps, { registerCandidate })(
+export default usersStateConnector(connect(mapStateToProps, { registerCandidate })(
   withRouter(withStyles(styles, { withTheme: true })(Register))
 ));

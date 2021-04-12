@@ -169,6 +169,10 @@ const Topbar = (props) => {
     setAnchorEl(null);
   };
 
+  const handleNotifyClick = () => {
+    setAnchorEl(null);
+  };
+
   const [date, setDate] = React.useState(new Date());
   useEffect(() => {
     var timerID = setInterval(() => tick(), 1000);
@@ -307,7 +311,7 @@ const Topbar = (props) => {
               </ListItemIcon>
               <ListItemText primary="Docs" />
             </MenuItem>
-            <MenuItem onClick={handleDocsClick}>
+            <MenuItem onClick={handleNotifyClick}>
               <ListItemIcon>
                 <NotificationsIcon />
               </ListItemIcon>

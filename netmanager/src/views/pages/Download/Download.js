@@ -25,6 +25,7 @@ import jsonexport from "jsonexport";
 //import {CSVDownload} from 'react-csv';
 import constants from "config/constants.js";
 import { getMonitoringSitesLocationsApi } from "../../apis/location";
+import {isEmpty} from "underscore";
 
 const {
   Parser,
@@ -125,8 +126,8 @@ const Download = (props) => {
   const disableDownloadBtn = () => {
     return !(
       values &&
-      values.selectedOption &&
-      selectedPollutant &&
+      !isEmpty(values.selectedOption) &&
+      !isEmpty(selectedPollutant) &&
       selectedType &&
       selectedType.value &&
       selectedFrequency &&
