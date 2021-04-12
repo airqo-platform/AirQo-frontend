@@ -122,6 +122,20 @@ const Download = (props) => {
   //console.log(values.selectedOption);
   //console.log(selectedPollutant);
 
+  const disableDownloadBtn = () => {
+    return !(
+      values &&
+      values.selectedOption &&
+      selectedPollutant &&
+      selectedType &&
+      selectedType.value &&
+      selectedFrequency &&
+      selectedFrequency.value &&
+      selectedClean &&
+      selectedClean.value
+    );
+  };
+
   let handleSubmit = (e) => {
     e.preventDefault();
 
@@ -362,7 +376,12 @@ const Download = (props) => {
 
               <Divider />
               <CardActions>
-                <Button color="primary" variant="outlined" type="submit">
+                <Button
+                  color="primary"
+                  variant="outlined"
+                  type="submit"
+                  disabled={disableDownloadBtn()}
+                >
                   {" "}
                   Download Data
                 </Button>

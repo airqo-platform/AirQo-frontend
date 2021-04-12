@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from "react";
 import clsx from "clsx";
 import PropTypes from "prop-types";
-import PerfectScrollbar from "react-perfect-scrollbar";
 import { makeStyles } from "@material-ui/styles";
 import {
   Card,
@@ -19,7 +18,7 @@ import {
 } from "@material-ui/core";
 
 import { Alert, AlertTitle } from "@material-ui/lab";
-import { getInitials } from "helpers";
+import { getInitials } from "utils/users";
 import CustomMaterialTable from "views/components/Table/CustomMaterialTable";
 import usersStateConnector from "views/stateConnectors/usersStateConnector";
 
@@ -149,8 +148,6 @@ const UsersTable = (props) => {
       {/* To use the different tables, it will just have to be different APIs */}
 
       <CardContent className={classes.content}>
-        <PerfectScrollbar>
-          <div className={classes.inner}>
             <CustomMaterialTable
                 title={"Users"}
                 userPreferencePaginationKey={"users"}
@@ -212,8 +209,6 @@ const UsersTable = (props) => {
                   showTitle: false,
                 }}
             />
-          </div>
-        </PerfectScrollbar>
       </CardContent>
 
       {/*************************** the edit dialog **********************************************/}

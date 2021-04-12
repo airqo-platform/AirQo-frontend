@@ -1,11 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
-import clsx from "clsx";
 import PropTypes from "prop-types";
-import PerfectScrollbar from "react-perfect-scrollbar";
 import { Link } from "react-router-dom";
 import { makeStyles } from "@material-ui/styles";
-import { Card, CardContent } from "@material-ui/core";
 import LoadingOverlay from "react-loading-overlay";
 import "../../../assets/css/location-registry.css";
 import { isEmpty } from "underscore";
@@ -61,87 +58,80 @@ const LocationsTable = (props) => {
 
   return (
     <LoadingOverlay active={isLoading} spinner text="Loading Locations...">
-      <Card {...rest} className={clsx(classes.root, className)}>
-        <CardContent className={classes.content}>
-          <PerfectScrollbar>
-            <CustomMaterialTable
-              className={classes.table}
-              userPreferencePaginationKey={"locations"}
-              title="Location Registry"
-              columns={[
-                {
-                  title: "Reference",
-                  field: "loc_ref",
-                  render: (rowData) => (
-                    <Link
-                      className={classes.link}
-                      to={`/locations/${rowData.loc_ref}`}
-                    >
-                      {rowData.loc_ref}
-                    </Link>
-                  ),
-                },
-                {
-                  title: "Name",
-                  field: "location_name",
-                  cellStyle: { fontFamily: "Open Sans" },
-                },
-                {
-                  title: "Mobility",
-                  field: "mobility",
-                  cellStyle: { fontFamily: "Open Sans" },
-                },
-                {
-                  title: "Latitude",
-                  field: "latitude",
-                  cellStyle: { fontFamily: "Open Sans" },
-                },
-                {
-                  title: "Longitude",
-                  field: "longitude",
-                  cellStyle: { fontFamily: "Open Sans" },
-                },
-                {
-                  title: "Country",
-                  field: "country",
-                  cellStyle: { fontFamily: "Open Sans" },
-                },
-                {
-                  title: "District",
-                  field: "district",
-                  cellStyle: { fontFamily: "Open Sans" },
-                },
-                {
-                  title: "Subcounty",
-                  field: "subcounty",
-                  cellStyle: { fontFamily: "Open Sans" },
-                },
-                {
-                  title: "Parish",
-                  field: "parish",
-                  cellStyle: { fontFamily: "Open Sans" },
-                },
-              ]}
-              data={locations}
-              options={{
-                search: true,
-                exportButton: true,
-                searchFieldAlignment: "left",
-                showTitle: false,
-                searchFieldStyle: {
-                  fontFamily: "Open Sans",
-                  border: "2px solid #7575FF",
-                },
-                headerStyle: {
-                  fontFamily: "Open Sans",
-                  fontSize: 16,
-                  fontWeight: 600,
-                },
-              }}
-            />
-          </PerfectScrollbar>
-        </CardContent>
-      </Card>
+      <CustomMaterialTable
+        className={classes.table}
+        userPreferencePaginationKey={"locations"}
+        title="Location Registry"
+        columns={[
+          {
+            title: "Reference",
+            field: "loc_ref",
+            render: (rowData) => (
+              <Link
+                className={classes.link}
+                to={`/locations/${rowData.loc_ref}`}
+              >
+                {rowData.loc_ref}
+              </Link>
+            ),
+          },
+          {
+            title: "Name",
+            field: "location_name",
+            cellStyle: { fontFamily: "Open Sans" },
+          },
+          {
+            title: "Mobility",
+            field: "mobility",
+            cellStyle: { fontFamily: "Open Sans" },
+          },
+          {
+            title: "Latitude",
+            field: "latitude",
+            cellStyle: { fontFamily: "Open Sans" },
+          },
+          {
+            title: "Longitude",
+            field: "longitude",
+            cellStyle: { fontFamily: "Open Sans" },
+          },
+          {
+            title: "Country",
+            field: "country",
+            cellStyle: { fontFamily: "Open Sans" },
+          },
+          {
+            title: "District",
+            field: "district",
+            cellStyle: { fontFamily: "Open Sans" },
+          },
+          {
+            title: "Subcounty",
+            field: "subcounty",
+            cellStyle: { fontFamily: "Open Sans" },
+          },
+          {
+            title: "Parish",
+            field: "parish",
+            cellStyle: { fontFamily: "Open Sans" },
+          },
+        ]}
+        data={locations}
+        options={{
+          search: true,
+          exportButton: true,
+          searchFieldAlignment: "left",
+          showTitle: false,
+          searchFieldStyle: {
+            fontFamily: "Open Sans",
+          },
+          headerStyle: {
+            fontFamily: "Open Sans",
+            fontSize: 16,
+            fontWeight: 600,
+          },
+        }}
+      />
     </LoadingOverlay>
   );
 };

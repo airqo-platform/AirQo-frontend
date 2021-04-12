@@ -3,6 +3,7 @@ import { useDispatch } from "react-redux";
 import { makeStyles } from "@material-ui/styles";
 import MaterialTable from "material-table";
 import PropTypes from "prop-types";
+import PerfectScrollbar from "react-perfect-scrollbar";
 import { useUserPreferencePaginationData } from "redux/UserPreference/selectors";
 import {
   generatePaginateOptions,
@@ -78,7 +79,9 @@ export default function CustomMaterialTable({
       }
       style={style || {}}
     >
-      <MaterialTable {...props} />
+      <PerfectScrollbar>
+        <MaterialTable {...props} />
+      </PerfectScrollbar>
     </div>
   );
 }
@@ -90,4 +93,4 @@ CustomMaterialTable.propTypes = {
   pointerCursor: PropTypes.bool,
   data: PropTypes.array,
   options: PropTypes.object,
-}
+};
