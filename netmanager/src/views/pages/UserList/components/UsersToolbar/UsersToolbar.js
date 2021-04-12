@@ -367,7 +367,6 @@ const UsersToolbar = (props) => {
                       label="confirm password"
                       name="password2"
                       type="password"
-                      label="confirmation password"
                       onChange={onChange}
                       variant="outlined"
                       value={form.password2}
