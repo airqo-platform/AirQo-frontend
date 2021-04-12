@@ -10,7 +10,7 @@ The AirQo website can be configured locally for development and testing purposes
 
 #### **Setup**
 
-Checkout this branch locally and `cd` to `AirQo-frontend/web`.  Get the `.env` from the PR author. Also add the database dump (e.g. airqo_db.sql) in `db_data` folder.
+Checkout this branch locally and `cd` to `AirQo-frontend/web`.  Make sure you have the latest `.env`. Also add the database dump (e.g. airqo_db.sql) in `db_data` folder.
 
 Then run the following steps:
 
