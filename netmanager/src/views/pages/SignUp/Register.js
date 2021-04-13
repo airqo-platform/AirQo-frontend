@@ -297,6 +297,7 @@ class Register extends Component {
                     id="description"
                     label="Outline in detailed nature your interest in AirQuality"
                     fullWidth
+                    multiline
                     rows="2"
                     rowsMax="5"
                     value={this.state.description}
