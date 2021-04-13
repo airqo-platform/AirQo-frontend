@@ -1,8 +1,8 @@
 {
   "name": "airqo",
   "version": "0.0.1",
-  "author": "Ionic Framework",
-  "homepage": "http://ionicframework.com/",
+  "author": "Buzen Technologies",
+  "homepage": "https://airqo.net/",
   "private": true,
   "scripts": {
     "start": "ionic-app-scripts serve",
@@ -14,7 +14,7 @@
     "@angular/animations": "5.2.11",
     "@angular/common": "5.2.11",
     "@angular/compiler": "5.2.11",
-    "@angular/compiler-cli": "5.2.11",
+    "@angular/compiler-cli": "^11.2.6",
     "@angular/core": "5.2.11",
     "@angular/forms": "5.2.11",
     "@angular/platform-browser": "5.2.11",
@@ -24,18 +24,24 @@
     "@ionic-native/core": "4.20.0",
     "@ionic-native/device": "^4.20.0",
     "@ionic-native/geolocation": "^4.20.0",
+    "@ionic-native/native-storage": "^4.20.0",
     "@ionic-native/network": "^4.20.0",
     "@ionic-native/onesignal": "^4.20.0",
     "@ionic-native/social-sharing": "^4.20.0",
-    "@ionic-native/splash-screen": "4.20.0",
-    "@ionic-native/sqlite": "^4.20.0",
+    "@ionic-native/splash-screen": "^4.20.0",
     "@ionic-native/status-bar": "4.20.0",
-    "@ionic/storage": "2.2.0",
+    "@ionic/storage": "^2.2.0",
+    "@types/node": "^14.14.35",
     "chart.js": "^2.9.3",
+    "cordova-android": "^8.1.0",
+    "cordova-ios": "5.1.1",
+    "cordova-plugin-camera": "^4.1.0",
     "cordova-plugin-camera-preview": "^0.12.0",
     "cordova-plugin-dialogs": "^2.0.2",
     "cordova-plugin-nativestorage": "^2.3.2",
+    "cordova-plugin-splashscreen": "^6.0.0",
     "es6-promise-plugin": "^4.2.2",
+    "firebase": "^7.19.1",
     "ionic-angular": "3.9.9",
     "ionicons": "3.0.0",
     "leaflet": "^1.7.1",
@@ -45,42 +51,42 @@
   },
   "devDependencies": {
     "@ionic/app-scripts": "^3.2.4",
-    "cordova-android": "^9.0.0",
     "cordova-plugin-apprate": "^1.5.0",
     "cordova-plugin-device": "^2.0.3",
     "cordova-plugin-geolocation": "^4.0.2",
     "cordova-plugin-ionic-keyboard": "^2.2.0",
     "cordova-plugin-ionic-webview": "^4.2.1",
     "cordova-plugin-network-information": "^2.0.2",
-    "cordova-plugin-splashscreen": "5.0.2",
     "cordova-plugin-statusbar": "^2.4.2",
     "cordova-plugin-x-socialsharing": "^5.6.3",
-    "cordova-sqlite-storage": "^5.1.0",
-    "typescript": "2.6.2"
+    "typescript": "^2.7.2"
   },
-  "description": "An Ionic project",
+  "description": "An AirQo project",
   "cordova": {
     "plugins": {
       "cordova-plugin-statusbar": {},
-      "cordova-plugin-splashscreen": {},
       "cordova-plugin-ionic-webview": {
         "ANDROID_SUPPORT_ANNOTATIONS_VERSION": "27.+"
       },
       "cordova-plugin-ionic-keyboard": {},
+      "cordova-plugin-device": {},
       "cordova-plugin-x-socialsharing": {
         "ANDROID_SUPPORT_V4_VERSION": "24.1.1+",
         "PHOTO_LIBRARY_ADD_USAGE_DESCRIPTION": "This app requires photo library access to function properly.",
         "PHOTO_LIBRARY_USAGE_DESCRIPTION": "This app requires photo library access to function properly."
       },
+      "cordova-plugin-network-information": {},
       "cordova-plugin-apprate": {},
       "cordova-plugin-geolocation": {
         "GEOLOCATION_USAGE_DESCRIPTION": "To provide you with accurate reading of Air Quality in your area"
       },
-      "cordova-sqlite-storage": {},
-      "cordova-plugin-network-information": {},
-      "cordova-plugin-device": {}
+      "cordova-plugin-camera": {
+        "ANDROID_SUPPORT_V4_VERSION": "27.+"
+      },
+      "cordova-plugin-splashscreen": {}
     },
     "platforms": [
+      "ios",
       "android"
     ]
   }
