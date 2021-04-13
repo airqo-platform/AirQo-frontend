@@ -47,7 +47,10 @@ import { Device } from '@ionic-native/device';
   imports: [
     BrowserModule,
     IonicModule.forRoot(MyApp),
-    IonicStorageModule.forRoot(),
+    IonicStorageModule.forRoot({
+      name: '_mydb',
+      driverOrder: ['indexeddb', 'sqlite', 'websql'],
+    }),
     HttpClientModule,
   ],
   bootstrap: [IonicApp],
@@ -77,7 +80,7 @@ import { Device } from '@ionic-native/device';
     ApiProvider,
     AppRate,
     Network,
-    Device
+    Device,
   ]
 })
 export class AppModule {}

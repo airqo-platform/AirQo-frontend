@@ -1,9 +1,8 @@
 import { Component } from '@angular/core';
-import { NavController, LoadingController, ToastController, AlertController, Platform, PopoverController, ModalController } from 'ionic-angular';
+import { NavController, LoadingController, Platform, PopoverController, ModalController } from 'ionic-angular';
 import { Storage } from '@ionic/storage';
 import { Geolocation } from '@ionic-native/geolocation';
 import { HttpClient } from '@angular/common/http';
-import { Device } from '@ionic-native/device';
 import { ApiProvider } from '../../providers/api/api';
 
 import { NodePage } from '../node/node';
@@ -36,8 +35,8 @@ export class HomePage {
 
 
   constructor(private navCtrl: NavController, private storage: Storage, private http: HttpClient, private loadingCtrl: LoadingController, 
-    private alertCtrl: AlertController, private toastCtrl: ToastController, private geolocation: Geolocation, private platform: Platform, 
-    private device: Device, private popoverCtrl: PopoverController, private modalCtrl: ModalController, public api: ApiProvider) {
+    private geolocation: Geolocation, private platform: Platform, private popoverCtrl: PopoverController, private modalCtrl: ModalController, 
+    public api: ApiProvider,) {
       
   }
 

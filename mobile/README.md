@@ -75,7 +75,7 @@ In order to build an iOS app, you need to be running the commands on MacOS.
 
 ## Bugs and Issues
 
-Have a bug or an issue with this template? [Open a new issue](https://github.com/airqo-platform/AirQo-frontend/issues) here on Github.
+Have a bug or an issue with this codebase? [Open a new issue](https://github.com/airqo-platform/AirQo-frontend/issues) here on Github.
 
 ## References:
 [Ionic Website](https://ionicframework.com/docs/v3/)
