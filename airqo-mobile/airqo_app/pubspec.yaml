@@ -33,6 +33,12 @@ dependencies:
   flutter_bloc: ^7.0.0
   webview_flutter: ^2.0.4
   shared_preferences: ^2.0.5
+  flutter_launcher_icons: ^0.9.0
+
+flutter_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/icon/airqo_logo.png"
 
 dev_dependencies:
   flutter_test:
@@ -56,7 +62,6 @@ flutter:
 
   assets:
     # images
-    - assets/images/airqo_logo_transparent.png
 
     # HTML files
     - assets/html/privacy_policy.html
