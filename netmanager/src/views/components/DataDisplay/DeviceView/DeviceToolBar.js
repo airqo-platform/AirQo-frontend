@@ -32,15 +32,14 @@ const a11yProps = (index) => {
 
 const useStyles = makeStyles((theme) => ({
   root: {
-    flexGrow: 1,
     backgroundColor: theme.palette.background.paper,
   },
   wrapper: {
     flexDirection: "row",
   },
   margin: {
-    width: "98%",
-    margin: "2vh 1%",
+    width: "96%",
+    margin: "2vh 0",
   },
   appBar: {
     position: "relative",
