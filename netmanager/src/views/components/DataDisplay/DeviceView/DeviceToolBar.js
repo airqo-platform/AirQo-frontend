@@ -19,6 +19,7 @@ import {
 } from "@material-ui/icons";
 import Collapse from "@material-ui/core/Collapse";
 import Link from "@material-ui/core/Link";
+import Hidden from "@material-ui/core/Hidden";
 import { useDeviceOverviewBackUrlsData } from "redux/Urls/selectors";
 import { last } from "underscore";
 
@@ -93,7 +94,7 @@ export const DeviceToolBar = ({ deviceName }) => {
   const [miniValue, setMiniValue] = React.useState(
     last(history.location.pathname.split("/"))
   );
-  const [show, setShow] = React.useState(true);
+  const [show, setShow] = React.useState(false);
 
   const { pathname } = useLocation();
 
@@ -123,126 +124,133 @@ export const DeviceToolBar = ({ deviceName }) => {
 
   return (
     <div className={`${classes.root} ${classes.margin}`}>
-      <div className={"device-dropdown"}>
-        <div className={"device-dropdown-title"} onClick={() => setShow(!show)}>
-          <span style={{ display: "flex", alignItems: "center" }}>
-            {iconMapper[miniValue]} {miniValue.replace("-", " ")}
-          </span>
-          {show ? <ExpandLess /> : <ExpandMore />}
-        </div>
-        <Collapse in={show} timeout="auto" unmountOnExit>
-          <div className={"device-dropdown-list"}>
-            <Link
-              onClick={handleDropdownChange(
-                `${match.url}/overview`,
-                "overview"
-              )}
-            >
-              <span>
-                <PageviewOutlined style={iconMiniStyles} /> Overview
-              </span>
-            </Link>
-            <Link onClick={handleDropdownChange(`${match.url}/edit`, "edit")}>
-              <span>
-                <EditOutlined style={iconMiniStyles} /> Edit
-              </span>
-            </Link>
-            <Link
-              onClick={handleDropdownChange(
-                `${match.url}/maintenance-logs`,
-                "maintenance-logs"
-              )}
-            >
-              <span>
-                <Update style={iconMiniStyles} /> Maintenance logs
-              </span>
-            </Link>
-            <Link
-              onClick={handleDropdownChange(
-                `${match.url}/deploy-status`,
-                "deploy-status"
-              )}
-            >
-              <span>
-                <CloudUploadOutlined style={iconMiniStyles} /> Deploy status
-              </span>
-            </Link>
-            <Link
-              onClick={handleDropdownChange(
-                `${match.url}/components`,
-                "components"
-              )}
-            >
-              <span>
-                <AddOutlined style={iconMiniStyles} /> Components
-              </span>
-            </Link>
-            <Link
-              onClick={handleDropdownChange(`${match.url}/photos`, "photos")}
-            >
-              <span>
-                <PhotoOutlined style={iconMiniStyles} /> Photos
-              </span>
-            </Link>
-          </div>
-        </Collapse>
-      </div>
-      <AppBar className={classes.appBar} color="default">
-        <Toolbar>
-          <ArrowBackIosRounded
-            style={{ color: "#3f51b5", cursor: "pointer" }}
-            onClick={() => history.push(goBackUrl)}
-          />
-          <Typography variant="h2" className={classes.title}>
-            {deviceName}
-          </Typography>
-          <Tabs
-            variant="fullWidth"
-            className={classes.tabs}
-            value={value}
-            onChange={handleChange}
-            textColor="primary"
-            aria-label="nav tabs example"
+      <Hidden lgUp>
+        <div className={"device-dropdown"}>
+          <div
+            className={"device-dropdown-title"}
+            onClick={() => setShow(!show)}
           >
-            <LinkTab
-              label="Overview"
-              icon={<PageviewOutlined style={iconStyles} />}
-              value={`${match.url}/overview`}
-              {...a11yProps(0)}
+            <span style={{ display: "flex", alignItems: "center" }}>
+              {iconMapper[miniValue]} {miniValue.replace("-", " ")}
+            </span>
+            {show ? <ExpandLess /> : <ExpandMore />}
+          </div>
+          <Collapse in={show} timeout="auto" unmountOnExit>
+            <div className={"device-dropdown-list"}>
+              <Link
+                onClick={handleDropdownChange(
+                  `${match.url}/overview`,
+                  "overview"
+                )}
+              >
+                <span>
+                  <PageviewOutlined style={iconMiniStyles} /> Overview
+                </span>
+              </Link>
+              <Link onClick={handleDropdownChange(`${match.url}/edit`, "edit")}>
+                <span>
+                  <EditOutlined style={iconMiniStyles} /> Edit
+                </span>
+              </Link>
+              <Link
+                onClick={handleDropdownChange(
+                  `${match.url}/maintenance-logs`,
+                  "maintenance-logs"
+                )}
+              >
+                <span>
+                  <Update style={iconMiniStyles} /> Maintenance logs
+                </span>
+              </Link>
+              <Link
+                onClick={handleDropdownChange(
+                  `${match.url}/deploy-status`,
+                  "deploy-status"
+                )}
+              >
+                <span>
+                  <CloudUploadOutlined style={iconMiniStyles} /> Deploy status
+                </span>
+              </Link>
+              <Link
+                onClick={handleDropdownChange(
+                  `${match.url}/components`,
+                  "components"
+                )}
+              >
+                <span>
+                  <AddOutlined style={iconMiniStyles} /> Components
+                </span>
+              </Link>
+              <Link
+                onClick={handleDropdownChange(`${match.url}/photos`, "photos")}
+              >
+                <span>
+                  <PhotoOutlined style={iconMiniStyles} /> Photos
+                </span>
+              </Link>
+            </div>
+          </Collapse>
+        </div>
+      </Hidden>
+      <Hidden mdDown>
+        <AppBar className={classes.appBar} color="default">
+          <Toolbar>
+            <ArrowBackIosRounded
+              style={{ color: "#3f51b5", cursor: "pointer" }}
+              onClick={() => history.push(goBackUrl)}
             />
-            <LinkTab
-              label="Edit"
-              icon={<EditOutlined style={iconStyles} />}
-              value={`${match.url}/edit`}
-              {...a11yProps(1)}
-            />
-            <LinkTab
-              label="Maintenance logs"
-              icon={<Update style={iconStyles} />}
-              value={`${match.url}/maintenance-logs`}
-              {...a11yProps(2)}
-            />
-            <LinkTab
-              label="Deploy status"
-              icon={<CloudUploadOutlined style={iconStyles} />}
-              value={`${match.url}/deploy-status`}
-              {...a11yProps(3)}
-            />
-            <LinkTab
-              label="Components"
-              icon={<AddOutlined style={iconStyles} />}
-              value={`${match.url}/components`}
-              {...a11yProps(4)}
-            />
-            <LinkTab
-              label="Photos"
-              icon={<PhotoOutlined style={iconStyles} />}
-              value={`${match.url}/photos`}
-              {...a11yProps(5)}
-            />
-          </Tabs>
-        </Toolbar>
-      </AppBar>
+            <Typography variant="h2" className={classes.title}>
+              {deviceName}
+            </Typography>
+            <Tabs
+              variant="fullWidth"
+              className={classes.tabs}
+              value={value}
+              onChange={handleChange}
+              textColor="primary"
+              aria-label="nav tabs example"
+            >
+              <LinkTab
+                label="Overview"
+                icon={<PageviewOutlined style={iconStyles} />}
+                value={`${match.url}/overview`}
+                {...a11yProps(0)}
+              />
+              <LinkTab
+                label="Edit"
+                icon={<EditOutlined style={iconStyles} />}
+                value={`${match.url}/edit`}
+                {...a11yProps(1)}
+              />
+              <LinkTab
+                label="Maintenance logs"
+                icon={<Update style={iconStyles} />}
+                value={`${match.url}/maintenance-logs`}
+                {...a11yProps(2)}
+              />
+              <LinkTab
+                label="Deploy status"
+                icon={<CloudUploadOutlined style={iconStyles} />}
+                value={`${match.url}/deploy-status`}
+                {...a11yProps(3)}
+              />
+              <LinkTab
+                label="Components"
+                icon={<AddOutlined style={iconStyles} />}
+                value={`${match.url}/components`}
+                {...a11yProps(4)}
+              />
+              <LinkTab
+                label="Photos"
+                icon={<PhotoOutlined style={iconStyles} />}
+                value={`${match.url}/photos`}
+                {...a11yProps(5)}
+              />
+            </Tabs>
+          </Toolbar>
+        </AppBar>
+      </Hidden>
     </div>
   );
 };
