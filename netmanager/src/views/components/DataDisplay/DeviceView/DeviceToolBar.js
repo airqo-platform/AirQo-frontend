@@ -14,8 +14,13 @@ import {
   CloudUploadOutlined,
   PageviewOutlined,
   PhotoOutlined,
+  ExpandLess,
+  ExpandMore,
 } from "@material-ui/icons";
+import Collapse from "@material-ui/core/Collapse";
+import Link from "@material-ui/core/Link";
 import { useDeviceOverviewBackUrlsData } from "redux/Urls/selectors";
+import { last } from "underscore";
 
 const a11yProps = (index) => {
   return {
@@ -58,6 +63,10 @@ const iconStyles = {
   marginRight: "2px",
 };
 
+const iconMiniStyles = {
+  marginRight: "10px",
+};
+
 const LinkTab = (props) => {
   const classes = useStyles();
 
@@ -81,8 +90,21 @@ export const DeviceToolBar = ({ deviceName }) => {
   const history = useHistory();
   const goBackUrl = useDeviceOverviewBackUrlsData();
   const [value, setValue] = React.useState(history.location.pathname);
+  const [miniValue, setMiniValue] = React.useState(
+    last(history.location.pathname.split("/"))
+  );
+  const [show, setShow] = React.useState(true);
 
   const { pathname } = useLocation();
+
+  const iconMapper = {
+    overview: <PageviewOutlined style={iconMiniStyles} />,
+    edit: <EditOutlined style={iconMiniStyles} />,
+    "maintenance-logs": <Update style={iconMiniStyles} />,
+    "deploy-status": <CloudUploadOutlined style={iconMiniStyles} />,
+    components: <AddOutlined style={iconMiniStyles} />,
+    photos: <PhotoOutlined style={iconMiniStyles} />,
+  };
 
   useEffect(() => {
     setValue(pathname);
@@ -93,8 +115,78 @@ export const DeviceToolBar = ({ deviceName }) => {
     history.push(newValue);
   };
 
+  const handleDropdownChange = (url, value) => () => {
+    setShow(!show);
+    setMiniValue(value);
+    history.push(url);
+  };
+
   return (
     <div className={`${classes.root} ${classes.margin}`}>
+      <div className={"device-dropdown"}>
+        <div className={"device-dropdown-title"} onClick={() => setShow(!show)}>
+          <span style={{ display: "flex", alignItems: "center" }}>
+            {iconMapper[miniValue]} {miniValue.replace("-", " ")}
+          </span>
+          {show ? <ExpandLess /> : <ExpandMore />}
+        </div>
+        <Collapse in={show} timeout="auto" unmountOnExit>
+          <div className={"device-dropdown-list"}>
+            <Link
+              onClick={handleDropdownChange(
+                `${match.url}/overview`,
+                "overview"
+              )}
+            >
+              <span>
+                <PageviewOutlined style={iconMiniStyles} /> Overview
+              </span>
+            </Link>
+            <Link onClick={handleDropdownChange(`${match.url}/edit`, "edit")}>
+              <span>
+                <EditOutlined style={iconMiniStyles} /> Edit
+              </span>
+            </Link>
+            <Link
+              onClick={handleDropdownChange(
+                `${match.url}/maintenance-logs`,
+                "maintenance-logs"
+              )}
+            >
+              <span>
+                <Update style={iconMiniStyles} /> Maintenance logs
+              </span>
+            </Link>
+            <Link
+              onClick={handleDropdownChange(
+                `${match.url}/deploy-status`,
+                "deploy-status"
+              )}
+            >
+              <span>
+                <CloudUploadOutlined style={iconMiniStyles} /> Deploy status
+              </span>
+            </Link>
+            <Link
+              onClick={handleDropdownChange(
+                `${match.url}/components`,
+                "components"
+              )}
+            >
+              <span>
+                <AddOutlined style={iconMiniStyles} /> Components
+              </span>
+            </Link>
+            <Link
+              onClick={handleDropdownChange(`${match.url}/photos`, "photos")}
+            >
+              <span>
+                <PhotoOutlined style={iconMiniStyles} /> Photos
+              </span>
+            </Link>
+          </div>
+        </Collapse>
+      </div>
       <AppBar className={classes.appBar} color="default">
         <Toolbar>
           <ArrowBackIosRounded
