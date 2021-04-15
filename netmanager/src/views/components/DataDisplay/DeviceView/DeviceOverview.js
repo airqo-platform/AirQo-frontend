@@ -180,7 +180,7 @@ export default function DeviceOverview({ deviceData }) {
         justifyContent: "space-around",
       }}
     >
-      <div className={"overview-item-container"} style={{ minWidth: "550px" }}>
+      <div className={"overview-item-container"} style={{ minWidth: "300px" }}>
         <h4 className={classes.cardTitleBlue}>Device Details</h4>
         <Card className={classes.cardBody}>
           <div
@@ -279,7 +279,7 @@ export default function DeviceOverview({ deviceData }) {
         </Card>
       </div>
 
-      <div className={"overview-item-container"} style={{ minWidth: "600px" }}>
+      <div className={"overview-item-container"} style={{ minWidth: "300px" }}>
         <h4 className={classes.cardTitleGreen}>Device Location</h4>
         <Paper>
           <Card className={classes.cardBody}>
@@ -308,7 +308,7 @@ export default function DeviceOverview({ deviceData }) {
         </Paper>
       </div>
 
-      <div className={"overview-item-container"} style={{ minWidth: "550px" }}>
+      <div className={"overview-item-container"} style={{ minWidth: "300px" }}>
         <h4 className={classes.cardTitleBlue}>
           Uptime <span style={{ fontSize: "1rem" }}>(last 28 days)</span>
           {showBarChart ? (
@@ -360,7 +360,7 @@ export default function DeviceOverview({ deviceData }) {
         </Card>
       </div>
 
-      <div className={"overview-item-container"} style={{ minWidth: "600px" }}>
+      <div className={"overview-item-container"} style={{ minWidth: "300px" }}>
         <h4 className={classes.cardTitleBlue}>Maintenance History</h4>
         <Card
           className={classes.cardBody}
@@ -399,7 +399,7 @@ export default function DeviceOverview({ deviceData }) {
         </Card>
       </div>
 
-      <div className={"overview-item-container"} style={{ minWidth: "550px" }}>
+      <div className={"overview-item-container"} style={{ minWidth: "300px" }}>
         <h4 className={classes.cardTitleGreen}>
           Battery Voltage{" "}
           <span style={{ fontSize: "1rem" }}>(last 28 days)</span>
@@ -419,7 +419,7 @@ export default function DeviceOverview({ deviceData }) {
         </Card>
       </div>
 
-      <div className={"overview-item-container"} style={{ minWidth: "600px" }}>
+      <div className={"overview-item-container"} style={{ minWidth: "300px" }}>
         <h4 className={classes.cardTitleBlue}>
           Sensor Correlation{" "}
           <span style={{ fontSize: "1rem" }}>(last 28 days)</span>
@@ -444,7 +444,7 @@ export default function DeviceOverview({ deviceData }) {
         </Card>
       </div>
 
-      <div className={"overview-item-container"} style={{ minWidth: "550px" }}>
+      <div className={"overview-item-container"} style={{ minWidth: "300px" }}>
         <h4 className={classes.cardTitleBlue}>Device Components</h4>
         <Card className={classes.cardBody} onClick={() => goTo("components")}>
           <div
