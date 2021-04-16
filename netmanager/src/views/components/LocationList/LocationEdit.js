@@ -361,7 +361,7 @@ const LocationEdit = (props) => {
   };
 
   return (
-    <div style={{border: "1px solid red"}}>
+    <div className={classes.root}>
       <LoadingOverlay active={isLoading} spinner text="Updating Location...">
         <LoadingOverlay
           active={detailsLoading}
@@ -516,30 +516,32 @@ const LocationEdit = (props) => {
                   />
                 </Grid>
               </Grid>
+              <Grid container>
+                <div>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    type="submit"
+                    align="centre"
+                    style={{marginLeft: "10px", marginRight: "20px"}}
+                  >
+                    {" "}
+                    Save
+                  </Button>
+                  <Link to={`/location`}>
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      type="button"
+                      align="centre"
+                    >
+                      {" "}
+                      Cancel
+                    </Button>
+                  </Link>
+                </div>
+              </Grid>
             </Grid>
-            <div className={classes.formControl} style={{ width: "900px" }}>
-              <Button
-                variant="contained"
-                color="primary"
-                type="submit"
-                align="centre"
-              >
-                {" "}
-                Save
-              </Button>
-              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-              <Link to={`/location`}>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  type="button"
-                  align="centre"
-                >
-                  {" "}
-                  Cancel
-                </Button>
-              </Link>
-            </div>
           </form>
         </LoadingOverlay>
       </LoadingOverlay>
