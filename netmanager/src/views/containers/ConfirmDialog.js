@@ -22,6 +22,7 @@ const ConfirmDialog = ({
       onClose={close}
       aria-labelledby="confirm-dialog-title-del"
       aria-describedby="confirm-dialog-description"
+      classes={"confirm-dialog"}
     >
       <div className={"confirm-dialog"}>
         <div className={"confirm-dialog-title"}>{title}</div>
