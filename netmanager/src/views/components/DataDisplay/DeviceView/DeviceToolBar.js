@@ -108,6 +108,7 @@ export const DeviceToolBar = ({ deviceName }) => {
 
   useEffect(() => {
     setValue(pathname);
+    setMiniValue(last(pathname.split("/")));
   }, [pathname]);
 
   const handleChange = (event, newValue) => {
