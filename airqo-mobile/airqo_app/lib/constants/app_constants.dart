@@ -1,0 +1,4 @@
+enum AppMenu{
+  settings,
+  help,
+}

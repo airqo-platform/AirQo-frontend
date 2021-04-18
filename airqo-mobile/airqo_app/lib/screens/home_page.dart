@@ -1,11 +1,13 @@
+import 'package:airqo_app/constants/app_constants.dart';
 import 'package:airqo_app/screens/mapPage.dart';
+import 'package:airqo_app/screens/settings_page.dart';
 import 'package:flutter/material.dart';
 
 import 'dashboard_page.dart';
 import 'news_and_stats_page.dart';
 
 class HomePage extends StatefulWidget {
-  final String title = "Airqo";
+  final String title = 'Airqo';
 
 
   @override
@@ -28,14 +30,58 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       appBar: _showAppBar ? AppBar(
         title: Text(widget.title),
+        actions: [
+          IconButton(
+            icon: const Icon(
+              Icons.search,
+            ),
+            onPressed: () {},
+          ),
+          PopupMenuButton<dynamic>(
+            onSelected: (value) => {
+              navigateToMenuItem(value)
+            },
+            itemBuilder: (context) => <PopupMenuEntry<String>>[
+              PopupMenuItem<String>(
+                value: AppMenu.settings.toString().split('.').last,
+                child: ListTile(
+                  leading: const Icon(Icons.settings),
+                  title: Text(
+                    AppMenu.settings.toString().split('.').last,
+                  ),
+                ),
+              ),
+              PopupMenuItem<String>(
+                value: AppMenu.settings.toString().split('.').last,
+                child: ListTile(
+                  leading: const Icon(Icons.help_outline_outlined),
+                  title: Text(
+                    AppMenu.help.toString().split('.').last,
+                  ),
+                ),
+              ),
+              const PopupMenuDivider(),
+              PopupMenuItem<String>(
+                value: "Invite Firends",
+                child: ListTile(
+                  leading: const Icon(Icons.person_add_alt),
+                  title: Text(
+                    "Invite Firends",
+                  ),
+                ),
+              ),
+            ],
+          )
+        ],
+
       ) : null,
       body: _pages[_currentPage],
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           onTabTapped(1, true);
         },
+        tooltip: 'Home',
         child: const Icon(Icons.home_outlined),
-        tooltip: 'Create',
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: BottomAppBar(
@@ -75,4 +121,11 @@ class _HomePageState extends State<HomePage> {
     });
 
   }
+
+  void navigateToMenuItem(dynamic position){
+    Navigator.push(context, MaterialPageRoute(builder: (context){
+      return SettingsPage();
+    }));
+  }
+
 }

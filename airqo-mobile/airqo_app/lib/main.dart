@@ -1,49 +1,36 @@
+import 'package:airqo_app/screens/home_page.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+import 'package:flutter_localizations/flutter_localizations.dart';
+
+import 'config/languages/CustomLocalizations.dart';
 
 void main() {
-  runApp(MyApp());
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+    statusBarColor: Colors.transparent,
+  ));
+  runApp(AirqoApp());
 }
 
-class MyApp extends StatelessWidget {
+class AirqoApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      localizationsDelegates: [
+        const CustomLocalizationsDelegate(),
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ],
+      supportedLocales: [
+        const Locale('en', 'US'),
+        const Locale('es', ''),
+      ],
       title: 'Airqo',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: MyHomePage(title: 'Airqo Home Page'),
-    );
-  }
-}
-
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
-
-  final String title;
-
-  @override
-  _MyHomePageState createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              'Hello there, welcome to the Airqo App',
-            ),
-          ],
-        ),
-      ),
+      home: HomePage(),
     );
   }
 }
