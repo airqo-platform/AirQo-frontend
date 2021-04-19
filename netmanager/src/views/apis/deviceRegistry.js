@@ -108,3 +108,10 @@ export const deleteDevicePhotos = async (deviceName, pictures) => {
     })
     .then((response) => response.data);
 };
+
+export const getEventsApi = async (params) => {
+  console.log("params", params);
+  return await axios
+    .get(constants.EVENTS, { params })
+    .then((response) => response.data);
+};
