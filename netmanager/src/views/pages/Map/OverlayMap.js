@@ -7,9 +7,9 @@ import { formatDateString } from "utils/dateTime";
 import Filter from "../Dashboard/components/Map/Filter";
 import {
   loadPM25HeatMapData,
-  loadPM25SensorData,
+  loadMapEventsData,
 } from "redux/MapData/operations";
-import { usePM25HeatMapData, usePM25SensorData } from "redux/MapData/selectors";
+import { usePM25HeatMapData, useEventsMapData } from "redux/MapData/selectors";
 
 // css
 import "assets/css/overlay-map.css";
@@ -178,34 +178,34 @@ export const OverlayMap = ({
         map &&
         monitoringSiteData.features.forEach((feature) => {
           const [markerClass, desc] = getMarkerDetail(
-            feature.properties.Last_Hour_PM25_Value
+            feature.properties.pm2_5.value
           );
 
           const el = document.createElement("div");
           el.className = `marker ${markerClass}`;
-          el.innerText = feature.properties.Last_Hour_PM25_Value;
+          el.innerText = feature.properties.pm2_5.value.toFixed(0);
 
           new mapboxgl.Marker(el)
             .setLngLat(feature.geometry.coordinates)
             .setPopup(
               new mapboxgl.Popup({ offset: 25 }).setHTML(
                 `<div>
-                    <div>${feature.properties.Parish} - ${
-                  feature.properties.Division
-                } Division</div>
-                    <span>${feature.properties.LocationCode}</span>
-                    <div class="${"popup-body " + markerClass}"> AQI: ${
-                  feature.properties.Last_Hour_PM25_Value
-                } - ${desc}</div>
-                    <span>Last Refreshed: ${formatDateString(
-                      feature.properties.LastHour
-                    )} (EAT)</span>
+                    <div>Device - <span style="text-transform: uppercase"><b>${
+                      feature.properties._id
+                    }</b></span></div>
+                    <div class="${
+                      "popup-body " + markerClass
+                    }"> AQI: ${feature.properties.pm2_5.value.toFixed(
+                  2
+                )} - ${desc}</div>
+                    <span>Last Refreshed: <b>${formatDateString(
+                      feature.properties.time
+                    )}</b> (EAT)</span>
                 </div>`
               )
             )
             .addTo(map);
-        })
-      }
+        })}
       <Filter fetchFilteredData={(m) => monitoringSiteData.features} />
       {map && (
         <MapToggleController
@@ -230,7 +230,7 @@ export const OverlayMap = ({
 const MapContainer = () => {
   const dispatch = useDispatch();
   const heatMapData = usePM25HeatMapData();
-  const monitoringSiteData = usePM25SensorData();
+  const monitoringSiteData = useEventsMapData();
 
   useEffect(() => {
     // const locationData = {
@@ -245,7 +245,14 @@ const MapContainer = () => {
     }
 
     if (isEmpty(monitoringSiteData.features)) {
-      dispatch(loadPM25SensorData());
+      dispatch(
+        loadMapEventsData({
+          recent: true,
+          startTime: formatDateString(new Date(), "YYYY-MM-DD"),
+          endTime: formatDateString(new Date(), "YYYY-MM-DD"),
+          limit: 1000,
+        })
+      );
     }
   }, []);
 
