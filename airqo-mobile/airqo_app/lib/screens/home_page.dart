@@ -1,5 +1,6 @@
 import 'package:airqo_app/constants/app_constants.dart';
 import 'package:airqo_app/screens/mapPage.dart';
+import 'package:airqo_app/screens/search_page.dart';
 import 'package:airqo_app/screens/settings_page.dart';
 import 'package:flutter/material.dart';
 
@@ -35,7 +36,11 @@ class _HomePageState extends State<HomePage> {
             icon: const Icon(
               Icons.search,
             ),
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(context, MaterialPageRoute(builder: (context){
+                return SearchPage();
+              }));
+            },
           ),
           PopupMenuButton<dynamic>(
             onSelected: (value) => {
@@ -127,5 +132,7 @@ class _HomePageState extends State<HomePage> {
       return SettingsPage();
     }));
   }
+
+
 
 }
