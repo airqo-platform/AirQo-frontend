@@ -14,19 +14,21 @@ class MapPageState extends State<MapPage> {
   final Map<String, Marker> _markers = {};
 
   Future<void> _onMapCreated(GoogleMapController controller) async {
-    final googleOffices = await getGoogleOffices();
+    final nodes = await getNodes();
+
     setState(() {
       _markers.clear();
-      for (final office in googleOffices.offices) {
+      for (final node in nodes.nodes) {
         final marker = Marker(
-          markerId: MarkerId(office.name),
-          position: LatLng(office.lat, office.lng),
+          markerId: MarkerId(node.channel_id),
+          position: LatLng((double.tryParse(node.lat) ?? 0.3318118),
+              double.tryParse(node.lng) ?? 32.5694503),
           infoWindow: InfoWindow(
-            title: office.name,
-            snippet: office.address,
+            title: node.name,
+            snippet: node.location,
           ),
         );
-        _markers[office.name] = marker;
+        _markers[node.name] = marker;
       }
     });
   }
@@ -34,9 +36,10 @@ class MapPageState extends State<MapPage> {
   @override
   Widget build(BuildContext context) {
     return GoogleMap(
+      compassEnabled: false,
       onMapCreated: _onMapCreated,
-      initialCameraPosition: CameraPosition(
-        target: const LatLng(0, 0),
+      initialCameraPosition: const CameraPosition(
+        target: LatLng(0.3318118, 32.5694503),
         zoom: 2,
       ),
       markers: _markers.values.toSet(),
