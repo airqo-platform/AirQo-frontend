@@ -2,9 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:airqo_app/screens/resources_page.dart';
 import 'package:flutter/material.dart';
-
-import 'dashboard_page.dart';
 
 class SearchPage extends StatefulWidget {
   @override
@@ -16,10 +15,10 @@ class _SearchPageState extends State<SearchPage>
   late TabController _tabController;
   final searchController = TextEditingController();
   final List<Map<String, Widget>> tabs = [
-    {'All': DashboardPage()},
-    {'Place': DashboardPage()},
-    {'News': DashboardPage()},
-    {'Resources': DashboardPage()}
+    {'All': ResourcesPage()},
+    {'Place': ResourcesPage()},
+    {'News': ResourcesPage()},
+    {'Resources': ResourcesPage()}
   ];
 
   final RestorableInt tabIndex = RestorableInt(0);

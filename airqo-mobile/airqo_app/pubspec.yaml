@@ -76,6 +76,7 @@ flutter:
 
   assets:
     # images
+    - assets/images/happy_face.png
 
     # HTML files
     - assets/html/privacy_policy.html
