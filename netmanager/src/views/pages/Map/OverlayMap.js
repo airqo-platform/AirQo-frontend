@@ -191,7 +191,7 @@ export const OverlayMap = ({
               new mapboxgl.Popup({ offset: 25 }).setHTML(
                 `<div>
                     <div>Device - <span style="text-transform: uppercase"><b>${
-                      feature.properties._id
+                      feature.properties.device
                     }</b></span></div>
                     <div class="${
                       "popup-body " + markerClass
@@ -245,14 +245,7 @@ const MapContainer = () => {
     }
 
     if (isEmpty(monitoringSiteData.features)) {
-      dispatch(
-        loadMapEventsData({
-          recent: true,
-          startTime: formatDateString(new Date(), "YYYY-MM-DD"),
-          endTime: formatDateString(new Date(), "YYYY-MM-DD"),
-          limit: 1000,
-        })
-      );
+      dispatch(loadMapEventsData({}));
     }
   }, []);
 
