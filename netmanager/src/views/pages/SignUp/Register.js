@@ -312,6 +312,7 @@ class Register extends Component {
                     variant="outlined"
                     error={!!errors.description}
                     helperText={errors.description}
+                    InputLabelProps={{style: {fontSize: "0.8rem"}}}
                 />
               </div>
 
