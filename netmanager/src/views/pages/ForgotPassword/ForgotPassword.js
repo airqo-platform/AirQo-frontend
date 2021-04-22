@@ -87,7 +87,6 @@ class ForgotPassword extends Component {
           })
         })
         .catch(err => {
-          debugger
           this.setAlert({
             show: true,
             message: err.response.data.message,
