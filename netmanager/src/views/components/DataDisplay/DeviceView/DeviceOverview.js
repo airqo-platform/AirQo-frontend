@@ -400,8 +400,16 @@ export default function DeviceOverview({ deviceData }) {
       </div>
 
       <div className={"overview-item-container"} style={{ minWidth: "300px" }}>
-        <h4 className={classes.cardTitleGreen}>
-          Battery Voltage{" "}
+        <h4
+          className={classes.cardTitleGreen}
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            justifyContent: "center",
+            alignItems: "baseline",
+          }}
+        >
+          <span>Battery Voltage </span>
           <span style={{ fontSize: "1rem" }}>(last 28 days)</span>
         </h4>
         <Card className={classes.cardBody}>
