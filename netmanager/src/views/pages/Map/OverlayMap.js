@@ -191,7 +191,7 @@ export const OverlayMap = ({
               new mapboxgl.Popup({ offset: 25 }).setHTML(
                 `<div>
                     <div>Device - <span style="text-transform: uppercase"><b>${
-                      feature.properties.device
+                      feature.properties.device || feature.properties._id
                     }</b></span></div>
                     <div class="${
                       "popup-body " + markerClass
@@ -245,7 +245,7 @@ const MapContainer = () => {
     }
 
     if (isEmpty(monitoringSiteData.features)) {
-      dispatch(loadMapEventsData({}));
+      dispatch(loadMapEventsData({ recent: true }));
     }
   }, []);
 
