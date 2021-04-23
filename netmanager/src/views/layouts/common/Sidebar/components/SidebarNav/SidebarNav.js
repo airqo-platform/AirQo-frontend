@@ -1,11 +1,15 @@
 /* eslint-disable react/no-multi-comp */
 /* eslint-disable react/display-name */
-import React, { forwardRef } from "react";
+import React, { forwardRef, useState } from "react";
+import { useDispatch } from "react-redux";
 import { NavLink as RouterLink } from "react-router-dom";
 import clsx from "clsx";
 import PropTypes from "prop-types";
 import { makeStyles } from "@material-ui/styles";
 import { List, ListItem, Button, colors } from "@material-ui/core";
+import Switch from "views/components/Switch";
+import { useUserPreferenceData } from "redux/UserPreference/selectors";
+import { updateUserPreferenceData } from "redux/UserPreference/operators";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -30,6 +34,16 @@ const useStyles = makeStyles((theme) => ({
     width: "100%",
     fontWeight: theme.typography.fontWeightMedium,
   },
+  buttonPushed: {
+    color: colors.blueGrey[800],
+    padding: "10px 8px",
+    justifyContent: "flex-start",
+    textTransform: "none",
+    letterSpacing: 0,
+    width: "100%",
+    fontWeight: theme.typography.fontWeightMedium,
+    marginTop: "10px",
+  },
   icon: {
     color: theme.palette.icon,
     width: 24,
@@ -53,52 +67,35 @@ const CustomRouterLink = forwardRef((props, ref) => (
   </div>
 ));
 
+export const SidebarWidgets = ({ className, ...rest }) => {
+  const classes = useStyles();
+  const preferenceKey = "feedbackBtn";
+  const userPreferenceData = useUserPreferenceData();
+  const dispatch = useDispatch();
+  const [checked, setChecked] = useState(
+    userPreferenceData[preferenceKey] && userPreferenceData[preferenceKey].value
+  );
+  const onCheckedChange = () => {
+    setChecked(!checked);
+    dispatch(updateUserPreferenceData(preferenceKey, { value: !checked }));
+  };
+  return (
+    <List {...rest} className={clsx(classes.root, className)}>
+      <ListItem className={classes.align} disableGutters>
+        <div style={{ display: "flex", alignItems: "center" }}>
+          <Button className={classes.buttonPushed} onClick={onCheckedChange}>
+            Feedback button
+          </Button>
+          <Switch checked={checked} onChange={onCheckedChange} />
+        </div>
+      </ListItem>
+    </List>
+  );
+};
+
 const SidebarNav = (props) => {
   const classes = useStyles();
   const { pages, className, ...rest } = props;
-
-  const [open, setOpen] = React.useState(true);
-
-  const handleClick = () => {
-    setOpen(!open);
-  };
-
-  const collapsePage = (page) => {
-    return page.collapse === true;
-  };
-  const normalPage = (page) => {
-    return page.collapse == false;
-  };
-
-  const collapsePages = pages.filter(collapsePage);
-  const normalPages = pages.filter(normalPage);
-
-  // if (!collapsePages.isArray(array) || !collapsePages.length) {
-  //   // array does not exist, is not an array, or is empty
-  //   // ⇒ do not attempt to process array
-  //   jsx = (
-  //     <div>
-  //       <ListItem button onClick={handleClick}>
-  //         <ListItemIcon>
-  //           <InboxIcon />
-  //         </ListItemIcon>
-  //         <ListItemText primary="Inbox" />
-  //         {open ? <ExpandLess /> : <ExpandMore />}
-  //       </ListItem>
-  //       <Collapse in={open} timeout="auto" unmountOnExit>
-  //         <List component="div" disablePadding>
-  //           <ListItem button className={classes.nested}>
-  //             <ListItemIcon>
-  //               <StarBorder />
-  //             </ListItemIcon>
-  //             <ListItemText primary="Starred" />
-  //           </ListItem>
-  //         </List>
-  //       </Collapse>
-  //     </div>
-  //   );
-  // } else {
-  // }
 
   return (
     <List {...rest} className={clsx(classes.root, className)}>

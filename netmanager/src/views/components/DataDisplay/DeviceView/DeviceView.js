@@ -53,7 +53,14 @@ export default function DeviceView() {
   }, [devices]);
 
   return (
-    <div>
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexWrap: "wrap",
+      }}
+    >
       <DeviceToolBar deviceName={deviceData.name} />
       <DeviceToolBarContainer>
         <Switch>

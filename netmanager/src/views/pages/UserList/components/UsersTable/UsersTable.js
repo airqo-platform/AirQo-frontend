@@ -136,80 +136,67 @@ const UsersTable = (props) => {
 
   return (
     <Card {...rest} className={clsx(classes.root, className)}>
-      {/*************************** list all the users **********************************************/}
-      {!users && props.mappeduserState.isFetching && <p>Loading users...</p>}
-      {users.length <= 0 && !props.mappeduserState.isFetching && (
-        <p>No Users Available. And A User to List here</p>
-      )}
-
-      {/* for the users */}
-      {/* check if this is an super admin or an admin */}
-      {/* if super admin, use User Table, if just admin, use Collaborator Table */}
-      {/* To use the different tables, it will just have to be different APIs */}
-
-      <CardContent className={classes.content}>
-            <CustomMaterialTable
-                title={"Users"}
-                userPreferencePaginationKey={"users"}
-                data={users}
-                columns={[
-                  {
-                    title: "Full Name",
-                    render: (rowData) => {
-                      return (
-                          <div className={classes.nameContainer}>
-                            <Avatar className={classes.avatar} src={rowData.profilePicture}>
-                              {getInitials(
-                                `${rowData.firstName + " " + rowData.lastName}`
-                              )}
-                            </Avatar>
-                            <Typography variant="body1">
-                              {" "}
-                              {rowData.firstName + " " + rowData.lastName}
-                            </Typography>
-                          </div>
-                      )
-                    }
-                  },
-                  {
-                    title: "Email",
-                    field: "email",
-                  },
-                  {
-                    title: "Username",
-                    field: "userName",
-                  },
-                  {
-                    title: "Role",
-                    field: "privilege",
-                  },
-                  {
-                    title: "Action",
-                    render: (user) => {
-                      return (
-                          <div>
-                          <Button
-                            color="primary"
-                            onClick={() => showEditDialog(user)}
-                          >
-                            Update
-                          </Button>
-                          |
-                          <Button onClick={() => showDeleteDialog(user)}>
-                            Delete
-                          </Button>
-                          </div>
-                      )
-                    }
-                  }
-                ]}
-                options={{
-                  search: true,
-                  searchFieldAlignment: "left",
-                  showTitle: false,
-                }}
-            />
-      </CardContent>
+        <CustomMaterialTable
+            title={"Users"}
+            userPreferencePaginationKey={"users"}
+            data={users}
+            columns={[
+              {
+                title: "Full Name",
+                render: (rowData) => {
+                  return (
+                      <div className={classes.nameContainer}>
+                        <Avatar className={classes.avatar} src={rowData.profilePicture}>
+                          {getInitials(
+                            `${rowData.firstName + " " + rowData.lastName}`
+                          )}
+                        </Avatar>
+                        <Typography variant="body1">
+                          {" "}
+                          {rowData.firstName + " " + rowData.lastName}
+                        </Typography>
+                      </div>
+                  )
+                }
+              },
+              {
+                title: "Email",
+                field: "email",
+              },
+              {
+                title: "Username",
+                field: "userName",
+              },
+              {
+                title: "Role",
+                field: "privilege",
+              },
+              {
+                title: "Action",
+                render: (user) => {
+                  return (
+                      <div>
+                      <Button
+                        color="primary"
+                        onClick={() => showEditDialog(user)}
+                      >
+                        Update
+                      </Button>
+                      |
+                      <Button onClick={() => showDeleteDialog(user)}>
+                        Delete
+                      </Button>
+                      </div>
+                  )
+                }
+              }
+            ]}
+            options={{
+              search: true,
+              searchFieldAlignment: "left",
+              showTitle: false,
+            }}
+        />
 
       {/*************************** the edit dialog **********************************************/}
       {editUser &&
