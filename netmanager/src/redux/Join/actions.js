@@ -51,6 +51,8 @@ import {
   RESET_ERRORS_SUCCESS,
   RESET_USER_STATE_SUCCESS,
   RESET_ORGANIZATION_SUCCESS,
+  LOGOUT_USER_SUCCESS,
+  LOGOUT_USER_FAILURE
 } from './types';
 import { resetMapState } from "../Maps/actions";
 import { resetDashboardState } from "../Dashboard/operations";
@@ -486,6 +488,7 @@ export const logoutUser = () => dispatch => {
   setAuthToken(false);
   // clear redux state on logout
   dispatch(clearState());
+  dispatch({type: LOGOUT_USER_SUCCESS});
 };
 
 /*********************************** confirming users************************************/
