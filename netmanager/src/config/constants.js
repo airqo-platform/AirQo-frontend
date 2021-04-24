@@ -81,34 +81,37 @@ const prodConfig = {
     "http://34.78.78.202:30002/api/v1/devices/update/components?device=",
   /**analytics */
   GENERATE_CUSTOMISABLE_CHARTS_URI:
-    "http://34.78.78.202:30003/api/v1/dashboard/customisedchart",
+    "http://34.78.78.202:30003/api/v1/analytics/dashboard/customisedchart",
   GET_CUSTOMISABLE_CHART_INITIAL_DATA_URI:
-    "http://34.78.78.202:30003/api/v1/dashboard/customisedchart/random",
+    "http://34.78.78.202:30003/api/v1/analytics/dashboard/customisedchart/random",
   GET_MONITORING_SITES_LOCATIONS_URI:
-    "http://34.78.78.202:30003/api/v1/dashboard/monitoringsites/locations?organisation_name=KCCA",
+    "http://34.78.78.202:30003/api/v1/analytics/dashboard/monitoringsites/locations?organisation_name=KCCA",
   GET_PM25_CATEGORY_COUNT_URI:
-    "http://34.78.78.202:30003/api/v1/dashboard/locations/pm25categorycount?organisation_name=KCCA",
+    "http://34.78.78.202:30003/api/v1/analytics/dashboard/locations/pm25categorycount?organisation_name=KCCA",
   GET_HISTORICAL_DAILY_MEAN_AVERAGES_FOR_LAST_28_DAYS_URI:
-    "http://34.78.78.202:30003/api/v1/dashboard/historical/daily/devices",
-  GENERATE_DEVICE_GRAPH_URI: "http://34.78.78.202:30003/api/v1/device/graph",
-  DOWNLOAD_DATA: "http://34.78.78.202:30003/api/v1/data/download?type=",
+    "http://34.78.78.202:30003/api/v1/analytics/dashboard/historical/daily/devices",
+  GENERATE_DEVICE_GRAPH_URI:
+    "http://34.78.78.202:30003/api/v1/analytics/device/graph",
+  DOWNLOAD_DATA:
+    "http://34.78.78.202:30003/api/v1/analytics/data/download?type=",
   DOWNLOAD_CUSTOMISED_DATA_URI:
-    "http://34.78.78.202:30003/api/v1/data/download",
+    "http://34.78.78.202:30003/api/v1/analytics/data/download",
   GET_DEFAULT_REPORT_TEMPLATE_URI:
-    "http://34.78.78.202:30003/api/v1/report/get_default_report_template",
+    "http://34.78.78.202:30003/api/v1/analytics/report/get_default_report_template",
   SAVE_MONTHLY_REPORT_URI:
-    "http://34.78.78.202:30003/api/v1/report/save_monthly_report",
+    "http://34.78.78.202:30003/api/v1/analytics/report/save_monthly_report",
   GET_MONTHLY_REPORT_URI:
-    "http://34.78.78.202:30003/api/v1/report/get_monthly_report/",
+    "http://34.78.78.202:30003/api/v1/analytics/report/get_monthly_report/",
   DELETE_MONTHLY_REPORT_URI:
-    "http://34.78.78.202:30003/api/v1/report/delete_monthly_report/",
+    "http://34.78.78.202:30003/api/v1/analytics/report/delete_monthly_report/",
   UPDATE_MONTHLY_REPORT_URI:
-    "http://34.78.78.202:30003/api/v1/report/update_monthly_report/",
-  EXCEEDANCES_URI: "http://34.78.78.202:30003/api/v1/dashboard/exceedances",
+    "http://34.78.78.202:30003/api/v1/analytics/report/update_monthly_report/",
+  EXCEEDANCES_URI:
+    "http://34.78.78.202:30003/api/v1/analytics/dashboard/exceedances",
   GET_MONITORING_SITES_URI:
-    "http://34.78.78.202:30003/api/v1/dashboard/monitoringsites?organisation_name=KCCA",
+    "http://34.78.78.202:30003/api/v1/analytics/dashboard/monitoringsites?organisation_name=KCCA",
   GET_DATA_MAP:
-    "http://34.78.78.202:30003/api/v1/dashboard/monitoringsites?organisation_name=KCCA&pm25_category=",
+    "http://34.78.78.202:30003/api/v1/analytics/dashboard/monitoringsites?organisation_name=KCCA&pm25_category=",
   GET_HEATMAP_DATA: "http://34.78.78.202:30009/api/v1/predict/heatmap",
   UPDATE_ACTIVITY_LOG:
     "http://34.78.78.202:30002/api/v1/devices/ts/activity/update",
@@ -119,6 +122,7 @@ const prodConfig = {
   DELETE_COMPONENT:
     "http://34.78.78.202:30002/api/v1/devices/delete/components",
   DELETE_DEVICE_PHOTO: "http://34.78.78.202:30002/api/v1/devices/photos",
+  EVENTS: "http://34.78.78.202:30002/api/v1/devices/events",
 };
 
 const devConfig = {
@@ -138,32 +142,34 @@ const devConfig = {
   DEFAULTS_URI: "http://localhost:3000/api/v1/users/defaults",
   /** analytics */
   GENERATE_CUSTOMISABLE_CHARTS_URI:
-    "http://127.0.0.1:5000/api/v1/dashboard/customisedchart",
+    "http://127.0.0.1:5000/api/v1/analytics/dashboard/customisedchart",
   GET_CUSTOMISABLE_CHART_INITIAL_DATA_URI:
-    "http://127.0.0.1:5000/api/v1/dashboard/customisedchart/random",
+    "http://127.0.0.1:5000/api/v1/analytics/dashboard/customisedchart/random",
   GET_MONITORING_SITES_LOCATIONS_URI:
-    "http://127.0.0.1:5000/api/v1/dashboard/monitoringsites/locations?organisation_name=KCCA",
+    "http://127.0.0.1:5000/api/v1/analytics/dashboard/monitoringsites/locations?organisation_name=KCCA",
   GET_PM25_CATEGORY_COUNT_URI:
-    "http://127.0.0.1:5000/api/v1/dashboard/locations/pm25categorycount?organisation_name=KCCA",
+    "http://127.0.0.1:5000/api/v1/analytics/dashboard/locations/pm25categorycount?organisation_name=KCCA",
   GET_HISTORICAL_DAILY_MEAN_AVERAGES_FOR_LAST_28_DAYS_URI:
-    "http://127.0.0.1:5000/api/v1/dashboard/historical/daily/devices",
-  GENERATE_DEVICE_GRAPH_URI: "http://127.0.0.1:5000/api/v1/device/graph",
-  DOWNLOAD_DATA: "http://127.0.0.1:5000/api/v1/data/download?type=",
+    "http://127.0.0.1:5000/api/v1/analytics/dashboard/historical/daily/devices",
+  GENERATE_DEVICE_GRAPH_URI:
+    "http://127.0.0.1:5000/api/v1/analytics/device/graph",
+  DOWNLOAD_DATA: "http://127.0.0.1:5000/api/v1/analytics/data/download?type=",
   GET_DEFAULT_REPORT_TEMPLATE_URI:
-    "http://127.0.0.1:5000/api/v1/report/get_default_report_template",
+    "http://127.0.0.1:5000/api/v1/analytics/report/get_default_report_template",
   SAVE_MONTHLY_REPORT_URI:
-    "http://127.0.0.1:5000/api/v1/report/save_monthly_report",
+    "http://127.0.0.1:5000/api/v1/analytics/report/save_monthly_report",
   GET_MONTHLY_REPORT_URI:
-    "http://127.0.0.1:5000/api/v1/report/get_monthly_report/",
+    "http://127.0.0.1:5000/api/v1/analytics/report/get_monthly_report/",
   DELETE_MONTHLY_REPORT_URI:
-    "http://127.0.0.1:5000/api/v1/report/delete_monthly_report/",
+    "http://127.0.0.1:5000/api/v1/analytics/report/delete_monthly_report/",
   UPDATE_MONTHLY_REPORT_URI:
-    "http://127.0.0.1:5000/api/v1/report/update_monthly_report/",
-  EXCEEDANCES_URI: "http://127.0.0.1:5000/api/v1/dashboard/exceedances",
+    "http://127.0.0.1:5000/api/v1/analytics/report/update_monthly_report/",
+  EXCEEDANCES_URI:
+    "http://127.0.0.1:5000/api/v1/analytics/dashboard/exceedances",
   GET_MONITORING_SITES_URI:
-    "http://127.0.0.1:5000/api/v1/dashboard/monitoringsites?organisation_name=KCCA",
+    "http://127.0.0.1:5000/api/v1/analytics/dashboard/monitoringsites?organisation_name=KCCA",
   GET_DATA_MAP:
-    "http://127.0.0.1:5000/api/v1/dashboard/monitoringsites?organisation_name=KCCA&pm25_category=",
+    "http://127.0.0.1:5000/api/v1/analytics/dashboard/monitoringsites?organisation_name=KCCA&pm25_category=",
   GET_HEATMAP_DATA: "http://localhost:5000/api/v1/predict/heatmap",
   RUN_LOCATE_MODEL: "http://localhost:4000/api/v1/map/parishes",
   SAVE_LOCATE_MAP: "http://localhost:4000/api/v1/map/savelocatemap",
@@ -235,6 +241,7 @@ const devConfig = {
   UPDATE_COMPONENT: "http://localhost:3000/api/v1/devices/update/components",
   DELETE_COMPONENT: "http://localhost:3000/api/v1/devices/delete/components",
   DELETE_DEVICE_PHOTO: "http://localhost:3000/api/v1/devices/photos",
+  EVENTS: "http://localhost:3000/api/v1/devices/events",
 };
 
 const stageConfig = {
@@ -320,32 +327,35 @@ const stageConfig = {
     "http://34.78.78.202:31002/api/v1/devices/update/components?device=",
   /** analytics */
   GENERATE_CUSTOMISABLE_CHARTS_URI:
-    "http://34.78.78.202:31003/api/v1/dashboard/customisedchart",
+    "http://34.78.78.202:31003/api/v1/analytics/dashboard/customisedchart",
   GET_CUSTOMISABLE_CHART_INITIAL_DATA_URI:
-    "http://34.78.78.202:31003/api/v1/dashboard/customisedchart/random",
+    "http://34.78.78.202:31003/api/v1/analytics/dashboard/customisedchart/random",
   GET_MONITORING_SITES_LOCATIONS_URI:
-    "http://34.78.78.202:31003/api/v1/dashboard/monitoringsites/locations?organisation_name=KCCA",
+    "http://34.78.78.202:31003/api/v1/analytics/dashboard/monitoringsites/locations?organisation_name=KCCA",
   GET_PM25_CATEGORY_COUNT_URI:
-    "http://34.78.78.202:31003/api/v1/dashboard/locations/pm25categorycount?organisation_name=KCCA",
+    "http://34.78.78.202:31003/api/v1/analytics/dashboard/locations/pm25categorycount?organisation_name=KCCA",
   GET_HISTORICAL_DAILY_MEAN_AVERAGES_FOR_LAST_28_DAYS_URI:
-    "http://34.78.78.202:31003/api/v1/dashboard/historical/daily/devices",
-  GENERATE_DEVICE_GRAPH_URI: "http://34.78.78.202:31003/api/v1/device/graph",
-  DOWNLOAD_DATA: "http://34.78.78.202:31003/api/v1/data/download?type=",
+    "http://34.78.78.202:31003/api/v1/analytics/dashboard/historical/daily/devices",
+  GENERATE_DEVICE_GRAPH_URI:
+    "http://34.78.78.202:31003/api/v1/analytics/device/graph",
+  DOWNLOAD_DATA:
+    "http://34.78.78.202:31003/api/v1/analytics/data/download?type=",
   GET_DEFAULT_REPORT_TEMPLATE_URI:
-    "http://34.78.78.202:31003/api/v1/report/get_default_report_template",
+    "http://34.78.78.202:31003/api/v1/analytics/report/get_default_report_template",
   SAVE_MONTHLY_REPORT_URI:
-    "http://34.78.78.202:31003/api/v1/report/save_monthly_report",
+    "http://34.78.78.202:31003/api/v1/analytics/report/save_monthly_report",
   GET_MONTHLY_REPORT_URI:
-    "http://34.78.78.202:31003/api/v1/report/get_monthly_report/",
+    "http://34.78.78.202:31003/api/v1/analytics/report/get_monthly_report/",
   DELETE_MONTHLY_REPORT_URI:
-    "http://34.78.78.202:31003/api/v1/report/delete_monthly_report/",
+    "http://34.78.78.202:31003/api/v1/analytics/report/delete_monthly_report/",
   UPDATE_MONTHLY_REPORT_URI:
-    "http://34.78.78.202:31003/api/v1/report/update_monthly_report/",
-  EXCEEDANCES_URI: "http://34.78.78.202:31003/api/v1/dashboard/exceedances",
+    "http://34.78.78.202:31003/api/v1/analytics/report/update_monthly_report/",
+  EXCEEDANCES_URI:
+    "http://34.78.78.202:31003/api/v1/analytics/dashboard/exceedances",
   GET_MONITORING_SITES_URI:
-    "http://34.78.78.202:31003/api/v1/dashboard/monitoringsites?organisation_name=KCCA",
+    "http://34.78.78.202:31003/api/v1/analytics/dashboard/monitoringsites?organisation_name=KCCA",
   GET_DATA_MAP:
-    "http://34.78.78.202:31003/api/v1/dashboard/monitoringsites?organisation_name=KCCA&pm25_category=",
+    "http://34.78.78.202:31003/api/v1/analytics/dashboard/monitoringsites?organisation_name=KCCA&pm25_category=",
   GET_HEATMAP_DATA: "http://34.78.78.202:31009/api/v1/predict/heatmap",
   UPDATE_ACTIVITY_LOG:
     "http://34.78.78.202:31002/api/v1/devices/ts/activity/update",
@@ -356,6 +366,7 @@ const stageConfig = {
   DELETE_COMPONENT:
     "http://34.78.78.202:31002/api/v1/devices/delete/components",
   DELETE_DEVICE_PHOTO: "http://34.78.78.202:31002/api/v1/devices/photos",
+  EVENTS: "http://34.78.78.202:31002/api/v1/devices/events",
 };
 
 const defaultConfig = {

@@ -16,7 +16,7 @@ import AspectRatioIcon from "@material-ui/icons/AspectRatio";
 import SupervisedUserCircleIcon from "@material-ui/icons/SupervisedUserCircle";
 import CloudDownloadIcon from "@material-ui/icons/CloudDownload";
 import { useOrgData } from "redux/Join/selectors";
-import { Profile, SidebarNav } from "./components";
+import { Profile, SidebarNav, SidebarWidgets } from "./components";
 import usersStateConnector from "views/stateConnectors/usersStateConnector";
 
 const useStyles = makeStyles((theme) => ({
@@ -172,6 +172,8 @@ const Sidebar = (props) => {
         <SidebarNav className={classes.nav} pages={pages} />
         <Divider className={classes.divider} />
         <SidebarNav className={classes.nav} pages={userPages} />
+        <Divider className={classes.divider} />
+        <SidebarWidgets className={classes.nav} />
       </div>
     </Drawer>
   );

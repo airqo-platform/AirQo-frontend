@@ -2,6 +2,15 @@ import React, { useState } from "react";
 import ReactTooltip from "react-tooltip";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import ExpandLessIcon from "@material-ui/icons/ExpandLess";
+import Hidden from "@material-ui/core/Hidden";
+
+const MobileLabel = ({ label }) => {
+  return (
+    <Hidden smUp>
+      <span style={{ fontSize: "0.6rem" }}>{label}</span>
+    </Hidden>
+  );
+};
 
 export const MapKey = ({ title }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -41,12 +50,14 @@ export const MapKey = ({ title }) => {
                   Maintenance status - good
                 </ReactTooltip>
               </label>
+              <MobileLabel label={"Maintenance status - good"} />
               <label>
                 <div className={"ring bd-warning"} data-tip data-for="m-due" />
                 <ReactTooltip id="m-due" place="right" effect="solid">
                   Maintenance status - due
                 </ReactTooltip>
               </label>
+              <MobileLabel label={"Maintenance status - due"} />
               <label>
                 <div
                   className={"ring bd-danger"}
@@ -57,12 +68,14 @@ export const MapKey = ({ title }) => {
                   Maintenance status - overdue
                 </ReactTooltip>
               </label>
+              <MobileLabel label={"Maintenance status - overdue"} />
               <label>
                 <div className={"ring bd-grey"} data-tip data-for="m-notset" />
                 <ReactTooltip id="m-notset" place="right" effect="solid">
                   Maintenance status - not set
                 </ReactTooltip>
               </label>
+              <MobileLabel label={"Maintenance status - not set"} />
             </div>
             <div>
               <span>Inner Circle</span>
@@ -72,6 +85,7 @@ export const MapKey = ({ title }) => {
                   Device status - online
                 </ReactTooltip>
               </label>
+              <MobileLabel label={"Device status - online"} />
               <label>
                 <div
                   className={"circle b-grey"}
@@ -82,6 +96,7 @@ export const MapKey = ({ title }) => {
                   Device status - offline
                 </ReactTooltip>
               </label>
+              <MobileLabel label={"Device status - offline"} />
             </div>
             <div>
               <span>Examples</span>
@@ -95,6 +110,9 @@ export const MapKey = ({ title }) => {
                   Device is online but maintenance date is not set
                 </ReactTooltip>
               </label>
+              <MobileLabel
+                label={"Device is online but maintenance date is not set"}
+              />
               <label>
                 <div
                   className={"ring b-grey bd-success"}
@@ -105,6 +123,9 @@ export const MapKey = ({ title }) => {
                   Device is offline but maintenance is not due (good)
                 </ReactTooltip>
               </label>
+              <MobileLabel
+                label={"Device is offline but maintenance is not due (good)"}
+              />
               <label>
                 <div
                   className={"ring b-info bd-danger"}
@@ -115,6 +136,9 @@ export const MapKey = ({ title }) => {
                   Device is online but maintenance is overdue
                 </ReactTooltip>
               </label>
+              <MobileLabel
+                label={"Device is online but maintenance is overdue"}
+              />
             </div>
           </div>
         )}

@@ -183,3 +183,36 @@
     margin-left: 10px;
     list-style-type: circle !important;
  }
+
+.device-dropdown {
+    margin-bottom: 5px;
+}
+
+.device-dropdown-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 50px;
+    font-size: 1.2rem;
+    font-family: Roboto, Helvetica, Arial, sans-serif;
+    text-transform: uppercase;
+    padding: .2em 1rem;
+}
+
+.device-dropdown-list {
+    display: flex;
+    flex-wrap: wrap;
+    /*border: 1px solid black;*/
+}
+
+.device-dropdown-list > a {
+    width: 100%;
+    display: block;
+}
+
+.device-dropdown-list > a > span {
+    display: flex;
+    align-items: center;
+    font-size: 1.2rem;
+    padding: .2em 1rem;
+}

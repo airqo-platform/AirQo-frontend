@@ -10,6 +10,7 @@ import { Link, useLocation, BrowserRouter as Router } from "react-router-dom";
 
 import classnames from "classnames";
 import constants from "../../../config/constants";
+import Grid from "@material-ui/core/Grid";
 
 const validPasswordRegex = RegExp(/(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,}/);
 
@@ -112,9 +113,29 @@ export default function ResetPassword() {
   };
 
   return (
-    <div className="container">
+    <div
+        className="container"
+        style={{
+          maxWidth: "1000px",
+          marginTop: "4rem",
+          backgroundColor: "#fff",
+        }}
+    >
+      <Grid container>
+        <Grid
+            item
+            xs={12}
+            sm={4}
+            style={{
+              padding: "1em",
+              backgroundColor: "#3067e2",
+              height: "100% !important",
+              minHeight: "100px",
+            }}
+          />
+        <Grid item xs={12} sm={8}>
       <div className="row">
-        <div className="col s8 offset-s2">
+        <div>
           {!updated && (
               <>
                 <div className="col s12" style={{ paddingLeft: "11.250px" }}>
@@ -232,6 +253,9 @@ export default function ResetPassword() {
           )}
         </div>
       </div>
+        </Grid>
+      </Grid>
+
     </div>
   );
 }

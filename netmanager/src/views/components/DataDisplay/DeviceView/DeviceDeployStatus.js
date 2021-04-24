@@ -29,6 +29,7 @@ import green from "@material-ui/core/colors/green";
 import red from "@material-ui/core/colors/red";
 import grey from "@material-ui/core/colors/grey";
 import { makeStyles } from "@material-ui/styles";
+import Hidden from "@material-ui/core/Hidden";
 import { isEmpty, omit } from "underscore";
 import {
   deployDeviceApi,
@@ -340,7 +341,9 @@ export default function DeviceDeployStatus({ deviceData }) {
   const dispatch = useDispatch();
   const [height, setHeight] = useState(deviceData.height || "");
   const [power, setPower] = useState(deviceData.powerType || "");
-  const [installationType, setInstallationType] = useState(deviceData.mountType || "");
+  const [installationType, setInstallationType] = useState(
+    deviceData.mountType || ""
+  );
   const [deploymentDate, setDeploymentDate] = useState(new Date());
   const [primaryChecked, setPrimaryChecked] = useState(true);
   const [collocationChecked, setCollocationChecked] = useState(false);
@@ -575,7 +578,7 @@ export default function DeviceDeployStatus({ deviceData }) {
         }}
       >
         <Grid container spacing={1}>
-          <Grid items xs={6}>
+          <Grid items xs={12} sm={6}>
             <TextField
               id="standard-basic"
               label="Device Name"
@@ -739,28 +742,48 @@ export default function DeviceDeployStatus({ deviceData }) {
               </Grid>{" "}
             </div>
           </Grid>
-          <Grid item xs={6}>
-            <Grid
-              container
-              alignItems="flex-end"
-              alignContent="flex-end"
-              justify="flex-end"
-            >
-              <Button
-                color="primary"
-                disabled={deviceTestLoading}
-                onClick={runDeviceTest}
-                style={{ marginLeft: "10px 10px" }}
+          <Grid item xs={12} sm={6}>
+            <Hidden smUp>
+              <Grid
+                container
+                alignItems="center"
+                alignContent="center"
+                justify="center"
               >
-                Run device test
-              </Button>
-            </Grid>
-            {isEmpty(recentFeed) && !runReport.ranTest ? (
-              <EmptyDeviceTest
-                loading={deviceTestLoading}
-                onClick={runDeviceTest}
-              />
-            ) : (
+                <Button
+                  color="primary"
+                  disabled={deviceTestLoading}
+                  onClick={runDeviceTest}
+                  style={{ marginLeft: "10px 10px" }}
+                >
+                  Run device test
+                </Button>
+              </Grid>
+            </Hidden>
+            <Hidden xsDown>
+              <Grid
+                container
+                alignItems="flex-end"
+                alignContent="flex-end"
+                justify="flex-end"
+              >
+                <Button
+                  color="primary"
+                  disabled={deviceTestLoading}
+                  onClick={runDeviceTest}
+                  style={{ marginLeft: "10px 10px" }}
+                >
+                  Run device test
+                </Button>
+              </Grid>
+              {isEmpty(recentFeed) && !runReport.ranTest && (
+                <EmptyDeviceTest
+                  loading={deviceTestLoading}
+                  onClick={runDeviceTest}
+                />
+              )}
+            </Hidden>
+            {!isEmpty(recentFeed) && runReport.ranTest && (
               <DeviceRecentFeedView
                 recentFeed={recentFeed}
                 runReport={runReport}

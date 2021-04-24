@@ -399,7 +399,7 @@ export default function DeviceManagement() {
       >
         <div
           className={"overview-item-container"}
-          style={{ minWidth: "550px" }}
+          style={{ minWidth: "300px" }}
         >
           <h4 className={classes.cardTitleBlue}>
             Network Uptime{" "}
@@ -451,7 +451,7 @@ export default function DeviceManagement() {
 
         <div
           className={"overview-item-container"}
-          style={{ minWidth: "550px" }}
+          style={{ minWidth: "300px" }}
         >
           <h4 className={classes.cardTitleGreen}>Online Status</h4>
           <Card className={classes.cardBody}>
@@ -505,7 +505,7 @@ export default function DeviceManagement() {
 
         <div
           className={"overview-item-container"}
-          style={{ minWidth: "550px" }}
+          style={{ minWidth: "300px" }}
         >
           <h4 className={classes.cardTitleBlue}>
             Leaderboard <span style={{ fontSize: "1rem" }}>(last 28 days)</span>

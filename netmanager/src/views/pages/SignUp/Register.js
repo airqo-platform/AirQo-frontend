@@ -180,10 +180,16 @@ class Register extends Component {
     const { errors } = this.state;
     const { classes } = this.props;
     return (
-      <div className="container">
-        <div style={{marginTop: "4rem"}} className="row">
+      <div
+          className="container"
+          style={{
+            maxWidth: "600px",
+            marginTop: "4rem",
+            backgroundColor: "#fff",
+          }}>
+        <div className="row">
           <div
-            className="col s8 offset-s2"
+            className=" offset-s2"
             style={{
               backgroundColor: "#3067e2",
               height: "15vh",
@@ -191,7 +197,7 @@ class Register extends Component {
             }}
           />
           <div
-            className="col s8 offset-s2"
+            className="offset-s2"
             style={{ backgroundColor: "#fff", padding: "1em" }}
           >
             <div className="col s12" style={{ paddingLeft: "11.250px" }}>
@@ -297,14 +303,16 @@ class Register extends Component {
                     id="description"
                     label="Outline in detailed nature your interest in AirQuality"
                     fullWidth
-                    rows="2"
-                    rowsMax="5"
+                    multiline
+                    rows="5"
+                    rowsMax="10"
                     value={this.state.description}
                     onChange={this.onChange}
                     margin="normal"
                     variant="outlined"
                     error={!!errors.description}
                     helperText={errors.description}
+                    InputLabelProps={{style: {fontSize: "0.8rem"}}}
                 />
               </div>
 
@@ -315,7 +323,7 @@ class Register extends Component {
                       width: "150px",
                       borderRadius: "3px",
                       letterSpacing: "1.5px",
-                      marginTop: "1rem",
+                      margin: "1rem",
                     }}
                     type="submit"
                     className="btn btn-large waves-effect waves-light hoverable blue accent-3"

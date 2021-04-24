@@ -1,1 +1,1 @@
-export { default } from './SidebarNav';
+export { default, SidebarWidgets } from "./SidebarNav";
