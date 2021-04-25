@@ -1,44 +1,100 @@
+import 'package:app/config/providers/LocalProvider.dart';
+import 'package:app/models/node.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-class SettingsPage extends StatelessWidget {
+class SettingsPage extends StatefulWidget {
+  @override
+  _SettingsPageState createState() => _SettingsPageState();
+}
+
+enum Languages { English, Luganda }
+
+class _SettingsPageState extends State<SettingsPage> {
+  Languages? _language = Languages.English;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Settings'),
+        title: const Text('Settings'),
       ),
-      body: Stack(
-        children: <Widget>[
-          Align(
-            alignment: Alignment.bottomLeft,
-            child: Container(
-              padding: EdgeInsets.only(left: 10,bottom: 10,top: 10),
-              height: 60,
-              width: double.infinity,
-              color: Colors.white,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  GestureDetector(
-                    onTap: (){
-                    },
-                    child: Container(
-                      height: 30,
-                      width: 30,
-                      decoration: BoxDecoration(
-                        color: Colors.lightBlue,
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      child: Icon(Icons.add, color: Colors.white, size: 20, ),
-                    ),
-                  ),
-                ],
-
-              ),
+      body: Container(
+        child: ListView(
+          children: <Widget>[
+            Row(
+              children: [
+                // OutlinedButton(
+                //   onPressed: () async {
+                //     await showLanguageDialog(context);
+                //   },
+                //   child: const Text('Select Language'),
+                // )
+              ],
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
+  }
+
+  Future<void> showLanguageDialog(BuildContext context) async {
+    return await showDialog(
+        context: context,
+        builder: (context) {
+          return StatefulBuilder(builder: (context, setState) {
+            return AlertDialog(
+              content:
+              SingleChildScrollView(
+                  child: Column( children: <Widget>[
+                    RadioListTile<Languages>(
+                      title: const Text('English'),
+                      value: Languages.English,
+                      groupValue: _language,
+                      onChanged: (Languages? value) {
+                        setState(() {
+                          _language = value;
+                        });
+                    },
+                  ),
+                    RadioListTile<Languages>(
+                    title: const Text('Luganda'),
+                    value: Languages.Luganda,
+                    groupValue: _language,
+                    onChanged: (Languages? value) {
+                      setState(() {
+                        _language = value;
+                      });
+                    },
+                  ),
+                ],
+              )),
+              title: const Text('Select Language'),
+              actions: <Widget>[
+                OutlinedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: new Text('Cancel')),
+                OutlinedButton(
+                    onPressed: () {
+
+                      final provider = Provider.of<localProvider>(context);
+
+                      print(_language.toString());
+
+                      if (_language.toString() == 'English') {
+                        provider.setLocale(const Locale('en'));
+                      } else {
+                        provider.setLocale(const Locale('en'));
+                      }
+
+                      Navigator.of(context).pop();
+                    },
+                    child: new Text('Save')),
+              ],
+            );
+          });
+        });
   }
 }

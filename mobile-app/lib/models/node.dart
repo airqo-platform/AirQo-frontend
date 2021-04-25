@@ -8,8 +8,7 @@ class Nodes {
     required this.nodes,
   });
 
-  factory Nodes.fromJson(Map<String, dynamic> json) =>
-      _$NodesFromJson(json);
+  factory Nodes.fromJson(Map<String, dynamic> json) => _$NodesFromJson(json);
   Map<String, dynamic> toJson() => _$NodesToJson(this);
 
   final List<Node> nodes;
@@ -29,8 +28,7 @@ class Node {
     required this.an_type,
   });
 
-  factory Node.fromJson(Map<String, dynamic> json) =>
-      _$NodeFromJson(json);
+  factory Node.fromJson(Map<String, dynamic> json) => _$NodeFromJson(json);
   Map<String, dynamic> toJson() => _$NodeToJson(this);
 
   final String channel_id;
@@ -42,5 +40,4 @@ class Node {
   // final String time;
   final String an_type;
   final String churl;
-
 }

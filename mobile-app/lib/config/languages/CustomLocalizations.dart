@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class CustomLocalizations {
-
   CustomLocalizations(this.locale);
   final Locale locale;
 
@@ -11,14 +10,7 @@ class CustomLocalizations {
   }
 
   static Map<String, Map<String, String>> _resources = {
-    'en': {
-      'title': 'Airqo',
-      'message': 'English'
-    },
-    'es': {
-      'title': 'Airqó',
-      'message': 'Spanish',
-    },
+    'en': {'title': 'Airqo', 'message': 'English'},
     'lg': {
       'title': 'Airqó',
       'message': 'Luganda',
@@ -27,16 +19,18 @@ class CustomLocalizations {
   String? get title {
     return _resources[locale.languageCode]!['title'];
   }
+
   String? get message {
     return _resources[locale.languageCode]!['message'];
   }
 }
 
-class CustomLocalizationsDelegate extends LocalizationsDelegate<CustomLocalizations> {
+class CustomLocalizationsDelegate
+    extends LocalizationsDelegate<CustomLocalizations> {
   const CustomLocalizationsDelegate();
 
   @override
-  bool isSupported(Locale locale) => ['en', 'es', 'lg'].contains(locale.languageCode);
+  bool isSupported(Locale locale) => ['en', 'lg'].contains(locale.languageCode);
 
   @override
   Future<CustomLocalizations> load(Locale locale) {

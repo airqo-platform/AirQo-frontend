@@ -1,7 +1,3 @@
-// Copyright 2019 The Flutter team. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
-
 import 'package:flutter/material.dart';
 
 class CardBody extends StatefulWidget {
@@ -39,7 +35,6 @@ class _CardBodyState extends State<CardBody>
       vsync: this,
     );
     _tabController.addListener(() {
-
       setState(() {
         tabIndex.value = _tabController.index;
       });
@@ -55,42 +50,43 @@ class _CardBodyState extends State<CardBody>
     super.dispose();
   }
 
-  void search(){
-
-  }
+  void search() {}
 
   @override
   Widget build(BuildContext context) {
-
     return Container(
-
-      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: <Widget>[
-        DefaultTabController(
-            length: tabs.length, // length of tabs
-            initialIndex: 0,
-            child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: <Widget>[
-              Container(
-                child: TabBar(
-                    isScrollable: true,
-                    labelColor: Colors.blue,
-                    unselectedLabelColor: Colors.black,
-                    tabs: [
-                      for (final tab in tabs) Tab(text: tab.keys.first),
-                ]),
-              ),
-              Container(
-                  height: 100,
-                  decoration: BoxDecoration(
-                      border: Border(top: BorderSide(color: Colors.blue, width: 0.5))
-                  ),
-                  child: TabBarView(children: <Widget>[
-                    for (final tab in tabs)
-                      Center(child: tab[tab.keys.first],),
-                  ])
-              )
-            ])
-        ),
-      ]),
+      child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            DefaultTabController(
+                length: tabs.length, // length of tabs
+                initialIndex: 0,
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: <Widget>[
+                      Container(
+                        child: TabBar(
+                            isScrollable: true,
+                            labelColor: Colors.blue,
+                            unselectedLabelColor: Colors.black,
+                            tabs: [
+                              for (final tab in tabs) Tab(text: tab.keys.first),
+                            ]),
+                      ),
+                      Container(
+                          height: 100,
+                          decoration: BoxDecoration(
+                              border: Border(
+                                  top: BorderSide(
+                                      color: Colors.blue, width: 0.5))),
+                          child: TabBarView(children: <Widget>[
+                            for (final tab in tabs)
+                              Center(
+                                child: tab[tab.keys.first],
+                              ),
+                          ]))
+                    ])),
+          ]),
     );
   }
 }
@@ -99,9 +95,7 @@ class CardBodySection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      child: const Center(
-          child: Text("Body")
-      ),
+      child: const Center(child: Text("Body")),
     );
   }
 }

@@ -1,8 +1,4 @@
-// Copyright 2019 The Flutter team. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
-
-import 'package:airqo_app/screens/resources_page.dart';
+import 'package:app/screens/resources_page.dart';
 import 'package:flutter/material.dart';
 
 class SearchPage extends StatefulWidget {
@@ -12,7 +8,7 @@ class SearchPage extends StatefulWidget {
 
 class _SearchPageState extends State<SearchPage>
     with SingleTickerProviderStateMixin, RestorationMixin {
-  late TabController _tabController;
+  TabController? _tabController;
   final searchController = TextEditingController();
   final List<Map<String, Widget>> tabs = [
     {'All': ResourcesPage()},
@@ -29,7 +25,7 @@ class _SearchPageState extends State<SearchPage>
   @override
   void restoreState(RestorationBucket? oldBucket, bool initialRestore) {
     registerForRestoration(tabIndex, 'tab_index');
-    _tabController.index = tabIndex.value;
+    _tabController!.index = tabIndex.value;
   }
 
   @override
@@ -39,10 +35,9 @@ class _SearchPageState extends State<SearchPage>
       length: tabs.length,
       vsync: this,
     );
-    _tabController.addListener(() {
-
+    _tabController!.addListener(() {
       setState(() {
-        tabIndex.value = _tabController.index;
+        tabIndex.value = _tabController!.index;
       });
     });
     super.initState();
@@ -50,19 +45,16 @@ class _SearchPageState extends State<SearchPage>
 
   @override
   void dispose() {
-    _tabController.dispose();
+    _tabController!.dispose();
     searchController.dispose();
     tabIndex.dispose();
     super.dispose();
   }
 
-  void search(){
-
-  }
+  void search() {}
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       appBar: AppBar(
         title: TextFormField(
@@ -74,6 +66,7 @@ class _SearchPageState extends State<SearchPage>
           // autofocus: true,
           decoration: InputDecoration(
             hintText: 'Search',
+            // labelText: 'Search',
             suffixIcon: IconButton(
               onPressed: search,
               icon: const Icon(Icons.search),
@@ -100,4 +93,3 @@ class _SearchPageState extends State<SearchPage>
     );
   }
 }
-

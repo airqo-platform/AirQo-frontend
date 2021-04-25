@@ -1,1 +1,2 @@
-const nodesURL = 'https://test-dot-airqo-frontend.appspot.com/Apis/airqoPlacesCached';
+const nodesURL =
+    'https://test-dot-airqo-frontend.appspot.com/Apis/airqoPlacesCached';

@@ -1,4 +1,4 @@
-enum AppMenu{
+enum AppMenu {
   settings,
   help,
 }
