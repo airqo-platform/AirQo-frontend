@@ -5,11 +5,12 @@ import 'package:app/screens/search_page.dart';
 import 'package:app/screens/settings_page.dart';
 import 'package:flutter/material.dart';
 
+import 'compare_page.dart';
 import 'dashboard_page.dart';
 
 
 class HomePage extends StatefulWidget {
-  final String title = 'Airqo';
+  final String title = 'AirQo';
 
   @override
   _HomePageState createState() => _HomePageState();
@@ -17,14 +18,26 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
 
-  final PageController _myPage = PageController(initialPage: 0);
+  final PageController _pageCtrl = PageController(initialPage: 0);
+  String title = 'Airqo';
+  bool showAddPlace = true;
 
   Widget build(BuildContext context) {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.title),
+        title: Text(title),
         actions: [
+          showAddPlace ?
+          IconButton(
+            icon: const Icon(
+              Icons.addchart_outlined,
+            ),
+            onPressed: () {
+            },
+          )
+              :
+          Text(''),
           IconButton(
             icon: const Icon(
               Icons.search,
@@ -90,62 +103,66 @@ class _HomePageState extends State<HomePage> {
             mainAxisSize: MainAxisSize.max,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
+              Spacer(flex: 1,),
               IconButton(
                 // iconSize: 30.0,
-                padding: const EdgeInsets.only(left: 28.0),
+                // padding: const EdgeInsets.only(left: 28.0),
                 icon: const Icon(Icons.home_outlined),
                 onPressed: () {
                   setState(() {
-                    _myPage.jumpToPage(0);
+                    _pageCtrl.jumpToPage(0);
                   });
                 },
               ),
+              Spacer(flex: 1,),
               IconButton(
                 // iconSize: 30.0,
-                padding: const EdgeInsets.only(right: 28.0),
-                icon: const Icon(Icons.search),
+                // autofocus: true,
+                // padding: const EdgeInsets.only(right: 28.0),
+                icon: const Icon(Icons.stacked_bar_chart),
                 onPressed: () {
                   setState(() {
-                    _myPage.jumpToPage(1);
+                    _pageCtrl.jumpToPage(1);
                   });
                 },
               ),
+              Spacer(flex: 3,),
               IconButton(
                 // iconSize: 30.0,
-                padding: const EdgeInsets.only(left: 28.0),
+                // padding: const EdgeInsets.only(left: 28.0),
                 icon: const Icon(Icons.notifications_none_outlined),
                 onPressed: () {
                   setState(() {
-                    _myPage.jumpToPage(2);
+                    _pageCtrl.jumpToPage(2);
                   });
                 },
               ),
+              Spacer(flex: 1,),
               IconButton(
                 // iconSize: 30.0,
-                padding: const EdgeInsets.only(right: 28.0),
-                icon: const Icon(Icons.list),
+                // padding: const EdgeInsets.only(right: 28.0),
+                icon: const Icon(Icons.library_books_outlined),
                 onPressed: () {
                   setState(() {
-                    _myPage.jumpToPage(3);
+                    _pageCtrl.jumpToPage(3);
                   });
                 },
-              )
+              ),
+              Spacer(flex: 1,),
             ],
           ),
         ),
       ),
       body: PageView(
-        controller: _myPage,
+        controller: _pageCtrl,
         onPageChanged: (int) {
+          switchTitle(int);
           print('Page Changes to index $int');
         },
         children: <Widget>[
+
           DashboardPage(),
-          Center(
-            child: Container(
-              child: Text('Page 1'),
-            ),
-          ),
+          ComparePage(),
           Center(
             child: Container(
               child: Text('Page 2'),
@@ -157,7 +174,7 @@ class _HomePageState extends State<HomePage> {
             ),
           )
         ],
-        // physics: NeverScrollableScrollPhysics(), // Comment this if you need to use Swipe.
+        // physics: NeverScrollableScrollPhysics(),
       ),
       floatingActionButton: Container(
         // height: 60.0,
@@ -170,7 +187,7 @@ class _HomePageState extends State<HomePage> {
                 return MapPage();
               }));
             },
-            child: Icon(
+            child: const Icon(
               Icons.public_sharp,
               color: Colors.white,
             ),
@@ -179,6 +196,42 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
     );
+  }
+
+  void switchTitle(int){
+
+    switch(int) {
+      case 0:
+        setState(() {
+          title = 'AirQo';
+          showAddPlace = true;
+        });
+        break;
+      case 1:
+        setState(() {
+          title = 'Compare Places';
+          showAddPlace = false;
+        });
+        break;
+      case 2:
+        setState(() {
+          title = 'Notifications';
+          showAddPlace = false;
+        });
+        break;
+      case 3:
+        setState(() {
+          title = 'Resources';
+          showAddPlace = false;
+        });
+        break;
+      default:
+        setState(() {
+          title = 'AirQo';
+          showAddPlace = true;
+        });
+        break;
+    }
   }
 
   void navigateToMenuItem(dynamic position) {

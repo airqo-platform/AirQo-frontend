@@ -31,7 +31,9 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
         ],
       ),
       body: Container(
-
+        // height: 30,
+        // width: 30,
+        // child: Image.asset('assets/icon/details_one.png'),
       ),
     );
   }

@@ -79,6 +79,7 @@ flutter:
     # images
     - assets/images/happy_face.png
     - assets/icon/airqo_logo.png
+    - assets/images/details_one.png
 
     # HTML files
     - assets/html/privacy_policy.html

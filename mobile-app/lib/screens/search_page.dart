@@ -12,7 +12,7 @@ class _SearchPageState extends State<SearchPage>
   final searchController = TextEditingController();
   final List<Map<String, Widget>> tabs = [
     {'All': ResourcesPage()},
-    {'Place': ResourcesPage()},
+    {'Places': ResourcesPage()},
     {'News': ResourcesPage()},
     {'Resources': ResourcesPage()}
   ];
