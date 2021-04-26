@@ -4,6 +4,7 @@ import 'package:app/screens/map_page_nav.dart';
 import 'package:app/screens/search_page.dart';
 import 'package:app/screens/settings_page.dart';
 import 'package:flutter/material.dart';
+import 'package:share/share.dart';
 
 import 'compare_page.dart';
 import 'dashboard_page.dart';
@@ -243,6 +244,11 @@ class _HomePageState extends State<HomePage> {
         return FeedbackPage();
       }));
     }
+    else if (menuItem.trim().toLowerCase() == 'invite friends'){
+      Share.share('https://play.google.com/store/apps/details?id=com.airqo.app ', subject: 'Airqo!');
+    }
+
+
     else{
       Navigator.push(context, MaterialPageRoute(builder: (context) {
         return SettingsPage();

@@ -1,3 +1,5 @@
+import 'package:app/widgets/compare_chart.dart';
+import 'package:app/widgets/location_chart.dart';
 import 'package:flutter/material.dart';
 
 class ComparePage extends StatefulWidget {
@@ -26,7 +28,8 @@ class _ComparePageState extends State<ComparePage> {
         child: ListView(
           children: <Widget>[
             formInput(),
-            graphDisplay()
+            graphDisplay(),
+            lineDisplay()
           ],
         ),
       ),
@@ -34,9 +37,11 @@ class _ComparePageState extends State<ComparePage> {
   }
 
   Widget graphDisplay(){
-    return Container(
+    return LocationCompareChart();
+  }
 
-    );
+  Widget lineDisplay(){
+    return LocationBarChart();
   }
   
   Widget formInput(){
@@ -62,18 +67,18 @@ class _ComparePageState extends State<ComparePage> {
                           icon: Icon(Icons.compare_arrows),
                           splashColor: Colors.deepPurple,
                           onPressed: (){
-                            setShareIcon(true);
+                            // setShareIcon(true);
                           }
                       ),
-                      displayShareIcon ?
+                      // displayShareIcon ?
                       IconButton(
                           icon: Icon(Icons.share_outlined),
                           splashColor: Colors.deepPurple,
                           onPressed: (){
                           }
                       )
-                          :
-                      const Placeholder(),
+                      //     :
+                      // const Placeholder(),
                     ],
                   )
                 ],
@@ -118,6 +123,5 @@ class _ComparePageState extends State<ComparePage> {
       },
     );
   }
-  
-  
+
 }

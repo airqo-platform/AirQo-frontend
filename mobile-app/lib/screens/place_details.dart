@@ -1,4 +1,6 @@
+import 'package:app/widgets/location_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:share/share.dart';
 
 class PlaceDetailsPage extends StatefulWidget {
   @override
@@ -10,14 +12,14 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Airqo'),
+        title: const Text('AirQo'),
         actions: [
           IconButton(
             icon: const Icon(
               Icons.share_outlined,
             ),
             onPressed: () {
-
+              Share.share('https://airqo.net', subject: 'Makerere!');
             },
           ),
           IconButton(
@@ -31,9 +33,15 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
         ],
       ),
       body: Container(
-        // height: 30,
-        // width: 30,
-        // child: Image.asset('assets/icon/details_one.png'),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(0, 4, 0, 0),
+          child: ListView(
+            children: <Widget>[
+              LocationBarChart(),
+
+            ],
+          ),
+        ),
       ),
     );
   }
