@@ -57,7 +57,7 @@ class TitleSection extends StatelessWidget {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  Colors.deepPurple,
+                  Color(0xff5f1ee8),
                   Colors.white,
             ])),
         child: Padding(

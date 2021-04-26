@@ -41,8 +41,14 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
         ],
       ),
       body: Container(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage("assets/images/details_one.png"),
+            fit: BoxFit.cover,
+          ),
+        ),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(0, 4, 0, 0),
+          padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
           child: ListView(
             children: <Widget>[
               LocationBarChart(),
@@ -50,6 +56,42 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget headerSection(String image, String body){
+    return Container(
+      padding: const EdgeInsets.fromLTRB(0, 2, 0, 0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(5),
+            child:Image.asset(
+              image,
+              height: 40,
+              width: 40,
+            ),
+
+          ),
+
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(5),
+              child:
+              Text(
+                  body,
+                  softWrap: true,
+                  style: const TextStyle(
+                    height: 1.2,
+                    // letterSpacing: 1.0
+                  )
+              ),
+            ),
+          )
+        ],
       ),
     );
   }

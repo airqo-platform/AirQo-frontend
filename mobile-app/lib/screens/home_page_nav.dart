@@ -6,6 +6,7 @@ import 'package:app/screens/settings_page.dart';
 import 'package:flutter/material.dart';
 import 'package:share/share.dart';
 
+import 'add_place.dart';
 import 'compare_page.dart';
 import 'dashboard_page.dart';
 
@@ -35,6 +36,10 @@ class _HomePageState extends State<HomePage> {
               Icons.addchart_outlined,
             ),
             onPressed: () {
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) {
+                    return AddPlacePage();
+                  }));
             },
           )
               :
@@ -109,7 +114,7 @@ class _HomePageState extends State<HomePage> {
                 // iconSize: 30.0,
                 // padding: const EdgeInsets.only(left: 28.0),
                 icon: const Icon(Icons.home_outlined),
-                splashColor: Colors.deepPurple,
+                splashColor: Color(0xff5f1ee8),
                 onPressed: () {
                   setState(() {
                     _pageCtrl.jumpToPage(0);
@@ -122,7 +127,7 @@ class _HomePageState extends State<HomePage> {
                 // autofocus: true,
                 // padding: const EdgeInsets.only(right: 28.0),
                 icon: const Icon(Icons.stacked_bar_chart),
-                splashColor: Colors.deepPurple,
+                splashColor: Color(0xff5f1ee8),
                 onPressed: () {
                   setState(() {
                     _pageCtrl.jumpToPage(1);
@@ -134,7 +139,7 @@ class _HomePageState extends State<HomePage> {
                 // iconSize: 30.0,
                 // padding: const EdgeInsets.only(left: 28.0),
                 icon: const Icon(Icons.notifications_none_outlined),
-                splashColor: Colors.deepPurple,
+                splashColor: Color(0xff5f1ee8),
                 onPressed: () {
                   setState(() {
                     _pageCtrl.jumpToPage(2);
@@ -146,7 +151,7 @@ class _HomePageState extends State<HomePage> {
                 // iconSize: 30.0,
                 // padding: const EdgeInsets.only(right: 28.0),
                 icon: const Icon(Icons.library_books_outlined),
-                splashColor: Colors.deepPurple,
+                splashColor: Color(0xff5f1ee8),
                 onPressed: () {
                   setState(() {
                     _pageCtrl.jumpToPage(3);
@@ -186,7 +191,7 @@ class _HomePageState extends State<HomePage> {
         // width: 60.0,
         child: FittedBox(
           child: FloatingActionButton(
-            backgroundColor: Colors.deepPurple,
+            backgroundColor: Color(0xff5f1ee8),
             onPressed: () {
               Navigator.push(context, MaterialPageRoute(builder: (context) {
                 return MapPage();
