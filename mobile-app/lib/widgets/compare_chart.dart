@@ -67,8 +67,8 @@ class LocationCompareChart extends StatelessWidget {
     final mobileSalesData = [
       new TimeSeriesSales(new DateTime(2017, 9, 19), 80),
       new TimeSeriesSales(new DateTime(2017, 9, 26), 80),
-      new TimeSeriesSales(new DateTime(2017, 10, 3), 80),
-      new TimeSeriesSales(new DateTime(2017, 10, 10), 80),
+      new TimeSeriesSales(new DateTime(2017, 10, 3), 0),
+      new TimeSeriesSales(new DateTime(2017, 10, 10), 100),
     ];
 
     return [

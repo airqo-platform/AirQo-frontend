@@ -12,8 +12,14 @@ import 'config/themes/light_theme.dart';
 import 'screens/home_page_nav.dart';
 
 void main() {
+
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-    statusBarColor: Colors.transparent
+    systemNavigationBarColor: Color(0xff5f1ee8),
+    statusBarColor: Colors.transparent,
+    // statusBarBrightness: Brightness.light,
+    // statusBarIconBrightness:Brightness.light ,
+    // systemNavigationBarDividerColor: Color(0xff5f1ee8),
+    systemNavigationBarIconBrightness: Brightness.light,
   ));
 
 

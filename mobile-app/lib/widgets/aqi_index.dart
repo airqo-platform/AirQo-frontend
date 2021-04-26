@@ -10,7 +10,7 @@ class AQI_Dialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.deepPurple,
+        backgroundColor: Color(0xff5f1ee8),
         title: Text('AQI Guide'),
       ),
       body: Container(
