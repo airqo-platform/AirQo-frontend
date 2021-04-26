@@ -10,18 +10,13 @@ class FeedbackPage extends StatefulWidget {
 }
 
 class _FeedbackPageState extends State<FeedbackPage> {
-
   final _formKey = GlobalKey<FormState>();
   final feedbackController = TextEditingController();
   final emailController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
-
-    final height = MediaQuery
-        .of(context)
-        .size
-        .height;
+    final height = MediaQuery.of(context).size.height;
 
     return Scaffold(
       appBar: AppBar(
@@ -31,7 +26,6 @@ class _FeedbackPageState extends State<FeedbackPage> {
         height: height,
         child: Stack(
           children: <Widget>[
-
             Form(
               key: _formKey,
               child: SingleChildScrollView(
@@ -43,11 +37,17 @@ class _FeedbackPageState extends State<FeedbackPage> {
                     // SizedBox(height: height * .2),
                     const SizedBox(height: 2),
                     emailInput(),
-                    const SizedBox(height: 5,),
+                    const SizedBox(
+                      height: 5,
+                    ),
                     feedbackInput(),
-                    const SizedBox(height: 5,),
+                    const SizedBox(
+                      height: 5,
+                    ),
                     submitButton(),
-                    const SizedBox(height: 10,),
+                    const SizedBox(
+                      height: 10,
+                    ),
                     // SizedBox(height: height * .14),
                     // _loginAccountLabel(),
                   ],
@@ -79,11 +79,8 @@ class _FeedbackPageState extends State<FeedbackPage> {
         // helperText: 'Optional',
       ),
       keyboardType: TextInputType.emailAddress,
-      onChanged: (value) {
-
-      },
+      onChanged: (value) {},
       textInputAction: TextInputAction.next,
-
     );
   }
 
@@ -111,14 +108,14 @@ class _FeedbackPageState extends State<FeedbackPage> {
     return ElevatedButton(
       onPressed: () {
         if (_formKey.currentState!.validate()) {
-
           var email = '';
           if (emailController.text.isNotEmpty) {
             email = emailController.text;
           }
 
           var feedback = feedbackController.text;
-          var feedBackModel = feedbackModel.Feedback(email: email, feedback: feedback);
+          var feedBackModel =
+              feedbackModel.Feedback(email: email, feedback: feedback);
 
           var success = sendFeedback(feedBackModel);
 
@@ -142,13 +139,11 @@ class _FeedbackPageState extends State<FeedbackPage> {
 
   Widget airqoLogo() {
     return Image.asset(
-
       'assets/icon/airqo_logo.png',
       height: 40,
       width: 40,
     );
   }
-
 }
 
 class SuccessDialog extends StatelessWidget {

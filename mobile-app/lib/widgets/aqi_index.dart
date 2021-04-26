@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 class AQI_Dialog extends StatelessWidget {
-
   String good = 'An air quality index is used by government agencies to '
       'communicate to the public how polluted the air currently '
       'is or how polluted it';
@@ -30,23 +29,21 @@ class AQI_Dialog extends StatelessWidget {
     );
   }
 
-
   Widget whatIsAQI = Container(
     child: Text(
-      'An air quality index is used by government agencies to communicate to '
-          'the public how polluted the air currently is or how polluted it is '
-          'forecast to become. Public health risks increase as the AQI rises. '
-          'Different countries have their own air quality indices, '
-          'corresponding to different national air quality standards.',
-      softWrap: true,
+        'An air quality index is used by government agencies to communicate to '
+        'the public how polluted the air currently is or how polluted it is '
+        'forecast to become. Public health risks increase as the AQI rises. '
+        'Different countries have their own air quality indices, '
+        'corresponding to different national air quality standards.',
+        softWrap: true,
         style: TextStyle(
           height: 1.2,
           // letterSpacing: 1.0
-        )
-    ),
+        )),
   );
 
-  Widget AQI_Quide(String image, String body){
+  Widget AQI_Quide(String image, String body) {
     return Container(
       padding: EdgeInsets.fromLTRB(0, 2, 0, 0),
       child: Row(
@@ -55,26 +52,21 @@ class AQI_Dialog extends StatelessWidget {
         children: [
           Padding(
             padding: EdgeInsets.all(5),
-            child:Image.asset(
+            child: Image.asset(
               image,
               height: 40,
               width: 40,
             ),
-
           ),
-
           Expanded(
             child: Padding(
               padding: EdgeInsets.all(5),
-              child:
-              Text(
-                body,
-                softWrap: true,
+              child: Text(body,
+                  softWrap: true,
                   style: TextStyle(
-                      height: 1.2,
-                      // letterSpacing: 1.0
-                  )
-              ),
+                    height: 1.2,
+                    // letterSpacing: 1.0
+                  )),
             ),
           )
         ],
@@ -89,22 +81,20 @@ class AQI_Dialog extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
         Padding(
-            padding: EdgeInsets.all(5),
-          child:Image.asset(
+          padding: EdgeInsets.all(5),
+          child: Image.asset(
             'assets/images/happy_face.png',
             height: 40,
             width: 40,
           ),
-
         ),
-
         Expanded(
           child: Padding(
             padding: EdgeInsets.all(5),
             child: Text(
               'An air quality index is used by government agencies to '
-                  'communicate to the public how polluted the air currently '
-                  'is or how polluted it',
+              'communicate to the public how polluted the air currently '
+              'is or how polluted it',
               softWrap: true,
             ),
           ),
@@ -112,5 +102,4 @@ class AQI_Dialog extends StatelessWidget {
       ],
     ),
   );
-
 }

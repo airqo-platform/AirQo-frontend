@@ -8,7 +8,6 @@ class LocationCompareChart extends StatelessWidget {
   //
   // LocationCompareChart(this.seriesList);
 
-
   // factory LocationCompareChart.withSampleData() {
   //   return new DateTimeComboLinePointChart(
   //     _createSampleData(),
@@ -16,10 +15,8 @@ class LocationCompareChart extends StatelessWidget {
   //   );
   // }
 
-
   @override
   Widget build(BuildContext context) {
-
     return Container(
       height: 400,
       padding: EdgeInsets.fromLTRB(20, 20, 20, 0),
@@ -45,7 +42,6 @@ class LocationCompareChart extends StatelessWidget {
         ),
       ),
     );
-
   }
 
   /// Create one series with sample hard coded data.
@@ -92,7 +88,7 @@ class LocationCompareChart extends StatelessWidget {
           domainFn: (TimeSeriesSales sales, _) => sales.time,
           measureFn: (TimeSeriesSales sales, _) => sales.sales,
           data: mobileSalesData)
-      // Configure our custom point renderer for this series.
+        // Configure our custom point renderer for this series.
         ..setAttribute(charts.rendererIdKey, 'customPoint'),
     ];
   }

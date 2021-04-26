@@ -7,20 +7,16 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:flutter/services.dart';
 
 class MapPage extends StatefulWidget {
-
-
   @override
   State<MapPage> createState() => MapPageState();
 }
 
 class MapPageState extends State<MapPage> {
-
   @override
   void initState() {
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
-      systemNavigationBarColor: Colors.transparent
-    ));
+        statusBarColor: Colors.transparent,
+        systemNavigationBarColor: Colors.transparent));
     super.initState();
   }
 

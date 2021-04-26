@@ -6,7 +6,6 @@ class AddPlacePage extends StatefulWidget {
 }
 
 class _AddPlacePageState extends State<AddPlacePage> {
-
   final searchController = TextEditingController();
 
   List<String> _searchResult = [];
@@ -19,12 +18,9 @@ class _AddPlacePageState extends State<AddPlacePage> {
     super.dispose();
   }
 
-  void search() {
-
-  }
+  void search() {}
 
   void getLocationDetails() async {
-
     setState(() {
       _locationDetails = ['Makerere', 'Kyambogo'];
     });
@@ -57,47 +53,46 @@ class _AddPlacePageState extends State<AddPlacePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        elevation: 0.0,
-        title: TextFormField(
-          controller: searchController,
-          onChanged: onSearchTextChanged,
-          cursorColor: Colors.white,
-          style: const TextStyle(
-            color: Colors.white,
-          ),
-          // autofocus: true,
-          decoration: InputDecoration(
-            hintText: 'Search',
-            // labelText: 'Search',
-            suffixIcon: IconButton(
-              onPressed: search,
-              icon: const Icon(Icons.search),
+        appBar: AppBar(
+          elevation: 0.0,
+          title: TextFormField(
+            controller: searchController,
+            onChanged: onSearchTextChanged,
+            cursorColor: Colors.white,
+            style: const TextStyle(
+              color: Colors.white,
+            ),
+            // autofocus: true,
+            decoration: InputDecoration(
+              hintText: 'Search',
+              // labelText: 'Search',
+              suffixIcon: IconButton(
+                onPressed: search,
+                icon: const Icon(Icons.search),
+              ),
             ),
           ),
         ),
-      ),
-      body: Container(
-        child: _searchResult.isNotEmpty || searchController.text.isNotEmpty
-            ? ListView.builder(
-          itemCount: _searchResult.length,
-          itemBuilder: (context, i) {
-            return new ListTile(
-              // leading: new CircleAvatar(backgroundImage: new AssetImage(''),),
-              title: new Text(_searchResult[i]),
-            );
-          },
-        )
-            :
-        new ListView.builder(
-          itemCount: _locationDetails.length,
-          itemBuilder: (context, index) {
-            return new ListTile(
-              // leading: new CircleAvatar(backgroundImage: new AssetImage(''),),
-              title: new Text(_locationDetails[index]),
-            );
-          },
-        ),
-    ));
+        body: Container(
+          child: _searchResult.isNotEmpty || searchController.text.isNotEmpty
+              ? ListView.builder(
+                  itemCount: _searchResult.length,
+                  itemBuilder: (context, i) {
+                    return new ListTile(
+                      // leading: new CircleAvatar(backgroundImage: new AssetImage(''),),
+                      title: new Text(_searchResult[i]),
+                    );
+                  },
+                )
+              : new ListView.builder(
+                  itemCount: _locationDetails.length,
+                  itemBuilder: (context, index) {
+                    return new ListTile(
+                      // leading: new CircleAvatar(backgroundImage: new AssetImage(''),),
+                      title: new Text(_locationDetails[index]),
+                    );
+                  },
+                ),
+        ));
   }
 }

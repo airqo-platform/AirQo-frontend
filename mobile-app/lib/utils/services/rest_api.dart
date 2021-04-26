@@ -23,7 +23,7 @@ Future<Nodes> getNodes() async {
 
 Future<bool> sendFeedback(Feedback feedback) async {
   final response =
-  await http.post(Uri.parse('http://airqo.net'), body: feedback.toJson());
+      await http.post(Uri.parse('http://airqo.net'), body: feedback.toJson());
   print(response.body);
   print(response.statusCode);
 

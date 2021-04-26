@@ -2,7 +2,6 @@ import 'package:app/config/providers/LocalProvider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 
@@ -12,7 +11,6 @@ import 'config/themes/light_theme.dart';
 import 'screens/home_page_nav.dart';
 
 void main() {
-
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     systemNavigationBarColor: Color(0xff5f1ee8),
     statusBarColor: Colors.transparent,
@@ -21,7 +19,6 @@ void main() {
     // systemNavigationBarDividerColor: Color(0xff5f1ee8),
     systemNavigationBarIconBrightness: Brightness.light,
   ));
-
 
   runApp(AirqoApp());
 }

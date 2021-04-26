@@ -44,20 +44,20 @@ class _SettingsPageState extends State<SettingsPage> {
         builder: (context) {
           return StatefulBuilder(builder: (context, setState) {
             return AlertDialog(
-              content:
-              SingleChildScrollView(
-                  child: Column( children: <Widget>[
-                    RadioListTile<Languages>(
-                      title: const Text('English'),
-                      value: Languages.English,
-                      groupValue: _language,
-                      onChanged: (Languages? value) {
-                        setState(() {
-                          _language = value;
-                        });
+              content: SingleChildScrollView(
+                  child: Column(
+                children: <Widget>[
+                  RadioListTile<Languages>(
+                    title: const Text('English'),
+                    value: Languages.English,
+                    groupValue: _language,
+                    onChanged: (Languages? value) {
+                      setState(() {
+                        _language = value;
+                      });
                     },
                   ),
-                    RadioListTile<Languages>(
+                  RadioListTile<Languages>(
                     title: const Text('Luganda'),
                     value: Languages.Luganda,
                     groupValue: _language,
@@ -78,7 +78,6 @@ class _SettingsPageState extends State<SettingsPage> {
                     child: new Text('Cancel')),
                 OutlinedButton(
                     onPressed: () {
-
                       final provider = Provider.of<localProvider>(context);
 
                       print(_language.toString());

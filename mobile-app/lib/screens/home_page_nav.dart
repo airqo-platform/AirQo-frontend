@@ -10,7 +10,6 @@ import 'add_place.dart';
 import 'compare_page.dart';
 import 'dashboard_page.dart';
 
-
 class HomePage extends StatefulWidget {
   final String title = 'AirQo';
 
@@ -19,40 +18,37 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-
   final PageController _pageCtrl = PageController(initialPage: 0);
   String title = 'Airqo';
   bool showAddPlace = true;
+  DateTime? exitTime;
 
   Widget build(BuildContext context) {
-
     return Scaffold(
       appBar: AppBar(
         title: Text(title),
         actions: [
-          showAddPlace ?
-          IconButton(
-            icon: const Icon(
-              Icons.addchart_outlined,
-            ),
-            onPressed: () {
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (context) {
-                    return AddPlacePage();
-                  }));
-            },
-          )
-              :
-          Text(''),
+          showAddPlace
+              ? IconButton(
+                  icon: const Icon(
+                    Icons.addchart_outlined,
+                  ),
+                  onPressed: () {
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (context) {
+                      return AddPlacePage();
+                    }));
+                  },
+                )
+              : Text(''),
           IconButton(
             icon: const Icon(
               Icons.search,
             ),
             onPressed: () {
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (context) {
-                    return SearchPage();
-                  }));
+              Navigator.push(context, MaterialPageRoute(builder: (context) {
+                return SearchPage();
+              }));
             },
           ),
           PopupMenuButton<dynamic>(
@@ -109,7 +105,9 @@ class _HomePageState extends State<HomePage> {
             mainAxisSize: MainAxisSize.max,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
-              Spacer(flex: 1,),
+              Spacer(
+                flex: 1,
+              ),
               IconButton(
                 // iconSize: 30.0,
                 // padding: const EdgeInsets.only(left: 28.0),
@@ -121,7 +119,9 @@ class _HomePageState extends State<HomePage> {
                   });
                 },
               ),
-              Spacer(flex: 1,),
+              Spacer(
+                flex: 1,
+              ),
               IconButton(
                 // iconSize: 30.0,
                 // autofocus: true,
@@ -134,7 +134,9 @@ class _HomePageState extends State<HomePage> {
                   });
                 },
               ),
-              Spacer(flex: 3,),
+              Spacer(
+                flex: 3,
+              ),
               IconButton(
                 // iconSize: 30.0,
                 // padding: const EdgeInsets.only(left: 28.0),
@@ -146,7 +148,9 @@ class _HomePageState extends State<HomePage> {
                   });
                 },
               ),
-              Spacer(flex: 1,),
+              Spacer(
+                flex: 1,
+              ),
               IconButton(
                 // iconSize: 30.0,
                 // padding: const EdgeInsets.only(right: 28.0),
@@ -158,33 +162,37 @@ class _HomePageState extends State<HomePage> {
                   });
                 },
               ),
-              Spacer(flex: 1,),
+              Spacer(
+                flex: 1,
+              ),
             ],
           ),
         ),
       ),
-      body: PageView(
-        controller: _pageCtrl,
-        onPageChanged: (int) {
-          switchTitle(int);
-          print('Page Changes to index $int');
-        },
-        children: <Widget>[
-
-          DashboardPage(),
-          ComparePage(),
-          Center(
-            child: Container(
-              child: Text('Page 2'),
+      body: WillPopScope(
+        onWillPop: onWillPop,
+        child: PageView(
+          controller: _pageCtrl,
+          onPageChanged: (int) {
+            switchTitle(int);
+            print('Page Changes to index $int');
+          },
+          children: <Widget>[
+            DashboardPage(),
+            ComparePage(),
+            Center(
+              child: Container(
+                child: Text('Page 2'),
+              ),
             ),
-          ),
-          Center(
-            child: Container(
-              child: Text('Page 3'),
-            ),
-          )
-        ],
-        // physics: NeverScrollableScrollPhysics(),
+            Center(
+              child: Container(
+                child: Text('Page 3'),
+              ),
+            )
+          ],
+          // physics: NeverScrollableScrollPhysics(),
+        ),
       ),
       floatingActionButton: Container(
         // height: 60.0,
@@ -208,9 +216,22 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void switchTitle(int){
+  Future<bool> onWillPop() {
+    var now = DateTime.now();
 
-    switch(int) {
+    if (exitTime == null ||
+        now.difference(exitTime!) > const Duration(seconds: 2)) {
+      exitTime = now;
+      final snackBar = const SnackBar(content: Text('Tap again to exit !'));
+      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+
+      return Future.value(false);
+    }
+    return Future.value(true);
+  }
+
+  void switchTitle(int) {
+    switch (int) {
       case 0:
         setState(() {
           title = 'AirQo';
@@ -245,27 +266,20 @@ class _HomePageState extends State<HomePage> {
   }
 
   void navigateToMenuItem(dynamic position) {
-
     var menuItem = position.toString();
 
-    if (menuItem.trim().toLowerCase() == 'feedback'){
+    if (menuItem.trim().toLowerCase() == 'feedback') {
       Navigator.push(context, MaterialPageRoute(builder: (context) {
         return FeedbackPage();
       }));
-    }
-    else if (menuItem.trim().toLowerCase() == 'invite friends'){
-      Share.share('https://play.google.com/store/apps/details?id=com.airqo.app ', subject: 'Airqo!');
-    }
-
-
-    else{
+    } else if (menuItem.trim().toLowerCase() == 'invite friends') {
+      Share.share(
+          'https://play.google.com/store/apps/details?id=com.airqo.app ',
+          subject: 'Airqo!');
+    } else {
       Navigator.push(context, MaterialPageRoute(builder: (context) {
         return SettingsPage();
       }));
     }
-
-
-
   }
-
 }

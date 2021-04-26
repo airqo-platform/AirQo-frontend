@@ -9,7 +9,6 @@ class AirQualityCard extends StatefulWidget {
 }
 
 class _AirQualityCardState extends State<AirQualityCard> {
-
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -22,24 +21,23 @@ class _AirQualityCardState extends State<AirQualityCard> {
               child: InkWell(
                   onTap: () {
                     print('Card was tapped');
-                    Navigator.push(context, MaterialPageRoute(builder: (context) {
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (context) {
                       return PlaceDetailsPage();
                     }));
                   },
-                  splashColor: Theme.of(context)
-                      .colorScheme
-                      .onSurface
-                      .withOpacity(0.12),
+                  splashColor:
+                      Theme.of(context).colorScheme.onSurface.withOpacity(0.12),
                   highlightColor: Colors.transparent,
                   child: Column(
                     children: [
                       TitleSection(),
                       Padding(
                         padding: const EdgeInsets.all(8),
-                        child: CardSection(),)
+                        child: CardSection(),
+                      )
                     ],
-                  )
-              ),
+                  )),
             ),
           ],
         ),
@@ -52,13 +50,13 @@ class TitleSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-        decoration:   const BoxDecoration(
+        decoration: const BoxDecoration(
             gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  Color(0xff5f1ee8),
-                  Colors.white,
+              Color(0xff5f1ee8),
+              Colors.white,
             ])),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(4, 12, 4, 4),
@@ -95,41 +93,39 @@ class CardSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          Column(
             children: [
-              Column(
-                  children: [
-                    Row(
-                      children: [
-                        const Padding(
-                          padding: const EdgeInsets.fromLTRB(5, 5, 5, 5),
-                          child: Icon(Icons.thermostat_outlined),
-                        ),
-                        Text('20')
-                      ],
-                    )
-                  ],
-                ),
-              Column(
+              Row(
                 children: [
-                  Row(
-                    children: [
-                      const Padding(
-                        padding: const EdgeInsets.fromLTRB(5, 5, 5, 5),
-                        child: Icon(Icons.wb_cloudy_outlined),
-                      ),
-
-                      Text('20')
-                    ],
-                  )
+                  const Padding(
+                    padding: const EdgeInsets.fromLTRB(5, 5, 5, 5),
+                    child: Icon(Icons.thermostat_outlined),
+                  ),
+                  Text('20')
                 ],
-              ),
-
+              )
             ],
           ),
-        );
+          Column(
+            children: [
+              Row(
+                children: [
+                  const Padding(
+                    padding: const EdgeInsets.fromLTRB(5, 5, 5, 5),
+                    child: Icon(Icons.wb_cloudy_outlined),
+                  ),
+                  Text('20')
+                ],
+              )
+            ],
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -139,16 +135,12 @@ class CardBody extends StatefulWidget {
 }
 
 class _CardBodyState extends State<CardBody> {
-
   @override
   Widget build(BuildContext context) {
-
     return Container(
       child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            CardBodySection()
-          ]),
+          children: <Widget>[CardBodySection()]),
     );
   }
 }

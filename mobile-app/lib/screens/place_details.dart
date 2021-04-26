@@ -35,7 +35,6 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                   fullscreenDialog: true,
                 ),
               );
-
             },
           ),
         ],
@@ -52,7 +51,6 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
           child: ListView(
             children: <Widget>[
               LocationBarChart(),
-
             ],
           ),
         ),
@@ -60,7 +58,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
     );
   }
 
-  Widget headerSection(String image, String body){
+  Widget headerSection(String image, String body) {
     return Container(
       padding: const EdgeInsets.fromLTRB(0, 2, 0, 0),
       child: Row(
@@ -69,31 +67,25 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
         children: [
           Padding(
             padding: const EdgeInsets.all(5),
-            child:Image.asset(
+            child: Image.asset(
               image,
               height: 40,
               width: 40,
             ),
-
           ),
-
           Expanded(
             child: Padding(
               padding: const EdgeInsets.all(5),
-              child:
-              Text(
-                  body,
+              child: Text(body,
                   softWrap: true,
                   style: const TextStyle(
                     height: 1.2,
                     // letterSpacing: 1.0
-                  )
-              ),
+                  )),
             ),
           )
         ],
       ),
     );
   }
-
 }

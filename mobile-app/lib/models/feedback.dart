@@ -3,8 +3,7 @@ import 'package:json_annotation/json_annotation.dart';
 part 'feedback.g.dart';
 
 @JsonSerializable()
-class Feedback{
-
+class Feedback {
   Feedback({
     required this.email,
     required this.feedback,
@@ -17,5 +16,4 @@ class Feedback{
 
   String email;
   String feedback;
-
 }

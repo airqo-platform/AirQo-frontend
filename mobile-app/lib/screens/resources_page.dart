@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-
 class ResourcesPage extends StatefulWidget {
   @override
   _ResourcesPageState createState() => _ResourcesPageState();
@@ -14,4 +13,3 @@ class _ResourcesPageState extends State<ResourcesPage> {
     );
   }
 }
-

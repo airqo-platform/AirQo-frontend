@@ -2,7 +2,8 @@ import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 
 class LocationBarChart extends StatelessWidget {
-  final List<charts.Series<TimeSeriesSales, DateTime>> seriesList = _createSampleData();
+  final List<charts.Series<TimeSeriesSales, DateTime>> seriesList =
+      _createSampleData();
   // final bool animate;
 
   // LocationBarChart(this.seriesList);
@@ -15,10 +16,8 @@ class LocationBarChart extends StatelessWidget {
   //   );
   // }
 
-
   @override
   Widget build(BuildContext context) {
-
     return Container(
       height: 400,
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 30),
