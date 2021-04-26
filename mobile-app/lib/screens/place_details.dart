@@ -1,3 +1,4 @@
+import 'package:app/widgets/aqi_index.dart';
 import 'package:app/widgets/location_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:share/share.dart';
@@ -27,6 +28,13 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
               Icons.info_outline_rounded,
             ),
             onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute<void>(
+                  builder: (BuildContext context) => AQI_Dialog(),
+                  fullscreenDialog: true,
+                ),
+              );
 
             },
           ),

@@ -109,6 +109,7 @@ class _HomePageState extends State<HomePage> {
                 // iconSize: 30.0,
                 // padding: const EdgeInsets.only(left: 28.0),
                 icon: const Icon(Icons.home_outlined),
+                splashColor: Colors.deepPurple,
                 onPressed: () {
                   setState(() {
                     _pageCtrl.jumpToPage(0);
@@ -121,6 +122,7 @@ class _HomePageState extends State<HomePage> {
                 // autofocus: true,
                 // padding: const EdgeInsets.only(right: 28.0),
                 icon: const Icon(Icons.stacked_bar_chart),
+                splashColor: Colors.deepPurple,
                 onPressed: () {
                   setState(() {
                     _pageCtrl.jumpToPage(1);
@@ -132,6 +134,7 @@ class _HomePageState extends State<HomePage> {
                 // iconSize: 30.0,
                 // padding: const EdgeInsets.only(left: 28.0),
                 icon: const Icon(Icons.notifications_none_outlined),
+                splashColor: Colors.deepPurple,
                 onPressed: () {
                   setState(() {
                     _pageCtrl.jumpToPage(2);
@@ -143,6 +146,7 @@ class _HomePageState extends State<HomePage> {
                 // iconSize: 30.0,
                 // padding: const EdgeInsets.only(right: 28.0),
                 icon: const Icon(Icons.library_books_outlined),
+                splashColor: Colors.deepPurple,
                 onPressed: () {
                   setState(() {
                     _pageCtrl.jumpToPage(3);
