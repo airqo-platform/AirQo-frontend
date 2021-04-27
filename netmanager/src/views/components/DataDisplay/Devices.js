@@ -126,7 +126,7 @@ const Cell = ({ fieldValue, data }) => {
   const history = useHistory();
   return (
     <div
-      style={{ fontFamily: "Open Sans", minHeight: "20px" }}
+      style={{ minHeight: "20px" }}
       onClick={() => history.push(`/device/${data.name}/overview`)}
     >
       {fieldValue}
@@ -145,10 +145,14 @@ const createDeviceColumns = (history, setDelState) => [
     field: "description",
     render: (data) => <Cell data={data} fieldValue={data.description} />,
   },
+
   {
-    title: "Device ID",
-    field: "channelID",
-    render: (data) => <Cell data={data} fieldValue={data.channelID} />,
+    title: "Site Name",
+    field: "siteName",
+  },
+  {
+    title: "Location Name",
+    field: "locationName",
   },
   {
     title: "Registration Date",
@@ -173,11 +177,7 @@ const createDeviceColumns = (history, setDelState) => [
       />
     ),
   },
-  {
-    title: "Location ID",
-    field: "locationID",
-    render: (data) => <Cell data={data} fieldValue={data.LocationID} />,
-  },
+
   {
     title: "Actions",
     render: (rowData) => (
