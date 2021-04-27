@@ -15,7 +15,7 @@ import TextField from "@material-ui/core/TextField";
 import { Link } from "react-router-dom";
 import LoadingOverlay from "react-loading-overlay";
 import LabelledSelect from "../CustomSelects/LabelledSelect";
-import constants from "config/constants.js";
+import { UPDATE_LOCATION_URI, EDIT_LOCATION_DETAILS_URI } from "config/urls/locationRegistry";
 
 // css
 import "assets/css/location-registry.css";
@@ -291,7 +291,7 @@ const LocationEdit = (props) => {
     axios
       .get(
         //'http://127.0.0.1:4000/api/v1/location_registry/edit?loc_ref='+ref
-        constants.EDIT_LOCATION_DETAILS_URI + ref
+        EDIT_LOCATION_DETAILS_URI + ref
       )
       .then((response) => {
         setDetailsLoading(false);
@@ -346,7 +346,7 @@ const LocationEdit = (props) => {
     axios
       .post(
         //'http://127.0.0.1:4000/api/v1/location_registry/update',
-        constants.UPDATE_LOCATION_URI,
+        UPDATE_LOCATION_URI,
         JSON.stringify(filter),
         { headers: { "Content-Type": "application/json" } }
       )

@@ -29,19 +29,18 @@ import palette from "theme/palette";
 import Typography from "@material-ui/core/Typography";
 import { MoreHoriz, Close } from "@material-ui/icons";
 import MuiDialogTitle from "@material-ui/core/DialogTitle";
-import validate from "validate.js";
-import constants from "config/constants";
+import { GENERATE_CUSTOMISABLE_CHARTS_URI } from "config/urls/analytics";
 import Menu from "@material-ui/core/Menu";
 import MenuItem from "@material-ui/core/MenuItem";
 import domtoimage from "dom-to-image";
 import JsPDF from "jspdf";
 import { isEmpty } from "underscore";
 import LabelledSelect from "../../../../components/CustomSelects/LabelledSelect";
-import { useFilterLocationData } from "../../../../../redux/Dashboard/selectors";
+import { useFilterLocationData } from "redux/Dashboard/selectors";
 import {
   refreshFilterLocationData,
   setUserDefaultGraphData,
-} from "../../../../../redux/Dashboard/operations";
+} from "redux/Dashboard/operations";
 import { omit } from "underscore";
 
 const useStyles = makeStyles((theme) => ({
@@ -316,7 +315,7 @@ const CustomisableChart = (props) => {
   const fetchAndSetGraphData = async (filter) => {
     return await axios
       .post(
-        constants.GENERATE_CUSTOMISABLE_CHARTS_URI,
+        GENERATE_CUSTOMISABLE_CHARTS_URI,
         JSON.stringify(filter),
         { headers: { "Content-Type": "application/json" } }
       )

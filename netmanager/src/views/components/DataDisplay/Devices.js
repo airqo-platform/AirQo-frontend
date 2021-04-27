@@ -14,7 +14,6 @@ import {
   DialogTitle,
 } from "@material-ui/core";
 import LoadingOverlay from "react-loading-overlay";
-import constants from "../../../config/constants.js";
 import TextField from "@material-ui/core/TextField";
 import Select from "@material-ui/core/Select";
 import FormControl from "@material-ui/core/FormControl";
@@ -31,6 +30,7 @@ import { updateMainAlert } from "redux/MainAlert/operations";
 import { updateDeviceBackUrl } from "redux/Urls/operations";
 import CustomMaterialTable from "../Table/CustomMaterialTable";
 import ConfirmDialog from "views/containers/ConfirmDialog";
+import { REGISTER_DEVICE_URI } from "config/urls/deviceRegistry";
 
 // css
 import "assets/css/device-registry.css";
@@ -238,7 +238,7 @@ const CreateDevice = ({ open, setOpen, devices, setDevices }) => {
   let handleRegisterSubmit = (e) => {
     setOpen(false);
     axios
-      .post(constants.REGISTER_DEVICE_URI, JSON.stringify(newDevice), {
+      .post(REGISTER_DEVICE_URI, JSON.stringify(newDevice), {
         headers: { "Content-Type": "application/json" },
       })
       .then((res) => res.data)
