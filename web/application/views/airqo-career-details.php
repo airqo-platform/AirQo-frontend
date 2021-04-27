@@ -1,4 +1,5 @@
-	<section class="w3l-about1">
+<!--
+<section class="w3l-about1">
         <p>&nbsp;</p>
         <p>&nbsp;</p>
         <p>&nbsp;</p>
@@ -56,7 +57,7 @@
 		</div>
     </section>
     
-	<!-- about-block6 -->
+	
 	<section class="w3l-about6 py-5">
 		<div class="container py-md-3 text-center">
 			<div class="heading text-center mx-auto">
@@ -65,9 +66,10 @@
 			</div>
 			<div class="buttons mt-4">
 				<a href="<?= $career['ca_link']; ?>" class="btn btn-outline-primary mr-2 btn-demo">Apply Now</a>
-				<!-- <a href="#url" class="btn btn-primary btn-demo ml-2">Get in touch</a> -->
 			</div>
 		</div>
 	</section>
-	<!-- / about-block6 -->
+
+  -->
+	
 	

@@ -67,7 +67,7 @@
 									<ul>
 										<li><a href="<?= site_url('about'); ?>">About Us</a></li>
 										<li><a href="<?= site_url('team'); ?>">Our Team</a></li>
-										<li><a href="<?= site_url('career'); ?>">Careers</a></li>
+										<li><a href="<?= site_url('careers'); ?>">Careers</a></li>
 										<li><a href="<?= site_url('contact-us'); ?>">Contact Us</a></li>
 									</ul>
 								</div>

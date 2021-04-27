@@ -241,6 +241,17 @@ class Airqo extends CI_Controller
 		$this->load->view('lib/header', $data);
 		$this->load->view('airqo-career-details', $data);
 		$this->load->view('lib/footer');
+    }
+    
+    public function CareerDetails1($slug)
+	{
+		$data['title'] = "Digital Communications Officer (Deadline: 11th May 2021 EAT)";
+		$data['contact'] = $this->AirqoModel->get_contact_details();
+		$this->logVisitedPage($data['title']);
+
+		$this->load->view('lib/header', $data);
+		$this->load->view('airqo-career-details1', $data);
+		$this->load->view('lib/footer');
 	}
 
 	public function howItWorks()

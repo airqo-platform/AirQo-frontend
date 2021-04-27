@@ -29,6 +29,7 @@ $route['partnerships']   = 'airqo/partnerships';
 $route['background']   = 'airqo/background';
 $route['careers']   = 'airqo/careers';
 $route['career/(:any)']  = 'airqo/careerdetails/$1';
+$route['careerr/(:any)']  = 'airqo/careerdetails1/$1';
 $route['contact-us']   = 'airqo/contactUs';
 $route['airqo-launch']   = 'airqo/launch';
 $route['research-community']   = 'airqo/researchcommunity';

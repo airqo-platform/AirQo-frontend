@@ -16,7 +16,7 @@ class Admin extends CI_Controller
 		$this->form_validation->set_rules('username', 'username', 'trim|required|xss_clean');
 		$this->form_validation->set_rules('password', 'password', 'trim|required|xss_clean');
 
-		if($this->form_validation->run() == FALSE) {
+		if ($this->form_validation->run() == FALSE) {
 			$this->session->set_flashdata("error", validation_errors());
 			$this->load->view("admin/index", $data);
 		} else {
@@ -41,21 +41,20 @@ class Admin extends CI_Controller
 
 				// redirect('a-dashboard');
 				header('Location: a-dashboard');
-
 			} else {
 				$this->session->set_flashdata("error", "unable to login please contact administrator");
 				$this->load->view("admin/index", $data);
 			}
 		}
 	}
-	
+
 	public function LoginSubmit()
 	{
 		$response = array();
 		$this->form_validation->set_rules('username', 'username', 'trim|required|xss_clean');
 		$this->form_validation->set_rules('password', 'password', 'trim|required|xss_clean');
 
-		if($this->form_validation->run() == FALSE) {
+		if ($this->form_validation->run() == FALSE) {
 			$response['success'] = 0;
 			$response['message'] = validation_errors();
 
@@ -79,12 +78,11 @@ class Admin extends CI_Controller
 					'loggedIn'          => 1
 				);
 				$this->session->set_userdata('loggedin', $sess_array);
-				
+
 				$response['success'] = 1;
 				$response['message'] = "Login success";
 
 				echo json_encode($response);
-
 			} else {
 				$response['success'] = 0;
 				$response['message'] = "unable to login please contact administrator";
@@ -94,7 +92,7 @@ class Admin extends CI_Controller
 		}
 	}
 
-	
+
 	/**
 	 * Update user session
 	 */
@@ -129,7 +127,7 @@ class Admin extends CI_Controller
 	public function registerAdministrator()
 	{
 		$response = array();
-		
+
 		$this->form_validation->set_rules('admin_name', 'Fullname', 'trim|required');
 		$this->form_validation->set_rules('admin_phoneNumber', 'Phone number', 'trim|required|numeric|is_unique[admins.admin_phoneNumber]');
 
@@ -173,7 +171,7 @@ class Admin extends CI_Controller
 		);
 		$this->AdminModel->update_administrator_status($data, $id);
 		// redirect('a-administrators');
-		echo '<script> document.location = "'.site_url('a-administrators').'"; </script>';
+		echo '<script> document.location = "' . site_url('a-administrators') . '"; </script>';
 	}
 
 	public function updateActiveStatus()
@@ -185,7 +183,7 @@ class Admin extends CI_Controller
 		);
 		$this->AdminModel->update_administrator_status($data, $id);
 		// redirect('a-administrators');
-		echo '<script> document.location = "'.site_url('a-administrators').'"; </script>';
+		echo '<script> document.location = "' . site_url('a-administrators') . '"; </script>';
 	}
 	/*subscribers --------------------------*/
 	public function subscribers()
@@ -226,7 +224,7 @@ class Admin extends CI_Controller
 		$this->load->view('admin/includes/menu', $data);
 		$this->load->view('admin/about', $data);
 	}
-	
+
 	public function aboutDetails($pg_id)
 	{
 		if (isset($this->session->userdata['loggedin']['adminname'])) {
@@ -240,7 +238,7 @@ class Admin extends CI_Controller
 			$this->load->view('admin/includes/menu', $data);
 			$this->load->view('admin/about-details', $data);
 		} else {
-			echo '<script> document.location = "'.site_url('admin/index').'"; </script>';
+			echo '<script> document.location = "' . site_url('admin/index') . '"; </script>';
 		}
 	}
 
@@ -274,11 +272,11 @@ class Admin extends CI_Controller
 				if ($send) {
 					$this->session->set_flashdata("msg", "Information saved succesfully.!");
 					// redirect('Admin/about');
-					echo '<script> document.location = "'.site_url('admin/about').'"; </script>';
+					echo '<script> document.location = "' . site_url('admin/about') . '"; </script>';
 				} else {
 					$this->session->set_flashdata("error", "Oops! something went wrong,Please Contact the sytem Developer.!");
 					// redirect('Admin/about');
-					echo '<script> document.location = "'.site_url('admin/about').'"; </script>';
+					echo '<script> document.location = "' . site_url('admin/about') . '"; </script>';
 				}
 			}
 		} else {
@@ -294,7 +292,7 @@ class Admin extends CI_Controller
 			echo $about;
 		} else {
 			// redirect('Admin/index');
-			echo '<script> document.location = "'.site_url('admin/index').'"; </script>';
+			echo '<script> document.location = "' . site_url('admin/index') . '"; </script>';
 		}
 	}
 	public function editAboutDetails()
@@ -323,7 +321,7 @@ class Admin extends CI_Controller
 			}
 		} else {
 			// redirect('Admin/index');
-			echo '<script> document.location = "'.site_url('admin/index').'"; </script>';
+			echo '<script> document.location = "' . site_url('admin/index') . '"; </script>';
 		}
 	}
 
@@ -356,16 +354,16 @@ class Admin extends CI_Controller
 				if ($send) {
 					$this->session->set_flashdata("msg", "Information has been updated Succesfully.!!");
 					// redirect('Admin/about');
-					echo '<script> document.location = "'.site_url('admin/about').'"; </script>';
+					echo '<script> document.location = "' . site_url('admin/about') . '"; </script>';
 				} else {
 					$this->session->set_flashdata("error", "Oops! updating failed, Please Contact the sytem Developer.!");
 					// redirect('Admin/about');
-					echo '<script> document.location = "'.site_url('admin/about').'"; </script>';
+					echo '<script> document.location = "' . site_url('admin/about') . '"; </script>';
 				}
 			}
 		} else {
 			// redirect('Admin/index');
-			echo '<script> document.location = "'.site_url('admin/index').'"; </script>';
+			echo '<script> document.location = "' . site_url('admin/index') . '"; </script>';
 		}
 	}
 
@@ -384,7 +382,7 @@ class Admin extends CI_Controller
 			$this->load->view('admin/projects', $data);
 		} else {
 			// redirect('Admin/index');
-			echo '<script> document.location = "'.site_url('admin/index').'"; </script>';
+			echo '<script> document.location = "' . site_url('admin/index') . '"; </script>';
 		}
 	}
 
@@ -396,7 +394,7 @@ class Admin extends CI_Controller
 			if ($this->form_validation->run() === false) {
 				$this->session->set_flashdata('error', validation_errors());
 				// redirect('Admin/projects');
-				echo '<script> document.location = "'.site_url('admin/projects').'"; </script>';
+				echo '<script> document.location = "' . site_url('admin/projects') . '"; </script>';
 			} else {
 				$added_by = $this->session->userdata['loggedin']['adminname'];
 				$uploaded_image = $_FILES['p_image']['tmp_name'];
@@ -443,16 +441,16 @@ class Admin extends CI_Controller
 				if ($send) {
 					$this->session->set_flashdata("msg", "You have succesfully created a new project.!");
 					// redirect('Admin/projects');
-					echo '<script> document.location = "'.site_url('admin/projects').'"; </script>';
+					echo '<script> document.location = "' . site_url('admin/projects') . '"; </script>';
 				} else {
 					$this->session->set_flashdata("error", "Oops! something went wrong,Please Contact sytem Developer.!");
 					// redirect('Admin/projects');
-					echo '<script> document.location = "'.site_url('admin/projects').'"; </script>';
+					echo '<script> document.location = "' . site_url('admin/projects') . '"; </script>';
 				}
 			}
 		} else {
 			// redirect('Admin/index');
-			echo '<script> document.location = "'.site_url('admin/index').'"; </script>';
+			echo '<script> document.location = "' . site_url('admin/index') . '"; </script>';
 		}
 	}
 
@@ -470,7 +468,7 @@ class Admin extends CI_Controller
 			$this->load->view('admin/project-details', $data);
 		} else {
 			// redirect('Admin/index');
-			echo '<script> document.location = "'.site_url('admin/index').'"; </script>';
+			echo '<script> document.location = "' . site_url('admin/index') . '"; </script>';
 		}
 	}
 
@@ -498,7 +496,7 @@ class Admin extends CI_Controller
 			}
 		} else {
 			// redirect('Admin/index');
-			echo '<script> document.location = "'.site_url('admin/index').'"; </script>';
+			echo '<script> document.location = "' . site_url('admin/index') . '"; </script>';
 		}
 	}
 
@@ -510,7 +508,7 @@ class Admin extends CI_Controller
 			if ($this->form_validation->run() === false) {
 				$this->session->set_flashdata('error', validation_errors());
 				// redirect('Admin/projects');
-				echo '<script> document.location = "'.site_url('admin/projects').'"; </script>';
+				echo '<script> document.location = "' . site_url('admin/projects') . '"; </script>';
 			} else {
 				$added_by = $this->session->userdata['loggedin']['adminname'];
 				$uploaded_image = $_FILES['p_image']['tmp_name'];
@@ -553,11 +551,11 @@ class Admin extends CI_Controller
 					if ($send) {
 						$this->session->set_flashdata("msg", "A Project has been updated Succesfully.!!");
 						// redirect('Admin/projects');
-						echo '<script> document.location = "'.site_url('admin/projects').'"; </script>';
+						echo '<script> document.location = "' . site_url('admin/projects') . '"; </script>';
 					} else {
 						$this->session->set_flashdata("error", "Oops! something went wrong,Please Contact sytem Developer.!");
 						// redirect('Admin/projects');
-						echo '<script> document.location = "'.site_url('admin/projects').'"; </script>';
+						echo '<script> document.location = "' . site_url('admin/projects') . '"; </script>';
 					}
 				} else {
 					$targ_w     = intval($this->input->post('dataWidth'));
@@ -597,17 +595,17 @@ class Admin extends CI_Controller
 					if ($send) {
 						$this->session->set_flashdata("msg", "A Project has been updated Succesfully.!!");
 						// redirect('Admin/projects');
-						echo '<script> document.location = "'.site_url('admin/projects').'"; </script>';
+						echo '<script> document.location = "' . site_url('admin/projects') . '"; </script>';
 					} else {
 						$this->session->set_flashdata("error", "Oops! something went wrong,Please Contact sytem Developer.!");
 						// redirect('Admin/projects');
-						echo '<script> document.location = "'.site_url('admin/projects').'"; </script>';
+						echo '<script> document.location = "' . site_url('admin/projects') . '"; </script>';
 					}
 				}
 			}
 		} else {
 			// redirect('Admin/index');
-			echo '<script> document.location = "'.site_url('admin/index').'"; </script>';
+			echo '<script> document.location = "' . site_url('admin/index') . '"; </script>';
 		}
 	}
 
@@ -619,7 +617,7 @@ class Admin extends CI_Controller
 			echo $project;
 		} else {
 			// redirect('Admin/index');
-			echo '<script> document.location = "'.site_url('admin/index').'"; </script>';
+			echo '<script> document.location = "' . site_url('admin/index') . '"; </script>';
 		}
 	}
 	// project section ends here
@@ -638,7 +636,7 @@ class Admin extends CI_Controller
 			$this->load->view('admin/contact-information', $data);
 		} else {
 			// redirect('Admin/index');
-			echo '<script> document.location = "'.site_url('admin/index').'"; </script>';
+			echo '<script> document.location = "' . site_url('admin/index') . '"; </script>';
 		}
 	}
 
@@ -673,11 +671,11 @@ class Admin extends CI_Controller
 					if ($send) {
 						$this->session->set_flashdata("msg", "Information saved succesfully.!");
 						// redirect('Admin/contactInformation');
-						echo '<script> document.location = "'.site_url('admin/contactInformation').'"; </script>';
+						echo '<script> document.location = "' . site_url('admin/contactInformation') . '"; </script>';
 					} else {
 						$this->session->set_flashdata("error", "Oops! something went wrong,Please Contact sytem Developer.!");
 						// redirect('Admin/contactInformation');
-						echo '<script> document.location = "'.site_url('admin/contactInformation').'"; </script>';
+						echo '<script> document.location = "' . site_url('admin/contactInformation') . '"; </script>';
 					}
 				} else {
 					echo "<script>alert('Invalid email , Please provide a valid email')</script>";
@@ -686,7 +684,7 @@ class Admin extends CI_Controller
 			}
 		} else {
 			// redirect('Admin/index');
-			echo '<script> document.location = "'.site_url('admin/index').'"; </script>';
+			echo '<script> document.location = "' . site_url('admin/index') . '"; </script>';
 		}
 	}
 
@@ -698,7 +696,7 @@ class Admin extends CI_Controller
 			echo $contact;
 		} else {
 			// redirect('Admin/index');
-			echo '<script> document.location = "'.site_url('admin/index').'"; </script>';
+			echo '<script> document.location = "' . site_url('admin/index') . '"; </script>';
 		}
 	}
 	public function editContactDetails()
@@ -728,7 +726,7 @@ class Admin extends CI_Controller
 			}
 		} else {
 			// redirect('Admin/index');
-			echo '<script> document.location = "'.site_url('admin/index').'"; </script>';
+			echo '<script> document.location = "' . site_url('admin/index') . '"; </script>';
 		}
 	}
 
@@ -760,16 +758,16 @@ class Admin extends CI_Controller
 				if ($send) {
 					$this->session->set_flashdata("msg", "A contact has been updated Succesfully.!!");
 					// redirect('Admin/contactInformation');
-					echo '<script> document.location = "'.site_url('admin/contactInformation').'"; </script>';
+					echo '<script> document.location = "' . site_url('admin/contactInformation') . '"; </script>';
 				} else {
 					$this->session->set_flashdata("error", "Oops! updating failed, Please Contact sytem Developer.!");
 					// redirect('Admin/contactInformation');
-					echo '<script> document.location = "'.site_url('admin/contactInformation').'"; </script>';
+					echo '<script> document.location = "' . site_url('admin/contactInformation') . '"; </script>';
 				}
 			}
 		} else {
 			// redirect('Admin/index');
-			echo '<script> document.location = "'.site_url('admin/index').'"; </script>';
+			echo '<script> document.location = "' . site_url('admin/index') . '"; </script>';
 		}
 	}
 	// contact information ends here
@@ -798,7 +796,7 @@ class Admin extends CI_Controller
 			$this->load->view('admin/news', $data);
 		} else {
 			// redirect('/');
-			echo '<script> document.location = "'.site_url('admin/index').'"; </script>';
+			echo '<script> document.location = "' . site_url('admin/index') . '"; </script>';
 		}
 	}
 	public function newsDetails($news_id)
@@ -814,7 +812,7 @@ class Admin extends CI_Controller
 			$this->load->view('admin/news-details', $data);
 		} else {
 			// redirect('Admin/index');
-			echo '<script> document.location = "'.site_url('admin/index').'"; </script>';
+			echo '<script> document.location = "' . site_url('admin/index') . '"; </script>';
 		}
 	}
 
@@ -825,7 +823,7 @@ class Admin extends CI_Controller
 			if ($this->form_validation->run() === false) {
 				$this->session->set_flashdata('error', validation_errors());
 				// redirect('Admin/news');
-				echo '<script> document.location = "'.site_url('admin/news').'"; </script>';
+				echo '<script> document.location = "' . site_url('admin/news') . '"; </script>';
 			} else {
 				$added_by = $this->session->userdata['loggedin']['adminname'];
 				$uploaded_image = $_FILES['news_image']['tmp_name'];
@@ -871,16 +869,16 @@ class Admin extends CI_Controller
 				if ($send) {
 					$this->session->set_flashdata("msg", "A news Article has been published succesfully.!!");
 					// redirect('Admin/news');
-					echo '<script> document.location = "'.site_url('admin/news').'"; </script>';
+					echo '<script> document.location = "' . site_url('admin/news') . '"; </script>';
 				} else {
 					$this->session->set_flashdata("error", "Oops! something went wrong,Please Contact sytem Developer.!");
 					// redirect('Admin/news');
-					echo '<script> document.location = "'.site_url('admin/news').'"; </script>';
+					echo '<script> document.location = "' . site_url('admin/news') . '"; </script>';
 				}
 			}
 		} else {
 			// redirect('Admin/index');
-			echo '<script> document.location = "'.site_url('admin/index').'"; </script>';
+			echo '<script> document.location = "' . site_url('admin/index') . '"; </script>';
 		}
 	}
 
@@ -908,7 +906,7 @@ class Admin extends CI_Controller
 			}
 		} else {
 			// redirect('Admin/index');
-			echo '<script> document.location = "'.site_url('admin/index').'"; </script>';
+			echo '<script> document.location = "' . site_url('admin/index') . '"; </script>';
 		}
 	}
 
@@ -920,7 +918,7 @@ class Admin extends CI_Controller
 			if ($this->form_validation->run() === false) {
 				$this->session->set_flashdata('error', validation_errors());
 				// redirect('Admin/news');
-				echo '<script> document.location = "'.site_url('admin/news').'"; </script>';
+				echo '<script> document.location = "' . site_url('admin/news') . '"; </script>';
 			} else {
 				$updated_by = $this->session->userdata['loggedin']['adminname'];
 				$uploaded_image = $_FILES['news_image']['tmp_name'];
@@ -960,11 +958,11 @@ class Admin extends CI_Controller
 					if ($send) {
 						$this->session->set_flashdata("msg", "A News Article has been Updated Succesfully.!!");
 						// redirect('Admin/news');
-						echo '<script> document.location = "'.site_url('admin/news').'"; </script>';
+						echo '<script> document.location = "' . site_url('admin/news') . '"; </script>';
 					} else {
 						$this->session->set_flashdata("error", "Oops! something went wrong,Please Contact sytem Developer.!");
 						// redirect('Admin/news');
-						echo '<script> document.location = "'.site_url('admin/news').'"; </script>';
+						echo '<script> document.location = "' . site_url('admin/news') . '"; </script>';
 					}
 				} else {
 					$targ_w     = intval($this->input->post('dataWidth'));
@@ -1004,17 +1002,17 @@ class Admin extends CI_Controller
 					if ($send) {
 						$this->session->set_flashdata("msg", "A News Article has been updated Succesfully.!!");
 						// redirect('Admin/news');
-						echo '<script> document.location = "'.site_url('admin/news').'"; </script>';
+						echo '<script> document.location = "' . site_url('admin/news') . '"; </script>';
 					} else {
 						$this->session->set_flashdata("error", "Oops! something went wrong,Please Contact sytem Developer.!");
 						// redirect('Admin/news');
-						echo '<script> document.location = "'.site_url('admin/news').'"; </script>';
+						echo '<script> document.location = "' . site_url('admin/news') . '"; </script>';
 					}
 				}
 			}
 		} else {
 			// redirect('Admin/index');
-			echo '<script> document.location = "'.site_url('admin/index').'"; </script>';
+			echo '<script> document.location = "' . site_url('admin/index') . '"; </script>';
 		}
 	}
 
@@ -1026,7 +1024,7 @@ class Admin extends CI_Controller
 			echo $news;
 		} else {
 			// redirect('Admin/index');
-			echo '<script> document.location = "'.site_url('admin/index').'"; </script>';
+			echo '<script> document.location = "' . site_url('admin/index') . '"; </script>';
 		}
 	}
 	// news ends here -----------------------------------------------------------------------
@@ -1045,7 +1043,7 @@ class Admin extends CI_Controller
 			$this->load->view('admin/team', $data);
 		} else {
 			// redirect('Admin/index');
-			echo '<script> document.location = "'.site_url('admin/index').'"; </script>';
+			echo '<script> document.location = "' . site_url('admin/index') . '"; </script>';
 		}
 	}
 
@@ -1062,7 +1060,7 @@ class Admin extends CI_Controller
 
 				echo json_encode($response);
 			} else {
-				
+
 
 				$status = '1';
 				$added_by = $this->session->userdata['loggedin']['adminname'];
@@ -1116,7 +1114,7 @@ class Admin extends CI_Controller
 			$this->load->view('admin/team-details', $data);
 		} else {
 			// redirect('Admin/index');
-			echo '<script> document.location = "'.site_url('admin/index').'"; </script>';
+			echo '<script> document.location = "' . site_url('admin/index') . '"; </script>';
 		}
 	}
 
@@ -1149,7 +1147,7 @@ class Admin extends CI_Controller
 			}
 		} else {
 			// redirect('Admin/index');
-			echo '<script> document.location = "'.site_url('admin/index').'"; </script>';
+			echo '<script> document.location = "' . site_url('admin/index') . '"; </script>';
 		}
 	}
 
@@ -1160,14 +1158,14 @@ class Admin extends CI_Controller
 		if (isset($this->session->userdata['loggedin']['adminname'])) {
 			$this->form_validation->set_rules('team_title', 'Title', 'required|trim');
 			if ($this->form_validation->run() === false) {
-				
+
 				$response['success'] = 0;
 				$response['message'] = validation_errors();
 
 				echo json_encode($response);
 			} else {
 				$added_by = $this->session->userdata['loggedin']['adminname'];
-				
+
 				$status = '1';
 				$data                          = array(
 					'team_position'             => $this->input->post('team_position'),
@@ -1197,7 +1195,6 @@ class Admin extends CI_Controller
 
 					echo json_encode($response);
 				}
-				
 			}
 		} else {
 			$response['success'] = 0;
@@ -1215,7 +1212,7 @@ class Admin extends CI_Controller
 			echo $team;
 		} else {
 			// redirect('Admin/index');
-			echo '<script> document.location = "'.site_url('admin/index').'"; </script>';
+			echo '<script> document.location = "' . site_url('admin/index') . '"; </script>';
 		}
 	}
 	// team section ends here
@@ -1232,7 +1229,7 @@ class Admin extends CI_Controller
 			$this->load->view('admin/site-visitors', $data);
 		} else {
 			// redirect('Admin/index');
-			echo '<script> document.location = "'.site_url('admin/index').'"; </script>';
+			echo '<script> document.location = "' . site_url('admin/index') . '"; </script>';
 		}
 	}
 
@@ -1248,7 +1245,7 @@ class Admin extends CI_Controller
 			$this->load->view('admin/site-logins', $data);
 		} else {
 			// redirect('Admin/index');
-			echo '<script> document.location = "'.site_url('admin/index').'"; </script>';
+			echo '<script> document.location = "' . site_url('admin/index') . '"; </script>';
 		}
 	}
 
@@ -1265,7 +1262,7 @@ class Admin extends CI_Controller
 			$this->load->view('admin/site-visted-pages', $data);
 		} else {
 			// redirect('Admin/index');
-			echo '<script> document.location = "'.site_url('admin/index').'"; </script>';
+			echo '<script> document.location = "' . site_url('admin/index') . '"; </script>';
 		}
 	}
 
@@ -1283,7 +1280,7 @@ class Admin extends CI_Controller
 			$this->load->view('admin/administrators', $data);
 		} else {
 			// redirect('Admin/index');
-			echo '<script> document.location = "'.site_url('admin/index').'"; </script>';
+			echo '<script> document.location = "' . site_url('admin/index') . '"; </script>';
 		}
 	}
 	/*start of the nodes section -------------------------------------------------------*/
@@ -1300,120 +1297,120 @@ class Admin extends CI_Controller
 			$this->load->view('admin/app-nodes', $data);
 		} else {
 			// redirect('Admin/index');
-			echo '<script> document.location = "'.site_url('admin/index').'"; </script>';
+			echo '<script> document.location = "' . site_url('admin/index') . '"; </script>';
 		}
 	}
 
 	public function LoadNodesTable()
 	{
 		$table 		= 'tbl_app_nodes';
-          $primaryKey 	= 'an_id';
-          $whereAll	     = "an_deleted != ''";
-          
+		$primaryKey 	= 'an_id';
+		$whereAll	     = "an_deleted != ''";
+
 
 		$columns 		= array(
 			array(
-					'db' => 'aac_no',
-					'dt' => 0,
-					'formatter' => function($d, $row){
-                              return $d;
-					}
-                    ),
-               array(
-					'db' => 'aac_node_id',
-					'dt' => 1,
-					'formatter' => function($d, $row){
-                              $node = $this->AdminModel->get_app_nodes($d);
-                              if($node != null) {
-                                   return $node['an_name'];
-                              }
-                              return '';
-					}
-                    ),
-               array(
-					'db' => 'aac_user_id',
-					'dt' => 2,
-					'formatter' => function($d, $row){
-                              $user = $this->UserModel->get_user($d);
-                              if($user != null) {
-                                   return $user['au_name'];
-                              }
-                              return '';
-					}
-                    ),
-               
+				'db' => 'aac_no',
+				'dt' => 0,
+				'formatter' => function ($d, $row) {
+					return $d;
+				}
+			),
 			array(
-					'db' => 'aac_place_name',
-					'dt' => 3,
-					'formatter' => function($d, $row){
-                              return $d;
+				'db' => 'aac_node_id',
+				'dt' => 1,
+				'formatter' => function ($d, $row) {
+					$node = $this->AdminModel->get_app_nodes($d);
+					if ($node != null) {
+						return $node['an_name'];
 					}
-                    ), 
-               array(
-					'db' => 'aac_place_lng',
-					'dt' => 4,
-					'formatter' => function($d, $row){
-                              return $d;
+					return '';
+				}
+			),
+			array(
+				'db' => 'aac_user_id',
+				'dt' => 2,
+				'formatter' => function ($d, $row) {
+					$user = $this->UserModel->get_user($d);
+					if ($user != null) {
+						return $user['au_name'];
 					}
-                    ),
-               array(
-					'db' => 'aac_place_lat',
-					'dt' => 4,
-					'formatter' => function($d, $row){
-                              return 'Lat: ' . $d . ' Lng: ' . $row['aac_place_lng'];
-					}
-                    ),
-               array(
-					'db' => 'aac_reading',
-					'dt' => 5,
-					'formatter' => function($d, $row){
-                              return $d;
-					}
-                    ),
-               array(
-					'db' => 'aac_photo',
-					'dt' => 6,
-					'formatter' => function($d, $row){
-                              return '<img src="'.$d.'" width="100"/>';
-					}
-                    ),
-               array(
-					'db' => 'acc_comment',
-					'dt' => 7,
-					'formatter' => function($d, $row){
-                              return date('F j, Y g:i a', strtotime($d));
-					}
-                    ),
-               array(
-					'db' => 'aac_status',
-					'dt' => 8,
-					'formatter' => function($d, $row){
-                              if($d == 'new') {
-                                   return '<button class="btn btn-xs btn-warning">New</button>';
-                              } else if($d == 'approved') {
-                                   return '<button class="btn btn-xs btn-success">Approved</button>';
-                              } else if($d == 'declined') {
-                                   return '<button class="btn btn-xs btn-danger">Declined</button>';
-                              }
-					}
-                    ),
-               array(
-					'db' => 'aac_id',
-					'dt' => 9,
-					'formatter' => function($d, $row){
-                              $action_buttons = '';
-                              if($row['aac_status'] == 'new') {
-                                   $action_buttons .= '<button class="btn btn-xs btn-block btn-success open-approve" data-id="'.$row['aac_id'].'" data-name="this aqi camera" data-toggle="modal" data-target="#approveModal"><i class="fa fa-check"></i> Approve</button>';
-                                   $action_buttons .= '<button class="btn btn-xs btn-block btn-danger open-decline" data-id="'.$row['aac_id'].'" data-name="this aci camera" data-toggle="modal" data-target="#declineModal"><i class="fa fa-close"></i> Decline</button>';
-                              } else if($row['aac_status'] == 'approved') {
-                                   $action_buttons .= '<button class="btn btn-xs btn-success">Approved</button>';
-                              } else if($row['aac_status'] == 'declined') {
-                                   $action_buttons .= '<button class="btn btn-xs btn-success">Approved</button>';
-                              }
+					return '';
+				}
+			),
 
-                              return $action_buttons;
+			array(
+				'db' => 'aac_place_name',
+				'dt' => 3,
+				'formatter' => function ($d, $row) {
+					return $d;
+				}
+			),
+			array(
+				'db' => 'aac_place_lng',
+				'dt' => 4,
+				'formatter' => function ($d, $row) {
+					return $d;
+				}
+			),
+			array(
+				'db' => 'aac_place_lat',
+				'dt' => 4,
+				'formatter' => function ($d, $row) {
+					return 'Lat: ' . $d . ' Lng: ' . $row['aac_place_lng'];
+				}
+			),
+			array(
+				'db' => 'aac_reading',
+				'dt' => 5,
+				'formatter' => function ($d, $row) {
+					return $d;
+				}
+			),
+			array(
+				'db' => 'aac_photo',
+				'dt' => 6,
+				'formatter' => function ($d, $row) {
+					return '<img src="' . $d . '" width="100"/>';
+				}
+			),
+			array(
+				'db' => 'acc_comment',
+				'dt' => 7,
+				'formatter' => function ($d, $row) {
+					return date('F j, Y g:i a', strtotime($d));
+				}
+			),
+			array(
+				'db' => 'aac_status',
+				'dt' => 8,
+				'formatter' => function ($d, $row) {
+					if ($d == 'new') {
+						return '<button class="btn btn-xs btn-warning">New</button>';
+					} else if ($d == 'approved') {
+						return '<button class="btn btn-xs btn-success">Approved</button>';
+					} else if ($d == 'declined') {
+						return '<button class="btn btn-xs btn-danger">Declined</button>';
 					}
-                    )
+				}
+			),
+			array(
+				'db' => 'aac_id',
+				'dt' => 9,
+				'formatter' => function ($d, $row) {
+					$action_buttons = '';
+					if ($row['aac_status'] == 'new') {
+						$action_buttons .= '<button class="btn btn-xs btn-block btn-success open-approve" data-id="' . $row['aac_id'] . '" data-name="this aqi camera" data-toggle="modal" data-target="#approveModal"><i class="fa fa-check"></i> Approve</button>';
+						$action_buttons .= '<button class="btn btn-xs btn-block btn-danger open-decline" data-id="' . $row['aac_id'] . '" data-name="this aci camera" data-toggle="modal" data-target="#declineModal"><i class="fa fa-close"></i> Decline</button>';
+					} else if ($row['aac_status'] == 'approved') {
+						$action_buttons .= '<button class="btn btn-xs btn-success">Approved</button>';
+					} else if ($row['aac_status'] == 'declined') {
+						$action_buttons .= '<button class="btn btn-xs btn-success">Approved</button>';
+					}
+
+					return $action_buttons;
+				}
+			)
 		);
 
 		// SQL server connection information
@@ -1427,7 +1424,7 @@ class Admin extends CI_Controller
 		$whereResult = '';
 
 		echo json_encode(
-			SSP::complex ( $_POST, $sql_details, $table, $primaryKey, $columns, $whereResult, $whereAll)
+			SSP::complex($_POST, $sql_details, $table, $primaryKey, $columns, $whereResult, $whereAll)
 		);
 	}
 
@@ -1443,7 +1440,7 @@ class Admin extends CI_Controller
 			$this->load->view('admin/app-node-details', $data);
 		} else {
 			// redirect('Admin/index');
-			echo '<script> document.location = "'.site_url('admin/index').'"; </script>';
+			echo '<script> document.location = "' . site_url('admin/index') . '"; </script>';
 		}
 	}
 
@@ -1456,7 +1453,7 @@ class Admin extends CI_Controller
 			echo $node;
 		} else {
 			// redirect('Admin/index');
-			echo '<script> document.location = "'.site_url('admin/index').'"; </script>';
+			echo '<script> document.location = "' . site_url('admin/index') . '"; </script>';
 		}
 	}
 
@@ -1518,22 +1515,19 @@ class Admin extends CI_Controller
 	public function createAppNode()
 	{
 		date_default_timezone_set('Africa/Kampala');
-          $response = array();
+		$response = array();
 
-          if (isset($this->session->userdata['loggedin']['adminname'])) {
+		if (isset($this->session->userdata['loggedin']['adminname'])) {
 			$this->form_validation->set_rules('an_name', 'Node Name', 'trim|required|xss_clean');
 			$this->form_validation->set_rules('an_channel_id', 'Channel ID', 'trim|required|xss_clean|is_unique[tbl_app_nodes.an_channel_id]', array('is_unique' => 'Channel ID already Exists'));
-               
-               if ($this->form_validation->run() == FALSE) 
-               {
-                    $response['success'] = 0;
-                    $response['message'] = validation_errors();
 
-                    echo json_encode($response);
-               } 
-               else 
-               {
-                    $added_by            = $this->session->userdata['loggedin']['adminname'];
+			if ($this->form_validation->run() == FALSE) {
+				$response['success'] = 0;
+				$response['message'] = validation_errors();
+
+				echo json_encode($response);
+			} else {
+				$added_by            = $this->session->userdata['loggedin']['adminname'];
 				$data                = array(
 					'an_name'            => ucwords($this->input->post('an_name')),
 					'time1'              => $this->input->post('time1'),
@@ -1562,13 +1556,13 @@ class Admin extends CI_Controller
 
 					echo json_encode($response);
 				}
-               }
-		} else{
-               $response = array();
-               $response['success'] = 0;
-               $response['message'] = "Please login";
+			}
+		} else {
+			$response = array();
+			$response['success'] = 0;
+			$response['message'] = "Please login";
 
-               echo json_encode($response);
+			echo json_encode($response);
 		}
 	}
 
@@ -1586,7 +1580,7 @@ class Admin extends CI_Controller
 			$this->load->view('admin/edit-app-nodes', $data);
 		} else {
 			// redirect('Admin/index');
-			echo '<script> document.location = "'.site_url('admin/index').'"; </script>';
+			echo '<script> document.location = "' . site_url('admin/index') . '"; </script>';
 		}
 	}
 
@@ -1623,29 +1617,26 @@ class Admin extends CI_Controller
 			}
 		} else {
 			// redirect('Admin/index');
-			echo '<script> document.location = "'.site_url('admin/index').'"; </script>';
+			echo '<script> document.location = "' . site_url('admin/index') . '"; </script>';
 		}
 	}
 
 	public function editAppNodes()
 	{
 		date_default_timezone_set('Africa/Kampala');
-          $response = array();
+		$response = array();
 
-          if (isset($this->session->userdata['loggedin']['adminname'])) {
+		if (isset($this->session->userdata['loggedin']['adminname'])) {
 			$this->form_validation->set_rules('an_name', 'Node Name', 'trim|required|xss_clean');
 			//$this->form_validation->set_rules('an_channel_id', 'Channel ID', 'trim|required|xss_clean|is_unique[tbl_app_nodes.an_channel_id]', array('is_unique' => 'Channel ID already Exists'));
-               
-               if ($this->form_validation->run() == FALSE) 
-               {
-                    $response['success'] = 0;
-                    $response['message'] = validation_errors();
 
-                    echo json_encode($response);
-               } 
-               else 
-               {
-                    $added_by                = $this->session->userdata['loggedin']['adminname'];
+			if ($this->form_validation->run() == FALSE) {
+				$response['success'] = 0;
+				$response['message'] = validation_errors();
+
+				echo json_encode($response);
+			} else {
+				$added_by                = $this->session->userdata['loggedin']['adminname'];
 				$data                    = array(
 					'an_name'            => ucwords($this->input->post('an_name')),
 					'an_channel_id'      => $this->input->post('an_channel_id'),
@@ -1675,13 +1666,13 @@ class Admin extends CI_Controller
 
 					echo json_encode($response);
 				}
-               }
-		} else{
-               $response = array();
-               $response['success'] = 0;
-               $response['message'] = "Please login";
+			}
+		} else {
+			$response = array();
+			$response['success'] = 0;
+			$response['message'] = "Please login";
 
-               echo json_encode($response);
+			echo json_encode($response);
 		}
 	}
 
@@ -1758,12 +1749,12 @@ class Admin extends CI_Controller
 							// $this->session->sess_destroy();
 							$this->session->unset_userdata('logged_in');
 							// redirect('Admin/index');
-							echo '<script> document.location = "'.site_url('admin/index').'"; </script>';
+							echo '<script> document.location = "' . site_url('admin/index') . '"; </script>';
 						} else {
 							$this->session->set_flashdata("error", "Oops! something went wrong, Couldn't Update Account.!");
 							//   echo json_encode($response);
 							// redirect('a-dashboard');
-							echo '<script> document.location = "'.site_url('a-dashboard').'"; </script>';
+							echo '<script> document.location = "' . site_url('a-dashboard') . '"; </script>';
 						}
 					} else {
 						$data['admin_image'] = $this->upload->data();
@@ -1809,30 +1800,30 @@ class Admin extends CI_Controller
 							// $this->session->sess_destroy();
 							$this->session->unset_userdata('logged_in');
 							// redirect('Admin/index');
-							echo '<script> document.location = "'.site_url('admin/index').'"; </script>';
+							echo '<script> document.location = "' . site_url('admin/index') . '"; </script>';
 						} else {
 							$this->session->set_flashdata("error", "Oops! something went wrong, Couldn't Update Account!");
 							//   echo json_encode($response);
 							// redirect('Admin/services');
-							echo '<script> document.location = "'.site_url('admin/services').'"; </script>';
+							echo '<script> document.location = "' . site_url('admin/services') . '"; </script>';
 						}
 					}
 				} else {
 					$this->session->set_flashdata("error", "Sorry, the entered current password does not match the existing password!");
 					// redirect('Admin/services');
-					echo '<script> document.location = "'.site_url('admin/services').'"; </script>';
+					echo '<script> document.location = "' . site_url('admin/services') . '"; </script>';
 				}
 			}
 		} else {
 			// redirect('Admin/index');
-			echo '<script> document.location = "'.site_url('admin/index').'"; </script>';
+			echo '<script> document.location = "' . site_url('admin/index') . '"; </script>';
 		}
 	}
 
 	public function logout()
 	{
 		$this->session->sess_destroy();
-		echo '<script> document.location = "'.site_url('admin/index').'"; </script>';
+		echo '<script> document.location = "' . site_url('admin/index') . '"; </script>';
 	}
 
 	public function checkEmail()
@@ -2097,7 +2088,8 @@ class Admin extends CI_Controller
 
 				');
 
-		if (!$mail->send()) { }
+		if (!$mail->send()) {
+		}
 
 		return true;
 	}
@@ -2222,7 +2214,7 @@ class Admin extends CI_Controller
 				$this->session->set_flashdata('flash_message_success', 'Your password has been updated. You may now login');
 			}
 			// redirect(site_url() . 'admin/index');
-			echo '<script> document.location = "'.site_url('admin/index').'"; </script>';
+			echo '<script> document.location = "' . site_url('admin/index') . '"; </script>';
 		}
 	}
 
@@ -2238,7 +2230,7 @@ class Admin extends CI_Controller
 			$this->load->view('admin/careers', $data);
 		} else {
 			// redirect('Admin/index');
-			echo '<script> document.location = "'.site_url('admin/index').'"; </script>';
+			echo '<script> document.location = "' . site_url('admin/index') . '"; </script>';
 		}
 	}
 

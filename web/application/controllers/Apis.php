@@ -1009,7 +1009,7 @@ class Apis extends CI_Controller
                     $reading = trim($reading);
                     $lat = $json->{'field5'};
                     $lng = $json->{'field6'};
-                    $update_node = $this->db->query("UPDATE tbl_app_nodes SET an_lat = '$lat', an_lng = '$lng', time = '$date', reading = '$reading', an_dateUpdated = NOW()
+                    $update_node = $this->db->query("UPDATE tbl_app_nodes SET time = '$date', reading = '$reading', an_dateUpdated = NOW()
                                                     WHERE an_channel_id = '$channel' LIMIT 1");
                     if($update_node){
                         $mr .= "" . $reading;
