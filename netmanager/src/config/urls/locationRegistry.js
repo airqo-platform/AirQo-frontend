@@ -1,7 +1,8 @@
 import { stripTrailingSlash } from "../utils";
 
 const BASE_LOCATION_REGISTRY_URL = stripTrailingSlash(
-  process.env.REACT_APP_BASE_URL
+  process.env.REACT_APP_BASE_LOCATION_REGISTRY_URL ||
+    process.env.REACT_APP_BASE_URL
 );
 
 export const ALL_LOCATIONS_URI = `${BASE_LOCATION_REGISTRY_URL}/location_registry/locations`;

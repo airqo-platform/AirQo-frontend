@@ -1,7 +1,8 @@
 import { stripTrailingSlash } from "../utils";
 
 const BASE_DEVICE_REGISTRY_URL = stripTrailingSlash(
-  process.env.REACT_APP_BASE_URL
+  process.env.REACT_APP_BASE_DEVICE_REGISTRY_URL ||
+    process.env.REACT_APP_BASE_URL
 );
 
 export const REGISTER_DEVICE_URI = `${BASE_DEVICE_REGISTRY_URL}/devices/ts`;

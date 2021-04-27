@@ -1,7 +1,8 @@
 import { stripTrailingSlash } from "../utils";
 
 const BASE_DEVICE_MONITORING_URL = stripTrailingSlash(
-  process.env.REACT_APP_BASE_URL
+  process.env.REACT_APP_BASE_DEVICE_MONITORING_URL ||
+    process.env.REACT_APP_BASE_URL
 );
 
 export const GET_DEVICE_STATUS_SUMMARY = `${BASE_DEVICE_MONITORING_URL}/monitor/device/status`;

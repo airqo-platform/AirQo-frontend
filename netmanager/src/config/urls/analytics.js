@@ -1,6 +1,8 @@
 import { stripTrailingSlash } from "../utils";
 
-const BASE_ANALYTICS_URL = stripTrailingSlash(process.env.REACT_APP_BASE_URL);
+const BASE_ANALYTICS_URL = stripTrailingSlash(
+  process.env.REACT_APP_BASE_ANALYTICS_URL || process.env.REACT_APP_BASE_URL
+);
 
 export const GENERATE_CUSTOMISABLE_CHARTS_URI = `${BASE_ANALYTICS_URL}/analytics/dashboard/customisedchart`;
 
