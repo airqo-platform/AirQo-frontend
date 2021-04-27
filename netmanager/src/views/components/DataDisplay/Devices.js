@@ -129,7 +129,7 @@ const Cell = ({ fieldValue, data }) => {
       style={{ minHeight: "20px" }}
       onClick={() => history.push(`/device/${data.name}/overview`)}
     >
-      {fieldValue}
+      {fieldValue || "N/A"}
     </div>
   );
 };
@@ -149,10 +149,12 @@ const createDeviceColumns = (history, setDelState) => [
   {
     title: "Site Name",
     field: "siteName",
+    render: (data) => <Cell data={data} fieldValue={data.siteName} />,
   },
   {
     title: "Location Name",
     field: "locationName",
+    render: (data) => <Cell data={data} fieldValue={data.locationName} />,
   },
   {
     title: "Registration Date",
