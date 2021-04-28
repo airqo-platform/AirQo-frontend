@@ -21,6 +21,8 @@ void main() {
     systemNavigationBarIconBrightness: Brightness.light,
   ));
 
+  WidgetsFlutterBinding.ensureInitialized();
+
   runApp(AirqoApp());
 }
 

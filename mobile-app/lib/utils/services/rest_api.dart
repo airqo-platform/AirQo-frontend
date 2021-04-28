@@ -19,6 +19,12 @@ Future<List<Measurement>> getMeasurements() async {
     Event event = Event.fromJson(json.decode(response.body));
     List<Measurement> measurements = event.measurements;
 
+    // measurements.forEach((element) {
+    //   print(element.channelID);
+    //   print(element.location.longitude.value);
+    //   print(element.location.latitude.value);
+    // });
+
     return measurements;
   } else {
     print('Unexpected status code ${response.statusCode}:'

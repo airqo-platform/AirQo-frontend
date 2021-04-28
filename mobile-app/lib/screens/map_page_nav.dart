@@ -1,10 +1,12 @@
 import 'dart:async';
 
+import 'package:app/constants/app_constants.dart';
+import 'package:app/models/measurement.dart';
+import 'package:app/utils/services/local_storage.dart';
 import 'package:app/utils/services/rest_api.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-import 'package:flutter/services.dart';
 
 class MapPage extends StatefulWidget {
   @override
@@ -13,9 +15,11 @@ class MapPage extends StatefulWidget {
 
 class MapPageState extends State<MapPage> {
 
-  bool _isVisible = false;
+  bool _isWindowVisible = false;
   final Map<String, Marker> _markers = {};
-  String windowProperties = '';
+  var windowProperties;
+  var dbHelper = DBHelper();
+
 
   late BitmapDescriptor markerIcon;
   final Map<String, BitmapDescriptor> _markerIcons = {};
@@ -25,22 +29,22 @@ class MapPageState extends State<MapPage> {
 
   @override
   void initState() {
+    _isWindowVisible = false;
     super.initState();
-    setCustomMarkers();
+    // setCustomMarkers();
   }
 
   void setCustomMarkers() async {
 
     for(var i = 0; i < markerColors.length; i++){
 
-      String color = markerColors[i];
+      var color = markerColors[i];
 
       // var markerIcon = await BitmapDescriptor.fromAssetImage(
       //     const ImageConfiguration(size: Size(3, 3)),
       //     'assets/images/happy_face.png');
 
-      var markerIcon = BitmapDescriptor
-          .defaultMarkerWithHue(BitmapDescriptor.hueGreen);
+      var markerIcon = BitmapDescriptor.defaultMarker;
 
       switch(color) {
         case "good":
@@ -64,11 +68,11 @@ class MapPageState extends State<MapPage> {
           break;
 
         case "hazardous":
-          markerIcon = BitmapDescriptor.defaultMarkerWithHue(285);
+          markerIcon = BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueMagenta);
           break;
 
         default:
-          markerIcon = BitmapDescriptor.defaultMarkerWithHue(0);
+          markerIcon = BitmapDescriptor.defaultMarker;
           break;
       }
 
@@ -78,51 +82,24 @@ class MapPageState extends State<MapPage> {
 
   }
 
-  void setWindow(String windowProperty){
-    if( windowProperty.isNotEmpty){
-
-      setState(() {
-        _isVisible = true;
-        windowProperties = windowProperty;
-      });
-    }
-
-    else{
-      setState(() {
-        _isVisible = false;
-        windowProperties = '';
-      });
-    }
-
+  void setWindow(Measurement measurement){
+    setState(() {
+      _isWindowVisible = true;
+      windowProperties = measurement;
+    });
   }
 
 
   Future<void> _onMapCreated(GoogleMapController controller) async {
+
+    await localFetch();
+
     final measurements = await getMeasurements();
 
-    setState(() {
-      _markers.clear();
-      for (final measurement in measurements) {
-
-        var bitmapDescriptor = _markerIcons['sensitive']!;
-
-        final marker = Marker(
-          markerId: MarkerId(measurement.channelID.toString()),
-          icon: bitmapDescriptor,
-          position: LatLng((measurement.location.latitude.value),
-              measurement.location.longitude.value),
-          infoWindow: InfoWindow(
-            title: measurement.channelID.toString(),
-            // snippet: node.location,
-          ),
-          onTap: (){
-
-            setWindow(measurement.channelID.toString());
-          },
-        );
-        _markers[measurement.channelID.toString()] = marker;
-      }
-    });
+    if (measurements.isNotEmpty){
+      setMeasurements(measurements);
+      await dbHelper.insertMeasurements(measurements);
+    }
 
   }
 
@@ -148,7 +125,7 @@ class MapPageState extends State<MapPage> {
             ),
             markers: _markers.values.toSet(),
             onTap: (_){
-              setWindow('');
+              _isWindowVisible = false;
             },
           ),
 
@@ -169,19 +146,32 @@ class MapPageState extends State<MapPage> {
                     },
                   ),
                   Visibility (
-                    visible: _isVisible,
-                    child: Card(
+                    visible: _isWindowVisible,
+                    child: windowProperties != null ? Card(
                       child:
                         Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: Column(
                             children: [
-                              new Center(
-                                child: new Text('Hello world', softWrap: true),
+                              Center(
+                                child: Text(appName, softWrap: true),
                               ),
-                              new Center(
-                                child: new Text(windowProperties, softWrap: true),
+                              Center(
+                                child: Text(windowProperties.pm2_5.value.toString(), softWrap: true),
                               )
+                            ],
+                          ),
+                        )
+                    ) :
+                    Card(
+                        child:
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Column(
+                            children: [
+                              Center(
+                                child: Text(appName, softWrap: true),
+                              ),
                             ],
                           ),
                         )
@@ -193,5 +183,72 @@ class MapPageState extends State<MapPage> {
         ],
       )
     );
+  }
+
+  Future<void> localFetch() async {
+
+    var measurements = await dbHelper.getAllDevicesMeasurements();
+
+    if(measurements.isNotEmpty){
+      setMeasurements(measurements);
+    }
+
+  }
+
+  void setMeasurements(List<Measurement> measurements) {
+
+    setState(() {
+      _isWindowVisible = false;
+      _markers.clear();
+      for (final measurement in measurements) {
+
+        var bitmapDescriptor;
+
+        double pm2_5  = measurement.pm2_5.value;
+
+        if(pm2_5 >= 0 && pm2_5 <= 50){ //good
+          bitmapDescriptor = BitmapDescriptor
+              .defaultMarkerWithHue(BitmapDescriptor.hueGreen);
+        }
+        else if(pm2_5 >= 51 && pm2_5 <= 100){ //moderate
+          bitmapDescriptor = BitmapDescriptor
+              .defaultMarkerWithHue(BitmapDescriptor.hueYellow);
+        }
+        else if(pm2_5 >= 101 && pm2_5 <= 150){ //sensitive
+          bitmapDescriptor = BitmapDescriptor
+              .defaultMarkerWithHue(BitmapDescriptor.hueOrange);
+        }
+        else if(pm2_5 >= 151 && pm2_5 <= 200){ // unhealthy
+          bitmapDescriptor = BitmapDescriptor
+              .defaultMarkerWithHue(BitmapDescriptor.hueRed);
+        }
+        else if(pm2_5 >= 201 && pm2_5 <= 300){ // very unhealthy
+          bitmapDescriptor = BitmapDescriptor.defaultMarkerWithHue(285);
+        }
+        else if(pm2_5 >= 301){ // hazardous
+          bitmapDescriptor = BitmapDescriptor
+              .defaultMarkerWithHue(BitmapDescriptor.hueMagenta);
+        }
+        else{
+          bitmapDescriptor = BitmapDescriptor.defaultMarker;
+        }
+
+        final marker = Marker(
+          markerId: MarkerId(measurement.channelID.toString()),
+          icon: bitmapDescriptor,
+          position: LatLng((measurement.location.latitude.value),
+              measurement.location.longitude.value),
+          infoWindow: InfoWindow(
+            title: measurement.channelID.toString(),
+            // snippet: node.location,
+          ),
+          onTap: (){
+            setWindow(measurement);
+          },
+        );
+        _markers[measurement.channelID.toString()] = marker;
+      }
+    });
+
   }
 }

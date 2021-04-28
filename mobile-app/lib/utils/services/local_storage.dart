@@ -1,81 +1,197 @@
-// import 'dart:async';
-//
-// import 'package:app/models/device.dart';
-// import 'package:sqflite/sqflite.dart';
-//
-// class DBHelper {
-//   DBHelper._();
-//
-//   final String nodesTable = 'Nodes';
-//   final String columnId = '_id';
-//   final String columnName = 'name';
-//   final String columnLat = 'lat';
-//   final String columnLng = 'lng';
-//
-//   static final DBHelper db = DBHelper._();
-//
-//   Database _database;
-//
-//   Future<Database> get database async {
-//     if (_database != null) return _database;
-//     _database = await initDB();
-//     return _database;
-//   }
-//
-//   initDB() async {
-//     // var documentsDirectory = await getApplicationDocumentsDirectory();
-//     // var path = join(documentsDirectory.path, "TestDB.db");
-//     return await openDatabase(await getDatabasesPath(), version: 1,
-//         onOpen: (db) {},
-//         onCreate: (Database db, int version) async {
-//           createdDefaultDatabases(db);
-//         });
-//   }
-//
-//   createdDefaultDatabases(Database db) async{
-//
-//     await db.execute('''
-//         create table $nodesTable (
-//           $columnId integer primary key autoincrement,
-//           $columnName text not null,
-//           $columnLat text not null,
-//           $columnLng text not null,
-//           )
-//       ''');
-//
-//
-//   }
-//
-//   updateNode(Node newNode) async {
-//     final db = await database;
-//     var res = await db.update("Node", newNode.toMap(),
-//         where: "id = ?", whereArgs: [newNode.id]);
-//     return res;
-//   }
-//
-//   getNode(int id) async {
-//     final db = await database;
-//     var res = await db.query("Node", where: "id = ?", whereArgs: [id]);
-//     return res.isNotEmpty ? Node.fromMap(res.first) : null;
-//   }
-//
-//   Future<List<Node>> getNodes() async {
-//     final db = await database;
-//     final List<Map<String, dynamic>> maps = await db.query(nodesTable);
-//
-//     return List.generate(maps.length, (i) {
-//       return Node(
-//         channel_id: maps[i]['channel_id'],
-//         churl: maps[i]['churl'],
-//         name: maps[i]['name'],
-//         an_type: maps[i]['an_type'],
-//         lat: maps[i]['lat'],
-//         lng: maps[i]['lng'],
-//         location: maps[i]['location'],
-//       );
-//     });
-//
-//
-//   }
-//
-// }
+import 'dart:async';
+
+import 'package:app/constants/app_constants.dart';
+import 'package:app/models/device.dart';
+import 'package:app/models/measurement.dart';
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:sqflite/sqflite.dart';
+
+import 'package:path/path.dart';
+
+
+class DBHelper {
+  // DBHelper._();
+  //
+  // static final DBHelper db = DBHelper._();
+
+  var _database;
+
+  var constants = DbConstants();
+
+  Future<Database> get database async {
+    if (_database != null) return _database;
+    _database = await initDB();
+    return _database;
+  }
+
+  initDB() async {
+
+    return await openDatabase(
+
+      join(await getDatabasesPath(), constants.dbName),
+      onCreate: (db, version) {
+        createDefaultTables(db);
+      },
+      version: 1,
+    );
+
+  }
+
+  createDefaultTables(Database db) async{
+
+    await db.execute('''
+        create table ${constants.measurementsTable} (
+          id INTEGER PRIMARY KEY,
+          ${constants.channelID} not null,
+          ${constants.pm2_5} not null,
+          ${constants.longitude} not null,
+          ${constants.latitude} not null,
+          ${constants.pm10} not null,
+          ${constants.time} not null,
+          ${constants.s2_pm2_5} not null,
+          ${constants.s2_pm10} not null
+          )
+      ''');
+
+  }
+
+
+  Future<void> insertMeasurements(List<Measurement> measurements) async {
+
+    print('Inserting measurements into local db');
+
+    final db = await database;
+
+    try{
+
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS ${constants.measurementsTable} (
+          id INTEGER PRIMARY KEY,
+          ${constants.channelID} not null,
+          ${constants.pm2_5} not null,
+          ${constants.longitude} not null,
+          ${constants.latitude} not null,
+          ${constants.pm10} not null,
+          ${constants.time} not null,
+          ${constants.s2_pm2_5} not null,
+          ${constants.s2_pm10} not null
+          )
+      ''');
+
+      measurements.forEach((measurement) async {
+
+        var jsonData = Measurement.toDbMap(measurement);
+
+        await db.insert(
+          '${constants.measurementsTable}',
+          jsonData,
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+
+      });
+    }
+    catch(e) {
+      print(e);
+    }
+
+
+  }
+
+
+  Future<void> insertMeasurement(Measurement measurement) async {
+    final db = await database;
+
+    var jsonData = measurement.toJson();
+
+    try {
+      var datetime = DateFormat('yyyy-MM-dd HH:mm:ss').parse(measurement.time);
+      jsonData[constants.time] = datetime;
+    }
+    catch(e) {
+      print(e);
+    }
+
+    await db.insert(
+      '${constants.measurementsTable}',
+      jsonData,
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+
+  Future<void> updateMeasurement(Measurement measurement) async {
+    final db = await database;
+    var res = await db.update("Measurement", measurement.toJson(),
+        where: "id = ?", whereArgs: [measurement.channelID]);
+    // return res;
+  }
+
+
+  Future<List<Measurement>> getAllDeviceMeasurements(int channelId) async {
+    final db = await database;
+    var measurements = await db.query('${constants.measurementsTable}',
+        where: '${constants.channelID} = ?', whereArgs: [channelId]);
+
+    return measurements.isNotEmpty ? List.generate(measurements.length, (i) {
+      return Measurement.fromJson(measurements[i]);
+    }) : <Measurement>[];
+  }
+
+  Future<List<Measurement>> getMeasurementsByDateTime(DateTime dateTime) async {
+    final db = await database;
+    var res = await db.query('${constants.measurementsTable}',
+        where: '${constants.time} > ?', whereArgs: [dateTime]);
+
+    return res.isNotEmpty ? List.generate(res.length, (i) {
+      return Measurement.fromJson(res[i]);
+    }) : <Measurement>[];
+
+    // var  measurements = <Measurement>[];
+    //
+    // if (res.isEmpty){
+    //   return measurements;
+    // }
+    //
+    // res.forEach((measurement) {
+    //   measurements.add(Measurement.fromJson(measurement));
+    // });
+    //
+    // return measurements;
+  }
+
+  Future<Measurement?> getRecentDeviceMeasurement(String channelId) async {
+
+    final db = await database;
+    var res = await db.query('${constants.measurementsTable}',
+        orderBy: '${constants.time}',
+        limit: 1,
+        where: '${constants.channelID} = ?', whereArgs: [channelId]);
+
+    return res.isNotEmpty ? Measurement.fromJson(res.first) : null;
+  }
+
+  Future<List<Measurement>> getAllDevicesMeasurements() async {
+
+
+    print('Getting measurements from local db');
+
+    try{
+
+      final db = await database;
+      var res = await db.query(constants.measurementsTable);
+
+      return res.isNotEmpty ? List.generate(res.length, (i) {
+
+        return Measurement.fromJson( Measurement.fromDbMap(res[i]));
+      }) : <Measurement>[];
+    }
+
+    catch(e) {
+      print(e);
+      return <Measurement>[];
+    }
+
+  }
+
+}
