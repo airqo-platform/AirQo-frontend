@@ -4,6 +4,7 @@ import 'package:app/screens/feedback_page.dart';
 import 'package:app/screens/map_page_nav.dart';
 import 'package:app/screens/search_page.dart';
 import 'package:app/screens/settings_page.dart';
+import 'package:app/utils/ui/dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:share/share.dart';
 
@@ -231,11 +232,13 @@ class _HomePageState extends State<HomePage> {
     if (exitTime == null ||
         now.difference(exitTime!) > const Duration(seconds: 2)) {
       exitTime = now;
-      final snackBar = const SnackBar(
-        content: Text('Tap again to exit !'),
-        backgroundColor: Color(0xff5f1ee8),
-      );
-      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+
+      showSnackBar(context, 'Tap again to exit !');
+      // final snackBar = const SnackBar(
+      //   content: Text('Tap again to exit !'),
+      //   backgroundColor: Color(0xff5f1ee8),
+      // );
+      // ScaffoldMessenger.of(context).showSnackBar(snackBar);
 
       return Future.value(false);
     }

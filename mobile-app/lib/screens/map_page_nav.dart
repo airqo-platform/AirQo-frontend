@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/utils/services/local_storage.dart';
 import 'package:app/utils/services/rest_api.dart';
+import 'package:app/utils/ui/dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
@@ -94,7 +96,25 @@ class MapPageState extends State<MapPage> {
 
     await localFetch();
 
-    final measurements = await getMeasurements();
+    var measurements = <Measurement>[];
+
+    try {
+
+      measurements = await getMeasurements();
+    }
+    on SocketException {
+      String message =
+          'You are working offline, please connect to internet';
+      await showSnackBar(context, message);
+    }
+    on TimeoutException {
+      String message =
+          'Connection timeout, please check your internet connection';
+      await showSnackBar(context, message);
+
+    } on Error catch (e) {
+      print('Error: $e');
+    }
 
     if (measurements.isNotEmpty){
       setMeasurements(measurements);
