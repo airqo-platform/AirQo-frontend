@@ -9,6 +9,7 @@ class DbConstants{
 
   final String _dbName = 'airqo_db.db';
   final String _measurementsTable = 'measurements';
+  final String _myPlacesTable = 'myPlaces';
   final String _channelID = 'channelID';
   final String _time = 'time';
   final String _pm2_5 = 'pm2_5';
@@ -18,6 +19,8 @@ class DbConstants{
   final String _longitude = 'longitude';
   final String _s2_pm10 = 's2_pm10';
 
+
+  String get myPlacesTable => _myPlacesTable;
 
   String get latitude => _latitude;
 

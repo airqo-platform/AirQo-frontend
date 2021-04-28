@@ -17,7 +17,7 @@ class MapPage extends StatefulWidget {
 
 class MapPageState extends State<MapPage> {
 
-  bool _isWindowVisible = false;
+  bool _showInfoWindow = false;
   final Map<String, Marker> _markers = {};
   var windowProperties;
   var dbHelper = DBHelper();
@@ -31,7 +31,7 @@ class MapPageState extends State<MapPage> {
 
   @override
   void initState() {
-    _isWindowVisible = false;
+    _showInfoWindow = false;
     super.initState();
     // setCustomMarkers();
   }
@@ -49,27 +49,27 @@ class MapPageState extends State<MapPage> {
       var markerIcon = BitmapDescriptor.defaultMarker;
 
       switch(color) {
-        case "good":
+        case 'good':
           markerIcon = BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen);
           break;
 
-        case "moderate":
+        case 'moderate':
           markerIcon = BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueYellow);
         break;
 
-        case "sensitive":
+        case 'sensitive':
           markerIcon = BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueOrange);
           break;
 
-        case "unhealthy":
+        case 'unhealthy':
           markerIcon = BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed);
           break;
 
-        case "very unhealthy":
+        case 'very unhealthy':
           markerIcon = BitmapDescriptor.defaultMarkerWithHue(285);
           break;
 
-        case "hazardous":
+        case 'hazardous':
           markerIcon = BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueMagenta);
           break;
 
@@ -86,13 +86,19 @@ class MapPageState extends State<MapPage> {
 
   void setWindow(Measurement measurement){
     setState(() {
-      _isWindowVisible = true;
+      _showInfoWindow = true;
       windowProperties = measurement;
     });
   }
 
 
   Future<void> _onMapCreated(GoogleMapController controller) async {
+
+    await _getMeasurements();
+
+  }
+
+  Future<void> _getMeasurements() async {
 
     await localFetch();
 
@@ -103,23 +109,53 @@ class MapPageState extends State<MapPage> {
       measurements = await getMeasurements();
     }
     on SocketException {
-      String message =
-          'You are working offline, please connect to internet';
+      var message = 'You are working offline, please connect to internet';
       await showSnackBar(context, message);
     }
     on TimeoutException {
-      String message =
-          'Connection timeout, please check your internet connection';
+      var message = 'Connection timeout, please check your internet connection';
       await showSnackBar(context, message);
 
     } on Error catch (e) {
-      print('Error: $e');
+      print('Get Latest events error: $e');
     }
 
     if (measurements.isNotEmpty){
       setMeasurements(measurements);
-      await dbHelper.insertMeasurements(measurements);
+      await dbHelper.insertLatestMeasurements(measurements);
     }
+
+  }
+
+  Future<void> _refreshMeasurements() async {
+
+    try {
+
+      var measurements = await getMeasurements();
+
+      if (measurements.isNotEmpty){
+        setMeasurements(measurements);
+
+        var message = 'Update Complete';
+        await showSnackBar(context, message);
+
+        await dbHelper.insertLatestMeasurements(measurements);
+
+      }
+
+    }
+    on SocketException {
+      var message = 'You are working offline, please connect to internet';
+      await showSnackBar(context, message);
+    }
+    on TimeoutException {
+      var message = 'Connection timeout, please check your internet connection';
+      await showSnackBar(context, message);
+
+    } on Error catch (e) {
+      print('Update Latest events error: $e');
+    }
+
 
   }
 
@@ -145,7 +181,7 @@ class MapPageState extends State<MapPage> {
             ),
             markers: _markers.values.toSet(),
             onTap: (_){
-              _isWindowVisible = false;
+              _showInfoWindow = false;
             },
           ),
 
@@ -166,23 +202,12 @@ class MapPageState extends State<MapPage> {
                     },
                   ),
                   Visibility (
-                    visible: _isWindowVisible,
-                    child: windowProperties != null ? Card(
-                      child:
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Column(
-                            children: [
-                              Center(
-                                child: Text(appName, softWrap: true),
-                              ),
-                              Center(
-                                child: Text(windowProperties.pm2_5.value.toString(), softWrap: true),
-                              )
-                            ],
-                          ),
-                        )
-                    ) :
+                    visible: _showInfoWindow,
+                    child:
+                    windowProperties != null ?
+
+                    infoWindow() :
+
                     Card(
                         child:
                         Padding(
@@ -196,6 +221,28 @@ class MapPageState extends State<MapPage> {
                           ),
                         )
                     ),
+
+                  ),
+                ],
+              )
+          ),
+
+          Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child:
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  IconButton(
+                    iconSize: 30.0,
+                    icon: const Icon(
+                        Icons.refresh_outlined,
+                        color: Color(0xff5f1ee8)
+                    ),
+                    onPressed: _refreshMeasurements,
                   ),
                 ],
               )
@@ -207,7 +254,7 @@ class MapPageState extends State<MapPage> {
 
   Future<void> localFetch() async {
 
-    var measurements = await dbHelper.getAllDevicesMeasurements();
+    var measurements = await dbHelper.getLatestMeasurements();
 
     if(measurements.isNotEmpty){
       setMeasurements(measurements);
@@ -218,13 +265,13 @@ class MapPageState extends State<MapPage> {
   void setMeasurements(List<Measurement> measurements) {
 
     setState(() {
-      _isWindowVisible = false;
+      _showInfoWindow = false;
       _markers.clear();
       for (final measurement in measurements) {
 
         var bitmapDescriptor;
 
-        double pm2_5  = measurement.pm2_5.value;
+        var pm2_5  = measurement.pm2_5.value;
 
         if(pm2_5 >= 0 && pm2_5 <= 50){ //good
           bitmapDescriptor = BitmapDescriptor
@@ -270,5 +317,24 @@ class MapPageState extends State<MapPage> {
       }
     });
 
+  }
+
+  Widget infoWindow(){
+    return Card(
+        child:
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            children: [
+              const Center(
+                child: Text(appName, softWrap: true),
+              ),
+              Center(
+                child: Text(windowProperties.pm2_5.value.toString(), softWrap: true),
+              )
+            ],
+          ),
+        )
+    );
   }
 }

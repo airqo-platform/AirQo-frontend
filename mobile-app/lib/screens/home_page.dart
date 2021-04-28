@@ -1,7 +1,7 @@
 import 'package:app/config/languages/CustomLocalizations.dart';
 import 'package:app/constants/app_constants.dart';
 import 'package:app/screens/feedback_page.dart';
-import 'package:app/screens/map_page_nav.dart';
+import 'package:app/screens/map_page.dart';
 import 'package:app/screens/search_page.dart';
 import 'package:app/screens/settings_page.dart';
 import 'package:app/utils/ui/dialogs.dart';

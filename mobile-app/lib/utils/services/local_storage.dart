@@ -54,10 +54,24 @@ class DBHelper {
           )
       ''');
 
+    await db.execute('''
+        create table ${constants.myPlacesTable} (
+          id INTEGER PRIMARY KEY,
+          ${constants.channelID} not null,
+          ${constants.pm2_5} not null,
+          ${constants.longitude} not null,
+          ${constants.latitude} not null,
+          ${constants.pm10} not null,
+          ${constants.time} not null,
+          ${constants.s2_pm2_5} not null,
+          ${constants.s2_pm10} not null
+          )
+      ''');
+
   }
 
 
-  Future<void> insertMeasurements(List<Measurement> measurements) async {
+  Future<void> insertLatestMeasurements(List<Measurement> measurements) async {
 
     print('Inserting measurements into local db');
 
@@ -79,17 +93,26 @@ class DBHelper {
           )
       ''');
 
-      measurements.forEach((measurement) async {
+      if(measurements.isNotEmpty){
 
-        var jsonData = Measurement.toDbMap(measurement);
+        await db.execute('''
+        DELETE FROM ${constants.measurementsTable} 
+      ''');
 
-        await db.insert(
-          '${constants.measurementsTable}',
-          jsonData,
-          conflictAlgorithm: ConflictAlgorithm.replace,
-        );
+        measurements.forEach((measurement) async {
 
-      });
+          var jsonData = Measurement.toDbMap(measurement);
+
+          await db.insert(
+            '${constants.measurementsTable}',
+            jsonData,
+            conflictAlgorithm: ConflictAlgorithm.replace,
+          );
+
+        });
+      }
+
+
     }
     catch(e) {
       print(e);
@@ -119,7 +142,6 @@ class DBHelper {
     );
   }
 
-
   Future<void> updateMeasurement(Measurement measurement) async {
     final db = await database;
     var res = await db.update("Measurement", measurement.toJson(),
@@ -127,15 +149,26 @@ class DBHelper {
     // return res;
   }
 
+  Future<List<Measurement>> getDeviceMeasurements(int channelId) async {
 
-  Future<List<Measurement>> getAllDeviceMeasurements(int channelId) async {
-    final db = await database;
-    var measurements = await db.query('${constants.measurementsTable}',
-        where: '${constants.channelID} = ?', whereArgs: [channelId]);
+    try{
 
-    return measurements.isNotEmpty ? List.generate(measurements.length, (i) {
-      return Measurement.fromJson(measurements[i]);
-    }) : <Measurement>[];
+      final db = await database;
+      var measurements = await db.query('${constants.myPlacesTable}',
+          where: '${constants.channelID} = ?', whereArgs: [channelId]);
+
+      return measurements.isNotEmpty ? List.generate(measurements.length, (i) {
+        return Measurement.fromJson(measurements[i]);
+      }) : <Measurement>[];
+      
+    }
+
+    catch(e) {
+      print(e);
+      return <Measurement>[];
+    }
+    
+
   }
 
   Future<List<Measurement>> getMeasurementsByDateTime(DateTime dateTime) async {
@@ -146,18 +179,7 @@ class DBHelper {
     return res.isNotEmpty ? List.generate(res.length, (i) {
       return Measurement.fromJson(res[i]);
     }) : <Measurement>[];
-
-    // var  measurements = <Measurement>[];
-    //
-    // if (res.isEmpty){
-    //   return measurements;
-    // }
-    //
-    // res.forEach((measurement) {
-    //   measurements.add(Measurement.fromJson(measurement));
-    // });
-    //
-    // return measurements;
+    
   }
 
   Future<Measurement?> getRecentDeviceMeasurement(String channelId) async {
@@ -171,7 +193,7 @@ class DBHelper {
     return res.isNotEmpty ? Measurement.fromJson(res.first) : null;
   }
 
-  Future<List<Measurement>> getAllDevicesMeasurements() async {
+  Future<List<Measurement>> getLatestMeasurements() async {
 
 
     print('Getting measurements from local db');
