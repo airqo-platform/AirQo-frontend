@@ -1,6 +1,6 @@
 // import 'dart:async';
 //
-// import 'package:app/models/node.dart';
+// import 'package:app/models/device.dart';
 // import 'package:sqflite/sqflite.dart';
 //
 // class DBHelper {

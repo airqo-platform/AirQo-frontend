@@ -1,5 +1,5 @@
 import 'package:app/config/providers/LocalProvider.dart';
-import 'package:app/models/node.dart';
+import 'package:app/models/device.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

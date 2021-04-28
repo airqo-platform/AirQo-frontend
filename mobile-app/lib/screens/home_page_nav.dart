@@ -1,4 +1,5 @@
 import 'package:app/config/languages/CustomLocalizations.dart';
+import 'package:app/constants/app_constants.dart';
 import 'package:app/screens/feedback_page.dart';
 import 'package:app/screens/map_page_nav.dart';
 import 'package:app/screens/search_page.dart';
@@ -19,14 +20,14 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final PageController _pageCtrl = PageController(initialPage: 0);
-  String title = 'Airqo';
+  String title = appName;
   bool showAddPlace = true;
   DateTime? exitTime;
 
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(title),
+        title: Text(appName),
         actions: [
           showAddPlace
               ? IconButton(
@@ -111,7 +112,9 @@ class _HomePageState extends State<HomePage> {
               IconButton(
                 // iconSize: 30.0,
                 // padding: const EdgeInsets.only(left: 28.0),
-                icon: const Icon(Icons.home_outlined),
+                icon: const Icon(
+                    Icons.home_outlined,
+                    color: Color(0xff5f1ee8)),
                 splashColor: Color(0xff5f1ee8),
                 onPressed: () {
                   setState(() {
@@ -126,7 +129,9 @@ class _HomePageState extends State<HomePage> {
                 // iconSize: 30.0,
                 // autofocus: true,
                 // padding: const EdgeInsets.only(right: 28.0),
-                icon: const Icon(Icons.stacked_bar_chart),
+                icon: const Icon(
+                    Icons.stacked_bar_chart,
+                    color: Color(0xff5f1ee8)),
                 splashColor: Color(0xff5f1ee8),
                 onPressed: () {
                   setState(() {
@@ -140,7 +145,9 @@ class _HomePageState extends State<HomePage> {
               IconButton(
                 // iconSize: 30.0,
                 // padding: const EdgeInsets.only(left: 28.0),
-                icon: const Icon(Icons.notifications_none_outlined),
+                icon: const Icon(
+                    Icons.notifications_none_outlined,
+                    color: Color(0xff5f1ee8)),
                 splashColor: Color(0xff5f1ee8),
                 onPressed: () {
                   setState(() {
@@ -154,7 +161,9 @@ class _HomePageState extends State<HomePage> {
               IconButton(
                 // iconSize: 30.0,
                 // padding: const EdgeInsets.only(right: 28.0),
-                icon: const Icon(Icons.library_books_outlined),
+                icon: const Icon(
+                    Icons.library_books_outlined,
+                    color: Color(0xff5f1ee8)),
                 splashColor: Color(0xff5f1ee8),
                 onPressed: () {
                   setState(() {
@@ -222,7 +231,10 @@ class _HomePageState extends State<HomePage> {
     if (exitTime == null ||
         now.difference(exitTime!) > const Duration(seconds: 2)) {
       exitTime = now;
-      final snackBar = const SnackBar(content: Text('Tap again to exit !'));
+      final snackBar = const SnackBar(
+        content: Text('Tap again to exit !'),
+        backgroundColor: Color(0xff5f1ee8),
+      );
       ScaffoldMessenger.of(context).showSnackBar(snackBar);
 
       return Future.value(false);

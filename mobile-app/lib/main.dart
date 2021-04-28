@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import 'config/languages/CustomLocalizations.dart';
 import 'config/languages/l10n.dart';
 import 'config/themes/light_theme.dart';
+import 'constants/app_constants.dart';
 import 'screens/home_page_nav.dart';
 
 void main() {
@@ -47,7 +48,7 @@ class AirqoApp extends StatelessWidget {
             return supportedLocales.first;
           },
           locale: provider.locale,
-          title: 'Airqo',
+          title: appName,
           theme: lightTheme(),
           home: HomePage(),
         );
