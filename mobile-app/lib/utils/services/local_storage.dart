@@ -53,7 +53,7 @@ class DBHelper {
       ''');
 
     await db.execute('''
-        create table ${constants.myPlacesTable} (
+        create table ${constants.myLocationsTable} (
           id INTEGER PRIMARY KEY,
           ${constants.channelID} not null,
           ${constants.pm2_5} not null,
@@ -119,7 +119,6 @@ class DBHelper {
 
   }
 
-
   Future<void> insertMeasurement(Measurement measurement) async {
     final db = await database;
 
@@ -152,7 +151,7 @@ class DBHelper {
     try{
 
       final db = await database;
-      var measurements = await db.query('${constants.myPlacesTable}',
+      var measurements = await db.query('${constants.myLocationsTable}',
           where: '${constants.channelID} = ?', whereArgs: [channelId]);
 
       return measurements.isNotEmpty ? List.generate(measurements.length, (i) {

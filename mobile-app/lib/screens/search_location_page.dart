@@ -127,7 +127,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
     if(searchPlaceId == ''){
       return Container(
         padding: const EdgeInsets.all(16.0),
-        child: const Text('Place Id is null'),
+        child: const Text('Failed to get location'),
       );
       // return FutureBuilder(
       //

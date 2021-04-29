@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:app/config/secret.dart';
 import 'package:app/constants/api.dart';
+import 'package:app/models/hourly.dart';
 import 'package:app/models/place.dart';
 import 'package:app/models/suggestion.dart';
 import 'package:app/models/feedback.dart';
@@ -32,8 +33,7 @@ class AirqoApiClient{
   }
 
   Future<List<Measurement>> fetchMeasurements() async {
-    final response =
-    await http.get(Uri.parse(getLatestEvents));
+    final response = await http.get(Uri.parse(getLatestEvents));
 
     print(response.statusCode);
     if (response.statusCode == 200) {
@@ -57,6 +57,75 @@ class AirqoApiClient{
           'Unexpected status code ${response.statusCode}:'
               ' ${response.reasonPhrase}',
           uri: Uri.parse(getLatestEvents));
+    }
+  }
+
+  Future<List<Measurement>> fetchDeviceMeasurements(String device) async {
+
+    final response = await http.get(Uri.parse('http://platform.airqo.net/api/v1/devices/events?'
+        'tenant=airqo&device=$device&startTime=2021-04-26&endTime=2021-04-27'));
+
+    print(response.statusCode);
+    if (response.statusCode == 200) {
+
+      print(response.body);
+
+      Event event = Event.fromJson(json.decode(response.body));
+      List<Measurement> measurements = event.measurements;
+
+      // measurements.forEach((element) {
+      //   print(element.channelID);
+      //   print(element.location.longitude.value);
+      //   print(element.location.latitude.value);
+      // });
+
+      return measurements;
+    } else {
+      print('Unexpected status code ${response.statusCode}:'
+          ' ${response.reasonPhrase}');
+      throw HttpException(
+          'Unexpected status code ${response.statusCode}:'
+              ' ${response.reasonPhrase}',
+          uri: Uri.parse(getLatestEvents));
+    }
+  }
+
+  Future<List<Measurement>> fetchComparisonMeasurements() async {
+
+    var device_01 = await fetchDeviceMeasurements('aq_05');
+    var device_02 = await fetchDeviceMeasurements('aq_06');
+
+    for (var m in device_02){
+      device_01.add(m);
+    }
+
+    return device_01;
+
+  }
+
+  Future<List<Hourly>> fetchHourlyMeasurements(String channelId) async {
+
+    final response = await http.get(Uri.parse(getHourlyEvents));
+
+    if (response.statusCode == 200) {
+
+      var results = json.decode(response.body);
+
+      print(results);
+
+      List<Hourly> hourlyMeasurements = results['hourly_results']
+          .map<Hourly>((l) => Hourly.fromJson(l))
+          .toList();
+
+      return hourlyMeasurements;
+
+    } else {
+      print('Unexpected status code ${response.statusCode}:'
+          ' ${response.reasonPhrase}');
+      throw HttpException(
+          'Unexpected status code ${response.statusCode}:'
+              ' ${response.reasonPhrase}',
+          uri: Uri.parse(getHourlyEvents));
     }
   }
 
@@ -156,9 +225,9 @@ class GoogleSearchProvider {
       final result = json.decode(response.body);
       print(result);
 
-      // if (result['status'] != 'OK') {
-      //   throw Exception('Failed to get details');
-      // }
+      if (result['status'] != 'OK') {
+        throw Exception('Failed to get details');
+      }
 
       var place = Place.fromJson(result['result']);
 

@@ -1,5 +1,4 @@
 import 'package:app/constants/app_constants.dart';
-import 'package:intl/intl.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'measurement.g.dart';

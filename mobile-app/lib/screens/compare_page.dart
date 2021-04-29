@@ -1,6 +1,11 @@
+import 'package:app/constants/app_constants.dart';
+import 'package:app/models/measurement.dart';
+import 'package:app/utils/data_formatter.dart';
+import 'package:app/utils/services/rest_api.dart';
 import 'package:app/widgets/compare_chart.dart';
 import 'package:app/widgets/location_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:charts_flutter/flutter.dart' as charts;
 
 class ComparePage extends StatefulWidget {
   @override
@@ -11,6 +16,8 @@ class _ComparePageState extends State<ComparePage> {
   final firstPlaceController = TextEditingController();
   final secondPlaceController = TextEditingController();
   bool displayShareIcon = false;
+
+  AirqoApiClient apiClient = AirqoApiClient();
 
   void setShareIcon(value) {
     setState(() {
@@ -24,7 +31,32 @@ class _ComparePageState extends State<ComparePage> {
       child: Padding(
         padding: const EdgeInsets.fromLTRB(0, 4, 0, 0),
         child: ListView(
-          children: <Widget>[formInput(), graphDisplay(), lineDisplay()],
+          children: <Widget>[
+            formInput(),
+
+            // lineDisplay(),
+            FutureBuilder(
+                future: apiClient.fetchComparisonMeasurements(),
+                builder: (context, snapshot){
+
+                  if (snapshot.hasError){
+                    return graphDisplay();
+                  }
+                  else if(snapshot.hasData){
+
+                    var data = snapshot.data as List<Measurement>;
+                    List<charts.Series<dynamic, DateTime>> dataset =
+                    createComaprisonData(data);
+
+                    return ComparisonLineChart(dataset);
+                  }
+
+                  else{
+                    return Text('Computing');
+                  }
+                }
+            )
+          ],
         ),
       ),
     );
@@ -46,9 +78,9 @@ class _ComparePageState extends State<ComparePage> {
         children: [
           Expanded(
               child: Column(
-            children: [
-              firstInput(),
-              secondInput(),
+                children: [
+                  firstInput(),
+                  secondInput(),
             ],
           )),
           Column(
@@ -56,15 +88,19 @@ class _ComparePageState extends State<ComparePage> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               IconButton(
-                  icon: Icon(Icons.compare_arrows),
-                  splashColor: Colors.deepPurple,
+                  icon: Icon(
+                      Icons.compare_arrows,
+                      color: appColor),
+                  splashColor: appColor,
                   onPressed: () {
                     // setShareIcon(true);
                   }),
               // displayShareIcon ?
               IconButton(
-                  icon: Icon(Icons.share_outlined),
-                  splashColor: Colors.deepPurple,
+                  icon: Icon(
+                    Icons.share_outlined,
+                    color: appColor,),
+                  splashColor: appColor,
                   onPressed: () {})
               //     :
               // const Placeholder(),

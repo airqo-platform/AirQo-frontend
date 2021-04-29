@@ -1,4 +1,3 @@
-import 'package:app/config/languages/CustomLocalizations.dart';
 import 'package:app/constants/app_constants.dart';
 import 'package:app/screens/feedback_page.dart';
 import 'package:app/screens/map_page.dart';
@@ -8,11 +7,10 @@ import 'package:app/screens/settings_page.dart';
 import 'package:app/utils/ui/dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:share/share.dart';
-import 'package:uuid/uuid.dart';
 
-import 'add_place.dart';
 import 'compare_page.dart';
 import 'dashboard_page.dart';
+import 'faqs_page.dart';
 
 class HomePage extends StatefulWidget {
   final String title = 'AirQo';
@@ -77,11 +75,11 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               const PopupMenuItem<String>(
-                value: 'Help',
+                value: 'Faqs',
                 child: ListTile(
                   leading: const Icon(Icons.help_outline_outlined),
                   title: Text(
-                    'Help',
+                    'Faqs',
                   ),
                 ),
               ),
@@ -260,7 +258,7 @@ class _HomePageState extends State<HomePage> {
     switch (int) {
       case 0:
         setState(() {
-          title = 'AirQo';
+          title = appName;
           showAddPlace = true;
         });
         break;
@@ -284,7 +282,7 @@ class _HomePageState extends State<HomePage> {
         break;
       default:
         setState(() {
-          title = 'AirQo';
+          title = appName;
           showAddPlace = true;
         });
         break;
@@ -302,7 +300,13 @@ class _HomePageState extends State<HomePage> {
       Share.share(
           'https://play.google.com/store/apps/details?id=com.airqo.app ',
           subject: 'Airqo!');
-    } else {
+    }
+    else if (menuItem.trim().toLowerCase() == 'faqs') {
+      Navigator.push(context, MaterialPageRoute(builder: (context) {
+        return FaqsPage();
+      }));
+    }
+    else {
       Navigator.push(context, MaterialPageRoute(builder: (context) {
         return SettingsPage();
       }));

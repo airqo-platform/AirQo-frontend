@@ -14,6 +14,7 @@ ThemeData lightTheme() {
     // textTheme: _lightTextTheme(base.textTheme),
     primaryColor: appColor,
     bottomAppBarColor: Colors.white,
+    accentColor: appColor,
 
     visualDensity: VisualDensity.adaptivePlatformDensity,
   );
