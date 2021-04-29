@@ -10,9 +10,9 @@ class UserFeedback {
   });
 
   factory UserFeedback.fromJson(Map<String, dynamic> json) =>
-      _$FeedbackFromJson(json);
+      _$UserFeedbackFromJson(json);
 
-  Map<String, dynamic> toJson() => _$FeedbackToJson(this);
+  Map<String, dynamic> toJson() => _$UserFeedbackToJson(this);
 
   String email;
   String feedback;

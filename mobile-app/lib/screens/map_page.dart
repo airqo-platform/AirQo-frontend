@@ -107,7 +107,7 @@ class MapPageState extends State<MapPage> {
 
     try {
 
-      measurements = await apiClient.getMeasurements();
+      measurements = await apiClient.fetchMeasurements();
     }
     on SocketException {
       var message = 'You are working offline, please connect to internet';
@@ -135,7 +135,7 @@ class MapPageState extends State<MapPage> {
       var message = 'Updating map.... ';
       await showSnackBar(context, message);
 
-      var measurements = await apiClient.getMeasurements();
+      var measurements = await apiClient.fetchMeasurements();
 
       if (measurements.isNotEmpty){
         setMeasurements(measurements);

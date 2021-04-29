@@ -1,9 +1,8 @@
 import 'package:app/constants/app_constants.dart';
-import 'package:app/models/Place.dart';
-import 'package:app/models/Suggestion.dart';
+import 'package:app/models/place.dart';
+import 'package:app/models/suggestion.dart';
 import 'package:app/screens/place_details.dart';
 import 'package:app/utils/services/rest_api.dart';
-import 'package:app/utils/ui/dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
@@ -24,6 +23,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
     final base = ThemeData.light();
     return base.copyWith(
       primaryColor: appColor,
+
       // textTheme: base.textTheme.apply(
       //   bodyColor: Colors.pink,
       //   displayColor: Colors.white,
@@ -52,7 +52,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
       tooltip: 'Back',
       icon: const Icon(Icons.arrow_back),
       onPressed: () {
-        close(context, Suggestion('', ''));
+        close(context, Suggestion(description: '', placeId: ''));
       },
     );
   }
@@ -81,6 +81,8 @@ class LocationSearch extends SearchDelegate<Suggestion> {
 
         else if (snapshot.hasData){
 
+          print(snapshot.data);
+
           var results = snapshot.data as  List<Suggestion>;
 
           return ListView.builder(
@@ -88,13 +90,11 @@ class LocationSearch extends SearchDelegate<Suggestion> {
               title:
               Text((results[index]).description),
               onTap: () {
+                query = (results[index]).description;
+                print('Search ID 1 ${results[index].placeId}');
                 searchPlaceId = results[index].placeId;
                 showResults(context);
                 // close(context, results[index]);
-                Navigator.push(context,
-                    MaterialPageRoute(builder: (context) {
-                      return PlaceDetailsPage();
-                    }));
               },
             ),
             itemCount: results.length,
@@ -102,7 +102,10 @@ class LocationSearch extends SearchDelegate<Suggestion> {
         }
 
         else{
-          return Container(child: const Text('Loading from google...'));
+          return Container(
+            padding: const EdgeInsets.all(16.0),
+            child: const Text('Loading...'),
+          );
         }
       },
 
@@ -113,51 +116,60 @@ class LocationSearch extends SearchDelegate<Suggestion> {
   @override
   Widget buildResults(BuildContext context) {
 
-    if(query == '' || searchPlaceId == ''){
+    if(query == ''){
       return Container(
         padding: const EdgeInsets.all(16.0),
         child: const Text('Enter your location'),
       );
     }
 
-    if(searchPlaceId == 'jnvsdkfv dvfwoinfoasndfcoac'){
-      return FutureBuilder(
 
-          future: query == '' ? null : apiClient.fetchSuggestions(query),
-          builder: (context, snapshot) {
-
-            if(query == ''){
-              return Container(
-                padding: const EdgeInsets.all(16.0),
-                child: const Text('Enter your address'),
-              );
-            }
-
-            else if (snapshot.hasData){
-
-              var results = snapshot.data as  List<Suggestion>;
-
-              return ListView.builder(
-                itemBuilder: (context, index) => ListTile(
-                  title:
-                  Text((results[index]).description),
-                  onTap: () {
-                    close(context, results[index]);
-                  },
-                ),
-                itemCount: results.length,
-              );
-            }
-
-            else{
-              return Container(child: const Text('Loading...'));
-            }
-          }
-
+    if(searchPlaceId == ''){
+      return Container(
+        padding: const EdgeInsets.all(16.0),
+        child: const Text('Place Id is null'),
       );
+      // return FutureBuilder(
+      //
+      //     future: query == '' ? null : apiClient.fetchSuggestions(query),
+      //     builder: (context, snapshot) {
+      //
+      //       if(query == ''){
+      //         return Container(
+      //           padding: const EdgeInsets.all(16.0),
+      //           child: const Text('Enter your address'),
+      //         );
+      //       }
+      //
+      //       else if (snapshot.hasData){
+      //
+      //         var results = snapshot.data as  List<Suggestion>;
+      //
+      //         return ListView.builder(
+      //           itemBuilder: (context, index) => ListTile(
+      //             title:
+      //             Text((results[index]).description),
+      //             onTap: () {
+      //               close(context, results[index]);
+      //             },
+      //           ),
+      //           itemCount: results.length,
+      //         );
+      //       }
+      //
+      //       else{
+      //         return Container(
+      //           padding: const EdgeInsets.all(16.0),
+      //           child: const Text('Loading...'),
+      //         );
+      //       }
+      //     }
+      //
+      // );
     }
 
 
+    print('Search ID 2 $searchPlaceId');
     return FutureBuilder(
 
         future: apiClient.getPlaceDetailFromId(searchPlaceId),
@@ -167,10 +179,8 @@ class LocationSearch extends SearchDelegate<Suggestion> {
 
             return Container(
               padding: const EdgeInsets.all(16.0),
-              child: Text('${snapshot.error.toString()
-                  .replaceAll('Exception: ', '')}'),
+              child: Text('${snapshot.error.toString()}'),
             );
-
           }
 
           else if (snapshot.hasData){
@@ -180,9 +190,13 @@ class LocationSearch extends SearchDelegate<Suggestion> {
             return ListView.builder(
               itemBuilder: (context, index) => ListTile(
                 title:
-                Text(results.city),
+                Text(results.name),
                 onTap: () {
                   // close(context, results[index]);
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: (context) {
+                        return PlaceDetailsPage();
+                      }));
                 },
               ),
               itemCount: 1,
@@ -199,6 +213,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
         }
 
     );
+
   }
 }
 
