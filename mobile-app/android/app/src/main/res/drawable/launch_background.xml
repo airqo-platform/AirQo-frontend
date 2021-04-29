@@ -9,6 +9,4 @@
             android:gravity="center"
             android:src="@mipmap/launcher_icon_big_foreground" />
     </item>
-
-
 </layer-list>

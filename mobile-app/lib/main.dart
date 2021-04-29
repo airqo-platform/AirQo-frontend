@@ -52,6 +52,7 @@ class AirqoApp extends StatelessWidget {
           locale: provider.locale,
           title: appName,
           theme: lightTheme(),
+
           home: HomePage(),
         );
       },

@@ -21,6 +21,7 @@ class MapPageState extends State<MapPage> {
   final Map<String, Marker> _markers = {};
   var windowProperties;
   var dbHelper = DBHelper();
+  AirqoApiClient apiClient = AirqoApiClient();
 
 
   late BitmapDescriptor markerIcon;
@@ -106,7 +107,7 @@ class MapPageState extends State<MapPage> {
 
     try {
 
-      measurements = await getMeasurements();
+      measurements = await apiClient.getMeasurements();
     }
     on SocketException {
       var message = 'You are working offline, please connect to internet';
@@ -131,7 +132,10 @@ class MapPageState extends State<MapPage> {
 
     try {
 
-      var measurements = await getMeasurements();
+      var message = 'Updating map.... ';
+      await showSnackBar(context, message);
+
+      var measurements = await apiClient.getMeasurements();
 
       if (measurements.isNotEmpty){
         setMeasurements(measurements);
@@ -145,11 +149,11 @@ class MapPageState extends State<MapPage> {
 
     }
     on SocketException {
-      var message = 'You are working offline, please connect to internet';
+      var message = 'Update failed, please connect to internet';
       await showSnackBar(context, message);
     }
     on TimeoutException {
-      var message = 'Connection timeout, please check your internet connection';
+      var message = 'Update failed, please check your network connection';
       await showSnackBar(context, message);
 
     } on Error catch (e) {
@@ -186,7 +190,7 @@ class MapPageState extends State<MapPage> {
           ),
 
           Positioned(
-            top: 30,
+            top: 50,
               child:
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -306,7 +310,7 @@ class MapPageState extends State<MapPage> {
           position: LatLng((measurement.location.latitude.value),
               measurement.location.longitude.value),
           infoWindow: InfoWindow(
-            title: measurement.channelID.toString(),
+            title: measurement.pm2_5.value.toString(),
             // snippet: node.location,
           ),
           onTap: (){

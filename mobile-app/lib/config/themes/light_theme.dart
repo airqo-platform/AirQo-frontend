@@ -1,3 +1,4 @@
+import 'package:app/constants/app_constants.dart';
 import 'package:flutter/material.dart';
 
 ThemeData lightTheme() {
@@ -11,7 +12,9 @@ ThemeData lightTheme() {
 
   return base.copyWith(
     // textTheme: _lightTextTheme(base.textTheme),
-    primaryColor: const Color(0xff5f1ee8),
+    primaryColor: appColor,
     bottomAppBarColor: Colors.white,
+
+    visualDensity: VisualDensity.adaptivePlatformDensity,
   );
 }

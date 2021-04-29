@@ -2,11 +2,13 @@ import 'package:app/config/languages/CustomLocalizations.dart';
 import 'package:app/constants/app_constants.dart';
 import 'package:app/screens/feedback_page.dart';
 import 'package:app/screens/map_page.dart';
+import 'package:app/screens/search_location_page.dart';
 import 'package:app/screens/search_page.dart';
 import 'package:app/screens/settings_page.dart';
 import 'package:app/utils/ui/dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:share/share.dart';
+import 'package:uuid/uuid.dart';
 
 import 'add_place.dart';
 import 'compare_page.dart';
@@ -28,18 +30,27 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(appName),
+        title: Text(title),
         actions: [
           showAddPlace
               ? IconButton(
                   icon: const Icon(
                     Icons.addchart_outlined,
                   ),
-                  onPressed: () {
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (context) {
-                      return AddPlacePage();
-                    }));
+                  onPressed: () async {
+
+                    // final sessionToken = Uuid().v4();
+                    await showSearch(
+                      context: context,
+                      delegate: LocationSearch(),
+                    );
+
+                    // Navigator.push(context,
+                    //     MaterialPageRoute(builder: (context) {
+                    //   return AddPlacePage();
+                    //
+                    //
+                    // }));
                   },
                 )
               : Text(''),

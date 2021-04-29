@@ -1,9 +1,7 @@
 import 'dart:async';
 
 import 'package:app/constants/app_constants.dart';
-import 'package:app/models/device.dart';
 import 'package:app/models/measurement.dart';
-import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sqflite/sqflite.dart';
 

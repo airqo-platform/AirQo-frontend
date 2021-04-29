@@ -1,9 +1,13 @@
+import 'package:flutter/material.dart';
+
 enum AppMenu {
   settings,
   help,
 }
 
 const appName = 'AirQo';
+
+Color appColor = const Color(0xff5f1ee8);
 
 class DbConstants{
 

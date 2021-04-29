@@ -115,9 +115,10 @@ class _FeedbackPageState extends State<FeedbackPage> {
 
           var feedback = feedbackController.text;
           var feedBackModel =
-              feedbackModel.Feedback(email: email, feedback: feedback);
+              feedbackModel.UserFeedback(email: email, feedback: feedback);
 
-          var success = sendFeedback(feedBackModel);
+          var apiClient = AirqoApiClient();
+          var success = apiClient.sendFeedback(feedBackModel);
 
           // if(success){
           //   showDialog<void>(
