@@ -1,6 +1,7 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/screens/feedback_page.dart';
 import 'package:app/screens/map_page.dart';
+import 'package:app/screens/resources_page.dart';
 import 'package:app/screens/search_location_page.dart';
 import 'package:app/screens/search_page.dart';
 import 'package:app/screens/settings_page.dart';
@@ -204,13 +205,14 @@ class _HomePageState extends State<HomePage> {
                 child: Text('Page 2'),
               ),
             ),
-            Center(
-              child: Container(
-                child: Text('Page 3'),
-              ),
-            )
+            ResourcesPage(),
+            // Center(
+            //   child: Container(
+            //     child: Text('Page 3'),
+            //   ),
+            // )
           ],
-          // physics: NeverScrollableScrollPhysics(),
+          physics: NeverScrollableScrollPhysics(),
         ),
       ),
       floatingActionButton: Container(

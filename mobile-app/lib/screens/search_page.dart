@@ -1,6 +1,8 @@
 import 'package:app/screens/resources_page.dart';
 import 'package:flutter/material.dart';
 
+import 'news_and_stats_page.dart';
+
 class SearchPage extends StatefulWidget {
   @override
   _SearchPageState createState() => _SearchPageState();
@@ -11,10 +13,10 @@ class _SearchPageState extends State<SearchPage>
   TabController? _tabController;
   final searchController = TextEditingController();
   final List<Map<String, Widget>> tabs = [
-    {'All': ResourcesPage()},
-    {'Places': ResourcesPage()},
-    {'News': ResourcesPage()},
-    {'Resources': ResourcesPage()}
+    {'All': NewsAndStatsPage()},
+    {'Places': NewsAndStatsPage()},
+    {'News': NewsAndStatsPage()},
+    {'Resources': NewsAndStatsPage()}
   ];
 
   final RestorableInt tabIndex = RestorableInt(0);

@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:app/constants/app_constants.dart';
 import 'package:app/models/feedback.dart' as feedbackModel;
 import 'package:app/utils/services/rest_api.dart';
 import 'package:flutter/material.dart';
@@ -57,7 +58,9 @@ class _FeedbackPageState extends State<FeedbackPage> {
             // Positioned(
             //   child: isLoading ? const Loading() : Container(),
             // ),
-            // Positioned(top: 40, left: 0, child: _backButton()),
+            Positioned(bottom: 10, left: 0, right: 0,
+                child: airqoLogo()
+            ),
           ],
         ),
       ),
@@ -94,7 +97,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
         labelText: 'Feedback',
       ),
       textInputAction: TextInputAction.done,
-      maxLines: 10,
+      maxLines: 6,
       validator: (value) {
         if (value == null || value.isEmpty) {
           return 'Feedback Required';
@@ -106,6 +109,9 @@ class _FeedbackPageState extends State<FeedbackPage> {
 
   Widget submitButton() {
     return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+          primary: appColor
+      ),
       onPressed: () {
         if (_formKey.currentState!.validate()) {
           var email = '';
@@ -141,8 +147,8 @@ class _FeedbackPageState extends State<FeedbackPage> {
   Widget airqoLogo() {
     return Image.asset(
       'assets/icon/airqo_logo.png',
-      height: 40,
-      width: 40,
+      height: 50,
+      width: 50,
     );
   }
 }
