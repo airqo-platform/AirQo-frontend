@@ -8,6 +8,7 @@ class DashboardPage extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.fromLTRB(6, 6, 6, 6),
         child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
           children: <Widget>[
             AirQualityCard(),
             AirQualityCard(),

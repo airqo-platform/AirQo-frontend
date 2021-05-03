@@ -17,7 +17,12 @@ class _ComparePageState extends State<ComparePage> {
   final secondPlaceController = TextEditingController();
   bool displayShareIcon = false;
 
-  AirqoApiClient apiClient = AirqoApiClient();
+  var apiClient;
+
+  @override
+  void initState() {
+    apiClient = AirqoApiClient(context);
+  }
 
   void setShareIcon(value) {
     setState(() {
@@ -40,7 +45,11 @@ class _ComparePageState extends State<ComparePage> {
                 builder: (context, snapshot){
 
                   if (snapshot.hasError){
-                    return graphDisplay();
+
+                    return  SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: graphDisplay(),
+                    );
                   }
                   else if(snapshot.hasData){
 

@@ -18,32 +18,46 @@ class LocationBarChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 400,
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 30),
-      child: Card(
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Column(
-            children: <Widget>[
-              Expanded(
-                child: charts.TimeSeriesChart(
-                  seriesList,
-                  animate: true,
-                  defaultRenderer: charts.BarRendererConfig<DateTime>(),
-                  defaultInteractions: false,
-                  behaviors: [
-                    charts.SelectNearest(),
-                    charts.DomainHighlighter()
-                  ],
-                ),
-              )
-            ],
-          ),
-        ),
-      ),
+    return charts.TimeSeriesChart(
+      seriesList,
+      animate: true,
+      defaultRenderer: charts.BarRendererConfig<DateTime>(),
+      defaultInteractions: false,
+      behaviors: [
+        charts.SelectNearest(),
+        charts.DomainHighlighter()
+      ],
     );
   }
+
+  // @override
+  // Widget build(BuildContext context) {
+  //   return Container(
+  //     height: 400,
+  //     padding: const EdgeInsets.fromLTRB(20, 20, 20, 30),
+  //     child: Card(
+  //       child: Padding(
+  //         padding: const EdgeInsets.all(8.0),
+  //         child: Column(
+  //           children: <Widget>[
+  //             Expanded(
+  //               child: charts.TimeSeriesChart(
+  //                 seriesList,
+  //                 animate: true,
+  //                 defaultRenderer: charts.BarRendererConfig<DateTime>(),
+  //                 defaultInteractions: false,
+  //                 behaviors: [
+  //                   charts.SelectNearest(),
+  //                   charts.DomainHighlighter()
+  //                 ],
+  //               ),
+  //             )
+  //           ],
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
 
   /// Create one series with sample hard coded data.
   static List<charts.Series<TimeSeriesSales, DateTime>> _createSampleData() {
@@ -72,7 +86,7 @@ class LocationBarChart extends StatelessWidget {
     ];
 
     return [
-      new charts.Series<TimeSeriesSales, DateTime>(
+      charts.Series<TimeSeriesSales, DateTime>(
         id: 'Location',
         colorFn: (_, __) => charts.MaterialPalette.blue.shadeDefault,
         domainFn: (TimeSeriesSales sales, _) => sales.time,

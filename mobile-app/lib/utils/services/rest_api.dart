@@ -3,15 +3,23 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:app/config/secret.dart';
 import 'package:app/constants/api.dart';
+import 'package:app/models/device.dart';
 import 'package:app/models/hourly.dart';
 import 'package:app/models/place.dart';
 import 'package:app/models/suggestion.dart';
 import 'package:app/models/feedback.dart';
 import 'package:app/models/event.dart';
 import 'package:app/models/measurement.dart';
+import 'package:app/utils/ui/dialogs.dart';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 class AirqoApiClient{
+
+
+  AirqoApiClient(this.context);
+
+  final BuildContext context;
 
   Future<bool> sendFeedback(UserFeedback feedback) async {
     final response =
@@ -33,31 +41,99 @@ class AirqoApiClient{
   }
 
   Future<List<Measurement>> fetchMeasurements() async {
-    final response = await http.get(Uri.parse(getLatestEvents));
 
-    print(response.statusCode);
-    if (response.statusCode == 200) {
+    try {
 
-      print(response.body);
+      final response = await http.get(Uri.parse(getLatestEvents));
 
-      Event event = Event.fromJson(json.decode(response.body));
-      List<Measurement> measurements = event.measurements;
+      print(response.statusCode);
+      if (response.statusCode == 200) {
 
-      // measurements.forEach((element) {
-      //   print(element.channelID);
-      //   print(element.location.longitude.value);
-      //   print(element.location.latitude.value);
-      // });
+        print(response.body);
 
-      return measurements;
-    } else {
-      print('Unexpected status code ${response.statusCode}:'
-          ' ${response.reasonPhrase}');
-      throw HttpException(
-          'Unexpected status code ${response.statusCode}:'
-              ' ${response.reasonPhrase}',
-          uri: Uri.parse(getLatestEvents));
+        // Event event = Event.fromJson(json.decode(response.body));
+        // List<Measurement> measurements = event.measurements;
+
+        List<Measurement> measurements = json.decode(response.body)['measurements']
+            .map<Measurement>((m) => Measurement.fromJson(m))
+            .toList();
+        // measurements.forEach((element) {
+        //   print(element.channelID);
+        //   print(element.location.longitude.value);
+        //   print(element.location.latitude.value);
+        // });
+
+        return measurements;
+
+
+      } else {
+        print('Unexpected status code ${response.statusCode}:'
+            ' ${response.reasonPhrase}');
+        throw HttpException(
+            'Unexpected status code ${response.statusCode}:'
+                ' ${response.reasonPhrase}',
+            uri: Uri.parse(getLatestEvents));
+      }
     }
+    on SocketException {
+      var message = 'You are working offline, please connect to internet';
+      await showSnackBar(context, message);
+    }
+    on TimeoutException {
+      var message = 'Connection timeout, please check your internet connection';
+      await showSnackBar(context, message);
+
+    } on Error catch (e) {
+      print('Get Latest events error: $e');
+      var message = 'Connection timeout, please check your internet connection';
+      await showSnackBar(context, message);
+    }
+
+    return <Measurement>[];
+
+  }
+
+  Future<List<Device>> fetchDevices() async {
+
+    try {
+
+      final response = await http.get(Uri.parse(getDevices));
+
+      print(response.statusCode);
+      if (response.statusCode == 200) {
+
+        print(response.body);
+
+        List<Device> devices = json.decode(response.body)['devices']
+            .map<Device>((d) => Device.fromJson(d))
+            .toList();
+
+        return devices;
+      } else {
+        print('Unexpected status code ${response.statusCode}:'
+            ' ${response.reasonPhrase}');
+        throw HttpException(
+            'Unexpected status code ${response.statusCode}:'
+                ' ${response.reasonPhrase}',
+            uri: Uri.parse(getDevices));
+      }
+    }
+    on SocketException {
+      var message = 'You are working offline, please connect to internet';
+      await showSnackBar(context, message);
+    }
+    on TimeoutException {
+      var message = 'Connection timeout, please check your internet connection';
+      await showSnackBar(context, message);
+
+    } on Error catch (e) {
+      print('Get Devices error: $e');
+      var message = 'Connection timeout, please check your internet connection';
+      await showSnackBar(context, message);
+    }
+
+    return <Device>[];
+
   }
 
   Future<List<Measurement>> fetchDeviceMeasurements(String device) async {
@@ -128,6 +204,29 @@ class AirqoApiClient{
           uri: Uri.parse(getHourlyEvents));
     }
   }
+
+
+  List<Measurement> mapMeasurements(List<Measurement> measurements,
+      List<Device> devices) {
+
+    var transformedMeasurements = <Measurement>[];
+
+    for (var measurement in measurements) {
+
+      for (var device in devices) {
+        if(device.channelID == measurement.channelID){
+          measurement.setAddress(device.siteName);
+          transformedMeasurements.add(measurement);
+          break;
+        }
+      }
+    }
+
+
+    return transformedMeasurements;
+
+  }
+
 
 }
 

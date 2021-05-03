@@ -1,4 +1,5 @@
 import 'package:app/constants/app_constants.dart';
+import 'package:flutter/foundation.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'measurement.g.dart';
@@ -18,6 +19,7 @@ class Measurements {
 @JsonSerializable()
 class Measurement {
   Measurement({
+    required this.address,
     required this.channelID,
     required this.time,
     required this.pm2_5,
@@ -54,6 +56,7 @@ class Measurement {
       constants.pm10: measurement.pm10.value,
       constants.longitude: measurement.location.longitude.value,
       constants.latitude: measurement.location.latitude.value,
+      constants.address: measurement.address,
     };
   }
 
@@ -62,6 +65,7 @@ class Measurement {
     var constants = DbConstants();
 
     return {
+      'address': json[constants.address] as String,
       'channelID': json[constants.channelID] as int,
       'time': json[constants.time] as String,
       'pm2_5': {'value' : json[constants.pm2_5]},
@@ -74,14 +78,35 @@ class Measurement {
         },
     };
   }
+  
 
+  @JsonKey(required: false)
   final int channelID;
+
+  @JsonKey(required: false)
   final String time;
+
+  @JsonKey(required: false)
   final Value pm2_5;
+
+  @JsonKey(required: false)
   final Value pm10;
+
+  @JsonKey(required: false)
   final Value s2_pm2_5;
+
+  @JsonKey(required: false)
   final Location location;
+
+  @JsonKey(required: false)
   final Value s2_pm10;
+
+  @JsonKey(required: false)
+  String address;
+
+  void setAddress(String addr){
+    address = addr;
+  }
 
 
   // final Value altitude;

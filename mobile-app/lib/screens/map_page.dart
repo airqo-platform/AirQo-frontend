@@ -5,9 +5,12 @@ import 'package:app/constants/app_constants.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/utils/services/local_storage.dart';
 import 'package:app/utils/services/rest_api.dart';
+import 'package:app/utils/ui/date.dart';
 import 'package:app/utils/ui/dialogs.dart';
+import 'package:app/widgets/aqi_index.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:share/share.dart';
 
 
 class MapPage extends StatefulWidget {
@@ -20,8 +23,9 @@ class MapPageState extends State<MapPage> {
   bool _showInfoWindow = false;
   final Map<String, Marker> _markers = {};
   var windowProperties;
+  String windowColor  = '';
   var dbHelper = DBHelper();
-  AirqoApiClient apiClient = AirqoApiClient();
+
 
 
   late BitmapDescriptor markerIcon;
@@ -30,7 +34,7 @@ class MapPageState extends State<MapPage> {
     'very unhealthy', 'hazardous'];
 
 
-  @override
+   @override
   void initState() {
     _showInfoWindow = false;
     super.initState();
@@ -85,10 +89,10 @@ class MapPageState extends State<MapPage> {
 
   }
 
-  void setWindow(Measurement measurement){
+  void updateInfoWindow(Measurement measurement){
     setState(() {
-      _showInfoWindow = true;
       windowProperties = measurement;
+      _showInfoWindow = true;
     });
   }
 
@@ -103,23 +107,11 @@ class MapPageState extends State<MapPage> {
 
     await localFetch();
 
-    var measurements = <Measurement>[];
+    var measurements = await AirqoApiClient(context).fetchMeasurements();
+    var devices = await AirqoApiClient(context).fetchDevices();
 
-    try {
-
-      measurements = await apiClient.fetchMeasurements();
-    }
-    on SocketException {
-      var message = 'You are working offline, please connect to internet';
-      await showSnackBar(context, message);
-    }
-    on TimeoutException {
-      var message = 'Connection timeout, please check your internet connection';
-      await showSnackBar(context, message);
-
-    } on Error catch (e) {
-      print('Get Latest events error: $e');
-    }
+    measurements = AirqoApiClient(context)
+        .mapMeasurements(measurements, devices);
 
     if (measurements.isNotEmpty){
       setMeasurements(measurements);
@@ -130,36 +122,31 @@ class MapPageState extends State<MapPage> {
 
   Future<void> _refreshMeasurements() async {
 
-    try {
+    var message = 'Refreshing map.... ';
+    await showSnackBar(context, message);
 
-      var message = 'Updating map.... ';
+    var measurements = await AirqoApiClient(context).fetchMeasurements();
+
+    await showSnackBar(context, 'got measurements');
+
+    var devices = await AirqoApiClient(context).fetchDevices();
+
+    await showSnackBar(context, 'got devices');
+
+    measurements = AirqoApiClient(context)
+        .mapMeasurements(measurements, devices);
+
+    if (measurements.isNotEmpty){
+      setMeasurements(measurements);
+
+
+
+      var message = 'Update Complete';
       await showSnackBar(context, message);
 
-      var measurements = await apiClient.fetchMeasurements();
-
-      if (measurements.isNotEmpty){
-        setMeasurements(measurements);
-
-        var message = 'Update Complete';
-        await showSnackBar(context, message);
-
-        await dbHelper.insertLatestMeasurements(measurements);
-
-      }
+      await dbHelper.insertLatestMeasurements(measurements);
 
     }
-    on SocketException {
-      var message = 'Update failed, please connect to internet';
-      await showSnackBar(context, message);
-    }
-    on TimeoutException {
-      var message = 'Update failed, please check your network connection';
-      await showSnackBar(context, message);
-
-    } on Error catch (e) {
-      print('Update Latest events error: $e');
-    }
-
 
   }
 
@@ -191,52 +178,68 @@ class MapPageState extends State<MapPage> {
 
           Positioned(
             top: 50,
-              child:
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
+            left: 0,
+            right: 0,
+            child:
+              Column(
                 children: [
-                  IconButton(
-                    icon: const Icon(
-                      Icons.arrow_back_outlined,
-                        color: Color(0xff5f1ee8)
-                    ),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      IconButton(
+                        icon: const Icon(
+                            Icons.arrow_back_outlined,
+                            color: Color(0xff5f1ee8)
+                        ),
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                      ),
+                      // TextField(
+                      //
+                      //   decoration: InputDecoration(
+                      //     hintText: 'Search',
+                      //     // labelText: 'Search',
+                      //     suffixIcon: IconButton(
+                      //       icon: const Icon(Icons.search),
+                      //       onPressed: () {  },
+                      //     ),
+                      //   ),
+                      // )
+                    ],
                   ),
-                  Visibility (
-                    visible: _showInfoWindow,
-                    child:
-                    windowProperties != null ?
-
-                    infoWindow() :
-
-                    Card(
-                        child:
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Column(
-                            children: [
-                              Center(
-                                child: Text(appName, softWrap: true),
-                              ),
-                            ],
-                          ),
-                        )
+                  Padding(
+                      padding: EdgeInsets.fromLTRB(5, 0, 5, 0),
+                      child: Visibility (
+                      visible: _showInfoWindow,
+                      child:
+                      windowProperties != null ?
+                      infoWindow() :
+                      Card(
+                          child:
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Column(
+                              children: [
+                                const Center(
+                                  child: Text(appName, softWrap: true),
+                                ),
+                              ],
+                            ),
+                          )
+                      ),
                     ),
-
                   ),
+
                 ],
-              )
+              ),
           ),
 
           Positioned(
               bottom: 0,
               left: 0,
               right: 0,
-              child:
-              Row(
+              child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -244,9 +247,25 @@ class MapPageState extends State<MapPage> {
                     iconSize: 30.0,
                     icon: const Icon(
                         Icons.refresh_outlined,
-                        color: Color(0xff5f1ee8)
+                        color: appColor
                     ),
                     onPressed: _refreshMeasurements,
+                  ),
+                  IconButton(
+                    iconSize: 30.0,
+                    icon: const Icon(
+                        Icons.help_outline_outlined,
+                        color: appColor
+                    ),
+                    onPressed: (){
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute<void>(
+                          builder: (BuildContext context) => AQI_Dialog(),
+                          fullscreenDialog: true,
+                        ),
+                      );
+                    },
                   ),
                 ],
               )
@@ -277,26 +296,26 @@ class MapPageState extends State<MapPage> {
 
         var pm2_5  = measurement.pm2_5.value;
 
-        if(pm2_5 >= 0 && pm2_5 <= 50){ //good
+        if(pm2_5 >= 0 && pm2_5 <= 12){ //good
           bitmapDescriptor = BitmapDescriptor
               .defaultMarkerWithHue(BitmapDescriptor.hueGreen);
         }
-        else if(pm2_5 >= 51 && pm2_5 <= 100){ //moderate
+        else if(pm2_5 >= 12.1 && pm2_5 <= 35.4){ //moderate
           bitmapDescriptor = BitmapDescriptor
               .defaultMarkerWithHue(BitmapDescriptor.hueYellow);
         }
-        else if(pm2_5 >= 101 && pm2_5 <= 150){ //sensitive
+        else if(pm2_5 >= 35.5 && pm2_5 <= 55.4){ //sensitive
           bitmapDescriptor = BitmapDescriptor
               .defaultMarkerWithHue(BitmapDescriptor.hueOrange);
         }
-        else if(pm2_5 >= 151 && pm2_5 <= 200){ // unhealthy
+        else if(pm2_5 >= 55.5 && pm2_5 <= 150.4){ // unhealthy
           bitmapDescriptor = BitmapDescriptor
               .defaultMarkerWithHue(BitmapDescriptor.hueRed);
         }
-        else if(pm2_5 >= 201 && pm2_5 <= 300){ // very unhealthy
+        else if(pm2_5 >= 150.5 && pm2_5 <= 250.4){ // very unhealthy
           bitmapDescriptor = BitmapDescriptor.defaultMarkerWithHue(285);
         }
-        else if(pm2_5 >= 301){ // hazardous
+        else if(pm2_5 >= 250.5){ // hazardous
           bitmapDescriptor = BitmapDescriptor
               .defaultMarkerWithHue(BitmapDescriptor.hueMagenta);
         }
@@ -314,7 +333,7 @@ class MapPageState extends State<MapPage> {
             // snippet: node.location,
           ),
           onTap: (){
-            setWindow(measurement);
+            updateInfoWindow(measurement);
           },
         );
         _markers[measurement.channelID.toString()] = marker;
@@ -324,18 +343,62 @@ class MapPageState extends State<MapPage> {
   }
 
   Widget infoWindow(){
-    return Card(
+    return
+      Card(
         child:
         Padding(
           padding: const EdgeInsets.all(8.0),
           child: Column(
             children: [
-              const Center(
-                child: Text(appName, softWrap: true),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Text(windowProperties.address, softWrap: true,),
+
+                  Text( dateToString(windowProperties.time) , softWrap: true,)
+                ],
               ),
-              Center(
-                child: Text(windowProperties.pm2_5.value.toString(), softWrap: true),
-              )
+              Container(
+                  padding: const EdgeInsets.all(2.0),
+                  decoration: BoxDecoration(
+                      border: Border.all(
+                        color: appColor,
+                      ),
+                      borderRadius: const BorderRadius.all(Radius.circular(20))
+                  ),
+                  child: Row(
+                    children: [
+                      Text(windowProperties.pm2_5.value.toString()),
+                      const Text('Good'),
+                    ],
+                  )
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  IconButton(
+                    onPressed: () {
+                      Share.share('https://airqo.net', subject: 'Makerere!');
+                    },
+                    icon: const Icon(Icons.share_outlined),
+                  ),
+                  IconButton(
+                    onPressed: () {
+                      Share.share('https://airqo.net', subject: 'Makerere!');
+                    },
+                    icon: const Icon(Icons.favorite_border_outlined),
+                  ),
+                  GestureDetector(
+                    onTap: (){
+
+                    },
+                    child: const Text('More Details',
+                        softWrap: true,
+                        style: TextStyle(fontWeight: FontWeight.bold)
+                    ),
+                  )
+                ],
+              ),
             ],
           ),
         )

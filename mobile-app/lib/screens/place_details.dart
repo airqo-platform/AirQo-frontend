@@ -19,7 +19,13 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
 
   bool isFavourite = false;
 
-  AirqoApiClient apiClient = AirqoApiClient();
+  var apiClient;
+
+
+  @override
+  void initState() {
+    apiClient = AirqoApiClient(context);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -79,7 +85,16 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
               //     },
               // ),
 
-              LocationBarChart(),
+              SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Container(
+                    width: 500,
+                    height: 200,
+                    padding: EdgeInsets.all(8),
+                    child:  LocationBarChart(),
+                  )
+              )
+              // LocationBarChart(),
             ],
           ),
         ),

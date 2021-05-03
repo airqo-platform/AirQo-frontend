@@ -17,13 +17,13 @@ class Devices {
 @JsonSerializable()
 class Device {
   Device({
+    required this.channelID,
     required this.id,
-    required this.created_at,
     required this.description,
     required this.isActive,
     required this.locationName,
-    required this.latitude,
-    required this.longitude,
+    // required this.latitude,
+    // required this.longitude,
     required this.siteName,
     required this.name,
     required this.createdAt,
@@ -39,11 +39,11 @@ class Device {
   final String name;
   final String createdAt;
   final String description;
-  final String created_at;
   final bool isActive;
   final String siteName;
   final String locationName;
-  final double latitude;
-  final double longitude;
+  final int channelID;
+  // final double latitude;
+  // final double longitude;
 
 }

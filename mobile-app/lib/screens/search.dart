@@ -1,4 +1,5 @@
 import 'package:app/constants/app_constants.dart';
+import 'package:app/models/device.dart';
 import 'package:app/models/place.dart';
 import 'package:app/models/suggestion.dart';
 import 'package:app/screens/place_details.dart';
@@ -6,14 +7,7 @@ import 'package:app/utils/services/rest_api.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
-class LocationSearch extends SearchDelegate<Suggestion> {
-  LocationSearch() {
-    apiClient = GoogleSearchProvider(const Uuid().v4());
-  }
-
-  GoogleSearchProvider apiClient = GoogleSearchProvider('');
-
-  String searchPlaceId = '';
+class LocationSearch extends SearchDelegate<Device> {
 
 
   @override
@@ -50,7 +44,8 @@ class LocationSearch extends SearchDelegate<Suggestion> {
       tooltip: 'Back',
       icon: const Icon(Icons.arrow_back),
       onPressed: () {
-        close(context, Suggestion(description: '', placeId: ''));
+        var device;
+        close(context, device);
       },
     );
   }
@@ -58,7 +53,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
   @override
   Widget buildSuggestions(BuildContext context) {
     return FutureBuilder(
-      future: query == '' ? null : apiClient.fetchSuggestions(query),
+      future: query == '' ? null : AirqoApiClient(context).fetchDevices(),
       builder: (context, snapshot) {
 
         if(query == ''){
@@ -81,18 +76,16 @@ class LocationSearch extends SearchDelegate<Suggestion> {
 
           print(snapshot.data);
 
-          var results = snapshot.data as  List<Suggestion>;
+          var results = snapshot.data as  List<Device>;
 
           return ListView.builder(
             itemBuilder: (context, index) => ListTile(
               title:
-              Text((results[index]).description),
+              Text((results[index]).siteName),
               onTap: () {
                 query = (results[index]).description;
-                print('Search ID 1 ${results[index].placeId}');
-                searchPlaceId = results[index].placeId;
-                showResults(context);
-                // close(context, results[index]);
+                // showResults(context);
+                close(context, results[index]);
               },
             ),
             itemCount: results.length,
@@ -114,103 +107,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
   @override
   Widget buildResults(BuildContext context) {
 
-    if(query == ''){
-      return Container(
-        padding: const EdgeInsets.all(16.0),
-        child: const Text('Enter your location'),
-      );
-    }
-
-
-    if(searchPlaceId == ''){
-      return Container(
-        padding: const EdgeInsets.all(16.0),
-        child: const Text('Failed to get location'),
-      );
-      // return FutureBuilder(
-      //
-      //     future: query == '' ? null : apiClient.fetchSuggestions(query),
-      //     builder: (context, snapshot) {
-      //
-      //       if(query == ''){
-      //         return Container(
-      //           padding: const EdgeInsets.all(16.0),
-      //           child: const Text('Enter your address'),
-      //         );
-      //       }
-      //
-      //       else if (snapshot.hasData){
-      //
-      //         var results = snapshot.data as  List<Suggestion>;
-      //
-      //         return ListView.builder(
-      //           itemBuilder: (context, index) => ListTile(
-      //             title:
-      //             Text((results[index]).description),
-      //             onTap: () {
-      //               close(context, results[index]);
-      //             },
-      //           ),
-      //           itemCount: results.length,
-      //         );
-      //       }
-      //
-      //       else{
-      //         return Container(
-      //           padding: const EdgeInsets.all(16.0),
-      //           child: const Text('Loading...'),
-      //         );
-      //       }
-      //     }
-      //
-      // );
-    }
-
-
-    print('Search ID 2 $searchPlaceId');
-    return FutureBuilder(
-
-        future: apiClient.getPlaceDetailFromId(searchPlaceId),
-        builder: (context, snapshot) {
-
-          if (snapshot.hasError){
-
-            return Container(
-              padding: const EdgeInsets.all(16.0),
-              child: Text('${snapshot.error.toString()}'),
-            );
-          }
-
-          else if (snapshot.hasData){
-
-            var results = snapshot.data as  Place;
-
-            return ListView.builder(
-              itemBuilder: (context, index) => ListTile(
-                title:
-                Text(results.name),
-                onTap: () {
-                  // close(context, results[index]);
-                  Navigator.push(context,
-                      MaterialPageRoute(builder: (context) {
-                        return PlaceDetailsPage();
-                      }));
-                },
-              ),
-              itemCount: 1,
-            );
-          }
-
-          else{
-
-            return Container(
-              padding: const EdgeInsets.all(16.0),
-              child: const Text('Loading location details. Please wait...'),
-            );
-          }
-        }
-
-    );
+    return const Placeholder();
 
   }
 

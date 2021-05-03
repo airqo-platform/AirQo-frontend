@@ -7,7 +7,7 @@ enum AppMenu {
 
 const appName = 'AirQo';
 
-Color appColor = const Color(0xff5f1ee8);
+const appColor = Color(0xff5f1ee8);
 
 class DbConstants{
 
@@ -22,7 +22,10 @@ class DbConstants{
   final String _latitude = 'latitude';
   final String _longitude = 'longitude';
   final String _s2_pm10 = 's2_pm10';
+  final String _address = 'address';
 
+
+  String get address => _address;
 
   String get myLocationsTable => _myLocationsTable;
 
