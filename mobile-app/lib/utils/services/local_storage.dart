@@ -31,6 +31,9 @@ class DBHelper {
       onCreate: (db, version) {
         createDefaultTables(db);
       },
+      // onUpgrade: (db, oldVersion, newVersion){
+      //
+      // },
       version: 1,
     );
 
@@ -48,7 +51,8 @@ class DBHelper {
           ${constants.pm10} not null,
           ${constants.time} not null,
           ${constants.s2_pm2_5} not null,
-          ${constants.s2_pm10} not null
+          ${constants.s2_pm10} not null,
+           ${constants.address} not null
           )
       ''');
 
@@ -63,6 +67,15 @@ class DBHelper {
           ${constants.time} not null,
           ${constants.s2_pm2_5} not null,
           ${constants.s2_pm10} not null
+          )
+      ''');
+
+    await db.execute('''
+        create table ${constants.devicesTable} (
+          id INTEGER PRIMARY KEY,
+          ${constants.channelID} not null,
+          ${constants.siteName} not null,
+          ${constants.description} not null,
           )
       ''');
 
@@ -87,7 +100,8 @@ class DBHelper {
           ${constants.pm10} not null,
           ${constants.time} not null,
           ${constants.s2_pm2_5} not null,
-          ${constants.s2_pm10} not null
+          ${constants.s2_pm10} not null,
+          ${constants.address} not null
           )
       ''');
 

@@ -19,6 +19,7 @@ class Measurements {
 @JsonSerializable()
 class Measurement {
   Measurement({
+    required this.status,
     required this.address,
     required this.channelID,
     required this.time,
@@ -78,7 +79,7 @@ class Measurement {
         },
     };
   }
-  
+
 
   @JsonKey(required: false)
   final int channelID;
@@ -104,8 +105,15 @@ class Measurement {
   @JsonKey(required: false)
   String address;
 
+  @JsonKey(required: false)
+  String status;
+
   void setAddress(String addr){
     address = addr;
+  }
+
+  void setStatus(String s){
+    status = s;
   }
 
 

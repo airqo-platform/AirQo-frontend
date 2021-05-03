@@ -7,6 +7,7 @@ import 'package:app/utils/services/local_storage.dart';
 import 'package:app/utils/services/rest_api.dart';
 import 'package:app/utils/ui/date.dart';
 import 'package:app/utils/ui/dialogs.dart';
+import 'package:app/utils/ui/pmColor.dart';
 import 'package:app/widgets/aqi_index.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -139,9 +140,7 @@ class MapPageState extends State<MapPage> {
     if (measurements.isNotEmpty){
       setMeasurements(measurements);
 
-
-
-      var message = 'Update Complete';
+      var message = 'Refresh Complete';
       await showSnackBar(context, message);
 
       await dbHelper.insertLatestMeasurements(measurements);
@@ -168,11 +167,14 @@ class MapPageState extends State<MapPage> {
             mapToolbarEnabled: false,
             initialCameraPosition: const CameraPosition(
               target: LatLng(0.3318118, 32.5694503),
-              zoom: 2,
+              zoom: 6,
             ),
             markers: _markers.values.toSet(),
             onTap: (_){
-              _showInfoWindow = false;
+              setState(() {
+                _showInfoWindow = false;
+              });
+
             },
           ),
 
@@ -181,58 +183,76 @@ class MapPageState extends State<MapPage> {
             left: 0,
             right: 0,
             child:
-              Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
+                Padding(
+                  padding: EdgeInsets.fromLTRB(8, 0, 8, 0),
+                  child: Column(
                     children: [
-                      IconButton(
-                        icon: const Icon(
-                            Icons.arrow_back_outlined,
-                            color: Color(0xff5f1ee8)
-                        ),
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          IconButton(
+                            icon: const Icon(
+                                Icons.arrow_back_outlined,
+                                color: Color(0xff5f1ee8)
+                            ),
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                          ),
+
+                          Expanded(
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white70,
+                                borderRadius:  BorderRadius.circular(32),
+                              ),
+                              child: GestureDetector(
+                                onTap: (){
+
+                                },
+                                child: const TextField(
+                                  decoration: InputDecoration(
+                                    hintStyle: TextStyle(fontSize: 13),
+                                    hintText: 'Search',
+                                    suffixIcon: Icon(
+                                        Icons.search,
+                                        color: appColor
+                                    ),
+                                    border: InputBorder.none,
+                                    contentPadding: EdgeInsets.all(15),
+                                  ),
+                                ),
+                              )
+                            ),
+
+                          )
+
+                        ],
                       ),
-                      // TextField(
-                      //
-                      //   decoration: InputDecoration(
-                      //     hintText: 'Search',
-                      //     // labelText: 'Search',
-                      //     suffixIcon: IconButton(
-                      //       icon: const Icon(Icons.search),
-                      //       onPressed: () {  },
-                      //     ),
-                      //   ),
-                      // )
+                      Visibility (
+                        visible: _showInfoWindow,
+                        child:
+                        windowProperties != null ?
+                        infoWindow() :
+                        Card(
+                            child:
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Column(
+                                children: [
+                                  const Center(
+                                    child: Text(appName, softWrap: true),
+                                  ),
+                                ],
+                              ),
+                            )
+                        ),
+                      ),
+
                     ],
                   ),
-                  Padding(
-                      padding: EdgeInsets.fromLTRB(5, 0, 5, 0),
-                      child: Visibility (
-                      visible: _showInfoWindow,
-                      child:
-                      windowProperties != null ?
-                      infoWindow() :
-                      Card(
-                          child:
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Column(
-                              children: [
-                                const Center(
-                                  child: Text(appName, softWrap: true),
-                                ),
-                              ],
-                            ),
-                          )
-                      ),
-                    ),
-                  ),
+                ),
 
-                ],
-              ),
           ),
 
           Positioned(
@@ -299,25 +319,31 @@ class MapPageState extends State<MapPage> {
         if(pm2_5 >= 0 && pm2_5 <= 12){ //good
           bitmapDescriptor = BitmapDescriptor
               .defaultMarkerWithHue(BitmapDescriptor.hueGreen);
+          measurement.setStatus('Good');
         }
         else if(pm2_5 >= 12.1 && pm2_5 <= 35.4){ //moderate
           bitmapDescriptor = BitmapDescriptor
               .defaultMarkerWithHue(BitmapDescriptor.hueYellow);
+          measurement.setStatus('Moderate');
         }
         else if(pm2_5 >= 35.5 && pm2_5 <= 55.4){ //sensitive
           bitmapDescriptor = BitmapDescriptor
               .defaultMarkerWithHue(BitmapDescriptor.hueOrange);
+          measurement.setStatus('Unhealthy');
         }
         else if(pm2_5 >= 55.5 && pm2_5 <= 150.4){ // unhealthy
           bitmapDescriptor = BitmapDescriptor
               .defaultMarkerWithHue(BitmapDescriptor.hueRed);
+          measurement.setStatus('Unhealthy');
         }
         else if(pm2_5 >= 150.5 && pm2_5 <= 250.4){ // very unhealthy
           bitmapDescriptor = BitmapDescriptor.defaultMarkerWithHue(285);
+          measurement.setStatus('Very Unhealthy');
         }
         else if(pm2_5 >= 250.5){ // hazardous
           bitmapDescriptor = BitmapDescriptor
               .defaultMarkerWithHue(BitmapDescriptor.hueMagenta);
+          measurement.setStatus('Hazardous');
         }
         else{
           bitmapDescriptor = BitmapDescriptor.defaultMarker;
@@ -350,43 +376,81 @@ class MapPageState extends State<MapPage> {
           padding: const EdgeInsets.all(8.0),
           child: Column(
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  Text(windowProperties.address, softWrap: true,),
+              Text(windowProperties.address,
+                softWrap: true,
+                style: const TextStyle(
+                    color: appColor
+                ),
+                overflow: TextOverflow.ellipsis,),
+              Padding(
+                padding: EdgeInsets.fromLTRB(0, 5, 0, 0),
+                child: Container(
+                    padding: const EdgeInsets.all(5.0),
+                    decoration: BoxDecoration(
+                        color: getPmColor(windowProperties.pm2_5.value),
+                        border: Border.all(
+                          color:  getPmColor(windowProperties.pm2_5.value),
+                        ),
+                        borderRadius: const BorderRadius.all(Radius.circular(10))
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        Text(windowProperties.pm2_5.value.toString(),
+                          // style: TextStyle(
+                          //     color: Colors.white
+                          // ),
+                        ),
+                        Text(windowProperties.status,
+                        //   style: TextStyle(
+                        //   color: Colors.white
+                        // ),
+                        ),
+                        Text( dateToString(windowProperties.time) ,
+                          softWrap: true,
+                          overflow: TextOverflow.ellipsis,
+                          // style: TextStyle(
+                          //     color: Colors.white
+                          // ),
+                          )
+                      ],
+                    )
+                ),
+              ),
 
-                  Text( dateToString(windowProperties.time) , softWrap: true,)
-                ],
-              ),
-              Container(
-                  padding: const EdgeInsets.all(2.0),
-                  decoration: BoxDecoration(
-                      border: Border.all(
-                        color: appColor,
-                      ),
-                      borderRadius: const BorderRadius.all(Radius.circular(20))
-                  ),
-                  child: Row(
-                    children: [
-                      Text(windowProperties.pm2_5.value.toString()),
-                      const Text('Good'),
-                    ],
-                  )
-              ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   IconButton(
                     onPressed: () {
-                      Share.share('https://airqo.net', subject: 'Makerere!');
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute<void>(
+                          builder: (BuildContext context) => AQI_Dialog(),
+                          fullscreenDialog: true,
+                        ),
+                      );
                     },
-                    icon: const Icon(Icons.share_outlined),
+                    icon: const Icon(Icons.info_outline, color: appColor),
                   ),
                   IconButton(
                     onPressed: () {
-                      Share.share('https://airqo.net', subject: 'Makerere!');
+                      var text = 'Checkout the air quality of '
+                          '${windowProperties.address} at https://www.airqo.net';
+                      Share.share(text, subject: 'Airqo, Breathe Clean', );
                     },
-                    icon: const Icon(Icons.favorite_border_outlined),
+                    icon: const Icon(
+                        Icons.share_outlined,
+                        color: appColor),
+                  ),
+                  IconButton(
+                    onPressed: () {
+                      String text = 'Checkout the air quality of '
+                          '${windowProperties.address} at https://www.airqo.net';
+                      Share.share(text,
+                        subject: 'Airqo, Breathe Clean', );
+                    },
+                    icon: const Icon(Icons.favorite_border_outlined, color: appColor),
                   ),
                   GestureDetector(
                     onTap: (){
@@ -394,7 +458,10 @@ class MapPageState extends State<MapPage> {
                     },
                     child: const Text('More Details',
                         softWrap: true,
-                        style: TextStyle(fontWeight: FontWeight.bold)
+                        style: TextStyle(
+                            color: appColor,
+                            fontWeight: FontWeight.bold
+                        )
                     ),
                   )
                 ],
