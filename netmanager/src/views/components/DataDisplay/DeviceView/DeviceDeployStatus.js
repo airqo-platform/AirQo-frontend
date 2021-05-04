@@ -37,7 +37,7 @@ import {
   recallDeviceApi,
 } from "../../../apis/deviceRegistry";
 import { updateMainAlert } from "redux/MainAlert/operations";
-import { getElapsedDurationMapper } from "utils/dateTime";
+import { getElapsedDurationMapper, getFirstNDurations } from "utils/dateTime";
 import { updateDevice } from "redux/DeviceRegistry/operations";
 
 const useStyles = makeStyles((theme) => ({
@@ -52,21 +52,6 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const getFirstNDurations = (duration, n) => {
-  let format = "";
-  let count = n;
-  const keys = ["year", "month", "week", "day", "hour", "minute", "second"];
-  for (const key of keys) {
-    const elapsedTime = duration[key];
-    if (elapsedTime > 0) {
-      format = `${format} ${elapsedTime} ${key}(s),`;
-      count -= 1;
-    }
-
-    if (count <= 0) break;
-  }
-  return format;
-};
 
 const errorStyles = {
   color: "red",

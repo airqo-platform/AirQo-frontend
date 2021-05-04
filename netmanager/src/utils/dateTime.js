@@ -12,7 +12,10 @@ export const formatDateString = (
 };
 
 export const getElapsedDurationMapper = (dateTimeStr) => {
-  let delta = Math.abs(new Date() - new Date(dateTimeStr)) / 1000;
+  let delta =
+    Math.abs(
+      new Date() - new Date(moment.utc(dateTimeStr).tz(moment.tz.guess()))
+    ) / 1000;
   let seconds = delta;
   let result = {};
   let structure = {
@@ -31,4 +34,26 @@ export const getElapsedDurationMapper = (dateTimeStr) => {
   });
 
   return [seconds, result];
+};
+
+export const getFirstNDurations = (duration, n) => {
+  let format = "";
+  let count = n;
+  const keys = ["year", "month", "week", "day", "hour", "minute", "second"];
+  for (const key of keys) {
+    const elapsedTime = duration[key];
+    if (elapsedTime > 0) {
+      format = `${format} ${elapsedTime} ${key}s,`;
+      count -= 1;
+    }
+
+    if (count <= 0) break;
+  }
+  format = format.substring(0, format.length - 1);
+  return format;
+};
+
+export const getFirstDuration = (dateTimeStr) => {
+  const [seconds, durations] = getElapsedDurationMapper(dateTimeStr);
+  return getFirstNDurations(durations, 1);
 };

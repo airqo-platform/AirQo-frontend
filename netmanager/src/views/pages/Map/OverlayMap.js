@@ -3,7 +3,7 @@ import { useDispatch } from "react-redux";
 import mapboxgl from "mapbox-gl";
 import { isEmpty } from "underscore";
 import { heatMapPaint } from "./paints";
-import { formatDateString } from "utils/dateTime";
+import { formatDateString, getFirstDuration } from "utils/dateTime";
 import Filter from "../Dashboard/components/Map/Filter";
 import {
   loadPM25HeatMapData,
@@ -198,9 +198,9 @@ export const OverlayMap = ({
                     }"> AQI: ${feature.properties.pm2_5.value.toFixed(
                   2
                 )} - ${desc}</div>
-                    <span>Last Refreshed: <b>${formatDateString(
-                      feature.properties.time
-                    )}</b> (EAT)</span>
+                    <span>Last Refreshed: <b>${getFirstDuration(
+                      formatDateString(feature.properties.time)
+                    )}</b> ago</span>
                 </div>`
               )
             )
