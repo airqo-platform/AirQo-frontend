@@ -6,19 +6,32 @@ import {
 } from "./actions";
 
 export const updateMainAlert = (newAlertData) => {
-  return (dispatch) => {
+  return (dispatch, getState) => {
+    const oldState = getState().mainAlert;
+    if (oldState.timeout) {
+      clearTimeout(oldState.timeout);
+    }
+    const timeout = setTimeout(() => {
+      /* we get the state at this point inorder to get the most recent */
+      const state = getState().mainAlert;
+      dispatch({
+        type: HIDE_ALERT_SUCCESS,
+        payload: { ...state, show: false, timeout: null },
+      });
+    }, 5000);
     dispatch({
       type: UPDATE_ALERT_SUCCESS,
-      payload: newAlertData,
+      payload: { ...newAlertData, timeout },
     });
   };
 };
 
 export const hideMainAlert = () => {
-  return (dispatch) => {
+  return (dispatch, getState) => {
+    const state = getState().mainAlert;
     dispatch({
       type: HIDE_ALERT_SUCCESS,
-      payload: { show: false, message: "", severity: "success" },
+      payload: { ...state, show: false },
     });
   };
 };
