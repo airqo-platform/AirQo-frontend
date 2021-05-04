@@ -1,3 +1,4 @@
+import 'package:app/constants/app_constants.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'device.g.dart';
@@ -18,16 +19,11 @@ class Devices {
 class Device {
   Device({
     required this.channelID,
-    required this.id,
     required this.description,
     required this.isActive,
     required this.locationName,
-    // required this.latitude,
-    // required this.longitude,
     required this.siteName,
     required this.name,
-    required this.createdAt,
-
   });
 
 
@@ -35,15 +31,40 @@ class Device {
   Map<String, dynamic> toJson() => _$DeviceToJson(this);
 
 
-  final String id;
   final String name;
-  final String createdAt;
   final String description;
   final bool isActive;
   final String siteName;
   final String locationName;
   final int channelID;
-  // final double latitude;
-  // final double longitude;
+
+  static Map<String, dynamic> toDbMap(Device device) {
+
+    var constants = DbConstants();
+
+    return {
+      constants.channelID: device.channelID,
+      constants.description: device.description,
+      constants.siteName: device.siteName,
+      constants.locationName: device.locationName,
+      constants.name: device.name,
+    };
+  }
+
+  static Map<String, dynamic> fromDbMap(Map<String, dynamic> json) {
+
+    var constants = DbConstants();
+
+    return {
+
+      'channelID': json[constants.channelID] as int,
+      'description': json[constants.description] as String,
+      'isActive': true,
+      'name': json[constants.name] as String,
+      'siteName': json[constants.siteName] as String,
+      'locationName': json[constants.locationName] as String,
+
+    };
+  }
 
 }

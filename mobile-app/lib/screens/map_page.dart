@@ -218,7 +218,9 @@ class MapPageState extends State<MapPage> {
                                         Icons.search,
                                         color: appColor
                                     ),
-                                    border: InputBorder.none,
+                                    // border: InputBorder.none,
+                                    border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.all(Radius.circular(25.0))),
                                     contentPadding: EdgeInsets.all(15),
                                   ),
                                 ),

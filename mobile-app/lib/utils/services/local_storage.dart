@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:app/constants/app_constants.dart';
+import 'package:app/models/device.dart';
 import 'package:app/models/measurement.dart';
 import 'package:intl/intl.dart';
 import 'package:sqflite/sqflite.dart';
@@ -133,6 +134,55 @@ class DBHelper {
 
   }
 
+  Future<void> insertLatestDevices(List<Device> devices) async {
+
+    print('Inserting devices into local db');
+
+    final db = await database;
+
+    try{
+
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS ${constants.devicesTable} (
+          id INTEGER PRIMARY KEY,
+          ${constants.channelID} not null,
+          ${constants.description} null,
+          ${constants.siteName} null,
+          ${constants.locationName} null,
+          ${constants.name} null
+          )
+      ''');
+
+      if(devices.isNotEmpty){
+
+        await db.execute('''
+        DELETE FROM ${constants.devicesTable} 
+      ''');
+
+        for (var device in devices){
+          var jsonData = Device.toDbMap(device);
+
+          await db.insert(
+            '${constants.devicesTable}',
+            jsonData,
+            conflictAlgorithm: ConflictAlgorithm.replace,
+          );
+
+        }
+
+        print('Device insertion into local db complete');
+
+      }
+
+
+    }
+    catch(e) {
+      print(e);
+    }
+
+
+  }
+
   Future<void> insertMeasurement(Measurement measurement) async {
     final db = await database;
 
@@ -223,6 +273,31 @@ class DBHelper {
     catch(e) {
       print(e);
       return <Measurement>[];
+    }
+
+  }
+
+  Future<List<Device>> getLatestDevices() async {
+
+
+    print('Getting devices from local db');
+
+    try{
+
+      final db = await database;
+      var res = await db.query(constants.devicesTable);
+
+      var devices = res.isNotEmpty ? List.generate(res.length, (i) {
+
+        return Device.fromJson( Device.fromDbMap(res[i]));
+      }) : <Device>[];
+
+      return devices;
+    }
+
+    catch(e) {
+      print(e);
+      return <Device>[];
     }
 
   }

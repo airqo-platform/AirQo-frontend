@@ -128,7 +128,7 @@ class AirqoApiClient{
 
     } on Error catch (e) {
       print('Get Devices error: $e');
-      var message = 'Connection timeout, please check your internet connection';
+      var message = 'Couldn\'t get locations, please try again later';
       await showSnackBar(context, message);
     }
 
