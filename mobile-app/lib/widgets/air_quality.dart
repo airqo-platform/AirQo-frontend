@@ -97,7 +97,7 @@ class TitleSection extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
                 child: Image.asset(
-                  'assets/images/happy_face.png',
+                  'assets/images/good-face.png',
                   height: 40,
                   width: 40,
                 ),

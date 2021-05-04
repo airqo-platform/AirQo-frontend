@@ -50,7 +50,7 @@ class MapPageState extends State<MapPage> {
 
       // var markerIcon = await BitmapDescriptor.fromAssetImage(
       //     const ImageConfiguration(size: Size(3, 3)),
-      //     'assets/images/happy_face.png');
+      //     'assets/images/good-face.png');
 
       var markerIcon = BitmapDescriptor.defaultMarker;
 

@@ -17,12 +17,12 @@ class AQI_Dialog extends StatelessWidget {
         child: ListView(
           children: [
             whatIsAQI,
-            AQI_Quide('assets/images/happy_face.png', good),
-            AQI_Quide('assets/images/happy_face.png', good),
-            AQI_Quide('assets/images/happy_face.png', good),
-            AQI_Quide('assets/images/happy_face.png', good),
-            AQI_Quide('assets/images/happy_face.png', good),
-            AQI_Quide('assets/images/happy_face.png', good),
+            AQI_Quide('assets/images/good-face.png', good),
+            AQI_Quide('assets/images/good-face.png', good),
+            AQI_Quide('assets/images/good-face.png', good),
+            AQI_Quide('assets/images/good-face.png', good),
+            AQI_Quide('assets/images/good-face.png', good),
+            AQI_Quide('assets/images/good-face.png', good),
           ],
         ),
       ),
@@ -83,7 +83,7 @@ class AQI_Dialog extends StatelessWidget {
         Padding(
           padding: EdgeInsets.all(5),
           child: Image.asset(
-            'assets/images/happy_face.png',
+            'assets/images/good-face.png',
             height: 40,
             width: 40,
           ),

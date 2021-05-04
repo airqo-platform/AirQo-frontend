@@ -82,7 +82,12 @@ flutter:
 
   assets:
     # images
-    - assets/images/happy_face.png
+    - assets/images/good-face.png
+    - assets/images/moderate-face.png
+    - assets/images/unhealthy-face.png
+    - assets/images/very-unhealthy-face.png
+    - assets/images/sensitive-face.png
+    - assets/images/hazardous-face.png
     - assets/icon/airqo_logo.png
     - assets/images/good.png
     - assets/images/moderate.png

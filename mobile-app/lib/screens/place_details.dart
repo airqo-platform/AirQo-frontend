@@ -81,6 +81,8 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
 
   Future<void> getDetails() async {
 
+    await localFetch();
+
     try{
 
       var measurement =
@@ -109,6 +111,34 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
       setState(() {
         response = message;
       });
+
+    }
+  }
+
+  Future<void> localFetch() async {
+
+    try{
+
+      var measurements =
+      await DBHelper().getDeviceMeasurements(widget.device.channelID);
+
+      var measurement = measurements.first;
+
+      measurement.setAddress(widget.device.siteName);
+      measurement.setStatus(pmToString(measurement.pm2_5.value));
+      measurement.setChannelId(widget.device.channelID);
+
+      setState(() {
+        locationData = measurement;
+      });
+
+      if(locationData != null){
+        await checkFavourite();
+      }
+
+    }
+    on Error catch (e) {
+      print('Getting device events locally error: $e');
 
     }
   }

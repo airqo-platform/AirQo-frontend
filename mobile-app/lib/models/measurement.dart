@@ -54,7 +54,7 @@ class Measurement {
 
 
     return {
-      constants.favourite: measurement.favourite,
+      constants.favourite: measurement.favourite == null ? 0 : measurement.favourite ? 1 : 0,
       constants.channelID: measurement.channelID,
       constants.time: time,
       constants.pm2_5: measurement.pm2_5.value,
@@ -72,7 +72,7 @@ class Measurement {
     var constants = DbConstants();
 
     return {
-      'favourite': json[constants.favourite] as bool,
+      'favourite': json[constants.favourite] == 0 ? false : true,
       'address': json[constants.address] as String,
       'channelID': json[constants.channelID] as int,
       'time': json[constants.time] as String,

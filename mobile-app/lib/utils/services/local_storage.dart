@@ -50,7 +50,8 @@ class DBHelper {
           ${constants.time} not null,
           ${constants.s2_pm2_5} not null,
           ${constants.s2_pm10} not null,
-          ${constants.address} not null
+          ${constants.address} not null,
+          ${constants.favourite} not null
           )
       ''');
 
@@ -65,7 +66,8 @@ class DBHelper {
           ${constants.time} not null,
           ${constants.s2_pm2_5} not null,
           ${constants.s2_pm10} not null,
-          ${constants.address} not null
+          ${constants.address} not null,
+          ${constants.favourite} not null
           )
       ''');
 
@@ -89,6 +91,10 @@ class DBHelper {
 
     try{
 
+      // await db.execute('''
+      //   DROP TABLE IF EXISTS ${constants.measurementsTable}
+      // ''');
+
       await db.execute('''
         CREATE TABLE IF NOT EXISTS ${constants.measurementsTable} (
           id INTEGER PRIMARY KEY,
@@ -100,7 +106,8 @@ class DBHelper {
           ${constants.time} not null,
           ${constants.s2_pm2_5} not null,
           ${constants.s2_pm10} not null,
-          ${constants.address} not null
+          ${constants.address} not null,
+          ${constants.favourite} not null
           )
       ''');
 
@@ -217,7 +224,7 @@ class DBHelper {
           where: '${constants.channelID} = ?', whereArgs: [channelId]);
 
       return measurements.isNotEmpty ? List.generate(measurements.length, (i) {
-        return Measurement.fromJson(measurements[i]);
+        return Measurement.fromJson( Measurement.fromDbMap(measurements[i]));
       }) : <Measurement>[];
       
     }
@@ -226,7 +233,6 @@ class DBHelper {
       print(e);
       return <Measurement>[];
     }
-    
 
   }
 
@@ -236,7 +242,7 @@ class DBHelper {
         where: '${constants.time} > ?', whereArgs: [dateTime]);
 
     return res.isNotEmpty ? List.generate(res.length, (i) {
-      return Measurement.fromJson(res[i]);
+      return Measurement.fromJson( Measurement.fromDbMap(res[i]));
     }) : <Measurement>[];
     
   }
@@ -249,7 +255,7 @@ class DBHelper {
         limit: 1,
         where: '${constants.channelID} = ?', whereArgs: [channelId]);
 
-    return res.isNotEmpty ? Measurement.fromJson(res.first) : null;
+    return res.isNotEmpty ? Measurement.fromJson( Measurement.fromDbMap(res.first)) : null;
   }
 
   Future<List<Measurement>> getLatestMeasurements() async {
@@ -337,6 +343,10 @@ class DBHelper {
 
       final db = await database;
 
+      // await db.execute('''
+      //   DROP TABLE IF EXISTS ${constants.favouritesTable}
+      // ''');
+
       await db.execute('''
         CREATE TABLE IF NOT EXISTS ${constants.favouritesTable} (
           id INTEGER PRIMARY KEY,
@@ -414,6 +424,7 @@ class DBHelper {
       print('checking favourite place in local db');
 
       final db = await database;
+
 
       await db.execute('''
         CREATE TABLE IF NOT EXISTS ${constants.favouritesTable} (

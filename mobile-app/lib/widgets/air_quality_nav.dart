@@ -42,6 +42,8 @@ class _AirQualityCardState extends State<AirQualityCard> {
                             return PlaceDetailsPage(device: device);
                           })
                       );
+
+
                     }
                     catch(e) {
                       print(e);
@@ -98,8 +100,7 @@ class TitleSection extends StatelessWidget {
             children: [
               Padding(
                 padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
-                child: Image.asset(
-                  'assets/images/happy_face.png',
+                child: Image.asset(pmToEmoji(data.pm2_5.value),
                   height: 40,
                   width: 40,
                 ),

@@ -59,8 +59,10 @@ class _HomePageState extends State<HomePage> {
               Icons.search,
             ),
             onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) {
-                return SearchPage();
+              Navigator.push(
+                context, MaterialPageRoute(builder: (context) => SearchPage()),)
+                  .then((value) => setState(() {
+                _pageCtrl.jumpToPage(0);
               }));
             },
           ),
@@ -194,6 +196,7 @@ class _HomePageState extends State<HomePage> {
         onWillPop: onWillPop,
         child: PageView(
           controller: _pageCtrl,
+
           onPageChanged: (int) {
             switchTitle(int);
             print('Page Changes to index $int');

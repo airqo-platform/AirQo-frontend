@@ -11,8 +11,8 @@ class DashboardPage extends StatefulWidget {
 }
 
 class _DashboardPageState extends State<DashboardPage> {
-  
-  var locations;
+
+  var results;
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +24,8 @@ class _DashboardPageState extends State<DashboardPage> {
             builder: (context, snapshot) {
 
               if (snapshot.hasData){
-                var results = snapshot.data as List<Measurement>;
+
+                results = snapshot.data as List<Measurement>;
 
                 if(results.isEmpty){
                   return Center(
@@ -38,13 +39,8 @@ class _DashboardPageState extends State<DashboardPage> {
                       ),
                     ),
                   );
-                }
 
-                // return ListView.builder(
-                //   itemBuilder: (context, index) =>
-                //       AirQualityCard(data: results[index]),
-                //   itemCount: results.length,
-                // );
+                }
 
                 return RefreshIndicator(
                   onRefresh: refreshData,
@@ -69,12 +65,12 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Future<void> refreshData() async {
-  }
 
-  Future<List<Measurement>> getData() async {
+    var data =  DBHelper().getFavouritePlaces();
 
-    return DBHelper().getFavouritePlaces();
-
+    setState(() {
+      results = data;
+    });
   }
 
 }

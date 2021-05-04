@@ -75,3 +75,27 @@ String pmToImage(double pm2_5){
     return 'assets/images/pmDefault.png';
   }
 }
+
+String pmToEmoji(double pm2_5){
+  if(pm2_5 >= 0 && pm2_5 <= 12){ //good
+    return 'assets/images/good-face.png';
+  }
+  else if(pm2_5 >= 12.1 && pm2_5 <= 35.4){ //moderate
+    return 'assets/images/moderate-face.png';
+  }
+  else if(pm2_5 >= 35.5 && pm2_5 <= 55.4){ //sensitive
+    return 'assets/images/sensitive-face.png';
+  }
+  else if(pm2_5 >= 55.5 && pm2_5 <= 150.4){ // unhealthy
+    return 'assets/images/unhealthy-face.png';
+  }
+  else if(pm2_5 >= 150.5 && pm2_5 <= 250.4){ // very unhealthy
+    return 'assets/images/very-unhealthy-face.png';
+  }
+  else if(pm2_5 >= 250.5){ // hazardous
+    return 'assets/images/hazardous-face.png';
+  }
+  else{
+    return 'assets/images/good-face.png';
+  }
+}
