@@ -87,7 +87,7 @@ class TitleSection extends StatelessWidget {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  getPmColor(data.pm2_5.value),
+                  pmToColor(data.pm2_5.value),
                   Colors.white,
                 ]
             )

@@ -9,7 +9,9 @@ import 'package:app/utils/ui/pm.dart';
 import 'package:app/widgets/aqi_index.dart';
 import 'package:app/widgets/expanding_action_button.dart';
 import 'package:app/widgets/location_chart.dart';
+import 'package:app/widgets/pollutantCard.dart';
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:share/share.dart';
 import 'package:flutter/foundation.dart';
 
@@ -48,6 +50,14 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
         isFavourite = isFav;
 
       });
+    }
+
+  }
+
+  Future<void> updatePlace() async {
+
+    if(isFavourite){
+      await DBHelper().updateFavouritePlace(locationData, true);
     }
 
   }
@@ -99,6 +109,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
 
       if(locationData != null){
         await checkFavourite();
+        await updatePlace();
       }
 
     }
@@ -208,7 +219,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
             // ),
 
             Padding(
-              padding: const EdgeInsets.fromLTRB(8.0, 15.0, 8.0, 8.0),
+              padding: const EdgeInsets.fromLTRB(8.0, 20.0, 8.0, 8.0),
               child: Center(child: Text(
 
                   widget.device.siteName,
@@ -221,7 +232,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
               ),) ,
             ),
             Padding(
-              padding: const EdgeInsets.all(8.0),
+              padding: const EdgeInsets.fromLTRB(8.0, 20.0, 8.0, 8.0),
               child: Center(child: Text(
                   dateToString(locationData.time),
                   style: const TextStyle(
@@ -231,6 +242,17 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                   )
               ),) ,
             ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
+              child: cardSection(locationData),
+            ),
+
+            // Padding(
+            //   padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
+            //   child: PollutantsCard(),
+            // ),
+
+
             SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Container(
@@ -239,7 +261,13 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                   padding: const EdgeInsets.all(8),
                   child:  LocationBarChart(),
                 )
-            )
+            ),
+            Container(
+              padding: const EdgeInsets.all(2),
+                constraints:  BoxConstraints.expand(height: 300.0),
+              child: mapSection(locationData)
+            ),
+
             // LocationBarChart(),
           ],
         ),
@@ -288,38 +316,130 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
     );
   }
 
+  Widget mapSection(Measurement measurement) {
 
+    final _markers = <String, Marker>{};
 
-}
+    final marker = Marker(
+      markerId: MarkerId(measurement.channelID.toString()),
+      icon: pmToMarkerPoint(measurement.pm2_5.value),
+      position: LatLng((measurement.location.latitude.value),
+          measurement.location.longitude.value),
+    );
+    _markers[measurement.channelID.toString()] = marker;
 
-Widget headerSection(String image, String body) {
-  return Container(
-    padding: const EdgeInsets.fromLTRB(0, 2, 0, 0),
-    child: Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(5),
-          child: Image.asset(
-            image,
-            height: 40,
-            width: 40,
-          ),
+    return Padding(padding: const EdgeInsets.all(8.0), child : Card(
+      child: GoogleMap(
+        compassEnabled: false,
+        mapType: MapType.normal,
+        myLocationButtonEnabled: false,
+
+        myLocationEnabled: false,
+        rotateGesturesEnabled: false,
+        tiltGesturesEnabled: false,
+        mapToolbarEnabled: false,
+        zoomControlsEnabled: false,
+        initialCameraPosition: CameraPosition(
+          target: LatLng(measurement.location.latitude.value,
+              measurement.location.longitude.value),
+          zoom: 10,
         ),
-        Expanded(
-          child: Padding(
+        markers: _markers.values.toSet(),
+      )
+    ));
+  }
+
+  Widget cardSection(Measurement measurement) {
+
+    return Padding(padding: const EdgeInsets.all(8.0),
+        child : Card(
+            child:
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                children: [
+                  Text(measurement.address,
+                    softWrap: true,
+                    style: const TextStyle(
+                        color: appColor
+                    ),
+                    overflow: TextOverflow.ellipsis,),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(0, 5, 0, 0),
+                    child: Container(
+                        padding: const EdgeInsets.all(5.0),
+                        decoration: BoxDecoration(
+                            color: pmToColor(measurement.pm2_5.value),
+                            border: Border.all(
+                              color:  pmToColor(measurement.pm2_5.value),
+                            ),
+                            borderRadius: const BorderRadius.all(Radius.circular(10))
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            Text(measurement.pm2_5.value.toString(),
+                              // style: TextStyle(
+                              //     color: Colors.white
+                              // ),
+                            ),
+                            Text(measurement.status,
+                              //   style: TextStyle(
+                              //   color: Colors.white
+                              // ),
+                            ),
+                            Text( dateToString(measurement.time) ,
+                              softWrap: true,
+                              overflow: TextOverflow.ellipsis,
+                              // style: TextStyle(
+                              //     color: Colors.white
+                              // ),
+                            )
+                          ],
+                        )
+                    ),
+                  ),
+                ],
+              ),
+            )
+
+    ));
+  }
+
+  Widget headerSection(String image, String body) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(0, 2, 0, 0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          Padding(
             padding: const EdgeInsets.all(5),
-            child: Text(body,
-                softWrap: true,
-                style: const TextStyle(
-                  height: 1.2,
-                  // letterSpacing: 1.0
-                )),
+            child: Image.asset(
+              image,
+              height: 40,
+              width: 40,
+            ),
           ),
-        )
-      ],
-    ),
-  );
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(5),
+              child: Text(body,
+                  softWrap: true,
+                  style: const TextStyle(
+                    height: 1.2,
+                    // letterSpacing: 1.0
+                  )),
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
 }
+
+
+
+
 

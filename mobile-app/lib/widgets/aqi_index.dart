@@ -1,15 +1,42 @@
+import 'package:app/constants/app_constants.dart';
+import 'package:app/utils/ui/pm.dart';
 import 'package:flutter/material.dart';
 
 class AQI_Dialog extends StatelessWidget {
-  String good = 'An air quality index is used by government agencies to '
-      'communicate to the public how polluted the air currently '
-      'is or how polluted it';
+  String good = 'Good (0 - 12) \nAir quality is good for everyone.';
+
+  String moderate = 'Moderate (12.1 - 35.4) \n'
+      'Unusually sensitive people consider reducing '
+      'prolonged or heavy exertion.'
+      '';
+
+  String sensitive = 'Unhealthy for sensitive groups (35.6 - 55.4)\n'
+      'Sensitive people should reduce prolonged or heavy exertion. '
+      'It\'s OK to be active outside, but take more breaks '
+      'and do less intense activities. '
+      'People with asthma should follow their asthma action'
+      ' plans and keep quick relief medicine handy.';
+
+  String unHeathy = 'Unhealthy (55.5 - 150.4)\n'
+      'Everyone should avoid all physical activity outdoors. \n'
+      'Sensitive people should avoid prolonged or heavy exertion. Consider moving '
+      'activities indoors or rescheduling.';
+
+  String veryUnhealthy = 'Very unhealthy (150.5 - 250.4) \n'
+      'Sensitive people should avoid all physical activity outdoors. '
+      'Move activities indoors or reschedule to a time when air '
+      'quality is better.';
+
+  String hazardous = 'Hazardous (250.5 - 500.4) \n'
+      'Everyone should avoid all physical activity outdoors. \n'
+      'Sensitive people should remain indoors and keep activity levels low. '
+      'Follow tips for keeping particle levels low indoors.';
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Color(0xff5f1ee8),
+        backgroundColor:appColor,
         title: Text('AQI Guide'),
       ),
       body: Container(
@@ -17,12 +44,12 @@ class AQI_Dialog extends StatelessWidget {
         child: ListView(
           children: [
             whatIsAQI,
-            AQI_Quide('assets/images/good-face.png', good),
-            AQI_Quide('assets/images/good-face.png', good),
-            AQI_Quide('assets/images/good-face.png', good),
-            AQI_Quide('assets/images/good-face.png', good),
-            AQI_Quide('assets/images/good-face.png', good),
-            AQI_Quide('assets/images/good-face.png', good),
+            AQI_Quide('assets/images/good-face.png', good, pmToColor(0)),
+            AQI_Quide('assets/images/moderate-face.png', moderate, pmToColor(20)),
+            AQI_Quide('assets/images/sensitive-face.png', sensitive, pmToColor(40)),
+            AQI_Quide('assets/images/unhealthy-face.png', unHeathy, pmToColor(100)),
+            AQI_Quide('assets/images/very-unhealthy-face.png', veryUnhealthy, pmToColor(200)),
+            AQI_Quide('assets/images/hazardous-face.png', hazardous, pmToColor(500)),
           ],
         ),
       ),
@@ -33,7 +60,7 @@ class AQI_Dialog extends StatelessWidget {
     child: Text(
         'An air quality index is used by government agencies to communicate to '
         'the public how polluted the air currently is or how polluted it is '
-        'forecast to become. Public health risks increase as the AQI rises. '
+        'forecast to become.'
         'Different countries have their own air quality indices, '
         'corresponding to different national air quality standards.',
         softWrap: true,
@@ -43,15 +70,18 @@ class AQI_Dialog extends StatelessWidget {
         )),
   );
 
-  Widget AQI_Quide(String image, String body) {
+  Widget AQI_Quide(String image, String body, Color color) {
     return Container(
-      padding: EdgeInsets.fromLTRB(0, 2, 0, 0),
+      padding: const EdgeInsets.fromLTRB(0, 2, 0, 0),
+      decoration: BoxDecoration(
+        color: color
+      ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
           Padding(
-            padding: EdgeInsets.all(5),
+            padding: const EdgeInsets.all(5),
             child: Image.asset(
               image,
               height: 40,
@@ -60,7 +90,7 @@ class AQI_Dialog extends StatelessWidget {
           ),
           Expanded(
             child: Padding(
-              padding: EdgeInsets.all(5),
+              padding: const EdgeInsets.all(5),
               child: Text(body,
                   softWrap: true,
                   style: TextStyle(
@@ -74,32 +104,4 @@ class AQI_Dialog extends StatelessWidget {
     );
   }
 
-  Widget AQI_Good = Container(
-    padding: EdgeInsets.fromLTRB(0, 2, 0, 0),
-    child: Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: [
-        Padding(
-          padding: EdgeInsets.all(5),
-          child: Image.asset(
-            'assets/images/good-face.png',
-            height: 40,
-            width: 40,
-          ),
-        ),
-        Expanded(
-          child: Padding(
-            padding: EdgeInsets.all(5),
-            child: Text(
-              'An air quality index is used by government agencies to '
-              'communicate to the public how polluted the air currently '
-              'is or how polluted it',
-              softWrap: true,
-            ),
-          ),
-        )
-      ],
-    ),
-  );
 }

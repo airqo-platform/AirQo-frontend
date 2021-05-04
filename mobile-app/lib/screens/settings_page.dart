@@ -20,20 +20,24 @@ class _SettingsPageState extends State<SettingsPage> {
         title: const Text('Settings'),
       ),
       body: Container(
-        child: ListView(
-          children: <Widget>[
-            Row(
-              children: [
-                // OutlinedButton(
-                //   onPressed: () async {
-                //     await showLanguageDialog(context);
-                //   },
-                //   child: const Text('Select Language'),
-                // )
-              ],
-            ),
-          ],
-        ),
+        child: const Center(child: Text('Coming Soon '),)
+
+        // ListView(
+        //   children: <Widget>[
+        //     Row(
+        //       children: [
+        //         Center(child:
+        //           Text('Coming Soon '),)
+        //         OutlinedButton(
+        //           onPressed: () async {
+        //             await showLanguageDialog(context);
+        //           },
+        //           child: const Text('Select Language'),
+        //         )
+        //       ],
+        //     ),
+        //   ],
+        // ),
       ),
     );
   }

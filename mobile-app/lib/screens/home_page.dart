@@ -206,7 +206,7 @@ class _HomePageState extends State<HomePage> {
             ComparePage(),
             Center(
               child: Container(
-                child: Text('Page 2'),
+                child: Text('Coming Soon !'),
               ),
             ),
             ResourcesPage(),

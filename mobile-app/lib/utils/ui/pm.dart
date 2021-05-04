@@ -1,8 +1,9 @@
 import 'dart:ui';
 
 import 'package:app/constants/app_constants.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-Color getPmColor(double pm2_5){
+Color pmToColor(double pm2_5){
   if(pm2_5 >= 0 && pm2_5 <= 12){ //good
     return greenColor;
   }
@@ -25,8 +26,6 @@ Color getPmColor(double pm2_5){
     return appColor;
   }
 }
-
-
 
 String pmToString(double pm2_5){
   if(pm2_5 >= 0 && pm2_5 <= 12){ //good
@@ -98,4 +97,41 @@ String pmToEmoji(double pm2_5){
   else{
     return 'assets/images/good-face.png';
   }
+}
+
+BitmapDescriptor pmToMarkerPoint(double pm2_5){
+
+  if(pm2_5 >= 0 && pm2_5 <= 12){ //good
+    return BitmapDescriptor
+        .defaultMarkerWithHue(BitmapDescriptor.hueGreen);
+
+  }
+  else if(pm2_5 >= 12.1 && pm2_5 <= 35.4){ //moderate
+    return BitmapDescriptor
+        .defaultMarkerWithHue(BitmapDescriptor.hueYellow);
+
+  }
+  else if(pm2_5 >= 35.5 && pm2_5 <= 55.4){ //sensitive
+    return BitmapDescriptor
+        .defaultMarkerWithHue(BitmapDescriptor.hueOrange);
+
+  }
+  else if(pm2_5 >= 55.5 && pm2_5 <= 150.4){ // unhealthy
+    return BitmapDescriptor
+        .defaultMarkerWithHue(BitmapDescriptor.hueRed);
+
+  }
+  else if(pm2_5 >= 150.5 && pm2_5 <= 250.4){ // very unhealthy
+    return BitmapDescriptor.defaultMarkerWithHue(285);
+
+  }
+  else if(pm2_5 >= 250.5){ // hazardous
+    return BitmapDescriptor
+        .defaultMarkerWithHue(BitmapDescriptor.hueMagenta);
+
+  }
+  else{
+    return BitmapDescriptor.defaultMarker;
+  }
+
 }

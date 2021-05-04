@@ -128,11 +128,7 @@ class MapPageState extends State<MapPage> {
 
     var measurements = await AirqoApiClient(context).fetchMeasurements();
 
-    await showSnackBar(context, 'got measurements');
-
     var devices = await AirqoApiClient(context).fetchDevices();
-
-    await showSnackBar(context, 'got devices');
 
     measurements = AirqoApiClient(context)
         .mapMeasurements(measurements, devices);
@@ -307,6 +303,21 @@ class MapPageState extends State<MapPage> {
 
   }
 
+
+  void showDetails() async {
+
+    var message = 'Coming soon';
+    await showSnackBar(context, message);
+
+  }
+
+  void addToFavouritePlaces() async {
+
+    var message = 'Coming soon';
+    await showSnackBar(context, message);
+
+  }
+
   void setMeasurements(List<Measurement> measurements) {
 
     setState(() {
@@ -385,13 +396,13 @@ class MapPageState extends State<MapPage> {
                 ),
                 overflow: TextOverflow.ellipsis,),
               Padding(
-                padding: EdgeInsets.fromLTRB(0, 5, 0, 0),
+                padding: const EdgeInsets.fromLTRB(0, 5, 0, 0),
                 child: Container(
                     padding: const EdgeInsets.all(5.0),
                     decoration: BoxDecoration(
-                        color: getPmColor(windowProperties.pm2_5.value),
+                        color: pmToColor(windowProperties.pm2_5.value),
                         border: Border.all(
-                          color:  getPmColor(windowProperties.pm2_5.value),
+                          color:  pmToColor(windowProperties.pm2_5.value),
                         ),
                         borderRadius: const BorderRadius.all(Radius.circular(10))
                     ),
@@ -446,18 +457,11 @@ class MapPageState extends State<MapPage> {
                         color: appColor),
                   ),
                   IconButton(
-                    onPressed: () {
-                      String text = 'Checkout the air quality of '
-                          '${windowProperties.address} at https://www.airqo.net';
-                      Share.share(text,
-                        subject: 'Airqo, Breathe Clean', );
-                    },
+                    onPressed: addToFavouritePlaces,
                     icon: const Icon(Icons.favorite_border_outlined, color: appColor),
                   ),
                   GestureDetector(
-                    onTap: (){
-
-                    },
+                    onTap: showDetails,
                     child: const Text('More Details',
                         softWrap: true,
                         style: TextStyle(

@@ -58,9 +58,9 @@ class _FeedbackPageState extends State<FeedbackPage> {
             // Positioned(
             //   child: isLoading ? const Loading() : Container(),
             // ),
-            Positioned(bottom: 10, left: 0, right: 0,
-                child: airqoLogo()
-            ),
+            // Positioned(bottom: 10, left: 0, right: 0,
+            //     child: airqoLogo()
+            // ),
           ],
         ),
       ),
