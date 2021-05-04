@@ -1049,11 +1049,26 @@ class Apis extends CI_Controller
                 );
 
             }
-                
+
+            if(!empty($rows)) {
+                $values = '';
+                foreach ($rows as $row) {
+                    $values .= "('".implode ("', '", $row)."'),";
+                }
+
+                $values = substr($values, 0, -1);
+
+                $sql = "INSERT INTO tbl_app_nodes 
+                    (an_channel_id, an_name, an_lat, an_lng, an_map_address, an_type, time, reading, reading1, an_dateAdded, an_addedBy, an_dateUpdated, an_updated_by) 
+                    VAlUES $values";
+                $this->db->query("DELETE FROM tbl_app_nodes");
+                $this->db->query($sql);
+            }
+
             $state      = $this->ApisModel->stateOk();
             $state_name = "success";
-            $state_code = 100;
-            $message    = "Sucessful (".$total." places updated)";
+            $state_code = 109;
+            $message    = "Successfully updated places";
             $debug      = "API Config OK";
             echo  $this->ApisModel->api_response($response, $state, $state_name, $state_code, $message, $debug);
         } else {
