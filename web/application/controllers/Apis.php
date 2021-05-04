@@ -1,4 +1,19 @@
-<?php 
+<?php
+function request($url, $method = 'GET') {
+    $curl = curl_init();
+    curl_setopt($curl, CURLOPT_URL, $url);
+    curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($curl, CURLOPT_CUSTOMREQUEST, $method);
+
+    $headers = array();
+    $headers[] = 'Content-Type: application/json';
+    curl_setopt($url, CURLOPT_HTTPHEADER, $headers);
+    $json = curl_exec($curl);
+    curl_close($curl);
+    return json_decode($json, true);
+}
+
+
 class Apis extends CI_Controller
 {
 
