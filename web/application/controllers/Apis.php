@@ -1012,35 +1012,42 @@ class Apis extends CI_Controller
     {
         $response = array();
         $this->ApisModel->init();
-        $sql_pick_nodes = "SELECT n.an_channel_id, n.an_name, n.an_map_address, n.an_lat, n.an_lng
-                                        FROM tbl_app_nodes n
-                                        WHERE n.an_deleted = '0' 
-                                        AND n.an_active = '1'
-                                        ORDER BY n.an_channel_id";
-        $query_pick_nodes = $this->db->query($sql_pick_nodes);
-        if ($query_pick_nodes->num_rows() > 0) {
-            $pnodes = $query_pick_nodes->result_array();
-            $total = 0;
-            $mr = "";
-            foreach ($pnodes as $prow) {
-                $channel = $prow["an_channel_id"];
-                $json_url_lt = "https://data-manager-dot-airqo-250220.uc.r.appspot.com/api/v1/data/feeds/recent/".$channel;
-                $json = file_get_contents($json_url_lt);
-                $json = json_decode($json);
-                if ($json) {
-                    $date = $json->{'created_at'};
-                    $reading = $json->{'field2'};
-                    $reading = trim($reading);
-                    $lat = $json->{'field5'};
-                    $lng = $json->{'field6'};
-                    $update_node = $this->db->query("UPDATE tbl_app_nodes SET time = '$date', reading = '$reading', an_dateUpdated = NOW()
-                                                    WHERE an_channel_id = '$channel' LIMIT 1");
-                    if($update_node){
-                        $mr .= "" . $reading;
-                    }
+        $devices_data = request("http://platform.airqo.net/api/v1/devices?tenant=airqo");
+        $events_data = request("http://platform.airqo.net/api/v1/devices/events?tenant=airqo&recent=true");
 
-                }
-                $total = $total + 1;
+
+        if ($devices_data['success'] and $events_data['success']) {
+            $rows = array();
+            $events = $events_data['measurements'];
+
+            foreach ($events as $measurement) {
+                $filter_by = $measurement['channelID'];
+                $devices = $devices_data['devices'];
+                $device = array_values(array_filter($devices, function ($var) use ($filter_by) {
+                    return ($var['channelID'] == $filter_by);
+                }));
+                $device = $device[0];
+
+                $time = utc_to_local(date( $measurement['time']));
+
+                array_push($rows,
+                    array(
+                        $measurement['channelID'],
+                        $device['siteName'],
+                        $measurement['location']['latitude']['value'],
+                        $measurement['location']['longitude']['value'],
+                        $device['locationName'],
+                        "Commercial area",
+                        $measurement['time'],
+                        $measurement['pm2_5']['value'],
+                        $measurement['pm2_5']['value'],
+                        $time,
+                        0,
+                        $time,
+                        0,
+                    )
+                );
+
             }
                 
             $state      = $this->ApisModel->stateOk();
