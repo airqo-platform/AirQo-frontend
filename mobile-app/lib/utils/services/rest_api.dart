@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+
 import 'dart:io';
 import 'package:app/config/secret.dart';
 import 'package:app/constants/api.dart';
@@ -13,6 +14,8 @@ import 'package:app/models/measurement.dart';
 import 'package:app/utils/ui/dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:mailer/mailer.dart';
+import 'package:mailer/smtp_server.dart';
 
 class AirqoApiClient{
 
@@ -22,22 +25,47 @@ class AirqoApiClient{
   final BuildContext context;
 
   Future<bool> sendFeedback(UserFeedback feedback) async {
-    final response =
-    await http.post(Uri.parse('http://airqo.net'), body: feedback.toJson());
-    print(response.body);
-    print(response.statusCode);
 
-    if (response.statusCode == 200) {
-      return true;
-    } else {
-      print('Unexpected status code ${response.statusCode}:'
-          ' ${response.reasonPhrase}');
-      // return false;
-      throw HttpException(
-          'Unexpected status code ${response.statusCode}:'
-              ' ${response.reasonPhrase}',
-          uri: Uri.parse('http://airqo.net'));
-    }
+      final smtpServer = gmail(fromEmail, emailPassword);
+
+      final message = Message()
+        ..from = const Address(fromEmail, 'AirQo Analytics')
+        ..recipients.add(emailRecipient)
+        ..ccRecipients.addAll(emailCC)
+        ..subject = 'Mobile App Feedback ${DateTime.now()}'
+        ..text = feedback.feedback;
+
+      try {
+        final sendReport = await send(message, smtpServer);
+        print('Message sent: $sendReport');
+        return true;
+      } on MailerException catch (e) {
+        print('Message not sent.');
+        print(e);
+        for (var p in e.problems) {
+          print('Problem: ${p.code}: ${p.msg}');
+        }
+
+        return false;
+      }
+
+
+    // final response =
+    // await http.post(Uri.parse('http://airqo.net'), body: feedback.toJson());
+    // print(response.body);
+    // print(response.statusCode);
+    //
+    // if (response.statusCode == 200) {
+    //   return true;
+    // } else {
+    //   print('Unexpected status code ${response.statusCode}:'
+    //       ' ${response.reasonPhrase}');
+    //   // return false;
+    //   throw HttpException(
+    //       'Unexpected status code ${response.statusCode}:'
+    //           ' ${response.reasonPhrase}',
+    //       uri: Uri.parse('http://airqo.net'));
+    // }
   }
 
   Future<List<Measurement>> fetchMeasurements() async {

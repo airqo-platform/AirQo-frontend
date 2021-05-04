@@ -275,6 +275,7 @@ class DBHelper {
 
   }
 
+  // devices
   Future<List<Device>> getLatestDevices() async {
 
 
@@ -300,4 +301,176 @@ class DBHelper {
 
   }
 
+  Future<Device> getDevice(int channelID) async {
+
+
+    print('Getting devices from local db');
+
+    try{
+
+      final db = await database;
+      var res = await db.query(
+          constants.devicesTable,
+        where: '${constants.channelID} = ?',
+        whereArgs: [channelID],
+        limit: 1
+      );
+
+      var device = Device.fromJson( Device.fromDbMap(res.first));
+
+      return device;
+
+    }
+
+    catch(e) {
+      print(e);
+      throw Exception('Device doesnt exist');
+    }
+
+  }
+
+  // favourite places
+  Future<Measurement> updateFavouritePlace(Measurement measurement, bool isFavourite)
+  async {
+
+      print('Updating favourite places in local db');
+
+      final db = await database;
+
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS ${constants.favouritesTable} (
+          id INTEGER PRIMARY KEY,
+          ${constants.channelID} not null,
+          ${constants.pm2_5} not null,
+          ${constants.longitude} not null,
+          ${constants.latitude} not null,
+          ${constants.pm10} not null,
+          ${constants.time} not null,
+          ${constants.s2_pm2_5} not null,
+          ${constants.s2_pm10} not null,
+          ${constants.address} not null,
+          ${constants.favourite} not null
+          )
+      ''');
+
+      var res = await db.query(
+          '${constants.favouritesTable}',
+          where: '${constants.channelID} = ?',
+          whereArgs: [measurement.channelID],
+          limit: 1);
+
+      if(isFavourite){
+
+        measurement.setFavourite(true);
+
+        if(res.isEmpty){
+          await db.insert('${constants.favouritesTable}',
+              Measurement.toDbMap(measurement));
+        }
+        else{
+          await db.update('${constants.favouritesTable}',
+              Measurement.toDbMap(measurement),
+              where: '${constants.channelID} = ?',
+              whereArgs: [measurement.channelID],
+              conflictAlgorithm: ConflictAlgorithm.replace,);
+        }
+
+      }
+      else{
+
+        measurement.setFavourite(false);
+
+        if(res.isNotEmpty){
+          await db.delete('${constants.favouritesTable}',
+              where: '${constants.channelID} = ?',
+              whereArgs: [measurement.channelID]);
+        }
+
+      }
+
+
+
+    return measurement;
+      // await db.rawDelete('DELETE FROM ${constants.favouritesTable}'
+      //     'WHERE ${constants.channelID} = ?', [measurement.channelID]);
+      //
+      // try {
+      //   var jsonData = Measurement.toDbMap(measurement);
+      //
+      //   await db.insert(
+      //     '${constants.favouritesTable}',
+      //     jsonData,
+      //     conflictAlgorithm: ConflictAlgorithm.replace,
+      //   );
+      // }catch(e) {
+      //   print(e);
+      // }
+
+  }
+
+  Future<bool> checkFavouritePlace(int channelID)
+  async {
+    try {
+      print('checking favourite place in local db');
+
+      final db = await database;
+
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS ${constants.favouritesTable} (
+          id INTEGER PRIMARY KEY,
+          ${constants.channelID} not null,
+          ${constants.pm2_5} not null,
+          ${constants.longitude} not null,
+          ${constants.latitude} not null,
+          ${constants.pm10} not null,
+          ${constants.time} not null,
+          ${constants.s2_pm2_5} not null,
+          ${constants.s2_pm10} not null,
+          ${constants.address} not null,
+          ${constants.favourite} not null
+          )
+      ''');
+
+      var res = await db.query(
+          '${constants.favouritesTable}',
+          where: '${constants.channelID} = ?',
+          whereArgs: [channelID],
+          limit: 1);
+
+      if(res.isNotEmpty){
+        return true;
+      }
+
+    }
+    catch(e) {
+      print(e);
+
+    }
+
+    return false;
+
+  }
+
+  Future<List<Measurement>> getFavouritePlaces() async {
+
+
+    print('Getting favourite places from local db');
+
+    try{
+
+      final db = await database;
+      var res = await db.query(constants.favouritesTable);
+
+      return res.isNotEmpty ? List.generate(res.length, (i) {
+
+        return Measurement.fromJson( Measurement.fromDbMap(res[i]));
+      }) : <Measurement>[];
+    }
+
+    catch(e) {
+      print(e);
+      return <Measurement>[];
+    }
+
+  }
 }

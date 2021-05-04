@@ -1,9 +1,20 @@
+import 'package:app/constants/app_constants.dart';
+import 'package:app/models/measurement.dart';
 import 'package:app/screens/place_details.dart';
+import 'package:app/utils/services/local_storage.dart';
+import 'package:app/utils/ui/date.dart';
+import 'package:app/utils/ui/dialogs.dart';
+import 'package:app/utils/ui/pm.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 
 class AirQualityCard extends StatefulWidget {
+
+  AirQualityCard({Key? key, required this.data}) : super(key: key);
+
+  final Measurement data;
+
   @override
   _AirQualityCardState createState() => _AirQualityCardState();
 }
@@ -19,23 +30,35 @@ class _AirQualityCardState extends State<AirQualityCard> {
             Card(
               clipBehavior: Clip.antiAlias,
               child: InkWell(
-                  onTap: () {
+                  onTap: () async {
                     print('Card was tapped');
-                    // Navigator.push(context,
-                    //     MaterialPageRoute(builder: (context) {
-                    //       return PlaceDetailsPage();
-                    //     })
-                    // );
+
+                    try{
+                      var device = await DBHelper()
+                          .getDevice(widget.data.channelID);
+
+                      await Navigator.push(context,
+                          MaterialPageRoute(builder: (context) {
+                            return PlaceDetailsPage(device: device);
+                          })
+                      );
+                    }
+                    catch(e) {
+                      print(e);
+                      await showSnackBar(context,
+                          'Location information not available. Try again '
+                              'later');
+                    }
                   },
                   splashColor:
                       Theme.of(context).colorScheme.onSurface.withOpacity(0.12),
                   highlightColor: Colors.transparent,
                   child: Column(
                     children: [
-                      TitleSection(),
+                      TitleSection(data: widget.data,),
                       Padding(
                         padding: const EdgeInsets.all(8),
-                        child: CardSection(),
+                        child: CardSection(data: widget.data,),
                       )
                     ],
                   )),
@@ -48,17 +71,25 @@ class _AirQualityCardState extends State<AirQualityCard> {
 }
 
 class TitleSection extends StatelessWidget {
+
+  TitleSection({Key? key, required this.data}) : super(key: key);
+
+  final Measurement data;
+
+
   @override
   Widget build(BuildContext context) {
     return Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
             gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-              Color(0xff5f1ee8),
-              Colors.white,
-            ])),
+                  getPmColor(data.pm2_5.value),
+                  Colors.white,
+                ]
+            )
+        ),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(4, 12, 4, 4),
           child: Row(
@@ -78,9 +109,9 @@ class TitleSection extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text('Makerere University'),
-                    const Text('2.5 µg/m3'),
-                    const Text('Good')
+                    Text(data.address),
+                    Text('${data.pm2_5.value} µg/m3'),
+                    Text(pmToString(data.pm2_5.value))
                   ],
                 ),
               )
@@ -91,39 +122,57 @@ class TitleSection extends StatelessWidget {
 }
 
 class CardSection extends StatelessWidget {
+
+  CardSection({Key? key, required this.data}) : super(key: key);
+
+  final Measurement data;
+
   @override
   Widget build(BuildContext context) {
     return Container(
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        // crossAxisAlignment: CrossAxisAlignment.center,
+        // mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          Column(
-            children: [
-              Row(
-                children: [
-                  const Padding(
-                    padding: const EdgeInsets.fromLTRB(5, 5, 5, 5),
-                    child: Icon(Icons.thermostat_outlined),
-                  ),
-                  Text('20')
-                ],
-              )
-            ],
+          Expanded(child: Text(
+            dateToString(data.time),
+            style: TextStyle(
+              color: appColor,
+            ),
+          )),
+          const Padding(
+            padding: EdgeInsets.fromLTRB(5, 5, 5, 5),
+            child: Icon(
+              Icons.arrow_forward_outlined,
+              color: appColor,
+            ),
           ),
-          Column(
-            children: [
-              Row(
-                children: [
-                  const Padding(
-                    padding: const EdgeInsets.fromLTRB(5, 5, 5, 5),
-                    child: Icon(Icons.wb_cloudy_outlined),
-                  ),
-                  Text('20')
-                ],
-              )
-            ],
-          ),
+          // Column(
+          //   children: [
+          //     Row(
+          //       children: [
+          //         const Padding(
+          //           padding: EdgeInsets.fromLTRB(5, 5, 5, 5),
+          //           child: Icon(Icons.thermostat_outlined),
+          //         ),
+          //         Text('20')
+          //       ],
+          //     )
+          //   ],
+          // ),
+          // Column(
+          //   children: [
+          //     Row(
+          //       children: [
+          //         const Padding(
+          //           padding: EdgeInsets.fromLTRB(5, 5, 5, 5),
+          //           child: Icon(Icons.wb_cloudy_outlined),
+          //         ),
+          //         Text('20')
+          //       ],
+          //     )
+          //   ],
+          // ),
         ],
       ),
     );

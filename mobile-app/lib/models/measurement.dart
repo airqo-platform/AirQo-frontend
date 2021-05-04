@@ -19,6 +19,7 @@ class Measurements {
 @JsonSerializable()
 class Measurement {
   Measurement({
+    required this.favourite,
     required this.status,
     required this.address,
     required this.channelID,
@@ -46,9 +47,14 @@ class Measurement {
     var constants = DbConstants();
 
     var time = measurement.time.replaceAll('T', ' ');
-    time = time.substring(0, time.indexOf('.'));
+
+    if(time.contains('.')){
+      time = time.substring(0, time.indexOf('.'));
+    }
+
 
     return {
+      constants.favourite: measurement.favourite,
       constants.channelID: measurement.channelID,
       constants.time: time,
       constants.pm2_5: measurement.pm2_5.value,
@@ -66,6 +72,7 @@ class Measurement {
     var constants = DbConstants();
 
     return {
+      'favourite': json[constants.favourite] as bool,
       'address': json[constants.address] as String,
       'channelID': json[constants.channelID] as int,
       'time': json[constants.time] as String,
@@ -101,7 +108,7 @@ class Measurement {
 
 
   @JsonKey(required: false)
-  final int channelID;
+  int channelID;
 
   @JsonKey(required: false)
   final String time;
@@ -127,6 +134,9 @@ class Measurement {
   @JsonKey(required: false)
   String status;
 
+  @JsonKey(required: false)
+  bool favourite;
+
   void setAddress(String addr){
     address = addr;
   }
@@ -135,8 +145,17 @@ class Measurement {
     status = s;
   }
 
+  void setFavourite(bool fav){
+    favourite = fav;
+  }
 
-  // final Value altitude;
+  void setChannelId(int fav){
+    channelID = fav;
+  }
+
+
+
+// final Value altitude;
   // final Value speed;
   // final Value internalTemperature;
   // final Value internalHumidity;

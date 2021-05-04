@@ -31,6 +31,7 @@ class DbConstants{
   final String _locationName = 'locationName';
   final String _siteName = 'siteName';
   final String _name = 'name';
+  final String _favourite = 'favourite';
 
 
   final String _time = 'time';
@@ -42,6 +43,8 @@ class DbConstants{
   final String _s2_pm10 = 's2_pm10';
   final String _address = 'address';
 
+
+  String get favourite => _favourite;
 
   String get devicesTable => _devicesTable;
 

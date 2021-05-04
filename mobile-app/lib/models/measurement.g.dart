@@ -21,6 +21,7 @@ Map<String, dynamic> _$MeasurementsToJson(Measurements instance) =>
 
 Measurement _$MeasurementFromJson(Map<String, dynamic> json) {
   return Measurement(
+    favourite: json['favourite'] as bool,
     status: json['status'] as String,
     address: json['address'] as String,
     channelID: json['channelID'] as int,
@@ -44,6 +45,7 @@ Map<String, dynamic> _$MeasurementToJson(Measurement instance) =>
       's2_pm10': instance.s2_pm10,
       'address': instance.address,
       'status': instance.status,
+      'favourite': instance.favourite,
     };
 
 Value _$ValueFromJson(Map<String, dynamic> json) {

@@ -49,6 +49,7 @@ dependencies:
   charts_flutter: ^0.10.0
   intl: ^0.17.0
   uuid: ^3.0.4
+  mailer: ^5.0.0
 
 flutter_icons:
   android: "launcher_icon"
@@ -83,7 +84,13 @@ flutter:
     # images
     - assets/images/happy_face.png
     - assets/icon/airqo_logo.png
-    - assets/images/details_one.png
+    - assets/images/good.png
+    - assets/images/moderate.png
+    - assets/images/unhealthy.png
+    - assets/images/veryUnhealthy.png
+    - assets/images/hazardous.png
+    - assets/images/sensitive.png
+    - assets/images/pmDefault.png
 
     # HTML files
     - assets/html/privacy_policy.html

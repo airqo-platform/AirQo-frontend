@@ -112,7 +112,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
       style: ElevatedButton.styleFrom(
           primary: appColor
       ),
-      onPressed: () {
+      onPressed: () async {
         if (_formKey.currentState!.validate()) {
           var email = '';
           if (emailController.text.isNotEmpty) {
@@ -123,21 +123,22 @@ class _FeedbackPageState extends State<FeedbackPage> {
           var feedBackModel =
               feedbackModel.UserFeedback(email: email, feedback: feedback);
 
-          var apiClient = AirqoApiClient(context);
-          var success = apiClient.sendFeedback(feedBackModel);
+          var success = await AirqoApiClient(context)
+              .sendFeedback(feedBackModel);
 
-          // if(success){
-          //   showDialog<void>(
-          //     context: context,
-          //     builder: (_) => SuccessDialog(),
-          //   );
-          // }
-          // else{
-          //   showDialog<void>(
-          //     context: context,
-          //     builder: (_) => FailureDialog(),
-          //   );
-          // }
+
+          if(success){
+            await showDialog<void>(
+              context: context,
+              builder: (_) => SuccessDialog(),
+            );
+          }
+          else{
+            await showDialog<void>(
+              context: context,
+              builder: (_) => FailureDialog(),
+            );
+          }
         }
       },
       child: const Text('Submit'),
