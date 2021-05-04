@@ -55,5 +55,5 @@ export const getFirstNDurations = (duration, n) => {
 
 export const getFirstDuration = (dateTimeStr) => {
   const [seconds, durations] = getElapsedDurationMapper(dateTimeStr);
-  return getFirstNDurations(durations, 1);
+  return [seconds, getFirstNDurations(durations, 1)];
 };

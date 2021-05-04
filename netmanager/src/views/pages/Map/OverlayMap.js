@@ -63,6 +63,7 @@ export const OverlayMap = ({
   heatMapData,
   monitoringSiteData,
 }) => {
+  const MAX_OFFLINE_DURATION = 86400; // 24 HOURS
   const mapContainerRef = useRef(null);
   const [map, setMap] = useState(null);
   const [showSensors, setShowSensors] = useState(true);
@@ -177,12 +178,18 @@ export const OverlayMap = ({
       {showSensors &&
         map &&
         monitoringSiteData.features.forEach((feature) => {
+          const [seconds, duration] = getFirstDuration(
+            formatDateString(feature.properties.time)
+          );
+
           const [markerClass, desc] = getMarkerDetail(
             feature.properties.pm2_5.value
           );
 
           const el = document.createElement("div");
-          el.className = `marker ${markerClass}`;
+          el.className = `marker ${
+            seconds >= MAX_OFFLINE_DURATION ? "marker-grey" : markerClass
+          }`;
           el.innerText = feature.properties.pm2_5.value.toFixed(0);
 
           new mapboxgl.Marker(el)
@@ -198,9 +205,7 @@ export const OverlayMap = ({
                     }"> AQI: ${feature.properties.pm2_5.value.toFixed(
                   2
                 )} - ${desc}</div>
-                    <span>Last Refreshed: <b>${getFirstDuration(
-                      formatDateString(feature.properties.time)
-                    )}</b> ago</span>
+                    <span>Last Refreshed: <b>${duration}</b> ago</span>
                 </div>`
               )
             )
