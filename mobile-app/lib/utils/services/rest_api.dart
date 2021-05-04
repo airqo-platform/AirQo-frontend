@@ -136,26 +136,65 @@ class AirqoApiClient{
 
   }
 
-  Future<List<Measurement>> fetchDeviceMeasurements(String device) async {
+  Future<Device> fetchDevice(String name) async {
 
-    final response = await http.get(Uri.parse('http://platform.airqo.net/api/v1/devices/events?'
-        'tenant=airqo&device=$device&startTime=2021-04-26&endTime=2021-04-27'));
+    try {
+
+      final response = await http.get(Uri.parse('$getDevice$name'));
+
+      print(response.statusCode);
+      if (response.statusCode == 200) {
+
+        print(response.body);
+
+        var devices = json.decode(response.body)['devices']
+            .map<Device>((d) => Device.fromJson(d))
+            .toList();
+
+        return devices.first;
+      } else {
+        print('Unexpected status code ${response.statusCode}:'
+            ' ${response.reasonPhrase}');
+        throw HttpException(
+            'Unexpected status code ${response.statusCode}:'
+                ' ${response.reasonPhrase}',
+            uri: Uri.parse(getDevices));
+      }
+    }
+    on SocketException {
+      var message = 'You are working offline, please connect to internet';
+      await showSnackBar(context, message);
+    }
+    on TimeoutException {
+      var message = 'Connection timeout, please check your internet connection';
+      await showSnackBar(context, message);
+
+    } on Error catch (e) {
+      print('Get Devices error: $e');
+      var message = 'Couldn\'t get locations, please try again later';
+      await showSnackBar(context, message);
+    }
+
+    throw Exception('device doesn\'t exist');
+
+  }
+
+  Future<Measurement> fetchDeviceMeasurements(int channelID) async {
+
+    final response = await
+    http.get(Uri.parse('$getLatestDeviceEvents$channelID'));
 
     print(response.statusCode);
     if (response.statusCode == 200) {
 
       print(response.body);
 
-      Event event = Event.fromJson(json.decode(response.body));
-      List<Measurement> measurements = event.measurements;
+      var measurement = Measurement.fromJson(
+          Measurement.fromApiMap(json.decode(response.body)));
 
-      // measurements.forEach((element) {
-      //   print(element.channelID);
-      //   print(element.location.longitude.value);
-      //   print(element.location.latitude.value);
-      // });
+      print(measurement);
 
-      return measurements;
+      return measurement;
     } else {
       print('Unexpected status code ${response.statusCode}:'
           ' ${response.reasonPhrase}');
@@ -168,14 +207,14 @@ class AirqoApiClient{
 
   Future<List<Measurement>> fetchComparisonMeasurements() async {
 
-    var device_01 = await fetchDeviceMeasurements('aq_05');
-    var device_02 = await fetchDeviceMeasurements('aq_06');
+    var device_01 = await fetchDeviceMeasurements(1);
+    var device_02 = await fetchDeviceMeasurements(2);
 
-    for (var m in device_02){
-      device_01.add(m);
-    }
+    var measurements = <Measurement>[];
+    measurements.add(device_02);
+    measurements.add(device_01);
 
-    return device_01;
+    return measurements;
 
   }
 

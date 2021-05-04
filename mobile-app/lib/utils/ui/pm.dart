@@ -25,3 +25,29 @@ Color getPmColor(double pm2_5){
     return appColor;
   }
 }
+
+
+
+String pmToString(double pm2_5){
+  if(pm2_5 >= 0 && pm2_5 <= 12){ //good
+    return 'Good';
+  }
+  else if(pm2_5 >= 12.1 && pm2_5 <= 35.4){ //moderate
+    return 'Moderate';
+  }
+  else if(pm2_5 >= 35.5 && pm2_5 <= 55.4){ //sensitive
+    return 'Sensitive';
+  }
+  else if(pm2_5 >= 55.5 && pm2_5 <= 150.4){ // unhealthy
+    return 'Unhealthy';
+  }
+  else if(pm2_5 >= 150.5 && pm2_5 <= 250.4){ // very unhealthy
+    return 'Very Unhealthy';
+  }
+  else if(pm2_5 >= 250.5){ // hazardous
+    return 'Hazardous';
+  }
+  else{
+    return '';
+  }
+}

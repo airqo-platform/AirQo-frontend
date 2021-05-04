@@ -32,28 +32,28 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         title: Text(title),
         actions: [
-          showAddPlace
-              ? IconButton(
-                  icon: const Icon(
-                    Icons.addchart_outlined,
-                  ),
-                  onPressed: () async {
-
-                    // final sessionToken = Uuid().v4();
-                    await showSearch(
-                      context: context,
-                      delegate: LocationSearch(),
-                    );
-
-                    // Navigator.push(context,
-                    //     MaterialPageRoute(builder: (context) {
-                    //   return AddPlacePage();
-                    //
-                    //
-                    // }));
-                  },
-                )
-              : Text(''),
+          // showAddPlace
+          //     ? IconButton(
+          //         icon: const Icon(
+          //           Icons.addchart_outlined,
+          //         ),
+          //         onPressed: () async {
+          //
+          //           // final sessionToken = Uuid().v4();
+          //           await showSearch(
+          //             context: context,
+          //             delegate: LocationSearch(),
+          //           );
+          //
+          //           // Navigator.push(context,
+          //           //     MaterialPageRoute(builder: (context) {
+          //           //   return AddPlacePage();
+          //           //
+          //           //
+          //           // }));
+          //         },
+          //       )
+          //     : Text(''),
           IconButton(
             icon: const Icon(
               Icons.search,

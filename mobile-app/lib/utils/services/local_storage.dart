@@ -10,9 +10,6 @@ import 'package:path/path.dart';
 
 
 class DBHelper {
-  // DBHelper._();
-  //
-  // static final DBHelper db = DBHelper._();
 
   var _database;
 
@@ -53,12 +50,12 @@ class DBHelper {
           ${constants.time} not null,
           ${constants.s2_pm2_5} not null,
           ${constants.s2_pm10} not null,
-           ${constants.address} not null
+          ${constants.address} not null
           )
       ''');
 
     await db.execute('''
-        create table ${constants.myLocationsTable} (
+        create table ${constants.favouritesTable} (
           id INTEGER PRIMARY KEY,
           ${constants.channelID} not null,
           ${constants.pm2_5} not null,
@@ -67,7 +64,8 @@ class DBHelper {
           ${constants.pm10} not null,
           ${constants.time} not null,
           ${constants.s2_pm2_5} not null,
-          ${constants.s2_pm10} not null
+          ${constants.s2_pm10} not null,
+          ${constants.address} not null
           )
       ''');
 
@@ -215,7 +213,7 @@ class DBHelper {
     try{
 
       final db = await database;
-      var measurements = await db.query('${constants.myLocationsTable}',
+      var measurements = await db.query('${constants.favouritesTable}',
           where: '${constants.channelID} = ?', whereArgs: [channelId]);
 
       return measurements.isNotEmpty ? List.generate(measurements.length, (i) {

@@ -191,10 +191,10 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                 Text(results.name),
                 onTap: () {
                   // close(context, results[index]);
-                  Navigator.push(context,
-                      MaterialPageRoute(builder: (context) {
-                        return PlaceDetailsPage();
-                      }));
+                  // Navigator.push(context,
+                  //     MaterialPageRoute(builder: (context) {
+                  //       return PlaceDetailsPage(device: results,);
+                  //     }));
                 },
               ),
               itemCount: 1,

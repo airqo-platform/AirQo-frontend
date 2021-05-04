@@ -21,10 +21,11 @@ class _AirQualityCardState extends State<AirQualityCard> {
               child: InkWell(
                   onTap: () {
                     print('Card was tapped');
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (context) {
-                      return PlaceDetailsPage();
-                    }));
+                    // Navigator.push(context,
+                    //     MaterialPageRoute(builder: (context) {
+                    //       return PlaceDetailsPage();
+                    //     })
+                    // );
                   },
                   splashColor:
                       Theme.of(context).colorScheme.onSurface.withOpacity(0.12),

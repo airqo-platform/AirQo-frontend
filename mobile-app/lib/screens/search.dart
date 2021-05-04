@@ -1,4 +1,5 @@
 import 'package:app/models/device.dart';
+import 'package:app/screens/place_details.dart';
 import 'package:app/utils/services/local_storage.dart';
 import 'package:app/utils/services/rest_api.dart';
 import 'package:app/utils/ui/dialogs.dart';
@@ -43,7 +44,7 @@ class _SearchPageState extends State<SearchPage> {
 
   Future<void> getDevices() async {
 
-    await  getDevicesLocally();
+    await getDevicesLocally();
 
     var results = await AirqoApiClient(context).fetchDevices();
     if (results.isEmpty){
@@ -77,11 +78,15 @@ class _SearchPageState extends State<SearchPage> {
 
   void filterSearchResults(String query) async {
 
+    query = query.toLowerCase();
+
     if(query.isNotEmpty) {
       var dummyListData = <Device>[];
       for(var device in dbDevices){
-        if((device.description != null && device.description.contains(query)) ||
-            (device.siteName != null && device.siteName.contains(query))) {
+
+        if((device.description != null && device.description.toLowerCase().contains(query)) ||
+            (device.siteName != null && device.siteName.toLowerCase().contains(query)) ||
+            (device.locationName != null && device.locationName.toLowerCase().contains(query))) {
           dummyListData.add(device);
         }
       }
@@ -183,9 +188,21 @@ class _SearchPageState extends State<SearchPage> {
                 shrinkWrap: true,
                 itemCount: devices.length,
                 itemBuilder: (context, index) {
-                  return ListTile(
-                    title: Text('${devices[index].siteName}'),
-                  );
+                  return
+                    InkWell(
+
+                        onTap: () {
+                          var device = devices[index];
+                          Navigator.push(context,
+                              MaterialPageRoute(builder: (context) {
+                                return PlaceDetailsPage(device: device,);
+                              })
+                          );
+                        },
+                        child: ListTile(
+                          title: Text('${devices[index].siteName}'),
+                        )//your content here
+                    );
                 },
               ),
             ),

@@ -22,7 +22,7 @@ class DbConstants{
 
   final String _dbName = 'airqo_db.db';
   final String _measurementsTable = 'measurements';
-  final String _myLocationsTable = 'myLocations';
+  final String _favouritesTable = 'favourites';
   final String _devicesTable = 'devices';
 
   final String _channelID = 'channelID';
@@ -47,7 +47,7 @@ class DbConstants{
 
   String get address => _address;
 
-  String get myLocationsTable => _myLocationsTable;
+  String get favouritesTable => _favouritesTable;
 
   String get latitude => _latitude;
 

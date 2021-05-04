@@ -1,16 +1,25 @@
 import 'package:app/constants/app_constants.dart';
+import 'package:app/models/device.dart';
 import 'package:app/models/hourly.dart';
+import 'package:app/models/measurement.dart';
 import 'package:app/utils/data_formatter.dart';
 import 'package:app/utils/services/rest_api.dart';
 import 'package:app/utils/ui/dialogs.dart';
+import 'package:app/utils/ui/pm.dart';
 import 'package:app/widgets/aqi_index.dart';
 import 'package:app/widgets/expanding_action_button.dart';
 import 'package:app/widgets/location_chart.dart';
 import 'package:app/widgets/pm_2_5_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:share/share.dart';
+import 'package:flutter/foundation.dart';
 
 class PlaceDetailsPage extends StatefulWidget {
+
+  PlaceDetailsPage({Key? key, required this.device}) : super(key: key);
+
+  final Device device;
+
   @override
   _PlaceDetailsPageState createState() => _PlaceDetailsPageState();
 }
@@ -18,13 +27,57 @@ class PlaceDetailsPage extends StatefulWidget {
 class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
 
   bool isFavourite = false;
-
-  var apiClient;
+  var locationData;
+  String response = 'Getting location data, please wait';
 
 
   @override
   void initState() {
-    apiClient = AirqoApiClient(context);
+    getDetails();
+    super.initState();
+
+  }
+
+  Future<void> getDetails() async {
+
+    try{
+
+      var measurement =
+      await AirqoApiClient(context)
+          .fetchDeviceMeasurements(widget.device.channelID);
+
+      measurement.setAddress(widget.device.siteName);
+      measurement.setStatus(pmToString(measurement.pm2_5.value));
+
+      setState(() {
+
+        locationData = measurement;
+      });
+
+    }
+    on Error catch (e) {
+      print('Getting device events error: $e');
+
+      var message = 'Sorry, information is not available';
+      await showSnackBar(context, message);
+
+      setState(() {
+        response = message;
+      });
+
+    }
+
+
+
+
+  }
+
+  void updateView(Measurement measurement){
+
+    setState(() {
+      locationData = measurement;
+    });
+
   }
 
   @override
@@ -57,8 +110,8 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
         //   ),
         // ],
       ),
-      body: Container(
-        decoration: BoxDecoration(
+      body: locationData != null ? Container(
+        decoration: const BoxDecoration(
           image: DecorationImage(
             image: AssetImage("assets/images/details_one.png"),
             fit: BoxFit.cover,
@@ -85,12 +138,16 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
               //     },
               // ),
 
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Center(child: Text(widget.device.siteName),) ,
+              ),
               SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Container(
                     width: 500,
                     height: 200,
-                    padding: EdgeInsets.all(8),
+                    padding: const EdgeInsets.all(8),
                     child:  LocationBarChart(),
                   )
               )
@@ -98,8 +155,8 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
             ],
           ),
         ),
-      ),
-      floatingActionButton: ExpandableFab(
+      ) : Center(child: Text(response),),
+      floatingActionButton: locationData != null ? ExpandableFab(
         distance: 112.0,
         children: [
           ActionButton(
@@ -139,7 +196,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
             icon: const Icon(Icons.info_outline_rounded),
           ),
         ],
-      ),
+      ) : null,
     );
   }
 
