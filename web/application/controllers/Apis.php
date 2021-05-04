@@ -13,6 +13,15 @@ function request($url, $method = 'GET') {
     return json_decode($json, true);
 }
 
+function utc_to_local($utc_date, $timezone = 'Africa/Kampala'){
+    /* $utc_date must be in YYYY-mm-dd H:i:s format*/
+    $userTimezone = new DateTimeZone($timezone);
+    $gmtTimezone = new DateTimeZone('GMT');
+    $myDateTime = new DateTime($utc_date, $gmtTimezone);
+    $offset = $userTimezone->getOffset($myDateTime);
+    return date("Y-m-d H:i:s", strtotime($utc_date)+$offset);
+}
+
 
 class Apis extends CI_Controller
 {
