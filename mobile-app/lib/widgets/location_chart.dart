@@ -1,20 +1,12 @@
+import 'package:app/models/chartData.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 
 class LocationBarChart extends StatelessWidget {
-  final List<charts.Series<TimeSeriesSales, DateTime>> seriesList =
-      _createSampleData();
-  // final bool animate;
 
-  // LocationBarChart(this.seriesList);
+  LocationBarChart(this.seriesList);
 
-  // factory LocationBarChart.withSampleData() {
-  //   return new TimeSeriesBar(
-  //     _createSampleData(),
-  //     // Disable animations for image tests.
-  //     // animate: false,
-  //   );
-  // }
+  final List<charts.Series<TimeSeriesSales, DateTime>> seriesList;
 
   @override
   Widget build(BuildContext context) {
@@ -95,12 +87,4 @@ class LocationBarChart extends StatelessWidget {
       )
     ];
   }
-}
-
-/// Sample time series data type.
-class TimeSeriesSales {
-  final DateTime time;
-  final int sales;
-
-  TimeSeriesSales(this.time, this.sales);
 }

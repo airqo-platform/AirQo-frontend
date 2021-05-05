@@ -75,9 +75,9 @@ class _ComparePageState extends State<ComparePage> {
     return LocationCompareChart();
   }
 
-  Widget lineDisplay() {
-    return LocationBarChart();
-  }
+  // Widget lineDisplay() {
+  //   return LocationBarChart();
+  // }
 
   Widget formInput() {
     return SingleChildScrollView(

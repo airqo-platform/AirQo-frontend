@@ -47,9 +47,6 @@ class _SearchPageState extends State<SearchPage> {
     await getDevicesLocally();
 
     var results = await AirqoApiClient(context).fetchDevices();
-    if (results.isEmpty){
-      await showSnackBar(context, 'Locations not available');
-    }
 
     if(results.isNotEmpty){
       updateLists(results);

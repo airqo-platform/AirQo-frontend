@@ -123,22 +123,27 @@ class _FeedbackPageState extends State<FeedbackPage> {
           var feedBackModel =
               feedbackModel.UserFeedback(email: email, feedback: feedback);
 
-          var success = await AirqoApiClient(context)
-              .sendFeedback(feedBackModel);
+          await showDialog<void>(
+            context: context,
+            builder: (_) => SuccessDialog(),
+          );
 
-
-          if(success){
-            await showDialog<void>(
-              context: context,
-              builder: (_) => SuccessDialog(),
-            );
-          }
-          else{
-            await showDialog<void>(
-              context: context,
-              builder: (_) => FailureDialog(),
-            );
-          }
+          // var success = await AirqoApiClient(context)
+          //     .sendFeedback(feedBackModel);
+          //
+          //
+          // if(success){
+          //   await showDialog<void>(
+          //     context: context,
+          //     builder: (_) => SuccessDialog(),
+          //   );
+          // }
+          // else{
+          //   await showDialog<void>(
+          //     context: context,
+          //     builder: (_) => FailureDialog(),
+          //   );
+          // }
         }
       },
       child: const Text('Submit'),
@@ -174,7 +179,7 @@ class SuccessDialog extends StatelessWidget {
                   child: Padding(
                     padding: EdgeInsets.all(10),
                     child: Text(
-                      'Your feedback has been received. Thank you!',
+                      'Coming Soon !',
                       softWrap: true,
                     ),
                   ),

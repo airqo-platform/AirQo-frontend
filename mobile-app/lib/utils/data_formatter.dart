@@ -1,6 +1,8 @@
+import 'package:app/models/chartData.dart';
 import 'package:app/models/hourly.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/series.dart';
+import 'package:app/widgets/location_chart.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -93,3 +95,30 @@ List<charts.Series<ValueSeries, DateTime>> createComaprisonData(List<Measurement
   ];
 }
 
+List<charts.Series<TimeSeriesSales, DateTime>> createChartData(List<Measurement> measurements) {
+
+  var data = <TimeSeriesSales>[];
+
+  for (var measurement in measurements){
+
+
+    var time = measurement.time.substring(0, measurement.time.indexOf('.'));
+
+    var date = DateTime.parse(time);
+
+    data.add(TimeSeriesSales(date, measurement.pm2_5.value.ceil()));
+  }
+
+
+
+
+  return [
+    charts.Series<TimeSeriesSales, DateTime>(
+      id: 'Location',
+      colorFn: (_, __) => charts.MaterialPalette.blue.shadeDefault,
+      domainFn: (TimeSeriesSales sales, _) => sales.time,
+      measureFn: (TimeSeriesSales sales, _) => sales.sales,
+      data: data,
+    )
+  ];
+}

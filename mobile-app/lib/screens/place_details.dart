@@ -1,6 +1,7 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/device.dart';
 import 'package:app/models/measurement.dart';
+import 'package:app/utils/data_formatter.dart';
 import 'package:app/utils/services/local_storage.dart';
 import 'package:app/utils/services/rest_api.dart';
 import 'package:app/utils/ui/date.dart';
@@ -12,6 +13,7 @@ import 'package:app/widgets/location_chart.dart';
 import 'package:app/widgets/pollutantCard.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:intl/intl.dart';
 import 'package:share/share.dart';
 import 'package:flutter/foundation.dart';
 
@@ -85,8 +87,6 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
         await showSnackBar(context,
             '${locationData.address} has been removed from favourite places');
       }
-
-
   }
 
   Future<void> getDetails() async {
@@ -113,11 +113,11 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
       }
 
     }
-    on Error catch (e) {
+    catch (e) {
       print('Getting device events error: $e');
 
       var message = 'Sorry, information is not available';
-      await showSnackBar(context, message);
+      // await showSnackBar(context, message);
 
       setState(() {
         response = message;
@@ -220,7 +220,8 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
 
             Padding(
               padding: const EdgeInsets.fromLTRB(8.0, 20.0, 8.0, 8.0),
-              child: Center(child: Text(
+              child: Center(
+                child: Text(
 
                   widget.device.siteName,
                   overflow: TextOverflow.ellipsis,
@@ -253,20 +254,70 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
             // ),
 
 
-            SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Container(
-                  width: 500,
-                  height: 200,
-                  padding: const EdgeInsets.all(8),
-                  child:  LocationBarChart(),
-                )
-            ),
+            // SingleChildScrollView(
+            //     scrollDirection: Axis.horizontal,
+            //     child: Container(
+            //       width: 500,
+            //       height: 200,
+            //       padding: const EdgeInsets.all(8),
+            //       child:  LocationBarChart(),
+            //     )
+            // ),
+            FutureBuilder(
+                future: AirqoApiClient(context)
+                    .fetchMeasurementsByDate(DateFormat('yyyy-MM-dd')
+                    .format(DateTime.now()), widget.device.name),
+                builder: (context, snapshot) {
+
+                  if (snapshot.hasData){
+
+                    var results = snapshot.data as List<Measurement>;
+
+                    if(results.isEmpty){
+                      return Center(
+                        child: Container(
+                          padding: const EdgeInsets.all(16.0),
+                          child: const Text('Sorry, data for last 24 hours is not available...',
+                            softWrap: true,
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      );
+
+                    }
+
+                    var formattedData = createChartData(results);
+
+                    return  SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Container(
+                          width: 500,
+                          height: 200,
+                          padding: const EdgeInsets.all(8),
+                          child:  LocationBarChart(formattedData),
+                        )
+                    );
+
+                    // return LocationBarChart(formattedData);
+                  }
+
+                  else{
+                    return Center( child: Container(
+                      padding: const EdgeInsets.all(16.0),
+                      child: const CircularProgressIndicator(),
+                    ));
+                  }
+                }),
             Container(
               padding: const EdgeInsets.all(2),
-                constraints:  BoxConstraints.expand(height: 300.0),
+                constraints:  const BoxConstraints.expand(height: 300.0),
               child: mapSection(locationData)
             ),
+            Padding(
+                padding: const EdgeInsets.fromLTRB(0, 0, 0, 20),
+                child: airqoLogo()
+            ),
+
 
             // LocationBarChart(),
           ],
@@ -276,13 +327,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
         distance: 112.0,
         children: [
           ActionButton(
-            onPressed: () {
-              // setState(() {
-              //   isFavourite = !isFavourite;
-              // });
-
-              updateFavouritePlace();
-            },
+            onPressed: updateFavouritePlace,
             icon: isFavourite ?
             const Icon(
               Icons.favorite,
@@ -295,7 +340,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
           ),
           ActionButton(
             onPressed: () {
-              Share.share('https://airqo.net', subject: 'Makerere!');
+              Share.share('Checkout the air quality of ${locationData.address} at https://www.airqo.net', subject: 'Airqo, ${locationData.address}!');
             },
             icon: const Icon(Icons.share_outlined),
           ),
@@ -328,23 +373,25 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
     );
     _markers[measurement.channelID.toString()] = marker;
 
-    return Padding(padding: const EdgeInsets.all(8.0), child : Card(
-      child: GoogleMap(
-        compassEnabled: false,
-        mapType: MapType.normal,
-        myLocationButtonEnabled: false,
-
-        myLocationEnabled: false,
-        rotateGesturesEnabled: false,
-        tiltGesturesEnabled: false,
-        mapToolbarEnabled: false,
-        zoomControlsEnabled: false,
-        initialCameraPosition: CameraPosition(
-          target: LatLng(measurement.location.latitude.value,
-              measurement.location.longitude.value),
-          zoom: 10,
-        ),
-        markers: _markers.values.toSet(),
+    return
+      Padding(
+          padding: const EdgeInsets.all(8.0),
+          child :
+          Card(
+              child: GoogleMap(
+                compassEnabled: false,
+                mapType: MapType.normal,
+                myLocationButtonEnabled: false,
+                myLocationEnabled: false,
+                rotateGesturesEnabled: false,
+                tiltGesturesEnabled: false,
+                mapToolbarEnabled: false,
+                initialCameraPosition: CameraPosition(
+                  target: LatLng(measurement.location.latitude.value,
+                      measurement.location.longitude.value),
+                  zoom: 13,
+                ),
+                markers: _markers.values.toSet(),
       )
     ));
   }
@@ -358,7 +405,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
               padding: const EdgeInsets.all(8.0),
               child: Column(
                 children: [
-                  Text(measurement.address,
+                  Text('Pollutants',
                     softWrap: true,
                     style: const TextStyle(
                         color: appColor
@@ -405,6 +452,15 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
 
     ));
   }
+
+  Widget airqoLogo() {
+    return Center( child : Image.asset(
+      'assets/icon/airqo_logo.png',
+      height: 50,
+      width: 50,
+    ));
+  }
+
 
   Widget headerSection(String image, String body) {
     return Container(

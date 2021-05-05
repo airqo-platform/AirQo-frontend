@@ -203,7 +203,12 @@ class _HomePageState extends State<HomePage> {
           },
           children: <Widget>[
             DashboardPage(),
-            ComparePage(),
+            // ComparePage(),
+            Center(
+              child: Container(
+                child: Text('Coming Soon !'),
+              ),
+            ),
             Center(
               child: Container(
                 child: Text('Coming Soon !'),
