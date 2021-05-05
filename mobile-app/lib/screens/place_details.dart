@@ -309,14 +309,14 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                   }
                 }),
             Container(
-              padding: const EdgeInsets.all(2),
+              padding: const EdgeInsets.fromLTRB(0, 0, 0, 50),
                 constraints:  const BoxConstraints.expand(height: 300.0),
               child: mapSection(locationData)
             ),
-            Padding(
-                padding: const EdgeInsets.fromLTRB(0, 0, 0, 20),
-                child: airqoLogo()
-            ),
+            // Padding(
+            //     padding: const EdgeInsets.fromLTRB(0, 0, 0, 20),
+            //     child: airqoLogo()
+            // ),
 
 
             // LocationBarChart(),
