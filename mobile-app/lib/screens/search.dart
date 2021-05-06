@@ -1,3 +1,4 @@
+import 'package:app/constants/app_constants.dart';
 import 'package:app/models/device.dart';
 import 'package:app/screens/place_details.dart';
 import 'package:app/utils/services/local_storage.dart';
@@ -187,7 +188,6 @@ class _SearchPageState extends State<SearchPage> {
                 itemBuilder: (context, index) {
                   return
                     InkWell(
-
                         onTap: () {
                           var device = devices[index];
                           Navigator.push(context,
@@ -198,6 +198,10 @@ class _SearchPageState extends State<SearchPage> {
                         },
                         child: ListTile(
                           title: Text('${devices[index].siteName}'),
+                          subtitle: Text('${devices[index].locationName}'),
+                          leading: const Icon(
+                            Icons.location_pin,
+                            color: appColor,),
                         )//your content here
                     );
                 },

@@ -1,15 +1,18 @@
 
+import 'package:app/constants/app_constants.dart';
 import 'package:flutter/material.dart';
 
 Future<void> showSnackBar(context, String message) async {
 
     var snackBar = SnackBar(
+      behavior: SnackBarBehavior.floating,
       content:
       Text(
         message,
         softWrap: true,
+        textAlign: TextAlign.center,
       ),
-      backgroundColor: const Color(0xff5f1ee8),
+      backgroundColor: appColor,
     );
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
 

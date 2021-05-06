@@ -272,7 +272,7 @@ class AirqoApiClient{
       throw HttpException(
           'Unexpected status code ${response.statusCode}:'
               ' ${response.reasonPhrase}',
-          uri: Uri.parse(getLatestEvents));
+          uri: Uri.parse('$getLatestDeviceEvents$channelID'));
     }
 
     }
