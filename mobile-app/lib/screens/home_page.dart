@@ -72,7 +72,7 @@ class _HomePageState extends State<HomePage> {
               const PopupMenuItem<String>(
                 value: 'Settings',
                 child: ListTile(
-                  leading: Icon(Icons.settings),
+                  leading: Icon(Icons.settings, color: appColor,),
                   title: Text(
                     'Settings',
                   ),
@@ -81,7 +81,10 @@ class _HomePageState extends State<HomePage> {
               const PopupMenuItem<String>(
                 value: 'Faqs',
                 child: ListTile(
-                  leading: const Icon(Icons.help_outline_outlined),
+                  leading: Icon(
+                    Icons.help_outline_outlined,
+                    color: appColor,
+                  ),
                   title: Text(
                     'Faqs',
                   ),
@@ -90,19 +93,21 @@ class _HomePageState extends State<HomePage> {
               const PopupMenuItem<String>(
                 value: 'Feedback',
                 child: ListTile(
-                  leading: const Icon(Icons.feedback_outlined),
+                  leading: Icon(
+                    Icons.feedback_outlined,
+                    color: appColor,),
                   title: Text(
                     'Feedback',
                   ),
                 ),
               ),
               const PopupMenuDivider(),
-              PopupMenuItem<String>(
-                value: 'Invite Friends',
+              const PopupMenuItem<String>(
+                value: 'Share',
                 child: ListTile(
-                  leading: const Icon(Icons.person_add_alt),
+                  leading: Icon(Icons.share_outlined, color: appColor,),
                   title: Text(
-                    'Invite Friends',
+                    'Share',
                     // style: Theme.of(context).textTheme.headline1,
                   ),
                 ),
@@ -128,8 +133,8 @@ class _HomePageState extends State<HomePage> {
                 // padding: const EdgeInsets.only(left: 28.0),
                 icon: const Icon(
                     Icons.home_outlined,
-                    color: Color(0xff5f1ee8)),
-                splashColor: Color(0xff5f1ee8),
+                    color: appColor),
+                splashColor: appColor,
                 onPressed: () {
                   setState(() {
                     _pageCtrl.jumpToPage(0);
@@ -145,8 +150,8 @@ class _HomePageState extends State<HomePage> {
                 // padding: const EdgeInsets.only(right: 28.0),
                 icon: const Icon(
                     Icons.stacked_bar_chart,
-                    color: Color(0xff5f1ee8)),
-                splashColor: Color(0xff5f1ee8),
+                    color: appColor),
+                splashColor: appColor,
                 onPressed: () {
                   setState(() {
                     _pageCtrl.jumpToPage(1);
@@ -161,8 +166,8 @@ class _HomePageState extends State<HomePage> {
                 // padding: const EdgeInsets.only(left: 28.0),
                 icon: const Icon(
                     Icons.notifications_none_outlined,
-                    color: Color(0xff5f1ee8)),
-                splashColor: Color(0xff5f1ee8),
+                    color: appColor),
+                splashColor: appColor,
                 onPressed: () {
                   setState(() {
                     _pageCtrl.jumpToPage(2);
@@ -177,15 +182,15 @@ class _HomePageState extends State<HomePage> {
                 // padding: const EdgeInsets.only(right: 28.0),
                 icon: const Icon(
                     Icons.library_books_outlined,
-                    color: Color(0xff5f1ee8)),
-                splashColor: Color(0xff5f1ee8),
+                    color: appColor),
+                splashColor: appColor,
                 onPressed: () {
                   setState(() {
                     _pageCtrl.jumpToPage(3);
                   });
                 },
               ),
-              Spacer(
+              const Spacer(
                 flex: 1,
               ),
             ],
@@ -201,8 +206,9 @@ class _HomePageState extends State<HomePage> {
             switchTitle(int);
             print('Page Changes to index $int');
           },
+          physics: const NeverScrollableScrollPhysics(),
           children: <Widget>[
-            DashboardPage(),
+            const DashboardPage(),
             // ComparePage(),
             Center(
               child: Container(
@@ -221,7 +227,6 @@ class _HomePageState extends State<HomePage> {
             //   ),
             // )
           ],
-          physics: NeverScrollableScrollPhysics(),
         ),
       ),
       floatingActionButton: Container(
@@ -307,7 +312,7 @@ class _HomePageState extends State<HomePage> {
       Navigator.push(context, MaterialPageRoute(builder: (context) {
         return FeedbackPage();
       }));
-    } else if (menuItem.trim().toLowerCase() == 'invite friends') {
+    } else if (menuItem.trim().toLowerCase() == 'share') {
       Share.share(
           'https://play.google.com/store/apps/details?id=com.airqo.app ',
           subject: 'Airqo!');

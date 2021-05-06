@@ -54,10 +54,11 @@ class _DashboardPageState extends State<DashboardPage> {
               }
 
               else{
-                return Center( child: Container(
-                  padding: const EdgeInsets.all(16.0),
-                  child: const Text('Loading...'),
-                ));
+                return const Center(child: CircularProgressIndicator(),);
+                // return Center( child: Container(
+                //   padding: const EdgeInsets.all(16.0),
+                //   child: const Text('Loading...'),
+                // ));
               }
             })
       )

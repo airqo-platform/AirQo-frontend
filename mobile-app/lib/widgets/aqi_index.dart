@@ -7,8 +7,7 @@ class AQI_Dialog extends StatelessWidget {
 
   String moderate = 'Moderate (12.1 - 35.4) \n'
       'Unusually sensitive people consider reducing '
-      'prolonged or heavy exertion.'
-      '';
+      'prolonged or heavy exertion.';
 
   String sensitive = 'Unhealthy for sensitive groups (35.6 - 55.4)\n'
       'Sensitive people should reduce prolonged or heavy exertion. '

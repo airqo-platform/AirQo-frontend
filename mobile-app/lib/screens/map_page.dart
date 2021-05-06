@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/measurement.dart';
+import 'package:app/screens/search.dart';
 import 'package:app/utils/services/local_storage.dart';
 import 'package:app/utils/services/rest_api.dart';
 import 'package:app/utils/ui/date.dart';
@@ -202,25 +203,32 @@ class MapPageState extends State<MapPage> {
                                 color: Colors.white70,
                                 borderRadius:  BorderRadius.circular(32),
                               ),
-                              child: GestureDetector(
+                              child: TextField(
+                                readOnly: true,
                                 onTap: (){
+                                  // setState(() {
+                                  //   _showInfoWindow = false;
+                                  // });
 
+                                  Navigator.push(context, MaterialPageRoute(builder: (context) {
+                                    return SearchPage();
+                                  }));
                                 },
-                                child: const TextField(
-                                  decoration: InputDecoration(
-                                    hintStyle: TextStyle(fontSize: 13),
-                                    hintText: 'Search',
-                                    suffixIcon: Icon(
-                                        Icons.search,
-                                        color: appColor
-                                    ),
-                                    // border: InputBorder.none,
-                                    border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.all(Radius.circular(25.0))),
-                                    contentPadding: EdgeInsets.all(15),
+                                decoration: const InputDecoration(
+                                  hintStyle: TextStyle(fontSize: 13),
+                                  hintText: 'Search',
+                                  suffixIcon: Icon(
+                                      Icons.search,
+                                      color: appColor
                                   ),
+                                  // border: InputBorder.none,
+                                  border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.all(
+                                          Radius.circular(25.0))
+                                  ),
+                                  contentPadding: EdgeInsets.all(15),
                                 ),
-                              )
+                              ),
                             ),
 
                           )
@@ -302,7 +310,6 @@ class MapPageState extends State<MapPage> {
     }
 
   }
-
 
   void showDetails() async {
 

@@ -31,7 +31,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
 
   bool isFavourite = false;
   var locationData;
-  String response = 'Getting location data, please wait';
+  var response;
   var dbHelper = DBHelper();
 
 
@@ -322,7 +322,10 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
             // LocationBarChart(),
           ],
         ),
-      ) : Center(child: Text(response),),
+      )
+          :
+      response != null ? Center(child: Text(response),)
+          : const Center(child: CircularProgressIndicator(),),
       floatingActionButton: locationData != null ? ExpandableFab(
         distance: 112.0,
         children: [
