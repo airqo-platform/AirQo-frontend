@@ -14,6 +14,11 @@ import 'compare_page.dart';
 import 'dashboard_page.dart';
 import 'faqs_page.dart';
 
+import 'package:url_launcher/url_launcher.dart';
+
+const _url = 'https://forms.gle/oFjqpNoUKPY5ubAcA';
+const _faqsUrl = 'https://www.airqo.net/faqs';
+
 class HomePage extends StatefulWidget {
   final String title = 'AirQo';
 
@@ -251,6 +256,14 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  void _launchURL() async =>
+      await canLaunch(_url) ? await launch(_url) :
+      throw 'Could not launch feedback form, try opening $_url';
+
+  void _launchURLFaqs() async =>
+      await canLaunch(_faqsUrl) ? await launch(_faqsUrl) :
+      throw 'Could not launch feedback form, try opening $_faqsUrl';
+
   Future<bool> onWillPop() {
     var now = DateTime.now();
 
@@ -309,18 +322,20 @@ class _HomePageState extends State<HomePage> {
     var menuItem = position.toString();
 
     if (menuItem.trim().toLowerCase() == 'feedback') {
-      Navigator.push(context, MaterialPageRoute(builder: (context) {
-        return FeedbackPage();
-      }));
+      _launchURL();
+      // Navigator.push(context, MaterialPageRoute(builder: (context) {
+      //   return FeedbackPage();
+      // }));
     } else if (menuItem.trim().toLowerCase() == 'share') {
       Share.share(
           'https://play.google.com/store/apps/details?id=com.airqo.app ',
           subject: 'Airqo!');
     }
     else if (menuItem.trim().toLowerCase() == 'faqs') {
-      Navigator.push(context, MaterialPageRoute(builder: (context) {
-        return FaqsPage();
-      }));
+      _launchURLFaqs();
+      // Navigator.push(context, MaterialPageRoute(builder: (context) {
+      //   return FaqsPage();
+      // }));
     }
     else {
       Navigator.push(context, MaterialPageRoute(builder: (context) {

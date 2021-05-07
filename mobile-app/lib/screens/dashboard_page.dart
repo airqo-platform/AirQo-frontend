@@ -32,7 +32,7 @@ class _DashboardPageState extends State<DashboardPage> {
                     child: Container(
                       padding: const EdgeInsets.all(16.0),
                       child: const Text('You haven\'t added '
-                          'favourite places place, '
+                          'favourite places, '
                           'search and add to your list...',
                         softWrap: true,
                         textAlign: TextAlign.center,

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/measurement.dart';
@@ -27,6 +26,7 @@ class MapPageState extends State<MapPage> {
   var windowProperties;
   String windowColor  = '';
   var dbHelper = DBHelper();
+  bool isLoading = true;
 
 
 
@@ -39,6 +39,7 @@ class MapPageState extends State<MapPage> {
    @override
   void initState() {
     _showInfoWindow = false;
+    isLoading = true;
     super.initState();
     // setCustomMarkers();
   }
@@ -119,6 +120,10 @@ class MapPageState extends State<MapPage> {
       setMeasurements(measurements);
       await dbHelper.insertLatestMeasurements(measurements);
     }
+
+    setState((){
+      isLoading = false;
+    });
 
   }
 
@@ -210,9 +215,11 @@ class MapPageState extends State<MapPage> {
                                   //   _showInfoWindow = false;
                                   // });
 
-                                  Navigator.push(context, MaterialPageRoute(builder: (context) {
-                                    return SearchPage();
-                                  }));
+                                  Navigator.push(context,
+                                      MaterialPageRoute(builder: (context) {
+                                        return SearchPage();
+                                      })
+                                  );
                                 },
                                 decoration: const InputDecoration(
                                   hintStyle: TextStyle(fontSize: 13),
@@ -260,6 +267,14 @@ class MapPageState extends State<MapPage> {
                 ),
 
           ),
+
+          if (isLoading)
+            const Positioned.fill(
+                child: Align(
+                    alignment: Alignment.center,
+                    child: CircularProgressIndicator()
+                ),
+            ),
 
           Positioned(
               bottom: 0,
@@ -384,6 +399,8 @@ class MapPageState extends State<MapPage> {
         );
         _markers[measurement.channelID.toString()] = marker;
       }
+
+      isLoading = false;
     });
 
   }
