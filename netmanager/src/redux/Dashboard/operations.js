@@ -10,10 +10,10 @@ import {
   RESET_USER_GRAPH_DEFAULTS_SUCCESS,
   RESET_LOCATION_FILTER_SUCCESS,
 } from "./actions";
+import { DEFAULTS_URI } from "config/urls/authService";
 import { KCCAInitialUserDefaultGraphsState } from "./constants";
 import { filterDefaults } from "./utils";
-import constants from "../../config/constants";
-import { getMonitoringSitesLocationsApi } from "../../views/apis/location";
+import { getMonitoringSitesLocationsApi } from "views/apis/location";
 
 export const refreshFilterLocationData = () => {
   return async (dispatch) => {
@@ -37,7 +37,7 @@ export const loadUserDefaultGraphData = () => {
   return async (dispatch, getState) => {
     const user = getState().auth.user._id;
     return await axios
-      .get(constants.DEFAULTS_URI, { params: { user } })
+      .get(DEFAULTS_URI, { params: { user } })
       .then((res) => res.data)
       .then((userDefaultsData) => {
         const { defaults } = userDefaultsData;
@@ -60,7 +60,7 @@ export const setUserDefaultGraphData = (filter) => {
     const user = getState().auth.user._id;
     const { chartTitle } = filter;
     return await axios
-      .put(constants.DEFAULTS_URI, filter, {
+      .put(DEFAULTS_URI, filter, {
         params: { user, chartTitle },
       })
       .then((res) => res.data)

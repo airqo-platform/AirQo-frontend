@@ -59,7 +59,16 @@ import { resetDashboardState } from "../Dashboard/operations";
 import { resetDeviceRegistryState } from "../DeviceRegistry/operations";
 import { resetLocationState } from "../LocationRegistry/operations";
 import { resetAlertState, updateMainAlert } from "../MainAlert/operations";
-import constants from '../../config/constants';
+import {
+  GET_USERS_URI,
+  GET_CANDIDATES_URI,
+  REGISTER_USER_URI,
+  LOGIN_USER_URI,
+  FORGOT_PWD_URI,
+  VERIFY_TOKEN_URI,
+  UPDATE_PWD_IN_URI,
+  DEFAULTS_URI } from "config/urls/authService";
+
 
 /***************************errors ********************************* */
 
@@ -86,7 +95,7 @@ export const fetchUsers = () => {
     dispatch(fetchUsersRequest());
     console.log('we are now fetching users using the action for fetching ');
     return axios
-        .get(constants.GET_USERS_URI)
+        .get(GET_USERS_URI)
         .then(response => response.data)
         .then(responseData => {dispatch(fetchUsersSuccess(responseData.users, responseData.message));})
         .catch(err => {dispatch(fetchUsersFailed(err.response.data))});
@@ -121,7 +130,7 @@ export const fetchCandidates = id => {
   return dispatch => {
     dispatch(fetchCandidatesRequest());
     return axios
-        .get(constants.GET_CANDIDATES_URI)
+        .get(GET_CANDIDATES_URI)
         .then(response => response.data)
         .then(data => dispatch(fetchCandidatesSuccess(data.users, data.message)))
         .catch(err => dispatch(fetchCandidatesFailed(err.response.data)))
@@ -157,7 +166,7 @@ export const addNewUser = user => {
   return dispatch  => {
     dispatch(addNewUserRequest(user));
     axios
-      .post(constants.REGISTER_USER_URI, user)
+      .post(REGISTER_USER_URI, user)
       .then(res => {
         const { savedData, message } = res.data;
         try {
@@ -226,7 +235,7 @@ export const editUser = userToEdit => dispatch => {
 
   const id = userToEdit.id
   return axios
-      .put(constants.GET_USERS_URI, userToEdit, { params: { id }})
+      .put(GET_USERS_URI, userToEdit, { params: { id }})
       .then(response => {
           if (response) {
             dispatch(updateMainAlert({
@@ -293,7 +302,7 @@ export const deleteUser = userToDelete => {
 
     dispatch(deleteUserRequest(userToDelete));
     return axios
-        .delete(constants.GET_USERS_URI, { params: { id }})
+        .delete(GET_USERS_URI, { params: { id }})
         .then(response => response.data)
         .then(data => dispatch(deleteUserSuccess(data.user, data.message)))
         .catch(err => dispatch(deleteUserFailed(err.response.data)))
@@ -326,7 +335,7 @@ export const deleteUserFailed = error => {
 export const registerCandidate = userData => dispatch => {
   const tenant = userData.organization;
   axios
-    .post(constants.REGISTER_CANDIDATE_URI, userData, { params: { tenant }})
+    .post(REGISTER_CANDIDATE_URI, userData, { params: { tenant }})
     .then(res => {
       if (res.data.success == true) {
         console.log('registration response:');
@@ -359,10 +368,10 @@ export const registrationSuccess = data => {
 
 /************************* Login a new User  *********************************/
 export const loginUser = userData => dispatch => {
-  console.log('the login URL ' + constants.LOGIN_USER_URI);
+  console.log('the login URL ' + LOGIN_USER_URI);
   const tenant = userData.organization;
   axios
-    .post(constants.LOGIN_USER_URI, userData, { params: { tenant }})
+    .post(LOGIN_USER_URI, userData, { params: { tenant }})
     .then(res => {
       try {
         // Save to localStorage
@@ -393,7 +402,7 @@ export const loginUser = userData => dispatch => {
 // Login - forgot password
 export const forgotPassword = userData => dispatch => {
   axios
-    .post(constants.FORGOT_PWD_URI, userData)
+    .post(FORGOT_PWD_URI, userData)
     .then(response => {
       console.log(response.data);
       if (response.data === 'email not recognized') {
@@ -420,7 +429,7 @@ export const forgotPassword = userData => dispatch => {
 
 export const verifyToken = async token => {
   await axios
-    .get(constants.VERIFY_TOKEN_URI, token)
+    .get(VERIFY_TOKEN_URI, token)
     .then(response => {
       console.log(response);
       if (response.data.message === 'password reset link a-ok') {
@@ -509,7 +518,7 @@ export const hideConfirmDialog = () => {
 export const confirmUser = userToConfirm => dispatch => {
   dispatch(confirmUserRequest(userToConfirm));
   return axios
-    .post(constants.GET_USERS_URI, userToConfirm)
+    .post(GET_USERS_URI, userToConfirm)
     .then(response => {
       if (response) {
         dispatch(confirmUserSuccess(response.data.user, response.data.message));
@@ -548,7 +557,7 @@ export const confirmUserFailed = error => {
 export const updatePassword = userData => (dispatch, getState) => {
   const id = getState().auth.user._id
   axios
-      .put(constants.UPDATE_PWD_IN_URI, userData, { params: { id } })
+      .put(UPDATE_PWD_IN_URI, userData, { params: { id } })
       .then(response => response.data)
       .then(data => dispatch({ type: UPDATE_PASSWORD_SUCCESS, payload: data.result}))
       .catch(error => dispatch({type: GET_ERRORS, payload: error.response || null}));
@@ -560,7 +569,7 @@ export const updateProfile = userData => dispatch => {
   dispatch({ type: UPDATE_PROFILE_REQUEST });
   return axios({
     method: 'put',
-    url: constants.GET_USERS_URI,
+    url: GET_USERS_URI,
     data: userData
   })
     .then(response => {
@@ -584,7 +593,7 @@ export const setDefaults = (values, id) => dispatch => {
   console.log('the sent id is: ' + `${values.id}`);
   dispatch(setDefaultsRequest(values));
   return axios
-    .put(constants.DEFAULTS_URI + '/' + `${values.id}`, values)
+    .put(DEFAULTS_URI + '/' + `${values.id}`, values)
     .then(response => {
       if (response) {
         dispatch(
@@ -625,7 +634,7 @@ export const fetchDefaults = userId => {
   return dispatch => {
     dispatch(fetchDefaultsRequest());
     return axios
-        .get(`${constants.DEFAULTS_URI }/${userId}`)
+        .get(`${DEFAULTS_URI }/${userId}`)
         .then(response => response.data)
         .then(responseData => {
           dispatch(fetchDefaultsSuccess(data.defaults, data.message));
@@ -662,7 +671,7 @@ export const updateAuthenticatedUser = newData => (dispatch, getState) => {
   dispatch(updateAuthenticatedUserRequest());
   const id = getState().auth.user._id
   return axios
-      .put(constants.GET_USERS_URI, newData, { params: { id }})
+      .put(GET_USERS_URI, newData, { params: { id }})
       .then(response => {
         if (response) {
           dispatch(

@@ -19,13 +19,9 @@ import {
   KeyboardDatePicker,
 } from "@material-ui/pickers";
 import axios from "axios";
-//import {PollutantCategory} from '../Dashboard/components'
-//import CsvDownloader from 'react-csv-downloader';
-import jsonexport from "jsonexport";
-//import {CSVDownload} from 'react-csv';
-import constants from "config/constants.js";
+import { DOWNLOAD_DATA } from "config/urls/analytics";
 import { getMonitoringSitesLocationsApi } from "../../apis/location";
-import {isEmpty} from "underscore";
+import { isEmpty } from "underscore";
 
 const {
   Parser,
@@ -37,12 +33,10 @@ const useStyles = makeStyles((theme) => ({
     padding: theme.spacing(4),
   },
 }));
-let data = [];
+
 const Download = (props) => {
   const { className, staticContext, ...rest } = props;
   const classes = useStyles();
-
-  //const [customDownloadData, setCustomisedDownloadData] = useState([]);
 
   var startDate = new Date();
   startDate.setMonth(startDate.getMonth() - 1);
@@ -120,8 +114,6 @@ const Download = (props) => {
   const handleCleanessChange = (selecteddegreeOfClean) => {
     setSelectedClean(selecteddegreeOfClean);
   };
-  //console.log(values.selectedOption);
-  //console.log(selectedPollutant);
 
   const disableDownloadBtn = () => {
     return !(
@@ -153,12 +145,9 @@ const Download = (props) => {
     console.log(JSON.stringify(params));
 
     axios
-      .post(
-        //'https://analytcs-bknd-service-dot-airqo-250220.uc.r.appspot.com/api/v1/data/download',
-        constants.DOWNLOAD_DATA + selectedType.value,
-        JSON.stringify(params),
-        { headers: { "Content-Type": "application/json" } }
-      )
+      .post(DOWNLOAD_DATA + selectedType.value, JSON.stringify(params), {
+        headers: { "Content-Type": "application/json" },
+      })
       .then((res) => res.data)
       .then((customisedDownloadData) => {
         // setCustomisedDownloadData(customisedDownloadData)
