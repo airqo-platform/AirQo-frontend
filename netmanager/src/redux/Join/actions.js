@@ -335,7 +335,7 @@ export const registerCandidate = userData => dispatch => {
       } else {
         dispatch({
           type: GET_ERRORS,
-          payload: res.data.message
+          payload: (res.data && res.data.message) || null
         });
       }
     })
@@ -345,7 +345,7 @@ export const registerCandidate = userData => dispatch => {
       console.dir(err.response.data);
       dispatch({
         type: GET_ERRORS,
-        payload: err.response.data
+        payload: (err.response && err.response.data) || null
       });
     });
 };
@@ -381,11 +381,12 @@ export const loginUser = userData => dispatch => {
         console.log(e);
       }
     })
-    .catch(err =>
-      dispatch({
-        type: GET_ERRORS,
-        payload: err.response
-      })
+    .catch(err => {
+          dispatch({
+            type: GET_ERRORS,
+            payload: err.response || null
+          })
+        }
     );
 };
 
@@ -410,7 +411,7 @@ export const forgotPassword = userData => dispatch => {
     .catch(err =>
       dispatch({
         type: GET_ERRORS,
-        payload: err.response
+        payload: err.response || null
       })
     );
 };
@@ -550,7 +551,7 @@ export const updatePassword = userData => (dispatch, getState) => {
       .put(constants.UPDATE_PWD_IN_URI, userData, { params: { id } })
       .then(response => response.data)
       .then(data => dispatch({ type: UPDATE_PASSWORD_SUCCESS, payload: data.result}))
-      .catch(error => dispatch({type: GET_ERRORS, payload: error.response}));
+      .catch(error => dispatch({type: GET_ERRORS, payload: error.response || null}));
 };
 
 /***************************update the user profile ******************** */
