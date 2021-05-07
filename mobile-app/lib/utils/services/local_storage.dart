@@ -72,11 +72,13 @@ class DBHelper {
       ''');
 
     await db.execute('''
-        create table ${constants.devicesTable} (
+        CREATE TABLE IF NOT EXISTS ${constants.devicesTable} (
           id INTEGER PRIMARY KEY,
           ${constants.channelID} not null,
-          ${constants.siteName} not null,
-          ${constants.description} not null,
+          ${constants.description} null,
+          ${constants.siteName} null,
+          ${constants.locationName} null,
+          ${constants.name} null
           )
       ''');
 

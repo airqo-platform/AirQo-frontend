@@ -80,11 +80,11 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
       });
 
       if(isFavourite){
-        await showSnackBar(context,
+        await showSnackBar2(context,
             '${locationData.address} has been added to your favourite places');
       }
       else{
-        await showSnackBar(context,
+        await showSnackBar2(context,
             '${locationData.address} has been removed from favourite places');
       }
   }

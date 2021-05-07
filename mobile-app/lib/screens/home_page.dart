@@ -213,7 +213,7 @@ class _HomePageState extends State<HomePage> {
           },
           physics: const NeverScrollableScrollPhysics(),
           children: <Widget>[
-            const DashboardPage(),
+            DashboardPage(),
             // ComparePage(),
             Center(
               child: Container(

@@ -18,6 +18,21 @@ Future<void> showSnackBar(context, String message) async {
 
 }
 
+Future<void> showSnackBar2(context, String message) async {
+
+  var snackBar = SnackBar(
+    content:
+    Text(
+      message,
+      softWrap: true,
+      textAlign: TextAlign.center,
+    ),
+    backgroundColor: appColor,
+  );
+  ScaffoldMessenger.of(context).showSnackBar(snackBar);
+
+}
+
 void showInfoDialog(BuildContext context, String text) {
   showDialog<void>(
     context: context,
