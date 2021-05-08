@@ -111,14 +111,14 @@ class MapPageState extends State<MapPage> {
     await localFetch();
 
     var measurements = await AirqoApiClient(context).fetchMeasurements();
-    var devices = await AirqoApiClient(context).fetchDevices();
-
-    measurements = AirqoApiClient(context)
-        .mapMeasurements(measurements, devices);
+    // var devices = await AirqoApiClient(context).fetchDevices();
+    //
+    // measurements = AirqoApiClient(context)
+    //     .mapMeasurements(measurements, devices);
 
     if (measurements.isNotEmpty){
       setMeasurements(measurements);
-      await dbHelper.insertLatestMeasurements(measurements);
+      await dbHelper.insertMeasurements(measurements);
     }
 
     setState((){
@@ -134,10 +134,10 @@ class MapPageState extends State<MapPage> {
 
     var measurements = await AirqoApiClient(context).fetchMeasurements();
 
-    var devices = await AirqoApiClient(context).fetchDevices();
-
-    measurements = AirqoApiClient(context)
-        .mapMeasurements(measurements, devices);
+    // var devices = await AirqoApiClient(context).fetchDevices();
+    //
+    // measurements = AirqoApiClient(context)
+    //     .mapMeasurements(measurements, devices);
 
     if (measurements.isNotEmpty){
       setMeasurements(measurements);
@@ -145,7 +145,7 @@ class MapPageState extends State<MapPage> {
       var message = 'Refresh Complete';
       await showSnackBar(context, message);
 
-      await dbHelper.insertLatestMeasurements(measurements);
+      await dbHelper.insertMeasurements(measurements);
 
     }
 
@@ -318,7 +318,7 @@ class MapPageState extends State<MapPage> {
 
   Future<void> localFetch() async {
 
-    var measurements = await dbHelper.getLatestMeasurements();
+    var measurements = await dbHelper.getMeasurements();
 
     if(measurements.isNotEmpty){
       setMeasurements(measurements);
@@ -347,48 +347,13 @@ class MapPageState extends State<MapPage> {
       _markers.clear();
       for (final measurement in measurements) {
 
-        var bitmapDescriptor;
-
-        var pm2_5  = measurement.pm2_5.value;
-
-        if(pm2_5 >= 0 && pm2_5 <= 12){ //good
-          bitmapDescriptor = BitmapDescriptor
-              .defaultMarkerWithHue(BitmapDescriptor.hueGreen);
-          measurement.setStatus('Good');
-        }
-        else if(pm2_5 >= 12.1 && pm2_5 <= 35.4){ //moderate
-          bitmapDescriptor = BitmapDescriptor
-              .defaultMarkerWithHue(BitmapDescriptor.hueYellow);
-          measurement.setStatus('Moderate');
-        }
-        else if(pm2_5 >= 35.5 && pm2_5 <= 55.4){ //sensitive
-          bitmapDescriptor = BitmapDescriptor
-              .defaultMarkerWithHue(BitmapDescriptor.hueOrange);
-          measurement.setStatus('Unhealthy');
-        }
-        else if(pm2_5 >= 55.5 && pm2_5 <= 150.4){ // unhealthy
-          bitmapDescriptor = BitmapDescriptor
-              .defaultMarkerWithHue(BitmapDescriptor.hueRed);
-          measurement.setStatus('Unhealthy');
-        }
-        else if(pm2_5 >= 150.5 && pm2_5 <= 250.4){ // very unhealthy
-          bitmapDescriptor = BitmapDescriptor.defaultMarkerWithHue(285);
-          measurement.setStatus('Very Unhealthy');
-        }
-        else if(pm2_5 >= 250.5){ // hazardous
-          bitmapDescriptor = BitmapDescriptor
-              .defaultMarkerWithHue(BitmapDescriptor.hueMagenta);
-          measurement.setStatus('Hazardous');
-        }
-        else{
-          bitmapDescriptor = BitmapDescriptor.defaultMarker;
-        }
+        var bitmapDescriptor = pmToMarkerPoint(measurement.pm2_5.value);
 
         final marker = Marker(
           markerId: MarkerId(measurement.channelID.toString()),
           icon: bitmapDescriptor,
-          position: LatLng((measurement.location.latitude.value),
-              measurement.location.longitude.value),
+          position: LatLng((measurement.locationDetails.latitude),
+              measurement.locationDetails.longitude),
           infoWindow: InfoWindow(
             title: measurement.pm2_5.value.toString(),
             // snippet: node.location,
@@ -413,7 +378,7 @@ class MapPageState extends State<MapPage> {
           padding: const EdgeInsets.all(8.0),
           child: Column(
             children: [
-              Text(windowProperties.address,
+              Text(windowProperties.locationDetails.siteName,
                 softWrap: true,
                 style: const TextStyle(
                     color: appColor
@@ -438,7 +403,7 @@ class MapPageState extends State<MapPage> {
                           //     color: Colors.white
                           // ),
                         ),
-                        Text(windowProperties.status,
+                        Text( pmToString(windowProperties.pm2_5.value),
                         //   style: TextStyle(
                         //   color: Colors.white
                         // ),
@@ -473,7 +438,7 @@ class MapPageState extends State<MapPage> {
                   IconButton(
                     onPressed: () {
                       var text = 'Checkout the air quality of '
-                          '${windowProperties.address} at https://www.airqo.net';
+                          '${windowProperties.locationDetails.siteName} at https://www.airqo.net';
                       Share.share(text, subject: 'Airqo, Breathe Clean', );
                     },
                     icon: const Icon(

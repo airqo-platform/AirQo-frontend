@@ -51,13 +51,13 @@ class _SearchPageState extends State<SearchPage> {
 
     if(results.isNotEmpty){
       updateLists(results);
-      await dbHelper.insertLatestDevices(results);
+      await dbHelper.insertDevices(results);
     }
   }
 
   Future<void> getDevicesLocally() async {
 
-    var offlineDevices = await dbHelper.getLatestDevices();
+    var offlineDevices = await dbHelper.getDevices();
 
     if(offlineDevices.isNotEmpty){
 

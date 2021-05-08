@@ -110,7 +110,7 @@ class TitleSection extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(data.address),
+                    Text(data.locationDetails.siteName),
                     Text('${data.pm2_5.value} µg/m3'),
                     Text(pmToString(data.pm2_5.value))
                   ],

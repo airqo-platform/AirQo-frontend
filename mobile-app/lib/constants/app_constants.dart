@@ -1,16 +1,9 @@
 import 'package:flutter/material.dart';
 
-enum AppMenu {
-  settings,
-  help,
-}
-
 const appName = 'AirQo';
 
 
 const appColor = Color(0xff5f1ee8);
-
-
 const greenColor = Color(0xff3FFF33);
 const yellowColor = Color(0xffFFF933);
 const orangeColor = Color(0xffFF9633);
@@ -18,12 +11,37 @@ const redColor = Color(0xffF62E2E);
 const purpleColor = Color(0xFF7B1FA2);
 const maroonColor = Color(0xff570B0B);
 
+
+class ColorConstants{
+  final Color _green = const Color(0xff3FFF33);
+  final Color _yellow = const Color(0xffFFF933);
+  final Color _orange = const Color(0xffFF9633);
+  final Color _red = const Color(0xffF62E2E);
+  final Color _purple = const Color(0xFF7B1FA2);
+  final Color _maroon = const Color(0xff570B0B);
+
+  final Color _appColor = const Color(0xff5f1ee8);
+
+  Color get green => _green;
+
+  Color get maroon => _maroon;
+
+  Color get purple => _purple;
+
+  Color get red => _red;
+
+  Color get orange => _orange;
+
+  Color get yellow => _yellow;
+
+  Color get appColor => _appColor;
+}
+
 class DbConstants{
 
   final String _dbName = 'airqo_db.db';
   final String _measurementsTable = 'measurements';
-  final String _favouritesTable = 'favourites';
-  final String _devicesTable = 'devices';
+  final String _locationsTable = 'locations';
 
   final String _channelID = 'channelID';
   final String _description = 'description';
@@ -32,6 +50,10 @@ class DbConstants{
   final String _siteName = 'siteName';
   final String _name = 'name';
   final String _favourite = 'favourite';
+  final String _locationDetails = 'locationDetails';
+
+
+  final String _nickName = 'nickName';
 
 
   final String _time = 'time';
@@ -44,13 +66,15 @@ class DbConstants{
   final String _address = 'address';
 
 
+  String get locationDetails => _locationDetails;
+
+  String get nickName => _nickName;
+
   String get favourite => _favourite;
 
-  String get devicesTable => _devicesTable;
+  String get locationsTable => _locationsTable;
 
   String get address => _address;
-
-  String get favouritesTable => _favouritesTable;
 
   String get latitude => _latitude;
 

@@ -173,9 +173,28 @@ class AirqoApiClient{
 
         print(response.body);
 
-        List<Device> devices = json.decode(response.body)['devices']
-            .map<Device>((d) => Device.fromJson(d))
-            .toList();
+        // List<Device> devices = json.decode(response.body)['devices']
+        //     .map<Device>((d) => {
+        //   Device.fromJson(d)
+        // })
+        //     .toList();
+
+        var devices = <Device>[];
+
+        var j =  json.decode(response.body)['devices'];
+        for(var t in j){
+
+          try{
+            Device device = Device.fromJson(t);
+            devices.add(device);
+
+          } on Error catch (e) {
+            print('Get Devices error: $e');
+            var message = 'Couldn\'t get locations, please try again later';
+          }
+
+
+        }
 
         return devices;
       } else {
@@ -333,26 +352,26 @@ class AirqoApiClient{
   }
 
 
-  List<Measurement> mapMeasurements(List<Measurement> measurements,
-      List<Device> devices) {
-
-    var transformedMeasurements = <Measurement>[];
-
-    for (var measurement in measurements) {
-
-      for (var device in devices) {
-        if(device.channelID == measurement.channelID){
-          measurement.setAddress(device.siteName);
-          transformedMeasurements.add(measurement);
-          break;
-        }
-      }
-    }
-
-
-    return transformedMeasurements;
-
-  }
+  // List<Measurement> mapMeasurements(List<Measurement> measurements,
+  //     List<Device> devices) {
+  //
+  //   var transformedMeasurements = <Measurement>[];
+  //
+  //   for (var measurement in measurements) {
+  //
+  //     for (var device in devices) {
+  //       if(device.channelID == measurement.channelID){
+  //         measurement.setAddress(device.siteName);
+  //         transformedMeasurements.add(measurement);
+  //         break;
+  //       }
+  //     }
+  //   }
+  //
+  //
+  //   return transformedMeasurements;
+  //
+  // }
 
 
 }

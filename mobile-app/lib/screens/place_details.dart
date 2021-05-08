@@ -46,7 +46,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
   Future<void> checkFavourite() async {
 
     if(locationData != null){
-      var isFav = await DBHelper().checkFavouritePlace(locationData.channelID);
+      var isFav = await DBHelper().checkFavouritePlace(locationData.locationDetails.channelID);
 
       setState(() {
         isFavourite = isFav;
@@ -59,7 +59,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
   Future<void> updatePlace() async {
 
     if(isFavourite){
-      await DBHelper().updateFavouritePlace(locationData, true);
+      await DBHelper().updateFavouritePlace(locationData.locationDetails, true);
     }
 
   }
@@ -68,24 +68,24 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
 
     var place;
       if(isFavourite){
-        place = await DBHelper().updateFavouritePlace(locationData, false);
+        place = await DBHelper().updateFavouritePlace(locationData.locationDetails, false);
       }
       else{
-        place = await DBHelper().updateFavouritePlace(locationData, true);
+        place = await DBHelper().updateFavouritePlace(locationData.locationDetails, true);
       }
 
       setState(() {
-        locationData = place;
-        isFavourite = locationData.favourite;
+        locationData.locationDetails = place;
+        isFavourite = locationData.locationDetails.favourite;
       });
 
       if(isFavourite){
         await showSnackBar2(context,
-            '${locationData.address} has been added to your favourite places');
+            '${locationData.locationDetails.siteName} has been added to your favourite places');
       }
       else{
         await showSnackBar2(context,
-            '${locationData.address} has been removed from favourite places');
+            '${locationData.locationDetails.siteName} has been removed from favourite places');
       }
   }
 
@@ -98,10 +98,6 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
       var measurement =
       await AirqoApiClient(context)
           .fetchDeviceMeasurements(widget.device.channelID);
-
-      measurement.setAddress(widget.device.siteName);
-      measurement.setStatus(pmToString(measurement.pm2_5.value));
-      measurement.setChannelId(widget.device.channelID);
 
       setState(() {
         locationData = measurement;
@@ -131,21 +127,20 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
     try{
 
       var measurements =
-      await DBHelper().getDeviceMeasurements(widget.device.channelID);
+      await DBHelper().getMeasurement(widget.device.channelID);
 
-      var measurement = measurements.first;
+      if(measurements != null){
 
-      measurement.setAddress(widget.device.siteName);
-      measurement.setStatus(pmToString(measurement.pm2_5.value));
-      measurement.setChannelId(widget.device.channelID);
+        setState(() {
+          locationData = measurements;
+        });
 
-      setState(() {
-        locationData = measurement;
-      });
-
-      if(locationData != null){
-        await checkFavourite();
+        if(locationData != null){
+          await checkFavourite();
+        }
       }
+
+
 
     }
     on Error catch (e) {
@@ -343,7 +338,10 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
           ),
           ActionButton(
             onPressed: () {
-              Share.share('Checkout the air quality of ${locationData.address} at https://www.airqo.net', subject: 'Airqo, ${locationData.address}!');
+              Share.share('Checkout the air quality of '
+                  '${locationData.locationDetails.siteName} '
+                  'at https://www.airqo.net',
+                  subject: 'Airqo, ${locationData.locationDetails.siteName}!');
             },
             icon: const Icon(Icons.share_outlined),
           ),
@@ -371,8 +369,8 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
     final marker = Marker(
       markerId: MarkerId(measurement.channelID.toString()),
       icon: pmToMarkerPoint(measurement.pm2_5.value),
-      position: LatLng((measurement.location.latitude.value),
-          measurement.location.longitude.value),
+      position: LatLng((measurement.locationDetails.latitude),
+          measurement.locationDetails.longitude),
     );
     _markers[measurement.channelID.toString()] = marker;
 
@@ -390,8 +388,8 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                 tiltGesturesEnabled: false,
                 mapToolbarEnabled: false,
                 initialCameraPosition: CameraPosition(
-                  target: LatLng(measurement.location.latitude.value,
-                      measurement.location.longitude.value),
+                  target: LatLng(measurement.locationDetails.latitude,
+                      measurement.locationDetails.longitude),
                   zoom: 13,
                 ),
                 markers: _markers.values.toSet(),
@@ -433,7 +431,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                               //     color: Colors.white
                               // ),
                             ),
-                            Text(measurement.status,
+                            Text( pmToString(measurement.pm2_5.value),
                               //   style: TextStyle(
                               //   color: Colors.white
                               // ),
