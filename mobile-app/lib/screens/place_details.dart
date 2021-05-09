@@ -7,10 +7,11 @@ import 'package:app/utils/services/rest_api.dart';
 import 'package:app/utils/ui/date.dart';
 import 'package:app/utils/ui/dialogs.dart';
 import 'package:app/utils/ui/pm.dart';
-import 'package:app/widgets/aqi_index.dart';
+import 'package:app/widgets/help/aqi_index.dart';
 import 'package:app/widgets/expanding_action_button.dart';
 import 'package:app/widgets/location_chart.dart';
 import 'package:app/widgets/pollutantCard.dart';
+import 'package:app/widgets/pollutantContainer.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
@@ -97,7 +98,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
 
       var measurement =
       await AirqoApiClient(context)
-          .fetchDeviceMeasurements(widget.device.channelID);
+          .fetchDeviceMeasurements(widget.device);
 
       setState(() {
         locationData = measurement;
@@ -195,6 +196,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
           ),
         ),
         child: ListView(
+          padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
           children: <Widget>[
             // FutureBuilder(
             //   future: apiClient.fetchHourlyMeasurements(''),
@@ -213,41 +215,61 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
             //     },
             // ),
 
+            // Name
             Padding(
               padding: const EdgeInsets.fromLTRB(8.0, 20.0, 8.0, 8.0),
-              child: Center(
-                child: Text(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
 
-                  widget.device.siteName,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                      fontSize: 16,
-                      color: appColor,
-                      fontWeight: FontWeight.bold,
-                  )
-              ),) ,
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: (){
+                        print('editing');
+                      },
+                      child: RichText(
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        text: TextSpan(
+                          style: const TextStyle(
+                            fontSize: 20 ,
+                            color: appColor,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          text: '${widget.device.siteName} ',
+                          children: <TextSpan>[
+                            TextSpan(
+                              text: String.fromCharCode(0xe169),
+                              style: const TextStyle(
+                                fontSize: 15,
+                                fontFamily: 'MaterialIcons',
+                                color: appColor,
+                              ),
+                            )
+                          ],
+                        ),
+                      ),
+                    )
+                  ),
+                ],
+              ),
             ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(8.0, 20.0, 8.0, 8.0),
-              child: Center(child: Text(
-                  dateToString(locationData.time),
-                  style: const TextStyle(
-                    color: appColor,
-                    fontWeight: FontWeight.w300,
-                    fontStyle: FontStyle.italic,
-                  )
-              ),) ,
-            ),
+
+            // card section
             Padding(
               padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
               child: cardSection(locationData),
             ),
 
+            // Pollutants
             // Padding(
             //   padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
-            //   child: PollutantsCard(),
+            //   child: PollutantsContainer(locationData),
             // ),
 
+            PollutantsContainer(locationData),
 
             // SingleChildScrollView(
             //     scrollDirection: Axis.horizontal,
@@ -258,6 +280,8 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
             //       child:  LocationBarChart(),
             //     )
             // ),
+
+            // Historical Data
             FutureBuilder(
                 future: AirqoApiClient(context)
                     .fetchMeasurementsByDate(DateFormat('yyyy-MM-dd')
@@ -303,20 +327,19 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                     ));
                   }
                 }),
+
+            // Map
             Container(
-              padding: const EdgeInsets.fromLTRB(0, 0, 0, 50),
+                padding: const EdgeInsets.fromLTRB(0, 0, 0, 50),
                 constraints:  const BoxConstraints.expand(height: 300.0),
-              child: mapSection(locationData)
+                child: mapSection(locationData)
             ),
-            // Padding(
-            //     padding: const EdgeInsets.fromLTRB(0, 0, 0, 20),
-            //     child: airqoLogo()
-            // ),
 
 
             // LocationBarChart(),
           ],
         ),
+
       )
           :
       response != null ? Center(child: Text(response),)
@@ -406,12 +429,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
               padding: const EdgeInsets.all(8.0),
               child: Column(
                 children: [
-                  Text('Pollutants',
-                    softWrap: true,
-                    style: const TextStyle(
-                        color: appColor
-                    ),
-                    overflow: TextOverflow.ellipsis,),
+
                   Padding(
                     padding: const EdgeInsets.fromLTRB(0, 5, 0, 0),
                     child: Container(
@@ -426,27 +444,45 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            Text(measurement.pm2_5.value.toString(),
-                              // style: TextStyle(
-                              //     color: Colors.white
-                              // ),
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(0, 5, 0, 5),
+                              child: Image.asset(pmToEmoji(measurement.pm2_5.value),
+                                height: 40,
+                                width: 40,
+                              ),
+                            ),
+
+                            Text(
+                              measurement.pm2_5.value.toString(),
+                              style: const TextStyle(
+                                color: Colors.black54,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 20,
+
+                              ),
                             ),
                             Text( pmToString(measurement.pm2_5.value),
-                              //   style: TextStyle(
-                              //   color: Colors.white
-                              // ),
                             ),
-                            Text( dateToString(measurement.time) ,
-                              softWrap: true,
-                              overflow: TextOverflow.ellipsis,
-                              // style: TextStyle(
-                              //     color: Colors.white
-                              // ),
-                            )
                           ],
                         )
                     ),
                   ),
+
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(0, 5, 0, 0),
+                    child: Text(
+                        'Last updated : ${dateToString(locationData.time)}',
+
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: appColor,
+                          fontWeight: FontWeight.w300,
+                          fontStyle: FontStyle.italic,
+                        )
+                    ),
+                  ),
+
+
                 ],
               ),
             )

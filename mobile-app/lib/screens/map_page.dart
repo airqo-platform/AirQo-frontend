@@ -7,8 +7,9 @@ import 'package:app/utils/services/local_storage.dart';
 import 'package:app/utils/services/rest_api.dart';
 import 'package:app/utils/ui/date.dart';
 import 'package:app/utils/ui/dialogs.dart';
+import 'package:app/utils/ui/help.dart';
 import 'package:app/utils/ui/pm.dart';
-import 'package:app/widgets/aqi_index.dart';
+
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:share/share.dart';
@@ -302,7 +303,7 @@ class MapPageState extends State<MapPage> {
                       Navigator.push(
                         context,
                         MaterialPageRoute<void>(
-                          builder: (BuildContext context) => AQI_Dialog(),
+                          builder: (BuildContext context) => getHelpPage(''),
                           fullscreenDialog: true,
                         ),
                       );
@@ -428,7 +429,7 @@ class MapPageState extends State<MapPage> {
                       Navigator.push(
                         context,
                         MaterialPageRoute<void>(
-                          builder: (BuildContext context) => AQI_Dialog(),
+                          builder: (BuildContext context) => getHelpPage(''),
                           fullscreenDialog: true,
                         ),
                       );

@@ -86,15 +86,11 @@ class Measurement {
 
     var data =
      <String, dynamic>{
-      'time': json['created_at'] as String,
-      'pm2_5': {'value': double.parse(json[constants.pm2_5])},
-      's2_pm2_5': {'value': double.parse(json[constants.s2_pm2_5])},
-        's2_pm10': {'value': double.parse(json[constants.s2_pm10])},
-        'pm10': {'value': double.parse(json[constants.pm10])},
-        'location': {
-          'latitude': {'value': double.parse(json[constants.latitude])},
-          'longitude': {'value': double.parse(json[constants.longitude])}
-        },
+       'time': json['created_at'] as String,
+       'pm2_5': {'value': double.parse(json[constants.pm2_5])},
+       's2_pm2_5': {'value': double.parse(json[constants.s2_pm2_5])},
+       's2_pm10': {'value': double.parse(json[constants.s2_pm10])},
+       'pm10': {'value': double.parse(json[constants.pm10])},
       };
 
     print(data);

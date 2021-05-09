@@ -11,6 +11,22 @@ const redColor = Color(0xffF62E2E);
 const purpleColor = Color(0xFF7B1FA2);
 const maroonColor = Color(0xff570B0B);
 
+class PollutantConstants{
+
+  static final String _pm2_5 = 'pm2_5';
+  static final String _pm10 = 'pm10';
+  static final String _s2_pm2_5 = 's2_pm2_5';
+  static final String _s2_pm10 = 's2_pm10';
+
+  static String get pm2_5 => _pm2_5;
+
+  static String get pm10 => _pm10;
+
+  static String get s2_pm2_5 => _s2_pm2_5;
+
+  static String get s2_pm10 => _s2_pm10;
+
+}
 
 class ColorConstants{
   final Color _green = const Color(0xff3FFF33);
