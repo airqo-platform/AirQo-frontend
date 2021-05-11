@@ -9,7 +9,7 @@
   </ion-navbar>
 </ion-header>
 <ion-content padding>
-  <p class="title" *ngIf="places_nodes_list_api_success == '100'">Select or search a place to add to Favourites</p>
+  <p class="title" *ngIf="places_nodes_list_api_success == '100'">Select or search a place to add to your places</p>
   <ion-searchbar #mySearchbar type="text" color="light" placeholder="Search city or area" [formControl]="textInput"></ion-searchbar>
   <ion-list *ngIf="places_nodes_list_api_success == '100'">
     <ion-item *ngFor="let node of nodes" (click)="addToFavoritesList(node)">

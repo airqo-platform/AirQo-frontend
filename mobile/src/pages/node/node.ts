@@ -26,7 +26,7 @@ export class NodePage {
   class: any;
   node_data: any;
 
-  is_favorite: boolean = true;
+  is_favorite: boolean = false;
 
   graphs_segments: any = 'history';
 
@@ -465,55 +465,116 @@ export class NodePage {
   // Add Node to favorites list
   // --------------------------------------------------------------------------------------------------------------------
   addToFavoritesList(node) {
-    this.alertCtrl.create({
-      title: 'ADD TO FAVORITES',
-      message: 'Add node to favorites?',
-      buttons: [
-        {
-          text: 'Cancel',
-          role: 'cancel',
-          handler: () => {}
-        },
-        {
-          text: 'Add',
-          handler: () => {
-            this.storage.get('favorites').then((val) => {
-              let nodes = [];
-              if(val && val != null && val != '' && val.length > 0) {
-                if(val.filter(item => item.channel_id === node.channel_id).length != 0){
-                  this.is_favorite = false;
-                  this.toastCtrl.create({
-                    message: 'Place already added',
-                    duration: 2000,
-                    position: 'bottom'
-                  }).present();
+    if(this.is_favorite){
+      this.alertCtrl.create({
+        title: 'Remove from My Places',
+        message: `Would you like to remove ${node.name} to your places?'`,
+        buttons: [
+          {
+            text: 'Cancel',
+            role: 'cancel',
+            handler: () => {}
+          },
+          {
+            text: 'Yes',
+            handler: () => {
+              this.storage.get('favorites').then((val) => {
+                let nodes = [];
+                if(val && val != null && val != '' && val.length > 0) {
+                  if(val.filter(item => item.channel_id === node.channel_id).length != 0){
+                    this.is_favorite = false;
+                    for(let i = 0; i < val.length; i++) {
+                      if(val[i].channel_id == node.channel_id) {
+                        val.splice(i, 1);
+                        this.storage.set("favorites", val);
+
+                        this.toastCtrl.create({
+                          message: `${node.name} has been removed from your places`,
+                          duration: 2000,
+                          position: 'bottom'
+                        }).present();
+                      }
+                    }
+                  } else {
+                    val.push(node);
+                    this.storage.set('favorites', val);
+                    this.is_favorite = true;
+
+                    this.toastCtrl.create({
+                      message: `${node.name} has been removed from your places`,
+                      duration: 2000,
+                      position: 'bottom'
+                    }).present();
+                  }
                 } else {
-                  val.push(node);
-                  this.storage.set('favorites', val);
+                  nodes.push(node);
+                  this.storage.set('favorites', nodes);
                   this.is_favorite = true;
-        
+
                   this.toastCtrl.create({
-                    message: 'Added',
+                    message: `${node.name} has been added to your places`,
                     duration: 2000,
                     position: 'bottom'
                   }).present();
                 }
-              } else {
-                nodes.push(node);
-                this.storage.set('favorites', nodes);
-                this.is_favorite = true;
-        
-                this.toastCtrl.create({
-                  message: 'Added',
-                  duration: 2000,
-                  position: 'bottom'
-                }).present();
-              }
-            });
+              });
+            }
           }
-        }
-      ]
-    }).present();
+        ]
+      }).present();
+    }
+    else{
+      this.alertCtrl.create({
+        title: 'Add To My Places',
+        message: `Would you like to add ${node.name} to your places?'`,
+        buttons: [
+          {
+            text: 'Cancel',
+            role: 'cancel',
+            handler: () => {}
+          },
+          {
+            text: 'yes',
+            handler: () => {
+              this.storage.get('favorites').then((val) => {
+                let nodes = [];
+                if(val && val != null && val != '' && val.length > 0) {
+                  if(val.filter(item => item.channel_id === node.channel_id).length != 0){
+                    this.is_favorite = false;
+                    this.toastCtrl.create({
+                      message: `${node.name} already among of your places`,
+                      duration: 2000,
+                      position: 'bottom'
+                    }).present();
+                  } else {
+                    val.push(node);
+                    this.storage.set('favorites', val);
+                    this.is_favorite = true;
+
+                    this.toastCtrl.create({
+                      message: `${node.name} has been added to your places`,
+                      duration: 2000,
+                      position: 'bottom'
+                    }).present();
+                  }
+                } else {
+                  nodes.push(node);
+                  this.storage.set('favorites', nodes);
+                  this.is_favorite = true;
+
+                  this.toastCtrl.create({
+                    message: `Sorry, ${node.name} cannot be added to your places`,
+                    duration: 2000,
+                    position: 'bottom'
+                  }).present();
+                }
+              });
+            }
+          }
+        ]
+      }).present();
+    }
+
   }
 
 

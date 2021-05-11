@@ -140,7 +140,7 @@ export class AddPlacePage {
       if(val && val != null && val != '' && val.length > 0) {
         if(val.filter(item => item.channel_id === node.channel_id).length != 0){
           this.toastCtrl.create({
-            message: 'Place already added',
+            message: `${ node.name } is already among your places`,
             duration: 2000,
             position: 'bottom'
           }).present();
@@ -153,12 +153,12 @@ export class AddPlacePage {
           this.searchbar.clearInput(null);
 
           this.alertCtrl.create({
-            message: 'You have successfully added a new place to your Favourites.',
+            message: `${ node.name } has been added to your Places.`,
             buttons: [{
               text: 'Add Another',
               handler: () => { }
             },{
-              text: 'Go To Favourites',
+              text: 'Go To My Places',
               handler: () => {
                 this.navCtrl.push(FavoritesPage);
               }
@@ -173,12 +173,12 @@ export class AddPlacePage {
         this.searchbar.clearInput(null);
 
         this.alertCtrl.create({
-          message: 'You have successfully added a new place to your Favourites.',
+          message:  `${ node.name } has been added to your to your Places.`,
           buttons: [{
             text: 'Add Another',
             handler: () => { }
           },{
-            text: 'Go To Favourites',
+            text: 'Go To My Places',
             handler: () => {
               this.navCtrl.push(FavoritesPage);
             }
