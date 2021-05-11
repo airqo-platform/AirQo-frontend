@@ -76,20 +76,15 @@
 				<h3 class="head">Open Positions </h3>
 			</div>
 			<div class="row">
-				<div class="col-md-4 features15-col-text">
-					<div class="features15-para" style="border-left: 2px solid #3067e2; padding: 2em;">
-						<p style="font-size:1.5em; line-height: normal;"><a href="<?= site_url('careerr/digital-communucations-officer'); ?>">Digital Communications Officer</a><small> (Deadline: 11th May 2021 EAT)</small></p>
-					</div>
-				</div>
 				<?php
 				if ($careers != null) {
 					foreach ($careers as $career) {
 				?>
-						<!-- <div class="col-md-4 features15-col-text">
+						<div class="col-md-4 features15-col-text">
 							<div class="features15-para" style="border-left: 2px solid #3067e2; padding: 2em;">
 								<p style="font-size:1.5em; line-height: normal;"><a href="<?= site_url('career/' . $career['ca_id']); ?>"><?= $career['ca_title']; ?></a></p>
 							</div>
-						</div> -->
+						</div>
 				<?php
 					}
 				}

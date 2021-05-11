@@ -19,10 +19,10 @@
 			<div class="row grid-text-9">
 				<div class="col-md-8">
 					<div class="row">
-						<?php 
+						<?php
 						foreach ($posts as $post) {
-							?>
-							<a href="<?= site_url('blog-post/'. $post['p_slug']); ?>" class="col-lg-6 blog-article-post">
+						?>
+							<a href="<?= site_url('blog-post/' . $post['p_slug']); ?>" class="col-lg-6 blog-article-post">
 								<div class="blog-post d-flex flex-wrap align-content-between">
 									<div class="post-content">
 										<img src="<?= $post['p_img']; ?>" class="img-fluid" alt="blog-post-image" />
@@ -35,40 +35,19 @@
 									</ul>
 								</div>
 							</a>
-                            <?php
-                            	
-                        }
-                        if($posts == null){
-							?>
+						<?php
+
+						}
+						if ($posts == null) {
+						?>
 							<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
 								<p>No Posts Available</p>
 							</div>
-							<?php 
+						<?php
 						}
 						?>
 					</div>
-					<!-- <nav aria-label="Page navigation example">
-						<ul class="pagination float-left">
-							<li class="page-item">
-								<a class="page-link" href="blog.html"> <span class="fa fa-angle-double-left"></span></a>
-							</li>
-							<li class="page-item">
-								<a class="page-link active" href="blog.html">1</a>
-							</li>
-							<li class="page-item">
-								<a class="page-link" href="blog.html">2</a>
-							</li>
-							<li class="page-item">
-								<a class="page-link" href="blog.html">3</a>
-							</li>
-							<li class="page-item">
-								<a class="page-link" href="blog.html">4</a>
-							</li>
-							<li class="page-item">
-								<a class="page-link" href="blog.html"> <span class="fa fa-angle-double-right"></span></a>
-							</li>
-						</ul>
-					</nav> -->
+
 				</div>
 				<div class="col-md-4 left-text-9 mt-md-5 mt-5 pl-md-4">
 					<div class="blog-search">
@@ -88,27 +67,27 @@
 
 					<div class="left-top-9 mt-5">
 						<h6 class="heading-small-text-9 mb-3">Popular Post</h6>
-						<?php 
+						<?php
 						foreach ($suggestions as $suggestion) {
-							?>
-							<a href="<?= site_url('blog-post/'. $suggestion['p_slug']); ?>" class="p-post d-block py-2">
+						?>
+							<a href="<?= site_url('blog-post/' . $suggestion['p_slug']); ?>" class="p-post d-block py-2">
 								<h6 class="text-left-inner-9"><?= ucwords(strtolower($suggestion['p_title'])); ?></h6>
 								<span class="sub-inner-text-9"><?= date("F jS, Y", strtotime($suggestion['p_added'])); ?></span>
 							</a>
-							<?php 
+						<?php
 						}
 						?>
 					</div>
 					<div class="categories mt-5">
 						<h6 class="heading-small-text-9">Categories</h6>
 						<ul>
-							<?php 
+							<?php
 							foreach ($categories as $category) {
-								?>
+							?>
 								<li>
-									<a href="<?= site_url('blog-category/'. $category['c_id']); ?>" class=""><?= $category['c_name']; ?></a>
+									<a href="<?= site_url('blog-category/' . $category['c_id']); ?>" class=""><?= $category['c_name']; ?></a>
 								</li>
-								<?php 
+							<?php
 							}
 							?>
 						</ul>

@@ -6,3 +6,4 @@ db_data/airqo_db.sql
 .env
 system
 system/
+application/config/constants.php

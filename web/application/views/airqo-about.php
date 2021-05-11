@@ -112,8 +112,8 @@
 				<h3 style="font-family:'Raleway Bold'; font-size:2em; line-height: 2em; text-shadow: 1px 1px 1px #fff;"><span style="color: #3067e2;">Deploying </span>Air Quality Monitors Across Urban Areas</h3>
 				<hr style="border: 1px solid #3067e2;">
 				<p style="font-size:1.5em; line-height: normal;" class="text-justify">
-					We have deployed our growing network of over 80 devices across Uganda and use the 
-					latest cloud-based technology to store, manage and interpret large quantities of air 
+					We have deployed our growing network of over 80 devices across Uganda and use the
+					latest cloud-based technology to store, manage and interpret large quantities of air
 					quality data showing both the spatial and temporal behaviour of air pollution.
 				</p>
 			</div>
@@ -150,8 +150,8 @@
 				<h3 style="font-family:'Raleway Bold'; font-size:2em; line-height: 2em; text-shadow: 1px 1px 1px #fff;"><span style="color: #3067e2;">Modelling</span> and <span style="color: #3067e2;">Forecasting</span></h3>
 				<hr style="border: 1px solid #3067e2;">
 				<p style="font-size: 1.5em; line-height: normal;" class="text-justify">
-					One of our key areas of activity is to model air quality using machine learning 
-					and artificial intelligence to ensure accuracy of our devices, predict pollution levels 
+					One of our key areas of activity is to model air quality using machine learning
+					and artificial intelligence to ensure accuracy of our devices, predict pollution levels
 					in areas where we don't have sensors, make local forecasts and troubleshoot errors.
 				</p>
 			</div>
@@ -170,8 +170,8 @@
 				</p>
 				<p style="font-size:1.8em; line-height: normal;">
 					Upon download, a user is able <span style="font-family: 'Raleway Bold';">access historical,
-					real time and forecast air quality data in preferred
-					locations.</span>
+						real time and forecast air quality data in preferred
+						locations.</span>
 				</p>
 				<p style="font-size:1.8em; line-height: normal;">
 					A user can also personalize their experience by
@@ -271,21 +271,4 @@
 			</div>
 		</div>
 	</div>
-</div> 
-<!-- 
-<section class="w3l-about6 py-5">
-	<div class="container py-md-3 text-center">
-		<div class="heading text-center mx-auto">
-			<h3 class="head">Download the AirQo app</h3>
-		</div>
-		<div class="buttons mt-4">
-			<a href="https://itunes.apple.com/ug/app/airqo-monitoring-air-quality/id1337573091?mt=8" class="btn mr-2">
-				<img src="<?= base_url(); ?>assets/images/download2.png" width="200" class="img-fluid">
-			</a>
-			<a href="https://play.google.com/store/apps/details?id=com.buzen.contract.airqoapp" class="btn mr-2">
-				<img src="<?= base_url(); ?>assets/images/download1.png" style="height: 62px !important;" width="200" class="img-fluid">
-			</a>
-
-		</div>
-	</div>
-</section> -->
+</div>
