@@ -17,7 +17,6 @@ class FaqsPageState extends State<FaqsPage> {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Faqs'),
@@ -28,6 +27,5 @@ class FaqsPageState extends State<FaqsPage> {
         ),
       ),
     );
-
   }
 }

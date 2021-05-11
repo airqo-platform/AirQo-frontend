@@ -8,9 +8,7 @@ import 'package:sqflite/sqflite.dart';
 
 import 'package:path/path.dart';
 
-
 class DBHelper {
-
   var _database;
 
   var constants = DbConstants();
@@ -22,7 +20,6 @@ class DBHelper {
   }
 
   Future<Database> initDB() async {
-
     return await openDatabase(
       join(await getDatabasesPath(), constants.dbName),
       version: 1,
@@ -33,11 +30,9 @@ class DBHelper {
       //
       // },
     );
-
   }
 
-  Future<void> createDefaultTables(Database db) async{
-
+  Future<void> createDefaultTables(Database db) async {
     await db.execute('''
         CREATE TABLE IF NOT EXISTS ${constants.measurementsTable} (
           ${constants.channelID} INTEGER PRIMARY KEY,
@@ -49,7 +44,7 @@ class DBHelper {
           ${constants.locationDetails} not null
           )
       ''');
-    
+
     await db.execute('''
         CREATE TABLE IF NOT EXISTS ${constants.locationsTable} (
           ${constants.channelID} INTEGER PRIMARY KEY,
@@ -64,21 +59,16 @@ class DBHelper {
           ${constants.nickName} null
           )
       ''');
-
   }
 
-
   Future<void> insertDevices(List<Device> devices) async {
-
-    try{
-
+    try {
       print('Inserting location into local db');
 
       final db = await database;
 
-      if(devices.isNotEmpty){
-
-        for (var device in devices){
+      if (devices.isNotEmpty) {
+        for (var device in devices) {
           var jsonData = Device.toDbMap(device);
 
           try {
@@ -87,36 +77,26 @@ class DBHelper {
               jsonData,
               conflictAlgorithm: ConflictAlgorithm.replace,
             );
-          } catch(e) {
+          } catch (e) {
             print(e);
           }
-
         }
 
         print('Location insertion into local db complete');
-
       }
-
-
-    }
-    catch(e) {
+    } catch (e) {
       print(e);
     }
-
-
   }
 
   Future<void> insertMeasurements(List<Measurement> measurements) async {
-
-    try{
-
+    try {
       print('Inserting measurements into local db');
 
       final db = await database;
 
-      if(measurements.isNotEmpty){
-
-        for(var measurement in measurements){
+      if (measurements.isNotEmpty) {
+        for (var measurement in measurements) {
           var jsonData = Measurement.toDbMap(measurement);
 
           await db.insert(
@@ -124,73 +104,56 @@ class DBHelper {
             jsonData,
             conflictAlgorithm: ConflictAlgorithm.replace,
           );
-
         }
-
       }
-
-
-    }
-    catch(e) {
+    } catch (e) {
       print(e);
     }
-
-
   }
 
-  Future<Device> updateFavouritePlace(Device device, bool isFavourite)
-  async {
-
+  Future<Device> updateFavouritePlace(Device device, bool isFavourite) async {
     print('Updating favourite places in local db');
 
     final db = await database;
 
-    var res = await db.query(
-        '${constants.locationsTable}',
-        where: '${constants.channelID} = ?',
-        whereArgs: [device.channelID]);
+    var res = await db.query('${constants.locationsTable}',
+        where: '${constants.channelID} = ?', whereArgs: [device.channelID]);
 
-    if(isFavourite){
-
+    if (isFavourite) {
       device.setFavourite(true);
 
-      if(res.isEmpty){
-
+      if (res.isEmpty) {
         var locationMap = Device.toDbMap(device);
         locationMap['${constants.favourite}'] = 1;
 
         await db.insert('${constants.locationsTable}', locationMap);
-      }
-      else{
+      } else {
+        var updateMap = <String, Object?>{'${constants.favourite}': 1};
 
-        var updateMap = <String, Object?>{'${constants.favourite}' : 1};
-
-        await db.update('${constants.locationsTable}',
+        await db.update(
+          '${constants.locationsTable}',
           updateMap,
           where: '${constants.channelID} = ?',
           whereArgs: [device.channelID],
-          conflictAlgorithm: ConflictAlgorithm.replace,);
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
       }
-
-    }
-    else{
-
+    } else {
       device.setFavourite(false);
 
-      if(res.isNotEmpty){
+      if (res.isNotEmpty) {
+        var updateMap = <String, Object?>{'${constants.favourite}': 0};
 
-        var updateMap = <String, Object?>{'${constants.favourite}' : 0};
-
-        await db.update('${constants.locationsTable}',
+        await db.update(
+          '${constants.locationsTable}',
           updateMap,
           where: '${constants.channelID} = ?',
           whereArgs: [device.channelID],
-          conflictAlgorithm: ConflictAlgorithm.replace,);
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
       }
-
     }
     return device;
-
   }
 
   Future<bool> checkFavouritePlace(int channelID) async {
@@ -199,11 +162,10 @@ class DBHelper {
 
       final db = await database;
 
-      var res = await db.query( '${constants.locationsTable}',
-          where: '${constants.channelID} = ?',
-          whereArgs: [channelID]);
+      var res = await db.query('${constants.locationsTable}',
+          where: '${constants.channelID} = ?', whereArgs: [channelID]);
 
-      if(res.isEmpty) {
+      if (res.isEmpty) {
         return false;
       }
 
@@ -212,60 +174,42 @@ class DBHelper {
       print('$channelID is favourite ? ${device.favourite}');
 
       return device.favourite;
-
-    }
-    catch(e) {
+    } catch (e) {
       print(e);
       return false;
     }
-
-
-
   }
 
   Future<void> updateMeasurement(Measurement measurement) async {
-
-    try{
-
+    try {
       print('Updating measurement in local db');
 
       final db = await database;
 
-      var res = await db.query( '${constants.measurementsTable}',
+      var res = await db.query('${constants.measurementsTable}',
           where: '${constants.channelID} = ?',
           whereArgs: [measurement.channelID]);
 
       var jsonData = Measurement.toDbMap(measurement);
 
-      if(res.isEmpty) {
-        
+      if (res.isEmpty) {
         await db.insert(
           '${constants.measurementsTable}',
           jsonData,
           conflictAlgorithm: ConflictAlgorithm.replace,
         );
-
-      }
-      else{
-        await db.update('${constants.measurementsTable}',
-            jsonData,
+      } else {
+        await db.update('${constants.measurementsTable}', jsonData,
             where: '${constants.channelID} = ?',
             whereArgs: [measurement.channelID]);
       }
-
-
-    }
-    catch(e) {
+    } catch (e) {
       print(e);
     }
-
-
   }
 
   Future<Measurement?> getMeasurement(int channelId) async {
-
-    try{
-
+    try {
       print('Getting measurements locally');
 
       final db = await database;
@@ -291,20 +235,14 @@ class DBHelper {
       // measurementsJson['${constants.locationDetails}'] = location;
 
       return unPackInnerJoin(res.first);
-
-    }
-
-    catch(e) {
+    } catch (e) {
       print(e);
       return null;
     }
-
   }
 
   Future<List<Measurement>> getMeasurements() async {
-
-    try{
-
+    try {
       print('Getting measurements from local db');
 
       final db = await database;
@@ -316,24 +254,19 @@ class DBHelper {
 
       print('Got ${res.length} measurements from local db');
 
-      return res.isNotEmpty ? List.generate(res.length, (i) {
-        return unPackInnerJoin(res[i]);
-      })
-          :
-      <Measurement>[];
-    }
-
-    catch(e) {
+      return res.isNotEmpty
+          ? List.generate(res.length, (i) {
+              return unPackInnerJoin(res[i]);
+            })
+          : <Measurement>[];
+    } catch (e) {
       print(e);
       return <Measurement>[];
     }
-
   }
 
   Future<List<Device>> getDevices() async {
-
-    try{
-
+    try {
       print('Getting devices from local db');
 
       final db = await database;
@@ -341,51 +274,38 @@ class DBHelper {
 
       print('Got ${res.length} places from local db');
 
-      var devices = res.isNotEmpty ? List.generate(res.length, (i) {
-        return Device.fromJson( Device.fromDbMap(res[i]));
-      }) : <Device>[];
+      var devices = res.isNotEmpty
+          ? List.generate(res.length, (i) {
+              return Device.fromJson(Device.fromDbMap(res[i]));
+            })
+          : <Device>[];
 
       return devices;
-    }
-
-    catch(e) {
+    } catch (e) {
       print(e);
       return <Device>[];
     }
-
   }
 
   Future<Device> getDevice(int channelID) async {
-
-
-    try{
-
+    try {
       print('Getting device from local db');
 
       final db = await database;
-      var res = await db.query(
-          constants.locationsTable,
-          where: '${constants.channelID} = ?',
-          whereArgs: [channelID]
-      );
+      var res = await db.query(constants.locationsTable,
+          where: '${constants.channelID} = ?', whereArgs: [channelID]);
 
-      var device = Device.fromJson( Device.fromDbMap(res.first));
+      var device = Device.fromJson(Device.fromDbMap(res.first));
 
       return device;
-
-    }
-
-    catch(e) {
+    } catch (e) {
       print(e);
       throw Exception('Device doesn\'t exist');
     }
-
   }
 
   Future<List<Measurement>> getFavouritePlaces() async {
-
-    try{
-
+    try {
       print('Getting favourite places from local db');
 
       final db = await database;
@@ -399,24 +319,19 @@ class DBHelper {
 
       print('Got ${res.length} favourite places from local db');
 
-      return res.isNotEmpty ? List.generate(res.length, (i) {
-        return unPackInnerJoin(res[i]);
-      })
-          :
-      <Measurement>[];
-    }
-
-    catch(e) {
+      return res.isNotEmpty
+          ? List.generate(res.length, (i) {
+              return unPackInnerJoin(res[i]);
+            })
+          : <Measurement>[];
+    } catch (e) {
       print(e);
 
       return <Measurement>[];
     }
-
   }
 
-  Measurement unPackInnerJoin( Map<String, Object?> data) {
-
-
+  Measurement unPackInnerJoin(Map<String, Object?> data) {
     var location = Device.fromDbMap(data);
 
     var measurementsJson = Measurement.fromDbMap(data);
@@ -426,7 +341,5 @@ class DBHelper {
     print(measurementsJson);
 
     return Measurement.fromJson(measurementsJson);
-
-
   }
 }

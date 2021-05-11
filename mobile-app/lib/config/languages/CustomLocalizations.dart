@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 class CustomLocalizations {
   CustomLocalizations(this.locale);
+
   final Locale locale;
 
   static CustomLocalizations? of(BuildContext context) {
@@ -16,6 +17,7 @@ class CustomLocalizations {
       'message': 'Luganda',
     },
   };
+
   String? get title {
     return _resources[locale.languageCode]!['title'];
   }

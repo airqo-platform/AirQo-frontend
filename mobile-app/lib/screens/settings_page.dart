@@ -20,25 +20,27 @@ class _SettingsPageState extends State<SettingsPage> {
         title: const Text('Settings'),
       ),
       body: Container(
-        child: const Center(child: Text('Coming Soon '),)
+          child: const Center(
+        child: Text('Coming Soon '),
+      )
 
-        // ListView(
-        //   children: <Widget>[
-        //     Row(
-        //       children: [
-        //         Center(child:
-        //           Text('Coming Soon '),)
-        //         OutlinedButton(
-        //           onPressed: () async {
-        //             await showLanguageDialog(context);
-        //           },
-        //           child: const Text('Select Language'),
-        //         )
-        //       ],
-        //     ),
-        //   ],
-        // ),
-      ),
+          // ListView(
+          //   children: <Widget>[
+          //     Row(
+          //       children: [
+          //         Center(child:
+          //           Text('Coming Soon '),)
+          //         OutlinedButton(
+          //           onPressed: () async {
+          //             await showLanguageDialog(context);
+          //           },
+          //           child: const Text('Select Language'),
+          //         )
+          //       ],
+          //     ),
+          //   ],
+          // ),
+          ),
     );
   }
 
@@ -94,7 +96,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
                       Navigator.of(context).pop();
                     },
-                    child: new Text('Save')),
+                    child: const Text('Save')),
               ],
             );
           });

@@ -32,10 +32,9 @@ class Device {
     required this.name,
   });
 
-
   factory Device.fromJson(Map<String, dynamic> json) => _$DeviceFromJson(json);
-  Map<String, dynamic> toJson() => _$DeviceToJson(this);
 
+  Map<String, dynamic> toJson() => _$DeviceToJson(this);
 
   @JsonKey(defaultValue: 'not set', required: false)
   final String nickName;
@@ -51,13 +50,11 @@ class Device {
   @JsonKey(required: false, defaultValue: false)
   bool favourite;
 
-  void setFavourite(bool fav){
+  void setFavourite(bool fav) {
     favourite = fav;
   }
 
-
   static Map<String, dynamic> toDbMap(Device device) {
-
     var constants = DbConstants();
 
     return {
@@ -74,7 +71,6 @@ class Device {
   }
 
   static Map<String, dynamic> fromDbMap(Map<String, dynamic> json) {
-
     var constants = DbConstants();
 
     return {
@@ -90,5 +86,4 @@ class Device {
       'longitude': json[constants.longitude] as double,
     };
   }
-
 }

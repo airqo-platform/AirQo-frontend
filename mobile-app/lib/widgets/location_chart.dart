@@ -3,7 +3,6 @@ import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 
 class LocationBarChart extends StatelessWidget {
-
   LocationBarChart(this.seriesList);
 
   final List<charts.Series<TimeSeriesSales, DateTime>> seriesList;
@@ -15,10 +14,7 @@ class LocationBarChart extends StatelessWidget {
       animate: true,
       defaultRenderer: charts.BarRendererConfig<DateTime>(),
       defaultInteractions: false,
-      behaviors: [
-        charts.SelectNearest(),
-        charts.DomainHighlighter()
-      ],
+      behaviors: [charts.SelectNearest(), charts.DomainHighlighter()],
     );
   }
 

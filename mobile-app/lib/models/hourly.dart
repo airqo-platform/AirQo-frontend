@@ -5,11 +5,11 @@ import 'package:json_annotation/json_annotation.dart';
 part 'hourly.g.dart';
 
 @JsonSerializable()
-class Hourly{
-
+class Hourly {
   Hourly(this.channelId, this.time, this.pm2_5);
 
   factory Hourly.fromJson(Map<String, dynamic> json) => _$HourlyFromJson(json);
+
   Map<String, dynamic> toJson() => _$HourlyToJson(this);
 
   @JsonKey(name: 'channel_id', required: true)
@@ -18,7 +18,6 @@ class Hourly{
   final double pm2_5;
 
   static Map<String, dynamic> toDbMap(Hourly hourly) {
-
     var constants = DbConstants();
 
     final formatter = DateFormat('yyyy-MM-dd HH:mm');
@@ -32,7 +31,6 @@ class Hourly{
   }
 
   static Map<String, dynamic> fromDbMap(Map<String, dynamic> json) {
-
     var constants = DbConstants();
 
     return {
@@ -41,5 +39,4 @@ class Hourly{
       'pm2_5': json[constants.pm2_5],
     };
   }
-
 }

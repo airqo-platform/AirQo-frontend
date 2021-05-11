@@ -42,29 +42,22 @@ class _ComparePageState extends State<ComparePage> {
             // lineDisplay(),
             FutureBuilder(
                 future: apiClient.fetchComparisonMeasurements(),
-                builder: (context, snapshot){
-
-                  if (snapshot.hasError){
-
-                    return  SingleChildScrollView(
+                builder: (context, snapshot) {
+                  if (snapshot.hasError) {
+                    return SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: graphDisplay(),
                     );
-                  }
-                  else if(snapshot.hasData){
-
+                  } else if (snapshot.hasData) {
                     var data = snapshot.data as List<Measurement>;
                     List<charts.Series<dynamic, DateTime>> dataset =
-                    createComaprisonData(data);
+                        createComaprisonData(data);
 
                     return ComparisonLineChart(dataset);
-                  }
-
-                  else{
+                  } else {
                     return Text('Computing');
                   }
-                }
-            )
+                })
           ],
         ),
       ),
@@ -87,9 +80,9 @@ class _ComparePageState extends State<ComparePage> {
         children: [
           Expanded(
               child: Column(
-                children: [
-                  firstInput(),
-                  secondInput(),
+            children: [
+              firstInput(),
+              secondInput(),
             ],
           )),
           Column(
@@ -97,9 +90,7 @@ class _ComparePageState extends State<ComparePage> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               IconButton(
-                  icon: Icon(
-                      Icons.compare_arrows,
-                      color: appColor),
+                  icon: Icon(Icons.compare_arrows, color: appColor),
                   splashColor: appColor,
                   onPressed: () {
                     // setShareIcon(true);
@@ -108,7 +99,8 @@ class _ComparePageState extends State<ComparePage> {
               IconButton(
                   icon: Icon(
                     Icons.share_outlined,
-                    color: appColor,),
+                    color: appColor,
+                  ),
                   splashColor: appColor,
                   onPressed: () {})
               //     :

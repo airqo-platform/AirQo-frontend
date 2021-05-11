@@ -1,9 +1,7 @@
 import 'package:intl/intl.dart';
 
-String dateToString(String formattedString){
-
-  try{
-
+String dateToString(String formattedString) {
+  try {
     var now = DateTime.now();
 
     var date = DateFormat('yyyy-MM-dd').parse(
@@ -11,14 +9,14 @@ String dateToString(String formattedString){
 
     final difference = now.difference(date).inDays;
     var dateString;
-    switch(difference){
+    switch (difference) {
       case 0:
-        dateString = 'Today at ${DateFormat('hh:mm a')
-            .format(DateTime.parse(formattedString))}';
+        dateString =
+            'Today at ${DateFormat('hh:mm a').format(DateTime.parse(formattedString))}';
         break;
       case 1:
-        dateString = 'Yesterday at ${DateFormat('hh:mm a')
-            .format(DateTime.parse(formattedString))}';
+        dateString =
+            'Yesterday at ${DateFormat('hh:mm a').format(DateTime.parse(formattedString))}';
         break;
 
       default:
@@ -27,15 +25,9 @@ String dateToString(String formattedString){
         break;
     }
 
-
     return dateString;
-
   } on Error catch (e) {
-
     print('Date Formatting error: $e');
     return formattedString;
-
   }
-
-
 }

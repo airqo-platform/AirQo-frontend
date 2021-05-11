@@ -4,7 +4,6 @@ part 'suggestion.g.dart';
 
 @JsonSerializable()
 class Suggestion {
-
   Suggestion({required this.placeId, required this.description});
 
   @JsonKey(name: 'place_id', required: true)
@@ -17,7 +16,8 @@ class Suggestion {
     return '$description';
   }
 
-  factory Suggestion.fromJson(Map<String, dynamic> json) => _$SuggestionFromJson(json);
-  Map<String, dynamic> toJson() => _$SuggestionToJson(this);
+  factory Suggestion.fromJson(Map<String, dynamic> json) =>
+      _$SuggestionFromJson(json);
 
+  Map<String, dynamic> toJson() => _$SuggestionToJson(this);
 }

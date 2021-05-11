@@ -14,6 +14,7 @@ class Measurements {
 
   factory Measurements.fromJson(Map<String, dynamic> json) =>
       _$MeasurementsFromJson(json);
+
   Map<String, dynamic> toJson() => _$MeasurementsToJson(this);
 
   final List<Measurement> measurements;
@@ -22,7 +23,6 @@ class Measurements {
 @JsonSerializable()
 class Measurement {
   Measurement({
-
     required this.locationDetails,
     required this.channelID,
     required this.time,
@@ -37,23 +37,19 @@ class Measurement {
     // required this.frequency
   });
 
-
-  factory Measurement.fromJson(Map<String, dynamic> json) => 
+  factory Measurement.fromJson(Map<String, dynamic> json) =>
       _$MeasurementFromJson(json);
+
   Map<String, dynamic> toJson() => _$MeasurementToJson(this);
 
-
-
   static Map<String, dynamic> toDbMap(Measurement measurement) {
-
     var constants = DbConstants();
 
     var time = measurement.time.replaceAll('T', ' ');
 
-    if(time.contains('.')){
+    if (time.contains('.')) {
       time = time.substring(0, time.indexOf('.'));
     }
-
 
     return {
       constants.channelID: measurement.channelID,
@@ -67,36 +63,33 @@ class Measurement {
   }
 
   static Map<String, dynamic> fromDbMap(Map<String, dynamic> json) {
-
     var constants = DbConstants();
 
     return {
       'deviceDetails': json[constants.locationDetails] as int,
       'channelID': json[constants.channelID] as int,
       'time': json[constants.time] as String,
-      'pm2_5': {'value' : json[constants.pm2_5]},
-      's2_pm2_5': {'value' : json[constants.s2_pm2_5]},
-      's2_pm10': {'value' : json[constants.s2_pm10]},
-      'pm10': {'value' : json[constants.pm10]},
+      'pm2_5': {'value': json[constants.pm2_5]},
+      's2_pm2_5': {'value': json[constants.s2_pm2_5]},
+      's2_pm10': {'value': json[constants.s2_pm10]},
+      'pm10': {'value': json[constants.pm10]},
     };
   }
 
   static Map<String, dynamic> fromApiMap(Map<String, dynamic> json) {
     var constants = DbConstants();
 
-    var data =
-     <String, dynamic>{
-       'time': json['created_at'] as String,
-       'pm2_5': {'value': double.parse(json[constants.pm2_5])},
-       's2_pm2_5': {'value': double.parse(json[constants.s2_pm2_5])},
-       's2_pm10': {'value': double.parse(json[constants.s2_pm10])},
-       'pm10': {'value': double.parse(json[constants.pm10])},
-      };
+    var data = <String, dynamic>{
+      'time': json['created_at'] as String,
+      'pm2_5': {'value': double.parse(json[constants.pm2_5])},
+      's2_pm2_5': {'value': double.parse(json[constants.s2_pm2_5])},
+      's2_pm10': {'value': double.parse(json[constants.s2_pm10])},
+      'pm10': {'value': double.parse(json[constants.pm10])},
+    };
 
     print(data);
     return data;
   }
-
 
   @JsonKey(required: false)
   int channelID;
@@ -119,35 +112,28 @@ class Measurement {
   @JsonKey(required: true, name: 'deviceDetails')
   Device locationDetails;
 
-  void setChannelId(int id){
+  void setChannelId(int id) {
     channelID = id;
   }
 
-
-
 // final Value altitude;
-  // final Value speed;
-  // final Value internalTemperature;
-  // final Value internalHumidity;
-  // final String frequency;
+// final Value speed;
+// final Value internalTemperature;
+// final Value internalHumidity;
+// final String frequency;
 
 }
-
 
 @JsonSerializable()
 class Value {
-  Value({
-    required this.value
-  });
+  Value({required this.value});
 
   factory Value.fromJson(Map<String, dynamic> json) => _$ValueFromJson(json);
+
   Map<String, dynamic> toJson() => _$ValueToJson(this);
 
-
   final double value;
-
 }
-
 
 // @JsonSerializable()
 // class Coordinates {

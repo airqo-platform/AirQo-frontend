@@ -33,14 +33,11 @@ class _FeedbackPageState extends State<FeedbackPage> {
                 alignment: Alignment.center,
                 child: Center(
                   child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                        primary: appColor
-                    ),
+                    style: ElevatedButton.styleFrom(primary: appColor),
                     onPressed: _launchURL,
                     child: const Text('Click to open the feedback form'),
                   ),
-                )
-            ),
+                )),
           )
           // Form(
           //   key: _formKey,
@@ -146,9 +143,9 @@ class _FeedbackPageState extends State<FeedbackPage> {
     // );
   }
 
-  void _launchURL() async =>
-      await canLaunch(_url) ? await launch(_url) :
-      throw 'Could not launch feedback form, try opening $_url';
+  void _launchURL() async => await canLaunch(_url)
+      ? await launch(_url)
+      : throw 'Could not launch feedback form, try opening $_url';
 
   @override
   void dispose() {
@@ -192,9 +189,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
 
   Widget submitButton() {
     return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-          primary: appColor
-      ),
+      style: ElevatedButton.styleFrom(primary: appColor),
       onPressed: () async {
         if (_formKey.currentState!.validate()) {
           var email = '';

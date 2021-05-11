@@ -35,7 +35,7 @@ class AQI_Dialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor:appColor,
+        backgroundColor: appColor,
         title: Text('AQI Guide'),
       ),
       body: Container(
@@ -44,11 +44,16 @@ class AQI_Dialog extends StatelessWidget {
           children: [
             whatIsAQI,
             AQI_Quide('assets/images/good-face.png', good, pmToColor(0)),
-            AQI_Quide('assets/images/moderate-face.png', moderate, pmToColor(20)),
-            AQI_Quide('assets/images/sensitive-face.png', sensitive, pmToColor(40)),
-            AQI_Quide('assets/images/unhealthy-face.png', unHeathy, pmToColor(100)),
-            AQI_Quide('assets/images/very-unhealthy-face.png', veryUnhealthy, pmToColor(200)),
-            AQI_Quide('assets/images/hazardous-face.png', hazardous, pmToColor(500)),
+            AQI_Quide(
+                'assets/images/moderate-face.png', moderate, pmToColor(20)),
+            AQI_Quide(
+                'assets/images/sensitive-face.png', sensitive, pmToColor(40)),
+            AQI_Quide(
+                'assets/images/unhealthy-face.png', unHeathy, pmToColor(100)),
+            AQI_Quide('assets/images/very-unhealthy-face.png', veryUnhealthy,
+                pmToColor(200)),
+            AQI_Quide(
+                'assets/images/hazardous-face.png', hazardous, pmToColor(500)),
           ],
         ),
       ),
@@ -72,9 +77,7 @@ class AQI_Dialog extends StatelessWidget {
   Widget AQI_Quide(String image, String body, Color color) {
     return Container(
       padding: const EdgeInsets.fromLTRB(0, 2, 0, 0),
-      decoration: BoxDecoration(
-        color: color
-      ),
+      decoration: BoxDecoration(color: color),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.start,
@@ -102,5 +105,4 @@ class AQI_Dialog extends StatelessWidget {
       ),
     );
   }
-
 }

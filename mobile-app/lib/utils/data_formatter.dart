@@ -8,24 +8,19 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class Pm2_5TimeSeries {
-
   Pm2_5TimeSeries(this.time, this.pm2_5Value);
 
   final DateTime time;
   final double pm2_5Value;
 }
 
-List<charts.Series<Pm2_5TimeSeries, DateTime>> createPm2_5ChartData(List<Hourly> data) {
-
+List<charts.Series<Pm2_5TimeSeries, DateTime>> createPm2_5ChartData(
+    List<Hourly> data) {
   var values = <Pm2_5TimeSeries>[];
-  for (var value in data){
-
+  for (var value in data) {
     var time = value.time.replaceAll(' GMT', '');
 
-    values.add(
-        Pm2_5TimeSeries(DateTime.parse(time), value.pm2_5)
-    );
-
+    values.add(Pm2_5TimeSeries(DateTime.parse(time), value.pm2_5));
   }
 
   return [
@@ -37,11 +32,10 @@ List<charts.Series<Pm2_5TimeSeries, DateTime>> createPm2_5ChartData(List<Hourly>
       data: values,
     )
   ];
-
 }
 
-List<charts.Series<ValueSeries, DateTime>> createComaprisonData(List<Measurement> measurements) {
-
+List<charts.Series<ValueSeries, DateTime>> createComaprisonData(
+    List<Measurement> measurements) {
   var device_01 = 675740;
   var device_02 = 675801;
 
@@ -49,20 +43,17 @@ List<charts.Series<ValueSeries, DateTime>> createComaprisonData(List<Measurement
   var device_02_data = <ValueSeries>[];
   var base_data = <ValueSeries>[];
 
-  for (var measurement in measurements){
-
+  for (var measurement in measurements) {
     // var time = measurement.time.replaceAll('T', ' ');
     // time = time.substring(0, time.indexOf('.'));
 
     var time = measurement.time.substring(0, measurement.time.indexOf('.'));
 
-
     var date = DateTime.parse(time);
 
-    if(measurement.channelID == device_01){
+    if (measurement.channelID == device_01) {
       device_01_data.add(ValueSeries(date, measurement.pm2_5.value.ceil()));
-    }
-    else{
+    } else {
       device_02_data.add(ValueSeries(date, measurement.pm2_5.value.ceil()));
     }
 
@@ -95,22 +86,17 @@ List<charts.Series<ValueSeries, DateTime>> createComaprisonData(List<Measurement
   ];
 }
 
-List<charts.Series<TimeSeriesSales, DateTime>> createChartData(List<Measurement> measurements) {
-
+List<charts.Series<TimeSeriesSales, DateTime>> createChartData(
+    List<Measurement> measurements) {
   var data = <TimeSeriesSales>[];
 
-  for (var measurement in measurements){
-
-
+  for (var measurement in measurements) {
     var time = measurement.time.substring(0, measurement.time.indexOf('.'));
 
     var date = DateTime.parse(time);
 
     data.add(TimeSeriesSales(date, measurement.pm2_5.value.ceil()));
   }
-
-
-
 
   return [
     charts.Series<TimeSeriesSales, DateTime>(

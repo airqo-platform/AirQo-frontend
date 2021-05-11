@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 
 const appName = 'AirQo';
 
-
-const appColor = Color(0xff5f1ee8);
+const appColor = Color(0xff3067e2);
 const greenColor = Color(0xff3FFF33);
 const yellowColor = Color(0xffFFF933);
 const orangeColor = Color(0xffFF9633);
@@ -11,8 +10,7 @@ const redColor = Color(0xffF62E2E);
 const purpleColor = Color(0xFF7B1FA2);
 const maroonColor = Color(0xff570B0B);
 
-class PollutantConstants{
-
+class PollutantConstants {
   static final String _pm2_5 = 'pm2_5';
   static final String _pm10 = 'pm10';
   static final String _s2_pm2_5 = 's2_pm2_5';
@@ -25,10 +23,9 @@ class PollutantConstants{
   static String get s2_pm2_5 => _s2_pm2_5;
 
   static String get s2_pm10 => _s2_pm10;
-
 }
 
-class ColorConstants{
+class ColorConstants {
   final Color _green = const Color(0xff3FFF33);
   final Color _yellow = const Color(0xffFFF933);
   final Color _orange = const Color(0xffFF9633);
@@ -36,7 +33,7 @@ class ColorConstants{
   final Color _purple = const Color(0xFF7B1FA2);
   final Color _maroon = const Color(0xff570B0B);
 
-  final Color _appColor = const Color(0xff5f1ee8);
+  final Color _appColor = const Color(0xff3067e2);
 
   Color get green => _green;
 
@@ -53,8 +50,7 @@ class ColorConstants{
   Color get appColor => _appColor;
 }
 
-class DbConstants{
-
+class DbConstants {
   final String _dbName = 'airqo_db.db';
   final String _measurementsTable = 'measurements';
   final String _locationsTable = 'locations';
@@ -68,9 +64,7 @@ class DbConstants{
   final String _favourite = 'favourite';
   final String _locationDetails = 'locationDetails';
 
-
   final String _nickName = 'nickName';
-
 
   final String _time = 'time';
   final String _pm2_5 = 'pm2_5';
@@ -80,7 +74,6 @@ class DbConstants{
   final String _longitude = 'longitude';
   final String _s2_pm10 = 's2_pm10';
   final String _address = 'address';
-
 
   String get locationDetails => _locationDetails;
 

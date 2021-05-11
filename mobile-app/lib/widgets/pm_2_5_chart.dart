@@ -3,12 +3,9 @@ import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 
 class PM2_5BarChart extends StatelessWidget {
-
-
   PM2_5BarChart(this.chartData);
 
   final List<charts.Series<Pm2_5TimeSeries, DateTime>> chartData;
-
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +35,4 @@ class PM2_5BarChart extends StatelessWidget {
       ),
     );
   }
-
 }
-
-

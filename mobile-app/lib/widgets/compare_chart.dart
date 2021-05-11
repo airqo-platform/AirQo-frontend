@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 class LocationCompareChart extends StatelessWidget {
   final List<charts.Series<dynamic, DateTime>> seriesList = _createSampleData();
   final bool animate = false;
+
   //
   // LocationCompareChart(this.seriesList);
 
@@ -95,8 +96,8 @@ class LocationCompareChart extends StatelessWidget {
 }
 
 class ComparisonLineChart extends StatelessWidget {
-
   ComparisonLineChart(this.dataset);
+
   final List<charts.Series<dynamic, DateTime>> dataset;
 
   @override
@@ -127,5 +128,4 @@ class ComparisonLineChart extends StatelessWidget {
       ),
     );
   }
-
 }

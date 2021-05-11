@@ -13,11 +13,11 @@ import 'screens/home_page.dart';
 
 void main() {
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-    systemNavigationBarColor: Color(0xff5f1ee8),
+    systemNavigationBarColor: appColor,
     statusBarColor: Colors.transparent,
     // statusBarBrightness: Brightness.light,
     // statusBarIconBrightness:Brightness.light ,
-    // systemNavigationBarDividerColor: Color(0xff5f1ee8),
+    // systemNavigationBarDividerColor: appColor,
     systemNavigationBarIconBrightness: Brightness.light,
   ));
 
@@ -52,7 +52,6 @@ class AirqoApp extends StatelessWidget {
           locale: provider.locale,
           title: appName,
           theme: lightTheme(),
-
           home: HomePage(),
         );
       },

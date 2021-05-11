@@ -65,10 +65,11 @@ class _HomePageState extends State<HomePage> {
             ),
             onPressed: () {
               Navigator.push(
-                context, MaterialPageRoute(builder: (context) => SearchPage()),)
-                  .then((value) => setState(() {
-                _pageCtrl.jumpToPage(0);
-              }));
+                context,
+                MaterialPageRoute(builder: (context) => SearchPage()),
+              ).then((value) => setState(() {
+                    _pageCtrl.jumpToPage(0);
+                  }));
             },
           ),
           PopupMenuButton<dynamic>(
@@ -77,7 +78,10 @@ class _HomePageState extends State<HomePage> {
               const PopupMenuItem<String>(
                 value: 'Settings',
                 child: ListTile(
-                  leading: Icon(Icons.settings, color: appColor,),
+                  leading: Icon(
+                    Icons.settings,
+                    color: appColor,
+                  ),
                   title: Text(
                     'Settings',
                   ),
@@ -100,7 +104,8 @@ class _HomePageState extends State<HomePage> {
                 child: ListTile(
                   leading: Icon(
                     Icons.feedback_outlined,
-                    color: appColor,),
+                    color: appColor,
+                  ),
                   title: Text(
                     'Feedback',
                   ),
@@ -110,7 +115,10 @@ class _HomePageState extends State<HomePage> {
               const PopupMenuItem<String>(
                 value: 'Share',
                 child: ListTile(
-                  leading: Icon(Icons.share_outlined, color: appColor,),
+                  leading: Icon(
+                    Icons.share_outlined,
+                    color: appColor,
+                  ),
                   title: Text(
                     'Share',
                     // style: Theme.of(context).textTheme.headline1,
@@ -136,9 +144,7 @@ class _HomePageState extends State<HomePage> {
               IconButton(
                 // iconSize: 30.0,
                 // padding: const EdgeInsets.only(left: 28.0),
-                icon: const Icon(
-                    Icons.home_outlined,
-                    color: appColor),
+                icon: const Icon(Icons.home_outlined, color: appColor),
                 splashColor: appColor,
                 onPressed: () {
                   setState(() {
@@ -153,9 +159,7 @@ class _HomePageState extends State<HomePage> {
                 // iconSize: 30.0,
                 // autofocus: true,
                 // padding: const EdgeInsets.only(right: 28.0),
-                icon: const Icon(
-                    Icons.stacked_bar_chart,
-                    color: appColor),
+                icon: const Icon(Icons.stacked_bar_chart, color: appColor),
                 splashColor: appColor,
                 onPressed: () {
                   setState(() {
@@ -169,8 +173,7 @@ class _HomePageState extends State<HomePage> {
               IconButton(
                 // iconSize: 30.0,
                 // padding: const EdgeInsets.only(left: 28.0),
-                icon: const Icon(
-                    Icons.notifications_none_outlined,
+                icon: const Icon(Icons.notifications_none_outlined,
                     color: appColor),
                 splashColor: appColor,
                 onPressed: () {
@@ -185,9 +188,7 @@ class _HomePageState extends State<HomePage> {
               IconButton(
                 // iconSize: 30.0,
                 // padding: const EdgeInsets.only(right: 28.0),
-                icon: const Icon(
-                    Icons.library_books_outlined,
-                    color: appColor),
+                icon: const Icon(Icons.library_books_outlined, color: appColor),
                 splashColor: appColor,
                 onPressed: () {
                   setState(() {
@@ -206,7 +207,6 @@ class _HomePageState extends State<HomePage> {
         onWillPop: onWillPop,
         child: PageView(
           controller: _pageCtrl,
-
           onPageChanged: (int) {
             switchTitle(int);
             print('Page Changes to index $int');
@@ -239,7 +239,7 @@ class _HomePageState extends State<HomePage> {
         // width: 60.0,
         child: FittedBox(
           child: FloatingActionButton(
-            backgroundColor: Color(0xff5f1ee8),
+            backgroundColor: appColor,
             onPressed: () {
               Navigator.push(context, MaterialPageRoute(builder: (context) {
                 return MapPage();
@@ -256,13 +256,13 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void _launchURL() async =>
-      await canLaunch(_url) ? await launch(_url) :
-      throw 'Could not launch feedback form, try opening $_url';
+  void _launchURL() async => await canLaunch(_url)
+      ? await launch(_url)
+      : throw 'Could not launch feedback form, try opening $_url';
 
-  void _launchURLFaqs() async =>
-      await canLaunch(_faqsUrl) ? await launch(_faqsUrl) :
-      throw 'Could not launch feedback form, try opening $_faqsUrl';
+  void _launchURLFaqs() async => await canLaunch(_faqsUrl)
+      ? await launch(_faqsUrl)
+      : throw 'Could not launch feedback form, try opening $_faqsUrl';
 
   Future<bool> onWillPop() {
     var now = DateTime.now();
@@ -274,7 +274,7 @@ class _HomePageState extends State<HomePage> {
       showSnackBar(context, 'Tap again to exit !');
       // final snackBar = const SnackBar(
       //   content: Text('Tap again to exit !'),
-      //   backgroundColor: Color(0xff5f1ee8),
+      //   backgroundColor: appColor,
       // );
       // ScaffoldMessenger.of(context).showSnackBar(snackBar);
 
@@ -305,7 +305,7 @@ class _HomePageState extends State<HomePage> {
         break;
       case 3:
         setState(() {
-          title = 'Resources';
+          title = 'News Feed';
           showAddPlace = false;
         });
         break;
@@ -330,14 +330,12 @@ class _HomePageState extends State<HomePage> {
       Share.share(
           'https://play.google.com/store/apps/details?id=com.airqo.app ',
           subject: 'Airqo!');
-    }
-    else if (menuItem.trim().toLowerCase() == 'faqs') {
+    } else if (menuItem.trim().toLowerCase() == 'faqs') {
       _launchURLFaqs();
       // Navigator.push(context, MaterialPageRoute(builder: (context) {
       //   return FaqsPage();
       // }));
-    }
-    else {
+    } else {
       Navigator.push(context, MaterialPageRoute(builder: (context) {
         return SettingsPage();
       }));

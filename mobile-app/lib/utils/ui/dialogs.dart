@@ -1,28 +1,10 @@
-
 import 'package:app/constants/app_constants.dart';
 import 'package:flutter/material.dart';
 
 Future<void> showSnackBar(context, String message) async {
-
-    var snackBar = SnackBar(
-      behavior: SnackBarBehavior.floating,
-      content:
-      Text(
-        message,
-        softWrap: true,
-        textAlign: TextAlign.center,
-      ),
-      backgroundColor: appColor,
-    );
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
-
-}
-
-Future<void> showSnackBar2(context, String message) async {
-
   var snackBar = SnackBar(
-    content:
-    Text(
+    behavior: SnackBarBehavior.floating,
+    content: Text(
       message,
       softWrap: true,
       textAlign: TextAlign.center,
@@ -30,7 +12,18 @@ Future<void> showSnackBar2(context, String message) async {
     backgroundColor: appColor,
   );
   ScaffoldMessenger.of(context).showSnackBar(snackBar);
+}
 
+Future<void> showSnackBar2(context, String message) async {
+  var snackBar = SnackBar(
+    content: Text(
+      message,
+      softWrap: true,
+      textAlign: TextAlign.center,
+    ),
+    backgroundColor: appColor,
+  );
+  ScaffoldMessenger.of(context).showSnackBar(snackBar);
 }
 
 void showInfoDialog(BuildContext context, String text) {

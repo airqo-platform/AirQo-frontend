@@ -11,6 +11,7 @@ class Events {
   });
 
   factory Events.fromJson(Map<String, dynamic> json) => _$EventsFromJson(json);
+
   Map<String, dynamic> toJson() => _$EventsToJson(this);
 
   final List<Event> events;
@@ -18,21 +19,18 @@ class Events {
 
 @JsonSerializable()
 class Event {
-  Event({
-    required this.isCache,
-    required this.success,
-    required this.message,
-    required this.measurements
-  });
-
+  Event(
+      {required this.isCache,
+      required this.success,
+      required this.message,
+      required this.measurements});
 
   factory Event.fromJson(Map<String, dynamic> json) => _$EventFromJson(json);
-  Map<String, dynamic> toJson() => _$EventToJson(this);
 
+  Map<String, dynamic> toJson() => _$EventToJson(this);
 
   final bool isCache;
   final bool success;
   final String message;
   final List<Measurement> measurements;
-
 }

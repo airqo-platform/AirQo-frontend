@@ -10,7 +10,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 
 class AirQualityCard extends StatefulWidget {
-
   AirQualityCard({Key? key, required this.data}) : super(key: key);
 
   final Measurement data;
@@ -33,23 +32,20 @@ class _AirQualityCardState extends State<AirQualityCard> {
                   onTap: () async {
                     print('Card was tapped');
 
-                    try{
-                      var device = await DBHelper()
-                          .getDevice(widget.data.channelID);
+                    try {
+                      var device =
+                          await DBHelper().getDevice(widget.data.channelID);
 
                       await Navigator.push(context,
                           MaterialPageRoute(builder: (context) {
-                            return PlaceDetailsPage(device: device);
-                          })
-                      );
-
-
-                    }
-                    catch(e) {
+                        return PlaceDetailsPage(device: device);
+                      }));
+                    } catch (e) {
                       print(e);
-                      await showSnackBar(context,
+                      await showSnackBar(
+                          context,
                           'Location information not available. Try again '
-                              'later');
+                          'later');
                     }
                   },
                   splashColor:
@@ -57,10 +53,14 @@ class _AirQualityCardState extends State<AirQualityCard> {
                   highlightColor: Colors.transparent,
                   child: Column(
                     children: [
-                      TitleSection(data: widget.data,),
+                      TitleSection(
+                        data: widget.data,
+                      ),
                       Padding(
                         padding: const EdgeInsets.all(8),
-                        child: CardSection(data: widget.data,),
+                        child: CardSection(
+                          data: widget.data,
+                        ),
                       )
                     ],
                   )),
@@ -73,11 +73,9 @@ class _AirQualityCardState extends State<AirQualityCard> {
 }
 
 class TitleSection extends StatelessWidget {
-
   TitleSection({Key? key, required this.data}) : super(key: key);
 
   final Measurement data;
-
 
   @override
   Widget build(BuildContext context) {
@@ -87,11 +85,9 @@ class TitleSection extends StatelessWidget {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  pmToColor(data.pm2_5.value),
-                  Colors.white,
-                ]
-            )
-        ),
+              pmToColor(data.pm2_5.value),
+              Colors.white,
+            ])),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(4, 12, 4, 4),
           child: Row(
@@ -100,7 +96,8 @@ class TitleSection extends StatelessWidget {
             children: [
               Padding(
                 padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
-                child: Image.asset(pmToEmoji(data.pm2_5.value),
+                child: Image.asset(
+                  pmToEmoji(data.pm2_5.value),
                   height: 40,
                   width: 40,
                 ),
@@ -123,7 +120,6 @@ class TitleSection extends StatelessWidget {
 }
 
 class CardSection extends StatelessWidget {
-
   CardSection({Key? key, required this.data}) : super(key: key);
 
   final Measurement data;
@@ -135,7 +131,8 @@ class CardSection extends StatelessWidget {
         // crossAxisAlignment: CrossAxisAlignment.center,
         // mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          Expanded(child: Text(
+          Expanded(
+              child: Text(
             dateToString(data.time),
             style: TextStyle(
               color: appColor,
