@@ -64,7 +64,7 @@
 <div class="bottom-section bg-white">
 
   <div class="graph-section" padding>
-    <ion-segment [color]="api.nodeStatus(node.feeds.field1, node.refreshed).standard_color" [(ngModel)]="graphs_segments">
+    <ion-segment [color]="api.nodeStatus(node.feeds.field1, node.refreshed).standard_color" [(ngModel)]="graphs_segments" (ionChange)="onSegmentChange()">
       <ion-segment-button value="history">
         HISTORY
       </ion-segment-button>

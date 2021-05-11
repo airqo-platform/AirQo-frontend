@@ -67,26 +67,43 @@ export class NodePage {
   // --------------------------------------------------------------------------------------------------------------------
   async ionViewDidLoad() {
 
-    this.offlineLoadHistoryNodeInfo();
-    this.offlineLoadForecastNodeInfo();
+    // this.offlineLoadHistoryNodeInfo();
 
     if(this.api.isConnected()){
       await this.onlineLoadHistoryNodeInfo();
-      await this.onlineLoadNodeForecastInfo();
     } else {
       this.api.offlineMessage();
       await this.offlineLoadHistoryNodeInfo();
-      await this.offlineLoadForecastNodeInfo();
     }
   }
 
 
   // --------------------------------------------------------------------------------------------------------------------
-  // Fires everytime page loads
+  // Fires every time page loads
   // --------------------------------------------------------------------------------------------------------------------
   async ionViewDidEnter() {
     this.isNodeFavorite(this.node);
     console.log(this.node);
+  }
+
+
+  // --------------------------------------------------------------------------------------------------------------------
+  // When the ionSegment/Tabs change
+  // --------------------------------------------------------------------------------------------------------------------
+  onSegmentChange() {
+    if(this.graphs_segments == 'history'){
+      if(this.api.isConnected()){
+        this.onlineLoadHistoryNodeInfo();
+      } else {
+        this.offlineLoadHistoryNodeInfo();
+      }
+    } else if(this.graphs_segments == 'forecast') {
+      if(this.api.isConnected()){
+        this.onlineLoadNodeForecastInfo();
+      } else {
+        this.offlineLoadForecastNodeInfo();
+      }
+    }
   }
 
 
@@ -96,7 +113,7 @@ export class NodePage {
   onlineLoadHistoryNodeInfo() {
     let loader = this.loadingCtrl.create({
       spinner: 'ios',
-      enableBackdropDismiss: false,
+      enableBackdropDismiss: true,
       dismissOnPageChange: true,
       showBackdrop: true
     });
@@ -106,15 +123,7 @@ export class NodePage {
       channel: this.node.channel_id
     };
 
-    this.storage.get("history").then((val) => {
-      if(val != null && val != '' && val && val.length > 0) {
-        if(val.filter(item => item.channel_id === this.node.channel_id).length != 0){
-          
-        } else {
-          loader.present();
-        }
-      }
-    });
+    loader.present();
 
     this.http.post(this.history_node_api, params).subscribe((result: any) => {
       console.log(result);
@@ -130,31 +139,24 @@ export class NodePage {
         }
         loader.dismiss();
       } else {
+        loader.dismiss();
 
         this.toastCtrl.create({
-          message: 'History information not available',
+          message: 'Up-to-date history information unavailable',
           duration: 3000,
           position: 'bottom',
           showCloseButton: true,
         }).present();
 
-        // this.storage.get("history").then((val) => {
-        //   if(val && val != null && val != '' && val.length > 0) {
-
-        //   } else {
-        //     this.history_node_api_success = false;
-        //     loader.dismiss();
-        //     this.toastCtrl.create({
-        //       message: 'History information not available',
-        //       duration: 3500,
-        //       position: 'bottom'
-        //     }).present();
-        //   }
-        // });
+        this.offlineLoadHistoryNodeInfo();
       }
     }, (err) => {
+      loader.dismiss();
+
       this.history_node_api_success = false;
       this.api.networkErrorMessage();
+
+      this.offlineLoadHistoryNodeInfo();
     });
   }
 
@@ -163,9 +165,10 @@ export class NodePage {
   // Online - Load Node Forecast Info from online
   // --------------------------------------------------------------------------------------------------------------------
   onlineLoadNodeForecastInfo() {
+
     let loader = this.loadingCtrl.create({
       spinner: 'ios',
-      enableBackdropDismiss: false,
+      enableBackdropDismiss: true,
       dismissOnPageChange: true,
       showBackdrop: true
     });
@@ -176,15 +179,7 @@ export class NodePage {
       lng: this.node.lng
     };
 
-    this.storage.get("forecast").then((val) => {
-      if(val != null && val != '' && val && val.length > 0) {
-        if(val.filter(item => item.channel_id === this.node.channel_id).length != 0){
-          
-        } else {
-          // loader.present();
-        }
-      }
-    });
+    loader.present();
     
     this.http.post(this.forecast_node_api, params).subscribe((result: any) => {
       console.log(result);
@@ -194,23 +189,26 @@ export class NodePage {
           this.forecast_node_api_success = true;
           console.log(result.formatted_results.predictions);
           
-          this.offlineStoreForecastStoreNodeInfo(result.formatted_results.predictions);
+          // this.offlineStoreForecastStoreNodeInfo(result.formatted_results.predictions);
           this.getForecastGraphData(result.formatted_results.predictions);
         }
         loader.dismiss();
       } else {
-        this.forecast_node_api_success = false;
         loader.dismiss();
+
+        this.forecast_node_api_success = false;
+        
         this.toastCtrl.create({
-          message: 'Forecast information not available',
+          message: 'Up-to-date forecast information unavailable',
           duration: 3000,
           position: 'bottom',
           showCloseButton: true,
         }).present();
       }
     }, (err) => {
-      this.forecast_node_api_success = false;
       loader.dismiss();
+
+      this.forecast_node_api_success = false;
       this.api.networkErrorMessage();
     });
   }

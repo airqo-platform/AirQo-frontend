@@ -33,7 +33,7 @@ export class MapPage {
   // --------------------------------------------------------------------------------------------------------------------
   async ionViewDidLoad() {
     await this.loadMap();
-    this.loadNodes();
+    await this.loadNodes();
   }
 
 
@@ -71,7 +71,7 @@ export class MapPage {
   onlineLoadNodes() {
     let loader = this.loadingCtrl.create({
       spinner: 'ios',
-      enableBackdropDismiss: false,
+      enableBackdropDismiss: true,
       dismissOnPageChange: true,
       showBackdrop: true
     });
@@ -98,8 +98,9 @@ export class MapPage {
           }).present();
         }
       }, (err) => {
-        this.offlineLoadNodes();
         loader.dismiss();
+
+        this.offlineLoadNodes();
         this.api.networkErrorMessage();
       });
     });
@@ -110,8 +111,8 @@ export class MapPage {
   // Offline - store nodes offline
   // --------------------------------------------------------------------------------------------------------------------
   async offlineStoreNodes() {
+    await this.addMarkers();
    await this.storage.set("nodes", this.nodes);
-   await this.addMarkers();
   }
 
 

@@ -10,7 +10,7 @@ export class ApiProvider {
   offline_toast: any;
 
   api_endpoint          = `https://test-dot-airqo-frontend.appspot.com/Apis`;
-  external_api_endpoint = `https://buzentech.com`;
+  external_api_endpoint = `https://buzentech.com/Apis`;
   api_key: any          = `AQ_9ec70a070c75E6af14FCca86/0621d1D83`;
 
   constructor(public network: Network, private toastCtrl: ToastController, private device: Device, private storage: Storage,) { }

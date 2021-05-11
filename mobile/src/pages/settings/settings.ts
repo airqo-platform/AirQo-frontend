@@ -8,7 +8,6 @@ import { AppRate } from '@ionic-native/app-rate';
 import { ApiProvider } from '../../providers/api/api';
 
 import { FeedbackPage } from './../feedback/feedback';
-import { DailyReportsPage } from './../daily-reports/daily-reports';
 import { FavoritesPage } from './../favorites/favorites';
 
 @Component({
@@ -72,14 +71,6 @@ export class SettingsPage {
   // --------------------------------------------------------------------------------------------------------------------
   goToFavoritesPage() {
     this.navCtrl.push(FavoritesPage);
-  }
-
-
-  // --------------------------------------------------------------------------------------------------------------------
-  // Go To Daily Reports Page
-  // --------------------------------------------------------------------------------------------------------------------
-  goToDailyReportsPage() {
-    this.navCtrl.push(DailyReportsPage);
   }
 
 

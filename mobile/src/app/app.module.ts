@@ -1,6 +1,5 @@
 import { AddNodeSubscriptionPage } from './../pages/add-node-subscription/add-node-subscription';
 import { FeedbackPage } from './../pages/feedback/feedback';
-import { DailyReportsPage } from './../pages/daily-reports/daily-reports';
 import { AddPlacePage } from './../pages/add-place/add-place';
 import { NodePage } from './../pages/node/node';
 import { Geolocation } from '@ionic-native/geolocation';
@@ -40,7 +39,6 @@ import { Device } from '@ionic-native/device';
     SearchPage,
     SettingsPage,
     AddPlacePage,
-    DailyReportsPage,
     FeedbackPage,
     AddNodeSubscriptionPage,
   ],
@@ -66,7 +64,6 @@ import { Device } from '@ionic-native/device';
     SearchPage,
     SettingsPage,
     AddPlacePage,
-    DailyReportsPage,
     FeedbackPage,
     AddNodeSubscriptionPage,
   ],

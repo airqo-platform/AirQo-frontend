@@ -29,7 +29,8 @@
     "@ionic-native/onesignal": "^4.20.0",
     "@ionic-native/social-sharing": "^4.20.0",
     "@ionic-native/splash-screen": "^4.20.0",
-    "@ionic-native/status-bar": "4.20.0",
+    "@ionic-native/sqlite": "^4.20.0",
+    "@ionic-native/status-bar": "^4.20.0",
     "@ionic/storage": "^2.2.0",
     "@types/node": "^14.14.35",
     "chart.js": "^2.9.3",
@@ -40,6 +41,7 @@
     "cordova-plugin-dialogs": "^2.0.2",
     "cordova-plugin-nativestorage": "^2.3.2",
     "cordova-plugin-splashscreen": "^6.0.0",
+    "cordova-sqlite-storage": "^6.0.0",
     "es6-promise-plugin": "^4.2.2",
     "firebase": "^7.19.1",
     "ionic-angular": "3.9.9",
@@ -83,7 +85,8 @@
       "cordova-plugin-camera": {
         "ANDROID_SUPPORT_V4_VERSION": "27.+"
       },
-      "cordova-plugin-splashscreen": {}
+      "cordova-plugin-splashscreen": {},
+      "cordova-sqlite-storage": {}
     },
     "platforms": [
       "ios",

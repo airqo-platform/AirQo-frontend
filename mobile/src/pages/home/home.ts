@@ -94,25 +94,16 @@ export class HomePage {
 
     this.platform.ready().then(() => {
 
-      let loader = this.loadingCtrl.create({
-        spinner: 'ios',
-        enableBackdropDismiss: false,
-        dismissOnPageChange: true,
-        showBackdrop: true
-      });
-
       this.geolocation.getCurrentPosition(options).then((pos) => {
         let params = {
           api: this.api.api_key,
           lat: pos.coords.latitude,
           lng: pos.coords.longitude,
         };
-        loader.dismiss();
 
         this.getNearestNodeReading(params);
       }).catch((error) => {
         console.log('Error getting location: ', error);
-        loader.dismiss();
         this.getCoordinatesByIP();
       });
     });
@@ -147,7 +138,7 @@ export class HomePage {
 
       let loader = this.loadingCtrl.create({
         spinner: 'ios',
-        enableBackdropDismiss: false,
+        enableBackdropDismiss: true,
         dismissOnPageChange: true,
         showBackdrop: true
       });

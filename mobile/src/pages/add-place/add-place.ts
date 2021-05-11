@@ -1,6 +1,7 @@
-import { NavController, NavParams, ToastController, ViewController, LoadingController, AlertController } from 'ionic-angular';
+import { FavoritesPage } from './../favorites/favorites';
+import { NavController, NavParams, ToastController, ViewController, LoadingController, AlertController, Searchbar } from 'ionic-angular';
 import { Storage } from '@ionic/storage';
-import { Component } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { ApiProvider } from '../../providers/api/api';
 import { FormControl } from '@angular/forms';
@@ -12,9 +13,12 @@ import 'rxjs/add/operator/debounceTime';
 })
 export class AddPlacePage {
 
+  @ViewChild('mySearchbar') searchbar: Searchbar;
+  
   user: any = {};
   
   nodes: any = [];
+  temp_array_nodes: any = [];
   holding_array_nodes: any = [];
   favorite_nodes: any = [];
 
@@ -56,7 +60,7 @@ export class AddPlacePage {
   onlineLoadNodes() {
     let loader = this.loadingCtrl.create({
       spinner: 'ios',
-      enableBackdropDismiss: false,
+      enableBackdropDismiss: true,
       dismissOnPageChange: true,
       showBackdrop: true
     });
@@ -146,10 +150,19 @@ export class AddPlacePage {
           this.storage.set('favorites', val);
           this.removeSingleNodeFromList(node);
 
-          this.toastCtrl.create({
-            message: 'Added',
-            duration: 2000,
-            position: 'bottom'
+          this.searchbar.clearInput(null);
+
+          this.alertCtrl.create({
+            message: 'You have successfully added a new place to your Favourites.',
+            buttons: [{
+              text: 'Add Another',
+              handler: () => { }
+            },{
+              text: 'Go To Favourites',
+              handler: () => {
+                this.navCtrl.push(FavoritesPage);
+              }
+            }]
           }).present();
         }
       } else {
@@ -157,10 +170,19 @@ export class AddPlacePage {
         this.storage.set('favorites', nodes);
         this.removeSingleNodeFromList(node);
 
-        this.toastCtrl.create({
-          message: 'Added',
-          duration: 2000,
-          position: 'bottom'
+        this.searchbar.clearInput(null);
+
+        this.alertCtrl.create({
+          message: 'You have successfully added a new place to your Favourites.',
+          buttons: [{
+            text: 'Add Another',
+            handler: () => { }
+          },{
+            text: 'Go To Favourites',
+            handler: () => {
+              this.navCtrl.push(FavoritesPage);
+            }
+          }]
         }).present();
       }
     });
@@ -173,9 +195,9 @@ export class AddPlacePage {
   searchNodesList(search_term) {
     this.nodes = this.holding_array_nodes;
     if (search_term && search_term.trim() != '') {
-      this.nodes = this.nodes.filter((item) => {
+      this.nodes = this.temp_array_nodes = this.nodes.filter((item) => {
         return (item.name.toLowerCase().indexOf(search_term.toLowerCase()) > -1);
-      })
+      });
     }
   }
 
@@ -189,7 +211,7 @@ export class AddPlacePage {
         this.viewCtrl.dismiss();
       } else {
         this.toastCtrl.create({
-          message: 'Please add a favorite place',
+          message: 'Please add a favourite place',
           duration: 2000,
           position: 'bottom'
         }).present();
