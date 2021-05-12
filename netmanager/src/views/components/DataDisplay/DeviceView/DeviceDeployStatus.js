@@ -39,6 +39,7 @@ import {
 import { updateMainAlert } from "redux/MainAlert/operations";
 import { getElapsedDurationMapper, getFirstNDurations } from "utils/dateTime";
 import { updateDevice } from "redux/DeviceRegistry/operations";
+import ConfirmDialog from "views/containers/ConfirmDialog";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -51,7 +52,6 @@ const useStyles = makeStyles((theme) => ({
     color: grey[200],
   },
 }));
-
 
 const errorStyles = {
   color: "red",
@@ -172,51 +172,14 @@ const EmptyDeviceTest = ({ loading, onClick }) => {
 
 const RecallDevice = ({ deviceData, handleRecall, open, toggleOpen }) => {
   return (
-    <Dialog
+    <ConfirmDialog
       open={open}
-      onClose={toggleOpen}
-      aria-labelledby="form-dialog-title"
-      aria-describedby="form-dialog-description"
-      style={{ padding: "20px 10px" }}
-    >
-      <DialogTitle
-        id="form-dialog-title"
-        style={{
-          textTransform: "uppercase",
-          alignContent: "center",
-          fontSize: "1.1rem",
-        }}
-      >
-        Recall device
-      </DialogTitle>
-
-      <DialogContent>
-        Are you sure you want to recall device{" "}
-        <strong>{deviceData.name}</strong> from location{" "}
-        <strong>{deviceData.locationID}</strong>?
-      </DialogContent>
-
-      <DialogActions>
-        <Grid
-          container
-          alignItems="flex-end"
-          alignContent="flex-end"
-          justify="flex-end"
-        >
-          <Button variant="contained" onClick={toggleOpen}>
-            Cancel
-          </Button>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleRecall}
-            style={{ margin: "0 15px" }}
-          >
-            Recall device
-          </Button>
-        </Grid>
-      </DialogActions>
-    </Dialog>
+      close={toggleOpen}
+      message={`Are you sure you want to recall device ${deviceData.name}?`}
+      title={"Recall device"}
+      confirm={handleRecall}
+      confirmBtnMsg={"Recall"}
+    />
   );
 };
 
