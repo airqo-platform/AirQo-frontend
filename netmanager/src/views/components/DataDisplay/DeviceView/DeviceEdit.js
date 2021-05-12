@@ -121,6 +121,17 @@ export default function DeviceEdit({ deviceData, locationsData }) {
         <Grid container spacing={1}>
           <Grid items xs={12} sm={6} style={gridItemStyle}>
             <TextField
+              id="name"
+              label="name"
+              value={editData.name}
+              onChange={handleTextFieldChange}
+              fullWidth
+              required
+              disabled
+            />
+          </Grid>
+          <Grid items xs={12} sm={6} style={gridItemStyle}>
+            <TextField
               id="owner"
               label="Owner"
               value={editData.owner}
@@ -292,6 +303,16 @@ export default function DeviceEdit({ deviceData, locationsData }) {
               id="mountType"
               label="Mount Type"
               value={editData.mountType}
+              onChange={handleTextFieldChange}
+              fullWidth
+            />
+          </Grid>
+
+          <Grid items xs={12} sm={6} style={gridItemStyle}>
+            <TextField
+              id="height"
+              label="height"
+              value={editData.height}
               onChange={handleTextFieldChange}
               fullWidth
             />
