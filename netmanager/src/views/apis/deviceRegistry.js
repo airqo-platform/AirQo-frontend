@@ -12,6 +12,7 @@ import {
   DELETE_COMPONENT,
   DELETE_DEVICE_PHOTO,
   EVENTS,
+  RECALL_DEVICE_URI,
 } from "config/urls/deviceRegistry";
 import { DEVICE_MAINTENANCE_LOG_URI } from "config/urls/deviceMonitoring";
 import { DEVICE_RECENT_FEEDS } from "config/urls/dataManagement";
@@ -55,9 +56,9 @@ export const addMaintenanceLogApi = async (logData) => {
     .then((response) => response.data);
 };
 
-export const recallDeviceApi = async (recallData) => {
+export const recallDeviceApi = async (deviceName) => {
   return await axios
-    .post(DEPLOY_DEVICE_URI + "recall", recallData)
+    .post(RECALL_DEVICE_URI, {}, { params: { deviceName } })
     .then((response) => response.data);
 };
 

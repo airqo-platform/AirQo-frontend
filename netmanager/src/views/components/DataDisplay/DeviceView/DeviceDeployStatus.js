@@ -449,16 +449,9 @@ export default function DeviceDeployStatus({ deviceData }) {
   };
 
   const handleRecallSubmit = async () => {
-    const currentDate = new Date();
-    const recallData = {
-      deviceName: deviceData.name,
-      locationName: deviceData.locationID,
-      date: currentDate.toISOString(),
-    };
-
     setRecallOpen(!recallOpen);
 
-    await recallDeviceApi(recallData)
+    await recallDeviceApi(deviceData.name)
       .then((responseData) => {
         dispatch(
           updateMainAlert({
