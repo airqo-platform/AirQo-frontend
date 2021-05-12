@@ -15,6 +15,8 @@ export const DEVICES_IN_LOCATION_URI = `${BASE_DEVICE_REGISTRY_URL}/devices/by/l
 
 export const DEPLOY_DEVICE_URI = `${BASE_DEVICE_REGISTRY_URL}/devices/ts/activity/deploy`;
 
+export const ADD_MAINTENANCE_LOGS_URI = `${BASE_DEVICE_REGISTRY_URL}/devices//ts/activity/maintain`;
+
 export const DELETE_DEVICE_URI = `${BASE_DEVICE_REGISTRY_URL}/devices/ts/delete`;
 
 export const ADD_COMPONENT_URI = `${BASE_DEVICE_REGISTRY_URL}/devices/add/components?device=`;

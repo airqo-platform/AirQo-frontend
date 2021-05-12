@@ -1,6 +1,7 @@
 import axios from "axios";
 import {
   ALL_DEVICES_URI,
+    ADD_MAINTENANCE_LOGS_URI,
   ADD_COMPONENT_URI,
   GET_COMPONENTS_URI,
   DEPLOY_DEVICE_URI,
@@ -50,9 +51,9 @@ export const getDeviceMaintenanceLogsApi = async (deviceName) => {
     .then((response) => response.data);
 };
 
-export const addMaintenanceLogApi = async (logData) => {
+export const addMaintenanceLogApi = async (deviceName, logData) => {
   return await axios
-    .post(DEPLOY_DEVICE_URI + "maintain", logData)
+    .post(ADD_MAINTENANCE_LOGS_URI, logData, { params: { deviceName } })
     .then((response) => response.data);
 };
 
