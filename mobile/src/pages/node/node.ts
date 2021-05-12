@@ -40,18 +40,19 @@ export class NodePage {
     private loadingCtrl: LoadingController, private http: HttpClient, private alertCtrl: AlertController, public api: ApiProvider,) {
       
       if(this.navParams.get("node")){
-        this.node               = this.navParams.get("node");
+        this.node = this.navParams.get("node");
 
         if(this.node.feeds){
-          if(this.api.isISOFormat(this.node.feeds.created_at)){
-            this.node.refreshed = null;
-          }
+          // if(this.api.isISOFormat(this.node.feeds.created_at)){
+          //   this.node.time = null;
+          // }
         } else {
-          this.node.feeds         = {};
-          this.node.feeds.field1  = '0.00';
+          this.node.feeds  = {};
+          // this.node.value  = '0.00';
         }
 
         if(this.node.lat && this.node.lng){
+
         } else {
           this.node.lat  = this.node.feeds.field5;
           this.node.lng  = this.node.feeds.field6;
@@ -131,8 +132,8 @@ export class NodePage {
       if(result.success == '100' && result.feed.hourly_results){
         if(result.feed.hourly_results.length > 0){
           this.history_node_api_success = true;
-          this.node.refreshed     = result.feed.hourly_results[0].time;
-          this.node.feeds.field1  = result.feed.hourly_results[0].pm2_5;
+          // this.node.time     = result.feed.hourly_results[0].time;
+          // this.node.value  = result.feed.hourly_results[0].pm2_5;
 
           this.offlineStoreHistoryStoreNodeInfo(result.feed.hourly_results, this.node);
           this.getHistoryGraphData(result.feed.hourly_results);

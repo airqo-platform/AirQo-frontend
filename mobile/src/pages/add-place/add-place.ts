@@ -135,9 +135,22 @@ export class AddPlacePage {
   // Add Node to favorites list
   // --------------------------------------------------------------------------------------------------------------------
   addToFavoritesList(node) {
+    console.log(node);
+
+    let nodeToAdd = {
+      channel_id: node.channel_id,
+      name: node.name,
+      time: node.time,
+      location: node.location,
+      lat: node.lat,
+      lng: node.lng,
+      refreshed: node.time,
+      field1: node.field2,
+    };
+
     this.storage.get('favorites').then((val) => {
       let nodes = [];
-      if(val && val != null && val != '' && val.length > 0) {
+      if(val && val != '' && val.length > 0) {
         if(val.filter(item => item.channel_id === node.channel_id).length != 0){
           this.toastCtrl.create({
             message: `${ node.name } is already among your places`,
@@ -145,8 +158,24 @@ export class AddPlacePage {
             position: 'bottom'
           }).present();
           this.removeSingleNodeFromList(node);
-        } else {
-          val.push(node);
+        }
+        else {
+
+          // an_type: "Commercial area"
+          // channel_id: "912223"
+          // churl: "OTEyMjIz"
+          // field2: "51.37"
+          // lat: "0.34167400"
+          // lng: "32.63530600"
+          // location: "Banda Industrial Area, Kampala"
+          // name: "Banda (Industrial), Kampala"
+          // time: "2021-05-11T14:00:16Z"
+
+          console.log(nodeToAdd);
+
+
+
+          val.push(this.api.nodeToStorage(nodeToAdd));
           this.storage.set('favorites', val);
           this.removeSingleNodeFromList(node);
 
@@ -166,7 +195,8 @@ export class AddPlacePage {
           }).present();
         }
       } else {
-        nodes.push(node);
+
+        nodes.push(this.api.nodeToStorage(nodeToAdd));
         this.storage.set('favorites', nodes);
         this.removeSingleNodeFromList(node);
 
@@ -211,7 +241,7 @@ export class AddPlacePage {
         this.viewCtrl.dismiss();
       } else {
         this.toastCtrl.create({
-          message: 'Please add a favourite place',
+          message: 'Please add a place',
           duration: 2000,
           position: 'bottom'
         }).present();

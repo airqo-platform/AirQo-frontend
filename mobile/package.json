@@ -80,9 +80,12 @@
         "PHOTO_LIBRARY_USAGE_DESCRIPTION": "This app requires photo library access to function properly."
       },
       "cordova-plugin-network-information": {},
-      "cordova-plugin-apprate": {},
+      "cordova-plugin-apprate": {
+        "PLAY_CORE_VERSION": "1.+"
+      },
       "cordova-plugin-geolocation": {
-        "GEOLOCATION_USAGE_DESCRIPTION": "To provide you with accurate reading of Air Quality in your area"
+        "GEOLOCATION_USAGE_DESCRIPTION": "To provide you with accurate reading of Air Quality in your area",
+        "GPS_REQUIRED": "true"
       },
       "cordova-plugin-camera": {
         "ANDROID_SUPPORT_V4_VERSION": "27.+"

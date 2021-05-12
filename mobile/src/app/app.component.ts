@@ -61,11 +61,12 @@ export class MyApp {
         }
       }
 
-      this.storage.get('intro_page').then((val) => {
-        if(val && val != null && val != '') {
-          // this.navCtrl.setRoot(HomePage);
-        }
-      });
+      // this.storage.get('intro_page').then((val) => {
+      //   if(val && val != '') {
+      //     // this.navCtrl.setRoot(HomePage);
+      //   }
+      // });
+
     });
   }
 }

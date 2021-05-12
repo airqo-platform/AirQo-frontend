@@ -10,7 +10,7 @@
   </ion-navbar>
 </ion-header>
 
-<ion-content no-bounce [ngStyle] ="{'background-image' : 'url('+ api.nodeStatus(node.feeds.field1, node.refreshed).background +')'}">
+<ion-content no-bounce [ngStyle] ="{'background-image' : 'url('+ api.nodeStatus(node.value, node.time).background +')'}">
 
   <!-- <ion-refresher (ionRefresh)="onlineLoadHistoryNodeInfo(); onlineLoadNodeForecastInfo()">
     <ion-refresher-content pullingIcon="arrow-round-down"
@@ -28,22 +28,22 @@
 
   <ion-card class="node-card">
     <ion-grid class="node bg-white">
-      <ion-row class="readings-section" [style.backgroundColor]="api.nodeStatus(node.feeds.field1, node.refreshed).color">
+      <ion-row class="readings-section" [style.backgroundColor]="api.nodeStatus(node.value, node.time).color">
         <ion-col col-3 class="face bg-darker">
-          <img [src]="api.nodeStatus(node.feeds.field1, node.refreshed).face"/>
+          <img [src]="api.nodeStatus(node.value, node.time).face"/>
         </ion-col>
         <ion-col col-4 class="values">
-          <p class="number moderate-bold" [style.color]="api.nodeStatus(node.feeds.field1, node.refreshed).font_color">{{ node.feeds.field1 }}</p>
-          <p class="number-label moderate-bold" [style.color]="api.nodeStatus(node.feeds.field1, node.refreshed).font_color">PM<sub>2.5</sub></p>
+          <p class="number moderate-bold" [style.color]="api.nodeStatus(node.value, node.time).font_color">{{ node.value }}</p>
+          <p class="number-label moderate-bold" [style.color]="api.nodeStatus(node.value, node.time).font_color">PM<sub>2.5</sub></p>
         </ion-col>
         <ion-col col-5 class="label">
-          <p text-wrap class="value-label moderate-bold" [style.color]="api.nodeStatus(node.feeds.field1, node.refreshed).font_color">{{ api.nodeStatus(node.feeds.field1, node.refreshed).label }}</p>
+          <p text-wrap class="value-label moderate-bold" [style.color]="api.nodeStatus(node.value, node.time).font_color">{{ api.nodeStatus(node.value, node.time).label }}</p>
         </ion-col>
       </ion-row>
       <ion-row class="footer-section">
         <ion-col text-wrap class="date-section">
-          <span class="node-refresh-date" *ngIf="node.refreshed">
-            Last Refreshed: {{ api.ago(api.getReadableInternationalDateFormatFromSQLFormat(node.refreshed)) }}
+          <span class="node-refresh-date" *ngIf="node.time">
+            Last Refreshed: {{ api.ago(api.getReadableInternationalDateFormatFromISOString(node.time)) }}
           </span>
         </ion-col>
       </ion-row>
@@ -65,7 +65,7 @@
 <div class="bottom-section bg-white">
 
   <div class="graph-section" padding>
-    <ion-segment [color]="api.nodeStatus(node.feeds.field1, node.refreshed).standard_color" [(ngModel)]="graphs_segments" (ionChange)="onSegmentChange()">
+    <ion-segment [color]="api.nodeStatus(node.value, node.time).standard_color" [(ngModel)]="graphs_segments" (ionChange)="onSegmentChange()">
       <ion-segment-button value="history">
         HISTORY
       </ion-segment-button>

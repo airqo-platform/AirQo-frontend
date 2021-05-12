@@ -2,7 +2,7 @@ import { HomePage } from './../home/home';
 import { Storage } from '@ionic/storage';
 import { Component } from '@angular/core';
 import { ViewChild } from '@angular/core';
-import { NavController, NavParams } from 'ionic-angular';
+import { NavController } from 'ionic-angular';
 import { Slides } from 'ionic-angular';
 
 @Component({
@@ -13,7 +13,7 @@ export class IntroPage {
 
   @ViewChild(Slides) slides: Slides;
 
-  constructor(private navCtrl: NavController, private navParams: NavParams, private storage: Storage) {
+  constructor(private navCtrl: NavController, private storage: Storage) {
   }
 
 
@@ -28,7 +28,20 @@ export class IntroPage {
   // --------------------------------------------------------------------------------------------------------------------
   // When the view loads
   // --------------------------------------------------------------------------------------------------------------------
-  ionViewDidLoad() { }
+  ionViewDidLoad() {
+  }
+
+
+  ngOnInit(){
+    this.storage.get('first-use').then((val) => {
+      if(val && val != '') {
+        this.goToHomePage();
+      }
+      else {
+        this.storage.set('first-use', true);
+      }
+    });
+  }
 
 
   // --------------------------------------------------------------------------------------------------------------------

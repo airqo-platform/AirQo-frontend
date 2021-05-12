@@ -117,7 +117,7 @@ export class FavoritesPage {
           text: 'Yes',
           handler: () => {
             this.storage.get('favorites').then((val) => {
-              if(val && val != null && val != '' && val.length > 0) {
+              if(val && val != '' && val.length > 0) {
                 if(val.filter(item => item.channel_id === node.channel_id).length != 0){
                   for(let i = 0; i < val.length; i++) {
                     if(val[i].channel_id == node.channel_id) {

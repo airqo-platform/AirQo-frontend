@@ -187,9 +187,20 @@ var AddPlacePage = /** @class */ (function () {
     // --------------------------------------------------------------------------------------------------------------------
     AddPlacePage.prototype.addToFavoritesList = function (node) {
         var _this = this;
+        console.log(node);
+        var nodeToAdd = {
+            channel_id: node.channel_id,
+            name: node.name,
+            time: node.time,
+            location: node.location,
+            lat: node.lat,
+            lng: node.lng,
+            refreshed: node.time,
+            field1: node.field2,
+        };
         this.storage.get('favorites').then(function (val) {
             var nodes = [];
-            if (val && val != null && val != '' && val.length > 0) {
+            if (val && val != '' && val.length > 0) {
                 if (val.filter(function (item) { return item.channel_id === node.channel_id; }).length != 0) {
                     _this.toastCtrl.create({
                         message: node.name + " is already among your places",
@@ -199,7 +210,17 @@ var AddPlacePage = /** @class */ (function () {
                     _this.removeSingleNodeFromList(node);
                 }
                 else {
-                    val.push(node);
+                    // an_type: "Commercial area"
+                    // channel_id: "912223"
+                    // churl: "OTEyMjIz"
+                    // field2: "51.37"
+                    // lat: "0.34167400"
+                    // lng: "32.63530600"
+                    // location: "Banda Industrial Area, Kampala"
+                    // name: "Banda (Industrial), Kampala"
+                    // time: "2021-05-11T14:00:16Z"
+                    console.log(nodeToAdd);
+                    val.push(_this.api.nodeToStorage(nodeToAdd));
                     _this.storage.set('favorites', val);
                     _this.removeSingleNodeFromList(node);
                     _this.searchbar.clearInput(null);
@@ -218,7 +239,7 @@ var AddPlacePage = /** @class */ (function () {
                 }
             }
             else {
-                nodes.push(node);
+                nodes.push(_this.api.nodeToStorage(nodeToAdd));
                 _this.storage.set('favorites', nodes);
                 _this.removeSingleNodeFromList(node);
                 _this.searchbar.clearInput(null);
@@ -259,23 +280,24 @@ var AddPlacePage = /** @class */ (function () {
             }
             else {
                 _this.toastCtrl.create({
-                    message: 'Please add a favourite place',
+                    message: 'Please add a place',
                     duration: 2000,
                     position: 'bottom'
                 }).present();
             }
         });
     };
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
     __decorate([
         Object(__WEBPACK_IMPORTED_MODULE_3__angular_core__["_8" /* ViewChild */])('mySearchbar'),
-        __metadata("design:type", typeof (_a = typeof __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["m" /* Searchbar */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["m" /* Searchbar */]) === "function" && _a || Object)
+        __metadata("design:type", __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["m" /* Searchbar */])
     ], AddPlacePage.prototype, "searchbar", void 0);
     AddPlacePage = __decorate([
         Object(__WEBPACK_IMPORTED_MODULE_3__angular_core__["m" /* Component */])({
             selector: 'page-add-place',template:/*ion-inline-start:"/home/noah/projects/airqo/AirQo-frontend/mobile/src/pages/add-place/add-place.html"*/'<ion-header>\n  <ion-navbar>\n    <ion-title>Add Place</ion-title>\n    <ion-buttons end>\n      <button (click)="closeModal()" color="blue" ion-button icon-only round clear>\n        <ion-icon name="md-close"></ion-icon>\n      </button>\n    </ion-buttons>\n  </ion-navbar>\n</ion-header>\n<ion-content padding>\n  <p class="title" *ngIf="places_nodes_list_api_success == \'100\'">Select or search a place to add to your places</p>\n  <ion-searchbar #mySearchbar type="text" color="light" placeholder="Search city or area" [formControl]="textInput"></ion-searchbar>\n  <ion-list *ngIf="places_nodes_list_api_success == \'100\'">\n    <ion-item *ngFor="let node of nodes" (click)="addToFavoritesList(node)">\n      <ion-icon name="pin" color="grey" item-start></ion-icon>\n      <div text-wrap class="area-title">{{ node.name }}</div>\n      <div text-wrap class="area-sub-title">{{ node.location }}</div>\n    </ion-item>\n\n    <ion-item>\n      <div class="center" text-wrap *ngIf="temp_array_nodes.length <= 0">Could not find place</div>\n    </ion-item>\n  </ion-list>\n</ion-content>'/*ion-inline-end:"/home/noah/projects/airqo/AirQo-frontend/mobile/src/pages/add-place/add-place.html"*/,
         }),
-        __metadata("design:paramtypes", [typeof (_b = typeof __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["i" /* NavController */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["i" /* NavController */]) === "function" && _b || Object, typeof (_c = typeof __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["j" /* NavParams */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["j" /* NavParams */]) === "function" && _c || Object, typeof (_d = typeof __WEBPACK_IMPORTED_MODULE_2__ionic_storage__["b" /* Storage */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_2__ionic_storage__["b" /* Storage */]) === "function" && _d || Object, typeof (_e = typeof __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["o" /* ToastController */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["o" /* ToastController */]) === "function" && _e || Object, typeof (_f = typeof __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["p" /* ViewController */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["p" /* ViewController */]) === "function" && _f || Object, typeof (_g = typeof __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["g" /* LoadingController */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["g" /* LoadingController */]) === "function" && _g || Object, typeof (_h = typeof __WEBPACK_IMPORTED_MODULE_4__angular_common_http__["a" /* HttpClient */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_4__angular_common_http__["a" /* HttpClient */]) === "function" && _h || Object, typeof (_j = typeof __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["b" /* AlertController */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["b" /* AlertController */]) === "function" && _j || Object, typeof (_k = typeof __WEBPACK_IMPORTED_MODULE_5__providers_api_api__["a" /* ApiProvider */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_5__providers_api_api__["a" /* ApiProvider */]) === "function" && _k || Object])
+        __metadata("design:paramtypes", [__WEBPACK_IMPORTED_MODULE_1_ionic_angular__["i" /* NavController */], __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["j" /* NavParams */], __WEBPACK_IMPORTED_MODULE_2__ionic_storage__["b" /* Storage */], __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["o" /* ToastController */],
+            __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["p" /* ViewController */], __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["g" /* LoadingController */], __WEBPACK_IMPORTED_MODULE_4__angular_common_http__["a" /* HttpClient */],
+            __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["b" /* AlertController */], __WEBPACK_IMPORTED_MODULE_5__providers_api_api__["a" /* ApiProvider */]])
     ], AddPlacePage);
     return AddPlacePage;
 }());
@@ -328,7 +350,7 @@ webpackEmptyAsyncContext.id = 165;
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__ionic_storage__ = __webpack_require__(14);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__angular_common_http__ = __webpack_require__(24);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__providers_api_api__ = __webpack_require__(25);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__home_home__ = __webpack_require__(38);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__home_home__ = __webpack_require__(47);
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -345,13 +367,12 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 
 
 var FeedbackPage = /** @class */ (function () {
-    function FeedbackPage(navCtrl, storage, http, loadingCtrl, alertCtrl, toastCtrl, api) {
+    function FeedbackPage(navCtrl, storage, http, loadingCtrl, alertCtrl, api) {
         this.navCtrl = navCtrl;
         this.storage = storage;
         this.http = http;
         this.loadingCtrl = loadingCtrl;
         this.alertCtrl = alertCtrl;
-        this.toastCtrl = toastCtrl;
         this.api = api;
         this.user = {};
         this.feedback = {};
@@ -373,7 +394,7 @@ var FeedbackPage = /** @class */ (function () {
     FeedbackPage.prototype.getUserInfo = function () {
         var _this = this;
         this.storage.get('user_data').then(function (val) {
-            if (val && val != null && val != '') {
+            if (val && val != '') {
                 _this.user = val;
             }
         });
@@ -420,53 +441,61 @@ var FeedbackPage = /** @class */ (function () {
     // --------------------------------------------------------------------------------------------------------------------
     FeedbackPage.prototype.submitFeedback = function (params) {
         var _this = this;
-        var loader = this.loadingCtrl.create({
+        this.loader = this.loadingCtrl.create({
             spinner: 'dots',
             content: 'Please wait...',
             enableBackdropDismiss: false,
             dismissOnPageChange: true,
             showBackdrop: true
         });
-        loader.present().then(function () {
-            _this.http.post(_this.feedback_api, params).subscribe(function (result) {
-                console.log(result);
-                loader.dismiss();
-                if (result.success == "100") {
-                    _this.feedback.email = "";
-                    _this.feedback.subject = "";
-                    _this.feedback.body = "";
-                    _this.alertCtrl.create({
-                        title: result.title,
-                        message: result.message,
-                        buttons: [
-                            {
-                                text: 'Okay',
-                                handler: function (data) {
-                                    _this.navCtrl.setRoot(__WEBPACK_IMPORTED_MODULE_5__home_home__["a" /* HomePage */]);
-                                }
-                            },
-                        ]
-                    }).present();
-                }
-                else {
-                    _this.alertCtrl.create({
-                        title: result.title,
-                        message: result.message,
-                        buttons: ['Okay']
-                    }).present();
-                }
-            }, function (err) {
-                loader.dismiss();
-                _this.api.networkErrorMessage();
-            });
+        this.loader.present();
+        this.http.post(this.feedback_api, params).subscribe(function (result) {
+            console.log(result);
+            _this.loader.dismiss();
+            if (result.success == 100) {
+                _this.feedback.email = "";
+                _this.feedback.subject = "";
+                _this.feedback.body = "";
+                _this.alertCtrl.create({
+                    title: 'Feedback received',
+                    message: 'Thank you for your feedback',
+                    buttons: [
+                        {
+                            text: 'Okay',
+                            handler: function (data) {
+                                _this.goToHome();
+                            }
+                        },
+                    ]
+                }).present();
+            }
+            else {
+                _this.alertCtrl.create({
+                    title: result.title,
+                    message: result.message,
+                    buttons: ['Okay']
+                }).present();
+            }
+        }, function (err) {
+            if (_this.loader) {
+                _this.loader.dismiss();
+            }
+            _this.api.networkErrorMessage();
         });
     };
+    FeedbackPage.prototype.goToHome = function () {
+        if (this.loader) {
+            this.loader.dismiss();
+            this.loader = null;
+            this.navCtrl.push(__WEBPACK_IMPORTED_MODULE_5__home_home__["a" /* HomePage */]);
+        }
+    };
+    var _a, _b, _c, _d, _e, _f;
     FeedbackPage = __decorate([
         Object(__WEBPACK_IMPORTED_MODULE_0__angular_core__["m" /* Component */])({
             selector: 'page-feedback',template:/*ion-inline-start:"/home/noah/projects/airqo/AirQo-frontend/mobile/src/pages/feedback/feedback.html"*/'<!--\n  Generated template for the FeedbackPage page.\n\n  See http://ionicframework.com/docs/components/#navigation for more info on\n  Ionic pages and navigation.\n-->\n<ion-header>\n  <ion-navbar>\n    <ion-title>Feedback</ion-title>\n  </ion-navbar>\n</ion-header>\n\n<ion-content padding>\n  \n  <ion-list>\n\n    <ion-item>\n      <ion-label stacked>Email</ion-label>\n      <ion-input type="email" [(ngModel)]="feedback.email" placeholder="Email Address"></ion-input>\n    </ion-item>\n\n    <ion-item>\n      <ion-label stacked>Subject</ion-label>\n      <ion-input type="text" [(ngModel)]="feedback.subject" placeholder="Enter subject here"></ion-input>\n    </ion-item>\n  \n    <ion-item>\n      <ion-label stacked>Descriptions</ion-label>\n      <ion-textarea type="text" [(ngModel)]="feedback.body" autocomplete="on" autocorrect="on"  placeholder="Enter detailed description here"></ion-textarea>\n    </ion-item>\n\n    <button ion-button block (click)="verifyFeedback()">Submit</button>\n  \n  </ion-list>\n  \n\n</ion-content>\n'/*ion-inline-end:"/home/noah/projects/airqo/AirQo-frontend/mobile/src/pages/feedback/feedback.html"*/,
         }),
-        __metadata("design:paramtypes", [__WEBPACK_IMPORTED_MODULE_1_ionic_angular__["i" /* NavController */], __WEBPACK_IMPORTED_MODULE_2__ionic_storage__["b" /* Storage */], __WEBPACK_IMPORTED_MODULE_3__angular_common_http__["a" /* HttpClient */], __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["g" /* LoadingController */],
-            __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["b" /* AlertController */], __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["o" /* ToastController */], __WEBPACK_IMPORTED_MODULE_4__providers_api_api__["a" /* ApiProvider */]])
+        __metadata("design:paramtypes", [typeof (_a = typeof __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["i" /* NavController */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["i" /* NavController */]) === "function" && _a || Object, typeof (_b = typeof __WEBPACK_IMPORTED_MODULE_2__ionic_storage__["b" /* Storage */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_2__ionic_storage__["b" /* Storage */]) === "function" && _b || Object, typeof (_c = typeof __WEBPACK_IMPORTED_MODULE_3__angular_common_http__["a" /* HttpClient */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_3__angular_common_http__["a" /* HttpClient */]) === "function" && _c || Object, typeof (_d = typeof __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["g" /* LoadingController */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["g" /* LoadingController */]) === "function" && _d || Object, typeof (_e = typeof __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["b" /* AlertController */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["b" /* AlertController */]) === "function" && _e || Object, typeof (_f = typeof __WEBPACK_IMPORTED_MODULE_4__providers_api_api__["a" /* ApiProvider */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_4__providers_api_api__["a" /* ApiProvider */]) === "function" && _f || Object])
     ], FeedbackPage);
     return FeedbackPage;
 }());
@@ -483,7 +512,7 @@ var FeedbackPage = /** @class */ (function () {
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_ionic_angular__ = __webpack_require__(11);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__ionic_native_network__ = __webpack_require__(206);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__angular_core__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__ionic_native_device__ = __webpack_require__(47);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__ionic_native_device__ = __webpack_require__(46);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__ionic_storage__ = __webpack_require__(14);
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -653,76 +682,84 @@ var ApiProvider = /** @class */ (function () {
             background: 'assets/bg/0.png'
         };
         if (value) {
-            value = parseFloat(value).toFixed(2);
-            if (value > 0 && value < 12.1) {
-                if (this.isOldRefreshDate(refresh_date)) {
-                    value_good.color = "#7a7a7a";
-                    value_good.css_color = "grey";
-                    value_good.standard_color = "grey";
-                    value_good.font_color = "#ece9e9";
-                    value_good.map_reading_color = "#ffffff";
-                    value_good.background = 'assets/bg/0.png';
+            try {
+                value = parseFloat(value).toFixed(2);
+                if (value > 0 && value < 12.1) {
+                    if (this.isOldRefreshDate(refresh_date)) {
+                        value_good.color = "#7a7a7a";
+                        value_good.css_color = "grey";
+                        value_good.standard_color = "grey";
+                        value_good.font_color = "#ece9e9";
+                        value_good.map_reading_color = "#ffffff";
+                        value_good.background = 'assets/bg/0.png';
+                    }
+                    return value_good;
                 }
-                return value_good;
-            }
-            else if (value >= 12.1 && value < 35.6) {
-                if (this.isOldRefreshDate(refresh_date)) {
-                    value_moderate.color = "#7a7a7a";
-                    value_moderate.css_color = "grey";
-                    value_moderate.standard_color = "grey";
-                    value_moderate.font_color = "#ece9e9";
-                    value_moderate.map_reading_color = "#ffffff";
-                    value_moderate.background = 'assets/bg/0.png';
+                else if (value >= 12.1 && value < 35.6) {
+                    if (this.isOldRefreshDate(refresh_date)) {
+                        value_moderate.color = "#7a7a7a";
+                        value_moderate.css_color = "grey";
+                        value_moderate.standard_color = "grey";
+                        value_moderate.font_color = "#ece9e9";
+                        value_moderate.map_reading_color = "#ffffff";
+                        value_moderate.background = 'assets/bg/0.png';
+                    }
+                    return value_moderate;
                 }
-                return value_moderate;
-            }
-            else if (value > 35.6 && value < 55.3) {
-                if (this.isOldRefreshDate(refresh_date)) {
-                    value_unhealthy_for_sensitive_groups.color = "#7a7a7a";
-                    value_unhealthy_for_sensitive_groups.css_color = "grey";
-                    value_unhealthy_for_sensitive_groups.standard_color = "grey";
-                    value_unhealthy_for_sensitive_groups.font_color = "#ece9e9";
-                    value_unhealthy_for_sensitive_groups.map_reading_color = "#ffffff";
-                    value_unhealthy_for_sensitive_groups.background = 'assets/bg/0.png';
+                else if (value > 35.6 && value < 55.3) {
+                    if (this.isOldRefreshDate(refresh_date)) {
+                        value_unhealthy_for_sensitive_groups.color = "#7a7a7a";
+                        value_unhealthy_for_sensitive_groups.css_color = "grey";
+                        value_unhealthy_for_sensitive_groups.standard_color = "grey";
+                        value_unhealthy_for_sensitive_groups.font_color = "#ece9e9";
+                        value_unhealthy_for_sensitive_groups.map_reading_color = "#ffffff";
+                        value_unhealthy_for_sensitive_groups.background = 'assets/bg/0.png';
+                    }
+                    return value_unhealthy_for_sensitive_groups;
                 }
-                return value_unhealthy_for_sensitive_groups;
-            }
-            else if (value > 55.4 && value < 150.3) {
-                if (this.isOldRefreshDate(refresh_date)) {
-                    value_unhealthy.color = "#7a7a7a";
-                    value_unhealthy.css_color = "grey";
-                    value_unhealthy.standard_color = "grey";
-                    value_unhealthy.font_color = "#ece9e9";
-                    value_unhealthy.map_reading_color = "#ffffff";
-                    value_unhealthy.background = 'assets/bg/0.png';
+                else if (value > 55.4 && value < 150.3) {
+                    if (this.isOldRefreshDate(refresh_date)) {
+                        value_unhealthy.color = "#7a7a7a";
+                        value_unhealthy.css_color = "grey";
+                        value_unhealthy.standard_color = "grey";
+                        value_unhealthy.font_color = "#ece9e9";
+                        value_unhealthy.map_reading_color = "#ffffff";
+                        value_unhealthy.background = 'assets/bg/0.png';
+                    }
+                    return value_unhealthy;
                 }
-                return value_unhealthy;
-            }
-            else if (value > 150.4 && value < 250.4) {
-                if (this.isOldRefreshDate(refresh_date)) {
-                    value_very_unhealthy.color = "#7a7a7a";
-                    value_very_unhealthy.css_color = "grey";
-                    value_very_unhealthy.standard_color = "grey";
-                    value_very_unhealthy.font_color = "#ece9e9";
-                    value_very_unhealthy.map_reading_color = "#ffffff";
-                    value_very_unhealthy.background = 'assets/bg/0.png';
+                else if (value > 150.4 && value < 250.4) {
+                    if (this.isOldRefreshDate(refresh_date)) {
+                        value_very_unhealthy.color = "#7a7a7a";
+                        value_very_unhealthy.css_color = "grey";
+                        value_very_unhealthy.standard_color = "grey";
+                        value_very_unhealthy.font_color = "#ece9e9";
+                        value_very_unhealthy.map_reading_color = "#ffffff";
+                        value_very_unhealthy.background = 'assets/bg/0.png';
+                    }
+                    return value_very_unhealthy;
                 }
-                return value_very_unhealthy;
-            }
-            else if (value >= 250.5 && value <= 500.4) {
-                if (this.isOldRefreshDate(refresh_date)) {
-                    value_hazardous.color = "#7a7a7a";
-                    value_hazardous.css_color = "grey";
-                    value_hazardous.standard_color = "grey";
-                    value_hazardous.font_color = "#ece9e9";
-                    value_hazardous.map_reading_color = "#ffffff";
-                    value_hazardous.background = 'assets/bg/0.png';
+                else if (value >= 250.5 && value <= 500.4) {
+                    if (this.isOldRefreshDate(refresh_date)) {
+                        value_hazardous.color = "#7a7a7a";
+                        value_hazardous.css_color = "grey";
+                        value_hazardous.standard_color = "grey";
+                        value_hazardous.font_color = "#ece9e9";
+                        value_hazardous.map_reading_color = "#ffffff";
+                        value_hazardous.background = 'assets/bg/0.png';
+                    }
+                    return value_hazardous;
                 }
-                return value_hazardous;
+                else {
+                    return value_unavailable;
+                }
             }
-            else {
+            catch (e) {
                 return value_unavailable;
             }
+        }
+        else {
+            return value_unavailable;
         }
     };
     // --------------------------------------------------------------------------------------------------------------------
@@ -831,6 +868,10 @@ var ApiProvider = /** @class */ (function () {
         var month = day * 30;
         var year = day * 365;
         var suffix = ' ago';
+        // console.log(date);
+        // console.log(new Date(date));
+        // console.log(Date.now().toLocaleString());
+        // console.log((Date.now() - date) / 1000);
         var elapsed = Math.floor((Date.now() - date) / 1000);
         if (elapsed < minute) {
             return 'Just now';
@@ -864,9 +905,22 @@ var ApiProvider = /** @class */ (function () {
         this.storage.set('favorites_readings', null);
         return true;
     };
+    ApiProvider.prototype.nodeToStorage = function (node) {
+        return {
+            channel_id: node.channel_id,
+            name: node.name,
+            location: node.location,
+            lat: node.lat,
+            lng: node.lng,
+            time: node.refreshed,
+            value: node.field1,
+            feeds: node.feeds,
+        };
+    };
+    var _a, _b, _c, _d;
     ApiProvider = __decorate([
         Object(__WEBPACK_IMPORTED_MODULE_2__angular_core__["A" /* Injectable */])(),
-        __metadata("design:paramtypes", [__WEBPACK_IMPORTED_MODULE_1__ionic_native_network__["a" /* Network */], __WEBPACK_IMPORTED_MODULE_0_ionic_angular__["o" /* ToastController */], __WEBPACK_IMPORTED_MODULE_3__ionic_native_device__["a" /* Device */], __WEBPACK_IMPORTED_MODULE_4__ionic_storage__["b" /* Storage */]])
+        __metadata("design:paramtypes", [typeof (_a = typeof __WEBPACK_IMPORTED_MODULE_1__ionic_native_network__["a" /* Network */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_1__ionic_native_network__["a" /* Network */]) === "function" && _a || Object, typeof (_b = typeof __WEBPACK_IMPORTED_MODULE_0_ionic_angular__["o" /* ToastController */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_0_ionic_angular__["o" /* ToastController */]) === "function" && _b || Object, typeof (_c = typeof __WEBPACK_IMPORTED_MODULE_3__ionic_native_device__["a" /* Device */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_3__ionic_native_device__["a" /* Device */]) === "function" && _c || Object, typeof (_d = typeof __WEBPACK_IMPORTED_MODULE_4__ionic_storage__["b" /* Storage */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_4__ionic_storage__["b" /* Storage */]) === "function" && _d || Object])
     ], ApiProvider);
     return ApiProvider;
 }());
@@ -1113,12 +1167,12 @@ var SearchPage = /** @class */ (function () {
 
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return MenuPage; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__home_home__ = __webpack_require__(38);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__home_home__ = __webpack_require__(47);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__angular_core__ = __webpack_require__(0);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_ionic_angular__ = __webpack_require__(11);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__ionic_native_social_sharing__ = __webpack_require__(348);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__ionic_storage__ = __webpack_require__(14);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__ionic_native_device__ = __webpack_require__(47);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__ionic_native_device__ = __webpack_require__(46);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__key_key__ = __webpack_require__(110);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__map_map__ = __webpack_require__(349);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__settings_settings__ = __webpack_require__(350);
@@ -1394,10 +1448,9 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 
 
 var MapPage = /** @class */ (function () {
-    function MapPage(navCtrl, storage, toastCtrl, loadingCtrl, http, alertCtrl, api, elementRef) {
+    function MapPage(navCtrl, storage, loadingCtrl, http, alertCtrl, api, elementRef) {
         this.navCtrl = navCtrl;
         this.storage = storage;
-        this.toastCtrl = toastCtrl;
         this.loadingCtrl = loadingCtrl;
         this.http = http;
         this.alertCtrl = alertCtrl;
@@ -1532,58 +1585,77 @@ var MapPage = /** @class */ (function () {
         var _this = this;
         if (this.nodes != null && this.nodes != '' && this.nodes.length > 0) {
             var _loop_1 = function (i) {
-                if (this_1.nodes[i].lat && this_1.nodes[i].lng) {
-                    var airqo_marker = __WEBPACK_IMPORTED_MODULE_5_leaflet___default.a.divIcon({
-                        className: 'custom-airqo-icon',
-                        html: '' +
-                            '<div style="background-color: ' + this_1.api.nodeStatus(this_1.nodes[i].field2, this_1.nodes[i].time).color + ';" class="marker-pin"></div>' +
-                            '<span class="marker-number" style="color: ' + this_1.api.nodeStatus(this_1.nodes[i].field2, this_1.nodes[i].time).font_color + ';">' + Math.round(this_1.nodes[i].field2) + '</span>',
-                        iconSize: [30, 42],
-                        iconAnchor: [15, 42],
-                        popupAnchor: [0, -30]
-                    });
-                    var airqo_popup = '' +
-                        '<div class="marker-popup">' +
-                        '<a class="marker-popup-click" data-markerId="' + this_1.nodes[i].channel_id + '">' +
-                        '<div class="top-section center">' +
-                        '<p class="title">' + this_1.nodes[i].name + '</p>' +
-                        '<p class="sub-title grey">' + this_1.nodes[i].location + '</p>' +
-                        '</div>' +
-                        '<div class="mid-section center" style="background-color: ' + this_1.api.nodeStatus(this_1.nodes[i].field2, this_1.nodes[i].time).color + ';">' +
-                        '<div class="face bg-darker">' +
-                        '<img src="' + this_1.api.nodeStatus(this_1.nodes[i].field2, this_1.nodes[i].time).face + '"/>' +
-                        '</div>' +
-                        '<div class="reading">' +
-                        '<p style="color: ' + this_1.api.nodeStatus(this_1.nodes[i].field2, this_1.nodes[i].time).font_color + ';">' +
-                        this_1.nodes[i].field2.trim() +
-                        '<br/>PM<sub>2.5</sub>' +
-                        '</p>' +
-                        '</div>' +
-                        '<div class="label">' +
-                        '<p style="color: ' + this_1.api.nodeStatus(this_1.nodes[i].field2, this_1.nodes[i].time).font_color + ';">' + this_1.api.nodeStatus(this_1.nodes[i].field2, this_1.nodes[i].time).label + '</p>' +
-                        '</div>' +
-                        '</div>' +
-                        '<div class="bottom-section">' +
-                        '<p class="refresh-date grey">Last Refreshed: ' + this_1.api.ago(this_1.api.getReadableInternationalDateFormatFromISOString(this_1.nodes[i].time)) + '</p>' +
-                        '</div>' +
-                        '</a>' +
-                        '</div>';
-                    var airqo_popup_options = {
-                        className: 'custom',
-                        width: 400,
-                        height: 150,
-                        closeButton: false,
-                        autoClose: false
-                    };
-                    __WEBPACK_IMPORTED_MODULE_5_leaflet___default.a.marker([parseFloat(this_1.nodes[i].lat), parseFloat(this_1.nodes[i].lng)], { icon: airqo_marker }).addTo(this_1.map)
-                        .bindPopup(airqo_popup, airqo_popup_options).on('click', function (e) {
-                    })
-                        .on('popupopen', function (res) {
-                        _this.elementRef.nativeElement.querySelector(".marker-popup-click").addEventListener('click', function (e) {
-                            console.log(e.target.getAttribute("data-markerId"));
-                            _this.navCtrl.push(__WEBPACK_IMPORTED_MODULE_6__node_node__["a" /* NodePage */], { node: _this.nodes[i] });
+                try {
+                    if (this_1.nodes[i].lat && this_1.nodes[i].lng) {
+                        var airqo_marker = __WEBPACK_IMPORTED_MODULE_5_leaflet___default.a.divIcon({
+                            className: 'custom-airqo-icon',
+                            html: '' +
+                                '<div style="background-color: ' + this_1.api.nodeStatus(this_1.nodes[i].field2, this_1.nodes[i].time).color + ';" class="marker-pin"></div>' +
+                                '<span class="marker-number" style="color: ' + this_1.api.nodeStatus(this_1.nodes[i].field2, this_1.nodes[i].time).font_color + ';">' + Math.round(this_1.nodes[i].field2) + '</span>',
+                            iconSize: [30, 42],
+                            iconAnchor: [15, 42],
+                            popupAnchor: [0, -30]
                         });
-                    });
+                        console.log(this_1.nodes[i].time);
+                        var airqo_popup = '' +
+                            '<div class="marker-popup">' +
+                            '<a class="marker-popup-click" data-markerId="' + this_1.nodes[i].channel_id + '">' +
+                            '<div class="top-section center">' +
+                            '<p class="title">' + this_1.nodes[i].name + '</p>' +
+                            '<p class="sub-title grey">' + this_1.nodes[i].location + '</p>' +
+                            '</div>' +
+                            '<div class="mid-section center" style="background-color: ' + this_1.api.nodeStatus(this_1.nodes[i].field2, this_1.nodes[i].time).color + ';">' +
+                            '<div class="face bg-darker">' +
+                            '<img src="' + this_1.api.nodeStatus(this_1.nodes[i].field2, this_1.nodes[i].time).face + '"/>' +
+                            '</div>' +
+                            '<div class="reading">' +
+                            '<p style="color: ' + this_1.api.nodeStatus(this_1.nodes[i].field2, this_1.nodes[i].time).font_color + ';">' +
+                            this_1.nodes[i].field2.trim() +
+                            '<br/>PM<sub>2.5</sub>' +
+                            '</p>' +
+                            '</div>' +
+                            '<div class="label">' +
+                            '<p style="color: ' + this_1.api.nodeStatus(this_1.nodes[i].field2, this_1.nodes[i].time).font_color + ';">' + this_1.api.nodeStatus(this_1.nodes[i].field2, this_1.nodes[i].time).label + '</p>' +
+                            '</div>' +
+                            '</div>' +
+                            '<div class="bottom-section">' +
+                            '<p class="refresh-date grey">Last Refreshed: ' + this_1.api.ago(this_1.api.getReadableInternationalDateFormatFromISOString(this_1.nodes[i].time)) + '</p>' +
+                            '</div>' +
+                            '</a>' +
+                            '</div>';
+                        var airqo_popup_options = {
+                            className: 'custom',
+                            width: 400,
+                            height: 150,
+                            closeButton: false,
+                            autoClose: false
+                        };
+                        __WEBPACK_IMPORTED_MODULE_5_leaflet___default.a.marker([parseFloat(this_1.nodes[i].lat), parseFloat(this_1.nodes[i].lng)], { icon: airqo_marker }).addTo(this_1.map)
+                            .bindPopup(airqo_popup, airqo_popup_options).on('click', function (e) {
+                        })
+                            .on('popupopen', function (res) {
+                            _this.elementRef.nativeElement.querySelector(".marker-popup-click").addEventListener('click', function (e) {
+                                console.log(e.target.getAttribute("data-markerId"));
+                                console.log(_this.nodes[i]);
+                                var node = {
+                                    channel_id: _this.nodes[i].channel_id,
+                                    name: _this.nodes[i].name,
+                                    location: _this.nodes[i].location,
+                                    lat: _this.nodes[i].lat,
+                                    lng: _this.nodes[i].lng,
+                                    refreshed: _this.nodes[i].time,
+                                    field1: _this.nodes[i].field2,
+                                    feeds: _this.nodes[i].lastfeeds,
+                                };
+                                // this.navCtrl.push(NodePage, {node: this.api.nodeToStorage(node)});
+                                _this.viewDetails(_this.api.nodeToStorage(node));
+                            });
+                        });
+                    }
+                }
+                catch (e) {
+                    console.log('add Markers error');
+                    console.log(e);
                 }
             };
             var this_1 = this;
@@ -1600,16 +1672,16 @@ var MapPage = /** @class */ (function () {
             node: node
         });
     };
+    var _a, _b, _c, _d, _e, _f, _g, _h;
     __decorate([
         Object(__WEBPACK_IMPORTED_MODULE_0__angular_core__["_8" /* ViewChild */])('map'),
-        __metadata("design:type", __WEBPACK_IMPORTED_MODULE_0__angular_core__["t" /* ElementRef */])
+        __metadata("design:type", typeof (_a = typeof __WEBPACK_IMPORTED_MODULE_0__angular_core__["t" /* ElementRef */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_0__angular_core__["t" /* ElementRef */]) === "function" && _a || Object)
     ], MapPage.prototype, "mapContainer", void 0);
     MapPage = __decorate([
         Object(__WEBPACK_IMPORTED_MODULE_0__angular_core__["m" /* Component */])({
             selector: 'page-map',template:/*ion-inline-start:"/home/noah/projects/airqo/AirQo-frontend/mobile/src/pages/map/map.html"*/'<ion-header>\n\n  <ion-navbar>\n    <ion-title>Map</ion-title>\n    <ion-buttons end>\n      <!-- <button (click)="closeModal()" color="blue" ion-button icon-only round clear>\n        <ion-icon name="md-close"></ion-icon>\n      </button> -->\n    </ion-buttons>\n  </ion-navbar>\n\n</ion-header>\n<ion-content>\n  <div #map id="map"></div>\n</ion-content>'/*ion-inline-end:"/home/noah/projects/airqo/AirQo-frontend/mobile/src/pages/map/map.html"*/,
         }),
-        __metadata("design:paramtypes", [__WEBPACK_IMPORTED_MODULE_1_ionic_angular__["i" /* NavController */], __WEBPACK_IMPORTED_MODULE_2__ionic_storage__["b" /* Storage */], __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["o" /* ToastController */], __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["g" /* LoadingController */],
-            __WEBPACK_IMPORTED_MODULE_3__angular_common_http__["a" /* HttpClient */], __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["b" /* AlertController */], __WEBPACK_IMPORTED_MODULE_4__providers_api_api__["a" /* ApiProvider */], __WEBPACK_IMPORTED_MODULE_0__angular_core__["t" /* ElementRef */]])
+        __metadata("design:paramtypes", [typeof (_b = typeof __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["i" /* NavController */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["i" /* NavController */]) === "function" && _b || Object, typeof (_c = typeof __WEBPACK_IMPORTED_MODULE_2__ionic_storage__["b" /* Storage */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_2__ionic_storage__["b" /* Storage */]) === "function" && _c || Object, typeof (_d = typeof __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["g" /* LoadingController */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["g" /* LoadingController */]) === "function" && _d || Object, typeof (_e = typeof __WEBPACK_IMPORTED_MODULE_3__angular_common_http__["a" /* HttpClient */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_3__angular_common_http__["a" /* HttpClient */]) === "function" && _e || Object, typeof (_f = typeof __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["b" /* AlertController */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["b" /* AlertController */]) === "function" && _f || Object, typeof (_g = typeof __WEBPACK_IMPORTED_MODULE_4__providers_api_api__["a" /* ApiProvider */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_4__providers_api_api__["a" /* ApiProvider */]) === "function" && _g || Object, typeof (_h = typeof __WEBPACK_IMPORTED_MODULE_0__angular_core__["t" /* ElementRef */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_0__angular_core__["t" /* ElementRef */]) === "function" && _h || Object])
     ], MapPage);
     return MapPage;
 }());
@@ -1626,13 +1698,11 @@ var MapPage = /** @class */ (function () {
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__angular_core__ = __webpack_require__(0);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_ionic_angular__ = __webpack_require__(11);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__ionic_storage__ = __webpack_require__(14);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__ionic_native_geolocation__ = __webpack_require__(109);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__angular_common_http__ = __webpack_require__(24);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__ionic_native_device__ = __webpack_require__(47);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__ionic_native_app_rate__ = __webpack_require__(351);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__providers_api_api__ = __webpack_require__(25);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__feedback_feedback__ = __webpack_require__(208);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_9__favorites_favorites__ = __webpack_require__(49);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__ionic_native_device__ = __webpack_require__(46);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__ionic_native_app_rate__ = __webpack_require__(351);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__providers_api_api__ = __webpack_require__(25);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__feedback_feedback__ = __webpack_require__(208);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__favorites_favorites__ = __webpack_require__(49);
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -1650,20 +1720,11 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 
 
 
-
-
 var SettingsPage = /** @class */ (function () {
-    function SettingsPage(navCtrl, storage, http, loadingCtrl, alertCtrl, toastCtrl, geolocation, platform, device, popoverCtrl, modalCtrl, api, appRate) {
+    function SettingsPage(navCtrl, storage, device, modalCtrl, api, appRate) {
         this.navCtrl = navCtrl;
         this.storage = storage;
-        this.http = http;
-        this.loadingCtrl = loadingCtrl;
-        this.alertCtrl = alertCtrl;
-        this.toastCtrl = toastCtrl;
-        this.geolocation = geolocation;
-        this.platform = platform;
         this.device = device;
-        this.popoverCtrl = popoverCtrl;
         this.modalCtrl = modalCtrl;
         this.api = api;
         this.appRate = appRate;
@@ -1707,13 +1768,13 @@ var SettingsPage = /** @class */ (function () {
     // Go To Favorites Page
     // --------------------------------------------------------------------------------------------------------------------
     SettingsPage.prototype.goToFavoritesPage = function () {
-        this.navCtrl.push(__WEBPACK_IMPORTED_MODULE_9__favorites_favorites__["a" /* FavoritesPage */]);
+        this.navCtrl.push(__WEBPACK_IMPORTED_MODULE_7__favorites_favorites__["a" /* FavoritesPage */]);
     };
     // --------------------------------------------------------------------------------------------------------------------
     // Go To Feedback Page
     // --------------------------------------------------------------------------------------------------------------------
     SettingsPage.prototype.goToFeedbackPage = function () {
-        this.navCtrl.push(__WEBPACK_IMPORTED_MODULE_8__feedback_feedback__["a" /* FeedbackPage */]);
+        this.navCtrl.push(__WEBPACK_IMPORTED_MODULE_6__feedback_feedback__["a" /* FeedbackPage */]);
     };
     // --------------------------------------------------------------------------------------------------------------------
     // Rate App
@@ -1735,14 +1796,12 @@ var SettingsPage = /** @class */ (function () {
     SettingsPage.prototype.enableDisablePersistentNotifications = function () {
         this.storage.set("persistent_notifications", this.persistent_notifications_state);
     };
+    var _a, _b, _c, _d, _e, _f;
     SettingsPage = __decorate([
         Object(__WEBPACK_IMPORTED_MODULE_0__angular_core__["m" /* Component */])({
-            selector: 'page-settings',template:/*ion-inline-start:"/home/noah/projects/airqo/AirQo-frontend/mobile/src/pages/settings/settings.html"*/'<ion-header>\n  <ion-navbar>\n    <ion-title>Settings</ion-title>\n  </ion-navbar>\n</ion-header>\n\n<ion-content>\n\n  <ion-item-group>\n    <ion-item-divider color="light">Places</ion-item-divider>\n    <ion-item (click)="goToFavoritesPage()">\n      Manage Favorites\n      <ion-icon name="arrow-forward" item-end></ion-icon>\n    </ion-item>\n  </ion-item-group>\n\n  <!-- <br/>\n  <br/>\n  <ion-item-group>\n    <ion-item-divider color="light">Notifications</ion-item-divider>\n    <ion-item (click)="goToDailyReportsPage()">\n      Daily Reports\n      <ion-icon name="arrow-forward" item-end></ion-icon>\n    </ion-item>\n    <ion-item>\n      Threshold Alerts\n      <ion-icon name="arrow-forward" item-end></ion-icon>\n    </ion-item>\n    <ion-item >\n      <ion-label>Notifications</ion-label>\n      <ion-toggle [(ngModel)]="persistent_notifications_state" (ionChange)="enableDisablePersistentNotifications()" [checked]="persistent_notifications_state"></ion-toggle>\n    </ion-item>\n  </ion-item-group> -->\n  \n  <br/>\n  <br/>\n  <ion-item-group>\n    <ion-item-divider color="light">Support</ion-item-divider>\n    <ion-item (click)="goToFeedbackPage()">\n      Send Us Feedback\n      <ion-icon name="arrow-forward" item-end></ion-icon>\n    </ion-item>\n    <ion-item (click)="rateApp()">\n      Rate Us\n      <ion-icon name="arrow-forward" item-end></ion-icon>\n    </ion-item>\n  </ion-item-group>\n\n</ion-content>'/*ion-inline-end:"/home/noah/projects/airqo/AirQo-frontend/mobile/src/pages/settings/settings.html"*/,
+            selector: 'page-settings',template:/*ion-inline-start:"/home/noah/projects/airqo/AirQo-frontend/mobile/src/pages/settings/settings.html"*/'<ion-header>\n  <ion-navbar>\n    <ion-title>Settings</ion-title>\n  </ion-navbar>\n</ion-header>\n\n<ion-content>\n\n  <ion-item-group>\n    <ion-item-divider color="light">Places</ion-item-divider>\n    <ion-item (click)="goToFavoritesPage()">\n      Manage My Places\n      <ion-icon name="arrow-forward" item-end></ion-icon>\n    </ion-item>\n  </ion-item-group>\n\n  <!-- <br/>\n  <br/>\n  <ion-item-group>\n    <ion-item-divider color="light">Notifications</ion-item-divider>\n    <ion-item (click)="goToDailyReportsPage()">\n      Daily Reports\n      <ion-icon name="arrow-forward" item-end></ion-icon>\n    </ion-item>\n    <ion-item>\n      Threshold Alerts\n      <ion-icon name="arrow-forward" item-end></ion-icon>\n    </ion-item>\n    <ion-item >\n      <ion-label>Notifications</ion-label>\n      <ion-toggle [(ngModel)]="persistent_notifications_state" (ionChange)="enableDisablePersistentNotifications()" [checked]="persistent_notifications_state"></ion-toggle>\n    </ion-item>\n  </ion-item-group> -->\n  \n  <br/>\n  <br/>\n  <ion-item-group>\n    <ion-item-divider color="light">Support</ion-item-divider>\n    <ion-item (click)="goToFeedbackPage()">\n      Send Us Feedback\n      <ion-icon name="arrow-forward" item-end></ion-icon>\n    </ion-item>\n    <ion-item (click)="rateApp()">\n      Rate Us\n      <ion-icon name="arrow-forward" item-end></ion-icon>\n    </ion-item>\n  </ion-item-group>\n\n</ion-content>'/*ion-inline-end:"/home/noah/projects/airqo/AirQo-frontend/mobile/src/pages/settings/settings.html"*/,
         }),
-        __metadata("design:paramtypes", [__WEBPACK_IMPORTED_MODULE_1_ionic_angular__["i" /* NavController */], __WEBPACK_IMPORTED_MODULE_2__ionic_storage__["b" /* Storage */], __WEBPACK_IMPORTED_MODULE_4__angular_common_http__["a" /* HttpClient */], __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["g" /* LoadingController */],
-            __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["b" /* AlertController */], __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["o" /* ToastController */], __WEBPACK_IMPORTED_MODULE_3__ionic_native_geolocation__["a" /* Geolocation */], __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["k" /* Platform */],
-            __WEBPACK_IMPORTED_MODULE_5__ionic_native_device__["a" /* Device */], __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["l" /* PopoverController */], __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["h" /* ModalController */], __WEBPACK_IMPORTED_MODULE_7__providers_api_api__["a" /* ApiProvider */],
-            __WEBPACK_IMPORTED_MODULE_6__ionic_native_app_rate__["a" /* AppRate */]])
+        __metadata("design:paramtypes", [typeof (_a = typeof __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["i" /* NavController */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["i" /* NavController */]) === "function" && _a || Object, typeof (_b = typeof __WEBPACK_IMPORTED_MODULE_2__ionic_storage__["b" /* Storage */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_2__ionic_storage__["b" /* Storage */]) === "function" && _b || Object, typeof (_c = typeof __WEBPACK_IMPORTED_MODULE_3__ionic_native_device__["a" /* Device */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_3__ionic_native_device__["a" /* Device */]) === "function" && _c || Object, typeof (_d = typeof __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["h" /* ModalController */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["h" /* ModalController */]) === "function" && _d || Object, typeof (_e = typeof __WEBPACK_IMPORTED_MODULE_5__providers_api_api__["a" /* ApiProvider */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_5__providers_api_api__["a" /* ApiProvider */]) === "function" && _e || Object, typeof (_f = typeof __WEBPACK_IMPORTED_MODULE_4__ionic_native_app_rate__["a" /* AppRate */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_4__ionic_native_app_rate__["a" /* AppRate */]) === "function" && _f || Object])
     ], SettingsPage);
     return SettingsPage;
 }());
@@ -1756,7 +1815,7 @@ var SettingsPage = /** @class */ (function () {
 
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return IntroPage; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__home_home__ = __webpack_require__(38);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__home_home__ = __webpack_require__(47);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__ionic_storage__ = __webpack_require__(14);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__angular_core__ = __webpack_require__(0);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_ionic_angular__ = __webpack_require__(11);
@@ -1776,9 +1835,8 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 
 
 var IntroPage = /** @class */ (function () {
-    function IntroPage(navCtrl, navParams, storage) {
+    function IntroPage(navCtrl, storage) {
         this.navCtrl = navCtrl;
-        this.navParams = navParams;
         this.storage = storage;
     }
     // --------------------------------------------------------------------------------------------------------------------
@@ -1789,7 +1847,19 @@ var IntroPage = /** @class */ (function () {
     // --------------------------------------------------------------------------------------------------------------------
     // When the view loads
     // --------------------------------------------------------------------------------------------------------------------
-    IntroPage.prototype.ionViewDidLoad = function () { };
+    IntroPage.prototype.ionViewDidLoad = function () {
+    };
+    IntroPage.prototype.ngOnInit = function () {
+        var _this = this;
+        this.storage.get('first-use').then(function (val) {
+            if (val && val != '') {
+                _this.goToHomePage();
+            }
+            else {
+                _this.storage.set('first-use', true);
+            }
+        });
+    };
     // --------------------------------------------------------------------------------------------------------------------
     // Go To Previous Slide
     // --------------------------------------------------------------------------------------------------------------------
@@ -1809,15 +1879,16 @@ var IntroPage = /** @class */ (function () {
         this.storage.set('intro_page', '1');
         this.navCtrl.push(__WEBPACK_IMPORTED_MODULE_0__home_home__["a" /* HomePage */]);
     };
+    var _a, _b, _c;
     __decorate([
         Object(__WEBPACK_IMPORTED_MODULE_2__angular_core__["_8" /* ViewChild */])(__WEBPACK_IMPORTED_MODULE_3_ionic_angular__["n" /* Slides */]),
-        __metadata("design:type", __WEBPACK_IMPORTED_MODULE_3_ionic_angular__["n" /* Slides */])
+        __metadata("design:type", typeof (_a = typeof __WEBPACK_IMPORTED_MODULE_3_ionic_angular__["n" /* Slides */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_3_ionic_angular__["n" /* Slides */]) === "function" && _a || Object)
     ], IntroPage.prototype, "slides", void 0);
     IntroPage = __decorate([
         Object(__WEBPACK_IMPORTED_MODULE_2__angular_core__["m" /* Component */])({
             selector: 'page-intro',template:/*ion-inline-start:"/home/noah/projects/airqo/AirQo-frontend/mobile/src/pages/intro/intro.html"*/'<ion-slides>\n\n  <ion-slide class="bg-blue">\n    <ion-grid>\n      <ion-row text-center>\n        <ion-col>\n          <div class="logo-section">\n            <img src="assets/logos/logo-white-tagline.png"/>\n          </div>\n          <button (click)="nextSlide()" ion-button color="light" clear full class="btn-getting-started btn-border">\n            Get Started\n          </button>\n        </ion-col>\n      </ion-row>\n    </ion-grid>\n  </ion-slide>\n\n  <ion-slide class="bg-green">\n    <ion-grid>\n      <ion-row text-center>\n        <ion-col>\n          <div class="logo-section">\n            <img src="assets/logos/logo-white.png"/>\n          </div>\n          <p class="slide-sub-title">Know your air</p>\n          <!-- <button (click)="nextSlide()" ion-button color="light" clear full class="btn-getting-started grid-bottom">\n            Get Started\n          </button> -->\n        </ion-col>\n      </ion-row>\n    </ion-grid>\n    <!-- <div class="logo-section">\n      <img src="assets/logos/logo-white.png"/>\n    </div>\n    <p class="slide-sub-title">Understand the state of air quality around you in Kampala</p> -->\n\n    <ion-grid class="grid-bottom">\n      <ion-row>\n        <ion-col>\n          <button (click)="goToHomePage()" ion-button color="light" clear full>\n            Skip\n          </button>\n        </ion-col>\n        <ion-col>\n          <button (click)="nextSlide()" ion-button color="light" clear full>\n            Next\n          </button>\n        </ion-col>\n      </ion-row>\n    </ion-grid>\n  </ion-slide>\n\n  <ion-slide class="bg-yellow">\n    <div class="logo-section">\n      <img src="assets/logos/logo-white.png"/>\n    </div>\n    <p class="slide-sub-title">Fine-grained and Real-time Air Quality Data</p>\n\n    <ion-grid class="grid-bottom">\n      <ion-row>\n        <ion-col>\n          <button (click)="goToHomePage()" ion-button color="light" clear full>\n            Skip\n          </button>\n        </ion-col>\n        <ion-col>\n          <button (click)="nextSlide()" ion-button color="light" clear full>\n            Next\n          </button>\n        </ion-col>\n      </ion-row>\n    </ion-grid>\n  </ion-slide>\n\n  <ion-slide class="bg-black">\n    <div class="logo-section">\n      <img src="assets/logos/logo-white.png"/>\n    </div>\n    <p class="slide-sub-title">Know which places to avoid</p>\n\n    <ion-grid class="grid-bottom">\n      <ion-row>\n        <ion-col>\n          <button (click)="previousSlide()" ion-button color="light" clear full>\n            Back\n          </button>\n        </ion-col>\n        <ion-col>\n          <button (click)="goToHomePage()" ion-button color="light" clear full>\n            Done\n          </button>\n        </ion-col>\n      </ion-row>\n    </ion-grid>\n  </ion-slide>\n\n</ion-slides>\n'/*ion-inline-end:"/home/noah/projects/airqo/AirQo-frontend/mobile/src/pages/intro/intro.html"*/,
         }),
-        __metadata("design:paramtypes", [__WEBPACK_IMPORTED_MODULE_3_ionic_angular__["i" /* NavController */], __WEBPACK_IMPORTED_MODULE_3_ionic_angular__["j" /* NavParams */], __WEBPACK_IMPORTED_MODULE_1__ionic_storage__["b" /* Storage */]])
+        __metadata("design:paramtypes", [typeof (_b = typeof __WEBPACK_IMPORTED_MODULE_3_ionic_angular__["i" /* NavController */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_3_ionic_angular__["i" /* NavController */]) === "function" && _b || Object, typeof (_c = typeof __WEBPACK_IMPORTED_MODULE_1__ionic_storage__["b" /* Storage */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_1__ionic_storage__["b" /* Storage */]) === "function" && _c || Object])
     ], IntroPage);
     return IntroPage;
 }());
@@ -1863,14 +1934,14 @@ Object(__WEBPACK_IMPORTED_MODULE_0__angular_platform_browser_dynamic__["a" /* pl
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_15__ionic_native_splash_screen__ = __webpack_require__(353);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_16__ionic_native_status_bar__ = __webpack_require__(354);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_17__app_component__ = __webpack_require__(441);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_18__pages_home_home__ = __webpack_require__(38);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_18__pages_home_home__ = __webpack_require__(47);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_19__angular_common_http__ = __webpack_require__(24);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_20__ionic_storage__ = __webpack_require__(14);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_21__ionic_native_social_sharing__ = __webpack_require__(348);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_22__providers_api_api__ = __webpack_require__(25);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_23__ionic_native_app_rate__ = __webpack_require__(351);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_24__ionic_native_network__ = __webpack_require__(206);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_25__ionic_native_device__ = __webpack_require__(47);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_25__ionic_native_device__ = __webpack_require__(46);
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -2204,357 +2275,6 @@ var AddNodeSubscriptionPage = /** @class */ (function () {
 
 /***/ }),
 
-/***/ 38:
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return HomePage; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__angular_core__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_ionic_angular__ = __webpack_require__(11);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__ionic_storage__ = __webpack_require__(14);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__ionic_native_geolocation__ = __webpack_require__(109);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__angular_common_http__ = __webpack_require__(24);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__providers_api_api__ = __webpack_require__(25);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__node_node__ = __webpack_require__(48);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__search_search__ = __webpack_require__(344);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__favorites_favorites__ = __webpack_require__(49);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_9__add_place_add_place__ = __webpack_require__(111);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_10__menu_menu__ = __webpack_require__(347);
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-    function verb(n) { return function (v) { return step([n, v]); }; }
-    function step(op) {
-        if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
-            switch (op[0]) {
-                case 0: case 1: t = op; break;
-                case 4: _.label++; return { value: op[1], done: false };
-                case 5: _.label++; y = op[1]; op = [0]; continue;
-                case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                default:
-                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                    if (t[2]) _.ops.pop();
-                    _.trys.pop(); continue;
-            }
-            op = body.call(thisArg, _);
-        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-    }
-};
-
-
-
-
-
-
-
-
-
-
-
-var HomePage = /** @class */ (function () {
-    function HomePage(navCtrl, storage, http, loadingCtrl, geolocation, platform, popoverCtrl, modalCtrl, api) {
-        this.navCtrl = navCtrl;
-        this.storage = storage;
-        this.http = http;
-        this.loadingCtrl = loadingCtrl;
-        this.geolocation = geolocation;
-        this.platform = platform;
-        this.popoverCtrl = popoverCtrl;
-        this.modalCtrl = modalCtrl;
-        this.api = api;
-        this.user = {};
-        this.nearest_node = {};
-        this.lastest_nearest_node_reading = '0';
-        this.favorite_nodes = [];
-        this.get_favorite_nodes_api = this.api.api_endpoint + "/airqoPlaceLatest";
-        this.get_nearest_node_api = this.api.api_endpoint + "/airqoNearest";
-        this.get_coordinates_api = this.api.external_api_endpoint + "/get-info.php";
-    }
-    // --------------------------------------------------------------------------------------------------------------------
-    // Runs when the page has loaded. Fires only once
-    // --------------------------------------------------------------------------------------------------------------------
-    HomePage.prototype.ionViewDidLoad = function () {
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        if (this.api.isConnected()) {
-                            this.getLocation();
-                        }
-                        return [4 /*yield*/, this.offlineLoadFavorites(null)];
-                    case 1:
-                        _a.sent();
-                        return [2 /*return*/];
-                }
-            });
-        });
-    };
-    // --------------------------------------------------------------------------------------------------------------------
-    // Fires every time page loads
-    // --------------------------------------------------------------------------------------------------------------------
-    HomePage.prototype.ionViewDidEnter = function () {
-        return __awaiter(this, void 0, void 0, function () { return __generator(this, function (_a) {
-            return [2 /*return*/];
-        }); });
-    };
-    // --------------------------------------------------------------------------------------------------------------------
-    // Offline - Load favorites list
-    // --------------------------------------------------------------------------------------------------------------------
-    HomePage.prototype.offlineLoadFavorites = function (refresher) {
-        var _this = this;
-        this.storage.get('favorites').then(function (val) {
-            if (val && val != null && val != '' && val.length > 0) {
-                _this.favorite_nodes = val;
-                if (_this.api.isConnected()) {
-                    _this.onlineLoadFavoritesNodesReadings(val, refresher);
-                }
-                else {
-                    if (refresher) {
-                        refresher.complete();
-                    }
-                    _this.api.offlineMessage();
-                    _this.offlineLoadFavoritesNodesReadings();
-                }
-            }
-            else {
-                _this.openAddFavorites();
-            }
-        });
-    };
-    // --------------------------------------------------------------------------------------------------------------------
-    // Get Location
-    // --------------------------------------------------------------------------------------------------------------------
-    HomePage.prototype.getLocation = function () {
-        var _this = this;
-        var options = {
-            timeout: 20000,
-            enableHighAccuracy: true
-        };
-        this.platform.ready().then(function () {
-            _this.geolocation.getCurrentPosition(options).then(function (pos) {
-                var params = {
-                    api: _this.api.api_key,
-                    lat: pos.coords.latitude,
-                    lng: pos.coords.longitude,
-                };
-                _this.getNearestNodeReading(params);
-            }).catch(function (error) {
-                console.log('Error getting location: ', error);
-                _this.getCoordinatesByIP();
-            });
-        });
-    };
-    // --------------------------------------------------------------------------------------------------------------------
-    // Get Coordinates By IP Address
-    // --------------------------------------------------------------------------------------------------------------------
-    HomePage.prototype.getCoordinatesByIP = function () {
-        var _this = this;
-        this.http.get(this.get_coordinates_api).subscribe(function (result) {
-            console.log(result);
-            if (result.success == '1') {
-                var params = {
-                    api: _this.api.api_key,
-                    lat: result.message.lat,
-                    lng: result.message.lon,
-                };
-                _this.getNearestNodeReading(params);
-            }
-        });
-    };
-    // --------------------------------------------------------------------------------------------------------------------
-    // Get Nearest Node Reading
-    // --------------------------------------------------------------------------------------------------------------------
-    HomePage.prototype.getNearestNodeReading = function (params) {
-        var _this = this;
-        if (this.api.isConnected()) {
-            console.info(params);
-            var loader_1 = this.loadingCtrl.create({
-                spinner: 'ios',
-                enableBackdropDismiss: true,
-                dismissOnPageChange: true,
-                showBackdrop: true
-            });
-            loader_1.present().then(function () {
-                _this.http.post(_this.get_nearest_node_api, params).subscribe(function (result) {
-                    console.log(result);
-                    loader_1.dismiss();
-                    _this.nearest_node_api_success = result.success;
-                    if (result.success == '100') {
-                        _this.nearest_node = result;
-                        _this.lastest_nearest_node_reading = _this.nearest_node.lastfeeds.field1;
-                        _this.nearest_node.date = (new Date().toISOString());
-                        _this.storage.set("nearest_node", _this.nearest_node);
-                        console.log(_this.nearest_node);
-                        console.log(_this.lastest_nearest_node_reading);
-                    }
-                }, function (err) {
-                    loader_1.dismiss();
-                    _this.api.networkErrorMessage();
-                });
-            });
-        }
-        else {
-            this.storage.get('nearest_node').then(function (val) {
-                if (val && val != null && val != '' && val.length > 0) {
-                    _this.nearest_node = val;
-                    _this.nearest_node_api_success = "100";
-                }
-            });
-        }
-    };
-    // --------------------------------------------------------------------------------------------------------------------
-    // Online - Load Favorites Nodes Readings from online
-    // --------------------------------------------------------------------------------------------------------------------
-    HomePage.prototype.onlineLoadFavoritesNodesReadings = function (favorite_nodes, refresher) {
-        return __awaiter(this, void 0, void 0, function () {
-            var _loop_1, this_1, i;
-            var _this = this;
-            return __generator(this, function (_a) {
-                this.favorite_nodes = [];
-                if (favorite_nodes.length > 0) {
-                    _loop_1 = function (i) {
-                        var params = {
-                            api: this_1.api.api_key,
-                            channel: favorite_nodes[i].channel_id,
-                        };
-                        this_1.http.post(this_1.get_favorite_nodes_api, params).subscribe(function (result) {
-                            console.log(favorite_nodes[i].name);
-                            console.log(result);
-                            console.log(result.nodes[0].lastfeeds);
-                            if (result.success == '100') {
-                                var node = {
-                                    channel_id: favorite_nodes[i].channel_id,
-                                    name: favorite_nodes[i].name,
-                                    location: favorite_nodes[i].location,
-                                    refreshed: result.nodes[0].lastfeeds.created_at,
-                                    field1: result.nodes[0].lastfeeds.field1,
-                                    feeds: result.nodes[0].lastfeeds,
-                                };
-                                _this.favorite_nodes.push(node);
-                                _this.storage.set("favorites_readings", _this.favorite_nodes);
-                            }
-                        });
-                    };
-                    this_1 = this;
-                    for (i = 0; i < favorite_nodes.length; i++) {
-                        _loop_1(i);
-                    }
-                    if (refresher) {
-                        refresher.complete();
-                    }
-                    if (this.favorite_nodes.length > favorite_nodes.length) {
-                        if (this.favorite_nodes.length > 0) {
-                            this.favorite_nodes_api_success = '100';
-                        }
-                        else {
-                            this.favorite_nodes_api_success = null;
-                        }
-                    }
-                }
-                return [2 /*return*/];
-            });
-        });
-    };
-    // --------------------------------------------------------------------------------------------------------------------
-    // Offline - Load favorites readings
-    // --------------------------------------------------------------------------------------------------------------------
-    HomePage.prototype.offlineLoadFavoritesNodesReadings = function () {
-        var _this = this;
-        this.favorite_nodes = [];
-        this.storage.get('favorites_readings').then(function (val) {
-            if (val && val != null && val != '' && val.length > 0) {
-                _this.favorite_nodes = val;
-                console.log(_this.favorite_nodes);
-            }
-        });
-    };
-    // --------------------------------------------------------------------------------------------------------------------
-    // Go To Search Page
-    // --------------------------------------------------------------------------------------------------------------------
-    HomePage.prototype.goToSearchPage = function () {
-        var _this = this;
-        var modal = this.modalCtrl.create(__WEBPACK_IMPORTED_MODULE_7__search_search__["a" /* SearchPage */]);
-        modal.onDidDismiss(function () {
-            _this.offlineLoadFavorites(null);
-        });
-        modal.present();
-    };
-    // --------------------------------------------------------------------------------------------------------------------
-    // Go To Favorites Page
-    // --------------------------------------------------------------------------------------------------------------------
-    HomePage.prototype.goToFavoritesPage = function () {
-        this.navCtrl.push(__WEBPACK_IMPORTED_MODULE_8__favorites_favorites__["a" /* FavoritesPage */]);
-    };
-    // --------------------------------------------------------------------------------------------------------------------
-    // Add Place/Node from favorites list
-    // --------------------------------------------------------------------------------------------------------------------
-    HomePage.prototype.openAddFavorites = function () {
-        var _this = this;
-        var modal = this.modalCtrl.create(__WEBPACK_IMPORTED_MODULE_9__add_place_add_place__["a" /* AddPlacePage */]);
-        modal.onDidDismiss(function () {
-            _this.offlineLoadFavorites(null);
-        });
-        modal.present();
-    };
-    // --------------------------------------------------------------------------------------------------------------------
-    // Stacked Menu
-    // --------------------------------------------------------------------------------------------------------------------
-    HomePage.prototype.stackedMenu = function (event) {
-        this.menu_popover = this.popoverCtrl.create(__WEBPACK_IMPORTED_MODULE_10__menu_menu__["a" /* MenuPage */]).present({ ev: event });
-    };
-    // --------------------------------------------------------------------------------------------------------------------
-    // Remove Menu Pop Over
-    // --------------------------------------------------------------------------------------------------------------------
-    HomePage.prototype.removePopOver = function () {
-        // this.menu_popover.hide();    
-    };
-    // --------------------------------------------------------------------------------------------------------------------
-    // View Node Details
-    // --------------------------------------------------------------------------------------------------------------------
-    HomePage.prototype.viewDetails = function (node) {
-        this.navCtrl.push(__WEBPACK_IMPORTED_MODULE_6__node_node__["a" /* NodePage */], {
-            node: node
-        });
-    };
-    HomePage = __decorate([
-        Object(__WEBPACK_IMPORTED_MODULE_0__angular_core__["m" /* Component */])({
-            selector: 'page-home',template:/*ion-inline-start:"/home/noah/projects/airqo/AirQo-frontend/mobile/src/pages/home/home.html"*/'<ion-header class="title-centered">\n  <ion-navbar color="blue" hideBackButton="true">\n    <ion-title>\n			<img src="assets/logos/logo-white.png" class="nav-image"/>\n    </ion-title>\n    <ion-buttons end>\n      <button color="light" ion-button icon-only (click)="goToSearchPage()">\n        <ion-icon name="search"></ion-icon>\n      </button>\n      &nbsp;\n      &nbsp;\n      <button color="light" ion-button icon-only (click)="goToFavoritesPage()">\n        <ion-icon name="star-outline"></ion-icon>\n      </button>\n      &nbsp;\n      &nbsp;\n      <button color="light" ion-button icon-only (click)="stackedMenu($event)">\n        <ion-icon name="more"></ion-icon>\n      </button>\n    </ion-buttons>\n  </ion-navbar>\n</ion-header>\n\n<ion-content>\n\n  <ion-refresher pullMin="65" (ionRefresh)="getLocation(); offlineLoadFavorites($event)">\n    <ion-refresher-content pullingIcon="arrow-round-down"\n    pullingText="Pull to refresh"\n    refreshingSpinner="dots"\n    refreshingText="Refreshing..."></ion-refresher-content>\n  </ion-refresher>\n\n  <!-- Current Location -->\n  <ion-card [hidden]="lastest_nearest_node_reading == \'0\' || lastest_nearest_node_reading == null" (click)="viewDetails(nearest_node)">\n    <ion-grid>\n      <ion-row class="header-section bg-grey">\n        <ion-col class="header-title white">\n          My Location\n        </ion-col>\n      </ion-row>\n      <ion-row class="area-section">\n        <ion-col col-1 class="area-type">\n          <ion-icon name="pin" color="grey" class="star-icon"></ion-icon>\n        </ion-col>\n        <ion-col col-11>\n        <div class="title black moderate-bold">{{ nearest_node.name }}</div>\n        <div class="sub-title grey">{{ nearest_node.location }}</div>\n        </ion-col>\n      </ion-row>\n    <ion-row class="readings-section" [style.backgroundColor]="api.nodeStatus(lastest_nearest_node_reading, nearest_node.date).color">\n        <ion-col col-3 class="face bg-darker">\n          <img [src]="api.nodeStatus(lastest_nearest_node_reading, nearest_node.date).face"/>\n        </ion-col>\n        <ion-col col-4 class="values">\n        <p class="number moderate-bold" [style.color]="api.nodeStatus(lastest_nearest_node_reading, nearest_node.date).font_color">{{ lastest_nearest_node_reading }}</p>\n          <p class="number-label moderate-bold" [style.color]="api.nodeStatus(lastest_nearest_node_reading, nearest_node.date).font_color">PM<sub>2.5</sub></p>\n        </ion-col>\n        <ion-col col-5 class="label">\n        <p text-wrap class="value-label moderate-bold" [style.color]="api.nodeStatus(lastest_nearest_node_reading, nearest_node.date).font_color">{{ api.nodeStatus(lastest_nearest_node_reading, nearest_node.date).label }}</p>\n        </ion-col>\n      </ion-row>\n      <ion-row class="footer-section">\n        <ion-col col-11 text-wrap class="date-section">\n          <span class="node-refresh-date">Last Refreshed: {{ api.ago(api.getReadableInternationalDateFormatFromISOString(nearest_node.date)) }}</span>\n        </ion-col>\n        <ion-col col-1 class="icon-section">\n          <ion-icon name="arrow-forward"></ion-icon>\n        </ion-col>\n      </ion-row>\n    </ion-grid>\n  </ion-card>\n  \n  <!-- Saved Locations -->\n  <ion-card>\n    <ion-grid class="saved-header">\n      <ion-row class="header-section bg-grey">\n        <ion-col col-11 class="header-title white">\n          Saved Places\n        </ion-col>\n        <ion-col col-1>\n          <button ion-button small icon-only outline color="light" (click)="openAddFavorites()">\n            <ion-icon name="md-add" color="light"></ion-icon>\n          </button>\n        </ion-col>\n      </ion-row>\n    </ion-grid>\n    \n    <ng-container *ngFor="let node of favorite_nodes">\n      <hr/>\n      <ion-grid (click)="viewDetails(node)">\n        <ion-row nowrap class="area-section">\n          <ion-col col-1 class="area-type">\n            <ion-icon name="md-star" color="grey" class="star-icon"></ion-icon>\n          </ion-col>\n          <ion-col col-11>\n            <div class="title black moderate-bold">{{ node.name }}</div>\n          <div class="sub-title grey">{{ node.location }}</div>\n          </ion-col>\n        </ion-row>\n        <ion-row class="readings-section" [style.backgroundColor]="api.nodeStatus(node.field1, node.refreshed).color">\n          <ion-col col-3 class="face bg-darker">\n            <img [src]="api.nodeStatus(node.field1, node.refreshed).face"/>\n          </ion-col>\n          <ion-col col-4 class="values">\n            <p class="number moderate-bold" [style.color]="api.nodeStatus(node.field1, node.refreshed).font_color">{{ node.field1 }}</p>\n            <p class="number-label moderate-bold" [style.color]="api.nodeStatus(node.field1, node.refreshed).font_color">PM<sub>2.5</sub></p>\n          </ion-col>\n          <ion-col col-5 class="label">\n            <p text-wrap class="value-label moderate-bold" [style.color]="api.nodeStatus(node.field1, node.refreshed).font_color">{{ api.nodeStatus(node.field1, node.refreshed).label }}</p>\n          </ion-col>\n        </ion-row>\n        <ion-row class="footer-section">\n          <ion-col col-11 text-wrap class="date-section">\n            <span class="node-refresh-date">Last Refreshed: {{ api.ago(api.getReadableInternationalDateFormatFromISOString(node.refreshed)) }}</span>\n          </ion-col>\n          <ion-col col-1 class="icon-section">\n            <ion-icon name="arrow-forward"></ion-icon>\n          </ion-col>\n        </ion-row>\n      </ion-grid>\n    </ng-container>\n  </ion-card>\n      \n</ion-content>'/*ion-inline-end:"/home/noah/projects/airqo/AirQo-frontend/mobile/src/pages/home/home.html"*/,
-        }),
-        __metadata("design:paramtypes", [__WEBPACK_IMPORTED_MODULE_1_ionic_angular__["i" /* NavController */], __WEBPACK_IMPORTED_MODULE_2__ionic_storage__["b" /* Storage */], __WEBPACK_IMPORTED_MODULE_4__angular_common_http__["a" /* HttpClient */], __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["g" /* LoadingController */],
-            __WEBPACK_IMPORTED_MODULE_3__ionic_native_geolocation__["a" /* Geolocation */], __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["k" /* Platform */], __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["l" /* PopoverController */], __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["h" /* ModalController */],
-            __WEBPACK_IMPORTED_MODULE_5__providers_api_api__["a" /* ApiProvider */]])
-    ], HomePage);
-    return HomePage;
-}());
-
-//# sourceMappingURL=home.js.map
-
-/***/ }),
-
 /***/ 433:
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -2859,7 +2579,7 @@ webpackContext.id = 433;
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__ionic_native_status_bar__ = __webpack_require__(354);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__ionic_native_splash_screen__ = __webpack_require__(353);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__ionic_storage__ = __webpack_require__(14);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__ionic_native_device__ = __webpack_require__(47);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__ionic_native_device__ = __webpack_require__(46);
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -2878,7 +2598,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 
 var MyApp = /** @class */ (function () {
     function MyApp(app, platform, statusBar, splashScreen, storage, device, alertCtrl, toastCtrl) {
-        var _this = this;
         this.storage = storage;
         this.rootPage = __WEBPACK_IMPORTED_MODULE_0__pages_intro_intro__["a" /* IntroPage */];
         platform.ready().then(function () {
@@ -2919,11 +2638,11 @@ var MyApp = /** @class */ (function () {
                     });
                 }
             }
-            _this.storage.get('intro_page').then(function (val) {
-                if (val && val != null && val != '') {
-                    // this.navCtrl.setRoot(HomePage);
-                }
-            });
+            // this.storage.get('intro_page').then((val) => {
+            //   if(val && val != '') {
+            //     // this.navCtrl.setRoot(HomePage);
+            //   }
+            // });
         });
     }
     var _a, _b, _c, _d, _e, _f, _g, _h, _j;
@@ -2943,12 +2662,429 @@ var MyApp = /** @class */ (function () {
 
 /***/ }),
 
+/***/ 47:
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return HomePage; });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__angular_core__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_ionic_angular__ = __webpack_require__(11);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__ionic_storage__ = __webpack_require__(14);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__ionic_native_geolocation__ = __webpack_require__(109);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__angular_common_http__ = __webpack_require__(24);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__providers_api_api__ = __webpack_require__(25);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__node_node__ = __webpack_require__(48);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__search_search__ = __webpack_require__(344);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__favorites_favorites__ = __webpack_require__(49);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_9__add_place_add_place__ = __webpack_require__(111);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_10__menu_menu__ = __webpack_require__(347);
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __generator = (this && this.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (_) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
+};
+
+
+
+
+
+
+
+
+
+
+
+var HomePage = /** @class */ (function () {
+    function HomePage(navCtrl, storage, http, loadingCtrl, geolocation, platform, popoverCtrl, modalCtrl, api) {
+        this.navCtrl = navCtrl;
+        this.storage = storage;
+        this.http = http;
+        this.loadingCtrl = loadingCtrl;
+        this.geolocation = geolocation;
+        this.platform = platform;
+        this.popoverCtrl = popoverCtrl;
+        this.modalCtrl = modalCtrl;
+        this.api = api;
+        this.user = {};
+        this.nearest_node = {};
+        this.lastest_nearest_node_reading = '0';
+        this.favorite_nodes = [];
+        this.get_favorite_nodes_api = this.api.api_endpoint + "/airqoPlaceLatest";
+        this.get_nearest_node_api = this.api.api_endpoint + "/airqoNearest";
+        this.get_coordinates_api = this.api.external_api_endpoint + "/get-info.php";
+    }
+    // --------------------------------------------------------------------------------------------------------------------
+    // Runs when the page has loaded. Fires only once
+    // --------------------------------------------------------------------------------------------------------------------
+    HomePage.prototype.ionViewDidLoad = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        if (this.api.isConnected()) {
+                            this.getLocation();
+                        }
+                        return [4 /*yield*/, this.offlineLoadFavorites(null)];
+                    case 1:
+                        _a.sent();
+                        return [2 /*return*/];
+                }
+            });
+        });
+    };
+    // --------------------------------------------------------------------------------------------------------------------
+    // Fires every time page loads
+    // --------------------------------------------------------------------------------------------------------------------
+    HomePage.prototype.ionViewDidEnter = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.offlineLoadFavorites(null)];
+                    case 1:
+                        _a.sent();
+                        return [2 /*return*/];
+                }
+            });
+        });
+    };
+    // --------------------------------------------------------------------------------------------------------------------
+    // Offline - Load favorites list
+    // --------------------------------------------------------------------------------------------------------------------
+    HomePage.prototype.offlineLoadFavorites = function (refresher) {
+        var _this = this;
+        this.storage.get('favorites').then(function (val) {
+            if (val && val != '' && val.length > 0) {
+                _this.favorite_nodes = val;
+                console.log('logging favs');
+                console.log(_this.favorite_nodes);
+                if (_this.api.isConnected()) {
+                    _this.onlineLoadFavoritesNodesReadings(val, refresher);
+                }
+                else {
+                    if (refresher) {
+                        refresher.complete();
+                    }
+                    _this.api.offlineMessage();
+                    _this.offlineLoadFavoritesNodesReadings();
+                }
+            }
+            else {
+                _this.openAddFavorites();
+            }
+        });
+    };
+    // --------------------------------------------------------------------------------------------------------------------
+    // Get Location
+    // --------------------------------------------------------------------------------------------------------------------
+    HomePage.prototype.getLocation = function () {
+        var _this = this;
+        var options = {
+            timeout: 20000,
+            enableHighAccuracy: true
+        };
+        this.platform.ready().then(function () {
+            _this.geolocation.getCurrentPosition(options).then(function (pos) {
+                var params = {
+                    api: _this.api.api_key,
+                    lat: pos.coords.latitude,
+                    lng: pos.coords.longitude,
+                };
+                _this.getNearestNodeReading(params);
+            }).catch(function (error) {
+                console.log('Error getting location: ', error);
+                _this.getCoordinatesByIP();
+            });
+        });
+    };
+    // --------------------------------------------------------------------------------------------------------------------
+    // Get Coordinates By IP Address
+    // --------------------------------------------------------------------------------------------------------------------
+    HomePage.prototype.getCoordinatesByIP = function () {
+        var _this = this;
+        this.http.get(this.get_coordinates_api).subscribe(function (result) {
+            console.log(result);
+            if (result.success == '1') {
+                var params = {
+                    api: _this.api.api_key,
+                    lat: result.message.lat,
+                    lng: result.message.lon,
+                };
+                _this.getNearestNodeReading(params);
+            }
+        });
+    };
+    // --------------------------------------------------------------------------------------------------------------------
+    // Get Nearest Node Reading
+    // --------------------------------------------------------------------------------------------------------------------
+    HomePage.prototype.getNearestNodeReading = function (params) {
+        var _this = this;
+        if (this.api.isConnected()) {
+            // console.info(params);
+            var loader_1 = this.loadingCtrl.create({
+                spinner: 'ios',
+                enableBackdropDismiss: true,
+                dismissOnPageChange: true,
+                showBackdrop: true
+            });
+            loader_1.present().then(function () {
+                _this.http.post(_this.get_nearest_node_api, params).subscribe(function (result) {
+                    // console.log(result);
+                    loader_1.dismiss();
+                    _this.nearest_node_api_success = result.success;
+                    if (result.success == '100') {
+                        _this.nearest_node = result;
+                        _this.lastest_nearest_node_reading = _this.nearest_node.lastfeeds.field1;
+                        _this.nearest_node.date = (new Date().toISOString());
+                        _this.storage.set("nearest_node", _this.nearest_node);
+                        // console.log(this.nearest_node);
+                        // console.log(this.lastest_nearest_node_reading);
+                    }
+                }, function (err) {
+                    loader_1.dismiss();
+                    _this.api.networkErrorMessage();
+                });
+            });
+        }
+        else {
+            this.storage.get('nearest_node').then(function (val) {
+                if (val && val != '' && val.length > 0) {
+                    _this.nearest_node = val;
+                    _this.nearest_node_api_success = "100";
+                }
+            });
+        }
+    };
+    // --------------------------------------------------------------------------------------------------------------------
+    // Online - Load Favorites Nodes Readings from online
+    // --------------------------------------------------------------------------------------------------------------------
+    HomePage.prototype.onlineLoadFavoritesNodesReadings = function (nodes, refresher) {
+        return __awaiter(this, void 0, void 0, function () {
+            var _this = this;
+            return __generator(this, function (_a) {
+                if (nodes.length > 0) {
+                    nodes.forEach(function (element) {
+                        var params = {
+                            api: _this.api.api_key,
+                            channel: element.channel_id,
+                        };
+                        try {
+                            _this.http.post(_this.get_favorite_nodes_api, params).subscribe(function (result) {
+                                // console.log(nodes[i].name);
+                                // console.log(result);
+                                // console.log(result.nodes[0].lastfeeds);
+                                if (result.success == '100') {
+                                    var node = _this.api.nodeToStorage({
+                                        channel_id: element.channel_id,
+                                        name: element.name,
+                                        location: element.location,
+                                        lat: element.lat,
+                                        lng: element.lng,
+                                        refreshed: result.nodes[0].lastfeeds.created_at,
+                                        field1: result.nodes[0].lastfeeds.field1,
+                                        feeds: result.nodes[0].lastfeeds,
+                                    });
+                                    var index = _this.favorite_nodes.indexOf(element);
+                                    if (index > -1) {
+                                        // console.log(this.favorite_nodes[index]);
+                                        // console.log(element);
+                                        // console.log(node);
+                                        // console.log(this.favorite_nodes);
+                                        _this.favorite_nodes.splice(index, 1);
+                                        _this.favorite_nodes.push(node);
+                                        _this.updateOfflineNodesReadings();
+                                    }
+                                    // for(let i = 0; i < nodes.length; i++) {
+                                    //   if(nodes[i].channel_id == node.channel_id) {
+                                    //
+                                    //     const index = this.favorite_nodes.indexOf(nodes[i]);
+                                    //     if (index > -1) {
+                                    //       this.favorite_nodes.splice(index, 1);
+                                    //       this.favorite_nodes.push(node);
+                                    //       this.updateOfflineNodesReadings();
+                                    //
+                                    //       console.log(this.favorite_nodes[index]);
+                                    //       console.log(node);
+                                    //       console.log(this.favorite_nodes);
+                                    //
+                                    //     }
+                                    //
+                                    //   }
+                                    // }
+                                    // if(holder_favorite_nodes.filter(item => item.channel_id === node.channel_id).length != 0){
+                                    //   for(let i = 0; i < holder_favorite_nodes.length; i++) {
+                                    //     if(holder_favorite_nodes[i].channel_id == node.channel_id) {
+                                    //
+                                    //       const index = this.favorite_nodes.indexOf(holder_favorite_nodes[i]);
+                                    //       if (index > -1) {
+                                    //         this.favorite_nodes.splice(index, 1);
+                                    //         this.favorite_nodes.push(node);
+                                    //         this.updateOfflineNodesReadings();
+                                    //
+                                    //         console.log(node);
+                                    //         console.log(this.favorite_nodes);
+                                    //
+                                    //       }
+                                    //
+                                    //     }
+                                    //   }
+                                    // }
+                                    // if(holder_favorite_nodes.map(obj =>  node.channel_id === obj.channel_id || obj)){
+                                    //   this.favorite_nodes = holder_favorite_nodes;
+                                    // }
+                                    //
+                                    // console.log(this.favorite_nodes);
+                                }
+                            });
+                        }
+                        catch (e) {
+                            console.log(e);
+                        }
+                    });
+                    // if(holder_favorite_nodes.length > 0){
+                    //   this.favorite_nodes = holder_favorite_nodes;
+                    // }
+                    if (refresher) {
+                        refresher.complete();
+                    }
+                    // if(this.favorite_nodes.length > favorite_nodes.length){
+                    //   if(this.favorite_nodes.length > 0){
+                    //     this.favorite_nodes_api_success = '100';
+                    //   } else {
+                    //     this.favorite_nodes_api_success = null
+                    //   }
+                    // }
+                }
+                return [2 /*return*/];
+            });
+        });
+    };
+    // --------------------------------------------------------------------------------------------------------------------
+    // Offline - Load favorites readings
+    // --------------------------------------------------------------------------------------------------------------------
+    HomePage.prototype.offlineLoadFavoritesNodesReadings = function () {
+        // this.favorite_nodes = [];
+        var _this = this;
+        this.storage.get('favorites').then(function (val) {
+            if (val && val != '' && val.length > 0) {
+                _this.favorite_nodes = val;
+                console.log(_this.favorite_nodes);
+            }
+        });
+    };
+    // --------------------------------------------------------------------------------------------------------------------
+    // Update offline readings
+    // --------------------------------------------------------------------------------------------------------------------
+    HomePage.prototype.updateOfflineNodesReadings = function () {
+        this.storage.set("favorites", this.favorite_nodes);
+    };
+    // --------------------------------------------------------------------------------------------------------------------
+    // Go To Search Page
+    // --------------------------------------------------------------------------------------------------------------------
+    HomePage.prototype.goToSearchPage = function () {
+        var _this = this;
+        var modal = this.modalCtrl.create(__WEBPACK_IMPORTED_MODULE_7__search_search__["a" /* SearchPage */]);
+        modal.onDidDismiss(function () {
+            _this.offlineLoadFavorites(null);
+        });
+        modal.present();
+    };
+    // --------------------------------------------------------------------------------------------------------------------
+    // Go To My places Page
+    // --------------------------------------------------------------------------------------------------------------------
+    HomePage.prototype.goToFavoritesPage = function () {
+        this.navCtrl.push(__WEBPACK_IMPORTED_MODULE_8__favorites_favorites__["a" /* FavoritesPage */]);
+    };
+    // --------------------------------------------------------------------------------------------------------------------
+    // Add Place/Node from favorites list
+    // --------------------------------------------------------------------------------------------------------------------
+    HomePage.prototype.openAddFavorites = function () {
+        var _this = this;
+        var modal = this.modalCtrl.create(__WEBPACK_IMPORTED_MODULE_9__add_place_add_place__["a" /* AddPlacePage */]);
+        modal.onDidDismiss(function () {
+            _this.offlineLoadFavorites(null);
+        });
+        modal.present();
+    };
+    // --------------------------------------------------------------------------------------------------------------------
+    // Stacked Menu
+    // --------------------------------------------------------------------------------------------------------------------
+    HomePage.prototype.stackedMenu = function (event) {
+        this.menu_popover = this.popoverCtrl.create(__WEBPACK_IMPORTED_MODULE_10__menu_menu__["a" /* MenuPage */]).present({ ev: event });
+    };
+    // --------------------------------------------------------------------------------------------------------------------
+    // Remove Menu Pop Over
+    // --------------------------------------------------------------------------------------------------------------------
+    HomePage.prototype.removePopOver = function () {
+        // this.menu_popover.hide();    
+    };
+    // --------------------------------------------------------------------------------------------------------------------
+    // View Node Details
+    // --------------------------------------------------------------------------------------------------------------------
+    HomePage.prototype.viewDetails = function (node) {
+        this.navCtrl.push(__WEBPACK_IMPORTED_MODULE_6__node_node__["a" /* NodePage */], {
+            node: node
+        });
+    };
+    HomePage = __decorate([
+        Object(__WEBPACK_IMPORTED_MODULE_0__angular_core__["m" /* Component */])({
+            selector: 'page-home',template:/*ion-inline-start:"/home/noah/projects/airqo/AirQo-frontend/mobile/src/pages/home/home.html"*/'<ion-header class="title-centered">\n  <ion-navbar color="blue" hideBackButton="true">\n    <ion-title>\n			<img src="assets/logos/logo-white.png" class="nav-image"/>\n    </ion-title>\n    <ion-buttons end>\n      <button color="light" ion-button icon-only (click)="goToSearchPage()">\n        <ion-icon name="search"></ion-icon>\n      </button>\n      &nbsp;\n      &nbsp;\n      <button color="light" ion-button icon-only (click)="goToFavoritesPage()">\n        <ion-icon name="heart" color="red"></ion-icon>\n      </button>\n      &nbsp;\n      &nbsp;\n      <button color="light" ion-button icon-only (click)="stackedMenu($event)">\n        <ion-icon name="more"></ion-icon>\n      </button>\n    </ion-buttons>\n  </ion-navbar>\n</ion-header>\n\n<ion-content>\n\n  <ion-refresher pullMin="65" (ionRefresh)="getLocation(); offlineLoadFavorites($event)">\n    <ion-refresher-content pullingIcon="arrow-round-down"\n    pullingText="Pull to refresh"\n    refreshingSpinner="dots"\n    refreshingText="Refreshing..."></ion-refresher-content>\n  </ion-refresher>\n\n  <!-- Current Location -->\n  <ion-card [hidden]="lastest_nearest_node_reading == \'0\' || lastest_nearest_node_reading == null" (click)="viewDetails(nearest_node)">\n    <ion-grid>\n      <ion-row class="header-section bg-grey">\n        <ion-col class="header-title white">\n          My Location\n        </ion-col>\n      </ion-row>\n      <ion-row class="area-section">\n        <ion-col col-1 class="area-type">\n          <ion-icon name="pin" color="grey" class="star-icon"></ion-icon>\n        </ion-col>\n        <ion-col col-11>\n        <div class="title black moderate-bold">{{ nearest_node.name }}</div>\n        <div class="sub-title grey">{{ nearest_node.location }}</div>\n        </ion-col>\n      </ion-row>\n    <ion-row class="readings-section" [style.backgroundColor]="api.nodeStatus(lastest_nearest_node_reading, nearest_node.date).color">\n        <ion-col col-3 class="face bg-darker">\n          <img [src]="api.nodeStatus(lastest_nearest_node_reading, nearest_node.date).face"/>\n        </ion-col>\n        <ion-col col-4 class="values">\n        <p class="number moderate-bold" [style.color]="api.nodeStatus(lastest_nearest_node_reading, nearest_node.date).font_color">{{ lastest_nearest_node_reading }}</p>\n          <p class="number-label moderate-bold" [style.color]="api.nodeStatus(lastest_nearest_node_reading, nearest_node.date).font_color">PM<sub>2.5</sub></p>\n        </ion-col>\n        <ion-col col-5 class="label">\n        <p text-wrap class="value-label moderate-bold" [style.color]="api.nodeStatus(lastest_nearest_node_reading, nearest_node.date).font_color">{{ api.nodeStatus(lastest_nearest_node_reading, nearest_node.date).label }}</p>\n        </ion-col>\n      </ion-row>\n      <ion-row class="footer-section">\n        <ion-col col-11 text-wrap class="date-section">\n          <span class="node-refresh-date">Last Refreshed: {{ api.ago(api.getReadableInternationalDateFormatFromISOString(nearest_node.date)) }}</span>\n        </ion-col>\n        <ion-col col-1 class="icon-section">\n          <ion-icon name="arrow-forward"></ion-icon>\n        </ion-col>\n      </ion-row>\n    </ion-grid>\n  </ion-card>\n  \n  <!-- Saved Locations -->\n  <ion-card>\n    <ion-grid class="saved-header">\n      <ion-row class="header-section bg-grey">\n        <ion-col col-11 class="header-title white">\n          Saved Places\n        </ion-col>\n        <ion-col col-1>\n          <button ion-button small icon-only outline color="light" (click)="openAddFavorites()">\n            <ion-icon name="md-add" color="light"></ion-icon>\n          </button>\n        </ion-col>\n      </ion-row>\n    </ion-grid>\n    \n    <ng-container *ngFor="let node of favorite_nodes">\n      <hr/>\n      <ion-grid (click)="viewDetails(node)">\n        <ion-row nowrap class="area-section">\n          <ion-col col-1 class="area-type">\n            <ion-icon name="md-star" color="grey" class="star-icon"></ion-icon>\n          </ion-col>\n          <ion-col col-11>\n            <div class="title black moderate-bold">{{ node.name }}</div>\n          <div class="sub-title grey">{{ node.location }}</div>\n          </ion-col>\n        </ion-row>\n        <ion-row class="readings-section" [style.backgroundColor]="api.nodeStatus(node.value, node.time).color">\n          <ion-col col-3 class="face bg-darker">\n            <img [src]="api.nodeStatus(node.value, node.time).face"/>\n          </ion-col>\n          <ion-col col-4 class="values">\n            <p class="number moderate-bold" [style.color]="api.nodeStatus(node.value, node.time).font_color">{{ node.value }}</p>\n            <p class="number-label moderate-bold" [style.color]="api.nodeStatus(node.value, node.time).font_color">PM<sub>2.5</sub></p>\n          </ion-col>\n          <ion-col col-5 class="label">\n            <p text-wrap class="value-label moderate-bold" [style.color]="api.nodeStatus(node.value, node.time).font_color">{{ api.nodeStatus(node.value, node.time).label }}</p>\n          </ion-col>\n        </ion-row>\n        <ion-row class="footer-section">\n          <ion-col col-11 text-wrap class="date-section">\n            <span class="node-refresh-date">Last Refreshed: {{ api.ago( api.getReadableInternationalDateFormatFromISOString(node.time)) }}</span>\n          </ion-col>\n          <ion-col col-1 class="icon-section">\n            <ion-icon name="arrow-forward"></ion-icon>\n          </ion-col>\n        </ion-row>\n      </ion-grid>\n    </ng-container>\n  </ion-card>\n      \n</ion-content>'/*ion-inline-end:"/home/noah/projects/airqo/AirQo-frontend/mobile/src/pages/home/home.html"*/,
+        }),
+        __metadata("design:paramtypes", [__WEBPACK_IMPORTED_MODULE_1_ionic_angular__["i" /* NavController */], __WEBPACK_IMPORTED_MODULE_2__ionic_storage__["b" /* Storage */], __WEBPACK_IMPORTED_MODULE_4__angular_common_http__["a" /* HttpClient */], __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["g" /* LoadingController */],
+            __WEBPACK_IMPORTED_MODULE_3__ionic_native_geolocation__["a" /* Geolocation */], __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["k" /* Platform */], __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["l" /* PopoverController */], __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["h" /* ModalController */],
+            __WEBPACK_IMPORTED_MODULE_5__providers_api_api__["a" /* ApiProvider */]])
+    ], HomePage);
+    return HomePage;
+}());
+
+//# sourceMappingURL=home.js.map
+
+/***/ }),
+
 /***/ 48:
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return NodePage; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__home_home__ = __webpack_require__(38);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__home_home__ = __webpack_require__(47);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__angular_core__ = __webpack_require__(0);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_ionic_angular__ = __webpack_require__(11);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__ionic_storage__ = __webpack_require__(14);
@@ -3031,13 +3167,13 @@ var NodePage = /** @class */ (function () {
         if (this.navParams.get("node")) {
             this.node = this.navParams.get("node");
             if (this.node.feeds) {
-                if (this.api.isISOFormat(this.node.feeds.created_at)) {
-                    this.node.refreshed = null;
-                }
+                // if(this.api.isISOFormat(this.node.feeds.created_at)){
+                //   this.node.time = null;
+                // }
             }
             else {
                 this.node.feeds = {};
-                this.node.feeds.field1 = '0.00';
+                // this.node.value  = '0.00';
             }
             if (this.node.lat && this.node.lng) {
             }
@@ -3128,8 +3264,8 @@ var NodePage = /** @class */ (function () {
             if (result.success == '100' && result.feed.hourly_results) {
                 if (result.feed.hourly_results.length > 0) {
                     _this.history_node_api_success = true;
-                    _this.node.refreshed = result.feed.hourly_results[0].time;
-                    _this.node.feeds.field1 = result.feed.hourly_results[0].pm2_5;
+                    // this.node.time     = result.feed.hourly_results[0].time;
+                    // this.node.value  = result.feed.hourly_results[0].pm2_5;
                     _this.offlineStoreHistoryStoreNodeInfo(result.feed.hourly_results, _this.node);
                     _this.getHistoryGraphData(result.feed.hourly_results);
                 }
@@ -3589,20 +3725,20 @@ var NodePage = /** @class */ (function () {
     NodePage.prototype.goBack = function () {
         this.navCtrl.pop();
     };
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
     __decorate([
         Object(__WEBPACK_IMPORTED_MODULE_1__angular_core__["_8" /* ViewChild */])('barCanvasHistory'),
-        __metadata("design:type", typeof (_a = typeof __WEBPACK_IMPORTED_MODULE_1__angular_core__["t" /* ElementRef */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_1__angular_core__["t" /* ElementRef */]) === "function" && _a || Object)
+        __metadata("design:type", __WEBPACK_IMPORTED_MODULE_1__angular_core__["t" /* ElementRef */])
     ], NodePage.prototype, "barCanvasHistory", void 0);
     __decorate([
         Object(__WEBPACK_IMPORTED_MODULE_1__angular_core__["_8" /* ViewChild */])('barCanvasForecast'),
-        __metadata("design:type", typeof (_b = typeof __WEBPACK_IMPORTED_MODULE_1__angular_core__["t" /* ElementRef */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_1__angular_core__["t" /* ElementRef */]) === "function" && _b || Object)
+        __metadata("design:type", __WEBPACK_IMPORTED_MODULE_1__angular_core__["t" /* ElementRef */])
     ], NodePage.prototype, "barCanvasForecast", void 0);
     NodePage = __decorate([
         Object(__WEBPACK_IMPORTED_MODULE_1__angular_core__["m" /* Component */])({
-            selector: 'page-node',template:/*ion-inline-start:"/home/noah/projects/airqo/AirQo-frontend/mobile/src/pages/node/node.html"*/'<ion-header>\n  <ion-navbar color="blue">\n    <ion-buttons end>\n      <button color="light" ion-button icon-only (click)="addToFavoritesList(node)">\n        <ion-icon name="heart-outline" color="red" item-end [hidden]="is_favorite"></ion-icon>\n        <ion-icon name="heart" color="red" item-end [hidden]="!is_favorite"></ion-icon>\n<!--        <span *ngIf="is_favorite">AIR QUALITY</span>-->\n      </button>\n    </ion-buttons>\n  </ion-navbar>\n</ion-header>\n\n<ion-content no-bounce [ngStyle] ="{\'background-image\' : \'url(\'+ api.nodeStatus(node.feeds.field1, node.refreshed).background +\')\'}">\n\n  <!-- <ion-refresher (ionRefresh)="onlineLoadHistoryNodeInfo(); onlineLoadNodeForecastInfo()">\n    <ion-refresher-content pullingIcon="arrow-round-down"\n    pullingText="Pull to refresh"\n    refreshingSpinner="dots"\n    refreshingText="Refreshing..."></ion-refresher-content>\n  </ion-refresher> -->\n    \n <div class="top-section">\n\n  <div class="place">\n    <p class="place-name">{{ node.name }}</p>\n    <p class="place-location">{{ node.location }}</p>\n  </div>\n\n  <ion-card class="node-card">\n    <ion-grid class="node bg-white">\n      <ion-row class="readings-section" [style.backgroundColor]="api.nodeStatus(node.feeds.field1, node.refreshed).color">\n        <ion-col col-3 class="face bg-darker">\n          <img [src]="api.nodeStatus(node.feeds.field1, node.refreshed).face"/>\n        </ion-col>\n        <ion-col col-4 class="values">\n          <p class="number moderate-bold" [style.color]="api.nodeStatus(node.feeds.field1, node.refreshed).font_color">{{ node.feeds.field1 }}</p>\n          <p class="number-label moderate-bold" [style.color]="api.nodeStatus(node.feeds.field1, node.refreshed).font_color">PM<sub>2.5</sub></p>\n        </ion-col>\n        <ion-col col-5 class="label">\n          <p text-wrap class="value-label moderate-bold" [style.color]="api.nodeStatus(node.feeds.field1, node.refreshed).font_color">{{ api.nodeStatus(node.feeds.field1, node.refreshed).label }}</p>\n        </ion-col>\n      </ion-row>\n      <ion-row class="footer-section">\n        <ion-col text-wrap class="date-section">\n          <span class="node-refresh-date" *ngIf="node.refreshed">\n            Last Refreshed: {{ api.ago(api.getReadableInternationalDateFormatFromSQLFormat(node.refreshed)) }}\n          </span>\n        </ion-col>\n      </ion-row>\n    </ion-grid>\n  </ion-card>\n\n  <!-- <ion-card class="key-card">\n    <div class="key">\n      <div text-wrap class="key-label bg-green white">Good</div>\n      <div text-wrap class="key-label bg-yellow dark-blue">Moderate</div>\n      <div text-wrap class="key-label bg-orange white">Unhealthy for sensitive groups</div>\n      <div text-wrap class="key-label bg-red white">Unhealthy</div>\n      <div text-wrap class="key-label bg-purple white">Very Unhealthy</div>\n      <div text-wrap class="key-label bg-maroon white">Hazardous</div>\n    </div>\n  </ion-card> -->\n </div>\n\n<div class="bottom-section bg-white">\n\n  <div class="graph-section" padding>\n    <ion-segment [color]="api.nodeStatus(node.feeds.field1, node.refreshed).standard_color" [(ngModel)]="graphs_segments" (ionChange)="onSegmentChange()">\n      <ion-segment-button value="history">\n        HISTORY\n      </ion-segment-button>\n      <ion-segment-button value="forecast">\n        FORECAST\n      </ion-segment-button>\n    </ion-segment>\n  </div>\n\n  <!-- <div>\n    <div class="bar-canvas" [hidden]="graphs_segments != \'history\'">\n      <canvas #barCanvasHistory></canvas>\n      <p class="no-data" *ngIf="history_node_api_success === false">NO HISTORY DATA</p>\n    </div>\n\n    <div class="bar-canvas" [hidden]="graphs_segments != \'forecast\'">\n      <canvas #barCanvasForecast></canvas>\n      <p class="no-data" *ngIf="forecast_node_api_success === false">NO FORECAST DATA</p>\n    </div>\n  </div> -->\n\n  <div class="scroll-chart">\n    <div class="chartAreaWrapper" [hidden]="graphs_segments != \'history\'">\n      <canvas #barCanvasHistory id="historyChart"></canvas>\n      <p class="no-data" *ngIf="history_node_api_success === false">NO HISTORY DATA</p>\n    </div>\n    <div class="chartAreaWrapper" [hidden]="graphs_segments != \'forecast\'">\n      <canvas #barCanvasForecast id="forecastChart"></canvas>\n      <p class="no-data" *ngIf="forecast_node_api_success === false">NO FORECAST DATA</p>\n    </div>\n  </div>\n\n</div>\n\n  <ion-fab right middle (click)="goToKeyPage()">\n    <button ion-fab color="green">KEY</button>\n  </ion-fab>\n\n\n</ion-content>\n'/*ion-inline-end:"/home/noah/projects/airqo/AirQo-frontend/mobile/src/pages/node/node.html"*/,
+            selector: 'page-node',template:/*ion-inline-start:"/home/noah/projects/airqo/AirQo-frontend/mobile/src/pages/node/node.html"*/'<ion-header>\n  <ion-navbar color="blue">\n    <ion-buttons end>\n      <button color="light" ion-button icon-only (click)="addToFavoritesList(node)">\n        <ion-icon name="heart-outline" color="red" item-end [hidden]="is_favorite"></ion-icon>\n        <ion-icon name="heart" color="red" item-end [hidden]="!is_favorite"></ion-icon>\n<!--        <span *ngIf="is_favorite">AIR QUALITY</span>-->\n      </button>\n    </ion-buttons>\n  </ion-navbar>\n</ion-header>\n\n<ion-content no-bounce [ngStyle] ="{\'background-image\' : \'url(\'+ api.nodeStatus(node.value, node.time).background +\')\'}">\n\n  <!-- <ion-refresher (ionRefresh)="onlineLoadHistoryNodeInfo(); onlineLoadNodeForecastInfo()">\n    <ion-refresher-content pullingIcon="arrow-round-down"\n    pullingText="Pull to refresh"\n    refreshingSpinner="dots"\n    refreshingText="Refreshing..."></ion-refresher-content>\n  </ion-refresher> -->\n    \n <div class="top-section">\n\n  <div class="place">\n    <p class="place-name">{{ node.name }}</p>\n    <p class="place-location">{{ node.location }}</p>\n  </div>\n\n  <ion-card class="node-card">\n    <ion-grid class="node bg-white">\n      <ion-row class="readings-section" [style.backgroundColor]="api.nodeStatus(node.value, node.time).color">\n        <ion-col col-3 class="face bg-darker">\n          <img [src]="api.nodeStatus(node.value, node.time).face"/>\n        </ion-col>\n        <ion-col col-4 class="values">\n          <p class="number moderate-bold" [style.color]="api.nodeStatus(node.value, node.time).font_color">{{ node.value }}</p>\n          <p class="number-label moderate-bold" [style.color]="api.nodeStatus(node.value, node.time).font_color">PM<sub>2.5</sub></p>\n        </ion-col>\n        <ion-col col-5 class="label">\n          <p text-wrap class="value-label moderate-bold" [style.color]="api.nodeStatus(node.value, node.time).font_color">{{ api.nodeStatus(node.value, node.time).label }}</p>\n        </ion-col>\n      </ion-row>\n      <ion-row class="footer-section">\n        <ion-col text-wrap class="date-section">\n          <span class="node-refresh-date" *ngIf="node.time">\n            Last Refreshed: {{ api.ago(api.getReadableInternationalDateFormatFromISOString(node.time)) }}\n          </span>\n        </ion-col>\n      </ion-row>\n    </ion-grid>\n  </ion-card>\n\n  <!-- <ion-card class="key-card">\n    <div class="key">\n      <div text-wrap class="key-label bg-green white">Good</div>\n      <div text-wrap class="key-label bg-yellow dark-blue">Moderate</div>\n      <div text-wrap class="key-label bg-orange white">Unhealthy for sensitive groups</div>\n      <div text-wrap class="key-label bg-red white">Unhealthy</div>\n      <div text-wrap class="key-label bg-purple white">Very Unhealthy</div>\n      <div text-wrap class="key-label bg-maroon white">Hazardous</div>\n    </div>\n  </ion-card> -->\n </div>\n\n<div class="bottom-section bg-white">\n\n  <div class="graph-section" padding>\n    <ion-segment [color]="api.nodeStatus(node.value, node.time).standard_color" [(ngModel)]="graphs_segments" (ionChange)="onSegmentChange()">\n      <ion-segment-button value="history">\n        HISTORY\n      </ion-segment-button>\n      <ion-segment-button value="forecast">\n        FORECAST\n      </ion-segment-button>\n    </ion-segment>\n  </div>\n\n  <!-- <div>\n    <div class="bar-canvas" [hidden]="graphs_segments != \'history\'">\n      <canvas #barCanvasHistory></canvas>\n      <p class="no-data" *ngIf="history_node_api_success === false">NO HISTORY DATA</p>\n    </div>\n\n    <div class="bar-canvas" [hidden]="graphs_segments != \'forecast\'">\n      <canvas #barCanvasForecast></canvas>\n      <p class="no-data" *ngIf="forecast_node_api_success === false">NO FORECAST DATA</p>\n    </div>\n  </div> -->\n\n  <div class="scroll-chart">\n    <div class="chartAreaWrapper" [hidden]="graphs_segments != \'history\'">\n      <canvas #barCanvasHistory id="historyChart"></canvas>\n      <p class="no-data" *ngIf="history_node_api_success === false">NO HISTORY DATA</p>\n    </div>\n    <div class="chartAreaWrapper" [hidden]="graphs_segments != \'forecast\'">\n      <canvas #barCanvasForecast id="forecastChart"></canvas>\n      <p class="no-data" *ngIf="forecast_node_api_success === false">NO FORECAST DATA</p>\n    </div>\n  </div>\n\n</div>\n\n  <ion-fab right middle (click)="goToKeyPage()">\n    <button ion-fab color="green">KEY</button>\n  </ion-fab>\n\n\n</ion-content>\n'/*ion-inline-end:"/home/noah/projects/airqo/AirQo-frontend/mobile/src/pages/node/node.html"*/,
         }),
-        __metadata("design:paramtypes", [typeof (_c = typeof __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["i" /* NavController */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["i" /* NavController */]) === "function" && _c || Object, typeof (_d = typeof __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["j" /* NavParams */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["j" /* NavParams */]) === "function" && _d || Object, typeof (_e = typeof __WEBPACK_IMPORTED_MODULE_3__ionic_storage__["b" /* Storage */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_3__ionic_storage__["b" /* Storage */]) === "function" && _e || Object, typeof (_f = typeof __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["o" /* ToastController */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["o" /* ToastController */]) === "function" && _f || Object, typeof (_g = typeof __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["g" /* LoadingController */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["g" /* LoadingController */]) === "function" && _g || Object, typeof (_h = typeof __WEBPACK_IMPORTED_MODULE_4__angular_common_http__["a" /* HttpClient */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_4__angular_common_http__["a" /* HttpClient */]) === "function" && _h || Object, typeof (_j = typeof __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["b" /* AlertController */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["b" /* AlertController */]) === "function" && _j || Object, typeof (_k = typeof __WEBPACK_IMPORTED_MODULE_5__providers_api_api__["a" /* ApiProvider */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_5__providers_api_api__["a" /* ApiProvider */]) === "function" && _k || Object])
+        __metadata("design:paramtypes", [__WEBPACK_IMPORTED_MODULE_2_ionic_angular__["i" /* NavController */], __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["j" /* NavParams */], __WEBPACK_IMPORTED_MODULE_3__ionic_storage__["b" /* Storage */], __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["o" /* ToastController */],
+            __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["g" /* LoadingController */], __WEBPACK_IMPORTED_MODULE_4__angular_common_http__["a" /* HttpClient */], __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["b" /* AlertController */], __WEBPACK_IMPORTED_MODULE_5__providers_api_api__["a" /* ApiProvider */]])
     ], NodePage);
     return NodePage;
 }());
@@ -3730,7 +3866,7 @@ var FavoritesPage = /** @class */ (function () {
                     text: 'Yes',
                     handler: function () {
                         _this.storage.get('favorites').then(function (val) {
-                            if (val && val != null && val != '' && val.length > 0) {
+                            if (val && val != '' && val.length > 0) {
                                 if (val.filter(function (item) { return item.channel_id === node.channel_id; }).length != 0) {
                                     for (var i = 0; i < val.length; i++) {
                                         if (val[i].channel_id == node.channel_id) {
@@ -3759,16 +3895,16 @@ var FavoritesPage = /** @class */ (function () {
             ]
         }).present();
     };
-    var _a, _b, _c, _d, _e, _f, _g;
     __decorate([
         Object(__WEBPACK_IMPORTED_MODULE_0__angular_core__["_8" /* ViewChild */])('mySearchbar'),
-        __metadata("design:type", typeof (_a = typeof __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["m" /* Searchbar */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["m" /* Searchbar */]) === "function" && _a || Object)
+        __metadata("design:type", __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["m" /* Searchbar */])
     ], FavoritesPage.prototype, "searchbar", void 0);
     FavoritesPage = __decorate([
         Object(__WEBPACK_IMPORTED_MODULE_0__angular_core__["m" /* Component */])({
             selector: 'page-favorites',template:/*ion-inline-start:"/home/noah/projects/airqo/AirQo-frontend/mobile/src/pages/favorites/favorites.html"*/'<ion-header>\n  <ion-navbar color="blue">\n    <ion-title>My Places</ion-title>\n    <ion-buttons end>\n      <button ion-button small icon-only (click)="openAddFavorites()">\n        <ion-icon name="md-add" color="light"></ion-icon>\n      </button>\n    </ion-buttons>\n  </ion-navbar>\n</ion-header>\n\n<ion-content padding>\n  <p class="title" *ngIf="nodes.length <= 0">{{ display_message }}</p>\n  <ion-searchbar #mySearchbar type="text" color="light" placeholder="Search city or area" [formControl]="textInput"></ion-searchbar>\n  <ion-list>\n    <ion-item *ngFor="let node of nodes" (click)="viewDetails(node)">\n      <ion-icon name="md-star" color="grey" item-start></ion-icon>\n      <div class="area-title">{{ node.name }}</div>\n      <div class="area-sub-title">{{ node.location }}</div>\n      <ion-icon name="trash" color="danger" item-end (click)="removeFavorite($event, node)"></ion-icon>\n    </ion-item>\n  </ion-list>\n\n</ion-content>'/*ion-inline-end:"/home/noah/projects/airqo/AirQo-frontend/mobile/src/pages/favorites/favorites.html"*/,
         }),
-        __metadata("design:paramtypes", [typeof (_b = typeof __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["i" /* NavController */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["i" /* NavController */]) === "function" && _b || Object, typeof (_c = typeof __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["j" /* NavParams */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["j" /* NavParams */]) === "function" && _c || Object, typeof (_d = typeof __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["h" /* ModalController */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["h" /* ModalController */]) === "function" && _d || Object, typeof (_e = typeof __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["o" /* ToastController */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["o" /* ToastController */]) === "function" && _e || Object, typeof (_f = typeof __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["b" /* AlertController */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["b" /* AlertController */]) === "function" && _f || Object, typeof (_g = typeof __WEBPACK_IMPORTED_MODULE_2__ionic_storage__["b" /* Storage */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_2__ionic_storage__["b" /* Storage */]) === "function" && _g || Object])
+        __metadata("design:paramtypes", [__WEBPACK_IMPORTED_MODULE_1_ionic_angular__["i" /* NavController */], __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["j" /* NavParams */], __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["h" /* ModalController */], __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["o" /* ToastController */],
+            __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["b" /* AlertController */], __WEBPACK_IMPORTED_MODULE_2__ionic_storage__["b" /* Storage */]])
     ], FavoritesPage);
     return FavoritesPage;
 }());

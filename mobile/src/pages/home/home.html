@@ -10,7 +10,7 @@
       &nbsp;
       &nbsp;
       <button color="light" ion-button icon-only (click)="goToFavoritesPage()">
-        <ion-icon name="star-outline"></ion-icon>
+        <ion-icon name="heart" color="red"></ion-icon>
       </button>
       &nbsp;
       &nbsp;
@@ -97,21 +97,21 @@
           <div class="sub-title grey">{{ node.location }}</div>
           </ion-col>
         </ion-row>
-        <ion-row class="readings-section" [style.backgroundColor]="api.nodeStatus(node.field1, node.refreshed).color">
+        <ion-row class="readings-section" [style.backgroundColor]="api.nodeStatus(node.value, node.time).color">
           <ion-col col-3 class="face bg-darker">
-            <img [src]="api.nodeStatus(node.field1, node.refreshed).face"/>
+            <img [src]="api.nodeStatus(node.value, node.time).face"/>
           </ion-col>
           <ion-col col-4 class="values">
-            <p class="number moderate-bold" [style.color]="api.nodeStatus(node.field1, node.refreshed).font_color">{{ node.field1 }}</p>
-            <p class="number-label moderate-bold" [style.color]="api.nodeStatus(node.field1, node.refreshed).font_color">PM<sub>2.5</sub></p>
+            <p class="number moderate-bold" [style.color]="api.nodeStatus(node.value, node.time).font_color">{{ node.value }}</p>
+            <p class="number-label moderate-bold" [style.color]="api.nodeStatus(node.value, node.time).font_color">PM<sub>2.5</sub></p>
           </ion-col>
           <ion-col col-5 class="label">
-            <p text-wrap class="value-label moderate-bold" [style.color]="api.nodeStatus(node.field1, node.refreshed).font_color">{{ api.nodeStatus(node.field1, node.refreshed).label }}</p>
+            <p text-wrap class="value-label moderate-bold" [style.color]="api.nodeStatus(node.value, node.time).font_color">{{ api.nodeStatus(node.value, node.time).label }}</p>
           </ion-col>
         </ion-row>
         <ion-row class="footer-section">
           <ion-col col-11 text-wrap class="date-section">
-            <span class="node-refresh-date">Last Refreshed: {{ api.ago(api.getReadableInternationalDateFormatFromISOString(node.refreshed)) }}</span>
+            <span class="node-refresh-date">Last Refreshed: {{ api.ago( api.getReadableInternationalDateFormatFromISOString(node.time)) }}</span>
           </ion-col>
           <ion-col col-1 class="icon-section">
             <ion-icon name="arrow-forward"></ion-icon>

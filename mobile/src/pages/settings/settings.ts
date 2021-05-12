@@ -1,8 +1,6 @@
 import { Component } from '@angular/core';
-import { NavController, LoadingController, ToastController, AlertController, Platform, PopoverController, ModalController } from 'ionic-angular';
+import { NavController, LoadingController,  PopoverController, ModalController } from 'ionic-angular';
 import { Storage } from '@ionic/storage';
-import { Geolocation } from '@ionic-native/geolocation';
-import { HttpClient } from '@angular/common/http';
 import { Device } from '@ionic-native/device';
 import { AppRate } from '@ionic-native/app-rate';
 import { ApiProvider } from '../../providers/api/api';
@@ -20,9 +18,8 @@ export class SettingsPage {
 
   persistent_notifications_state: boolean = false;
 
-  constructor(private navCtrl: NavController, private storage: Storage, private http: HttpClient, private loadingCtrl: LoadingController, 
-    private alertCtrl: AlertController, private toastCtrl: ToastController, private geolocation: Geolocation, private platform: Platform, 
-    private device: Device, private popoverCtrl: PopoverController, private modalCtrl: ModalController, public api: ApiProvider, 
+  constructor(private navCtrl: NavController, private storage: Storage,
+    private device: Device, private modalCtrl: ModalController, public api: ApiProvider,
     private appRate: AppRate,) {
       this.getPersistentNotificationsStatus();
   }

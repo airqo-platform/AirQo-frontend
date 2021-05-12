@@ -1,8 +1,8 @@
-import { ToastController } from 'ionic-angular';
-import { Network } from '@ionic-native/network';
-import { Injectable } from '@angular/core';
-import { Device } from '@ionic-native/device';
-import { Storage } from '@ionic/storage';
+import {ToastController} from 'ionic-angular';
+import {Network} from '@ionic-native/network';
+import {Injectable} from '@angular/core';
+import {Device} from '@ionic-native/device';
+import {Storage} from '@ionic/storage';
 
 @Injectable()
 export class ApiProvider {
@@ -174,78 +174,90 @@ export class ApiProvider {
     };
 
     if(value) {
-      value = parseFloat(value).toFixed(2);
 
-      if(value > 0 && value < 12.1){
-        if(this.isOldRefreshDate(refresh_date)) {
-          value_good.color             = "#7a7a7a";
-          value_good.css_color         = "grey";
-          value_good.standard_color    = "grey";
-          value_good.font_color        = "#ece9e9";
-          value_good.map_reading_color = "#ffffff";
-          value_good.background        = 'assets/bg/0.png';
-        }
+      try {
+        value = parseFloat(value).toFixed(2);
 
-        return value_good;
-      } else if (value >= 12.1 && value < 35.6) {
-        if(this.isOldRefreshDate(refresh_date)) {
-          value_moderate.color             = "#7a7a7a";
-          value_moderate.css_color         = "grey";
-          value_moderate.standard_color    = "grey";
-          value_moderate.font_color        = "#ece9e9";
-          value_moderate.map_reading_color = "#ffffff";
-          value_moderate.background        = 'assets/bg/0.png';
-        }
+        if(value > 0 && value < 12.1){
+          if(this.isOldRefreshDate(refresh_date)) {
+            value_good.color             = "#7a7a7a";
+            value_good.css_color         = "grey";
+            value_good.standard_color    = "grey";
+            value_good.font_color        = "#ece9e9";
+            value_good.map_reading_color = "#ffffff";
+            value_good.background        = 'assets/bg/0.png';
+          }
 
-        return value_moderate;
-      } else if (value > 35.6 && value < 55.3) {
-        if(this.isOldRefreshDate(refresh_date)) {
-          value_unhealthy_for_sensitive_groups.color             = "#7a7a7a";
-          value_unhealthy_for_sensitive_groups.css_color         = "grey";
-          value_unhealthy_for_sensitive_groups.standard_color    = "grey";
-          value_unhealthy_for_sensitive_groups.font_color        = "#ece9e9";
-          value_unhealthy_for_sensitive_groups.map_reading_color = "#ffffff";
-          value_unhealthy_for_sensitive_groups.background        = 'assets/bg/0.png';
-        }
+          return value_good;
+        } else if (value >= 12.1 && value < 35.6) {
+          if(this.isOldRefreshDate(refresh_date)) {
+            value_moderate.color             = "#7a7a7a";
+            value_moderate.css_color         = "grey";
+            value_moderate.standard_color    = "grey";
+            value_moderate.font_color        = "#ece9e9";
+            value_moderate.map_reading_color = "#ffffff";
+            value_moderate.background        = 'assets/bg/0.png';
+          }
 
-        return value_unhealthy_for_sensitive_groups;
-      } else if (value > 55.4 && value < 150.3) {
-        if(this.isOldRefreshDate(refresh_date)) {
-          value_unhealthy.color             = "#7a7a7a";
-          value_unhealthy.css_color         = "grey";
-          value_unhealthy.standard_color    = "grey";
-          value_unhealthy.font_color        = "#ece9e9";
-          value_unhealthy.map_reading_color = "#ffffff";
-          value_unhealthy.background        = 'assets/bg/0.png';
-        }
+          return value_moderate;
+        } else if (value > 35.6 && value < 55.3) {
+          if(this.isOldRefreshDate(refresh_date)) {
+            value_unhealthy_for_sensitive_groups.color             = "#7a7a7a";
+            value_unhealthy_for_sensitive_groups.css_color         = "grey";
+            value_unhealthy_for_sensitive_groups.standard_color    = "grey";
+            value_unhealthy_for_sensitive_groups.font_color        = "#ece9e9";
+            value_unhealthy_for_sensitive_groups.map_reading_color = "#ffffff";
+            value_unhealthy_for_sensitive_groups.background        = 'assets/bg/0.png';
+          }
 
-        return value_unhealthy;
-      } else if (value > 150.4 && value < 250.4) {
-        if(this.isOldRefreshDate(refresh_date)) {
-          value_very_unhealthy.color             = "#7a7a7a";
-          value_very_unhealthy.css_color         = "grey";
-          value_very_unhealthy.standard_color    = "grey";
-          value_very_unhealthy.font_color        = "#ece9e9";
-          value_very_unhealthy.map_reading_color = "#ffffff";
-          value_very_unhealthy.background        = 'assets/bg/0.png';
-        }
+          return value_unhealthy_for_sensitive_groups;
+        } else if (value > 55.4 && value < 150.3) {
+          if(this.isOldRefreshDate(refresh_date)) {
+            value_unhealthy.color             = "#7a7a7a";
+            value_unhealthy.css_color         = "grey";
+            value_unhealthy.standard_color    = "grey";
+            value_unhealthy.font_color        = "#ece9e9";
+            value_unhealthy.map_reading_color = "#ffffff";
+            value_unhealthy.background        = 'assets/bg/0.png';
+          }
 
-        return value_very_unhealthy;
-      } else if (value >= 250.5 && value <= 500.4) {
-        if(this.isOldRefreshDate(refresh_date)) {
-          value_hazardous.color             = "#7a7a7a";
-          value_hazardous.css_color         = "grey";
-          value_hazardous.standard_color    = "grey";
-          value_hazardous.font_color        = "#ece9e9";
-          value_hazardous.map_reading_color = "#ffffff";
-          value_hazardous.background        = 'assets/bg/0.png';
+          return value_unhealthy;
+        } else if (value > 150.4 && value < 250.4) {
+          if(this.isOldRefreshDate(refresh_date)) {
+            value_very_unhealthy.color             = "#7a7a7a";
+            value_very_unhealthy.css_color         = "grey";
+            value_very_unhealthy.standard_color    = "grey";
+            value_very_unhealthy.font_color        = "#ece9e9";
+            value_very_unhealthy.map_reading_color = "#ffffff";
+            value_very_unhealthy.background        = 'assets/bg/0.png';
+          }
+
+          return value_very_unhealthy;
+        } else if (value >= 250.5 && value <= 500.4) {
+          if(this.isOldRefreshDate(refresh_date)) {
+            value_hazardous.color             = "#7a7a7a";
+            value_hazardous.css_color         = "grey";
+            value_hazardous.standard_color    = "grey";
+            value_hazardous.font_color        = "#ece9e9";
+            value_hazardous.map_reading_color = "#ffffff";
+            value_hazardous.background        = 'assets/bg/0.png';
+          }
+
+          return value_hazardous;
+        } else {
+          return value_unavailable;
         }
-        
-        return value_hazardous;
-      } else {
+      }
+      catch (e) {
         return value_unavailable;
       }
+
     }
+    else{
+      return value_unavailable;
+    }
+
+
   }
 
 
@@ -357,7 +369,8 @@ export class ApiProvider {
   // --------------------------------------------------------------------------------------------------------------------
   public getReadableInternationalDateFormatFromSQLFormat(date) {
     if(date){
-      return new Date(date.replace(/-/g,"/"));
+
+      return new Date(date.replace(/-/g, "/"));
     }
   }
 
@@ -374,6 +387,11 @@ export class ApiProvider {
     let year   = day    * 365;
 
     let suffix = ' ago';
+
+    // console.log(date);
+    // console.log(new Date(date));
+    // console.log(Date.now().toLocaleString());
+    // console.log((Date.now() - date) / 1000);
 
     let elapsed = Math.floor((Date.now() - date) / 1000);
 
@@ -418,4 +436,21 @@ export class ApiProvider {
 
     return true;
   }
+
+
+  public nodeToStorage(node){
+
+    return {
+      channel_id: node.channel_id,
+      name: node.name,
+      location: node.location,
+      lat: node.lat,
+      lng: node.lng,
+      time: node.refreshed,
+      value: node.field1,
+      feeds: node.feeds,
+    };
+
+  }
+
 }
