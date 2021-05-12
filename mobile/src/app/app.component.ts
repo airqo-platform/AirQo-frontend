@@ -12,6 +12,7 @@ import { Device } from '@ionic-native/device';
 })
 export class MyApp {
 
+
   @ViewChild('content') navCtrl: NavController
 
   rootPage: any = IntroPage;
@@ -61,11 +62,11 @@ export class MyApp {
         }
       }
 
-      // this.storage.get('intro_page').then((val) => {
-      //   if(val && val != '') {
-      //     // this.navCtrl.setRoot(HomePage);
-      //   }
-      // });
+      this.storage.get('first-use').then((val) => {
+        if(val && val != '') {
+          this.rootPage = HomePage;
+        }
+      });
 
     });
   }

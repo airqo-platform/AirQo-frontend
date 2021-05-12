@@ -3,15 +3,16 @@ import {Network} from '@ionic-native/network';
 import {Injectable} from '@angular/core';
 import {Device} from '@ionic-native/device';
 import {Storage} from '@ionic/storage';
+import {Secret} from "./secret";
 
 @Injectable()
 export class ApiProvider {
 
   offline_toast: any;
 
-  api_endpoint          = `https://test-dot-airqo-frontend.appspot.com/Apis`;
-  external_api_endpoint = `https://buzentech.com/Apis`;
-  api_key: any          = `AQ_9ec70a070c75E6af14FCca86/0621d1D83`;
+  api_endpoint          = Secret.api_endpoint;
+  external_api_endpoint = Secret.external_api_endpoint;
+  api_key: any          = Secret.api_key;
 
   constructor(public network: Network, private toastCtrl: ToastController, private device: Device, private storage: Storage,) { }
 
