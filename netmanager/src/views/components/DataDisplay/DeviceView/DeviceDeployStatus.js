@@ -413,7 +413,6 @@ export default function DeviceDeployStatus({ deviceData }) {
       return;
     }
     const deployData = {
-      deviceName: deviceData.name,
       mountType: installationType,
       height: height,
       powerType: power,
@@ -425,7 +424,7 @@ export default function DeviceDeployStatus({ deviceData }) {
     };
 
     setDeployLoading(true);
-    await deployDeviceApi(deployData)
+    await deployDeviceApi(deviceData.name, deployData)
       .then((responseData) => {
         dispatch(
           updateMainAlert({

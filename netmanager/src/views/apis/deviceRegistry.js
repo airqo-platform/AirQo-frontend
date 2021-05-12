@@ -62,9 +62,9 @@ export const recallDeviceApi = async (deviceName) => {
     .then((response) => response.data);
 };
 
-export const deployDeviceApi = async (deployData) => {
+export const deployDeviceApi = async (deviceName, deployData) => {
   return axios
-    .post(DEPLOY_DEVICE_URI + "deploy", deployData)
+    .post(DEPLOY_DEVICE_URI, deployData, { params: { deviceName } })
     .then((response) => response.data);
 };
 
