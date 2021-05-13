@@ -291,6 +291,14 @@ class AirqoModel extends CI_Model
                                 FROM tbl_posts
                                 WHERE p_slug = '$slug' AND p_status = 'published' LIMIT 1");
 		return $query->row_array();
+    }
+    
+    public function get_preview_post_id_by_slug($slug)
+	{
+		$query = $this->db->query("SELECT p_id
+                                FROM tbl_posts
+                                WHERE p_slug = '$slug' LIMIT 1");
+		return $query->row_array();
 	}
 
 	public function get_postmeta($post = null)

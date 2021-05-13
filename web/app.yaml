@@ -1,42 +1,26 @@
-service: airqoft
 runtime: php55
-api_version: 1
-
-handlers:
-
-- url: /(.+\.(html|htm|xml|json|txt|js|css|gif|png|jpeg|jpg|svg|ico|bmp|ttf|eot|mp4|mp3))$
-  static_files: \1
-  upload: .+\.(html|htm|xml|json|txt|js|css|gif|png|jpeg|jpg|svg|ico|bmp|ttf|eot|mp4|mp3)$
-  application_readable: true
-
-- url: /apis/(.+)\.php
-  script: apis/\1.php
-
-- url: /.*
-  script: index.php
-
-
-
-
-runtime: php55
+env: standard
 api_version: 1
 threadsafe: true
 
 handlers:
-- url: /(.+\.(js|css|gif|png|jpeg|jpg|svg|ico|bmp|ttf|woff|eot|mp4|mp3))$
-  static_files: \1
-  upload: .+\.(js|css|gif|png|jpeg|jpg|svg|ico|bmp|ttf|woff|eot|mp4|mp3)$
-  application_readable: true
+  - url: /(.+\.(js|css|gif|png|jpeg|jpg|svg|ico|bmp|ttf|woff|eot|mp4|mp3|pdf))$
+    static_files: \1
+    upload: .+\.(js|css|gif|png|jpeg|jpg|svg|ico|bmp|ttf|woff|eot|mp4|mp3|pdf)$
+    application_readable: true
 
-- url: /apis/(.+)\.php
-  script: apis/\1.php
+  - url: /apis/(.+)\.php
+    script: apis/\1.php
 
-- url: /dsa/
-  static_files: dsa/index.html
-  upload: dsa/index.html
+  - url: /dsa/
+    static_files: dsa/index.html
+    upload: dsa/index.html
 
-- url: /.*
-  script: index.php
+  - url: /docs/
+    static_files: docs/Privacy-Policy-For-AirQo.pdf
+    upload: docs/Privacy-Policy-For-AirQo.pdf
 
-
-
+  - url: /.*
+    script: index.php
+    secure: always
+    redirect_http_response_code: 301
