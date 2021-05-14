@@ -139,7 +139,9 @@ class Login extends Component {
               <form noValidate onSubmit={this.onSubmit}>
                 <CardContent
                   style={
-                    isEmpty(this.props.errors.data) ? { display: "none" } : {}
+                    isEmpty((this.props.errors && this.props.errors.data) || {})
+                      ? { display: "none" }
+                      : {}
                   }
                 >
                   <Alert
@@ -148,7 +150,9 @@ class Login extends Component {
                       this.props.clearErrors();
                     }}
                   >
-                    {this.props.errors.data && this.props.errors.data.message}
+                    {this.props.errors &&
+                      this.props.errors.data &&
+                      this.props.errors.data.message}
                   </Alert>
                 </CardContent>
                 <div className="input-field col s12">

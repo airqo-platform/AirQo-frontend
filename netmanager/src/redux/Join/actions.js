@@ -391,12 +391,19 @@ export const loginUser = userData => dispatch => {
       }
     })
     .catch(err => {
-          dispatch({
-            type: GET_ERRORS,
-            payload: err.response || null
-          })
-        }
-    );
+      if (err.response) {
+        dispatch({
+          type: GET_ERRORS,
+          payload: err.response || null
+        })
+      }
+      else if (err.request) {
+        dispatch({
+          type: GET_ERRORS,
+          payload: { data: { message: "Please check your internet connectivity" } }
+        })
+      }  else throw err();
+    });
 };
 
 // Login - forgot password
