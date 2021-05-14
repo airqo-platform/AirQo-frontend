@@ -332,15 +332,14 @@ export const deleteUserFailed = error => {
 };
 
 /************************* Register a new User  *****************************/
-export const registerCandidate = userData => dispatch => {
+export const registerCandidate = (userData, callback) => dispatch => {
   const tenant = userData.organization;
-  axios
+  return axios
     .post(REGISTER_CANDIDATE_URI, userData, { params: { tenant }})
     .then(res => {
       if (res.data.success == true) {
-        console.log('registration response:');
-        console.dir(res.data);
         dispatch(registrationSuccess(res.data));
+        callback && callback()
       } else {
         dispatch({
           type: GET_ERRORS,
@@ -350,12 +349,18 @@ export const registerCandidate = userData => dispatch => {
     })
     // re-direct to login on successful register
     .catch(err => {
-      console.log('this is the err');
-      console.dir(err.response.data);
-      dispatch({
-        type: GET_ERRORS,
-        payload: (err.response && err.response.data) || null
-      });
+      if (err.response) {
+        dispatch({
+          type: GET_ERRORS,
+          payload: err.response || null
+        })
+      }
+      else if (err.request) {
+        dispatch({
+          type: GET_ERRORS,
+          payload: { data: { message: "Please check your internet connectivity" } }
+        })
+      }  else throw err();
     });
 };
 

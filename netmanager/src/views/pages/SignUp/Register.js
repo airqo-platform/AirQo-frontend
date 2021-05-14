@@ -158,11 +158,12 @@ class Register extends Component {
     const { id, value } = e.target;
     let errors = this.state.errors;
     // const { errors } = this.state;
-    errors[id] = mappedErrors.errors[id];
 
-    this.props.registerCandidate(this.state);
-    this.clearState();
-    if (errors) {
+    // THis has been commented out.  Not sure where the mapped errors come from
+    // errors[id] = mappedErrors && mappedErrors.errors[id] || "";
+
+    if (!containsEmptyValues(errors)) {
+
       this.setState(
         {
           errors,
@@ -173,7 +174,7 @@ class Register extends Component {
         }
       );
     } else {
-      this.clearState();
+        this.props.registerCandidate(this.state, () => this.clearState());
     }
   };
   render() {
