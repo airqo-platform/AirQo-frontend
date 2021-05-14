@@ -72,10 +72,23 @@ class AirqoApiClient {
       if (response.statusCode == 200) {
         print(response.body);
 
-        List<Measurement> measurements = json
-            .decode(response.body)['measurements']
-            .map<Measurement>((m) => Measurement.fromJson(m))
-            .toList();
+        var measurements = <Measurement>[];
+
+        // List<Measurement> measurements = json
+        //     .decode(response.body)['measurements']
+        //     .map<Measurement>((m) => Measurement.fromJson(m))
+        //     .toList();
+
+        var jsonBody = json.decode(response.body)['measurements'];
+        for (var element in jsonBody) {
+          try {
+            var measurement = Measurement.fromJson(element);
+            measurements.add(measurement);
+          } on Error catch (e) {
+            print('Get Devices error: $e');
+            var message = 'Couldn\'t get locations, please try again later';
+          }
+        }
 
         return measurements;
       } else {

@@ -1,14 +1,15 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/screens/feedback_page.dart';
 import 'package:app/screens/map_page.dart';
+import 'package:app/screens/my_places.dart';
 import 'package:app/screens/resources_page.dart';
 import 'package:app/screens/search.dart';
 import 'package:app/screens/search_location_page.dart';
 
 import 'package:app/screens/settings_page.dart';
 import 'package:app/utils/ui/dialogs.dart';
+import 'package:app/utils/ui/share.dart';
 import 'package:flutter/material.dart';
-import 'package:share/share.dart';
 
 import 'compare_page.dart';
 import 'dashboard_page.dart';
@@ -75,6 +76,18 @@ class _HomePageState extends State<HomePage> {
           PopupMenuButton<dynamic>(
             onSelected: (value) => {navigateToMenuItem(value)},
             itemBuilder: (context) => <PopupMenuEntry<String>>[
+              const PopupMenuItem<String>(
+                value: 'My Places',
+                child: ListTile(
+                  leading: Icon(
+                    Icons.favorite_outlined,
+                    color: appColor,
+                  ),
+                  title: Text(
+                    'My Places',
+                  ),
+                ),
+              ),
               const PopupMenuItem<String>(
                 value: 'Settings',
                 child: ListTile(
@@ -226,11 +239,6 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             ResourcesPage(),
-            // Center(
-            //   child: Container(
-            //     child: Text('Page 3'),
-            //   ),
-            // )
           ],
         ),
       ),
@@ -327,15 +335,19 @@ class _HomePageState extends State<HomePage> {
       //   return FeedbackPage();
       // }));
     } else if (menuItem.trim().toLowerCase() == 'share') {
-      Share.share(
-          'https://play.google.com/store/apps/details?id=com.airqo.app ',
-          subject: 'Airqo!');
+      shareApp();
     } else if (menuItem.trim().toLowerCase() == 'faqs') {
       _launchURLFaqs();
       // Navigator.push(context, MaterialPageRoute(builder: (context) {
       //   return FaqsPage();
       // }));
-    } else {
+    }
+    else if (menuItem.trim().toLowerCase() == 'my places') {
+      Navigator.push(context, MaterialPageRoute(builder: (context) {
+        return const MyPlaces();
+      }));
+    }
+    else {
       Navigator.push(context, MaterialPageRoute(builder: (context) {
         return SettingsPage();
       }));

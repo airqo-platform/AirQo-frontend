@@ -75,9 +75,13 @@ class DBHelper {
             await db.insert(
               '${constants.locationsTable}',
               jsonData,
-              conflictAlgorithm: ConflictAlgorithm.replace,
+              conflictAlgorithm: ConflictAlgorithm.abort,
             );
-          } catch (e) {
+          }
+          on DatabaseException {
+            await updatePlace(jsonData);
+
+          } on Error catch (e) {
             print(e);
           }
         }
@@ -111,13 +115,44 @@ class DBHelper {
     }
   }
 
+  Future<void> updatePlace(Map<String, dynamic> device) async {
+    print('Updating place in local db');
+
+    try {
+      final db = await database;
+
+      var res = await db.query('${constants.locationsTable}',
+          where: '${constants.channelID} = ?',
+          whereArgs: [device['${constants.channelID}']]);
+
+      Device deviceDetails = Device.fromJson(Device.fromDbMap(res.first));
+
+      var isFavourite = deviceDetails.favourite;
+
+      device['${constants.favourite}'] = isFavourite ? 1 : 0;
+
+      await db.insert(
+        '${constants.locationsTable}',
+        device,
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+    }
+    on Error catch (e) {
+      print(e);
+    }
+  }
+
   Future<Device> updateFavouritePlace(Device device, bool isFavourite) async {
     print('Updating favourite places in local db');
+
+    print(device.siteName);
 
     final db = await database;
 
     var res = await db.query('${constants.locationsTable}',
         where: '${constants.channelID} = ?', whereArgs: [device.channelID]);
+
+    print(res);
 
     if (isFavourite) {
       device.setFavourite(true);
@@ -130,13 +165,15 @@ class DBHelper {
       } else {
         var updateMap = <String, Object?>{'${constants.favourite}': 1};
 
-        await db.update(
+        var num = await db.update(
           '${constants.locationsTable}',
           updateMap,
           where: '${constants.channelID} = ?',
           whereArgs: [device.channelID],
           conflictAlgorithm: ConflictAlgorithm.replace,
         );
+
+        print('updated rows : $num');
       }
     } else {
       device.setFavourite(false);
@@ -164,6 +201,11 @@ class DBHelper {
 
       var res = await db.query('${constants.locationsTable}',
           where: '${constants.channelID} = ?', whereArgs: [channelID]);
+
+      var res2 = await db.query('${constants.locationsTable}',
+          where: '${constants.favourite} = ?', whereArgs: [1]);
+
+      print(res2);
 
       if (res.isEmpty) {
         return false;
@@ -311,13 +353,19 @@ class DBHelper {
       final db = await database;
 
       var res = await db.rawQuery('SELECT * FROM '
-          '${constants.locationsTable} INNER JOIN '
+          '${constants.locationsTable} JOIN '
           '${constants.measurementsTable} '
           'ON ${constants.locationsTable}.${constants.channelID} = '
           '${constants.measurementsTable}.${constants.locationDetails} '
           'WHERE ${constants.locationsTable}.${constants.favourite} = 1');
 
       print('Got ${res.length} favourite places from local db');
+
+      var res2 = await db.rawQuery('SELECT * FROM '
+          '${constants.locationsTable} '
+          'WHERE ${constants.locationsTable}.${constants.favourite} = 1');
+
+      print('Got ${res2.length} favourite places 2 from local db');
 
       return res.isNotEmpty
           ? List.generate(res.length, (i) {

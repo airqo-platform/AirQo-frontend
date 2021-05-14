@@ -1,4 +1,7 @@
 import 'package:app/constants/app_constants.dart';
+import 'package:app/models/device.dart';
+import 'package:app/screens/my_places.dart';
+import 'package:app/screens/place_details.dart';
 import 'package:flutter/material.dart';
 
 Future<void> showSnackBar(context, String message) async {
@@ -22,6 +25,29 @@ Future<void> showSnackBar2(context, String message) async {
       textAlign: TextAlign.center,
     ),
     backgroundColor: appColor,
+  );
+  ScaffoldMessenger.of(context).showSnackBar(snackBar);
+}
+
+Future<void> showSnackBarGoToMyPlaces(context, String message) async {
+  var snackBar = SnackBar(
+    content: Text(
+      message,
+      softWrap: true,
+      textAlign: TextAlign.start,
+    ),
+    backgroundColor: appColor,
+    action: SnackBarAction(
+      textColor: Colors.white,
+      label: 'View my places',
+      onPressed: () async {
+        await Navigator.push(context,
+            MaterialPageRoute(builder: (context) {
+              return const MyPlaces();
+            })
+        );
+      },
+    ),
   );
   ScaffoldMessenger.of(context).showSnackBar(snackBar);
 }

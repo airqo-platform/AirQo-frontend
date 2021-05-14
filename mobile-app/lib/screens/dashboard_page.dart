@@ -1,3 +1,4 @@
+import 'package:app/constants/app_constants.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/utils/services/local_storage.dart';
 import 'package:app/widgets/air_quality_nav.dart';
@@ -29,11 +30,14 @@ class _DashboardPageState extends State<DashboardPage> {
                         child: Container(
                           padding: const EdgeInsets.all(16.0),
                           child: const Text(
-                            'You haven\'t added '
-                            'favourite places, '
-                            'search and add to your list...',
+                            'You haven\'t added any locations you care about '
+                                'to My Places yet, search here or use the map '
+                                'to add them to your list',
                             softWrap: true,
                             textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: appColor,
+                            ),
                           ),
                         ),
                       );
@@ -56,7 +60,8 @@ class _DashboardPageState extends State<DashboardPage> {
                     //   child: const Text('Loading...'),
                     // ));
                   }
-                })));
+                }))
+    );
   }
 
   Future<void> refreshData() async {

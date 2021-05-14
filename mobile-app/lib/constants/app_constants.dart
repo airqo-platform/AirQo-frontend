@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
 const appName = 'AirQo';
+const appWebsite = 'https://www.airqo.net';
+const appIOSLink = 'https://apps.apple.com/ug/app/airqo-monitoring-air-quality/id1337573091';
+const appPlayStoreLink = 'https://play.google.com/store/apps/details?id=com.airqo.app';
 
 const appColor = Color(0xff3067e2);
 const greenColor = Color(0xff3FFF33);

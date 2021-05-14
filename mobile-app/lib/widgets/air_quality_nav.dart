@@ -44,8 +44,7 @@ class _AirQualityCardState extends State<AirQualityCard> {
                       print(e);
                       await showSnackBar(
                           context,
-                          'Location information not available. Try again '
-                          'later');
+                          'Information not available. Try again later');
                     }
                   },
                   splashColor:

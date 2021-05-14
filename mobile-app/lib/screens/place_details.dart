@@ -7,6 +7,7 @@ import 'package:app/utils/services/rest_api.dart';
 import 'package:app/utils/ui/date.dart';
 import 'package:app/utils/ui/dialogs.dart';
 import 'package:app/utils/ui/pm.dart';
+import 'package:app/utils/ui/share.dart';
 import 'package:app/widgets/help/aqi_index.dart';
 import 'package:app/widgets/expanding_action_button.dart';
 import 'package:app/widgets/location_chart.dart';
@@ -15,7 +16,6 @@ import 'package:app/widgets/pollutantContainer.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
-import 'package:share/share.dart';
 import 'package:flutter/foundation.dart';
 
 class PlaceDetailsPage extends StatefulWidget {
@@ -72,11 +72,13 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
     });
 
     if (isFavourite) {
-      await showSnackBar2(context,
-          '${locationData.locationDetails.siteName} has been added to your favourite places');
+      await showSnackBarGoToMyPlaces(context,
+          '${locationData.locationDetails.siteName} '
+              'is added to your places');
     } else {
       await showSnackBar2(context,
-          '${locationData.locationDetails.siteName} has been removed from favourite places');
+          '${locationData.locationDetails.siteName} '
+              'is removed from your places');
     }
   }
 
@@ -355,12 +357,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                 ),
                 ActionButton(
                   onPressed: () {
-                    Share.share(
-                        'Checkout the air quality of '
-                        '${locationData.locationDetails.siteName} '
-                        'at https://www.airqo.net',
-                        subject:
-                            'Airqo, ${locationData.locationDetails.siteName}!');
+                    shareLocation(locationData.locationDetails);
                   },
                   icon: const Icon(Icons.share_outlined),
                 ),

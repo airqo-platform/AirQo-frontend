@@ -9,10 +9,10 @@ import 'package:app/utils/ui/date.dart';
 import 'package:app/utils/ui/dialogs.dart';
 import 'package:app/utils/ui/help.dart';
 import 'package:app/utils/ui/pm.dart';
+import 'package:app/utils/ui/share.dart';
 
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:share/share.dart';
 
 class MapPage extends StatefulWidget {
   @override
@@ -46,55 +46,6 @@ class MapPageState extends State<MapPage> {
     // setCustomMarkers();
   }
 
-  void setCustomMarkers() async {
-    for (var i = 0; i < markerColors.length; i++) {
-      var color = markerColors[i];
-
-      // var markerIcon = await BitmapDescriptor.fromAssetImage(
-      //     const ImageConfiguration(size: Size(3, 3)),
-      //     'assets/images/good-face.png');
-
-      var markerIcon = BitmapDescriptor.defaultMarker;
-
-      switch (color) {
-        case 'good':
-          markerIcon =
-              BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen);
-          break;
-
-        case 'moderate':
-          markerIcon =
-              BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueYellow);
-          break;
-
-        case 'sensitive':
-          markerIcon =
-              BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueOrange);
-          break;
-
-        case 'unhealthy':
-          markerIcon =
-              BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed);
-          break;
-
-        case 'very unhealthy':
-          markerIcon = BitmapDescriptor.defaultMarkerWithHue(285);
-          break;
-
-        case 'hazardous':
-          markerIcon = BitmapDescriptor.defaultMarkerWithHue(
-              BitmapDescriptor.hueMagenta);
-          break;
-
-        default:
-          markerIcon = BitmapDescriptor.defaultMarker;
-          break;
-      }
-
-      _markerIcons[color] = markerIcon;
-    }
-  }
-
   void updateInfoWindow(Measurement measurement) {
     setState(() {
       windowProperties = measurement;
@@ -110,10 +61,6 @@ class MapPageState extends State<MapPage> {
     await localFetch();
 
     var measurements = await AirqoApiClient(context).fetchMeasurements();
-    // var devices = await AirqoApiClient(context).fetchDevices();
-    //
-    // measurements = AirqoApiClient(context)
-    //     .mapMeasurements(measurements, devices);
 
     if (measurements.isNotEmpty) {
       setMeasurements(measurements);
@@ -126,15 +73,10 @@ class MapPageState extends State<MapPage> {
   }
 
   Future<void> _refreshMeasurements() async {
-    var message = 'Refreshing map.... ';
+    var message = 'Refreshing map, please wait.... ';
     await showSnackBar(context, message);
 
     var measurements = await AirqoApiClient(context).fetchMeasurements();
-
-    // var devices = await AirqoApiClient(context).fetchDevices();
-    //
-    // measurements = AirqoApiClient(context)
-    //     .mapMeasurements(measurements, devices);
 
     if (measurements.isNotEmpty) {
       setMeasurements(measurements);
@@ -177,7 +119,7 @@ class MapPageState extends State<MapPage> {
               left: 0,
               right: 0,
               child: Padding(
-                padding: EdgeInsets.fromLTRB(8, 0, 8, 0),
+                padding: const EdgeInsets.fromLTRB(8, 0, 8, 0),
                 child: Column(
                   children: [
                     Row(
@@ -202,7 +144,6 @@ class MapPageState extends State<MapPage> {
                                 // setState(() {
                                 //   _showInfoWindow = false;
                                 // });
-
                                 Navigator.push(context,
                                     MaterialPageRoute(builder: (context) {
                                   return SearchPage();
@@ -215,7 +156,9 @@ class MapPageState extends State<MapPage> {
                                 // border: InputBorder.none,
                                 border: OutlineInputBorder(
                                     borderRadius: BorderRadius.all(
-                                        Radius.circular(25.0))),
+                                        Radius.circular(25.0)
+                                    )
+                                ),
                                 contentPadding: EdgeInsets.all(15),
                               ),
                             ),
@@ -392,12 +335,7 @@ class MapPageState extends State<MapPage> {
               ),
               IconButton(
                 onPressed: () {
-                  var text = 'Checkout the air quality of '
-                      '${windowProperties.locationDetails.siteName} at https://www.airqo.net';
-                  Share.share(
-                    text,
-                    subject: 'Airqo, Breathe Clean',
-                  );
+                  shareLocation(windowProperties.locationDetails);
                 },
                 icon: const Icon(Icons.share_outlined, color: appColor),
               ),
