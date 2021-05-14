@@ -4,7 +4,7 @@ import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { CardContent } from "@material-ui/core";
 import Alert from "@material-ui/lab/Alert";
-import { clearErrors, loginUser } from "../../../redux/Join/actions";
+import { clearErrors, loginUser } from "redux/Join/actions";
 import Grid from "@material-ui/core/Grid";
 import classnames from "classnames";
 import { isEmpty, omit } from "underscore";
