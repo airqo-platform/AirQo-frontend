@@ -67,6 +67,7 @@ import {
   FORGOT_PWD_URI,
   VERIFY_TOKEN_URI,
   UPDATE_PWD_IN_URI,
+  REGISTER_CANDIDATE_URI,
   DEFAULTS_URI } from "config/urls/authService";
 
 
