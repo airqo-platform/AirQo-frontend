@@ -36,7 +36,7 @@ class Device {
 
   Map<String, dynamic> toJson() => _$DeviceToJson(this);
 
-  @JsonKey(defaultValue: 'not set', required: false)
+  @JsonKey(defaultValue: '', required: false)
   final String nickName;
   final String name;
   final String description;

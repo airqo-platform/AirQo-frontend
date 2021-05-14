@@ -21,7 +21,7 @@ Map<String, dynamic> _$DevicesToJson(Devices instance) => <String, dynamic>{
 Device _$DeviceFromJson(Map<String, dynamic> json) {
   return Device(
     favourite: json['favourite'] as bool? ?? false,
-    nickName: json['nickName'] as String? ?? 'not set',
+    nickName: json['nickName'] as String? ?? '',
     channelID: json['channelID'] as int,
     description: json['description'] as String,
     latitude: (json['latitude'] as num).toDouble(),

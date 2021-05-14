@@ -1,7 +1,9 @@
 import 'package:app/models/chartData.dart';
 import 'package:app/models/hourly.dart';
 import 'package:app/models/measurement.dart';
+import 'package:app/models/predict.dart';
 import 'package:app/models/series.dart';
+import 'package:app/utils/ui/pm.dart';
 import 'package:app/widgets/location_chart.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
@@ -86,25 +88,77 @@ List<charts.Series<ValueSeries, DateTime>> createComaprisonData(
   ];
 }
 
-List<charts.Series<TimeSeriesSales, DateTime>> createChartData(
+List<charts.Series<TimeSeriesData, DateTime>> createChartData(
     List<Measurement> measurements) {
-  var data = <TimeSeriesSales>[];
+  var data = <TimeSeriesData>[];
 
   for (var measurement in measurements) {
     var time = measurement.time.substring(0, measurement.time.indexOf('.'));
 
     var date = DateTime.parse(time);
 
-    data.add(TimeSeriesSales(date, measurement.pm2_5.value.ceil()));
+    data.add(TimeSeriesData(date, measurement.pm2_5.value.ceil()));
   }
 
   return [
-    charts.Series<TimeSeriesSales, DateTime>(
+    charts.Series<TimeSeriesData, DateTime>(
       id: 'Location',
       colorFn: (_, __) => charts.MaterialPalette.blue.shadeDefault,
-      domainFn: (TimeSeriesSales sales, _) => sales.time,
-      measureFn: (TimeSeriesSales sales, _) => sales.sales,
+      domainFn: (TimeSeriesData sales, _) => sales.time,
+      measureFn: (TimeSeriesData sales, _) => sales.value,
       data: data,
+    )
+  ];
+}
+
+List<charts.Series<TimeSeriesData, DateTime>> historicalChartData(
+    List<Measurement> measurements) {
+  var data = <TimeSeriesData>[];
+
+  for (var measurement in measurements) {
+    var time = measurement.time.substring(0, measurement.time.indexOf('.'));
+
+    var date = DateTime.parse(time);
+
+    data.add(TimeSeriesData(date, measurement.pm2_5.value.ceil()));
+  }
+
+  return [
+    charts.Series<TimeSeriesData, DateTime>(
+      id: 'Historical',
+      colorFn: (TimeSeriesData series, _) => pmToChartColor(series.value.toDouble()),
+      domainFn: (TimeSeriesData sales, _) => sales.time,
+      measureFn: (TimeSeriesData sales, _) => sales.value,
+      data: data,
+    )
+  ];
+}
+
+List<charts.Series<TimeSeriesData, DateTime>> predictChartData(
+    List<Predict> predictions) {
+  var data = <TimeSeriesData>[];
+
+  for (var prediction in predictions) {
+
+    final formatter = DateFormat('EEE, d MMM yyyy HH:mm:ss');
+    final dateTime = formatter.parse(prediction.time);
+
+    var date = DateTime.parse(dateTime.toString());
+
+    data.add(TimeSeriesData(date, prediction.value.ceil()));
+  }
+
+  return [
+    charts.Series<TimeSeriesData, DateTime>(
+      id: 'Predictions',
+      colorFn: (TimeSeriesData series, _) => pmToChartColor(series.value.toDouble()),
+      domainFn: (TimeSeriesData sales, _) => sales.time,
+      measureFn: (TimeSeriesData sales, _) => sales.value,
+      // measureLowerBoundFn: (TimeSeriesData sales, _) => sales.value - 5,
+      // measureUpperBoundFn: (TimeSeriesData sales, _) => sales.value + 5,
+      data: data,
+      // displayName: 'Forecast',
+
     )
   ];
 }

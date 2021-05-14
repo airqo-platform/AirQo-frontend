@@ -18,7 +18,18 @@ String dateToString(String formattedString) {
         dateString =
             'Yesterday at ${DateFormat('hh:mm a').format(DateTime.parse(formattedString))}';
         break;
-
+      case 2:
+        dateString = '2 days ago';
+        break;
+      case 3:
+        dateString = '3 days ago';
+        break;
+      case 4:
+        dateString = '4 days ago';
+        break;
+      case 5:
+        dateString = '5 days ago';
+        break;
       default:
         dateString = DateFormat('EEE, MMM d, hh:mm a')
             .format(DateTime.parse(formattedString));

@@ -2,6 +2,33 @@ import 'dart:ui';
 
 import 'package:app/constants/app_constants.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:charts_flutter/flutter.dart' as charts;
+
+
+
+charts.Color pmToChartColor(double pm2_5) {
+  if (pm2_5 >= 0 && pm2_5 <= 12) {
+    //good
+    return charts.ColorUtil.fromDartColor(greenColor);
+  } else if (pm2_5 >= 12.1 && pm2_5 <= 35.4) {
+    //moderate
+    return charts.ColorUtil.fromDartColor(yellowColor);
+  } else if (pm2_5 >= 35.5 && pm2_5 <= 55.4) {
+    //sensitive
+    return charts.ColorUtil.fromDartColor(orangeColor);
+  } else if (pm2_5 >= 55.5 && pm2_5 <= 150.4) {
+    // unhealthy
+    return charts.ColorUtil.fromDartColor(redColor);
+  } else if (pm2_5 >= 150.5 && pm2_5 <= 250.4) {
+    // very unhealthy
+    return charts.ColorUtil.fromDartColor(purpleColor);
+  } else if (pm2_5 >= 250.5) {
+    // hazardous
+    return charts.ColorUtil.fromDartColor(maroonColor);
+  } else {
+    return charts.ColorUtil.fromDartColor(appColor);
+  }
+}
 
 Color pmToColor(double pm2_5) {
   if (pm2_5 >= 0 && pm2_5 <= 12) {

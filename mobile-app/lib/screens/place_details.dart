@@ -1,6 +1,7 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/device.dart';
 import 'package:app/models/measurement.dart';
+import 'package:app/models/predict.dart';
 import 'package:app/utils/data_formatter.dart';
 import 'package:app/utils/services/local_storage.dart';
 import 'package:app/utils/services/rest_api.dart';
@@ -8,8 +9,10 @@ import 'package:app/utils/ui/date.dart';
 import 'package:app/utils/ui/dialogs.dart';
 import 'package:app/utils/ui/pm.dart';
 import 'package:app/utils/ui/share.dart';
+import 'package:app/widgets/forecast_chart.dart';
 import 'package:app/widgets/help/aqi_index.dart';
 import 'package:app/widgets/expanding_action_button.dart';
+import 'package:app/widgets/historical_chart.dart';
 import 'package:app/widgets/location_chart.dart';
 import 'package:app/widgets/pollutantCard.dart';
 import 'package:app/widgets/pollutantContainer.dart';
@@ -32,10 +35,21 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
   var locationData;
   var response;
   var dbHelper = DBHelper();
+  var today = DateTime.now();
+  var startDate = DateFormat('yyyy-MM-dd').format(DateTime(DateTime.now().year, DateTime.now().month -1, DateTime.now().day));
+  var forecastDate = DateFormat('yyyy-MM-dd hh:mm')
+      .format(
+      DateTime(
+          DateTime.now().year,
+          DateTime.now().month,
+          DateTime.now().day
+      )
+  );
 
   @override
   void initState() {
     getDetails();
+    startDate =  DateFormat('yyyy-MM-dd').format(DateTime(today.year, today.month - 1, today.day));
     super.initState();
   }
 
@@ -262,12 +276,6 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                     child: cardSection(locationData),
                   ),
 
-                  // Pollutants
-                  // Padding(
-                  //   padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
-                  //   child: PollutantsContainer(locationData),
-                  // ),
-
                   PollutantsContainer(locationData),
 
                   // SingleChildScrollView(
@@ -283,7 +291,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                   // Historical Data
                   FutureBuilder(
                       future: AirqoApiClient(context).fetchMeasurementsByDate(
-                          DateFormat('yyyy-MM-dd').format(DateTime.now()),
+                          startDate,
                           widget.device.name),
                       builder: (context, snapshot) {
                         if (snapshot.hasData) {
@@ -294,7 +302,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                               child: Container(
                                 padding: const EdgeInsets.all(16.0),
                                 child: const Text(
-                                  'Sorry, data for last 24 hours is not available...',
+                                  'Historical data is not available...',
                                   softWrap: true,
                                   textAlign: TextAlign.center,
                                 ),
@@ -302,24 +310,83 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                             );
                           }
 
-                          var formattedData = createChartData(results);
+                          var formattedData = historicalChartData(results);
 
-                          return SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: Container(
-                                width: 500,
-                                height: 200,
-                                padding: const EdgeInsets.all(8),
-                                child: LocationBarChart(formattedData),
-                              ));
+                          // return SingleChildScrollView(
+                          //     scrollDirection: Axis.horizontal,
+                          //     child: Container(
+                          //       width: 500,
+                          //       height: 200,
+                          //       padding: const EdgeInsets.all(8),
+                          //       child: HistoricalBarChart(formattedData),
+                          //     )
+                          // );
 
-                          // return LocationBarChart(formattedData);
+                          return HistoricalBarChart(formattedData);
+
                         } else {
                           return Center(
                               child: Container(
-                            padding: const EdgeInsets.all(16.0),
-                            child: const CircularProgressIndicator(),
-                          ));
+                                padding: const EdgeInsets.all(16.0),
+                                child: const CircularProgressIndicator(),
+                              )
+                          );
+                        }
+                      }),
+
+                  // Forecast Data
+                  FutureBuilder(
+                      future: AirqoApiClient(context).fetchForecast(
+                          widget.device.latitude.toString(),
+                          widget.device.longitude.toString(),
+                          forecastDate),
+                      builder: (context, snapshot) {
+                        if (snapshot.hasData) {
+                          var results = snapshot.data as List<Predict>;
+
+                          if (results.isEmpty) {
+                            return Center(
+                              child: Container(
+                                padding: const EdgeInsets.all(16.0),
+                                child: const Text(
+                                  'Forecast data is not available...',
+                                  softWrap: true,
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            );
+                          }
+
+                          var forecastData = predictChartData(results);
+
+                          return ForecastBarChart(forecastData);
+
+                          // return SingleChildScrollView(
+                          //     scrollDirection: Axis.horizontal,
+                          //     child: Container(
+                          //       width: 500,
+                          //       height: 400,
+                          //       padding: const EdgeInsets.all(8),
+                          //       child: Column(
+                          //         children: [
+                          //           const Padding(padding: EdgeInsets.all(2),
+                          //             child: Center(
+                          //               child: Text('Forecast'),
+                          //             ),
+                          //           ),
+                          //           LocationBarChart(formattedData)
+                          //         ],
+                          //       ),
+                          //     )
+                          // );
+
+                        } else {
+                          return Center(
+                              child: Container(
+                                padding: const EdgeInsets.all(16.0),
+                                child: const CircularProgressIndicator(),
+                              )
+                          );
                         }
                       }),
 

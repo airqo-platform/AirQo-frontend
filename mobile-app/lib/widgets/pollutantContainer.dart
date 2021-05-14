@@ -21,7 +21,7 @@ class PollutantsContainer extends StatelessWidget {
                 'Pollutants',
                 softWrap: true,
                 style: TextStyle(
-                    fontSize: 16, color: appColor, fontWeight: FontWeight.bold),
+                    fontSize: 17, color: appColor, fontWeight: FontWeight.bold),
               ),
               Padding(
                 padding: EdgeInsets.all(5.0),

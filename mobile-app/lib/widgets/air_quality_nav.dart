@@ -131,12 +131,13 @@ class CardSection extends StatelessWidget {
         // mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           Expanded(
-              child: Text(
-            dateToString(data.time),
-            style: TextStyle(
-              color: appColor,
-            ),
-          )),
+              child: Text('Last updated : ${dateToString(data.time)}',
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: appColor,
+                    fontWeight: FontWeight.w300,
+                    fontStyle: FontStyle.italic,
+                  ))),
           const Padding(
             padding: EdgeInsets.fromLTRB(5, 5, 5, 5),
             child: Icon(

@@ -1,6 +1,6 @@
-class TimeSeriesSales {
+class TimeSeriesData {
   final DateTime time;
-  final int sales;
+  final int value;
 
-  TimeSeriesSales(this.time, this.sales);
+  TimeSeriesData(this.time, this.value);
 }

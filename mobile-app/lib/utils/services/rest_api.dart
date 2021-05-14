@@ -7,6 +7,7 @@ import 'package:app/constants/api.dart';
 import 'package:app/models/device.dart';
 import 'package:app/models/hourly.dart';
 import 'package:app/models/place.dart';
+import 'package:app/models/predict.dart';
 import 'package:app/models/suggestion.dart';
 import 'package:app/models/feedback.dart';
 import 'package:app/models/event.dart';
@@ -94,10 +95,10 @@ class AirqoApiClient {
       } else {
         print('Unexpected status code ${response.statusCode}:'
             ' ${response.reasonPhrase}');
-        throw HttpException(
-            'Unexpected status code ${response.statusCode}:'
-            ' ${response.reasonPhrase}',
-            uri: Uri.parse(getLatestEvents));
+        print('Body ${response.body}:');
+        print('uri: Uri.parse($getLatestEvents)');
+        return <Measurement>[];
+
       }
     } on SocketException {
       var message = 'You are working offline, please connect to internet';
@@ -112,6 +113,67 @@ class AirqoApiClient {
     }
 
     return <Measurement>[];
+  }
+
+  Future<List<Predict>> fetchForecast(
+      String latitude, String longitude, String dateTime) async {
+    try {
+
+      var body = {
+        "selected_datetime":"2020-05-14 00:00",
+        "latitude":"0.322",
+        "longitude":"32.7"
+      };
+
+      print(body);
+
+      final response = await http
+          .post(
+          Uri.parse('$getForecastUrl'),
+          headers: {"Content-Type": "application/json"},
+          body: json.encode(body) );
+
+      print(response.statusCode);
+      if (response.statusCode == 200) {
+        print(response.body);
+
+        var predictions = <Predict>[];
+
+        var jsonBody = json.decode(response.body)
+        ['formatted_results']['predictions'];
+
+        for(var element in jsonBody){
+          try{
+            var predict  = Predict.fromJson(element);
+            predictions.add(predict);
+          }
+          on Error catch (e) {
+            print('Get predictions error: $e');
+          }
+
+        }
+
+        return predictions;
+      } else {
+        print('Unexpected status code ${response.statusCode}:'
+            ' ${response.reasonPhrase}');
+        print('Body ${response.body}:');
+        print('uri: Uri.parse($getForecastUrl)');
+        return <Predict>[];
+      }
+    } on SocketException {
+      var message = 'You are working offline, please connect to internet';
+      await showSnackBar(context, message);
+    } on TimeoutException {
+      var message = 'Connection timeout, please check your internet connection';
+      await showSnackBar(context, message);
+    } on Error catch (e) {
+      print('Get Predictions error: $e');
+      var message = 'Connection timeout, please check your internet connection';
+      await showSnackBar(context, message);
+    }
+
+    return <Predict>[];
   }
 
   Future<List<Measurement>> fetchMeasurementsByDate(
