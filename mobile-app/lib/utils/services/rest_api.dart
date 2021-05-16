@@ -98,7 +98,6 @@ class AirqoApiClient {
         print('Body ${response.body}:');
         print('uri: Uri.parse($getLatestEvents)');
         return <Measurement>[];
-
       }
     } on SocketException {
       var message = 'You are working offline, please connect to internet';
@@ -118,20 +117,17 @@ class AirqoApiClient {
   Future<List<Predict>> fetchForecast(
       String latitude, String longitude, String dateTime) async {
     try {
-
       var body = {
-        "selected_datetime":"2020-05-14 00:00",
-        "latitude":"0.322",
-        "longitude":"32.7"
+        "selected_datetime": dateTime,
+        "latitude": latitude,
+        "longitude": longitude
       };
 
       print(body);
 
-      final response = await http
-          .post(
-          Uri.parse('$getForecastUrl'),
+      final response = await http.post(Uri.parse('$getForecastUrl'),
           headers: {"Content-Type": "application/json"},
-          body: json.encode(body) );
+          body: json.encode(body));
 
       print(response.statusCode);
       if (response.statusCode == 200) {
@@ -139,18 +135,16 @@ class AirqoApiClient {
 
         var predictions = <Predict>[];
 
-        var jsonBody = json.decode(response.body)
-        ['formatted_results']['predictions'];
+        var jsonBody =
+            json.decode(response.body)['formatted_results']['predictions'];
 
-        for(var element in jsonBody){
-          try{
-            var predict  = Predict.fromJson(element);
+        for (var element in jsonBody) {
+          try {
+            var predict = Predict.fromJson(element);
             predictions.add(predict);
-          }
-          on Error catch (e) {
+          } on Error catch (e) {
             print('Get predictions error: $e');
           }
-
         }
 
         return predictions;
@@ -188,10 +182,25 @@ class AirqoApiClient {
       if (response.statusCode == 200) {
         print(response.body);
 
-        List<Measurement> measurements = json
-            .decode(response.body)['measurements']
-            .map<Measurement>((m) => Measurement.fromJson(m))
-            .toList();
+        // List<Measurement> measurements = json
+        //     .decode(response.body)['measurements']
+        //     .map<Measurement>((m) => Measurement.fromJson(m))
+        //     .toList();
+        //
+        // return measurements;
+
+        var measurements = <Measurement>[];
+
+        var jsonBody = json.decode(response.body)['measurements'];
+
+        for (var element in jsonBody) {
+          try {
+            var measurement = Measurement.fromJson(element);
+            measurements.add(measurement);
+          } on Error catch (e) {
+            print('Get measurements error: $e');
+          }
+        }
 
         return measurements;
       } else {
@@ -355,50 +364,50 @@ class AirqoApiClient {
     return measurements;
   }
 
-  Future<List<Hourly>> fetchHourlyMeasurements(String channelId) async {
-    final response = await http.get(Uri.parse(getHourlyEvents));
+  Future<List<Hourly>> fetchHourlyMeasurements(int channelId) async {
+    try {
+      final response = await http.get(Uri.parse('$getHourlyEvents$channelId'));
 
-    if (response.statusCode == 200) {
-      var results = json.decode(response.body);
+      print(response.statusCode);
 
-      print(results);
+      if (response.statusCode == 200) {
+        print(response.body);
 
-      List<Hourly> hourlyMeasurements = results['hourly_results']
-          .map<Hourly>((l) => Hourly.fromJson(l))
-          .toList();
+        var measurements = <Hourly>[];
 
-      return hourlyMeasurements;
-    } else {
-      print('Unexpected status code ${response.statusCode}:'
-          ' ${response.reasonPhrase}');
-      throw HttpException(
-          'Unexpected status code ${response.statusCode}:'
-          ' ${response.reasonPhrase}',
-          uri: Uri.parse(getHourlyEvents));
+        var jsonBody = json.decode(response.body)['hourly_results'];
+
+        for (var element in jsonBody) {
+          try {
+            var measurement = Hourly.fromJson(element);
+            measurements.add(measurement);
+          } on Error catch (e) {
+            print('Get hourly measurements error: $e');
+          }
+        }
+
+        return measurements;
+      } else {
+        print('Unexpected status code ${response.statusCode}:'
+            ' ${response.reasonPhrase}');
+        print('Body ${response.body}:');
+        print('uri: Uri.parse($getForecastUrl)');
+        return <Hourly>[];
+      }
+    } on SocketException {
+      var message = 'You are working offline, please connect to internet';
+      await showSnackBar(context, message);
+    } on TimeoutException {
+      var message = 'Connection timeout, please check your internet connection';
+      await showSnackBar(context, message);
+    } on Error catch (e) {
+      print('Get hourly measurements error: $e');
+      var message = 'Connection timeout, please check your internet connection';
+      await showSnackBar(context, message);
     }
+
+    return <Hourly>[];
   }
-
-// List<Measurement> mapMeasurements(List<Measurement> measurements,
-//     List<Device> devices) {
-//
-//   var transformedMeasurements = <Measurement>[];
-//
-//   for (var measurement in measurements) {
-//
-//     for (var device in devices) {
-//       if(device.channelID == measurement.channelID){
-//         measurement.setAddress(device.siteName);
-//         transformedMeasurements.add(measurement);
-//         break;
-//       }
-//     }
-//   }
-//
-//
-//   return transformedMeasurements;
-//
-// }
-
 }
 
 class GoogleSearchProvider {

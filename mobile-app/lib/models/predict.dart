@@ -1,4 +1,3 @@
-
 import 'package:json_annotation/json_annotation.dart';
 
 part 'predict.g.dart';
@@ -12,7 +11,8 @@ class Predict {
     required this.upper,
   });
 
-  factory Predict.fromJson(Map<String, dynamic> json) => _$PredictFromJson(json);
+  factory Predict.fromJson(Map<String, dynamic> json) =>
+      _$PredictFromJson(json);
 
   Map<String, dynamic> toJson() => _$PredictToJson(this);
 
@@ -27,5 +27,4 @@ class Predict {
 
   @JsonKey(required: true, name: 'upper_ci')
   double upper;
-
 }

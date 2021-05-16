@@ -63,7 +63,7 @@ List<charts.Series<ValueSeries, DateTime>> createComaprisonData(
   }
 
   return [
-    new charts.Series<ValueSeries, DateTime>(
+    charts.Series<ValueSeries, DateTime>(
       id: device_01.toString(),
       colorFn: (_, __) => charts.MaterialPalette.blue.shadeDefault,
       domainFn: (ValueSeries sales, _) => sales.time,
@@ -126,10 +126,39 @@ List<charts.Series<TimeSeriesData, DateTime>> historicalChartData(
   return [
     charts.Series<TimeSeriesData, DateTime>(
       id: 'Historical',
-      colorFn: (TimeSeriesData series, _) => pmToChartColor(series.value.toDouble()),
+      colorFn: (TimeSeriesData series, _) =>
+          pmToChartColor(series.value.toDouble()),
       domainFn: (TimeSeriesData sales, _) => sales.time,
       measureFn: (TimeSeriesData sales, _) => sales.value,
       data: data,
+    )
+  ];
+}
+
+List<charts.Series<TimeSeriesData, DateTime>> hourlyChartData(
+    List<Hourly> measurements) {
+  var data = <TimeSeriesData>[];
+
+  for (var measurement in measurements) {
+    final formatter = DateFormat('EEE, d MMM yyyy HH:mm:ss');
+    final dateTime = formatter.parse(measurement.time);
+
+    var date = DateTime.parse(dateTime.toString());
+
+    data.add(TimeSeriesData(date, measurement.pm2_5.ceil()));
+  }
+
+  return [
+    charts.Series<TimeSeriesData, DateTime>(
+      id: 'Historical',
+      colorFn: (TimeSeriesData series, _) =>
+          pmToChartColor(series.value.toDouble()),
+      domainFn: (TimeSeriesData sales, _) => sales.time,
+      measureFn: (TimeSeriesData sales, _) => sales.value,
+      // measureLowerBoundFn: (TimeSeriesData sales, _) => sales.value - 5,
+      // measureUpperBoundFn: (TimeSeriesData sales, _) => sales.value + 5,
+      data: data,
+      // displayName: 'Forecast',
     )
   ];
 }
@@ -139,7 +168,6 @@ List<charts.Series<TimeSeriesData, DateTime>> predictChartData(
   var data = <TimeSeriesData>[];
 
   for (var prediction in predictions) {
-
     final formatter = DateFormat('EEE, d MMM yyyy HH:mm:ss');
     final dateTime = formatter.parse(prediction.time);
 
@@ -151,14 +179,14 @@ List<charts.Series<TimeSeriesData, DateTime>> predictChartData(
   return [
     charts.Series<TimeSeriesData, DateTime>(
       id: 'Predictions',
-      colorFn: (TimeSeriesData series, _) => pmToChartColor(series.value.toDouble()),
+      colorFn: (TimeSeriesData series, _) =>
+          pmToChartColor(series.value.toDouble()),
       domainFn: (TimeSeriesData sales, _) => sales.time,
       measureFn: (TimeSeriesData sales, _) => sales.value,
       // measureLowerBoundFn: (TimeSeriesData sales, _) => sales.value - 5,
       // measureUpperBoundFn: (TimeSeriesData sales, _) => sales.value + 5,
       data: data,
       // displayName: 'Forecast',
-
     )
   ];
 }

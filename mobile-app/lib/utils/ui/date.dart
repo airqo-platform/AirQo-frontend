@@ -12,11 +12,13 @@ String dateToString(String formattedString) {
     switch (difference) {
       case 0:
         dateString =
-            'Today at ${DateFormat('hh:mm a').format(DateTime.parse(formattedString))}';
+            'Today at ${DateFormat('hh:mm a')
+                .format(DateTime.parse(formattedString))}';
         break;
       case 1:
         dateString =
-            'Yesterday at ${DateFormat('hh:mm a').format(DateTime.parse(formattedString))}';
+            'Yesterday at ${DateFormat('hh:mm a')
+                .format(DateTime.parse(formattedString))}';
         break;
       case 2:
         dateString = '2 days ago';

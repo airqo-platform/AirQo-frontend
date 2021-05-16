@@ -31,8 +31,8 @@ class _DashboardPageState extends State<DashboardPage> {
                           padding: const EdgeInsets.all(16.0),
                           child: const Text(
                             'You haven\'t added any locations you care about '
-                                'to My Places yet, search here or use the map '
-                                'to add them to your list',
+                            'to My Places yet, search here or use the map '
+                            'to add them to your list',
                             softWrap: true,
                             textAlign: TextAlign.center,
                             style: TextStyle(
@@ -60,8 +60,7 @@ class _DashboardPageState extends State<DashboardPage> {
                     //   child: const Text('Loading...'),
                     // ));
                   }
-                }))
-    );
+                })));
   }
 
   Future<void> refreshData() async {

@@ -29,16 +29,17 @@ class PollutantsContainer extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     if (measurement.pm2_5.value != null)
-                      PollutantsCard('Pm 2.5', measurement.pm2_5.value,
+                      PollutantsCard('PM 2.5', measurement.pm2_5.value,
                           '${PollutantConstants.pm2_5}'),
                     if (measurement.pm10.value != null)
-                      PollutantsCard('Pm 10', measurement.pm10.value,
+                      PollutantsCard('PM 10', measurement.pm10.value,
                           '${PollutantConstants.pm10}'),
                   ],
                 ),
               )
             ],
           ),
-        ));
+        )
+    );
   }
 }

@@ -251,7 +251,10 @@ class _HomePageState extends State<HomePage> {
             onPressed: () {
               Navigator.push(context, MaterialPageRoute(builder: (context) {
                 return MapPage();
-              }));
+              })).then((value) => setState(() {
+                    _pageCtrl.jumpToPage(0);
+                  }));
+              ;
             },
             child: const Icon(
               Icons.public_sharp,
@@ -341,13 +344,11 @@ class _HomePageState extends State<HomePage> {
       // Navigator.push(context, MaterialPageRoute(builder: (context) {
       //   return FaqsPage();
       // }));
-    }
-    else if (menuItem.trim().toLowerCase() == 'my places') {
+    } else if (menuItem.trim().toLowerCase() == 'my places') {
       Navigator.push(context, MaterialPageRoute(builder: (context) {
         return const MyPlaces();
       }));
-    }
-    else {
+    } else {
       Navigator.push(context, MaterialPageRoute(builder: (context) {
         return SettingsPage();
       }));

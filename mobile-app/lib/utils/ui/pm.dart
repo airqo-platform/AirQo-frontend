@@ -1,10 +1,10 @@
 import 'dart:ui';
 
 import 'package:app/constants/app_constants.dart';
+import 'package:app/models/pollutant.dart';
+import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
-
-
 
 charts.Color pmToChartColor(double pm2_5) {
   if (pm2_5 >= 0 && pm2_5 <= 12) {
@@ -147,5 +147,44 @@ BitmapDescriptor pmToMarkerPoint(double pm2_5) {
     return BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueMagenta);
   } else {
     return BitmapDescriptor.defaultMarker;
+  }
+}
+
+String pollutantToString(String pollutantConstant) {
+  pollutantConstant = pollutantConstant.trim();
+
+  if (pollutantConstant == PollutantConstants.pm2_5) {
+    return 'PM 2.5';
+  } else if (pollutantConstant == PollutantConstants.pm10) {
+    return 'PM 10';
+  } else {
+    return '';
+  }
+}
+
+Pollutant pollutantDetails(String pollutantConstant) {
+  pollutantConstant = pollutantConstant.trim();
+
+  if (pollutantConstant == PollutantConstants.pm2_5.trim()) {
+    return Pollutant(
+        pollutantToString(PollutantConstants.pm2_5),
+        PollutantDescription.pm2_5,
+        PollutantSource.pm2_5,
+        PollutantEffects.pm2_5,
+        PollutantReduction.pm2_5);
+  } else if (pollutantConstant == PollutantConstants.pm10.trim()) {
+    return Pollutant(
+        pollutantToString(PollutantConstants.pm10),
+        PollutantDescription.pm10,
+        PollutantSource.pm10,
+        PollutantEffects.pm10,
+        PollutantReduction.pm10);
+  } else {
+    return Pollutant(
+        pollutantToString(PollutantConstants.pm2_5),
+        PollutantDescription.pm2_5,
+        PollutantSource.pm2_5,
+        PollutantEffects.pm2_5,
+        PollutantReduction.pm2_5);
   }
 }

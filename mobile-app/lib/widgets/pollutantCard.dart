@@ -33,7 +33,7 @@ class PollutantsCard extends StatelessWidget {
           ),
           Padding(
             padding: const EdgeInsets.all(1.0),
-            child: Text('${value.toString()} µg/m3'),
+            child: Text('${value.toString()} µg/m\u00B3'),
           ),
         ],
       ),

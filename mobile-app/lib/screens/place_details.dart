@@ -1,5 +1,6 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/device.dart';
+import 'package:app/models/hourly.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/predict.dart';
 import 'package:app/utils/data_formatter.dart';
@@ -13,6 +14,7 @@ import 'package:app/widgets/forecast_chart.dart';
 import 'package:app/widgets/help/aqi_index.dart';
 import 'package:app/widgets/expanding_action_button.dart';
 import 'package:app/widgets/historical_chart.dart';
+import 'package:app/widgets/hourly_chart.dart';
 import 'package:app/widgets/location_chart.dart';
 import 'package:app/widgets/pollutantCard.dart';
 import 'package:app/widgets/pollutantContainer.dart';
@@ -35,21 +37,14 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
   var locationData;
   var response;
   var dbHelper = DBHelper();
-  var today = DateTime.now();
-  var startDate = DateFormat('yyyy-MM-dd').format(DateTime(DateTime.now().year, DateTime.now().month -1, DateTime.now().day));
-  var forecastDate = DateFormat('yyyy-MM-dd hh:mm')
-      .format(
-      DateTime(
-          DateTime.now().year,
-          DateTime.now().month,
-          DateTime.now().day
-      )
-  );
+  var startDate = DateFormat('yyyy-MM-dd').format(DateTime(
+      DateTime.now().year, DateTime.now().month - 1, DateTime.now().day));
+  var forecastDate = DateFormat('yyyy-MM-dd HH:mm').format(
+      DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day));
 
   @override
   void initState() {
     getDetails();
-    startDate =  DateFormat('yyyy-MM-dd').format(DateTime(today.year, today.month - 1, today.day));
     super.initState();
   }
 
@@ -86,13 +81,15 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
     });
 
     if (isFavourite) {
-      await showSnackBarGoToMyPlaces(context,
+      await showSnackBarGoToMyPlaces(
+          context,
           '${locationData.locationDetails.siteName} '
-              'is added to your places');
+          'is added to your places');
     } else {
-      await showSnackBar2(context,
+      await showSnackBar2(
+          context,
           '${locationData.locationDetails.siteName} '
-              'is removed from your places');
+          'is removed from your places');
     }
   }
 
@@ -189,23 +186,6 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
                 children: <Widget>[
-                  // FutureBuilder(
-                  //   future: apiClient.fetchHourlyMeasurements(''),
-                  //   builder: (context, snapshot) {
-                  //     if (snapshot.hasError){
-                  //       return Container(
-                  //         padding: const EdgeInsets.all(16.0),
-                  //         child: Text('${snapshot.error.toString()}')
-                  //       );
-                  //     }
-                  //     print(snapshot.data);
-                  //     var results = snapshot.data as  List<Hourly>;
-                  //
-                  //     var pm2_5ChartData = createPm2_5ChartData(results);
-                  //     return PM2_5BarChart(pm2_5ChartData);
-                  //     },
-                  // ),
-
                   // Site Name
                   Padding(
                     padding: const EdgeInsets.fromLTRB(8.0, 20.0, 8.0, 8.0),
@@ -276,26 +256,16 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                     child: cardSection(locationData),
                   ),
 
+                  // Pollutants
                   PollutantsContainer(locationData),
-
-                  // SingleChildScrollView(
-                  //     scrollDirection: Axis.horizontal,
-                  //     child: Container(
-                  //       width: 500,
-                  //       height: 200,
-                  //       padding: const EdgeInsets.all(8),
-                  //       child:  LocationBarChart(),
-                  //     )
-                  // ),
 
                   // Historical Data
                   FutureBuilder(
-                      future: AirqoApiClient(context).fetchMeasurementsByDate(
-                          startDate,
-                          widget.device.name),
+                      future: AirqoApiClient(context)
+                          .fetchHourlyMeasurements(widget.device.channelID),
                       builder: (context, snapshot) {
                         if (snapshot.hasData) {
-                          var results = snapshot.data as List<Measurement>;
+                          var results = snapshot.data as List<Hourly>;
 
                           if (results.isEmpty) {
                             return Center(
@@ -310,7 +280,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                             );
                           }
 
-                          var formattedData = historicalChartData(results);
+                          var formattedData = hourlyChartData(results);
 
                           // return SingleChildScrollView(
                           //     scrollDirection: Axis.horizontal,
@@ -322,15 +292,13 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                           //     )
                           // );
 
-                          return HistoricalBarChart(formattedData);
-
+                          return HourlyBarChart(formattedData);
                         } else {
                           return Center(
                               child: Container(
-                                padding: const EdgeInsets.all(16.0),
-                                child: const CircularProgressIndicator(),
-                              )
-                          );
+                            padding: const EdgeInsets.all(16.0),
+                            child: const CircularProgressIndicator(),
+                          ));
                         }
                       }),
 
@@ -383,10 +351,9 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                         } else {
                           return Center(
                               child: Container(
-                                padding: const EdgeInsets.all(16.0),
-                                child: const CircularProgressIndicator(),
-                              )
-                          );
+                            padding: const EdgeInsets.all(16.0),
+                            child: const CircularProgressIndicator(),
+                          ));
                         }
                       }),
 

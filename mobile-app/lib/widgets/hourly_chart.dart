@@ -3,8 +3,8 @@ import 'package:app/models/chartData.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 
-class HistoricalBarChart extends StatelessWidget {
-  HistoricalBarChart(this.seriesList);
+class HourlyBarChart extends StatelessWidget {
+  HourlyBarChart(this.seriesList);
 
   final List<charts.Series<TimeSeriesData, DateTime>> seriesList;
 
@@ -18,7 +18,7 @@ class HistoricalBarChart extends StatelessWidget {
         children: <Widget>[
           const Center(
             child: Text(
-              'Forecast',
+              'Last 48 hours',
               softWrap: true,
               style: TextStyle(
                   fontSize: 17, color: appColor, fontWeight: FontWeight.bold),
@@ -30,14 +30,15 @@ class HistoricalBarChart extends StatelessWidget {
               animate: true,
               defaultRenderer: charts.BarRendererConfig<DateTime>(),
               defaultInteractions: true,
-              domainAxis: const charts.DateTimeAxisSpec(
-                  tickProviderSpec: charts.DayTickProviderSpec(increments: [1]),
-                  tickFormatterSpec: charts.AutoDateTimeTickFormatterSpec(
-                    day: charts.TimeFormatterSpec(
-                        format: 'EEE',
-                        transitionFormat: 'EEE',
-                        noonFormat: 'EEE'),
-                  )),
+              // domainAxis: const charts.DateTimeAxisSpec(
+              //     tickProviderSpec:
+              //     charts.DayTickProviderSpec(increments: [1]),
+              //     tickFormatterSpec: charts.AutoDateTimeTickFormatterSpec(
+              //       day: charts.TimeFormatterSpec(
+              //           format:
+              //           'EEE', transitionFormat: 'EEE', noonFormat: 'EEE'),
+              //     )
+              // ),
               behaviors: [
                 // charts.SeriesLegend(
                 //   position: charts.BehaviorPosition.top,

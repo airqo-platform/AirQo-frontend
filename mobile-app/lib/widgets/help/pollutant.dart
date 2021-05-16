@@ -1,106 +1,151 @@
 import 'package:app/constants/app_constants.dart';
-import 'package:app/utils/ui/pm.dart';
+import 'package:app/models/pollutant.dart';
 import 'package:flutter/material.dart';
 
-class PM25_Dialog extends StatelessWidget {
-  String good = 'Good (0 - 12) \nAir quality is good for everyone.';
+// https://www.epa.gov/pm-pollution/particulate-matter-pm-basics
 
-  String moderate = 'Moderate (12.1 - 35.4) \n'
-      'Unusually sensitive people consider reducing '
-      'prolonged or heavy exertion.';
+class PollutantDialog extends StatelessWidget {
+  PollutantDialog(this.pollutant);
 
-  String sensitive = 'Unhealthy for sensitive groups (35.6 - 55.4)\n'
-      'Sensitive people should reduce prolonged or heavy exertion. '
-      'It\'s OK to be active outside, but take more breaks '
-      'and do less intense activities. '
-      'People with asthma should follow their asthma action'
-      ' plans and keep quick relief medicine handy.';
-
-  String unHeathy = 'Unhealthy (55.5 - 150.4)\n'
-      'Everyone should avoid all physical activity outdoors. \n'
-      'Sensitive people should avoid prolonged or heavy exertion. Consider moving '
-      'activities indoors or rescheduling.';
-
-  String veryUnhealthy = 'Very unhealthy (150.5 - 250.4) \n'
-      'Sensitive people should avoid all physical activity outdoors. '
-      'Move activities indoors or reschedule to a time when air '
-      'quality is better.';
-
-  String hazardous = 'Hazardous (250.5 - 500.4) \n'
-      'Everyone should avoid all physical activity outdoors. \n'
-      'Sensitive people should remain indoors and keep activity levels low. '
-      'Follow tips for keeping particle levels low indoors.';
+  final Pollutant pollutant;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: appColor,
-        title: Text('AQI Guide'),
+        title: Text(pollutant.pollutant),
       ),
-      body: Container(
-        padding: EdgeInsets.all(20),
+      body: Padding(
+        padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
         child: ListView(
-          children: [
-            whatIsAQI,
-            AQI_Quide('assets/images/good-face.png', good, pmToColor(0)),
-            AQI_Quide(
-                'assets/images/moderate-face.png', moderate, pmToColor(20)),
-            AQI_Quide(
-                'assets/images/sensitive-face.png', sensitive, pmToColor(40)),
-            AQI_Quide(
-                'assets/images/unhealthy-face.png', unHeathy, pmToColor(100)),
-            AQI_Quide('assets/images/very-unhealthy-face.png', veryUnhealthy,
-                pmToColor(200)),
-            AQI_Quide(
-                'assets/images/hazardous-face.png', hazardous, pmToColor(500)),
-          ],
+          children: [whatIs(), source(), effects(), howToReduce()],
         ),
       ),
     );
   }
 
-  Widget whatIsAQI = Container(
-    child: Text(
-        'An air quality index is used by government agencies to communicate to '
-        'the public how polluted the air currently is or how polluted it is '
-        'forecast to become.'
-        'Different countries have their own air quality indices, '
-        'corresponding to different national air quality standards.',
-        softWrap: true,
-        style: TextStyle(
-          height: 1.2,
-          // letterSpacing: 1.0
-        )),
-  );
-
-  Widget AQI_Quide(String image, String body, Color color) {
-    return Container(
+  Widget whatIs() {
+    return Padding(
       padding: const EdgeInsets.fromLTRB(0, 2, 0, 0),
-      decoration: BoxDecoration(color: color),
-      child: Row(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
           Padding(
             padding: const EdgeInsets.all(5),
-            child: Image.asset(
-              image,
-              height: 40,
-              width: 40,
-            ),
+            child: Text(
+                'What is ${pollutant.pollutant}, '
+                'and how does it get into the air?',
+                softWrap: true,
+                style:
+                    const TextStyle(height: 1.2, color: appColor, fontSize: 15
+                        // letterSpacing: 1.0
+                        )),
           ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(5),
-              child: Text(body,
-                  softWrap: true,
-                  style: TextStyle(
-                    height: 1.2,
-                    // letterSpacing: 1.0
-                  )),
-            ),
-          )
+          Padding(
+            padding: const EdgeInsets.all(5),
+            child: Text('${pollutant.description}',
+                softWrap: true,
+                style: const TextStyle(
+                  height: 1.5,
+                  // letterSpacing: 1.0
+                )),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget source() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(0, 2, 0, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(5),
+            child: Text('Sources of ${pollutant.pollutant}',
+                softWrap: true,
+                style:
+                    const TextStyle(height: 1.2, color: appColor, fontSize: 15
+                        // letterSpacing: 1.0
+                        )),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(5),
+            child: Text('${pollutant.source}',
+                softWrap: true,
+                style: const TextStyle(
+                  height: 1.5,
+                  // letterSpacing: 1.0
+                )),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget effects() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(0, 2, 0, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(5),
+            child: Text(
+                'What are the Harmful Effects '
+                'of ${pollutant.pollutant}',
+                softWrap: true,
+                style:
+                    const TextStyle(height: 1.2, color: appColor, fontSize: 15
+                        // letterSpacing: 1.0
+                        )),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(5),
+            child: Text('${pollutant.effects}',
+                softWrap: true,
+                style: const TextStyle(
+                  height: 1.5,
+                  // letterSpacing: 1.0
+                )),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget howToReduce() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(0, 2, 0, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(5),
+            child: Text(
+                'How Can I Reduce My Exposure to'
+                ' ${pollutant.pollutant}',
+                softWrap: true,
+                style:
+                    const TextStyle(height: 1.5, color: appColor, fontSize: 15
+                        // letterSpacing: 1.0
+                        )),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(5),
+            child: Text('${pollutant.howToReduce}',
+                softWrap: true,
+                style: const TextStyle(
+                  height: 1.5,
+                  // letterSpacing: 1.0
+                )),
+          ),
         ],
       ),
     );

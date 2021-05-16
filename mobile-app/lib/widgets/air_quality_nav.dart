@@ -42,8 +42,7 @@ class _AirQualityCardState extends State<AirQualityCard> {
                       }));
                     } catch (e) {
                       print(e);
-                      await showSnackBar(
-                          context,
+                      await showSnackBar(context,
                           'Information not available. Try again later');
                     }
                   },

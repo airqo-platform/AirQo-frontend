@@ -77,10 +77,8 @@ class DBHelper {
               jsonData,
               conflictAlgorithm: ConflictAlgorithm.abort,
             );
-          }
-          on DatabaseException {
+          } on DatabaseException {
             await updatePlace(jsonData);
-
           } on Error catch (e) {
             print(e);
           }
@@ -136,8 +134,7 @@ class DBHelper {
         device,
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
-    }
-    on Error catch (e) {
+    } on Error catch (e) {
       print(e);
     }
   }

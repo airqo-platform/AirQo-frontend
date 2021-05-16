@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:app/constants/app_constants.dart';
+import 'package:app/models/device.dart';
 import 'package:app/models/measurement.dart';
+import 'package:app/screens/place_details.dart';
 import 'package:app/screens/search.dart';
 import 'package:app/utils/services/local_storage.dart';
 import 'package:app/utils/services/rest_api.dart';
@@ -156,9 +158,7 @@ class MapPageState extends State<MapPage> {
                                 // border: InputBorder.none,
                                 border: OutlineInputBorder(
                                     borderRadius: BorderRadius.all(
-                                        Radius.circular(25.0)
-                                    )
-                                ),
+                                        Radius.circular(25.0))),
                                 contentPadding: EdgeInsets.all(15),
                               ),
                             ),
@@ -205,20 +205,20 @@ class MapPageState extends State<MapPage> {
                       icon: const Icon(Icons.refresh_outlined, color: appColor),
                       onPressed: _refreshMeasurements,
                     ),
-                    IconButton(
-                      iconSize: 30.0,
-                      icon: const Icon(Icons.help_outline_outlined,
-                          color: appColor),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute<void>(
-                            builder: (BuildContext context) => getHelpPage(''),
-                            fullscreenDialog: true,
-                          ),
-                        );
-                      },
-                    ),
+                    // IconButton(
+                    //   iconSize: 30.0,
+                    //   icon: const Icon(Icons.help_outline_outlined,
+                    //       color: appColor),
+                    //   onPressed: () {
+                    //     Navigator.push(
+                    //       context,
+                    //       MaterialPageRoute<void>(
+                    //         builder: (BuildContext context) => getHelpPage(''),
+                    //         fullscreenDialog: true,
+                    //       ),
+                    //     );
+                    //   },
+                    // ),
                   ],
                 )),
           ],
@@ -233,9 +233,10 @@ class MapPageState extends State<MapPage> {
     }
   }
 
-  void showDetails() async {
-    var message = 'Coming soon';
-    await showSnackBar(context, message);
+  void showDetails(Device device) async {
+    await Navigator.push(context, MaterialPageRoute(builder: (context) {
+      return PlaceDetailsPage(device: device);
+    }));
   }
 
   void addToFavouritePlaces() async {
@@ -340,12 +341,22 @@ class MapPageState extends State<MapPage> {
                 icon: const Icon(Icons.share_outlined, color: appColor),
               ),
               IconButton(
-                onPressed: addToFavouritePlaces,
-                icon:
-                    const Icon(Icons.favorite_border_outlined, color: appColor),
-              ),
+                  onPressed: () {
+                    updateFavouritePlace(windowProperties.locationDetails);
+                  },
+                  icon: windowProperties.locationDetails.favourite
+                      ? const Icon(
+                          Icons.favorite,
+                          color: Colors.red,
+                        )
+                      : const Icon(
+                          Icons.favorite_border_outlined,
+                          color: Colors.red,
+                        )),
               GestureDetector(
-                onTap: showDetails,
+                onTap: () {
+                  showDetails(windowProperties.locationDetails);
+                },
                 child: const Text('More Details',
                     softWrap: true,
                     style: TextStyle(
@@ -356,5 +367,26 @@ class MapPageState extends State<MapPage> {
         ],
       ),
     ));
+  }
+
+  Future<void> updateFavouritePlace(Device device) async {
+    Device place;
+    if (device.favourite) {
+      place = await DBHelper().updateFavouritePlace(device, false);
+    } else {
+      place = await DBHelper().updateFavouritePlace(device, true);
+    }
+
+    setState(() {
+      _showInfoWindow = false;
+    });
+
+    if (place.favourite) {
+      await showSnackBarGoToMyPlaces(
+          context, '${place.siteName} is added to your places');
+    } else {
+      await showSnackBar2(
+          context, '${place.siteName} is removed from your places');
+    }
   }
 }
