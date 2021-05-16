@@ -1,16 +1,14 @@
-runtime: php55
+runtime: php74
 env: standard
-api_version: 1
-threadsafe: true
+service: staging
 
 handlers:
-  - url: /(.+\.(js|css|gif|png|jpeg|jpg|svg|ico|bmp|ttf|woff|eot|mp4|mp3|pdf))$
+  - url: /(.+\.(assets|js|css|gif|png|jpeg|jpg|svg|ico|bmp|ttf|woff|eot|mp4|mp3|pdf))$
     static_files: \1
-    upload: .+\.(js|css|gif|png|jpeg|jpg|svg|ico|bmp|ttf|woff|eot|mp4|mp3|pdf)$
-    application_readable: true
+    upload: .+\.(assets|js|css|gif|png|jpeg|jpg|svg|ico|bmp|ttf|woff|eot|mp4|mp3|pdf)$
 
   - url: /apis/(.+)\.php
-    script: apis/\1.php
+    script: auto
 
   - url: /dsa/
     static_files: dsa/index.html
@@ -21,6 +19,6 @@ handlers:
     upload: docs/Privacy-Policy-For-AirQo.pdf
 
   - url: /.*
-    script: index.php
+    script: auto
     secure: always
     redirect_http_response_code: 301
