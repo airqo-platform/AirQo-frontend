@@ -199,7 +199,7 @@ if ($node['reading'] >= 0 && $node['reading'] <= 12) {
           type: "POST",
           url: "<?= site_url('Apis/airqoPlace24Hours'); ?>",
           data: {
-               api: 'AQ_9ec70a070c75E6af14FCca86/0621d1D83',
+               api: "<?= getenv('API_KEY'); ?>",
                channel: "<?= $node['an_channel_id']; ?>"
           },
           dataType: "json",
@@ -330,7 +330,7 @@ if ($node['reading'] >= 0 && $node['reading'] <= 12) {
           type: "POST",
           url: "<?= site_url("Apis/placeForecast"); ?>",
           data: {
-               api: 'AQ_9ec70a070c75E6af14FCca86/0621d1D83', 
+               api: "<?= getenv('API_KEY'); ?>", 
                channel: "<?= $node['an_channel_id']; ?>"
           },
           dataType: "json",
@@ -437,5 +437,5 @@ if ($node['reading'] >= 0 && $node['reading'] <= 12) {
 
      // chart_d
 </script>
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAnK2dESOs8To3A01UdU3YpRNcC7cU_MKc&callback=initMap">
+<script src="https://maps.googleapis.com/maps/api/js?key=<?= getenv('MAP_API_KEY'); ?>&callback=initMap">
 </script>

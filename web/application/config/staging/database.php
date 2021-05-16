@@ -6,11 +6,11 @@ $query_builder = TRUE;
 
 $db['default'] = array(
 	'dsn'	   => '',
-	'hostname' => getenv('DB_HOST'),
-	'username' => getenv('MYSQL_USERNAME'),
-	'password' => getenv('MYSQL_ROOT_PASSWORD'),
-	'database' => getenv('MYSQL_DATABASE'),
-	'dbdriver' => getenv('DB_DRIVER'),
+	'hostname' => getenv('STAGE_DB_HOST'),
+	'username' => getenv('STAGE_MYSQL_USERNAME'),
+	'password' => getenv('STAGE_MYSQL_ROOT_PASSWORD'),
+	'database' => getenv('STAGE_MYSQL_DATABASE'),
+	'dbdriver' => getenv('STAGE_DB_DRIVER'),
 	'dbprefix' => '',
 	'pconnect' => FALSE,
 	'db_debug' => (ENVIRONMENT !== 'production'),

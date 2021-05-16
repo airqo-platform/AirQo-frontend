@@ -1,4 +1,5 @@
 <?php
+
 defined('BASEPATH') or exit('No direct script access allowed');
 
 /*
@@ -84,5 +85,7 @@ defined('EXIT_DATABASE')       or define('EXIT_DATABASE', 8); // database error
 defined('EXIT__AUTO_MIN')      or define('EXIT__AUTO_MIN', 9); // lowest automatically-assigned error code
 defined('EXIT__AUTO_MAX')      or define('EXIT__AUTO_MAX', 125); // highest automatically-assigned error code
 
-define('FORECAST_LINK', 'http://34.78.78.202:31009/api/v2/predict/');
-define('API_KEY', 'AQ_9ec70a070c75E6af14FCca86/0621d1D83');
+define('FORECAST_LINK', 'https://staging-platform.airqo.net/api/v2/predict/');
+define('API_KEY', getenv('API_KEY'));
+define('ANDROID_APP_LINK', 'https://play.google.com/store/apps/details?id=com.airqo.app');
+define('APPLE_APP_LINK', 'https://itunes.apple.com/ug/app/airqo-monitoring-air-quality/id1337573091?mt=8');
