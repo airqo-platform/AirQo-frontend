@@ -118,7 +118,7 @@ $contact = $this->AirqoModel->get_contact_details(1);
 
 
 <script>
-    mapboxgl.accessToken = 'pk.eyJ1IjoiYWRvbmdvdCIsImEiOiJjanMyd3g0OHMyMjJiM3luMW5sczQyMHVuIn0.80zLqlLLxgTvYOCeI44jsg';
+    mapboxgl.accessToken = "<?= getenv('MAPBOX_API_KEY'); ?>";
     var map = new mapboxgl.Map({
         container: 'map',
         style: 'mapbox://styles/mapbox/streets-v9',
