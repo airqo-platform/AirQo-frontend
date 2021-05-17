@@ -1,4 +1,28 @@
 <?php
+function request($url, $method = 'GET') {
+    $curl = curl_init();
+    curl_setopt($curl, CURLOPT_URL, $url);
+    curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($curl, CURLOPT_CUSTOMREQUEST, $method);
+
+    $headers = array();
+    $headers[] = 'Content-Type: application/json';
+    curl_setopt($url, CURLOPT_HTTPHEADER, $headers);
+    $json = curl_exec($curl);
+    curl_close($curl);
+    return json_decode($json, true);
+}
+
+function utc_to_local($utc_date, $timezone = 'Africa/Kampala'){
+    /* $utc_date must be in YYYY-mm-dd H:i:s format*/
+    $userTimezone = new DateTimeZone($timezone);
+    $gmtTimezone = new DateTimeZone('GMT');
+    $myDateTime = new DateTime($utc_date, $gmtTimezone);
+    $offset = $userTimezone->getOffset($myDateTime);
+    return date("Y-m-d H:i:s", strtotime($utc_date)+$offset);
+}
+
+
 class Apis extends CI_Controller
 {
 
@@ -988,40 +1012,63 @@ class Apis extends CI_Controller
     {
         $response = array();
         $this->ApisModel->init();
-        $sql_pick_nodes = "SELECT n.an_channel_id, n.an_name, n.an_map_address, n.an_lat, n.an_lng
-                                        FROM tbl_app_nodes n
-                                        WHERE n.an_deleted = '0' 
-                                        AND n.an_active = '1'
-                                        ORDER BY n.an_channel_id";
-        $query_pick_nodes = $this->db->query($sql_pick_nodes);
-        if ($query_pick_nodes->num_rows() > 0) {
-            $pnodes = $query_pick_nodes->result_array();
-            $total = 0;
-            $mr = "";
-            foreach ($pnodes as $prow) {
-                $channel = $prow["an_channel_id"];
-                $json_url_lt = "https://data-manager-dot-airqo-250220.uc.r.appspot.com/api/v1/data/feeds/recent/" . $channel;
-                $json = file_get_contents($json_url_lt);
-                $json = json_decode($json);
-                if ($json) {
-                    $date = $json->{'created_at'};
-                    $reading = $json->{'field2'};
-                    $reading = trim($reading);
-                    $lat = $json->{'field5'};
-                    $lng = $json->{'field6'};
-                    $update_node = $this->db->query("UPDATE tbl_app_nodes SET time = '$date', reading = '$reading', an_dateUpdated = NOW()
-                                                    WHERE an_channel_id = '$channel' LIMIT 1");
-                    if ($update_node) {
-                        $mr .= "" . $reading;
-                    }
+        $devices_data = request("http://platform.airqo.net/api/v1/devices?tenant=airqo");
+        $events_data = request("http://platform.airqo.net/api/v1/devices/events?tenant=airqo&recent=true");
+
+
+        if ($devices_data['success'] and $events_data['success']) {
+            $rows = array();
+            $events = $events_data['measurements'];
+
+            foreach ($events as $measurement) {
+                $filter_by = $measurement['channelID'];
+                $devices = $devices_data['devices'];
+                $device = array_values(array_filter($devices, function ($var) use ($filter_by) {
+                    return ($var['channelID'] == $filter_by);
+                }));
+                $device = $device[0];
+
+                $time = utc_to_local(date( $measurement['time']));
+
+                array_push($rows,
+                    array(
+                        $measurement['channelID'],
+                        $device['siteName'],
+                        $measurement['location']['latitude']['value'],
+                        $measurement['location']['longitude']['value'],
+                        $device['locationName'],
+                        "Commercial area",
+                        $measurement['time'],
+                        $measurement['pm2_5']['value'],
+                        $measurement['pm2_5']['value'],
+                        $time,
+                        0,
+                        $time,
+                        0,
+                    )
+                );
+
+            }
+
+            if(!empty($rows)) {
+                $values = '';
+                foreach ($rows as $row) {
+                    $values .= "('".implode ("', '", $row)."'),";
                 }
-                $total = $total + 1;
+
+                $values = substr($values, 0, -1);
+
+                $sql = "INSERT INTO tbl_app_nodes 
+                    (an_channel_id, an_name, an_lat, an_lng, an_map_address, an_type, time, reading, reading1, an_dateAdded, an_addedBy, an_dateUpdated, an_updated_by) 
+                    VAlUES $values";
+                $this->db->query("DELETE FROM tbl_app_nodes");
+                $this->db->query($sql);
             }
 
             $state      = $this->ApisModel->stateOk();
             $state_name = "success";
-            $state_code = 100;
-            $message    = "Sucessful (" . $total . " places updated)";
+            $state_code = 109;
+            $message    = "Successfully updated places";
             $debug      = "API Config OK";
             echo  $this->ApisModel->api_response($response, $state, $state_name, $state_code, $message, $debug);
         } else {
