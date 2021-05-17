@@ -9,7 +9,7 @@
 				</form>
 				<br>
 				<div class="hide" id="search-results">
-					
+
 				</div>
 			</div>
 		</div>
@@ -224,7 +224,8 @@
 								<td style="background-color:#F9DC09; color: #fff;">12.1 - 35.4</td>
 								<td style="background-color:#F9DC09; color: #fff;">Moderate</td>
 								<td style="background-color:#F9DC09; color: #fff;"><b>Unusually sensitive people</b>: Consider reducing prolonged or heavy exertion.<br />
-									<b>Everyone else</b>: Air pollution poses little or no risk.</td>
+									<b>Everyone else</b>: Air pollution poses little or no risk.
+								</td>
 							</tr>
 							<tr>
 								<td style="background-color:#F39C12; color: #fff;">35.6 - 55.4</td>
@@ -233,36 +234,36 @@
 								<td style="background-color:#F39C12; color: #fff;"><b>Sensitive groups</b>: Reduce prolonged or heavy exertion. It&#39;s OK to be active outside, but take more breaks and do less intense activities.<br />
 									<b>People with asthma </b>should follow their asthma action plans and keep quick relief medicine handy.<br />
 									<b>If you have heart disease</b>: Symptoms such as palpitations, shortness of breath, or unusual fatigue may indicate a serious problem. If you have any of<br />
-									these, contact your heath care provider.</td>
+									these, contact your heath care provider.
+								</td>
 							</tr>
 							<tr>
 								<td style="background-color:#F31637; color: #fff;">55.5 - 150.4</td>
 								<td style="background-color:#F31637; color: #fff;">Unhealthy</td>
 								<td style="background-color:#F31637; color: #fff;"><b>Sensitive groups</b>: Avoid prolonged or heavy exertion. Consider moving activities indoors or rescheduling.<br />
-									<b>Everyone else</b>: Reduce prolonged or heavy exertion. Take more breaks during all outdoor activities.</td>
+									<b>Everyone else</b>: Reduce prolonged or heavy exertion. Take more breaks during all outdoor activities.
+								</td>
 							</tr>
 							<tr>
 								<td style="background-color:#7C47B5; color: #fff;">150.5 - 250.4</td>
 								<td style="background-color:#7C47B5; color: #fff;">Very unhealthy</td>
 								<td style="background-color:#7C47B5; color: #fff;"><b>Sensitive groups</b>: Avoid all physical activity outdoors. Move activities indoors or reschedule to a time when air quality is better.<br />
 									<b>Everyone else</b>: Avoid prolonged or heavy exertion. Consider moving activities indoors or rescheduling to a time when air quality is better.<br />
-									&nbsp;</td>
+									&nbsp;
+								</td>
 							</tr>
 							<tr>
 								<td style="background-color:#930B15; color: #fff;">250.5 - 500.4</td>
 								<td style="background-color:#930B15; color: #fff;">Hazardous</td>
 								<td style="background-color:#930B15; color: #fff;"><b>Everyone</b>: Avoid all physical activity outdoors.<br />
-									<b>Sensitive groups</b>: Remain indoors and keep activity levels low. Follow tips for keeping particle levels low indoors.</td>
+									<b>Sensitive groups</b>: Remain indoors and keep activity levels low. Follow tips for keeping particle levels low indoors.
+								</td>
 							</tr>
 						</tbody>
 					</table>
 					<div class="col-md-12 col-lg-12 col-sm-12 col-xs-12 myProject">
 						<div class="text-section">
-							<!--<p>Chart:</p>-->
-							<!--<div id="node" style=" width: 100%; height: 400px; border: 1px solid gray;"></div>-->
-							<!--<div class="col-md-12">-->
 
-							<!--</div>-->
 
 						</div>
 					</div>

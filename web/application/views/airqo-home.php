@@ -9,34 +9,26 @@
 <script src="<?= base_url(); ?>assets/code/modules/export-data.js"></script>
 <script src="<?= base_url(); ?>assets/leaflet/leaflet.markercluster-src.js"></script>
 <style>
-.buz-para{
-	font-size:1.8em; 
-	line-height: normal;
-}
-/* Extra small devices (phones, 600px and down) */
-@media only screen and (max-width: 600px) {
+	.buz-para {
+		font-size: 1.8em;
+		line-height: normal;
+	}
 
-}
+	/* Extra small devices (phones, 600px and down) */
+	@media only screen and (max-width: 600px) {}
 
-/* Small devices (portrait tablets and large phones, 600px and up) */
-@media only screen and (min-width: 600px) {
+	/* Small devices (portrait tablets and large phones, 600px and up) */
+	@media only screen and (min-width: 600px) {}
 
-}
+	/* Medium devices (landscape tablets, 768px and up) */
+	@media only screen and (min-width: 768px) {}
 
-/* Medium devices (landscape tablets, 768px and up) */
-@media only screen and (min-width: 768px) {
+	/* Large devices (laptops/desktops, 992px and up) */
+	@media only screen and (min-width: 992px) {}
 
-}
+	/* Extra large devices (large laptops and desktops, 1200px and up) */
+	@media only screen and (min-width: 1200px) {}
 
-/* Large devices (laptops/desktops, 992px and up) */
-@media only screen and (min-width: 992px) {
-
-}
-
-/* Extra large devices (large laptops and desktops, 1200px and up) */
-@media only screen and (min-width: 1200px) {
-
-} 
 	.map-scroll:before {
 		content: 'Use ctrl + scroll to zoom the map';
 		position: absolute;
@@ -134,7 +126,7 @@
 <div class="w3l-index-block1">
 	<div class="content py-5">
 		<div class="container">
-			
+
 		</div>
 	</div>
 </div>
@@ -165,87 +157,47 @@
 </section>
 
 <div class="w3l-index-block1">
-     <div class="content py-0">
-          <div class="container">
-               <div class="row align-items-center py-md-0 py-0">
-                    <div class="col-md-12 content-left pt-md-0 pt-0">
-                        <div id="leafletmap" style="position: relative; width: 100%; height:650px; border:1px solid #999 !important; z-index:0; background-color: rgb(38, 38, 38);"></div>              
-                    </div>
-               </div>
-               <div class="col-md-12 content-left pt-md-0 pt-5">
-                    <p class="mt-3 mb-md-5 mb-4">
-                        <b>AQI Key</b>
-                    </p>
-                    <div class="container">
-                        <div class="row">
-                            <div class="card col-md-2 text-center" style="background-color: #45e50d; color: #000;">
-                                <img src="<?= base_url(); ?>assets/images/face_good.png" style="width: 20px;" /> Good (0-12)
-                            </div>
-                            <div class="card col-md-2 text-center" style="background-color: #f8fe28; color: #000;">
-                                <img src="<?= base_url(); ?>assets/images/face_moderate.png" style="width: 20px;" /> Moderate (12.1 - 35.4)
-                            </div>
-                            <div class="card col-md-2 text-center" style="background-color: #ee8310; color: #fff;">
-                                <img src="<?= base_url(); ?>assets/images/face_unhealthy.png" style="width: 20px;" /> Unhealthy for sensitive groups (35.6 - 55.4)
-                            </div>
-                            <div class="card col-md-2 text-center" style="background-color: #fe0000; color: #fff;">
-                                <img src="<?= base_url(); ?>assets/images/face_unhealthy1.png" style="width: 20px;" /> Unhealthy (55.5 - 150.4)
-                            </div>
-                            <div class="card col-md-2 text-center" style="background-color: #8639c0; color: #fff;">
-                                <img src="<?= base_url(); ?>assets/images/face_vunhealthy.png" style="width: 20px;" /> Very Unhealthy (150.5 - 250.4)
-                            </div>
-                            <div class="card col-md-2 text-center" style="background-color: #81202e; color: #fff;">
-                                <img src="<?= base_url(); ?>assets/images/face_hazardous.png" style="width: 20px;" /> Hazardous (250.5 - 500.4)
-                            </div>
-                        </div>
-                    </div>
-                    <p class="mt-3 mb-md-5 mb-4">
-                        <b>PM<sub>2.5</sub> - Particulate Matter</b>
-                    </p>
-                </div>
-               <div class="clear"></div>
-          </div>
-     </div>
+	<div class="content py-0">
+		<div class="container">
+			<div class="row align-items-center py-md-0 py-0">
+				<div class="col-md-12 content-left pt-md-0 pt-0">
+					<div id="leafletmap" style="position: relative; width: 100%; height:650px; border:1px solid #999 !important; z-index:0; background-color: rgb(38, 38, 38);"></div>
+				</div>
+			</div>
+			<div class="col-md-12 content-left pt-md-0 pt-5">
+				<p class="mt-3 mb-md-5 mb-4">
+					<b>AQI Key</b>
+				</p>
+				<div class="container">
+					<div class="row">
+						<div class="card col-md-2 text-center" style="background-color: #45e50d; color: #000;">
+							<img src="<?= base_url(); ?>assets/images/face_good.png" style="width: 20px;" /> Good (0-12)
+						</div>
+						<div class="card col-md-2 text-center" style="background-color: #f8fe28; color: #000;">
+							<img src="<?= base_url(); ?>assets/images/face_moderate.png" style="width: 20px;" /> Moderate (12.1 - 35.4)
+						</div>
+						<div class="card col-md-2 text-center" style="background-color: #ee8310; color: #fff;">
+							<img src="<?= base_url(); ?>assets/images/face_unhealthy.png" style="width: 20px;" /> Unhealthy for sensitive groups (35.6 - 55.4)
+						</div>
+						<div class="card col-md-2 text-center" style="background-color: #fe0000; color: #fff;">
+							<img src="<?= base_url(); ?>assets/images/face_unhealthy1.png" style="width: 20px;" /> Unhealthy (55.5 - 150.4)
+						</div>
+						<div class="card col-md-2 text-center" style="background-color: #8639c0; color: #fff;">
+							<img src="<?= base_url(); ?>assets/images/face_vunhealthy.png" style="width: 20px;" /> Very Unhealthy (150.5 - 250.4)
+						</div>
+						<div class="card col-md-2 text-center" style="background-color: #81202e; color: #fff;">
+							<img src="<?= base_url(); ?>assets/images/face_hazardous.png" style="width: 20px;" /> Hazardous (250.5 - 500.4)
+						</div>
+					</div>
+				</div>
+				<p class="mt-3 mb-md-5 mb-4">
+					<b>PM<sub>2.5</sub> - Particulate Matter</b>
+				</p>
+			</div>
+			<div class="clear"></div>
+		</div>
+	</div>
 </div>
-
-<!--<div class="w3l-index-block1">
-     <div class="content py-5">
-          <div class="container">
-               <div class="row align-items-center py-md-5 py-3">
-                    <div class="col-md-12 content-left pt-md-0 pt-5">
-                        <p class="mt-3 mb-md-5 mb-4">
-                            <b>AQI Key</b>
-                        </p>
-                        <div class="container">
-                            <div class="row">
-                                <div class="card col-md-2 text-center" style="background-color: #45e50d; color: #000;">
-                                    <img src="<?= base_url(); ?>assets/images/face_good.png" style="width: 20px;" /> Good (0-12)
-                                </div>
-                                <div class="card col-md-2 text-center" style="background-color: #f8fe28; color: #000;">
-                                    <img src="<?= base_url(); ?>assets/images/face_moderate.png" style="width: 20px;" /> Moderate (12.1 - 35.4)
-                                </div>
-                                <div class="card col-md-2 text-center" style="background-color: #ee8310; color: #fff;">
-                                    <img src="<?= base_url(); ?>assets/images/face_unhealthy.png" style="width: 20px;" /> Unhealthy for sensitive groups (35.6 - 55.4)
-                                </div>
-                                <div class="card col-md-2 text-center" style="background-color: #fe0000; color: #fff;">
-                                    <img src="<?= base_url(); ?>assets/images/face_unhealthy1.png" style="width: 20px;" /> Unhealthy (55.5 - 150.4)
-                                </div>
-                                <div class="card col-md-2 text-center" style="background-color: #8639c0; color: #fff;">
-                                    <img src="<?= base_url(); ?>assets/images/face_vunhealthy.png" style="width: 20px;" /> Very Unhealthy (150.5 - 250.4)
-                                </div>
-                                <div class="card col-md-2 text-center" style="background-color: #81202e; color: #fff;">
-                                    <img src="<?= base_url(); ?>assets/images/face_hazardous.png" style="width: 20px;" /> Hazardous (250.5 - 500.4)
-                                </div>
-                            </div>
-                        </div>
-                        <p class="mt-3 mb-md-5 mb-4">
-                            <b>PM<sub>2.5</sub> - Particulate Matter</b>
-                        </p>
-                    </div>
-               </div>
-               <div class="clear"></div>
-          </div>
-     </div>
-</div>-->
 
 <div class="w3l-index-block1">
 	<div class="content py-3">
@@ -258,8 +210,8 @@
 					<h1 style="color:#3067e2; font-family:'Raleway Bold'; font-size:3em; line-height: 2em;">Know your Air</h1>
 					<p class="mt-3 mb-md-5 mb-4 text-justify" style="font-size:1.5em; line-height: normal;">
 						The first step towards improving air quality
-						is being able to monitor it, quantify prevailing 
-						pollution levels while identifying sources, to inform 
+						is being able to monitor it, quantify prevailing
+						pollution levels while identifying sources, to inform
 						mitigation actions for individuals and policymakers.
 					</p>
 					<hr>
@@ -282,7 +234,7 @@
 						</div>
 					</div>
 				</div>
-				
+
 			</div>
 			<!-- <div class="clear"></div> -->
 		</div>
@@ -377,7 +329,9 @@
 	}
 
 	$(window).load(function() {
-		var map = L.map('leafletmap', {dragging: true}).setView([0.328015, 32.595011], 8);
+		var map = L.map('leafletmap', {
+			dragging: true
+		}).setView([0.328015, 32.595011], 8);
 		map.addControl(new L.Control.Fullscreen());
 		if (L.Browser.mobile) {
 			map.scrollWheelZoom.disable();
@@ -392,7 +346,7 @@
 			type: 'POST',
 			url: '<?= site_url("Apis/airqoPlacesCached"); ?>',
 			data: {
-				api: "AQ_9ec70a070c75E6af14FCca86/0621d1D83"
+				api: "<?= API_KEY; ?>"
 			},
 			dataType: 'json',
 			beforeSend: function() {

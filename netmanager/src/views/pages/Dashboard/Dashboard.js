@@ -21,12 +21,15 @@ import { useEffect, useState } from "react";
 import "chartjs-plugin-annotation";
 import palette from "theme/palette";
 import axios from "axios";
-import constants from "config/constants";
 import { MoreHoriz } from "@material-ui/icons";
 import Menu from "@material-ui/core/Menu";
 import MenuItem from "@material-ui/core/MenuItem";
 import domtoimage from "dom-to-image";
 import JsPDF from "jspdf";
+import {
+  GET_PM25_CATEGORY_COUNT_URI,
+  GET_HISTORICAL_DAILY_MEAN_AVERAGES_FOR_LAST_28_DAYS_URI,
+} from "config/urls/analytics";
 import { useUserDefaultGraphsData } from "redux/Dashboard/selectors";
 import { loadUserDefaultGraphData } from "redux/Dashboard/operations";
 import { useOrgData } from "redux/Join/selectors";
@@ -100,7 +103,7 @@ const Dashboard = (props) => {
 
   useEffect(() => {
     axios
-      .get(constants.GET_PM25_CATEGORY_COUNT_URI)
+      .get(GET_PM25_CATEGORY_COUNT_URI)
       .then((res) => res.data)
       .then((data) => {
         setPm25CategoriesLocationCount(data);
@@ -114,7 +117,7 @@ const Dashboard = (props) => {
   const [locations, setLocations] = useState([]);
 
   useEffect(() => {
-    fetch(constants.GET_HISTORICAL_DAILY_MEAN_AVERAGES_FOR_LAST_28_DAYS_URI)
+    fetch(GET_HISTORICAL_DAILY_MEAN_AVERAGES_FOR_LAST_28_DAYS_URI)
       .then((res) => res.json())
       .then((locationsData) => {
         const zippedArr = zip(

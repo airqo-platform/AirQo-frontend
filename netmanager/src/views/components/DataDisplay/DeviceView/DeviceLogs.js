@@ -1,11 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { isEmpty } from "underscore";
-import {
-  Button,
-  Grid,
-  Paper,
-} from "@material-ui/core";
+import { Button, Grid, Paper } from "@material-ui/core";
 import TextField from "@material-ui/core/TextField";
 import {
   KeyboardDatePicker,
@@ -559,7 +555,7 @@ export default function DeviceLogs({ deviceName, deviceLocation }) {
         dispatch(loadDeviceMaintenanceLogs(deviceName));
       }
     }
-  });
+  }, []);
 
   return (
     <>

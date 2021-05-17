@@ -14,7 +14,6 @@ import {
   DialogTitle,
 } from "@material-ui/core";
 import LoadingOverlay from "react-loading-overlay";
-import constants from "../../../config/constants.js";
 import TextField from "@material-ui/core/TextField";
 import Select from "@material-ui/core/Select";
 import FormControl from "@material-ui/core/FormControl";
@@ -31,6 +30,7 @@ import { updateMainAlert } from "redux/MainAlert/operations";
 import { updateDeviceBackUrl } from "redux/Urls/operations";
 import CustomMaterialTable from "../Table/CustomMaterialTable";
 import ConfirmDialog from "views/containers/ConfirmDialog";
+import { REGISTER_DEVICE_URI } from "config/urls/deviceRegistry";
 
 // css
 import "assets/css/device-registry.css";
@@ -126,10 +126,10 @@ const Cell = ({ fieldValue, data }) => {
   const history = useHistory();
   return (
     <div
-      style={{ fontFamily: "Open Sans", minHeight: "20px" }}
+      style={{ minHeight: "20px" }}
       onClick={() => history.push(`/device/${data.name}/overview`)}
     >
-      {fieldValue}
+      {fieldValue || "N/A"}
     </div>
   );
 };
@@ -145,10 +145,16 @@ const createDeviceColumns = (history, setDelState) => [
     field: "description",
     render: (data) => <Cell data={data} fieldValue={data.description} />,
   },
+
   {
-    title: "Device ID",
-    field: "channelID",
-    render: (data) => <Cell data={data} fieldValue={data.channelID} />,
+    title: "Site Name",
+    field: "siteName",
+    render: (data) => <Cell data={data} fieldValue={data.siteName} />,
+  },
+  {
+    title: "Location Name",
+    field: "locationName",
+    render: (data) => <Cell data={data} fieldValue={data.locationName} />,
   },
   {
     title: "Registration Date",
@@ -173,11 +179,7 @@ const createDeviceColumns = (history, setDelState) => [
       />
     ),
   },
-  {
-    title: "Location ID",
-    field: "locationID",
-    render: (data) => <Cell data={data} fieldValue={data.LocationID} />,
-  },
+
   {
     title: "Actions",
     render: (rowData) => (
@@ -238,7 +240,7 @@ const CreateDevice = ({ open, setOpen, devices, setDevices }) => {
   let handleRegisterSubmit = (e) => {
     setOpen(false);
     axios
-      .post(constants.REGISTER_DEVICE_URI, JSON.stringify(newDevice), {
+      .post(REGISTER_DEVICE_URI, JSON.stringify(newDevice), {
         headers: { "Content-Type": "application/json" },
       })
       .then((res) => res.data)
