@@ -1012,8 +1012,8 @@ class Apis extends CI_Controller
     {
         $response = array();
         $this->ApisModel->init();
-        $devices_data = request("http://platform.airqo.net/api/v1/devices?tenant=airqo");
-        $events_data = request("http://platform.airqo.net/api/v1/devices/events?tenant=airqo&recent=true");
+        $devices_data = request(DEVICES_DATA);
+        $events_data = request(EVENTS_DATA);
 
 
         if ($devices_data['success'] and $events_data['success']) {
@@ -1145,7 +1145,7 @@ class Apis extends CI_Controller
             $channel = $this->ApisModel->escape($this->input->post("channel"));
             $validate = $this->ApisModel->validateAPI($api);
             if ($validate == $this->ApisModel->stateOk()) {
-                $json_url_lt = "https://data-manager-dot-airqo-250220.appspot.com/api/v1/data/feeds/hourly/" . $channel;
+                $json_url_lt = HOURLY_FEEDS.$channel;
                 $ch_lt = curl_init();
                 curl_setopt($ch_lt, CURLOPT_URL, $json_url_lt);
                 curl_setopt($ch_lt, CURLOPT_RETURNTRANSFER, 1);
