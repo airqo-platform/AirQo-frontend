@@ -148,7 +148,8 @@ export class MapPage {
               popupAnchor: [0, -30]
             });
 
-            console.log(this.nodes[i].time);
+            if( !this.nodes[i].time || this.nodes[i].time === "")
+              continue
 
             let airqo_popup = ''+
                 '<div class="marker-popup">'+

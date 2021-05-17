@@ -135,7 +135,6 @@ export class AddPlacePage {
   // Add Node to favorites list
   // --------------------------------------------------------------------------------------------------------------------
   addToFavoritesList(node) {
-    console.log(node);
 
     let nodeToAdd = {
       channel_id: node.channel_id,
@@ -147,9 +146,20 @@ export class AddPlacePage {
       refreshed: node.time,
       field1: node.field2,
     };
+    //
+    // const store = this.storage.get('favorites');
+
+    // if(store && store != '' && store.length > 0) {
+    //
+    // }
+    // else {
+    //
+    // }
+
 
     this.storage.get('favorites').then((val) => {
       let nodes = [];
+      console.log(val);
       if(val && val != '' && val.length > 0) {
         if(val.filter(item => item.channel_id === node.channel_id).length != 0){
           this.toastCtrl.create({
@@ -194,7 +204,8 @@ export class AddPlacePage {
             }]
           }).present();
         }
-      } else {
+      }
+      else {
 
         nodes.push(this.api.nodeToStorage(nodeToAdd));
         this.storage.set('favorites', nodes);

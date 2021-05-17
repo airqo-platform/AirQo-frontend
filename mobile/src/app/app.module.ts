@@ -45,10 +45,12 @@ import { Device } from '@ionic-native/device';
   imports: [
     BrowserModule,
     IonicModule.forRoot(MyApp),
-    IonicStorageModule.forRoot({
-      name: '_mydb',
-      driverOrder: ['indexeddb', 'sqlite', 'websql'],
-    }),
+    // IonicStorageModule.forRoot({
+    //   name: '_mydb',
+    //    driverOrder: ['indexeddb', 'sqlite', 'websql'],
+    //
+    // }),
+    IonicStorageModule.forRoot(),
     HttpClientModule,
   ],
   bootstrap: [IonicApp],

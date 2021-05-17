@@ -335,7 +335,11 @@ export class ApiProvider {
   public getReadableInternationalDateFormatFromISOString(date) {
     // TODO: There's a need to check if the 'date' that is passed is in ISO format or regular format.
 
-    return new Date(date);
+    if (this.isISOFormat(date)) {
+      return new Date(date);
+    }
+
+    return new Date("2021-01-01T00:00:00Z");
   }
 
   // --------------------------------------------------------------------------------------------------------------------
@@ -370,7 +374,6 @@ export class ApiProvider {
   // --------------------------------------------------------------------------------------------------------------------
   public getReadableInternationalDateFormatFromSQLFormat(date) {
     if(date){
-
       return new Date(date.replace(/-/g, "/"));
     }
   }
@@ -388,11 +391,6 @@ export class ApiProvider {
     let year   = day    * 365;
 
     let suffix = ' ago';
-
-    // console.log(date);
-    // console.log(new Date(date));
-    // console.log(Date.now().toLocaleString());
-    // console.log((Date.now() - date) / 1000);
 
     let elapsed = Math.floor((Date.now() - date) / 1000);
 
