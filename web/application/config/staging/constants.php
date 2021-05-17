@@ -86,6 +86,9 @@ defined('EXIT__AUTO_MIN')      or define('EXIT__AUTO_MIN', 9); // lowest automat
 defined('EXIT__AUTO_MAX')      or define('EXIT__AUTO_MAX', 125); // highest automatically-assigned error code
 
 define('FORECAST_LINK', 'https://staging-platform.airqo.net/api/v2/predict/');
+define('HOURLY_FEEDS', 'https://data-manager-dot-airqo-250220.appspot.com/api/v1/data/feeds/hourly/');
+define('DEVICES_DATA', 'http://staging-platform.airqo.net/api/v1/devices?tenant=airqo');
+define('EVENTS_DATA', 'http://staging-platform.airqo.net/api/v1/devices/events?tenant=airqo&recent=true');
 define('API_KEY', getenv('API_KEY'));
 define('ANDROID_APP_LINK', 'https://play.google.com/store/apps/details?id=com.airqo.app');
 define('APPLE_APP_LINK', 'https://itunes.apple.com/ug/app/airqo-monitoring-air-quality/id1337573091?mt=8');
