@@ -24,7 +24,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 |
 */
 //$base = (ENVIRONMENT !== 'production')  ? "https://".$_SERVER['HTTP_HOST']:"https://".$_SERVER['HTTP_HOST'];
-switch(ENIRONMENT){
+switch(ENVIRONMENT){
     case 'production':
         $base = "https://".$_SERVER['HTTP_HOST'];
         break;
