@@ -181,12 +181,12 @@
 
 				<div class="row">
 					<div class="col-md-6" style="padding: 15px;">
-						<a href="https://itunes.apple.com/ug/app/airqo-monitoring-air-quality/id1337573091?mt=8" target="_blank">
+						<a href="<?= APPLE_APP_LINK; ?>" target="_blank">
 							<img src="<?= base_url(); ?>assets/images/download2.png" style="height: 80px; width: 80%" class="img-fluid">
 						</a>
 					</div>
 					<div class="col-md-6" style="padding: 15px;">
-						<a href="https://play.google.com/store/apps/details?id=com.airqo.net&hl=en" target="_blank">
+						<a href="<?= ANDROID_APP_LINK; ?>" target="_blank">
 							<img src="<?= base_url(); ?>assets/images/download1.png" style="height: 80px; width: 80%" class="img-fluid">
 						</a>
 					</div>

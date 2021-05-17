@@ -84,10 +84,10 @@
 			<p class="my-3 head">Download the AirQo app</p>
 		</div>
 		<div class="buttons mt-4">
-			<a href="https://itunes.apple.com/ug/app/airqo-monitoring-air-quality/id1337573091?mt=8" class="btn mr-2">
+			<a href="<?= APPLE_APP_LINK; ?>" class="btn mr-2">
 				<img src="<?= base_url(); ?>assets/images/download2.png" width="200" class="img-fluid">
 			</a>
-			<a href="https://play.google.com/store/apps/details?id=com.airqo.net&hl=en" class="btn mr-2">
+			<a href="<?= ANDROID_APP_LINK; ?>" class="btn mr-2">
 				<img src="<?= base_url(); ?>assets/images/download1.png" style="height: 62px !important;" width="200" class="img-fluid">
 			</a>
 			
