@@ -48,7 +48,6 @@ export class NodePage {
           // }
         } else {
           this.node.feeds  = {};
-          // this.node.value  = '0.00';
         }
 
         if(this.node.lat && this.node.lng){
@@ -80,7 +79,7 @@ export class NodePage {
 
 
   // --------------------------------------------------------------------------------------------------------------------
-  // Fires every time page loads
+  // Fires everytime page loads
   // --------------------------------------------------------------------------------------------------------------------
   async ionViewDidEnter() {
     this.isNodeFavorite(this.node);

@@ -33,12 +33,12 @@ export class IntroPage {
 
 
   ngOnInit(){
-    this.storage.get('first-use').then((val) => {
+    this.storage.get('first_use').then((val) => {
       if(val && val != '') {
         this.goToHomePage();
       }
       else {
-        this.storage.set('first-use', true);
+        this.storage.set('first_use', true);
       }
     });
   }

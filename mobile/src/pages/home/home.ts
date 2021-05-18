@@ -102,6 +102,14 @@ export class HomePage {
 
     this.platform.ready().then(() => {
 
+      let loader = this.loadingCtrl.create({
+        spinner: 'ios',
+        enableBackdropDismiss: false,
+        dismissOnPageChange: true,
+        showBackdrop: true
+      });
+
+
       this.geolocation.getCurrentPosition(options).then((pos) => {
         let params = {
           api: this.api.api_key,
@@ -109,9 +117,12 @@ export class HomePage {
           lng: pos.coords.longitude,
         };
 
+        loader.dismiss();
+
         this.getNearestNodeReading(params);
       }).catch((error) => {
         console.log('Error getting location: ', error);
+        loader.dismiss();
         this.getCoordinatesByIP();
       });
     });
@@ -142,7 +153,7 @@ export class HomePage {
   // --------------------------------------------------------------------------------------------------------------------
   getNearestNodeReading(params) {
     if(this.api.isConnected()){
-      // console.info(params);
+      console.info(params);
 
       let loader = this.loadingCtrl.create({
         spinner: 'ios',
@@ -153,7 +164,7 @@ export class HomePage {
 
       loader.present().then(() => {
         this.http.post(this.get_nearest_node_api, params).subscribe((result: any) => {
-          // console.log(result);
+          console.log(result);
           loader.dismiss();
   
           this.nearest_node_api_success = result.success;
@@ -163,8 +174,8 @@ export class HomePage {
             this.nearest_node.date              = (new Date().toISOString());
             this.storage.set("nearest_node", this.nearest_node);
 
-            // console.log(this.nearest_node);
-            // console.log(this.lastest_nearest_node_reading);
+            console.log(this.nearest_node);
+            console.log(this.lastest_nearest_node_reading);
           }
         }, (err) => {
           loader.dismiss();
@@ -198,9 +209,9 @@ export class HomePage {
 
         try{
           this.http.post(this.get_favorite_nodes_api, params).subscribe((result: any) => {
-            // console.log(nodes[i].name);
-            // console.log(result);
-            // console.log(result.nodes[0].lastfeeds);
+            console.log(element.name);
+            console.log(result);
+            console.log(result.nodes[0].lastfeeds);
 
             if (result.success == '100') {
 
@@ -218,62 +229,11 @@ export class HomePage {
               const index = this.favorite_nodes.indexOf(element);
               if (index > -1) {
 
-                // console.log(this.favorite_nodes[index]);
-                // console.log(element);
-                // console.log(node);
-                // console.log(this.favorite_nodes);
-
                 this.favorite_nodes.splice(index, 1);
                 this.favorite_nodes.push(node);
                 this.updateOfflineNodesReadings();
 
-
-
               }
-
-              // for(let i = 0; i < nodes.length; i++) {
-              //   if(nodes[i].channel_id == node.channel_id) {
-              //
-              //     const index = this.favorite_nodes.indexOf(nodes[i]);
-              //     if (index > -1) {
-              //       this.favorite_nodes.splice(index, 1);
-              //       this.favorite_nodes.push(node);
-              //       this.updateOfflineNodesReadings();
-              //
-              //       console.log(this.favorite_nodes[index]);
-              //       console.log(node);
-              //       console.log(this.favorite_nodes);
-              //
-              //     }
-              //
-              //   }
-              // }
-
-              // if(holder_favorite_nodes.filter(item => item.channel_id === node.channel_id).length != 0){
-              //   for(let i = 0; i < holder_favorite_nodes.length; i++) {
-              //     if(holder_favorite_nodes[i].channel_id == node.channel_id) {
-              //
-              //       const index = this.favorite_nodes.indexOf(holder_favorite_nodes[i]);
-              //       if (index > -1) {
-              //         this.favorite_nodes.splice(index, 1);
-              //         this.favorite_nodes.push(node);
-              //         this.updateOfflineNodesReadings();
-              //
-              //         console.log(node);
-              //         console.log(this.favorite_nodes);
-              //
-              //       }
-              //
-              //     }
-              //   }
-              // }
-
-
-              // if(holder_favorite_nodes.map(obj =>  node.channel_id === obj.channel_id || obj)){
-              //   this.favorite_nodes = holder_favorite_nodes;
-              // }
-              //
-              // console.log(this.favorite_nodes);
 
             }
           });
@@ -284,22 +244,9 @@ export class HomePage {
 
       });
 
-
-      // if(holder_favorite_nodes.length > 0){
-      //   this.favorite_nodes = holder_favorite_nodes;
-      // }
-
-
       if(refresher){
         refresher.complete();
       }
-      // if(this.favorite_nodes.length > favorite_nodes.length){
-      //   if(this.favorite_nodes.length > 0){
-      //     this.favorite_nodes_api_success = '100';
-      //   } else {
-      //     this.favorite_nodes_api_success = null
-      //   }
-      // }
     }
   }
 

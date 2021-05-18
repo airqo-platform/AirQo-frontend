@@ -12,7 +12,6 @@ import { Device } from '@ionic-native/device';
 })
 export class MyApp {
 
-
   @ViewChild('content') navCtrl: NavController
 
   rootPage: any = IntroPage;
@@ -62,12 +61,25 @@ export class MyApp {
         }
       }
 
-      this.storage.get('first-use').then((val) => {
+      this.storage.get('first_use').then((val) => {
         if(val && val != '') {
           this.rootPage = HomePage;
         }
       });
 
+    });
+  }
+
+  // --------------------------------------------------------------------------------------------------------------------
+  // See if user is first time user or not
+  // --------------------------------------------------------------------------------------------------------------------
+  directUser() {
+    this.storage.get('first_use').then((val) => {
+      if(val && val != null && val != '') {
+        this.rootPage = HomePage;
+      } else {
+        this.rootPage = IntroPage;
+      }
     });
   }
 }

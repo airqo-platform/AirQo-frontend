@@ -146,16 +146,6 @@ export class AddPlacePage {
       refreshed: node.time,
       field1: node.field2,
     };
-    //
-    // const store = this.storage.get('favorites');
-
-    // if(store && store != '' && store.length > 0) {
-    //
-    // }
-    // else {
-    //
-    // }
-
 
     this.storage.get('favorites').then((val) => {
       let nodes = [];
@@ -171,19 +161,7 @@ export class AddPlacePage {
         }
         else {
 
-          // an_type: "Commercial area"
-          // channel_id: "912223"
-          // churl: "OTEyMjIz"
-          // field2: "51.37"
-          // lat: "0.34167400"
-          // lng: "32.63530600"
-          // location: "Banda Industrial Area, Kampala"
-          // name: "Banda (Industrial), Kampala"
-          // time: "2021-05-11T14:00:16Z"
-
           console.log(nodeToAdd);
-
-
 
           val.push(this.api.nodeToStorage(nodeToAdd));
           this.storage.set('favorites', val);

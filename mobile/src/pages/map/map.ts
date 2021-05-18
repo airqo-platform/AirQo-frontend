@@ -218,7 +218,6 @@ export class MapPage {
           console.log('add Markers error');
           console.log(e);
         }
-
       }
     }
   }
