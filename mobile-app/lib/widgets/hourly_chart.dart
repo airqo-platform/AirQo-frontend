@@ -11,14 +11,14 @@ class HourlyBarChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.white54,
+      color: Colors.white,
       height: 300,
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 30),
+      padding: const EdgeInsets.fromLTRB(12, 20, 5, 20),
       child: Column(
         children: <Widget>[
           const Center(
             child: Text(
-              'Last 48 hours',
+              '48 hour History',
               softWrap: true,
               style: TextStyle(
                   fontSize: 17, color: appColor, fontWeight: FontWeight.bold),
@@ -30,15 +30,15 @@ class HourlyBarChart extends StatelessWidget {
               animate: true,
               defaultRenderer: charts.BarRendererConfig<DateTime>(),
               defaultInteractions: true,
-              // domainAxis: const charts.DateTimeAxisSpec(
-              //     tickProviderSpec:
-              //     charts.DayTickProviderSpec(increments: [1]),
-              //     tickFormatterSpec: charts.AutoDateTimeTickFormatterSpec(
-              //       day: charts.TimeFormatterSpec(
-              //           format:
-              //           'EEE', transitionFormat: 'EEE', noonFormat: 'EEE'),
-              //     )
-              // ),
+              domainAxis: const charts.DateTimeAxisSpec(
+                  tickProviderSpec:
+                  charts.DayTickProviderSpec(increments: [1]),
+                  tickFormatterSpec: charts.AutoDateTimeTickFormatterSpec(
+                    day: charts.TimeFormatterSpec(
+                        format:
+                        'EEE, hh a', transitionFormat: 'EEE, hh a', noonFormat: 'EEE, hh a'),
+                  )
+              ),
               behaviors: [
                 // charts.SeriesLegend(
                 //   position: charts.BehaviorPosition.top,

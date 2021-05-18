@@ -29,16 +29,6 @@ class MapPageState extends State<MapPage> {
   var dbHelper = DBHelper();
   bool isLoading = true;
 
-  late BitmapDescriptor markerIcon;
-  final Map<String, BitmapDescriptor> _markerIcons = {};
-  List<String> markerColors = [
-    'good',
-    'moderate',
-    'sensitive',
-    'unhealthy',
-    'very unhealthy',
-    'hazardous'
-  ];
 
   @override
   void initState() {
@@ -75,7 +65,7 @@ class MapPageState extends State<MapPage> {
   }
 
   Future<void> _refreshMeasurements() async {
-    var message = 'Refreshing map, please wait.... ';
+    var message = 'Refreshing map.... ';
     await showSnackBar(context, message);
 
     var measurements = await AirqoApiClient(context).fetchMeasurements();
@@ -149,7 +139,7 @@ class MapPageState extends State<MapPage> {
                                 Navigator.push(context,
                                     MaterialPageRoute(builder: (context) {
                                   return SearchPage();
-                                }));
+                                })).then((value) => _getMeasurements());
                               },
                               decoration: const InputDecoration(
                                 hintStyle: TextStyle(fontSize: 13),
@@ -163,7 +153,12 @@ class MapPageState extends State<MapPage> {
                               ),
                             ),
                           ),
-                        )
+                        ),
+                        IconButton(
+                          iconSize: 30.0,
+                          icon: const Icon(Icons.refresh_outlined, color: appColor),
+                          onPressed: _refreshMeasurements,
+                        ),
                       ],
                     ),
                     Visibility(
@@ -192,35 +187,35 @@ class MapPageState extends State<MapPage> {
                     alignment: Alignment.center,
                     child: CircularProgressIndicator()),
               ),
-            Positioned(
-                bottom: 0,
-                left: 0,
-                right: 0,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    IconButton(
-                      iconSize: 30.0,
-                      icon: const Icon(Icons.refresh_outlined, color: appColor),
-                      onPressed: _refreshMeasurements,
-                    ),
-                    // IconButton(
-                    //   iconSize: 30.0,
-                    //   icon: const Icon(Icons.help_outline_outlined,
-                    //       color: appColor),
-                    //   onPressed: () {
-                    //     Navigator.push(
-                    //       context,
-                    //       MaterialPageRoute<void>(
-                    //         builder: (BuildContext context) => getHelpPage(''),
-                    //         fullscreenDialog: true,
-                    //       ),
-                    //     );
-                    //   },
-                    // ),
-                  ],
-                )),
+            // Positioned(
+            //     bottom: 0,
+            //     left: 0,
+            //     right: 0,
+            //     child: Row(
+            //       mainAxisAlignment: MainAxisAlignment.center,
+            //       crossAxisAlignment: CrossAxisAlignment.center,
+            //       children: [
+            //         IconButton(
+            //           iconSize: 30.0,
+            //           icon: const Icon(Icons.refresh_outlined, color: appColor),
+            //           onPressed: _refreshMeasurements,
+            //         ),
+            //         IconButton(
+            //           iconSize: 30.0,
+            //           icon: const Icon(Icons.help_outline_outlined,
+            //               color: appColor),
+            //           onPressed: () {
+            //             Navigator.push(
+            //               context,
+            //               MaterialPageRoute<void>(
+            //                 builder: (BuildContext context) => getHelpPage(''),
+            //                 fullscreenDialog: true,
+            //               ),
+            //             );
+            //           },
+            //         ),
+            //       ],
+            //     )),
           ],
         ));
   }
@@ -236,12 +231,7 @@ class MapPageState extends State<MapPage> {
   void showDetails(Device device) async {
     await Navigator.push(context, MaterialPageRoute(builder: (context) {
       return PlaceDetailsPage(device: device);
-    }));
-  }
-
-  void addToFavouritePlaces() async {
-    var message = 'Coming soon';
-    await showSnackBar(context, message);
+    })).then((value) => _getMeasurements());
   }
 
   void setMeasurements(List<Measurement> measurements) {
@@ -296,28 +286,38 @@ class MapPageState extends State<MapPage> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    Text(
-                      windowProperties.pm2_5.value.toString(),
-                      // style: TextStyle(
-                      //     color: Colors.white
-                      // ),
+
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(5, 0, 0, 0),
+                      child: Text(
+                        windowProperties.pm2_5.value.toString(),
+                      ),
                     ),
+                    // Expanded(child: Text(
+                    //   pmToString(windowProperties.pm2_5.value),
+                    //   maxLines: 4,
+                    //   softWrap: true,
+                    //   textAlign: TextAlign.center,
+                    // ),
+                    // ),
                     Text(
                       pmToString(windowProperties.pm2_5.value),
-                      //   style: TextStyle(
-                      //   color: Colors.white
-                      // ),
-                    ),
-                    Text(
-                      dateToString(windowProperties.time),
+                      maxLines: 4,
                       softWrap: true,
-                      overflow: TextOverflow.ellipsis,
-                      // style: TextStyle(
-                      //     color: Colors.white
-                      // ),
-                    )
+                      textAlign: TextAlign.center,
+                    ),
+
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(0, 0, 5, 0),
+                      child: Text(
+                        dateToString(windowProperties.time),
+                      ),
+                    ),
+
+
                   ],
-                )),
+                )
+            ),
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,

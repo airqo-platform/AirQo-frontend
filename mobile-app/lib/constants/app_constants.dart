@@ -246,3 +246,20 @@ class DbConstants {
 
   String get name => _name;
 }
+
+class ErrorMessages {
+  final String _socketException =
+      'Connection timeout';
+  final String _timeoutException =
+      'Connection timeout';
+  final String _appException =
+      'Connection timeout';
+
+  String get socketException => _socketException;
+
+  String get timeoutException => _timeoutException;
+
+  String get appException => _appException;
+
+
+}

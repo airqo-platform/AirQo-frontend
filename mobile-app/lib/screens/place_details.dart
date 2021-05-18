@@ -15,8 +15,6 @@ import 'package:app/widgets/help/aqi_index.dart';
 import 'package:app/widgets/expanding_action_button.dart';
 import 'package:app/widgets/historical_chart.dart';
 import 'package:app/widgets/hourly_chart.dart';
-import 'package:app/widgets/location_chart.dart';
-import 'package:app/widgets/pollutantCard.dart';
 import 'package:app/widgets/pollutantContainer.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -112,7 +110,6 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
       print('Getting device events error: $e');
 
       var message = 'Sorry, information is not available';
-      // await showSnackBar(context, message);
 
       setState(() {
         response = message;
@@ -281,16 +278,6 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                           }
 
                           var formattedData = hourlyChartData(results);
-
-                          // return SingleChildScrollView(
-                          //     scrollDirection: Axis.horizontal,
-                          //     child: Container(
-                          //       width: 500,
-                          //       height: 200,
-                          //       padding: const EdgeInsets.all(8),
-                          //       child: HistoricalBarChart(formattedData),
-                          //     )
-                          // );
 
                           return HourlyBarChart(formattedData);
                         } else {
@@ -467,7 +454,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
                         Padding(
-                          padding: const EdgeInsets.fromLTRB(0, 5, 0, 5),
+                          padding: const EdgeInsets.fromLTRB(5, 5, 5, 5),
                           child: Image.asset(
                             pmToEmoji(measurement.pm2_5.value),
                             height: 40,
@@ -484,7 +471,11 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                         ),
                         Text(
                           pmToString(measurement.pm2_5.value),
+                          textAlign: TextAlign.center,
+                          softWrap: true,
+                          overflow: TextOverflow.ellipsis,
                         ),
+
                       ],
                     )),
               ),

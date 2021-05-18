@@ -11,14 +11,14 @@ class ForecastBarChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.white54,
+      color: Colors.white,
       height: 300,
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 30),
+      padding: const EdgeInsets.fromLTRB(12, 10, 5, 10),
       child: Column(
         children: <Widget>[
           const Center(
             child: Text(
-              'Forecast',
+              '24 hour Forecast',
               softWrap: true,
               style: TextStyle(
                   fontSize: 17, color: appColor, fontWeight: FontWeight.bold),
@@ -34,9 +34,9 @@ class ForecastBarChart extends StatelessWidget {
                   tickProviderSpec: charts.DayTickProviderSpec(increments: [1]),
                   tickFormatterSpec: charts.AutoDateTimeTickFormatterSpec(
                     day: charts.TimeFormatterSpec(
-                        format: 'EEE',
-                        transitionFormat: 'EEE',
-                        noonFormat: 'EEE'),
+                        format: 'EEE, hh a',
+                        transitionFormat: 'EEE, hh a',
+                        noonFormat: 'EEE, hh a'),
                   )),
               behaviors: [
                 // charts.SeriesLegend(

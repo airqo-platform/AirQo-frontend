@@ -12,7 +12,7 @@ String dateToString(String formattedString) {
     switch (difference) {
       case 0:
         dateString =
-            'Today at ${DateFormat('hh:mm a')
+            '${DateFormat('hh:mm a')
                 .format(DateTime.parse(formattedString))}';
         break;
       case 1:

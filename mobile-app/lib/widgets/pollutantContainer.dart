@@ -13,7 +13,7 @@ class PollutantsContainer extends StatelessWidget {
     return ColoredBox(
         color: Colors.white54,
         child: Padding(
-          padding: EdgeInsets.all(5.0),
+          padding: const EdgeInsets.all(5.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
@@ -24,7 +24,7 @@ class PollutantsContainer extends StatelessWidget {
                     fontSize: 17, color: appColor, fontWeight: FontWeight.bold),
               ),
               Padding(
-                padding: EdgeInsets.all(5.0),
+                padding: const EdgeInsets.all(5.0),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [

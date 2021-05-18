@@ -11,4 +11,4 @@ const getDevice =
 const getHourlyEvents =
     'https://us-central1-airqo-250220.cloudfunctions.net/get_hourly_channel_data?channel_id=';
 
-const getForecastUrl = 'http://platform.airqo.net/api/v1/predict/';
+const getForecastUrl = 'http://staging-platform.airqo.net/api/v1/predict/';

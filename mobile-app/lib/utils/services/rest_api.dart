@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:app/config/secret.dart';
 import 'package:app/constants/api.dart';
+import 'package:app/constants/app_constants.dart';
 import 'package:app/models/device.dart';
 import 'package:app/models/hourly.dart';
 import 'package:app/models/place.dart';
@@ -46,23 +47,6 @@ class AirqoApiClient {
 
       return false;
     }
-
-    // final response =
-    // await http.post(Uri.parse('http://airqo.net'), body: feedback.toJson());
-    // print(response.body);
-    // print(response.statusCode);
-    //
-    // if (response.statusCode == 200) {
-    //   return true;
-    // } else {
-    //   print('Unexpected status code ${response.statusCode}:'
-    //       ' ${response.reasonPhrase}');
-    //   // return false;
-    //   throw HttpException(
-    //       'Unexpected status code ${response.statusCode}:'
-    //           ' ${response.reasonPhrase}',
-    //       uri: Uri.parse('http://airqo.net'));
-    // }
   }
 
   Future<List<Measurement>> fetchMeasurements() async {
@@ -86,8 +70,7 @@ class AirqoApiClient {
             var measurement = Measurement.fromJson(element);
             measurements.add(measurement);
           } on Error catch (e) {
-            print('Get Devices error: $e');
-            var message = 'Couldn\'t get locations, please try again later';
+            print('Mapping Devices error: $e');
           }
         }
 
@@ -100,15 +83,13 @@ class AirqoApiClient {
         return <Measurement>[];
       }
     } on SocketException {
-      var message = 'You are working offline, please connect to internet';
-      await showSnackBar(context, message);
+      await showSnackBar(context, ErrorMessages().socketException);
     } on TimeoutException {
-      var message = 'Connection timeout, please check your internet connection';
-      await showSnackBar(context, message);
+      await showSnackBar(context, ErrorMessages().timeoutException);
     } on Error catch (e) {
       print('Get Latest events error: $e');
-      var message = 'Connection timeout, please check your internet connection';
-      await showSnackBar(context, message);
+      await showSnackBar(context,
+          'Measurements not available, try again later');
     }
 
     return <Measurement>[];
@@ -156,15 +137,13 @@ class AirqoApiClient {
         return <Predict>[];
       }
     } on SocketException {
-      var message = 'You are working offline, please connect to internet';
-      await showSnackBar(context, message);
+      await showSnackBar(context, ErrorMessages().socketException);
     } on TimeoutException {
-      var message = 'Connection timeout, please check your internet connection';
-      await showSnackBar(context, message);
+      await showSnackBar(context, ErrorMessages().timeoutException);
     } on Error catch (e) {
-      print('Get Predictions error: $e');
-      var message = 'Connection timeout, please check your internet connection';
-      await showSnackBar(context, message);
+      print('Get Forecast error: $e');
+      // var message = 'Forecast data is not available, try again later';
+      // await showSnackBar(context, message);
     }
 
     return <Predict>[];
@@ -212,15 +191,13 @@ class AirqoApiClient {
             uri: Uri.parse(getLatestEvents));
       }
     } on SocketException {
-      var message = 'You are working offline, please connect to internet';
-      await showSnackBar(context, message);
+      await showSnackBar(context, ErrorMessages().socketException);
     } on TimeoutException {
-      var message = 'Connection timeout, please check your internet connection';
-      await showSnackBar(context, message);
+      await showSnackBar(context, ErrorMessages().timeoutException);
     } on Error catch (e) {
       print('Get Latest events error: $e');
       var message = 'Connection timeout, please check your internet connection';
-      await showSnackBar(context, message);
+      // await showSnackBar(context, message);
     }
 
     return <Measurement>[];
@@ -249,7 +226,6 @@ class AirqoApiClient {
             devices.add(device);
           } on Error catch (e) {
             print('Get Devices error: $e');
-            var message = 'Couldn\'t get locations, please try again later';
           }
         }
 
@@ -263,14 +239,12 @@ class AirqoApiClient {
             uri: Uri.parse(getDevices));
       }
     } on SocketException {
-      var message = 'You are working offline, please connect to internet';
-      await showSnackBar(context, message);
+      await showSnackBar(context, ErrorMessages().socketException);
     } on TimeoutException {
-      var message = 'Connection timeout, please check your internet connection';
-      await showSnackBar(context, message);
+      await showSnackBar(context, ErrorMessages().timeoutException);
     } on Error catch (e) {
       print('Get Devices error: $e');
-      var message = 'Couldn\'t get locations, please try again later';
+      var message = 'Recent locations are not available, please try again later';
       await showSnackBar(context, message);
     }
 
@@ -300,14 +274,12 @@ class AirqoApiClient {
             uri: Uri.parse(getDevices));
       }
     } on SocketException {
-      var message = 'You are working offline, please connect to internet';
-      await showSnackBar(context, message);
+      await showSnackBar(context, ErrorMessages().socketException);
     } on TimeoutException {
-      var message = 'Connection timeout, please check your internet connection';
-      await showSnackBar(context, message);
+      await showSnackBar(context, ErrorMessages().timeoutException);
     } on Error catch (e) {
       print('Get Devices error: $e');
-      var message = 'Couldn\'t get locations, please try again later';
+      var message = 'Location data is not available, please try again later';
       await showSnackBar(context, message);
     }
 
@@ -339,11 +311,9 @@ class AirqoApiClient {
             uri: Uri.parse('$getLatestDeviceEvents${device.channelID}'));
       }
     } on SocketException {
-      var message = 'You are working offline, please connect to internet';
-      await showSnackBar(context, message);
+      await showSnackBar(context, ErrorMessages().socketException);
     } on TimeoutException {
-      var message = 'Connection timeout, please check your internet connection';
-      await showSnackBar(context, message);
+      await showSnackBar(context, ErrorMessages().timeoutException);
     } on Error catch (e) {
       print('Get Devices error: $e');
       var message = 'Couldn\'t get location data, please try again later';
@@ -395,15 +365,13 @@ class AirqoApiClient {
         return <Hourly>[];
       }
     } on SocketException {
-      var message = 'You are working offline, please connect to internet';
-      await showSnackBar(context, message);
+      await showSnackBar(context, ErrorMessages().socketException);
     } on TimeoutException {
-      var message = 'Connection timeout, please check your internet connection';
-      await showSnackBar(context, message);
+      await showSnackBar(context, ErrorMessages().timeoutException);
     } on Error catch (e) {
       print('Get hourly measurements error: $e');
-      var message = 'Connection timeout, please check your internet connection';
-      await showSnackBar(context, message);
+      // var message = 'Connection timeout, please check your internet connection';
+      // await showSnackBar(context, message);
     }
 
     return <Hourly>[];
@@ -459,10 +427,9 @@ class GoogleSearchProvider {
         throw Exception('Failed to perform search, please try again later');
       }
     } on SocketException {
-      throw Exception('You are working offline, please connect to internet');
+      throw Exception(ErrorMessages().socketException);
     } on TimeoutException {
-      throw Exception(
-          'Your connection timed out, please check your network connection');
+      throw Exception(ErrorMessages().timeoutException);
     } on Error catch (e) {
       print('Update Latest events error: $e');
       throw Exception('Cannot get locations, please try again later');
@@ -496,10 +463,9 @@ class GoogleSearchProvider {
 
       return place;
     } on SocketException {
-      throw Exception('You are working offline, please connect to internet');
+      throw Exception(ErrorMessages().socketException);
     } on TimeoutException {
-      throw Exception(
-          'Your connection timed out, please check your network connection');
+      throw Exception(ErrorMessages().timeoutException);
     } on Error catch (e) {
       print('Update Latest events error: $e');
       throw Exception('Cannot get details, please try again later');
