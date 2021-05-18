@@ -42,6 +42,8 @@ export class NodePage {
       if(this.navParams.get("node")){
         this.node = this.navParams.get("node");
 
+        console.log(this.node);
+
         if(this.node.feeds){
           // if(this.api.isISOFormat(this.node.feeds.created_at)){
           //   this.node.time = null;

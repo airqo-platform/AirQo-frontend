@@ -169,9 +169,21 @@ export class HomePage {
   
           this.nearest_node_api_success = result.success;
           if (result.success == '100') {
-            this.nearest_node                   = result;
-            this.lastest_nearest_node_reading   = this.nearest_node.lastfeeds.field1;
-            this.nearest_node.date              = (new Date().toISOString());
+
+            let node = this.api.nodeToStorage({
+              channel_id: result.channel_id,
+              name: result.name,
+              location: result.location,
+              lat: result.lat,
+              lng: result.lng,
+              refreshed: result.lastfeeds.created_at,
+              field1: result.lastfeeds.field1,
+              feeds: result.lastfeeds,
+            });
+
+            this.nearest_node = node;
+            this.lastest_nearest_node_reading = node.value;
+
             this.storage.set("nearest_node", this.nearest_node);
 
             console.log(this.nearest_node);
@@ -327,8 +339,20 @@ export class HomePage {
   // View Node Details
   // --------------------------------------------------------------------------------------------------------------------
   viewDetails(node) {
+    console.log(node);
     this.navCtrl.push(NodePage, {
       node: node
     });
+  }
+
+
+  // --------------------------------------------------------------------------------------------------------------------
+  // View Node Details
+  // --------------------------------------------------------------------------------------------------------------------
+  viewLocationDetails() {
+    console.log(this.nearest_node);
+    // this.navCtrl.push(NodePage, {
+    //   node: this.nearest_node
+    // });
   }
 }

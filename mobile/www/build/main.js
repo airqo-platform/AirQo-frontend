@@ -197,14 +197,6 @@ var AddPlacePage = /** @class */ (function () {
             refreshed: node.time,
             field1: node.field2,
         };
-        //
-        // const store = this.storage.get('favorites');
-        // if(store && store != '' && store.length > 0) {
-        //
-        // }
-        // else {
-        //
-        // }
         this.storage.get('favorites').then(function (val) {
             var nodes = [];
             console.log(val);
@@ -218,15 +210,6 @@ var AddPlacePage = /** @class */ (function () {
                     _this.removeSingleNodeFromList(node);
                 }
                 else {
-                    // an_type: "Commercial area"
-                    // channel_id: "912223"
-                    // churl: "OTEyMjIz"
-                    // field2: "51.37"
-                    // lat: "0.34167400"
-                    // lng: "32.63530600"
-                    // location: "Banda Industrial Area, Kampala"
-                    // name: "Banda (Industrial), Kampala"
-                    // time: "2021-05-11T14:00:16Z"
                     console.log(nodeToAdd);
                     val.push(_this.api.nodeToStorage(nodeToAdd));
                     _this.storage.set('favorites', val);
@@ -1861,12 +1844,12 @@ var IntroPage = /** @class */ (function () {
     };
     IntroPage.prototype.ngOnInit = function () {
         var _this = this;
-        this.storage.get('first-use').then(function (val) {
+        this.storage.get('first_use').then(function (val) {
             if (val && val != '') {
                 _this.goToHomePage();
             }
             else {
-                _this.storage.set('first-use', true);
+                _this.storage.set('first_use', true);
             }
         });
     };
@@ -2008,12 +1991,10 @@ var AppModule = /** @class */ (function () {
                 __WEBPACK_IMPORTED_MODULE_14_ionic_angular__["f" /* IonicModule */].forRoot(__WEBPACK_IMPORTED_MODULE_17__app_component__["a" /* MyApp */], {}, {
                     links: []
                 }),
-                // IonicStorageModule.forRoot({
-                //   name: '_mydb',
-                //    driverOrder: ['indexeddb', 'sqlite', 'websql'],
-                //
-                // }),
-                __WEBPACK_IMPORTED_MODULE_20__ionic_storage__["a" /* IonicStorageModule */].forRoot(),
+                __WEBPACK_IMPORTED_MODULE_20__ionic_storage__["a" /* IonicStorageModule */].forRoot({
+                    name: '_mydb',
+                    driverOrder: ['indexeddb', 'sqlite', 'websql'],
+                }),
                 __WEBPACK_IMPORTED_MODULE_19__angular_common_http__["b" /* HttpClientModule */],
             ],
             bootstrap: [__WEBPACK_IMPORTED_MODULE_14_ionic_angular__["d" /* IonicApp */]],
@@ -2446,15 +2427,23 @@ var HomePage = /** @class */ (function () {
             enableHighAccuracy: true
         };
         this.platform.ready().then(function () {
+            var loader = _this.loadingCtrl.create({
+                spinner: 'ios',
+                enableBackdropDismiss: false,
+                dismissOnPageChange: true,
+                showBackdrop: true
+            });
             _this.geolocation.getCurrentPosition(options).then(function (pos) {
                 var params = {
                     api: _this.api.api_key,
                     lat: pos.coords.latitude,
                     lng: pos.coords.longitude,
                 };
+                loader.dismiss();
                 _this.getNearestNodeReading(params);
             }).catch(function (error) {
                 console.log('Error getting location: ', error);
+                loader.dismiss();
                 _this.getCoordinatesByIP();
             });
         });
@@ -2482,7 +2471,7 @@ var HomePage = /** @class */ (function () {
     HomePage.prototype.getNearestNodeReading = function (params) {
         var _this = this;
         if (this.api.isConnected()) {
-            // console.info(params);
+            console.info(params);
             var loader_1 = this.loadingCtrl.create({
                 spinner: 'ios',
                 enableBackdropDismiss: true,
@@ -2491,16 +2480,25 @@ var HomePage = /** @class */ (function () {
             });
             loader_1.present().then(function () {
                 _this.http.post(_this.get_nearest_node_api, params).subscribe(function (result) {
-                    // console.log(result);
+                    console.log(result);
                     loader_1.dismiss();
                     _this.nearest_node_api_success = result.success;
                     if (result.success == '100') {
-                        _this.nearest_node = result;
-                        _this.lastest_nearest_node_reading = _this.nearest_node.lastfeeds.field1;
-                        _this.nearest_node.date = (new Date().toISOString());
+                        var node = _this.api.nodeToStorage({
+                            channel_id: result.channel_id,
+                            name: result.name,
+                            location: result.location,
+                            lat: result.lat,
+                            lng: result.lng,
+                            refreshed: result.lastfeeds.created_at,
+                            field1: result.lastfeeds.field1,
+                            feeds: result.lastfeeds,
+                        });
+                        _this.nearest_node = node;
+                        _this.lastest_nearest_node_reading = node.value;
                         _this.storage.set("nearest_node", _this.nearest_node);
-                        // console.log(this.nearest_node);
-                        // console.log(this.lastest_nearest_node_reading);
+                        console.log(_this.nearest_node);
+                        console.log(_this.lastest_nearest_node_reading);
                     }
                 }, function (err) {
                     loader_1.dismiss();
@@ -2532,9 +2530,9 @@ var HomePage = /** @class */ (function () {
                         };
                         try {
                             _this.http.post(_this.get_favorite_nodes_api, params).subscribe(function (result) {
-                                // console.log(nodes[i].name);
-                                // console.log(result);
-                                // console.log(result.nodes[0].lastfeeds);
+                                console.log(element.name);
+                                console.log(result);
+                                console.log(result.nodes[0].lastfeeds);
                                 if (result.success == '100') {
                                     var node = _this.api.nodeToStorage({
                                         channel_id: element.channel_id,
@@ -2548,54 +2546,10 @@ var HomePage = /** @class */ (function () {
                                     });
                                     var index = _this.favorite_nodes.indexOf(element);
                                     if (index > -1) {
-                                        // console.log(this.favorite_nodes[index]);
-                                        // console.log(element);
-                                        // console.log(node);
-                                        // console.log(this.favorite_nodes);
                                         _this.favorite_nodes.splice(index, 1);
                                         _this.favorite_nodes.push(node);
                                         _this.updateOfflineNodesReadings();
                                     }
-                                    // for(let i = 0; i < nodes.length; i++) {
-                                    //   if(nodes[i].channel_id == node.channel_id) {
-                                    //
-                                    //     const index = this.favorite_nodes.indexOf(nodes[i]);
-                                    //     if (index > -1) {
-                                    //       this.favorite_nodes.splice(index, 1);
-                                    //       this.favorite_nodes.push(node);
-                                    //       this.updateOfflineNodesReadings();
-                                    //
-                                    //       console.log(this.favorite_nodes[index]);
-                                    //       console.log(node);
-                                    //       console.log(this.favorite_nodes);
-                                    //
-                                    //     }
-                                    //
-                                    //   }
-                                    // }
-                                    // if(holder_favorite_nodes.filter(item => item.channel_id === node.channel_id).length != 0){
-                                    //   for(let i = 0; i < holder_favorite_nodes.length; i++) {
-                                    //     if(holder_favorite_nodes[i].channel_id == node.channel_id) {
-                                    //
-                                    //       const index = this.favorite_nodes.indexOf(holder_favorite_nodes[i]);
-                                    //       if (index > -1) {
-                                    //         this.favorite_nodes.splice(index, 1);
-                                    //         this.favorite_nodes.push(node);
-                                    //         this.updateOfflineNodesReadings();
-                                    //
-                                    //         console.log(node);
-                                    //         console.log(this.favorite_nodes);
-                                    //
-                                    //       }
-                                    //
-                                    //     }
-                                    //   }
-                                    // }
-                                    // if(holder_favorite_nodes.map(obj =>  node.channel_id === obj.channel_id || obj)){
-                                    //   this.favorite_nodes = holder_favorite_nodes;
-                                    // }
-                                    //
-                                    // console.log(this.favorite_nodes);
                                 }
                             });
                         }
@@ -2603,19 +2557,9 @@ var HomePage = /** @class */ (function () {
                             console.log(e);
                         }
                     });
-                    // if(holder_favorite_nodes.length > 0){
-                    //   this.favorite_nodes = holder_favorite_nodes;
-                    // }
                     if (refresher) {
                         refresher.complete();
                     }
-                    // if(this.favorite_nodes.length > favorite_nodes.length){
-                    //   if(this.favorite_nodes.length > 0){
-                    //     this.favorite_nodes_api_success = '100';
-                    //   } else {
-                    //     this.favorite_nodes_api_success = null
-                    //   }
-                    // }
                 }
                 return [2 /*return*/];
             });
@@ -2684,17 +2628,26 @@ var HomePage = /** @class */ (function () {
     // View Node Details
     // --------------------------------------------------------------------------------------------------------------------
     HomePage.prototype.viewDetails = function (node) {
+        console.log(node);
         this.navCtrl.push(__WEBPACK_IMPORTED_MODULE_6__node_node__["a" /* NodePage */], {
             node: node
         });
     };
+    // --------------------------------------------------------------------------------------------------------------------
+    // View Node Details
+    // --------------------------------------------------------------------------------------------------------------------
+    HomePage.prototype.viewLocationDetails = function () {
+        console.log(this.nearest_node);
+        // this.navCtrl.push(NodePage, {
+        //   node: this.nearest_node
+        // });
+    };
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j;
     HomePage = __decorate([
         Object(__WEBPACK_IMPORTED_MODULE_0__angular_core__["m" /* Component */])({
-            selector: 'page-home',template:/*ion-inline-start:"/home/noah/projects/airqo/AirQo-frontend/mobile/src/pages/home/home.html"*/'<ion-header class="title-centered">\n  <ion-navbar color="blue" hideBackButton="true">\n    <ion-title>\n			<img src="assets/logos/logo-white.png" class="nav-image"/>\n    </ion-title>\n    <ion-buttons end>\n      <button color="light" ion-button icon-only (click)="goToSearchPage()">\n        <ion-icon name="search"></ion-icon>\n      </button>\n      &nbsp;\n      &nbsp;\n      <button color="light" ion-button icon-only (click)="goToFavoritesPage()">\n        <ion-icon name="heart" color="red"></ion-icon>\n      </button>\n      &nbsp;\n      &nbsp;\n      <button color="light" ion-button icon-only (click)="stackedMenu($event)">\n        <ion-icon name="more"></ion-icon>\n      </button>\n    </ion-buttons>\n  </ion-navbar>\n</ion-header>\n\n<ion-content>\n\n  <ion-refresher pullMin="65" (ionRefresh)="getLocation(); offlineLoadFavorites($event)">\n    <ion-refresher-content pullingIcon="arrow-round-down"\n    pullingText="Pull to refresh"\n    refreshingSpinner="dots"\n    refreshingText="Refreshing..."></ion-refresher-content>\n  </ion-refresher>\n\n  <!-- Current Location -->\n  <ion-card [hidden]="lastest_nearest_node_reading == \'0\' || lastest_nearest_node_reading == null" (click)="viewDetails(nearest_node)">\n    <ion-grid>\n      <ion-row class="header-section bg-grey">\n        <ion-col class="header-title white">\n          My Location\n        </ion-col>\n      </ion-row>\n      <ion-row class="area-section">\n        <ion-col col-1 class="area-type">\n          <ion-icon name="pin" color="grey" class="star-icon"></ion-icon>\n        </ion-col>\n        <ion-col col-11>\n        <div class="title black moderate-bold">{{ nearest_node.name }}</div>\n        <div class="sub-title grey">{{ nearest_node.location }}</div>\n        </ion-col>\n      </ion-row>\n    <ion-row class="readings-section" [style.backgroundColor]="api.nodeStatus(lastest_nearest_node_reading, nearest_node.date).color">\n        <ion-col col-3 class="face bg-darker">\n          <img [src]="api.nodeStatus(lastest_nearest_node_reading, nearest_node.date).face"/>\n        </ion-col>\n        <ion-col col-4 class="values">\n        <p class="number moderate-bold" [style.color]="api.nodeStatus(lastest_nearest_node_reading, nearest_node.date).font_color">{{ lastest_nearest_node_reading }}</p>\n          <p class="number-label moderate-bold" [style.color]="api.nodeStatus(lastest_nearest_node_reading, nearest_node.date).font_color">PM<sub>2.5</sub></p>\n        </ion-col>\n        <ion-col col-5 class="label">\n        <p text-wrap class="value-label moderate-bold" [style.color]="api.nodeStatus(lastest_nearest_node_reading, nearest_node.date).font_color">{{ api.nodeStatus(lastest_nearest_node_reading, nearest_node.date).label }}</p>\n        </ion-col>\n      </ion-row>\n      <ion-row class="footer-section">\n        <ion-col col-11 text-wrap class="date-section">\n          <span class="node-refresh-date">Last Refreshed: {{ api.ago(api.getReadableInternationalDateFormatFromISOString(nearest_node.date)) }}</span>\n        </ion-col>\n        <ion-col col-1 class="icon-section">\n          <ion-icon name="arrow-forward"></ion-icon>\n        </ion-col>\n      </ion-row>\n    </ion-grid>\n  </ion-card>\n  \n  <!-- Saved Locations -->\n  <ion-card>\n    <ion-grid class="saved-header">\n      <ion-row class="header-section bg-grey">\n        <ion-col col-11 class="header-title white">\n          Saved Places\n        </ion-col>\n        <ion-col col-1>\n          <button ion-button small icon-only outline color="light" (click)="openAddFavorites()">\n            <ion-icon name="md-add" color="light"></ion-icon>\n          </button>\n        </ion-col>\n      </ion-row>\n    </ion-grid>\n    \n    <ng-container *ngFor="let node of favorite_nodes">\n      <hr/>\n      <ion-grid (click)="viewDetails(node)">\n        <ion-row nowrap class="area-section">\n          <ion-col col-1 class="area-type">\n            <ion-icon name="md-star" color="grey" class="star-icon"></ion-icon>\n          </ion-col>\n          <ion-col col-11>\n            <div class="title black moderate-bold">{{ node.name }}</div>\n          <div class="sub-title grey">{{ node.location }}</div>\n          </ion-col>\n        </ion-row>\n        <ion-row class="readings-section" [style.backgroundColor]="api.nodeStatus(node.value, node.time).color">\n          <ion-col col-3 class="face bg-darker">\n            <img [src]="api.nodeStatus(node.value, node.time).face"/>\n          </ion-col>\n          <ion-col col-4 class="values">\n            <p class="number moderate-bold" [style.color]="api.nodeStatus(node.value, node.time).font_color">{{ node.value }}</p>\n            <p class="number-label moderate-bold" [style.color]="api.nodeStatus(node.value, node.time).font_color">PM<sub>2.5</sub></p>\n          </ion-col>\n          <ion-col col-5 class="label">\n            <p text-wrap class="value-label moderate-bold" [style.color]="api.nodeStatus(node.value, node.time).font_color">{{ api.nodeStatus(node.value, node.time).label }}</p>\n          </ion-col>\n        </ion-row>\n        <ion-row class="footer-section">\n          <ion-col col-11 text-wrap class="date-section">\n            <span class="node-refresh-date">Last Refreshed: {{ api.ago( api.getReadableInternationalDateFormatFromISOString(node.time)) }}</span>\n          </ion-col>\n          <ion-col col-1 class="icon-section">\n            <ion-icon name="arrow-forward"></ion-icon>\n          </ion-col>\n        </ion-row>\n      </ion-grid>\n    </ng-container>\n  </ion-card>\n      \n</ion-content>'/*ion-inline-end:"/home/noah/projects/airqo/AirQo-frontend/mobile/src/pages/home/home.html"*/,
+            selector: 'page-home',template:/*ion-inline-start:"/home/noah/projects/airqo/AirQo-frontend/mobile/src/pages/home/home.html"*/'<ion-header class="title-centered">\n  <ion-navbar color="blue" hideBackButton="true">\n    <ion-title>\n			<img src="assets/logos/logo-white.png" class="nav-image"/>\n    </ion-title>\n    <ion-buttons end>\n      <button color="light" ion-button icon-only (click)="goToSearchPage()">\n        <ion-icon name="search"></ion-icon>\n      </button>\n      &nbsp;\n      &nbsp;\n      <button color="light" ion-button icon-only (click)="goToFavoritesPage()">\n        <ion-icon name="star"></ion-icon>\n      </button>\n      &nbsp;\n      &nbsp;\n      <button color="light" ion-button icon-only (click)="stackedMenu($event)">\n        <ion-icon name="more"></ion-icon>\n      </button>\n    </ion-buttons>\n  </ion-navbar>\n</ion-header>\n\n<ion-content>\n\n  <ion-refresher pullMin="65" (ionRefresh)="getLocation(); offlineLoadFavorites($event)">\n    <ion-refresher-content pullingIcon="arrow-round-down"\n    pullingText="Pull to refresh"\n    refreshingSpinner="dots"\n    refreshingText="Refreshing..."></ion-refresher-content>\n  </ion-refresher>\n\n  <!-- Current Location -->\n  <ion-card [hidden]="lastest_nearest_node_reading == \'0\' || lastest_nearest_node_reading == null" (click)="viewDetails(nearest_node)">\n    <ion-grid>\n      <ion-row class="header-section bg-grey">\n        <ion-col class="header-title white">\n          My Location\n        </ion-col>\n      </ion-row>\n      <ion-row class="area-section">\n        <ion-col col-1 class="area-type">\n          <ion-icon name="pin" color="grey" class="star-icon"></ion-icon>\n        </ion-col>\n        <ion-col col-11>\n        <div class="title black moderate-bold">{{ nearest_node.name }}</div>\n        <div class="sub-title grey">{{ nearest_node.location }}</div>\n        </ion-col>\n      </ion-row>\n    <ion-row class="readings-section" [style.backgroundColor]="api.nodeStatus(lastest_nearest_node_reading, nearest_node.time).color">\n        <ion-col col-3 class="face bg-darker">\n          <img [src]="api.nodeStatus(lastest_nearest_node_reading, nearest_node.time).face"/>\n        </ion-col>\n        <ion-col col-4 class="values">\n        <p class="number moderate-bold" [style.color]="api.nodeStatus(lastest_nearest_node_reading, nearest_node.time).font_color">{{ lastest_nearest_node_reading }}</p>\n          <p class="number-label moderate-bold" [style.color]="api.nodeStatus(lastest_nearest_node_reading, nearest_node.time).font_color">PM<sub>2.5</sub></p>\n        </ion-col>\n        <ion-col col-5 class="label">\n        <p text-wrap class="value-label moderate-bold" [style.color]="api.nodeStatus(lastest_nearest_node_reading, nearest_node.time).font_color">{{ api.nodeStatus(lastest_nearest_node_reading, nearest_node.time).label }}</p>\n        </ion-col>\n      </ion-row>\n      <ion-row class="footer-section">\n        <ion-col col-11 text-wrap class="date-section">\n          <span class="node-refresh-date">Last Refreshed: {{ api.ago(api.getReadableInternationalDateFormatFromISOString(nearest_node.time)) }}</span>\n        </ion-col>\n        <ion-col col-1 class="icon-section">\n          <ion-icon name="arrow-forward"></ion-icon>\n        </ion-col>\n      </ion-row>\n    </ion-grid>\n  </ion-card>\n  \n  <!-- Saved Locations -->\n  <ion-card>\n    <ion-grid class="saved-header">\n      <ion-row class="header-section bg-grey">\n        <ion-col col-11 class="header-title white">\n          Saved Places\n        </ion-col>\n        <ion-col col-1>\n          <button ion-button small icon-only outline color="light" (click)="openAddFavorites()">\n            <ion-icon name="md-add" color="light"></ion-icon>\n          </button>\n        </ion-col>\n      </ion-row>\n    </ion-grid>\n    \n    <ng-container *ngFor="let node of favorite_nodes">\n      <hr/>\n      <ion-grid (click)="viewDetails(node)">\n        <ion-row nowrap class="area-section">\n          <ion-col col-1 class="area-type">\n            <ion-icon name="md-star" color="grey" class="star-icon"></ion-icon>\n          </ion-col>\n          <ion-col col-11>\n            <div class="title black moderate-bold">{{ node.name }}</div>\n          <div class="sub-title grey">{{ node.location }}</div>\n          </ion-col>\n        </ion-row>\n        <ion-row class="readings-section" [style.backgroundColor]="api.nodeStatus(node.value, node.time).color">\n          <ion-col col-3 class="face bg-darker">\n            <img [src]="api.nodeStatus(node.value, node.time).face"/>\n          </ion-col>\n          <ion-col col-4 class="values">\n            <p class="number moderate-bold" [style.color]="api.nodeStatus(node.value, node.time).font_color">{{ node.value }}</p>\n            <p class="number-label moderate-bold" [style.color]="api.nodeStatus(node.value, node.time).font_color">PM<sub>2.5</sub></p>\n          </ion-col>\n          <ion-col col-5 class="label">\n            <p text-wrap class="value-label moderate-bold" [style.color]="api.nodeStatus(node.value, node.time).font_color">{{ api.nodeStatus(node.value, node.time).label }}</p>\n          </ion-col>\n        </ion-row>\n        <ion-row class="footer-section">\n          <ion-col col-11 text-wrap class="date-section">\n            <span class="node-refresh-date">Last Refreshed: {{ api.ago( api.getReadableInternationalDateFormatFromISOString(node.time)) }}</span>\n          </ion-col>\n          <ion-col col-1 class="icon-section">\n            <ion-icon name="arrow-forward"></ion-icon>\n          </ion-col>\n        </ion-row>\n      </ion-grid>\n    </ng-container>\n  </ion-card>\n      \n</ion-content>'/*ion-inline-end:"/home/noah/projects/airqo/AirQo-frontend/mobile/src/pages/home/home.html"*/,
         }),
-        __metadata("design:paramtypes", [__WEBPACK_IMPORTED_MODULE_1_ionic_angular__["i" /* NavController */], __WEBPACK_IMPORTED_MODULE_2__ionic_storage__["b" /* Storage */], __WEBPACK_IMPORTED_MODULE_4__angular_common_http__["a" /* HttpClient */], __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["g" /* LoadingController */],
-            __WEBPACK_IMPORTED_MODULE_3__ionic_native_geolocation__["a" /* Geolocation */], __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["k" /* Platform */], __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["l" /* PopoverController */], __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["h" /* ModalController */],
-            __WEBPACK_IMPORTED_MODULE_5__providers_api_api__["a" /* ApiProvider */]])
+        __metadata("design:paramtypes", [typeof (_a = typeof __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["i" /* NavController */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["i" /* NavController */]) === "function" && _a || Object, typeof (_b = typeof __WEBPACK_IMPORTED_MODULE_2__ionic_storage__["b" /* Storage */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_2__ionic_storage__["b" /* Storage */]) === "function" && _b || Object, typeof (_c = typeof __WEBPACK_IMPORTED_MODULE_4__angular_common_http__["a" /* HttpClient */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_4__angular_common_http__["a" /* HttpClient */]) === "function" && _c || Object, typeof (_d = typeof __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["g" /* LoadingController */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["g" /* LoadingController */]) === "function" && _d || Object, typeof (_e = typeof __WEBPACK_IMPORTED_MODULE_3__ionic_native_geolocation__["a" /* Geolocation */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_3__ionic_native_geolocation__["a" /* Geolocation */]) === "function" && _e || Object, typeof (_f = typeof __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["k" /* Platform */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["k" /* Platform */]) === "function" && _f || Object, typeof (_g = typeof __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["l" /* PopoverController */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["l" /* PopoverController */]) === "function" && _g || Object, typeof (_h = typeof __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["h" /* ModalController */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["h" /* ModalController */]) === "function" && _h || Object, typeof (_j = typeof __WEBPACK_IMPORTED_MODULE_5__providers_api_api__["a" /* ApiProvider */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_5__providers_api_api__["a" /* ApiProvider */]) === "function" && _j || Object])
     ], HomePage);
     return HomePage;
 }());
@@ -3084,13 +3037,27 @@ var MyApp = /** @class */ (function () {
                     });
                 }
             }
-            _this.storage.get('first-use').then(function (val) {
+            _this.storage.get('first_use').then(function (val) {
                 if (val && val != '') {
                     _this.rootPage = __WEBPACK_IMPORTED_MODULE_0__pages_home_home__["a" /* HomePage */];
                 }
             });
         });
     }
+    // --------------------------------------------------------------------------------------------------------------------
+    // See if user is first time user or not
+    // --------------------------------------------------------------------------------------------------------------------
+    MyApp.prototype.directUser = function () {
+        var _this = this;
+        this.storage.get('first_use').then(function (val) {
+            if (val && val != null && val != '') {
+                _this.rootPage = __WEBPACK_IMPORTED_MODULE_0__pages_home_home__["a" /* HomePage */];
+            }
+            else {
+                _this.rootPage = __WEBPACK_IMPORTED_MODULE_1__pages_intro_intro__["a" /* IntroPage */];
+            }
+        });
+    };
     __decorate([
         Object(__WEBPACK_IMPORTED_MODULE_2__angular_core__["_8" /* ViewChild */])('content'),
         __metadata("design:type", __WEBPACK_IMPORTED_MODULE_3_ionic_angular__["i" /* NavController */])
@@ -3195,6 +3162,7 @@ var NodePage = /** @class */ (function () {
         this.forecast_node_api_success = true;
         if (this.navParams.get("node")) {
             this.node = this.navParams.get("node");
+            console.log(this.node);
             if (this.node.feeds) {
                 // if(this.api.isISOFormat(this.node.feeds.created_at)){
                 //   this.node.time = null;
@@ -3202,7 +3170,6 @@ var NodePage = /** @class */ (function () {
             }
             else {
                 this.node.feeds = {};
-                // this.node.value  = '0.00';
             }
             if (this.node.lat && this.node.lng) {
             }
@@ -3240,7 +3207,7 @@ var NodePage = /** @class */ (function () {
         });
     };
     // --------------------------------------------------------------------------------------------------------------------
-    // Fires every time page loads
+    // Fires everytime page loads
     // --------------------------------------------------------------------------------------------------------------------
     NodePage.prototype.ionViewDidEnter = function () {
         return __awaiter(this, void 0, void 0, function () {
@@ -3754,20 +3721,20 @@ var NodePage = /** @class */ (function () {
     NodePage.prototype.goBack = function () {
         this.navCtrl.pop();
     };
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
     __decorate([
         Object(__WEBPACK_IMPORTED_MODULE_1__angular_core__["_8" /* ViewChild */])('barCanvasHistory'),
-        __metadata("design:type", __WEBPACK_IMPORTED_MODULE_1__angular_core__["t" /* ElementRef */])
+        __metadata("design:type", typeof (_a = typeof __WEBPACK_IMPORTED_MODULE_1__angular_core__["t" /* ElementRef */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_1__angular_core__["t" /* ElementRef */]) === "function" && _a || Object)
     ], NodePage.prototype, "barCanvasHistory", void 0);
     __decorate([
         Object(__WEBPACK_IMPORTED_MODULE_1__angular_core__["_8" /* ViewChild */])('barCanvasForecast'),
-        __metadata("design:type", __WEBPACK_IMPORTED_MODULE_1__angular_core__["t" /* ElementRef */])
+        __metadata("design:type", typeof (_b = typeof __WEBPACK_IMPORTED_MODULE_1__angular_core__["t" /* ElementRef */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_1__angular_core__["t" /* ElementRef */]) === "function" && _b || Object)
     ], NodePage.prototype, "barCanvasForecast", void 0);
     NodePage = __decorate([
         Object(__WEBPACK_IMPORTED_MODULE_1__angular_core__["m" /* Component */])({
-            selector: 'page-node',template:/*ion-inline-start:"/home/noah/projects/airqo/AirQo-frontend/mobile/src/pages/node/node.html"*/'<ion-header>\n  <ion-navbar color="blue">\n    <ion-buttons end>\n      <button color="light" ion-button icon-only (click)="addToFavoritesList(node)">\n        <ion-icon name="heart-outline" color="red" item-end [hidden]="is_favorite"></ion-icon>\n        <ion-icon name="heart" color="red" item-end [hidden]="!is_favorite"></ion-icon>\n<!--        <span *ngIf="is_favorite">AIR QUALITY</span>-->\n      </button>\n    </ion-buttons>\n  </ion-navbar>\n</ion-header>\n\n<ion-content no-bounce [ngStyle] ="{\'background-image\' : \'url(\'+ api.nodeStatus(node.value, node.time).background +\')\'}">\n\n  <!-- <ion-refresher (ionRefresh)="onlineLoadHistoryNodeInfo(); onlineLoadNodeForecastInfo()">\n    <ion-refresher-content pullingIcon="arrow-round-down"\n    pullingText="Pull to refresh"\n    refreshingSpinner="dots"\n    refreshingText="Refreshing..."></ion-refresher-content>\n  </ion-refresher> -->\n    \n <div class="top-section">\n\n  <div class="place">\n    <p class="place-name">{{ node.name }}</p>\n    <p class="place-location">{{ node.location }}</p>\n  </div>\n\n  <ion-card class="node-card">\n    <ion-grid class="node bg-white">\n      <ion-row class="readings-section" [style.backgroundColor]="api.nodeStatus(node.value, node.time).color">\n        <ion-col col-3 class="face bg-darker">\n          <img [src]="api.nodeStatus(node.value, node.time).face"/>\n        </ion-col>\n        <ion-col col-4 class="values">\n          <p class="number moderate-bold" [style.color]="api.nodeStatus(node.value, node.time).font_color">{{ node.value }}</p>\n          <p class="number-label moderate-bold" [style.color]="api.nodeStatus(node.value, node.time).font_color">PM<sub>2.5</sub></p>\n        </ion-col>\n        <ion-col col-5 class="label">\n          <p text-wrap class="value-label moderate-bold" [style.color]="api.nodeStatus(node.value, node.time).font_color">{{ api.nodeStatus(node.value, node.time).label }}</p>\n        </ion-col>\n      </ion-row>\n      <ion-row class="footer-section">\n        <ion-col text-wrap class="date-section">\n          <span class="node-refresh-date" *ngIf="node.time">\n            Last Refreshed: {{ api.ago(api.getReadableInternationalDateFormatFromISOString(node.time)) }}\n          </span>\n        </ion-col>\n      </ion-row>\n    </ion-grid>\n  </ion-card>\n\n  <!-- <ion-card class="key-card">\n    <div class="key">\n      <div text-wrap class="key-label bg-green white">Good</div>\n      <div text-wrap class="key-label bg-yellow dark-blue">Moderate</div>\n      <div text-wrap class="key-label bg-orange white">Unhealthy for sensitive groups</div>\n      <div text-wrap class="key-label bg-red white">Unhealthy</div>\n      <div text-wrap class="key-label bg-purple white">Very Unhealthy</div>\n      <div text-wrap class="key-label bg-maroon white">Hazardous</div>\n    </div>\n  </ion-card> -->\n </div>\n\n<div class="bottom-section bg-white">\n\n  <div class="graph-section" padding>\n    <ion-segment [color]="api.nodeStatus(node.value, node.time).standard_color" [(ngModel)]="graphs_segments" (ionChange)="onSegmentChange()">\n      <ion-segment-button value="history">\n        HISTORY\n      </ion-segment-button>\n      <ion-segment-button value="forecast">\n        FORECAST\n      </ion-segment-button>\n    </ion-segment>\n  </div>\n\n  <!-- <div>\n    <div class="bar-canvas" [hidden]="graphs_segments != \'history\'">\n      <canvas #barCanvasHistory></canvas>\n      <p class="no-data" *ngIf="history_node_api_success === false">NO HISTORY DATA</p>\n    </div>\n\n    <div class="bar-canvas" [hidden]="graphs_segments != \'forecast\'">\n      <canvas #barCanvasForecast></canvas>\n      <p class="no-data" *ngIf="forecast_node_api_success === false">NO FORECAST DATA</p>\n    </div>\n  </div> -->\n\n  <div class="scroll-chart">\n    <div class="chartAreaWrapper" [hidden]="graphs_segments != \'history\'">\n      <canvas #barCanvasHistory id="historyChart"></canvas>\n      <p class="no-data" *ngIf="history_node_api_success === false">NO HISTORY DATA</p>\n    </div>\n    <div class="chartAreaWrapper" [hidden]="graphs_segments != \'forecast\'">\n      <canvas #barCanvasForecast id="forecastChart"></canvas>\n      <p class="no-data" *ngIf="forecast_node_api_success === false">NO FORECAST DATA</p>\n    </div>\n  </div>\n\n</div>\n\n  <ion-fab right middle (click)="goToKeyPage()">\n    <button ion-fab color="green">KEY</button>\n  </ion-fab>\n\n\n</ion-content>\n'/*ion-inline-end:"/home/noah/projects/airqo/AirQo-frontend/mobile/src/pages/node/node.html"*/,
+            selector: 'page-node',template:/*ion-inline-start:"/home/noah/projects/airqo/AirQo-frontend/mobile/src/pages/node/node.html"*/'<ion-header>\n  <ion-navbar color="blue">\n    <ion-buttons end>\n      <button color="light" ion-button icon-only (click)="addToFavoritesList(node)">\n        <ion-icon name="star-outline" item-end [hidden]="is_favorite"></ion-icon>\n        <ion-icon name="star" item-end [hidden]="!is_favorite"></ion-icon>\n<!--        <span *ngIf="is_favorite">AIR QUALITY</span>-->\n      </button>\n    </ion-buttons>\n  </ion-navbar>\n</ion-header>\n\n<ion-content no-bounce [ngStyle] ="{\'background-image\' : \'url(\'+ api.nodeStatus(node.value, node.time).background +\')\'}">\n\n  <!-- <ion-refresher (ionRefresh)="onlineLoadHistoryNodeInfo(); onlineLoadNodeForecastInfo()">\n    <ion-refresher-content pullingIcon="arrow-round-down"\n    pullingText="Pull to refresh"\n    refreshingSpinner="dots"\n    refreshingText="Refreshing..."></ion-refresher-content>\n  </ion-refresher> -->\n    \n <div class="top-section">\n\n  <div class="place">\n    <p class="place-name">{{ node.name }}</p>\n    <p class="place-location">{{ node.location }}</p>\n  </div>\n\n  <ion-card class="node-card">\n    <ion-grid class="node bg-white">\n      <ion-row class="readings-section" [style.backgroundColor]="api.nodeStatus(node.value, node.time).color">\n        <ion-col col-3 class="face bg-darker">\n          <img [src]="api.nodeStatus(node.value, node.time).face"/>\n        </ion-col>\n        <ion-col col-4 class="values">\n          <p class="number moderate-bold" [style.color]="api.nodeStatus(node.value, node.time).font_color">{{ node.value }}</p>\n          <p class="number-label moderate-bold" [style.color]="api.nodeStatus(node.value, node.time).font_color">PM<sub>2.5</sub></p>\n        </ion-col>\n        <ion-col col-5 class="label">\n          <p text-wrap class="value-label moderate-bold" [style.color]="api.nodeStatus(node.value, node.time).font_color">{{ api.nodeStatus(node.value, node.time).label }}</p>\n        </ion-col>\n      </ion-row>\n      <ion-row class="footer-section">\n        <ion-col text-wrap class="date-section">\n          <span class="node-refresh-date" *ngIf="node.time">\n            Last Refreshed: {{ api.ago(api.getReadableInternationalDateFormatFromISOString(node.time)) }}\n          </span>\n        </ion-col>\n      </ion-row>\n    </ion-grid>\n  </ion-card>\n\n  <!-- <ion-card class="key-card">\n    <div class="key">\n      <div text-wrap class="key-label bg-green white">Good</div>\n      <div text-wrap class="key-label bg-yellow dark-blue">Moderate</div>\n      <div text-wrap class="key-label bg-orange white">Unhealthy for sensitive groups</div>\n      <div text-wrap class="key-label bg-red white">Unhealthy</div>\n      <div text-wrap class="key-label bg-purple white">Very Unhealthy</div>\n      <div text-wrap class="key-label bg-maroon white">Hazardous</div>\n    </div>\n  </ion-card> -->\n </div>\n\n<div class="bottom-section bg-white">\n\n  <div class="graph-section" padding>\n    <ion-segment [color]="api.nodeStatus(node.value, node.time).standard_color" [(ngModel)]="graphs_segments" (ionChange)="onSegmentChange()">\n      <ion-segment-button value="history">\n        HISTORY\n      </ion-segment-button>\n      <ion-segment-button value="forecast">\n        FORECAST\n      </ion-segment-button>\n    </ion-segment>\n  </div>\n\n  <!-- <div>\n    <div class="bar-canvas" [hidden]="graphs_segments != \'history\'">\n      <canvas #barCanvasHistory></canvas>\n      <p class="no-data" *ngIf="history_node_api_success === false">NO HISTORY DATA</p>\n    </div>\n\n    <div class="bar-canvas" [hidden]="graphs_segments != \'forecast\'">\n      <canvas #barCanvasForecast></canvas>\n      <p class="no-data" *ngIf="forecast_node_api_success === false">NO FORECAST DATA</p>\n    </div>\n  </div> -->\n\n  <div class="scroll-chart">\n    <div class="chartAreaWrapper" [hidden]="graphs_segments != \'history\'">\n      <canvas #barCanvasHistory id="historyChart"></canvas>\n      <p class="no-data" *ngIf="history_node_api_success === false">NO HISTORY DATA</p>\n    </div>\n    <div class="chartAreaWrapper" [hidden]="graphs_segments != \'forecast\'">\n      <canvas #barCanvasForecast id="forecastChart"></canvas>\n      <p class="no-data" *ngIf="forecast_node_api_success === false">NO FORECAST DATA</p>\n    </div>\n  </div>\n\n</div>\n\n  <ion-fab right middle (click)="goToKeyPage()">\n    <button ion-fab color="green">KEY</button>\n  </ion-fab>\n\n\n</ion-content>\n'/*ion-inline-end:"/home/noah/projects/airqo/AirQo-frontend/mobile/src/pages/node/node.html"*/,
         }),
-        __metadata("design:paramtypes", [__WEBPACK_IMPORTED_MODULE_2_ionic_angular__["i" /* NavController */], __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["j" /* NavParams */], __WEBPACK_IMPORTED_MODULE_3__ionic_storage__["b" /* Storage */], __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["o" /* ToastController */],
-            __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["g" /* LoadingController */], __WEBPACK_IMPORTED_MODULE_4__angular_common_http__["a" /* HttpClient */], __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["b" /* AlertController */], __WEBPACK_IMPORTED_MODULE_5__providers_api_api__["a" /* ApiProvider */]])
+        __metadata("design:paramtypes", [typeof (_c = typeof __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["i" /* NavController */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["i" /* NavController */]) === "function" && _c || Object, typeof (_d = typeof __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["j" /* NavParams */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["j" /* NavParams */]) === "function" && _d || Object, typeof (_e = typeof __WEBPACK_IMPORTED_MODULE_3__ionic_storage__["b" /* Storage */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_3__ionic_storage__["b" /* Storage */]) === "function" && _e || Object, typeof (_f = typeof __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["o" /* ToastController */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["o" /* ToastController */]) === "function" && _f || Object, typeof (_g = typeof __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["g" /* LoadingController */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["g" /* LoadingController */]) === "function" && _g || Object, typeof (_h = typeof __WEBPACK_IMPORTED_MODULE_4__angular_common_http__["a" /* HttpClient */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_4__angular_common_http__["a" /* HttpClient */]) === "function" && _h || Object, typeof (_j = typeof __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["b" /* AlertController */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["b" /* AlertController */]) === "function" && _j || Object, typeof (_k = typeof __WEBPACK_IMPORTED_MODULE_5__providers_api_api__["a" /* ApiProvider */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_5__providers_api_api__["a" /* ApiProvider */]) === "function" && _k || Object])
     ], NodePage);
     return NodePage;
 }());

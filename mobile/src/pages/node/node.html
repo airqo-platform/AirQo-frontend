@@ -2,8 +2,8 @@
   <ion-navbar color="blue">
     <ion-buttons end>
       <button color="light" ion-button icon-only (click)="addToFavoritesList(node)">
-        <ion-icon name="heart-outline" color="red" item-end [hidden]="is_favorite"></ion-icon>
-        <ion-icon name="heart" color="red" item-end [hidden]="!is_favorite"></ion-icon>
+        <ion-icon name="star-outline" item-end [hidden]="is_favorite"></ion-icon>
+        <ion-icon name="star" item-end [hidden]="!is_favorite"></ion-icon>
 <!--        <span *ngIf="is_favorite">AIR QUALITY</span>-->
       </button>
     </ion-buttons>

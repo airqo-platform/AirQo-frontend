@@ -10,7 +10,7 @@
       &nbsp;
       &nbsp;
       <button color="light" ion-button icon-only (click)="goToFavoritesPage()">
-        <ion-icon name="heart" color="red"></ion-icon>
+        <ion-icon name="star"></ion-icon>
       </button>
       &nbsp;
       &nbsp;
@@ -47,21 +47,21 @@
         <div class="sub-title grey">{{ nearest_node.location }}</div>
         </ion-col>
       </ion-row>
-    <ion-row class="readings-section" [style.backgroundColor]="api.nodeStatus(lastest_nearest_node_reading, nearest_node.date).color">
+    <ion-row class="readings-section" [style.backgroundColor]="api.nodeStatus(lastest_nearest_node_reading, nearest_node.time).color">
         <ion-col col-3 class="face bg-darker">
-          <img [src]="api.nodeStatus(lastest_nearest_node_reading, nearest_node.date).face"/>
+          <img [src]="api.nodeStatus(lastest_nearest_node_reading, nearest_node.time).face"/>
         </ion-col>
         <ion-col col-4 class="values">
-        <p class="number moderate-bold" [style.color]="api.nodeStatus(lastest_nearest_node_reading, nearest_node.date).font_color">{{ lastest_nearest_node_reading }}</p>
-          <p class="number-label moderate-bold" [style.color]="api.nodeStatus(lastest_nearest_node_reading, nearest_node.date).font_color">PM<sub>2.5</sub></p>
+        <p class="number moderate-bold" [style.color]="api.nodeStatus(lastest_nearest_node_reading, nearest_node.time).font_color">{{ lastest_nearest_node_reading }}</p>
+          <p class="number-label moderate-bold" [style.color]="api.nodeStatus(lastest_nearest_node_reading, nearest_node.time).font_color">PM<sub>2.5</sub></p>
         </ion-col>
         <ion-col col-5 class="label">
-        <p text-wrap class="value-label moderate-bold" [style.color]="api.nodeStatus(lastest_nearest_node_reading, nearest_node.date).font_color">{{ api.nodeStatus(lastest_nearest_node_reading, nearest_node.date).label }}</p>
+        <p text-wrap class="value-label moderate-bold" [style.color]="api.nodeStatus(lastest_nearest_node_reading, nearest_node.time).font_color">{{ api.nodeStatus(lastest_nearest_node_reading, nearest_node.time).label }}</p>
         </ion-col>
       </ion-row>
       <ion-row class="footer-section">
         <ion-col col-11 text-wrap class="date-section">
-          <span class="node-refresh-date">Last Refreshed: {{ api.ago(api.getReadableInternationalDateFormatFromISOString(nearest_node.date)) }}</span>
+          <span class="node-refresh-date">Last Refreshed: {{ api.ago(api.getReadableInternationalDateFormatFromISOString(nearest_node.time)) }}</span>
         </ion-col>
         <ion-col col-1 class="icon-section">
           <ion-icon name="arrow-forward"></ion-icon>
