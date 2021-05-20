@@ -293,8 +293,8 @@ export default function DeviceDeployStatus({ deviceData }) {
     deviceData.mountType || ""
   );
   const [deploymentDate, setDeploymentDate] = useState(new Date());
-  const [primaryChecked, setPrimaryChecked] = useState(true);
-  const [collocationChecked, setCollocationChecked] = useState(false);
+  const [primaryChecked, setPrimaryChecked] = useState(deviceData.isPrimaryInLocation);
+  const [collocationChecked, setCollocationChecked] = useState(deviceData.isUsedForCollocation);
   const [recentFeed, setRecentFeed] = useState({});
   const [runReport, setRunReport] = useState({
     ranTest: false,
@@ -383,7 +383,7 @@ export default function DeviceDeployStatus({ deviceData }) {
       latitude: latitude.toString(),
       longitude: longitude.toString(),
       isPrimaryInLocation: primaryChecked,
-      isUserForCollocaton: collocationChecked,
+      isUsedForCollocation: collocationChecked,
     };
 
     setDeployLoading(true);
@@ -427,7 +427,7 @@ export default function DeviceDeployStatus({ deviceData }) {
       .catch((err) => {
         dispatch(
           updateMainAlert({
-            message: err.response.data.message,
+            message: err.response && err.response.data && err.response.data.message,
             show: true,
             severity: "error",
           })
