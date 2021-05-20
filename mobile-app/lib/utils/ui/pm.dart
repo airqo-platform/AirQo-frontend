@@ -54,6 +54,30 @@ Color pmToColor(double pm2_5) {
   }
 }
 
+Color pmTextColor(double pm2_5) {
+  if (pm2_5 >= 0 && pm2_5 <= 12) {
+    //good
+    return Colors.black;
+  } else if (pm2_5 >= 12.1 && pm2_5 <= 35.4) {
+    //moderate
+    return Colors.black;
+  } else if (pm2_5 >= 35.5 && pm2_5 <= 55.4) {
+    //sensitive
+    return Colors.black;
+  } else if (pm2_5 >= 55.5 && pm2_5 <= 150.4) {
+    // unhealthy
+    return Colors.white;
+  } else if (pm2_5 >= 150.5 && pm2_5 <= 250.4) {
+    // very unhealthy
+    return Colors.white;
+  } else if (pm2_5 >= 250.5) {
+    // hazardous
+    return Colors.white;
+  } else {
+    return appColor;
+  }
+}
+
 String pmToString(double pm2_5) {
   if (pm2_5 >= 0 && pm2_5 <= 12) {
     //good
@@ -129,22 +153,28 @@ String pmToEmoji(double pm2_5) {
 BitmapDescriptor pmToMarkerPoint(double pm2_5) {
   if (pm2_5 >= 0 && pm2_5 <= 12) {
     //good
-    return BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen);
+    return BitmapDescriptor.defaultMarkerWithHue(
+        HSVColor.fromColor(greenColor).hue);
   } else if (pm2_5 >= 12.1 && pm2_5 <= 35.4) {
     //moderate
-    return BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueYellow);
+    return BitmapDescriptor.defaultMarkerWithHue(
+        HSVColor.fromColor(yellowColor).hue);
   } else if (pm2_5 >= 35.5 && pm2_5 <= 55.4) {
     //sensitive
-    return BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueOrange);
+    return BitmapDescriptor.defaultMarkerWithHue(
+        HSVColor.fromColor(orangeColor).hue);
   } else if (pm2_5 >= 55.5 && pm2_5 <= 150.4) {
     // unhealthy
-    return BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed);
+    return BitmapDescriptor.defaultMarkerWithHue(
+        HSVColor.fromColor(redColor).hue);
   } else if (pm2_5 >= 150.5 && pm2_5 <= 250.4) {
     // very unhealthy
-    return BitmapDescriptor.defaultMarkerWithHue(285);
+    return BitmapDescriptor.defaultMarkerWithHue(
+        HSVColor.fromColor(purpleColor).hue);
   } else if (pm2_5 >= 250.5) {
     // hazardous
-    return BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueMagenta);
+    return BitmapDescriptor.defaultMarkerWithHue(
+        HSVColor.fromColor(maroonColor).hue);
   } else {
     return BitmapDescriptor.defaultMarker;
   }
@@ -187,4 +217,47 @@ Pollutant pollutantDetails(String pollutantConstant) {
         PollutantEffects.pm2_5,
         PollutantReduction.pm2_5);
   }
+}
+
+Future<BitmapDescriptor> pmToMarker(double pm2_5) async {
+  var width = 55;
+  var value = pm2_5;
+  var bgColor = pmToColor(pm2_5);
+  var textColor = pmTextColor(pm2_5);
+
+  final pictureRecorder = PictureRecorder();
+  final canvas = Canvas(pictureRecorder);
+  final paint = Paint()..color = bgColor;
+  final radius = width / 2;
+  canvas.drawCircle(
+    Offset(radius, radius),
+    radius,
+    paint,
+  );
+
+  var textPainter = TextPainter(
+      textDirection: TextDirection.ltr, textAlign: TextAlign.center);
+
+  textPainter.text = TextSpan(
+    text: value.toString(),
+    style: TextStyle(
+      fontSize: radius - 10,
+      fontWeight: FontWeight.bold,
+      color: textColor,
+    ),
+  );
+  textPainter.layout();
+  textPainter.paint(
+    canvas,
+    Offset(
+      radius - textPainter.width / 2,
+      radius - textPainter.height / 2,
+    ),
+  );
+  final image = await pictureRecorder.endRecording().toImage(
+        radius.toInt() * 2,
+        radius.toInt() * 2,
+      );
+  final data = await image.toByteData(format: ImageByteFormat.png);
+  return BitmapDescriptor.fromBytes(data!.buffer.asUint8List());
 }

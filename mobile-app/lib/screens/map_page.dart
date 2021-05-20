@@ -23,12 +23,11 @@ class MapPage extends StatefulWidget {
 
 class MapPageState extends State<MapPage> {
   bool _showInfoWindow = false;
-  final Map<String, Marker> _markers = {};
+  Map<String, Marker> _markers = {};
   var windowProperties;
   String windowColor = '';
   var dbHelper = DBHelper();
   bool isLoading = true;
-
 
   @override
   void initState() {
@@ -55,7 +54,7 @@ class MapPageState extends State<MapPage> {
     var measurements = await AirqoApiClient(context).fetchMeasurements();
 
     if (measurements.isNotEmpty) {
-      setMeasurements(measurements);
+      await setMeasurements(measurements);
       await dbHelper.insertMeasurements(measurements);
     }
 
@@ -71,7 +70,7 @@ class MapPageState extends State<MapPage> {
     var measurements = await AirqoApiClient(context).fetchMeasurements();
 
     if (measurements.isNotEmpty) {
-      setMeasurements(measurements);
+      await setMeasurements(measurements);
 
       var message = 'Refresh Complete';
       await showSnackBar(context, message);
@@ -96,8 +95,8 @@ class MapPageState extends State<MapPage> {
               tiltGesturesEnabled: false,
               mapToolbarEnabled: false,
               initialCameraPosition: const CameraPosition(
-                target: LatLng(0.3318118, 32.5694503),
-                zoom: 6,
+                target: LatLng(1.6183002, 32.504365),
+                zoom: 6.6,
               ),
               markers: _markers.values.toSet(),
               onTap: (_) {
@@ -156,7 +155,8 @@ class MapPageState extends State<MapPage> {
                         ),
                         IconButton(
                           iconSize: 30.0,
-                          icon: const Icon(Icons.refresh_outlined, color: appColor),
+                          icon: const Icon(Icons.refresh_outlined,
+                              color: appColor),
                           onPressed: _refreshMeasurements,
                         ),
                       ],
@@ -224,7 +224,7 @@ class MapPageState extends State<MapPage> {
     var measurements = await dbHelper.getMeasurements();
 
     if (measurements.isNotEmpty) {
-      setMeasurements(measurements);
+      await setMeasurements(measurements);
     }
   }
 
@@ -234,29 +234,35 @@ class MapPageState extends State<MapPage> {
     })).then((value) => _getMeasurements());
   }
 
-  void setMeasurements(List<Measurement> measurements) {
+  Future<void> setMeasurements(List<Measurement> measurements) async {
+    _showInfoWindow = false;
+    var markers = <String, Marker>{};
+    for (final measurement in measurements) {
+      // var bitmapDescriptor = pmToMarkerPoint(measurement.pm2_5.value);
+      var bitmapDescriptor = await pmToMarker(measurement.pm2_5.value);
+
+      final marker = Marker(
+        markerId: MarkerId(measurement.channelID.toString()),
+        icon: bitmapDescriptor,
+        position: LatLng((measurement.locationDetails.latitude),
+            measurement.locationDetails.longitude),
+        infoWindow: InfoWindow(
+          title: measurement.pm2_5.value.toString(),
+          // snippet: node.location,
+        ),
+        onTap: () {
+          updateInfoWindow(measurement);
+        },
+      );
+      markers[measurement.channelID.toString()] = marker;
+    }
+
+    isLoading = false;
+
     setState(() {
       _showInfoWindow = false;
       _markers.clear();
-      for (final measurement in measurements) {
-        var bitmapDescriptor = pmToMarkerPoint(measurement.pm2_5.value);
-
-        final marker = Marker(
-          markerId: MarkerId(measurement.channelID.toString()),
-          icon: bitmapDescriptor,
-          position: LatLng((measurement.locationDetails.latitude),
-              measurement.locationDetails.longitude),
-          infoWindow: InfoWindow(
-            title: measurement.pm2_5.value.toString(),
-            // snippet: node.location,
-          ),
-          onTap: () {
-            updateInfoWindow(measurement);
-          },
-        );
-        _markers[measurement.channelID.toString()] = marker;
-      }
-
+      _markers = markers;
       isLoading = false;
     });
   }
@@ -286,11 +292,12 @@ class MapPageState extends State<MapPage> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-
                     Padding(
                       padding: const EdgeInsets.fromLTRB(5, 0, 0, 0),
                       child: Text(
                         windowProperties.pm2_5.value.toString(),
+                        style: TextStyle(
+                            color: pmTextColor(windowProperties.pm2_5.value)),
                       ),
                     ),
                     // Expanded(child: Text(
@@ -305,19 +312,20 @@ class MapPageState extends State<MapPage> {
                       maxLines: 4,
                       softWrap: true,
                       textAlign: TextAlign.center,
+                      style: TextStyle(
+                          color: pmTextColor(windowProperties.pm2_5.value)),
                     ),
 
                     Padding(
                       padding: const EdgeInsets.fromLTRB(0, 0, 5, 0),
                       child: Text(
                         dateToString(windowProperties.time),
+                        style: TextStyle(
+                            color: pmTextColor(windowProperties.pm2_5.value)),
                       ),
                     ),
-
-
                   ],
-                )
-            ),
+                )),
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,

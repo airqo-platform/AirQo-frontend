@@ -75,5 +75,4 @@ class HistoricalBarChart extends StatelessWidget {
       ),
     );
   }
-
 }

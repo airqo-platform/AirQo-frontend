@@ -75,5 +75,4 @@ class ForecastBarChart extends StatelessWidget {
       ),
     );
   }
-
 }

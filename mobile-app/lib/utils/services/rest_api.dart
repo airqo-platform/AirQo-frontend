@@ -88,8 +88,8 @@ class AirqoApiClient {
       await showSnackBar(context, ErrorMessages().timeoutException);
     } on Error catch (e) {
       print('Get Latest events error: $e');
-      await showSnackBar(context,
-          'Measurements not available, try again later');
+      await showSnackBar(
+          context, 'Measurements not available, try again later');
     }
 
     return <Measurement>[];
@@ -244,7 +244,8 @@ class AirqoApiClient {
       await showSnackBar(context, ErrorMessages().timeoutException);
     } on Error catch (e) {
       print('Get Devices error: $e');
-      var message = 'Recent locations are not available, please try again later';
+      var message =
+          'Recent locations are not available, please try again later';
       await showSnackBar(context, message);
     }
 

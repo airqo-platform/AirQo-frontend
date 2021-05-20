@@ -463,8 +463,8 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                         ),
                         Text(
                           measurement.pm2_5.value.toString(),
-                          style: const TextStyle(
-                            color: Colors.black54,
+                          style: TextStyle(
+                            color: pmTextColor(measurement.pm2_5.value),
                             fontWeight: FontWeight.bold,
                             fontSize: 20,
                           ),
@@ -474,8 +474,10 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                           textAlign: TextAlign.center,
                           softWrap: true,
                           overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: pmTextColor(measurement.pm2_5.value),
+                          ),
                         ),
-
                       ],
                     )),
               ),

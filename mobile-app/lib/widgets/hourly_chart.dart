@@ -31,14 +31,13 @@ class HourlyBarChart extends StatelessWidget {
               defaultRenderer: charts.BarRendererConfig<DateTime>(),
               defaultInteractions: true,
               domainAxis: const charts.DateTimeAxisSpec(
-                  tickProviderSpec:
-                  charts.DayTickProviderSpec(increments: [1]),
+                  tickProviderSpec: charts.DayTickProviderSpec(increments: [1]),
                   tickFormatterSpec: charts.AutoDateTimeTickFormatterSpec(
                     day: charts.TimeFormatterSpec(
-                        format:
-                        'EEE, hh a', transitionFormat: 'EEE, hh a', noonFormat: 'EEE, hh a'),
-                  )
-              ),
+                        format: 'EEE, hh a',
+                        transitionFormat: 'EEE, hh a',
+                        noonFormat: 'EEE, hh a'),
+                  )),
               behaviors: [
                 // charts.SeriesLegend(
                 //   position: charts.BehaviorPosition.top,
@@ -76,5 +75,4 @@ class HourlyBarChart extends StatelessWidget {
       ),
     );
   }
-
 }

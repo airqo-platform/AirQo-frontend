@@ -38,7 +38,6 @@ class _ComparePageState extends State<ComparePage> {
         child: ListView(
           children: <Widget>[
             formInput(),
-
             // lineDisplay(),
             FutureBuilder(
                 future: apiClient.fetchComparisonMeasurements(),
