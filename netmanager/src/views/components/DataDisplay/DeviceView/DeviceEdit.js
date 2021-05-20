@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
-import PropTypes from "prop-types";
 import TextField from "@material-ui/core/TextField";
 import FormControl from "@material-ui/core/FormControl";
 import Paper from "@material-ui/core/Paper";
@@ -12,6 +11,7 @@ import LabelledSelect from "../../CustomSelects/LabelledSelect";
 import { isEmpty, isEqual } from "underscore";
 import { updateMainAlert } from "redux/MainAlert/operations";
 import { updateDeviceDetails } from "views/apis/deviceRegistry";
+import { updateDevice } from "redux/DeviceRegistry/operations";
 
 const transformLocationOptions = (locationsData) => {
   const transFormedOptions = [];
@@ -82,6 +82,7 @@ export default function DeviceEdit({ deviceData, locationsData }) {
     setEditLoading(true);
     await updateDeviceDetails(deviceData.name, editData)
       .then((responseData) => {
+        dispatch(updateDevice(deviceData.name, responseData.updatedDevice));
         dispatch(
           updateMainAlert({
             message: responseData.message,
