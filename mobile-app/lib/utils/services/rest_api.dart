@@ -289,8 +289,12 @@ class AirqoApiClient {
 
   Future<Measurement> fetchDeviceMeasurements(Device device) async {
     try {
+
+      print('$getLatestDeviceEvents${device.channelID}');
       final response = await http
           .get(Uri.parse('$getLatestDeviceEvents${device.channelID}'));
+
+      print('$getLatestDeviceEvents${device.channelID}');
 
       print(response.statusCode);
       if (response.statusCode == 200) {

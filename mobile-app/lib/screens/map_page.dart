@@ -267,6 +267,20 @@ class MapPageState extends State<MapPage> {
     });
   }
 
+
+  @override
+  void dispose() {
+
+    if (mounted) {
+      setState(() {
+        _showInfoWindow = false;
+        _markers = {};
+        isLoading = false;
+      });
+    }
+    super.dispose();
+  }
+
   Widget infoWindow() {
     return Card(
         child: Padding(

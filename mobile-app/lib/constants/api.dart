@@ -3,7 +3,7 @@ const getLatestEvents =
 const getEvensByTime =
     'http://staging-platform.airqo.net/api/v1/devices/events?tenant=airqo&startTime=';
 const getLatestDeviceEvents =
-    'http://192.168.5.26:3001/api/v1/data/feeds/transform/recent?channel=';
+    'http://staging-platform.airqo.net/api/v1/data/feeds/transform/recent?channel=';
 const getDevices =
     'http://staging-platform.airqo.net/api/v1/devices?tenant=airqo';
 const getDevice =

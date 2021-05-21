@@ -7,6 +7,8 @@ import 'package:app/screens/search.dart';
 import 'package:app/screens/search_location_page.dart';
 
 import 'package:app/screens/settings_page.dart';
+import 'package:app/utils/services/local_storage.dart';
+import 'package:app/utils/services/rest_api.dart';
 import 'package:app/utils/ui/dialogs.dart';
 import 'package:app/utils/ui/share.dart';
 import 'package:flutter/material.dart';
@@ -77,29 +79,29 @@ class _HomePageState extends State<HomePage> {
             onSelected: (value) => {navigateToMenuItem(value)},
             itemBuilder: (context) => <PopupMenuEntry<String>>[
               const PopupMenuItem<String>(
-                value: 'My Places',
+                value: 'MyPlaces',
                 child: ListTile(
                   leading: Icon(
                     Icons.favorite_outlined,
                     color: appColor,
                   ),
                   title: Text(
-                    'My Places',
+                    'MyPlaces',
                   ),
                 ),
               ),
-              const PopupMenuItem<String>(
-                value: 'Settings',
-                child: ListTile(
-                  leading: Icon(
-                    Icons.settings,
-                    color: appColor,
-                  ),
-                  title: Text(
-                    'Settings',
-                  ),
-                ),
-              ),
+              // const PopupMenuItem<String>(
+              //   value: 'Settings',
+              //   child: ListTile(
+              //     leading: Icon(
+              //       Icons.settings,
+              //       color: appColor,
+              //     ),
+              //     title: Text(
+              //       'Settings',
+              //     ),
+              //   ),
+              // ),
               const PopupMenuItem<String>(
                 value: 'Faqs',
                 child: ListTile(
@@ -344,7 +346,7 @@ class _HomePageState extends State<HomePage> {
       // Navigator.push(context, MaterialPageRoute(builder: (context) {
       //   return FaqsPage();
       // }));
-    } else if (menuItem.trim().toLowerCase() == 'my places') {
+    } else if (menuItem.trim().toLowerCase() == 'myplaces') {
       Navigator.push(context, MaterialPageRoute(builder: (context) {
         return const MyPlaces();
       }));
@@ -354,4 +356,35 @@ class _HomePageState extends State<HomePage> {
       }));
     }
   }
+
+  @override
+  void initState() {
+
+    _getMeasurements();
+    _getDevices();
+    super.initState();
+  }
+
+  void _getMeasurements() async {
+
+    print('Home page Getting measurements');
+
+    var measurements = await AirqoApiClient(context).fetchMeasurements();
+
+    if (measurements.isNotEmpty) {
+      await DBHelper().insertMeasurements(measurements);
+    }
+  }
+
+  Future<void> _getDevices() async {
+
+    print('Home page Getting devices');
+
+    var results = await AirqoApiClient(context).fetchDevices();
+
+    if (results.isNotEmpty) {
+      await DBHelper().insertDevices(results);
+    }
+  }
+
 }

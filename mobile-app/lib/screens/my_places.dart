@@ -44,7 +44,7 @@ class _MyPlacesState extends State<MyPlaces> {
                     contentPadding: EdgeInsets.all(15),
                   ),
                 )
-              : const Text('My Places'),
+              : const Text('MyPlaces'),
           actions: [
             IconButton(
               icon: const Icon(
@@ -151,9 +151,8 @@ class _MyPlacesState extends State<MyPlaces> {
                                   padding: const EdgeInsets.all(16.0),
                                   child: const Text(
                                     'You haven\'t added any locations you care about '
-                                    'to My Places yet, use the add icon at '
-                                    'the top or the map '
-                                    'to add them to your list',
+                                    'to MyPlaces yet, use the add icon at '
+                                    'the top to add them to your list',
                                     softWrap: true,
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
@@ -247,6 +246,10 @@ class _MyPlacesState extends State<MyPlaces> {
 
     await showSnackBar2(
         context, '${place.siteName} is removed from your places');
+
+    setState(() {
+      
+    });
   }
 
   void doSearch(String query) {

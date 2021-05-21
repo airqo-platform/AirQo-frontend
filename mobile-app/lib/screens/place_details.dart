@@ -207,14 +207,14 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                               ),
                               text: '${widget.device.siteName} ',
                               children: <TextSpan>[
-                                TextSpan(
-                                  text: String.fromCharCode(0xe169),
-                                  style: const TextStyle(
-                                    fontSize: 15,
-                                    fontFamily: 'MaterialIcons',
-                                    color: appColor,
-                                  ),
-                                )
+                                // TextSpan(
+                                //   text: String.fromCharCode(0xe169),
+                                //   style: const TextStyle(
+                                //     fontSize: 15,
+                                //     fontFamily: 'MaterialIcons',
+                                //     color: appColor,
+                                //   ),
+                                // )
                               ],
                             ),
                           ),
@@ -528,7 +528,8 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                   style: const TextStyle(
                     height: 1.2,
                     // letterSpacing: 1.0
-                  )),
+                  )
+              ),
             ),
           )
         ],
