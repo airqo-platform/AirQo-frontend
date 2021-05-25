@@ -199,7 +199,7 @@ if ($node['reading'] >= 0 && $node['reading'] <= 12) {
           type: "POST",
           url: "<?= site_url('Apis/airqoPlace24Hours'); ?>",
           data: {
-               api: '',
+               api: 'AQ_9ec70a070c75E6af14FCca86/0621d1D83',
                channel: "<?= $node['an_channel_id']; ?>"
           },
           dataType: "json",
@@ -330,7 +330,7 @@ if ($node['reading'] >= 0 && $node['reading'] <= 12) {
           type: "POST",
           url: "<?= site_url("Apis/placeForecast"); ?>",
           data: {
-               api: '',
+               api: 'AQ_9ec70a070c75E6af14FCca86/0621d1D83', 
                channel: "<?= $node['an_channel_id']; ?>"
           },
           dataType: "json",
@@ -344,6 +344,7 @@ if ($node['reading'] >= 0 && $node['reading'] <= 12) {
                let y_data = [];
                let bar_colors = [];
 
+            //    let graph_feeds = response.formatted_results.predictions;
                let graph_feeds = response.predictions;
                if (graph_feeds != null) {
                     //graph_feeds.reverse();
@@ -436,5 +437,5 @@ if ($node['reading'] >= 0 && $node['reading'] <= 12) {
 
      // chart_d
 </script>
-<script src="https://maps.googleapis.com/maps/api/js?key=<API_KEY>&callback=initMap">
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAnK2dESOs8To3A01UdU3YpRNcC7cU_MKc&callback=initMap">
 </script>

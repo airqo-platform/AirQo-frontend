@@ -1,9 +1,8 @@
 import React from "react";
 import { connect } from "react-redux";
-import { mapRenderDefaults } from "../../../redux/Maps/actions";
+import { mapRenderDefaults } from "redux/Maps/actions";
 import PropTypes from "prop-types";
-import constants from "../../../config/constants.js";
-import Select from 'react-select';
+import Select from "react-select";
 
 import {
   Map,
@@ -15,20 +14,14 @@ import {
 } from "react-leaflet";
 import { EditControl } from "react-leaflet-draw";
 import axios from "axios";
-import L, { marker } from "leaflet";
-import { ElementClass } from "enzyme";
+import L from "leaflet";
 import FullscreenControl from "react-leaflet-fullscreen";
 import "react-leaflet-fullscreen/dist/styles.css";
-// import MapMenu from "./MapMenu";
-// From locate MAP
+
 import Button from "@material-ui/core/Button";
 import TextField from "@material-ui/core/TextField";
 import { CardActions, Divider } from "@material-ui/core";
-import Card from "../Card/Card.js";
-import CardBody from "../Card/CardBody.js";
-//--End--
 
-// From Locate Save
 import List from "@material-ui/core/List";
 import ListItem from "@material-ui/core/ListItem";
 import ListItemIcon from "@material-ui/core/ListItemIcon";
@@ -44,22 +37,24 @@ import DialogContent from "@material-ui/core/DialogContent";
 import DialogContentText from "@material-ui/core/DialogContentText";
 import CloseIcon from "@material-ui/icons/Close";
 import UpdateIcon from "@material-ui/icons/Update";
-//import Select from '@material-ui/core/Select';
+import {
+  GET_LOCATE_MAP,
+  SAVE_LOCATE_MAP,
+  UPDATE_LOCATE_MAP,
+  DELETE_LOCATE_MAP,
+  RUN_LOCATE_MODEL,
+} from "config/urls/locate";
 
 //download csv and pdf
-import jsPDF from 'jspdf'
-import 'jspdf-autotable'
-import jsonexport from 'jsonexport'
+import jsPDF from "jspdf";
+import "jspdf-autotable";
+import jsonexport from "jsonexport";
 
-
-// -- End --
-
-let geoJsonPolygon;
 
 const typeOptions = [
-  {value: '', label:'choose download option'},
-  { value: 'CSV', label: 'CSV'},
-  { value: 'PDF', label: 'PDF'},
+  { value: "", label: "choose download option" },
+  { value: "CSV", label: "CSV" },
+  { value: "PDF", label: "PDF" },
 ];
 
 const initialState = {
@@ -74,10 +69,10 @@ const initialState = {
   // activates/deactivates locate submit button accordingly
   btnSubmit: false,
   // activates/deactivates clear planning space button accordingly
-  btnClear:false,
+  btnClear: false,
 
   //for conditional rendering of clear button
-  clear:true,      
+  clear: true,
 
   //newly added - passed to the model endpoint
   geoJSONDATA: "",
@@ -97,8 +92,8 @@ const initialState = {
 
   // handle all the popup msg
   confirmDialogMsg: "",
-  selectedOption: {value:' ',label:''},
-}
+  selectedOption: { value: " ", label: "" },
+};
 
 class Maps extends React.Component {
   constructor(props) {
@@ -126,7 +121,7 @@ class Maps extends React.Component {
   // added from locateSave
   onOpenClicked = () => {
     axios
-      .get(constants.GET_LOCATE_MAP + this.props.auth.user._id)
+      .get(GET_LOCATE_MAP + this.props.auth.user._id)
       .then((res) => {
         this.setState({ savedPlan: res.data });
         console.log(res.data);
@@ -145,7 +140,7 @@ class Maps extends React.Component {
     // console.log("plan: ", this.state.plan);
     axios
       .post(
-        constants.SAVE_LOCATE_MAP,
+        SAVE_LOCATE_MAP,
         {
           user_id: this.props.auth.user._id,
           space_name: this.state.space_name,
@@ -181,17 +176,17 @@ class Maps extends React.Component {
   };
   //handles download input
   handleDownloadChange = (selected) => {
-    this.setState( {selectedOption:selected});
+    this.setState({ selectedOption: selected });
     //console.log(`Option selected:`, selected)
-  }
+  };
 
-  handleClear=()=>{
+  handleClear = () => {
     this.setState(initialState);
     let leafletFG = this._editableFG.leafletElement;
-    leafletFG.eachLayer(function (layer) { layer.remove(); 
-    })
-
-  }
+    leafletFG.eachLayer(function (layer) {
+      layer.remove();
+    });
+  };
 
   // Handles saved space confirmation feedback
   handleConfirmClose = () => {
@@ -217,7 +212,7 @@ class Maps extends React.Component {
     console.log("onUpdate: ", this.state.selected_name);
     axios
       .post(
-        constants.UPDATE_LOCATE_MAP + this.state.selected_name,
+        UPDATE_LOCATE_MAP + this.state.selected_name,
         {
           plan: this.state.selected_plan,
         },
@@ -250,7 +245,7 @@ class Maps extends React.Component {
   onDeletePlanSpace = (name) => {
     console.log("onDelete :", name);
     axios
-      .delete(constants.DELETE_LOCATE_MAP + name)
+      .delete(DELETE_LOCATE_MAP + name)
       .then((res) => {
         console.log(res.data);
         this.setState({ confirmDialogMsg: res.data.message });
@@ -291,7 +286,7 @@ class Maps extends React.Component {
     };
     console.log(api_data);
     axios
-      .post(constants.RUN_LOCATE_MODEL, api_data, {
+      .post(RUN_LOCATE_MODEL, api_data, {
         headers: { "Content-Type": "application/json" },
       })
       .then((res) => {
@@ -343,57 +338,75 @@ class Maps extends React.Component {
 
           this.setState({
             polygons: myPolygons,
-            btnClear:true,
+            btnClear: true,
           });
-        {/*download files*/}
-         let toCsv =[]
-         if(this.state.selectedOption.value ==="CSV"){
-         
-          myData.forEach(element => {
+          {
+            /*download files*/
+          }
+          let toCsv = [];
+          if (this.state.selectedOption.value === "CSV") {
+            myData.forEach((element) => {
               toCsv.push({
-              type: "Feature",
-              properties: {
-            district: element["properties.district"],
-                subcounty: element["properties.subcounty"],
-                parish: element["properties.parish"],
-                lat: element["properties.lat"],
-                long: element["properties.long"],
-              }
+                type: "Feature",
+                properties: {
+                  district: element["properties.district"],
+                  subcounty: element["properties.subcounty"],
+                  parish: element["properties.parish"],
+                  lat: element["properties.lat"],
+                  long: element["properties.long"],
+                },
+              });
             });
-          });
-          jsonexport(toCsv,function(err, csv){
-            if(err) return console.log(err);
-            var filename ="parish_recommendations.csv"
-            var link = document.createElement('a');
-          link.setAttribute('href', 'data:text/csv;charset=utf-8,%EF%BB%BF' + encodeURIComponent(csv));
-          link.setAttribute('download', filename);
-          link.style.visibility = 'hidden';
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link); 
-      });
-    }
-    else{
-    var doc = new jsPDF('p', 'pt','a4');
-     var rows = [];  
-      var header = function (data) {
-                        doc.setFontSize(18);
-                        doc.setTextColor(40);
-                        doc.setFontStyle('normal');
-    //doc.addImage(headerImgData, 'JPEG', data.settings.margin.left, 20, 50, 50);
-                        doc.text("RECOMMENDED PARISHES", data.settings.margin.left, 50);
-                    }; 
-    var col =['type','District','Subcounty','Parish','lat','long']
-      myPolygons.forEach(element => {      
-            var temp = [element.type,element.properties.district,element.properties.subcounty,element.properties.parish,element.properties.lat,element.properties.long];
-            rows.push(temp);
-     });     
-    doc.autoTable(col, rows, {margin: {top: 80}, beforePageContent: header});
-    doc.save('parish_recommendations.pdf');
-    }
-       
-       
-       
+            jsonexport(toCsv, function (err, csv) {
+              if (err) return console.log(err);
+              var filename = "parish_recommendations.csv";
+              var link = document.createElement("a");
+              link.setAttribute(
+                "href",
+                "data:text/csv;charset=utf-8,%EF%BB%BF" +
+                  encodeURIComponent(csv)
+              );
+              link.setAttribute("download", filename);
+              link.style.visibility = "hidden";
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+            });
+          } else {
+            var doc = new jsPDF("p", "pt", "a4");
+            var rows = [];
+            var header = function (data) {
+              doc.setFontSize(18);
+              doc.setTextColor(40);
+              doc.setFontStyle("normal");
+              //doc.addImage(headerImgData, 'JPEG', data.settings.margin.left, 20, 50, 50);
+              doc.text("RECOMMENDED PARISHES", data.settings.margin.left, 50);
+            };
+            var col = [
+              "type",
+              "District",
+              "Subcounty",
+              "Parish",
+              "lat",
+              "long",
+            ];
+            myPolygons.forEach((element) => {
+              var temp = [
+                element.type,
+                element.properties.district,
+                element.properties.subcounty,
+                element.properties.parish,
+                element.properties.lat,
+                element.properties.long,
+              ];
+              rows.push(temp);
+            });
+            doc.autoTable(col, rows, {
+              margin: { top: 80 },
+              beforePageContent: header,
+            });
+            doc.save("parish_recommendations.pdf");
+          }
         } catch (error) {
           console.log("An error occured. Please try again");
         }
@@ -429,21 +442,20 @@ class Maps extends React.Component {
       console.log("_onCreated: marker created", e);
     }
     if (type === "polygon") {
-          // here you got the polygon points
-          ///const points = layer._latlngs;
-          console.log(JSON.stringify(layer.toGeoJSON()));
-          //console.log(JSON.stringify(layer.toGeoJSON()));
-          this.setState({ plan: layer.toGeoJSON() });
-          //newly added
-          this.setState({ geoJSONDATA: JSON.stringify(layer.toGeoJSON()) });
-          if (this.state.clear){
-            this.setState({ geoJSONDATA: "" }); 
-          }
+      // here you got the polygon points
+      ///const points = layer._latlngs;
+      console.log(JSON.stringify(layer.toGeoJSON()));
+      //console.log(JSON.stringify(layer.toGeoJSON()));
+      this.setState({ plan: layer.toGeoJSON() });
+      //newly added
+      this.setState({ geoJSONDATA: JSON.stringify(layer.toGeoJSON()) });
+      if (this.state.clear) {
+        this.setState({ geoJSONDATA: "" });
       }
-      if (this.state.clear){
-        this.setState({ geoJSONDATA: "" }); 
-      }
-
+    }
+    if (this.state.clear) {
+      this.setState({ geoJSONDATA: "" });
+    }
   };
 
   render() {
@@ -508,12 +520,12 @@ class Maps extends React.Component {
               fullWidth
               margin="normal"
             />
-             <Select 
-             options = {typeOptions} 
-             value ={this.state.selectedOption}
-             onChange ={this.handleDownloadChange} 
-             placeholder= {"choose download option"}
-             />
+            <Select
+              options={typeOptions}
+              value={this.state.selectedOption}
+              onChange={this.handleDownloadChange}
+              placeholder={"choose download option"}
+            />
             <CardActions>
               <Button
                 type="submit"
@@ -607,7 +619,8 @@ class Maps extends React.Component {
                               s.space_name,
                               s.plan
                             )}
-z                          />
+                            z
+                          />
                           <Button
                             variant="contained"
                             size="small"
@@ -698,7 +711,6 @@ z                          />
           <FullscreenControl position="topright" />
 
           <LayerGroup>
-            
             {this.state.polygons.map((location) => (
               <Marker
                 key={location.parish}
@@ -750,7 +762,7 @@ z                          />
               this._onFeatureGroupReady(reactFGref);
             }}
           >
-            <EditControl 
+            <EditControl
               ref="edit"
               position="topright"
               onEdited={this._onEdited}
@@ -811,8 +823,6 @@ z                          />
           });
           let leafletFG = this._editableFG.leafletElement;
           leafletGeoJSON.eachLayer((layer) => leafletFG.addLayer(layer));
-
-
         } catch (error) {
           console.log(
             "An error occured and some polygons may not have been shown!"

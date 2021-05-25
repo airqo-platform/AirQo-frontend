@@ -113,7 +113,7 @@ export class MenuPage {
 
     if(this.device.platform){
       if(this.device.platform.toLowerCase() == "android"){
-        link = "https://play.google.com/store/apps/details?id=com.buzen.contract.airqoapp";
+        link = "https://play.google.com/store/apps/details?id=com.airqo.net&hl=en";
       } else {
         link = "https://itunes.apple.com/ug/app/airqo-monitoring-air-quality/id1337573091?mt=8";
       }
@@ -135,7 +135,7 @@ export class MenuPage {
 
     if(this.device.platform){
       if(this.device.platform.toLowerCase() == "android"){
-        link = "https://play.google.com/store/apps/details?id=com.buzen.contract.airqoapp";
+        link = "https://play.google.com/store/apps/details?id=com.airqo.net&hl=en";
       } else {
         link = "https://itunes.apple.com/ug/app/airqo-monitoring-air-quality/id1337573091?mt=8";
       }
@@ -157,7 +157,7 @@ export class MenuPage {
 
     if(this.device.platform){
       if(this.device.platform.toLowerCase() == "android"){
-        link = "https://play.google.com/store/apps/details?id=com.buzen.contract.airqoapp";
+        link = "https://play.google.com/store/apps/details?id=com.airqo.net&hl=en";
       } else {
         link = "https://itunes.apple.com/ug/app/airqo-monitoring-air-quality/id1337573091?mt=8";
       }

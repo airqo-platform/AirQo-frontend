@@ -6,7 +6,6 @@ import {
   Card,
   CardContent,
   CardHeader,
-  CardActions,
   Divider,
   Grid,
   Button,
@@ -17,13 +16,10 @@ import {
   IconButton,
 } from "@material-ui/core";
 import { MoreHoriz } from "@material-ui/icons";
-import clsx from "clsx";
 import axios from "axios";
-//import LoadingSpinner from '../../../Graphs/loadingSpinner';
 import Select from "react-select";
 import palette from "theme/palette";
-import constants from "config/constants";
-import { constant } from "underscore";
+import { EXCEEDANCES_URI } from "config/urls/analytics";
 import Menu from "@material-ui/core/Menu";
 import MenuItem from "@material-ui/core/MenuItem";
 import domtoimage from "dom-to-image";
@@ -89,7 +85,7 @@ const ExceedancesChart = (props) => {
     //setLoading(true);
 
     axios
-      .post(constants.EXCEEDANCES_URI, JSON.stringify(effectFilter), {
+      .post(EXCEEDANCES_URI, JSON.stringify(effectFilter), {
         headers: { "Content-Type": "application/json" },
       })
       .then((res) => {
@@ -234,7 +230,7 @@ const ExceedancesChart = (props) => {
     console.log(filter_string);
 
     axios
-      .post(constants.EXCEEDANCES_URI, filter_string, {
+      .post(EXCEEDANCES_URI, filter_string, {
         headers: { "Content-Type": "application/json" },
       })
       .then((res) => {

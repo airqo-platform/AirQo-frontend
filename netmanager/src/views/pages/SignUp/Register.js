@@ -3,13 +3,13 @@ import React, { Component } from "react";
 import { Link, withRouter } from "react-router-dom";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
-import { registerCandidate } from "redux/Join/actions";
+import { clearErrors, registerCandidate } from "redux/Join/actions";
 import TextField from "@material-ui/core/TextField";
 import categories from "utils/categories";
 import { Alert, AlertTitle } from "@material-ui/lab";
 import { withStyles } from "@material-ui/core";
 import { isEmpty, isEqual } from "underscore";
-import { isFormFullyFilled } from "./utils";
+import { isFormFullyFilled, containsEmptyValues } from "./utils";
 import usersStateConnector from "views/stateConnectors/usersStateConnector";
 
 const styles = (theme) => ({
@@ -104,7 +104,7 @@ class Register extends Component {
         [id]: value,
       },
       () => {
-        console.log(errors);
+        console.log("errors", errors);
       }
     );
   };
@@ -158,11 +158,12 @@ class Register extends Component {
     const { id, value } = e.target;
     let errors = this.state.errors;
     // const { errors } = this.state;
-    errors[id] = mappedErrors.errors[id];
 
-    this.props.registerCandidate(this.state);
-    this.clearState();
-    if (errors) {
+    // THis has been commented out.  Not sure where the mapped errors come from
+    // errors[id] = mappedErrors && mappedErrors.errors[id] || "";
+
+    if (!containsEmptyValues(errors)) {
+
       this.setState(
         {
           errors,
@@ -173,7 +174,7 @@ class Register extends Component {
         }
       );
     } else {
-      this.clearState();
+        this.props.registerCandidate(this.state, () => this.clearState());
     }
   };
   render() {
@@ -209,6 +210,25 @@ class Register extends Component {
               </p>
             </div>
             <form noValidate onSubmit={this.onSubmit}>
+              <div
+                  style={
+                    isEmpty((this.props.errors && this.props.errors.data) || {})
+                      ? { display: "none" }
+                      : {}
+                  }
+              >
+                <Alert
+                  severity="error"
+                  onClose={() => {
+                    this.props.clearErrors();
+                  }}
+                >
+                  {this.props.errors &&
+                    this.props.errors.data &&
+                    this.props.errors.data.message}
+                </Alert>
+              </div>
+
               <div className="col s12">
                 <TextField
                     onChange={this.onChange}
@@ -353,6 +373,7 @@ class Register extends Component {
 
 Register.propTypes = {
   registerCandidate: PropTypes.func.isRequired,
+  clearErrors: PropTypes.func.isRequired,
   auth: PropTypes.object.isRequired,
   errors: PropTypes.object.isRequired,
 };
@@ -363,6 +384,6 @@ const mapStateToProps = (state) => ({
 });
 
 // export default Register;
-export default usersStateConnector(connect(mapStateToProps, { registerCandidate })(
+export default usersStateConnector(connect(mapStateToProps, { registerCandidate, clearErrors })(
   withRouter(withStyles(styles, { withTheme: true })(Register))
 ));

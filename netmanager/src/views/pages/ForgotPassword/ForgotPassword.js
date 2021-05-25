@@ -89,7 +89,7 @@ class ForgotPassword extends Component {
         .catch(err => {
           this.setAlert({
             show: true,
-            message: err.response.data.message,
+            message: err.response && err.response.data.message || err.request && "Please check your internet connectivity",
             type: "error"
           })
         });

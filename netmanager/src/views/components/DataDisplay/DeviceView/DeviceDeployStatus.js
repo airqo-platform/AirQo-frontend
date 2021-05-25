@@ -37,8 +37,9 @@ import {
   recallDeviceApi,
 } from "../../../apis/deviceRegistry";
 import { updateMainAlert } from "redux/MainAlert/operations";
-import { getElapsedDurationMapper } from "utils/dateTime";
+import { getElapsedDurationMapper, getFirstNDurations } from "utils/dateTime";
 import { updateDevice } from "redux/DeviceRegistry/operations";
+import ConfirmDialog from "views/containers/ConfirmDialog";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -51,22 +52,6 @@ const useStyles = makeStyles((theme) => ({
     color: grey[200],
   },
 }));
-
-const getFirstNDurations = (duration, n) => {
-  let format = "";
-  let count = n;
-  const keys = ["year", "month", "week", "day", "hour", "minute", "second"];
-  for (const key of keys) {
-    const elapsedTime = duration[key];
-    if (elapsedTime > 0) {
-      format = `${format} ${elapsedTime} ${key}(s),`;
-      count -= 1;
-    }
-
-    if (count <= 0) break;
-  }
-  return format;
-};
 
 const errorStyles = {
   color: "red",
@@ -187,51 +172,14 @@ const EmptyDeviceTest = ({ loading, onClick }) => {
 
 const RecallDevice = ({ deviceData, handleRecall, open, toggleOpen }) => {
   return (
-    <Dialog
+    <ConfirmDialog
       open={open}
-      onClose={toggleOpen}
-      aria-labelledby="form-dialog-title"
-      aria-describedby="form-dialog-description"
-      style={{ padding: "20px 10px" }}
-    >
-      <DialogTitle
-        id="form-dialog-title"
-        style={{
-          textTransform: "uppercase",
-          alignContent: "center",
-          fontSize: "1.1rem",
-        }}
-      >
-        Recall device
-      </DialogTitle>
-
-      <DialogContent>
-        Are you sure you want to recall device{" "}
-        <strong>{deviceData.name}</strong> from location{" "}
-        <strong>{deviceData.locationID}</strong>?
-      </DialogContent>
-
-      <DialogActions>
-        <Grid
-          container
-          alignItems="flex-end"
-          alignContent="flex-end"
-          justify="flex-end"
-        >
-          <Button variant="contained" onClick={toggleOpen}>
-            Cancel
-          </Button>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleRecall}
-            style={{ margin: "0 15px" }}
-          >
-            Recall device
-          </Button>
-        </Grid>
-      </DialogActions>
-    </Dialog>
+      close={toggleOpen}
+      message={`Are you sure you want to recall device ${deviceData.name}?`}
+      title={"Recall device"}
+      confirm={handleRecall}
+      confirmBtnMsg={"Recall"}
+    />
   );
 };
 
@@ -345,8 +293,8 @@ export default function DeviceDeployStatus({ deviceData }) {
     deviceData.mountType || ""
   );
   const [deploymentDate, setDeploymentDate] = useState(new Date());
-  const [primaryChecked, setPrimaryChecked] = useState(true);
-  const [collocationChecked, setCollocationChecked] = useState(false);
+  const [primaryChecked, setPrimaryChecked] = useState(deviceData.isPrimaryInLocation);
+  const [collocationChecked, setCollocationChecked] = useState(deviceData.isUsedForCollocation);
   const [recentFeed, setRecentFeed] = useState({});
   const [runReport, setRunReport] = useState({
     ranTest: false,
@@ -428,7 +376,6 @@ export default function DeviceDeployStatus({ deviceData }) {
       return;
     }
     const deployData = {
-      deviceName: deviceData.name,
       mountType: installationType,
       height: height,
       powerType: power,
@@ -436,11 +383,11 @@ export default function DeviceDeployStatus({ deviceData }) {
       latitude: latitude.toString(),
       longitude: longitude.toString(),
       isPrimaryInLocation: primaryChecked,
-      isUserForCollocaton: collocationChecked,
+      isUsedForCollocation: collocationChecked,
     };
 
     setDeployLoading(true);
-    await deployDeviceApi(deployData)
+    await deployDeviceApi(deviceData.name, deployData)
       .then((responseData) => {
         dispatch(
           updateMainAlert({
@@ -449,7 +396,7 @@ export default function DeviceDeployStatus({ deviceData }) {
             severity: "success",
           })
         );
-        dispatch(updateDevice(deviceData.name, { isActive: true }));
+        dispatch(updateDevice(deviceData.name, responseData.updatedDevice));
       })
       .catch((err) => {
         dispatch(
@@ -464,16 +411,9 @@ export default function DeviceDeployStatus({ deviceData }) {
   };
 
   const handleRecallSubmit = async () => {
-    const currentDate = new Date();
-    const recallData = {
-      deviceName: deviceData.name,
-      locationName: deviceData.locationID,
-      date: currentDate.toISOString(),
-    };
-
     setRecallOpen(!recallOpen);
 
-    await recallDeviceApi(recallData)
+    await recallDeviceApi(deviceData.name)
       .then((responseData) => {
         dispatch(
           updateMainAlert({
@@ -482,12 +422,12 @@ export default function DeviceDeployStatus({ deviceData }) {
             severity: "success",
           })
         );
-        dispatch(updateDevice(deviceData.name, { isActive: false }));
+        dispatch(updateDevice(deviceData.name, responseData.updatedDevice));
       })
       .catch((err) => {
         dispatch(
           updateMainAlert({
-            message: err.response.data.message,
+            message: err.response && err.response.data && err.response.data.message,
             show: true,
             severity: "error",
           })

@@ -21,12 +21,15 @@ $route['project/(:any)']     = 'airqo/projectdetails/$1';
 $route['blog']         = 'airqo/blog';
 $route['blog-search']         = 'airqo/blogsearch';
 $route['blog-post/(:any)']  = 'airqo/blogdetails/$1';
+$route['blog-post-preview/(:any)']  = 'airqo/previewblogdetails/$1';
+
 $route['blog-category/(:any)']  = 'airqo/blog/$1';
 $route['places']         = 'airqo/places';
 $route['partnerships']   = 'airqo/partnerships';
 $route['background']   = 'airqo/background';
 $route['careers']   = 'airqo/careers';
 $route['career/(:any)']  = 'airqo/careerdetails/$1';
+$route['careerr/(:any)']  = 'airqo/careerdetails1/$1';
 $route['contact-us']   = 'airqo/contactUs';
 $route['airqo-launch']   = 'airqo/launch';
 $route['research-community']   = 'airqo/researchcommunity';
@@ -78,5 +81,3 @@ $route['a-edit-post/(:any)']      = 'Post/EditPost/$1';
 $route['a-add-post']              = 'Post/CreatePost';
 $route['a-posts']                 = 'Post/Index';
 $route['a-categories']            = 'Category/index';
-
-

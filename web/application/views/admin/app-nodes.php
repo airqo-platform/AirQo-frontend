@@ -1,5 +1,5 @@
 	<!-- BEGIN CONTENT -->
-	<script src="https://maps.googleapis.com/maps/api/js?key=<API_KEY>&libraries=places"></script> <!-- you use ur map api key -->
+	<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAnK2dESOs8To3A01UdU3YpRNcC7cU_MKc&libraries=places"></script> <!-- you use ur map api key -->
 	<div class="page-content-wrapper">
 		<div class="page-content">
 			<div class="modal fade create-node" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
