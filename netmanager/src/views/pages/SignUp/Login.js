@@ -4,7 +4,7 @@ import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { CardContent } from "@material-ui/core";
 import Alert from "@material-ui/lab/Alert";
-import { clearErrors, loginUser } from "../../../redux/Join/actions";
+import { clearErrors, loginUser } from "redux/Join/actions";
 import Grid from "@material-ui/core/Grid";
 import classnames from "classnames";
 import { isEmpty, omit } from "underscore";
@@ -139,7 +139,9 @@ class Login extends Component {
               <form noValidate onSubmit={this.onSubmit}>
                 <CardContent
                   style={
-                    isEmpty(this.props.errors.data) ? { display: "none" } : {}
+                    isEmpty((this.props.errors && this.props.errors.data) || {})
+                      ? { display: "none" }
+                      : {}
                   }
                 >
                   <Alert
@@ -148,7 +150,9 @@ class Login extends Component {
                       this.props.clearErrors();
                     }}
                   >
-                    {this.props.errors.data && this.props.errors.data.message}
+                    {this.props.errors &&
+                      this.props.errors.data &&
+                      this.props.errors.data.message}
                   </Alert>
                 </CardContent>
                 <div className="input-field col s12">
