@@ -1,4 +1,5 @@
 import 'package:app/constants/app_constants.dart';
+import 'package:app/core/on_boarding/onBoarding_page.dart';
 import 'package:app/screens/feedback_page.dart';
 import 'package:app/screens/map_page.dart';
 import 'package:app/screens/my_places.dart';
@@ -12,6 +13,7 @@ import 'package:app/utils/services/rest_api.dart';
 import 'package:app/utils/ui/dialogs.dart';
 import 'package:app/utils/ui/share.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'compare_page.dart';
 import 'dashboard_page.dart';
@@ -360,6 +362,8 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
 
+    displayOnBoarding();
+
     _getMeasurements();
     _getDevices();
     super.initState();
@@ -385,6 +389,21 @@ class _HomePageState extends State<HomePage> {
     if (results.isNotEmpty) {
       await DBHelper().insertDevices(results);
     }
+  }
+
+  Future<void> displayOnBoarding() async {
+    var prefs = await SharedPreferences.getInstance();
+    var isFirstUse = prefs.getBool(firstUse) ?? true;
+
+    if(isFirstUse){
+      await Navigator.pushReplacement(context,
+          MaterialPageRoute(builder: (context) {
+            return OnBoardingPage();
+          })
+      );
+    }
+
+
   }
 
 }

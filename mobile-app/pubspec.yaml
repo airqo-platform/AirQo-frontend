@@ -52,6 +52,7 @@ dependencies:
   uuid: ^3.0.4
   mailer: ^5.0.0
   flutter_slidable: ^0.6.0
+  flutter_svg: ^0.22.0
 
 flutter_icons:
   android: "launcher_icon"
@@ -98,6 +99,9 @@ flutter:
     - assets/images/hazardous.png
     - assets/images/sensitive.png
     - assets/images/pmDefault.png
+    - assets/svg/1.svg
+    - assets/svg/2.svg
+    - assets/svg/3.svg
 
     # HTML files
     - assets/html/privacy_policy.html

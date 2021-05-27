@@ -9,6 +9,5 @@ const getDevices =
 const getDevice =
     'http://staging-platform.airqo.net/api/v1/devices?tenant=airqo&name=';
 const getHourlyEvents =
-    'https://us-central1-airqo-250220.cloudfunctions.net/get_hourly_channel_data?channel_id=';
-
-const getForecastUrl = 'http://staging-platform.airqo.net/api/v1/predict/';
+    'http://us-central1-airqo-250220.cloudfunctions.net/get_hourly_channel_data?channel_id=';
+const getForecastUrl = 'https://staging-platform.airqo.net/api/v1/predict/';

@@ -378,7 +378,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                 ),
                 ActionButton(
                   onPressed: () {
-                    shareLocation(locationData.locationDetails);
+                    shareMeasurement(locationData);
                   },
                   icon: const Icon(Icons.share_outlined),
                 ),
