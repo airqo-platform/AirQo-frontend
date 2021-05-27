@@ -192,13 +192,13 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                       children: [
                         Expanded(
                             child: GestureDetector(
-                          onTap: () {
-                            print('editing');
-                          },
-                          child: RichText(
-                            overflow: TextOverflow.ellipsis,
-                            textAlign: TextAlign.center,
-                            maxLines: 10,
+                              onTap: () {
+                                print('editing');
+                                },
+                              child: RichText(
+                                overflow: TextOverflow.ellipsis,
+                                textAlign: TextAlign.center,
+                                maxLines: 10,
                             text: TextSpan(
                               style: const TextStyle(
                                 fontSize: 20,
@@ -207,14 +207,14 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                               ),
                               text: '${widget.device.siteName} ',
                               children: <TextSpan>[
-                                // TextSpan(
-                                //   text: String.fromCharCode(0xe169),
-                                //   style: const TextStyle(
-                                //     fontSize: 15,
-                                //     fontFamily: 'MaterialIcons',
-                                //     color: appColor,
-                                //   ),
-                                // )
+                                TextSpan(
+                                  text: String.fromCharCode(0xe169),
+                                  style: const TextStyle(
+                                    fontSize: 15,
+                                    fontFamily: 'MaterialIcons',
+                                    color: appColor,
+                                  ),
+                                )
                               ],
                             ),
                           ),

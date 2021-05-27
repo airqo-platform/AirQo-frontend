@@ -104,7 +104,7 @@ class SplashScreenState extends State<SplashScreen> {
     else{
       await Navigator.pushReplacement(context,
           MaterialPageRoute(builder: (context) {
-            return OnBoardingPage();
+            return HomePage();
           })
       );
     }
