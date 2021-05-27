@@ -8,6 +8,7 @@ const appPlayStoreLink =
     'https://play.google.com/store/apps/details?id=com.airqo.app';
 const firstUse = 'firstUse';
 const appColor = Color(0xff3067e2);
+const appColorPale = Color(0xff3086e2);
 const greenColor = Color(0xff3FFF33);
 const yellowColor = Color(0xffFFF933);
 const orangeColor = Color(0xffFF9633);

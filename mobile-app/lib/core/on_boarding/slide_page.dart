@@ -1,3 +1,4 @@
+import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:app/models/onBoardingData.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -14,7 +15,7 @@ class SlidePage extends StatelessWidget {
       children: [
         Container(
             margin: const EdgeInsets.only(top: 24, bottom: 16),
-            child: SvgPicture.asset(data.localImageSrc,
+            child: Image.asset(data.localImageSrc,
                 height: MediaQuery.of(context).size.height * 0.33,
                 alignment: Alignment.center)
         ),
@@ -40,13 +41,24 @@ class SlidePage extends StatelessWidget {
             children: [
               Container(
                   padding: const EdgeInsets.symmetric(horizontal: 48),
-                  child: Text(
-                    data.description,
-                    style: const TextStyle(
-                        fontSize: 16.0, height: 1.3,
-                        color: Colors.white, fontWeight: FontWeight.w200),
-                    textAlign: TextAlign.center,
-                  )
+                  child: AnimatedTextKit(
+                    totalRepeatCount: 1,
+                    animatedTexts: [
+                    TypewriterAnimatedText(
+                        data.description,
+                        textStyle: const TextStyle(
+                            fontSize: 16.0, height: 1.3,
+                            color: Colors.white, fontWeight: FontWeight.w200),
+                        textAlign: TextAlign.center,
+                    ),],
+                  ),
+                  // child: Text(
+                  //   data.description,
+                  //   style: const TextStyle(
+                  //       fontSize: 16.0, height: 1.3,
+                  //       color: Colors.white, fontWeight: FontWeight.w200),
+                  //   textAlign: TextAlign.center,
+                  // )
               )
             ],
           ),

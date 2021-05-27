@@ -20,20 +20,18 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
         description:
         'Select locations important to you using MyPlaces',
         title: 'MyPlaces',
-        localImageSrc: 'assets/svg/1.svg'),
+        localImageSrc: 'assets/svg/historical.png'),
     OnBoardingData(
         description:
         'See air quality for the last 48 hours and '
             'forecast for your next 24 hours',
         title: 'Historical and Forecast',
-        localImageSrc: 'assets/svg/2.svg'),
+        localImageSrc: 'assets/svg/historical.png'),
     OnBoardingData(
         description: 'View various locations on a map',
         title: 'Map',
-        localImageSrc: 'assets/svg/3.svg'),
+        localImageSrc: 'assets/svg/map.png'),
   ];
-
-  // OpenPainter _painter = OpenPainter(3, 1);
 
   @override
   Widget build(BuildContext context) {
@@ -49,7 +47,7 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
                       end: Alignment.bottomCenter,
                       colors: [
                         appColor,
-                        Colors.white38,
+                        appColorPale,
                       ])
               ),
               alignment: Alignment.center,
@@ -65,15 +63,14 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
                                   scrollDirection: Axis.horizontal,
                                   controller: _controller,
                                   onPageChanged: (value) {
-                                    // _painter.changeIndex(value);
                                     setState(() {
                                       _currentIndex = value;
                                     });
-                                    // notifyListeners();
                                   },
                                   children: data
                                       .map((e) => SlidePage(data: e))
-                                      .toList())),
+                                      .toList())
+                          ),
                           ),
                       Expanded(
                           flex: 1,
