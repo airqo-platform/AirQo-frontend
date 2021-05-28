@@ -10,16 +10,23 @@ class CustomLocalizations {
     return Localizations.of<CustomLocalizations>(context, CustomLocalizations);
   }
 
-  static Map<String, Map<String, String>> _resources = {
-    'en': {'title': 'Airqo', 'message': 'English'},
+  static const LocalizationsDelegate<CustomLocalizations> delegate =
+  CustomLocalizationsDelegate();
+
+  static final Map<String, Map<String, String>> _resources = {
+    'en': {'title': 'AirQo English', 'message': 'English'},
     'lg': {
-      'title': 'Airqó',
+      'title': 'AirQó Luganda',
       'message': 'Luganda',
     },
   };
 
-  String? get title {
-    return _resources[locale.languageCode]!['title'];
+
+
+  String get title {
+    var title = _resources[locale.languageCode]!['title'];
+    title ??= 'AirQo';
+    return title;
   }
 
   String? get message {

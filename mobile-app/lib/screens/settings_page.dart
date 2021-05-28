@@ -84,7 +84,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     child: new Text('Cancel')),
                 OutlinedButton(
                     onPressed: () {
-                      final provider = Provider.of<localProvider>(context);
+                      final provider = Provider.of<LocaleProvider>(context);
 
                       print(_language.toString());
 

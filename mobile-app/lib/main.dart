@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'config/languages/CustomLocalizations.dart';
 import 'config/languages/l10n.dart';
+import 'config/languages/lg_intl.dart';
 import 'config/themes/light_theme.dart';
 import 'constants/app_constants.dart';
 import 'core/on_boarding/onBoarding_page.dart';
@@ -33,25 +34,31 @@ class AirqoApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (context) => localProvider(),
+      create: (context) => LocaleProvider(),
       builder: (context, child) {
-        final provider = Provider.of<localProvider>(context);
+        final provider = Provider.of<LocaleProvider>(context);
         return MaterialApp(
           localizationsDelegates: [
-            const CustomLocalizationsDelegate(),
+            CustomLocalizations.delegate,
             GlobalMaterialLocalizations.delegate,
-            // GlobalWidgetsLocalizations.delegate,
-            // GlobalCupertinoLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+            LgMaterialLocalizations.delegate,
           ],
-          supportedLocales: L10n.all,
-          localeResolutionCallback: (locale, supportedLocales) {
-            for (var supportedLocale in supportedLocales) {
-              if (supportedLocale.languageCode == locale!.languageCode) {
-                return supportedLocale;
-              }
-            }
-            return supportedLocales.first;
-          },
+          // supportedLocales: L10n.all,
+          // localeResolutionCallback: (locale, supportedLocales) {
+          //   for (var supportedLocale in supportedLocales) {
+          //     if (supportedLocale.languageCode.toLowerCase().trim() ==
+          //         locale!.languageCode.toLowerCase().trim()) {
+          //       return supportedLocale;
+          //     }
+          //   }
+          //   return supportedLocales.first;
+          // },
+          supportedLocales: [
+            const Locale('en'),
+            const Locale('lg')
+          ],
           locale: provider.locale,
           title: appName,
           theme: lightTheme(),
@@ -78,13 +85,15 @@ class SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        color: appColor,
-          child: const Center(
-            child: CircularProgressIndicator(
-              backgroundColor: Colors.white,
-            ),
-          )
+      body: Center(
+        child: Container(
+            color: appColor,
+            child: const Center(
+              child: CircularProgressIndicator(
+                backgroundColor: Colors.white,
+              ),
+            )
+        ),
       ),
     );
   }
