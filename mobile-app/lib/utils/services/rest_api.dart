@@ -290,11 +290,10 @@ class AirqoApiClient {
   Future<Measurement> fetchDeviceMeasurements(Device device) async {
     try {
 
-      print('$getLatestDeviceEvents${device.channelID}');
+      var url = '$getLatestDeviceEvents${device.name}';
+      print(url);
       final response = await http
-          .get(Uri.parse('$getLatestDeviceEvents${device.channelID}'));
-
-      print('$getLatestDeviceEvents${device.channelID}');
+          .get(Uri.parse(url));
 
       print(response.statusCode);
       if (response.statusCode == 200) {
@@ -313,7 +312,7 @@ class AirqoApiClient {
         throw HttpException(
             'Unexpected status code ${response.statusCode}:'
             ' ${response.reasonPhrase}',
-            uri: Uri.parse('$getLatestDeviceEvents${device.channelID}'));
+            uri: Uri.parse(url));
       }
     } on SocketException {
       await showSnackBar(context, ErrorMessages().socketException);
@@ -324,7 +323,6 @@ class AirqoApiClient {
       var message = 'Couldn\'t get location data, please try again later';
       await showSnackBar(context, message);
     }
-
     throw Exception('device doesn\'t exist');
   }
 

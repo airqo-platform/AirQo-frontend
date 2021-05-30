@@ -1,9 +1,10 @@
 const getLatestEvents =
     'https://staging-platform.airqo.net/api/v1/devices/events?tenant=airqo&recent=yes';
+const getLatestDeviceEvents = 'https://staging-platform.airqo.net/api/v1/devices/events?tenant=airqo&recent=yes&device=';
 const getEvensByTime =
     'https://staging-platform.airqo.net/api/v1/devices/events?tenant=airqo&startTime=';
-const getLatestDeviceEvents =
-    'https://staging-platform.airqo.net/api/v1/data/feeds/transform/recent?channel=';
+// const getLatestDeviceEvents =
+//     'https://staging-platform.airqo.net/api/v1/data/feeds/transform/recent?channel=';
 const getDevices =
     'https://staging-platform.airqo.net/api/v1/devices?tenant=airqo';
 const getDevice =
