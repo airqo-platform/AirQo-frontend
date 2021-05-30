@@ -13,6 +13,16 @@ import { usePM25HeatMapData, useEventsMapData } from "redux/MapData/selectors";
 
 // css
 import "assets/css/overlay-map.css";
+import {
+  Divider,
+  ListItemIcon,
+  ListItemText,
+  Menu,
+  MenuItem,
+} from "@material-ui/core";
+import SettingsIcon from "@material-ui/icons/Settings";
+import AccountBoxIcon from "@material-ui/icons/AccountBox";
+import InputIcon from "@material-ui/icons/Input";
 
 const markerDetails = {
   0: ["marker-unknown", "UnCategorised"],
@@ -38,6 +48,67 @@ const getMarkerDetail = (markerValue) => {
 };
 
 mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_TOKEN;
+
+const MapControllerPosition = ({ className, children, position }) => {
+  const positions = {
+    topLeft: { top: 0, left: 0 },
+    bottomLeft: { bottom: 0, left: 0 },
+    topRight: { top: 0, right: 0 },
+    bottomRight: { bottom: 0, right: 0 },
+  };
+
+  const style = {
+    display: "flex",
+    flexWrap: "wrap",
+    position: "absolute",
+    cursor: "pointer",
+    margin: "10px 5px",
+    ...(positions[position] || positions.topLeft),
+  };
+
+  return (
+    <span className={className} style={style}>
+      {children}
+    </span>
+  );
+};
+
+const PollutantSelector = ({ className }) => {
+  const [open, setOpen] = useState(false);
+  const [anchorEl, setAnchorEl] = React.useState(null);
+
+  const onHandleClick = (event) => {
+    setAnchorEl(event.currentTarget);
+    setOpen(!open);
+  };
+
+  return (
+    <MapControllerPosition position={"topRight"}>
+      <>
+        <span className={className} onClick={onHandleClick}>
+          PM<sub>2.5</sub>
+        </span>
+        <Menu
+          id="pollutant-menu-id"
+          anchorEl={anchorEl}
+          keepMounted
+          open={open}
+          onClose={() => setOpen(false)}
+        >
+          <MenuItem>
+            PM<sub>2.5</sub>
+          </MenuItem>
+          <MenuItem>
+            PM<sub>10</sub>
+          </MenuItem>
+          <MenuItem>
+            NO<sub>2</sub>
+          </MenuItem>
+        </Menu>
+      </>
+    </MapControllerPosition>
+  );
+};
 
 const MapToggleController = ({ controls }) => {
   return (
@@ -228,6 +299,7 @@ export const OverlayMap = ({
           ]}
         />
       )}
+      {map && <PollutantSelector className={"pollutant-selector"} />}
     </div>
   );
 };
