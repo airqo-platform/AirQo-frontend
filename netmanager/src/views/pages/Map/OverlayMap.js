@@ -13,16 +13,7 @@ import { usePM25HeatMapData, useEventsMapData } from "redux/MapData/selectors";
 
 // css
 import "assets/css/overlay-map.css";
-import {
-  Divider,
-  ListItemIcon,
-  ListItemText,
-  Menu,
-  MenuItem,
-} from "@material-ui/core";
-import SettingsIcon from "@material-ui/icons/Settings";
-import AccountBoxIcon from "@material-ui/icons/AccountBox";
-import InputIcon from "@material-ui/icons/Input";
+import { Menu, MenuItem } from "@material-ui/core";
 
 const markerDetails = {
   0: ["marker-unknown", "UnCategorised"],
@@ -73,20 +64,44 @@ const MapControllerPosition = ({ className, children, position }) => {
   );
 };
 
-const PollutantSelector = ({ className }) => {
+const PollutantSelector = ({ className, onChange }) => {
   const [open, setOpen] = useState(false);
+  const [pollutant, setPollutant] = useState("pm2_5");
   const [anchorEl, setAnchorEl] = React.useState(null);
+  const pollutantMapper = {
+    pm2_5: (
+      <span>
+        PM<sub>2.5</sub>
+      </span>
+    ),
+    pm10: (
+      <span>
+        PM<sub>10</sub>
+      </span>
+    ),
+    no2: (
+      <span>
+        NO<sub>2</sub>
+      </span>
+    ),
+  };
 
   const onHandleClick = (event) => {
     setAnchorEl(event.currentTarget);
     setOpen(!open);
   };
 
+  const handleMenuItemChange = (pollutant, state) => () => {
+    setPollutant(pollutant);
+    setOpen(!open);
+    onChange(state);
+  };
+
   return (
     <MapControllerPosition position={"topRight"}>
       <>
         <span className={className} onClick={onHandleClick}>
-          PM<sub>2.5</sub>
+          {pollutantMapper[pollutant]}
         </span>
         <Menu
           id="pollutant-menu-id"
@@ -95,13 +110,31 @@ const PollutantSelector = ({ className }) => {
           open={open}
           onClose={() => setOpen(false)}
         >
-          <MenuItem>
+          <MenuItem
+            onClick={handleMenuItemChange("pm2_5", {
+              pm2_5: true,
+              no2: false,
+              pm10: false,
+            })}
+          >
             PM<sub>2.5</sub>
           </MenuItem>
-          <MenuItem>
+          <MenuItem
+            onClick={handleMenuItemChange("pm10", {
+              pm2_5: false,
+              no2: false,
+              pm10: true,
+            })}
+          >
             PM<sub>10</sub>
           </MenuItem>
-          <MenuItem>
+          <MenuItem
+            onClick={handleMenuItemChange("no2", {
+              pm2_5: false,
+              no2: true,
+              pm10: false,
+            })}
+          >
             NO<sub>2</sub>
           </MenuItem>
         </Menu>
@@ -139,6 +172,11 @@ export const OverlayMap = ({
   const [map, setMap] = useState(null);
   const [showSensors, setShowSensors] = useState(true);
   const [showHeatMap, setShowHeatMap] = useState(false);
+  const [showPollutant, setShowPollutant] = useState({
+    pm2_5: true,
+    no2: false,
+    pm10: false,
+  });
   const popup = new mapboxgl.Popup({
     closeButton: false,
     offset: 25,
@@ -252,16 +290,25 @@ export const OverlayMap = ({
           const [seconds, duration] = getFirstDuration(
             formatDateString(feature.properties.time)
           );
+          const pollutantValue =
+            (showPollutant.pm2_5 &&
+              feature.properties.pm2_5 &&
+              feature.properties.pm2_5.value) ||
+            (showPollutant.pm10 &&
+              feature.properties.pm10 &&
+              feature.properties.pm10.value) ||
+            (showPollutant.no2 &&
+              feature.properties.no2 &&
+              feature.properties.no2.value) ||
+            null;
 
-          const [markerClass, desc] = getMarkerDetail(
-            feature.properties.pm2_5.value
-          );
+          const [markerClass, desc] = getMarkerDetail(pollutantValue);
 
           const el = document.createElement("div");
           el.className = `marker ${
             seconds >= MAX_OFFLINE_DURATION ? "marker-grey" : markerClass
           }`;
-          el.innerText = feature.properties.pm2_5.value.toFixed(0);
+          el.innerText = (pollutantValue && pollutantValue.toFixed(0)) || "n/a";
 
           new mapboxgl.Marker(el)
             .setLngLat(feature.geometry.coordinates)
@@ -271,11 +318,9 @@ export const OverlayMap = ({
                     <div>Device - <span style="text-transform: uppercase"><b>${
                       feature.properties.device || feature.properties._id
                     }</b></span></div>
-                    <div class="${
-                      "popup-body " + markerClass
-                    }"> AQI: ${feature.properties.pm2_5.value.toFixed(
-                  2
-                )} - ${desc}</div>
+                    <div class="${"popup-body " + markerClass}"> AQI: ${
+                  (pollutantValue && pollutantValue.toFixed(2)) || "n/a"
+                } - ${desc}</div>
                     <span>Last Refreshed: <b>${duration}</b> ago</span>
                 </div>`
               )
@@ -299,7 +344,12 @@ export const OverlayMap = ({
           ]}
         />
       )}
-      {map && <PollutantSelector className={"pollutant-selector"} />}
+      {map && (
+        <PollutantSelector
+          onChange={setShowPollutant}
+          className={"pollutant-selector"}
+        />
+      )}
     </div>
   );
 };
