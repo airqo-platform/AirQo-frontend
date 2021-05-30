@@ -250,7 +250,7 @@ const MapContainer = () => {
     }
 
     if (isEmpty(monitoringSiteData.features)) {
-      dispatch(loadMapEventsData({ recent: true }));
+      dispatch(loadMapEventsData({ recent: "yes" }));
     }
   }, []);
 
