@@ -27,10 +27,13 @@ class PlaceDetailsPage extends StatefulWidget {
   final Device device;
 
   @override
-  _PlaceDetailsPageState createState() => _PlaceDetailsPageState();
+  _PlaceDetailsPageState createState() => _PlaceDetailsPageState(device);
 }
 
 class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
+
+  _PlaceDetailsPageState(this.device);
+
   bool isFavourite = false;
   var locationData;
   var response;
@@ -39,10 +42,13 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
       DateTime.now().year, DateTime.now().month - 1, DateTime.now().day));
   var forecastDate = DateFormat('yyyy-MM-dd HH:mm').format(
       DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day));
+  String titleText = '';
+  Device device;
 
   @override
   void initState() {
-    getDetails();
+    getDeviceDetails();
+    getMeasurements();
     super.initState();
   }
 
@@ -91,12 +97,12 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
     }
   }
 
-  Future<void> getDetails() async {
+  Future<void> getMeasurements() async {
     await localFetch();
 
     try {
       var measurement =
-          await AirqoApiClient(context).fetchDeviceMeasurements(widget.device);
+          await AirqoApiClient(context).fetchDeviceMeasurements(device);
 
       setState(() {
         locationData = measurement;
@@ -120,7 +126,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
   Future<void> localFetch() async {
     try {
       var measurements =
-          await DBHelper().getMeasurement(widget.device.channelID);
+          await DBHelper().getMeasurement(device.channelID);
 
       if (measurements != null) {
         setState(() {
@@ -133,6 +139,22 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
       }
     } on Error catch (e) {
       print('Getting device events locally error: $e');
+    }
+  }
+
+  Future<void> getDeviceDetails() async {
+    try {
+      var deviceDetails =
+      await DBHelper().getDevice(device.channelID);
+
+      print(deviceDetails);
+      if (deviceDetails != null) {
+        setState(() {
+          device = deviceDetails;
+        });
+      }
+    } on Error catch (e) {
+      print('Getting device details locally error: $e');
     }
   }
 
@@ -193,7 +215,13 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                         Expanded(
                             child: GestureDetector(
                               onTap: () {
-                                print('editing');
+                                if(isFavourite){
+                                  print('editing');
+                                  setState(() {
+                                    titleText = '';
+                                  });
+                                  updateTitleDialog(device);
+                                }
                                 },
                               child: RichText(
                                 overflow: TextOverflow.ellipsis,
@@ -205,8 +233,10 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                                 color: appColor,
                                 fontWeight: FontWeight.bold,
                               ),
-                              text: '${widget.device.siteName} ',
+                              text: (isFavourite && device.nickName != null)  ? '${device.nickName} ' :
+                              '${device.siteName}',
                               children: <TextSpan>[
+                                if(isFavourite)
                                 TextSpan(
                                   text: String.fromCharCode(0xe169),
                                   style: const TextStyle(
@@ -232,7 +262,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                       children: [
                         Expanded(
                           child: Text(
-                            '${widget.device.locationName}',
+                            '${device.locationName}',
                             overflow: TextOverflow.ellipsis,
                             textAlign: TextAlign.center,
                             maxLines: 10,
@@ -259,7 +289,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                   // Historical Data
                   FutureBuilder(
                       future: AirqoApiClient(context)
-                          .fetchHourlyMeasurements(widget.device.channelID),
+                          .fetchHourlyMeasurements(device.channelID),
                       builder: (context, snapshot) {
                         if (snapshot.hasData) {
                           var results = snapshot.data as List<Hourly>;
@@ -292,8 +322,8 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                   // Forecast Data
                   FutureBuilder(
                       future: AirqoApiClient(context).fetchForecast(
-                          widget.device.latitude.toString(),
-                          widget.device.longitude.toString(),
+                          device.latitude.toString(),
+                          device.longitude.toString(),
                           forecastDate),
                       builder: (context, snapshot) {
                         if (snapshot.hasData) {
@@ -536,4 +566,60 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
       ),
     );
   }
+
+  Future<void> updateTitleDialog(Device device) async {
+
+    return showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: const Text('Change title'),
+            content: TextField(
+              onChanged: (value) {
+                setState(() {
+                  titleText = value;
+                });
+              },
+              decoration: InputDecoration(hintText: device.nickName),
+            ),
+            actions: <Widget>[
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                    primary: Colors.red,
+                    textStyle: const TextStyle(
+                      color: Colors.white
+                    )
+                ),
+                onPressed: () {
+                  setState(() {
+                    Navigator.pop(context);
+                  });
+                },
+                child: const Text('Cancel'),
+              ),
+
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                    primary: Colors.green,
+                    textStyle: const TextStyle(
+                        color: Colors.white
+                    )
+                ),
+                onPressed: () async {
+
+                  if(titleText != ''){
+                    await DBHelper().renameFavouritePlace(device, titleText)
+                        .then((value) => {
+                    getDeviceDetails()
+                    });
+                  }
+                  Navigator.pop(context);
+                },
+                child: const Text('Save'),
+              ),
+            ],
+          );
+        });
+  }
+
 }

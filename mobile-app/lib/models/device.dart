@@ -58,7 +58,8 @@ class Device {
     var constants = DbConstants();
 
     return {
-      constants.nickName: device.nickName,
+      constants.nickName: device.nickName == ''
+          ? device.siteName : device.nickName,
       constants.channelID: device.channelID,
       constants.description: device.description,
       constants.siteName: device.siteName,

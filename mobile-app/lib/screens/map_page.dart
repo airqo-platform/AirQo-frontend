@@ -288,6 +288,9 @@ class MapPageState extends State<MapPage> {
       child: Column(
         children: [
           Text(
+            (windowProperties.locationDetails.favourite
+                && windowProperties.locationDetails.nickName != null)  ?
+            windowProperties.locationDetails.nickName :
             windowProperties.locationDetails.siteName,
             softWrap: true,
             style: const TextStyle(color: appColor),

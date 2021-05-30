@@ -128,6 +128,7 @@ class DBHelper {
       var isFavourite = deviceDetails.favourite;
 
       device['${constants.favourite}'] = isFavourite ? 1 : 0;
+      device['${constants.nickName}'] = deviceDetails.nickName;
 
       await db.insert(
         '${constants.locationsTable}',
@@ -141,8 +142,6 @@ class DBHelper {
 
   Future<Device> updateFavouritePlace(Device device, bool isFavourite) async {
     print('Updating favourite places in local db');
-
-    print(device.siteName);
 
     final db = await database;
 
@@ -158,9 +157,17 @@ class DBHelper {
         var locationMap = Device.toDbMap(device);
         locationMap['${constants.favourite}'] = 1;
 
+        if(device.nickName == null || device.nickName == ''){
+          locationMap['${constants.nickName}'] = device.siteName;
+        }
+
         await db.insert('${constants.locationsTable}', locationMap);
       } else {
         var updateMap = <String, Object?>{'${constants.favourite}': 1};
+
+        if(device.nickName == null || device.nickName == ''){
+          updateMap['${constants.nickName}'] = device.siteName;
+        }
 
         var num = await db.update(
           '${constants.locationsTable}',
@@ -171,6 +178,7 @@ class DBHelper {
         );
 
         print('updated rows : $num');
+
       }
     } else {
       device.setFavourite(false);
@@ -187,7 +195,44 @@ class DBHelper {
         );
       }
     }
+
+
     return device;
+  }
+
+  Future<Device> renameFavouritePlace(Device device, String name) async {
+    print('Renaming favourite place in local db');
+
+    try {
+      final db = await database;
+
+      var res = await db.query('${constants.locationsTable}',
+          where: '${constants.channelID} = ?', whereArgs: [device.channelID]);
+
+      if (res.isEmpty) {
+        var locationMap = Device.toDbMap(device);
+        locationMap['${constants.favourite}'] = 1;
+        locationMap['${constants.nickName}'] = name;
+
+        await db.insert('${constants.locationsTable}', locationMap);
+      } else {
+        var updateMap = <String, Object?>{'${constants.nickName}': name};
+
+        var num = await db.update(
+          '${constants.locationsTable}',
+          updateMap,
+          where: '${constants.channelID} = ?',
+          whereArgs: [device.channelID],
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+
+        print('updated rows : $num');
+      }
+      return getDevice(device.channelID);
+    }on Error catch (e) {
+      print(e);
+      return device;
+    }
   }
 
   Future<bool> checkFavouritePlace(int channelID) async {
