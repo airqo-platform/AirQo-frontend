@@ -8,10 +8,12 @@ import 'package:app/screens/search.dart';
 import 'package:app/screens/search_location_page.dart';
 
 import 'package:app/screens/settings_page.dart';
+import 'package:app/screens/share_picture.dart';
 import 'package:app/utils/services/local_storage.dart';
 import 'package:app/utils/services/rest_api.dart';
 import 'package:app/utils/ui/dialogs.dart';
 import 'package:app/utils/ui/share.dart';
+import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -104,6 +106,19 @@ class _HomePageState extends State<HomePage> {
               //     ),
               //   ),
               // ),
+
+              const PopupMenuItem<String>(
+                value: 'camera',
+                child: ListTile(
+                  leading: Icon(
+                    Icons.camera_alt_outlined,
+                    color: appColor,
+                  ),
+                  title: Text(
+                    'Take Photo',
+                  ),
+                ),
+              ),
               const PopupMenuItem<String>(
                 value: 'Faqs',
                 child: ListTile(
@@ -352,7 +367,11 @@ class _HomePageState extends State<HomePage> {
       Navigator.push(context, MaterialPageRoute(builder: (context) {
         return const MyPlaces();
       }));
-    } else {
+    }
+    else if (menuItem.trim().toLowerCase() == 'camera') {
+      takePhoto();
+
+    }else {
       Navigator.push(context, MaterialPageRoute(builder: (context) {
         return SettingsPage();
       }));
@@ -404,6 +423,18 @@ class _HomePageState extends State<HomePage> {
     }
 
 
+  }
+
+  Future<void> takePhoto() async {
+    // Obtain a list of the available cameras on the device.
+    final cameras = await availableCameras();
+
+    // Get a specific camera from the list of available cameras.
+    final firstCamera = cameras.first;
+
+    await Navigator.push(context, MaterialPageRoute(builder: (context) {
+      return SharePicture(camera: firstCamera,);
+    }));
   }
 
 }

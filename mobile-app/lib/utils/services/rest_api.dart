@@ -379,6 +379,57 @@ class AirqoApiClient {
 
     return <Hourly>[];
   }
+
+  Future<String> imageUpload(String file, String? type) async {
+    type ??= 'jpeg';
+
+    var uploadStr = 'data:image/$type;base64,$file';
+    try {
+      var body = {
+        "file": uploadStr,
+        "upload_preset": "mobile_uploads"
+      };
+
+    //   "api_key": cloudinaryApiKey,
+    // "timestamp": DateTime.now().microsecondsSinceEpoch,
+    // "signature": "",
+
+      // print(body);
+
+      final response = await http.post(Uri.parse('$getCloundinaryUrl'),
+          headers: {"Content-Type": "application/json"},
+          body: json.encode(body));
+
+      print(response.statusCode);
+      if (response.statusCode == 200) {
+        print(response.body);
+        return response.body.toString();
+
+
+      } else {
+        print('Unexpected status code ${response.statusCode}:'
+            ' ${response.reasonPhrase}');
+        print('Body ${response.body}:');
+        print('uri: Uri.parse($getForecastUrl)');
+        throw Exception('Error');
+
+      }
+    } on SocketException {
+      await showSnackBar(context, ErrorMessages().socketException);
+      throw Exception('Error');
+    } on TimeoutException {
+      await showSnackBar(context, ErrorMessages().timeoutException);
+      throw Exception('Error');
+    } on Error catch (e) {
+      print('Get Forecast error: $e');
+      throw Exception('Error');
+      // var message = 'Forecast data is not available, try again later';
+      // await showSnackBar(context, message);
+    }
+
+  }
+
+
 }
 
 class GoogleSearchProvider {

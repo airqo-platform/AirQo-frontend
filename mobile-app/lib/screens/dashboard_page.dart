@@ -31,30 +31,30 @@ class _DashboardPageState extends State<DashboardPage> {
                       return Center(
                         child: Container(
                           padding: const EdgeInsets.all(16.0),
-                          // child: const Text(
-                          //   'You haven\'t added any locations you care about '
-                          //   'to MyPlaces yet, search here or use the map '
-                          //   'to add them to your list',
-                          //   softWrap: true,
-                          //   textAlign: TextAlign.center,
-                          //   style: TextStyle(
-                          //     color: appColor,
-                          //   ),
-                          // ),
-                          child: Column(
-                            children: [
-                              Text(
-                                CustomLocalizations.of(context)!.title,
-                              ),
-                              ElevatedButton(
-                                onPressed: (){
-                                  LocaleProvider().setLocale(const Locale('lg'));
-
-                                },
-                                child: const Text('Press Me!'),
-                              )
-                            ],
-                          )
+                          child: const Text(
+                            'You haven\'t added any locations you care about '
+                            'to MyPlaces yet, search here or use the map '
+                            'to add them to your list',
+                            softWrap: true,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: appColor,
+                            ),
+                          ),
+                          // child: Column(
+                          //   children: [
+                          //     Text(
+                          //       CustomLocalizations.of(context)!.title,
+                          //     ),
+                          //     ElevatedButton(
+                          //       onPressed: (){
+                          //         LocaleProvider().setLocale(const Locale('lg'));
+                          //
+                          //       },
+                          //       child: const Text('Press Me!'),
+                          //     )
+                          //   ],
+                          // )
                         ),
                       );
                     }

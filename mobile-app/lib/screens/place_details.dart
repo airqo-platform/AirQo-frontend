@@ -370,7 +370,8 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                               child: Container(
                             padding: const EdgeInsets.all(16.0),
                             child: const CircularProgressIndicator(),
-                          ));
+                          )
+                          );
                         }
                       }),
 
