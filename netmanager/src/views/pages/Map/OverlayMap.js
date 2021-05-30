@@ -15,17 +15,47 @@ import { usePM25HeatMapData, useEventsMapData } from "redux/MapData/selectors";
 import "assets/css/overlay-map.css";
 import { Menu, MenuItem } from "@material-ui/core";
 
-const markerDetails = {
-  0: ["marker-unknown", "UnCategorised"],
-  0.0000000001: ["marker-good", "Good"],
+const markerDetailsPM2_5 = {
+  0.0: ["marker-good", "Good"],
   12.1: ["marker-moderate", "Moderate"],
   35.5: ["marker-uhfsg", "Unhealthy for sensitive groups"],
   55.5: ["marker-unhealthy", "Unhealthy"],
   150.5: ["marker-v-unhealthy", "VeryUnhealthy"],
-  250.5: ["marker-hazardous", "Harzadous"],
+  250.5: ["marker-hazardous", "Hazardous"],
+  500.5: ["marker-unknown", "Invalid"],
 };
 
-const getMarkerDetail = (markerValue) => {
+const markerDetailsPM10 = {
+  0.0: ["marker-good", "Good"],
+  54.1: ["marker-moderate", "Moderate"],
+  154.1: ["marker-uhfsg", "Unhealthy for sensitive groups"],
+  254.1: ["marker-unhealthy", "Unhealthy"],
+  354.1: ["marker-v-unhealthy", "VeryUnhealthy"],
+  424.1: ["marker-hazardous", "Hazardous"],
+  604.1: ["marker-unknown", "Invalid"],
+};
+
+const markerDetailsNO2 = {
+  0.0: ["marker-good", "Good"],
+  53.1: ["marker-moderate", "Moderate"],
+  100.1: ["marker-uhfsg", "Unhealthy for sensitive groups"],
+  360.1: ["marker-unhealthy", "Unhealthy"],
+  649.1: ["marker-v-unhealthy", "VeryUnhealthy"],
+  1249.1: ["marker-hazardous", "Hazardous"],
+  2049.1: ["marker-unknown", "Invalid"],
+};
+
+const markerDetailsMapper = {
+  pm2_5: markerDetailsPM2_5,
+  pm10: markerDetailsPM10,
+  no2: markerDetailsNO2,
+};
+
+const getMarkerDetail = (markerValue, markerKey) => {
+  if (markerValue === null || markerValue === undefined)
+    return ["marker-unknown", "UnCategorised"];
+
+  const markerDetails = markerDetailsMapper[markerKey] || markerDetailsPM2_5;
   let keys = Object.keys(markerDetails);
   // in-place reverse sorting
   keys.sort((key1, key2) => -(key1 - key2));
@@ -301,8 +331,14 @@ export const OverlayMap = ({
               feature.properties.no2 &&
               feature.properties.no2.value) ||
             null;
-
-          const [markerClass, desc] = getMarkerDetail(pollutantValue);
+          let markerKey = "";
+          for (const property in showPollutant) {
+            if (showPollutant[property]) markerKey = property;
+          }
+          const [markerClass, desc] = getMarkerDetail(
+            pollutantValue,
+            markerKey
+          );
 
           const el = document.createElement("div");
           el.className = `marker ${
