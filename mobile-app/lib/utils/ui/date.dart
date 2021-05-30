@@ -42,3 +42,17 @@ String dateToString(String formattedString) {
     return formattedString;
   }
 }
+
+
+String dateToEnglishString(String formattedString) {
+  try {
+
+    var dateString = DateFormat('EEE, MMM d, hh:mm a')
+        .format(DateTime.parse(formattedString));
+
+    return dateString;
+  } on Error catch (e) {
+    print('Date Formatting error: $e');
+    return formattedString;
+  }
+}
