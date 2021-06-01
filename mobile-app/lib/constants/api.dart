@@ -7,6 +7,8 @@ const getEvensByTime =
 //     'https://staging-platform.airqo.net/api/v1/data/feeds/transform/recent?channel=';
 const getDevices =
     'https://staging-platform.airqo.net/api/v1/devices?tenant=airqo&active=yes';
+const getDevicesByGeoCoordinates =
+    'https://staging-platform.airqo.net/api/v1/devices/by/nearest-coordinates?tenant=airqo';
 const getDevice =
     'https://staging-platform.airqo.net/api/v1/devices?tenant=airqo&name=';
 const getHourlyEvents =

@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/device.dart';
 import 'package:app/models/measurement.dart';
+import 'package:app/models/place.dart';
+import 'package:app/models/suggestion.dart';
 import 'package:intl/intl.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -59,8 +61,95 @@ class DBHelper {
           ${constants.nickName} null
           )
       ''');
+    
+
+    await db.execute('''
+        CREATE TABLE IF NOT EXISTS ${constants.searchTableHistory} (
+          id INTEGER PRIMARY KEY,
+          ${constants.description} not null,
+          ${constants.place_id} not null
+          )
+      ''');
   }
 
+  Future<void> insertSearchHistory(Suggestion suggestion) async {
+    try {
+      print('Inserting search term into local db');
+
+      final db = await database;
+
+      await createDefaultTables(db);
+
+      var jsonData = suggestion.toJson();
+
+      try {
+        await db.insert(
+          '${constants.searchTableHistory}',
+          jsonData,
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+      }
+      on Error catch (e) {
+        print(e);
+      }
+
+      print('Search term insertion into local db complete');
+
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  Future<void> deleteSearchHistory(Suggestion suggestion) async {
+    try {
+      print('Inserting search term into local db');
+
+      final db = await database;
+
+      await createDefaultTables(db);
+
+      try {
+        await db.delete(
+          '${constants.searchTableHistory}',
+            where: '${constants.place_id} = ?',
+            whereArgs: [suggestion.placeId]
+        );
+      } on Error catch (e) {
+        print(e);
+      }
+
+      print('Search term deletion from local db complete');
+
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  Future<List<Suggestion>> getSearchHistory() async {
+    try {
+      print('Getting search history from local db');
+
+      final db = await database;
+
+      await createDefaultTables(db);
+
+      var res = await db.query(constants.searchTableHistory);
+
+      print('Got ${res.length} places from local db');
+
+      var history = res.isNotEmpty
+          ? List.generate(res.length, (i) {
+        return Suggestion.fromJson(res[i]);
+      })
+          : <Suggestion>[];
+
+      return history;
+    } catch (e) {
+      print(e);
+      return <Suggestion>[];
+    }
+  }
+  
   Future<void> insertDevices(List<Device> devices) async {
     try {
       print('Inserting location into local db');

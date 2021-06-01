@@ -429,6 +429,59 @@ class AirqoApiClient {
 
   }
 
+  Future<List<Device>> getDevicesByCoordinates(double latitude, double longitude) async {
+
+
+
+    try {
+
+      String url = '$getDevicesByGeoCoordinates&radius=1&latitude=$latitude&longitude=$longitude';
+      print(url);
+      final response = await http.get(Uri.parse(url));
+
+      print(response.statusCode);
+      if (response.statusCode == 200) {
+
+        // List<Device> devices = json.decode(response.body)['devices']
+        //     .map<Device>((d) => {
+        //   Device.fromJson(d)
+        // })
+        //     .toList();
+
+        var devices = <Device>[];
+
+        var j = json.decode(response.body);
+        for (var t in j) {
+          try {
+            Device device = Device.fromJson(t);
+            devices.add(device);
+          } on Error catch (e) {
+            print('Get Devices error: $e');
+          }
+        }
+
+        return devices;
+      } else {
+        print('Unexpected status code ${response.statusCode}:'
+            ' ${response.reasonPhrase}');
+        throw HttpException(
+            'Unexpected status code ${response.statusCode}:'
+                ' ${response.reasonPhrase}',
+            uri: Uri.parse(getDevices));
+      }
+    } on SocketException {
+      await showSnackBar(context, ErrorMessages().socketException);
+    } on TimeoutException {
+      await showSnackBar(context, ErrorMessages().timeoutException);
+    } on Error catch (e) {
+      print('Get Devices error: $e');
+      var message =
+          'Recent locations are not available, please try again later';
+      await showSnackBar(context, message);
+    }
+
+    return <Device>[];
+  }
 
 }
 
@@ -448,18 +501,19 @@ class GoogleSearchProvider {
     final request =
         'https://maps.googleapis.com/maps/api/place/autocomplete/json?'
         'input=$input&'
-        'types=address&'
         'components=country:ug&'
         'key=$apiKey&'
         'sessiontoken=$sessionToken';
-
-    print(request);
+    // 'types=address&'
+    // print(request);
 
     try {
       final response = await http.get(Uri.parse(request));
 
       if (response.statusCode == 200) {
         final result = json.decode(response.body);
+
+        // print(result);
 
         if (result['status'] == 'OK') {
           // List<Measurement> suggestions = Event.fromJson(json.decode(response.body));

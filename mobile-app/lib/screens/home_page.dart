@@ -70,13 +70,19 @@ class _HomePageState extends State<HomePage> {
             icon: const Icon(
               Icons.search,
             ),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => SearchPage()),
-              ).then((value) => setState(() {
-                    _pageCtrl.jumpToPage(0);
-                  }));
+            onPressed: () async {
+
+              await showSearch(
+                  context: context,
+                  delegate: LocationSearch(),
+              );
+
+              // Navigator.push(
+              //   context,
+              //   MaterialPageRoute(builder: (context) => LocationSearch()),
+              // ).then((value) => setState(() {
+              //       _pageCtrl.jumpToPage(0);
+              //     }));
             },
           ),
           PopupMenuButton<dynamic>(
@@ -187,33 +193,33 @@ class _HomePageState extends State<HomePage> {
               Spacer(
                 flex: 1,
               ),
-              IconButton(
-                // iconSize: 30.0,
-                // autofocus: true,
-                // padding: const EdgeInsets.only(right: 28.0),
-                icon: const Icon(Icons.stacked_bar_chart, color: appColor),
-                splashColor: appColor,
-                onPressed: () {
-                  setState(() {
-                    _pageCtrl.jumpToPage(1);
-                  });
-                },
-              ),
-              Spacer(
-                flex: 3,
-              ),
-              IconButton(
-                // iconSize: 30.0,
-                // padding: const EdgeInsets.only(left: 28.0),
-                icon: const Icon(Icons.notifications_none_outlined,
-                    color: appColor),
-                splashColor: appColor,
-                onPressed: () {
-                  setState(() {
-                    _pageCtrl.jumpToPage(2);
-                  });
-                },
-              ),
+              // IconButton(
+              //   // iconSize: 30.0,
+              //   // autofocus: true,
+              //   // padding: const EdgeInsets.only(right: 28.0),
+              //   icon: const Icon(Icons.stacked_bar_chart, color: appColor),
+              //   splashColor: appColor,
+              //   onPressed: () {
+              //     setState(() {
+              //       _pageCtrl.jumpToPage(1);
+              //     });
+              //   },
+              // ),
+              // Spacer(
+              //   flex: 3,
+              // ),
+              // IconButton(
+              //   // iconSize: 30.0,
+              //   // padding: const EdgeInsets.only(left: 28.0),
+              //   icon: const Icon(Icons.notifications_none_outlined,
+              //       color: appColor),
+              //   splashColor: appColor,
+              //   onPressed: () {
+              //     setState(() {
+              //       _pageCtrl.jumpToPage(2);
+              //     });
+              //   },
+              // ),
               Spacer(
                 flex: 1,
               ),
@@ -247,16 +253,16 @@ class _HomePageState extends State<HomePage> {
           children: <Widget>[
             DashboardPage(),
             // ComparePage(),
-            Center(
-              child: Container(
-                child: Text('Coming Soon !'),
-              ),
-            ),
-            Center(
-              child: Container(
-                child: Text('Coming Soon !'),
-              ),
-            ),
+            // Center(
+            //   child: Container(
+            //     child: Text('Coming Soon !'),
+            //   ),
+            // ),
+            // Center(
+            //   child: Container(
+            //     child: Text('Coming Soon !'),
+            //   ),
+            // ),
             ResourcesPage(),
           ],
         ),
@@ -323,18 +329,6 @@ class _HomePageState extends State<HomePage> {
         break;
       case 1:
         setState(() {
-          title = 'Compare Places';
-          showAddPlace = false;
-        });
-        break;
-      case 2:
-        setState(() {
-          title = 'Notifications';
-          showAddPlace = false;
-        });
-        break;
-      case 3:
-        setState(() {
           title = 'News Feed';
           showAddPlace = false;
         });
@@ -346,6 +340,38 @@ class _HomePageState extends State<HomePage> {
         });
         break;
     }
+    // switch (int) {
+    //   case 0:
+    //     setState(() {
+    //       title = appName;
+    //       showAddPlace = true;
+    //     });
+    //     break;
+    //   case 1:
+    //     setState(() {
+    //       title = 'Compare Places';
+    //       showAddPlace = false;
+    //     });
+    //     break;
+    //   case 2:
+    //     setState(() {
+    //       title = 'Notifications';
+    //       showAddPlace = false;
+    //     });
+    //     break;
+    //   case 3:
+    //     setState(() {
+    //       title = 'News Feed';
+    //       showAddPlace = false;
+    //     });
+    //     break;
+    //   default:
+    //     setState(() {
+    //       title = appName;
+    //       showAddPlace = true;
+    //     });
+    //     break;
+    // }
   }
 
   void navigateToMenuItem(dynamic position) {
@@ -433,7 +459,7 @@ class _HomePageState extends State<HomePage> {
     final firstCamera = cameras.first;
 
     await Navigator.push(context, MaterialPageRoute(builder: (context) {
-      return SharePicture(camera: firstCamera,);
+      return TakePicture(camera: firstCamera,);
     }));
   }
 

@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-// import 'dart:io' as Io;
 import 'package:app/constants/app_constants.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/utils/services/rest_api.dart';
@@ -11,8 +10,8 @@ import 'package:flutter/material.dart';
 import 'package:mime/mime.dart';
 
 
-class SharePicture extends StatefulWidget {
-  const SharePicture({
+class TakePicture extends StatefulWidget {
+  const TakePicture({
     Key? key,
     required this.camera,
   }) : super(key: key);
@@ -20,33 +19,24 @@ class SharePicture extends StatefulWidget {
   final CameraDescription camera;
 
   @override
-  SharePictureState createState() => SharePictureState();
+  TakePictureState createState() => TakePictureState();
 }
 
-class SharePictureState extends State<SharePicture> {
+class TakePictureState extends State<TakePicture> {
   late CameraController _controller;
   late Future<void> _initializeControllerFuture;
-
-
   @override
   void initState() {
     super.initState();
-    // To display the current output from the Camera,
-    // create a CameraController.
     _controller = CameraController(
-      // Get a specific camera from the list of available cameras.
       widget.camera,
-      // Define the resolution to use.
       ResolutionPreset.medium,
     );
-
-    // Next, initialize the controller. This returns a Future.
     _initializeControllerFuture = _controller.initialize();
   }
 
   @override
   void dispose() {
-    // Dispose of the controller when the widget is disposed.
     _controller.dispose();
     super.dispose();
   }
@@ -90,7 +80,6 @@ class SharePictureState extends State<SharePicture> {
             await Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (context) => DisplayPictureScreen(
-
                   imagePath: image.path,
                 ),
               ),
@@ -106,7 +95,8 @@ class SharePictureState extends State<SharePicture> {
   }
 }
 
-// A widget that displays the picture taken by the user.
+
+
 class DisplayPictureScreen extends StatefulWidget {
   final String imagePath;
 
@@ -131,12 +121,9 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
 
     return Scaffold(
         appBar: AppBar(title: const Text('Share Picture')),
-        // The image is stored as a file on the device. Use the `Image.file`
-        // constructor with the given path to display the image.
         // body: Image.file(File(imagePath)),
         body: Stack(
             children: <Widget>[
-
               Image.file(
                 File(widget.imagePath),
                 fit: BoxFit.cover,
@@ -164,7 +151,6 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
                           },
                           autofocus: true,
                           decoration: const InputDecoration(
-
                             hintStyle: TextStyle(fontSize: 13),
                             hintText: 'Add caption',
                             contentPadding: EdgeInsets.all(15),
@@ -185,7 +171,6 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
                 ),
               ),
               if(isUploading)
-
                 Positioned.fill(
                   child: Container(
                     child: const Align(
@@ -225,27 +210,19 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
     setState(() {
       isUploading = false;
     });
-    await showSnackBar(context, 'Upload complete, thank you');
+    await showSnackBar(context, 'Upload complete, thank you for sharing');
 
-    await Navigator.pushReplacement(context,
-        MaterialPageRoute(builder: (context) {
-          return HomePage();
-        })
-    );
-
+    Navigator.pop(context);
+    
   }
 
   Future<void> uploadCompeteHandler() async {
     setState(() {
       isUploading = false;
     });
-    await showSnackBar(context, 'Upload complete, thank you');
+    await showSnackBar(context, 'Upload complete, thank you for sharing');
 
-    await Navigator.pushReplacement(context,
-        MaterialPageRoute(builder: (context) {
-          return HomePage();
-        })
-    );
+    Navigator.pop(context);
 
   }
   
@@ -255,7 +232,7 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
     });
     await showSnackBar(context, 'Upload failed, try again');
 
-    // await Navigator.pushReplacement(context,
+    // await Navigator.push(context,
     //     MaterialPageRoute(builder: (context) {
     //       return HomePage();
     //     })

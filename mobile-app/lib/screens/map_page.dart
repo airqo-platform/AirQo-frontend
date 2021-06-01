@@ -5,6 +5,7 @@ import 'package:app/models/device.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/screens/place_details.dart';
 import 'package:app/screens/search.dart';
+import 'package:app/screens/search_location_page.dart';
 import 'package:app/utils/services/local_storage.dart';
 import 'package:app/utils/services/rest_api.dart';
 import 'package:app/utils/ui/date.dart';
@@ -131,14 +132,18 @@ class MapPageState extends State<MapPage> {
                             ),
                             child: TextField(
                               readOnly: true,
-                              onTap: () {
+                              onTap: () async {
                                 // setState(() {
                                 //   _showInfoWindow = false;
                                 // });
-                                Navigator.push(context,
-                                    MaterialPageRoute(builder: (context) {
-                                  return SearchPage();
-                                })).then((value) => _getMeasurements());
+                                await showSearch(
+                                    context: context,
+                                    delegate: LocationSearch(),
+                                );
+                                // Navigator.push(context,
+                                //     MaterialPageRoute(builder: (context) {
+                                //   return SearchPage();
+                                // })).then((value) => _getMeasurements());
                               },
                               decoration: const InputDecoration(
                                 hintStyle: TextStyle(fontSize: 13),

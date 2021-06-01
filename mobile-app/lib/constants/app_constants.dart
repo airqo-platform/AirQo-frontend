@@ -185,6 +185,7 @@ class ColorConstants {
 class DbConstants {
   final String _dbName = 'airqo_db.db';
   final String _measurementsTable = 'measurements';
+  final String _searchTableHistory = 'searchHistory';
   final String _locationsTable = 'locations';
 
   final String _channelID = 'channelID';
@@ -198,6 +199,9 @@ class DbConstants {
 
   final String _nickName = 'nickName';
 
+  final String _searchText = 'searchText';
+  final String _place_id = 'place_id';
+
   final String _time = 'time';
   final String _pm2_5 = 'pm2_5';
   final String _pm10 = 'pm10';
@@ -206,6 +210,14 @@ class DbConstants {
   final String _longitude = 'longitude';
   final String _s2_pm10 = 's2_pm10';
   final String _address = 'address';
+
+
+  String get searchTableHistory => _searchTableHistory;
+
+
+  String get place_id => _place_id;
+
+  String get searchText => _searchText;
 
   String get locationDetails => _locationDetails;
 

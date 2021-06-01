@@ -20,6 +20,7 @@ class Devices {
 @JsonSerializable()
 class Device {
   Device({
+    required this.distance,
     required this.favourite,
     required this.nickName,
     required this.channelID,
@@ -38,6 +39,8 @@ class Device {
 
   @JsonKey(defaultValue: '', required: false)
   final String nickName;
+  @JsonKey(defaultValue: 0.0, required: false)
+  final double distance;
   final String name;
   final String description;
   final bool isActive;
