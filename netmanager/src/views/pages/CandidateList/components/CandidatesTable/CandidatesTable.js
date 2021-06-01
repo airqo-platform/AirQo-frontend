@@ -108,18 +108,6 @@ const CandidatesTable = (props) => {
 
   return (
     <Card {...rest} className={clsx(classes.root, className)}>
-      {/*************************** list all the users **********************************************/}
-      {!users && props.mappeduserState.isFetching && <p>Loading users...</p>}
-      {users.length <= 0 && !props.mappeduserState.isFetching && (
-        <p>No Candidates Available. And A Candidate to List here</p>
-      )}
-
-      {/* for the users */}
-      {/* check if this is an super admin or an admin */}
-      {/* if super admin, use Candidate Table, if just admin, use Collaborator Table */}
-      {/* To use the different tables, it will just have to be different APIs */}
-
-      <CardContent className={classes.content}>
         <CustomMaterialTable
             title={"candidate"}
             userPreferencePaginationKey={"candidates"}
@@ -178,7 +166,6 @@ const CandidatesTable = (props) => {
               showTitle: false,
             }}
         />
-      </CardContent>
 
       {/*************************** the edit dialog **********************************************/}
       <Dialog

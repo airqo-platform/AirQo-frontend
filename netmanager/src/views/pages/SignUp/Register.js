@@ -3,13 +3,13 @@ import React, { Component } from "react";
 import { Link, withRouter } from "react-router-dom";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
-import { registerCandidate } from "redux/Join/actions";
+import { clearErrors, registerCandidate } from "redux/Join/actions";
 import TextField from "@material-ui/core/TextField";
 import categories from "utils/categories";
 import { Alert, AlertTitle } from "@material-ui/lab";
 import { withStyles } from "@material-ui/core";
 import { isEmpty, isEqual } from "underscore";
-import { isFormFullyFilled } from "./utils";
+import { isFormFullyFilled, containsEmptyValues } from "./utils";
 import usersStateConnector from "views/stateConnectors/usersStateConnector";
 
 const styles = (theme) => ({
@@ -104,7 +104,7 @@ class Register extends Component {
         [id]: value,
       },
       () => {
-        console.log(errors);
+        console.log("errors", errors);
       }
     );
   };
@@ -158,11 +158,12 @@ class Register extends Component {
     const { id, value } = e.target;
     let errors = this.state.errors;
     // const { errors } = this.state;
-    errors[id] = mappedErrors.errors[id];
 
-    this.props.registerCandidate(this.state);
-    this.clearState();
-    if (errors) {
+    // THis has been commented out.  Not sure where the mapped errors come from
+    // errors[id] = mappedErrors && mappedErrors.errors[id] || "";
+
+    if (!containsEmptyValues(errors)) {
+
       this.setState(
         {
           errors,
@@ -173,17 +174,23 @@ class Register extends Component {
         }
       );
     } else {
-      this.clearState();
+        this.props.registerCandidate(this.state, () => this.clearState());
     }
   };
   render() {
     const { errors } = this.state;
     const { classes } = this.props;
     return (
-      <div className="container">
-        <div style={{marginTop: "4rem"}} className="row">
+      <div
+          className="container"
+          style={{
+            maxWidth: "600px",
+            marginTop: "4rem",
+            backgroundColor: "#fff",
+          }}>
+        <div className="row">
           <div
-            className="col s8 offset-s2"
+            className=" offset-s2"
             style={{
               backgroundColor: "#3067e2",
               height: "15vh",
@@ -191,7 +198,7 @@ class Register extends Component {
             }}
           />
           <div
-            className="col s8 offset-s2"
+            className="offset-s2"
             style={{ backgroundColor: "#fff", padding: "1em" }}
           >
             <div className="col s12" style={{ paddingLeft: "11.250px" }}>
@@ -203,6 +210,25 @@ class Register extends Component {
               </p>
             </div>
             <form noValidate onSubmit={this.onSubmit}>
+              <div
+                  style={
+                    isEmpty((this.props.errors && this.props.errors.data) || {})
+                      ? { display: "none" }
+                      : {}
+                  }
+              >
+                <Alert
+                  severity="error"
+                  onClose={() => {
+                    this.props.clearErrors();
+                  }}
+                >
+                  {this.props.errors &&
+                    this.props.errors.data &&
+                    this.props.errors.data.message}
+                </Alert>
+              </div>
+
               <div className="col s12">
                 <TextField
                     onChange={this.onChange}
@@ -297,14 +323,16 @@ class Register extends Component {
                     id="description"
                     label="Outline in detailed nature your interest in AirQuality"
                     fullWidth
-                    rows="2"
-                    rowsMax="5"
+                    multiline
+                    rows="5"
+                    rowsMax="10"
                     value={this.state.description}
                     onChange={this.onChange}
                     margin="normal"
                     variant="outlined"
                     error={!!errors.description}
                     helperText={errors.description}
+                    InputLabelProps={{style: {fontSize: "0.8rem"}}}
                 />
               </div>
 
@@ -315,7 +343,7 @@ class Register extends Component {
                       width: "150px",
                       borderRadius: "3px",
                       letterSpacing: "1.5px",
-                      marginTop: "1rem",
+                      margin: "1rem",
                     }}
                     type="submit"
                     className="btn btn-large waves-effect waves-light hoverable blue accent-3"
@@ -345,6 +373,7 @@ class Register extends Component {
 
 Register.propTypes = {
   registerCandidate: PropTypes.func.isRequired,
+  clearErrors: PropTypes.func.isRequired,
   auth: PropTypes.object.isRequired,
   errors: PropTypes.object.isRequired,
 };
@@ -355,6 +384,6 @@ const mapStateToProps = (state) => ({
 });
 
 // export default Register;
-export default usersStateConnector(connect(mapStateToProps, { registerCandidate })(
+export default usersStateConnector(connect(mapStateToProps, { registerCandidate, clearErrors })(
   withRouter(withStyles(styles, { withTheme: true })(Register))
 ));

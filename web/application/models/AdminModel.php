@@ -8,7 +8,7 @@ class AdminModel extends CI_Model
 	{
 		$this->load->database();
 	}
-	
+
 	public function get_total()
 	{
 		$query = $this->db->query('SELECT COUNT(*) AS total FROM tbl_subscribers');
@@ -29,21 +29,6 @@ class AdminModel extends CI_Model
 	// Verifying whether the password and phone number are correct
 	public function verify_user_details($email, $password)
 	{
-		// $this->db->select('*');
-		// $this->db->from('admins');
-		// $this->db->where('admin_username', $email);
-		// $this->db->where('admin_status', '1');
-		// $this->db->where('admin_password', sha1($password));
-		// $this->db->limit(1);
-		// $query = $this->db->get();
-
-		// // Query and return the result row
-		// if ($query->num_rows() > 0) {
-		// 	return $query->row();
-		// } else {
-		// 	return NULL;
-		// }
-
 		$this->db->select('*');
 		$this->db->from('admins');
 		$this->db->where('admin_username', $email);
@@ -354,13 +339,6 @@ class AdminModel extends CI_Model
 
 	public function delete_app_node($an_id)
 	{
-		//$this->db->where('an_id', $an_id);
-		//if ($this->db->update('tbl_app_nodes', array('an_deleted' => '1'))) {
-		//	return '1';
-		//} else {
-		//	return '0';
-		//}
-
 		if ($this->db->delete('tbl_app_nodes', array('an_id' => $an_id))) {
 			return '1';
 		} else {

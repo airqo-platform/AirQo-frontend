@@ -88,7 +88,7 @@
 								<div class="form-group">
 									<label class="col-md-3 control-label">Content</label>
 									<div class="col-md-8">
-										<textarea class="form-control" id="summernote_1" name="post_content" placeholder="Content"><?= $postmeta['pm_content']; ?></textarea>
+										<textarea class="form-control" id="ckeditor" name="post_content" placeholder="Content"><?= $postmeta['pm_content']; ?></textarea>
 									</div>
 								</div>
 
@@ -197,6 +197,7 @@
 <!-- END PAGE LEVEL SCRIPTS -->
 
 <script src="<?= base_url(); ?>assets/global/scripts/loadingoverlay.min.js"></script>
+<script src="<?= base_url(); ?>assets/ckeditor/build/ckeditor.js"></script>
      <!-- <script src="<?= base_url(); ?>assets/admin/pages/scripts/form-samples.js"></script> -->
      <!-- END PAGE LEVEL SCRIPTS -->
     
@@ -306,11 +307,180 @@ function confirmUpload() {
 </script>
 
 <script>
-	$(document).ready(function() {
-		$('#summernote_1').summernote({
-			height: 300
-		});
-	});
+$(document).ready(function() {
+            ClassicEditor
+                .create( document.querySelector( '#ckeditor' ), {
+                    fontFamily: {
+                        options: [
+                            'Arial',
+                            'Courier New',
+                            'Georgia',
+                            'Open Sans',
+                            'Lucida Sans Unicode',
+                            'Tahoma',
+                            'Times New Roman',
+                            'Trebuchet MS',
+                            'Verdana'
+                        ]
+                    },
+                    fontSize: {
+                        options: [
+                            9,
+                            10,
+                            12,
+                            13,
+                            14,
+                            16,
+                            17,
+                            18,
+                            19,
+                            20,
+                            21,
+                            22,
+                            24,
+                            26,
+                            30
+                        ]
+                    },
+                    ckfinder: {
+                        options: {
+                            resourceType: 'Images'
+                        },
+                        // uploadUrl: '/ckfinder/core/connector/php/connector.php?command=QuickUpload&type=Files&responseType=json'
+                        uploadUrl: '/ckfinder/core/connector/php/connector.php?command=QuickUpload&type=Files&responseType=json'
+                    },
+                    // plugins: [ Paragraph, Bold, Italic, Image, InsertImage, ImageCaption ],
+                    toolbar: {
+                        items: [
+                            'fontFamily',
+                            'fontSize',
+                            'highlight',
+                            'fontBackgroundColor',
+                            'fontColor',
+                            'blockQuote',
+                            '|',
+                            'bold',
+                            'italic',
+                            'underline',
+                            'bulletedList',
+                            'numberedList',
+                            'linkImage',
+                            // 'imageUpload',
+                            // 'imageInsert',
+                            '|',
+                            'indent',
+                            'outdent',
+                            'mediaEmbed',
+                            'subscript',
+                            'superscript',
+                            'link',
+                            '|',
+                            'insertTable',
+                            'undo',
+                            'redo',
+                            'alignment',
+                            'ckfinder'
+                        ]
+                    },
+                    language: 'en-gb',
+                    image: {
+                        // Configure the available styles.
+                        styles: [
+                            'alignLeft', 'alignCenter', 'alignRight'
+                        ],
+
+                        // Configure the available image resize options.
+                        resizeOptions: [
+                            {
+                                name: 'imageResize:original',
+                                label: 'Original',
+                                value: null
+                            },
+                            {
+                                name: 'imageResize:50',
+                                label: '50%',
+                                value: '50'
+                            },
+                            {
+                                name: 'imageResize:75',
+                                label: '75%',
+                                value: '75'
+                            }
+                        ],
+
+                        // You need to configure the image toolbar, too, so it shows the new style
+                        // buttons as well as the resize buttons.
+                        toolbar: [
+                            'imageStyle:alignLeft', 'imageStyle:alignCenter', 'imageStyle:alignRight',
+                            '|',
+                            'imageResize',
+                            '|',
+                            'imageTextAlternative'
+                        ]
+                    },
+                    table: {
+                        contentToolbar: [
+                            'tableColumn',
+                            'tableRow',
+                            'mergeTableCells',
+                            'tableCellProperties',
+                            'tableProperties'
+                        ]
+                    },
+                    licenseKey: '',
+                    
+                } )
+                .then( editor => {
+                    console.log( Array.from( editor.ui.componentFactory.names() ) );
+                    window.editor = editor;	
+                    editor.execute( 'fontFamily', { value: 'Open Sans' } );
+                    editor.execute( 'fontSize', { value: 15 } );
+                    // editor.execute( 'ckfinder' );
+                } )
+                .catch( error => {
+                    console.error( error );
+                } );
+            //  $('#summernote_1').summernote({
+            //     height: 300,
+            //     fontSizes: ['8', '9', '10', '11', '12', '14', '18', '20', '22', '24'],
+            //     fontNames: ['Open Sans', 'Arial', 'Arial Black', 'Comic Sans MS', 'Courier New', 'Helvetica', 'Impact', 'Tahoma', 'Times New Roman', 'Verdana', 'Roboto'],
+            //     fontNamesIgnoreCheck: ['Open Sans'],
+            //     toolbar: [
+            //         ['style', ['bold', 'italic', 'underline', 'clear']],
+            //         ['font', ['strikethrough', 'superscript', 'subscript']],
+            //         ['fontsize', ['fontsize']],
+            //         ['fontname', ['fontname']],
+            //         ['color', ['color']],
+            //         ['para', ['ul', 'ol', 'paragraph']],
+            //         ['height', ['height']],
+            //         ['table', ['table']],
+            //         ['insert', ['link', 'picture', 'video', 'hr']],
+            //         ['view', ['codeview']]
+            //     ]
+            // });
+            // $('#summernote_1').summernote('fontName', 'Open Sans');
+         });
+	// $(document).ready(function() {
+	// 	// $('#summernote_1').summernote({
+    //     //     height: 300,
+    //     //     fontSizes: ['8', '9', '10', '11', '12', '14', '18', '20', '22', '24'],
+    //     //     fontNames: ['Open Sans', 'Arial', 'Arial Black', 'Comic Sans MS', 'Courier New', 'Helvetica', 'Impact', 'Tahoma', 'Times New Roman', 'Verdana', 'Roboto'],
+    //     //     fontNamesIgnoreCheck: ['Open Sans'],
+    //     //     toolbar: [
+    //     //         ['style', ['bold', 'italic', 'underline', 'clear']],
+    //     //         ['font', ['strikethrough', 'superscript', 'subscript']],
+    //     //         ['fontsize', ['fontsize']],
+    //     //         ['fontname', ['fontname']],
+    //     //         ['color', ['color']],
+    //     //         ['para', ['ul', 'ol', 'paragraph']],
+    //     //         ['height', ['height']],
+    //     //         ['table', ['table']],
+    //     //         ['insert', ['link', 'picture', 'video', 'hr']],
+    //     //         ['view', ['codeview']]
+    //     //     ]
+    //     // });
+    //     // $('#summernote_1').summernote('fontName', 'Open Sans');
+	// });
 	jQuery(document).ready(function() {
 		// initiate layout and plugins
 		Metronic.init(); // init metronic core components

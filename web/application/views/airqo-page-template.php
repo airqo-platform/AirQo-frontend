@@ -4,10 +4,10 @@
 
 	<div class="container">
 		<div class="row">
-            
+
 			<!-- Know your air header -->
-	        <div class="col-md-8 col-lg-8 col-sm-8 col-xs-12">
-				<!-- Search field -->	
+			<div class="col-md-8 col-lg-8 col-sm-8 col-xs-12">
+				<!-- Search field -->
 				<div class="buzen-logo" id="buzen-logo">
 					<div class="container">
 						<div class="row">
@@ -21,13 +21,13 @@
 					</div>
 				</div>
 				<!-- End of search field -->
-				
-	        </div>
+
+			</div>
 			<!-- End of know your air header -->
 
-			
+
 			<div class="col-md-4 col-lg-4 col-sm-4 col-xs-12">
-				
+
 				<!-- App download ad -->
 				<div class="buzen-header" style="padding-bottom: 0px !important;">
 					<div class="container">
@@ -42,30 +42,29 @@
 				<!-- App screenshots -->
 				<div class="image-section">
 					<div class="buzen-card-section">
-						<img src="<?php echo base_url();?>assets/images/app_shots.png" width="100%">
+						<img src="<?php echo base_url(); ?>assets/images/app_shots.png" width="100%">
 					</div>
 				</div>
-			    <!-- End of app screenshots -->
+				<!-- End of app screenshots -->
 
 				<!-- Download buttons -->
 				<div class="appstore">
 					<div class="col-md-6 col-lg-6 col-sm-6 col-xs-6">
 						<a href="https://itunes.apple.com/ug/app/airqo-monitoring-air-quality/id1337573091?mt=8" target="_blank">
-							<img class="left" src="<?= base_url();?>assets/images/appstore.png">
+							<img class="left" src="<?= base_url(); ?>assets/images/appstore.png">
 						</a>
 					</div>
 					<div class="col-md-6 col-lg-6 col-sm-6 col-xs-6">
-						<a href="https://play.google.com/store/apps/details?id=com.airqo.net&hl=en="_blank">
-							<img class="right" src="<?= base_url();?>assets/images/playstore.png">
+						<a href="https://play.google.com/store/apps/details?id=com.airqo.net&hl=en" target="_blank">
+							<img class="right" src="<?= base_url(); ?>assets/images/playstore.png">
 						</a>
 					</div>
-              	</div>
+				</div>
 				<!-- End of download buttons -->
 
-	      	</div>
-			 
-     	</div>
-  	</div>	
+			</div>
+
+		</div>
+	</div>
 
 </div>
-

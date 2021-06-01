@@ -96,7 +96,7 @@ export class SettingsPage {
   // --------------------------------------------------------------------------------------------------------------------
   rateApp() {
     // https://itunes.apple.com/ug/app/airqo-monitoring-air-quality/id1337573091?mt=8
-    // https://play.google.com/store/apps/details?id=com.buzen.contract.airqoapp
+    // https://play.google.com/store/apps/details?id=com.airqo.net&hl=en
 
     if(this.device.platform) {
       this.appRate.preferences.storeAppURL = {

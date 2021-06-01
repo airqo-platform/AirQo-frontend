@@ -80,11 +80,11 @@ if (!$this->session->userdata('loggedin')) { } else
 					</ul>
 				</li>
 				
-                    <li class="<?php if($title == 'Airqo App Nodes') { echo 'active';} ?>">
+                    <!-- <li class="<?php if($title == 'Airqo App Nodes') { echo 'active';} ?>">
                          <a href="<?= site_url('admin/appnodes'); ?>">
                          <i class="fa fa-money"></i>
                          App Nodes</a>
-                    </li>
+                    </li> -->
 					
 				
                     <li class="<?php if($title == 'Team Members') { echo 'active';} ?>">

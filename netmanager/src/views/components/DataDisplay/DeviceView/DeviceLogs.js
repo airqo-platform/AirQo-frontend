@@ -1,11 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { isEmpty } from "underscore";
-import {
-  Button,
-  Grid,
-  Paper,
-} from "@material-ui/core";
+import { Button, Grid, Paper } from "@material-ui/core";
 import TextField from "@material-ui/core/TextField";
 import {
   KeyboardDatePicker,
@@ -263,8 +259,6 @@ const AddLogForm = ({ deviceName, deviceLocation, toggleShow }) => {
     const extracted_tags = [];
     tags && tags.map((tag) => extracted_tags.push(tag.value));
     const logData = {
-      deviceName,
-      locationName: deviceLocation,
       date: selectedDate.toISOString(),
       tags: extracted_tags,
       maintenanceType: (maintenanceType && maintenanceType.value) || "",
@@ -272,7 +266,7 @@ const AddLogForm = ({ deviceName, deviceLocation, toggleShow }) => {
     };
 
     setLoading(true);
-    await addMaintenanceLogApi(logData)
+    await addMaintenanceLogApi(deviceName, logData)
       .then(async (responseData) => {
         // dispatch(
         //   insertMaintenanceLog(
@@ -559,7 +553,7 @@ export default function DeviceLogs({ deviceName, deviceLocation }) {
         dispatch(loadDeviceMaintenanceLogs(deviceName));
       }
     }
-  });
+  }, []);
 
   return (
     <>

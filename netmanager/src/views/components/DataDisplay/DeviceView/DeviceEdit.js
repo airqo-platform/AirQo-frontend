@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
-import PropTypes from "prop-types";
 import TextField from "@material-ui/core/TextField";
 import FormControl from "@material-ui/core/FormControl";
 import Paper from "@material-ui/core/Paper";
@@ -12,6 +11,7 @@ import LabelledSelect from "../../CustomSelects/LabelledSelect";
 import { isEmpty, isEqual } from "underscore";
 import { updateMainAlert } from "redux/MainAlert/operations";
 import { updateDeviceDetails } from "views/apis/deviceRegistry";
+import { updateDevice } from "redux/DeviceRegistry/operations";
 
 const transformLocationOptions = (locationsData) => {
   const transFormedOptions = [];
@@ -82,6 +82,7 @@ export default function DeviceEdit({ deviceData, locationsData }) {
     setEditLoading(true);
     await updateDeviceDetails(deviceData.name, editData)
       .then((responseData) => {
+        dispatch(updateDevice(deviceData.name, responseData.updatedDevice));
         dispatch(
           updateMainAlert({
             message: responseData.message,
@@ -119,21 +120,18 @@ export default function DeviceEdit({ deviceData, locationsData }) {
         }}
       >
         <Grid container spacing={1}>
-          {/*<Grid items xs={6} style={gridItemStyle}>*/}
-          {/*  <TextField*/}
-          {/*    required*/}
-          {/*    id="name"*/}
-          {/*    label="Device Name"*/}
-          {/*    value={editData.name}*/}
-          {/*    fullWidth*/}
-          {/*    disabled*/}
-          {/*    onChange={handleTextFieldChange}*/}
-          {/*    InputProps={{*/}
-          {/*      readOnly: true,*/}
-          {/*    }}*/}
-          {/*  />*/}
-          {/*</Grid>*/}
-          <Grid items xs={6} style={gridItemStyle}>
+          <Grid items xs={12} sm={6} style={gridItemStyle}>
+            <TextField
+              id="name"
+              label="name"
+              value={editData.name}
+              onChange={handleTextFieldChange}
+              fullWidth
+              required
+              disabled
+            />
+          </Grid>
+          <Grid items xs={12} sm={6} style={gridItemStyle}>
             <TextField
               id="owner"
               label="Owner"
@@ -143,7 +141,7 @@ export default function DeviceEdit({ deviceData, locationsData }) {
               required
             />
           </Grid>
-          <Grid items xs={6} style={gridItemStyle}>
+          <Grid items xs={12} sm={6} style={gridItemStyle}>
             <TextField
               id="description"
               label="Description"
@@ -153,7 +151,7 @@ export default function DeviceEdit({ deviceData, locationsData }) {
               required
             />
           </Grid>
-          <Grid items xs={6} style={gridItemStyle}>
+          <Grid items xs={12} sm={6} style={gridItemStyle}>
             <TextField
               id="device_manufacturer"
               label="Manufacturer"
@@ -162,7 +160,7 @@ export default function DeviceEdit({ deviceData, locationsData }) {
               fullWidth
             />
           </Grid>
-          <Grid items xs={6} style={gridItemStyle}>
+          <Grid items xs={12} sm={6} style={gridItemStyle}>
             <TextField
               id="locationName"
               label="Map Address"
@@ -171,7 +169,7 @@ export default function DeviceEdit({ deviceData, locationsData }) {
               fullWidth
             />
           </Grid>
-          <Grid items xs={6} style={gridItemStyle}>
+          <Grid items xs={12} sm={6} style={gridItemStyle}>
             <TextField
               id="siteName"
               label="Site Name"
@@ -180,7 +178,7 @@ export default function DeviceEdit({ deviceData, locationsData }) {
               fullWidth
             />
           </Grid>
-          <Grid items xs={6} style={gridItemStyle}>
+          <Grid items xs={12} sm={6} style={gridItemStyle}>
             <TextField
               id="latitude"
               label="Latitude"
@@ -190,7 +188,7 @@ export default function DeviceEdit({ deviceData, locationsData }) {
               required
             />
           </Grid>
-          <Grid items xs={6} style={gridItemStyle}>
+          <Grid items xs={12} sm={6} style={gridItemStyle}>
             <TextField
               id="product_name"
               label="Product Name"
@@ -199,7 +197,7 @@ export default function DeviceEdit({ deviceData, locationsData }) {
               fullWidth
             />
           </Grid>
-          <Grid items xs={6} style={gridItemStyle}>
+          <Grid items xs={12} sm={6} style={gridItemStyle}>
             <TextField
               id="longitude"
               label="Longitude"
@@ -209,7 +207,7 @@ export default function DeviceEdit({ deviceData, locationsData }) {
               required
             />
           </Grid>
-          <Grid items xs={6} style={gridItemStyle}>
+          <Grid items xs={12} sm={6} style={gridItemStyle}>
             <TextField
               id="phoneNumber"
               label="Phone Number"
@@ -218,7 +216,7 @@ export default function DeviceEdit({ deviceData, locationsData }) {
               fullWidth
             />
           </Grid>
-          <Grid items xs={6} style={gridItemStyle}>
+          <Grid items xs={12} sm={6} style={gridItemStyle}>
             <FormControl required fullWidth>
               <InputLabel htmlFor="demo-dialog-native">Data Access</InputLabel>
               <Select
@@ -241,7 +239,7 @@ export default function DeviceEdit({ deviceData, locationsData }) {
               </Select>
             </FormControl>
           </Grid>
-          <Grid items xs={6} style={gridItemStyle}>
+          <Grid items xs={12} sm={6} style={gridItemStyle}>
             <FormControl fullWidth>
               <InputLabel htmlFor="demo-dialog-native">
                 Internet Service Provider
@@ -264,7 +262,7 @@ export default function DeviceEdit({ deviceData, locationsData }) {
             </FormControl>
           </Grid>
 
-          <Grid items xs={6} style={gridItemStyle}>
+          <Grid items xs={12} sm={6} style={gridItemStyle}>
             <FormControl fullWidth>
               <InputLabel htmlFor="demo-dialog-native">Location</InputLabel>
               <LabelledSelect
@@ -280,7 +278,7 @@ export default function DeviceEdit({ deviceData, locationsData }) {
             </FormControl>
           </Grid>
 
-          <Grid items xs={6} style={gridItemStyle}>
+          <Grid items xs={12} sm={6} style={gridItemStyle}>
             <FormControl fullWidth>
               <InputLabel htmlFor="demo-dialog-native">Power Type</InputLabel>
               <Select
@@ -301,22 +299,21 @@ export default function DeviceEdit({ deviceData, locationsData }) {
             </FormControl>
           </Grid>
 
-          {/*<Grid items xs={6} style={gridItemStyle}>*/}
-          {/*  <TextField*/}
-          {/*    id="height"*/}
-          {/*    label="Height"*/}
-          {/*    value={editData.height}*/}
-          {/*    onChange={handleTextFieldChange}*/}
-          {/*    fullWidth*/}
-          {/*    disabled*/}
-          {/*  />*/}
-          {/*</Grid>*/}
-
-          <Grid items xs={6} style={gridItemStyle}>
+          <Grid items xs={12} sm={6} style={gridItemStyle}>
             <TextField
               id="mountType"
               label="Mount Type"
               value={editData.mountType}
+              onChange={handleTextFieldChange}
+              fullWidth
+            />
+          </Grid>
+
+          <Grid items xs={12} sm={6} style={gridItemStyle}>
+            <TextField
+              id="height"
+              label="height"
+              value={editData.height}
               onChange={handleTextFieldChange}
               fullWidth
             />

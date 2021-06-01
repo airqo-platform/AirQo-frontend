@@ -27,7 +27,7 @@ class Airqo extends CI_Controller
 	{
 		$data['title'] = 'HOME';
 		$data['contact'] = $this->AirqoModel->get_contact_details();
-		
+
 		$this->logVisitedPage($data['title']);
 		$this->load->view('lib/header', $data);
 		$this->load->view('airqo-home', $data);
@@ -38,7 +38,7 @@ class Airqo extends CI_Controller
 	{
 		$data['title'] = 'PLACES';
 		$data['contact'] = $this->AirqoModel->get_contact_details();
-	
+
 		$this->logVisitedPage($data['title']);
 		$this->load->view('lib/header', $data);
 		$this->load->view('airqo-places', $data);
@@ -54,31 +54,31 @@ class Airqo extends CI_Controller
 
 		$this->load->view('lib/header', $data);
 		$this->load->view('airqo-projects', $data);
-		$this->load->view('lib/footer',$data);
+		$this->load->view('lib/footer', $data);
 	}
 
 	public function blog($category = null)
 	{
-		if($category == null) {
+		if ($category == null) {
 			$data['title'] = 'Blog';
 			$this->logVisitedPage($data['title']);
 			$data['posts'] = $this->AirqoModel->get_post();
 			$data['suggestions'] = $this->AirqoModel->get_home_random();
 			$data['categories'] = $this->AirqoModel->get_categories();
 
-			$this->load->view('lib/header',$data);
-			$this->load->view('airqo-blog-new',$data);
-			$this->load->view('lib/footer',$data);
-		} else{
+			$this->load->view('lib/header', $data);
+			$this->load->view('airqo-blog-new', $data);
+			$this->load->view('lib/footer', $data);
+		} else {
 			$data['title'] = 'Blog';
 			$this->logVisitedPage($data['title']);
 			$data['posts'] = $this->AirqoModel->get_post_categories($category);
 			$data['suggestions'] = $this->AirqoModel->get_home_random();
 			$data['categories'] = $this->AirqoModel->get_categories();
 
-			$this->load->view('lib/header',$data);
-			$this->load->view('airqo-blog-new',$data);
-			$this->load->view('lib/footer',$data);
+			$this->load->view('lib/header', $data);
+			$this->load->view('airqo-blog-new', $data);
+			$this->load->view('lib/footer', $data);
 		}
 	}
 
@@ -88,20 +88,21 @@ class Airqo extends CI_Controller
 		$this->logVisitedPage($data['title']);
 		$key = $this->input->post('search');
 		$data['posts'] = $this->AirqoModel->get_search_posts($key);
-		if(!$data['posts']){
+		if (!$data['posts']) {
 			$data['posts']	= $this->AirqoModel->get_search_posts_meta($key);
 		}
 		$data['suggestions'] = $this->AirqoModel->get_home_random();
 		$data['categories'] = $this->AirqoModel->get_categories();
 
-		$this->load->view('lib/header',$data);
-		$this->load->view('airqo-blog-search',$data);
-		$this->load->view('lib/footer',$data);
+		$this->load->view('lib/header', $data);
+		$this->load->view('airqo-blog-search', $data);
+		$this->load->view('lib/footer', $data);
 	}
 
-	public function blogdetails($slug) {
+	public function blogdetails($slug)
+	{
 		$data['post_id'] = $this->AirqoModel->get_post_id_by_slug($slug);
-		if($data['post_id'] == null) {
+		if ($data['post_id'] == null) {
 			show_404();
 		}
 
@@ -115,9 +116,31 @@ class Airqo extends CI_Controller
 
 		$this->logVisitedPage($data['title']);
 
-		$this->load->view('lib/header',$data);
-		$this->load->view('airqo-blog-single',$data);
-		$this->load->view('lib/footer',$data);
+		$this->load->view('lib/header', $data);
+		$this->load->view('airqo-blog-single', $data);
+		$this->load->view('lib/footer', $data);
+	}
+
+	public function previewblogdetails($slug)
+	{
+		$data['post_id'] = $this->AirqoModel->get_preview_post_id_by_slug($slug);
+		if ($data['post_id'] == null) {
+			show_404();
+		}
+
+		$post				= $data['post_id']['p_id'];
+		$data['post'] 		= $this->AirqoModel->get_post($post);
+		$data['postmeta'] 	= $this->AirqoModel->get_postmeta($post);
+		$data['posts'] = $this->AirqoModel->get_post();
+		$data['suggestions'] = $this->AirqoModel->get_home_random();
+		$data['categories'] = $this->AirqoModel->get_categories();
+		$data['title'] = $data['post']['p_title'];
+
+		$this->logVisitedPage($data['title']);
+
+		$this->load->view('lib/header', $data);
+		$this->load->view('airqo-blog-single', $data);
+		$this->load->view('lib/footer', $data);
 	}
 
 	public function contactUs()
@@ -125,10 +148,9 @@ class Airqo extends CI_Controller
 		$data['title'] = 'Contact Us';
 		$this->logVisitedPage($data['title']);
 
-		$this->load->view('lib/header',$data);
-		$this->load->view('airqo-contact-us',$data);
+		$this->load->view('lib/header', $data);
+		$this->load->view('airqo-contact-us', $data);
 		$this->load->view('lib/footer');
-        
 	}
 
 	public function launch()
@@ -137,10 +159,9 @@ class Airqo extends CI_Controller
 		$data['launchevent'] = $this->AirqoModel->get_launch();
 		$this->logVisitedPage($data['title']);
 
-		$this->load->view('lib/header',$data);
-		$this->load->view('airqo-launch',$data);
+		$this->load->view('lib/header', $data);
+		$this->load->view('airqo-launch', $data);
 		$this->load->view('lib/footer');
-        
 	}
 
 
@@ -156,7 +177,7 @@ class Airqo extends CI_Controller
 		$this->load->view('airqo-projects-details', $data);
 		$this->load->view('lib/footer');
 	}
-	
+
 	public function partnerships()
 	{
 		$data['title'] = 'Partnerships';
@@ -210,7 +231,7 @@ class Airqo extends CI_Controller
 	{
 		$data['career'] = $this->AirqoModel->get_positions($slug);
 
-		if($data['career'] == null){
+		if ($data['career'] == null) {
 			show_404();
 		}
 		$data['title'] = $data['career']['ca_title'];
@@ -219,6 +240,17 @@ class Airqo extends CI_Controller
 
 		$this->load->view('lib/header', $data);
 		$this->load->view('airqo-career-details', $data);
+		$this->load->view('lib/footer');
+	}
+
+	public function CareerDetails1($slug)
+	{
+		$data['title'] = "Digital Communications Officer (Deadline: 11th May 2021 EAT)";
+		$data['contact'] = $this->AirqoModel->get_contact_details();
+		$this->logVisitedPage($data['title']);
+
+		$this->load->view('lib/header', $data);
+		$this->load->view('airqo-career-details1', $data);
 		$this->load->view('lib/footer');
 	}
 
@@ -404,16 +436,7 @@ class Airqo extends CI_Controller
 			'pattern'   => $pattern
 		);
 	}
-	public  function thetime()
-	{
-		// new Date("2014-07-09T12:30:41Z").getTime();
-		// 	$date = new DateTime("2014-07-09T12:30:41Z");
-		// 	// echo time();
-		// 	// echo $date;
-		// 	$date = DateTime::createFromFormat('j-M-Y', '15-Feb-2009');
-		// echo $date->format('Y-m-d');
-		echo strtotime("2014-07-09T12:30:41Z");
-	}
+
 	public function Map()
 	{
 		$data['title'] 	= 'Map';
@@ -431,21 +454,21 @@ class Airqo extends CI_Controller
 		$response = array();
 
 		$this->form_validation->set_rules('searchkey', 'SearchKey', 'trim|required|xss_clean');
-		
+
 		if ($this->form_validation->run() == FALSE) {
 			$response['success'] = 0;
 			$response['message'] = 'Missing Parameter(s)';
-			
+
 			echo json_encode($response);
 		} else {
 			$key = $this->input->post('searchkey');
 			$query_search = $this->db->query("SELECT * FROM tbl_app_nodes WHERE an_name LIKE '%$key%' OR an_map_address LIKE '%$key%'");
-			if($query_search->num_rows() > 0) {
+			if ($query_search->num_rows() > 0) {
 				$results = $query_search->result_array();
 				$search_result = '';
 				foreach ($results as $row) {
 					$search_result .= '
-						<a href="'.site_url('node/' . $this->ApisModel->base64url_encode($row['an_channel_id'])).'" class="list-group-item list-group-item-action flex-column align-items-start" style="border-radius: 0px; position:relative;">
+						<a href="' . site_url('node/' . $this->ApisModel->base64url_encode($row['an_channel_id'])) . '" class="list-group-item list-group-item-action flex-column align-items-start" style="border-radius: 0px; position:relative;">
 							<div class="row">
 								<div class="col-md-12">
 									<div class="col-md-2 text-center" style="padding: 1em;">
@@ -453,9 +476,9 @@ class Airqo extends CI_Controller
 									</div>
 									<div class="col-md-10">
 										<div class="d-flex justify-content-between">
-											<h4 class="mb-1" style="font-size: 14px;">'.$row['an_name'].'</h4>
+											<h4 class="mb-1" style="font-size: 14px;">' . $row['an_name'] . '</h4>
 										</div>
-										<p class="mb-1" style="font-size: 12px;">'.$row['an_map_address'].'</p>
+										<p class="mb-1" style="font-size: 12px;">' . $row['an_map_address'] . '</p>
 									</div>
 								</div>
 							</div>
@@ -465,34 +488,33 @@ class Airqo extends CI_Controller
 				$response['searchresults'] = $search_result;
 				$response['success'] = 1;
 				$response['message'] = 'Results';
-				
+
 				echo json_encode($response);
-			} else{
+			} else {
 				$response['success'] = 0;
 				$response['message'] = 'No Results';
-				
+
 				echo json_encode($response);
 			}
 		}
-		
 	}
 
 	public function ResearchCommunity()
 	{
 		$data['title'] = 'Partnerships - Research Community';
 		$data['contact'] = $this->AirqoModel->get_contact_details();
-		
+
 		$this->logVisitedPage($data['title']);
 		$this->load->view('lib/header', $data);
 		$this->load->view('airqo-partnership-rc', $data);
 		$this->load->view('lib/footer');
 	}
-	
+
 	public function Government()
 	{
 		$data['title'] = 'Partnerships - Government';
 		$data['contact'] = $this->AirqoModel->get_contact_details();
-		
+
 		$this->logVisitedPage($data['title']);
 		$this->load->view('lib/header', $data);
 		$this->load->view('airqo-partnership-gov', $data);
@@ -504,7 +526,7 @@ class Airqo extends CI_Controller
 	{
 		$data['title'] = 'Products & Services';
 		$data['contact'] = $this->AirqoModel->get_contact_details();
-		
+
 		$this->logVisitedPage($data['title']);
 		$this->load->view('lib/header', $data);
 		$this->load->view('airqo-products', $data);
@@ -516,18 +538,18 @@ class Airqo extends CI_Controller
 	{
 		$data['title'] = 'Partnerships - Private Sector';
 		$data['contact'] = $this->AirqoModel->get_contact_details();
-		
+
 		$this->logVisitedPage($data['title']);
 		$this->load->view('lib/header', $data);
 		$this->load->view('airqo-partnership-ps', $data);
 		$this->load->view('lib/footer');
 	}
-	
+
 	public function PublicAwareness()
 	{
 		$data['title'] = 'Partnerships - Public Awareness';
 		$data['contact'] = $this->AirqoModel->get_contact_details();
-		
+
 		$this->logVisitedPage($data['title']);
 		$this->load->view('lib/header', $data);
 		$this->load->view('airqo-partnership-pa', $data);

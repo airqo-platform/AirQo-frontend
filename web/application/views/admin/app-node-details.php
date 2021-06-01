@@ -1,5 +1,5 @@
 <!-- BEGIN CONTENT -->
-<script src="https://maps.googleapis.com/maps/api/js?key=<API_KEY>&libraries=places"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAnK2dESOs8To3A01UdU3YpRNcC7cU_MKc&libraries=places"></script>
 <div class="page-content-wrapper">
 <div class="page-content">
 	<?php

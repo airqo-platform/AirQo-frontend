@@ -39,11 +39,11 @@
      <div class="testimonials py-5">
           <div class="container text-center py-lg-3">
                <div class="row">
-				   <div class="col-md-12 mx-auto">
-				  		<h2 class="pull-left" style="font-family:'Raleway Bold'; font-size:2em; line-height: 0em;">Existing Partners</h2>
-				   </div>
                     <div class="col-md-12 mx-auto">
-						 <div class="owl-one owl-carousel owl-theme">
+                         <h2 class="pull-left" style="font-family:'Raleway Bold'; font-size:2em; line-height: 0em;">Existing Partners</h2>
+                    </div>
+                    <div class="col-md-12 mx-auto">
+                         <div class="owl-one owl-carousel owl-theme">
                               <div class="item">
                                    <div class="slider-info mt-lg-4 mt-3">
                                         <div class="row">
@@ -191,37 +191,37 @@
      <div class="testimonials py-5">
           <div class="container text-center py-lg-3">
                <div class="row">
-			   		<div class="col-md-12 mx-auto">
-				  		<h2 class="pull-left" style="font-family:'Raleway Bold'; font-size:2em; line-height: 0em;">Existing Partners</h2>
-				   </div>
+                    <div class="col-md-12 mx-auto">
+                         <h2 class="pull-left" style="font-family:'Raleway Bold'; font-size:2em; line-height: 0em;">Existing Partners</h2>
+                    </div>
                     <div class="col-md-12">
                          <div class="">
                               <div class="item">
                                    <div class="slider-info mt-lg-4 mt-3">
                                         <div class="row">
                                              <div class="col-sm-2 col-6 mt-5">
-                                                  
+
                                              </div>
                                              <div class="parts-w3ls col-sm-2 col-6 mt-5">
-                                                  
-											 </div>
-											 <div class="col-sm-2 col-6 mt-5">
+
+                                             </div>
+                                             <div class="col-sm-2 col-6 mt-5">
                                                   <img src="<?= base_url(); ?>assets/images/partners/kcca.png" class="img-fluid" alt="">
                                              </div>
                                              <div class="parts-w3ls col-sm-2 col-6 mt-5">
                                                   <img src="<?= base_url(); ?>assets/images/partners/nema.png" class="img-fluid">
-											 </div>
-											 <div class="col-sm-2 col-6 mt-5">
-                                                  
+                                             </div>
+                                             <div class="col-sm-2 col-6 mt-5">
+
                                              </div>
                                              <div class="parts-w3ls col-sm-2 col-6 mt-5">
-                                                  
+
                                              </div>
-                                             
+
                                         </div>
                                    </div>
                               </div>
-                              
+
                          </div>
                     </div>
                </div>
@@ -313,23 +313,23 @@
      <div class="testimonials py-5">
           <div class="container text-center py-lg-3">
                <div class="row">
-			   		<div class="col-md-12 mx-auto">
-				  		<h2 class="pull-left" style="font-family:'Raleway Bold'; font-size:2em; line-height: 0em;">Existing Partners</h2>
-				   </div>
+                    <div class="col-md-12 mx-auto">
+                         <h2 class="pull-left" style="font-family:'Raleway Bold'; font-size:2em; line-height: 0em;">Existing Partners</h2>
+                    </div>
                     <div class="col-md-12">
                          <div class="">
                               <div class="item">
                                    <div class="slider-info mt-lg-4 mt-3">
                                         <div class="row">
-                                             
+
                                              <div class="col-sm-5 col-6 mt-5">
-                                                  
+
                                              </div>
-											 <div class="col-sm-2 col-6 mt-5">
+                                             <div class="col-sm-2 col-6 mt-5">
                                                   <img src="<?= base_url(); ?>assets/images/partners/mogas.png" class="img-fluid" alt="">
                                              </div>
-											 <div class="col-sm-5 col-6 mt-5">
-                                                  
+                                             <div class="col-sm-5 col-6 mt-5">
+
                                              </div>
                                         </div>
                                    </div>
@@ -431,9 +431,9 @@
      <div class="testimonials py-5">
           <div class="container text-center py-lg-3">
                <div class="row">
-			   		<div class="col-md-12 mx-auto">
-				  		<h2 class="pull-left" style="font-family:'Raleway Bold'; font-size:2em; line-height: 0em;">Existing Partners</h2>
-				   </div>
+                    <div class="col-md-12 mx-auto">
+                         <h2 class="pull-left" style="font-family:'Raleway Bold'; font-size:2em; line-height: 0em;">Existing Partners</h2>
+                    </div>
                     <div class="col-md-12">
                          <div class="">
                               <div class="item">

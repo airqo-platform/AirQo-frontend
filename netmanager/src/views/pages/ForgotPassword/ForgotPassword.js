@@ -9,6 +9,7 @@ import { forgotPasswordResetApi } from "../../apis/authService";
 import Alert from "@material-ui/lab/Alert";
 import { CardContent } from "@material-ui/core";
 import ArrowBackIcon from '@material-ui/icons/ArrowBack';
+import Grid from "@material-ui/core/Grid";
 
 const title = {
   pageTitle: "Forgot Password Screen",
@@ -86,10 +87,9 @@ class ForgotPassword extends Component {
           })
         })
         .catch(err => {
-          debugger
           this.setAlert({
             show: true,
-            message: err.response.data.message,
+            message: err.response && err.response.data.message || err.request && "Please check your internet connectivity",
             type: "error"
           })
         });
@@ -100,82 +100,99 @@ class ForgotPassword extends Component {
     const { errors } = this.state;
 
     return (
-      <div className="container">
-        <div style={{ marginTop: "4rem" }} className="row">
-          <div className="col s8 offset-s2">
-            <div >
-              <Link
-                  to="/"
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    textTransform: "uppercase",
-                    color: "#2979FF"}}>
-                <ArrowBackIcon /><span>Back to home</span>
-              </Link>
+      <div className="container"
+         style={{
+          maxWidth: "1000px",
+          marginTop: "4rem",
+          backgroundColor: "#fff",
+        }}>
+        <Grid container>
+          <Grid
+            item
+            xs={12}
+            sm={4}
+            style={{
+              padding: "1em",
+              backgroundColor: "#3067e2",
+              height: "100% !important",
+              minHeight: "100px",
+            }}
+          />
+          <Grid item xs={12} sm={8}>
+            <div className="row">
+              <div>
+                <div>
+                  <h4>
+                    <b>Forgot Password</b>
+                  </h4>
+                  <p className="grey-text text-darken-1">
+                    Don't have an account?{" "}
+                    <Link to="/request-access">Request Access</Link>
+                  </p>
+                </div>
+                <form noValidate onSubmit={this.onSubmit}>
+                  <CardContent style={this.state.alert.show ? {} : { display: "none" }}>
+                    <Alert severity={this.state.alert.type} onClose={this.onAlertClose}>
+                      {this.state.alert.message}
+                    </Alert>
+                  </CardContent>
+                  <div className="input-field col s12">
+                    <input
+                      onChange={this.onChange}
+                      value={this.state.organisation}
+                      error={errors.organisation}
+                      id="organisation"
+                      type="text"
+                      className={classnames("", {
+                        invalid: errors.organisation,
+                      })}
+                    />
+                    <label htmlFor="organisation">Organisation</label>
+                    <span className="red-text">
+                      {errors.email}
+                      {errors.emailnotfound}
+                    </span>
+                  </div>
+                  <div className="input-field col s12">
+                    <input
+                      onChange={this.onChange}
+                      value={this.state.email}
+                      error={errors.email}
+                      id="email"
+                      type="email"
+                      className={classnames("", {
+                        invalid: errors.email || errors.emailnotfound,
+                      })}
+                    />
+                    <label htmlFor="email">Email</label>
+                    <span className="red-text">
+                      {errors.email}
+                      {errors.emailnotfound}
+                    </span>
+                  </div>
+                  <div className="col s12" style={{ paddingLeft: "11.250px" }}>
+                    <button
+                      style={{
+                        width: "150px",
+                        borderRadius: "3px",
+                        letterSpacing: "1.5px",
+                        marginTop: "1rem",
+                      }}
+                      type="submit"
+                      className="btn btn-large waves-effect waves-light hoverable blue accent-3"
+                    >
+                      Submit
+                    </button>
+                  </div>
+                </form>
+                <div className="col s12" style={{ paddingTop: "20px" }}>
+                  <Link to="/login"> Login?</Link>
+                </div>
+              </div>
             </div>
-            <div className="col s12" style={{ paddingLeft: "11.250px" }}>
-              <h4>
-                <b>Forgot Password</b>
-              </h4>
-            </div>
-            <form noValidate onSubmit={this.onSubmit}>
-              <CardContent style={this.state.alert.show ? {} : { display: "none" }}>
-                <Alert severity={this.state.alert.type} onClose={this.onAlertClose}>
-                  {this.state.alert.message}
-                </Alert>
-              </CardContent>
-              <div className="input-field col s12">
-                <input
-                  onChange={this.onChange}
-                  value={this.state.organisation}
-                  error={errors.organisation}
-                  id="organisation"
-                  type="text"
-                  className={classnames("", {
-                    invalid: errors.organisation,
-                  })}
-                />
-                <label htmlFor="organisation">Organisation</label>
-                <span className="red-text">
-                  {errors.email}
-                  {errors.emailnotfound}
-                </span>
-              </div>
-              <div className="input-field col s12">
-                <input
-                  onChange={this.onChange}
-                  value={this.state.email}
-                  error={errors.email}
-                  id="email"
-                  type="email"
-                  className={classnames("", {
-                    invalid: errors.email || errors.emailnotfound,
-                  })}
-                />
-                <label htmlFor="email">Email</label>
-                <span className="red-text">
-                  {errors.email}
-                  {errors.emailnotfound}
-                </span>
-              </div>
-              <div className="col s12" style={{ paddingLeft: "11.250px" }}>
-                <button
-                  style={{
-                    width: "150px",
-                    borderRadius: "3px",
-                    letterSpacing: "1.5px",
-                    marginTop: "1rem",
-                  }}
-                  type="submit"
-                  className="btn btn-large waves-effect waves-light hoverable blue accent-3"
-                >
-                  Submit
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+          </Grid>
+        </Grid>
+
       </div>
     );
   }

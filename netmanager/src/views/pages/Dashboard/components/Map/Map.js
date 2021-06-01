@@ -3,31 +3,20 @@ import clsx from "clsx";
 import PropTypes from "prop-types";
 import { makeStyles } from "@material-ui/styles";
 import { Map as LeafletMap, TileLayer, Popup, Marker } from "react-leaflet";
-import { Link } from "react-router-dom";
 import {
   Card,
   CardContent,
   CardHeader,
   Divider,
-  IconButton,
-  Grid,
 } from "@material-ui/core";
 import { useEffect, useState } from "react";
 import FullscreenControl from "react-leaflet-fullscreen";
 import "react-leaflet-fullscreen/dist/styles.css";
 import L from "leaflet";
-// import Legend from "./Legend";
-import constants from "config/constants";
+import { GET_MONITORING_SITES_URI, GET_DATA_MAP } from "config/urls/analytics";
 import Filter from "./Filter";
-import axios from "axios";
 import moment from "moment-timezone";
-// import constants from 'config/constants'
-import { MoreHoriz } from "@material-ui/icons";
-import Menu from "@material-ui/core/Menu";
-import MenuItem from "@material-ui/core/MenuItem";
-import domtoimage from "dom-to-image";
-import JsPDF from "jspdf";
-import css from '../../../../../../src/index.css';
+
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -68,7 +57,7 @@ const Map = (props) => {
   const [magnitude, setMagnitude] = useState("All");
 
   useEffect(() => {
-    fetch(constants.GET_MONITORING_SITES_URI)
+    fetch(GET_MONITORING_SITES_URI)
       .then((res) => res.json())
       .then((contactData) => {
         setContacts(contactData.airquality_monitoring_sites);
@@ -77,8 +66,7 @@ const Map = (props) => {
   }, []);
 
   useEffect(() => {
-    console.log("testing", constants.GET_DATA_MAP);
-    fetch(constants.GET_DATA_MAP + magnitude)
+    fetch(GET_DATA_MAP + magnitude)
       .then((res) => res.json())
       .then((contactData) => {
         setContacts(contactData.airquality_monitoring_sites);
@@ -88,7 +76,7 @@ const Map = (props) => {
 
   let fetchFilteredData = (magnitude) => {
     //this.setState({ isLoaded: false }, () => {
-    fetch(constants.GET_DATA_MAP + magnitude)
+    fetch(GET_DATA_MAP + magnitude)
       .then((res) => res.json())
       .then((contactData) => {
         setContacts(contactData.airquality_monitoring_sites);

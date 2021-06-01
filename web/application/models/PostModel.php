@@ -344,10 +344,4 @@ class PostModel extends CI_Model
 		$query = $this->db->query("SELECT * FROM tbl_postmeta WHERE pm_post = '$post'");
 		return $query->row_array();
 	}
-
-	// public function get_post_comments($post)
-	// {
-	// 	$query = $this->db->query("SELECT * FROM hkb_comments WHERE c_post = '$post' AND c_status = 'active'");
-	// 	return $query->result_array();
-	// }
 }
