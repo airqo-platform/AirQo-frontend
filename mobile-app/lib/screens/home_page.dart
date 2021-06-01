@@ -75,7 +75,10 @@ class _HomePageState extends State<HomePage> {
               await showSearch(
                   context: context,
                   delegate: LocationSearch(),
-              );
+              ).then((value) {
+                setState(() {
+                });
+              });
 
               // Navigator.push(
               //   context,
@@ -279,7 +282,6 @@ class _HomePageState extends State<HomePage> {
               })).then((value) => setState(() {
                     _pageCtrl.jumpToPage(0);
                   }));
-              ;
             },
             child: const Icon(
               Icons.public_sharp,
@@ -392,7 +394,11 @@ class _HomePageState extends State<HomePage> {
     } else if (menuItem.trim().toLowerCase() == 'myplaces') {
       Navigator.push(context, MaterialPageRoute(builder: (context) {
         return const MyPlaces();
-      }));
+      })).then((value) {
+        setState(() {
+
+        });
+      });
     }
     else if (menuItem.trim().toLowerCase() == 'camera') {
       takePhoto();

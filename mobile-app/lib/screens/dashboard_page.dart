@@ -2,7 +2,9 @@ import 'package:app/config/languages/CustomLocalizations.dart';
 import 'package:app/config/providers/LocalProvider.dart';
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/measurement.dart';
+import 'package:app/screens/place_details.dart';
 import 'package:app/utils/services/local_storage.dart';
+import 'package:app/utils/ui/dialogs.dart';
 import 'package:app/widgets/air_quality_nav.dart';
 import 'package:flutter/material.dart';
 
@@ -63,7 +65,25 @@ class _DashboardPageState extends State<DashboardPage> {
                       onRefresh: refreshData,
                       child: ListView.builder(
                         itemBuilder: (context, index) =>
-                            AirQualityCard(data: results[index]),
+                            InkWell(
+                              onTap: () async {
+                                try {
+                                  var device =
+                                      await DBHelper().getDevice(results[index].locationDetails.channelID);
+
+                                  await Navigator.push(context,
+                                      MaterialPageRoute(builder: (context) {
+                                        return PlaceDetailsPage(device: device);
+                                      })).then((value) => setState(() {
+                                      }));
+                                } catch (e) {
+                                  print(e);
+                                  await showSnackBar(context,
+                                      'Information not available. Try again later');
+                                }
+                              },
+                              child: AirQualityCard(data: results[index]),
+                            ),
                         itemCount: results.length,
                       ),
                     );

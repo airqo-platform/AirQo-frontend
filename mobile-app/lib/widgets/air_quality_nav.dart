@@ -28,40 +28,19 @@ class _AirQualityCardState extends State<AirQualityCard> {
           children: [
             Card(
               clipBehavior: Clip.antiAlias,
-              child: InkWell(
-                  onTap: () async {
-                    print('Card was tapped');
-
-                    try {
-                      var device =
-                          await DBHelper().getDevice(widget.data.channelID);
-
-                      await Navigator.push(context,
-                          MaterialPageRoute(builder: (context) {
-                        return PlaceDetailsPage(device: device);
-                      }));
-                    } catch (e) {
-                      print(e);
-                      await showSnackBar(context,
-                          'Information not available. Try again later');
-                    }
-                  },
-                  splashColor:
-                      Theme.of(context).colorScheme.onSurface.withOpacity(0.12),
-                  highlightColor: Colors.transparent,
-                  child: Column(
-                    children: [
-                      TitleSection(
-                        data: widget.data,
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(8),
-                        child: CardSection(
-                          data: widget.data,
-                        ),
-                      )
-                    ],
-                  )),
+              child: Column(
+                children: [
+                  TitleSection(
+                    data: widget.data,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8),
+                    child: CardSection(
+                      data: widget.data,
+                    ),
+                  )
+                ],
+              ),
             ),
           ],
         ),

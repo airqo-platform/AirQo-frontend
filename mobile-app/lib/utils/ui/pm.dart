@@ -7,7 +7,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 
 charts.Color pmToChartColor(double pm2_5) {
-  if (pm2_5 >= 0 && pm2_5 <= 12) {
+  if (pm2_5 <= 12) {
     //good
     return charts.ColorUtil.fromDartColor(greenColor);
   } else if (pm2_5 >= 12.1 && pm2_5 <= 35.4) {
@@ -31,7 +31,7 @@ charts.Color pmToChartColor(double pm2_5) {
 }
 
 Color pmToColor(double pm2_5) {
-  if (pm2_5 >= 0 && pm2_5 <= 12) {
+  if (pm2_5 <= 12) {
     //good
     return greenColor;
   } else if (pm2_5 >= 12.1 && pm2_5 <= 35.4) {
@@ -55,7 +55,7 @@ Color pmToColor(double pm2_5) {
 }
 
 Color pmTextColor(double pm2_5) {
-  if (pm2_5 >= 0 && pm2_5 <= 12) {
+  if (pm2_5 <= 12) {
     //good
     return Colors.black;
   } else if (pm2_5 >= 12.1 && pm2_5 <= 35.4) {
@@ -79,7 +79,7 @@ Color pmTextColor(double pm2_5) {
 }
 
 String pmToString(double pm2_5) {
-  if (pm2_5 >= 0 && pm2_5 <= 12) {
+  if (pm2_5 <= 12) {
     //good
     return 'Good';
   } else if (pm2_5 >= 12.1 && pm2_5 <= 35.4) {
@@ -103,7 +103,7 @@ String pmToString(double pm2_5) {
 }
 
 String pmToImage(double pm2_5) {
-  if (pm2_5 >= 0 && pm2_5 <= 12) {
+  if (pm2_5 <= 12) {
     //good
     return 'assets/images/good.png';
   } else if (pm2_5 >= 12.1 && pm2_5 <= 35.4) {
@@ -127,7 +127,7 @@ String pmToImage(double pm2_5) {
 }
 
 String pmToEmoji(double pm2_5) {
-  if (pm2_5 >= 0 && pm2_5 <= 12) {
+  if (pm2_5 <= 12) {
     //good
     return 'assets/images/good-face.png';
   } else if (pm2_5 >= 12.1 && pm2_5 <= 35.4) {
@@ -151,7 +151,7 @@ String pmToEmoji(double pm2_5) {
 }
 
 BitmapDescriptor pmToMarkerPoint(double pm2_5) {
-  if (pm2_5 >= 0 && pm2_5 <= 12) {
+  if (pm2_5 <= 12) {
     //good
     return BitmapDescriptor.defaultMarkerWithHue(
         HSVColor.fromColor(greenColor).hue);

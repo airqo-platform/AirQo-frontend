@@ -3,6 +3,7 @@ import 'package:app/models/device.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/screens/place_details.dart';
 import 'package:app/screens/search.dart';
+import 'package:app/screens/search_location_page.dart';
 import 'package:app/utils/services/local_storage.dart';
 import 'package:app/utils/ui/dialogs.dart';
 import 'package:app/utils/ui/pm.dart';
@@ -66,11 +67,20 @@ class _MyPlacesState extends State<MyPlaces> {
               icon: const Icon(
                 Icons.add_circle_outline_outlined,
               ),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => SearchPage()),
-                );
+              onPressed: () async {
+
+                await showSearch(
+                    context: context,
+                    delegate: LocationSearch(),
+                ).then((value) {
+                  setState(() {
+                  });
+                });
+
+                // Navigator.push(
+                //   context,
+                //   MaterialPageRoute(builder: (context) => SearchPage()),
+                // );
               },
             ),
           ],
@@ -99,7 +109,7 @@ class _MyPlacesState extends State<MyPlaces> {
                             secondaryActions: <Widget>[
                               IconSlideAction(
                                 caption: 'Remove',
-                                color: Colors.red,
+                                color: ColorConstants().red,
                                 icon: Icons.delete_outlined,
                                 onTap: () {
                                   removeFromFavourites(
@@ -117,7 +127,10 @@ class _MyPlacesState extends State<MyPlaces> {
                                     child: Text(
                                       '${searchResults[index].pm2_5.value}',
                                       textAlign: TextAlign.center,
-                                      style: const TextStyle(fontSize: 10.0),
+                                      style: TextStyle(
+                                          fontSize: 10.0,
+                                          color: pmTextColor(searchResults[index].pm2_5.value)
+                                      ),
                                     ),
                                   ),
                                 ),

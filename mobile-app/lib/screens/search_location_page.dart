@@ -16,11 +16,8 @@ class LocationSearch extends SearchDelegate<Suggestion> {
 
   GoogleSearchProvider googleApiClient = GoogleSearchProvider('');
 
-
-
   String _searchPlaceId = '';
   bool _showAllDevices = false;
-
 
   bool get showAllDevices => _showAllDevices;
 
@@ -33,6 +30,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
   set searchPlaceId(String value) {
     _searchPlaceId = value;
   }
+
 
 
   @override
@@ -88,11 +86,25 @@ class LocationSearch extends SearchDelegate<Suggestion> {
 
                 var results = snapshot.data as List<Suggestion>;
 
+                if(results.isEmpty){
+                  return Align(
+                      alignment: Alignment.topCenter,
+                      child: Container(
+                        padding: const EdgeInsets.all(16.0),
+                        child: const Text('Search a location',
+                          style: TextStyle(
+                              color: appColor
+                          ),),
+                      )
+                  );
+                }
+
                 return ListView.builder(
                   itemBuilder: (context, index) => ListTile(
                     title: Text((results[index]).description,
                       style: const TextStyle(
-                          fontSize: 12
+                          fontSize: 12,
+                          color: Colors.black54
                       ),
                     ),
                     leading: const Icon(
@@ -125,7 +137,10 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                   alignment: Alignment.topCenter,
                   child: Container(
                     padding: const EdgeInsets.all(16.0),
-                    child: const Text('Type your location'),
+                    child: const Text('Search a location',
+                      style: TextStyle(
+                          color: appColor
+                      ),),
                   )
               );
             },
@@ -168,7 +183,10 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   const CircularProgressIndicator(),
-                  const Text('Loading...')
+                  const Text('Loading...',
+                    style: TextStyle(
+                        color: appColor
+                    ),)
                 ],
               )
           ),
@@ -190,7 +208,10 @@ class LocationSearch extends SearchDelegate<Suggestion> {
           alignment: Alignment.topCenter,
           child: Container(
             padding: const EdgeInsets.all(16.0),
-            child: const Text('Type your location'),
+            child: const Text('Search a location',
+              style: TextStyle(
+                  color: appColor
+              ),),
           )
       );
     }
@@ -200,7 +221,10 @@ class LocationSearch extends SearchDelegate<Suggestion> {
     if (searchPlaceId == '') {
       return Container(
         padding: const EdgeInsets.all(16.0),
-        child: const Text('Failed to get location'),
+        child: const Text('Failed to get location',
+          style: TextStyle(
+              color: appColor
+          ),),
       );
     }
 
@@ -240,7 +264,10 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               Text('Sorry, we dont have any sensors close to $query',
-                              textAlign: TextAlign.center,),
+                              textAlign: TextAlign.center,
+                                style: TextStyle(
+                                    color: appColor
+                                ),),
                               ElevatedButton(
                                   style: ElevatedButton.styleFrom(
                                       primary: appColor,
@@ -252,7 +279,10 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                                     showAllLocations(context);
                                   },
                                   child:
-                                  const Text('Show all available sensor locations'))
+                                  const Text('Show all available sensor locations',
+                                    style: TextStyle(
+                                        color: Colors.white
+                                    ),))
                             ],
                           )
                       );
@@ -279,7 +309,10 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                               //   Icons.location_pin,
                               //   color: appColor,
                               // ),
-                              trailing: Text('${kmToMeters(devices[index].distance)} meters'),
+                              trailing: Text('${kmToMeters(devices[index].distance)} meters',
+                                style: TextStyle(
+                                    color: appColor
+                                ),),
                             ) //your content here
                         );
                       },
@@ -293,7 +326,10 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             const CircularProgressIndicator(),
-                            const Text('Searching for nearby sensors. Please wait...')
+                            const Text('Searching for nearby sensors. Please wait...',
+                            style: TextStyle(
+                              color: appColor
+                            ),)
                           ],
                         )
                     );
@@ -308,7 +344,10 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     const CircularProgressIndicator(),
-                    const Text('Getting location details...')
+                    const Text('Getting location details...',
+                      style: TextStyle(
+                          color: appColor
+                      ),)
                   ],
                 )
             );
@@ -372,7 +411,10 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       const CircularProgressIndicator(),
-                      const Text('Getting all locations. Please wait...')
+                      const Text('Getting all locations. Please wait...',
+                        style: TextStyle(
+                            color: appColor
+                        ),)
                     ],
                   )
               );
@@ -443,7 +485,10 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     const CircularProgressIndicator(),
-                    const Text('Getting all locations. Please wait...')
+                    const Text('Getting all locations. Please wait...',
+                      style: TextStyle(
+                          color: appColor
+                      ),)
                   ],
                 )
             );

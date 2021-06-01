@@ -243,7 +243,6 @@ class MapPageState extends State<MapPage> {
     _showInfoWindow = false;
     var markers = <String, Marker>{};
     for (final measurement in measurements) {
-      // var bitmapDescriptor = pmToMarkerPoint(measurement.pm2_5.value);
       var bitmapDescriptor = await pmToMarker(measurement.pm2_5.value);
 
       final marker = Marker(
@@ -273,18 +272,18 @@ class MapPageState extends State<MapPage> {
   }
 
 
-  @override
-  void dispose() {
-
-    if (mounted) {
-      setState(() {
-        _showInfoWindow = false;
-        _markers = {};
-        isLoading = false;
-      });
-    }
-    super.dispose();
-  }
+  // @override
+  // void dispose() {
+  //
+  //   if (mounted) {
+  //     setState(() {
+  //       _showInfoWindow = false;
+  //       _markers = {};
+  //       isLoading = false;
+  //     });
+  //   }
+  //   super.dispose();
+  // }
 
   Widget infoWindow() {
     return Card(
