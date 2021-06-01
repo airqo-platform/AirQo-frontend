@@ -30,7 +30,6 @@ void main() {
 }
 
 class AirqoApp extends StatelessWidget {
-
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
@@ -55,10 +54,7 @@ class AirqoApp extends StatelessWidget {
           //   }
           //   return supportedLocales.first;
           // },
-          supportedLocales: [
-            const Locale('en'),
-            const Locale('lg')
-          ],
+          supportedLocales: [const Locale('en'), const Locale('lg')],
           locale: provider.locale,
           title: appName,
           theme: lightTheme(),
@@ -75,7 +71,6 @@ class SplashScreen extends StatefulWidget {
 }
 
 class SplashScreenState extends State<SplashScreen> {
-  
   @override
   void initState() {
     super.initState();
@@ -90,32 +85,27 @@ class SplashScreenState extends State<SplashScreen> {
             color: appColor,
             child: const Center(
               child: CircularProgressIndicator(
-                backgroundColor: Colors.white,
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
               ),
-            )
-        ),
+            )),
       ),
     );
   }
 
   Future checkFirstUse() async {
-
     var prefs = await SharedPreferences.getInstance();
     var isFirstUse = prefs.getBool(firstUse) ?? true;
 
-    if(isFirstUse){
+    if (isFirstUse) {
       await Navigator.pushReplacement(context,
           MaterialPageRoute(builder: (context) {
-            return OnBoardingPage();
-          })
-      );
-    }
-    else{
+        return OnBoardingPage();
+      }));
+    } else {
       await Navigator.pushReplacement(context,
           MaterialPageRoute(builder: (context) {
-            return HomePage();
-          })
-      );
+        return HomePage();
+      }));
     }
   }
 }

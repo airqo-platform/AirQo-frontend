@@ -61,7 +61,6 @@ class DBHelper {
           ${constants.nickName} null
           )
       ''');
-    
 
     await db.execute('''
         CREATE TABLE IF NOT EXISTS ${constants.searchTableHistory} (
@@ -88,13 +87,11 @@ class DBHelper {
           jsonData,
           conflictAlgorithm: ConflictAlgorithm.replace,
         );
-      }
-      on Error catch (e) {
+      } on Error catch (e) {
         print(e);
       }
 
       print('Search term insertion into local db complete');
-
     } catch (e) {
       print(e);
     }
@@ -109,17 +106,14 @@ class DBHelper {
       await createDefaultTables(db);
 
       try {
-        await db.delete(
-          '${constants.searchTableHistory}',
+        await db.delete('${constants.searchTableHistory}',
             where: '${constants.place_id} = ?',
-            whereArgs: [suggestion.placeId]
-        );
+            whereArgs: [suggestion.placeId]);
       } on Error catch (e) {
         print(e);
       }
 
       print('Search term deletion from local db complete');
-
     } catch (e) {
       print(e);
     }
@@ -139,8 +133,8 @@ class DBHelper {
 
       var history = res.isNotEmpty
           ? List.generate(res.length, (i) {
-        return Suggestion.fromJson(res[i]);
-      })
+              return Suggestion.fromJson(res[i]);
+            })
           : <Suggestion>[];
 
       return history;
@@ -149,7 +143,7 @@ class DBHelper {
       return <Suggestion>[];
     }
   }
-  
+
   Future<void> insertDevices(List<Device> devices) async {
     try {
       print('Inserting location into local db');
@@ -246,7 +240,7 @@ class DBHelper {
         var locationMap = Device.toDbMap(device);
         locationMap['${constants.favourite}'] = 1;
 
-        if(device.nickName == null || device.nickName == ''){
+        if (device.nickName == null || device.nickName == '') {
           locationMap['${constants.nickName}'] = device.siteName;
         }
 
@@ -254,7 +248,7 @@ class DBHelper {
       } else {
         var updateMap = <String, Object?>{'${constants.favourite}': 1};
 
-        if(device.nickName == null || device.nickName == ''){
+        if (device.nickName == null || device.nickName == '') {
           updateMap['${constants.nickName}'] = device.siteName;
         }
 
@@ -267,7 +261,6 @@ class DBHelper {
         );
 
         print('updated rows : $num');
-
       }
     } else {
       device.setFavourite(false);
@@ -284,7 +277,6 @@ class DBHelper {
         );
       }
     }
-
 
     return device;
   }
@@ -318,7 +310,7 @@ class DBHelper {
         print('updated rows : $num');
       }
       return getDevice(device.channelID);
-    }on Error catch (e) {
+    } on Error catch (e) {
       print(e);
       return device;
     }

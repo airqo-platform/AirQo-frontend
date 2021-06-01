@@ -211,9 +211,7 @@ class DbConstants {
   final String _s2_pm10 = 's2_pm10';
   final String _address = 'address';
 
-
   String get searchTableHistory => _searchTableHistory;
-
 
   String get place_id => _place_id;
 

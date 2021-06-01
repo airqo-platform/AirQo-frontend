@@ -68,13 +68,11 @@ class _MyPlacesState extends State<MyPlaces> {
                 Icons.add_circle_outline_outlined,
               ),
               onPressed: () async {
-
                 await showSearch(
-                    context: context,
-                    delegate: LocationSearch(),
+                  context: context,
+                  delegate: LocationSearch(),
                 ).then((value) {
-                  setState(() {
-                  });
+                  setState(() {});
                 });
 
                 // Navigator.push(
@@ -129,8 +127,10 @@ class _MyPlacesState extends State<MyPlaces> {
                                       textAlign: TextAlign.center,
                                       style: TextStyle(
                                           fontSize: 10.0,
-                                          color: pmTextColor(searchResults[index].pm2_5.value)
-                                      ),
+                                          color: pmTextColor(
+                                              searchResults[index]
+                                                  .pm2_5
+                                                  .value)),
                                     ),
                                   ),
                                 ),
@@ -240,7 +240,10 @@ class _MyPlacesState extends State<MyPlaces> {
                             );
                           } else {
                             return const Center(
-                              child: CircularProgressIndicator(),
+                              child: CircularProgressIndicator(
+                                valueColor:
+                                    AlwaysStoppedAnimation<Color>(appColor),
+                              ),
                             );
                           }
                         }))));
@@ -260,9 +263,7 @@ class _MyPlacesState extends State<MyPlaces> {
     await showSnackBar2(
         context, '${place.siteName} is removed from your places');
 
-    setState(() {
-      
-    });
+    setState(() {});
   }
 
   void doSearch(String query) {

@@ -31,7 +31,6 @@ class PlaceDetailsPage extends StatefulWidget {
 }
 
 class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
-
   _PlaceDetailsPageState(this.device);
 
   bool isFavourite = false;
@@ -125,8 +124,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
 
   Future<void> localFetch() async {
     try {
-      var measurements =
-          await DBHelper().getMeasurement(device.channelID);
+      var measurements = await DBHelper().getMeasurement(device.channelID);
 
       if (measurements != null) {
         setState(() {
@@ -144,8 +142,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
 
   Future<void> getDeviceDetails() async {
     try {
-      var deviceDetails =
-      await DBHelper().getDevice(device.channelID);
+      var deviceDetails = await DBHelper().getDevice(device.channelID);
 
       print(deviceDetails);
       if (deviceDetails != null) {
@@ -214,37 +211,38 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                       children: [
                         Expanded(
                             child: GestureDetector(
-                              onTap: () {
-                                if(isFavourite){
-                                  print('editing');
-                                  setState(() {
-                                    titleText = '';
-                                  });
-                                  updateTitleDialog(device);
-                                }
-                                },
-                              child: RichText(
-                                overflow: TextOverflow.ellipsis,
-                                textAlign: TextAlign.center,
-                                maxLines: 10,
+                          onTap: () {
+                            if (isFavourite) {
+                              print('editing');
+                              setState(() {
+                                titleText = '';
+                              });
+                              updateTitleDialog(device);
+                            }
+                          },
+                          child: RichText(
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.center,
+                            maxLines: 10,
                             text: TextSpan(
                               style: const TextStyle(
                                 fontSize: 20,
                                 color: appColor,
                                 fontWeight: FontWeight.bold,
                               ),
-                              text: (isFavourite && device.nickName != null)  ? '${device.nickName} ' :
-                              '${device.siteName}',
+                              text: (isFavourite && device.nickName != null)
+                                  ? '${device.nickName} '
+                                  : '${device.siteName}',
                               children: <TextSpan>[
-                                if(isFavourite)
-                                TextSpan(
-                                  text: String.fromCharCode(0xe169),
-                                  style: const TextStyle(
-                                    fontSize: 15,
-                                    fontFamily: 'MaterialIcons',
-                                    color: appColor,
-                                  ),
-                                )
+                                if (isFavourite)
+                                  TextSpan(
+                                    text: String.fromCharCode(0xe169),
+                                    style: const TextStyle(
+                                      fontSize: 15,
+                                      fontFamily: 'MaterialIcons',
+                                      color: appColor,
+                                    ),
+                                  )
                               ],
                             ),
                           ),
@@ -314,7 +312,10 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                           return Center(
                               child: Container(
                             padding: const EdgeInsets.all(16.0),
-                            child: const CircularProgressIndicator(),
+                            child: const CircularProgressIndicator(
+                              valueColor:
+                                  AlwaysStoppedAnimation<Color>(appColor),
+                            ),
                           ));
                         }
                       }),
@@ -369,9 +370,11 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                           return Center(
                               child: Container(
                             padding: const EdgeInsets.all(16.0),
-                            child: const CircularProgressIndicator(),
-                          )
-                          );
+                            child: const CircularProgressIndicator(
+                              valueColor:
+                                  AlwaysStoppedAnimation<Color>(appColor),
+                            ),
+                          ));
                         }
                       }),
 
@@ -390,7 +393,9 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                   child: Text(response),
                 )
               : const Center(
-                  child: CircularProgressIndicator(),
+                  child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(appColor),
+                  ),
                 ),
       floatingActionButton: locationData != null
           ? ExpandableFab(
@@ -559,8 +564,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                   style: const TextStyle(
                     height: 1.2,
                     // letterSpacing: 1.0
-                  )
-              ),
+                  )),
             ),
           )
         ],
@@ -569,7 +573,6 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
   }
 
   Future<void> updateTitleDialog(Device device) async {
-
     return showDialog(
         context: context,
         builder: (context) {
@@ -587,10 +590,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
                     primary: Colors.red,
-                    textStyle: const TextStyle(
-                      color: Colors.white
-                    )
-                ),
+                    textStyle: const TextStyle(color: Colors.white)),
                 onPressed: () {
                   setState(() {
                     Navigator.pop(context);
@@ -598,21 +598,15 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                 },
                 child: const Text('Cancel'),
               ),
-
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
                     primary: Colors.green,
-                    textStyle: const TextStyle(
-                        color: Colors.white
-                    )
-                ),
+                    textStyle: const TextStyle(color: Colors.white)),
                 onPressed: () async {
-
-                  if(titleText != ''){
-                    await DBHelper().renameFavouritePlace(device, titleText)
-                        .then((value) => {
-                    getDeviceDetails()
-                    });
+                  if (titleText != '') {
+                    await DBHelper()
+                        .renameFavouritePlace(device, titleText)
+                        .then((value) => {getDeviceDetails()});
                   }
                   Navigator.pop(context);
                 },
@@ -622,5 +616,4 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
           );
         });
   }
-
 }

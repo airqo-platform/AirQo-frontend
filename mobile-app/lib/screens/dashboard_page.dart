@@ -64,32 +64,32 @@ class _DashboardPageState extends State<DashboardPage> {
                     return RefreshIndicator(
                       onRefresh: refreshData,
                       child: ListView.builder(
-                        itemBuilder: (context, index) =>
-                            InkWell(
-                              onTap: () async {
-                                try {
-                                  var device =
-                                      await DBHelper().getDevice(results[index].locationDetails.channelID);
+                        itemBuilder: (context, index) => InkWell(
+                          onTap: () async {
+                            try {
+                              var device = await DBHelper().getDevice(
+                                  results[index].locationDetails.channelID);
 
-                                  await Navigator.push(context,
-                                      MaterialPageRoute(builder: (context) {
-                                        return PlaceDetailsPage(device: device);
-                                      })).then((value) => setState(() {
-                                      }));
-                                } catch (e) {
-                                  print(e);
-                                  await showSnackBar(context,
-                                      'Information not available. Try again later');
-                                }
-                              },
-                              child: AirQualityCard(data: results[index]),
-                            ),
+                              await Navigator.push(context,
+                                  MaterialPageRoute(builder: (context) {
+                                return PlaceDetailsPage(device: device);
+                              })).then((value) => setState(() {}));
+                            } catch (e) {
+                              print(e);
+                              await showSnackBar(context,
+                                  'Information not available. Try again later');
+                            }
+                          },
+                          child: AirQualityCard(data: results[index]),
+                        ),
                         itemCount: results.length,
                       ),
                     );
                   } else {
                     return const Center(
-                      child: CircularProgressIndicator(),
+                      child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(appColor),
+                      ),
                     );
                     // return Center( child: Container(
                     //   padding: const EdgeInsets.all(16.0),

@@ -17,13 +17,11 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
 
   List<OnBoardingData> data = [
     OnBoardingData(
-        description:
-        'Select locations important to you using MyPlaces',
+        description: 'Select locations important to you using MyPlaces',
         title: 'MyPlaces',
         localImageSrc: 'assets/svg/historical.png'),
     OnBoardingData(
-        description:
-        'See air quality for the last 48 hours and '
+        description: 'See air quality for the last 48 hours and '
             'forecast for your next 24 hours',
         title: 'Historical and Forecast',
         localImageSrc: 'assets/svg/historical.png'),
@@ -39,17 +37,16 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
         body: Container(
             color: appColor,
             child: SafeArea(
-            child: Container(
+                child: Container(
               padding: const EdgeInsets.all(16),
               decoration: const BoxDecoration(
                   gradient: LinearGradient(
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                       colors: [
-                        appColor,
-                        appColorPale,
-                      ])
-              ),
+                    appColor,
+                    appColorPale,
+                  ])),
               alignment: Alignment.center,
               child: Column(children: [
                 Expanded(
@@ -57,21 +54,20 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
                     children: [
                       Expanded(
                         flex: 4,
-                          child: Container(
-                              alignment: Alignment.center,
-                              child: PageView(
-                                  scrollDirection: Axis.horizontal,
-                                  controller: _controller,
-                                  onPageChanged: (value) {
-                                    setState(() {
-                                      _currentIndex = value;
-                                    });
-                                  },
-                                  children: data
-                                      .map((e) => SlidePage(data: e))
-                                      .toList())
-                          ),
-                          ),
+                        child: Container(
+                            alignment: Alignment.center,
+                            child: PageView(
+                                scrollDirection: Axis.horizontal,
+                                controller: _controller,
+                                onPageChanged: (value) {
+                                  setState(() {
+                                    _currentIndex = value;
+                                  });
+                                },
+                                children: data
+                                    .map((e) => SlidePage(data: e))
+                                    .toList())),
+                      ),
                       Expanded(
                           flex: 1,
                           child: Column(
@@ -79,13 +75,12 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
                             children: [
                               Container(
                                   margin:
-                                  const EdgeInsets.symmetric(vertical: 24),
+                                      const EdgeInsets.symmetric(vertical: 24),
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
-                                    children: List.generate(data.length,
-                                            createCircle),
-                                  )
-                              ),
+                                    children: List.generate(
+                                        data.length, createCircle),
+                                  )),
                               OnBoardingButtons(
                                 currentIndex: _currentIndex,
                                 dataLength: data.length,
@@ -97,11 +92,7 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
                   ),
                 )
               ]),
-            )
-            )
-        )
-    );
-
+            ))));
   }
 
   AnimatedContainer createCircle(var index) {
@@ -111,7 +102,6 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
         height: 5,
         width: _currentIndex == index ? 15 : 5,
         decoration: BoxDecoration(
-            color: Colors.white, borderRadius: BorderRadius.circular(3))
-    );
+            color: Colors.white, borderRadius: BorderRadius.circular(3)));
   }
 }

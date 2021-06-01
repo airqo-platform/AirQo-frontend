@@ -11,7 +11,7 @@ class CustomLocalizations {
   }
 
   static const LocalizationsDelegate<CustomLocalizations> delegate =
-  CustomLocalizationsDelegate();
+      CustomLocalizationsDelegate();
 
   static final Map<String, Map<String, String>> _resources = {
     'en': {'title': 'AirQo English', 'message': 'English'},
@@ -20,8 +20,6 @@ class CustomLocalizations {
       'message': 'Luganda',
     },
   };
-
-
 
   String get title {
     var title = _resources[locale.languageCode]!['title'];

@@ -43,10 +43,8 @@ String dateToString(String formattedString) {
   }
 }
 
-
 String dateToEnglishString(String formattedString) {
   try {
-
     var now = DateTime.now();
 
     var date = DateFormat('yyyy-MM-dd').parse(
@@ -57,11 +55,11 @@ String dateToEnglishString(String formattedString) {
     switch (difference) {
       case 0:
         dateString =
-        'Today, ${DateFormat('hh:mm a').format(DateTime.parse(formattedString))}';
+            'Today, ${DateFormat('hh:mm a').format(DateTime.parse(formattedString))}';
         break;
       case 1:
         dateString =
-        'Yesterday, ${DateFormat('hh:mm a').format(DateTime.parse(formattedString))}';
+            'Yesterday, ${DateFormat('hh:mm a').format(DateTime.parse(formattedString))}';
         break;
       default:
         dateString = DateFormat('EEE, MMM d, hh:mm a')

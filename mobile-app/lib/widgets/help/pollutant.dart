@@ -19,7 +19,7 @@ class PollutantDialog extends StatelessWidget {
       body: Padding(
         padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
         child: ListView(
-          children: [whatIs(), source(), effects(), howToReduce(), reference()],
+          children: [whatIs(), source(), effects(), howToReduce()],
         ),
       ),
     );

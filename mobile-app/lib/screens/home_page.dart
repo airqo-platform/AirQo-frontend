@@ -71,13 +71,11 @@ class _HomePageState extends State<HomePage> {
               Icons.search,
             ),
             onPressed: () async {
-
               await showSearch(
-                  context: context,
-                  delegate: LocationSearch(),
+                context: context,
+                delegate: LocationSearch(),
               ).then((value) {
-                setState(() {
-                });
+                setState(() {});
               });
 
               // Navigator.push(
@@ -395,15 +393,11 @@ class _HomePageState extends State<HomePage> {
       Navigator.push(context, MaterialPageRoute(builder: (context) {
         return const MyPlaces();
       })).then((value) {
-        setState(() {
-
-        });
+        setState(() {});
       });
-    }
-    else if (menuItem.trim().toLowerCase() == 'camera') {
+    } else if (menuItem.trim().toLowerCase() == 'camera') {
       takePhoto();
-
-    }else {
+    } else {
       Navigator.push(context, MaterialPageRoute(builder: (context) {
         return SettingsPage();
       }));
@@ -412,7 +406,6 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void initState() {
-
     displayOnBoarding();
 
     _getMeasurements();
@@ -421,7 +414,6 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _getMeasurements() async {
-
     print('Home page Getting measurements');
 
     var measurements = await AirqoApiClient(context).fetchMeasurements();
@@ -432,7 +424,6 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _getDevices() async {
-
     print('Home page Getting devices');
 
     var results = await AirqoApiClient(context).fetchDevices();
@@ -446,15 +437,12 @@ class _HomePageState extends State<HomePage> {
     var prefs = await SharedPreferences.getInstance();
     var isFirstUse = prefs.getBool(firstUse) ?? true;
 
-    if(isFirstUse){
+    if (isFirstUse) {
       await Navigator.pushReplacement(context,
           MaterialPageRoute(builder: (context) {
-            return OnBoardingPage();
-          })
-      );
+        return OnBoardingPage();
+      }));
     }
-
-
   }
 
   Future<void> takePhoto() async {
@@ -465,8 +453,9 @@ class _HomePageState extends State<HomePage> {
     final firstCamera = cameras.first;
 
     await Navigator.push(context, MaterialPageRoute(builder: (context) {
-      return TakePicture(camera: firstCamera,);
+      return TakePicture(
+        camera: firstCamera,
+      );
     }));
   }
-
 }

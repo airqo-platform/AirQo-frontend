@@ -36,21 +36,27 @@ class _HourlyBarChartState extends State<HourlyBarChart> {
           if (display != null)
             Padding(
               padding: const EdgeInsets.fromLTRB(0, 2, 0, 0),
-              child:Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Text(dateToEnglishString(display['time']),
-                  softWrap: true,
-                  style: const TextStyle( color: appColor),),
-                Text(display['value'].toString(),
-                  softWrap: true,
-                  style: const TextStyle( color: appColor),),
-                Text(pmToString(display['value']),
-                  softWrap: true,
-                  style: const TextStyle(color: appColor),),
-              ],
-            ),),
-
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Text(
+                    dateToEnglishString(display['time']),
+                    softWrap: true,
+                    style: const TextStyle(color: appColor),
+                  ),
+                  Text(
+                    display['value'].toString(),
+                    softWrap: true,
+                    style: const TextStyle(color: appColor),
+                  ),
+                  Text(
+                    pmToString(display['value']),
+                    softWrap: true,
+                    style: const TextStyle(color: appColor),
+                  ),
+                ],
+              ),
+            ),
           Expanded(
             child: charts.TimeSeriesChart(
               widget.seriesList,
@@ -82,30 +88,27 @@ class _HourlyBarChartState extends State<HourlyBarChart> {
               selectionModels: [
                 charts.SelectionModelConfig(
                     changedListener: (charts.SelectionModel model) {
-                      if (model.hasDatumSelection) {
-
-                          try{
-
-                            setState(() {
-                              display = {
-                                'time': (model.selectedSeries[0]
-                                    .domainFn(model.selectedDatum[0].index))
-                                    .toString(),
-                                'value': double.parse((model.selectedSeries[0]
-                                    .measureFn(model.selectedDatum[0].index))
-                                    .toString())
-                              };
-                            });
-
-                          }on Error catch (e){
-                            print(e);
-                          }
-                      }
-                    })
+                  if (model.hasDatumSelection) {
+                    try {
+                      setState(() {
+                        display = {
+                          'time': (model.selectedSeries[0]
+                                  .domainFn(model.selectedDatum[0].index))
+                              .toString(),
+                          'value': double.parse((model.selectedSeries[0]
+                                  .measureFn(model.selectedDatum[0].index))
+                              .toString())
+                        };
+                      });
+                    } on Error catch (e) {
+                      print(e);
+                    }
+                  }
+                })
               ],
               primaryMeasureAxis: const charts.NumericAxisSpec(
                   tickProviderSpec:
-                  charts.BasicNumericTickProviderSpec(desiredTickCount: 7)),
+                      charts.BasicNumericTickProviderSpec(desiredTickCount: 7)),
             ),
           )
         ],

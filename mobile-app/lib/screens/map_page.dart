@@ -137,8 +137,8 @@ class MapPageState extends State<MapPage> {
                                 //   _showInfoWindow = false;
                                 // });
                                 await showSearch(
-                                    context: context,
-                                    delegate: LocationSearch(),
+                                  context: context,
+                                  delegate: LocationSearch(),
                                 );
                                 // Navigator.push(context,
                                 //     MaterialPageRoute(builder: (context) {
@@ -190,7 +190,9 @@ class MapPageState extends State<MapPage> {
               const Positioned.fill(
                 child: Align(
                     alignment: Alignment.center,
-                    child: CircularProgressIndicator()),
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(appColor),
+                    )),
               ),
             // Positioned(
             //     bottom: 0,
@@ -271,7 +273,6 @@ class MapPageState extends State<MapPage> {
     });
   }
 
-
   // @override
   // void dispose() {
   //
@@ -292,10 +293,10 @@ class MapPageState extends State<MapPage> {
       child: Column(
         children: [
           Text(
-            (windowProperties.locationDetails.favourite
-                && windowProperties.locationDetails.nickName != null)  ?
-            windowProperties.locationDetails.nickName :
-            windowProperties.locationDetails.siteName,
+            (windowProperties.locationDetails.favourite &&
+                    windowProperties.locationDetails.nickName != null)
+                ? windowProperties.locationDetails.nickName
+                : windowProperties.locationDetails.siteName,
             softWrap: true,
             style: const TextStyle(color: appColor),
             overflow: TextOverflow.ellipsis,

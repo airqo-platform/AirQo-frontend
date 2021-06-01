@@ -85,9 +85,9 @@ class TitleSection extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      data.locationDetails.nickName == null ?
-                      data.locationDetails.siteName :
-                      data.locationDetails.nickName,
+                      data.locationDetails.nickName == null
+                          ? data.locationDetails.siteName
+                          : data.locationDetails.nickName,
                       maxLines: 4,
                       softWrap: true,
                     ),
@@ -130,13 +130,13 @@ class CardSection extends StatelessWidget {
                     fontWeight: FontWeight.w300,
                     fontStyle: FontStyle.italic,
                   ))),
-          const Padding(
-            padding: EdgeInsets.fromLTRB(5, 5, 5, 5),
-            child: Icon(
-              Icons.arrow_forward_outlined,
-              color: appColor,
-            ),
-          ),
+          // const Padding(
+          //   padding: EdgeInsets.fromLTRB(5, 5, 5, 5),
+          //   child: Icon(
+          //     Icons.arrow_forward_outlined,
+          //     color: appColor,
+          //   ),
+          // ),
           // Column(
           //   children: [
           //     Row(

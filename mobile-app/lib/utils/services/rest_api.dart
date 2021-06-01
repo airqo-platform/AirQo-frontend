@@ -289,11 +289,9 @@ class AirqoApiClient {
 
   Future<Measurement> fetchDeviceMeasurements(Device device) async {
     try {
-
       var url = '$getLatestDeviceEvents${device.name}';
       print(url);
-      final response = await http
-          .get(Uri.parse(url));
+      final response = await http.get(Uri.parse(url));
 
       print(response.statusCode);
       if (response.statusCode == 200) {
@@ -385,14 +383,11 @@ class AirqoApiClient {
 
     var uploadStr = 'data:image/$type;base64,$file';
     try {
-      var body = {
-        "file": uploadStr,
-        "upload_preset": "mobile_uploads"
-      };
+      var body = {"file": uploadStr, "upload_preset": "mobile_uploads"};
 
-    //   "api_key": cloudinaryApiKey,
-    // "timestamp": DateTime.now().microsecondsSinceEpoch,
-    // "signature": "",
+      //   "api_key": cloudinaryApiKey,
+      // "timestamp": DateTime.now().microsecondsSinceEpoch,
+      // "signature": "",
 
       // print(body);
 
@@ -404,15 +399,12 @@ class AirqoApiClient {
       if (response.statusCode == 200) {
         print(response.body);
         return response.body.toString();
-
-
       } else {
         print('Unexpected status code ${response.statusCode}:'
             ' ${response.reasonPhrase}');
         print('Body ${response.body}:');
         print('uri: Uri.parse($getForecastUrl)');
         throw Exception('Error');
-
       }
     } on SocketException {
       await showSnackBar(context, ErrorMessages().socketException);
@@ -426,22 +418,18 @@ class AirqoApiClient {
       // var message = 'Forecast data is not available, try again later';
       // await showSnackBar(context, message);
     }
-
   }
 
-  Future<List<Device>> getDevicesByCoordinates(double latitude, double longitude) async {
-
-
-
+  Future<List<Device>> getDevicesByCoordinates(
+      double latitude, double longitude) async {
     try {
-
-      String url = '$getDevicesByGeoCoordinates&radius=1&latitude=$latitude&longitude=$longitude';
+      String url =
+          '$getDevicesByGeoCoordinates&radius=1&latitude=$latitude&longitude=$longitude';
       print(url);
       final response = await http.get(Uri.parse(url));
 
       print(response.statusCode);
       if (response.statusCode == 200) {
-
         // List<Device> devices = json.decode(response.body)['devices']
         //     .map<Device>((d) => {
         //   Device.fromJson(d)
@@ -466,7 +454,7 @@ class AirqoApiClient {
             ' ${response.reasonPhrase}');
         throw HttpException(
             'Unexpected status code ${response.statusCode}:'
-                ' ${response.reasonPhrase}',
+            ' ${response.reasonPhrase}',
             uri: Uri.parse(getDevices));
       }
     } on SocketException {
@@ -482,7 +470,6 @@ class AirqoApiClient {
 
     return <Device>[];
   }
-
 }
 
 class GoogleSearchProvider {
