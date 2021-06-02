@@ -10,6 +10,8 @@ import {
   loadMapEventsData,
 } from "redux/MapData/operations";
 import { usePM25HeatMapData, useEventsMapData } from "redux/MapData/selectors";
+import SettingsIcon from "@material-ui/icons/Settings";
+import RichTooltip from "../../containers/RichToolTip";
 
 // css
 import "assets/css/overlay-map.css";
@@ -83,7 +85,8 @@ const MapControllerPosition = ({ className, children, position }) => {
     flexWrap: "wrap",
     position: "absolute",
     cursor: "pointer",
-    margin: "10px 5px",
+    margin: "10px",
+    padding: "10px",
     ...(positions[position] || positions.topLeft),
   };
 
@@ -97,7 +100,6 @@ const MapControllerPosition = ({ className, children, position }) => {
 const PollutantSelector = ({ className, onChange }) => {
   const [open, setOpen] = useState(false);
   const [pollutant, setPollutant] = useState("pm2_5");
-  const [anchorEl, setAnchorEl] = React.useState(null);
   const pollutantMapper = {
     pm2_5: (
       <span>
@@ -116,8 +118,7 @@ const PollutantSelector = ({ className, onChange }) => {
     ),
   };
 
-  const onHandleClick = (event) => {
-    setAnchorEl(event.currentTarget);
+  const onHandleClick = () => {
     setOpen(!open);
   };
 
@@ -128,18 +129,9 @@ const PollutantSelector = ({ className, onChange }) => {
   };
 
   return (
-    <MapControllerPosition position={"topRight"}>
-      <>
-        <span className={className} onClick={onHandleClick}>
-          {pollutantMapper[pollutant]}
-        </span>
-        <Menu
-          id="pollutant-menu-id"
-          anchorEl={anchorEl}
-          keepMounted
-          open={open}
-          onClose={() => setOpen(false)}
-        >
+    <RichTooltip
+      content={
+        <div>
           <MenuItem
             onClick={handleMenuItemChange("pm2_5", {
               pm2_5: true,
