@@ -259,8 +259,6 @@ const AddLogForm = ({ deviceName, deviceLocation, toggleShow }) => {
     const extracted_tags = [];
     tags && tags.map((tag) => extracted_tags.push(tag.value));
     const logData = {
-      deviceName,
-      locationName: deviceLocation,
       date: selectedDate.toISOString(),
       tags: extracted_tags,
       maintenanceType: (maintenanceType && maintenanceType.value) || "",
@@ -268,7 +266,7 @@ const AddLogForm = ({ deviceName, deviceLocation, toggleShow }) => {
     };
 
     setLoading(true);
-    await addMaintenanceLogApi(logData)
+    await addMaintenanceLogApi(deviceName, logData)
       .then(async (responseData) => {
         // dispatch(
         //   insertMaintenanceLog(

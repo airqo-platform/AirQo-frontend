@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
-import PropTypes from "prop-types";
 import TextField from "@material-ui/core/TextField";
 import FormControl from "@material-ui/core/FormControl";
 import Paper from "@material-ui/core/Paper";
@@ -12,6 +11,7 @@ import LabelledSelect from "../../CustomSelects/LabelledSelect";
 import { isEmpty, isEqual } from "underscore";
 import { updateMainAlert } from "redux/MainAlert/operations";
 import { updateDeviceDetails } from "views/apis/deviceRegistry";
+import { updateDevice } from "redux/DeviceRegistry/operations";
 
 const transformLocationOptions = (locationsData) => {
   const transFormedOptions = [];
@@ -82,6 +82,7 @@ export default function DeviceEdit({ deviceData, locationsData }) {
     setEditLoading(true);
     await updateDeviceDetails(deviceData.name, editData)
       .then((responseData) => {
+        dispatch(updateDevice(deviceData.name, responseData.updatedDevice));
         dispatch(
           updateMainAlert({
             message: responseData.message,
@@ -119,6 +120,17 @@ export default function DeviceEdit({ deviceData, locationsData }) {
         }}
       >
         <Grid container spacing={1}>
+          <Grid items xs={12} sm={6} style={gridItemStyle}>
+            <TextField
+              id="name"
+              label="name"
+              value={editData.name}
+              onChange={handleTextFieldChange}
+              fullWidth
+              required
+              disabled
+            />
+          </Grid>
           <Grid items xs={12} sm={6} style={gridItemStyle}>
             <TextField
               id="owner"
@@ -292,6 +304,16 @@ export default function DeviceEdit({ deviceData, locationsData }) {
               id="mountType"
               label="Mount Type"
               value={editData.mountType}
+              onChange={handleTextFieldChange}
+              fullWidth
+            />
+          </Grid>
+
+          <Grid items xs={12} sm={6} style={gridItemStyle}>
+            <TextField
+              id="height"
+              label="height"
+              value={editData.height}
               onChange={handleTextFieldChange}
               fullWidth
             />

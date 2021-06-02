@@ -1,6 +1,7 @@
 import axios from "axios";
 import {
   ALL_DEVICES_URI,
+    ADD_MAINTENANCE_LOGS_URI,
   ADD_COMPONENT_URI,
   GET_COMPONENTS_URI,
   DEPLOY_DEVICE_URI,
@@ -12,6 +13,7 @@ import {
   DELETE_COMPONENT,
   DELETE_DEVICE_PHOTO,
   EVENTS,
+  RECALL_DEVICE_URI,
 } from "config/urls/deviceRegistry";
 import { DEVICE_MAINTENANCE_LOG_URI } from "config/urls/deviceMonitoring";
 import { DEVICE_RECENT_FEEDS } from "config/urls/dataManagement";
@@ -49,21 +51,21 @@ export const getDeviceMaintenanceLogsApi = async (deviceName) => {
     .then((response) => response.data);
 };
 
-export const addMaintenanceLogApi = async (logData) => {
+export const addMaintenanceLogApi = async (deviceName, logData) => {
   return await axios
-    .post(DEPLOY_DEVICE_URI + "maintain", logData)
+    .post(ADD_MAINTENANCE_LOGS_URI, logData, { params: { deviceName } })
     .then((response) => response.data);
 };
 
-export const recallDeviceApi = async (recallData) => {
+export const recallDeviceApi = async (deviceName) => {
   return await axios
-    .post(DEPLOY_DEVICE_URI + "recall", recallData)
+    .post(RECALL_DEVICE_URI, {}, { params: { deviceName } })
     .then((response) => response.data);
 };
 
-export const deployDeviceApi = async (deployData) => {
+export const deployDeviceApi = async (deviceName, deployData) => {
   return axios
-    .post(DEPLOY_DEVICE_URI + "deploy", deployData)
+    .post(DEPLOY_DEVICE_URI, deployData, { params: { deviceName } })
     .then((response) => response.data);
 };
 
