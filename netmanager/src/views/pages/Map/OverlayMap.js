@@ -5,6 +5,7 @@ import { isEmpty } from "underscore";
 import { heatMapPaint } from "./paints";
 import { formatDateString, getFirstDuration } from "utils/dateTime";
 import Filter from "../Dashboard/components/Map/Filter";
+import Divider from "@material-ui/core/Divider";
 import {
   loadPM25HeatMapData,
   loadMapEventsData,
@@ -12,10 +13,11 @@ import {
 import { usePM25HeatMapData, useEventsMapData } from "redux/MapData/selectors";
 import SettingsIcon from "@material-ui/icons/Settings";
 import RichTooltip from "../../containers/RichToolTip";
+import { MenuItem } from "@material-ui/core";
+import Checkbox from "@material-ui/core/Checkbox";
 
 // css
 import "assets/css/overlay-map.css";
-import { Menu, MenuItem } from "@material-ui/core";
 
 const markerDetailsPM2_5 = {
   0.0: ["marker-good", "Good"],
@@ -159,8 +161,60 @@ const PollutantSelector = ({ className, onChange }) => {
           >
             NO<sub>2</sub>
           </MenuItem>
-        </Menu>
-      </>
+        </div>
+      }
+      open={open}
+      placement="left"
+      onClose={() => setOpen(false)}
+    >
+      <div style={{ padding: "10px" }}>
+        <span className={className} onClick={onHandleClick}>
+          {pollutantMapper[pollutant]}
+        </span>
+      </div>
+    </RichTooltip>
+  );
+};
+
+const MapSettings = () => {
+  const [open, setOpen] = useState(false);
+  return (
+    <RichTooltip
+      content={
+        <div>
+          <MenuItem>
+            <Checkbox defaultChecked color="default" /> Sensors
+          </MenuItem>
+          <MenuItem>
+            <Checkbox defaultChecked color="default" /> Heatmap
+          </MenuItem>
+          <Divider />
+          <MenuItem>
+            <Checkbox defaultChecked color="default" /> Raw values
+          </MenuItem>
+        </div>
+      }
+      open={open}
+      placement="left"
+      onClose={() => setOpen(false)}
+    >
+      <div style={{ padding: "10px" }}>
+        <div className="map-settings" onClick={() => setOpen(!open)}>
+          <SettingsIcon />
+        </div>
+      </div>
+    </RichTooltip>
+  );
+};
+
+const CustomMapControl = ({ className, onChange }) => {
+  return (
+    <MapControllerPosition
+      className={"custom-map-control"}
+      position={"topRight"}
+    >
+      <MapSettings />
+      <PollutantSelector className={className} onChange={onChange} />
     </MapControllerPosition>
   );
 };
@@ -373,7 +427,7 @@ export const OverlayMap = ({
         />
       )}
       {map && (
-        <PollutantSelector
+        <CustomMapControl
           onChange={setShowPollutant}
           className={"pollutant-selector"}
         />

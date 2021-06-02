@@ -114,6 +114,15 @@
     color: white;
 }
 
+.custom-map-control {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    width: 80px;
+    margin: 20px;
+}
+
 .pollutant-selector {
     display: flex;
     flex-wrap: wrap;
@@ -127,6 +136,25 @@
     font-weight: bold;
     border-radius: 50%;
     transition: all 0.2s ease 0s;
+}
+
+.map-settings {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    margin: 5px;
+    width: 44px;
+    height: 44px;
+    background: #ffffff;
+    color: #29323d;
+    font-weight: bold;
+    border-radius: 50%;
+    transition: all 0.2s ease 0s;
+}
+
+.map-settings:hover {
+    transform: scale(1.1);
 }
 
 .pollutant-selector:hover {
