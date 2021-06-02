@@ -179,10 +179,10 @@ const PollutantSelector = ({ className, onChange }) => {
 const MapSettings = ({
   showSensors,
   showHeatmap,
-  showRawValues,
+  showCalibratedValues,
   onSensorChange,
   onHeatmapChange,
-  onRawValuesChange,
+  onCalibratedChange,
 }) => {
   const [open, setOpen] = useState(false);
   return (
@@ -196,8 +196,11 @@ const MapSettings = ({
             <Checkbox checked={showHeatmap} color="default" /> Heatmap
           </MenuItem>
           <Divider />
-          <MenuItem onClick={() => onRawValuesChange(!showRawValues)}>
-            <Checkbox checked={showRawValues} color="default" /> Raw values
+          <MenuItem
+            onClick={() => onCalibratedChange(!showCalibratedValues)}
+          >
+            <Checkbox checked={showCalibratedValues} color="default" />{" "}
+            Calibrated values
           </MenuItem>
         </div>
       }
@@ -219,10 +222,10 @@ const CustomMapControl = ({
   onPollutantChange,
   showSensors,
   showHeatmap,
-  showRawValues,
+  showCalibratedValues,
   onSensorChange,
   onHeatmapChange,
-  onRawValuesChange,
+  onCalibratedChange,
 }) => {
   return (
     <MapControllerPosition
@@ -232,10 +235,10 @@ const CustomMapControl = ({
       <MapSettings
         showSensors={showSensors}
         showHeatmap={showHeatmap}
-        showRawValues={showRawValues}
+        showCalibratedValues={showCalibratedValues}
         onSensorChange={onSensorChange}
         onHeatmapChange={onHeatmapChange}
-        onRawValuesChange={onRawValuesChange}
+        onCalibratedChange={onCalibratedChange}
       />
       <PollutantSelector className={className} onChange={onPollutantChange} />
     </MapControllerPosition>
@@ -253,7 +256,7 @@ export const OverlayMap = ({
   const [map, setMap] = useState(null);
   const [showSensors, setShowSensors] = useState(true);
   const [showHeatMap, setShowHeatMap] = useState(false);
-  const [showRawValues, setShowRawValues] = useState(false);
+  const [showCalibratedValues, setShowCalibratedValues] = useState(false);
   const [showPollutant, setShowPollutant] = useState({
     pm2_5: true,
     no2: false,
@@ -372,7 +375,7 @@ export const OverlayMap = ({
           const [seconds, duration] = getFirstDuration(
             formatDateString(feature.properties.time)
           );
-          const pollutantValue =
+          let pollutantValue =
             (showPollutant.pm2_5 &&
               feature.properties.pm2_5 &&
               feature.properties.pm2_5.value) ||
@@ -383,6 +386,23 @@ export const OverlayMap = ({
               feature.properties.no2 &&
               feature.properties.no2.value) ||
             null;
+
+          if (showCalibratedValues) {
+            pollutantValue =
+              (showPollutant.pm2_5 &&
+                feature.properties.pm2_5 &&
+                feature.properties.pm2_5.calibratedValue &&
+                feature.properties.pm2_5.calibratedValue) ||
+              (showPollutant.pm10 &&
+                feature.properties.pm10 &&
+                feature.properties.pm10.calibratedValue &&
+                feature.properties.pm10.calibratedValue) ||
+              (showPollutant.no2 &&
+                feature.properties.no2 &&
+                feature.properties.no2.calibratedValue &&
+                feature.properties.no2.calibratedValue) ||
+              pollutantValue;
+          }
           let markerKey = "";
           for (const property in showPollutant) {
             if (showPollutant[property]) markerKey = property;
@@ -420,10 +440,10 @@ export const OverlayMap = ({
         <CustomMapControl
           showSensors={showSensors}
           showHeatmap={showHeatMap}
-          showRawValues={showRawValues}
+          showCalibratedValues={showCalibratedValues}
           onSensorChange={toggleSensors}
           onHeatmapChange={toggleHeatMap}
-          onRawValuesChange={setShowRawValues}
+          onCalibratedChange={setShowCalibratedValues}
           onPollutantChange={setShowPollutant}
           className={"pollutant-selector"}
         />
