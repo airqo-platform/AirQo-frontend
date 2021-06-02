@@ -176,21 +176,28 @@ const PollutantSelector = ({ className, onChange }) => {
   );
 };
 
-const MapSettings = () => {
+const MapSettings = ({
+  showSensors,
+  showHeatmap,
+  showRawValues,
+  onSensorChange,
+  onHeatmapChange,
+  onRawValuesChange,
+}) => {
   const [open, setOpen] = useState(false);
   return (
     <RichTooltip
       content={
         <div>
-          <MenuItem>
-            <Checkbox defaultChecked color="default" /> Sensors
+          <MenuItem onClick={() => onSensorChange(!showSensors)}>
+            <Checkbox checked={showSensors} color="default" /> Sensors
           </MenuItem>
-          <MenuItem>
-            <Checkbox defaultChecked color="default" /> Heatmap
+          <MenuItem onClick={() => onHeatmapChange(!showHeatmap)}>
+            <Checkbox checked={showHeatmap} color="default" /> Heatmap
           </MenuItem>
           <Divider />
-          <MenuItem>
-            <Checkbox defaultChecked color="default" /> Raw values
+          <MenuItem onClick={() => onRawValuesChange(!showRawValues)}>
+            <Checkbox checked={showRawValues} color="default" /> Raw values
           </MenuItem>
         </div>
       }
@@ -207,33 +214,31 @@ const MapSettings = () => {
   );
 };
 
-const CustomMapControl = ({ className, onChange }) => {
+const CustomMapControl = ({
+  className,
+  onPollutantChange,
+  showSensors,
+  showHeatmap,
+  showRawValues,
+  onSensorChange,
+  onHeatmapChange,
+  onRawValuesChange,
+}) => {
   return (
     <MapControllerPosition
       className={"custom-map-control"}
       position={"topRight"}
     >
-      <MapSettings />
-      <PollutantSelector className={className} onChange={onChange} />
+      <MapSettings
+        showSensors={showSensors}
+        showHeatmap={showHeatmap}
+        showRawValues={showRawValues}
+        onSensorChange={onSensorChange}
+        onHeatmapChange={onHeatmapChange}
+        onRawValuesChange={onRawValuesChange}
+      />
+      <PollutantSelector className={className} onChange={onPollutantChange} />
     </MapControllerPosition>
-  );
-};
-
-const MapToggleController = ({ controls }) => {
-  return (
-    <div className="map-toggle-controller">
-      {controls.map((control, index) => (
-        <span
-          className={`control-item ${
-            control.active ? "" : "control-item-disabled"
-          }`}
-          onClick={control.toggleState}
-          key={index}
-        >
-          {control.label}
-        </span>
-      ))}
-    </div>
   );
 };
 
@@ -248,6 +253,7 @@ export const OverlayMap = ({
   const [map, setMap] = useState(null);
   const [showSensors, setShowSensors] = useState(true);
   const [showHeatMap, setShowHeatMap] = useState(false);
+  const [showRawValues, setShowRawValues] = useState(false);
   const [showPollutant, setShowPollutant] = useState({
     pm2_5: true,
     no2: false,
@@ -411,24 +417,14 @@ export const OverlayMap = ({
         })}
       <Filter fetchFilteredData={(m) => monitoringSiteData.features} />
       {map && (
-        <MapToggleController
-          controls={[
-            {
-              label: "sensor",
-              active: showSensors,
-              toggleState: toggleSensors,
-            },
-            {
-              label: "heatmap",
-              active: showHeatMap,
-              toggleState: toggleHeatMap,
-            },
-          ]}
-        />
-      )}
-      {map && (
         <CustomMapControl
-          onChange={setShowPollutant}
+          showSensors={showSensors}
+          showHeatmap={showHeatMap}
+          showRawValues={showRawValues}
+          onSensorChange={toggleSensors}
+          onHeatmapChange={toggleHeatMap}
+          onRawValuesChange={setShowRawValues}
+          onPollutantChange={setShowPollutant}
           className={"pollutant-selector"}
         />
       )}
