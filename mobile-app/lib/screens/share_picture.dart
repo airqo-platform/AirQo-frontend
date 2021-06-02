@@ -175,7 +175,9 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
                     )),
               ),
             ),
-        ]));
+        ]
+        )
+    );
   }
 
   Future<void> sendPicture() async {

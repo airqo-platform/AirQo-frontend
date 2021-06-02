@@ -135,7 +135,10 @@ class _MyPlacesState extends State<MyPlaces> {
                                   ),
                                 ),
                                 title: Text(
-                                  '${searchResults[index].locationDetails.siteName}',
+                                  (searchResults[index].locationDetails.nickName != null &&
+                                      searchResults[index].locationDetails.nickName != '')
+                                      ? '${searchResults[index].locationDetails.nickName} '
+                                      : '${searchResults[index].locationDetails.siteName}',
                                   overflow: TextOverflow.ellipsis,
                                 ),
                                 subtitle: Text(
@@ -224,7 +227,10 @@ class _MyPlacesState extends State<MyPlaces> {
                                           ),
                                         ),
                                         title: Text(
-                                          '${results[index].locationDetails.siteName}',
+                                          (results[index].locationDetails.nickName != null &&
+                                              results[index].locationDetails.nickName != '')
+                                              ? '${results[index].locationDetails.nickName} '
+                                              : '${results[index].locationDetails.siteName}',
                                           overflow: TextOverflow.ellipsis,
                                         ),
                                         subtitle: Text(
@@ -302,6 +308,8 @@ class _MyPlacesState extends State<MyPlaces> {
   Future<void> viewDetails(Device device) async {
     await Navigator.push(context, MaterialPageRoute(builder: (context) {
       return PlaceDetailsPage(device: device);
-    }));
+    })).then((value) {
+      setState(() {});
+    });
   }
 }

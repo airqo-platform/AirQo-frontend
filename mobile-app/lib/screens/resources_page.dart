@@ -18,7 +18,7 @@ class _ResourcesPageState extends State<ResourcesPage> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      child: WebView(
+      child: const WebView(
         initialUrl: 'https://www.airqo.net/blog',
       ),
     );

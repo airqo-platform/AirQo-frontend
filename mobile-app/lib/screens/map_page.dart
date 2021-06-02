@@ -1,8 +1,11 @@
 import 'dart:async';
+import 'dart:collection';
 
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/device.dart';
 import 'package:app/models/measurement.dart';
+import 'package:app/models/place.dart';
+import 'package:app/models/suggestion.dart';
 import 'package:app/screens/place_details.dart';
 import 'package:app/screens/search.dart';
 import 'package:app/screens/search_location_page.dart';
@@ -16,6 +19,7 @@ import 'package:app/utils/ui/share.dart';
 
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:uuid/uuid.dart';
 
 class MapPage extends StatefulWidget {
   @override
@@ -28,7 +32,16 @@ class MapPageState extends State<MapPage> {
   var windowProperties;
   String windowColor = '';
   var dbHelper = DBHelper();
+  int _circleIdCounter = 0;
   bool isLoading = true;
+  bool _isSearching = false;
+  var searchedPalce;
+  String query = '';
+  TextEditingController _serachController = new TextEditingController();
+  Completer<GoogleMapController> _mapController = Completer();
+  Set<Circle> _circles = HashSet<Circle>();
+
+  GoogleSearchProvider googleApiClient = GoogleSearchProvider(const Uuid().v4());
 
   @override
   void initState() {
@@ -40,12 +53,14 @@ class MapPageState extends State<MapPage> {
 
   void updateInfoWindow(Measurement measurement) {
     setState(() {
+      _isSearching = false;
       windowProperties = measurement;
       _showInfoWindow = true;
     });
   }
 
   Future<void> _onMapCreated(GoogleMapController controller) async {
+    _mapController.complete(controller);
     await _getMeasurements();
   }
 
@@ -80,6 +95,23 @@ class MapPageState extends State<MapPage> {
     }
   }
 
+  void _setCircles(LatLng point) {
+    final String circleIdVal = 'circle_id_$_circleIdCounter';
+
+    setState(() {
+      _circleIdCounter++;
+    });
+
+    _circles.clear();
+    _circles.add(Circle(
+        circleId: CircleId(circleIdVal),
+        center: point,
+        radius: 1000,
+        fillColor: appColor.withOpacity(0.5),
+        strokeWidth: 2,
+        strokeColor: appColor));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -100,9 +132,11 @@ class MapPageState extends State<MapPage> {
                 zoom: 6.6,
               ),
               markers: _markers.values.toSet(),
+              circles: _circles,
               onTap: (_) {
                 setState(() {
                   _showInfoWindow = false;
+                  _isSearching = false;
                 });
               },
             ),
@@ -131,30 +165,43 @@ class MapPageState extends State<MapPage> {
                               borderRadius: BorderRadius.circular(32),
                             ),
                             child: TextField(
-                              readOnly: true,
+                              controller: _serachController,
                               onTap: () async {
-                                // setState(() {
-                                //   _showInfoWindow = false;
-                                // });
-                                await showSearch(
-                                  context: context,
-                                  delegate: LocationSearch(),
-                                );
-                                // Navigator.push(context,
-                                //     MaterialPageRoute(builder: (context) {
-                                //   return SearchPage();
-                                // })).then((value) => _getMeasurements());
+                                setState(() {
+                                  _showInfoWindow = false;
+                                });
                               },
                               decoration: const InputDecoration(
                                 hintStyle: TextStyle(fontSize: 13),
                                 hintText: 'Search',
-                                suffixIcon: Icon(Icons.search, color: appColor),
+                                suffixIcon:
+                                Icon(Icons.search, color: appColor),
                                 // border: InputBorder.none,
                                 border: OutlineInputBorder(
                                     borderRadius: BorderRadius.all(
-                                        Radius.circular(25.0))),
+                                        Radius.circular(25.0))
+                                ),
                                 contentPadding: EdgeInsets.all(15),
                               ),
+                              onChanged: (value){
+                                setState(() {
+                                  query = value;
+                                  _showInfoWindow = false;
+                                  _isSearching = true;
+
+                                });
+
+                              },
+                              onSubmitted: (value){
+                                setState(() {
+                                  query = value;
+                                  _showInfoWindow = false;
+                                  _isSearching = true;
+                                });
+
+                              },
+
+
                             ),
                           ),
                         ),
@@ -166,6 +213,132 @@ class MapPageState extends State<MapPage> {
                         ),
                       ],
                     ),
+                    if(query != '' && _isSearching)
+                      FutureBuilder(
+                        future: googleApiClient.fetchSuggestions(query),
+                        builder: (context, snapshot) {
+                          // if (query == '') {
+                          //   return FutureBuilder(
+                          //     future: DBHelper().getSearchHistory(),
+                          //     builder: (context, snapshot) {
+                          //       if (snapshot.hasData) {
+                          //         var results = snapshot.data as List<Suggestion>;
+                          //
+                          //         if (results.isEmpty) {
+                          //           return const Text('No data');
+                          //         }
+                          //
+                          //         return ListView.builder(
+                          //           itemBuilder: (context, index) => ListTile(
+                          //             title: Text(
+                          //               (results[index]).description,
+                          //               style:
+                          //               const TextStyle(fontSize: 12, color: Colors.black54),
+                          //             ),
+                          //             leading: const Icon(
+                          //               Icons.history,
+                          //               color: appColor,
+                          //             ),
+                          //             trailing: GestureDetector(
+                          //               onTap: () {
+                          //                 DBHelper().deleteSearchHistory(results[index]);
+                          //                 query = '';
+                          //               },
+                          //               child: const Icon(
+                          //                 Icons.delete_outlined,
+                          //                 color: Colors.red,
+                          //               ),
+                          //             ),
+                          //             onTap: () {
+                          //               query = (results[index]).description;
+                          //               // close(context, results[index]);
+                          //             },
+                          //           ),
+                          //           itemCount: results.length,
+                          //         );
+                          //       }
+                          //
+                          //       return const Text('No data');
+                          //     },
+                          //   );
+                          // }
+
+                          if (snapshot.hasError) {
+                            return Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Text(
+                                  '${snapshot.error.toString()
+                                      .replaceAll('Exception: ', '')}',
+                              style: const TextStyle(
+                                color: appColor,
+                                fontSize: 16,
+                                backgroundColor: Colors.white
+                              ),),
+                            );
+                          }
+                          else if (snapshot.hasData) {
+                            print(snapshot.data);
+
+                            var results = snapshot.data as List<Suggestion>;
+
+                            return Padding(
+                              padding: const EdgeInsets.fromLTRB(5, 5, 5, 0),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                height: MediaQuery.of(context).size.height * 0.5,
+                                child: Padding(
+                                  padding: const EdgeInsets.fromLTRB(0, 5, 0, 5),
+                                  child:  ListView.builder(
+                                    itemBuilder: (context, index) => ListTile(
+                                      title: Text(
+                                        (results[index]).description,
+                                        style: const TextStyle(
+                                          color: appColor
+                                        ),
+                                      ),
+                                      onTap: () {
+
+                                        query = (results[index]).description;
+                                        // DBHelper().insertSearchHistory(results[index]);
+                                        displaySearchResults(results[index]);
+
+                                        // close(context, results[index]);
+                                      },
+                                    ),
+                                    itemCount: results.length,
+                                  ),
+                                ),
+                              )
+                            );
+
+                          }
+                          else {
+                            return Align(
+                                alignment: Alignment.topCenter,
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    const Padding(
+                                      padding: EdgeInsets.fromLTRB(0, 5, 0, 0),
+                                      child: CircularProgressIndicator(
+                                        valueColor: AlwaysStoppedAnimation<Color>(appColor),
+                                      ),
+                                    ),
+
+                                    // const Text(
+                                    //   'Loading...',
+                                    //   style: TextStyle(color: appColor),
+                                    // )
+                                  ],
+                                )
+                            );
+                          }
+                        },
+                      ),
                     Visibility(
                       visible: _showInfoWindow,
                       child: windowProperties != null
@@ -419,4 +592,42 @@ class MapPageState extends State<MapPage> {
           context, '${place.siteName} is removed from your places');
     }
   }
+
+  Future<void> displaySearchResults(Suggestion selection) async {
+    setState(() {
+      _isSearching = false;
+      searchedPalce = selection;
+      _showInfoWindow = false;
+      _serachController.text = selection.description;
+    });
+
+    await googleApiClient.getPlaceDetailFromId(selection.placeId)
+        .then((value) async {
+
+      var latLng = LatLng(value.geometry.location.lat,
+          value.geometry.location.lng);
+
+      var _cameraPosition = CameraPosition(
+          target: latLng,
+          zoom: 14);
+
+      final controller = await _mapController.future;
+      await controller.animateCamera(
+          CameraUpdate.newCameraPosition(_cameraPosition));
+
+      _setCircles(latLng);
+
+      var marker = Marker(
+        markerId: const MarkerId('mysearch'),
+        position: latLng,
+      );
+
+      setState(() {
+        _markers['mysearch'] = marker;
+        // _markers.addAll(markers);
+      });
+
+    });
+  }
 }
+

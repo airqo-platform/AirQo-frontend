@@ -185,7 +185,8 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                       style: TextStyle(color: appColor),
                     )
                   ],
-                )),
+                )
+            ),
           );
         }
       },
