@@ -415,7 +415,7 @@ export const OverlayMap = ({
             )
             .addTo(map);
         })}
-      <Filter fetchFilteredData={(m) => monitoringSiteData.features} />
+      <Filter pollutants={showPollutant} />
       {map && (
         <CustomMapControl
           showSensors={showSensors}
