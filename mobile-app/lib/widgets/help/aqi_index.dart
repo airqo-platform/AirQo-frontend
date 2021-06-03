@@ -43,17 +43,12 @@ class AQI_Dialog extends StatelessWidget {
         child: ListView(
           children: [
             whatIsAQI,
-            AQI_Quide('assets/images/good-face.png', good, pmToColor(0)),
-            AQI_Quide(
-                'assets/images/moderate-face.png', moderate, pmToColor(20)),
-            AQI_Quide(
-                'assets/images/sensitive-face.png', sensitive, pmToColor(40)),
-            AQI_Quide(
-                'assets/images/unhealthy-face.png', unHeathy, pmToColor(100)),
-            AQI_Quide('assets/images/very-unhealthy-face.png', veryUnhealthy,
-                pmToColor(200)),
-            AQI_Quide(
-                'assets/images/hazardous-face.png', hazardous, pmToColor(500)),
+            AQI_Quide('assets/images/good-face.png', good, pmToColor(0), pmTextColor(0)),
+            AQI_Quide('assets/images/moderate-face.png', moderate, pmToColor(20), pmTextColor(20)),
+            AQI_Quide('assets/images/sensitive-face.png', sensitive, pmToColor(40), pmTextColor(40)),
+            AQI_Quide('assets/images/unhealthy-face.png', unHeathy, pmToColor(100), pmTextColor(100)),
+            AQI_Quide('assets/images/very-unhealthy-face.png', veryUnhealthy, pmToColor(200), pmTextColor(200)),
+            AQI_Quide('assets/images/hazardous-face.png', hazardous, pmToColor(500), pmTextColor(500)),
           ],
         ),
       ),
@@ -75,7 +70,7 @@ class AQI_Dialog extends StatelessWidget {
     ),
   );
 
-  Widget AQI_Quide(String image, String body, Color color) {
+  Widget AQI_Quide(String image, String body, Color color, Color textColor) {
     return Container(
       padding: const EdgeInsets.fromLTRB(0, 2, 0, 0),
       decoration: BoxDecoration(color: color),
@@ -96,8 +91,9 @@ class AQI_Dialog extends StatelessWidget {
               padding: const EdgeInsets.all(5),
               child: Text(body,
                   softWrap: true,
-                  style: const TextStyle(
+                  style: TextStyle(
                     height: 1.2,
+                    color: textColor
                     // letterSpacing: 1.0
                   )
               ),

@@ -261,18 +261,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                                   textAlign: TextAlign.center,
                                   style: const TextStyle(color: appColor),
                                 ),
-                                ElevatedButton(
-                                    style: ElevatedButton.styleFrom(
-                                        primary: appColor,
-                                        textStyle: const TextStyle(
-                                            color: Colors.white)),
-                                    onPressed: () {
-                                      showAllLocations(context);
-                                    },
-                                    child: const Text(
-                                      'Show all sensor locations',
-                                      style: TextStyle(color: Colors.white),
-                                    ))
+                                customButton(context),
                               ],
                             ),
                           ));
@@ -416,6 +405,29 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                 ));
           }
         });
+  }
+
+  RawMaterialButton customButton(context){
+    return RawMaterialButton(
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(4.0),
+          side: const BorderSide(color: appColor, width: 1)),
+      fillColor: Colors.transparent,
+      elevation: 0,
+      highlightElevation: 0,
+      splashColor: Colors.black12,
+      highlightColor: appColor.withOpacity(0.4),
+      onPressed: () {
+        showAllLocations(context);
+      },
+      child: const Padding(
+        padding: EdgeInsets.all(4),
+        child: Text(
+          'Show all sensor locations',
+          style: TextStyle(color: appColor),
+        ),
+      ),
+    );
   }
 
   Widget loadApiDevices() {
