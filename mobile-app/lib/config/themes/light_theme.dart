@@ -13,7 +13,7 @@ ThemeData lightTheme() {
   return base.copyWith(
     // textTheme: _lightTextTheme(base.textTheme),
     primaryColor: appColor,
-    bottomAppBarColor: Colors.white,
+    // bottomAppBarColor: Colors.white,
     accentColor: appColor,
 
     visualDensity: VisualDensity.adaptivePlatformDensity,

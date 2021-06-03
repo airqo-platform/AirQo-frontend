@@ -101,18 +101,6 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
               ),
-              // const PopupMenuItem<String>(
-              //   value: 'Settings',
-              //   child: ListTile(
-              //     leading: Icon(
-              //       Icons.settings,
-              //       color: appColor,
-              //     ),
-              //     title: Text(
-              //       'Settings',
-              //     ),
-              //   ),
-              // ),
 
               const PopupMenuItem<String>(
                 value: 'camera',
@@ -122,34 +110,47 @@ class _HomePageState extends State<HomePage> {
                     color: appColor,
                   ),
                   title: Text(
-                    'Take Photo',
+                    'Take a Photo',
                   ),
                 ),
               ),
               const PopupMenuItem<String>(
-                value: 'Faqs',
+                value: 'Settings',
                 child: ListTile(
                   leading: Icon(
-                    Icons.help_outline_outlined,
+                    Icons.settings,
                     color: appColor,
                   ),
                   title: Text(
-                    'Faqs',
+                    'Settings',
                   ),
                 ),
               ),
-              const PopupMenuItem<String>(
-                value: 'Feedback',
-                child: ListTile(
-                  leading: Icon(
-                    Icons.feedback_outlined,
-                    color: appColor,
-                  ),
-                  title: Text(
-                    'Feedback',
-                  ),
-                ),
-              ),
+
+              // const PopupMenuItem<String>(
+              //   value: 'Faqs',
+              //   child: ListTile(
+              //     leading: Icon(
+              //       Icons.help_outline_outlined,
+              //       color: appColor,
+              //     ),
+              //     title: Text(
+              //       'Faqs',
+              //     ),
+              //   ),
+              // ),
+              // const PopupMenuItem<String>(
+              //   value: 'Feedback',
+              //   child: ListTile(
+              //     leading: Icon(
+              //       Icons.feedback_outlined,
+              //       color: appColor,
+              //     ),
+              //     title: Text(
+              //       'Feedback',
+              //     ),
+              //   ),
+              // ),
               const PopupMenuDivider(),
               const PopupMenuItem<String>(
                 value: 'Share',
@@ -392,6 +393,13 @@ class _HomePageState extends State<HomePage> {
     } else if (menuItem.trim().toLowerCase() == 'myplaces') {
       Navigator.push(context, MaterialPageRoute(builder: (context) {
         return const MyPlaces();
+      })).then((value) {
+        setState(() {});
+      });
+    }
+    else if (menuItem.trim().toLowerCase() == 'settings') {
+      Navigator.push(context, MaterialPageRoute(builder: (context) {
+        return SettingsPage();
       })).then((value) {
         setState(() {});
       });

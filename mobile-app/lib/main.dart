@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'config/languages/CustomLocalizations.dart';
 import 'config/languages/l10n.dart';
 import 'config/languages/lg_intl.dart';
+import 'config/themes/dark_theme.dart';
 import 'config/themes/light_theme.dart';
 import 'constants/app_constants.dart';
 import 'core/on_boarding/onBoarding_page.dart';

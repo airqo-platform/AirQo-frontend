@@ -56,6 +56,7 @@ dependencies:
   animated_text_kit: ^4.2.1
   camera: ^0.8.1+1
   mime: ^1.0.0
+  font_awesome_flutter: ^9.0.0
 
 flutter_icons:
   android: "launcher_icon"

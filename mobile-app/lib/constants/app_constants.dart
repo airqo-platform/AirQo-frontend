@@ -2,11 +2,23 @@ import 'package:flutter/material.dart';
 
 const appName = 'AirQo';
 const appWebsite = 'https://www.airqo.net';
+const appFeedbackEmail = 'info@airqo.net';
 const appIOSLink =
     'https://apps.apple.com/ug/app/airqo-monitoring-air-quality/id1337573091';
 const appPlayStoreLink =
     'https://play.google.com/store/apps/details?id=com.airqo.app';
 const firstUse = 'firstUse';
+
+const faqs = 'https://www.airqo.net/faqs';
+const about = 'https://www.airqo.net/about';
+const terms = 'https://docs.airqo.net/airqo-platform-api/mobile-app-privacy-policy';
+const contactUs = 'https://www.airqo.net/contact-us';
+const rate = 'https://www.airqo.net/faqs';
+const facebook = 'https://web.facebook.com/AirQo/';
+const twitter = 'https://twitter.com/AirQoProject';
+const youtube = 'https://www.youtube.com/channel/UCx7YtV55TcqKGeKsDdT5_XQ/';
+const linkedin = 'https://www.linkedin.com/company/airqo/';
+
 const appColor = Color(0xff3067e2);
 const appColorPale = Color(0xff3086e2);
 const greenColor = Color(0xff3FFF33);
@@ -15,6 +27,14 @@ const orangeColor = Color(0xffFF9633);
 const redColor = Color(0xffF62E2E);
 const purpleColor = Color(0xFF7B1FA2);
 const maroonColor = Color(0xff570B0B);
+
+const facebookColor = Color(0xff4267B2);
+const twitterColor = Color(0xff1DA1F2);
+const youtubeColor = Color(0xffFF0000);
+const linkedInColor = Color(0xff2867B2);
+
+enum Languages { English, Luganda }
+enum Themes { lightTheme, darkTheme }
 
 class PollutantConstants {
   static final String _pm2_5 = 'pm2_5';

@@ -19,6 +19,7 @@ class _ResourcesPageState extends State<ResourcesPage> {
   Widget build(BuildContext context) {
     return Container(
       child: const WebView(
+        javascriptMode: JavascriptMode.unrestricted,
         initialUrl: 'https://www.airqo.net/blog',
       ),
     );
