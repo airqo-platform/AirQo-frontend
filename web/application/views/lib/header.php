@@ -91,7 +91,7 @@ $author = "Buzen Technologies";
 								<a class="nav-link" href="<?= site_url('blog'); ?>">Blog</a>
 							</li>
 							<li class="nav-item">
-								<a class="nav-link" href="https://platform.airqo.net/request-access" target="_blank">Request Data Access</a>
+								<a class="nav-link" href="<?= REQUEST_DATA_ACCESS; ?>" target="_blank">Request Data Access</a>
 							</li>
 						</ul>
 					</div>
