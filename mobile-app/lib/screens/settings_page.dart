@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:app/constants/app_constants.dart';
+import 'package:app/utils/services/notifications.dart';
 import 'package:app/widgets/change_language.dart';
 import 'package:app/widgets/change_theme.dart';
 import 'package:app/widgets/clear_app_data.dart';
@@ -26,16 +27,22 @@ class _SettingsPageState extends State<SettingsPage> {
   bool _morningForecast = false;
   bool _eveningForecast = false;
   Themes _theme = Themes.lightTheme;
+  final Notifications _notifications =  Notifications();
 
   @override
   void initState() {
     loadPreferences();
+    _notifications.initNotifications();
     super.initState();
   }
 
   void loadPreferences(){
     _theme = Themes.lightTheme;
     _language = Languages.English;
+  }
+
+  void pushNotification() {
+    _notifications.showOngoingNotification();
   }
 
 
@@ -49,9 +56,9 @@ class _SettingsPageState extends State<SettingsPage> {
           child: Column(
             children: [
               Expanded(child: ListView(
-                physics:  const BouncingScrollPhysics(
-                    parent: AlwaysScrollableScrollPhysics()
-                ),
+                // physics:  const BouncingScrollPhysics(
+                //     parent: AlwaysScrollableScrollPhysics()
+                // ),
                 children: <Widget>[
 
                   userPreferences(),
@@ -73,10 +80,11 @@ class _SettingsPageState extends State<SettingsPage> {
                     color: appColor,
                   ),
                   support(),
+                  footer()
 
                 ],
               ),),
-              footer()
+              // footer()
             ],
           )
       ),
@@ -175,7 +183,8 @@ class _SettingsPageState extends State<SettingsPage> {
               leading: Icon(
                 Icons.delete,
                 color: appColor,),
-              subtitle: Text('Clear all saved data including saved places and preferences'),
+              subtitle: Text('Clear all saved data including saved '
+                  'places and preferences'),
             ),
           ),
 
@@ -192,23 +201,29 @@ class _SettingsPageState extends State<SettingsPage> {
         children: <Widget>[
           Text('Notifications',
             style: headerStyle(),),
-          ListTile(
-            title: const Text('Persistent Notifications'),
-            subtitle: const Text('Display persistent notifications '
-                'in the notification tray'),
-            trailing: Switch(
-              value: _persistentNotification,
-              activeColor: appColor,
-              activeTrackColor: appColor.withOpacity(0.6),
-              inactiveThumbColor: Colors.white,
-              inactiveTrackColor: Colors.black12,
-              onChanged: (bool value) {
-                setState(() {
-                  _persistentNotification = value;
-                });
-              },
-            ),
-          ),
+          // ListTile(
+          //   title: const Text('Persistent Notifications'),
+          //   subtitle: const Text('Display persistent notifications '
+          //       'in the notification tray'),
+          //   trailing: Switch(
+          //     value: _persistentNotification,
+          //     activeColor: appColor,
+          //     activeTrackColor: appColor.withOpacity(0.6),
+          //     inactiveThumbColor: Colors.white,
+          //     inactiveTrackColor: Colors.black12,
+          //     onChanged: (bool value) {
+          //       if(value){
+          //         showNotification(persistentNotificationId);
+          //       }
+          //       else{
+          //         cancelNotification(persistentNotificationId);
+          //       }
+          //       setState(() {
+          //         _persistentNotification = value;
+          //       });
+          //     },
+          //   ),
+          // ),
           ListTile(
             title: const Text('Smart Notifications'),
             subtitle: const Text('Receive air pollution alerts and '
@@ -220,6 +235,13 @@ class _SettingsPageState extends State<SettingsPage> {
               inactiveThumbColor: Colors.white,
               inactiveTrackColor: Colors.black12,
               onChanged: (bool value) {
+                if(value){
+                  showNotification(progressNotificationId);
+                }
+                else{
+                  cancelNotification(progressNotificationId);
+                }
+
                 setState(() {
                   _smartNotification = value;
                 });
@@ -237,7 +259,15 @@ class _SettingsPageState extends State<SettingsPage> {
               inactiveThumbColor: Colors.white,
               inactiveTrackColor: Colors.black12,
               onChanged: (bool value) {
+                // if(value){
+                //   pushNotification();
+                // }
+                // else{
+                //   cancelNotification(0);
+                // }
+
                 setState(() {
+
                   _pushNotification = value;
                 });
               },
@@ -303,7 +333,7 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
           ListTile(
             title: const Text('Today\'s Forecast'),
-            subtitle: const Text('The day\'s forecast received at 7AM'),
+            subtitle: const Text('The day\'s forecast received at 6AM'),
             trailing: Switch(
               value: _morningForecast,
               activeColor: appColor,
@@ -319,7 +349,7 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
           ListTile(
             title: const Text('Tomorrow\'s Forecast'),
-            subtitle: const Text('Tomorrow\'s forecast received at 7PM'),
+            subtitle: const Text('Tomorrow\'s forecast received at 8PM'),
             trailing: Switch(
               value: _eveningForecast,
               activeColor: appColor,
@@ -485,7 +515,7 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
 
           const Text(
-            'Version 1.0.0',
+            'v1.21.7',
             style: TextStyle(
               color: Colors.white
             ),
@@ -601,6 +631,24 @@ class _SettingsPageState extends State<SettingsPage> {
     setState(() {
       _language = value;
     });
+  }
+
+  void cancelNotification(int id) {
+    _notifications.cancelNotifications(id);
+  }
+
+  void showNotification(int id) {
+    switch(id){
+      case persistentNotificationId:
+        _notifications.showOngoingNotification();
+        return;
+      case progressNotificationId:
+        _notifications.showProgressNotification();
+        return;
+      default:
+        return;
+    }
+
   }
 
 }

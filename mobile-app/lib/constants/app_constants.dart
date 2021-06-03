@@ -19,6 +19,9 @@ const twitter = 'https://twitter.com/AirQoProject';
 const youtube = 'https://www.youtube.com/channel/UCx7YtV55TcqKGeKsDdT5_XQ/';
 const linkedin = 'https://www.linkedin.com/company/airqo/';
 
+const persistentNotificationId = 1294732;
+const progressNotificationId = 482842;
+
 const appColor = Color(0xff3067e2);
 const appColorPale = Color(0xff3086e2);
 const greenColor = Color(0xff3FFF33);
