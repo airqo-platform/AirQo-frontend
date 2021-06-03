@@ -663,10 +663,20 @@ class _SettingsPageState extends State<SettingsPage> {
 
   }
 
-  void _onLanguageValueChange(Languages value) {
+  Future<void> _onLanguageValueChange(Languages value) async {
     setState(() {
       _language = value;
     });
+
+    // var prefs = await SharedPreferences.getInstance();
+    //
+    // if(value == Themes.lightTheme){
+    //   await prefs.setString(appTheme, 'light');
+    // }
+    // else{
+    //   await prefs.setString(appTheme, 'dark');
+    // }
+
   }
 
   void cancelNotification(int id) {

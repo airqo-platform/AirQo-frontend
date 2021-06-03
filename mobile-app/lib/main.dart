@@ -7,7 +7,6 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'config/languages/CustomLocalizations.dart';
-import 'config/languages/l10n.dart';
 import 'config/languages/lg_intl.dart';
 import 'config/providers/ThemeProvider.dart';
 import 'config/themes/dark_theme.dart';
@@ -28,15 +27,15 @@ Future<void> main() async {
 
   WidgetsFlutterBinding.ensureInitialized();
 
-  // runApp(AirqoApp());
+  // runApp(AirQoApp());
 
   final prefs = await SharedPreferences.getInstance();
   final themeController = ThemeController(prefs);
 
-  runApp(AirqoApp(themeController: themeController));
+  runApp(AirQoApp(themeController: themeController));
 }
 
-class AirqoApp extends StatelessWidget {
+class AirQoApp extends StatelessWidget {
   // @override
   // Widget build(BuildContext context) {
   //
@@ -80,6 +79,7 @@ class AirqoApp extends StatelessWidget {
   //   );
   // }
 
+  const AirQoApp({Key? key, required this.themeController}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -150,11 +150,9 @@ class AirqoApp extends StatelessWidget {
       },
     );
   }
-
+  
   final ThemeController themeController;
-
-  const AirqoApp({Key? key, required this.themeController}) : super(key: key);
-
+  
   ThemeData _buildCurrentTheme() {
     switch (themeController.currentTheme) {
       case 'dark':

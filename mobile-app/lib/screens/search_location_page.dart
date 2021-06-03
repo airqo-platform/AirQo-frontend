@@ -34,16 +34,15 @@ class LocationSearch extends SearchDelegate<Suggestion> {
 
   @override
   ThemeData appBarTheme(BuildContext context) {
-    final base = ThemeData.light();
+
+    final base = Theme.of(context);
+
     return base.copyWith(
       primaryColor: appColor,
-
       // textTheme: base.textTheme.apply(
       //   bodyColor: Colors.pink,
       //   displayColor: Colors.white,
       // ),
-
-      visualDensity: VisualDensity.adaptivePlatformDensity,
     );
   }
 

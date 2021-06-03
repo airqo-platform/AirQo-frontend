@@ -1,6 +1,4 @@
-import 'dart:ui';
-
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 
 class LocaleProvider extends ChangeNotifier {
   Locale? _locale;
@@ -10,7 +8,7 @@ class LocaleProvider extends ChangeNotifier {
   void setLocale(Locale locale) {
     // if (!L10n.all.contains(_locale)) return;
     print(locale.languageCode);
-    _locale = const Locale('lg');
+    _locale = locale;
     notifyListeners();
   }
 }

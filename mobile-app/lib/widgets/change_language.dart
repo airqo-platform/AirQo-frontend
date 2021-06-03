@@ -1,9 +1,11 @@
 
+import 'package:app/config/providers/LocalProvider.dart';
 import 'package:app/constants/app_constants.dart';
 import 'package:flutter/material.dart';
 
 class ChangeLanguageDialog extends StatefulWidget {
-  const ChangeLanguageDialog({required this.onValueChange, required this.initialValue});
+  const ChangeLanguageDialog(
+      {required this.onValueChange, required this.initialValue});
 
   final Languages initialValue;
   final void Function(Languages) onValueChange;
@@ -39,6 +41,12 @@ class ChangeLanguageDialogState extends State<ChangeLanguageDialog> {
                 setState(() {
                   _language = value;
                 });
+
+                // if(value != null){
+                //   LocaleProvider().setLocale(const Locale('en'));
+                //   widget.onValueChange(value);
+                // }
+
               },
             ),
             RadioListTile<Languages>(
@@ -50,6 +58,12 @@ class ChangeLanguageDialogState extends State<ChangeLanguageDialog> {
                 setState(() {
                   _language = value;
                 });
+
+                // if(value != null){
+                //   LocaleProvider().setLocale(const Locale('lg'));
+                //   widget.onValueChange(value);
+                // }
+
               },
             ),
           ],

@@ -23,7 +23,10 @@ class CustomLocalizations {
 
   String get title {
     var title = _resources[locale.languageCode]!['title'];
-    title ??= 'AirQo';
+    if(title == null) {
+      return 'AirQo null';
+    }
+    // title ??= 'AirQo';
     return title;
   }
 

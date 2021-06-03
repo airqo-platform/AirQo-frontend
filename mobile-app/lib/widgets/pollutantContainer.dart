@@ -19,6 +19,7 @@ class PollutantsContainer extends StatelessWidget {
             children: [
               const Text(
                 'Pollutants',
+                // CustomLocalizations.of(context)!.title,
                 softWrap: true,
                 style: TextStyle(
                     fontSize: 17, color: appColor, fontWeight: FontWeight.bold),

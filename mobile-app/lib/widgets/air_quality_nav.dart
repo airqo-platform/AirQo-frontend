@@ -90,16 +90,25 @@ class TitleSection extends StatelessWidget {
                           : data.locationDetails.nickName,
                       maxLines: 4,
                       softWrap: true,
+                      style: TextStyle(
+                        color: pmTextColor(data.pm2_5.value)
+                      ),
                     ),
                     Text(
                       '${data.pm2_5.value} µg/m\u00B3',
                       maxLines: 4,
                       softWrap: true,
+                      style: TextStyle(
+                          color: pmTextColor(data.pm2_5.value)
+                      ),
                     ),
                     Text(
                       pmToString(data.pm2_5.value).replaceAll('\n', ' '),
                       maxLines: 4,
                       softWrap: true,
+                      style: TextStyle(
+                          color: pmTextColor(data.pm2_5.value)
+                      ),
                     ),
                   ],
                 ),

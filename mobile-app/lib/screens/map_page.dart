@@ -3,6 +3,7 @@ import 'dart:collection';
 import 'dart:convert';
 
 import 'package:app/config/themes/dark_theme.dart';
+import 'package:app/config/themes/light_theme.dart';
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/device.dart';
 import 'package:app/models/measurement.dart';
@@ -78,7 +79,7 @@ class MapPageState extends State<MapPage> {
     if(theme != null){
       switch(theme){
         case 'light':
-          await _mapController.setMapStyle(jsonEncode([]));
+          await _mapController.setMapStyle(jsonEncode(googleMapsLightTheme));
           break;
         case 'dark':
           await _mapController.setMapStyle(jsonEncode(googleMapsDarkTheme));
