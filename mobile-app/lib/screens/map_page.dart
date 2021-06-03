@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:collection';
+import 'dart:convert';
 
+import 'package:app/config/themes/dark_theme.dart';
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/device.dart';
 import 'package:app/models/measurement.dart';
@@ -19,6 +21,7 @@ import 'package:app/utils/ui/share.dart';
 
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
 class MapPage extends StatefulWidget {
@@ -37,18 +40,19 @@ class MapPageState extends State<MapPage> {
   bool _isSearching = false;
   var searchedPalce;
   String query = '';
-  TextEditingController _serachController = new TextEditingController();
-  Completer<GoogleMapController> _mapController = Completer();
-  Set<Circle> _circles = HashSet<Circle>();
+  final TextEditingController _searchController = TextEditingController();
 
-  GoogleSearchProvider googleApiClient = GoogleSearchProvider(const Uuid().v4());
+  late GoogleMapController _mapController;
+  final Set<Circle> _circles = HashSet<Circle>();
+
+  GoogleSearchProvider googleApiClient = 
+  GoogleSearchProvider(const Uuid().v4());
 
   @override
   void initState() {
     _showInfoWindow = false;
     isLoading = true;
     super.initState();
-    // setCustomMarkers();
   }
 
   void updateInfoWindow(Measurement measurement) {
@@ -60,8 +64,31 @@ class MapPageState extends State<MapPage> {
   }
 
   Future<void> _onMapCreated(GoogleMapController controller) async {
-    _mapController.complete(controller);
+
+    _mapController = controller;
+    await loadTheme();
+    
     await _getMeasurements();
+  }
+
+  Future<void> loadTheme() async {
+    var prefs = await SharedPreferences.getInstance();
+    var theme = prefs.getString(appTheme);
+
+    if(theme != null){
+      switch(theme){
+        case 'light':
+          await _mapController.setMapStyle(jsonEncode([]));
+          break;
+        case 'dark':
+          await _mapController.setMapStyle(jsonEncode(googleMapsDarkTheme));
+          break;
+        default:
+          await _mapController.setMapStyle(jsonEncode([]));
+          break;
+      }
+
+    }
   }
 
   Future<void> _getMeasurements() async {
@@ -165,7 +192,7 @@ class MapPageState extends State<MapPage> {
                               borderRadius: BorderRadius.circular(32),
                             ),
                             child: TextField(
-                              controller: _serachController,
+                              controller: _searchController,
                               onTap: () async {
                                 setState(() {
                                   _showInfoWindow = false;
@@ -598,7 +625,7 @@ class MapPageState extends State<MapPage> {
       _isSearching = false;
       searchedPalce = selection;
       _showInfoWindow = false;
-      _serachController.text = selection.description;
+      _searchController.text = selection.description;
     });
 
     await googleApiClient.getPlaceDetailFromId(selection.placeId)
@@ -611,7 +638,9 @@ class MapPageState extends State<MapPage> {
           target: latLng,
           zoom: 14);
 
-      final controller = await _mapController.future;
+      // final controller = await _mapController.future;
+      final controller = _mapController;
+      
       await controller.animateCamera(
           CameraUpdate.newCameraPosition(_cameraPosition));
 
