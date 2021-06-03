@@ -1,5 +1,8 @@
 import 'dart:io';
 
+import 'package:app/config/providers/ThemeProvider.dart';
+import 'package:app/config/themes/dark_theme.dart';
+import 'package:app/config/themes/light_theme.dart';
 import 'package:app/constants/app_constants.dart';
 import 'package:app/utils/services/notifications.dart';
 import 'package:app/widgets/change_language.dart';
@@ -7,6 +10,8 @@ import 'package:app/widgets/change_theme.dart';
 import 'package:app/widgets/clear_app_data.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'my_places.dart';
@@ -36,8 +41,24 @@ class _SettingsPageState extends State<SettingsPage> {
     super.initState();
   }
 
-  void loadPreferences(){
-    _theme = Themes.lightTheme;
+  Future<void> loadPreferences() async {
+    var prefs = await SharedPreferences.getInstance();
+    var theme = prefs.getString(appTheme);
+    print(theme);
+    if(theme != null){
+      switch(theme){
+        case 'light':
+          _theme = Themes.lightTheme;
+          break;
+        case 'dark':
+          _theme = Themes.darkTheme;
+          break;
+        default:
+          _theme = Themes.lightTheme;
+          break;
+      }
+    }
+
     _language = Languages.English;
   }
 
@@ -48,6 +69,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Settings'),
@@ -279,6 +301,7 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Widget reports() {
+
     return Container(
       padding: containerPadding(),
       child: Column(
@@ -295,6 +318,7 @@ class _SettingsPageState extends State<SettingsPage> {
               inactiveThumbColor: Colors.white,
               inactiveTrackColor: Colors.black12,
               onChanged: (bool value) {
+
                 setState(() {
                   _dailyReports = value;
                 });
@@ -621,10 +645,22 @@ class _SettingsPageState extends State<SettingsPage> {
     }
   }
 
-  void _onThemeValueChange(Themes value) {
+  Future<void> _onThemeValueChange(Themes value) async {
+
+
     setState(() {
       _theme = value;
     });
+
+    var prefs = await SharedPreferences.getInstance();
+
+    if(value == Themes.lightTheme){
+      await prefs.setString(appTheme, 'light');
+    }
+    else{
+      await prefs.setString(appTheme, 'dark');
+    }
+
   }
 
   void _onLanguageValueChange(Languages value) {

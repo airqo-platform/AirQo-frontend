@@ -9,6 +9,8 @@ const appPlayStoreLink =
     'https://play.google.com/store/apps/details?id=com.airqo.app';
 const firstUse = 'firstUse';
 
+const appTheme = 'appTheme';
+
 const faqs = 'https://www.airqo.net/faqs';
 const about = 'https://www.airqo.net/about';
 const terms = 'https://docs.airqo.net/airqo-platform-api/mobile-app-privacy-policy';

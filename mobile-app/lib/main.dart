@@ -9,13 +9,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'config/languages/CustomLocalizations.dart';
 import 'config/languages/l10n.dart';
 import 'config/languages/lg_intl.dart';
+import 'config/providers/ThemeProvider.dart';
 import 'config/themes/dark_theme.dart';
 import 'config/themes/light_theme.dart';
 import 'constants/app_constants.dart';
 import 'core/on_boarding/onBoarding_page.dart';
 import 'screens/home_page.dart';
 
-void main() {
+Future<void> main() async {
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     systemNavigationBarColor: appColor,
     statusBarColor: Colors.transparent,
@@ -27,42 +28,142 @@ void main() {
 
   WidgetsFlutterBinding.ensureInitialized();
 
-  runApp(AirqoApp());
+  // runApp(AirqoApp());
+
+  final prefs = await SharedPreferences.getInstance();
+  final themeController = ThemeController(prefs);
+
+  runApp(AirqoApp(themeController: themeController));
 }
 
 class AirqoApp extends StatelessWidget {
+  // @override
+  // Widget build(BuildContext context) {
+  //
+  //   return MultiProvider(
+  //     providers: [
+  //       ChangeNotifierProvider(create: (_) => LocaleProvider()),
+  //       ChangeNotifierProvider(create: (_) => ThemeProvider()),
+  //     ],
+  //     builder: (context, child) {
+  //       final provider = Provider.of<LocaleProvider>(context);
+  //       final themeProvider = Provider.of<ThemeProvider>(context);
+  //       // themeProvider.loadActiveThemeData(context);
+  //       // Provider.of<ThemeProvider>(context)
+  //       //     .loadActiveThemeData(context);
+  //       return MaterialApp(
+  //         localizationsDelegates: [
+  //           CustomLocalizations.delegate,
+  //           GlobalMaterialLocalizations.delegate,
+  //           GlobalWidgetsLocalizations.delegate,
+  //           GlobalCupertinoLocalizations.delegate,
+  //           LgMaterialLocalizations.delegate,
+  //         ],
+  //         // supportedLocales: L10n.all,
+  //         // localeResolutionCallback: (locale, supportedLocales) {
+  //         //   for (var supportedLocale in supportedLocales) {
+  //         //     if (supportedLocale.languageCode.toLowerCase().trim() ==
+  //         //         locale!.languageCode.toLowerCase().trim()) {
+  //         //       return supportedLocale;
+  //         //     }
+  //         //   }
+  //         //   return supportedLocales.first;
+  //         // },
+  //         supportedLocales: [const Locale('en'), const Locale('lg')],
+  //         locale: provider.locale,
+  //         title: appName,
+  //         // theme: lightTheme(),
+  //         theme: themeProvider.getTheme(),
+  //         home: SplashScreen(),
+  //       );
+  //     },
+  //   );
+  // }
+
+
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => LocaleProvider(),
-      builder: (context, child) {
-        final provider = Provider.of<LocaleProvider>(context);
-        return MaterialApp(
-          localizationsDelegates: [
-            CustomLocalizations.delegate,
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-            LgMaterialLocalizations.delegate,
-          ],
-          // supportedLocales: L10n.all,
-          // localeResolutionCallback: (locale, supportedLocales) {
-          //   for (var supportedLocale in supportedLocales) {
-          //     if (supportedLocale.languageCode.toLowerCase().trim() ==
-          //         locale!.languageCode.toLowerCase().trim()) {
-          //       return supportedLocale;
-          //     }
-          //   }
-          //   return supportedLocales.first;
-          // },
-          supportedLocales: [const Locale('en'), const Locale('lg')],
-          locale: provider.locale,
-          title: appName,
-          theme: lightTheme(),
-          home: SplashScreen(),
+
+    return AnimatedBuilder(
+      animation: themeController,
+      builder: (context, _) {
+        return ThemeControllerProvider(
+          controller: themeController,
+          child: MultiProvider(
+            providers: [
+              ChangeNotifierProvider(create: (_) => LocaleProvider()),
+            ],
+            builder: (context, child) {
+              final provider = Provider.of<LocaleProvider>(context);
+
+              return MaterialApp(
+                localizationsDelegates: [
+                  CustomLocalizations.delegate,
+                  GlobalMaterialLocalizations.delegate,
+                  GlobalWidgetsLocalizations.delegate,
+                  GlobalCupertinoLocalizations.delegate,
+                  LgMaterialLocalizations.delegate,
+                ],
+                // supportedLocales: L10n.all,
+                // localeResolutionCallback: (locale, supportedLocales) {
+                //   for (var supportedLocale in supportedLocales) {
+                //     if (supportedLocale.languageCode.toLowerCase().trim() ==
+                //         locale!.languageCode.toLowerCase().trim()) {
+                //       return supportedLocale;
+                //     }
+                //   }
+                //   return supportedLocales.first;
+                // },
+                supportedLocales: [const Locale('en'), const Locale('lg')],
+                locale: provider.locale,
+                title: appName,
+                theme: _buildCurrentTheme(),
+                home: SplashScreen(),
+              );
+            },
+          ),
+          // child: MaterialApp(
+          //   localizationsDelegates: [
+          //     CustomLocalizations.delegate,
+          //     GlobalMaterialLocalizations.delegate,
+          //     GlobalWidgetsLocalizations.delegate,
+          //     GlobalCupertinoLocalizations.delegate,
+          //     LgMaterialLocalizations.delegate,
+          //   ],
+          //   // supportedLocales: L10n.all,
+          //   // localeResolutionCallback: (locale, supportedLocales) {
+          //   //   for (var supportedLocale in supportedLocales) {
+          //   //     if (supportedLocale.languageCode.toLowerCase().trim() ==
+          //   //         locale!.languageCode.toLowerCase().trim()) {
+          //   //       return supportedLocale;
+          //   //     }
+          //   //   }
+          //   //   return supportedLocales.first;
+          //   // },
+          //   supportedLocales: [const Locale('en'), const Locale('lg')],
+          //   locale: Provider.of<LocaleProvider>(context).locale,
+          //   title: appName,
+          //   theme: _buildCurrentTheme(),
+          //   home: SplashScreen(),
+          // ),
         );
       },
     );
+  }
+
+  final ThemeController themeController;
+
+  const AirqoApp({Key? key, required this.themeController}) : super(key: key);
+
+  ThemeData _buildCurrentTheme() {
+    switch (themeController.currentTheme) {
+      case 'dark':
+        return darkTheme();
+      case 'light':
+        return lightTheme();
+      default:
+        return lightTheme();
+    }
   }
 }
 
@@ -94,6 +195,7 @@ class SplashScreenState extends State<SplashScreen> {
   }
 
   Future checkFirstUse() async {
+
     var prefs = await SharedPreferences.getInstance();
     var isFirstUse = prefs.getBool(firstUse) ?? true;
 
@@ -110,3 +212,4 @@ class SplashScreenState extends State<SplashScreen> {
     }
   }
 }
+
