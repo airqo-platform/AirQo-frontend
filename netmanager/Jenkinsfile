@@ -79,7 +79,9 @@ pipeline {
 
         }
         stage("Deploy to Staging"){
-                when {branch "staging"}
+            when {
+                expression{env.BRANCH_NAME == "ft-frontend-k8s-secrets"}
+                }
                 steps {
                     withKubeConfig([credentialsId: "${K8S_CONFIG}"]) {
                         sh """
