@@ -17,34 +17,37 @@ pipeline {
         }
         stage("Build for Staging"){
             when {
-                expression{env.BRANCH_NAME == "ft-frontend-k8s-secrets"}
+                expression {
+                    GIT_BRANCH = sh(returnStdout: true, script: 'git rev-parse --abbrev-ref HEAD').trim()
+                    return (GIT_BRANCH == 'ft-frontend-k8s-secrets')
                 }
-                 steps {
+            }
+            steps {
 
-                    echo "Docker Build"
-                    sh """
-                    docker build -t ${REGISTRY_URI}/${PROJECT_ID}/${IMAGE_NAME_STAGE}:"latest" -f "netmanager/Dockerfile" . 
-                    """
-                    withCredentials([file(credentialsId: "${GCR_CONFIG}", variable: 'GC_KEY')]){
-                        sh "cat '$GC_KEY' | docker login -u _json_key --password-stdin ${REGISTRY_URI}"
-                        sh "gcloud auth activate-service-account --key-file='$GC_KEY'"
-                        sh "gcloud auth configure-docker"
-                        echo "Pushing image to GCR"
-                        sh """
-                        gcloud container images add-tag ${REGISTRY_URI}/${PROJECT_ID}/${IMAGE_NAME_STAGE} ${REGISTRY_URI}/${PROJECT_ID}/${IMAGE_NAME_STAGE}:"v${env.BUILD_NUMBER}"
-                        docker push ${REGISTRY_URI}/${PROJECT_ID}/${IMAGE_NAME_STAGE}:"latest"
-                        """
+            echo "Docker Build"
+            sh """
+            docker build -t ${REGISTRY_URI}/${PROJECT_ID}/${IMAGE_NAME_STAGE}:"latest" -f "netmanager/Dockerfile" . 
+            """
+            withCredentials([file(credentialsId: "${GCR_CONFIG}", variable: 'GC_KEY')]){
+                sh "cat '$GC_KEY' | docker login -u _json_key --password-stdin ${REGISTRY_URI}"
+                sh "gcloud auth activate-service-account --key-file='$GC_KEY'"
+                sh "gcloud auth configure-docker"
+                echo "Pushing image to GCR"
+                sh """
+                gcloud container images add-tag ${REGISTRY_URI}/${PROJECT_ID}/${IMAGE_NAME_STAGE} ${REGISTRY_URI}/${PROJECT_ID}/${IMAGE_NAME_STAGE}:"v${env.BUILD_NUMBER}"
+                docker push ${REGISTRY_URI}/${PROJECT_ID}/${IMAGE_NAME_STAGE}:"latest"
+                """
+            }
+            }
+            post{
+                success{
+                    echo "Build and Push Successfully"
                     }
+                failure{
+                    echo "Build and Push Failed"
+                    slackSend (color: '#FF0000', message: "FAILED TO BUILD AND PUSH IMAGE: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
                     }
-                    post{
-                        success{
-                            echo "Build and Push Successfully"
-                            }
-                        failure{
-                            echo "Build and Push Failed"
-                            slackSend (color: '#FF0000', message: "FAILED TO BUILD AND PUSH IMAGE: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
-                            }
-                    }
+            }
 
         }
         stage("Build for Production"){
@@ -80,25 +83,30 @@ pipeline {
         }
         stage("Deploy to Staging"){
             when {
-                expression{env.BRANCH_NAME == "ft-frontend-k8s-secrets"}
+                expression {
+                    GIT_BRANCH = sh(returnStdout: true, script: 'git rev-parse --abbrev-ref HEAD').trim()
+                    return (GIT_BRANCH == 'ft-frontend-k8s-secrets')
                 }
-                steps {
-                    withKubeConfig([credentialsId: "${K8S_CONFIG}"]) {
-                        sh """
-                        kubectl apply -f 'k8s/stage-airqo-platform-frontend.yaml'
-                        kubectl rollout restart deployment/${IMAGE_NAME_STAGE} -n staging
-                        """
-                    }
+            }
+            steps {
+                withKubeConfig([credentialsId: "${K8S_CONFIG}"]) {
+                    sh """
+                    kubectl apply -f 'k8s/stage-airqo-platform-frontend.yaml'
+                    kubectl rollout restart deployment/${IMAGE_NAME_STAGE} -n staging
+                    """
                 }
-                post{
-                    success{
-                        echo "Successfully deployed to staging"
-                    }
-                    failure{
-                        echo "Failed deploying to staging"
-                        slackSend (color: '#FF0000', message: "FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
-                    }
+            }
+            post{
+                success{
+                    echo "Successfully deployed to staging"
+                    slackSend (color: '#00FF00', message: "SUCCESS: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+
                 }
+                failure{
+                    echo "Failed deploying to staging"
+                    slackSend (color: '#FF0000', message: "FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+                }
+            }
         }
         stage("Deploy to Production"){
                 when {branch "master"}
@@ -113,6 +121,8 @@ pipeline {
                 post{
                     success{
                         echo "Successfully deployed to production"
+                        slackSend (color: '#00FF00', message: "SUCCESS: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+
                     }
                     failure{
                         echo "Failed deploying to production"
@@ -122,8 +132,8 @@ pipeline {
         }
         stage('Final'){
             steps {
-                echo 'platform deployed successfully'
-                slackSend (color: '#00FF00', message: "SUCCESSFUL: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+                echo 'Pipeline Completed'
+                slackSend (color: '#00FF00', message: "COMPLETED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
             }
         }
     }    
