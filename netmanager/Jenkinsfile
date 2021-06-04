@@ -16,12 +16,14 @@ pipeline {
             }
         }
         stage("Build for Staging"){
-            when {branch "staging"}
+            when {
+                expression{env.BRANCH_NAME == "ft-frontend-k8s-secrets"}
+                }
                  steps {
 
                     echo "Docker Build"
                     sh """
-                    docker build -t ${REGISTRY_URI}/${PROJECT_ID}/${IMAGE_NAME_STAGE}:"latest" -f "src/device-registry/Dockerfile.stage.txt" . 
+                    docker build -t ${REGISTRY_URI}/${PROJECT_ID}/${IMAGE_NAME_STAGE}:"latest" -f "netmanager/Dockerfile" . 
                     """
                     withCredentials([file(credentialsId: "${GCR_CONFIG}", variable: 'GC_KEY')]){
                         sh "cat '$GC_KEY' | docker login -u _json_key --password-stdin ${REGISTRY_URI}"
@@ -51,7 +53,7 @@ pipeline {
 
                     echo "Docker Build"
                     sh """
-                    docker build -t ${REGISTRY_URI}/${PROJECT_ID}/${IMAGE_NAME_PROD}:"latest" -f "src/device-registry/Dockerfile" . 
+                    docker build -t ${REGISTRY_URI}/${PROJECT_ID}/${IMAGE_NAME_PROD}:"latest" -f "netmanager/Dockerfile" . 
                     """
                     withCredentials([file(credentialsId: "${GCR_CONFIG}", variable: 'GC_KEY')]){
                         sh "cat '$GC_KEY' | docker login -u _json_key --password-stdin ${REGISTRY_URI}"
@@ -70,7 +72,7 @@ pipeline {
                             }
                         failure{
                             echo "Build and Push Failed"
-                            echo 'device registry service deployed successfully'
+                            echo 'Service deployed successfully'
                             slackSend (color: '#FF0000', message: "FAILED TO BUILD AND PUSH IMAGE: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
                             }
                     }
