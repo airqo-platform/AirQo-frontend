@@ -10,6 +10,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
+import 'map_page.dart';
+
 class LocationSearch extends SearchDelegate<Suggestion> {
   LocationSearch() {
     googleApiClient = GoogleSearchProvider(const Uuid().v4());
@@ -39,10 +41,6 @@ class LocationSearch extends SearchDelegate<Suggestion> {
 
     return base.copyWith(
       primaryColor: appColor,
-      // textTheme: base.textTheme.apply(
-      //   bodyColor: Colors.pink,
-      //   displayColor: Colors.white,
-      // ),
     );
   }
 
@@ -54,6 +52,15 @@ class LocationSearch extends SearchDelegate<Suggestion> {
         icon: const Icon(Icons.clear),
         onPressed: () {
           query = '';
+        },
+      ),
+      IconButton(
+        tooltip: 'Map',
+        icon: const Icon(Icons.public_sharp),
+        onPressed: () {
+          Navigator.push(context, MaterialPageRoute(builder: (context) {
+            return MapPage();
+          }));
         },
       )
     ];
@@ -213,16 +220,25 @@ class LocationSearch extends SearchDelegate<Suggestion> {
     print(searchPlaceId);
 
     if (searchPlaceId == '') {
-      return Container(
-        padding: const EdgeInsets.all(16.0),
-        child: const Text(
-          'Failed to get place',
-          style: TextStyle(color: appColor),
-        ),
+
+      return Align(
+          alignment: Alignment.topCenter,
+          child: Container(
+            padding: const EdgeInsets.all(16.0),
+            child: Text(
+              'Failed to locate $query, search again and tap on any of the '
+                  'available suggestions or use the map '
+                  'on the top right corner',
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                  color: appColor
+              ),
+            ),
+          )
       );
+
     }
 
-    print('Search ID 2 $searchPlaceId');
     return FutureBuilder(
         future: googleApiClient.getPlaceDetailFromId(searchPlaceId),
         builder: (context, snapshot) {
@@ -260,40 +276,54 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                                   textAlign: TextAlign.center,
                                   style: const TextStyle(color: appColor),
                                 ),
-                                customButton(context),
+                                showAllLocationsCustomButton(context),
+                                showMapCustomButton(context)
                               ],
                             ),
                           ));
                     }
 
-                    return ListView.builder(
-                      shrinkWrap: true,
-                      itemCount: devices.length,
-                      itemBuilder: (context, index) {
-                        return InkWell(
-                            onTap: () {
-                              var device = devices[index];
-                              Navigator.push(context,
-                                  MaterialPageRoute(builder: (context) {
-                                return PlaceDetailsPage(
-                                  device: device,
-                                );
-                              }));
-                            },
-                            child: ListTile(
-                              title: Text('${devices[index].siteName}'),
-                              subtitle: Text('${devices[index].locationName}'),
-                              // leading: const Icon(
-                              //   Icons.location_pin,
-                              //   color: appColor,
-                              // ),
-                              trailing: Text(
-                                '${kmToMeters(devices[index].distance)} meters',
-                                style: const TextStyle(color: appColor),
-                              ),
-                            ) //your content here
+                    return Column(
+                      children: [
+                       Padding( padding: const EdgeInsets.all(8.0),
+                         child: Text(
+                           'Air quality sensors near $query',
+                           textAlign: TextAlign.center,
+                           style: const TextStyle(
+                               color: appColor
+                           ),
+                         ),),
+                        Expanded(child:                ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: devices.length,
+                          itemBuilder: (context, index) {
+                            return InkWell(
+                                onTap: () {
+                                  var device = devices[index];
+                                  Navigator.push(context,
+                                      MaterialPageRoute(builder: (context) {
+                                        return PlaceDetailsPage(
+                                          device: device,
+                                        );
+                                      }));
+                                },
+                                child: ListTile(
+                                  title: Text('${devices[index].siteName}'),
+                                  subtitle: Text('${devices[index].locationName}'),
+                                  // leading: const Icon(
+                                  //   Icons.location_pin,
+                                  //   color: appColor,
+                                  // ),
+                                  trailing: Text(
+                                    '${kmToMeters(devices[index].distance)} meters',
+                                    style: const TextStyle(color: appColor),
+                                  ),
+                                ) //your content here
                             );
-                      },
+                          },
+                        ))
+
+                      ],
                     );
                   } else {
                     return Align(
@@ -406,7 +436,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
         });
   }
 
-  RawMaterialButton customButton(context){
+  RawMaterialButton showAllLocationsCustomButton(context){
     return RawMaterialButton(
       shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(4.0),
@@ -423,6 +453,31 @@ class LocationSearch extends SearchDelegate<Suggestion> {
         padding: EdgeInsets.all(4),
         child: Text(
           'Show all sensor locations',
+          style: TextStyle(color: appColor),
+        ),
+      ),
+    );
+  }
+
+  RawMaterialButton showMapCustomButton(context){
+    return RawMaterialButton(
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(4.0),
+          side: const BorderSide(color: appColor, width: 1)),
+      fillColor: Colors.transparent,
+      elevation: 0,
+      highlightElevation: 0,
+      splashColor: Colors.black12,
+      highlightColor: appColor.withOpacity(0.4),
+      onPressed: () {
+        Navigator.push(context, MaterialPageRoute(builder: (context) {
+          return MapPage();
+        }));
+      },
+      child: const Padding(
+        padding: EdgeInsets.all(4),
+        child: Text(
+          'Go to Map',
           style: TextStyle(color: appColor),
         ),
       ),

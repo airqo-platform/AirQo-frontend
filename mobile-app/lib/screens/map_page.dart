@@ -567,7 +567,7 @@ class MapPageState extends State<MapPage> {
               ),
               IconButton(
                 onPressed: () {
-                  shareLocation(windowProperties.locationDetails);
+                  shareMeasurement(windowProperties);
                 },
                 icon: const Icon(Icons.share_outlined, color: appColor),
               ),

@@ -166,30 +166,17 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(appName),
-        // actions: [
-        //   IconButton(
-        //     icon: const Icon(
-        //       Icons.share_outlined,
-        //     ),
-        //     onPressed: () {
-        //       Share.share('https://airqo.net', subject: 'Makerere!');
-        //     },
-        //   ),
-        //   IconButton(
-        //     icon: const Icon(
-        //       Icons.info_outline_rounded,
-        //     ),
-        //     onPressed: () {
-        //       Navigator.push(
-        //         context,
-        //         MaterialPageRoute<void>(
-        //           builder: (BuildContext context) => AQI_Dialog(),
-        //           fullscreenDialog: true,
-        //         ),
-        //       );
-        //     },
-        //   ),
-        // ],
+        actions: [
+          if (isFavourite)
+          IconButton(
+            icon: const Icon(
+              Icons.edit_outlined,
+            ),
+            onPressed: () {
+              updateTitleDialog(device);;
+            },
+          ),
+        ],
       ),
       body: locationData != null
           ? Container(
@@ -211,15 +198,15 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                       children: [
                         Expanded(
                             child: GestureDetector(
-                          onTap: () {
-                            if (isFavourite) {
-                              print('editing');
-                              setState(() {
-                                titleText = '';
-                              });
-                              updateTitleDialog(device);
-                            }
-                          },
+                              onTap: () {
+                                if (isFavourite) {
+                                  print('editing');
+                                  setState(() {
+                                    titleText = '';
+                                  });
+                                  updateTitleDialog(device);
+                                }
+                              },
                           child: RichText(
                             overflow: TextOverflow.ellipsis,
                             textAlign: TextAlign.center,
@@ -234,15 +221,15 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                                   ? '${device.nickName} '
                                   : '${device.siteName}',
                               children: <TextSpan>[
-                                if (isFavourite)
-                                  TextSpan(
-                                    text: String.fromCharCode(0xe169),
-                                    style: const TextStyle(
-                                      fontSize: 15,
-                                      fontFamily: 'MaterialIcons',
-                                      color: appColor,
-                                    ),
-                                  )
+                                // if (isFavourite)
+                                //   TextSpan(
+                                //     text: String.fromCharCode(0xe169),
+                                //     style: const TextStyle(
+                                //       fontSize: 15,
+                                //       fontFamily: 'MaterialIcons',
+                                //       color: appColor,
+                                //     ),
+                                //   )
                               ],
                             ),
                           ),
@@ -254,25 +241,36 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                   // location name
                   Padding(
                     padding: const EdgeInsets.fromLTRB(8.0, 0, 8.0, 8.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            '${device.locationName}',
-                            overflow: TextOverflow.ellipsis,
-                            textAlign: TextAlign.center,
-                            maxLines: 10,
-                            style: const TextStyle(
-                              fontSize: 15,
-                              color: appColor,
-                              fontWeight: FontWeight.bold,
+                      child: GestureDetector(
+                        onTap: () {
+                          if (isFavourite) {
+                            print('editing');
+                            setState(() {
+                              titleText = '';
+                            });
+                            updateTitleDialog(device);
+                          }
+                        },
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                '${device.locationName}',
+                                overflow: TextOverflow.ellipsis,
+                                textAlign: TextAlign.center,
+                                maxLines: 10,
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  color: appColor,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                             ),
-                          ),
+                          ],
                         ),
-                      ],
-                    ),
+                      )
                   ),
 
                   // card section
@@ -577,7 +575,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
         context: context,
         builder: (context) {
           return AlertDialog(
-            title: const Text('Change title'),
+            title: const Text('Rename place'),
             content: TextField(
               onChanged: (value) {
                 setState(() {

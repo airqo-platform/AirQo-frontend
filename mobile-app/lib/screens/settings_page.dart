@@ -1,8 +1,5 @@
 import 'dart:io';
 
-import 'package:app/config/providers/ThemeProvider.dart';
-import 'package:app/config/themes/dark_theme.dart';
-import 'package:app/config/themes/light_theme.dart';
 import 'package:app/constants/app_constants.dart';
 import 'package:app/utils/services/notifications.dart';
 import 'package:app/widgets/change_language.dart';
@@ -10,7 +7,6 @@ import 'package:app/widgets/change_theme.dart';
 import 'package:app/widgets/clear_app_data.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -258,10 +254,10 @@ class _SettingsPageState extends State<SettingsPage> {
               inactiveTrackColor: Colors.black12,
               onChanged: (bool value) {
                 if(value){
-                  showNotification(progressNotificationId);
+                  showNotification(smartNotificationId);
                 }
                 else{
-                  cancelNotification(progressNotificationId);
+                  cancelNotification(smartNotificationId);
                 }
 
                 setState(() {
@@ -281,12 +277,12 @@ class _SettingsPageState extends State<SettingsPage> {
               inactiveThumbColor: Colors.white,
               inactiveTrackColor: Colors.black12,
               onChanged: (bool value) {
-                // if(value){
-                //   pushNotification();
-                // }
-                // else{
-                //   cancelNotification(0);
-                // }
+                if(value){
+                  showNotification(pushNotificationId);
+                }
+                else{
+                  cancelNotification(pushNotificationId);
+                }
 
                 setState(() {
 
@@ -690,6 +686,12 @@ class _SettingsPageState extends State<SettingsPage> {
         return;
       case progressNotificationId:
         _notifications.showProgressNotification();
+        return;
+      case smartNotificationId:
+        _notifications.showSmartNotification();
+        return;
+      case pushNotificationId:
+        _notifications.showPushNotification();
         return;
       default:
         return;

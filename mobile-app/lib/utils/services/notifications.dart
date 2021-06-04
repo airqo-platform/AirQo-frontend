@@ -1,7 +1,6 @@
 import 'dart:typed_data';
 
 import 'package:app/constants/app_constants.dart';
-import 'package:app/screens/map_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
@@ -29,11 +28,25 @@ class Notifications {
     await flutterLocalNotificationsPlugin.cancel(id);
   }
 
-  Future<void> pushNotification() async {
+  Future<void> showPushNotification() async {
+
+    const bigTextStyleInformation =
+    BigTextStyleInformation(
+      'You will be receiving push notifications from the AirQo team about'
+          ' new features and blog posts',
+      htmlFormatBigText: true,
+      contentTitle: 'AirQo',
+      htmlFormatContentTitle: true,
+      summaryText: 'Push Notifications',
+      htmlFormatSummaryText: true,
+    );
+
+
     const androidPlatformChannelSpecifics =
     AndroidNotificationDetails(
       'push_messages: 0', 'push_messages: push_messages',
-      'push_messages: A new Flutter project',
+      'push_messages: AirQo',
+      styleInformation: bigTextStyleInformation,
       importance: Importance.max,
       priority: Priority.high,
       showWhen: false,
@@ -43,7 +56,39 @@ class Notifications {
     NotificationDetails(android: androidPlatformChannelSpecifics);
     await flutterLocalNotificationsPlugin.show(
         0, 'AirQo',
-        'Push notification',
+        'Push Notifications',
+        platformChannelSpecifics,
+        payload: 'load');
+  }
+
+  Future<void> showSmartNotification() async {
+    const bigTextStyleInformation =
+    BigTextStyleInformation(
+      'You will be receiving notifications on air pollution alerts and '
+          'recommendations for your saved places',
+      htmlFormatBigText: true,
+      contentTitle: 'AirQo',
+      htmlFormatContentTitle: true,
+      summaryText: 'AirQo Smart Notifications',
+      htmlFormatSummaryText: true,
+    );
+
+    const androidPlatformChannelSpecifics =
+    AndroidNotificationDetails(
+      'smart_messages: 0', 'smart_messages: smart_messages',
+      'smart_messages: AirQo',
+      styleInformation: bigTextStyleInformation,
+      importance: Importance.max,
+      priority: Priority.high,
+      showWhen: false,
+      enableVibration: true,
+
+    );
+    const platformChannelSpecifics =
+    NotificationDetails(android: androidPlatformChannelSpecifics);
+    await flutterLocalNotificationsPlugin.show(
+        0, 'AirQo',
+        'Smart Notifications',
         platformChannelSpecifics,
         payload: 'load');
   }

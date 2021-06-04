@@ -23,6 +23,8 @@ const linkedin = 'https://www.linkedin.com/company/airqo/';
 
 const persistentNotificationId = 1294732;
 const progressNotificationId = 482842;
+const smartNotificationId = 4877231;
+const pushNotificationId = 9239203;
 
 const appColor = Color(0xff3067e2);
 const appColorPale = Color(0xff3086e2);
