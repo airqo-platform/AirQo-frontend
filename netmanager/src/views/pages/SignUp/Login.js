@@ -184,7 +184,7 @@ class Login extends Component {
                       invalid: errors.userName || errors.credentialsnotfound,
                     })}
                   />
-                  <label htmlFor="userName">Username</label>
+                  <label htmlFor="userName">Username or Email</label>
                   <span className="red-text">
                     {errors.userName}
                     {errors.credentialsnotfound}
