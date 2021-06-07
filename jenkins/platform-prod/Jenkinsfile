@@ -19,7 +19,7 @@ pipeline {
 
                     echo "Docker Build"
                     sh """
-                    docker build -t ${REGISTRY_URI}/${PROJECT_ID}/${IMAGE_NAME_PROD}:"latest" -f "netmanager/Dockerfile" . 
+                    docker build -t ${REGISTRY_URI}/${PROJECT_ID}/${IMAGE_NAME_PROD}:"latest" -f "netmanager/Dockerfile.prod" . 
                     """
                     withCredentials([file(credentialsId: "${GCR_CONFIG}", variable: 'GC_KEY')]){
                         sh "cat '$GC_KEY' | docker login -u _json_key --password-stdin ${REGISTRY_URI}"
