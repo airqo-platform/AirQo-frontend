@@ -29,4 +29,3 @@ npm-debug.log
 **/.DS_Store
 **/node_modules
 .gcloudignore
-README.md
