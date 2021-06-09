@@ -341,13 +341,13 @@ export default function DeviceManagement() {
   }, [allDevicesUptimeData]);
 
   return (
-    <div>
+    <div className={"container-wrapper"}>
       <div
         style={{
           display: "flex",
           flexWrap: "wrap",
           alignItems: "center",
-          justifyContent: "space-around",
+          justifyContent: "space-between",
           margin: "20px 0",
         }}
       >
@@ -382,11 +382,7 @@ export default function DeviceManagement() {
       </div>
 
       <div className={"map-container"}>
-        <Card style={{ height: "100%" }}>
-          <div style={{ height: "100%" }}>
-            <Map devices={filteredDevices} />
-          </div>
-        </Card>
+        <Map devices={filteredDevices} />
       </div>
 
       <div
