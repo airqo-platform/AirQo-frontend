@@ -31,7 +31,7 @@ jobs:
           do
             echo $file
             if [[ $file != netmanager/* ]]; then
-              echo "This modified file is not under the 'db' folder."
+              echo "This modified file(s) is/are not under the 'netmanager' folder."
               echo "::set-output name=run_job::false"
               break
             else
