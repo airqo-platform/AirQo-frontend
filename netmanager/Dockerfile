@@ -2,10 +2,10 @@
 FROM nginx:1.13.12-alpine
 
 # nginx configuration
-#COPY ./nginx.conf /etc/nginx/nginx.conf
+COPY ./nginx.conf /etc/nginx/nginx.conf
 
 # move build folder to nginx
-# COPY ./build /usr/share/nginx/html
+COPY ./build /usr/share/nginx/html
 
 # expose the product on port 80
 EXPOSE 80
