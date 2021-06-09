@@ -53,7 +53,7 @@ jobs:
         with:
           registry: ${{ secrets.REGISTRY_URL }}
           username: _json_key
-          password: ${{ secrets.GCR_CONFIG }}
+          password: ${{ secrets.GCR_JSON_KEY }}
 
       - name: Login to K8S
         uses: azure/k8s-set-context@v1
