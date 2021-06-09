@@ -38,7 +38,7 @@ jobs:
               echo "::set-output name=run_job::true"
             fi
           done < files.txt
-          
+
   build:
     name: build-push-deploy
     needs: check
@@ -57,9 +57,9 @@ jobs:
 
       - name: Login to K8S
         uses: azure/k8s-set-context@v1
-          with:
-            method: kubeconfig
-            kubeconfig: ${{ secrets.K8S_CONFIG }}
+        with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.K8S_CONFIG }}
       
       - name: build the Docker image
         run: |
