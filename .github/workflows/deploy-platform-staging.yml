@@ -54,10 +54,6 @@ jobs:
           registry: ${{ secrets.REGISTRY_URL }}
           username: _json_key
           password: ${{ secrets.GCR_CONFIG }}
-        # run: |
-        #   docker login -u _json_key --password-stdin ${{ secrets.REGISTRY_URL }}
-        #   gcloud auth activate-service-account --key-file=${{ secrets.GCR_JSON_KEY }}
-        #   gcloud auth configure-docker
 
       - name: Login to K8S
         uses: azure/k8s-set-context@v1
@@ -67,11 +63,11 @@ jobs:
       
       - name: Build and Push Docker Image
         run: |
-          docker build --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-platform-frontend-test:latest ./netmanger/Dockerfile
+          docker build --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-platform-frontend-test:latest netmanger/Dockerfile .
           docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-platform-frontend-test:latest
       - name: Deploy to K8S
         run: |
-          kubectl apply -f ./k8s/stage-airqo-platform-frontend.yaml
+          kubectl apply -f k8s/stage-airqo-platform-frontend.yaml
           kubectl rollout restart deployment/airqo-stage-platform-frontend -n staging
 
             
