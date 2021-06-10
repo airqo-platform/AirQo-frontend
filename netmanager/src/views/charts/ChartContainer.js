@@ -12,6 +12,7 @@ const ChartContainer = ({
   blue,
   green,
   centerItems,
+  footerContent,
   children,
 }) => {
   const titleStyle =
@@ -31,11 +32,14 @@ const ChartContainer = ({
       >
         {children}
       </div>
-      {lastUpdated && (
-        <div className={"chart-footer"}>
-          <AccessTime /> Last updated {lastUpdated}
-        </div>
-      )}
+      <div className={"chart-footer"}>
+        {lastUpdated && (
+          <span>
+            <AccessTime /> Last updated {lastUpdated}
+          </span>
+        )}
+        {footerContent && <span>{footerContent}</span>}
+      </div>
     </div>
   );
 };
