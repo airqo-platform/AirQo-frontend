@@ -61,6 +61,12 @@ jobs:
           method: kubeconfig
           kubeconfig: ${{ secrets.K8S_CONFIG }}
       
+      - name: NPM Build
+        run: |
+          cd netmanager/
+          npm install
+          npm run build
+      
       - name: Build and Push Docker Image
         run: |
           docker build --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-platform-frontend-test:latest -f netmanager/Dockerfile .
