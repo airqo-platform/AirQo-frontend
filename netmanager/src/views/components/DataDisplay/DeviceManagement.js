@@ -1,22 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { useHistory, useLocation } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import { makeStyles } from "@material-ui/core/styles";
 import DevicesIcon from "@material-ui/icons/Devices";
 import ReportProblem from "@material-ui/icons/ReportProblem";
 import BatteryFullIcon from "@material-ui/icons/BatteryFull";
-import AccessTime from "@material-ui/icons/AccessTime";
 import RestoreIcon from "@material-ui/icons/Restore";
 import WbSunnyIcon from "@material-ui/icons/WbSunny";
 import PowerIcon from "@material-ui/icons/Power";
 import Hidden from "@material-ui/core/Hidden";
 import Tooltip from "@material-ui/core/Tooltip";
 import Card from "../Card/Card.js";
-import CardBody from "../Card/CardBody.js";
-import CardFooter from "../Card/CardFooter.js";
 import { isEmpty, mapObject, omit, values } from "underscore";
 import Map from "./Map/Map";
-import { Bar, Line, Pie } from "react-chartjs-2";
 import {
   useDevicesStatusData,
   useDevicesUptimeData,
@@ -27,27 +22,20 @@ import {
   loadNetworkUptimeData,
   loadAllDevicesUptimeData,
 } from "redux/DeviceManagement/operations";
-import {
-  BarChartIcon,
-  LineChartIcon,
-  SortAscendingIcon,
-  SortDescendingIcon,
-} from "assets/img";
 import { multiFilter } from "utils/filters";
-import {
-  createBarChartData,
-  createChartData,
-  createChartOptions,
-} from "utils/charts";
+import { createBarChartData, ApexTimeSeriesData } from "utils/charts";
 import { updateDeviceBackUrl } from "redux/Urls/operations";
+import {
+  ApexChart,
+  ChartContainer,
+  timeSeriesChartOptions,
+  createPieChartOptions,
+} from "views/charts";
 
 // css style
-import styles from "assets/jss/material-dashboard-react/views/dashboardStyle.js";
 import "chartjs-plugin-annotation";
 import "assets/scss/device-management.sass";
 import "assets/css/device-view.css"; // there are some shared styles here too :)
-
-const useStyles = makeStyles(styles);
 
 const DEFAULT_DEVICE_FILTERS = {
   all: true,
@@ -128,7 +116,6 @@ const OverviewCard = ({ label, icon, value, filterActive, onClick }) => {
 };
 
 export default function DeviceManagement() {
-  const classes = useStyles();
   const history = useHistory();
   const location = useLocation();
   const devicesStatusData = useDevicesStatusData();
@@ -340,6 +327,16 @@ export default function DeviceManagement() {
     setDevicesUptimeDescending(true);
   }, [allDevicesUptimeData]);
 
+  const series = [
+    {
+      name: "uptime",
+      data: ApexTimeSeriesData(
+        networkUptimeDataset.line.label,
+        networkUptimeDataset.line.data
+      ),
+    },
+  ];
+
   return (
     <div className={"container-wrapper"}>
       <div
@@ -390,165 +387,60 @@ export default function DeviceManagement() {
           display: "flex",
           flexWrap: "wrap",
           alignItems: "center",
-          justifyContent: "space-around",
+          justifyContent: "center",
         }}
       >
-        <div
-          className={"overview-item-container"}
-          style={{ minWidth: "300px" }}
-        >
-          <h4 className={classes.cardTitleBlue}>
-            Network Uptime{" "}
-            <span style={{ fontSize: "1rem" }}>(last 28 days)</span>
-            {showBarChart ? (
-              <LineChartIcon
-                className={"uptime-icon"}
-                onClick={handleNetworkUptimeClick}
-              />
-            ) : (
-              <BarChartIcon
-                className={"uptime-icon"}
-                onClick={handleNetworkUptimeClick}
-              />
-            )}
-          </h4>
+        <ApexChart
+          options={timeSeriesChartOptions}
+          title={"Network uptime"}
+          series={series}
+          lastUpdated={
+            networkUptimeData.length > 0 && networkUptimeData[0].created_at
+          }
+          type="area"
+          blue
+        />
+        <ApexChart
+          options={createPieChartOptions(
+            ["#BCBD22", "#17BECF"],
+            ["Offline", "Online"]
+          )}
+          series={pieChartStatusValues}
+          title={"online status"}
+          lastUpdated={devicesStatusData.created_at}
+          type="pie"
+          green
+        />
 
-          <Card className={classes.cardBody}>
-            <div className={classes.chartContainer}>
-              {showBarChart ? (
-                <Bar
-                  height={"400px"}
-                  data={createChartData(
-                    networkUptimeDataset.bar.label,
-                    networkUptimeDataset.bar.data,
-                    "Network Uptime"
-                  )}
-                  options={createChartOptions("Time Period", "Uptime(%)")}
-                />
-              ) : (
-                <Line
-                  height={"400px"}
-                  data={createChartData(
-                    networkUptimeDataset.line.label,
-                    networkUptimeDataset.line.data,
-                    "Network Uptime"
-                  )}
-                  options={createChartOptions("Date", "Uptime(%)")}
-                />
-              )}
+        <ChartContainer title={"leaderboard"} blue>
+          <div>
+            <div className={`m-device-uptime-row uptime-table-header`}>
+              <span>device name</span>
+              <span>downtime (%)</span>
+              <span>uptime (%)</span>
             </div>
-
-            <div className={classes.stats}>
-              <AccessTime /> Last updated{" "}
-              {networkUptimeData.length > 0 && networkUptimeData[0].created_at}
-            </div>
-          </Card>
-        </div>
-
-        <div
-          className={"overview-item-container"}
-          style={{ minWidth: "300px" }}
-        >
-          <h4 className={classes.cardTitleGreen}>Online Status</h4>
-          <Card className={classes.cardBody}>
-            <div className={classes.chartContainer}>
-              <Pie
-                id="pie"
-                height={"162px"}
-                onElementsClick={handlePieChartClick}
-                data={{
-                  labels: ["Offline", "Online"],
-                  datasets: [
-                    {
-                      label: "Device Status",
-                      data: pieChartStatusValues,
-                      backgroundColor: ["#BCBD22", "#17BECF"],
-                    },
-                  ],
-                }}
-                options={{
-                  tooltips: {
-                    callbacks: {
-                      label: function (tooltipItem, data) {
-                        var allData =
-                          data.datasets[tooltipItem.datasetIndex].data;
-                        var tooltipLabel = data.labels[tooltipItem.index];
-                        var tooltipData = allData[tooltipItem.index];
-                        var total = 0;
-                        for (var i in allData) {
-                          total += allData[i];
-                        }
-                        var tooltipPercentage = Math.round(
-                          (tooltipData / total) * 100
-                        );
-                        return tooltipLabel + ": " + tooltipPercentage + "%";
-                      },
-                    },
-                  },
-
-                  maintainAspectRatio: true,
-                  responsive: true,
-                }}
-              />
-            </div>
-            <CardFooter chart>
-              <div className={classes.stats}>
-                <AccessTime /> Last updated on {devicesStatusData.created_at}
-              </div>
-            </CardFooter>
-          </Card>
-        </div>
-
-        <div
-          className={"overview-item-container"}
-          style={{ minWidth: "300px" }}
-        >
-          <h4 className={classes.cardTitleBlue}>
-            Leaderboard <span style={{ fontSize: "1rem" }}>(last 28 days)</span>
-            {devicesUptimeDescending ? (
-              <SortDescendingIcon
-                className={"uptime-icon"}
-                onClick={handleSortIconClick}
-              />
-            ) : (
-              <SortAscendingIcon
-                className={"uptime-icon"}
-                onClick={handleSortIconClick}
-              />
-            )}
-          </h4>
-          <Card className={classes.cardBody}>
-            <CardBody>
-              <div className={`m-device-uptime-row uptime-table-header`}>
-                <span>device name</span>
-                <span>downtime (%)</span>
-                <span>uptime (%)</span>
-              </div>
-              {devicesUptime.map(({ deviceName, uptime }, index) => {
-                uptime = uptime <= 100 ? uptime : 100;
-                const style =
-                  uptime >= 80
-                    ? "uptime-success"
-                    : uptime >= 50
-                    ? "uptime-warning"
-                    : "uptime-danger";
-                return (
-                  <div
-                    className={`m-device-uptime-row`}
-                    key={`device-${deviceName}-${index}`}
-                    onClick={() =>
-                      history.push(`/device/${deviceName}/overview`)
-                    }
-                  >
-                    <span>{deviceName}</span>
-                    <span>{(100 - uptime).toFixed(2)}</span>
-                    <span className={`${style}`}>{uptime.toFixed(2)}</span>
-                  </div>
-                );
-              })}
-            </CardBody>
-          </Card>
-        </div>
+            {devicesUptime.map(({ deviceName, uptime }, index) => {
+              uptime = uptime <= 100 ? uptime : 100;
+              const style =
+                uptime >= 80
+                  ? "uptime-success"
+                  : uptime >= 50
+                  ? "uptime-warning"
+                  : "uptime-danger";
+              return (
+                <div
+                  className={`m-device-uptime-row`}
+                  key={`device-${deviceName}-${index}`}
+                  onClick={() => history.push(`/device/${deviceName}/overview`)}
+                >
+                  <span>{deviceName}</span>
+                  <span>{(100 - uptime).toFixed(2)}</span>
+                  <span className={`${style}`}>{uptime.toFixed(2)}</span>
+                </div>
+              );
+            })}
+          </div>
+        </ChartContainer>
       </div>
     </div>
   );
