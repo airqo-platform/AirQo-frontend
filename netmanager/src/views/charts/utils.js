@@ -1,8 +1,6 @@
 export const timeSeriesChartOptions = {
   chart: {
     id: "area-datetime",
-    type: "area",
-    height: 350,
     zoom: {
       autoScaleYaxis: true,
     },
