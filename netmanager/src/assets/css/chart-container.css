@@ -5,6 +5,8 @@
 	height: 350px;
     background: #ffffff;
 	margin: 20px;
+	border: 1px solid #ffffff;
+	border-radius: 2px;
 }
 
 .chart-title-wrapper {
@@ -14,6 +16,7 @@
     padding: 5px;
 	width: 100%;
 	height: 50px;
+	border-radius: inherit;
 }
 
 .title-green {
