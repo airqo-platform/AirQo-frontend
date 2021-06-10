@@ -11,6 +11,7 @@ const ChartContainer = ({
   lastUpdated,
   blue,
   green,
+  centerItems,
   children,
 }) => {
   const titleStyle =
@@ -23,7 +24,13 @@ const ChartContainer = ({
           <FullscreenIcon />
         </span>
       </div>
-      <div className={"chart-body"}>{children}</div>
+      <div
+        className={`chart-body ${
+          (centerItems && "chart-flex-center-body") || ""
+        }`}
+      >
+        {children}
+      </div>
       {lastUpdated && (
         <div className={"chart-footer"}>
           <AccessTime /> Last updated {lastUpdated}

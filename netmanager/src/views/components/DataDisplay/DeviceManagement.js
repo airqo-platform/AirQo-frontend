@@ -410,6 +410,7 @@ export default function DeviceManagement() {
           lastUpdated={devicesStatusData.created_at}
           type="pie"
           green
+          centerItems
         />
 
         <ChartContainer title={"leaderboard"} blue>
