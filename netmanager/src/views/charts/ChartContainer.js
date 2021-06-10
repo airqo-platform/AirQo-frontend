@@ -5,10 +5,19 @@ import AccessTime from "@material-ui/icons/AccessTime";
 // css
 import "assets/css/chart-container.css";
 
-const ChartContainer = ({ className, title, lastUpdated, children }) => {
+const ChartContainer = ({
+  className,
+  title,
+  lastUpdated,
+  blue,
+  green,
+  children,
+}) => {
+  const titleStyle =
+    (blue && "title-blue") || (green && "title-green") || "title-default";
   return (
     <div className={className || "chart-container-wrapper"}>
-      <div className={"chart-title-wrapper"}>
+      <div className={`chart-title-wrapper ${titleStyle}`}>
         <span className={"chart-title"}>{title}</span>
         <span className={"chart-control"}>
           <FullscreenIcon />

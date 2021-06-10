@@ -13,6 +13,22 @@
     justify-content: space-between;
     padding: 5px;
 	width: 100%;
+	height: 50px;
+}
+
+.title-green {
+	background: #22b0c5;
+	color: white;
+}
+
+.title-blue {
+	background: #2f67e2;
+	color: white;
+}
+
+.title-default {
+	background: #F4EDEA;
+	color: #6e8192;
 }
 
 .chart-title {
@@ -22,7 +38,7 @@
 }
 
 .chart-control {
-    color: #6e8192;
+    color: inherit;
 }
 
 .chart-body {
