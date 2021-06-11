@@ -1,13 +1,13 @@
 name: deploy-platform-staging
 
 on:
-  #push:
-  pull_request:
-    branches: staging
-    types: [closed]
+  push:
+  #pull_request:
+    branches: ft-deploy-platform
+    #types: [closed]
 jobs:
   check:
-    if: github.event.pull_request.merged == 'true'
+    #if: github.event.pull_request.merged == 'true'
     #if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true
     name: Check files
     outputs:
@@ -40,7 +40,7 @@ jobs:
           done < files.txt
 
   build:
-    name: build-push-deploy
+    name: build-push-deploy-netmanager
     needs: check
     if: needs.check.outputs.run_job == 'true'
     runs-on: ubuntu-latest
