@@ -8,7 +8,7 @@ import Overview from "./views/components/Dashboard/Overview";
 import Devices from "./views/components/DataDisplay/Devices";
 import { Download as DownloadView } from "./views/pages/Download";
 import Landing from "./views/layouts/Landing";
-import { Main as MainLayout, Minimal as MinimalLayout } from "views/layouts/";
+import { Main as MainLayout, Minimal as MinimalLayout } from "./views/layouts/";
 import { NotFound as NotFoundView } from "./views/pages/NotFound";
 import { LargeCircularLoader } from "./views/components/Loader/CircularLoader";
 
