@@ -1,13 +1,13 @@
 name: deploy-platform-staging
 
 on:
-  push:
-  #pull_request:
-    branches: ft-deploy-platform
-    #types: [closed]
+  #push:
+  pull_request:
+    branches: staging
+    types: [closed]
 jobs:
   check:
-    #if: github.event.pull_request.merged == 'true'
+    if: github.event.pull_request.merged == 'true'
     #if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true
     name: check for changes in platform
     outputs:
@@ -27,13 +27,13 @@ jobs:
           
           echo "========== check paths of modified files =========="
           git diff --name-only HEAD^ HEAD > files.txt
+
+          echo "::set-output name=run_job::false"
+
           while IFS= read -r file
           do
             echo $file
-            if [[ $file != netmanager/* ]]; then
-              echo "This modified file(s) is/are not under the 'netmanager' folder."
-              echo "::set-output name=run_job::false"
-            else
+            if [[ $file == netmanager/* ]]; then
               echo "::set-output name=run_job::true"
               break
             fi
@@ -65,15 +65,18 @@ jobs:
         run: |
           cd netmanager/
           npm install
+          npm audit fix
           npm run build
       
       - name: Build and Push Docker Image
         run: |
-          docker build --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-platform-frontend-test:latest -f netmanager/Dockerfile .
+          cd netmanager/
+          docker build --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-platform-frontend-test:latest -f .
           docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-platform-frontend-test:latest
       - name: Deploy to K8S
         run: |
-          kubectl apply -f k8s/stage-airqo-platform-frontend.yaml
+          cd k8s/
+          kubectl apply -f stage-airqo-platform-frontend.yaml
           kubectl rollout restart deployment/airqo-stage-platform-frontend -n staging
 
             
