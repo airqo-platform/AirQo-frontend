@@ -43,7 +43,7 @@ export const getFirstNDurations = (duration, n) => {
   for (const key of keys) {
     const elapsedTime = duration[key];
     if (elapsedTime > 0) {
-      format = `${format} ${elapsedTime} ${key}s,`;
+      format = `${format} ${elapsedTime} ${key}${elapsedTime > 1 ? "s" : ""},`;
       count -= 1;
     }
 
