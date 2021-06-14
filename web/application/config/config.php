@@ -23,7 +23,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 | a PHP script and you can easily do that on your own.
 |
 */
-//$base = (ENVIRONMENT !== 'production')  ? "https://".$_SERVER['HTTP_HOST']:"https://".$_SERVER['HTTP_HOST'];
+#$base = "http://".$_SERVER['HTTP_HOST'];
 switch(ENVIRONMENT){
     case 'production':
         $base = "https://".$_SERVER['HTTP_HOST'];

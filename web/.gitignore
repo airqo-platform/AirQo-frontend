@@ -3,9 +3,9 @@ apache_log
 db_data/airqo_db.sql
 .env
 system
-system/
-/vendor/
+vendor
 composer.phar
 .DS_Store
-
+.vscode
+application_
 

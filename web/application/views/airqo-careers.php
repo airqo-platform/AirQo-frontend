@@ -76,6 +76,11 @@
 				<h3 class="head">Open Positions </h3>
 			</div>
 			<div class="row">
+				<!-- <div class="col-md-4 features15-col-text">
+					<div class="features15-para" style="border-left: 2px solid #3067e2; padding: 2em;">
+						<p style="font-size:1.5em; line-height: normal;"><a href="<?= site_url('careerr/digital-communucations-officer'); ?>">Digital Communications Officer</a><small> (Deadline: 11th May 2021 EAT)</small></p>
+					</div>
+				</div> -->
 				<?php
 				if ($careers != null) {
 					foreach ($careers as $career) {
@@ -87,7 +92,15 @@
 						</div>
 				<?php
 					}
-				}
+				} else{
+                    ?>
+                    <div class="col-md-4 features15-col-text">
+                        <div class="features15-para" style="border-left: 2px solid #3067e2; padding: 2em;">
+                            <p style="font-size:1.5em; line-height: normal;">No Jobs Available</p>
+                        </div>
+                    </div>
+                    <?php
+                }
 				?>
 			</div>
 			<p>&nbsp;</p>
@@ -106,10 +119,10 @@
 			<p class="my-3 head">Download the AirQo app</p>
 		</div>
 		<div class="buttons mt-4">
-			<a href="<?= APPLE_APP_LINK; ?>" class="btn mr-2">
+			<a href=<?= APPLE_APP_LINK; ?> class="btn mr-2">
 				<img src="<?= base_url(); ?>assets/images/download2.png" width="200" class="img-fluid">
 			</a>
-			<a href="<?= ANDROID_APP_LINK; ?>" class="btn mr-2">
+			<a href=<?= ANDROID_APP_LINK; ?> class="btn mr-2">
 				<img src="<?= base_url(); ?>assets/images/download1.png" style="height: 62px !important;" width="200" class="img-fluid">
 			</a>
 		</div>

@@ -35,12 +35,12 @@
 				<!-- Download buttons -->
 				<div class="appstore">
 					<div class="col-md-6 col-lg-6 col-sm-6 col-xs-6">
-						<a href="<?= APPLE_APP_LINK; ?>" target="_blank">
+						<a href=<?= APPLE_APP_LINK; ?> target="_blank">
 							<img class="left" src="<?= base_url(); ?>assets/images/appstore.png">
 						</a>
 					</div>
 					<div class="col-md-6 col-lg-6 col-sm-6 col-xs-6">
-						<a href="<?= ANDROID_APP_LINK; ?>" target="_blank">
+						<a href=<?= ANDROID_APP_LINK; ?> target="_blank">
 							<img class="right" src="<?= base_url(); ?>assets/images/playstore.png">
 						</a>
 					</div>

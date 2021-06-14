@@ -199,7 +199,7 @@ if ($node['reading'] >= 0 && $node['reading'] <= 12) {
           type: "POST",
           url: "<?= site_url('Apis/airqoPlace24Hours'); ?>",
           data: {
-               api: "<?= getenv('API_KEY'); ?>",
+               api: '<?= getenv('API_KEY'); ?>',
                channel: "<?= $node['an_channel_id']; ?>"
           },
           dataType: "json",
@@ -330,7 +330,7 @@ if ($node['reading'] >= 0 && $node['reading'] <= 12) {
           type: "POST",
           url: "<?= site_url("Apis/placeForecast"); ?>",
           data: {
-               api: "<?= getenv('API_KEY'); ?>", 
+               api: '<?= getenv('API_KEY'); ?>', 
                channel: "<?= $node['an_channel_id']; ?>"
           },
           dataType: "json",
