@@ -25,11 +25,11 @@ $request    = new stdClass();
 $request    = json_decode($postdata);
 
 define('HOSTSPEC', NULL);
-define('USERNAME', 'root');
-define('PASSWORD', 'NDn4Djf4elCA00sB');
-define('DATABASE_INSTANCE_NAME','airqo_airqo');
+define('USERNAME', getenv('DEV_MYSQL_USERNAME'));
+define('PASSWORD', getenv('DEV_MYSQL_ROOT_PASSWORD'));
+define('DATABASE_INSTANCE_NAME',getenv('DEV_MYSQL_DATABASE'));
 define('PORT', NULL);
-define('SOCKET', '/cloudsql/airqo-frontend:us-central1:airqo-frontend-instance');
+define('SOCKET', getenv('DEV_DB_HOST'));
 $mysqli = new mysqli(HOSTSPEC, USERNAME, PASSWORD, DATABASE_INSTANCE_NAME, PORT, SOCKET);
 
 // $DB_USER = "buzentec_root";
