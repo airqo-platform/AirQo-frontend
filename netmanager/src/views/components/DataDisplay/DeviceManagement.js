@@ -32,6 +32,8 @@ import {
   createPieChartOptions,
 } from "views/charts";
 
+import { SortAscendingIcon, SortDescendingIcon } from "assets/img";
+
 // css style
 import "chartjs-plugin-annotation";
 import "assets/scss/device-management.sass";
@@ -411,9 +413,26 @@ export default function DeviceManagement() {
           type="pie"
           green
           centerItems
+          disableController
         />
 
-        <ChartContainer title={"leaderboard"} blue>
+        <ChartContainer
+          title={"leaderboard"}
+          controller={
+            devicesUptimeDescending ? (
+              <SortAscendingIcon
+                onClick={handleSortIconClick}
+                style={{ fill: "white" }}
+              />
+            ) : (
+              <SortDescendingIcon
+                onClick={handleSortIconClick}
+                style={{ fill: "white" }}
+              />
+            )
+          }
+          blue
+        >
           <div>
             <div className={`m-device-uptime-row uptime-table-header`}>
               <span>device name</span>
