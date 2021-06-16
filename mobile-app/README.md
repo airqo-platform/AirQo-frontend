@@ -1,16 +1,28 @@
-# app
+# Airqo mobile application
 
-Airqo mobile application.
+## How to Get Started
 
-## Getting Started
+### **Install flutter on your computer**
 
-This project is a starting point for a Flutter application.
+[Installing Flutter on Windows](https://flutter.dev/docs/get-started/install/windows)
 
-A few resources to get you started if this is your first Flutter project:
+[Installing Flutter on macOS](https://flutter.dev/docs/get-started/install/macos)
 
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
+```bash
+cd AirQo-frontend/mobile-app
+```
 
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+### **Set the secret keys**
+
+Add [secret.dart](https://airqo.slack.com/archives/GTHGHCB4G/p1622123891004200) to `lib/config` folder
+
+### **Set Google maps Key**
+
+For android, add [app.properties](https://drive.google.com/file/d/1Bktg3ckv-yO4X8Hu5QqVN7qp9LVqzWJG/view?usp=sharing) file to `AirQo-frontend/mobile-app/android` directory
+
+For IOS, add the [GOOGLE MAPS API Key](https://airqo.slack.com/archives/GTHGHCB4G/p1622124272004700),  in  `ios/Runner/AppDelegate.swift`
+`GMSServices.provideAPIKey("<INSERT KEY HERE>")`
+
+### **Run the application**
+
+   `flutter run --no-sound-null-safety`
