@@ -9,7 +9,7 @@ jobs:
   check:
     if: github.event.pull_request.merged == 'true'
     #if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true
-    name: Check files
+    name: check for changes in platform
     outputs:
       run_job: ${{ steps.check_files.outputs.run_job }}
     runs-on: ubuntu-latest
