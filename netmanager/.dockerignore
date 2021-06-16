@@ -30,4 +30,3 @@ npm-debug.log
 **/node_modules
 .gcloudignore
 README.md
-app.yaml
