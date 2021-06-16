@@ -1,16 +1,16 @@
 import React, { Suspense, lazy } from "react";
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 import PrivateRoute from "./views/components/PrivateRoute/PrivateRoute";
-import { useJiraHelpDesk } from "./utils/customHooks";
+import { useJiraHelpDesk } from "utils/customHooks";
 
 // core imports. imported on initial page load
 import Overview from "./views/components/Dashboard/Overview";
 import Devices from "./views/components/DataDisplay/Devices";
 import { Download as DownloadView } from "./views/pages/Download";
 import Landing from "./views/layouts/Landing";
-import { Main as MainLayout, Minimal as MinimalLayout } from "./views/layouts/";
+import { Main as MainLayout, Minimal as MinimalLayout } from "views/layouts/";
 import { NotFound as NotFoundView } from "./views/pages/NotFound";
-import { LargeCircularLoader } from "./views/components/Loader/CircularLoader";
+import { LargeCircularLoader } from "views/components/Loader/CircularLoader";
 
 // lazy imports
 const Account = lazy(() => import("./views/pages/Account"));
