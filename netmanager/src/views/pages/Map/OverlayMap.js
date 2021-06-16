@@ -196,9 +196,7 @@ const MapSettings = ({
             <Checkbox checked={showHeatmap} color="default" /> Heatmap
           </MenuItem>
           <Divider />
-          <MenuItem
-            onClick={() => onCalibratedChange(!showCalibratedValues)}
-          >
+          <MenuItem onClick={() => onCalibratedChange(!showCalibratedValues)}>
             <Checkbox checked={showCalibratedValues} color="default" />{" "}
             Calibrated values
           </MenuItem>
@@ -315,14 +313,29 @@ export const OverlayMap = ({
           return;
         }
 
-        const reducer = (accumulator, feature) =>
-          accumulator + parseFloat(feature.properties.predicted_value);
+        const reducerFactory = (key) => (accumulator, feature) =>
+          accumulator + parseFloat(feature.properties[key]);
         let average_predicted_value =
-          features.reduce(reducer, 0) / features.length;
+          features.reduce(reducerFactory("predicted_value"), 0) /
+          features.length;
+
+        let average_confidence_int =
+          features.reduce(reducerFactory("interval"), 0) / features.length;
 
         popup
           .setLngLat(e.lngLat)
-          .setText(`${average_predicted_value.toFixed(2)}`)
+          .setHTML(
+            `<table>
+                <tr>
+                    <td><b>Predicted value</b></td>
+                    <td>${average_predicted_value.toFixed(2)}</td>
+                </tr>
+                <tr>
+                    <td><b>Confidence interval</b></td>
+                    <td>&#177; ${average_confidence_int.toFixed(2)}</td>
+                </tr>
+            </table>`
+          )
           .addTo(map);
       });
     });
