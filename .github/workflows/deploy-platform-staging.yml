@@ -3,7 +3,7 @@ name: deploy-platform-staging
 on:
   push:
   #pull_request:
-    branches: staging
+    branches: ft-deploy-platform
     #types: [closed]
 jobs:
   check:
