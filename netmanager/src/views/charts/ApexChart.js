@@ -61,6 +61,8 @@ class ApexChart extends Component {
                     <option value={"area"}>Area</option>
                     <option value={"line"}>Line</option>
                     <option value={"bar"}>Bar</option>
+                    <option value={"radar"}>Radar</option>
+                    <option value={"heatmap"}>heatmap</option>
                   </TextField>
                   <TextField
                     id="range"
