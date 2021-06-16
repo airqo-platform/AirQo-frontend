@@ -43,7 +43,10 @@
 }
 
 .chart-control {
+	display: inline-flex;
+	align-items: center;
     color: inherit;
+	cursor: pointer;
 }
 
 .chart-body {

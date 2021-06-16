@@ -1,4 +1,5 @@
 import React from "react";
+import PropTypes from "prop-types";
 import FullscreenIcon from "@material-ui/icons/Fullscreen";
 import AccessTime from "@material-ui/icons/AccessTime";
 
@@ -13,6 +14,7 @@ const ChartContainer = ({
   green,
   centerItems,
   footerContent,
+  controller,
   children,
 }) => {
   const titleStyle =
@@ -22,6 +24,7 @@ const ChartContainer = ({
       <div className={`chart-title-wrapper ${titleStyle}`}>
         <span className={"chart-title"}>{title}</span>
         <span className={"chart-control"}>
+          {controller}
           <FullscreenIcon />
         </span>
       </div>
@@ -42,6 +45,21 @@ const ChartContainer = ({
       </div>
     </div>
   );
+};
+
+ChartContainer.propTypes = {
+  className: PropTypes.string,
+  title: PropTypes.string.isRequired,
+  type: PropTypes.string.isRequired,
+  options: PropTypes.object.isRequired,
+  series: PropTypes.array.isRequired,
+  lastUpdated: PropTypes.any,
+  blue: PropTypes.bool,
+  green: PropTypes.bool,
+  centerItems: PropTypes.bool,
+  footerContent: PropTypes.any,
+  controller: PropTypes.any,
+  children: PropTypes.element,
 };
 
 export default ChartContainer;
