@@ -1,6 +1,5 @@
 export const timeSeriesChartOptions = {
   chart: {
-    id: "area-datetime",
     zoom: {
       autoScaleYaxis: true,
     },
@@ -18,15 +17,6 @@ export const timeSeriesChartOptions = {
   tooltip: {
     x: {
       format: "dd MMM yyyy",
-    },
-  },
-  fill: {
-    type: "gradient",
-    gradient: {
-      shadeIntensity: 1,
-      opacityFrom: 0.7,
-      opacityTo: 0.9,
-      stops: [0, 100],
     },
   },
 };
@@ -48,4 +38,13 @@ export const createPieChartOptions = (colors, labels) => {
       },
     ],
   };
+};
+
+export const uuidV4 = () => {
+  return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, (c) =>
+    (
+      c ^
+      (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (c / 4)))
+    ).toString(16)
+  );
 };
