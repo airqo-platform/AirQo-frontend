@@ -51,6 +51,7 @@ const CandidatesTable = (props) => {
   const { className, mappeduserState, ...rest } = props;
   const dispatch = useDispatch();
   const [open, setOpen] = useState(false);
+  const [openDel, setOpenDel] = useState(false);
   const [currentCandidate, setCurrentCandidate] = useState(null);
 
   const users = mappeduserState.candidates;
@@ -105,9 +106,15 @@ const CandidatesTable = (props) => {
       setOpen(true);
   }
 
+  const onDenyBtnClick = (candidate) => () => {
+      setCurrentCandidate(candidate);
+      setOpenDel(true);
+  }
+
   const confirmCandidate = () => {
       setOpen(false);
       return confirmCandidateApi(currentCandidate).then(res => {
+          props.fetchCandidates()
           dispatch(updateMainAlert({
               show: true,
               message: res.message,
@@ -117,6 +124,24 @@ const CandidatesTable = (props) => {
           dispatch(updateMainAlert({
               show: true,
               message: "candidate already exists",
+              severity: "error",
+          }))
+      })
+  }
+
+  const denyCandidate = () => {
+      setOpenDel(false);
+      return deleteCandidateApi(currentCandidate._id).then(res => {
+          props.fetchCandidates()
+          dispatch(updateMainAlert({
+              show: true,
+              message: res.message,
+              severity: "success",
+          }))
+      }).catch(err => {
+          dispatch(updateMainAlert({
+              show: true,
+              message: err.response.data.message,
               severity: "error",
           }))
       })
@@ -175,7 +200,7 @@ const CandidatesTable = (props) => {
                 title: "Action",
                   render: (candidate) => <div>
                       <Button color="primary" onClick={onConfirmBtnClick(candidate)}>Confirm</Button>
-                      <Button style={{color: "red"}}>Deny</Button>
+                      <Button style={{color: "red"}} onClick={onDenyBtnClick(candidate)}>Delete</Button>
                 </div>,
               },
             ]}
@@ -190,10 +215,19 @@ const CandidatesTable = (props) => {
       <ConfirmDialog
           open={open}
           close={() => setOpen(false)}
-          confirmBtnMsg={"confirm candidate"}
+          confirmBtnMsg={"Confirm"}
           confirm={confirmCandidate}
           title={"Confirm candidate"}
-          message={"Are you sure you want to grant this user access"}
+          message={"Are you sure you want to grant this user access?"}
+      />
+      <ConfirmDialog
+          open={openDel}
+          close={() => setOpenDel(false)}
+          confirmBtnMsg={"Delete"}
+          confirm={denyCandidate}
+          title={"Delete candidate"}
+          message={"Are you sure you want to delete this candidate? This process can not be reversed"}
+          error
       />
       <Dialog
         open={props.mappeduserState.showEditDialog}
