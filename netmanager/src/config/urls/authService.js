@@ -27,3 +27,7 @@ export const GET_USERS_URI = `${BASE_AUTH_SERVICE_URL}/users/`;
 export const GET_CANDIDATES_URI = `${BASE_AUTH_SERVICE_URL}/users/candidates`;
 
 export const DEFAULTS_URI = `${BASE_AUTH_SERVICE_URL}/users/defaults`;
+
+export const CONFIRM_CANDIDATE_URI = `${BASE_AUTH_SERVICE_URL}/users/candidates/confirm`;
+
+export const DELETE_CANDIDATE_URI = `${BASE_AUTH_SERVICE_URL}/users/candidates`;
