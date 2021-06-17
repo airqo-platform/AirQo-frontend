@@ -24,6 +24,6 @@ export const ACCEPT_USER_URI = `${BASE_AUTH_SERVICE_URL}/users/accept`;
 
 export const GET_USERS_URI = `${BASE_AUTH_SERVICE_URL}/users/`;
 
-export const GET_CANDIDATES_URI = `${BASE_AUTH_SERVICE_URL}/users/candidates/fetch`;
+export const GET_CANDIDATES_URI = `${BASE_AUTH_SERVICE_URL}/users/candidates`;
 
 export const DEFAULTS_URI = `${BASE_AUTH_SERVICE_URL}/users/defaults`;
