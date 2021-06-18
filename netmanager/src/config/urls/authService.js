@@ -16,7 +16,7 @@ export const LOGIN_USER_URI = `${BASE_AUTH_SERVICE_URL}/users/loginUser`;
 
 export const REGISTER_USER_URI = `${BASE_AUTH_SERVICE_URL}/users/registerUser`;
 
-export const REGISTER_CANDIDATE_URI = `${BASE_AUTH_SERVICE_URL}/users/register/new/candidate`;
+export const REGISTER_CANDIDATE_URI = `${BASE_AUTH_SERVICE_URL}/users/candidates/register`;
 
 export const REJECT_USER_URI = `${BASE_AUTH_SERVICE_URL}/users/deny`;
 
