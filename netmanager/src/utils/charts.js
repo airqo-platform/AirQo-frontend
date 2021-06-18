@@ -1,5 +1,21 @@
 import palette from "assets/theme/palette";
 
+export const dateToTimestamp = (datetimeStr) => {
+  let datum = new Date(datetimeStr);
+  return datum.getTime() / 1000;
+};
+
+export const ApexTimeSeriesData = (dates, data) => {
+  let result = [];
+  // dates.map((date, index) => {
+  //   result.push([dateToTimestamp(date), data[index]]);
+  // });
+  dates.map((date, index) => {
+    result.push({ x: `${date} GMT`, y: data[index] });
+  });
+  return result;
+};
+
 export const createChartData = (label, data, dataLabel) => {
   return {
     labels: label,

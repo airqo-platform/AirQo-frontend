@@ -2,9 +2,6 @@ import React, { useEffect, useState } from "react";
 import { useHistory } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { makeStyles } from "@material-ui/core/styles";
-import AccessTime from "@material-ui/icons/AccessTime";
-// core components
-import Card from "../../Card/Card.js";
 import { Map, TileLayer, Marker, Popup } from "react-leaflet";
 import {
   TableContainer,
@@ -17,8 +14,6 @@ import {
 
 import styles from "assets/jss/material-dashboard-react/views/dashboardStyle.js";
 
-import palette from "assets/theme/palette";
-import { Line, Bar } from "react-chartjs-2";
 import "chartjs-plugin-annotation";
 import { isEmpty } from "underscore";
 import {
@@ -34,13 +29,16 @@ import {
   useDeviceComponentsData,
 } from "redux/DeviceRegistry/selectors";
 import {
+  ApexTimeSeriesData,
   createBarChartData,
-  createChartData,
-  createChartOptions,
 } from "utils/charts";
-import { BarChartIcon, LineChartIcon } from "assets/img";
 import { pearsonCorrelation } from "utils/statistics";
 import Copyable from "views/components/Copy/Copyable";
+import {
+  ApexChart,
+  ChartContainer,
+  timeSeriesChartOptions,
+} from "views/charts";
 
 const useStyles = makeStyles(styles);
 
@@ -52,7 +50,6 @@ export default function DeviceOverview({ deviceData }) {
   const dispatch = useDispatch();
   const devices = useDevicesData();
   const deviceStatus = useDeviceUpTimeData(deviceData.name);
-  const [showBarChart, setShowBarChart] = useState(false);
   const [deviceUptime, setDeviceUptime] = useState({
     bar: { label: [], data: [] },
     line: { label: [], data: [] },
@@ -129,26 +126,6 @@ export default function DeviceOverview({ deviceData }) {
     setDeviceSensorCorrelation({ label, sensor1, sensor2 });
   }, [deviceStatus]);
 
-  const deviceSensorCorrelationData = {
-    labels: deviceSensorCorrelation.label,
-    datasets: [
-      {
-        label: "Sensor One PM2.5",
-        data: deviceSensorCorrelation.sensor1,
-        fill: false,
-        borderColor: palette.primary.main,
-        backgroundColor: "#BCBD22",
-      },
-      {
-        label: "Sensor Two PM2.5",
-        data: deviceSensorCorrelation.sensor2,
-        fill: false,
-        borderColor: palette.primary.main,
-        backgroundColor: "#17BECF",
-      },
-    ],
-  };
-
   function appendLeadingZeroes(n) {
     if (n <= 9) {
       return "0" + n;
@@ -171,6 +148,40 @@ export default function DeviceOverview({ deviceData }) {
     return history.push(`/device/${deviceData.name}/${path}`);
   }
 
+  const deviceUptimeSeries = [
+    {
+      name: "uptime",
+      data: ApexTimeSeriesData(deviceUptime.line.label, deviceUptime.line.data),
+    },
+  ];
+
+  const batteryVoltageSeries = [
+    {
+      name: "voltage",
+      data: ApexTimeSeriesData(
+        deviceBatteryVoltage.label,
+        deviceBatteryVoltage.data
+      ),
+    },
+  ];
+
+  const sensorCorrelationSeries = [
+    {
+      name: "Sensor One PM2.5",
+      data: ApexTimeSeriesData(
+        deviceSensorCorrelation.label,
+        deviceSensorCorrelation.sensor1
+      ),
+    },
+    {
+      name: "Sensor Two PM2.5",
+      data: ApexTimeSeriesData(
+        deviceSensorCorrelation.label,
+        deviceSensorCorrelation.sensor2
+      ),
+    },
+  ];
+
   return (
     <div
       style={{
@@ -180,266 +191,160 @@ export default function DeviceOverview({ deviceData }) {
         justifyContent: "space-around",
       }}
     >
-      <div className={"overview-item-container"} style={{ minWidth: "300px" }}>
-        <h4 className={classes.cardTitleBlue}>Device Details</h4>
-        <Card className={classes.cardBody}>
-          <div
-            alignContent="left"
-            style={{ alignContent: "left", alignItems: "left" }}
+      <ChartContainer title={"device details"} blue>
+        <TableContainer component={Paper}>
+          <Table stickyHeader aria-label="sticky table">
+            <TableBody>
+              <TableRow>
+                <TableCell>
+                  <b>Name</b>
+                </TableCell>
+                <TableCell>{deviceData.name || BLANK_PLACE_HOLDER}</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>
+                  <b>Deployment status</b>
+                </TableCell>
+                <TableCell>
+                  {deviceData.isActive ? (
+                    <span style={{ color: "green" }}>Deployed</span>
+                  ) : (
+                    <span style={{ color: "red" }}>Not deployed</span>
+                  )}
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>
+                  <b>Channel</b>
+                </TableCell>
+                <TableCell>
+                  {deviceData.channelID || BLANK_PLACE_HOLDER}
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>
+                  <b>Owner</b>
+                </TableCell>
+                <TableCell>{deviceData.owner || BLANK_PLACE_HOLDER}</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>
+                  <b>Manufacturer</b>
+                </TableCell>
+                <TableCell>
+                  {deviceData.device_manufacturer || BLANK_PLACE_HOLDER}
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>
+                  <b>ISP</b>
+                </TableCell>
+                <TableCell>{deviceData.ISP || BLANK_PLACE_HOLDER}</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>
+                  <b>Phone Number</b>
+                </TableCell>
+                <TableCell>
+                  {(deviceData.phoneNumber && `0${deviceData.phoneNumber}`) ||
+                    BLANK_PLACE_HOLDER}
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>
+                  <b>Read Key</b>
+                </TableCell>
+                <TableCell>
+                  <Copyable value={deviceData.readKey || BLANK_PLACE_HOLDER} />
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>
+                  <b>Write Key</b>
+                </TableCell>
+                <TableCell>
+                  <Copyable value={deviceData.writeKey || BLANK_PLACE_HOLDER} />
+                </TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </ChartContainer>
+
+      <ChartContainer title={"device location"} green centerItems>
+        {deviceData.latitude && deviceData.longitude ? (
+          <Map
+            center={[deviceData.latitude, deviceData.longitude]}
+            zoom={13}
+            scrollWheelZoom={false}
+            style={{ width: "100%" }}
           >
-            <TableContainer component={Paper}>
-              <Table stickyHeader aria-label="sticky table">
-                <TableBody>
-                  <TableRow>
-                    <TableCell>
-                      <b>Name</b>
-                    </TableCell>
-                    <TableCell>
-                      {deviceData.name || BLANK_PLACE_HOLDER}
-                    </TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>
-                      <b>Deployment status</b>
-                    </TableCell>
-                    <TableCell>
-                      {deviceData.isActive ? (
-                        <span style={{ color: "green" }}>Deployed</span>
-                      ) : (
-                        <span style={{ color: "red" }}>Not deployed</span>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>
-                      <b>Channel</b>
-                    </TableCell>
-                    <TableCell>
-                      {deviceData.channelID || BLANK_PLACE_HOLDER}
-                    </TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>
-                      <b>Owner</b>
-                    </TableCell>
-                    <TableCell>
-                      {deviceData.owner || BLANK_PLACE_HOLDER}
-                    </TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>
-                      <b>Manufacturer</b>
-                    </TableCell>
-                    <TableCell>
-                      {deviceData.device_manufacturer || BLANK_PLACE_HOLDER}
-                    </TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>
-                      <b>ISP</b>
-                    </TableCell>
-                    <TableCell>
-                      {deviceData.ISP || BLANK_PLACE_HOLDER}
-                    </TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>
-                      <b>Phone Number</b>
-                    </TableCell>
-                    <TableCell>
-                      {(deviceData.phoneNumber &&
-                        `0${deviceData.phoneNumber}`) ||
-                        BLANK_PLACE_HOLDER}
-                    </TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>
-                      <b>Read Key</b>
-                    </TableCell>
-                    <TableCell>
-                      <Copyable
-                        value={deviceData.readKey || BLANK_PLACE_HOLDER}
-                      />
-                    </TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>
-                      <b>Write Key</b>
-                    </TableCell>
-                    <TableCell>
-                      <Copyable
-                        value={deviceData.writeKey || BLANK_PLACE_HOLDER}
-                      />
-                    </TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </div>
-        </Card>
-      </div>
+            <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+            <Marker position={[deviceData.latitude, deviceData.longitude]}>
+              <Popup>
+                <span>
+                  <span>{deviceData.name}</span>
+                </span>
+              </Popup>
+            </Marker>
+          </Map>
+        ) : (
+          <span style={{ margin: "auto" }}>
+            Coordinates not set for this device
+          </span>
+        )}
+      </ChartContainer>
 
-      <div className={"overview-item-container"} style={{ minWidth: "300px" }}>
-        <h4 className={classes.cardTitleGreen}>Device Location</h4>
-        <Paper>
-          <Card className={classes.cardBody}>
-            {deviceData.latitude && deviceData.longitude ? (
-              <Map
-                center={[deviceData.latitude, deviceData.longitude]}
-                zoom={13}
-                scrollWheelZoom={false}
-                style={{ width: "100%" }}
-              >
-                <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                <Marker position={[deviceData.latitude, deviceData.longitude]}>
-                  <Popup>
-                    <span>
-                      <span>{deviceData.name}</span>
-                    </span>
-                  </Popup>
-                </Marker>
-              </Map>
-            ) : (
-              <span style={{ margin: "auto" }}>
-                Coordinates not set for this device
-              </span>
-            )}
-          </Card>
-        </Paper>
-      </div>
+      <ApexChart
+        title={"device uptime"}
+        options={timeSeriesChartOptions}
+        series={deviceUptimeSeries}
+        lastUpdated={deviceUptime.created_at}
+        type="area"
+        blue
+      />
 
-      <div className={"overview-item-container"} style={{ minWidth: "300px" }}>
-        <h4 className={classes.cardTitleBlue}>
-          Uptime <span style={{ fontSize: "1rem" }}>(last 28 days)</span>
-          {showBarChart ? (
-            <LineChartIcon
-              className={"uptime-icon"}
-              onClick={() => setShowBarChart(!showBarChart)}
-            />
-          ) : (
-            <BarChartIcon
-              className={"uptime-icon"}
-              onClick={() => setShowBarChart(!showBarChart)}
-            />
-          )}
-        </h4>
-        <Card className={classes.cardBody}>
-          <div className={classes.chartContainer}>
-            {showBarChart ? (
-              <Bar
-                height={"410px"}
-                data={createChartData(
-                  deviceUptime.bar.label,
-                  deviceUptime.bar.data,
-                  "Device Uptime"
-                )}
-                options={createChartOptions("Time Period", "Uptime(%)", {
-                  threshold: 80,
-                })}
-              />
-            ) : (
-              <Line
-                height={"410px"}
-                data={createChartData(
-                  deviceUptime.line.label,
-                  deviceUptime.line.data,
-                  "Device Uptime"
-                )}
-                options={createChartOptions("Time Period", "Uptime(%)", {
-                  threshold: 80,
-                })}
-              />
-            )}
-          </div>
-          <div className={classes.stats}>
-            <AccessTime />
-            <span>
-              Last updated <b>{deviceUptime.created_at || ""}</b>
-            </span>
-          </div>
-        </Card>
-      </div>
+      <ChartContainer title={"maintenance history"} blue>
+        {deviceMaintenanceLogs.length > 0 && (
+          <TableContainer className={classes.table}>
+            <Table
+              stickyHeader
+              aria-label="sticky table"
+              alignItems="left"
+              alignContent="left"
+            >
+              <TableBody>
+                {deviceMaintenanceLogs.map((log, index) => (
+                  <TableRow key={index}>
+                    <TableCell>{formatDate(new Date(log.date))}</TableCell>
+                    <TableCell>
+                      {typeof log.tags === "string"
+                        ? log.tags
+                        : log.tags && log.tags.join(", ")}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
+        {deviceMaintenanceLogs.length <= 0 && <div>No maintenance logs</div>}
+      </ChartContainer>
 
-      <div className={"overview-item-container"} style={{ minWidth: "300px" }}>
-        <h4 className={classes.cardTitleBlue}>Maintenance History</h4>
-        <Card
-          className={classes.cardBody}
-          style={{ cursor: "pointer" }}
-          onClick={() => goTo("maintenance-logs")}
-        >
-          <div
-            alignContent="left"
-            style={{ alignContent: "left", alignItems: "left" }}
-          >
-            <TableContainer component={Paper} className={classes.table}>
-              <Table
-                stickyHeader
-                aria-label="sticky table"
-                alignItems="left"
-                alignContent="left"
-              >
-                <TableBody>
-                  {deviceMaintenanceLogs.map((log, index) => (
-                    <TableRow key={index}>
-                      <TableCell>{formatDate(new Date(log.date))}</TableCell>
-                      <TableCell>
-                        {typeof log.tags === "string"
-                          ? log.tags
-                          : log.tags && log.tags.join(", ")}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </div>
-          {deviceMaintenanceLogs.length <= 0 && (
-            <span style={{ margin: "auto" }}>No maintenance logs</span>
-          )}
-        </Card>
-      </div>
-
-      <div className={"overview-item-container"} style={{ minWidth: "300px" }}>
-        <h4
-          className={classes.cardTitleGreen}
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            justifyContent: "center",
-            alignItems: "baseline",
-          }}
-        >
-          <span>Battery Voltage </span>
-          <span style={{ fontSize: "1rem" }}>(last 28 days)</span>
-        </h4>
-        <Card className={classes.cardBody}>
-          <div className={classes.chartContainer}>
-            <Line
-              height={"410px"}
-              data={createChartData(
-                deviceBatteryVoltage.label,
-                deviceBatteryVoltage.data,
-                "Device Voltage"
-              )}
-              options={createChartOptions("Date", "Voltage")}
-            />
-          </div>
-        </Card>
-      </div>
-
-      <div className={"overview-item-container"} style={{ minWidth: "300px" }}>
-        <h4 className={classes.cardTitleBlue}>
-          Sensor Correlation{" "}
-          <span style={{ fontSize: "1rem" }}>(last 28 days)</span>
-        </h4>
-        <Card className={classes.cardBody}>
-          <div className={classes.chartContainer}>
-            <Line
-              height={"410px"}
-              data={deviceSensorCorrelationData}
-              options={createChartOptions("Date", "PM2.5(µg/m3)")}
-            />
-          </div>
+      <ApexChart
+        title={"battery voltage"}
+        options={timeSeriesChartOptions}
+        series={batteryVoltageSeries}
+        type="area"
+        green
+      />
+      <ApexChart
+        title={"sensor correlation"}
+        options={timeSeriesChartOptions}
+        series={sensorCorrelationSeries}
+        type="area"
+        blue
+        footerContent={
           <div className={classes.stats}>
             Pearson Correlation Value:&nbsp;
             <b>
@@ -449,43 +354,35 @@ export default function DeviceOverview({ deviceData }) {
               ).toFixed(4)}
             </b>
           </div>
-        </Card>
-      </div>
+        }
+      />
 
-      <div className={"overview-item-container"} style={{ minWidth: "300px" }}>
-        <h4 className={classes.cardTitleBlue}>Device Components</h4>
-        <Card className={classes.cardBody} onClick={() => goTo("components")}>
-          <div
-            alignContent="left"
-            style={{ alignContent: "left", alignItems: "left" }}
-          >
-            <TableContainer component={Paper} className={classes.table}>
-              <Table
-                stickyHeader
-                aria-label="sticky table"
-                alignItems="left"
-                alignContent="left"
-                style={{ cursor: "pointer" }}
-                onClick={() => goTo("components")}
-              >
-                <TableBody style={{ alignContent: "left", alignItems: "left" }}>
-                  {deviceComponents.map((component, index) => (
-                    <TableRow key={index} style={{ align: "left" }}>
-                      <TableCell>{component.description}</TableCell>
-                      <TableCell>
-                        {jsonArrayToString(component.measurement)}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </div>
-          {deviceComponents.length <= 0 && (
-            <span style={{ margin: "auto" }}>No components</span>
-          )}
-        </Card>
-      </div>
+      <ChartContainer title={"device components"} blue centerItems>
+        {deviceComponents.length > 0 && (
+          <TableContainer className={classes.table}>
+            <Table
+              stickyHeader
+              aria-label="sticky table"
+              alignItems="left"
+              alignContent="left"
+              style={{ cursor: "pointer" }}
+              onClick={() => goTo("components")}
+            >
+              <TableBody style={{ alignContent: "left", alignItems: "left" }}>
+                {deviceComponents.map((component, index) => (
+                  <TableRow key={index} style={{ align: "left" }}>
+                    <TableCell>{component.description}</TableCell>
+                    <TableCell>
+                      {jsonArrayToString(component.measurement)}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
+        {deviceComponents.length <= 0 && <div>No components</div>}
+      </ChartContainer>
     </div>
   );
 }
