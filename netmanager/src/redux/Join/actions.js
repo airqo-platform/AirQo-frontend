@@ -133,7 +133,7 @@ export const fetchCandidates = id => {
     return axios
         .get(GET_CANDIDATES_URI)
         .then(response => response.data)
-        .then(data => dispatch(fetchCandidatesSuccess(data.users, data.message)))
+        .then(data => dispatch(fetchCandidatesSuccess(data.candidates, data.message)))
         .catch(err => dispatch(fetchCandidatesFailed(err.response.data)))
   };
 };
