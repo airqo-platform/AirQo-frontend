@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { NavController, LoadingController, ToastController, AlertController, } from 'ionic-angular';
+import { NavController, LoadingController, AlertController, } from 'ionic-angular';
 import { Storage } from '@ionic/storage';
 import { HttpClient } from '@angular/common/http';
 import { ApiProvider } from '../../providers/api/api';
@@ -13,11 +13,12 @@ export class FeedbackPage {
 
   user: any = {};
   feedback: any = {};
+  loader;
 
   feedback_api    = `${this.api.api_endpoint}/airqoFeedback`;
 
   constructor(private navCtrl: NavController, private storage: Storage, private http: HttpClient, private loadingCtrl: LoadingController, 
-    private alertCtrl: AlertController, private toastCtrl: ToastController, public api: ApiProvider) {
+    private alertCtrl: AlertController, public api: ApiProvider) {
   }
 
 
@@ -40,7 +41,7 @@ export class FeedbackPage {
   // --------------------------------------------------------------------------------------------------------------------
   getUserInfo() {
     this.storage.get('user_data').then((val) => {
-      if(val && val != null && val != '') {
+      if(val && val != '') {
         this.user = val;
       }
     });
@@ -89,7 +90,7 @@ export class FeedbackPage {
   // Submit Feedback
   // --------------------------------------------------------------------------------------------------------------------
   submitFeedback(params) {
-    let loader = this.loadingCtrl.create({
+    this.loader = this.loadingCtrl.create({
       spinner: 'dots',
       content: 'Please wait...',
       enableBackdropDismiss: false,
@@ -97,39 +98,55 @@ export class FeedbackPage {
       showBackdrop: true
     });
 
-    loader.present().then(() => {
-      this.http.post(this.feedback_api, params).subscribe((result: any) => {
-        console.log(result);
-        loader.dismiss();
-        if(result.success == "100"){
-          this.feedback.email     = "";
-          this.feedback.subject   = "";
-          this.feedback.body      = "";
+    this.loader.present();
 
-          this.alertCtrl.create({
-            title: result.title,
-            message: result.message,
-            buttons: [
-              {
-                text: 'Okay',
-                handler: data => {
-                  this.navCtrl.setRoot(HomePage);
-                }
-              },
-            ]
-          }).present();
-        } else {
-          this.alertCtrl.create({
-            title: result.title,
-            message: result.message,
-            buttons: ['Okay']
-          }).present();
-        }
-      }, (err) => {
-        loader.dismiss();
-        this.api.networkErrorMessage();
-      });
+    this.http.post(this.feedback_api, params).subscribe((result: any) => {
+      console.log(result);
+      this.loader.dismiss();
+      if(result.success == 100){
+        this.feedback.email     = "";
+        this.feedback.subject   = "";
+        this.feedback.body      = "";
+
+        this.alertCtrl.create({
+          title: 'Feedback received',
+          message: 'Thank you for your feedback',
+          buttons: [
+            {
+              text: 'Okay',
+              handler: data => {
+                this.goToHome();
+              }
+            },
+          ]
+        }).present();
+      }
+      else {
+        this.alertCtrl.create({
+          title: result.title,
+          message: result.message,
+          buttons: ['Okay']
+        }).present();
+      }
+    }, (err) => {
+
+
+      if(this.loader){
+        this.loader .dismiss();
+      }
+
+      this.api.networkErrorMessage();
     });
+
+  }
+
+  goToHome(){
+    if(this.loader){
+      this.loader .dismiss();
+      this.loader  = null;
+
+      this.navCtrl.push(HomePage);
+    }
   }
 
 }
