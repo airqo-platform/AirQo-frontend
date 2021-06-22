@@ -12,6 +12,7 @@ import { isEmpty, isEqual } from "underscore";
 import { updateMainAlert } from "redux/MainAlert/operations";
 import { updateDeviceDetails } from "views/apis/deviceRegistry";
 import { updateDevice } from "redux/DeviceRegistry/operations";
+import { capitalize } from "utils/string";
 
 const transformLocationOptions = (locationsData) => {
   const transFormedOptions = [];
@@ -283,7 +284,7 @@ export default function DeviceEdit({ deviceData, locationsData }) {
               <InputLabel htmlFor="demo-dialog-native">Power Type</InputLabel>
               <Select
                 native
-                value={editData.powerType}
+                value={capitalize(editData.powerType)}
                 onChange={handleSelectFieldChange("powerType")}
                 inputProps={{
                   native: true,
