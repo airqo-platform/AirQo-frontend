@@ -1,15 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import PropTypes from "prop-types";
-import { Link } from "react-router-dom";
+import { useHistory } from "react-router-dom";
 import { makeStyles } from "@material-ui/styles";
 import LoadingOverlay from "react-loading-overlay";
 import "../../../assets/css/location-registry.css";
 import { isEmpty } from "underscore";
-import { useLocationsData } from "redux/LocationRegistry/selectors";
-import { loadLocationsData } from "redux/LocationRegistry/operations";
 import { loadSitesData } from "redux/SiteRegistry/operations";
-import { useSitesData } from "redux/SiteRegistry/selectors";
+import { useSitesArrayData } from "redux/SiteRegistry/selectors";
 import CustomMaterialTable from "../Table/CustomMaterialTable";
 
 const useStyles = makeStyles((theme) => ({
@@ -43,9 +41,9 @@ const SitesTable = (props) => {
   const { className, users, ...rest } = props;
 
   const classes = useStyles();
-
+  const history = useHistory();
   const dispatch = useDispatch();
-  const sites = useSitesData();
+  const sites = useSitesArrayData();
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -61,7 +59,7 @@ const SitesTable = (props) => {
   return (
     <LoadingOverlay active={isLoading} spinner text="Loading Locations...">
       <CustomMaterialTable
-        className={classes.table}
+        pointerCursor
         userPreferencePaginationKey={"sites"}
         title="Site Registry"
         columns={[
@@ -108,6 +106,10 @@ const SitesTable = (props) => {
             cellStyle: { fontFamily: "Open Sans" },
           },
         ]}
+        onRowClick={(event, data) => {
+          event.preventDefault();
+          history.push(`/sites/${data._id}`);
+        }}
         data={sites}
         options={{
           search: true,
