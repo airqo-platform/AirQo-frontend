@@ -57,3 +57,8 @@ export const getFirstDuration = (dateTimeStr) => {
   const [seconds, durations] = getElapsedDurationMapper(dateTimeStr);
   return [seconds, getFirstNDurations(durations, 1)];
 };
+
+export const humanReadableDate = (dateString) => {
+  const options = { year: "numeric", month: "long", day: "numeric" };
+  return new Date(dateString).toLocaleDateString(undefined, options);
+};

@@ -13,7 +13,6 @@ import {
   DialogContent,
   DialogTitle,
 } from "@material-ui/core";
-import LoadingOverlay from "react-loading-overlay";
 import TextField from "@material-ui/core/TextField";
 import Select from "@material-ui/core/Select";
 import FormControl from "@material-ui/core/FormControl";
@@ -21,16 +20,17 @@ import InputLabel from "@material-ui/core/InputLabel";
 import DeleteIcon from "@material-ui/icons/DeleteOutlineOutlined";
 import EditIcon from "@material-ui/icons/EditOutlined";
 import Tooltip from "@material-ui/core/Tooltip";
-import { deleteDeviceApi } from "../../apis/deviceRegistry";
+import { deleteDeviceApi } from "views/apis/deviceRegistry";
 import { loadDevicesData } from "redux/DeviceRegistry/operations";
 import { useDevicesData } from "redux/DeviceRegistry/selectors";
-import { useLocationsData } from "redux/LocationRegistry/selectors";
-import { loadLocationsData } from "redux/LocationRegistry/operations";
 import { updateMainAlert } from "redux/MainAlert/operations";
 import { updateDeviceBackUrl } from "redux/Urls/operations";
 import CustomMaterialTable from "../Table/CustomMaterialTable";
 import ConfirmDialog from "views/containers/ConfirmDialog";
 import { REGISTER_DEVICE_URI } from "config/urls/deviceRegistry";
+import { humanReadableDate } from "utils/dateTime";
+import { useSitesData } from "redux/SiteRegistry/selectors";
+import { loadSitesData } from "redux/SiteRegistry/operations";
 
 // css
 import "assets/css/device-registry.css";
@@ -104,63 +104,40 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-function appendLeadingZeroes(n) {
-  if (n <= 9) {
-    return "0" + n;
-  }
-  return n;
-}
-
-let formatDate = (date) => {
-  let time =
-    appendLeadingZeroes(date.getDate()) +
-    "-" +
-    appendLeadingZeroes(date.getMonth() + 1) +
-    "-" +
-    date.getFullYear();
-
-  return time;
-};
-
-const Cell = ({ fieldValue, data }) => {
-  const history = useHistory();
-  return (
-    <div
-      style={{ minHeight: "20px" }}
-      onClick={() => history.push(`/device/${data.name}/overview`)}
-    >
-      {fieldValue || "N/A"}
-    </div>
-  );
+const Cell = ({ fieldValue }) => {
+  return <div>{fieldValue || "N/A"}</div>;
 };
 
 const createDeviceColumns = (history, setDelState) => [
   {
     title: "Device Name",
     field: "name",
-    render: (data) => <Cell data={data} fieldValue={data.name} />,
   },
   {
     title: "Description",
     field: "description",
-    render: (data) => <Cell data={data} fieldValue={data.description} />,
+  },
+  {
+    title: "Site",
+    field: "site",
+    render: (data) => <Cell fieldValue={data.site && data.site.description} />,
   },
 
   {
     title: "Site Name",
     field: "siteName",
-    render: (data) => <Cell data={data} fieldValue={data.siteName} />,
+    render: (data) => <Cell fieldValue={data.siteName} />,
   },
   {
     title: "Location Name",
     field: "locationName",
-    render: (data) => <Cell data={data} fieldValue={data.locationName} />,
+    render: (data) => <Cell fieldValue={data.locationName} />,
   },
   {
     title: "Registration Date",
     field: "createdAt",
     render: (data) => (
-      <Cell data={data} fieldValue={formatDate(new Date(data.createdAt))} />
+      <Cell data={data} fieldValue={humanReadableDate(data.createdAt)} />
     ),
   },
   {
@@ -168,7 +145,6 @@ const createDeviceColumns = (history, setDelState) => [
     field: "isActive",
     render: (data) => (
       <Cell
-        data={data}
         fieldValue={
           data.isActive ? (
             <span style={{ color: "green" }}>Deployed</span>
@@ -188,7 +164,11 @@ const createDeviceColumns = (history, setDelState) => [
           <EditIcon
             className={"hover-blue"}
             style={{ margin: "0 5px" }}
-            onClick={() => history.push(`/device/${rowData.name}/edit`)}
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              history.push(`/device/${rowData.name}/edit`);
+            }}
           />
         </Tooltip>
         <Tooltip title="Delete">
@@ -196,7 +176,10 @@ const createDeviceColumns = (history, setDelState) => [
             // className={"hover-red"}
             style={{ margin: "0 5px", cursor: "not-allowed", color: "grey" }}
             // disable deletion for now
-            // onClick={() => setDelState({ open: true, name: rowData.name })}
+            // onClick={(event) => {
+            //   event.stopPropagation();
+            //   setDelState({ open: true, name: rowData.name });
+            // }}
           />
         </Tooltip>
       </div>
@@ -406,9 +389,8 @@ const DevicesTable = (props) => {
   const location = useLocation();
   const dispatch = useDispatch();
   const devices = useDevicesData();
-  const locations = useLocationsData();
+  const sites = useSitesData();
   const [deviceList, setDeviceList] = useState(Object.values(devices));
-  const [isLoading, setIsLoading] = useState(false);
 
   const [delDevice, setDelDevice] = useState({ open: false, name: "" });
 
@@ -450,12 +432,10 @@ const DevicesTable = (props) => {
 
   useEffect(() => {
     if (isEmpty(devices)) {
-      setIsLoading(true);
       dispatch(loadDevicesData());
-      setIsLoading(false);
     }
-    if (isEmpty(locations)) {
-      dispatch(loadLocationsData());
+    if (isEmpty(sites)) {
+      dispatch(loadSitesData());
     }
     dispatch(updateDeviceBackUrl(location.pathname));
   }, []);
@@ -487,31 +467,30 @@ const DevicesTable = (props) => {
       </div>
       <br />
 
-      <LoadingOverlay active={isLoading} spinner text="Loading Devices...">
-        <div className={classes.tableWrapper}>
-          <CustomMaterialTable
-            className={classes.table}
-            title="Device Registry"
-            userPreferencePaginationKey={"devices"}
-            columns={deviceColumns}
-            data={deviceList}
-            options={{
-              search: true,
-              exportButton: true,
-              searchFieldAlignment: "left",
-              showTitle: false,
-              searchFieldStyle: {
-                fontFamily: "Open Sans",
-              },
-              headerStyle: {
-                fontFamily: "Open Sans",
-                fontSize: 16,
-                fontWeight: 600,
-              },
-            }}
-          />
-        </div>
-      </LoadingOverlay>
+      <CustomMaterialTable
+        title="Device Registry"
+        userPreferencePaginationKey={"devices"}
+        columns={deviceColumns}
+        data={deviceList}
+        onRowClick={(event, rowData) => {
+          event.preventDefault();
+          return history.push(`/device/${rowData.name}/overview`);
+        }}
+        options={{
+          search: true,
+          exportButton: true,
+          searchFieldAlignment: "left",
+          showTitle: false,
+          searchFieldStyle: {
+            fontFamily: "Open Sans",
+          },
+          headerStyle: {
+            fontFamily: "Open Sans",
+            fontSize: 16,
+            fontWeight: 600,
+          },
+        }}
+      />
 
       <CreateDevice
         open={registerOpen}
