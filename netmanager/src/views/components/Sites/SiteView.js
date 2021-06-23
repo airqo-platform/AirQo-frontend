@@ -26,6 +26,220 @@ const Cell = ({ fieldValue }) => {
   return <div>{fieldValue || "N/A"}</div>;
 };
 
+const SiteForm = ({ site }) => {
+  return (
+    <Paper
+      style={{
+        margin: "0 auto",
+        minHeight: "400px",
+        padding: "20px 20px",
+        maxWidth: "1500px",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          fontSize: "1.2rem",
+          fontWeight: "bold",
+          margin: "20px 0",
+        }}
+      >
+        Site Details
+      </div>
+      <Grid container spacing={1}>
+        <Grid items xs={12} sm={6} style={gridItemStyle}>
+          <TextField
+            id="name"
+            label="name"
+            value={site.name || site.description}
+            // onChange={handleTextFieldChange}
+            fullWidth
+            required
+            // disabled
+          />
+        </Grid>
+        <Grid items xs={12} sm={6} style={gridItemStyle}>
+          <TextField
+            id="description"
+            label="Description"
+            value={site.description}
+            // onChange={handleTextFieldChange}
+            fullWidth
+            required
+          />
+        </Grid>
+        <Grid items xs={12} sm={6} style={gridItemStyle}>
+          <TextField
+            id="latitude"
+            label="Latitude"
+            value={site.latitude}
+            // onChange={handleTextFieldChange}
+            fullWidth
+            required
+          />
+        </Grid>
+        <Grid items xs={12} sm={6} style={gridItemStyle}>
+          <TextField
+            id="longitude"
+            label="Longitude"
+            value={site.longitude}
+            // onChange={handleTextFieldChange}
+            fullWidth
+          />
+        </Grid>
+        <Grid items xs={12} sm={6} style={gridItemStyle}>
+          <TextField
+            id="parish"
+            label="Parish"
+            value={site.parish}
+            // onChange={handleTextFieldChange}
+            fullWidth
+          />
+        </Grid>
+        <Grid items xs={12} sm={6} style={gridItemStyle}>
+          <TextField
+            id="sub_county"
+            label="Sub County"
+            value={site.sub_county}
+            // onChange={handleTextFieldChange}
+            fullWidth
+          />
+        </Grid>
+        <Grid items xs={12} sm={6} style={gridItemStyle}>
+          <TextField
+            id="district"
+            label="District"
+            value={site.district}
+            // onChange={handleTextFieldChange}
+            fullWidth
+            required
+          />
+        </Grid>
+        <Grid items xs={12} sm={6} style={gridItemStyle}>
+          <TextField
+            id="region"
+            label="Region"
+            value={site.region}
+            // onChange={handleTextFieldChange}
+            fullWidth
+          />
+        </Grid>
+        <Grid items xs={12} sm={6} style={gridItemStyle}>
+          <TextField
+            id="altitude"
+            label="Altitude"
+            value={site.altitude}
+            // onChange={handleTextFieldChange}
+            fullWidth
+            required
+          />
+        </Grid>
+        <Grid items xs={12} sm={6} style={gridItemStyle}>
+          <TextField
+            id="greenness"
+            label="Greenness"
+            value={site.greenness}
+            // onChange={handleTextFieldChange}
+            fullWidth
+          />
+        </Grid>
+        <Grid items xs={12} sm={6} style={gridItemStyle}>
+          <TextField
+            id="distance_to_nearest_road"
+            label="Nearest road (distance)"
+            value={site.distance_to_nearest_road}
+            // onChange={handleTextFieldChange}
+            fullWidth
+          />
+        </Grid>
+        <Grid items xs={12} sm={6} style={gridItemStyle}>
+          <TextField
+            id="distance_to_nearest_primary_road"
+            label="Nearest primary road (distance)"
+            value={site.distance_to_nearest_primary_road}
+            // onChange={handleTextFieldChange}
+            fullWidth
+          />
+        </Grid>
+        <Grid items xs={12} sm={6} style={gridItemStyle}>
+          <TextField
+            id="distance_to_nearest_tertiary_road"
+            label="Nearest tertiary road (distance)"
+            value={site.distance_to_nearest_tertiary_road}
+            // onChange={handleTextFieldChange}
+            fullWidth
+          />
+        </Grid>
+        <Grid items xs={12} sm={6} style={gridItemStyle}>
+          <TextField
+            id="distance_to_nearest_unclassified_road"
+            label="Nearest unclassified road (distance)"
+            value={site.distance_to_nearest_unclassified_road}
+            // onChange={handleTextFieldChange}
+            fullWidth
+          />
+        </Grid>
+        <Grid items xs={12} sm={6} style={gridItemStyle}>
+          <TextField
+            id="distance_to_nearest_residential_area"
+            label="Nearest residential area"
+            value={site.distance_to_nearest_residential_area}
+            // onChange={handleTextFieldChange}
+            fullWidth
+          />
+        </Grid>
+        <Grid items xs={12} sm={6} style={gridItemStyle}>
+          <TextField
+            id="bearing_to_kampala_center"
+            label="Bearing to Kampala center"
+            value={site.bearing_to_kampala_center}
+            // onChange={handleTextFieldChange}
+            fullWidth
+          />
+        </Grid>
+        <Grid items xs={12} sm={6} style={gridItemStyle}>
+          <TextField
+            id="distance_to_kampala_center"
+            label="Distance to Kampala center"
+            value={site.distance_to_kampala_center}
+            // onChange={handleTextFieldChange}
+            fullWidth
+          />
+        </Grid>
+
+        {/*<Grid*/}
+        {/*  container*/}
+        {/*  alignItems="flex-end"*/}
+        {/*  alignContent="flex-end"*/}
+        {/*  justify="flex-end"*/}
+        {/*  xs={12}*/}
+        {/*  style={{ margin: "10px 0" }}*/}
+        {/*>*/}
+        {/*  <Button*/}
+        {/*    variant="contained"*/}
+        {/*    onClick={() => setEditData(deviceData)}*/}
+        {/*  >*/}
+        {/*    Cancel*/}
+        {/*  </Button>*/}
+
+        {/*  <Button*/}
+        {/*    variant="contained"*/}
+        {/*    color="primary"*/}
+        {/*    disabled={weightedBool(*/}
+        {/*      editLoading,*/}
+        {/*      isEqual(deviceData, editData)*/}
+        {/*    )}*/}
+        {/*    onClick={handleEditSubmit}*/}
+        {/*    style={{ marginLeft: "10px" }}*/}
+        {/*  >*/}
+        {/*    Edit device*/}
+        {/*  </Button>*/}
+        {/*</Grid>*/}
+      </Grid>
+    </Paper>
+  );
+};
+
 const SiteView = (props) => {
   const { className, ...rest } = props;
   useInitScrollTop();
@@ -50,217 +264,7 @@ const SiteView = (props) => {
         margin: " 20px auto",
       }}
     >
-      <div>
-        <Paper
-          style={{
-            margin: "0 auto",
-            minHeight: "400px",
-            padding: "20px 20px",
-            maxWidth: "1500px",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              fontSize: "1.2rem",
-              fontWeight: "bold",
-              margin: "20px 0",
-            }}
-          >
-            Site Details
-          </div>
-          <Grid container spacing={1}>
-            <Grid items xs={12} sm={6} style={gridItemStyle}>
-              <TextField
-                id="name"
-                label="name"
-                value={site.name || site.description}
-                // onChange={handleTextFieldChange}
-                fullWidth
-                required
-                // disabled
-              />
-            </Grid>
-            <Grid items xs={12} sm={6} style={gridItemStyle}>
-              <TextField
-                id="description"
-                label="Description"
-                value={site.description}
-                // onChange={handleTextFieldChange}
-                fullWidth
-                required
-              />
-            </Grid>
-            <Grid items xs={12} sm={6} style={gridItemStyle}>
-              <TextField
-                id="latitude"
-                label="Latitude"
-                value={site.latitude}
-                // onChange={handleTextFieldChange}
-                fullWidth
-                required
-              />
-            </Grid>
-            <Grid items xs={12} sm={6} style={gridItemStyle}>
-              <TextField
-                id="longitude"
-                label="Longitude"
-                value={site.longitude}
-                // onChange={handleTextFieldChange}
-                fullWidth
-              />
-            </Grid>
-            <Grid items xs={12} sm={6} style={gridItemStyle}>
-              <TextField
-                id="parish"
-                label="Parish"
-                value={site.parish}
-                // onChange={handleTextFieldChange}
-                fullWidth
-              />
-            </Grid>
-            <Grid items xs={12} sm={6} style={gridItemStyle}>
-              <TextField
-                id="sub_county"
-                label="Sub County"
-                value={site.sub_county}
-                // onChange={handleTextFieldChange}
-                fullWidth
-              />
-            </Grid>
-            <Grid items xs={12} sm={6} style={gridItemStyle}>
-              <TextField
-                id="district"
-                label="District"
-                value={site.district}
-                // onChange={handleTextFieldChange}
-                fullWidth
-                required
-              />
-            </Grid>
-            <Grid items xs={12} sm={6} style={gridItemStyle}>
-              <TextField
-                id="region"
-                label="Region"
-                value={site.region}
-                // onChange={handleTextFieldChange}
-                fullWidth
-              />
-            </Grid>
-            <Grid items xs={12} sm={6} style={gridItemStyle}>
-              <TextField
-                id="altitude"
-                label="Altitude"
-                value={site.altitude}
-                // onChange={handleTextFieldChange}
-                fullWidth
-                required
-              />
-            </Grid>
-            <Grid items xs={12} sm={6} style={gridItemStyle}>
-              <TextField
-                id="greenness"
-                label="Greenness"
-                value={site.greenness}
-                // onChange={handleTextFieldChange}
-                fullWidth
-              />
-            </Grid>
-            <Grid items xs={12} sm={6} style={gridItemStyle}>
-              <TextField
-                id="distance_to_nearest_road"
-                label="Nearest road (distance)"
-                value={site.distance_to_nearest_road}
-                // onChange={handleTextFieldChange}
-                fullWidth
-              />
-            </Grid>
-            <Grid items xs={12} sm={6} style={gridItemStyle}>
-              <TextField
-                id="distance_to_nearest_primary_road"
-                label="Nearest primary road (distance)"
-                value={site.distance_to_nearest_primary_road}
-                // onChange={handleTextFieldChange}
-                fullWidth
-              />
-            </Grid>
-            <Grid items xs={12} sm={6} style={gridItemStyle}>
-              <TextField
-                id="distance_to_nearest_tertiary_road"
-                label="Nearest tertiary road (distance)"
-                value={site.distance_to_nearest_tertiary_road}
-                // onChange={handleTextFieldChange}
-                fullWidth
-              />
-            </Grid>
-            <Grid items xs={12} sm={6} style={gridItemStyle}>
-              <TextField
-                id="distance_to_nearest_unclassified_road"
-                label="Nearest unclassified road (distance)"
-                value={site.distance_to_nearest_unclassified_road}
-                // onChange={handleTextFieldChange}
-                fullWidth
-              />
-            </Grid>
-            <Grid items xs={12} sm={6} style={gridItemStyle}>
-              <TextField
-                id="distance_to_nearest_residential_area"
-                label="Nearest residential area"
-                value={site.distance_to_nearest_residential_area}
-                // onChange={handleTextFieldChange}
-                fullWidth
-              />
-            </Grid>
-            <Grid items xs={12} sm={6} style={gridItemStyle}>
-              <TextField
-                id="bearing_to_kampala_center"
-                label="Bearing to Kampala center"
-                value={site.bearing_to_kampala_center}
-                // onChange={handleTextFieldChange}
-                fullWidth
-              />
-            </Grid>
-            <Grid items xs={12} sm={6} style={gridItemStyle}>
-              <TextField
-                id="distance_to_kampala_center"
-                label="Distance to Kampala center"
-                value={site.distance_to_kampala_center}
-                // onChange={handleTextFieldChange}
-                fullWidth
-              />
-            </Grid>
-
-            {/*<Grid*/}
-            {/*  container*/}
-            {/*  alignItems="flex-end"*/}
-            {/*  alignContent="flex-end"*/}
-            {/*  justify="flex-end"*/}
-            {/*  xs={12}*/}
-            {/*  style={{ margin: "10px 0" }}*/}
-            {/*>*/}
-            {/*  <Button*/}
-            {/*    variant="contained"*/}
-            {/*    onClick={() => setEditData(deviceData)}*/}
-            {/*  >*/}
-            {/*    Cancel*/}
-            {/*  </Button>*/}
-
-            {/*  <Button*/}
-            {/*    variant="contained"*/}
-            {/*    color="primary"*/}
-            {/*    disabled={weightedBool(*/}
-            {/*      editLoading,*/}
-            {/*      isEqual(deviceData, editData)*/}
-            {/*    )}*/}
-            {/*    onClick={handleEditSubmit}*/}
-            {/*    style={{ marginLeft: "10px" }}*/}
-            {/*  >*/}
-            {/*    Edit device*/}
-            {/*  </Button>*/}
-            {/*</Grid>*/}
-          </Grid>
-        </Paper>
-      </div>
+      <SiteForm site={site} key={`${site._id}`} />
 
       <div>
         <Paper
