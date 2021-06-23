@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import PropTypes from "prop-types";
 import axios from "axios";
-import { useHistory, useLocation } from "react-router-dom";
+import { Link, useHistory, useLocation } from "react-router-dom";
 import { makeStyles } from "@material-ui/styles";
 import { isEmpty } from "underscore";
 import {
@@ -120,7 +120,22 @@ const createDeviceColumns = (history, setDelState) => [
   {
     title: "Site",
     field: "site",
-    render: (data) => <Cell fieldValue={data.site && data.site.description} />,
+    render: (data) => (
+      <Cell
+        fieldValue={
+          data.site && (
+            <Link
+              to={`/sites/${data.site._id}`}
+              onClick={(event) => {
+                event.stopPropagation();
+              }}
+            >
+              {data.site && data.site.description}
+            </Link>
+          )
+        }
+      />
+    ),
   },
 
   {
