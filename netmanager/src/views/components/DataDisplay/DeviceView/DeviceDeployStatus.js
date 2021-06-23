@@ -189,7 +189,7 @@ const RecallDevice = ({ deviceData, handleRecall, open, toggleOpen }) => {
 
 const DeviceRecentFeedView = ({ recentFeed, runReport }) => {
   const classes = useStyles();
-  const feedKeys = Object.keys(omit(recentFeed, "isCache", "created_at"));
+  const feedKeys = Object.keys(omit(recentFeed, "isCache", "created_at", "errors"));
   const [
     elapsedDurationSeconds,
     elapsedDurationMapper,
@@ -308,6 +308,7 @@ export default function DeviceDeployStatus({ deviceData }) {
   const [runReport, setRunReport] = useState({
     ranTest: false,
     successfulTestRun: false,
+    error: false,
   });
   const [deviceTestLoading, setDeviceTestLoading] = useState(false);
   const [manualCoordinate, setManualCoordinate] = useState(false);
@@ -370,10 +371,10 @@ export default function DeviceDeployStatus({ deviceData }) {
     await getDeviceRecentFeedByChannelIdApi(deviceData.channelID)
       .then((responseData) => {
         setRecentFeed(responseData);
-        setRunReport({ ranTest: true, successfulTestRun: true });
+        setRunReport({ ranTest: true, successfulTestRun: true, error: false });
       })
       .catch((err) => {
-        setRunReport({ ranTest: true, successfulTestRun: false });
+        setRunReport({ ranTest: true, successfulTestRun: false, error: true });
       });
     setDeviceTestLoading(false);
   };
@@ -798,6 +799,19 @@ export default function DeviceDeployStatus({ deviceData }) {
                 recentFeed={recentFeed}
                 runReport={runReport}
               />
+            )}
+            {runReport.error && (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  height: "100%",
+                  color: "red",
+                }}
+              >
+                Could not fetch device feeds
+              </div>
             )}
           </Grid>
 
