@@ -317,7 +317,9 @@ export default function DeviceDeployStatus({ deviceData }) {
     value: (deviceData.site && deviceData.site._id) || "",
     label:
       (deviceData.site &&
-        (deviceData.site.name || deviceData.site.description || deviceData.site.generated_name)) ||
+        (deviceData.site.name ||
+          deviceData.site.description ||
+          deviceData.site.generated_name)) ||
       "",
   });
   const [deployLoading, setDeployLoading] = useState(false);
@@ -377,12 +379,23 @@ export default function DeviceDeployStatus({ deviceData }) {
   };
 
   const checkErrors = () => {
-    const state = { height, installationType, power, longitude, latitude };
+    const state = {
+      height,
+      installationType,
+      power,
+      longitude,
+      latitude,
+      site,
+    };
     let newErrors = {};
 
     Object.keys(state).map((key) => {
       if (isEmpty(state[key])) {
         newErrors[key] = "This field is required";
+      }
+      if (key === "site") {
+        if (!state[key].value && !state[key].label)
+          newErrors[key] = "This field is required";
       }
     });
     ["longitude", "latitude"].map((key) => {
@@ -561,6 +574,17 @@ export default function DeviceDeployStatus({ deviceData }) {
                   setSite(newValue);
                 }}
               />
+              {errors.site && (
+                <div
+                  style={{
+                    color: "red",
+                    textAlign: "left",
+                    fontSize: "0.7rem",
+                  }}
+                >
+                  {errors.site}
+                </div>
+              )}
             </div>
 
             <TextField
