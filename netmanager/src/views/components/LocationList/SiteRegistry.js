@@ -1,7 +1,7 @@
 import React from "react";
 import { makeStyles } from "@material-ui/styles";
 
-import { LocationsToolbar, LocationsTable } from "./index";
+import { LocationsToolbar, SitesTable } from "./index";
 import "assets/css/location-registry.css";
 
 const useStyles = makeStyles((theme) => ({
@@ -20,17 +20,17 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const LocationList = () => {
+const SiteRegistry = () => {
   const classes = useStyles();
 
   return (
     <div className={classes.root}>
       <LocationsToolbar />
       <div className={classes.content}>
-        <LocationsTable />
+        <SitesTable />
       </div>
     </div>
   );
 };
 
-export default LocationList;
+export default SiteRegistry;
