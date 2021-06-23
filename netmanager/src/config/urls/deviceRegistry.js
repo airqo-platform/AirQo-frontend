@@ -40,3 +40,5 @@ export const DELETE_DEVICE_PHOTO = `${BASE_DEVICE_REGISTRY_URL}/devices/photos`;
 export const RECALL_DEVICE_URI = `${BASE_DEVICE_REGISTRY_URL}/devices/ts/activity/recall`;
 
 export const EVENTS = `${BASE_DEVICE_REGISTRY_URL}/devices/events`;
+
+export const SITES = `${BASE_DEVICE_REGISTRY_URL}/devices/sites`;

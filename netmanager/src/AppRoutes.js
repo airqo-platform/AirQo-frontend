@@ -26,7 +26,7 @@ const Register = lazy(() => import("./views/pages/SignUp/Register"));
 const UserList = lazy(() => import("./views/pages/UserList"));
 const CandidateList = lazy(() => import("./views/pages/CandidateList"));
 const Settings = lazy(() => import("./views/pages/Settings"));
-const LocationList = lazy(() => import("./views/components/LocationList/LocationList"));
+const SiteRegistry = lazy(() => import("./views/components/LocationList/SiteRegistry"));
 const LocationRegister = lazy(() => import("./views/components/LocationList/LocationRegister"));
 const LocationView = lazy(() => import("./views/components/LocationList/LocationView"));
 const LocationEdit = lazy(() => import("./views/components/LocationList/LocationEdit"));
@@ -110,8 +110,8 @@ const AppRoutes = () => {
           />
           <PrivateRoute
             extact
-            path="/location"
-            component={LocationList}
+            path="/sites"
+            component={SiteRegistry}
             layout={MainLayout}
           />
           <PrivateRoute

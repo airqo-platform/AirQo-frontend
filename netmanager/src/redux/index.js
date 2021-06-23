@@ -12,6 +12,7 @@ import mapDataReducer from "./MapData/reducers";
 import deviceManagementReducer from "./DeviceManagement/reducers";
 import userPreferenceReducer from "./UserPreference/reducer";
 import urlsReducer from "./Urls/reducers";
+import siteRegistryReducer from "./SiteRegistry/reducers";
 
 export default combineReducers({
   auth: authReducer,
@@ -27,4 +28,5 @@ export default combineReducers({
   mapData: mapDataReducer,
   userPreference: userPreferenceReducer,
   urls: urlsReducer,
+  siteRegistry: siteRegistryReducer,
 });
