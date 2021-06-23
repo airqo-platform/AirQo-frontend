@@ -1,7 +1,7 @@
 import React from "react";
 import { makeStyles } from "@material-ui/styles";
 
-import { LocationsToolbar, SitesTable } from "./index";
+import { SiteToolbar, SitesTable } from "./index";
 import "assets/css/location-registry.css";
 
 const useStyles = makeStyles((theme) => ({
@@ -25,7 +25,7 @@ const SiteRegistry = () => {
 
   return (
     <div className={classes.root}>
-      <LocationsToolbar />
+      <SiteToolbar />
       <div className={classes.content}>
         <SitesTable />
       </div>
