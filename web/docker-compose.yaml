@@ -6,10 +6,10 @@ services:
       context: .
       dockerfile: docker/apache/Dockerfile.dev
       args:
-        uid: ${UID}
+        uid: ${DEV_UID}
     environment:
-      - APACHE_RUN_USER=#${UID}
-      - APACHE_RUN_GROUP=#${UID}
+      - APACHE_RUN_USER=#${DEV_UID}
+      - APACHE_RUN_GROUP=#${DEV_UID}
     restart: unless-stopped
     volumes:
       - .:/var/www/html
@@ -26,8 +26,8 @@ services:
       context: .
       dockerfile: docker/mysql/Dockerfile.dev
     environment:
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DEV_MYSQL_DATABASE}
+      MYSQL_ROOT_PASSWORD: ${DEV_MYSQL_ROOT_PASSWORD}
     command: --default-authentication-plugin=mysql_native_password
     restart: unless-stopped
     volumes:

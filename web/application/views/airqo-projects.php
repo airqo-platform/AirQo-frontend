@@ -9,7 +9,7 @@
 				</form>
 				<br>
 				<div class="hide" id="search-results">
-
+					
 				</div>
 			</div>
 		</div>
@@ -31,17 +31,17 @@
 			<div class="myrow">
 				<div class="row">
 					<div class="card-deck">
-						<?php
-						foreach ($projects as $row) {
+					<?php
+					foreach ($projects as $row) {
 						?>
-							<div class="card col-md-4" style="padding-bottom: 5em;">
-								<img src="<?= base_url(); ?>assets/images/projects/<?= $row['p_image']; ?>" class="thumbnail img-responsive" style="height: 250px; object-fit: cover;" alt="...">
-								<div class="card-body">
-									<h5 class="card-title" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><b><?= $row['p_title']; ?></b></h5>
-									<p><a href="<?= site_url('project/' . $row['p_slug']); ?>" class="btn btn-primary btn-block btn-xs">Details</a></p>
-								</div>
+						<div class="card col-md-4" style="padding-bottom: 5em;">
+							<img src="<?= base_url(); ?>assets/images/projects/<?= $row['p_image']; ?>" class="thumbnail img-responsive" style="height: 250px; object-fit: cover;" alt="...">
+							<div class="card-body">
+								<h5 class="card-title" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><b><?= $row['p_title']; ?></b></h5>
+								<p><a href="<?= site_url('project/' . $row['p_slug']); ?>" class="btn btn-primary btn-block btn-xs">Details</a></p>
 							</div>
-						<?php } ?>
+						</div>
+					<?php } ?>
 					</div>
 				</div>
 			</div>
