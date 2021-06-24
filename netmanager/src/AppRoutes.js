@@ -27,9 +27,7 @@ const UserList = lazy(() => import("./views/pages/UserList"));
 const CandidateList = lazy(() => import("./views/pages/CandidateList"));
 const Settings = lazy(() => import("./views/pages/Settings"));
 const SiteRegistry = lazy(() => import("./views/components/Sites/SiteRegistry"));
-const LocationRegister = lazy(() => import("./views/components/Sites/LocationRegister"));
 const SiteView = lazy(() => import("./views/components/Sites/SiteView"));
-const LocationEdit = lazy(() => import("./views/components/Sites/LocationEdit"));
 
 const AppRoutes = () => {
   useJiraHelpDesk();
@@ -116,20 +114,8 @@ const AppRoutes = () => {
           />
           <PrivateRoute
             exact
-            path="/edit/:loc_ref"
-            component={LocationEdit}
-            layout={MainLayout}
-          />
-          <PrivateRoute
-            exact
             path="/sites/:id"
             component={SiteView}
-            layout={MainLayout}
-          />
-          <PrivateRoute
-            extact
-            path="/register_location"
-            component={LocationRegister}
             layout={MainLayout}
           />
         </Suspense>
