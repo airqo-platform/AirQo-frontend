@@ -1039,7 +1039,7 @@ class Apis extends CI_Controller
     {
         $response = array();  
         $this->ApisModel->init();
-        $response['faqs'] = $this->AirqoModel->get_faqs();
+        $response['faq'] = $this->AirqoModel->get_faqs();
         $state      = $this->ApisModel->stateOk();
         $message    = 'Ok';
         $state_name = "success";
