@@ -267,26 +267,15 @@ const SiteView = (props) => {
       <SiteForm site={site} key={`${site._id}`} />
 
       <div>
-        <Paper
+        <div
           style={{
             margin: "50px auto",
             minHeight: "400px",
-            padding: "20px 20px",
             maxWidth: "1500px",
           }}
         >
-          <div
-            style={{
-              display: "flex",
-              fontSize: "1.2rem",
-              fontWeight: "bold",
-              margin: "20px 0",
-            }}
-          >
-            Site Device Details
-          </div>
           <CustomMaterialTable
-            title="Site Devices"
+            title="Site Devices details"
             userPreferencePaginationKey={"siteDevices"}
             columns={[
               {
@@ -365,8 +354,8 @@ const SiteView = (props) => {
             options={{
               search: true,
               exportButton: true,
-              searchFieldAlignment: "left",
-              showTitle: false,
+              searchFieldAlignment: "right",
+              showTitle: true,
               searchFieldStyle: {
                 fontFamily: "Open Sans",
               },
@@ -377,7 +366,7 @@ const SiteView = (props) => {
               },
             }}
           />
-        </Paper>
+        </div>
       </div>
     </div>
   );
