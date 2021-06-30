@@ -289,7 +289,7 @@ const SiteView = (props) => {
         <div
           style={{
             margin: "50px auto",
-            minHeight: "400px",
+            // minHeight: "400px",
             maxWidth: "1500px",
           }}
         >
@@ -380,7 +380,7 @@ const SiteView = (props) => {
               },
               headerStyle: {
                 fontFamily: "Open Sans",
-                fontSize: 16,
+                fontSize: 14,
                 fontWeight: 600,
               },
             }}
