@@ -4,6 +4,7 @@ import { isEmpty } from "underscore";
 import PropTypes from "prop-types";
 import { Grid } from "@material-ui/core";
 import { useHistory, useParams } from "react-router-dom";
+import { ArrowBackIosRounded } from "@material-ui/icons";
 import { Paper } from "@material-ui/core";
 
 import { useSitesData } from "redux/SiteRegistry/selectors";
@@ -12,8 +13,10 @@ import { loadSitesData } from "redux/SiteRegistry/operations";
 import "assets/css/location-registry.css";
 import TextField from "@material-ui/core/TextField";
 import CustomMaterialTable from "../Table/CustomMaterialTable";
-import { useInitScrollTop } from "../../../utils/customHooks";
-import { humanReadableDate } from "../../../utils/dateTime";
+import { useInitScrollTop } from "utils/customHooks";
+import { humanReadableDate } from "utils/dateTime";
+import { useSiteBackUrl } from "redux/Urls/selectors";
+
 
 // css
 import "react-leaflet-fullscreen/dist/styles.css";
@@ -27,6 +30,9 @@ const Cell = ({ fieldValue }) => {
 };
 
 const SiteForm = ({ site }) => {
+  const history = useHistory();
+  const goBackUrl = useSiteBackUrl();
+
   return (
     <Paper
       style={{
@@ -39,11 +45,24 @@ const SiteForm = ({ site }) => {
       <div
         style={{
           display: "flex",
+          alignItems: "center",
           fontSize: "1.2rem",
           fontWeight: "bold",
           margin: "20px 0",
         }}
       >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            padding: "5px",
+          }}
+        >
+          <ArrowBackIosRounded
+            style={{ color: "#3f51b5", cursor: "pointer" }}
+            onClick={() => history.push(goBackUrl)}
+          />
+        </div>
         Site Details
       </div>
       <Grid container spacing={1}>
