@@ -36,11 +36,10 @@ import domtoimage from "dom-to-image";
 import JsPDF from "jspdf";
 import { isEmpty } from "underscore";
 import LabelledSelect from "../../../../components/CustomSelects/LabelledSelect";
-import { useFilterLocationData } from "redux/Dashboard/selectors";
-import {
-  refreshFilterLocationData,
-  setUserDefaultGraphData,
-} from "redux/Dashboard/operations";
+import { useDashboardSitesData } from "redux/Dashboard/selectors";
+import { formatDateString } from "utils/dateTime";
+import { setUserDefaultGraphData, loadSites } from "redux/Dashboard/operations";
+import { createChartJsData } from "utils/charts";
 import { omit } from "underscore";
 
 const useStyles = makeStyles((theme) => ({
@@ -77,6 +76,12 @@ const toValueLabelArray = (arr) => {
   const newArr = [];
   arr.map((value) => newArr.push(toValueLabelObject(value)));
   return newArr;
+};
+
+const optionToList = (options) => {
+  const arr = [];
+  options.map((opt) => arr.push(opt.value));
+  return arr;
 };
 
 const formatDate = (date) => {
@@ -214,24 +219,60 @@ const CustomisableChart = (props) => {
   const handleClose = () => {
     setOpen(false);
   };
-  const [customChartTitle, setCustomChartTitle] = useState(
-    defaultFilter.chartTitle
-  );
   const [
     customChartTitleSecondSection,
     setCustomChartTitleSecondSection,
   ] = useState("Custom Chart Title");
 
-  const filterLocationsOptions = useFilterLocationData();
+  const sites = useDashboardSitesData();
 
-  if (!filterLocationsOptions.length) {
+  const [sitesOptions, setSiteOptions] = useState([]);
+
+  if (!sites.length) {
     // Ensure to load the filterLocation data if empty
-    dispatch(refreshFilterLocationData());
+    dispatch(loadSites());
   }
 
+  useEffect(() => {
+    const options = [];
+    sites.map((site) => {
+      options.push({
+        label: `${site.name || site.description || site.generated_name} (${
+          site.generated_name
+        })`,
+        value: site._id,
+      });
+    });
+    setSiteOptions(options);
+  }, [sites]);
+
+  const siteFilter = (values) => (site) => {
+    return values.includes(site.label);
+  };
+
   const [values, setReactSelectValue] = useState({
-    selectedOption: toValueLabelArray(defaultFilter.locations),
+    selectedOption: sitesOptions.filter(siteFilter(defaultFilter.locations)),
   });
+
+  useEffect(() => {
+    const sites = sitesOptions.filter(siteFilter(defaultFilter.locations));
+    setReactSelectValue({
+      selectedOption: sites,
+    });
+    // if (!isEmpty(sites)) {
+    //   console.log("running gafsfhs")
+    //   fetchAndSetGraphData({
+    //     locations: sitesOptions.filter(siteFilter(defaultFilter.locations)),
+    //     sites: optionToList(sites),
+    //     startDate: selectedDate.toISOString(),
+    //     endDate: selectedEndDate.toISOString(),
+    //     chartType: selectedChart.value,
+    //     frequency: selectedFrequency.value,
+    //     pollutant: selectedPollutant.value,
+    //     organisation_name: "KCCA",
+    //   });
+    // }
+  }, [sitesOptions]);
 
   const handleMultiChange = (selectedOption) => {
     setReactSelectValue({ selectedOption });
@@ -278,9 +319,9 @@ const CustomisableChart = (props) => {
   };
 
   const pollutantOptions = [
-    { value: "PM 2.5", label: "PM 2.5" },
-    { value: "PM 10", label: "PM 10" },
-    { value: "NO2", label: "NO2" },
+    { value: "pm2_5", label: "PM 2.5" },
+    { value: "pm10", label: "PM 10" },
+    { value: "no2", label: "NO2" },
   ];
 
   const [selectedPollutant, setSelectedPollutant] = useState(
@@ -289,8 +330,9 @@ const CustomisableChart = (props) => {
 
   const [graphFilter, setGraphFilter] = useState({
     locations: values.selectedOption,
-    startDate: selectedDate,
-    endDate: selectedEndDate,
+    sites: optionToList(values.selectedOption),
+    startDate: selectedDate.toISOString(),
+    endDate: selectedEndDate.toISOString(),
     chartType: selectedChart.value,
     frequency: selectedFrequency.value,
     pollutant: selectedPollutant.value,
@@ -316,45 +358,19 @@ const CustomisableChart = (props) => {
     return await axios
       .post(
         GENERATE_CUSTOMISABLE_CHARTS_URI,
-        JSON.stringify(filter),
+        // JSON.stringify(filter),
+        filter,
         { headers: { "Content-Type": "application/json" } }
       )
       .then((res) => res.data)
-      .then((customisedChartData) => {
-        let modifiedChartTitle = customisedChartData.custom_chart_title;
-        let splitChartTitleArray = customisedChartData.custom_chart_title.split(
-          " Between "
-        );
-        if (!isEmpty(splitChartTitleArray)) {
-          modifiedChartTitle = splitChartTitleArray[0];
-        }
-        setCustomisedGraphData(customisedChartData);
-
-        setCustomChartTitleSecondSection(
-          `Between ${formatDate(selectedDate)} and ${formatDate(selectedEndDate)}`
-        );
-        setCustomChartTitle(modifiedChartTitle);
-        setCustomisedGraphLabel(
-          customisedChartData.results
-            ? customisedChartData.results[0].chart_label
-            : ""
-        );
-        console.log(customisedChartData.results[0].chart_label);
-        setDisplayAnnotation(customisedChartData.results ? true : false);
-        setCustomAnnotations(
-          customisedChartData.results
-            ? customisedChartData.results[0].pollutant === "PM 10"
-              ? { value: 50, label_content: "WHO AQG" }
-              : customisedChartData.results[0].pollutant === "NO2" &&
-                customisedChartData.results[0].frequency === "hourly"
-              ? { value: 200, label_content: "WHO AQG" }
-              : customisedChartData.results[0].pollutant === "PM 2.5"
-              ? { value: 25, label_content: "WHO AQG" }
-              : {}
-            : {}
+      .then((chartData) => {
+        setCustomisedGraphData(
+          createChartJsData(chartData.data || [], "pm2_5")
         );
       })
-      .catch(console.log);
+      .catch((err) => {
+        console.log("error", (err.response && err.response.data) || err);
+      });
   };
 
   let handleSubmit = async (e) => {
@@ -372,13 +388,12 @@ const CustomisableChart = (props) => {
     let newFilter = {
       ...defaultFilter,
       period: JSON.stringify(period),
-      locations: values.selectedOption,
-      startDate: selectedDate,
-      endDate: selectedEndDate,
+      sites: optionToList(values.selectedOption),
+      startDate: selectedDate.toISOString(),
+      endDate: selectedEndDate.toISOString(),
       chartType: selectedChart.value,
       frequency: selectedFrequency.value,
       pollutant: selectedPollutant.value,
-      organisation_name: "KCCA",
     };
     dispatch(
       setUserDefaultGraphData({
@@ -403,7 +418,6 @@ const CustomisableChart = (props) => {
 
   useEffect(() => {
     handlePeriodChange(selectedPeriod);
-    fetchAndSetGraphData(graphFilter);
   }, []);
 
   /*
@@ -663,7 +677,12 @@ const CustomisableChart = (props) => {
             </Menu>
           </Grid>
         }
-        title={customChartTitle}
+        title={`Mean ${selectedFrequency.label} ${
+          selectedPollutant.label
+        } from ${formatDate(startDate, "YYYY-MM-DD")} to ${formatDateString(
+          endDate,
+          "YYYY-MM-DD"
+        )}`}
         subheader={customChartTitleSecondSection}
         style={{ textAlign: "center" }}
         classes={{ subheader: classes.subheader }}
@@ -674,8 +693,8 @@ const CustomisableChart = (props) => {
         <Grid container spacing={1}>
           <Grid item lg={12} sm={12} xl={12} xs={12}>
             <CustomDisplayChart
-              chart_type={customisedGraphData.chart_type}
-              customisedGraphData={customisedGraphData}
+              chart_type={selectedChart.value}
+              customisedGraphData={customGraphData}
               options={options}
             />
           </Grid>
@@ -700,7 +719,7 @@ const CustomisableChart = (props) => {
                         name="location"
                         placeholder="Location(s)"
                         value={values.selectedOption}
-                        options={filterLocationsOptions}
+                        options={sitesOptions}
                         onChange={handleMultiChange}
                         isMulti
                         variant="outlined"
