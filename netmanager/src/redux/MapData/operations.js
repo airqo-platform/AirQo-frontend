@@ -73,7 +73,8 @@ export const loadMapEventsData = (params) => async (dispatch) => {
         payload,
       });
     })
-    .catch(() => {
+    .catch((err) => {
+        console.log("errors", err)
       dispatch({
         type: LOAD_MAP_EVENTS_FAILURE,
       });

@@ -9,8 +9,8 @@ import {
   SET_USER_DEFAULTS_GRAPHS_ERROR,
   RESET_USER_GRAPH_DEFAULTS_SUCCESS,
   RESET_LOCATION_FILTER_SUCCESS,
-  LOAD_SITES_SUCCESS,
-  LOAD_SITES_FAILURE,
+  LOAD_DASHBOARD_SITES_SUCCESS,
+  LOAD_DASHBOARD_SITES_FAILURE,
 } from "./actions";
 import { DEFAULTS_URI } from "config/urls/authService";
 import { KCCAInitialUserDefaultGraphsState } from "./constants";
@@ -22,13 +22,13 @@ export const loadSites = () => async (dispatch) => {
   return await getSitesApi()
     .then((res) => {
       dispatch({
-        type: LOAD_SITES_SUCCESS,
+        type: LOAD_DASHBOARD_SITES_SUCCESS,
         payload: res.data || [],
       });
     })
     .catch((err) => {
       dispatch({
-        type: LOAD_SITES_FAILURE,
+        type: LOAD_DASHBOARD_SITES_FAILURE,
         payload: err,
       });
     });
