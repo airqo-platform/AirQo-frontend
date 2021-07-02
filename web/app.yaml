@@ -1,6 +1,6 @@
 runtime: php74
 env: standard
-service: staging
+service: default
 
 handlers:
   - url: /(.+\.(assets|js|css|gif|png|jpeg|jpg|svg|ico|bmp|ttf|woff|eot|mp4|mp3|pdf))$
