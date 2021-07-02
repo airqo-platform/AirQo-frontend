@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import PropTypes from "prop-types";
-import { Link } from "react-router-dom";
+import { useHistory } from "react-router-dom";
 import { makeStyles } from "@material-ui/styles";
 import LoadingOverlay from "react-loading-overlay";
 import "../../../assets/css/location-registry.css";
 import { isEmpty } from "underscore";
-import { useLocationsData } from "redux/LocationRegistry/selectors";
-import { loadLocationsData } from "redux/LocationRegistry/operations";
+import { loadSitesData } from "redux/SiteRegistry/operations";
+import { useSitesArrayData } from "redux/SiteRegistry/selectors";
 import CustomMaterialTable from "../Table/CustomMaterialTable";
 
 const useStyles = makeStyles((theme) => ({
@@ -37,21 +37,21 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const LocationsTable = (props) => {
+const SitesTable = (props) => {
   const { className, users, ...rest } = props;
 
   const classes = useStyles();
-
+  const history = useHistory();
   const dispatch = useDispatch();
-  const locations = useLocationsData();
+  const sites = useSitesArrayData();
 
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     //code to retrieve all locations data
-    if (isEmpty(locations)) {
+    if (isEmpty(sites)) {
       setIsLoading(true);
-      dispatch(loadLocationsData());
+      dispatch(loadSitesData());
       setIsLoading(false);
     }
   }, []);
@@ -59,31 +59,21 @@ const LocationsTable = (props) => {
   return (
     <LoadingOverlay active={isLoading} spinner text="Loading Locations...">
       <CustomMaterialTable
-        className={classes.table}
-        userPreferencePaginationKey={"locations"}
-        title="Location Registry"
+        pointerCursor
+        userPreferencePaginationKey={"sites"}
+        title="Site Registry"
         columns={[
           {
-            title: "Reference",
-            field: "loc_ref",
-            render: (rowData) => (
-              <Link
-                className={classes.link}
-                to={`/locations/${rowData.loc_ref}`}
-              >
-                {rowData.loc_ref}
-              </Link>
-            ),
-          },
-          {
             title: "Name",
-            field: "location_name",
-            cellStyle: { fontFamily: "Open Sans" },
-          },
-          {
-            title: "Mobility",
-            field: "mobility",
-            cellStyle: { fontFamily: "Open Sans" },
+            field: "name",
+            render: (rowData) => (
+              <span>
+                {rowData.name ||
+                  rowData.description ||
+                  rowData.formated_name ||
+                  rowData.generated_name}
+              </span>
+            ),
           },
           {
             title: "Latitude",
@@ -96,8 +86,8 @@ const LocationsTable = (props) => {
             cellStyle: { fontFamily: "Open Sans" },
           },
           {
-            title: "Country",
-            field: "country",
+            title: "County",
+            field: "county",
             cellStyle: { fontFamily: "Open Sans" },
           },
           {
@@ -106,17 +96,21 @@ const LocationsTable = (props) => {
             cellStyle: { fontFamily: "Open Sans" },
           },
           {
-            title: "Subcounty",
-            field: "subcounty",
+            title: "Region",
+            field: "region",
             cellStyle: { fontFamily: "Open Sans" },
           },
           {
-            title: "Parish",
-            field: "parish",
+            title: "Altitude",
+            field: "altitude",
             cellStyle: { fontFamily: "Open Sans" },
           },
         ]}
-        data={locations}
+        onRowClick={(event, data) => {
+          event.preventDefault();
+          history.push(`/sites/${data._id}`);
+        }}
+        data={sites}
         options={{
           search: true,
           exportButton: true,
@@ -136,9 +130,9 @@ const LocationsTable = (props) => {
   );
 };
 
-LocationsTable.propTypes = {
+SitesTable.propTypes = {
   className: PropTypes.string,
   users: PropTypes.array.isRequired,
 };
 
-export default LocationsTable;
+export default SitesTable;

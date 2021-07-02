@@ -80,7 +80,9 @@ export default function CustomMaterialTable({
       style={style || {}}
     >
       <PerfectScrollbar>
-        <MaterialTable {...props} />
+        <div className={classes.tableWrapper}>
+          <MaterialTable {...props} />
+        </div>
       </PerfectScrollbar>
     </div>
   );

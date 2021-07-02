@@ -109,8 +109,8 @@ const allMainPages = [
     icon: <AddIcon />,
   },
   {
-    title: "Location Registry",
-    href: "/location",
+    title: "Site Registry",
+    href: "/sites",
     icon: <EditLocationIcon />,
   },
 ];

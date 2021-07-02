@@ -14,32 +14,28 @@ import { updateDeviceDetails } from "views/apis/deviceRegistry";
 import { updateDevice } from "redux/DeviceRegistry/operations";
 import { capitalize } from "utils/string";
 
-const transformLocationOptions = (locationsData) => {
+const transformSitesOptions = (sites) => {
   const transFormedOptions = [];
-  locationsData.map(
-    ({ location_name, county, description, loc_ref, ...rest }) => {
-      transFormedOptions.push({
-        ...{ location_name, county, description, ...rest },
-        label: `${location_name || county || description}`,
-        value: loc_ref,
-      });
-    }
-  );
+  sites.map(({ name, description, generated_name, ...rest }) => {
+    transFormedOptions.push({
+      ...rest,
+      label: `${name || description || generated_name}`,
+      value: rest._id,
+    });
+  });
   return transFormedOptions;
 };
 
-const filterLocation = (locations, location_ref) => {
-  const currentLocation = locations.filter(
-    (location) => location.loc_ref === location_ref
-  );
-  if (isEmpty(currentLocation)) {
+const filterLocation = (sites, site_id) => {
+  const currentSite = sites.filter((site) => site._id === site_id);
+  if (isEmpty(currentSite)) {
     return { label: "Unknown or no location", value: null };
   }
-  const { location_name, county, description, loc_ref } = currentLocation[0];
+  const { name, description, generated_name } = currentSite[0];
   return {
-    ...currentLocation[0],
-    label: `${location_name || county || description}`,
-    value: loc_ref,
+    ...currentSite[0],
+    label: `${name || description || generated_name}`,
+    value: site_id,
   };
 };
 
@@ -47,8 +43,9 @@ const gridItemStyle = {
   padding: "5px",
 };
 
-export default function DeviceEdit({ deviceData, locationsData }) {
+export default function DeviceEdit({ deviceData, sitesData }) {
   const dispatch = useDispatch();
+  console.log("site id", deviceData.site && deviceData.site._id);
   const [editData, setEditData] = useState({
     locationName: "",
     siteName: "",
@@ -264,19 +261,14 @@ export default function DeviceEdit({ deviceData, locationsData }) {
           </Grid>
 
           <Grid items xs={12} sm={6} style={gridItemStyle}>
-            <FormControl fullWidth>
-              <InputLabel htmlFor="demo-dialog-native">Location</InputLabel>
-              <LabelledSelect
-                label={"location"}
-                isClearable
-                defaultValue={filterLocation(
-                  locationsData,
-                  editData.locationID
-                )}
-                options={transformLocationOptions(locationsData)}
-                onChange={handleLocationChange}
-              />
-            </FormControl>
+            <LabelledSelect
+              label={"Site"}
+              value={filterLocation(
+                sitesData,
+                editData.site && editData.site._id
+              )}
+              options={transformSitesOptions(sitesData)}
+            />
           </Grid>
 
           <Grid items xs={12} sm={6} style={gridItemStyle}>
