@@ -254,24 +254,26 @@ const CustomisableChart = (props) => {
     selectedOption: sitesOptions.filter(siteFilter(defaultFilter.locations)),
   });
 
+  const [initialLoad, setInitialLoad] = useState(true)
+
   useEffect(() => {
     const sites = sitesOptions.filter(siteFilter(defaultFilter.locations));
     setReactSelectValue({
       selectedOption: sites,
     });
-    // if (!isEmpty(sites)) {
-    //   console.log("running gafsfhs")
-    //   fetchAndSetGraphData({
-    //     locations: sitesOptions.filter(siteFilter(defaultFilter.locations)),
-    //     sites: optionToList(sites),
-    //     startDate: selectedDate.toISOString(),
-    //     endDate: selectedEndDate.toISOString(),
-    //     chartType: selectedChart.value,
-    //     frequency: selectedFrequency.value,
-    //     pollutant: selectedPollutant.value,
-    //     organisation_name: "KCCA",
-    //   });
-    // }
+    if (initialLoad && !isEmpty(sites)) {
+      setInitialLoad(false)
+      fetchAndSetGraphData({
+        locations: sitesOptions.filter(siteFilter(defaultFilter.locations)),
+        sites: optionToList(sites),
+        startDate: selectedDate.toISOString(),
+        endDate: selectedEndDate.toISOString(),
+        chartType: selectedChart.value,
+        frequency: selectedFrequency.value,
+        pollutant: selectedPollutant.value,
+        organisation_name: "KCCA",
+      });
+    }
   }, [sitesOptions]);
 
   const handleMultiChange = (selectedOption) => {
