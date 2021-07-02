@@ -9,11 +9,30 @@ import {
   SET_USER_DEFAULTS_GRAPHS_ERROR,
   RESET_USER_GRAPH_DEFAULTS_SUCCESS,
   RESET_LOCATION_FILTER_SUCCESS,
+  LOAD_SITES_SUCCESS,
+  LOAD_SITES_FAILURE,
 } from "./actions";
 import { DEFAULTS_URI } from "config/urls/authService";
 import { KCCAInitialUserDefaultGraphsState } from "./constants";
 import { filterDefaults } from "./utils";
 import { getMonitoringSitesLocationsApi } from "views/apis/location";
+import { getSitesApi } from "views/apis/analytics";
+
+export const loadSites = () => async (dispatch) => {
+  return await getSitesApi()
+    .then((res) => {
+      dispatch({
+        type: LOAD_SITES_SUCCESS,
+        payload: res.data || [],
+      });
+    })
+    .catch((err) => {
+      dispatch({
+        type: LOAD_SITES_FAILURE,
+        payload: err,
+      });
+    });
+};
 
 export const refreshFilterLocationData = () => {
   return async (dispatch) => {
@@ -79,7 +98,7 @@ export const setUserDefaultGraphData = (filter) => {
   };
 };
 
-export const resetDashboardState = () => dispatch => {
+export const resetDashboardState = () => (dispatch) => {
   dispatch({ type: RESET_LOCATION_FILTER_SUCCESS });
   dispatch({ type: RESET_USER_GRAPH_DEFAULTS_SUCCESS });
 };

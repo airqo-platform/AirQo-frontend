@@ -4,7 +4,7 @@ const BASE_ANALYTICS_URL = stripTrailingSlash(
   process.env.REACT_APP_BASE_ANALYTICS_URL || process.env.REACT_APP_BASE_URL
 );
 
-export const GENERATE_CUSTOMISABLE_CHARTS_URI = `${BASE_ANALYTICS_URL}/analytics/dashboard/customisedchart`;
+export const GENERATE_CUSTOMISABLE_CHARTS_URI = `${BASE_ANALYTICS_URL}/analytics/dashboard/chart/data`;
 
 export const GET_CUSTOMISABLE_CHART_INITIAL_DATA_URI = `${BASE_ANALYTICS_URL}/analytics/dashboard/customisedchart/random`;
 
@@ -35,3 +35,5 @@ export const EXCEEDANCES_URI = `${BASE_ANALYTICS_URL}/analytics/dashboard/exceed
 export const GET_MONITORING_SITES_URI = `${BASE_ANALYTICS_URL}/analytics/dashboard/monitoringsites?organisation_name=KCCA`;
 
 export const GET_DATA_MAP = `${BASE_ANALYTICS_URL}/analytics/dashboard/monitoringsites?organisation_name=KCCA&pm25_category=`;
+
+export const GET_SITES = `${BASE_ANALYTICS_URL}/analytics/dashboard/sites`;
