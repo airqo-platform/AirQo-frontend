@@ -126,11 +126,11 @@ const Dashboard = (props) => {
     }
   }, []);
 
-  useEffect(() => {
-    if (orgData.name.toLowerCase() === "airqo") {
-      props.history.push("/overview");
-    }
-  });
+  // useEffect(() => {
+  //   if (orgData.name.toLowerCase() === "airqo") {
+  //     props.history.push("/overview");
+  //   }
+  // });
 
   const [locations, setLocations] = useState([]);
 
