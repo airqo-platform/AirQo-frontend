@@ -8,3 +8,7 @@ export const useFilterLocationData = () => {
 export const useUserDefaultGraphsData = () => {
   return useSelector((state) => state.dashboard.userDefaultGraphs);
 };
+
+export const useDashboardSitesData = () => {
+  return useSelector((state) => state.dashboard.sitesData || []);
+};

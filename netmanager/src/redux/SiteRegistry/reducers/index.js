@@ -1,7 +1,6 @@
 import { combineReducers } from "redux";
-import locations from "./location";
-
+import sites from "./sites";
 
 export default combineReducers({
-    locations
+  sites,
 });
