@@ -34,7 +34,7 @@ import Menu from "@material-ui/core/Menu";
 import MenuItem from "@material-ui/core/MenuItem";
 import domtoimage from "dom-to-image";
 import JsPDF from "jspdf";
-import { isEmpty } from "underscore";
+import { isEmpty, isEqual } from "underscore";
 import LabelledSelect from "../../../../components/CustomSelects/LabelledSelect";
 import { useDashboardSitesData } from "redux/Dashboard/selectors";
 import { formatDateString } from "utils/dateTime";
@@ -228,6 +228,8 @@ const CustomisableChart = (props) => {
 
   const [sitesOptions, setSiteOptions] = useState([]);
 
+  const [previousFilter, setPreviousFilter] = useState({});
+
   if (!sites.length) {
     // Ensure to load the filterLocation data if empty
     dispatch(loadSites());
@@ -254,7 +256,7 @@ const CustomisableChart = (props) => {
     selectedOption: sitesOptions.filter(siteFilter(defaultFilter.locations)),
   });
 
-  const [initialLoad, setInitialLoad] = useState(true)
+  const [initialLoad, setInitialLoad] = useState(true);
 
   useEffect(() => {
     const sites = sitesOptions.filter(siteFilter(defaultFilter.locations));
@@ -262,7 +264,17 @@ const CustomisableChart = (props) => {
       selectedOption: sites,
     });
     if (initialLoad && !isEmpty(sites)) {
-      setInitialLoad(false)
+      setInitialLoad(false);
+      setPreviousFilter({
+        locations: sitesOptions.filter(siteFilter(defaultFilter.locations)),
+        sites: optionToList(sites),
+        startDate: selectedDate.toISOString(),
+        endDate: selectedEndDate.toISOString(),
+        chartType: selectedChart.value,
+        frequency: selectedFrequency.value,
+        pollutant: selectedPollutant.value,
+        organisation_name: "KCCA",
+      });
       fetchAndSetGraphData({
         locations: sitesOptions.filter(siteFilter(defaultFilter.locations)),
         sites: optionToList(sites),
@@ -326,35 +338,72 @@ const CustomisableChart = (props) => {
     { value: "no2", label: "NO2" },
   ];
 
+  const labelMapper = {
+    pm2_5: "PM2.5 (µg/m3)",
+    pm10: "PM10 (µg/m3)",
+    no2: "NO2 (µg/m3)",
+  };
+
+  const setDefaulPollutant = (value) => {
+    if (value === "pm2_5" || value === "PM 2.5")
+      return { value: "pm2_5", label: "PM 2.5" };
+    if (value === "pm10" || value === "PM 10")
+      return { value: "pm10", label: "PM 10" };
+    if (value === "no2" || value === "NO2")
+      return { value: "no2", label: "NO2" };
+
+    return { value: "pm2_5", label: "PM 2.5" };
+  };
+
   const [selectedPollutant, setSelectedPollutant] = useState(
-    toValueLabelObject(defaultFilter.pollutant)
+    setDefaulPollutant(defaultFilter.pollutant)
   );
 
-  const [graphFilter, setGraphFilter] = useState({
-    locations: values.selectedOption,
-    sites: optionToList(values.selectedOption),
-    startDate: selectedDate.toISOString(),
-    endDate: selectedEndDate.toISOString(),
-    chartType: selectedChart.value,
-    frequency: selectedFrequency.value,
-    pollutant: selectedPollutant.value,
-    organisation_name: "KCCA",
-  });
+  // const [graphFilter, setGraphFilter] = useState({
+  //   locations: values.selectedOption,
+  //   sites: optionToList(values.selectedOption),
+  //   startDate: selectedDate.toISOString(),
+  //   endDate: selectedEndDate.toISOString(),
+  //   chartType: selectedChart.value,
+  //   frequency: selectedFrequency.value,
+  //   pollutant: selectedPollutant.value,
+  //   organisation_name: "KCCA",
+  // });
 
   const handlePollutantChange = (selectedPollutantOption) => {
     setSelectedPollutant(selectedPollutantOption);
   };
 
+  const annotationMapper = {
+    pm2_5: {
+      value: 25,
+      label_content: "WHO AQG",
+    },
+    pm10: {
+      value: 50,
+      label_content: "WHO AQG",
+    },
+    no2: {
+      value: 40,
+      label_content: "WHO AQG",
+    },
+  };
+
   const [customisedGraphLabel, setCustomisedGraphLabel] = useState(
-    "PM2.5(µg/m3)"
+    labelMapper[selectedPollutant.value]
   );
   const [displayAnnotation, setDisplayAnnotation] = useState(true);
-  const [customisedAnnotation, setCustomAnnotations] = useState({
-    value: 25,
-    label_content: "WHO AQG",
-  });
+  const [customisedAnnotation, setCustomAnnotations] = useState(
+    annotationMapper[selectedPollutant.value]
+  );
+
+  useEffect(() => {
+    setCustomisedGraphLabel(labelMapper[selectedPollutant.value]);
+    setCustomAnnotations(annotationMapper[selectedPollutant.value]);
+  }, [selectedPollutant]);
 
   const [customGraphData, setCustomisedGraphData] = useState([]);
+  const [rawData, setRawData] = useState([]);
 
   const fetchAndSetGraphData = async (filter) => {
     return await axios
@@ -366,8 +415,9 @@ const CustomisableChart = (props) => {
       )
       .then((res) => res.data)
       .then((chartData) => {
+        setRawData(chartData.data || []);
         setCustomisedGraphData(
-          createChartJsData(chartData.data || [], "pm2_5")
+          createChartJsData(chartData.data || [], selectedPollutant.value)
         );
       })
       .catch((err) => {
@@ -403,7 +453,28 @@ const CustomisableChart = (props) => {
         locations: valueLabelToString(values.selectedOption),
       })
     );
-    setGraphFilter(newFilter);
+    // const activeFilters = omit(
+    //   newFilter,
+    //   "chartType",
+    //   "frequency",
+    //   "pollutant",
+    //   "location"
+    // );
+    // const prevFilters = omit(
+    //   previousFilter,
+    //   "chartType",
+    //   "frequency",
+    //   "pollutant",
+    //   "location"
+    // );
+    // if (isEqual(activeFilters, prevFilters)) {
+    //   console.log("catch at work");
+    //   setCustomisedGraphData(
+    //       createChartJsData(rawData || [], selectedPollutant.value)
+    //     )
+    //   return;
+    // }
+    setPreviousFilter(newFilter);
     await fetchAndSetGraphData(newFilter);
   };
 
