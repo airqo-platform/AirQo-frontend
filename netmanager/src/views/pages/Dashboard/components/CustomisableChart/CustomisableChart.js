@@ -61,7 +61,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const capitalize = (str) => {
-  return str && (str.charAt(0).toUpperCase() + str.slice(1));
+  return str && str.charAt(0).toUpperCase() + str.slice(1);
 };
 
 const valueLabelToString = (valueLabelArray) => {
@@ -719,6 +719,14 @@ const CustomisableChart = (props) => {
 
   const openMenu = Boolean(anchorEl);
 
+  const sitesToString = (sites) => {
+    const formattedString = [];
+    sites.map((site) => {
+      formattedString.push(site.label);
+    });
+    return formattedString.join(", ");
+  };
+
   return (
     <Card {...rest} className={className} id={rootCustomChartContainerId}>
       <CardHeader
@@ -756,7 +764,7 @@ const CustomisableChart = (props) => {
           endDate,
           "YYYY-MM-DD"
         )}`}
-        subheader={customChartTitleSecondSection}
+        subheader={`for ${sitesToString(values.selectedOption)}`}
         style={{ textAlign: "center" }}
         classes={{ subheader: classes.subheader }}
       />
