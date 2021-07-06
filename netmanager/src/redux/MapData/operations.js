@@ -45,9 +45,7 @@ export const loadPM25SensorData = () => async (dispatch) => {
         {
           longitude: "Longitude",
           latitude: "Latitude",
-        },
-        undefined,
-        true
+        }
       );
       dispatch({
         type: LOAD_PM25_SENSOR_DATA_SUCCESS,
