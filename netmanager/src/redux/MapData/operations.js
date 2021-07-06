@@ -63,8 +63,8 @@ export const loadMapEventsData = (params) => async (dispatch) => {
           latitude: "Latitude",
         },
         (feature) => [
-          feature.location.longitude.value || feature.deviceDetails.longitude,
-          feature.location.latitude.value || feature.deviceDetails.latitude,
+          feature.deviceDetails.longitude || feature.location.longitude.value,
+          feature.deviceDetails.latitude || feature.location.latitude.value,
         ]
       );
 
