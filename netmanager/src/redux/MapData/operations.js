@@ -21,8 +21,6 @@ export const loadPM25HeatMapData = () => async (dispatch) => {
           longitude: "longitude",
           latitude: "latitude",
         },
-        undefined,
-        true
       );
       dispatch({
         type: LOAD_PM25_HEATMAP_DATA_SUCCESS,
@@ -73,7 +71,6 @@ export const loadMapEventsData = (params) => async (dispatch) => {
           feature.location.longitude.value,
           feature.location.latitude.value,
         ],
-        true
       );
 
       dispatch({
