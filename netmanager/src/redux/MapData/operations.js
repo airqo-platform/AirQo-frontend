@@ -1,4 +1,5 @@
 // for representing chained operations using redux-thunk
+import { MAX_CONFIDENCE_INTERVAL } from "config/constants";
 import {
   LOAD_PM25_HEATMAP_DATA_SUCCESS,
   LOAD_PM25_HEATMAP_DATA_FAILURE,
@@ -21,6 +22,8 @@ export const loadPM25HeatMapData = () => async (dispatch) => {
           longitude: "longitude",
           latitude: "latitude",
         },
+        undefined,
+        (feature) => feature.interval <= MAX_CONFIDENCE_INTERVAL
       );
       dispatch({
         type: LOAD_PM25_HEATMAP_DATA_SUCCESS,
@@ -70,7 +73,7 @@ export const loadMapEventsData = (params) => async (dispatch) => {
         (feature) => [
           feature.location.longitude.value,
           feature.location.latitude.value,
-        ],
+        ]
       );
 
       dispatch({
