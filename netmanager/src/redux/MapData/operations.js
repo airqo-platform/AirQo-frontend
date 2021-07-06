@@ -63,8 +63,8 @@ export const loadMapEventsData = (params) => async (dispatch) => {
           latitude: "Latitude",
         },
         (feature) => [
-          feature.location.longitude.value,
-          feature.location.latitude.value,
+          feature.location.longitude.value || feature.deviceDetails.longitude,
+          feature.location.latitude.value || feature.deviceDetails.latitude,
         ]
       );
 
@@ -73,8 +73,7 @@ export const loadMapEventsData = (params) => async (dispatch) => {
         payload,
       });
     })
-    .catch((err) => {
-        console.log("errors", err)
+    .catch(() => {
       dispatch({
         type: LOAD_MAP_EVENTS_FAILURE,
       });
