@@ -15,10 +15,15 @@ import { getEventsApi } from "views/apis/deviceRegistry";
 export const loadPM25HeatMapData = () => async (dispatch) => {
   return await heatmapPredictApi()
     .then((responseData) => {
-      const payload = transformDataToGeoJson(responseData.data || [], {
-        longitude: "longitude",
-        latitude: "latitude",
-      });
+      const payload = transformDataToGeoJson(
+        responseData.data || [],
+        {
+          longitude: "longitude",
+          latitude: "latitude",
+        },
+        undefined,
+        true
+      );
       dispatch({
         type: LOAD_PM25_HEATMAP_DATA_SUCCESS,
         payload,
@@ -39,7 +44,9 @@ export const loadPM25SensorData = () => async (dispatch) => {
         {
           longitude: "Longitude",
           latitude: "Latitude",
-        }
+        },
+        undefined,
+        true
       );
       dispatch({
         type: LOAD_PM25_SENSOR_DATA_SUCCESS,
@@ -65,7 +72,8 @@ export const loadMapEventsData = (params) => async (dispatch) => {
         (feature) => [
           feature.location.longitude.value,
           feature.location.latitude.value,
-        ]
+        ],
+        true
       );
 
       dispatch({
@@ -74,7 +82,7 @@ export const loadMapEventsData = (params) => async (dispatch) => {
       });
     })
     .catch((err) => {
-        console.log("errors", err)
+      console.log("errors", err);
       dispatch({
         type: LOAD_MAP_EVENTS_FAILURE,
       });

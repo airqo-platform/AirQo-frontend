@@ -7,21 +7,23 @@
 export const transformDataToGeoJson = (
   data,
   { longitude, latitude, ...rest },
-  coordinateGetter
+  coordinateGetter,
+  filterCondition
 ) => {
   let features = [];
   data.map((feature) => {
-    features.push({
-      type: "Feature",
-      properties: { ...rest, ...feature },
-      geometry: {
-        type: "Point",
-        coordinates: (coordinateGetter && coordinateGetter(feature)) || [
-          feature[longitude],
-          feature[latitude],
-        ],
-      },
-    });
+    filterCondition &&
+      features.push({
+        type: "Feature",
+        properties: { ...rest, ...feature },
+        geometry: {
+          type: "Point",
+          coordinates: (coordinateGetter && coordinateGetter(feature)) || [
+            feature[longitude],
+            feature[latitude],
+          ],
+        },
+      });
   });
 
   return {
