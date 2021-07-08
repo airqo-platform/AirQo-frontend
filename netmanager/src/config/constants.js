@@ -1,0 +1,2 @@
+export const MAX_CONFIDENCE_INTERVAL =
+  process.env.REACT_APP_MAX_CONFIDENCE_INTERVAL || 30;

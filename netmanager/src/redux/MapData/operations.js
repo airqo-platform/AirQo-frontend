@@ -1,4 +1,5 @@
 // for representing chained operations using redux-thunk
+import { MAX_CONFIDENCE_INTERVAL } from "config/constants";
 import {
   LOAD_PM25_HEATMAP_DATA_SUCCESS,
   LOAD_PM25_HEATMAP_DATA_FAILURE,
@@ -15,10 +16,15 @@ import { getEventsApi } from "views/apis/deviceRegistry";
 export const loadPM25HeatMapData = () => async (dispatch) => {
   return await heatmapPredictApi()
     .then((responseData) => {
-      const payload = transformDataToGeoJson(responseData.data || [], {
-        longitude: "longitude",
-        latitude: "latitude",
-      });
+      const payload = transformDataToGeoJson(
+        responseData.data || [],
+        {
+          longitude: "longitude",
+          latitude: "latitude",
+        },
+        undefined,
+        (feature) => feature.interval <= MAX_CONFIDENCE_INTERVAL
+      );
       dispatch({
         type: LOAD_PM25_HEATMAP_DATA_SUCCESS,
         payload,
@@ -74,7 +80,7 @@ export const loadMapEventsData = (params) => async (dispatch) => {
       });
     })
     .catch((err) => {
-        console.log("errors", err)
+      console.log("errors", err);
       dispatch({
         type: LOAD_MAP_EVENTS_FAILURE,
       });
