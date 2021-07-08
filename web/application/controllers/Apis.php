@@ -1035,6 +1035,18 @@ class Apis extends CI_Controller
         }
     }
 
+    public function airqoFaq()
+    {
+        $response = array();  
+        $this->ApisModel->init();
+        $response['faq'] = $this->AirqoModel->get_faqs();
+        $state      = $this->ApisModel->stateOk();
+        $message    = 'Ok';
+        $state_name = "success";
+        $state_code = 100;
+        $debug      = "API Config OK";
+        echo  $this->ApisModel->api_response($response, $state, $state_name, $state_code, $message, $debug);
+    }
 
 // public function placeForecast()
 //     {   

@@ -6,6 +6,10 @@ if(! defined('ENVIRONMENT') ){
         define('ENVIRONMENT', 'production');
         break;
 
+        case 'airqo.africa':
+            define('ENVIRONMENT', 'production');
+            break;
+
         case 'staging-dot-airqo-frontend.appspot.com' :
         //our staging server
         define('ENVIRONMENT', 'staging');
