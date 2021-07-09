@@ -109,8 +109,8 @@ const allMainPages = [
     icon: <AddIcon />,
   },
   {
-    title: "Location Registry",
-    href: "/location",
+    title: "Site Registry",
+    href: "/sites",
     icon: <EditLocationIcon />,
   },
 ];
@@ -153,7 +153,7 @@ const Sidebar = (props) => {
   const userPages = excludePages(allUserManagementPages, excludedPages);
 
   if (orgData.name.toLowerCase() === "airqo") {
-    pages = excludePages(pages, ["Dashboard", "Export"]);
+    pages = excludePages(pages, ["Export"]);
   } else {
     pages = excludePages(pages, ["Overview", "Device Management", "Locate"]);
   }

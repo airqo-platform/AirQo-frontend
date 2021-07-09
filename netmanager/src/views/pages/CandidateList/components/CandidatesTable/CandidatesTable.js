@@ -1,12 +1,10 @@
 /* eslint-disable */
-import React, { useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import clsx from "clsx";
 import PropTypes from "prop-types";
-import PerfectScrollbar from "react-perfect-scrollbar";
 import { makeStyles } from "@material-ui/styles";
 import {
   Card,
-  CardContent,
   Avatar,
   Typography,
   Button,
@@ -24,6 +22,10 @@ import { getInitials } from "utils/users";
 import CandidateEditForm from "views/pages/UserList/components/UserEditForm";
 import CustomMaterialTable from "views/components/Table/CustomMaterialTable";
 import usersStateConnector from "views/stateConnectors/usersStateConnector";
+import ConfirmDialog from "views/containers/ConfirmDialog";
+import { confirmCandidateApi, deleteCandidateApi } from "views/apis/authService";
+import { updateMainAlert } from "redux/MainAlert/operations";
+import { useDispatch } from "react-redux";
 
 const useStyles = makeStyles((theme) => ({
   root: {},
@@ -46,20 +48,13 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const CandidatesTable = (props) => {
-  //the props
-  //need to get the ones from the state
-  /***
-   * if we are to take the prop value which was provided at CandidateList:
-   *
-   */
-
   const { className, mappeduserState, ...rest } = props;
-
-  console.log("the mapped user state for CandidatesTable is here:");
-  console.dir(mappeduserState);
+  const dispatch = useDispatch();
+  const [open, setOpen] = useState(false);
+  const [openDel, setOpenDel] = useState(false);
+  const [currentCandidate, setCurrentCandidate] = useState(null);
 
   const users = mappeduserState.candidates;
-  const collaborators = mappeduserState.collaborators;
   const editCandidate = mappeduserState.userToEdit;
   const userToDelete = mappeduserState.userToDelete;
 
@@ -105,6 +100,52 @@ const CandidatesTable = (props) => {
   useEffect(() => {
     props.fetchCandidates();
   }, []);
+
+  const onConfirmBtnClick = (candidate) => () => {
+      setCurrentCandidate(candidate);
+      setOpen(true);
+  }
+
+  const onDenyBtnClick = (candidate) => () => {
+      setCurrentCandidate(candidate);
+      setOpenDel(true);
+  }
+
+  const confirmCandidate = () => {
+      setOpen(false);
+      return confirmCandidateApi(currentCandidate).then(res => {
+          props.fetchCandidates()
+          dispatch(updateMainAlert({
+              show: true,
+              message: res.message,
+              severity: "success",
+          }))
+      }).catch(err => {
+          dispatch(updateMainAlert({
+              show: true,
+              message: "candidate already exists",
+              severity: "error",
+          }))
+      })
+  }
+
+  const denyCandidate = () => {
+      setOpenDel(false);
+      return deleteCandidateApi(currentCandidate._id).then(res => {
+          props.fetchCandidates()
+          dispatch(updateMainAlert({
+              show: true,
+              message: res.message,
+              severity: "success",
+          }))
+      }).catch(err => {
+          dispatch(updateMainAlert({
+              show: true,
+              message: err.response.data.message,
+              severity: "error",
+          }))
+      })
+  }
 
   return (
     <Card {...rest} className={clsx(classes.root, className)}>
@@ -157,7 +198,10 @@ const CandidatesTable = (props) => {
               },
               {
                 title: "Action",
-                render: (candidate) => <Button color="primary">Confirm</Button>,
+                  render: (candidate) => <div>
+                      <Button color="primary" onClick={onConfirmBtnClick(candidate)}>Confirm</Button>
+                      <Button style={{color: "red"}} onClick={onDenyBtnClick(candidate)}>Delete</Button>
+                </div>,
               },
             ]}
             options={{
@@ -168,6 +212,23 @@ const CandidatesTable = (props) => {
         />
 
       {/*************************** the edit dialog **********************************************/}
+      <ConfirmDialog
+          open={open}
+          close={() => setOpen(false)}
+          confirmBtnMsg={"Confirm"}
+          confirm={confirmCandidate}
+          title={"Confirm candidate"}
+          message={"Are you sure you want to grant this user access?"}
+      />
+      <ConfirmDialog
+          open={openDel}
+          close={() => setOpenDel(false)}
+          confirmBtnMsg={"Delete"}
+          confirm={denyCandidate}
+          title={"Delete candidate"}
+          message={"Are you sure you want to delete this candidate? This process can not be reversed"}
+          error
+      />
       <Dialog
         open={props.mappeduserState.showEditDialog}
         onClose={hideEditDialog}

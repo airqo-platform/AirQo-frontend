@@ -9,7 +9,7 @@
 				</form>
 				<br>
 				<div class="hide" id="search-results">
-
+					
 				</div>
 			</div>
 		</div>
@@ -30,18 +30,26 @@
 			<div class="myrow">
 				<div class="row">
 					<div class="card-deck">
-						<?php
-						foreach ($news as $row) {
-							$image = base_url() . 'assets/frontend/images/placeholder.png';
+					<?php
+					foreach ($news as $row) {
+						// $image = base_url() . 'assets/images/news/' . $row['news_image'];
+						// if(@getimagesize($image)){
+						// 	//image exists!
+						// 	$image = $image;
+						// }else{
+						// 	//image does not exist.
+						// 	$image = base_url() . 'assets/frontend/images/placeholder.png';
+						// }
+						$image = base_url() . 'assets/frontend/images/placeholder.png';
 						?>
-							<div class="card col-md-4" style="padding-bottom: 5em;">
-								<img src="<?= base_url(); ?>assets/images/news/<?= $image; ?>" class="thumbnail img-responsive" style="height: 250px; object-fit: cover;" alt="...">
-								<div class="card-body">
-									<h5 class="card-title" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><b><?= $row['news_title']; ?></b></h5>
-									<p><a href="<?= site_url('news/' . $row['news_slug']); ?>" class="btn btn-primary btn-block btn-xs">Details</a></p>
-								</div>
+						<div class="card col-md-4" style="padding-bottom: 5em;">
+							<img src="<?= base_url(); ?>assets/images/news/<?= $image; ?>" class="thumbnail img-responsive" style="height: 250px; object-fit: cover;" alt="...">
+							<div class="card-body">
+								<h5 class="card-title" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><b><?= $row['news_title']; ?></b></h5>
+								<p><a href="<?= site_url('news/' . $row['news_slug']); ?>" class="btn btn-primary btn-block btn-xs">Details</a></p>
 							</div>
-						<?php } ?>
+						</div>
+					<?php } ?>
 					</div>
 				</div>
 			</div>

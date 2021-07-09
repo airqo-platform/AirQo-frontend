@@ -1,7 +1,7 @@
 import axios from "axios";
 import {
   ALL_DEVICES_URI,
-    ADD_MAINTENANCE_LOGS_URI,
+  ADD_MAINTENANCE_LOGS_URI,
   ADD_COMPONENT_URI,
   GET_COMPONENTS_URI,
   DEPLOY_DEVICE_URI,
@@ -14,6 +14,7 @@ import {
   DELETE_DEVICE_PHOTO,
   EVENTS,
   RECALL_DEVICE_URI,
+  SITES,
 } from "config/urls/deviceRegistry";
 import { DEVICE_MAINTENANCE_LOG_URI } from "config/urls/deviceMonitoring";
 import { DEVICE_RECENT_FEEDS } from "config/urls/dataManagement";
@@ -126,4 +127,8 @@ export const deleteDevicePhotos = async (deviceName, pictures) => {
 
 export const getEventsApi = async (params) => {
   return await axios.get(EVENTS, { params }).then((response) => response.data);
+};
+
+export const getSitesApi = async () => {
+  return await axios.get(SITES).then((response) => response.data);
 };
