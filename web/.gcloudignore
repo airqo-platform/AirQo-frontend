@@ -8,3 +8,4 @@ docker-compose.yaml
 README.md
 .gitignore
 .DS_Store
+.vscode
