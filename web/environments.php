@@ -6,7 +6,15 @@ if(! defined('ENVIRONMENT') ){
         define('ENVIRONMENT', 'production');
         break;
 
+        case 'www.airqo.net':
+            define('ENVIRONMENT', 'production');
+            break;
+
         case 'airqo.africa':
+            define('ENVIRONMENT', 'production');
+            break;
+
+        case 'www.airqo.africa':
             define('ENVIRONMENT', 'production');
             break;
 
