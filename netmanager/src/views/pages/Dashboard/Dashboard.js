@@ -25,7 +25,9 @@ import Menu from "@material-ui/core/Menu";
 import MenuItem from "@material-ui/core/MenuItem";
 import domtoimage from "dom-to-image";
 import JsPDF from "jspdf";
-import { GET_HISTORICAL_DAILY_MEAN_AVERAGES_FOR_LAST_28_DAYS_URI } from "config/urls/analytics";
+import axios from "axios";
+import moment from "moment";
+import { DAILY_MEAN_AVERAGES_URI } from "config/urls/analytics";
 import { useUserDefaultGraphsData } from "redux/Dashboard/selectors";
 import { loadUserDefaultGraphData } from "redux/Dashboard/operations";
 import { loadMapEventsData } from "redux/MapData/operations";
@@ -126,22 +128,24 @@ const Dashboard = (props) => {
     }
   }, []);
 
-  // useEffect(() => {
-  //   if (orgData.name.toLowerCase() === "airqo") {
-  //     props.history.push("/overview");
-  //   }
-  // });
-
-  const [locations, setLocations] = useState([]);
+  const [averages, setAverages] = useState({
+    labels: [],
+    average_values: [],
+    background_colors: [],
+  });
+  const endDate = moment(new Date()).toISOString();
+  const startDate = moment(endDate).subtract(28, "days").toISOString();
 
   useEffect(() => {
-    fetch(GET_HISTORICAL_DAILY_MEAN_AVERAGES_FOR_LAST_28_DAYS_URI)
-      .then((res) => res.json())
-      .then((locationsData) => {
+    axios
+      .post(DAILY_MEAN_AVERAGES_URI, { startDate, endDate, pollutant: "pm2_5" })
+      .then((response) => response.data)
+      .then((responseData) => {
+        const averagesData = responseData.data;
         const zippedArr = zip(
-          locationsData.results.labels,
-          locationsData.results.average_pm25_values,
-          locationsData.results.background_colors
+          averagesData.labels,
+          averagesData.average_values,
+          averagesData.background_colors
         );
         zippedArr.sort((a, b) => {
           const a0 = a[0].trim(),
@@ -150,25 +154,21 @@ const Dashboard = (props) => {
           if (a0 > b0) return 1;
           return 0;
         });
-        const [labels, average_pm25_values, background_colors] = unzip(
-          zippedArr
-        );
-        setLocations({ labels, average_pm25_values, background_colors });
+        const [labels, average_values, background_colors] = unzip(zippedArr);
+        setAverages({ labels, average_values, background_colors });
       })
-      .catch((e) => {
-        console.log(e);
-      });
+      .catch((e) => console.log(e));
   }, []);
 
   const locationsGraphData = {
-    labels: locations.labels,
+    labels: averages.labels,
     datasets: [
       {
         label: "PM2.5(µg/m3)",
-        data: locations.average_pm25_values,
+        data: averages.average_values,
         fill: false, // Don't fill area under the line
         borderColor: palette.primary.main, // Line color
-        backgroundColor: locations.background_colors, //palette.primary.main,
+        backgroundColor: averages.background_colors, //palette.primary.main,
       },
     ],
   };

@@ -12,7 +12,7 @@ export const GET_MONITORING_SITES_LOCATIONS_URI = `${BASE_ANALYTICS_URL}/analyti
 
 export const GET_PM25_CATEGORY_COUNT_URI = `${BASE_ANALYTICS_URL}/analytics/dashboard/locations/pm25categorycount?organisation_name=KCCA`;
 
-export const GET_HISTORICAL_DAILY_MEAN_AVERAGES_FOR_LAST_28_DAYS_URI = `${BASE_ANALYTICS_URL}/analytics/dashboard/historical/daily/devices`;
+export const DAILY_MEAN_AVERAGES_URI = `${BASE_ANALYTICS_URL}/analytics/dashboard/historical/daily-averages`;
 
 export const GENERATE_DEVICE_GRAPH_URI = `${BASE_ANALYTICS_URL}/analytics/device/graph`;
 
