@@ -154,7 +154,6 @@ const ExceedancesChart = (props) => {
         let myLocations = [];
 
         if (tempStandard.value.toLowerCase() === "aqi") {
-          console.log("aqi running", standard);
           let myUH4SGValues = [];
           let myUnhealthyValues = [];
           let myVeryUnhealthyValues = [];
@@ -205,7 +204,6 @@ const ExceedancesChart = (props) => {
           ]);
         } else {
           let myValues = [];
-          console.log("who running", standard);
           exceedanceData.forEach((element) => {
             myLocations.push(
               element.site.name ||
@@ -224,10 +222,7 @@ const ExceedancesChart = (props) => {
               borderWidth: 1,
             },
           ]);
-          // setExceedanceValues(myValues);
         }
-
-        console.log("dataset", dataset);
       })
       .catch(console.log);
   };
