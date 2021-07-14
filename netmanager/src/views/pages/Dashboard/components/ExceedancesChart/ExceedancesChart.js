@@ -25,6 +25,8 @@ import MenuItem from "@material-ui/core/MenuItem";
 import domtoimage from "dom-to-image";
 import moment from "moment";
 import JsPDF from "jspdf";
+import { roundToStartOfDay, roundToEndOfDay } from "utils/dateTime";
+
 const useStyles = makeStyles((theme) => ({
   root: {
     height: "100%",
@@ -126,6 +128,11 @@ const ExceedancesChart = (props) => {
   };
 
   const fetchAndSetExceedanceData = async (filter) => {
+    filter = {
+      ...filter,
+      startDate: roundToStartOfDay(filter.startDate).toISOString(),
+      endDate: roundToEndOfDay(filter.endDate).toISOString(),
+    };
     setStandard(tempStandard);
     setPollutant(tempPollutant);
     setCustomChartTitle(
