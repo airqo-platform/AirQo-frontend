@@ -35,6 +35,7 @@ import { useEventsMapData } from "redux/MapData/selectors";
 import { useOrgData } from "redux/Join/selectors";
 import { PM_25_CATEGORY } from "utils/categories";
 import { isEmpty, unzip, zip } from "underscore";
+import { roundToStartOfDay, roundToEndOfDay } from "utils/dateTime";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -138,7 +139,11 @@ const Dashboard = (props) => {
 
   useEffect(() => {
     axios
-      .post(DAILY_MEAN_AVERAGES_URI, { startDate, endDate, pollutant: "pm2_5" })
+      .post(DAILY_MEAN_AVERAGES_URI, {
+        startDate: roundToStartOfDay(startDate).toISOString(),
+        endDate: roundToEndOfDay(endDate).toISOString(),
+        pollutant: "pm2_5",
+      })
       .then((response) => response.data)
       .then((responseData) => {
         const averagesData = responseData.data;
