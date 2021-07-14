@@ -34,12 +34,11 @@ import Menu from "@material-ui/core/Menu";
 import MenuItem from "@material-ui/core/MenuItem";
 import domtoimage from "dom-to-image";
 import JsPDF from "jspdf";
-import { isEmpty, isEqual } from "underscore";
+import { isEmpty } from "underscore";
 import LabelledSelect from "../../../../components/CustomSelects/LabelledSelect";
 import { useDashboardSitesData } from "redux/Dashboard/selectors";
 import { formatDateString } from "utils/dateTime";
 import { setUserDefaultGraphData, loadSites } from "redux/Dashboard/operations";
-import { createChartJsData } from "utils/charts";
 import { omit } from "underscore";
 
 const useStyles = makeStyles((theme) => ({
@@ -219,16 +218,10 @@ const CustomisableChart = (props) => {
   const handleClose = () => {
     setOpen(false);
   };
-  const [
-    customChartTitleSecondSection,
-    setCustomChartTitleSecondSection,
-  ] = useState("Custom Chart Title");
 
   const sites = useDashboardSitesData();
 
   const [sitesOptions, setSiteOptions] = useState([]);
-
-  const [previousFilter, setPreviousFilter] = useState({});
 
   if (!sites.length) {
     // Ensure to load the filterLocation data if empty
@@ -265,16 +258,6 @@ const CustomisableChart = (props) => {
     });
     if (initialLoad && !isEmpty(sites)) {
       setInitialLoad(false);
-      setPreviousFilter({
-        locations: sitesOptions.filter(siteFilter(defaultFilter.locations)),
-        sites: optionToList(sites),
-        startDate: selectedDate.toISOString(),
-        endDate: selectedEndDate.toISOString(),
-        chartType: selectedChart.value,
-        frequency: selectedFrequency.value,
-        pollutant: selectedPollutant.value,
-        organisation_name: "KCCA",
-      });
       fetchAndSetGraphData({
         locations: sitesOptions.filter(siteFilter(defaultFilter.locations)),
         sites: optionToList(sites),
@@ -359,17 +342,6 @@ const CustomisableChart = (props) => {
     setDefaulPollutant(defaultFilter.pollutant)
   );
 
-  // const [graphFilter, setGraphFilter] = useState({
-  //   locations: values.selectedOption,
-  //   sites: optionToList(values.selectedOption),
-  //   startDate: selectedDate.toISOString(),
-  //   endDate: selectedEndDate.toISOString(),
-  //   chartType: selectedChart.value,
-  //   frequency: selectedFrequency.value,
-  //   pollutant: selectedPollutant.value,
-  //   organisation_name: "KCCA",
-  // });
-
   const handlePollutantChange = (selectedPollutantOption) => {
     setSelectedPollutant(selectedPollutantOption);
   };
@@ -398,12 +370,11 @@ const CustomisableChart = (props) => {
   );
 
   useEffect(() => {
-    setCustomisedGraphLabel(labelMapper[selectedPollutant.value]);
+    // setCustomisedGraphLabel(labelMapper[selectedPollutant.value]);
     setCustomAnnotations(annotationMapper[selectedPollutant.value]);
   }, [selectedPollutant]);
 
   const [customGraphData, setCustomisedGraphData] = useState([]);
-  const [rawData, setRawData] = useState([]);
 
   const fetchAndSetGraphData = async (filter) => {
     return await axios
@@ -415,10 +386,7 @@ const CustomisableChart = (props) => {
       )
       .then((res) => res.data)
       .then((chartData) => {
-        setRawData(chartData.data || []);
-        setCustomisedGraphData(
-          createChartJsData(chartData.data || [], selectedPollutant.value)
-        );
+        setCustomisedGraphData(chartData.data);
       })
       .catch((err) => {
         console.log("error", (err.response && err.response.data) || err);
@@ -453,33 +421,10 @@ const CustomisableChart = (props) => {
         locations: valueLabelToString(values.selectedOption),
       })
     );
-    // const activeFilters = omit(
-    //   newFilter,
-    //   "chartType",
-    //   "frequency",
-    //   "pollutant",
-    //   "location"
-    // );
-    // const prevFilters = omit(
-    //   previousFilter,
-    //   "chartType",
-    //   "frequency",
-    //   "pollutant",
-    //   "location"
-    // );
-    // if (isEqual(activeFilters, prevFilters)) {
-    //   console.log("catch at work");
-    //   setCustomisedGraphData(
-    //       createChartJsData(rawData || [], selectedPollutant.value)
-    //     )
-    //   return;
-    // }
-    setPreviousFilter(newFilter);
     await fetchAndSetGraphData(newFilter);
   };
 
   useEffect(() => {
-    // const errors = validate(formState.values, schema);
     const errors = {};
 
     setFormState((formState) => ({
@@ -492,15 +437,6 @@ const CustomisableChart = (props) => {
   useEffect(() => {
     handlePeriodChange(selectedPeriod);
   }, []);
-
-  /*
-  if (customGraphData.results  && customGraphData.results[0].chart_type !== 'pie' && customGraphData.results[0].frequency !== 'monthly'){
-    for (var i=0; i<customGraphData.results[0].chart_data.labels.length; i++){
-      let newTime = new Date (customGraphData.results[0].chart_data.labels[i]);
-      customGraphData.results[0].chart_data.labels[i] = newTime.getFullYear()+'-'+appendLeadingZeroes(newTime.getMonth()+1)+'-'+appendLeadingZeroes(newTime.getDate())+
-      ' '+appendLeadingZeroes(newTime.getHours())+':'+ appendLeadingZeroes(newTime.getMinutes());
-    }
-  }*/
 
   const customisedGraphData = {
     chart_type: isEmpty(customGraphData.results)
