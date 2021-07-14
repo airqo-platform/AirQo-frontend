@@ -217,6 +217,7 @@ const CustomisableChart = (props) => {
 
   const handleClose = () => {
     setOpen(false);
+    clearTempState();
   };
 
   const sites = useDashboardSitesData();
@@ -256,6 +257,7 @@ const CustomisableChart = (props) => {
     setReactSelectValue({
       selectedOption: sites,
     });
+    setTempState({ ...tempState, sites: { selectedOption: sites } });
     if (initialLoad && !isEmpty(sites)) {
       setInitialLoad(false);
       fetchAndSetGraphData({
@@ -271,10 +273,6 @@ const CustomisableChart = (props) => {
     }
   }, [sitesOptions]);
 
-  const handleMultiChange = (selectedOption) => {
-    setReactSelectValue({ selectedOption });
-  };
-
   const chartTypeOptions = [
     { value: "line", label: "Line" },
     { value: "bar", label: "Bar" },
@@ -286,7 +284,7 @@ const CustomisableChart = (props) => {
   );
 
   const handleChartTypeChange = (selectedChartType) => {
-    setSelectedChartType(selectedChartType);
+    setTempState({ ...tempState, chartType: selectedChartType });
 
     setFormState((formState) => ({
       ...formState,
@@ -312,7 +310,7 @@ const CustomisableChart = (props) => {
   );
 
   const handleFrequencyChange = (selectedFrequencyOption) => {
-    setSelectedFrequency(selectedFrequencyOption);
+    setTempState({ ...tempState, frequency: selectedFrequencyOption });
   };
 
   const pollutantOptions = [
@@ -343,7 +341,7 @@ const CustomisableChart = (props) => {
   );
 
   const handlePollutantChange = (selectedPollutantOption) => {
-    setSelectedPollutant(selectedPollutantOption);
+    setTempState({ ...tempState, pollutant: selectedPollutantOption });
   };
 
   const annotationMapper = {
@@ -369,6 +367,33 @@ const CustomisableChart = (props) => {
     annotationMapper[selectedPollutant.value]
   );
 
+  const [tempState, setTempState] = useState({
+    sites: values,
+    chartType: selectedChart,
+    frequency: selectedFrequency,
+    pollutant: selectedPollutant,
+  });
+
+  const transferFromTempState = () => {
+    setReactSelectValue(tempState.sites);
+    setSelectedChartType(tempState.chartType);
+    setSelectedFrequency(tempState.frequency);
+    setSelectedPollutant(tempState.pollutant);
+  };
+
+  const clearTempState = () => {
+    setTempState({
+      sites: values,
+      chartType: selectedChart,
+      frequency: selectedFrequency,
+      pollutant: selectedPollutant,
+    });
+  };
+
+  const handleMultiChange = (selectedOption) => {
+    setTempState({ ...tempState, sites: { selectedOption } });
+  };
+
   useEffect(() => {
     // setCustomisedGraphLabel(labelMapper[selectedPollutant.value]);
     setCustomAnnotations(annotationMapper[selectedPollutant.value]);
@@ -377,6 +402,7 @@ const CustomisableChart = (props) => {
   const [customGraphData, setCustomisedGraphData] = useState([]);
 
   const fetchAndSetGraphData = async (filter) => {
+    await setCustomisedGraphData({});
     return await axios
       .post(
         GENERATE_CUSTOMISABLE_CHARTS_URI,
@@ -395,6 +421,7 @@ const CustomisableChart = (props) => {
 
   let handleSubmit = async (e) => {
     e.preventDefault();
+    setOpen(false);
 
     let period = omit(
       { ...selectedPeriod, endDate: selectedEndDate },
@@ -408,13 +435,15 @@ const CustomisableChart = (props) => {
     let newFilter = {
       ...defaultFilter,
       period: JSON.stringify(period),
-      sites: optionToList(values.selectedOption),
+      sites: optionToList(tempState.sites.selectedOption),
       startDate: selectedDate.toISOString(),
       endDate: selectedEndDate.toISOString(),
-      chartType: selectedChart.value,
-      frequency: selectedFrequency.value,
-      pollutant: selectedPollutant.value,
+      chartType: tempState.chartType.value,
+      frequency: tempState.frequency.value,
+      pollutant: tempState.pollutant.value,
     };
+
+    transferFromTempState();
     dispatch(
       setUserDefaultGraphData({
         ...newFilter,
@@ -735,7 +764,7 @@ const CustomisableChart = (props) => {
                         className="reactSelect"
                         name="location"
                         placeholder="Location(s)"
-                        value={values.selectedOption}
+                        value={tempState.sites.selectedOption}
                         options={sitesOptions}
                         onChange={handleMultiChange}
                         isMulti
@@ -752,7 +781,7 @@ const CustomisableChart = (props) => {
                         className="reactSelect"
                         name="chartType"
                         placeholder="Chart Type"
-                        value={selectedChart}
+                        value={tempState.chartType}
                         options={chartTypeOptions}
                         onChange={handleChartTypeChange}
                         variant="outlined"
@@ -768,7 +797,7 @@ const CustomisableChart = (props) => {
                         className=""
                         name="chartFrequency"
                         placeholder="Frequency"
-                        value={selectedFrequency}
+                        value={tempState.frequency}
                         options={frequencyOptions}
                         onChange={handleFrequencyChange}
                         variant="outlined"
@@ -783,7 +812,7 @@ const CustomisableChart = (props) => {
                         className=""
                         name="pollutant"
                         placeholder="Pollutant"
-                        value={selectedPollutant}
+                        value={tempState.pollutant}
                         options={pollutantOptions}
                         onChange={handlePollutantChange}
                         variant="outlined"
@@ -895,7 +924,7 @@ const CustomisableChart = (props) => {
                 <Button
                   //disabled={!formState.isValid}
                   variant="outlined"
-                  onClick={handleClose}
+                  // onClick={handleClose}
                   color="primary"
                   type="submit" //set the buttom type is submit
                   form="customisable-form"
