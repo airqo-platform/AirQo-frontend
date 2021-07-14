@@ -431,6 +431,7 @@ const ExceedancesChart = (props) => {
                         },
                         ticks: {
                           fontColor: "black",
+                          callback: (value) => `${value.substr(0, 7)}...`,
                         },
                         gridLines: {
                           display: false,

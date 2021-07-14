@@ -230,9 +230,8 @@ const Dashboard = (props) => {
           barPercentage: 0.5,
           categoryPercentage: 0.5,
           ticks: {
-            // fontColor: palette.text.secondary,
             fontColor: "black",
-            //fontSize:10
+            callback: (value) => `${value.substr(0, 7)}...`,
           },
           gridLines: {
             display: false,
