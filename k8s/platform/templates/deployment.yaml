@@ -3,8 +3,7 @@ kind: Deployment
 metadata:
   name: {{ .Values.env.deployment_name }}
   namespace: {{ .Values.appMode }}
-  labels:
-{{ include "airqo-device-registry-api.labels" . | indent 4 }}
+  labels: {{ .Values.env.labels }}
 spec:
   replicas: {{ .Values.replicaCount }}
   strategy:

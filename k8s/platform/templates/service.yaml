@@ -3,8 +3,7 @@ kind: Service
 metadata:
   name: {{ .Values.env.service_name }}
   namespace: {{ .Values.appMode }}
-  labels:
-{{ include "airqo-device-registry-api.labels" . | indent 4 }}
+  labels: {{ .Values.env.labels }}
 spec:
   type: {{ .Values.service.type }}
   ports:

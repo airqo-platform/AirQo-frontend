@@ -2,7 +2,7 @@
 {{/*
 Expand the name of the chart.
 */}}
-{{- define "airqo-device-registry-api.name" -}}
+{{- define "airqo-platform-frontend.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
@@ -11,7 +11,7 @@ Create a default fully qualified app name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 If release name contains chart name it will be used as a full name.
 */}}
-{{- define "airqo-device-registry-api.fullname" -}}
+{{- define "airqo-platform-frontend.fullname" -}}
 {{- if .Values.fullnameOverride -}}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" -}}
 {{- else -}}
@@ -27,16 +27,16 @@ If release name contains chart name it will be used as a full name.
 {{/*
 Create chart name and version as used by the chart label.
 */}}
-{{- define "airqo-device-registry-api.chart" -}}
+{{- define "airqo-platform-frontend.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
 {{/*
 Common labels
 */}}
-{{- define "airqo-device-registry-api.labels" -}}
-app.kubernetes.io/name: {{ include "airqo-device-registry-api.name" . }}
-helm.sh/chart: {{ include "airqo-device-registry-api.chart" . }}
+{{- define "airqo-platform-frontend.labels" -}}
+app.kubernetes.io/name: {{ include "airqo-platform-frontend.name" . }}
+helm.sh/chart: {{ include "airqo-platform-frontend.chart" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
@@ -47,9 +47,9 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{/*
 Create the name of the service account to use
 */}}
-{{- define "airqo-device-registry-api.serviceAccountName" -}}
+{{- define "airqo-platform-frontend.serviceAccountName" -}}
 {{- if .Values.serviceAccount.create -}}
-    {{ default (include "airqo-device-registry-api.fullname" .) .Values.serviceAccount.name }}
+    {{ default (include "airqo-platform-frontend.fullname" .) .Values.serviceAccount.name }}
 {{- else -}}
     {{ default "default" .Values.serviceAccount.name }}
 {{- end -}}
