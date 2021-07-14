@@ -40,6 +40,7 @@ import { useDashboardSitesData } from "redux/Dashboard/selectors";
 import { formatDateString } from "utils/dateTime";
 import { setUserDefaultGraphData, loadSites } from "redux/Dashboard/operations";
 import { omit } from "underscore";
+import { roundToStartOfDay, roundToEndOfDay } from "utils/dateTime";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -402,6 +403,12 @@ const CustomisableChart = (props) => {
   const [customGraphData, setCustomisedGraphData] = useState([]);
 
   const fetchAndSetGraphData = async (filter) => {
+    filter = {
+      ...filter,
+      startDate: roundToStartOfDay(filter.startDate).toISOString(),
+      endDate: roundToEndOfDay(filter.endDate).toISOString(),
+    };
+
     await setCustomisedGraphData({});
     return await axios
       .post(
