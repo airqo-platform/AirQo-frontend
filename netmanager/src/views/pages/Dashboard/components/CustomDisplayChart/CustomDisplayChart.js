@@ -3,7 +3,18 @@ import { Line, Bar, Pie } from "react-chartjs-2";
 import PropTypes from "prop-types";
 
 const CustomDisplayChart = (props) => {
-  return (
+  return props.loading ? (
+    <div
+      className="canvas-container"
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      loading...
+    </div>
+  ) : (
     <article className="canvas-container">
       {(function () {
         switch (props.chart_type) {

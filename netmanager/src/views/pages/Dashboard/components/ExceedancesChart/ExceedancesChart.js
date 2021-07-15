@@ -23,7 +23,10 @@ import { EXCEEDANCES_URI } from "config/urls/analytics";
 import Menu from "@material-ui/core/Menu";
 import MenuItem from "@material-ui/core/MenuItem";
 import domtoimage from "dom-to-image";
+import moment from "moment";
 import JsPDF from "jspdf";
+import { roundToStartOfDay, roundToEndOfDay } from "utils/dateTime";
+
 const useStyles = makeStyles((theme) => ({
   root: {
     height: "100%",
@@ -41,113 +44,49 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-/*const useStyles = makeStyles(theme => ({
-    root: {
-      padding: theme.spacing(4)
-    },
-    chartCard:{
-  
-    },
-    differenceIcon: {
-      color: theme.palette.text.secondary,
-    },
-    chartContainer: {
-      height: 200,
-      position: 'relative'
-    },
-    actions: {
-      justifyContent: 'flex-end'
-    }
-  }));*/
-
 const ExceedancesChart = (props) => {
   const { className, chartContainer, idSuffix, ...rest } = props;
 
   const classes = useStyles();
-  // const [loading, setLoading] = useState(false);
+
+  const [anchorEl, setAnchorEl] = useState(null);
   const [open, setOpen] = React.useState(false);
-  //const [scroll, setScroll] = React.useState('paper');
+  const [endDate, setEndDate] = React.useState(
+    moment(new Date()).toISOString()
+  );
+  const [startDate, setStartDate] = React.useState(
+    moment(endDate).subtract(28, "days").toISOString()
+  );
 
-  const [locations, setLocations] = useState([]);
+  const standardOptions = [
+    { value: "aqi", label: "AQI" },
+    { value: "who", label: "WHO" },
+  ];
 
-  const [UH4SGValues, setUH4SGValues] = useState([]);
-  const [unhealthyValues, setUnhealthyValues] = useState([]);
-  const [veryUnhealthyValues, setVeryUnhealthyValues] = useState([]);
-  const [hazardousValues, setHazardousValues] = useState([]);
+  const pollutantOptions = [
+    { value: "pm2_5", label: "PM 2.5" },
+    { value: "pm10", label: "PM 10" },
+    { value: "no2", label: "NO2" },
+  ];
 
-  const [exceedanceValues, setExceedanceValues] = useState([]);
-  useEffect(() => {
-    let effectFilter = {
-      pollutant: "PM 2.5",
-      standard: "AQI",
-    };
-    console.log(JSON.stringify(effectFilter));
-    //setLoading(true);
-
-    axios
-      .post(EXCEEDANCES_URI, JSON.stringify(effectFilter), {
-        headers: { "Content-Type": "application/json" },
-      })
-      .then((res) => {
-        const myData = res.data;
-        //setLoading(false);
-        console.log(myData);
-        myData.sort((a, b) => {
-          const a0 = a.location.trim(),
-            b0 = b.location.trim();
-          if (a0 < b0) return -1;
-          if (a0 > b0) return 1;
-          return 0;
-        });
-        setMyStandard(standard.value);
-        setMyPollutant(pollutant.value);
-        let myValues = [];
-        let myUH4SGValues = [];
-        let myUnhealthyValues = [];
-        let myVeryUnhealthyValues = [];
-        let myHazardousValues = [];
-        let myLocations = [];
-
-        myData.forEach((element) => {
-          myLocations.push(element["location"]);
-          myUH4SGValues.push(element["UH4SG"]);
-          myUnhealthyValues.push(element["Unhealthy"]);
-          myVeryUnhealthyValues.push(element["VeryUnhealthy"]);
-          myHazardousValues.push(element["Hazardous"]);
-        });
-        setLocations(myLocations);
-        setUH4SGValues(myUH4SGValues);
-        setUnhealthyValues(myUnhealthyValues);
-        setVeryUnhealthyValues(myVeryUnhealthyValues);
-        setHazardousValues(myHazardousValues);
-      })
-      .catch(console.log);
-  }, []);
+  const [standard, setStandard] = useState({ value: "aqi", label: "AQI" });
+  const [pollutant, setPollutant] = useState({
+    value: "pm2_5",
+    label: "PM 2.5",
+  });
+  const [tempStandard, setTempStandard] = useState(standard);
+  const [tempPollutant, setTempPollutant] = useState(pollutant);
 
   const [customChartTitle, setCustomChartTitle] = useState(
-    "PM 2.5 Exceedances Over the Past 28 Days Based on AQI"
+    `${pollutant.label} Exceedances Over the Past 28 Days Based on ${standard.label}`
   );
-  const [exceedancesData, setExceedancesData] = useState([]);
-  const [myStandard, setMyStandard] = useState({ value: "" });
-  const [myPollutant, setMyPollutant] = useState({ value: "" });
 
-  const [standard, setStandard] = useState("WHO");
-  const standardOptions = [
-    { value: "AQI", label: "AQI" },
-    { value: "WHO", label: "WHO" },
-  ];
   const handleStandardChange = (standard) => {
-    setStandard(standard);
+    setTempStandard(standard);
   };
 
-  const [pollutant, setPollutant] = useState("PM 2.5");
-  const pollutantOptions = [
-    { value: "PM 2.5", label: "PM 2.5" },
-    { value: "PM 10", label: "PM 10" },
-    { value: "NO2", label: "NO2" },
-  ];
   const handlePollutantChange = (pollutant) => {
-    setPollutant(pollutant);
+    setTempPollutant(pollutant);
   };
 
   const handleClickOpen = () => {
@@ -155,140 +94,148 @@ const ExceedancesChart = (props) => {
   };
 
   const handleClose = () => {
+    setAnchorEl(null);
     setOpen(false);
+    setTempPollutant(pollutant);
+    setTempStandard(standard);
   };
 
-  function generateTitle(pollutant, standard) {
-    if (!pollutant) {
-      pollutant = "PM 2.5";
-    }
-    if (!standard) {
-      standard = "WHO";
-    }
+  const [locations, setLocations] = useState([]);
+  const [dataset, setDataset] = useState([]);
 
-    let title =
-      pollutant + " Exceedances Over the Past 28 Days Based on " + standard;
-    return title;
-  }
-
-  function generateExceedanceData(standard) {
-    var datasets;
-    if (standard === "WHO") {
-      datasets = [
-        {
-          label: "Exceedances",
-          data: exceedanceValues,
-          backgroundColor: palette.primary.main,
-          //borderColor: 'rgba(0,0,0,1)',
-          borderWidth: 1,
-        },
-      ];
-    } else {
-      datasets = [
-        {
-          label: "UH4SG",
-          data: UH4SGValues,
-          backgroundColor: "orange",
-          borderColor: "rgba(0,0,0,1)",
-          borderWidth: 1,
-        },
-        {
-          label: "Unhealthy",
-          data: unhealthyValues,
-          backgroundColor: "red",
-          borderColor: "rgba(0,0,0,1)",
-          borderWidth: 1,
-        },
-        {
-          label: "Very Unhealthy",
-          data: veryUnhealthyValues,
-          backgroundColor: "purple",
-          borderColor: "rgba(0,0,0,1)",
-          borderWidth: 1,
-        },
-        {
-          label: "Hazardous",
-          data: hazardousValues,
-          backgroundColor: "maroon",
-          borderColor: "rgba(0,0,0,1)",
-          borderWidth: 1,
-        },
-      ];
-    }
-    return datasets;
-  }
-
-  let handleSubmit = (e) => {
-    e.preventDefault();
-    //setLoading(true);
-
+  useEffect(() => {
     let filter = {
       pollutant: pollutant.value,
       standard: standard.value,
+      startDate,
+      endDate,
     };
-    let filter_string = JSON.stringify(filter);
-    console.log(filter_string);
+    fetchAndSetExceedanceData(filter);
+  }, []);
 
+  let handleSubmit = async (e) => {
+    e.preventDefault();
+
+    let filter = {
+      pollutant: tempPollutant.value,
+      standard: tempStandard.value,
+      startDate,
+      endDate,
+    };
+    setAnchorEl(null);
+    setOpen(false);
+    fetchAndSetExceedanceData(filter);
+  };
+
+  const fetchAndSetExceedanceData = async (filter) => {
+    filter = {
+      ...filter,
+      startDate: roundToStartOfDay(filter.startDate).toISOString(),
+      endDate: roundToEndOfDay(filter.endDate).toISOString(),
+    };
+    setStandard(tempStandard);
+    setPollutant(tempPollutant);
+    setCustomChartTitle(
+      `${tempPollutant.label} Exceedances Over the Past 28 Days Based on ${tempStandard.label}`
+    );
     axios
-      .post(EXCEEDANCES_URI, filter_string, {
-        headers: { "Content-Type": "application/json" },
-      })
-      .then((res) => {
-        const myData = res.data;
-        console.log(myData);
-        //setLoading(false);
-        myData.sort((a, b) => {
-          const a0 = a.location.trim(),
-            b0 = b.location.trim();
+      .post(EXCEEDANCES_URI, filter)
+      .then((response) => response.data)
+      .then((responseData) => {
+        const exceedanceData = responseData.data;
+        exceedanceData.sort((a, b) => {
+          const a0 = (
+            a.site.name ||
+            a.site.description ||
+            a.site.generated_name
+          ).trim();
+          const b0 = (
+            b.site.name ||
+            b.site.description ||
+            b.site.generated_name
+          ).trim();
           if (a0 < b0) return -1;
           if (a0 > b0) return 1;
           return 0;
         });
-        setMyStandard(standard.value);
-        setMyPollutant(pollutant.value);
-        let myValues = [];
-        let myUH4SGValues = [];
-        let myUnhealthyValues = [];
-        let myVeryUnhealthyValues = [];
-        let myHazardousValues = [];
         let myLocations = [];
-        //setLocations(myLocations);
-        //myData.forEach(element => {
-        //myLocations.push(element['location']);
 
-        if (standard.value === "AQI") {
-          myData.forEach((element) => {
-            myLocations.push(element["location"]);
-            myUH4SGValues.push(element["UH4SG"]);
-            myUnhealthyValues.push(element["Unhealthy"]);
-            myVeryUnhealthyValues.push(element["VeryUnhealthy"]);
-            myHazardousValues.push(element["Hazardous"]);
+        if (tempStandard.value.toLowerCase() === "aqi") {
+          let myUH4SGValues = [];
+          let myUnhealthyValues = [];
+          let myVeryUnhealthyValues = [];
+          let myHazardousValues = [];
+          let myLocations = [];
+
+          exceedanceData.forEach((element) => {
+            myLocations.push(
+              element.site.name ||
+                element.site.description ||
+                element.site.generated_name
+            );
+            myUH4SGValues.push(element.exceedance.UHFSG);
+            myUnhealthyValues.push(element.exceedance.Unhealthy);
+            myVeryUnhealthyValues.push(element.exceedance.VeryUnhealthy);
+            myHazardousValues.push(element.exceedance.Hazardous);
           });
           setLocations(myLocations);
-          setUH4SGValues(myUH4SGValues);
-          setUnhealthyValues(myUnhealthyValues);
-          setVeryUnhealthyValues(myVeryUnhealthyValues);
-          setHazardousValues(myHazardousValues);
+          setDataset([
+            {
+              label: "UH4SG",
+              data: myUH4SGValues,
+              backgroundColor: "orange",
+              borderColor: "rgba(0,0,0,1)",
+              borderWidth: 1,
+            },
+            {
+              label: "Unhealthy",
+              data: myUnhealthyValues,
+              backgroundColor: "red",
+              borderColor: "rgba(0,0,0,1)",
+              borderWidth: 1,
+            },
+            {
+              label: "Very Unhealthy",
+              data: myVeryUnhealthyValues,
+              backgroundColor: "purple",
+              borderColor: "rgba(0,0,0,1)",
+              borderWidth: 1,
+            },
+            {
+              label: "Hazardous",
+              data: myHazardousValues,
+              backgroundColor: "maroon",
+              borderColor: "rgba(0,0,0,1)",
+              borderWidth: 1,
+            },
+          ]);
         } else {
-          myData.forEach((element) => {
-            myLocations.push(element["location"]);
-            myValues.push(element["exceedances"]);
+          let myValues = [];
+          exceedanceData.forEach((element) => {
+            myLocations.push(
+              element.site.name ||
+                element.site.description ||
+                element.site.generated_name
+            );
+            myValues.push(element.exceedance);
           });
           setLocations(myLocations);
-          setExceedanceValues(myValues);
+          setDataset([
+            {
+              label: "Exceedances",
+              data: myValues,
+              backgroundColor: palette.primary.main,
+              //borderColor: 'rgba(0,0,0,1)',
+              borderWidth: 1,
+            },
+          ]);
         }
-        setCustomChartTitle(
-          pollutant.value +
-            " Exceedances Over the Past 28 Days Based on " +
-            standard.value
-        );
       })
       .catch(console.log);
   };
 
   const rootCustomChartContainerId = "rootCustomChartContainerId" + idSuffix;
   const iconButton = "exportIconButton";
-  const [anchorEl, setAnchorEl] = useState(null);
 
   const filter = (node) => node.id !== iconButton;
 
@@ -423,7 +370,7 @@ const ExceedancesChart = (props) => {
             <Bar
               data={{
                 labels: locations,
-                datasets: generateExceedanceData(myStandard),
+                datasets: dataset,
               }}
               options={
                 props.options || {
@@ -484,6 +431,7 @@ const ExceedancesChart = (props) => {
                         },
                         ticks: {
                           fontColor: "black",
+                          callback: (value) => `${value.substr(0, 7)}...`,
                         },
                         gridLines: {
                           display: false,
@@ -522,7 +470,7 @@ const ExceedancesChart = (props) => {
                       className=""
                       name="pollutant"
                       placeholder="Pollutant"
-                      value={pollutant}
+                      value={tempPollutant}
                       options={pollutantOptions}
                       onChange={handlePollutantChange}
                       variant="outlined"
@@ -538,7 +486,7 @@ const ExceedancesChart = (props) => {
                       className=""
                       name="standard"
                       placeholder="Standard"
-                      value={standard}
+                      value={tempStandard}
                       options={standardOptions}
                       onChange={handleStandardChange}
                       variant="outlined"
@@ -556,7 +504,6 @@ const ExceedancesChart = (props) => {
               </Button>
               <Button
                 variant="outlined"
-                onClick={handleClose}
                 color="primary"
                 type="submit"
                 form="customisable-form"
