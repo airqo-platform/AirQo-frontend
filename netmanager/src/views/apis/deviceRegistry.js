@@ -132,3 +132,7 @@ export const getEventsApi = async (params) => {
 export const getSitesApi = async () => {
   return await axios.get(SITES).then((response) => response.data);
 };
+
+export const updateSiteApi = async (siteData) => {
+  return await axios.put(SITES, siteData).then((response) => response.data);
+};
