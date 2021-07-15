@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
-import { isEmpty } from "underscore";
+import { isEmpty, isEqual } from "underscore";
 import PropTypes from "prop-types";
 import { useHistory, useParams } from "react-router-dom";
 import { ArrowBackIosRounded } from "@material-ui/icons";
@@ -12,6 +12,8 @@ import CustomMaterialTable from "../Table/CustomMaterialTable";
 import { useInitScrollTop } from "utils/customHooks";
 import { humanReadableDate } from "utils/dateTime";
 import { useSiteBackUrl } from "redux/Urls/selectors";
+import { updateSiteApi } from "views/apis/deviceRegistry";
+import { updateMainAlert } from "redux/MainAlert/operations";
 
 // css
 import "react-leaflet-fullscreen/dist/styles.css";
@@ -28,7 +30,53 @@ const Cell = ({ fieldValue }) => {
 
 const SiteForm = ({ site }) => {
   const history = useHistory();
+  const dispatch = useDispatch();
   const goBackUrl = useSiteBackUrl();
+
+  const [siteInfo, setSiteInfo] = useState(site);
+  const [manualDisable, setManualDisable] = useState(false);
+
+  const weightedBool = (first, second) => {
+    if (first) return true;
+    return second;
+  };
+  const handleSiteInfoChange = (event) => {
+    const id = event.target.id;
+    const value = event.target.value;
+
+    setSiteInfo({ ...siteInfo, [id]: value });
+  };
+
+  const handleCancel = () => {
+    setSiteInfo(site);
+  };
+
+  const handleSubmit = async () => {
+    setManualDisable(true);
+    await updateSiteApi(siteInfo)
+      .then((responseData) => {
+        console.log("response", responseData);
+        dispatch(
+          updateMainAlert({
+            severity: "success",
+            message: responseData.message,
+            show: true,
+          })
+        );
+        setSiteInfo(responseData.site);
+        dispatch(loadSitesData());
+      })
+      .catch((err) => {
+        dispatch(
+          updateMainAlert({
+            severity: "error",
+            message: err.response.data.message,
+            show: true,
+          })
+        );
+      });
+    setManualDisable(false);
+  };
 
   return (
     <Paper
@@ -68,20 +116,19 @@ const SiteForm = ({ site }) => {
             id="name"
             label="name"
             variant="outlined"
-            value={site.name}
-            // onChange={handleTextFieldChange}
+            value={siteInfo.name}
+            onChange={handleSiteInfoChange}
             fullWidth
             required
-            // disabled
           />
         </Grid>
         <Grid items xs={12} sm={6} style={gridItemStyle}>
           <TextField
             id="description"
             label="Description"
-            value={site.description}
+            value={siteInfo.description}
             variant="outlined"
-            // onChange={handleTextFieldChange}
+            onChange={handleSiteInfoChange}
             fullWidth
             required
           />
@@ -90,9 +137,9 @@ const SiteForm = ({ site }) => {
           <TextField
             id="latitude"
             label="Latitude"
-            value={site.latitude}
+            value={siteInfo.latitude}
             variant="outlined"
-            // onChange={handleTextFieldChange}
+            onChange={handleSiteInfoChange}
             fullWidth
             required
           />
@@ -102,8 +149,8 @@ const SiteForm = ({ site }) => {
             id="longitude"
             label="Longitude"
             variant="outlined"
-            value={site.longitude}
-            // onChange={handleTextFieldChange}
+            value={siteInfo.longitude}
+            onChange={handleSiteInfoChange}
             fullWidth
           />
         </Grid>
@@ -112,8 +159,8 @@ const SiteForm = ({ site }) => {
             id="parish"
             label="Parish"
             variant="outlined"
-            value={site.parish}
-            // onChange={handleTextFieldChange}
+            value={siteInfo.parish}
+            onChange={handleSiteInfoChange}
             fullWidth
           />
         </Grid>
@@ -122,8 +169,8 @@ const SiteForm = ({ site }) => {
             id="sub_county"
             label="Sub County"
             variant="outlined"
-            value={site.sub_county}
-            // onChange={handleTextFieldChange}
+            value={siteInfo.sub_county}
+            onChange={handleSiteInfoChange}
             fullWidth
           />
         </Grid>
@@ -132,8 +179,8 @@ const SiteForm = ({ site }) => {
             id="district"
             label="District"
             variant="outlined"
-            value={site.district}
-            // onChange={handleTextFieldChange}
+            value={siteInfo.district}
+            onChange={handleSiteInfoChange}
             fullWidth
             required
           />
@@ -143,8 +190,8 @@ const SiteForm = ({ site }) => {
             id="region"
             label="Region"
             variant="outlined"
-            value={site.region}
-            // onChange={handleTextFieldChange}
+            value={siteInfo.region}
+            onChange={handleSiteInfoChange}
             fullWidth
           />
         </Grid>
@@ -153,8 +200,8 @@ const SiteForm = ({ site }) => {
             id="altitude"
             label="Altitude"
             variant="outlined"
-            value={site.altitude}
-            // onChange={handleTextFieldChange}
+            value={siteInfo.altitude}
+            onChange={handleSiteInfoChange}
             fullWidth
             required
           />
@@ -164,58 +211,58 @@ const SiteForm = ({ site }) => {
             id="greenness"
             label="Greenness"
             variant="outlined"
-            value={site.greenness}
-            // onChange={handleTextFieldChange}
+            value={siteInfo.greenness}
+            onChange={handleSiteInfoChange}
             fullWidth
           />
         </Grid>
         <Grid items xs={12} sm={6} style={gridItemStyle}>
           <TextField
             id="distance_to_nearest_road"
-            label="Nearest road (distance)"
+            label="Nearest road (m)"
             variant="outlined"
-            value={site.distance_to_nearest_road}
-            // onChange={handleTextFieldChange}
+            value={siteInfo.distance_to_nearest_road}
+            onChange={handleSiteInfoChange}
             fullWidth
           />
         </Grid>
         <Grid items xs={12} sm={6} style={gridItemStyle}>
           <TextField
             id="distance_to_nearest_primary_road"
-            label="Nearest primary road (distance)"
+            label="Nearest primary road (m)"
             variant="outlined"
-            value={site.distance_to_nearest_primary_road}
-            // onChange={handleTextFieldChange}
+            value={siteInfo.distance_to_nearest_primary_road}
+            onChange={handleSiteInfoChange}
             fullWidth
           />
         </Grid>
         <Grid items xs={12} sm={6} style={gridItemStyle}>
           <TextField
             id="distance_to_nearest_tertiary_road"
-            label="Nearest tertiary road (distance)"
+            label="Nearest tertiary road (m)"
             variant="outlined"
-            value={site.distance_to_nearest_tertiary_road}
-            // onChange={handleTextFieldChange}
+            value={siteInfo.distance_to_nearest_tertiary_road}
+            onChange={handleSiteInfoChange}
             fullWidth
           />
         </Grid>
         <Grid items xs={12} sm={6} style={gridItemStyle}>
           <TextField
             id="distance_to_nearest_unclassified_road"
-            label="Nearest unclassified road (distance)"
+            label="Nearest unclassified road (m)"
             variant="outlined"
-            value={site.distance_to_nearest_unclassified_road}
-            // onChange={handleTextFieldChange}
+            value={siteInfo.distance_to_nearest_unclassified_road}
+            onChange={handleSiteInfoChange}
             fullWidth
           />
         </Grid>
         <Grid items xs={12} sm={6} style={gridItemStyle}>
           <TextField
             id="distance_to_nearest_residential_area"
-            label="Nearest residential area"
+            label="Nearest residential area (m)"
             variant="outlined"
-            value={site.distance_to_nearest_residential_area}
-            // onChange={handleTextFieldChange}
+            value={siteInfo.distance_to_nearest_residential_area}
+            onChange={handleSiteInfoChange}
             fullWidth
           />
         </Grid>
@@ -224,8 +271,8 @@ const SiteForm = ({ site }) => {
             id="bearing_to_kampala_center"
             label="Bearing to Kampala center"
             variant="outlined"
-            value={site.bearing_to_kampala_center}
-            // onChange={handleTextFieldChange}
+            value={siteInfo.bearing_to_kampala_center}
+            onChange={handleSiteInfoChange}
             fullWidth
           />
         </Grid>
@@ -233,9 +280,9 @@ const SiteForm = ({ site }) => {
           <TextField
             id="distance_to_kampala_center"
             variant="outlined"
-            label="Distance to Kampala center"
-            value={site.distance_to_kampala_center}
-            // onChange={handleTextFieldChange}
+            label="Distance to Kampala center (km)"
+            value={siteInfo.distance_to_kampala_center}
+            onChange={handleSiteInfoChange}
             fullWidth
           />
         </Grid>
@@ -248,17 +295,15 @@ const SiteForm = ({ site }) => {
           xs={12}
           style={{ margin: "10px 0" }}
         >
-          <Button
-            variant="contained"
-            // onClick={() => setEditData(deviceData)}
-          >
+          <Button variant="contained" onClick={handleCancel}>
             Cancel
           </Button>
 
           <Button
             variant="contained"
             color="primary"
-            // onClick={handleEditSubmit}
+            disabled={weightedBool(manualDisable, isEqual(site, siteInfo))}
+            onClick={handleSubmit}
             style={{ marginLeft: "10px" }}
           >
             Save Changes
