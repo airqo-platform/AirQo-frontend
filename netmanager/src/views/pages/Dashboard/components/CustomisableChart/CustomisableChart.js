@@ -176,6 +176,7 @@ const CustomisableChart = (props) => {
 
   const [selectedPeriod, setSelectedPeriod] = useState(initialPeriod());
   const [disableDatePickers, setDisableDatePickers] = useState(true);
+  const [loading, setLoading] = useState(true);
 
   const generateStartAndEndDates = (period) => {
     let endDate = period.endDate ? new Date(period.endDate) : new Date();
@@ -410,7 +411,7 @@ const CustomisableChart = (props) => {
 
   const [customGraphData, setCustomisedGraphData] = useState([]);
 
-  const fetchAndSetGraphData = async (filter) => {
+  const _fetchAndSetGraphData = async (filter) => {
     filter = {
       ...filter,
       startDate: roundToStartOfDay(filter.startDate).toISOString(),
@@ -418,6 +419,7 @@ const CustomisableChart = (props) => {
     };
 
     await setCustomisedGraphData({});
+
     return await axios
       .post(
         GENERATE_CUSTOMISABLE_CHARTS_URI,
@@ -432,6 +434,12 @@ const CustomisableChart = (props) => {
       .catch((err) => {
         console.log("error", (err.response && err.response.data) || err);
       });
+  };
+
+  const fetchAndSetGraphData = async (filter) => {
+    setLoading(true);
+    await _fetchAndSetGraphData(filter);
+    setLoading(false);
   };
 
   let handleSubmit = async (e) => {
@@ -752,7 +760,7 @@ const CustomisableChart = (props) => {
         style={{ textAlign: "center" }}
         classes={{
           root: classes.cardHeaderRoot,
-          content: classes.cardHeaderContent
+          content: classes.cardHeaderContent,
         }}
       />
 
@@ -763,6 +771,7 @@ const CustomisableChart = (props) => {
             <CustomDisplayChart
               chart_type={selectedChart.value}
               customisedGraphData={customGraphData}
+              loading={loading}
               options={options}
             />
           </Grid>
