@@ -53,7 +53,7 @@ const SiteForm = ({ site }) => {
 
   const handleSubmit = async () => {
     setManualDisable(true);
-    await updateSiteApi(siteInfo)
+    await updateSiteApi(site._id, siteInfo)
       .then((responseData) => {
         dispatch(
           updateMainAlert({
