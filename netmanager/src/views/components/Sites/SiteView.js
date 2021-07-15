@@ -55,7 +55,6 @@ const SiteForm = ({ site }) => {
     setManualDisable(true);
     await updateSiteApi(siteInfo)
       .then((responseData) => {
-        console.log("response", responseData);
         dispatch(
           updateMainAlert({
             severity: "success",
