@@ -53,10 +53,18 @@ const useStyles = makeStyles((theme) => ({
     width: 56,
   },
 
-  subheader: {
-    color: "#263238",
-    fontSize: 16,
-    fontWeight: 500,
+  card: {
+    display: "flex",
+  },
+  cardHeader: {
+    display: "block",
+    overflow: "hidden",
+  },
+  cardHeaderRoot: {
+    overflow: "hidden",
+  },
+  cardHeaderContent: {
+    overflow: "hidden",
   },
 }));
 
@@ -736,9 +744,16 @@ const CustomisableChart = (props) => {
           endDate,
           "YYYY-MM-DD"
         )}`}
-        subheader={`for ${sitesToString(values.selectedOption)}`}
+        subheader={
+          <Typography noWrap>
+            for {sitesToString(values.selectedOption)}
+          </Typography>
+        }
         style={{ textAlign: "center" }}
-        classes={{ subheader: classes.subheader }}
+        classes={{
+          root: classes.cardHeaderRoot,
+          content: classes.cardHeaderContent
+        }}
       />
 
       <Divider />
