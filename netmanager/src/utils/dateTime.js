@@ -74,3 +74,15 @@ export const formatDate = (date) => {
 
   return [year, month, day].join("-");
 };
+
+export const roundToEndOfDay = (dateISOString) => {
+  let end = new Date(dateISOString);
+  end.setUTCHours(23, 59, 59, 999);
+  return end;
+};
+
+export const roundToStartOfDay = (dateISOString) => {
+  let start = new Date(dateISOString);
+  start.setUTCHours(0, 0, 0, 0);
+  return start;
+};
