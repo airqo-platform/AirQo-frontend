@@ -315,6 +315,9 @@
 				<div class="col-md-2">
 					<img src="<?= base_url(); ?>assets/images/partners/world-bank.png" class="img-fluid">
 				</div>
+				<div class="col-md-2">
+					<img src="<?= base_url(); ?>assets/images/partners/wehubit.png" class="img-fluid">
+				</div>
 			</div>
 		</div>
 	</div>
