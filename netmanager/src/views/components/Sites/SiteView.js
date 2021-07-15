@@ -2,27 +2,24 @@ import React, { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { isEmpty } from "underscore";
 import PropTypes from "prop-types";
-import { Grid } from "@material-ui/core";
 import { useHistory, useParams } from "react-router-dom";
 import { ArrowBackIosRounded } from "@material-ui/icons";
-import { Paper } from "@material-ui/core";
+import { Button, Grid, Paper, TextField } from "@material-ui/core";
 
 import { useSitesData } from "redux/SiteRegistry/selectors";
 import { loadSitesData } from "redux/SiteRegistry/operations";
-
-import "assets/css/location-registry.css";
-import TextField from "@material-ui/core/TextField";
 import CustomMaterialTable from "../Table/CustomMaterialTable";
 import { useInitScrollTop } from "utils/customHooks";
 import { humanReadableDate } from "utils/dateTime";
 import { useSiteBackUrl } from "redux/Urls/selectors";
 
-
 // css
 import "react-leaflet-fullscreen/dist/styles.css";
+import "assets/css/location-registry.css";
 
 const gridItemStyle = {
   padding: "5px",
+  margin: "5px 0",
 };
 
 const Cell = ({ fieldValue }) => {
@@ -70,7 +67,8 @@ const SiteForm = ({ site }) => {
           <TextField
             id="name"
             label="name"
-            value={site.name || site.description}
+            variant="outlined"
+            value={site.name}
             // onChange={handleTextFieldChange}
             fullWidth
             required
@@ -82,6 +80,7 @@ const SiteForm = ({ site }) => {
             id="description"
             label="Description"
             value={site.description}
+            variant="outlined"
             // onChange={handleTextFieldChange}
             fullWidth
             required
@@ -92,6 +91,7 @@ const SiteForm = ({ site }) => {
             id="latitude"
             label="Latitude"
             value={site.latitude}
+            variant="outlined"
             // onChange={handleTextFieldChange}
             fullWidth
             required
@@ -101,6 +101,7 @@ const SiteForm = ({ site }) => {
           <TextField
             id="longitude"
             label="Longitude"
+            variant="outlined"
             value={site.longitude}
             // onChange={handleTextFieldChange}
             fullWidth
@@ -110,6 +111,7 @@ const SiteForm = ({ site }) => {
           <TextField
             id="parish"
             label="Parish"
+            variant="outlined"
             value={site.parish}
             // onChange={handleTextFieldChange}
             fullWidth
@@ -119,6 +121,7 @@ const SiteForm = ({ site }) => {
           <TextField
             id="sub_county"
             label="Sub County"
+            variant="outlined"
             value={site.sub_county}
             // onChange={handleTextFieldChange}
             fullWidth
@@ -128,6 +131,7 @@ const SiteForm = ({ site }) => {
           <TextField
             id="district"
             label="District"
+            variant="outlined"
             value={site.district}
             // onChange={handleTextFieldChange}
             fullWidth
@@ -138,6 +142,7 @@ const SiteForm = ({ site }) => {
           <TextField
             id="region"
             label="Region"
+            variant="outlined"
             value={site.region}
             // onChange={handleTextFieldChange}
             fullWidth
@@ -147,6 +152,7 @@ const SiteForm = ({ site }) => {
           <TextField
             id="altitude"
             label="Altitude"
+            variant="outlined"
             value={site.altitude}
             // onChange={handleTextFieldChange}
             fullWidth
@@ -157,6 +163,7 @@ const SiteForm = ({ site }) => {
           <TextField
             id="greenness"
             label="Greenness"
+            variant="outlined"
             value={site.greenness}
             // onChange={handleTextFieldChange}
             fullWidth
@@ -166,6 +173,7 @@ const SiteForm = ({ site }) => {
           <TextField
             id="distance_to_nearest_road"
             label="Nearest road (distance)"
+            variant="outlined"
             value={site.distance_to_nearest_road}
             // onChange={handleTextFieldChange}
             fullWidth
@@ -175,6 +183,7 @@ const SiteForm = ({ site }) => {
           <TextField
             id="distance_to_nearest_primary_road"
             label="Nearest primary road (distance)"
+            variant="outlined"
             value={site.distance_to_nearest_primary_road}
             // onChange={handleTextFieldChange}
             fullWidth
@@ -184,6 +193,7 @@ const SiteForm = ({ site }) => {
           <TextField
             id="distance_to_nearest_tertiary_road"
             label="Nearest tertiary road (distance)"
+            variant="outlined"
             value={site.distance_to_nearest_tertiary_road}
             // onChange={handleTextFieldChange}
             fullWidth
@@ -193,6 +203,7 @@ const SiteForm = ({ site }) => {
           <TextField
             id="distance_to_nearest_unclassified_road"
             label="Nearest unclassified road (distance)"
+            variant="outlined"
             value={site.distance_to_nearest_unclassified_road}
             // onChange={handleTextFieldChange}
             fullWidth
@@ -202,6 +213,7 @@ const SiteForm = ({ site }) => {
           <TextField
             id="distance_to_nearest_residential_area"
             label="Nearest residential area"
+            variant="outlined"
             value={site.distance_to_nearest_residential_area}
             // onChange={handleTextFieldChange}
             fullWidth
@@ -211,6 +223,7 @@ const SiteForm = ({ site }) => {
           <TextField
             id="bearing_to_kampala_center"
             label="Bearing to Kampala center"
+            variant="outlined"
             value={site.bearing_to_kampala_center}
             // onChange={handleTextFieldChange}
             fullWidth
@@ -219,6 +232,7 @@ const SiteForm = ({ site }) => {
         <Grid items xs={12} sm={6} style={gridItemStyle}>
           <TextField
             id="distance_to_kampala_center"
+            variant="outlined"
             label="Distance to Kampala center"
             value={site.distance_to_kampala_center}
             // onChange={handleTextFieldChange}
@@ -226,34 +240,30 @@ const SiteForm = ({ site }) => {
           />
         </Grid>
 
-        {/*<Grid*/}
-        {/*  container*/}
-        {/*  alignItems="flex-end"*/}
-        {/*  alignContent="flex-end"*/}
-        {/*  justify="flex-end"*/}
-        {/*  xs={12}*/}
-        {/*  style={{ margin: "10px 0" }}*/}
-        {/*>*/}
-        {/*  <Button*/}
-        {/*    variant="contained"*/}
-        {/*    onClick={() => setEditData(deviceData)}*/}
-        {/*  >*/}
-        {/*    Cancel*/}
-        {/*  </Button>*/}
+        <Grid
+          container
+          alignItems="flex-end"
+          alignContent="flex-end"
+          justify="flex-end"
+          xs={12}
+          style={{ margin: "10px 0" }}
+        >
+          <Button
+            variant="contained"
+            // onClick={() => setEditData(deviceData)}
+          >
+            Cancel
+          </Button>
 
-        {/*  <Button*/}
-        {/*    variant="contained"*/}
-        {/*    color="primary"*/}
-        {/*    disabled={weightedBool(*/}
-        {/*      editLoading,*/}
-        {/*      isEqual(deviceData, editData)*/}
-        {/*    )}*/}
-        {/*    onClick={handleEditSubmit}*/}
-        {/*    style={{ marginLeft: "10px" }}*/}
-        {/*  >*/}
-        {/*    Edit device*/}
-        {/*  </Button>*/}
-        {/*</Grid>*/}
+          <Button
+            variant="contained"
+            color="primary"
+            // onClick={handleEditSubmit}
+            style={{ marginLeft: "10px" }}
+          >
+            Save Changes
+          </Button>
+        </Grid>
       </Grid>
     </Paper>
   );
