@@ -8,13 +8,13 @@ class ApisModel extends CI_Model
     {
         $this->load->database();
     }
-
+    
     public function init()
     {
         header("Access-Control-Allow-Origin: *");
         header('Access-Control-Allow-Credentials: true');
         header('Access-Control-Max-Age: 86400');
-
+            
         header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
         header("Access-Control-Allow-Headers: origin, content-type, accept");
         header("Access-Control-Allow-Credentials: true");
@@ -23,7 +23,7 @@ class ApisModel extends CI_Model
         $request    = new stdClass();
         $request    = json_decode($postdata);
 
-        if (!empty($request)) {
+        if(!empty($request)) {
             foreach ($request as $key => $value) {
                 $_POST[$key] = $value;
             }
@@ -103,25 +103,25 @@ class ApisModel extends CI_Model
     }
 
     public function base64url_encode($data)
-    {
-        return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
+	{
+		return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
+	}
+	public function base64url_decode($data)
+	{
+		return base64_decode(str_pad(strtr($data, '-_', '+/'), strlen($data) % 4, '=', STR_PAD_RIGHT));
     }
-    public function base64url_decode($data)
-    {
-        return base64_decode(str_pad(strtr($data, '-_', '+/'), strlen($data) % 4, '=', STR_PAD_RIGHT));
-    }
-
+    
     public function SendForgotPasswordEmail($email, $uid, $uname)
     {
         if ($email != null) {
             $token = $this->insertUserToken($uid);
             $qstring = $this->base64url_encode($token);
-            $url = base_url() . '/user-reset-password/token/' . $qstring;
+            $url = base_url(). '/user-reset-password/token/' . $qstring;
             $link = '<a href="' . $url . '">' . $url . '</a>';
 
             $message = '';
             $message .= '<a href="' . $url . '" style="background-color: #002d59; font-family: Arial Black, sans-serif; font-size: 22px; line-height: 1.1; text-align: center; text-decoration: none; display: block; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; transition: all 100ms ease-in; margin: 10px 5px; border: 18px solid #a90100;" class="button-a"> <span style="color: #ffffff; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%;">RESET PASSWORD</span> </a>';
-
+               
             if ($this->SendMailNotification("AirQo Password Reset Request", $email, $uname, $message)) {
                 return true;
             } else {
@@ -136,7 +136,7 @@ class ApisModel extends CI_Model
         date_default_timezone_set('Africa/Kampala');
         $token    = substr(sha1(rand()), 0, 30);
         $date    = date('Y-m-d');
-
+          
         $query = $this->db->query("INSERT INTO tbl_user_tokens (token, type, user_id, created) VALUES ('$token', 'email', '$user_id', '$date')");
         return $token . $user_id;
     }
@@ -174,10 +174,10 @@ class ApisModel extends CI_Model
             if ($bruteforce_lock == "Active") {
                 if ($failed_attempts < 6) {
                     if ($failed_attempts == 5) {
-                        $minutesago = round((strtotime($date) - strtotime($last_failed_attempt)) / 60, 0);
+                        $minutesago = round((strtotime($date) - strtotime($last_failed_attempt))/60, 0);
                         if ($minutesago < 30) {
                             $timeleft = (30 - $minutesago);
-                            return "You failed to login within 5 consecutive attempts, please try again in " . $timeleft . " minutes";
+                            return "You failed to login within 5 consecutive attempts, please try again in ".$timeleft." minutes";
                         } else {
                             return "Allowed";
                         }
@@ -186,10 +186,10 @@ class ApisModel extends CI_Model
                     }
                 } elseif ($failed_attempts < 11) {
                     if ($failed_attempts == 10) {
-                        $minutesago = round((strtotime($date) - strtotime($last_failed_attempt)) / 60, 0);
+                        $minutesago = round((strtotime($date) - strtotime($last_failed_attempt))/60, 0);
                         if ($minutesago < 60) {
                             $timeleft = (60 - $minutesago);
-                            return "You failed to login within 10 consecutive attempts, please try again in " . $timeleft . " minutes";
+                            return "You failed to login within 10 consecutive attempts, please try again in ".$timeleft." minutes";
                         } else {
                             return "Allowed";
                         }
@@ -198,10 +198,10 @@ class ApisModel extends CI_Model
                     }
                 } elseif ($failed_attempts < 16) {
                     if ($failed_attempts == 15) {
-                        $minutesago = round((strtotime($date) - strtotime($last_failed_attempt)) / 60, 0);
+                        $minutesago = round((strtotime($date) - strtotime($last_failed_attempt))/60, 0);
                         if ($minutesago < 90) {
                             $timeleft = (90 - $minutesago);
-                            return "You failed to login within 15 consecutive attempts, please try again in " . $timeleft . " minutes";
+                            return "You failed to login within 15 consecutive attempts, please try again in ".$timeleft." minutes";
                         } else {
                             return "Allowed";
                         }
@@ -210,10 +210,10 @@ class ApisModel extends CI_Model
                     }
                 } elseif ($failed_attempts < 21) {
                     if ($failed_attempts == 20) {
-                        $minutesago = round((strtotime($date) - strtotime($last_failed_attempt)) / 60, 0);
+                        $minutesago = round((strtotime($date) - strtotime($last_failed_attempt))/60, 0);
                         if ($minutesago < 120) {
                             $timeleft = (120 - $minutesago);
-                            return "You failed to login within 20 consecutive attempts, please try again in " . $timeleft . " minutes";
+                            return "You failed to login within 20 consecutive attempts, please try again in ".$timeleft." minutes";
                         } else {
                             return "Allowed";
                         }
@@ -229,33 +229,33 @@ class ApisModel extends CI_Model
         }
         return "Allowed";
     }
-
+    
     public function SendMailNotification($Nsubject, $Nemail, $Nname, $NmailMessage)
-    {
-        date_default_timezone_set('Etc/UTC');
-        require_once './mail/PHPMailerAutoload.php';
-        $receiverBCC = "buzentech@airqo.net";
-        if (!filter_var($Nemail, FILTER_VALIDATE_EMAIL)) {
-            return false;
-        } elseif (filter_var($Nemail, FILTER_VALIDATE_EMAIL)) {
-            $mail = new PHPMailer;
+     {
+          date_default_timezone_set('Etc/UTC');
+          require_once './mail/PHPMailerAutoload.php';
+          $receiverBCC = "buzentech@airqo.net";
+          if (!filter_var($Nemail, FILTER_VALIDATE_EMAIL)) {
+               return false;
+          } elseif (filter_var($Nemail, FILTER_VALIDATE_EMAIL)) {
+               $mail = new PHPMailer;
 
-            $mail->SMTPDebug = 0;
+               $mail->SMTPDebug = 0;
 
-            $mail->Host = "ssl://mail.airqo.net";
-            $mail->Port = 465;
-            $mail->SMTPAuth = true;
-            $mail->Username = "";
-            $mail->Password = "";
-            $mail->setFrom('noreply@airqo.net', 'Team @ AirQo');
-            $mail->Sender = 'noreply@airqo.net';
-            $mail->addReplyTo('noreply@airqo.net', 'Team @ AirQo');
+               $mail->Host = getenv('SMTP_HOST');
+               $mail->Port = getenv('SMTP_PORT');
+               $mail->SMTPAuth = true;
+               $mail->Username = getenv('SMTP_USERNAME');
+               $mail->Password = getenv('SMTP_PASSWORD');
+               $mail->setFrom('noreply@airqo.net', 'Team @ AirQo');
+               $mail->Sender = 'noreply@airqo.net';
+               $mail->addReplyTo('noreply@airqo.net', 'Team @ AirQo');
 
-            $mail->addAddress($Nemail, $Nname);
-            $mail->Subject = $Nsubject;
-            $mail->addBCC($receiverBCC);
-
-            $mail->msgHTML('
+               $mail->addAddress($Nemail, $Nname);
+               $mail->Subject = $Nsubject;
+               $mail->addBCC($receiverBCC);
+                         
+               $mail->msgHTML('
                             <td valign="top">
                             <table style="border-radius:4px;border:1px #dceaf5 solid" cellspacing="0" cellpadding="0" border="0" align="center">
                             <tbody>
@@ -272,7 +272,7 @@ class ApisModel extends CI_Model
                                                 <tr>
                                                         <td width="36"></td>
                                                         <td style="color:#444444;border-collapse:collapse;font-size:11pt;font-family:proxima_nova,Open Sans,Lucida Grande,Segoe UI,Arial,Verdana,Lucida Sans Unicode,Tahoma,Sans Serif;max-width:454px" align="left" width="454" valign="top">
-                                                            ' . $NmailMessage . '
+                                                            '.$NmailMessage.'
                                                         <td width="36"></td>
                                                 </tr>
                                                 <tr>
@@ -295,7 +295,7 @@ class ApisModel extends CI_Model
                                                 <tbody>
                                                 <tr style="color:#a8b9c6;font-size:11px;font-family:proxima_nova,Open Sans,Lucida Grande,Segoe UI,Arial,Verdana,Lucida Sans Unicode,Tahoma,Sans Serif">
                                                         <td align="left" width="400"></td>
-                                                        <td align="right" width="200">&copy; ' . date("Y") . ' AirQo</td>
+                                                        <td align="right" width="200">&copy; '. date("Y") .' AirQo</td>
                                                 </tr>
                                                 </tbody>
                                             </table>
@@ -306,12 +306,13 @@ class ApisModel extends CI_Model
                         </td>
                 ');
 
-            if (!$mail->send()) {
-                return false;
-            } else {
-                return true;
-            }
-        }
-        return false;
-    }
+               if (!$mail->send()) {
+                    return false;
+               } else {
+                    return true;
+               }
+          }
+          return false;
+     }
 }
+

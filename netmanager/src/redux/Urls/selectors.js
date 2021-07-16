@@ -8,3 +8,8 @@ export const useUrlsData = () => {
 export const useDeviceOverviewBackUrlsData = () => {
   return useSelector((state) => state.urls.deviceOverBackUrl);
 };
+
+export const useSiteBackUrl = () => {
+  return useSelector((state) => state.urls.siteBackUrl);
+};
+

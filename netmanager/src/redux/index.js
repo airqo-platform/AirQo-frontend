@@ -6,12 +6,12 @@ import mapReducer from "./Maps/reducers";
 import dashboardReducer from "./Dashboard/reducers/dashboardReducer";
 import orgReducer from "./Join/reducers/orgReducer";
 import deviceRegistryReducer from "./DeviceRegistry/reducers";
-import locationRegistryReducer from "./LocationRegistry/reducers";
 import mainAlertReducer from "./MainAlert/reducers";
 import mapDataReducer from "./MapData/reducers";
 import deviceManagementReducer from "./DeviceManagement/reducers";
 import userPreferenceReducer from "./UserPreference/reducer";
 import urlsReducer from "./Urls/reducers";
+import siteRegistryReducer from "./SiteRegistry/reducers";
 
 export default combineReducers({
   auth: authReducer,
@@ -22,9 +22,9 @@ export default combineReducers({
   organisation: orgReducer,
   deviceManagement: deviceManagementReducer,
   deviceRegistry: deviceRegistryReducer,
-  locationRegistry: locationRegistryReducer,
   mainAlert: mainAlertReducer,
   mapData: mapDataReducer,
   userPreference: userPreferenceReducer,
   urls: urlsReducer,
+  siteRegistry: siteRegistryReducer,
 });

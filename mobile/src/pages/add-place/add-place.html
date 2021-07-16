@@ -9,13 +9,17 @@
   </ion-navbar>
 </ion-header>
 <ion-content padding>
-  <p class="title" *ngIf="places_nodes_list_api_success == '100'">Select or search a place to add to favorites</p>
-  <ion-searchbar type="text" color="light" placeholder="Search city or area" clearInput [formControl]="textInput"></ion-searchbar>
+  <p class="title" *ngIf="places_nodes_list_api_success == '100'">Select or search a place to add to your places</p>
+  <ion-searchbar #mySearchbar type="text" color="light" placeholder="Search city or area" [formControl]="textInput"></ion-searchbar>
   <ion-list *ngIf="places_nodes_list_api_success == '100'">
     <ion-item *ngFor="let node of nodes" (click)="addToFavoritesList(node)">
       <ion-icon name="pin" color="grey" item-start></ion-icon>
-      <div class="area-title">{{ node.name }}</div>
-      <div class="area-sub-title">{{ node.location }}</div>
+      <div text-wrap class="area-title">{{ node.name }}</div>
+      <div text-wrap class="area-sub-title">{{ node.location }}</div>
+    </ion-item>
+
+    <ion-item>
+      <div class="center" text-wrap *ngIf="temp_array_nodes.length <= 0">Could not find place</div>
     </ion-item>
   </ion-list>
 </ion-content>

@@ -26,10 +26,8 @@ const Register = lazy(() => import("./views/pages/SignUp/Register"));
 const UserList = lazy(() => import("./views/pages/UserList"));
 const CandidateList = lazy(() => import("./views/pages/CandidateList"));
 const Settings = lazy(() => import("./views/pages/Settings"));
-const LocationList = lazy(() => import("./views/components/LocationList/LocationList"));
-const LocationRegister = lazy(() => import("./views/components/LocationList/LocationRegister"));
-const LocationView = lazy(() => import("./views/components/LocationList/LocationView"));
-const LocationEdit = lazy(() => import("./views/components/LocationList/LocationEdit"));
+const SiteRegistry = lazy(() => import("./views/components/Sites/SiteRegistry"));
+const SiteView = lazy(() => import("./views/components/Sites/SiteView"));
 
 const AppRoutes = () => {
   useJiraHelpDesk();
@@ -109,27 +107,15 @@ const AppRoutes = () => {
             layout={MainLayout}
           />
           <PrivateRoute
-            extact
-            path="/location"
-            component={LocationList}
+            exact
+            path="/sites"
+            component={SiteRegistry}
             layout={MainLayout}
           />
           <PrivateRoute
             exact
-            path="/edit/:loc_ref"
-            component={LocationEdit}
-            layout={MainLayout}
-          />
-          <PrivateRoute
-            exact
-            path="/locations/:loc_ref"
-            component={LocationView}
-            layout={MainLayout}
-          />
-          <PrivateRoute
-            extact
-            path="/register_location"
-            component={LocationRegister}
+            path="/sites/:id"
+            component={SiteView}
             layout={MainLayout}
           />
         </Suspense>

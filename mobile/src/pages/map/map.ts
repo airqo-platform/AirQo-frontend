@@ -1,5 +1,5 @@
 import { Component, ViewChild, ElementRef } from '@angular/core';
-import { NavController, LoadingController, ToastController, AlertController, Platform, PopoverController, ModalController } from 'ionic-angular';
+import { NavController, LoadingController, AlertController } from 'ionic-angular';
 import { Storage } from '@ionic/storage';
 import { HttpClient } from '@angular/common/http';
 import { ApiProvider } from '../../providers/api/api';
@@ -23,7 +23,7 @@ export class MapPage {
   nodes_list_api = `${this.api.api_endpoint}/airqoPlacesCached`;
   places_nodes_list_api_success: any;
 
-  constructor(public navCtrl: NavController, private storage: Storage, private toastCtrl: ToastController, private loadingCtrl: LoadingController, 
+  constructor(public navCtrl: NavController, private storage: Storage, private loadingCtrl: LoadingController,
     private http: HttpClient, private alertCtrl: AlertController, private api: ApiProvider, private elementRef: ElementRef) {
   }
 
@@ -33,7 +33,7 @@ export class MapPage {
   // --------------------------------------------------------------------------------------------------------------------
   async ionViewDidLoad() {
     await this.loadMap();
-    this.loadNodes();
+    await this.loadNodes();
   }
 
 
@@ -71,7 +71,7 @@ export class MapPage {
   onlineLoadNodes() {
     let loader = this.loadingCtrl.create({
       spinner: 'ios',
-      enableBackdropDismiss: false,
+      enableBackdropDismiss: true,
       dismissOnPageChange: true,
       showBackdrop: true
     });
@@ -98,8 +98,9 @@ export class MapPage {
           }).present();
         }
       }, (err) => {
-        this.offlineLoadNodes();
         loader.dismiss();
+
+        this.offlineLoadNodes();
         this.api.networkErrorMessage();
       });
     });
@@ -110,8 +111,8 @@ export class MapPage {
   // Offline - store nodes offline
   // --------------------------------------------------------------------------------------------------------------------
   async offlineStoreNodes() {
+    await this.addMarkers();
    await this.storage.set("nodes", this.nodes);
-   await this.addMarkers();
   }
 
 
@@ -135,63 +136,87 @@ export class MapPage {
     if(this.nodes != null && this.nodes != '' && this.nodes.length > 0) {
 
       for(let i = 0; i < this.nodes.length; i++) {
-        if(this.nodes[i].lat && this.nodes[i].lng) {
-          let airqo_marker = leaflet.divIcon({
-            className: 'custom-airqo-icon',
-            html: ''+
-              '<div style="background-color: '+ this.api.nodeStatus(this.nodes[i].field2, this.nodes[i].time).color +';" class="marker-pin"></div>'+
-              '<span class="marker-number" style="color: '+ this.api.nodeStatus(this.nodes[i].field2, this.nodes[i].time).font_color +';">'+ Math.round(this.nodes[i].field2) +'</span>',
-            iconSize: [30, 42],
-            iconAnchor: [15, 42],
-            popupAnchor: [0, -30]
-          });
-						
-          let airqo_popup = ''+
-          '<div class="marker-popup">'+
-            '<a class="marker-popup-click" data-markerId="'+ this.nodes[i].channel_id +'">'+
-              '<div class="top-section center">'+
+        try{
+          if(this.nodes[i].lat && this.nodes[i].lng) {
+            let airqo_marker = leaflet.divIcon({
+              className: 'custom-airqo-icon',
+              html: ''+
+                  '<div style="background-color: '+ this.api.nodeStatus(this.nodes[i].field2, this.nodes[i].time).color +';" class="marker-pin"></div>'+
+                  '<span class="marker-number" style="color: '+ this.api.nodeStatus(this.nodes[i].field2, this.nodes[i].time).font_color +';">'+ Math.round(this.nodes[i].field2) +'</span>',
+              iconSize: [30, 42],
+              iconAnchor: [15, 42],
+              popupAnchor: [0, -30]
+            });
+
+            if( !this.nodes[i].time || this.nodes[i].time === "")
+              continue
+
+            let airqo_popup = ''+
+                '<div class="marker-popup">'+
+                '<a class="marker-popup-click" data-markerId="'+ this.nodes[i].channel_id +'">'+
+                '<div class="top-section center">'+
                 '<p class="title">'+ this.nodes[i].name + '</p>'+
                 '<p class="sub-title grey">'+ this.nodes[i].location +'</p>'+
-              '</div>'+
-              '<div class="mid-section center" style="background-color: '+ this.api.nodeStatus(this.nodes[i].field2, this.nodes[i].time).color +';">'+
+                '</div>'+
+                '<div class="mid-section center" style="background-color: '+ this.api.nodeStatus(this.nodes[i].field2, this.nodes[i].time).color +';">'+
                 '<div class="face bg-darker">'+
-                  '<img src="'+ this.api.nodeStatus(this.nodes[i].field2, this.nodes[i].time).face +'"/>'+
+                '<img src="'+ this.api.nodeStatus(this.nodes[i].field2, this.nodes[i].time).face +'"/>'+
                 '</div>'+
                 '<div class="reading">'+
-                  '<p style="color: '+ this.api.nodeStatus(this.nodes[i].field2, this.nodes[i].time).font_color +';">'+ 
-                    this.nodes[i].field2.trim() +
-                  '<br/>PM<sub>2.5</sub>'+
-                  '</p>'+
+                '<p style="color: '+ this.api.nodeStatus(this.nodes[i].field2, this.nodes[i].time).font_color +';">'+
+                this.nodes[i].field2.trim() +
+                '<br/>PM<sub>2.5</sub>'+
+                '</p>'+
                 '</div>'+
                 '<div class="label">'+
-                  '<p style="color: '+ this.api.nodeStatus(this.nodes[i].field2, this.nodes[i].time).font_color +';">'+ this.api.nodeStatus(this.nodes[i].field2, this.nodes[i].time).label +'</p>'+
+                '<p style="color: '+ this.api.nodeStatus(this.nodes[i].field2, this.nodes[i].time).font_color +';">'+ this.api.nodeStatus(this.nodes[i].field2, this.nodes[i].time).label +'</p>'+
                 '</div>'+
-              '</div>'+
-              '<div class="bottom-section">'+
+                '</div>'+
+                '<div class="bottom-section">'+
                 '<p class="refresh-date grey">Last Refreshed: '+ this.api.ago(this.api.getReadableInternationalDateFormatFromISOString(this.nodes[i].time)) +'</p>'+
-              '</div>'+
-            '</a>'+
-          '</div>'
-          ;
+                '</div>'+
+                '</a>'+
+                '</div>'
+            ;
 
-          let airqo_popup_options = {
-            className: 'custom',
-            width: 400,
-            height: 150,
-            closeButton: false,
-            autoClose: false
-          };
+            let airqo_popup_options = {
+              className: 'custom',
+              width: 400,
+              height: 150,
+              closeButton: false,
+              autoClose: false
+            };
 
-          leaflet.marker([parseFloat(this.nodes[i].lat), parseFloat(this.nodes[i].lng)], { icon: airqo_marker }).addTo(this.map)
-          .bindPopup(airqo_popup, airqo_popup_options).on('click', function(e) {
+            leaflet.marker([parseFloat(this.nodes[i].lat), parseFloat(this.nodes[i].lng)], { icon: airqo_marker }).addTo(this.map)
+                .bindPopup(airqo_popup, airqo_popup_options).on('click', function(e) {
 
-          })
-          .on('popupopen', (res) => {
-            this.elementRef.nativeElement.querySelector(".marker-popup-click").addEventListener('click', (e) => {
-              console.log(e.target.getAttribute("data-markerId"));
-              this.navCtrl.push(NodePage, {node: this.nodes[i]});
-            });
-          });
+            })
+                .on('popupopen', (res) => {
+                  this.elementRef.nativeElement.querySelector(".marker-popup-click").addEventListener('click', (e) => {
+                    console.log(e.target.getAttribute("data-markerId"));
+
+                    console.log(this.nodes[i]);
+
+                    let node = {
+                      channel_id: this.nodes[i].channel_id,
+                      name: this.nodes[i].name,
+                      location: this.nodes[i].location,
+                      lat: this.nodes[i].lat,
+                      lng: this.nodes[i].lng,
+                      refreshed: this.nodes[i].time,
+                      field1: this.nodes[i].field2,
+                      feeds: this.nodes[i].lastfeeds,
+                    };
+
+                    // this.navCtrl.push(NodePage, {node: this.api.nodeToStorage(node)});
+                    this.viewDetails(this.api.nodeToStorage(node));
+                  });
+                });
+          }
+        }
+        catch (e) {
+          console.log('add Markers error');
+          console.log(e);
         }
       }
     }

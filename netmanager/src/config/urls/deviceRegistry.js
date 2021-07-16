@@ -13,7 +13,7 @@ export const EDIT_DEVICE_URI = `${BASE_DEVICE_REGISTRY_URL}/devices/ts/update?de
 
 export const DEVICES_IN_LOCATION_URI = `${BASE_DEVICE_REGISTRY_URL}/devices/by/location?loc=`;
 
-export const DEPLOY_DEVICE_URI = `${BASE_DEVICE_REGISTRY_URL}/devices/ts/activity/deploy`;
+export const DEPLOY_DEVICE_URI = `${BASE_DEVICE_REGISTRY_URL}/devices/activities/deploy`;
 
 export const ADD_MAINTENANCE_LOGS_URI = `${BASE_DEVICE_REGISTRY_URL}/devices//ts/activity/maintain`;
 
@@ -37,6 +37,8 @@ export const DELETE_COMPONENT = `${BASE_DEVICE_REGISTRY_URL}/devices/delete/comp
 
 export const DELETE_DEVICE_PHOTO = `${BASE_DEVICE_REGISTRY_URL}/devices/photos`;
 
-export const RECALL_DEVICE_URI = `${BASE_DEVICE_REGISTRY_URL}/devices/ts/activity/recall`;
+export const RECALL_DEVICE_URI = `${BASE_DEVICE_REGISTRY_URL}/devices/activities/recall`;
 
 export const EVENTS = `${BASE_DEVICE_REGISTRY_URL}/devices/events`;
+
+export const SITES = `${BASE_DEVICE_REGISTRY_URL}/devices/sites`;

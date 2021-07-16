@@ -1,3 +1,8 @@
+.container-wrapper
+  width: 98%
+  margin: 0 auto
+
+
 .card-container
   width: 13%
   min-width: 150px
@@ -107,21 +112,25 @@
   margin: 10px 0
 
 .map-container
-  width: 98%
-  margin: 0 auto
+  width: 100%
+  margin: 20px 0
+  position: relative
   height: calc(100vh - 300px)
 
 .m-device-uptime-row
   display: flex
   align-items: center
   justify-content: center
-  font-size: 1.1rem
+  font-size: 0.9rem
   padding: 5px 0
-  border: 1px solid #f4f6f8
+  margin: 5px
+  background: #f5f5f5
+  border: 1px solid #f5f5f5
+  border-radius: 1px
 
   &:hover
     cursor: pointer
-    background: #f4f6f8
+    background: #ebebeb
 
   >span
     width: 30%
@@ -131,11 +140,15 @@
   font-weight: bold
   text-transform: uppercase
   margin-bottom: 5px
-  border: none
+  position: -webkit-sticky
+  position: sticky
+  top: 0
+  background: #d6d6d6
+  border: 1px solid #d6d6d6
 
   &:hover
     cursor: unset
-    background: none
+    background: #d6d6d6 !important
 
 .uptime-success
   color: white

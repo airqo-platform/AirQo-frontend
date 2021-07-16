@@ -3,11 +3,13 @@ import { useHistory } from "react-router-dom";
 import PropTypes from "prop-types";
 import { Map as LeafletMap, TileLayer, Popup, Marker } from "react-leaflet";
 import FullscreenControl from "react-leaflet-fullscreen";
-import "react-leaflet-fullscreen/dist/styles.css";
 import L from "leaflet";
 import { MapKey } from "./MapKey";
 
+// css
 import "assets/scss/device-management-map.sass";
+import "react-leaflet-fullscreen/dist/styles.css";
+
 
 const Map = ({ className, devices, ...rest }) => {
   const history = useHistory();

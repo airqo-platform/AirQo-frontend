@@ -3,7 +3,7 @@
     <name>AirQo</name>
     <description>Air Quality Monitoring</description>
     <author email="info@airqo.net" href="https://airqo.net/">The AirQo Team</author>
-    <content src="index.html" />
+    <content original-src="index.html" src="http://localhost:8105" />
     <access origin="*" />
     <allow-intent href="http://*/*" />
     <allow-intent href="https://*/*" />
@@ -99,4 +99,7 @@
     <plugin name="cordova-plugin-geolocation" spec="4.0.2">
         <variable name="GEOLOCATION_USAGE_DESCRIPTION" value="To locate you so as to provide readings relevant to your area" />
     </plugin>
+    <allow-navigation href="http://localhost:8103" sessionid="af0c94a8" />
+    <allow-navigation href="http://localhost:8104" sessionid="4a4b05ff" />
+    <allow-navigation href="http://localhost:8105" sessionid="b1963eb3" />
 </widget>

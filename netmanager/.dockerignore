@@ -28,3 +28,6 @@ npm-debug.log
 **/.git
 **/.DS_Store
 **/node_modules
+.gcloudignore
+README.md
+app.yaml

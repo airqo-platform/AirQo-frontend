@@ -1,5 +1,21 @@
 import palette from "assets/theme/palette";
 
+export const dateToTimestamp = (datetimeStr) => {
+  let datum = new Date(datetimeStr);
+  return datum.getTime() / 1000;
+};
+
+export const ApexTimeSeriesData = (dates, data) => {
+  let result = [];
+  // dates.map((date, index) => {
+  //   result.push([dateToTimestamp(date), data[index]]);
+  // });
+  dates.map((date, index) => {
+    result.push({ x: `${date} GMT`, y: data[index] });
+  });
+  return result;
+};
+
 export const createChartData = (label, data, dataLabel) => {
   return {
     labels: label,
@@ -128,4 +144,43 @@ export const createBarChartData = (inputArr, key) => {
     }
   });
   return { label, data };
+};
+
+export const createChartJsData = (data, key) => {
+  const labels = new Set();
+  const sites = {};
+  const formatted_data = [];
+  const colors = [
+    "#7F7F7F",
+    "#E377C2",
+    "#17BECF",
+    "#BCBD22",
+    "#3f51b5",
+    "rgba(75,192,192,1)",
+  ];
+
+  data.map((datum) => {
+    const site = (datum.sites && datum.sites[0]) || {};
+    const siteName = `${
+      site.name || site.description || site.generated_name
+    } (${site.generated_name})`;
+    labels.add(datum._id.time);
+    if (!sites[siteName]) sites[siteName] = [];
+    sites[siteName].push(datum[key]);
+  });
+  Object.keys(sites).map((site_key) => {
+    const color = colors.pop();
+    formatted_data.push({
+      data: sites[site_key],
+      label: site_key,
+      borderColor: color,
+      backgroundColor: color,
+      fill: false,
+    });
+  });
+
+  return {
+    labels: Array.from(labels),
+    datasets: formatted_data,
+  };
 };

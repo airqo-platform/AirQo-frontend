@@ -17,14 +17,14 @@
             <div class="card-body">
                 <h5 class="card-title">Key</h5>
                 <p class="card-text">
-                <div class="btn-group btn-group-sm">
-                    <button style="background-color: rgb(35,155,86); color: #fff;" type="button" class="btn col-xs-4"><small>Good</small></button>
-                    <button style="background-color: rgb(249,220,9); color: #fff;" type="button" class="btn col-xs-4"><small>Moderate</small></button>
-                    <button style="background-color: rgb(243,156,18); color: #fff;" type="button" class="btn col-xs-4"><small>Unhealthy</small></button>
-                    <button style="background-color: rgb(243,22,55); color: #fff;" type="button" class="btn col-xs-4"><small>Unhealthy</small></button>
-                    <button style="background-color: rgb(124,71,181); color: #fff;" type="button" class="btn col-xs-4"><small>Very Unhealthy</small></button>
-                    <button style="background-color: rgb(147,11,21); color: #fff;" type="button" class="btn col-xs-4"><small>Hazardous</small></button>
-                </div>
+                    <div class="btn-group btn-group-sm">
+                        <button style="background-color: rgb(35,155,86); color: #fff;" type="button" class="btn col-xs-4"><small>Good</small></button>
+                        <button style="background-color: rgb(249,220,9); color: #fff;" type="button" class="btn col-xs-4"><small>Moderate</small></button>
+                        <button style="background-color: rgb(243,156,18); color: #fff;" type="button" class="btn col-xs-4"><small>Unhealthy</small></button>
+                        <button style="background-color: rgb(243,22,55); color: #fff;" type="button" class="btn col-xs-4"><small>Unhealthy</small></button>
+                        <button style="background-color: rgb(124,71,181); color: #fff;" type="button" class="btn col-xs-4"><small>Very Unhealthy</small></button>
+                        <button style="background-color: rgb(147,11,21); color: #fff;" type="button" class="btn col-xs-4"><small>Hazardous</small></button>
+                    </div>
                 </p>
             </div>
         </div>
@@ -118,7 +118,7 @@ $contact = $this->AirqoModel->get_contact_details(1);
 
 
 <script>
-    mapboxgl.accessToken = 'pk.eyJ1IjoiYWRvbmdvdCIsImEiOiJjanMyd3g0OHMyMjJiM3luMW5sczQyMHVuIn0.80zLqlLLxgTvYOCeI44jsg';
+    mapboxgl.accessToken = "<?= getenv('MAPBOX_API_KEY'); ?>";
     var map = new mapboxgl.Map({
         container: 'map',
         style: 'mapbox://styles/mapbox/streets-v9',
@@ -466,7 +466,32 @@ $contact = $this->AirqoModel->get_contact_details(1);
             }
         });
 </script>
-
+<!-- <script src="https://code.highcharts.com/highcharts.js"></script>
+<script type="text/javascript">
+    Highcharts.chart('mg', {
+        data: {
+            table: 'datatable'
+        },
+        chart: {
+            type: 'column'
+        },
+        title: {
+            text: 'Air Quality History'
+        },
+        yAxis: {
+            allowDecimals: false,
+            title: {
+                text: 'Weather Conditions'
+            }
+        },
+        tooltip: {
+            formatter: function() {
+                return '<b>' + this.series.name + '</b><br/>' +
+                    this.point.y + ' ' + this.point.name.toLowerCase();
+            }
+        }
+    });
+</script> -->
 <!-- Include all compiled plugins (below), or include individual files as needed -->
 <script src="<?= base_url(); ?>assets/frontend/js/bootstrap.min.js"></script>
 </body>

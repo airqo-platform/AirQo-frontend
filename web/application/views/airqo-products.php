@@ -59,9 +59,7 @@
                               Upon uptake, a customised dashboard is provided to
                               the use which includes
                          </p>
-                         <p>
-                              <hr style="border: 1px solid #fff;" />
-                         </p>
+                         <p><hr style="border: 1px solid #fff;" /></p>
                     </div>
                </div>
                <div class="row">
@@ -79,7 +77,7 @@
                     <div class="col-md-6 features15-col-text">
                          <div class="features15-para">
                               <p style="font-size:1.5em; line-height: normal;">
-                                   Forecast chart 24-48 hour forecast across the network informed by temporal modelling and including confidence
+                                   Forecast chart 24-48 hour forecast across the network informed by temporal modelling and including confidence 
                                    intervalsshowing multiple specific devices, to group devices according to categories and to vary time period of reporting.
                               </p>
                               <p>&nbsp;</p>
@@ -163,7 +161,7 @@
                     <div class="col-md-6 content-left pt-md-0 pt-5">
                          <h1>AirQo API</h1>
                          <p class="mt-3 mb-md-5 mb-4 text-justify" style="font-size:1.5em; line-height: normal;">
-                              API is targeted at developers who want to incorporate air quality data (current conditions,
+                              API is targeted at developers who want to incorporate air quality data (current conditions, 
                               hourly forecasts and hourly historical data) within their respective applications.
                          </p>
                          <p class="mt-3 mb-md-5 mb-4 text-justify" style="font-size:1.5em; line-height: normal;">
@@ -211,15 +209,13 @@
                               problems. We explore multifaceted research
                               models with the following primary focus:
                          </p>
-                         <p>
-                              <hr style="border: 1px solid #fff;" />
-                         </p>
+                         <p><hr style="border: 1px solid #fff;" /></p>
                     </div>
                     <div class="col-md-6 content-photo mt-md-0 mt-5">
                          <img src="<?= base_url(); ?>assets/images/Artboard5.png" class="img-fluid" alt="main image">
                     </div>
                </div>
-
+               
                <div class="row">
                     <div class="col-md-12 features15-col-text">
                          <div class="features15-para">
@@ -252,9 +248,9 @@
                               <h2><b>Industry Consulting</b></h2>
                               <br>
                               <p style="font-size:1.5em; line-height: normal;">
-                                   AirQo offers a consultancy service providing access to our expertise to help in providing historic air quality data,
-                                   conduct location-specific monitoring and surveys, and understand emissions profiles. These insights can assist organisations
-                                   to take steps to minimise impact on communities and explore compliance with current and forthcoming legislation.
+                                   AirQo offers a consultancy service providing access to our expertise to help in providing historic air quality data, 
+                                   conduct location-specific monitoring and surveys, and understand emissions profiles. These insights can assist organisations 
+                                   to take steps to minimise impact on communities and explore compliance with current and forthcoming legislation. 
                                    Revenue from these services contributes to our ongoing research in the field.
                               </p>
                          </div>

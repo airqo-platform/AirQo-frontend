@@ -1,0 +1,82 @@
+name: deploy-platform-production
+
+on:
+  #push:
+  pull_request:
+    branches: master
+    types: [closed]
+jobs:
+  check:
+    if: github.event.pull_request.merged == 'true'
+    #if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true
+    name: check for changes in platform
+    outputs:
+      run_job: ${{ steps.check_files.outputs.run_job }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 2
+
+      - name: check modified files
+        id: check_files
+        run: |
+          echo "=============== list modified files ==============="
+          git diff --name-only HEAD^ HEAD
+          
+          echo "========== check paths of modified files =========="
+          git diff --name-only HEAD^ HEAD > files.txt
+
+          echo "::set-output name=run_job::false"
+
+          while IFS= read -r file
+          do
+            echo $file
+            if [[ $file == netmanager/* ]]; then
+              echo "::set-output name=run_job::true"
+            fi
+          done < files.txt
+
+  build:
+    name: build-push-deploy
+    needs: check
+    if: needs.check.outputs.run_job == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      
+      - name: Login to GCR
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ secrets.REGISTRY_URL }}
+          username: _json_key
+          password: ${{ secrets.GCR_CONFIG }}
+
+      - name: Login to K8S
+        uses: azure/k8s-set-context@v1
+        with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.K8S_CONFIG }}
+      
+      - name: NPM Build
+        run: |
+          cd netmanager/
+          export NODE_PATH=src/
+          npm install
+          npm audit fix
+          CI=false npm run build
+      
+      - name: Build and Push Docker Image
+        run: |
+          cd netmanager/
+          docker build --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-platform-frontend:latest .
+          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-platform-frontend:latest
+      - name: Deploy to K8S
+        run: |
+          cd k8s/
+          kubectl apply -f airqo-platform-frontend.yaml
+          kubectl rollout restart deployment/airqo-platform-frontend -n production
+
+            

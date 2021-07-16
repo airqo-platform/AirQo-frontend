@@ -1,176 +1,182 @@
-import React, { Component } from 'react';
-import ReactTooltip from 'react-tooltip';
+import React, { useState } from "react";
+import ReactTooltip from "react-tooltip";
 
-class Filter extends Component {
-  state = {
-    magnitudeFilter: 'All',
-    isFilterOpen: false
-  };
-  handleMagnitudeChange = event => {
-    this.setState({ magnitudeFilter: event.target.value });
-  };
-  toggleFilter = event => {
-    this.setState(currentState => {
-      return { isFilterOpen: !currentState.isFilterOpen };
-    });
-  };
+const Scale = ({
+  title,
+  isFilterOpen,
+  toggleFilter,
+  good,
+  moderate,
+  UNFSG,
+  unHealthy,
+  veryUnHealthy,
+  harzardous,
+}) => {
+  return (
+    <div className="filter">
+      <h2 className="filter__h2" onClick={toggleFilter}>
+        {title}
+      </h2>
+      <a onClick={toggleFilter}> {isFilterOpen ? "x" : "+"}</a>
+      {isFilterOpen && (
+        <>
+          <form style={{ margin: "10px 0" }}>
+            <popup_a className="filter__h3"></popup_a>
+            <label>
+              <input type="radio" name="magnitude" value="Good" />
+              <div
+                className="control__indicator1"
+                data-tip
+                data-for="good"
+                style={{ color: "#29323d" }}
+              >
+                {good}
+              </div>
+              <ReactTooltip id="good" place="right" effect="solid">
+                <popup_a style={{ fontWeight: "normal" }}> Good</popup_a>
+              </ReactTooltip>
+            </label>
+            <label>
+              <input type="radio" name="magnitude" value="Moderate" />
+              <div
+                className="control__indicator2"
+                data-tip
+                data-for="moderate"
+                style={{ color: "#29323d" }}
+              >
+                {moderate}
+              </div>
+              <ReactTooltip
+                id="moderate"
+                place="right"
+                effect="solid"
+                multiline="true"
+              >
+                <popup_a style={{ fontWeight: "normal" }}>Moderate</popup_a>
+              </ReactTooltip>
+            </label>
+            <label>
+              <input type="radio" name="magnitude" value="UHFSG" />
+              <div
+                className="control__indicator3"
+                data-tip
+                data-for="UHFSG"
+                style={{ color: "#ffffff" }}
+              >
+                {UNFSG}
+              </div>
+              <ReactTooltip id="UHFSG" place="right" effect="solid">
+                <popup_a style={{ fontWeight: "normal" }}>
+                  {" "}
+                  Unhealthy for sensitive groups
+                </popup_a>
+              </ReactTooltip>
+            </label>
+            <label>
+              <input type="radio" name="magnitude" value="Unhealthy" />
+              <div
+                className="control__indicator4"
+                data-tip
+                data-for="unhealthy"
+                style={{ color: "#ffffff" }}
+              >
+                {unHealthy}
+              </div>
+              <ReactTooltip id="unhealthy" place="right" effect="solid">
+                <popup_a style={{ fontWeight: "normal" }}>Unhealthy</popup_a>
+              </ReactTooltip>
+            </label>
+            <label>
+              <input type="radio" name="magnitude" value="VeryUnhealthy" />
+              <div
+                className="control__indicator5"
+                data-tip
+                data-for="veryunhealthy"
+              >
+                {veryUnHealthy}
+              </div>
+              <ReactTooltip id="veryunhealthy" place="right" effect="solid">
+                <popup_a style={{ fontWeight: "normal" }}>
+                  Very Unhealthy
+                </popup_a>
+              </ReactTooltip>
+            </label>
+            <label>
+              <input type="radio" name="magnitude" value={"Harzadous"} />
+              <div
+                className="control__indicator6"
+                data-tip
+                data-for="harzadous"
+              >
+                {harzardous}
+              </div>
+              <ReactTooltip id="harzadous" place="right" effect="solid">
+                <popup_a style={{ fontWeight: "normal" }}>Harzadous</popup_a>
+              </ReactTooltip>
+            </label>
+          </form>
+        </>
+      )}
+    </div>
+  );
+};
 
-  componentDidUpdate(prevProps, prevState) {
-    if (this.state.magnitudeFilter !== prevState.magnitudeFilter) {
-      try {
-        this.props.fetchFilteredData(this.state.magnitudeFilter);
-      } catch (e) {}
-    }
-  }
-  render() {
-    return (
-      <>
-        <div className="filter">
-          <h2 className="filter__h2" onClick={this.toggleFilter}>
-            PM 2.5 AQI
-          </h2>
-          <a onClick={this.toggleFilter}>
-            {' '}
-            {this.state.isFilterOpen ? '+' : 'x'}
-          </a>
-          {this.state.isFilterOpen === true ? null : (
-            <>
-              <form>
-              <popup_a className="filter__h3"></popup_a>
-                <label>
-                  <input
-                    type="radio"
-                    name="magnitude"
-                    value="All"
-                    checked={this.state.magnitudeFilter === 'All'}
-                    onChange={this.handleMagnitudeChange}
-                  />
-                  All
-                </label>
-                <label>
-                  <input
-                    type="radio"
-                    name="magnitude"
-                    value="Good"
-                    checked={this.state.magnitudeFilter === 'Good'}
-                    onChange={this.handleMagnitudeChange}
-                  />
-                  <div class="control__indicator1" data-tip data-for="good">
-                    0 - 12
-                  </div>
-                  <ReactTooltip id="good" place="right" effect="solid">
-                  <popup_a style={{ fontWeight: 'normal' }}> Good</popup_a>
-                    {/* <p>Air Quality is good for everyone</p> */}
-                  </ReactTooltip>
-                </label>
-                <label>
-                  <input
-                    type="radio"
-                    name="magnitude"
-                    value="Moderate"
-                    checked={this.state.magnitudeFilter === 'Moderate'}
-                    onChange={this.handleMagnitudeChange}
-                  />
-                  <div class="control__indicator2" data-tip data-for="moderate">
-                    12.1 - 35.4
-                  </div>
-                  <ReactTooltip
-                    id="moderate"
-                    place="right"
-                    effect="solid"
-                    multiline="true">
-                    <popup_a style={{ fontWeight: 'normal' }}>Moderate</popup_a>
-                    {/* <p>Unusually sensitive people: Consider reducing prolonged or heavy exertion</p>
-                   <p>Everyone else: Air pollution poses little or no risk</p> */}
-                  </ReactTooltip>
-                </label>
-                <label>
-                  <input
-                    type="radio"
-                    name="magnitude"
-                    value="UHFSG"
-                    checked={this.state.magnitudeFilter === 'UHFSG'}
-                    onChange={this.handleMagnitudeChange}
-                  />
-                  <div class="control__indicator3" data-tip data-for="UHFSG">
-                    35.5 - 55.4
-                  </div>
-                  <ReactTooltip id="UHFSG" place="right" effect="solid">
-                  <popup_a style={{ fontWeight: 'normal' }}>
-                      {' '}
-                      Unhealthy for sensitive groups
-                    </popup_a>
-                    {/* <p>Sensitive groups: Reduce prolonged or heavy exertion. It's okay to be active outside, but take more breaks and do less intense activities</p>
-                   <p>People with asthma should follow their asthma action plans and keep quick relief medicine handy</p>
-                   <p>If you have heart disease: Symptoms such as palpitaions, shortness of breath, or unusual fatigue may indicate a serirous problem. If you have any of these, contact your health care provider</p> */}
-                  </ReactTooltip>
-                </label>
-                <label>
-                  <input
-                    type="radio"
-                    name="magnitude"
-                    value="Unhealthy"
-                    checked={this.state.magnitudeFilter === 'Unhealthy'}
-                    onChange={this.handleMagnitudeChange}
-                  />
-                  <div
-                    class="control__indicator4"
-                    data-tip
-                    data-for="unhealthy">
-                    55.5 - 150.4
-                  </div>
-                  <ReactTooltip id="unhealthy" place="right" effect="solid">
-                  <popup_a style={{ fontWeight: 'normal' }}>Unhealthy</popup_a>
-                    {/* <p>Sensitive groups: Avoid prolonged or heavy exertion. Consider moving activities indoors or rescheduling.</p>
-                   <p>Everyone else: Reduce prolonged or heavy exertion. Take more breaks during all outdoor activities.</p> */}
-                  </ReactTooltip>
-                </label>
-                <label>
-                  <input
-                    type="radio"
-                    name="magnitude"
-                    value="VeryUnhealthy"
-                    checked={this.state.magnitudeFilter === 'VeryUnhealthy'}
-                    onChange={this.handleMagnitudeChange}
-                  />
-                  <div
-                    class="control__indicator5"
-                    data-tip
-                    data-for="veryunhealthy">
-                    150.5 - 250.4
-                  </div>
-                  <ReactTooltip id="veryunhealthy" place="right" effect="solid">
-                  <popup_a style={{ fontWeight: 'normal' }}>Very Unhealthy</popup_a>
-                    {/* <p>Sensitive groups: Avoid all physical activities outdoors. Move activities indoors or reschedule to a time when airquality is better</p>
-                   <p>Everyone else: Avoid prolonged or heavy exertion. Consider moving activities indoors or reschedule to a time when airquality is better</p> */}
-                  </ReactTooltip>
-                </label>
-                <label>
-                  <input
-                    type="radio"
-                    name="magnitude"
-                    value={'Harzadous'}
-                    checked={this.state.magnitudeFilter === 'Harzadous'}
-                    onChange={this.handleMagnitudeChange}
-                  />
-                  <div
-                    class="control__indicator6"
-                    data-tip
-                    data-for="harzadous">
-                    250.5 - 500
-                  </div>
-                  <ReactTooltip id="harzadous" place="right" effect="solid">
-                  <popup_a style={{ fontWeight: 'normal' }}>Harzadous</popup_a>
-                    {/* <p>Everyone: Avoid all physical activities outdoors</p>
-                   <p>Sesitive groups: Remain indoors and keeo activity levels low. Follow tips for keeping particle levels low indoors.</p> */}
-                  </ReactTooltip>
-                </label>
-              </form>
-            </>
-          )}
-        </div>
-      </>
-    );
-  }
-}
+const Filter = ({ pollutants }) => {
+  const [open, setOpen] = useState(true);
+  return (
+    <>
+      {pollutants.pm2_5 && (
+        <Scale
+          title={
+            <span>
+              PM<sub>2.5</sub> AQI
+            </span>
+          }
+          isFilterOpen={open}
+          toggleFilter={() => setOpen(!open)}
+          good={"0 - 12"}
+          moderate={"12.1 - 35.4"}
+          UNFSG={"35.5 - 55.4"}
+          unHealthy={"55.5 - 150.4"}
+          veryUnHealthy={"150.5 - 250.4"}
+          harzardous={"250.5 - 500"}
+        />
+      )}
+      {pollutants.pm10 && (
+        <Scale
+          title={
+            <span>
+              PM<sub>10</sub> AQI
+            </span>
+          }
+          isFilterOpen={open}
+          toggleFilter={() => setOpen(!open)}
+          good={"0 - 54"}
+          moderate={"54.1 - 154"}
+          UNFSG={"154.1 - 254"}
+          unHealthy={"254.1 - 354"}
+          veryUnHealthy={"354.1 - 424"}
+          harzardous={"424.1 - 604"}
+        />
+      )}
+      {pollutants.no2 && (
+        <Scale
+          title={
+            <span>
+              NO<sub>2</sub> AQI
+            </span>
+          }
+          isFilterOpen={open}
+          toggleFilter={() => setOpen(!open)}
+          good={"0 - 53"}
+          moderate={"53.1 - 100"}
+          UNFSG={"100.1 - 360"}
+          unHealthy={"360.1 - 649"}
+          veryUnHealthy={"649.1 - 1249"}
+          harzardous={"1249.1 - 2049"}
+        />
+      )}
+    </>
+  );
+};
 export default Filter;

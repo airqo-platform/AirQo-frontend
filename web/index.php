@@ -53,7 +53,8 @@
  *
  * NOTE: If you change these, also change the error_reporting() code below
  */
-	define('ENVIRONMENT', isset($_SERVER['CI_ENV']) ? $_SERVER['CI_ENV'] : 'development');
+	//define('ENVIRONMENT', isset($_SERVER['CI_ENV']) ? $_SERVER['CI_ENV'] : 'development');
+	require('environments.php');
 
 /*
  *---------------------------------------------------------------
@@ -68,11 +69,11 @@ switch (ENVIRONMENT)
 	case 'development':
 // 		error_reporting(-1);
 // 		ini_set('display_errors', 1);
-        error_reporting(0);
+        error_reporting(E_ALL);
 		ini_set('display_errors', 0);
 	break;
 
-	case 'testing':
+	case 'staging':
 	case 'production':
 		ini_set('display_errors', 0);
 		if (version_compare(PHP_VERSION, '5.3', '>='))
@@ -306,6 +307,15 @@ switch (ENVIRONMENT)
 	}
 
 	define('VIEWPATH', $view_folder.DIRECTORY_SEPARATOR);
+
+
+// ...at the bottom of index.php
+//require FCPATH . 'vendor/autoload.php'; // composer installing into application/vendor
+
+// Use FCPATH If your .env is in the same directory as index.php
+// Use APPATH If your .env is in your application/ directory
+//$dotenv = Dotenv\Dotenv::createMutable(FCPATH);
+//$dotenv->load();
 
 /*
  * --------------------------------------------------------------------

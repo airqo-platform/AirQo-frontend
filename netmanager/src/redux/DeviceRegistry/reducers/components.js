@@ -5,6 +5,8 @@ import {
   UPDATE_SINGLE_COMPONENT_SUCCESS,
 } from "../actions";
 
+import { LOGOUT_USER_SUCCESS } from "redux/Join/types";
+
 const initialState = {};
 
 export default function (state = initialState, action) {
@@ -35,6 +37,10 @@ export default function (state = initialState, action) {
           ),
         ],
       };
+
+    case LOGOUT_USER_SUCCESS:
+      return initialState;
+
     default:
       return state;
   }

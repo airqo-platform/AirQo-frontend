@@ -26,7 +26,7 @@ export class NodePage {
   class: any;
   node_data: any;
 
-  is_favorite: boolean = true;
+  is_favorite: boolean = false;
 
   graphs_segments: any = 'history';
 
@@ -40,18 +40,20 @@ export class NodePage {
     private loadingCtrl: LoadingController, private http: HttpClient, private alertCtrl: AlertController, public api: ApiProvider,) {
       
       if(this.navParams.get("node")){
-        this.node               = this.navParams.get("node");
+        this.node = this.navParams.get("node");
+
+        console.log(this.node);
 
         if(this.node.feeds){
-          if(this.api.isISOFormat(this.node.feeds.created_at)){
-            this.node.refreshed = null;
-          }
+          // if(this.api.isISOFormat(this.node.feeds.created_at)){
+          //   this.node.time = null;
+          // }
         } else {
-          this.node.feeds         = {};
-          this.node.feeds.field1  = '0.00';
+          this.node.feeds  = {};
         }
 
         if(this.node.lat && this.node.lng){
+
         } else {
           this.node.lat  = this.node.feeds.field5;
           this.node.lng  = this.node.feeds.field6;
@@ -67,16 +69,13 @@ export class NodePage {
   // --------------------------------------------------------------------------------------------------------------------
   async ionViewDidLoad() {
 
-    this.offlineLoadHistoryNodeInfo();
-    this.offlineLoadForecastNodeInfo();
+    // this.offlineLoadHistoryNodeInfo();
 
     if(this.api.isConnected()){
       await this.onlineLoadHistoryNodeInfo();
-      await this.onlineLoadNodeForecastInfo();
     } else {
       this.api.offlineMessage();
       await this.offlineLoadHistoryNodeInfo();
-      await this.offlineLoadForecastNodeInfo();
     }
   }
 
@@ -91,12 +90,32 @@ export class NodePage {
 
 
   // --------------------------------------------------------------------------------------------------------------------
+  // When the ionSegment/Tabs change
+  // --------------------------------------------------------------------------------------------------------------------
+  onSegmentChange() {
+    if(this.graphs_segments == 'history'){
+      if(this.api.isConnected()){
+        this.onlineLoadHistoryNodeInfo();
+      } else {
+        this.offlineLoadHistoryNodeInfo();
+      }
+    } else if(this.graphs_segments == 'forecast') {
+      if(this.api.isConnected()){
+        this.onlineLoadNodeForecastInfo();
+      } else {
+        this.offlineLoadForecastNodeInfo();
+      }
+    }
+  }
+
+
+  // --------------------------------------------------------------------------------------------------------------------
   // Online - Load Node Info from online
   // --------------------------------------------------------------------------------------------------------------------
   onlineLoadHistoryNodeInfo() {
     let loader = this.loadingCtrl.create({
       spinner: 'ios',
-      enableBackdropDismiss: false,
+      enableBackdropDismiss: true,
       dismissOnPageChange: true,
       showBackdrop: true
     });
@@ -106,15 +125,7 @@ export class NodePage {
       channel: this.node.channel_id
     };
 
-    this.storage.get("history").then((val) => {
-      if(val != null && val != '' && val && val.length > 0) {
-        if(val.filter(item => item.channel_id === this.node.channel_id).length != 0){
-          
-        } else {
-          loader.present();
-        }
-      }
-    });
+    loader.present();
 
     this.http.post(this.history_node_api, params).subscribe((result: any) => {
       console.log(result);
@@ -122,39 +133,32 @@ export class NodePage {
       if(result.success == '100' && result.feed.hourly_results){
         if(result.feed.hourly_results.length > 0){
           this.history_node_api_success = true;
-          this.node.refreshed     = result.feed.hourly_results[0].time;
-          this.node.feeds.field1  = result.feed.hourly_results[0].pm2_5;
+          // this.node.time     = result.feed.hourly_results[0].time;
+          // this.node.value  = result.feed.hourly_results[0].pm2_5;
 
           this.offlineStoreHistoryStoreNodeInfo(result.feed.hourly_results, this.node);
           this.getHistoryGraphData(result.feed.hourly_results);
         }
         loader.dismiss();
       } else {
+        loader.dismiss();
 
         this.toastCtrl.create({
-          message: 'History information not available',
+          message: 'Up-to-date history information unavailable',
           duration: 3000,
           position: 'bottom',
           showCloseButton: true,
         }).present();
 
-        // this.storage.get("history").then((val) => {
-        //   if(val && val != null && val != '' && val.length > 0) {
-
-        //   } else {
-        //     this.history_node_api_success = false;
-        //     loader.dismiss();
-        //     this.toastCtrl.create({
-        //       message: 'History information not available',
-        //       duration: 3500,
-        //       position: 'bottom'
-        //     }).present();
-        //   }
-        // });
+        this.offlineLoadHistoryNodeInfo();
       }
     }, (err) => {
+      loader.dismiss();
+
       this.history_node_api_success = false;
       this.api.networkErrorMessage();
+
+      this.offlineLoadHistoryNodeInfo();
     });
   }
 
@@ -163,9 +167,10 @@ export class NodePage {
   // Online - Load Node Forecast Info from online
   // --------------------------------------------------------------------------------------------------------------------
   onlineLoadNodeForecastInfo() {
+
     let loader = this.loadingCtrl.create({
       spinner: 'ios',
-      enableBackdropDismiss: false,
+      enableBackdropDismiss: true,
       dismissOnPageChange: true,
       showBackdrop: true
     });
@@ -176,15 +181,7 @@ export class NodePage {
       lng: this.node.lng
     };
 
-    this.storage.get("forecast").then((val) => {
-      if(val != null && val != '' && val && val.length > 0) {
-        if(val.filter(item => item.channel_id === this.node.channel_id).length != 0){
-          
-        } else {
-          // loader.present();
-        }
-      }
-    });
+    loader.present();
     
     this.http.post(this.forecast_node_api, params).subscribe((result: any) => {
       console.log(result);
@@ -194,23 +191,26 @@ export class NodePage {
           this.forecast_node_api_success = true;
           console.log(result.formatted_results.predictions);
           
-          this.offlineStoreForecastStoreNodeInfo(result.formatted_results.predictions);
+          // this.offlineStoreForecastStoreNodeInfo(result.formatted_results.predictions);
           this.getForecastGraphData(result.formatted_results.predictions);
         }
         loader.dismiss();
       } else {
-        this.forecast_node_api_success = false;
         loader.dismiss();
+
+        this.forecast_node_api_success = false;
+        
         this.toastCtrl.create({
-          message: 'Forecast information not available',
+          message: 'Up-to-date forecast information unavailable',
           duration: 3000,
           position: 'bottom',
           showCloseButton: true,
         }).present();
       }
     }, (err) => {
-      this.forecast_node_api_success = false;
       loader.dismiss();
+
+      this.forecast_node_api_success = false;
       this.api.networkErrorMessage();
     });
   }
@@ -467,55 +467,116 @@ export class NodePage {
   // Add Node to favorites list
   // --------------------------------------------------------------------------------------------------------------------
   addToFavoritesList(node) {
-    this.alertCtrl.create({
-      title: 'ADD TO FAVORITES',
-      message: 'Add node to favorites?',
-      buttons: [
-        {
-          text: 'Cancel',
-          role: 'cancel',
-          handler: () => {}
-        },
-        {
-          text: 'Add',
-          handler: () => {
-            this.storage.get('favorites').then((val) => {
-              let nodes = [];
-              if(val && val != null && val != '' && val.length > 0) {
-                if(val.filter(item => item.channel_id === node.channel_id).length != 0){
-                  this.is_favorite = false;
-                  this.toastCtrl.create({
-                    message: 'Place already added',
-                    duration: 2000,
-                    position: 'bottom'
-                  }).present();
+    if(this.is_favorite){
+      this.alertCtrl.create({
+        title: 'Remove from My Places',
+        message: `Would you like to remove ${node.name} to your places?'`,
+        buttons: [
+          {
+            text: 'Cancel',
+            role: 'cancel',
+            handler: () => {}
+          },
+          {
+            text: 'Yes',
+            handler: () => {
+              this.storage.get('favorites').then((val) => {
+                let nodes = [];
+                if(val && val != null && val != '' && val.length > 0) {
+                  if(val.filter(item => item.channel_id === node.channel_id).length != 0){
+                    this.is_favorite = false;
+                    for(let i = 0; i < val.length; i++) {
+                      if(val[i].channel_id == node.channel_id) {
+                        val.splice(i, 1);
+                        this.storage.set("favorites", val);
+
+                        this.toastCtrl.create({
+                          message: `${node.name} has been removed from your places`,
+                          duration: 2000,
+                          position: 'bottom'
+                        }).present();
+                      }
+                    }
+                  } else {
+                    val.push(node);
+                    this.storage.set('favorites', val);
+                    this.is_favorite = true;
+
+                    this.toastCtrl.create({
+                      message: `${node.name} has been removed from your places`,
+                      duration: 2000,
+                      position: 'bottom'
+                    }).present();
+                  }
                 } else {
-                  val.push(node);
-                  this.storage.set('favorites', val);
+                  nodes.push(node);
+                  this.storage.set('favorites', nodes);
                   this.is_favorite = true;
-        
+
                   this.toastCtrl.create({
-                    message: 'Added',
+                    message: `${node.name} has been added to your places`,
                     duration: 2000,
                     position: 'bottom'
                   }).present();
                 }
-              } else {
-                nodes.push(node);
-                this.storage.set('favorites', nodes);
-                this.is_favorite = true;
-        
-                this.toastCtrl.create({
-                  message: 'Added',
-                  duration: 2000,
-                  position: 'bottom'
-                }).present();
-              }
-            });
+              });
+            }
           }
-        }
-      ]
-    }).present();
+        ]
+      }).present();
+    }
+    else{
+      this.alertCtrl.create({
+        title: 'Add To My Places',
+        message: `Would you like to add ${node.name} to your places?'`,
+        buttons: [
+          {
+            text: 'Cancel',
+            role: 'cancel',
+            handler: () => {}
+          },
+          {
+            text: 'yes',
+            handler: () => {
+              this.storage.get('favorites').then((val) => {
+                let nodes = [];
+                if(val && val != null && val != '' && val.length > 0) {
+                  if(val.filter(item => item.channel_id === node.channel_id).length != 0){
+                    this.is_favorite = false;
+                    this.toastCtrl.create({
+                      message: `${node.name} already among of your places`,
+                      duration: 2000,
+                      position: 'bottom'
+                    }).present();
+                  } else {
+                    val.push(node);
+                    this.storage.set('favorites', val);
+                    this.is_favorite = true;
+
+                    this.toastCtrl.create({
+                      message: `${node.name} has been added to your places`,
+                      duration: 2000,
+                      position: 'bottom'
+                    }).present();
+                  }
+                } else {
+                  nodes.push(node);
+                  this.storage.set('favorites', nodes);
+                  this.is_favorite = true;
+
+                  this.toastCtrl.create({
+                    message: `Sorry, ${node.name} cannot be added to your places`,
+                    duration: 2000,
+                    position: 'bottom'
+                  }).present();
+                }
+              });
+            }
+          }
+        ]
+      }).present();
+    }
+
   }
 
 
