@@ -16,13 +16,11 @@ import {
 import "chartjs-plugin-annotation";
 import { isEmpty } from "underscore";
 import {
-  loadDevicesData,
   loadDeviceUpTime,
   loadDeviceMaintenanceLogs,
   loadDeviceComponentsData,
 } from "redux/DeviceRegistry/operations";
 import {
-  useDevicesData,
   useDeviceUpTimeData,
   useDeviceLogsData,
   useDeviceComponentsData,
@@ -43,11 +41,132 @@ const useStyles = makeStyles(styles);
 
 const BLANK_PLACE_HOLDER = "-";
 
+function jsonArrayToString(myJsonArray) {
+  let myArray = [];
+  for (let i = 0; i < myJsonArray.length; i++) {
+    let myString =
+      myJsonArray[i].quantityKind + "(" + myJsonArray[i].measurementUnit + ")";
+    myArray.push(myString);
+  }
+  return myArray.join(", ");
+}
+
+function appendLeadingZeroes(n) {
+  if (n <= 9) {
+    return "0" + n;
+  }
+  return n;
+}
+
+let formatDate = (date) => {
+  let time =
+    appendLeadingZeroes(date.getDate()) +
+    "-" +
+    appendLeadingZeroes(date.getMonth() + 1) +
+    "-" +
+    date.getFullYear();
+
+  return time;
+};
+
+const DeviceMaintenanceLogs = ({ deviceName }) => {
+  const classes = useStyles();
+  const dispatch = useDispatch();
+  const deviceMaintenanceLogs = useDeviceLogsData(deviceName);
+
+  useEffect(() => {
+    if (deviceName && isEmpty(deviceMaintenanceLogs)) {
+      dispatch(loadDeviceMaintenanceLogs(deviceName));
+    }
+  }, []);
+
+  return (
+    <ChartContainer title={"maintenance history"} blue>
+      {deviceMaintenanceLogs.length > 0 && (
+        <TableContainer className={classes.table}>
+          <Table
+            stickyHeader
+            aria-label="sticky table"
+            alignItems="left"
+            alignContent="left"
+          >
+            <TableBody>
+              {deviceMaintenanceLogs.map((log, index) => (
+                <TableRow key={index}>
+                  <TableCell>{formatDate(new Date(log.date))}</TableCell>
+                  <TableCell>
+                    {typeof log.tags === "string"
+                      ? log.tags
+                      : log.tags && log.tags.join(", ")}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      )}
+      {deviceMaintenanceLogs.length <= 0 && <div>No maintenance logs</div>}
+    </ChartContainer>
+  );
+};
+
+DeviceMaintenanceLogs.protoTypes = {
+  deviceName: PropTypes.string.isRequired,
+};
+
+const DeviceComponents = ({ deviceName }) => {
+  const classes = useStyles();
+  const dispatch = useDispatch();
+  const history = useHistory();
+  const deviceComponents = useDeviceComponentsData(deviceName);
+
+  function goTo(path) {
+    return history.push(`/device/${deviceName}/${path}`);
+  }
+
+  useEffect(() => {
+    if (deviceName && isEmpty(deviceComponents)) {
+      dispatch(loadDeviceComponentsData(deviceName));
+    }
+  }, []);
+
+  return (
+    <ChartContainer title={"device components"} blue centerItems>
+      {deviceComponents.length > 0 && (
+        <TableContainer className={classes.table}>
+          <Table
+            stickyHeader
+            aria-label="sticky table"
+            alignItems="left"
+            alignContent="left"
+            style={{ cursor: "pointer" }}
+            onClick={() => goTo("components")}
+          >
+            <TableBody style={{ alignContent: "left", alignItems: "left" }}>
+              {deviceComponents.map((component, index) => (
+                <TableRow key={index} style={{ align: "left" }}>
+                  <TableCell>{component.description}</TableCell>
+                  <TableCell>
+                    {jsonArrayToString(component.measurement)}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      )}
+      {deviceComponents.length <= 0 && <div>No components</div>}
+    </ChartContainer>
+  );
+};
+
+DeviceComponents.protoTypes = {
+  deviceName: PropTypes.string.isRequired,
+};
+
 export default function DeviceOverview({ deviceData }) {
   const classes = useStyles();
-  const history = useHistory();
   const dispatch = useDispatch();
-  const devices = useDevicesData();
   const deviceStatus = useDeviceUpTimeData(deviceData.name);
   const [deviceUptime, setDeviceUptime] = useState({
     bar: { label: [], data: [] },
@@ -62,90 +181,43 @@ export default function DeviceOverview({ deviceData }) {
     sensor1: [],
     sensor2: [],
   });
-  const deviceMaintenanceLogs = useDeviceLogsData(deviceData.name);
-  const deviceComponents = useDeviceComponentsData(deviceData.name);
-
-  function jsonArrayToString(myJsonArray) {
-    let myArray = [];
-    for (let i = 0; i < myJsonArray.length; i++) {
-      let myString =
-        myJsonArray[i].quantityKind +
-        "(" +
-        myJsonArray[i].measurementUnit +
-        ")";
-      myArray.push(myString);
-    }
-    return myArray.join(", ");
-  }
 
   useEffect(() => {
-    if (isEmpty(devices)) {
-      dispatch(loadDevicesData());
-    }
-
     if (isEmpty(deviceStatus) && deviceData.name) {
       dispatch(loadDeviceUpTime(deviceData.name, { days: 28 }));
-    }
-
-    if (isEmpty(deviceMaintenanceLogs) && deviceData.name) {
-      dispatch(loadDeviceMaintenanceLogs(deviceData.name));
-    }
-
-    if (isEmpty(deviceComponents) && deviceData.name) {
-      dispatch(loadDeviceComponentsData(deviceData.name));
     }
   }, []);
 
   useEffect(() => {
-    if (isEmpty(deviceStatus)) {
-      return;
+    if (!isEmpty(deviceStatus)) {
+      const data = deviceStatus.data;
+      const label = [];
+      const uptimeLineData = [];
+      const batteryVoltageData = [];
+      const sensor1 = [];
+      const sensor2 = [];
+      data.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+      data.map((status) => {
+        label.push(status.created_at.split("T")[0]);
+        uptimeLineData.push(parseFloat(status.uptime).toFixed(2));
+        batteryVoltageData.push(parseFloat(status.battery_voltage).toFixed(2));
+        sensor1.push(
+          parseFloat(parseFloat(status.sensor_one_pm2_5).toFixed(2))
+        );
+        sensor2.push(
+          parseFloat(parseFloat(status.sensor_two_pm2_5).toFixed(2))
+        );
+      });
+      data.reverse();
+      const uptimeBarChartData = createBarChartData(data, "uptime");
+      setDeviceUptime({
+        line: { label, data: uptimeLineData },
+        bar: { label: uptimeBarChartData.label, data: uptimeBarChartData.data },
+      });
+      setDeviceBatteryVoltage({ label, data: batteryVoltageData });
+      setDeviceSensorCorrelation({ label, sensor1, sensor2 });
     }
-
-    const data = deviceStatus.data;
-    const label = [];
-    const uptimeLineData = [];
-    const batteryVoltageData = [];
-    const sensor1 = [];
-    const sensor2 = [];
-    data.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
-    data.map((status) => {
-      label.push(status.created_at.split("T")[0]);
-      uptimeLineData.push(parseFloat(status.uptime).toFixed(2));
-      batteryVoltageData.push(parseFloat(status.battery_voltage).toFixed(2));
-      sensor1.push(parseFloat(parseFloat(status.sensor_one_pm2_5).toFixed(2)));
-      sensor2.push(parseFloat(parseFloat(status.sensor_two_pm2_5).toFixed(2)));
-    });
-    data.reverse();
-    const uptimeBarChartData = createBarChartData(data, "uptime");
-    setDeviceUptime({
-      line: { label, data: uptimeLineData },
-      bar: { label: uptimeBarChartData.label, data: uptimeBarChartData.data },
-    });
-    setDeviceBatteryVoltage({ label, data: batteryVoltageData });
-    setDeviceSensorCorrelation({ label, sensor1, sensor2 });
   }, [deviceStatus]);
-
-  function appendLeadingZeroes(n) {
-    if (n <= 9) {
-      return "0" + n;
-    }
-    return n;
-  }
-
-  let formatDate = (date) => {
-    let time =
-      appendLeadingZeroes(date.getDate()) +
-      "-" +
-      appendLeadingZeroes(date.getMonth() + 1) +
-      "-" +
-      date.getFullYear();
-
-    return time;
-  };
-
-  function goTo(path) {
-    return history.push(`/device/${deviceData.name}/${path}`);
-  }
 
   const deviceUptimeSeries = [
     {
@@ -303,32 +375,7 @@ export default function DeviceOverview({ deviceData }) {
         blue
       />
 
-      <ChartContainer title={"maintenance history"} blue>
-        {deviceMaintenanceLogs.length > 0 && (
-          <TableContainer className={classes.table}>
-            <Table
-              stickyHeader
-              aria-label="sticky table"
-              alignItems="left"
-              alignContent="left"
-            >
-              <TableBody>
-                {deviceMaintenanceLogs.map((log, index) => (
-                  <TableRow key={index}>
-                    <TableCell>{formatDate(new Date(log.date))}</TableCell>
-                    <TableCell>
-                      {typeof log.tags === "string"
-                        ? log.tags
-                        : log.tags && log.tags.join(", ")}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        )}
-        {deviceMaintenanceLogs.length <= 0 && <div>No maintenance logs</div>}
-      </ChartContainer>
+      <DeviceMaintenanceLogs deviceName={deviceData.name} />
 
       <ApexChart
         title={"battery voltage"}
@@ -356,32 +403,7 @@ export default function DeviceOverview({ deviceData }) {
         }
       />
 
-      <ChartContainer title={"device components"} blue centerItems>
-        {deviceComponents.length > 0 && (
-          <TableContainer className={classes.table}>
-            <Table
-              stickyHeader
-              aria-label="sticky table"
-              alignItems="left"
-              alignContent="left"
-              style={{ cursor: "pointer" }}
-              onClick={() => goTo("components")}
-            >
-              <TableBody style={{ alignContent: "left", alignItems: "left" }}>
-                {deviceComponents.map((component, index) => (
-                  <TableRow key={index} style={{ align: "left" }}>
-                    <TableCell>{component.description}</TableCell>
-                    <TableCell>
-                      {jsonArrayToString(component.measurement)}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        )}
-        {deviceComponents.length <= 0 && <div>No components</div>}
-      </ChartContainer>
+      <DeviceComponents deviceName={deviceData.name} />
     </div>
   );
 }

@@ -536,6 +536,14 @@ export default function DeviceComponents({ deviceName }) {
     addComp: false,
   });
 
+  useEffect(() => {
+    if (isEmpty(deviceComponents)) {
+      if (typeof deviceName !== "undefined") {
+        dispatch(loadDeviceComponentsData(deviceName));
+      }
+    }
+  }, []);
+
   const componentColumns = [
     {
       title: "Name",
@@ -680,13 +688,6 @@ export default function DeviceComponents({ deviceName }) {
     }
   };
 
-  useEffect(() => {
-    if (isEmpty(deviceComponents)) {
-      if (typeof deviceName !== "undefined") {
-        dispatch(loadDeviceComponentsData(deviceName));
-      }
-    }
-  }, []);
   return (
     <>
       <div
