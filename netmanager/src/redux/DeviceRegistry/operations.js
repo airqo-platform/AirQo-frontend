@@ -49,12 +49,7 @@ export const loadDevicesData = () => {
           });
         }
       })
-      .catch((err) => {
-        dispatch({
-          type: LOAD_ALL_DEVICES_FAILURE,
-          payload: err,
-        });
-      });
+      .catch((err) => console.log(err));
   };
 };
 
@@ -82,12 +77,7 @@ export const loadDeviceMaintenanceLogs = (deviceName) => {
           payload: { [deviceName]: indexedLogs },
         });
       })
-      .catch((err) => {
-        dispatch({
-          type: LOAD_MAINTENANCE_LOGS_FAILURE,
-          payload: err,
-        });
-      });
+      .catch((err) => console.log(err));
   };
 };
 
@@ -104,12 +94,7 @@ export const loadDeviceComponentsData = (deviceName) => {
           payload: { [deviceName]: indexedComponent },
         });
       })
-      .catch((err) => {
-        dispatch({
-          type: LOAD_DEVICE_COMPONENTS_FAILURE,
-          payload: err,
-        });
-      });
+      .catch((err) => console.log(err));
   };
 };
 

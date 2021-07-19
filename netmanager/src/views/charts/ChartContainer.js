@@ -50,9 +50,9 @@ const ChartContainer = ({
 ChartContainer.propTypes = {
   className: PropTypes.string,
   title: PropTypes.string.isRequired,
-  type: PropTypes.string.isRequired,
-  options: PropTypes.object.isRequired,
-  series: PropTypes.array.isRequired,
+  type: PropTypes.string,
+  options: PropTypes.object,
+  series: PropTypes.array,
   lastUpdated: PropTypes.any,
   blue: PropTypes.bool,
   green: PropTypes.bool,
