@@ -1,11 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
-import {
-  Button,
-  Grid,
-  Paper,
-  TextField,
-} from "@material-ui/core";
+import PropTypes from "prop-types";
+import { Button, Grid, Paper, TextField } from "@material-ui/core";
 import Tooltip from "@material-ui/core/Tooltip";
 import CheckBoxIcon from "@material-ui/icons/CheckBox";
 import CancelIcon from "@material-ui/icons/Cancel";
@@ -149,6 +145,11 @@ const EmptyDeviceTest = ({ loading, onClick }) => {
   );
 };
 
+EmptyDeviceTest.propTypes = {
+  loading: PropTypes.bool.isRequired,
+  onClick: PropTypes.func.isRequired,
+};
+
 const RecallDevice = ({ deviceData, handleRecall, open, toggleOpen }) => {
   return (
     <ConfirmDialog
@@ -162,9 +163,18 @@ const RecallDevice = ({ deviceData, handleRecall, open, toggleOpen }) => {
   );
 };
 
+RecallDevice.propTypes = {
+  deviceData: PropTypes.object.isRequired,
+  handleRecall: PropTypes.func.isRequired,
+  open: PropTypes.bool.isRequired,
+  toggleOpen: PropTypes.func.isRequired,
+};
+
 const DeviceRecentFeedView = ({ recentFeed, runReport }) => {
   const classes = useStyles();
-  const feedKeys = Object.keys(omit(recentFeed, "isCache", "created_at", "errors"));
+  const feedKeys = Object.keys(
+    omit(recentFeed, "isCache", "created_at", "errors")
+  );
   const [
     elapsedDurationSeconds,
     elapsedDurationMapper,
@@ -262,6 +272,11 @@ const DeviceRecentFeedView = ({ recentFeed, runReport }) => {
       )}
     </div>
   );
+};
+
+DeviceRecentFeedView.propTypes = {
+  recentFeed: PropTypes.object.isRequired,
+  runReport: PropTypes.object.isRequired,
 };
 
 export default function DeviceDeployStatus({ deviceData }) {
@@ -837,3 +852,7 @@ export default function DeviceDeployStatus({ deviceData }) {
     </>
   );
 }
+
+DeviceDeployStatus.propTypes = {
+  deviceData: PropTypes.object.isRequired,
+};

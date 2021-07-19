@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import PropTypes from "prop-types";
 import { useHistory } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { makeStyles } from "@material-ui/core/styles";
@@ -11,8 +12,6 @@ import {
   TableRow,
   Paper,
 } from "@material-ui/core";
-
-import styles from "assets/jss/material-dashboard-react/views/dashboardStyle.js";
 
 import "chartjs-plugin-annotation";
 import { isEmpty } from "underscore";
@@ -28,10 +27,7 @@ import {
   useDeviceLogsData,
   useDeviceComponentsData,
 } from "redux/DeviceRegistry/selectors";
-import {
-  ApexTimeSeriesData,
-  createBarChartData,
-} from "utils/charts";
+import { ApexTimeSeriesData, createBarChartData } from "utils/charts";
 import { pearsonCorrelation } from "utils/statistics";
 import Copyable from "views/components/Copy/Copyable";
 import {
@@ -39,6 +35,9 @@ import {
   ChartContainer,
   timeSeriesChartOptions,
 } from "views/charts";
+
+// styles
+import styles from "assets/jss/material-dashboard-react/views/dashboardStyle.js";
 
 const useStyles = makeStyles(styles);
 
@@ -386,3 +385,7 @@ export default function DeviceOverview({ deviceData }) {
     </div>
   );
 }
+
+DeviceOverview.propTypes = {
+  deviceData: PropTypes.object.isRequired,
+};
