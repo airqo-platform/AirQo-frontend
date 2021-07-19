@@ -215,10 +215,10 @@ export default function DeviceOverview({ deviceData }) {
               </TableRow>
               <TableRow>
                 <TableCell>
-                  <b>Channel</b>
+                  <b>Device Number (Channel ID)</b>
                 </TableCell>
                 <TableCell>
-                  {deviceData.channelID || BLANK_PLACE_HOLDER}
+                  {deviceData.device_number || BLANK_PLACE_HOLDER}
                 </TableCell>
               </TableRow>
               <TableRow>

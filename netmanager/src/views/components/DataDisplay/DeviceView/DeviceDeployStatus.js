@@ -2,27 +2,14 @@ import React, { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import {
   Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
   Grid,
   Paper,
   TextField,
 } from "@material-ui/core";
-import FormControl from "@material-ui/core/FormControl";
-import InputLabel from "@material-ui/core/InputLabel";
-import Select from "@material-ui/core/Select";
-import Input from "@material-ui/core/Input";
-import {
-  KeyboardDatePicker,
-  MuiPickersUtilsProvider,
-} from "@material-ui/pickers";
 import Tooltip from "@material-ui/core/Tooltip";
 import CheckBoxIcon from "@material-ui/icons/CheckBox";
 import CancelIcon from "@material-ui/icons/Cancel";
 import ErrorIcon from "@material-ui/icons/Error";
-import DateFnsUtils from "@date-io/date-fns";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
 import Checkbox from "@material-ui/core/Checkbox";
 import green from "@material-ui/core/colors/green";
@@ -56,18 +43,6 @@ const useStyles = makeStyles((theme) => ({
     color: grey[200],
   },
 }));
-
-const errorStyles = {
-  color: "red",
-  margin: 0,
-  fontSize: "11px",
-  marginTop: "3px",
-  textAlign: "left",
-  fontFamily: "Roboto, Helvetica, Arial, sans-serif",
-  fontWeight: 400,
-  lineHeight: "13px",
-  letterSpacing: "0.33px",
-};
 
 const emptyTestStyles = {
   display: "flex",
@@ -368,7 +343,7 @@ export default function DeviceDeployStatus({ deviceData }) {
 
   const runDeviceTest = async () => {
     setDeviceTestLoading(true);
-    await getDeviceRecentFeedByChannelIdApi(deviceData.channelID)
+    await getDeviceRecentFeedByChannelIdApi(deviceData.device_number)
       .then((responseData) => {
         setRecentFeed(responseData);
         setRunReport({ ranTest: true, successfulTestRun: true, error: false });
