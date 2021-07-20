@@ -112,7 +112,6 @@ const Download = (props) => {
       pollutants: getValues(pollutants),
       fileType: fileType.value,
     };
-    console.log("data", data);
 
     downloadDataApi("json", data)
       .then((response) => response.data)
@@ -143,7 +142,6 @@ const Download = (props) => {
         } else {
           const json2csvParser = new Parser();
           const csv = json2csvParser.parse(resData);
-          console.log(csv);
           let filename = `airquality-${frequency.value}-data.csv`;
           var link = document.createElement("a");
           link.setAttribute(
