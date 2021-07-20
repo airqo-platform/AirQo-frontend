@@ -13,18 +13,8 @@ import {
 import Select from "react-select";
 import PropTypes from "prop-types";
 import clsx from "clsx";
-import DateFnsUtils from "@date-io/date-fns";
 import TextField from "@material-ui/core/TextField";
-import {
-  MuiPickersUtilsProvider,
-  KeyboardTimePicker,
-  KeyboardDatePicker,
-} from "@material-ui/pickers";
-import axios from "axios";
-import { DOWNLOAD_DATA } from "config/urls/analytics";
-import { getMonitoringSitesLocationsApi } from "../../apis/location";
 import { isEmpty } from "underscore";
-import { formatDate } from "utils/dateTime";
 import { useDashboardSitesData } from "redux/Dashboard/selectors";
 import { loadSites } from "redux/Dashboard/operations";
 import { downloadDataApi } from "views/apis/analytics";
