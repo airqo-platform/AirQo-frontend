@@ -13,6 +13,7 @@ import Select from "react-select";
 import PropTypes from "prop-types";
 import clsx from "clsx";
 import DateFnsUtils from "@date-io/date-fns";
+import TextField from "@material-ui/core/TextField";
 import {
   MuiPickersUtilsProvider,
   KeyboardTimePicker,
@@ -83,9 +84,9 @@ const Download = (props) => {
   };
 
   const pollutantOptions = [
-    { value: "PM 2.5", label: "PM 2.5" },
-    { value: "PM 10", label: "PM 10" },
-    { value: "NO2", label: "NO2" },
+    { value: "pm2_5", label: "PM 2.5" },
+    { value: "pm10", label: "PM 10" },
+    { value: "no2", label: "NO2" },
   ];
 
   const [selectedPollutant, setSelectedPollutant] = useState([]);
@@ -105,16 +106,6 @@ const Download = (props) => {
     setSelectedType(selectedTypeOption);
   };
 
-  const degreeOfClean = [
-    { value: "Raw Data", label: "Raw Data" },
-    { value: "Clean Data", label: "Clean Data" },
-  ];
-
-  const [selectedClean, setSelectedClean] = useState();
-  const handleCleanessChange = (selecteddegreeOfClean) => {
-    setSelectedClean(selecteddegreeOfClean);
-  };
-
   const disableDownloadBtn = () => {
     return !(
       values &&
@@ -123,9 +114,7 @@ const Download = (props) => {
       selectedType &&
       selectedType.value &&
       selectedFrequency &&
-      selectedFrequency.value &&
-      selectedClean &&
-      selectedClean.value
+      selectedFrequency.value
     );
   };
 
@@ -139,8 +128,6 @@ const Download = (props) => {
       frequency: selectedFrequency.value,
       pollutants: selectedPollutant,
       fileType: selectedType.value,
-      degreeOfClean: selectedClean.value,
-      organisation_name: "KCCA",
     };
     console.log(JSON.stringify(params));
 
@@ -201,8 +188,8 @@ const Download = (props) => {
   return (
     <div className={classes.root}>
       <Grid container spacing={4}>
-        <Grid item md={8} xs={12}>
-          <Card {...rest} className={clsx(classes.root, className)}>
+        <Grid item xs={12}>
+          <Card {...rest} className={clsx(classes.root, className)} style={{overflow: "visible"}}>
             <CardHeader
               subheader="Customize the data you want to download."
               title="Data Download"
@@ -212,74 +199,30 @@ const Download = (props) => {
             <form onSubmit={handleSubmit}>
               <CardContent>
                 <Grid container spacing={2}>
-                  <Grid item md={12} xs={12}>
-                    <MuiPickersUtilsProvider utils={DateFnsUtils}>
-                      <Grid container spacing={1}>
-                        <Grid item lg={3} md={3} sm={6} xl={3} xs={12}>
-                          <KeyboardDatePicker
-                            disableToolbar
-                            variant="dialog"
-                            format="yyyy-MM-dd"
-                            margin="normal"
-                            id="date-picker-inline"
-                            label="Start Date"
-                            value={selectedDate}
-                            onChange={handleDateChange}
-                            KeyboardButtonProps={{
-                              "aria-label": "change date",
-                            }}
-                            required
-                            disableFuture
-                          />
-                        </Grid>
-                        <Grid item lg={3} md={3} sm={6} xl={3} xs={12}>
-                          <KeyboardTimePicker
-                            variant="dialog"
-                            margin="normal"
-                            id="time-picker"
-                            label="Start Time "
-                            value={selectedDate}
-                            onChange={handleDateChange}
-                            KeyboardButtonProps={{
-                              "aria-label": "change time",
-                            }}
-                            required
-                          />
-                        </Grid>
+                  <Grid item md={6} xs={12}>
+                    <TextField
+                      label="Start Date"
+                      className="reactSelect"
+                      fullWidth
+                      variant="outlined"
+                      InputLabelProps={{ shrink: true }}
+                      type="date"
+                      // defaultValue={new Date().toLocaleDateString()}
+                      defaultValue={"2021-07-20"}
+                    />
+                  </Grid>
 
-                        <Grid item lg={3} md={3} sm={6} xl={3} xs={12}>
-                          <KeyboardDatePicker
-                            disableToolbar
-                            variant="dialog"
-                            format="yyyy-MM-dd"
-                            margin="normal"
-                            id="date-picker-inline"
-                            label="End Date"
-                            value={selectedEndDate}
-                            onChange={handleEndDateChange}
-                            KeyboardButtonProps={{
-                              "aria-label": "change end date",
-                            }}
-                            required
-                            disableFuture
-                          />
-                        </Grid>
-                        <Grid item lg={3} md={3} sm={6} xl={3} xs={12}>
-                          <KeyboardTimePicker
-                            variant="dialog"
-                            margin="normal"
-                            id="time-picker"
-                            label="End Time "
-                            value={selectedEndDate}
-                            onChange={handleEndDateChange}
-                            KeyboardButtonProps={{
-                              "aria-label": "change end time",
-                            }}
-                            required
-                          />
-                        </Grid>
-                      </Grid>
-                    </MuiPickersUtilsProvider>
+                  <Grid item md={6} xs={12}>
+                    <TextField
+                      label="End Date"
+                      className="reactSelect"
+                      fullWidth
+                      variant="outlined"
+                      InputLabelProps={{ shrink: true }}
+                      type="date"
+                      // defaultValue={new Date().toLocaleDateString()}
+                      defaultValue={"2021-07-20"}
+                    />
                   </Grid>
 
                   <Grid item md={6} xs={12}>
@@ -333,22 +276,6 @@ const Download = (props) => {
                   <Grid item md={6} xs={12}>
                     <Select
                       fullWidth
-                      label="Degree of Cleaning"
-                      className="reactSelect"
-                      name="file-type"
-                      placeholder="Degree of Cleaning"
-                      value={selectedClean}
-                      options={degreeOfClean}
-                      onChange={handleCleanessChange}
-                      variant="outlined"
-                      margin="dense"
-                      required
-                    />
-                  </Grid>
-
-                  <Grid item md={6} xs={12}>
-                    <Select
-                      fullWidth
                       label="File Type"
                       className="reactSelect"
                       name="file-type"
@@ -377,16 +304,6 @@ const Download = (props) => {
                 </Button>
               </CardActions>
             </form>
-          </Card>
-        </Grid>
-        <Grid item md={4} xs={12}>
-          <Card {...rest} className={clsx(classes.root, className)}>
-            <CardHeader
-              subheader="Customize the data you want to download."
-              title="Data Download"
-            />
-            <Divider />
-            <CardContent>{/*<PollutantCategory />*/}</CardContent>
           </Card>
         </Grid>
       </Grid>
