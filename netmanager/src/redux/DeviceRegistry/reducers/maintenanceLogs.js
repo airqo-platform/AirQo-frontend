@@ -6,13 +6,17 @@ import {
   DELETE_SINGLE_MAINTENANCE_LOGS_SUCCESS,
 } from "../actions";
 
+import { LOGOUT_USER_SUCCESS } from "redux/Join/types";
+
 const initialState = {};
 export default function (state = initialState, action) {
   switch (action.type) {
     case RESET_MAINTENANCE_LOGS:
       return initialState;
+
     case LOAD_MAINTENANCE_LOGS_SUCCESS:
       return { ...state, ...action.payload };
+
     case INSERT_MAINTENANCE_LOGS_SUCCESS:
       return {
         ...state,
@@ -21,6 +25,7 @@ export default function (state = initialState, action) {
           ...(state[action.payload.deviceName] || []),
         ],
       };
+
     case UPDATE_SINGLE_MAINTENANCE_LOGS_SUCCESS:
       return {
         ...state,
@@ -35,6 +40,7 @@ export default function (state = initialState, action) {
           ),
         ],
       };
+
     case DELETE_SINGLE_MAINTENANCE_LOGS_SUCCESS:
       return {
         ...state,
@@ -48,6 +54,9 @@ export default function (state = initialState, action) {
           ),
         ],
       };
+
+    case LOGOUT_USER_SUCCESS:
+      return initialState;
     default:
       return state;
   }
