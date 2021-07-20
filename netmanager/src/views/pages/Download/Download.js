@@ -23,6 +23,9 @@ import axios from "axios";
 import { DOWNLOAD_DATA } from "config/urls/analytics";
 import { getMonitoringSitesLocationsApi } from "../../apis/location";
 import { isEmpty } from "underscore";
+import { formatDate } from "utils/dateTime";
+import { useDashboardSitesData } from "redux/Dashboard/selectors";
+import { loadSites } from "redux/Dashboard/operations";
 
 const {
   Parser,
@@ -35,9 +38,31 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+const createSiteOptions = (sites) => {
+  const options = [];
+  sites.map((site) =>
+    options.push({
+      value: site._id,
+      label: site.name || site.description || site.generated_name,
+    })
+  );
+  return options;
+};
+
 const Download = (props) => {
   const { className, staticContext, ...rest } = props;
   const classes = useStyles();
+
+  const sites = useDashboardSitesData();
+  const [siteOptions, setSiteOptions] = useState([]);
+
+  useEffect(() => {
+    if (isEmpty(sites)) loadSites();
+  }, []);
+
+  useEffect(() => {
+    setSiteOptions(createSiteOptions(sites));
+  }, [sites]);
 
   var startDate = new Date();
   startDate.setMonth(startDate.getMonth() - 1);
@@ -189,7 +214,11 @@ const Download = (props) => {
     <div className={classes.root}>
       <Grid container spacing={4}>
         <Grid item xs={12}>
-          <Card {...rest} className={clsx(classes.root, className)} style={{overflow: "visible"}}>
+          <Card
+            {...rest}
+            className={clsx(classes.root, className)}
+            style={{ overflow: "visible" }}
+          >
             <CardHeader
               subheader="Customize the data you want to download."
               title="Data Download"
@@ -207,8 +236,7 @@ const Download = (props) => {
                       variant="outlined"
                       InputLabelProps={{ shrink: true }}
                       type="date"
-                      // defaultValue={new Date().toLocaleDateString()}
-                      defaultValue={"2021-07-20"}
+                      defaultValue={formatDate(new Date().toISOString())}
                     />
                   </Grid>
 
@@ -220,8 +248,7 @@ const Download = (props) => {
                       variant="outlined"
                       InputLabelProps={{ shrink: true }}
                       type="date"
-                      // defaultValue={new Date().toLocaleDateString()}
-                      defaultValue={"2021-07-20"}
+                      defaultValue={formatDate(new Date().toISOString())}
                     />
                   </Grid>
 
@@ -232,7 +259,7 @@ const Download = (props) => {
                       name="location"
                       placeholder="Location(s)"
                       value={values.selectedOption}
-                      options={filterLocationsOptions}
+                      options={siteOptions}
                       onChange={handleMultiChange}
                       isMulti
                       variant="outlined"
