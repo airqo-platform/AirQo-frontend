@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useDispatch } from "react-redux";
 import { makeStyles } from "@material-ui/styles";
 import {
   Grid,
@@ -26,6 +27,8 @@ import { isEmpty } from "underscore";
 import { formatDate } from "utils/dateTime";
 import { useDashboardSitesData } from "redux/Dashboard/selectors";
 import { loadSites } from "redux/Dashboard/operations";
+import { downloadDataApi } from "views/apis/analytics";
+import { roundToStartOfDay, roundToEndOfDay } from "utils/dateTime";
 
 const {
   Parser,
@@ -49,52 +52,26 @@ const createSiteOptions = (sites) => {
   return options;
 };
 
+const getValues = (options) => {
+  const values = [];
+  options.map((option) => values.push(option.value));
+  return values;
+};
+
 const Download = (props) => {
   const { className, staticContext, ...rest } = props;
   const classes = useStyles();
 
+  const dispatch = useDispatch();
   const sites = useDashboardSitesData();
   const [siteOptions, setSiteOptions] = useState([]);
 
-  useEffect(() => {
-    if (isEmpty(sites)) loadSites();
-  }, []);
-
-  useEffect(() => {
-    setSiteOptions(createSiteOptions(sites));
-  }, [sites]);
-
-  var startDate = new Date();
-  startDate.setMonth(startDate.getMonth() - 1);
-  startDate.setHours(0, 0, 0, 0);
-
-  const [selectedDate, setSelectedStartDate] = useState(startDate);
-  const handleDateChange = (date) => {
-    setSelectedStartDate(date);
-  };
-
-  const [selectedEndDate, setSelectedEndDate] = useState(new Date());
-  const handleEndDateChange = (date) => {
-    setSelectedEndDate(date);
-  };
-
-  const [filterLocations, setFilterLocations] = useState([]);
-
-  useEffect(() => {
-    getMonitoringSitesLocationsApi()
-      .then((responseData) =>
-        setFilterLocations(responseData.airquality_monitoring_sites)
-      )
-      .catch((err) => console.log(err));
-  }, []);
-
-  const filterLocationsOptions = filterLocations;
-
-  const [values, setReactSelectValue] = useState({ selectedOption: [] });
-
-  const handleMultiChange = (selectedOption) => {
-    setReactSelectValue({ selectedOption });
-  };
+  const [startDate, setStartDate] = useState(null);
+  const [endDate, setEndDate] = useState(null);
+  const [selectedSites, setSelectedSites] = useState([]);
+  const [pollutants, setPollutants] = useState([]);
+  const [frequency, setFrequency] = useState();
+  const [fileType, setFileType] = useState(null);
 
   const frequencyOptions = [
     { value: "hourly", label: "Hourly" },
@@ -102,79 +79,61 @@ const Download = (props) => {
     { value: "monthly", label: "Monthly" },
   ];
 
-  const [selectedFrequency, setSelectedFrequency] = useState();
-
-  const handleFrequencyChange = (selectedFrequencyOption) => {
-    setSelectedFrequency(selectedFrequencyOption);
-  };
-
   const pollutantOptions = [
     { value: "pm2_5", label: "PM 2.5" },
     { value: "pm10", label: "PM 10" },
     { value: "no2", label: "NO2" },
   ];
 
-  const [selectedPollutant, setSelectedPollutant] = useState([]);
-
-  const handlePollutantChange = (selectedPollutantOption) => {
-    setSelectedPollutant(selectedPollutantOption);
-  };
-
   const typeOptions = [
     { value: "json", label: "JSON" },
     { value: "csv", label: "CSV" },
   ];
 
-  const [selectedType, setSelectedType] = useState();
+  useEffect(() => {
+    if (isEmpty(sites)) dispatch(loadSites());
+  }, []);
 
-  const handleTypeChange = (selectedTypeOption) => {
-    setSelectedType(selectedTypeOption);
-  };
+  useEffect(() => {
+    setSiteOptions(createSiteOptions(sites));
+  }, [sites]);
 
   const disableDownloadBtn = () => {
     return !(
-      values &&
-      !isEmpty(values.selectedOption) &&
-      !isEmpty(selectedPollutant) &&
-      selectedType &&
-      selectedType.value &&
-      selectedFrequency &&
-      selectedFrequency.value
+      startDate &&
+      endDate &&
+      !isEmpty(selectedSites) &&
+      !isEmpty(pollutants) &&
+      fileType &&
+      fileType.value &&
+      frequency &&
+      frequency.value
     );
   };
 
   let handleSubmit = (e) => {
     e.preventDefault();
 
-    let params = {
-      locations: values.selectedOption,
-      startDate: selectedDate,
-      endDate: selectedEndDate,
-      frequency: selectedFrequency.value,
-      pollutants: selectedPollutant,
-      fileType: selectedType.value,
+    let data = {
+      sites: getValues(selectedSites),
+      startDate: roundToStartOfDay(new Date(startDate).toISOString()),
+      endDate: roundToEndOfDay(new Date(endDate).toISOString()),
+      frequency: frequency.value,
+      pollutants: getValues(pollutants),
+      fileType: fileType.value,
     };
-    console.log(JSON.stringify(params));
+    console.log("data", data);
 
-    axios
-      .post(DOWNLOAD_DATA + selectedType.value, JSON.stringify(params), {
-        headers: { "Content-Type": "application/json" },
-      })
-      .then((res) => res.data)
-      .then((customisedDownloadData) => {
-        // setCustomisedDownloadData(customisedDownloadData)
-        //download the returned data
-        console.log(JSON.stringify(customisedDownloadData));
-        if (selectedType.value === "json") {
-          let filename = "airquality-data-" + selectedFrequency.value + ".json";
+    downloadDataApi(fileType.value, data)
+      .then((response) => response.data)
+      .then((resData) => {
+        if (fileType.value === "json") {
+          let filename = `airquality-${frequency.value}-data.json`;
           let contentType = "application/json;charset=utf-8;";
+
           if (window.navigator && window.navigator.msSaveOrOpenBlob) {
             var blob = new Blob(
-              [
-                decodeURIComponent(
-                  encodeURI(JSON.stringify(customisedDownloadData))
-                ),
-              ],
+              [decodeURIComponent(encodeURI(JSON.stringify(resData)))],
               { type: contentType }
             );
             navigator.msSaveOrOpenBlob(blob, filename);
@@ -185,30 +144,30 @@ const Download = (props) => {
               "data:" +
               contentType +
               "," +
-              encodeURIComponent(JSON.stringify(customisedDownloadData));
+              encodeURIComponent(JSON.stringify(resData));
             a.target = "_blank";
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
           }
         } else {
-          const json2csvParser = new Parser();
-          const csv = json2csvParser.parse(customisedDownloadData);
-          console.log(csv);
-          var filename = "airquality-data-" + selectedFrequency.value + ".csv";
-          var link = document.createElement("a");
-          link.setAttribute(
-            "href",
-            "data:text/csv;charset=utf-8,%EF%BB%BF" + encodeURIComponent(csv)
-          );
-          link.setAttribute("download", filename);
-          link.style.visibility = "hidden";
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
+          // const json2csvParser = new Parser();
+          // const csv = json2csvParser.parse(resData);
+          // console.log(csv);
+          // let filename = `airquality-${frequency.value}-data.csv`;
+          // var link = document.createElement("a");
+          // link.setAttribute(
+          //   "href",
+          //   "data:text/csv;charset=utf-8,%EF%BB%BF" + encodeURIComponent(csv)
+          // );
+          // link.setAttribute("download", filename);
+          // link.style.visibility = "hidden";
+          // document.body.appendChild(link);
+          // link.click();
+          // document.body.removeChild(link);
         }
       })
-      .catch(console.log);
+      .catch((err) => console.log(err && err.response && err.response.data));
   };
   return (
     <div className={classes.root}>
@@ -236,7 +195,7 @@ const Download = (props) => {
                       variant="outlined"
                       InputLabelProps={{ shrink: true }}
                       type="date"
-                      defaultValue={formatDate(new Date().toISOString())}
+                      onChange={(event) => setStartDate(event.target.value)}
                     />
                   </Grid>
 
@@ -248,7 +207,7 @@ const Download = (props) => {
                       variant="outlined"
                       InputLabelProps={{ shrink: true }}
                       type="date"
-                      defaultValue={formatDate(new Date().toISOString())}
+                      onChange={(event) => setEndDate(event.target.value)}
                     />
                   </Grid>
 
@@ -258,9 +217,9 @@ const Download = (props) => {
                       className="reactSelect"
                       name="location"
                       placeholder="Location(s)"
-                      value={values.selectedOption}
+                      value={selectedSites}
                       options={siteOptions}
-                      onChange={handleMultiChange}
+                      onChange={(options) => setSelectedSites(options)}
                       isMulti
                       variant="outlined"
                       margin="dense"
@@ -275,9 +234,9 @@ const Download = (props) => {
                       className=""
                       name="chart-frequency"
                       placeholder="Frequency"
-                      value={selectedFrequency}
+                      value={frequency}
                       options={frequencyOptions}
-                      onChange={handleFrequencyChange}
+                      onChange={(options) => setFrequency(options)}
                       variant="outlined"
                       margin="dense"
                       required
@@ -290,9 +249,9 @@ const Download = (props) => {
                       className="reactSelect"
                       name="pollutant"
                       placeholder="Pollutant(s)"
-                      value={values.selectedPollutant}
+                      value={pollutants}
                       options={pollutantOptions}
-                      onChange={handlePollutantChange}
+                      onChange={(options) => setPollutants(options)}
                       isMulti
                       variant="outlined"
                       margin="dense"
@@ -307,9 +266,9 @@ const Download = (props) => {
                       className="reactSelect"
                       name="file-type"
                       placeholder="File Type"
-                      value={selectedType}
+                      value={fileType}
                       options={typeOptions}
-                      onChange={handleTypeChange}
+                      onChange={(options) => setFileType(options)}
                       variant="outlined"
                       margin="dense"
                       required
