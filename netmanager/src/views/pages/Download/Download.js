@@ -22,7 +22,7 @@ import { roundToStartOfDay, roundToEndOfDay } from "utils/dateTime";
 
 const {
   Parser,
-  transforms: { unwind },
+  // transforms: { unwind },
 } = require("json2csv");
 
 const useStyles = makeStyles((theme) => ({
@@ -114,7 +114,7 @@ const Download = (props) => {
     };
     console.log("data", data);
 
-    downloadDataApi(fileType.value, data)
+    downloadDataApi("json", data)
       .then((response) => response.data)
       .then((resData) => {
         if (fileType.value === "json") {
@@ -141,20 +141,20 @@ const Download = (props) => {
             document.body.removeChild(a);
           }
         } else {
-          // const json2csvParser = new Parser();
-          // const csv = json2csvParser.parse(resData);
-          // console.log(csv);
-          // let filename = `airquality-${frequency.value}-data.csv`;
-          // var link = document.createElement("a");
-          // link.setAttribute(
-          //   "href",
-          //   "data:text/csv;charset=utf-8,%EF%BB%BF" + encodeURIComponent(csv)
-          // );
-          // link.setAttribute("download", filename);
-          // link.style.visibility = "hidden";
-          // document.body.appendChild(link);
-          // link.click();
-          // document.body.removeChild(link);
+          const json2csvParser = new Parser();
+          const csv = json2csvParser.parse(resData);
+          console.log(csv);
+          let filename = `airquality-${frequency.value}-data.csv`;
+          var link = document.createElement("a");
+          link.setAttribute(
+            "href",
+            "data:text/csv;charset=utf-8,%EF%BB%BF" + encodeURIComponent(csv)
+          );
+          link.setAttribute("download", filename);
+          link.style.visibility = "hidden";
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
         }
       })
       .catch((err) => console.log(err && err.response && err.response.data));
