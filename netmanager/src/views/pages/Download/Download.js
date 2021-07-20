@@ -20,10 +20,7 @@ import { loadSites } from "redux/Dashboard/operations";
 import { downloadDataApi } from "views/apis/analytics";
 import { roundToStartOfDay, roundToEndOfDay } from "utils/dateTime";
 
-const {
-  Parser,
-  // transforms: { unwind },
-} = require("json2csv");
+const { Parser } = require("json2csv");
 
 const useStyles = makeStyles((theme) => ({
   root: {
