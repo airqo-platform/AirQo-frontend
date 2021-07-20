@@ -126,6 +126,7 @@ const createDeviceColumns = (history, setDelState) => [
           data.site && (
             <Link
               to={`/sites/${data.site._id}`}
+              className={"underline-hover"}
               onClick={(event) => {
                 event.stopPropagation();
               }}
