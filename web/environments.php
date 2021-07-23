@@ -2,23 +2,21 @@
 if(! defined('ENVIRONMENT') ){
     $domain = strtolower($_SERVER['HTTP_HOST']);
     switch($domain) {
-        case (
-            'airqo.net' || 
-            'www.airqo.net' || 
-            'airqo.africa' || 
-            'www.airqo.africa' ||
-            'airqo.org' ||
-            'www.airqo.org'
-            ):
+        case 'airqo.net':
+        case 'www.airqo.net':
+        case 'airqo.africa': 
+        case 'www.airqo.africa':
+        case 'airqo.org':
+        case 'www.airqo.org':
         define('ENVIRONMENT', 'production');
         break;
 
-        case 'staging-dot-airqo-frontend.appspot.com' :
+        case 'staging-dot-airqo-frontend.appspot.com':
         //our staging server
         define('ENVIRONMENT', 'staging');
         break;
 
-        default :
+        default:
         define('ENVIRONMENT', 'development');
         break;
     }
