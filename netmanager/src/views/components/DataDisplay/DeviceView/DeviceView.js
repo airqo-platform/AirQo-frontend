@@ -23,7 +23,6 @@ import DeviceComponents from "./DeviceComponents";
 import DeviceOverview from "./DeviceOverview";
 import { useDevicesData } from "redux/DeviceRegistry/selectors";
 import { loadDevicesData } from "redux/DeviceRegistry/operations";
-import { loadSitesData } from "redux/SiteRegistry/operations";
 import { useSitesArrayData } from "redux/SiteRegistry/selectors";
 import { useInitScrollTop } from "utils/customHooks";
 
@@ -42,9 +41,6 @@ export default function DeviceView() {
   useEffect(() => {
     if (isEmpty(devices)) {
       dispatch(loadDevicesData());
-    }
-    if (isEmpty(sites)) {
-      dispatch(loadSitesData());
     }
   }, []);
 

@@ -1,28 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
-import {
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Grid,
-  Paper,
-  TextField,
-} from "@material-ui/core";
-import FormControl from "@material-ui/core/FormControl";
-import InputLabel from "@material-ui/core/InputLabel";
-import Select from "@material-ui/core/Select";
-import Input from "@material-ui/core/Input";
-import {
-  KeyboardDatePicker,
-  MuiPickersUtilsProvider,
-} from "@material-ui/pickers";
+import PropTypes from "prop-types";
+import { Button, Grid, Paper, TextField } from "@material-ui/core";
 import Tooltip from "@material-ui/core/Tooltip";
 import CheckBoxIcon from "@material-ui/icons/CheckBox";
 import CancelIcon from "@material-ui/icons/Cancel";
 import ErrorIcon from "@material-ui/icons/Error";
-import DateFnsUtils from "@date-io/date-fns";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
 import Checkbox from "@material-ui/core/Checkbox";
 import green from "@material-ui/core/colors/green";
@@ -56,18 +39,6 @@ const useStyles = makeStyles((theme) => ({
     color: grey[200],
   },
 }));
-
-const errorStyles = {
-  color: "red",
-  margin: 0,
-  fontSize: "11px",
-  marginTop: "3px",
-  textAlign: "left",
-  fontFamily: "Roboto, Helvetica, Arial, sans-serif",
-  fontWeight: 400,
-  lineHeight: "13px",
-  letterSpacing: "0.33px",
-};
 
 const emptyTestStyles = {
   display: "flex",
@@ -174,6 +145,11 @@ const EmptyDeviceTest = ({ loading, onClick }) => {
   );
 };
 
+EmptyDeviceTest.propTypes = {
+  loading: PropTypes.bool.isRequired,
+  onClick: PropTypes.func.isRequired,
+};
+
 const RecallDevice = ({ deviceData, handleRecall, open, toggleOpen }) => {
   return (
     <ConfirmDialog
@@ -187,9 +163,18 @@ const RecallDevice = ({ deviceData, handleRecall, open, toggleOpen }) => {
   );
 };
 
+RecallDevice.propTypes = {
+  deviceData: PropTypes.object.isRequired,
+  handleRecall: PropTypes.func.isRequired,
+  open: PropTypes.bool.isRequired,
+  toggleOpen: PropTypes.func.isRequired,
+};
+
 const DeviceRecentFeedView = ({ recentFeed, runReport }) => {
   const classes = useStyles();
-  const feedKeys = Object.keys(omit(recentFeed, "isCache", "created_at", "errors"));
+  const feedKeys = Object.keys(
+    omit(recentFeed, "isCache", "created_at", "errors")
+  );
   const [
     elapsedDurationSeconds,
     elapsedDurationMapper,
@@ -289,6 +274,11 @@ const DeviceRecentFeedView = ({ recentFeed, runReport }) => {
   );
 };
 
+DeviceRecentFeedView.propTypes = {
+  recentFeed: PropTypes.object.isRequired,
+  runReport: PropTypes.object.isRequired,
+};
+
 export default function DeviceDeployStatus({ deviceData }) {
   const dispatch = useDispatch();
   const sites = useSitesArrayData();
@@ -368,7 +358,7 @@ export default function DeviceDeployStatus({ deviceData }) {
 
   const runDeviceTest = async () => {
     setDeviceTestLoading(true);
-    await getDeviceRecentFeedByChannelIdApi(deviceData.channelID)
+    await getDeviceRecentFeedByChannelIdApi(deviceData.device_number)
       .then((responseData) => {
         setRecentFeed(responseData);
         setRunReport({ ranTest: true, successfulTestRun: true, error: false });
@@ -862,3 +852,7 @@ export default function DeviceDeployStatus({ deviceData }) {
     </>
   );
 }
+
+DeviceDeployStatus.propTypes = {
+  deviceData: PropTypes.object.isRequired,
+};
