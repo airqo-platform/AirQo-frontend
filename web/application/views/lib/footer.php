@@ -74,14 +74,13 @@
 								<div class="col-md-6 footer-list-28 mt-5">
 									<h6 class="footer-title-28">Subscribe to Our Newsletter</h6>
 									<!-- Begin Mailchimp Signup Form -->
-									<link href="//cdn-images.mailchimp.com/embedcode/slim-10_7.css" rel="stylesheet" type="text/css">
+									<!-- <link href="//cdn-images.mailchimp.com/embedcode/slim-10_7.css" rel="stylesheet" type="text/css">
 									<style type="text/css">
 										#mc_embed_signup {
 											background-color: transparent;
 											clear: left;
 											font: 14px;
-											color: #ff0000;
-										}
+											color: #ff0000;}
 									</style>
 									<div id="mc_embed_signup">
 										<form action="https://airqo.us4.list-manage.com/subscribe/post?u=0dbb373a20484114777d7590a&amp;id=865133b4d7" method="post" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" class="validate" target="_blank" novalidate>
@@ -96,11 +95,33 @@
 													<div class="response" id="mce-success-response" style="display:none">
 													</div>
 												</div>
-												<!-- auto fill -->
+												 auto fill 
 												<div style="position: absolute; left: -5000px;" aria-hidden="true"><input type="text" name="b_0dbb373a20484114777d7590a_865133b4d7" tabindex="-1" value=""></div>
 												<div class="clear"><input type="submit" value="Subscribe" name="subscribe" id="mc-embedded-subscribe" class="button"></div>
 											</div>
 										</form>
+									</div>
+									End mc_embed_signup -->
+									<!-- Begin Mailchimp Signup Form -->
+									<link href="//cdn-images.mailchimp.com/embedcode/slim-10_7.css" rel="stylesheet" type="text/css">
+									<style type="text/css">
+										#mc_embed_signup {
+											background-color: transparent;
+											clear: left;
+											font: 14px;
+											color: #ff0000;
+										}
+									</style>
+									<div id="mc_embed_signup">
+									<form action="https://airqo.us2.list-manage.com/subscribe/post?u=a33ec48ac5ba982a5408082f4&amp;id=62c8959c2a" method="post" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" class="validate" target="_blank" novalidate>
+										<div id="mc_embed_signup_scroll">
+										<label for="mce-EMAIL" style="color: #fff !important;">Recieve our Latest updates via email</label>
+										<input type="email" value="" name="EMAIL" class="email" id="mce-EMAIL" placeholder="Email address" required>
+										<!-- real people should not fill this in and expect good things - do not remove this or risk form bot signups-->
+										<div style="position: absolute; left: -5000px;" aria-hidden="true"><input type="text" name="b_a33ec48ac5ba982a5408082f4_62c8959c2a" tabindex="-1" value=""></div>
+										<div class="clear"><input type="submit" value="Subscribe" name="subscribe" id="mc-embedded-subscribe" class="button"></div>
+										</div>
+									</form>
 									</div>
 									<!--End mc_embed_signup-->
 								</div>

@@ -48,7 +48,7 @@
 						<div class="single-post-image mb-4">
 							<img src="<?= $post['p_img']; ?>" class="img-fluid w-100" alt="blog-post-image" />
 						</div>
-						<div class="single-post-content">
+						<div class="single-post-content ck-content">
 							<?= $postmeta['pm_content']; ?>
 						</div>
 

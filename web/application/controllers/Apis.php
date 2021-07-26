@@ -1003,6 +1003,8 @@ class Apis extends CI_Controller
                 $json_url_lt = RECENT_FEEDS.$channel;
                 $json = file_get_contents($json_url_lt);
                 $json = json_decode($json);
+
+                //$response[$channel] = $json;
                 if ($json) {
                     $date = $json->{'created_at'};
                     $reading = $json->{'field2'};
@@ -1014,9 +1016,15 @@ class Apis extends CI_Controller
                     if($update_node){
                         $mr .= "" . $reading;
                     }
+                    $total = $total + 1;
+                } else {
+                    // $channel passed to RECENT_FEEDS url returned null
+                    // $channel is deleted 
+                    $this->db->query("UPDATE tbl_app_nodes SET an_deleted = '1'
+                                        WHERE an_channel_id = '$channel' LIMIT 1");
 
                 }
-                $total = $total + 1;
+                
             }
                 
             $state      = $this->ApisModel->stateOk();

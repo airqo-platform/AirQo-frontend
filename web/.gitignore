@@ -7,4 +7,5 @@ vendor
 composer.phar
 .DS_Store
 .vscode
+docker/nginx/logs
 
