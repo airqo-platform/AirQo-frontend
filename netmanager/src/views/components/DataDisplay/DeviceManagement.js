@@ -31,6 +31,7 @@ import {
   timeSeriesChartOptions,
   createPieChartOptions,
 } from "views/charts";
+import { roundToStartOfDay, roundToEndOfDay } from "utils/dateTime";
 
 import { SortAscendingIcon, SortDescendingIcon } from "assets/img";
 
@@ -274,7 +275,13 @@ export default function DeviceManagement() {
 
   useEffect(() => {
     if (isEmpty(devicesStatusData)) {
-      dispatch(loadDevicesStatusData());
+      dispatch(
+        loadDevicesStatusData({
+          startDate: roundToStartOfDay(new Date().toISOString()).toISOString(),
+          endDate: roundToEndOfDay(new Date().toISOString()).toISOString(),
+          limit: 1,
+        })
+      );
     }
     if (isEmpty(networkUptimeData)) {
       dispatch(loadNetworkUptimeData(28));

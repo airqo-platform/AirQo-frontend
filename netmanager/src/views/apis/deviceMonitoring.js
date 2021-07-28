@@ -33,8 +33,10 @@ export const getDeviceSensorCorrelationApi = async (params) => {
     .then((response) => response.data);
 };
 
-export const getDevicesStatusApi = async () => {
-  return await axios.get(ALL_DEVICES_STATUS).then((response) => response);
+export const getDevicesStatusApi = async (params) => {
+  return await axios
+    .get(ALL_DEVICES_STATUS, { params })
+    .then((response) => response.data);
 };
 
 export const getNetworkUptimeApi = async (params) => {

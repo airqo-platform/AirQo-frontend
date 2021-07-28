@@ -13,15 +13,14 @@ import {
   getAllDevicesUptimeApi,
 } from "views/apis/deviceMonitoring";
 
-export const loadDevicesStatusData = () => async (dispatch) => {
-  return await getDevicesStatusApi()
+export const loadDevicesStatusData = (params) => async (dispatch) => {
+  return await getDevicesStatusApi(params)
     .then((responseData) => {
       let data;
       try {
-        data = responseData.data.data[0];
+        data = responseData.data[0];
       } catch (err) {
-        data = JSON.parse(responseData.data.replace(/\bNaN\b/g, "null"))
-          .data[0];
+        data = JSON.parse(responseData.data.replace(/\bNaN\b/g, "null"))[0];
       }
 
       dispatch({
