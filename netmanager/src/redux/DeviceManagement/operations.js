@@ -52,12 +52,17 @@ export const loadNetworkUptimeData = (params) => async (dispatch) => {
     });
 };
 
-export const loadAllDevicesUptimeData = (days) => async (dispatch) => {
-  return await getAllDevicesUptimeApi({ days })
+export const loadAllDevicesUptimeData = (params) => async (dispatch) => {
+  return await getAllDevicesUptimeApi(params)
     .then((responseData) => {
+      const devicesUptime = {};
+      responseData.data.map((val) => {
+        devicesUptime[val._id] = val.values;
+      });
+
       dispatch({
         type: LOAD_ALL_DEVICES_UPTIME_SUCCESS,
-        payload: responseData.data,
+        payload: devicesUptime,
       });
     })
     .catch((err) => {

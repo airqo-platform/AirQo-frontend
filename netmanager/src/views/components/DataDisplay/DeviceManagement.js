@@ -295,7 +295,14 @@ export default function DeviceManagement() {
       );
     }
     if (isEmpty(allDevicesUptimeData)) {
-      dispatch(loadAllDevicesUptimeData(28));
+      dispatch(
+        loadAllDevicesUptimeData({
+          startDate: roundToStartOfDay(
+            moment(new Date()).subtract(28, "days").toISOString()
+          ).toISOString(),
+          endDate: roundToEndOfDay(new Date().toISOString()).toISOString(),
+        })
+      );
     }
     dispatch(updateDeviceBackUrl(location.pathname));
   }, []);
