@@ -10,6 +10,7 @@ import PowerIcon from "@material-ui/icons/Power";
 import Hidden from "@material-ui/core/Hidden";
 import Tooltip from "@material-ui/core/Tooltip";
 import Card from "../Card/Card.js";
+import moment from "moment";
 import { isEmpty, mapObject, omit, values } from "underscore";
 import Map from "./Map/Map";
 import {
@@ -284,7 +285,14 @@ export default function DeviceManagement() {
       );
     }
     if (isEmpty(networkUptimeData)) {
-      dispatch(loadNetworkUptimeData(28));
+      dispatch(
+        loadNetworkUptimeData({
+          startDate: roundToStartOfDay(
+            moment(new Date()).subtract(28, "days").toISOString()
+          ).toISOString(),
+          endDate: roundToEndOfDay(new Date().toISOString()).toISOString(),
+        })
+      );
     }
     if (isEmpty(allDevicesUptimeData)) {
       dispatch(loadAllDevicesUptimeData(28));

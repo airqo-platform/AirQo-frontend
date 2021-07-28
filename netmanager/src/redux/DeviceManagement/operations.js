@@ -36,8 +36,8 @@ export const loadDevicesStatusData = (params) => async (dispatch) => {
     });
 };
 
-export const loadNetworkUptimeData = (days) => async (dispatch) => {
-  return await getNetworkUptimeApi({ days })
+export const loadNetworkUptimeData = (params) => async (dispatch) => {
+  return await getNetworkUptimeApi(params)
     .then((responseData) => {
       dispatch({
         type: LOAD_NETWORK_UPTIME_SUCCESS,
