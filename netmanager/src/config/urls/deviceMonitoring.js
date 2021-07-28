@@ -19,6 +19,6 @@ export const DEVICE_MAINTENANCE_LOG_URI = `${BASE_DEVICE_MONITORING_URL}/monitor
 
 export const ALL_DEVICES_STATUS = `${BASE_DEVICE_MONITORING_URL}/monitor/devices/status`;
 
-export const ALL_DEVICES_UPTIME = `${BASE_DEVICE_MONITORING_URL}/monitor/devices/uptime`;
+export const DEVICES_UPTIME = `${BASE_DEVICE_MONITORING_URL}/monitor/devices/uptime`;
 
 export const GET_ONLINE_OFFLINE_MAINTENANCE_STATUS = `${BASE_DEVICE_MONITORING_URL}/monitor/devices/online_offline`;

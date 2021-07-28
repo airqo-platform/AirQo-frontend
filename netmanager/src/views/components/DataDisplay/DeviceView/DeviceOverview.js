@@ -15,13 +15,13 @@ import {
 
 import "chartjs-plugin-annotation";
 import { isEmpty } from "underscore";
+import { loadDevicesUptimeData } from "redux/DeviceManagement/operations";
+import { useDeviceUptimeData } from "redux/DeviceManagement/selectors";
 import {
-  loadDeviceUpTime,
   loadDeviceMaintenanceLogs,
   loadDeviceComponentsData,
 } from "redux/DeviceRegistry/operations";
 import {
-  useDeviceUpTimeData,
   useDeviceLogsData,
   useDeviceComponentsData,
 } from "redux/DeviceRegistry/selectors";
@@ -36,6 +36,8 @@ import {
 
 // styles
 import styles from "assets/jss/material-dashboard-react/views/dashboardStyle.js";
+import { roundToEndOfDay, roundToStartOfDay } from "../../../../utils/dateTime";
+import moment from "moment";
 
 const useStyles = makeStyles(styles);
 
@@ -167,7 +169,7 @@ DeviceComponents.protoTypes = {
 export default function DeviceOverview({ deviceData }) {
   const classes = useStyles();
   const dispatch = useDispatch();
-  const deviceStatus = useDeviceUpTimeData(deviceData.name);
+  const deviceUptimeRawData = useDeviceUptimeData(deviceData.name);
   const [deviceUptime, setDeviceUptime] = useState({
     bar: { label: [], data: [] },
     line: { label: [], data: [] },
@@ -183,22 +185,31 @@ export default function DeviceOverview({ deviceData }) {
   });
 
   useEffect(() => {
-    if (isEmpty(deviceStatus) && deviceData.name) {
-      dispatch(loadDeviceUpTime(deviceData.name, { days: 28 }));
+    if (isEmpty(deviceUptimeRawData) && deviceData.name) {
+      dispatch(
+        loadDevicesUptimeData({
+          startDate: roundToStartOfDay(
+            moment(new Date()).subtract(28, "days").toISOString()
+          ).toISOString(),
+          endDate: roundToEndOfDay(new Date().toISOString()).toISOString(),
+          device_name: deviceData.name,
+        })
+      );
     }
   }, []);
 
   useEffect(() => {
-    if (!isEmpty(deviceStatus)) {
-      const data = deviceStatus.data;
+    if (!isEmpty(deviceUptimeRawData)) {
+      const data = deviceUptimeRawData;
       const label = [];
       const uptimeLineData = [];
       const batteryVoltageData = [];
       const sensor1 = [];
       const sensor2 = [];
-      data.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+      // data.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
       data.map((status) => {
-        label.push(status.created_at.split("T")[0]);
+        // label.push(status.created_at.split("T")[0]);
+        label.push(status.created_at);
         uptimeLineData.push(parseFloat(status.uptime).toFixed(2));
         batteryVoltageData.push(parseFloat(status.battery_voltage).toFixed(2));
         sensor1.push(
@@ -209,6 +220,7 @@ export default function DeviceOverview({ deviceData }) {
         );
       });
       data.reverse();
+      console.log('labels', label)
       const uptimeBarChartData = createBarChartData(data, "uptime");
       setDeviceUptime({
         line: { label, data: uptimeLineData },
@@ -217,7 +229,7 @@ export default function DeviceOverview({ deviceData }) {
       setDeviceBatteryVoltage({ label, data: batteryVoltageData });
       setDeviceSensorCorrelation({ label, sensor1, sensor2 });
     }
-  }, [deviceStatus]);
+  }, [deviceUptimeRawData]);
 
   const deviceUptimeSeries = [
     {

@@ -52,7 +52,7 @@ export const loadNetworkUptimeData = (params) => async (dispatch) => {
     });
 };
 
-export const loadAllDevicesUptimeData = (params) => async (dispatch) => {
+export const loadDevicesUptimeData = (params) => async (dispatch) => {
   return await getAllDevicesUptimeApi(params)
     .then((responseData) => {
       const devicesUptime = {};

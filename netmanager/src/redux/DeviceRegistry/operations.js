@@ -141,9 +141,10 @@ export const updateDeviceComponent = (deviceName, index, component) => (
   });
 };
 
-export const loadDeviceUpTime = (deviceName, options) => async (dispatch) => {
-  return await getDeviceUptimeApi({ ...options, device_name: deviceName })
+export const loadDeviceUpTime = (deviceName, params) => async (dispatch) => {
+  return await getDeviceUptimeApi(params)
     .then((responseData) => {
+        console.log('response data', responseData)
       dispatch({
         type: LOAD_DEVICE_UPTIME_SUCCESS,
         payload: { deviceName, data: responseData },
