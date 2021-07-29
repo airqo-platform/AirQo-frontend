@@ -45,7 +45,6 @@ const gridItemStyle = {
 
 export default function DeviceEdit({ deviceData, sitesData }) {
   const dispatch = useDispatch();
-  console.log("site id", deviceData.site && deviceData.site._id);
   const [editData, setEditData] = useState({
     locationName: "",
     siteName: "",
@@ -78,9 +77,9 @@ export default function DeviceEdit({ deviceData, sitesData }) {
 
   const handleEditSubmit = async () => {
     setEditLoading(true);
-    await updateDeviceDetails(deviceData.name, editData)
+    await updateDeviceDetails(deviceData._id, editData)
       .then((responseData) => {
-        dispatch(updateDevice(deviceData.name, responseData.updatedDevice));
+        dispatch(updateDevice(deviceData.name, responseData.updated_device));
         dispatch(
           updateMainAlert({
             message: responseData.message,
@@ -334,7 +333,7 @@ export default function DeviceEdit({ deviceData, sitesData }) {
               onClick={handleEditSubmit}
               style={{ marginLeft: "10px" }}
             >
-              Edit device
+              Save Changes
             </Button>
           </Grid>
         </Grid>

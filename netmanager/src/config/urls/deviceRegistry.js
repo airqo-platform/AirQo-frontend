@@ -9,7 +9,7 @@ export const REGISTER_DEVICE_URI = `${BASE_DEVICE_REGISTRY_URL}/devices/ts`;
 
 export const ALL_DEVICES_URI = `${BASE_DEVICE_REGISTRY_URL}/devices`;
 
-export const EDIT_DEVICE_URI = `${BASE_DEVICE_REGISTRY_URL}/devices/ts/update?device=`;
+export const EDIT_DEVICE_URI = `${BASE_DEVICE_REGISTRY_URL}/devices`;
 
 export const DEVICES_IN_LOCATION_URI = `${BASE_DEVICE_REGISTRY_URL}/devices/by/location?loc=`;
 
