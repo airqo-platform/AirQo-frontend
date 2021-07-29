@@ -117,7 +117,7 @@ export default function DeviceEdit({ deviceData, sitesData }) {
         }}
       >
         <Grid container spacing={1}>
-          <Grid items xs={12} sm={6} style={gridItemStyle}>
+          <Grid items xs={12} sm={4} style={gridItemStyle}>
             <TextField
               id="name"
               label="name"
@@ -128,7 +128,7 @@ export default function DeviceEdit({ deviceData, sitesData }) {
               disabled
             />
           </Grid>
-          <Grid items xs={12} sm={6} style={gridItemStyle}>
+          <Grid items xs={12} sm={4} style={gridItemStyle}>
             <TextField
               id="owner"
               label="Owner"
@@ -138,7 +138,7 @@ export default function DeviceEdit({ deviceData, sitesData }) {
               required
             />
           </Grid>
-          <Grid items xs={12} sm={6} style={gridItemStyle}>
+          <Grid items xs={12} sm={4} style={gridItemStyle}>
             <TextField
               id="description"
               label="Description"
@@ -148,7 +148,7 @@ export default function DeviceEdit({ deviceData, sitesData }) {
               required
             />
           </Grid>
-          <Grid items xs={12} sm={6} style={gridItemStyle}>
+          <Grid items xs={12} sm={4} style={gridItemStyle}>
             <TextField
               id="device_manufacturer"
               label="Manufacturer"
@@ -157,7 +157,7 @@ export default function DeviceEdit({ deviceData, sitesData }) {
               fullWidth
             />
           </Grid>
-          <Grid items xs={12} sm={6} style={gridItemStyle}>
+          <Grid items xs={12} sm={4} style={gridItemStyle}>
             <TextField
               id="locationName"
               label="Map Address"
@@ -166,7 +166,7 @@ export default function DeviceEdit({ deviceData, sitesData }) {
               fullWidth
             />
           </Grid>
-          <Grid items xs={12} sm={6} style={gridItemStyle}>
+          <Grid items xs={12} sm={4} style={gridItemStyle}>
             <TextField
               id="siteName"
               label="Site Name"
@@ -175,7 +175,16 @@ export default function DeviceEdit({ deviceData, sitesData }) {
               fullWidth
             />
           </Grid>
-          <Grid items xs={12} sm={6} style={gridItemStyle}>
+          <Grid items xs={12} sm={4} style={gridItemStyle}>
+            <TextField
+              id="product_name"
+              label="Product Name"
+              value={editData.product_name}
+              onChange={handleTextFieldChange}
+              fullWidth
+            />
+          </Grid>
+          <Grid items xs={12} sm={4} style={gridItemStyle}>
             <TextField
               id="latitude"
               label="Latitude"
@@ -185,16 +194,7 @@ export default function DeviceEdit({ deviceData, sitesData }) {
               required
             />
           </Grid>
-          <Grid items xs={12} sm={6} style={gridItemStyle}>
-            <TextField
-              id="product_name"
-              label="Product Name"
-              value={editData.product_name}
-              onChange={handleTextFieldChange}
-              fullWidth
-            />
-          </Grid>
-          <Grid items xs={12} sm={6} style={gridItemStyle}>
+          <Grid items xs={12} sm={4} style={gridItemStyle}>
             <TextField
               id="longitude"
               label="Longitude"
@@ -204,7 +204,7 @@ export default function DeviceEdit({ deviceData, sitesData }) {
               required
             />
           </Grid>
-          <Grid items xs={12} sm={6} style={gridItemStyle}>
+          <Grid items xs={12} sm={4} style={gridItemStyle}>
             <TextField
               id="phoneNumber"
               label="Phone Number"
@@ -213,7 +213,7 @@ export default function DeviceEdit({ deviceData, sitesData }) {
               fullWidth
             />
           </Grid>
-          <Grid items xs={12} sm={6} style={gridItemStyle}>
+          <Grid items xs={12} sm={4} style={gridItemStyle}>
             <FormControl required fullWidth>
               <InputLabel htmlFor="demo-dialog-native">Data Access</InputLabel>
               <Select
@@ -236,7 +236,7 @@ export default function DeviceEdit({ deviceData, sitesData }) {
               </Select>
             </FormControl>
           </Grid>
-          <Grid items xs={12} sm={6} style={gridItemStyle}>
+          <Grid items xs={12} sm={4} style={gridItemStyle}>
             <FormControl fullWidth>
               <InputLabel htmlFor="demo-dialog-native">
                 Internet Service Provider
@@ -259,7 +259,7 @@ export default function DeviceEdit({ deviceData, sitesData }) {
             </FormControl>
           </Grid>
 
-          <Grid items xs={12} sm={6} style={gridItemStyle}>
+          <Grid items xs={12} sm={4} style={gridItemStyle}>
             <LabelledSelect
               label={"Site"}
               value={filterLocation(
@@ -270,7 +270,7 @@ export default function DeviceEdit({ deviceData, sitesData }) {
             />
           </Grid>
 
-          <Grid items xs={12} sm={6} style={gridItemStyle}>
+          <Grid items xs={12} sm={4} style={gridItemStyle}>
             <FormControl fullWidth>
               <InputLabel htmlFor="demo-dialog-native">Power Type</InputLabel>
               <Select
@@ -291,7 +291,7 @@ export default function DeviceEdit({ deviceData, sitesData }) {
             </FormControl>
           </Grid>
 
-          <Grid items xs={12} sm={6} style={gridItemStyle}>
+          <Grid items xs={12} sm={4} style={gridItemStyle}>
             <TextField
               id="mountType"
               label="Mount Type"
@@ -301,7 +301,7 @@ export default function DeviceEdit({ deviceData, sitesData }) {
             />
           </Grid>
 
-          <Grid items xs={12} sm={6} style={gridItemStyle}>
+          <Grid items xs={12} sm={4} style={gridItemStyle}>
             <TextField
               id="height"
               label="height"
