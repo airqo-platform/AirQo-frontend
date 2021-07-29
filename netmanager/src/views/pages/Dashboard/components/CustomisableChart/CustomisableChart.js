@@ -470,7 +470,6 @@ const CustomisableChart = (props) => {
     dispatch(
       setUserDefaultGraphData({
         ...newFilter,
-        // locations: valueLabelToString(values.selectedOption),
         locations: optionToList(tempState.sites.selectedOption),
       })
     );
