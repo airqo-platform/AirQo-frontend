@@ -252,8 +252,8 @@ const CustomisableChart = (props) => {
     setSiteOptions(options);
   }, [sites]);
 
-  const siteFilter = (values) => (site) => {
-    return values.includes(site.label);
+  const siteFilter = (selectedSites) => (site) => {
+    return selectedSites.includes(site.value);
   };
 
   const [values, setReactSelectValue] = useState({
@@ -470,7 +470,7 @@ const CustomisableChart = (props) => {
     dispatch(
       setUserDefaultGraphData({
         ...newFilter,
-        locations: valueLabelToString(values.selectedOption),
+        locations: optionToList(tempState.sites.selectedOption),
       })
     );
     await fetchAndSetGraphData(newFilter);
