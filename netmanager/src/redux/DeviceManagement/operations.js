@@ -1,4 +1,5 @@
 // for representing chained operations using redux-thunk
+import { isEmpty } from "underscore";
 import {
   LOAD_DEVICES_STATUS_SUCCESS,
   LOAD_DEVICES_STATUS_FAILURE,
@@ -55,15 +56,17 @@ export const loadNetworkUptimeData = (params) => async (dispatch) => {
 export const loadDevicesUptimeData = (params) => async (dispatch) => {
   return await getAllDevicesUptimeApi(params)
     .then((responseData) => {
-      const devicesUptime = {};
-      responseData.data.map((val) => {
-        devicesUptime[val._id] = val.values;
-      });
+      if (!isEmpty(responseData.data)) {
+        const devicesUptime = {};
+        responseData.data.map((val) => {
+          devicesUptime[val._id] = val.values;
+        });
 
-      dispatch({
-        type: LOAD_ALL_DEVICES_UPTIME_SUCCESS,
-        payload: devicesUptime,
-      });
+        dispatch({
+          type: LOAD_ALL_DEVICES_UPTIME_SUCCESS,
+          payload: devicesUptime,
+        });
+      }
     })
     .catch((err) => {
       dispatch({
