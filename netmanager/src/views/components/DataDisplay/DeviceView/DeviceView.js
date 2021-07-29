@@ -20,7 +20,7 @@ import DeviceEdit from "./DeviceEdit";
 import DeviceLogs from "./DeviceLogs";
 import DevicePhotos from "./DevicePhotos";
 import DeviceComponents from "./DeviceComponents";
-import DeviceOverview from "./DeviceOverview";
+import DeviceOverview from "./DeviceOverview/DeviceOverview";
 import { useDevicesData } from "redux/DeviceRegistry/selectors";
 import { loadDevicesData } from "redux/DeviceRegistry/operations";
 import { useSitesArrayData } from "redux/SiteRegistry/selectors";

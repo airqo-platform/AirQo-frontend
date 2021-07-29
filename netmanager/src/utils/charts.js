@@ -11,7 +11,7 @@ export const ApexTimeSeriesData = (dates, data) => {
   //   result.push([dateToTimestamp(date), data[index]]);
   // });
   dates.map((date, index) => {
-    result.push({ x: `${date} GMT`, y: data[index] });
+    result.push({ x: date, y: data[index] });
   });
   return result;
 };

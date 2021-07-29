@@ -10,6 +10,7 @@ import PowerIcon from "@material-ui/icons/Power";
 import Hidden from "@material-ui/core/Hidden";
 import Tooltip from "@material-ui/core/Tooltip";
 import Card from "../Card/Card.js";
+import moment from "moment";
 import { isEmpty, mapObject, omit, values } from "underscore";
 import Map from "./Map/Map";
 import {
@@ -20,7 +21,6 @@ import {
 import {
   loadDevicesStatusData,
   loadNetworkUptimeData,
-  loadAllDevicesUptimeData,
 } from "redux/DeviceManagement/operations";
 import { multiFilter } from "utils/filters";
 import { createBarChartData, ApexTimeSeriesData } from "utils/charts";
@@ -31,6 +31,7 @@ import {
   timeSeriesChartOptions,
   createPieChartOptions,
 } from "views/charts";
+import { roundToStartOfDay, roundToEndOfDay } from "utils/dateTime";
 
 import { SortAscendingIcon, SortDescendingIcon } from "assets/img";
 
@@ -274,13 +275,23 @@ export default function DeviceManagement() {
 
   useEffect(() => {
     if (isEmpty(devicesStatusData)) {
-      dispatch(loadDevicesStatusData());
+      dispatch(
+        loadDevicesStatusData({
+          startDate: roundToStartOfDay(new Date().toISOString()).toISOString(),
+          endDate: roundToEndOfDay(new Date().toISOString()).toISOString(),
+          limit: 1,
+        })
+      );
     }
     if (isEmpty(networkUptimeData)) {
-      dispatch(loadNetworkUptimeData(28));
-    }
-    if (isEmpty(allDevicesUptimeData)) {
-      dispatch(loadAllDevicesUptimeData(28));
+      dispatch(
+        loadNetworkUptimeData({
+          startDate: roundToStartOfDay(
+            moment(new Date()).subtract(28, "days").toISOString()
+          ).toISOString(),
+          endDate: roundToEndOfDay(new Date().toISOString()).toISOString(),
+        })
+      );
     }
     dispatch(updateDeviceBackUrl(location.pathname));
   }, []);

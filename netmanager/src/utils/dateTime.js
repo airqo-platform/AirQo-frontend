@@ -83,6 +83,6 @@ export const roundToEndOfDay = (dateISOString) => {
 
 export const roundToStartOfDay = (dateISOString) => {
   let start = new Date(dateISOString);
-  start.setUTCHours(0, 0, 0, 0);
+  start.setUTCHours(0, 0, 0, 1);
   return start;
 };

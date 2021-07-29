@@ -16,7 +16,7 @@ export const timeSeriesChartOptions = {
   },
   tooltip: {
     x: {
-      format: "dd MMM yyyy",
+      format: "dd MMM yyyy hh:mm:ss",
     },
   },
 };
