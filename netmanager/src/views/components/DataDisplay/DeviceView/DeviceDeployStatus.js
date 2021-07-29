@@ -27,6 +27,7 @@ import { updateDevice } from "redux/DeviceRegistry/operations";
 import ConfirmDialog from "views/containers/ConfirmDialog";
 import LabelledSelect from "../../CustomSelects/LabelledSelect";
 import { formatDate } from "utils/dateTime";
+import { capitalize } from "utils/string";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -282,18 +283,18 @@ DeviceRecentFeedView.propTypes = {
 export default function DeviceDeployStatus({ deviceData }) {
   const dispatch = useDispatch();
   const sites = useSitesArrayData();
-  const [height, setHeight] = useState(deviceData.height || "");
-  const [power, setPower] = useState(deviceData.powerType || "");
+  const [height, setHeight] = useState(
+    (deviceData.height && String(deviceData.height)) || ""
+  );
+  const [power, setPower] = useState(capitalize(deviceData.powerType || ""));
   const [installationType, setInstallationType] = useState(
     deviceData.mountType || ""
   );
   const [deploymentDate, setDeploymentDate] = useState(new Date());
   const [primaryChecked, setPrimaryChecked] = useState(
-    deviceData.isPrimaryInLocation
+    deviceData.isPrimaryInLocation || true
   );
-  const [collocationChecked, setCollocationChecked] = useState(
-    deviceData.isUsedForCollocation
-  );
+  const [collocationChecked, setCollocationChecked] = useState(!primaryChecked);
   const [recentFeed, setRecentFeed] = useState({});
   const [runReport, setRunReport] = useState({
     ranTest: false,
@@ -379,7 +380,6 @@ export default function DeviceDeployStatus({ deviceData }) {
       site,
     };
     let newErrors = {};
-
     Object.keys(state).map((key) => {
       if (isEmpty(state[key])) {
         newErrors[key] = "This field is required";
@@ -481,62 +481,98 @@ export default function DeviceDeployStatus({ deviceData }) {
 
   return (
     <>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "flex-end",
-          margin: "10px 0",
-        }}
-      >
-        <Tooltip
-          arrow
-          title={"Device is not yet deployed"}
-          disableTouchListener={deviceData.isActive}
-          disableHoverListener={deviceData.isActive}
-          disableFocusListener={deviceData.isActive}
-        >
-          <span>
-            <Button
-              variant="contained"
-              color="primary"
-              disabled={!deviceData.isActive}
-              onClick={() => setRecallOpen(!recallOpen)}
-            >
-              {" "}
-              Recall Device
-            </Button>
-          </span>
-        </Tooltip>
-      </div>
+      {/*<div*/}
+      {/*  style={{*/}
+      {/*    display: "flex",*/}
+      {/*    justifyContent: "flex-end",*/}
+      {/*    margin: "10px 0",*/}
+      {/*  }}*/}
+      {/*>*/}
+      {/*  <Tooltip*/}
+      {/*    arrow*/}
+      {/*    title={"Device is not yet deployed"}*/}
+      {/*    disableTouchListener={deviceData.isActive}*/}
+      {/*    disableHoverListener={deviceData.isActive}*/}
+      {/*    disableFocusListener={deviceData.isActive}*/}
+      {/*  >*/}
+      {/*    <span>*/}
+      {/*      <Button*/}
+      {/*        variant="contained"*/}
+      {/*        color="primary"*/}
+      {/*        disabled={!deviceData.isActive}*/}
+      {/*        onClick={() => setRecallOpen(!recallOpen)}*/}
+      {/*      >*/}
+      {/*        {" "}*/}
+      {/*        Recall Device*/}
+      {/*      </Button>*/}
+      {/*    </span>*/}
+      {/*  </Tooltip>*/}
+      {/*</div>*/}
 
       <div
         style={{
           display: "flex",
+          flexWrap: "wrap",
+          maxWidth: "1500px",
+          padding: "40px 0px 10px 0px",
+          margin: "0 auto",
           alignItems: "baseline",
           justifyContent: "flex-end",
-          margin: "0 auto",
-          padding: "10px 20px",
-          maxWidth: "1500px",
-          fontSize: "1.2rem",
         }}
       >
         <span
           style={{
-            fontSize: "0.7rem",
-            marginRight: "10px",
-            background: "#ffffff",
-            border: "1px solid #ffffff",
-            borderRadius: "5px",
-            padding: "0 5px",
+            display: "flex",
+            alignItems: "bottom",
+            justifyContent: "flex-end",
           }}
         >
-          Deploy status
-        </span>{" "}
-        {deviceData.isActive ? (
-          <span style={{ color: "green" }}>Deployed</span>
-        ) : (
-          <span style={{ color: "red" }}>Not Deployed</span>
-        )}
+          <span
+            style={{
+              display: "flex",
+              alignItems: "center",
+              fontSize: "1.2rem",
+              marginRight: "10px",
+            }}
+          >
+            <span
+              style={{
+                fontSize: "0.7rem",
+                marginRight: "10px",
+                background: "#ffffff",
+                border: "1px solid #ffffff",
+                borderRadius: "5px",
+                padding: "0 5px",
+              }}
+            >
+              Deploy status
+            </span>{" "}
+            {deviceData.isActive ? (
+              <span style={{ color: "green" }}>Deployed</span>
+            ) : (
+              <span style={{ color: "red" }}>Not Deployed</span>
+            )}
+          </span>
+          <Tooltip
+            arrow
+            title={"Device is not yet deployed"}
+            disableTouchListener={deviceData.isActive}
+            disableHoverListener={deviceData.isActive}
+            disableFocusListener={deviceData.isActive}
+          >
+            <span>
+              <Button
+                variant="contained"
+                color="primary"
+                disabled={!deviceData.isActive}
+                onClick={() => setRecallOpen(!recallOpen)}
+              >
+                {" "}
+                Recall Device
+              </Button>
+            </span>
+          </Tooltip>
+        </span>
       </div>
 
       <RecallDevice
@@ -563,6 +599,7 @@ export default function DeviceDeployStatus({ deviceData }) {
                 value={site}
                 onChange={(newValue, actionMeta) => {
                   setSite(newValue);
+                  setErrors({ ...errors, site: "" });
                 }}
               />
               {errors.site && (
@@ -618,6 +655,7 @@ export default function DeviceDeployStatus({ deviceData }) {
               }}
               variant="outlined"
             >
+              <option value="" />
               <option value="Mains">Mains</option>
               <option value="Solar">Solar</option>
               <option value="Battery">Battery</option>
@@ -718,7 +756,10 @@ export default function DeviceDeployStatus({ deviceData }) {
                   control={
                     <Checkbox
                       checked={primaryChecked}
-                      onChange={(event) => setPrimaryChecked(!primaryChecked)}
+                      onChange={(event) => {
+                        setPrimaryChecked(!primaryChecked);
+                        setCollocationChecked(primaryChecked);
+                      }}
                       name="primaryDevice"
                       color="primary"
                     />
@@ -730,9 +771,10 @@ export default function DeviceDeployStatus({ deviceData }) {
                   control={
                     <Checkbox
                       checked={collocationChecked}
-                      onChange={(event) =>
-                        setCollocationChecked(!collocationChecked)
-                      }
+                      onChange={(event) => {
+                        setCollocationChecked(!collocationChecked);
+                        setPrimaryChecked(collocationChecked);
+                      }}
                       name="collocation"
                       color="primary"
                     />
