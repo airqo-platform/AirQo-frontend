@@ -1,4 +1,5 @@
 import { RENDER_MAP_DEFAULTS, RESET_MAP_DEFAULTS_SUCCESS } from "./types";
+import { LOGOUT_USER_SUCCESS } from "redux/Join/types";
 
 // create initial state
 
@@ -19,6 +20,8 @@ export default function (state = initialState, action) {
       return {
         ...state,
       };
+    case LOGOUT_USER_SUCCESS:
+      return initialState;
     default:
       return state;
   }
