@@ -292,11 +292,9 @@ export default function DeviceDeployStatus({ deviceData }) {
   );
   const [deploymentDate, setDeploymentDate] = useState(new Date());
   const [primaryChecked, setPrimaryChecked] = useState(
-    deviceData.isPrimaryInLocation
+    deviceData.isPrimaryInLocation || true
   );
-  const [collocationChecked, setCollocationChecked] = useState(
-    deviceData.isUsedForCollocation
-  );
+  const [collocationChecked, setCollocationChecked] = useState(!primaryChecked);
   const [recentFeed, setRecentFeed] = useState({});
   const [runReport, setRunReport] = useState({
     ranTest: false,
@@ -382,7 +380,6 @@ export default function DeviceDeployStatus({ deviceData }) {
       site,
     };
     let newErrors = {};
-
     Object.keys(state).map((key) => {
       if (isEmpty(state[key])) {
         newErrors[key] = "This field is required";
@@ -566,6 +563,7 @@ export default function DeviceDeployStatus({ deviceData }) {
                 value={site}
                 onChange={(newValue, actionMeta) => {
                   setSite(newValue);
+                  setErrors({ ...errors, site: "" });
                 }}
               />
               {errors.site && (
@@ -722,7 +720,10 @@ export default function DeviceDeployStatus({ deviceData }) {
                   control={
                     <Checkbox
                       checked={primaryChecked}
-                      onChange={(event) => setPrimaryChecked(!primaryChecked)}
+                      onChange={(event) => {
+                        setPrimaryChecked(!primaryChecked);
+                        setCollocationChecked(primaryChecked);
+                      }}
                       name="primaryDevice"
                       color="primary"
                     />
@@ -734,9 +735,10 @@ export default function DeviceDeployStatus({ deviceData }) {
                   control={
                     <Checkbox
                       checked={collocationChecked}
-                      onChange={(event) =>
-                        setCollocationChecked(!collocationChecked)
-                      }
+                      onChange={(event) => {
+                        setCollocationChecked(!collocationChecked);
+                        setPrimaryChecked(collocationChecked);
+                      }}
                       name="collocation"
                       color="primary"
                     />
