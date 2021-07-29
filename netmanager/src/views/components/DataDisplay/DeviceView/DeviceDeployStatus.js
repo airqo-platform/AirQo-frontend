@@ -27,6 +27,7 @@ import { updateDevice } from "redux/DeviceRegistry/operations";
 import ConfirmDialog from "views/containers/ConfirmDialog";
 import LabelledSelect from "../../CustomSelects/LabelledSelect";
 import { formatDate } from "utils/dateTime";
+import { capitalize } from "utils/string";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -282,8 +283,10 @@ DeviceRecentFeedView.propTypes = {
 export default function DeviceDeployStatus({ deviceData }) {
   const dispatch = useDispatch();
   const sites = useSitesArrayData();
-  const [height, setHeight] = useState(deviceData.height || "");
-  const [power, setPower] = useState(deviceData.powerType || "");
+  const [height, setHeight] = useState(
+    (deviceData.height && String(deviceData.height)) || ""
+  );
+  const [power, setPower] = useState(capitalize(deviceData.powerType || ""));
   const [installationType, setInstallationType] = useState(
     deviceData.mountType || ""
   );
@@ -618,6 +621,7 @@ export default function DeviceDeployStatus({ deviceData }) {
               }}
               variant="outlined"
             >
+              <option value="" />
               <option value="Mains">Mains</option>
               <option value="Solar">Solar</option>
               <option value="Battery">Battery</option>
