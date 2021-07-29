@@ -162,16 +162,16 @@ export const DeviceToolBar = ({ deviceName }) => {
                   <Update style={iconMiniStyles} /> Maintenance logs
                 </span>
               </Link>
-              <Link
-                onClick={handleDropdownChange(
-                  `${match.url}/deploy-status`,
-                  "deploy-status"
-                )}
-              >
-                <span>
-                  <CloudUploadOutlined style={iconMiniStyles} /> Deploy status
-                </span>
-              </Link>
+              {/*<Link*/}
+              {/*  onClick={handleDropdownChange(*/}
+              {/*    `${match.url}/deploy-status`,*/}
+              {/*    "deploy-status"*/}
+              {/*  )}*/}
+              {/*>*/}
+              {/*  <span>*/}
+              {/*    <CloudUploadOutlined style={iconMiniStyles} /> Deploy status*/}
+              {/*  </span>*/}
+              {/*</Link>*/}
               <Link
                 onClick={handleDropdownChange(
                   `${match.url}/components`,
@@ -229,12 +229,12 @@ export const DeviceToolBar = ({ deviceName }) => {
                 value={`${match.url}/maintenance-logs`}
                 {...a11yProps(2)}
               />
-              <LinkTab
-                label="Deploy status"
-                icon={<CloudUploadOutlined style={iconStyles} />}
-                value={`${match.url}/deploy-status`}
-                {...a11yProps(3)}
-              />
+              {/*<LinkTab*/}
+              {/*  label="Deploy status"*/}
+              {/*  icon={<CloudUploadOutlined style={iconStyles} />}*/}
+              {/*  value={`${match.url}/deploy-status`}*/}
+              {/*  {...a11yProps(3)}*/}
+              {/*/>*/}
               <LinkTab
                 label="Components"
                 icon={<AddOutlined style={iconStyles} />}

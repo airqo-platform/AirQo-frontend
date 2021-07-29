@@ -481,62 +481,98 @@ export default function DeviceDeployStatus({ deviceData }) {
 
   return (
     <>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "flex-end",
-          margin: "10px 0",
-        }}
-      >
-        <Tooltip
-          arrow
-          title={"Device is not yet deployed"}
-          disableTouchListener={deviceData.isActive}
-          disableHoverListener={deviceData.isActive}
-          disableFocusListener={deviceData.isActive}
-        >
-          <span>
-            <Button
-              variant="contained"
-              color="primary"
-              disabled={!deviceData.isActive}
-              onClick={() => setRecallOpen(!recallOpen)}
-            >
-              {" "}
-              Recall Device
-            </Button>
-          </span>
-        </Tooltip>
-      </div>
+      {/*<div*/}
+      {/*  style={{*/}
+      {/*    display: "flex",*/}
+      {/*    justifyContent: "flex-end",*/}
+      {/*    margin: "10px 0",*/}
+      {/*  }}*/}
+      {/*>*/}
+      {/*  <Tooltip*/}
+      {/*    arrow*/}
+      {/*    title={"Device is not yet deployed"}*/}
+      {/*    disableTouchListener={deviceData.isActive}*/}
+      {/*    disableHoverListener={deviceData.isActive}*/}
+      {/*    disableFocusListener={deviceData.isActive}*/}
+      {/*  >*/}
+      {/*    <span>*/}
+      {/*      <Button*/}
+      {/*        variant="contained"*/}
+      {/*        color="primary"*/}
+      {/*        disabled={!deviceData.isActive}*/}
+      {/*        onClick={() => setRecallOpen(!recallOpen)}*/}
+      {/*      >*/}
+      {/*        {" "}*/}
+      {/*        Recall Device*/}
+      {/*      </Button>*/}
+      {/*    </span>*/}
+      {/*  </Tooltip>*/}
+      {/*</div>*/}
 
       <div
         style={{
           display: "flex",
+          flexWrap: "wrap",
+          maxWidth: "1500px",
+          padding: "40px 0px 10px 0px",
+          margin: "0 auto",
           alignItems: "baseline",
           justifyContent: "flex-end",
-          margin: "0 auto",
-          padding: "10px 20px",
-          maxWidth: "1500px",
-          fontSize: "1.2rem",
         }}
       >
         <span
           style={{
-            fontSize: "0.7rem",
-            marginRight: "10px",
-            background: "#ffffff",
-            border: "1px solid #ffffff",
-            borderRadius: "5px",
-            padding: "0 5px",
+            display: "flex",
+            alignItems: "bottom",
+            justifyContent: "flex-end",
           }}
         >
-          Deploy status
-        </span>{" "}
-        {deviceData.isActive ? (
-          <span style={{ color: "green" }}>Deployed</span>
-        ) : (
-          <span style={{ color: "red" }}>Not Deployed</span>
-        )}
+          <span
+            style={{
+              display: "flex",
+              alignItems: "center",
+              fontSize: "1.2rem",
+              marginRight: "10px",
+            }}
+          >
+            <span
+              style={{
+                fontSize: "0.7rem",
+                marginRight: "10px",
+                background: "#ffffff",
+                border: "1px solid #ffffff",
+                borderRadius: "5px",
+                padding: "0 5px",
+              }}
+            >
+              Deploy status
+            </span>{" "}
+            {deviceData.isActive ? (
+              <span style={{ color: "green" }}>Deployed</span>
+            ) : (
+              <span style={{ color: "red" }}>Not Deployed</span>
+            )}
+          </span>
+          <Tooltip
+            arrow
+            title={"Device is not yet deployed"}
+            disableTouchListener={deviceData.isActive}
+            disableHoverListener={deviceData.isActive}
+            disableFocusListener={deviceData.isActive}
+          >
+            <span>
+              <Button
+                variant="contained"
+                color="primary"
+                disabled={!deviceData.isActive}
+                onClick={() => setRecallOpen(!recallOpen)}
+              >
+                {" "}
+                Recall Device
+              </Button>
+            </span>
+          </Tooltip>
+        </span>
       </div>
 
       <RecallDevice
