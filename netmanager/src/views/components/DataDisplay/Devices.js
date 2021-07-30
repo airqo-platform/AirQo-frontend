@@ -475,6 +475,7 @@ const DevicesTable = (props) => {
           color="primary"
           type="submit"
           align="right"
+          disabled
           onClick={() => setRegisterOpen(true)}
         >
           {" "}
