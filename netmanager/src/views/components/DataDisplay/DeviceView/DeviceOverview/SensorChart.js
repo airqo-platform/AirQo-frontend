@@ -55,14 +55,12 @@ const DeviceSensorChart = ({ deviceName }) => {
       type="area"
       blue
       footerContent={
-        <div >
-        {/*<div className={classes.stats}>*/}
+        <div>
           Pearson Correlation Value:&nbsp;
           <b>
-            {pearsonCorrelation(
-              sensor1.line.data,
-              sensor2.line.data
-            ).toFixed(4)}
+            {pearsonCorrelation(sensor1.line.data, sensor2.line.data).toFixed(
+              4
+            )}
           </b>
         </div>
       }
