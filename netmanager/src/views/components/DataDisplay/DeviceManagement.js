@@ -21,6 +21,7 @@ import {
 import {
   loadDevicesStatusData,
   loadNetworkUptimeData,
+  loadDevicesUptimeData,
 } from "redux/DeviceManagement/operations";
 import { multiFilter } from "utils/filters";
 import { createBarChartData, ApexTimeSeriesData } from "utils/charts";
@@ -286,6 +287,17 @@ export default function DeviceManagement() {
     if (isEmpty(networkUptimeData)) {
       dispatch(
         loadNetworkUptimeData({
+          startDate: roundToStartOfDay(
+            moment(new Date()).subtract(28, "days").toISOString()
+          ).toISOString(),
+          endDate: roundToEndOfDay(new Date().toISOString()).toISOString(),
+        })
+      );
+    }
+
+    if (isEmpty(allDevicesUptimeData)) {
+      dispatch(
+        loadDevicesUptimeData({
           startDate: roundToStartOfDay(
             moment(new Date()).subtract(28, "days").toISOString()
           ).toISOString(),
