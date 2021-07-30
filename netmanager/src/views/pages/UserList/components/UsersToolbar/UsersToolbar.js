@@ -257,7 +257,7 @@ const UsersToolbar = (props) => {
       <div className={classes.row}>
         <span className={classes.spacer} />
         <div>
-          <Button variant="contained" color="primary" onClick={handleClickOpen}>
+          <Button disabled variant="contained" color="primary" onClick={handleClickOpen}>
             Add User
           </Button>
           <Dialog
