@@ -172,11 +172,11 @@ export default function DeviceOverview({ deviceData }) {
 
       <DeviceUptimeChart deviceName={deviceData.name} />
 
-      <DeviceMaintenanceLogs deviceName={deviceData.name} />
-
       <DeviceVoltageChart deviceName={deviceData.name} />
 
       <DeviceSensorChart deviceName={deviceData.name} />
+
+      <DeviceMaintenanceLogs deviceName={deviceData.name} />
 
       <DeviceComponents deviceName={deviceData.name} />
     </div>
