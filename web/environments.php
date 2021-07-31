@@ -8,6 +8,7 @@ if(! defined('ENVIRONMENT') ){
         case 'www.airqo.africa':
         case 'airqo.org':
         case 'www.airqo.org':
+        case 'airqo.mak.ac.ug':
         define('ENVIRONMENT', 'production');
         break;
 
