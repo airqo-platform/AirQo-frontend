@@ -86,11 +86,15 @@ const DeviceMaintenanceLogs = ({ deviceName }) => {
               {deviceMaintenanceLogs.map((log, index) => (
                 <TableRow key={index}>
                   <TableCell>{formatDate(new Date(log.date))}</TableCell>
-                  <TableCell>
-                    {typeof log.tags === "string"
-                      ? log.tags
-                      : log.tags && log.tags.join(", ")}
-                  </TableCell>
+                  {log.tags && log.tags.length > 0 ? (
+                    <TableCell>
+                      {typeof log.tags === "string"
+                        ? log.tags
+                        : log.tags && log.tags.join(", ")}
+                    </TableCell>
+                  ) : (
+                    <TableCell>{log.description}</TableCell>
+                  )}
                 </TableRow>
               ))}
             </TableBody>

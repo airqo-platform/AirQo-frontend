@@ -1,5 +1,6 @@
 import axios from "axios";
 import {
+  ACTIVITY_URI,
   ALL_DEVICES_URI,
   ADD_MAINTENANCE_LOGS_URI,
   ADD_COMPONENT_URI,
@@ -49,6 +50,12 @@ export const getFilteredDevicesApi = async (params) => {
 export const getDeviceMaintenanceLogsApi = async (deviceName) => {
   return await axios
     .get(DEVICE_MAINTENANCE_LOG_URI + deviceName)
+    .then((response) => response.data);
+};
+
+export const getActivitiesApi = async (params) => {
+  return await axios
+    .get(ACTIVITY_URI, { params })
     .then((response) => response.data);
 };
 
@@ -134,5 +141,7 @@ export const getSitesApi = async () => {
 };
 
 export const updateSiteApi = async (site_id, siteData) => {
-  return await axios.put(SITES, siteData, { params: { id: site_id } }).then((response) => response.data);
+  return await axios
+    .put(SITES, siteData, { params: { id: site_id } })
+    .then((response) => response.data);
 };
