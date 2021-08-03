@@ -7,7 +7,7 @@ const BASE_DEVICE_REGISTRY_URL = stripTrailingSlash(
 
 export const ACTIVITY_URI = `${BASE_DEVICE_REGISTRY_URL}/devices/activities`;
 
-export const REGISTER_DEVICE_URI = `${BASE_DEVICE_REGISTRY_URL}/devices/ts`;
+export const REGISTER_DEVICE_URI = `${BASE_DEVICE_REGISTRY_URL}/devices`;
 
 export const ALL_DEVICES_URI = `${BASE_DEVICE_REGISTRY_URL}/devices`;
 
