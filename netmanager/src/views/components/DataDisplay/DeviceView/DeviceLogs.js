@@ -11,7 +11,6 @@ import DateFnsUtils from "@date-io/date-fns";
 import MaintenanceLogsTable from "./Table";
 import {
   loadDeviceMaintenanceLogs,
-  insertMaintenanceLog,
   updateMaintenanceLog,
 } from "redux/DeviceRegistry/operations";
 import { useDeviceLogsData } from "redux/DeviceRegistry/selectors";
@@ -268,12 +267,6 @@ const AddLogForm = ({ deviceName, deviceLocation, toggleShow }) => {
     setLoading(true);
     await addMaintenanceLogApi(deviceName, logData)
       .then(async (responseData) => {
-        // dispatch(
-        //   insertMaintenanceLog(
-        //     deviceName,
-        //     responseData.activityBody || responseData.activityLog
-        //   )
-        // );
         dispatch(
           updateMainAlert({
             message: responseData.message,
@@ -286,7 +279,7 @@ const AddLogForm = ({ deviceName, deviceLocation, toggleShow }) => {
           () =>
             dispatch(
               updateMainAlert({
-                message: "refreshing page",
+                message: "reloading maintenance logs",
                 show: true,
                 severity: "info",
               })
@@ -296,7 +289,7 @@ const AddLogForm = ({ deviceName, deviceLocation, toggleShow }) => {
         await dispatch(loadDeviceMaintenanceLogs(deviceName));
         dispatch(
           updateMainAlert({
-            message: "page refresh successful",
+            message: "reload successful",
             show: true,
             severity: "success",
           })
@@ -305,7 +298,7 @@ const AddLogForm = ({ deviceName, deviceLocation, toggleShow }) => {
           () =>
             dispatch(
               updateMainAlert({
-                message: "refreshing page",
+                message: "reloading maintenance logs",
                 show: false,
                 severity: "info",
               })
