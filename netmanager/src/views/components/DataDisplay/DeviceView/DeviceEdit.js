@@ -123,14 +123,12 @@ export default function DeviceEdit({ deviceData, sitesData }) {
               <TextField
                 autoFocus
                 margin="dense"
-                id="name"
+                id="long_name"
                 label="Name"
                 variant="outlined"
-                value={editData.name}
+                value={editData.long_name || editData.name}
                 onChange={handleTextFieldChange}
                 fullWidth
-                required
-                disabled
               />
             </Grid>
             <Grid items xs={12} sm={4} style={gridItemStyle}>
@@ -143,7 +141,6 @@ export default function DeviceEdit({ deviceData, sitesData }) {
                 value={editData.owner}
                 onChange={handleTextFieldChange}
                 fullWidth
-                required
               />
             </Grid>
             <Grid items xs={12} sm={4} style={gridItemStyle}>
@@ -156,7 +153,6 @@ export default function DeviceEdit({ deviceData, sitesData }) {
                 value={editData.description}
                 onChange={handleTextFieldChange}
                 fullWidth
-                required
               />
             </Grid>
             <Grid items xs={12} sm={4} style={gridItemStyle}>
@@ -217,7 +213,6 @@ export default function DeviceEdit({ deviceData, sitesData }) {
                 value={editData.latitude}
                 onChange={handleTextFieldChange}
                 fullWidth
-                required
               />
             </Grid>
             <Grid items xs={12} sm={4} style={gridItemStyle}>
@@ -230,7 +225,6 @@ export default function DeviceEdit({ deviceData, sitesData }) {
                 value={editData.longitude}
                 onChange={handleTextFieldChange}
                 fullWidth
-                required
               />
             </Grid>
             <Grid items xs={12} sm={4} style={gridItemStyle}>
@@ -258,7 +252,6 @@ export default function DeviceEdit({ deviceData, sitesData }) {
                   style: { width: "100%", height: "50px" },
                 }}
                 variant="outlined"
-                required
               >
                 <option value={false}>Private</option>
                 <option value={true}>Public</option>
