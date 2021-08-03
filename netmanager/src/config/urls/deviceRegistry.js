@@ -29,10 +29,6 @@ export const DELETE_COMPONENT_URI = `${BASE_DEVICE_REGISTRY_URL}/devices/delete/
 
 export const UPDATE_COMPONENT_URI = `${BASE_DEVICE_REGISTRY_URL}/devices/update/components?device=`;
 
-export const UPDATE_ACTIVITY_LOG = `${BASE_DEVICE_REGISTRY_URL}/devices/ts/activity/update`;
-
-export const DELETE_ACTIVITY_LOG = `${BASE_DEVICE_REGISTRY_URL}/devices/ts/activity/delete`;
-
 export const UPDATE_COMPONENT = `${BASE_DEVICE_REGISTRY_URL}/devices/update/components`;
 
 export const DELETE_COMPONENT = `${BASE_DEVICE_REGISTRY_URL}/devices/delete/components`;

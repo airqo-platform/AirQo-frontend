@@ -27,7 +27,7 @@ import { transformArray } from "../utils";
 import {
   getAllDevicesApi,
   getDeviceMaintenanceLogsApi,
-    getActivitiesApi,
+  getActivitiesApi,
   getDeviceComponentsApi,
   deleteDeviceApi,
 } from "views/apis/deviceRegistry";
@@ -61,9 +61,12 @@ export const updateDevice = (deviceName, data) => (dispatch) => {
   });
 };
 
-export const loadDeviceMaintenanceLogs = (deviceName, params) => {
+export const loadDeviceMaintenanceLogs = (deviceName) => {
   return async (dispatch) => {
-    return await getActivitiesApi({device: deviceName, activity_type: "maintenance"})
+    return await getActivitiesApi({
+      device: deviceName,
+      activity_type: "maintenance",
+    })
       .then((responseData) => {
         dispatch({
           type: LOAD_MAINTENANCE_LOGS_SUCCESS,
@@ -137,7 +140,7 @@ export const updateDeviceComponent = (deviceName, index, component) => (
 export const loadDeviceUpTime = (deviceName, params) => async (dispatch) => {
   return await getDeviceUptimeApi(params)
     .then((responseData) => {
-        console.log('response data', responseData)
+      console.log("response data", responseData);
       dispatch({
         type: LOAD_DEVICE_UPTIME_SUCCESS,
         payload: { deviceName, data: responseData },

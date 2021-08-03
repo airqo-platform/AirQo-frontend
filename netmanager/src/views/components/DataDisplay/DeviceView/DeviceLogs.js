@@ -100,16 +100,29 @@ const EditLog = ({ deviceName, deviceLocation, toggleShow, log }) => {
 
     setLoading(true);
     await updateMaintenanceLogApi(log._id, logData)
-      .then((responseData) => {
-        dispatch(
-          updateMaintenanceLog(deviceName, log.tableIndex, {
-            ...(responseData.updatedActivity || {}),
-            tableIndex: log.tableIndex,
-          })
-        );
+      .then(async (responseData) => {
         dispatch(
           updateMainAlert({
             message: responseData.message,
+            show: true,
+            severity: "success",
+          })
+        );
+        setTimeout(
+          () =>
+            dispatch(
+              updateMainAlert({
+                message: "reloading maintenance logs",
+                show: true,
+                severity: "info",
+              })
+            ),
+          500
+        );
+        await dispatch(loadDeviceMaintenanceLogs(deviceName));
+        dispatch(
+          updateMainAlert({
+            message: "reload successful",
             show: true,
             severity: "success",
           })

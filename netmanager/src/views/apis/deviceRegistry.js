@@ -8,8 +8,6 @@ import {
   DEPLOY_DEVICE_URI,
   EDIT_DEVICE_URI,
   DELETE_DEVICE_URI,
-  UPDATE_ACTIVITY_LOG,
-  DELETE_ACTIVITY_LOG,
   UPDATE_COMPONENT,
   DELETE_COMPONENT,
   DELETE_DEVICE_PHOTO,
@@ -97,13 +95,13 @@ export const deleteDeviceApi = async (deviceName) => {
 
 export const updateMaintenanceLogApi = async (deviceId, logData) => {
   return axios
-    .put(UPDATE_ACTIVITY_LOG, logData, { params: { id: deviceId } })
+    .put(ACTIVITY_URI, logData, { params: { id: deviceId } })
     .then((response) => response.data);
 };
 
 export const deleteMaintenanceLogApi = (deviceId) => {
   return axios
-    .delete(DELETE_ACTIVITY_LOG, { params: { id: deviceId } })
+    .delete(ACTIVITY_URI, { params: { id: deviceId } })
     .then((response) => response.data);
 };
 
