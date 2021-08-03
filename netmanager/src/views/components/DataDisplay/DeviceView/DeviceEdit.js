@@ -121,8 +121,11 @@ export default function DeviceEdit({ deviceData, sitesData }) {
           <Grid container spacing={1}>
             <Grid items xs={12} sm={4} style={gridItemStyle}>
               <TextField
+                autoFocus
+                margin="dense"
                 id="name"
-                label="name"
+                label="Name"
+                variant="outlined"
                 value={editData.name}
                 onChange={handleTextFieldChange}
                 fullWidth
@@ -132,6 +135,9 @@ export default function DeviceEdit({ deviceData, sitesData }) {
             </Grid>
             <Grid items xs={12} sm={4} style={gridItemStyle}>
               <TextField
+                autoFocus
+                margin="dense"
+                variant="outlined"
                 id="owner"
                 label="Owner"
                 value={editData.owner}
@@ -142,6 +148,9 @@ export default function DeviceEdit({ deviceData, sitesData }) {
             </Grid>
             <Grid items xs={12} sm={4} style={gridItemStyle}>
               <TextField
+                autoFocus
+                margin="dense"
+                variant="outlined"
                 id="description"
                 label="Description"
                 value={editData.description}
@@ -152,6 +161,9 @@ export default function DeviceEdit({ deviceData, sitesData }) {
             </Grid>
             <Grid items xs={12} sm={4} style={gridItemStyle}>
               <TextField
+                autoFocus
+                margin="dense"
+                variant="outlined"
                 id="device_manufacturer"
                 label="Manufacturer"
                 value={editData.device_manufacturer}
@@ -161,6 +173,9 @@ export default function DeviceEdit({ deviceData, sitesData }) {
             </Grid>
             <Grid items xs={12} sm={4} style={gridItemStyle}>
               <TextField
+                autoFocus
+                margin="dense"
+                variant="outlined"
                 id="locationName"
                 label="Map Address"
                 value={editData.locationName}
@@ -170,6 +185,9 @@ export default function DeviceEdit({ deviceData, sitesData }) {
             </Grid>
             <Grid items xs={12} sm={4} style={gridItemStyle}>
               <TextField
+                autoFocus
+                margin="dense"
+                variant="outlined"
                 id="siteName"
                 label="Site Name"
                 value={editData.siteName}
@@ -179,6 +197,9 @@ export default function DeviceEdit({ deviceData, sitesData }) {
             </Grid>
             <Grid items xs={12} sm={4} style={gridItemStyle}>
               <TextField
+                autoFocus
+                margin="dense"
+                variant="outlined"
                 id="product_name"
                 label="Product Name"
                 value={editData.product_name}
@@ -188,6 +209,9 @@ export default function DeviceEdit({ deviceData, sitesData }) {
             </Grid>
             <Grid items xs={12} sm={4} style={gridItemStyle}>
               <TextField
+                autoFocus
+                margin="dense"
+                variant="outlined"
                 id="latitude"
                 label="Latitude"
                 value={editData.latitude}
@@ -198,6 +222,9 @@ export default function DeviceEdit({ deviceData, sitesData }) {
             </Grid>
             <Grid items xs={12} sm={4} style={gridItemStyle}>
               <TextField
+                autoFocus
+                margin="dense"
+                variant="outlined"
                 id="longitude"
                 label="Longitude"
                 value={editData.longitude}
@@ -208,6 +235,9 @@ export default function DeviceEdit({ deviceData, sitesData }) {
             </Grid>
             <Grid items xs={12} sm={4} style={gridItemStyle}>
               <TextField
+                autoFocus
+                margin="dense"
+                variant="outlined"
                 id="phoneNumber"
                 label="Phone Number"
                 value={editData.phoneNumber}
@@ -216,53 +246,44 @@ export default function DeviceEdit({ deviceData, sitesData }) {
               />
             </Grid>
             <Grid items xs={12} sm={4} style={gridItemStyle}>
-              <FormControl required fullWidth>
-                <InputLabel htmlFor="demo-dialog-native">
-                  Data Access
-                </InputLabel>
-                <Select
-                  native
-                  value={editData.visibility}
-                  onChange={handleSelectFieldChange("visibility")}
-                  inputProps={{
-                    native: true,
-                    style: {
-                      height: "40px",
-                      marginTop: "10px",
-                      border: "1px solid red",
-                    },
-                  }}
-                  input={<Input id="demo-dialog-native" />}
-                >
-                  <option aria-label="None" value="" />
-                  <option value="true">Public</option>
-                  <option value="false">Private</option>
-                </Select>
-              </FormControl>
+              <TextField
+                select
+                fullWidth
+                label="Data Access"
+                style={{ margin: "10px 0" }}
+                value={editData.visibility}
+                onChange={handleSelectFieldChange("visibility")}
+                SelectProps={{
+                  native: true,
+                  style: { width: "100%", height: "50px" },
+                }}
+                variant="outlined"
+                required
+              >
+                <option value={false}>Private</option>
+                <option value={true}>Public</option>
+              </TextField>
             </Grid>
             <Grid items xs={12} sm={4} style={gridItemStyle}>
-              <FormControl fullWidth>
-                <InputLabel htmlFor="demo-dialog-native">
-                  Internet Service Provider
-                </InputLabel>
-                <Select
-                  native
-                  value={editData.ISP}
-                  onChange={handleSelectFieldChange("ISP")}
-                  inputProps={{
-                    native: true,
-                    style: { height: "40px", marginTop: "10px" },
-                  }}
-                  input={<Input id="demo-dialog-native" />}
-                >
-                  <option aria-label="None" value="" />
-                  <option value="MTN">MTN</option>
-                  <option value="Africell">Africell</option>
-                  <option value="Airtel">Airtel</option>
-                </Select>
-              </FormControl>
+              <TextField
+                select
+                fullWidth
+                label="Internet Service Provider"
+                style={{ margin: "10px 0" }}
+                value={editData.ISP}
+                onChange={handleSelectFieldChange("ISP")}
+                SelectProps={{
+                  native: true,
+                  style: { width: "100%", height: "50px" },
+                }}
+                variant="outlined"
+              >
+                <option value="" />
+                <option value="MTN">MTN</option>
+                <option value="Airtel">Airtel</option>
+                <option value="Africell">Africell</option>
+              </TextField>
             </Grid>
-
             <Grid items xs={12} sm={4} style={gridItemStyle}>
               <LabelledSelect
                 label={"Site"}
@@ -275,28 +296,31 @@ export default function DeviceEdit({ deviceData, sitesData }) {
             </Grid>
 
             <Grid items xs={12} sm={4} style={gridItemStyle}>
-              <FormControl fullWidth>
-                <InputLabel htmlFor="demo-dialog-native">Power Type</InputLabel>
-                <Select
-                  native
-                  value={capitalize(editData.powerType)}
-                  onChange={handleSelectFieldChange("powerType")}
-                  inputProps={{
-                    native: true,
-                    style: { height: "40px", marginTop: "10px" },
-                  }}
-                  input={<Input id="demo-dialog-native" />}
-                >
-                  <option aria-label="None" value="" />
-                  <option value="Mains">Mains</option>
-                  <option value="Solar">Solar</option>
-                  <option value="Battery">Battery</option>
-                </Select>
-              </FormControl>
+              <TextField
+                select
+                fullWidth
+                label="Power Type"
+                style={{ margin: "10px 0" }}
+                value={capitalize(editData.powerType)}
+                onChange={handleSelectFieldChange("powerType")}
+                SelectProps={{
+                  native: true,
+                  style: { width: "100%", height: "50px" },
+                }}
+                variant="outlined"
+              >
+                <option aria-label="None" value="" />
+                <option value="Mains">Mains</option>
+                <option value="Solar">Solar</option>
+                <option value="Battery">Battery</option>
+              </TextField>
             </Grid>
 
             <Grid items xs={12} sm={4} style={gridItemStyle}>
               <TextField
+                autoFocus
+                margin="dense"
+                variant="outlined"
                 id="mountType"
                 label="Mount Type"
                 value={editData.mountType}
@@ -307,6 +331,9 @@ export default function DeviceEdit({ deviceData, sitesData }) {
 
             <Grid items xs={12} sm={4} style={gridItemStyle}>
               <TextField
+                autoFocus
+                margin="dense"
+                variant="outlined"
                 id="height"
                 label="height"
                 value={editData.height}

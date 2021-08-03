@@ -113,7 +113,8 @@ const Cell = ({ fieldValue }) => {
 const createDeviceColumns = (history, setDelState) => [
   {
     title: "Device Name",
-    field: "name",
+    render: (data) => <span>{data.long_name || data.name}</span>,
+    field: "long_name",
   },
   {
     title: "Description",
