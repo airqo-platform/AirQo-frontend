@@ -198,6 +198,8 @@
 
 <script src="<?= base_url(); ?>assets/global/scripts/loadingoverlay.min.js"></script>
 <script src="<?= base_url(); ?>assets/ckeditor/build/ckeditor.js"></script>
+<!-- <script src="https://cdn.ckeditor.com/ckeditor5/29.0.0/classic/ckeditor.js"></script> -->
+<script src="https://ckeditor.com/apps/ckfinder/3.5.0/ckfinder.js"></script>
      <!-- <script src="<?= base_url(); ?>assets/admin/pages/scripts/form-samples.js"></script> -->
      <!-- END PAGE LEVEL SCRIPTS -->
     
@@ -325,6 +327,7 @@ $(document).ready(function() {
                     },
                     fontSize: {
                         options: [
+                            8,
                             9,
                             10,
                             12,
@@ -349,9 +352,10 @@ $(document).ready(function() {
                         // uploadUrl: '/ckfinder/core/connector/php/connector.php?command=QuickUpload&type=Files&responseType=json'
                         uploadUrl: '/ckfinder/core/connector/php/connector.php?command=QuickUpload&type=Files&responseType=json'
                     },
-                    // plugins: [ Paragraph, Bold, Italic, Image, InsertImage, ImageCaption ],
+                    //plugins: [ Paragraph, Bold, Italic, Image, InsertImage, ImageCaption ],
                     toolbar: {
                         items: [
+                            'heading',
                             'fontFamily',
                             'fontSize',
                             'highlight',
@@ -365,8 +369,8 @@ $(document).ready(function() {
                             'bulletedList',
                             'numberedList',
                             'linkImage',
-                            // 'imageUpload',
-                            // 'imageInsert',
+                            //'imageUpload',
+                            //'imageInsert',
                             '|',
                             'indent',
                             'outdent',
@@ -384,17 +388,33 @@ $(document).ready(function() {
                     },
                     language: 'en-gb',
                     image: {
+                        imageResize: true,
                         // Configure the available styles.
                         styles: [
                             'alignLeft', 'alignCenter', 'alignRight'
                         ],
-
+                        resizeUnit: '%',
                         // Configure the available image resize options.
                         resizeOptions: [
                             {
                                 name: 'imageResize:original',
                                 label: 'Original',
                                 value: null
+                            },
+                            {
+                                name: 'imageResize:15',
+                                label: '15%',
+                                value: '15'
+                            },
+                            {
+                                name: 'imageResize:25',
+                                label: '25%',
+                                value: '25'
+                            },
+                            {
+                                name: 'imageResize:35',
+                                label: '35%',
+                                value: '35'
                             },
                             {
                                 name: 'imageResize:50',

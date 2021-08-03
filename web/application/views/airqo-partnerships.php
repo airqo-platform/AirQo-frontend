@@ -26,7 +26,7 @@
                          <p class="mt-3 mb-md-5 mb-4" style="font-size:1.5em; line-height: normal; font-family: 'Raleway Bold';">
                               Join us on our journey to create a forum for debate and a data-driven, solutions-focused approach to air quality in Africa.
                          </p>
-                         <a href="#" class="btn btn-primary btn-theme">Contact Us</a>
+                         <!-- <a href="#" class="btn btn-primary btn-theme">Contact Us</a> -->
                     </div>
                </div>
                <div class="clear"></div>
@@ -34,71 +34,7 @@
      </div>
 </div>
 
-<section class="w3l-index-block5">
-     <!-- main-slider -->
-     <div class="testimonials py-5">
-          <div class="container text-center py-lg-3">
-               <div class="row">
-                    <div class="col-md-12 mx-auto">
-                         <h2 class="pull-left" style="font-family:'Raleway Bold'; font-size:2em; line-height: 0em;">Existing Partners</h2>
-                    </div>
-                    <div class="col-md-12 mx-auto">
-                         <div class="owl-one owl-carousel owl-theme">
-                              <div class="item">
-                                   <div class="slider-info mt-lg-4 mt-3">
-                                        <div class="row">
-                                             <div class="col-sm-2 col-6 mt-5">
-                                                  <img src="<?= base_url(); ?>assets/images/partners/googleorg.png" class="img-fluid" alt="">
-                                             </div>
-                                             <div class="parts-w3ls col-sm-2 col-6 mt-5">
-                                                  <img src="<?= base_url(); ?>assets/images/partners/world-bank.png" class="img-fluid">
-                                             </div>
-                                             <div class="parts-w3ls col-sm-2 col-6 mt-5">
-                                                  <img src="<?= base_url(); ?>assets/images/partners/university-of-birmingham.png" class="img-fluid" alt="">
-                                             </div>
-                                             <div class="parts-w3ls col-sm-2 col-6 mt-5">
-                                                  <img src="<?= base_url(); ?>assets/images/partners/university-of-sheffied.png" class="img-fluid">
-                                             </div>
-                                             <div class="parts-w3ls col-sm-2 col-6 mt-5">
-                                                  <img src="<?= base_url(); ?>assets/images/partners/epsrc.png" class="img-fluid">
-                                             </div>
-                                             <div class="parts-w3ls col-sm-2 col-6 mt-5">
-                                                  <img src="<?= base_url(); ?>assets/images/partners/nrf.png" class="img-fluid" alt="">
-                                             </div>
-                                        </div>
-                                   </div>
-                              </div>
-                              <div class="item">
-                                   <div class="slider-info mt-lg-4 mt-3">
-                                        <div class="row">
-                                             <div class="col-sm-2 col-6 mt-5">
-                                                  <img src="<?= base_url(); ?>assets/images/partners/mapping-for-change.png" class="img-fluid" alt="">
-                                             </div>
-                                             <div class="parts-w3ls col-sm-2 col-6 mt-5">
-                                                  <img src="<?= base_url(); ?>assets/images/partners/zindi.png" class="img-fluid" alt="">
-                                             </div>
-                                             <div class="parts-w3ls col-sm-2 col-6 mt-5">
-                                                  <img src="<?= base_url(); ?>assets/images/partners/asap.png" class="img-fluid" alt="">
-                                             </div>
-                                             <div class="parts-w3ls col-sm-2 col-6 mt-5">
-                                                  <img src="<?= base_url(); ?>assets/images/partners/columbia-university.png" class="img-fluid" alt="">
-                                             </div>
-                                             <div class="parts-w3ls col-sm-2 col-6 mt-5">
-                                                  <img src="<?= base_url(); ?>assets/images/partners/university-of-wyoming.png" class="img-fluid" alt="">
-                                             </div>
-                                             <div class="parts-w3ls col-sm-2 col-6 mt-5">
-                                                  <img src="<?= base_url(); ?>assets/images/partners/african-center-for-clean-air.png" class="img-fluid" alt="">
-                                             </div>
-                                        </div>
-                                   </div>
-                              </div>
-                         </div>
-                    </div>
-               </div>
-          </div>
-     </div>
-     <!-- /main-slider -->
-</section>
+
 
 <!-- Government -->
 <section class="w3l-index-block10" style="background-image: linear-gradient(to right, rgba(25, 51, 101, 0.85), rgba(0, 0, 0, 0.08)), url('<?= base_url(); ?>assets/update/images/partners-2.png'); background-size: cover; background-repeat: no-repeat;">
@@ -133,7 +69,7 @@
                          </p>
                     </div>
                </div>
-               <div class="clear"></div>
+               <!-- <div class="clear"></div> -->
           </div>
      </div>
 </div>
@@ -177,58 +113,58 @@
                          </div>
                     </div>
                </div>
-               <p>&nbsp;</p>
+               <!-- <p>&nbsp;</p>
                <p>&nbsp;</p>
                <a href="#" class="btn btn-primary btn-theme">Contact Us</a>
                <p>&nbsp;</p>
-               <p>&nbsp;</p>
+               <p>&nbsp;</p> -->
           </div>
      </div>
 </div>
 
-<section class="w3l-index-block5">
+<!-- <section class="w3l-index-block5"> -->
      <!-- main-slider -->
-     <div class="testimonials py-5">
+     <!-- <div class="testimonials py-5">
           <div class="container text-center py-lg-3">
                <div class="row">
-                    <div class="col-md-12 mx-auto">
-                         <h2 class="pull-left" style="font-family:'Raleway Bold'; font-size:2em; line-height: 0em;">Existing Partners</h2>
-                    </div>
+			   		<div class="col-md-12 mx-auto">
+				  		<h2 class="pull-left" style="font-family:'Raleway Bold'; font-size:2em; line-height: 0em;">Existing Partners</h2>
+				   </div>
                     <div class="col-md-12">
                          <div class="">
                               <div class="item">
                                    <div class="slider-info mt-lg-4 mt-3">
                                         <div class="row">
                                              <div class="col-sm-2 col-6 mt-5">
-
+                                                  
                                              </div>
                                              <div class="parts-w3ls col-sm-2 col-6 mt-5">
-
-                                             </div>
-                                             <div class="col-sm-2 col-6 mt-5">
+                                                  
+											 </div>
+											 <div class="col-sm-2 col-6 mt-5">
                                                   <img src="<?= base_url(); ?>assets/images/partners/kcca.png" class="img-fluid" alt="">
                                              </div>
                                              <div class="parts-w3ls col-sm-2 col-6 mt-5">
                                                   <img src="<?= base_url(); ?>assets/images/partners/nema.png" class="img-fluid">
-                                             </div>
-                                             <div class="col-sm-2 col-6 mt-5">
-
+											 </div>
+											 <div class="col-sm-2 col-6 mt-5">
+                                                  
                                              </div>
                                              <div class="parts-w3ls col-sm-2 col-6 mt-5">
-
+                                                  
                                              </div>
-
+                                             
                                         </div>
                                    </div>
                               </div>
-
+                              
                          </div>
                     </div>
                </div>
           </div>
-     </div>
+     </div> -->
      <!-- /main-slider -->
-</section>
+<!-- </section> -->
 
 
 <!-- Private sector -->
@@ -259,7 +195,7 @@
                          </p>
                     </div>
                </div>
-               <div class="clear"></div>
+               <!-- <div class="clear"></div> -->
           </div>
      </div>
 </div>
@@ -298,38 +234,38 @@
                          </div>
                     </div>
                </div>
-               <p>&nbsp;</p>
+               <!-- <p>&nbsp;</p>
                <p>&nbsp;</p>
                <a href="#" class="btn btn-primary btn-theme">Contact Us</a>
                <p>&nbsp;</p>
-               <p>&nbsp;</p>
+               <p>&nbsp;</p> -->
           </div>
      </div>
 </div>
 
 
-<section class="w3l-index-block5">
+<!-- <section class="w3l-index-block5"> -->
      <!-- main-slider -->
-     <div class="testimonials py-5">
+     <!-- <div class="testimonials py-5">
           <div class="container text-center py-lg-3">
                <div class="row">
-                    <div class="col-md-12 mx-auto">
-                         <h2 class="pull-left" style="font-family:'Raleway Bold'; font-size:2em; line-height: 0em;">Existing Partners</h2>
-                    </div>
+			   		<div class="col-md-12 mx-auto">
+				  		<h2 class="pull-left" style="font-family:'Raleway Bold'; font-size:2em; line-height: 0em;">Existing Partners</h2>
+				   </div>
                     <div class="col-md-12">
                          <div class="">
                               <div class="item">
                                    <div class="slider-info mt-lg-4 mt-3">
                                         <div class="row">
-
+                                             
                                              <div class="col-sm-5 col-6 mt-5">
-
+                                                  
                                              </div>
-                                             <div class="col-sm-2 col-6 mt-5">
+											 <div class="col-sm-2 col-6 mt-5">
                                                   <img src="<?= base_url(); ?>assets/images/partners/mogas.png" class="img-fluid" alt="">
                                              </div>
-                                             <div class="col-sm-5 col-6 mt-5">
-
+											 <div class="col-sm-5 col-6 mt-5">
+                                                  
                                              </div>
                                         </div>
                                    </div>
@@ -338,9 +274,9 @@
                     </div>
                </div>
           </div>
-     </div>
+     </div> -->
      <!-- /main-slider -->
-</section>
+<!-- </section> -->
 
 
 <!-- Public awareness -->
@@ -366,7 +302,7 @@
                          </p>
                     </div>
                </div>
-               <div class="clear"></div>
+               <!-- <div class="clear"></div> -->
           </div>
      </div>
 </div>
@@ -426,14 +362,14 @@
 </div>
 
 
-<section class="w3l-index-block5">
+<!-- <section class="w3l-index-block5"> -->
      <!-- main-slider -->
-     <div class="testimonials py-5">
+     <!-- <div class="testimonials py-5">
           <div class="container text-center py-lg-3">
                <div class="row">
-                    <div class="col-md-12 mx-auto">
-                         <h2 class="pull-left" style="font-family:'Raleway Bold'; font-size:2em; line-height: 0em;">Existing Partners</h2>
-                    </div>
+			   		<div class="col-md-12 mx-auto">
+				  		<h2 class="pull-left" style="font-family:'Raleway Bold'; font-size:2em; line-height: 0em;">Existing Partners</h2>
+				   </div>
                     <div class="col-md-12">
                          <div class="">
                               <div class="item">
@@ -456,6 +392,73 @@
                                              </div>
                                              <div class="parts-w3ls col-sm-2 col-6 mt-5">
                                                   <img src="<?= base_url(); ?>assets/images/partners/daystar-junior-school.png" class="img-fluid" alt="">
+                                             </div>
+                                        </div>
+                                   </div>
+                              </div>
+                         </div>
+                    </div>
+               </div>
+          </div>
+     </div> -->
+     <!-- /main-slider -->
+<!-- </section> -->
+
+
+<section class="w3l-index-block5">
+     <!-- main-slider -->
+     <div class="testimonials py-5">
+          <div class="container text-center py-lg-3">
+               <div class="row">
+				   <div class="col-md-12 mx-auto">
+				  		<h2 class="pull-left" style="font-family:'Raleway Bold'; font-size:2em; line-height: 0em;">Existing Partners</h2>
+				   </div>
+                    <div class="col-md-12 mx-auto">
+						 <div class="owl-one owl-carousel owl-theme">
+                              <div class="item">
+                                   <div class="slider-info mt-lg-4 mt-3">
+                                        <div class="row">
+                                             <div class="col-sm-2 col-6 mt-5">
+                                                  <img src="<?= base_url(); ?>assets/images/partners/googleorg.png" class="img-fluid" alt="">
+                                             </div>
+                                             <div class="parts-w3ls col-sm-2 col-6 mt-5">
+                                                  <img src="<?= base_url(); ?>assets/images/partners/world-bank.png" class="img-fluid">
+                                             </div>
+                                             <div class="parts-w3ls col-sm-2 col-6 mt-5">
+                                                  <img src="<?= base_url(); ?>assets/images/partners/university-of-birmingham.png" class="img-fluid" alt="">
+                                             </div>
+                                             <div class="parts-w3ls col-sm-2 col-6 mt-5">
+                                                  <img src="<?= base_url(); ?>assets/images/partners/university-of-sheffied.png" class="img-fluid">
+                                             </div>
+                                             <div class="parts-w3ls col-sm-2 col-6 mt-5">
+                                                  <img src="<?= base_url(); ?>assets/images/partners/epsrc.png" class="img-fluid">
+                                             </div>
+                                             <div class="parts-w3ls col-sm-2 col-6 mt-5">
+                                                  <img src="<?= base_url(); ?>assets/images/partners/nrf.png" class="img-fluid" alt="">
+                                             </div>
+                                        </div>
+                                   </div>
+                              </div>
+                              <div class="item">
+                                   <div class="slider-info mt-lg-4 mt-3">
+                                        <div class="row">
+                                             <div class="col-sm-2 col-6 mt-5">
+                                                  <img src="<?= base_url(); ?>assets/images/partners/mapping-for-change.png" class="img-fluid" alt="">
+                                             </div>
+                                             <div class="parts-w3ls col-sm-2 col-6 mt-5">
+                                                  <img src="<?= base_url(); ?>assets/images/partners/zindi.png" class="img-fluid" alt="">
+                                             </div>
+                                             <div class="parts-w3ls col-sm-2 col-6 mt-5">
+                                                  <img src="<?= base_url(); ?>assets/images/partners/asap.png" class="img-fluid" alt="">
+                                             </div>
+                                             <div class="parts-w3ls col-sm-2 col-6 mt-5">
+                                                  <img src="<?= base_url(); ?>assets/images/partners/columbia-university.png" class="img-fluid" alt="">
+                                             </div>
+                                             <div class="parts-w3ls col-sm-2 col-6 mt-5">
+                                                  <img src="<?= base_url(); ?>assets/images/partners/university-of-wyoming.png" class="img-fluid" alt="">
+                                             </div>
+                                             <div class="parts-w3ls col-sm-2 col-6 mt-5">
+                                                  <img src="<?= base_url(); ?>assets/images/partners/african-center-for-clean-air.png" class="img-fluid" alt="">
                                              </div>
                                         </div>
                                    </div>

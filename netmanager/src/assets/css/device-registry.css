@@ -5,3 +5,7 @@
 .hover-blue:hover {
   color: #2f67e2;
 }
+
+.underline-hover:hover {
+  text-decoration: underline;
+}

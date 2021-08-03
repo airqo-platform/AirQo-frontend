@@ -1,6 +1,10 @@
-import { REFRESH_FILTER_LOCATION_DATA_SUCCESS, RESET_LOCATION_FILTER_SUCCESS } from "../actions";
+import {
+  REFRESH_FILTER_LOCATION_DATA_SUCCESS,
+  RESET_LOCATION_FILTER_SUCCESS,
+} from "../actions";
+import { LOGOUT_USER_SUCCESS } from "redux/Join/types";
 
-const initialState = []
+const initialState = [];
 
 export default function (state = initialState, action) {
   switch (action.type) {
@@ -8,6 +12,8 @@ export default function (state = initialState, action) {
       return initialState;
     case REFRESH_FILTER_LOCATION_DATA_SUCCESS:
       return action.payload;
+    case LOGOUT_USER_SUCCESS:
+      return initialState;
     default:
       return state;
   }

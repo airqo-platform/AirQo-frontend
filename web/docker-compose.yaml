@@ -1,44 +1,56 @@
 version: "3"
 services:
-  web:
-    container_name: airqo-web
-    build:
-      context: .
-      dockerfile: docker/apache/Dockerfile.dev
-      args:
-        uid: ${UID}
-    environment:
-      - APACHE_RUN_USER=#${UID}
-      - APACHE_RUN_GROUP=#${UID}
-    restart: unless-stopped
-    volumes:
-      - .:/var/www/html
-      - ./apache_log:/var/log/apache2
-    ports:
-      - 8000:80
-    depends_on:
-      - db
-    links:
-      - db
-  db:
-    container_name: airqo-db
-    build:
-      context: .
-      dockerfile: docker/mysql/Dockerfile.dev
-    environment:
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-    command: --default-authentication-plugin=mysql_native_password
-    restart: unless-stopped
-    volumes:
-      - ./db_data/:/docker-entrypoint-initdb.d
-    ports:
-      - 8806:3306
-  adminer:
-    container_name: airqo-db-ui
-    image: adminer
-    restart: unless-stopped
-    ports:
-      - 8001:8080
-volumes:
-  db_data:
+    nginx:    
+        build: ./docker/nginx/  
+        container_name: nginx-container  
+        ports:
+            - 8000:80  
+        links:
+            - php  
+        volumes_from:
+            - app-data  
+    php:
+        build: ./docker/php/
+        container_name: php-container
+        expose:
+            - 9000
+        links:
+            - mysql
+        volumes_from:
+            - app-data  
+
+    app-data:
+        image: php:7.4-fpm
+        container_name: app-data-container
+        volumes:
+            - .:/var/www/html/
+            - ./docker/nginx/logs/:/var/log/nginx/
+        command: "true"  
+
+    mysql:
+        image: mysql:5.7
+        container_name: mysql-container
+        volumes_from:
+            - mysql-data
+        environment:
+            MYSQL_DATABASE: ${DEV_MYSQL_DATABASE}
+            MYSQL_ROOT_PASSWORD: ${DEV_MYSQL_ROOT_PASSWORD}
+            command: --default-authentication-plugin=mysql_native_password
+        restart: unless-stopped
+        volumes:
+            - ./db_data/:/docker-entrypoint-initdb.d
+        ports:
+            - 8806:3306
+    adminer:
+        image: adminer
+        container_name: adminer
+        restart: unless-stopped
+        ports:
+            - 8001:8080 
+
+    mysql-data:
+        image: mysql:5.7
+        container_name: mysql-data-container
+        volumes:
+            - /var/lib/mysql
+        command: "true" 

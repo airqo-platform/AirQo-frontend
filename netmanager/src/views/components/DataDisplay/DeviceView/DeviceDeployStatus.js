@@ -1,28 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
-import {
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Grid,
-  Paper,
-  TextField,
-} from "@material-ui/core";
-import FormControl from "@material-ui/core/FormControl";
-import InputLabel from "@material-ui/core/InputLabel";
-import Select from "@material-ui/core/Select";
-import Input from "@material-ui/core/Input";
-import {
-  KeyboardDatePicker,
-  MuiPickersUtilsProvider,
-} from "@material-ui/pickers";
+import PropTypes from "prop-types";
+import { Button, Grid, Paper, TextField } from "@material-ui/core";
 import Tooltip from "@material-ui/core/Tooltip";
 import CheckBoxIcon from "@material-ui/icons/CheckBox";
 import CancelIcon from "@material-ui/icons/Cancel";
 import ErrorIcon from "@material-ui/icons/Error";
-import DateFnsUtils from "@date-io/date-fns";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
 import Checkbox from "@material-ui/core/Checkbox";
 import green from "@material-ui/core/colors/green";
@@ -37,9 +20,14 @@ import {
   recallDeviceApi,
 } from "../../../apis/deviceRegistry";
 import { updateMainAlert } from "redux/MainAlert/operations";
+import { useSitesArrayData } from "redux/SiteRegistry/selectors";
+import { loadSitesData } from "redux/SiteRegistry/operations";
 import { getElapsedDurationMapper, getFirstNDurations } from "utils/dateTime";
 import { updateDevice } from "redux/DeviceRegistry/operations";
 import ConfirmDialog from "views/containers/ConfirmDialog";
+import LabelledSelect from "../../CustomSelects/LabelledSelect";
+import { formatDate } from "utils/dateTime";
+import { capitalize } from "utils/string";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -52,18 +40,6 @@ const useStyles = makeStyles((theme) => ({
     color: grey[200],
   },
 }));
-
-const errorStyles = {
-  color: "red",
-  margin: 0,
-  fontSize: "11px",
-  marginTop: "3px",
-  textAlign: "left",
-  fontFamily: "Roboto, Helvetica, Arial, sans-serif",
-  fontWeight: 400,
-  lineHeight: "13px",
-  letterSpacing: "0.33px",
-};
 
 const emptyTestStyles = {
   display: "flex",
@@ -170,6 +146,11 @@ const EmptyDeviceTest = ({ loading, onClick }) => {
   );
 };
 
+EmptyDeviceTest.propTypes = {
+  loading: PropTypes.bool.isRequired,
+  onClick: PropTypes.func.isRequired,
+};
+
 const RecallDevice = ({ deviceData, handleRecall, open, toggleOpen }) => {
   return (
     <ConfirmDialog
@@ -183,9 +164,18 @@ const RecallDevice = ({ deviceData, handleRecall, open, toggleOpen }) => {
   );
 };
 
+RecallDevice.propTypes = {
+  deviceData: PropTypes.object.isRequired,
+  handleRecall: PropTypes.func.isRequired,
+  open: PropTypes.bool.isRequired,
+  toggleOpen: PropTypes.func.isRequired,
+};
+
 const DeviceRecentFeedView = ({ recentFeed, runReport }) => {
   const classes = useStyles();
-  const feedKeys = Object.keys(omit(recentFeed, "isCache", "created_at"));
+  const feedKeys = Object.keys(
+    omit(recentFeed, "isCache", "created_at", "errors")
+  );
   const [
     elapsedDurationSeconds,
     elapsedDurationMapper,
@@ -285,25 +275,45 @@ const DeviceRecentFeedView = ({ recentFeed, runReport }) => {
   );
 };
 
+DeviceRecentFeedView.propTypes = {
+  recentFeed: PropTypes.object.isRequired,
+  runReport: PropTypes.object.isRequired,
+};
+
 export default function DeviceDeployStatus({ deviceData }) {
   const dispatch = useDispatch();
-  const [height, setHeight] = useState(deviceData.height || "");
-  const [power, setPower] = useState(deviceData.powerType || "");
+  const sites = useSitesArrayData();
+  const [height, setHeight] = useState(
+    (deviceData.height && String(deviceData.height)) || ""
+  );
+  const [power, setPower] = useState(capitalize(deviceData.powerType || ""));
   const [installationType, setInstallationType] = useState(
     deviceData.mountType || ""
   );
   const [deploymentDate, setDeploymentDate] = useState(new Date());
-  const [primaryChecked, setPrimaryChecked] = useState(deviceData.isPrimaryInLocation);
-  const [collocationChecked, setCollocationChecked] = useState(deviceData.isUsedForCollocation);
+  const [primaryChecked, setPrimaryChecked] = useState(
+    deviceData.isPrimaryInLocation || true
+  );
+  const [collocationChecked, setCollocationChecked] = useState(!primaryChecked);
   const [recentFeed, setRecentFeed] = useState({});
   const [runReport, setRunReport] = useState({
     ranTest: false,
     successfulTestRun: false,
+    error: false,
   });
   const [deviceTestLoading, setDeviceTestLoading] = useState(false);
   const [manualCoordinate, setManualCoordinate] = useState(false);
   const [longitude, setLongitude] = useState("");
   const [latitude, setLatitude] = useState("");
+  const [site, setSite] = useState({
+    value: (deviceData.site && deviceData.site._id) || "",
+    label:
+      (deviceData.site &&
+        (deviceData.site.name ||
+          deviceData.site.description ||
+          deviceData.site.generated_name)) ||
+      "",
+  });
   const [deployLoading, setDeployLoading] = useState(false);
   const [recallOpen, setRecallOpen] = useState(false);
   const [errors, setErrors] = useState({
@@ -321,6 +331,10 @@ export default function DeviceDeployStatus({ deviceData }) {
     }
   }, [recentFeed]);
 
+  useEffect(() => {
+    if (isEmpty(sites)) dispatch(loadSitesData());
+  }, []);
+
   const handleHeightChange = (enteredHeight) => {
     let re = /\s*|\d+(\.d+)?/;
     if (re.test(enteredHeight.target.value)) {
@@ -332,26 +346,47 @@ export default function DeviceDeployStatus({ deviceData }) {
     }
   };
 
+  const createSiteOptions = () => {
+    const options = [];
+    sites.map((site) =>
+      options.push({
+        value: site._id,
+        label: site.name || site.description || site.generated_name,
+      })
+    );
+    return options;
+  };
+
   const runDeviceTest = async () => {
     setDeviceTestLoading(true);
-    await getDeviceRecentFeedByChannelIdApi(deviceData.channelID)
+    await getDeviceRecentFeedByChannelIdApi(deviceData.device_number)
       .then((responseData) => {
         setRecentFeed(responseData);
-        setRunReport({ ranTest: true, successfulTestRun: true });
+        setRunReport({ ranTest: true, successfulTestRun: true, error: false });
       })
       .catch((err) => {
-        setRunReport({ ranTest: true, successfulTestRun: false });
+        setRunReport({ ranTest: true, successfulTestRun: false, error: true });
       });
     setDeviceTestLoading(false);
   };
 
   const checkErrors = () => {
-    const state = { height, installationType, power, longitude, latitude };
+    const state = {
+      height,
+      installationType,
+      power,
+      longitude,
+      latitude,
+      site,
+    };
     let newErrors = {};
-
     Object.keys(state).map((key) => {
       if (isEmpty(state[key])) {
         newErrors[key] = "This field is required";
+      }
+      if (key === "site") {
+        if (!state[key].value && !state[key].label)
+          newErrors[key] = "This field is required";
       }
     });
     ["longitude", "latitude"].map((key) => {
@@ -384,6 +419,7 @@ export default function DeviceDeployStatus({ deviceData }) {
       longitude: longitude.toString(),
       isPrimaryInLocation: primaryChecked,
       isUsedForCollocation: collocationChecked,
+      site_id: site.value,
     };
 
     setDeployLoading(true);
@@ -427,7 +463,8 @@ export default function DeviceDeployStatus({ deviceData }) {
       .catch((err) => {
         dispatch(
           updateMainAlert({
-            message: err.response && err.response.data && err.response.data.message,
+            message:
+              err.response && err.response.data && err.response.data.message,
             show: true,
             severity: "error",
           })
@@ -444,62 +481,98 @@ export default function DeviceDeployStatus({ deviceData }) {
 
   return (
     <>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "flex-end",
-          margin: "10px 0",
-        }}
-      >
-        <Tooltip
-          arrow
-          title={"Device is not yet deployed"}
-          disableTouchListener={deviceData.isActive}
-          disableHoverListener={deviceData.isActive}
-          disableFocusListener={deviceData.isActive}
-        >
-          <span>
-            <Button
-              variant="contained"
-              color="primary"
-              disabled={!deviceData.isActive}
-              onClick={() => setRecallOpen(!recallOpen)}
-            >
-              {" "}
-              Recall Device
-            </Button>
-          </span>
-        </Tooltip>
-      </div>
+      {/*<div*/}
+      {/*  style={{*/}
+      {/*    display: "flex",*/}
+      {/*    justifyContent: "flex-end",*/}
+      {/*    margin: "10px 0",*/}
+      {/*  }}*/}
+      {/*>*/}
+      {/*  <Tooltip*/}
+      {/*    arrow*/}
+      {/*    title={"Device is not yet deployed"}*/}
+      {/*    disableTouchListener={deviceData.isActive}*/}
+      {/*    disableHoverListener={deviceData.isActive}*/}
+      {/*    disableFocusListener={deviceData.isActive}*/}
+      {/*  >*/}
+      {/*    <span>*/}
+      {/*      <Button*/}
+      {/*        variant="contained"*/}
+      {/*        color="primary"*/}
+      {/*        disabled={!deviceData.isActive}*/}
+      {/*        onClick={() => setRecallOpen(!recallOpen)}*/}
+      {/*      >*/}
+      {/*        {" "}*/}
+      {/*        Recall Device*/}
+      {/*      </Button>*/}
+      {/*    </span>*/}
+      {/*  </Tooltip>*/}
+      {/*</div>*/}
 
       <div
         style={{
           display: "flex",
+          flexWrap: "wrap",
+          maxWidth: "1500px",
+          padding: "40px 0px 10px 0px",
+          margin: "0 auto",
           alignItems: "baseline",
           justifyContent: "flex-end",
-          margin: "0 auto",
-          padding: "10px 20px",
-          maxWidth: "1500px",
-          fontSize: "1.2rem",
         }}
       >
         <span
           style={{
-            fontSize: "0.7rem",
-            marginRight: "10px",
-            background: "#ffffff",
-            border: "1px solid #ffffff",
-            borderRadius: "5px",
-            padding: "0 5px",
+            display: "flex",
+            alignItems: "bottom",
+            justifyContent: "flex-end",
           }}
         >
-          Deploy status
-        </span>{" "}
-        {deviceData.isActive ? (
-          <span style={{ color: "green" }}>Deployed</span>
-        ) : (
-          <span style={{ color: "red" }}>Not Deployed</span>
-        )}
+          <span
+            style={{
+              display: "flex",
+              alignItems: "center",
+              fontSize: "1.2rem",
+              marginRight: "10px",
+            }}
+          >
+            <span
+              style={{
+                fontSize: "0.7rem",
+                marginRight: "10px",
+                background: "#ffffff",
+                border: "1px solid #ffffff",
+                borderRadius: "5px",
+                padding: "0 5px",
+              }}
+            >
+              Deploy status
+            </span>{" "}
+            {deviceData.isActive ? (
+              <span style={{ color: "green" }}>Deployed</span>
+            ) : (
+              <span style={{ color: "red" }}>Not Deployed</span>
+            )}
+          </span>
+          <Tooltip
+            arrow
+            title={"Device is not yet deployed"}
+            disableTouchListener={deviceData.isActive}
+            disableHoverListener={deviceData.isActive}
+            disableFocusListener={deviceData.isActive}
+          >
+            <span>
+              <Button
+                variant="contained"
+                color="primary"
+                disabled={!deviceData.isActive}
+                onClick={() => setRecallOpen(!recallOpen)}
+              >
+                {" "}
+                Recall Device
+              </Button>
+            </span>
+          </Tooltip>
+        </span>
       </div>
 
       <RecallDevice
@@ -519,57 +592,81 @@ export default function DeviceDeployStatus({ deviceData }) {
       >
         <Grid container spacing={1}>
           <Grid items xs={12} sm={6}>
-            <TextField
-              id="standard-basic"
-              label="Device Name"
-              disabled
-              value={deviceData.name}
-              required
-              fullWidth
-            />
+            <div style={{ marginBottom: "15px" }}>
+              <LabelledSelect
+                label="Site"
+                options={createSiteOptions()}
+                value={site}
+                onChange={(newValue, actionMeta) => {
+                  setSite(newValue);
+                  setErrors({ ...errors, site: "" });
+                }}
+              />
+              {errors.site && (
+                <div
+                  style={{
+                    color: "red",
+                    textAlign: "left",
+                    fontSize: "0.7rem",
+                  }}
+                >
+                  {errors.site}
+                </div>
+              )}
+            </div>
 
             <TextField
               id="standard-basic"
               label="Height"
               value={height}
               onChange={handleHeightChange}
+              style={{ marginBottom: "15px" }}
               fullWidth
               required
               error={!!errors.height}
               helperText={errors.height}
+              variant="outlined"
+              InputProps={{
+                native: true,
+                style: { width: "100%", height: "100%" },
+              }}
             />
 
-            <FormControl required fullWidth error={!!errors.power}>
-              <InputLabel htmlFor="demo-dialog-native">Power Type</InputLabel>
-              <Select
-                native
-                required
-                value={power}
-                onChange={(event) => {
-                  setPower(event.target.value);
-                  setErrors({
-                    ...errors,
-                    power: event.target.value.length > 0 ? "" : errors.power,
-                  });
-                }}
-                inputProps={{
-                  native: true,
-                  style: { height: "40px", marginTop: "10px" },
-                }}
-                input={<Input id="demo-dialog-native" />}
-              >
-                <option aria-label="None" value="" />
-                <option value="Mains">Mains</option>
-                <option value="Solar">Solar</option>
-                <option value="Battery">Battery</option>
-              </Select>
-            </FormControl>
-            {errors.power && <div style={errorStyles}>{errors.power}</div>}
+            <TextField
+              id="powerType"
+              select
+              fullWidth
+              required
+              label="Power type"
+              style={{ marginBottom: "15px" }}
+              value={power}
+              error={!!errors.power}
+              helperText={errors.power}
+              onChange={(event) => {
+                setPower(event.target.value);
+                setErrors({
+                  ...errors,
+                  power: event.target.value.length > 0 ? "" : errors.power,
+                });
+              }}
+              SelectProps={{
+                native: true,
+                style: { width: "100%", height: "50px" },
+              }}
+              variant="outlined"
+            >
+              <option value="" />
+              <option value="Mains">Mains</option>
+              <option value="Solar">Solar</option>
+              <option value="Battery">Battery</option>
+            </TextField>
 
             <TextField
               id="standard-basic"
               label="Mount Type"
               required
+              variant="outlined"
+              style={{ marginBottom: "15px" }}
               value={installationType}
               error={!!errors.installationType}
               helperText={errors.installationType}
@@ -586,26 +683,26 @@ export default function DeviceDeployStatus({ deviceData }) {
               fullWidth
             />
 
-            <MuiPickersUtilsProvider utils={DateFnsUtils}>
-              <KeyboardDatePicker
-                fullWidth
-                disableToolbar
-                format="yyyy-MM-dd"
-                id="deploymentDate"
-                label="Date of Deployment"
-                value={deploymentDate}
-                onChange={(date) => setDeploymentDate(date)}
-                required
-                KeyboardButtonProps={{
-                  "aria-label": "change date",
-                }}
-              />
-            </MuiPickersUtilsProvider>
+            <TextField
+              id="date)fDeployment"
+              label="Date of Deployment"
+              type="date"
+              defaultValue={formatDate(new Date())}
+              required
+              variant="outlined"
+              style={{ marginBottom: "15px" }}
+              onChange={(event) => {
+                setDeploymentDate(new Date(event.target.value));
+              }}
+              fullWidth
+            />
 
             <TextField
               id="standard-basic"
               label="Longitude"
+              style={{ marginBottom: "15px" }}
               disabled={!manualCoordinate}
+              variant="outlined"
               value={longitude}
               onChange={(event) => {
                 setLongitude(event.target.value);
@@ -625,7 +722,9 @@ export default function DeviceDeployStatus({ deviceData }) {
               id="standard-basic"
               label="Latitude"
               disabled={!manualCoordinate}
+              style={{ marginBottom: "15px" }}
               value={latitude}
+              variant="outlined"
               onChange={(event) => {
                 setLatitude(event.target.value);
                 setErrors({
@@ -657,7 +756,10 @@ export default function DeviceDeployStatus({ deviceData }) {
                   control={
                     <Checkbox
                       checked={primaryChecked}
-                      onChange={(event) => setPrimaryChecked(!primaryChecked)}
+                      onChange={(event) => {
+                        setPrimaryChecked(!primaryChecked);
+                        setCollocationChecked(primaryChecked);
+                      }}
                       name="primaryDevice"
                       color="primary"
                     />
@@ -669,9 +771,10 @@ export default function DeviceDeployStatus({ deviceData }) {
                   control={
                     <Checkbox
                       checked={collocationChecked}
-                      onChange={(event) =>
-                        setCollocationChecked(!collocationChecked)
-                      }
+                      onChange={(event) => {
+                        setCollocationChecked(!collocationChecked);
+                        setPrimaryChecked(collocationChecked);
+                      }}
                       name="collocation"
                       color="primary"
                     />
@@ -729,6 +832,19 @@ export default function DeviceDeployStatus({ deviceData }) {
                 runReport={runReport}
               />
             )}
+            {runReport.error && (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  height: "100%",
+                  color: "red",
+                }}
+              >
+                Could not fetch device feeds
+              </div>
+            )}
           </Grid>
 
           <Grid
@@ -778,3 +894,7 @@ export default function DeviceDeployStatus({ deviceData }) {
     </>
   );
 }
+
+DeviceDeployStatus.propTypes = {
+  deviceData: PropTypes.object.isRequired,
+};

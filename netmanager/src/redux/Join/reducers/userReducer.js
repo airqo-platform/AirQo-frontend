@@ -38,6 +38,7 @@ import {
   UPDATE_PASSWORD_FAILED,
   RESET_USER_STATE_SUCCESS,
 } from '../types';
+import { LOGOUT_USER_SUCCESS } from "redux/Join/types";
 
 const initialState = {
   users: [],
@@ -594,6 +595,8 @@ export default function(state = initialState, action) {
         userToEdit: null,
         newUser: null
       };
+    case LOGOUT_USER_SUCCESS:
+      return initialState
 
     default:
       return state;

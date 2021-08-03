@@ -15,16 +15,15 @@ import "assets/css/device-view.css";
 
 // others
 import { DeviceToolBar, DeviceToolBarContainer } from "./DeviceToolBar";
-import DeviceDeployStatus from "./DeviceDeployStatus";
+// import DeviceDeployStatus from "./DeviceDeployStatus";
 import DeviceEdit from "./DeviceEdit";
 import DeviceLogs from "./DeviceLogs";
 import DevicePhotos from "./DevicePhotos";
 import DeviceComponents from "./DeviceComponents";
-import DeviceOverview from "./DeviceOverview";
+import DeviceOverview from "./DeviceOverview/DeviceOverview";
 import { useDevicesData } from "redux/DeviceRegistry/selectors";
 import { loadDevicesData } from "redux/DeviceRegistry/operations";
-import { loadLocationsData } from "redux/LocationRegistry/operations";
-import { useLocationsData } from "redux/LocationRegistry/selectors";
+import { useSitesArrayData } from "redux/SiteRegistry/selectors";
 import { useInitScrollTop } from "utils/customHooks";
 
 export default function DeviceView() {
@@ -32,7 +31,7 @@ export default function DeviceView() {
   const match = useRouteMatch();
   const params = useParams();
   const devices = useDevicesData();
-  const locations = useLocationsData();
+  const sites = useSitesArrayData();
   const [deviceData, setDeviceData] = useState(
     devices[params.deviceName] || {}
   );
@@ -42,9 +41,6 @@ export default function DeviceView() {
   useEffect(() => {
     if (isEmpty(devices)) {
       dispatch(loadDevicesData());
-    }
-    if (isEmpty(locations)) {
-      dispatch(loadLocationsData());
     }
   }, []);
 
@@ -73,7 +69,7 @@ export default function DeviceView() {
             exact
             path={`${match.url}/edit`}
             component={() => (
-              <DeviceEdit deviceData={deviceData} locationsData={locations} />
+              <DeviceEdit deviceData={deviceData} sitesData={sites} />
             )}
           />
           <Route
@@ -86,11 +82,11 @@ export default function DeviceView() {
               />
             )}
           />
-          <Route
-            exact
-            path={`${match.url}/deploy-status`}
-            component={() => <DeviceDeployStatus deviceData={deviceData} />}
-          />
+          {/*<Route*/}
+          {/*  exact*/}
+          {/*  path={`${match.url}/deploy-status`}*/}
+          {/*  component={() => <DeviceDeployStatus deviceData={deviceData} />}*/}
+          {/*/>*/}
           <Route
             exact
             path={`${match.url}/components`}

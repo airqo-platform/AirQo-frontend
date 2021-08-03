@@ -49,12 +49,7 @@ export const loadDevicesData = () => {
           });
         }
       })
-      .catch((err) => {
-        dispatch({
-          type: LOAD_ALL_DEVICES_FAILURE,
-          payload: err,
-        });
-      });
+      .catch((err) => console.log(err));
   };
 };
 
@@ -82,12 +77,7 @@ export const loadDeviceMaintenanceLogs = (deviceName) => {
           payload: { [deviceName]: indexedLogs },
         });
       })
-      .catch((err) => {
-        dispatch({
-          type: LOAD_MAINTENANCE_LOGS_FAILURE,
-          payload: err,
-        });
-      });
+      .catch((err) => console.log(err));
   };
 };
 
@@ -104,12 +94,7 @@ export const loadDeviceComponentsData = (deviceName) => {
           payload: { [deviceName]: indexedComponent },
         });
       })
-      .catch((err) => {
-        dispatch({
-          type: LOAD_DEVICE_COMPONENTS_FAILURE,
-          payload: err,
-        });
-      });
+      .catch((err) => console.log(err));
   };
 };
 
@@ -156,9 +141,10 @@ export const updateDeviceComponent = (deviceName, index, component) => (
   });
 };
 
-export const loadDeviceUpTime = (deviceName, options) => async (dispatch) => {
-  return await getDeviceUptimeApi({ ...options, device_name: deviceName })
+export const loadDeviceUpTime = (deviceName, params) => async (dispatch) => {
+  return await getDeviceUptimeApi(params)
     .then((responseData) => {
+        console.log('response data', responseData)
       dispatch({
         type: LOAD_DEVICE_UPTIME_SUCCESS,
         payload: { deviceName, data: responseData },

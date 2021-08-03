@@ -327,6 +327,7 @@ function confirmUpload() {
                     },
                     fontSize: {
                         options: [
+                            8,
                             9,
                             10,
                             12,
@@ -386,6 +387,7 @@ function confirmUpload() {
                     },
                     language: 'en-gb',
                     image: {
+                        resize: true
                         // Configure the available styles.
                         styles: [
                             'alignLeft', 'alignCenter', 'alignRight'
@@ -397,6 +399,21 @@ function confirmUpload() {
                                 name: 'imageResize:original',
                                 label: 'Original',
                                 value: null
+                            },
+                            {
+                                name: 'imageResize:15',
+                                label: '15%',
+                                value: '15'
+                            },
+                            {
+                                name: 'imageResize:25',
+                                label: '25%',
+                                value: '25'
+                            },
+                            {
+                                name: 'imageResize:35',
+                                label: '35%',
+                                value: '35'
                             },
                             {
                                 name: 'imageResize:50',

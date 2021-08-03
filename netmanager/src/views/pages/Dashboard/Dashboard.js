@@ -20,20 +20,22 @@ import {
 import { useEffect, useState } from "react";
 import "chartjs-plugin-annotation";
 import palette from "theme/palette";
-import axios from "axios";
 import { MoreHoriz } from "@material-ui/icons";
 import Menu from "@material-ui/core/Menu";
 import MenuItem from "@material-ui/core/MenuItem";
 import domtoimage from "dom-to-image";
 import JsPDF from "jspdf";
-import {
-  GET_PM25_CATEGORY_COUNT_URI,
-  GET_HISTORICAL_DAILY_MEAN_AVERAGES_FOR_LAST_28_DAYS_URI,
-} from "config/urls/analytics";
+import axios from "axios";
+import moment from "moment";
+import { DAILY_MEAN_AVERAGES_URI } from "config/urls/analytics";
 import { useUserDefaultGraphsData } from "redux/Dashboard/selectors";
 import { loadUserDefaultGraphData } from "redux/Dashboard/operations";
+import { loadMapEventsData } from "redux/MapData/operations";
+import { useEventsMapData } from "redux/MapData/selectors";
 import { useOrgData } from "redux/Join/selectors";
+import { PM_25_CATEGORY } from "utils/categories";
 import { isEmpty, unzip, zip } from "underscore";
+import { roundToStartOfDay, roundToEndOfDay } from "utils/dateTime";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -67,6 +69,43 @@ const Dashboard = (props) => {
   const dispatch = useDispatch();
   const userDefaultGraphs = useUserDefaultGraphsData();
   const orgData = useOrgData();
+  const recentEventsData = useEventsMapData();
+
+  const [pm2_5SiteCount, setPm2_5SiteCount] = useState({
+    Good: 0,
+    Moderate: 0,
+    UHFSG: 0,
+    Unhealthy: 0,
+    VeryUnhealthy: 0,
+    Hazardous: 0,
+  });
+
+  useEffect(() => {
+    if (isEmpty(recentEventsData.features))
+      dispatch(loadMapEventsData({ recent: "yes" }));
+  }, []);
+
+  useEffect(() => {
+    const initialCount = {
+      Good: 0,
+      Moderate: 0,
+      UHFSG: 0,
+      Unhealthy: 0,
+      VeryUnhealthy: 0,
+      Hazardous: 0,
+    };
+    recentEventsData.features &&
+      recentEventsData.features.map((feature) => {
+        const pm2_5 = feature.properties.pm2_5.value;
+        Object.keys(PM_25_CATEGORY).map((key) => {
+          const valid = PM_25_CATEGORY[key];
+          if (pm2_5 > valid[0] && pm2_5 <= valid[1]) {
+            initialCount[key]++;
+          }
+        });
+      });
+    setPm2_5SiteCount(initialCount);
+  }, [recentEventsData]);
 
   function appendLeadingZeroes(n) {
     if (n <= 9) {
@@ -84,46 +123,34 @@ const Dashboard = (props) => {
       todaysDate.getFullYear()
   );
 
-  const [
-    pm25CategoriesLocationCount,
-    setPm25CategoriesLocationCount,
-  ] = useState([]);
-
   useEffect(() => {
     if (isEmpty(userDefaultGraphs)) {
       dispatch(loadUserDefaultGraphData());
     }
   }, []);
 
-  useEffect(() => {
-    if (orgData.name.toLowerCase() === "airqo") {
-      props.history.push("/overview");
-    }
+  const [averages, setAverages] = useState({
+    labels: [],
+    average_values: [],
+    background_colors: [],
   });
+  const endDate = moment(new Date()).toISOString();
+  const startDate = moment(endDate).subtract(28, "days").toISOString();
 
   useEffect(() => {
     axios
-      .get(GET_PM25_CATEGORY_COUNT_URI)
-      .then((res) => res.data)
-      .then((data) => {
-        setPm25CategoriesLocationCount(data);
-        console.log(data);
+      .post(DAILY_MEAN_AVERAGES_URI, {
+        startDate: roundToStartOfDay(startDate).toISOString(),
+        endDate: roundToEndOfDay(endDate).toISOString(),
+        pollutant: "pm2_5",
       })
-      .catch((e) => {
-        console.log(e);
-      });
-  }, []);
-
-  const [locations, setLocations] = useState([]);
-
-  useEffect(() => {
-    fetch(GET_HISTORICAL_DAILY_MEAN_AVERAGES_FOR_LAST_28_DAYS_URI)
-      .then((res) => res.json())
-      .then((locationsData) => {
+      .then((response) => response.data)
+      .then((responseData) => {
+        const averagesData = responseData.data;
         const zippedArr = zip(
-          locationsData.results.labels,
-          locationsData.results.average_pm25_values,
-          locationsData.results.background_colors
+          averagesData.labels,
+          averagesData.average_values,
+          averagesData.background_colors
         );
         zippedArr.sort((a, b) => {
           const a0 = a[0].trim(),
@@ -132,25 +159,21 @@ const Dashboard = (props) => {
           if (a0 > b0) return 1;
           return 0;
         });
-        const [labels, average_pm25_values, background_colors] = unzip(
-          zippedArr
-        );
-        setLocations({ labels, average_pm25_values, background_colors });
+        const [labels, average_values, background_colors] = unzip(zippedArr);
+        setAverages({ labels, average_values, background_colors });
       })
-      .catch((e) => {
-        console.log(e);
-      });
+      .catch((e) => console.log(e));
   }, []);
 
   const locationsGraphData = {
-    labels: locations.labels,
+    labels: averages.labels,
     datasets: [
       {
         label: "PM2.5(µg/m3)",
-        data: locations.average_pm25_values,
+        data: averages.average_values,
         fill: false, // Don't fill area under the line
         borderColor: palette.primary.main, // Line color
-        backgroundColor: locations.background_colors, //palette.primary.main,
+        backgroundColor: averages.background_colors, //palette.primary.main,
       },
     ],
   };
@@ -207,9 +230,8 @@ const Dashboard = (props) => {
           barPercentage: 0.5,
           categoryPercentage: 0.5,
           ticks: {
-            // fontColor: palette.text.secondary,
             fontColor: "black",
-            //fontSize:10
+            callback: (value) => `${value.substr(0, 7)}...`,
           },
           gridLines: {
             display: false,
@@ -347,43 +369,21 @@ const Dashboard = (props) => {
         <Grid item lg={2} sm={6} xl={2} xs={12}>
           <PollutantCategory
             pm25level="Good"
-            pm25levelCount={
-              typeof pm25CategoriesLocationCount != "undefined" &&
-              pm25CategoriesLocationCount != null &&
-              pm25CategoriesLocationCount.length > 0
-                ? pm25CategoriesLocationCount[0]["locations_with_category_good"]
-                    .category_count
-                : ""
-            }
+            pm25levelCount={pm2_5SiteCount.Good}
             iconClass="pm25Good"
           />
         </Grid>
         <Grid item lg={2} sm={6} xl={2} xs={12}>
           <PollutantCategory
             pm25level="Moderate"
-            pm25levelCount={
-              typeof pm25CategoriesLocationCount != "undefined" &&
-              pm25CategoriesLocationCount != null &&
-              pm25CategoriesLocationCount.length > 0
-                ? pm25CategoriesLocationCount[1][
-                    "locations_with_category_moderate"
-                  ].category_count
-                : ""
-            }
+            pm25levelCount={pm2_5SiteCount.Moderate}
             iconClass="pm25Moderate"
           />
         </Grid>
         <Grid item lg={2} sm={6} xl={2} xs={12}>
           <PollutantCategory
             pm25level="UHFSG"
-            pm25levelCount={
-              typeof pm25CategoriesLocationCount != "undefined" &&
-              pm25CategoriesLocationCount != null &&
-              pm25CategoriesLocationCount.length > 0
-                ? pm25CategoriesLocationCount[2].locations_with_category_UH4SG
-                    .category_count
-                : ""
-            }
+            pm25levelCount={pm2_5SiteCount.UHFSG}
             iconClass="pm25UH4SG"
           />
         </Grid>
@@ -391,14 +391,7 @@ const Dashboard = (props) => {
         <Grid item lg={2} sm={6} xl={2} xs={12}>
           <PollutantCategory
             pm25level="Unhealthy"
-            pm25levelCount={
-              typeof pm25CategoriesLocationCount != "undefined" &&
-              pm25CategoriesLocationCount != null &&
-              pm25CategoriesLocationCount.length > 0
-                ? pm25CategoriesLocationCount[3]
-                    .locations_with_category_unhealth.category_count
-                : ""
-            }
+            pm25levelCount={pm2_5SiteCount.Unhealthy}
             iconClass="pm25UnHealthy"
           />
         </Grid>
@@ -406,28 +399,14 @@ const Dashboard = (props) => {
         <Grid item lg={2} sm={6} xl={2} xs={12}>
           <PollutantCategory
             pm25level="Very Unhealthy"
-            pm25levelCount={
-              typeof pm25CategoriesLocationCount != "undefined" &&
-              pm25CategoriesLocationCount != null &&
-              pm25CategoriesLocationCount.length > 0
-                ? pm25CategoriesLocationCount[4]
-                    .locations_with_category_very_unhealthy.category_count
-                : ""
-            }
+            pm25levelCount={pm2_5SiteCount.VeryUnhealthy}
             iconClass="pm25VeryUnHealthy"
           />
         </Grid>
         <Grid item lg={2} sm={6} xl={2} xs={12}>
           <PollutantCategory
             pm25level="Hazardous"
-            pm25levelCount={
-              typeof pm25CategoriesLocationCount != "undefined" &&
-              pm25CategoriesLocationCount != null &&
-              pm25CategoriesLocationCount.length > 0
-                ? pm25CategoriesLocationCount[5]
-                    .locations_with_category_hazardous.category_count
-                : ""
-            }
+            pm25levelCount={pm2_5SiteCount.Hazardous}
             iconClass="pm25Harzadous"
           />
         </Grid>

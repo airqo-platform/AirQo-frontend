@@ -28,13 +28,41 @@
 							<li>By <a href="#">AirQo</a></li>
 							<li><?= date("F jS, Y", strtotime($post['p_added'])); ?></li>
 						</ul>
-
+						<!-- <ul class="share-post mb-3">
+							<li class="facebook">
+								<a href="#link" title="Facebook">
+									<span class="fa fa-facebook" aria-hidden="true"></span>
+								</a>
+							</li>
+							<li class="twitter">
+								<a href="#link" title="Twitter">
+									<span class="fa fa-twitter" aria-hidden="true"></span>
+								</a>
+							</li>
+							<li class="google">
+								<a href="#link" title="Google">
+									<span class="fa fa-google" aria-hidden="true"></span>
+								</a>
+							</li>
+						</ul> -->
 						<div class="single-post-image mb-4">
 							<img src="<?= $post['p_img']; ?>" class="img-fluid w-100" alt="blog-post-image" />
 						</div>
-						<div class="single-post-content">
+						<div class="single-post-content ck-content">
 							<?= $postmeta['pm_content']; ?>
 						</div>
+
+						<!-- <div class="reply mt-5 pt-5" id="reply">
+							<h3 class="post-content-title py-3">Leave a reply</h3>
+							<form action="#" method="POST">
+								<div class="form-group reply">
+									<textarea class="form-control" placeholder="Your Message" id="exampleFormControlTextarea1" rows="4"></textarea>
+									<div class="text-right">
+										<button class="btn btn-primary btn-reply mt-3" type="submit">Submit</button>
+									</div>
+								</div>
+							</form>
+						</div> -->
 
 
 					</div>
@@ -47,30 +75,37 @@
 						</form>
 					</div>
 
+					<!-- <div class="blog-subscribe p-3 mt-5">
+						<h5>Subscribe to Blog</h5>
+						<form action="#" method="GET" class="subscribe-form">
+							<input type="email" class="form-control subscribe-field mt-3 mb-2" placeholder="Email Address" name="subscribe" required="required">
+							<button type="submit" class="btn btn-primary btn-theme">Subscribe</button>
+						</form>
+					</div> -->
 
 					<div class="left-top-9 mt-5">
 						<h6 class="heading-small-text-9 mb-3">Popular Post</h6>
-						<?php
+						<?php 
 						foreach ($suggestions as $suggestion) {
-						?>
-							<a href="<?= site_url('blog-post/' . $suggestion['p_slug']); ?>" class="p-post d-block py-2">
+							?>
+							<a href="<?= site_url('blog-post/'. $suggestion['p_slug']); ?>" class="p-post d-block py-2">
 								<h6 class="text-left-inner-9"><?= ucwords(strtolower($suggestion['p_title'])); ?></h6>
 								<span class="sub-inner-text-9"><?= date("F jS, Y", strtotime($suggestion['p_added'])); ?></span>
 							</a>
-						<?php
+							<?php 
 						}
 						?>
 					</div>
 					<div class="categories mt-5">
 						<h6 class="heading-small-text-9">Categories</h6>
 						<ul>
-							<?php
+							<?php 
 							foreach ($categories as $category) {
-							?>
+								?>
 								<li>
-									<a href="<?= site_url('blog-category/' . $category['c_id']); ?>" class=""><?= $category['c_name']; ?></a>
+									<a href="<?= site_url('blog-category/'. $category['c_id']); ?>" class=""><?= $category['c_name']; ?></a>
 								</li>
-							<?php
+								<?php 
 							}
 							?>
 						</ul>
@@ -92,13 +127,13 @@
 			<p class="my-3 head">Download the AirQo app</p>
 		</div>
 		<div class="buttons mt-4">
-			<a href="https://itunes.apple.com/ug/app/airqo-monitoring-air-quality/id1337573091?mt=8" class="btn mr-2">
+			<a href=<?= APPLE_APP_LINK; ?> class="btn mr-2">
 				<img src="<?= base_url(); ?>assets/images/download2.png" width="200" class="img-fluid">
 			</a>
-			<a href="https://play.google.com/store/apps/details?id=com.airqo.net&hl=en" class="btn mr-2">
+			<a href=<?= ANDROID_APP_LINK; ?> class="btn mr-2">
 				<img src="<?= base_url(); ?>assets/images/download1.png" style="height: 62px !important;" width="200" class="img-fluid">
 			</a>
-
+			
 		</div>
 	</div>
 </section>

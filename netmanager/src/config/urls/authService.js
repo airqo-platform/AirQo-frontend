@@ -16,7 +16,7 @@ export const LOGIN_USER_URI = `${BASE_AUTH_SERVICE_URL}/users/loginUser`;
 
 export const REGISTER_USER_URI = `${BASE_AUTH_SERVICE_URL}/users/registerUser`;
 
-export const REGISTER_CANDIDATE_URI = `${BASE_AUTH_SERVICE_URL}/users/register/new/candidate`;
+export const REGISTER_CANDIDATE_URI = `${BASE_AUTH_SERVICE_URL}/users/candidates/register`;
 
 export const REJECT_USER_URI = `${BASE_AUTH_SERVICE_URL}/users/deny`;
 
@@ -24,6 +24,10 @@ export const ACCEPT_USER_URI = `${BASE_AUTH_SERVICE_URL}/users/accept`;
 
 export const GET_USERS_URI = `${BASE_AUTH_SERVICE_URL}/users/`;
 
-export const GET_CANDIDATES_URI = `${BASE_AUTH_SERVICE_URL}/users/candidates/fetch`;
+export const GET_CANDIDATES_URI = `${BASE_AUTH_SERVICE_URL}/users/candidates`;
 
 export const DEFAULTS_URI = `${BASE_AUTH_SERVICE_URL}/users/defaults`;
+
+export const CONFIRM_CANDIDATE_URI = `${BASE_AUTH_SERVICE_URL}/users/candidates/confirm`;
+
+export const DELETE_CANDIDATE_URI = `${BASE_AUTH_SERVICE_URL}/users/candidates`;

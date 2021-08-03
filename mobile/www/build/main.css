@@ -65488,6 +65488,10 @@ page-add-place .area-sub-title {
   color: grey;
 }
 
+page-add-place .center {
+  text-align: center;
+}
+
 page-favorites .area-title {
   font-size: 1.8rem;
   font-weight: 560;

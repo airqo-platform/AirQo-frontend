@@ -1,4 +1,6 @@
 import { CLEAR_ERRORS, GET_ERRORS, RESET_ERRORS_SUCCESS } from "../types";
+import { LOGOUT_USER_SUCCESS } from "redux/Join/types";
+
 const initialState = {
   errors: null,
 };
@@ -11,6 +13,9 @@ export default function (state = initialState, action) {
       return action.payload;
 
     case CLEAR_ERRORS:
+      return initialState;
+
+    case LOGOUT_USER_SUCCESS:
       return initialState;
 
     default:

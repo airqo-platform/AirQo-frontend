@@ -12,33 +12,31 @@ import { isEmpty, isEqual } from "underscore";
 import { updateMainAlert } from "redux/MainAlert/operations";
 import { updateDeviceDetails } from "views/apis/deviceRegistry";
 import { updateDevice } from "redux/DeviceRegistry/operations";
+import DeviceDeployStatus from "./DeviceDeployStatus";
+import { capitalize } from "utils/string";
 
-const transformLocationOptions = (locationsData) => {
+const transformSitesOptions = (sites) => {
   const transFormedOptions = [];
-  locationsData.map(
-    ({ location_name, county, description, loc_ref, ...rest }) => {
-      transFormedOptions.push({
-        ...{ location_name, county, description, ...rest },
-        label: `${location_name || county || description}`,
-        value: loc_ref,
-      });
-    }
-  );
+  sites.map(({ name, description, generated_name, ...rest }) => {
+    transFormedOptions.push({
+      ...rest,
+      label: `${name || description || generated_name}`,
+      value: rest._id,
+    });
+  });
   return transFormedOptions;
 };
 
-const filterLocation = (locations, location_ref) => {
-  const currentLocation = locations.filter(
-    (location) => location.loc_ref === location_ref
-  );
-  if (isEmpty(currentLocation)) {
+const filterLocation = (sites, site_id) => {
+  const currentSite = sites.filter((site) => site._id === site_id);
+  if (isEmpty(currentSite)) {
     return { label: "Unknown or no location", value: null };
   }
-  const { location_name, county, description, loc_ref } = currentLocation[0];
+  const { name, description, generated_name } = currentSite[0];
   return {
-    ...currentLocation[0],
-    label: `${location_name || county || description}`,
-    value: loc_ref,
+    ...currentSite[0],
+    label: `${name || description || generated_name}`,
+    value: site_id,
   };
 };
 
@@ -46,7 +44,7 @@ const gridItemStyle = {
   padding: "5px",
 };
 
-export default function DeviceEdit({ deviceData, locationsData }) {
+export default function DeviceEdit({ deviceData, sitesData }) {
   const dispatch = useDispatch();
   const [editData, setEditData] = useState({
     locationName: "",
@@ -80,9 +78,9 @@ export default function DeviceEdit({ deviceData, locationsData }) {
 
   const handleEditSubmit = async () => {
     setEditLoading(true);
-    await updateDeviceDetails(deviceData.name, editData)
+    await updateDeviceDetails(deviceData._id, editData)
       .then((responseData) => {
-        dispatch(updateDevice(deviceData.name, responseData.updatedDevice));
+        dispatch(updateDevice(deviceData.name, responseData.updated_device));
         dispatch(
           updateMainAlert({
             message: responseData.message,
@@ -110,242 +108,245 @@ export default function DeviceEdit({ deviceData, locationsData }) {
     return secondary;
   };
   return (
-    <div>
-      <Paper
-        style={{
-          margin: "0 auto",
-          minHeight: "400px",
-          padding: "20px 20px",
-          maxWidth: "1500px",
-        }}
-      >
-        <Grid container spacing={1}>
-          <Grid items xs={12} sm={6} style={gridItemStyle}>
-            <TextField
-              id="name"
-              label="name"
-              value={editData.name}
-              onChange={handleTextFieldChange}
-              fullWidth
-              required
-              disabled
-            />
-          </Grid>
-          <Grid items xs={12} sm={6} style={gridItemStyle}>
-            <TextField
-              id="owner"
-              label="Owner"
-              value={editData.owner}
-              onChange={handleTextFieldChange}
-              fullWidth
-              required
-            />
-          </Grid>
-          <Grid items xs={12} sm={6} style={gridItemStyle}>
-            <TextField
-              id="description"
-              label="Description"
-              value={editData.description}
-              onChange={handleTextFieldChange}
-              fullWidth
-              required
-            />
-          </Grid>
-          <Grid items xs={12} sm={6} style={gridItemStyle}>
-            <TextField
-              id="device_manufacturer"
-              label="Manufacturer"
-              value={editData.device_manufacturer}
-              onChange={handleTextFieldChange}
-              fullWidth
-            />
-          </Grid>
-          <Grid items xs={12} sm={6} style={gridItemStyle}>
-            <TextField
-              id="locationName"
-              label="Map Address"
-              value={editData.locationName}
-              onChange={handleTextFieldChange}
-              fullWidth
-            />
-          </Grid>
-          <Grid items xs={12} sm={6} style={gridItemStyle}>
-            <TextField
-              id="siteName"
-              label="Site Name"
-              value={editData.siteName}
-              onChange={handleTextFieldChange}
-              fullWidth
-            />
-          </Grid>
-          <Grid items xs={12} sm={6} style={gridItemStyle}>
-            <TextField
-              id="latitude"
-              label="Latitude"
-              value={editData.latitude}
-              onChange={handleTextFieldChange}
-              fullWidth
-              required
-            />
-          </Grid>
-          <Grid items xs={12} sm={6} style={gridItemStyle}>
-            <TextField
-              id="product_name"
-              label="Product Name"
-              value={editData.product_name}
-              onChange={handleTextFieldChange}
-              fullWidth
-            />
-          </Grid>
-          <Grid items xs={12} sm={6} style={gridItemStyle}>
-            <TextField
-              id="longitude"
-              label="Longitude"
-              value={editData.longitude}
-              onChange={handleTextFieldChange}
-              fullWidth
-              required
-            />
-          </Grid>
-          <Grid items xs={12} sm={6} style={gridItemStyle}>
-            <TextField
-              id="phoneNumber"
-              label="Phone Number"
-              value={editData.phoneNumber}
-              onChange={handleTextFieldChange}
-              fullWidth
-            />
-          </Grid>
-          <Grid items xs={12} sm={6} style={gridItemStyle}>
-            <FormControl required fullWidth>
-              <InputLabel htmlFor="demo-dialog-native">Data Access</InputLabel>
-              <Select
-                native
-                value={editData.visibility}
-                onChange={handleSelectFieldChange("visibility")}
-                inputProps={{
-                  native: true,
-                  style: {
-                    height: "40px",
-                    marginTop: "10px",
-                    border: "1px solid red",
-                  },
-                }}
-                input={<Input id="demo-dialog-native" />}
-              >
-                <option aria-label="None" value="" />
-                <option value="true">Public</option>
-                <option value="false">Private</option>
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid items xs={12} sm={6} style={gridItemStyle}>
-            <FormControl fullWidth>
-              <InputLabel htmlFor="demo-dialog-native">
-                Internet Service Provider
-              </InputLabel>
-              <Select
-                native
-                value={editData.ISP}
-                onChange={handleSelectFieldChange("ISP")}
-                inputProps={{
-                  native: true,
-                  style: { height: "40px", marginTop: "10px" },
-                }}
-                input={<Input id="demo-dialog-native" />}
-              >
-                <option aria-label="None" value="" />
-                <option value="MTN">MTN</option>
-                <option value="Africell">Africell</option>
-                <option value="Airtel">Airtel</option>
-              </Select>
-            </FormControl>
-          </Grid>
-
-          <Grid items xs={12} sm={6} style={gridItemStyle}>
-            <FormControl fullWidth>
-              <InputLabel htmlFor="demo-dialog-native">Location</InputLabel>
-              <LabelledSelect
-                label={"location"}
-                isClearable
-                defaultValue={filterLocation(
-                  locationsData,
-                  editData.locationID
-                )}
-                options={transformLocationOptions(locationsData)}
-                onChange={handleLocationChange}
+    <>
+      <div>
+        <Paper
+          style={{
+            margin: "0 auto",
+            minHeight: "400px",
+            padding: "20px 20px",
+            maxWidth: "1500px",
+          }}
+        >
+          <Grid container spacing={1}>
+            <Grid items xs={12} sm={4} style={gridItemStyle}>
+              <TextField
+                id="name"
+                label="name"
+                value={editData.name}
+                onChange={handleTextFieldChange}
+                fullWidth
+                required
+                disabled
               />
-            </FormControl>
-          </Grid>
+            </Grid>
+            <Grid items xs={12} sm={4} style={gridItemStyle}>
+              <TextField
+                id="owner"
+                label="Owner"
+                value={editData.owner}
+                onChange={handleTextFieldChange}
+                fullWidth
+                required
+              />
+            </Grid>
+            <Grid items xs={12} sm={4} style={gridItemStyle}>
+              <TextField
+                id="description"
+                label="Description"
+                value={editData.description}
+                onChange={handleTextFieldChange}
+                fullWidth
+                required
+              />
+            </Grid>
+            <Grid items xs={12} sm={4} style={gridItemStyle}>
+              <TextField
+                id="device_manufacturer"
+                label="Manufacturer"
+                value={editData.device_manufacturer}
+                onChange={handleTextFieldChange}
+                fullWidth
+              />
+            </Grid>
+            <Grid items xs={12} sm={4} style={gridItemStyle}>
+              <TextField
+                id="locationName"
+                label="Map Address"
+                value={editData.locationName}
+                onChange={handleTextFieldChange}
+                fullWidth
+              />
+            </Grid>
+            <Grid items xs={12} sm={4} style={gridItemStyle}>
+              <TextField
+                id="siteName"
+                label="Site Name"
+                value={editData.siteName}
+                onChange={handleTextFieldChange}
+                fullWidth
+              />
+            </Grid>
+            <Grid items xs={12} sm={4} style={gridItemStyle}>
+              <TextField
+                id="product_name"
+                label="Product Name"
+                value={editData.product_name}
+                onChange={handleTextFieldChange}
+                fullWidth
+              />
+            </Grid>
+            <Grid items xs={12} sm={4} style={gridItemStyle}>
+              <TextField
+                id="latitude"
+                label="Latitude"
+                value={editData.latitude}
+                onChange={handleTextFieldChange}
+                fullWidth
+                required
+              />
+            </Grid>
+            <Grid items xs={12} sm={4} style={gridItemStyle}>
+              <TextField
+                id="longitude"
+                label="Longitude"
+                value={editData.longitude}
+                onChange={handleTextFieldChange}
+                fullWidth
+                required
+              />
+            </Grid>
+            <Grid items xs={12} sm={4} style={gridItemStyle}>
+              <TextField
+                id="phoneNumber"
+                label="Phone Number"
+                value={editData.phoneNumber}
+                onChange={handleTextFieldChange}
+                fullWidth
+              />
+            </Grid>
+            <Grid items xs={12} sm={4} style={gridItemStyle}>
+              <FormControl required fullWidth>
+                <InputLabel htmlFor="demo-dialog-native">
+                  Data Access
+                </InputLabel>
+                <Select
+                  native
+                  value={editData.visibility}
+                  onChange={handleSelectFieldChange("visibility")}
+                  inputProps={{
+                    native: true,
+                    style: {
+                      height: "40px",
+                      marginTop: "10px",
+                      border: "1px solid red",
+                    },
+                  }}
+                  input={<Input id="demo-dialog-native" />}
+                >
+                  <option aria-label="None" value="" />
+                  <option value="true">Public</option>
+                  <option value="false">Private</option>
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid items xs={12} sm={4} style={gridItemStyle}>
+              <FormControl fullWidth>
+                <InputLabel htmlFor="demo-dialog-native">
+                  Internet Service Provider
+                </InputLabel>
+                <Select
+                  native
+                  value={editData.ISP}
+                  onChange={handleSelectFieldChange("ISP")}
+                  inputProps={{
+                    native: true,
+                    style: { height: "40px", marginTop: "10px" },
+                  }}
+                  input={<Input id="demo-dialog-native" />}
+                >
+                  <option aria-label="None" value="" />
+                  <option value="MTN">MTN</option>
+                  <option value="Africell">Africell</option>
+                  <option value="Airtel">Airtel</option>
+                </Select>
+              </FormControl>
+            </Grid>
 
-          <Grid items xs={12} sm={6} style={gridItemStyle}>
-            <FormControl fullWidth>
-              <InputLabel htmlFor="demo-dialog-native">Power Type</InputLabel>
-              <Select
-                native
-                value={editData.powerType}
-                onChange={handleSelectFieldChange("powerType")}
-                inputProps={{
-                  native: true,
-                  style: { height: "40px", marginTop: "10px" },
-                }}
-                input={<Input id="demo-dialog-native" />}
-              >
-                <option aria-label="None" value="" />
-                <option value="Mains">Mains</option>
-                <option value="Solar">Solar</option>
-                <option value="Battery">Battery</option>
-              </Select>
-            </FormControl>
-          </Grid>
+            <Grid items xs={12} sm={4} style={gridItemStyle}>
+              <LabelledSelect
+                label={"Site"}
+                value={filterLocation(
+                  sitesData,
+                  editData.site && editData.site._id
+                )}
+                options={transformSitesOptions(sitesData)}
+              />
+            </Grid>
 
-          <Grid items xs={12} sm={6} style={gridItemStyle}>
-            <TextField
-              id="mountType"
-              label="Mount Type"
-              value={editData.mountType}
-              onChange={handleTextFieldChange}
-              fullWidth
-            />
-          </Grid>
+            <Grid items xs={12} sm={4} style={gridItemStyle}>
+              <FormControl fullWidth>
+                <InputLabel htmlFor="demo-dialog-native">Power Type</InputLabel>
+                <Select
+                  native
+                  value={capitalize(editData.powerType)}
+                  onChange={handleSelectFieldChange("powerType")}
+                  inputProps={{
+                    native: true,
+                    style: { height: "40px", marginTop: "10px" },
+                  }}
+                  input={<Input id="demo-dialog-native" />}
+                >
+                  <option aria-label="None" value="" />
+                  <option value="Mains">Mains</option>
+                  <option value="Solar">Solar</option>
+                  <option value="Battery">Battery</option>
+                </Select>
+              </FormControl>
+            </Grid>
 
-          <Grid items xs={12} sm={6} style={gridItemStyle}>
-            <TextField
-              id="height"
-              label="height"
-              value={editData.height}
-              onChange={handleTextFieldChange}
-              fullWidth
-            />
-          </Grid>
+            <Grid items xs={12} sm={4} style={gridItemStyle}>
+              <TextField
+                id="mountType"
+                label="Mount Type"
+                value={editData.mountType}
+                onChange={handleTextFieldChange}
+                fullWidth
+              />
+            </Grid>
 
-          <Grid
-            container
-            alignItems="flex-end"
-            alignContent="flex-end"
-            justify="flex-end"
-            xs={12}
-            style={{ margin: "10px 0" }}
-          >
-            <Button variant="contained" onClick={() => setEditData(deviceData)}>
-              Cancel
-            </Button>
+            <Grid items xs={12} sm={4} style={gridItemStyle}>
+              <TextField
+                id="height"
+                label="height"
+                value={editData.height}
+                onChange={handleTextFieldChange}
+                fullWidth
+              />
+            </Grid>
 
-            <Button
-              variant="contained"
-              color="primary"
-              disabled={weightedBool(
-                editLoading,
-                isEqual(deviceData, editData)
-              )}
-              onClick={handleEditSubmit}
-              style={{ marginLeft: "10px" }}
+            <Grid
+              container
+              alignItems="flex-end"
+              alignContent="flex-end"
+              justify="flex-end"
+              xs={12}
+              style={{ margin: "10px 0" }}
             >
-              Edit device
-            </Button>
+              <Button
+                variant="contained"
+                onClick={() => setEditData(deviceData)}
+              >
+                Cancel
+              </Button>
+
+              <Button
+                variant="contained"
+                color="primary"
+                disabled={weightedBool(
+                  editLoading,
+                  isEqual(deviceData, editData)
+                )}
+                onClick={handleEditSubmit}
+                style={{ marginLeft: "10px" }}
+              >
+                Save Changes
+              </Button>
+            </Grid>
           </Grid>
-        </Grid>
-      </Paper>
-    </div>
+        </Paper>
+      </div>
+      <DeviceDeployStatus deviceData={deviceData} />
+    </>
   );
 }

@@ -2,14 +2,13 @@
 import {
     SET_CURRENT_USER,
     USER_LOADING,
-    UPDATE_PASSWORD_REQUEST,
-    UPDATE_PASSWORD_FAILED,
     UPDATE_PASSWORD_SUCCESS,
     REGISTRATION_SUCCESS,
     UPDATE_AUTHENTICATED_USER_SUCCESS,
     UPDATE_AUTHENTICATED_USER_REQUEST,
     UPDATE_AUTHENTICATED_USER_FAILED
 } from '../types';
+import { LOGOUT_USER_SUCCESS } from "redux/Join/types";
 
 const isEmpty = require('is-empty');
 
@@ -61,6 +60,8 @@ export default function(state = initialState, action) {
                 ...state,
                 updating: true
             };
+        case LOGOUT_USER_SUCCESS:
+            return initialState
         default:
             return state;
     }
