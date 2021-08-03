@@ -35,7 +35,7 @@ export const createDeviceComponentApi = async (
 
 export const getDeviceComponentsApi = async (deviceName) => {
   return await axios
-    .get(GET_COMPONENTS_URI + deviceName)
+    .get(GET_COMPONENTS_URI, { params: { device: deviceName } })
     .then((response) => response.data);
 };
 

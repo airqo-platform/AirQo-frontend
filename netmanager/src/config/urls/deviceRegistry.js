@@ -23,7 +23,7 @@ export const DELETE_DEVICE_URI = `${BASE_DEVICE_REGISTRY_URL}/devices/ts/delete`
 
 export const ADD_COMPONENT_URI = `${BASE_DEVICE_REGISTRY_URL}/devices/add/components?device=`;
 
-export const GET_COMPONENTS_URI = `${BASE_DEVICE_REGISTRY_URL}/devices/list/components?device=`;
+export const GET_COMPONENTS_URI = `${BASE_DEVICE_REGISTRY_URL}/devices/list/components`;
 
 export const DELETE_COMPONENT_URI = `${BASE_DEVICE_REGISTRY_URL}/devices/delete/components?comp=`;
 

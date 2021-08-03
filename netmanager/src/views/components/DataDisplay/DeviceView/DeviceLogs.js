@@ -9,10 +9,7 @@ import {
 } from "@material-ui/pickers";
 import DateFnsUtils from "@date-io/date-fns";
 import MaintenanceLogsTable from "./Table";
-import {
-  loadDeviceMaintenanceLogs,
-  updateMaintenanceLog,
-} from "redux/DeviceRegistry/operations";
+import { loadDeviceMaintenanceLogs } from "redux/DeviceRegistry/operations";
 import { useDeviceLogsData } from "redux/DeviceRegistry/selectors";
 import {
   addMaintenanceLogApi,
@@ -25,6 +22,7 @@ import Tooltip from "@material-ui/core/Tooltip";
 import EditIcon from "@material-ui/icons/EditOutlined";
 import DeleteIcon from "@material-ui/icons/DeleteOutlineOutlined";
 import ConfirmDialog from "views/containers/ConfirmDialog";
+import { humanReadableDate } from "utils/dateTime";
 
 const titleStyles = {
   fontFamily: "Roboto, Helvetica, Arial, sans-serif",
@@ -464,7 +462,9 @@ export default function DeviceLogs({ deviceName, deviceLocation }) {
       field: "nextMaintenance",
       cellStyle: { width: 100, maxWidth: 100 },
       render: (rowData) => (
-        <div className={"table-truncate"}>{rowData.nextMaintenance}</div>
+        <div className={"table-truncate"}>
+          {humanReadableDate(rowData.nextMaintenance)}
+        </div>
       ),
     },
     {
