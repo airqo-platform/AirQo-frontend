@@ -3,7 +3,7 @@ import { clone as _clone, each as _each } from "underscore";
 export const dropEmpty = (obj) => {
   let clone = _clone(obj);
   _each(clone, function (v, k) {
-    if (!v) {
+    if (typeof v !== "boolean" && !v) {
       delete clone[k];
     }
   });
