@@ -1,11 +1,7 @@
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
 import TextField from "@material-ui/core/TextField";
-import FormControl from "@material-ui/core/FormControl";
 import Paper from "@material-ui/core/Paper";
-import InputLabel from "@material-ui/core/InputLabel";
-import Select from "@material-ui/core/Select";
-import Input from "@material-ui/core/Input";
 import { Button, Grid } from "@material-ui/core";
 import LabelledSelect from "../../CustomSelects/LabelledSelect";
 import { isEmpty, isEqual } from "underscore";
@@ -14,6 +10,7 @@ import { updateDeviceDetails } from "views/apis/deviceRegistry";
 import { updateDevice } from "redux/DeviceRegistry/operations";
 import DeviceDeployStatus from "./DeviceDeployStatus";
 import { capitalize } from "utils/string";
+import { dropEmpty } from "utils/objectManipulators";
 
 const transformSitesOptions = (sites) => {
   const transFormedOptions = [];
@@ -66,19 +63,9 @@ export default function DeviceEdit({ deviceData, sitesData }) {
     });
   };
 
-  const handleLocationChange = (location) => {
-    if (!location) {
-      return;
-    }
-    setEditData({
-      ...editData,
-      locationID: location.value,
-    });
-  };
-
   const handleEditSubmit = async () => {
     setEditLoading(true);
-    await updateDeviceDetails(deviceData._id, editData)
+    await updateDeviceDetails(deviceData._id, dropEmpty(editData))
       .then((responseData) => {
         dispatch(updateDevice(deviceData.name, responseData.updated_device));
         dispatch(
