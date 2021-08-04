@@ -147,3 +147,9 @@ export const updateSiteApi = async (site_id, siteData) => {
 export const createSiteApi = async (siteData) => {
   return await axios.post(SITES, siteData).then((response) => response.data);
 };
+
+export const deleteSiteApi = async (siteId) => {
+  return await axios
+    .delete(SITES, { params: { id: siteId } })
+    .then((response) => response.data);
+};
