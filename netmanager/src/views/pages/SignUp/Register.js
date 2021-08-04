@@ -39,8 +39,10 @@ const validateForm = (errors) => {
 };
 
 class Register extends Component {
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
+    this.query = new URLSearchParams(this.props.location.search);
+    this.tenant = this.query.get("tenant") || "airqo";
     this.state = {
       firstName: "",
       lastName: "",
@@ -174,7 +176,7 @@ class Register extends Component {
         }
       );
     } else {
-        this.props.registerCandidate(this.state, () => this.clearState());
+        this.props.registerCandidate(this.tenant, this.state, () => this.clearState());
     }
   };
   render() {
@@ -203,7 +205,7 @@ class Register extends Component {
           >
             <div className="col s12" style={{ paddingLeft: "11.250px" }}>
               <h4>
-                <b>Request Access</b>
+                <b>Request Access to <span style={{textTransform: "uppercase"}}>{this.tenant}</span></b>
               </h4>
               <p className="grey-text text-darken-1">
                 Already have an account? <Link to="/login">Log in</Link>
