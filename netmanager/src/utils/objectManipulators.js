@@ -23,3 +23,9 @@ export const createAlertBarExtraContent = (arr, callback) => {
   arr.map((value, key) => extra.push(callback(value, key)));
   return extra;
 };
+
+export const createAlertBarExtraContentFromObject = (obj) => {
+  const extra = [];
+  Object.keys(obj).map((key) => extra.push(`${key} - ${obj[key]}`));
+  return extra;
+};
