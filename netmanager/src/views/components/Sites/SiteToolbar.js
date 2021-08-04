@@ -73,6 +73,7 @@ const SiteToolbar = (props) => {
   const handleSiteClose = () => {
     setOpen(false);
     setSiteData(initSiteData);
+    setErrors(initErrorData);
   };
 
   const handleSiteDataChange = (key) => (event) => {
