@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
-import PropTypes from "prop-types";
 import { useHistory } from "react-router-dom";
-import { makeStyles } from "@material-ui/styles";
 import LoadingOverlay from "react-loading-overlay";
 import "../../../assets/css/location-registry.css";
 import { isEmpty } from "underscore";
@@ -10,37 +8,7 @@ import { loadSitesData } from "redux/SiteRegistry/operations";
 import { useSitesArrayData } from "redux/SiteRegistry/selectors";
 import CustomMaterialTable from "../Table/CustomMaterialTable";
 
-const useStyles = makeStyles((theme) => ({
-  root: {},
-  content: {
-    padding: 0,
-  },
-  inner: {
-    minWidth: 1050,
-  },
-  nameContainer: {
-    display: "flex",
-    alignItems: "center",
-  },
-  avatar: {
-    marginRight: theme.spacing(2),
-  },
-  actions: {
-    justifyContent: "flex-end",
-  },
-  link: {
-    color: "#3344FF",
-    fontFamily: "Open Sans",
-  },
-  table: {
-    fontFamily: "Open Sans",
-  },
-}));
-
-const SitesTable = (props) => {
-  const { className, users, ...rest } = props;
-
-  const classes = useStyles();
+const SitesTable = () => {
   const history = useHistory();
   const dispatch = useDispatch();
   const sites = useSitesArrayData();
@@ -128,11 +96,6 @@ const SitesTable = (props) => {
       />
     </LoadingOverlay>
   );
-};
-
-SitesTable.propTypes = {
-  className: PropTypes.string,
-  users: PropTypes.array.isRequired,
 };
 
 export default SitesTable;
