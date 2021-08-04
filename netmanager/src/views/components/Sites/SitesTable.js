@@ -2,11 +2,13 @@ import React, { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { useHistory } from "react-router-dom";
 import LoadingOverlay from "react-loading-overlay";
-import "../../../assets/css/location-registry.css";
 import { isEmpty } from "underscore";
 import { loadSitesData } from "redux/SiteRegistry/operations";
 import { useSitesArrayData } from "redux/SiteRegistry/selectors";
 import CustomMaterialTable from "../Table/CustomMaterialTable";
+
+// css
+import "assets/css/location-registry.css";
 
 const SitesTable = () => {
   const history = useHistory();
