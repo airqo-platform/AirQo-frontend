@@ -1,9 +1,8 @@
 /* eslint-disable */
 import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
-import { connect } from "react-redux";
+import {connect, useDispatch} from "react-redux";
 import clsx from "clsx";
-import { omit } from "underscore";
 import { makeStyles } from "@material-ui/styles";
 import {
   Button,
@@ -19,6 +18,10 @@ import { useMinimalSelectStyles } from "@mui-treasury/styles/select/minimal";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import { useOrgData } from "redux/Join/selectors";
 import usersStateConnector from "views/stateConnectors/usersStateConnector";
+import { addUserApi } from "views/apis/authService";
+import { updateMainAlert } from "redux/MainAlert/operations";
+import { createAlertBarExtraContentFromObject } from "utils/objectManipulators";
+import { fetchUsers } from "redux/Join/actions";
 
 
 const useStyles = makeStyles((theme) => ({
@@ -102,8 +105,19 @@ const UsersToolbar = (props) => {
     privilege: roles[0].value,
     errors: {},
   };
+  const initialStateErrors = {
+    userName: "",
+    firstName: "",
+    lastName: "",
+    organization: orgData.name,
+    email: "",
+    privilege: "",
+    errors: "",
+  };
 
+  const dispatch = useDispatch();
   const [form, setState] = useState(initialState);
+  const [errors, setErrors] = useState(initialStateErrors);
 
   const clearState = () => {
     setState({ ...initialState });
@@ -113,12 +127,12 @@ const UsersToolbar = (props) => {
 
   const handleClickOpen = () => {
     setOpen(true);
-    props.mappedShowAddDialog();
   };
   //
   const handleClose = () => {
     setOpen(false);
-    props.mappedHideAddDialog();
+    setErrors(initialStateErrors)
+      setState(initialState)
   };
 
   // const showAddDialog = () => {
@@ -168,36 +182,35 @@ const UsersToolbar = (props) => {
 
   const onSubmit = (e) => {
     e.preventDefault();
-
-    const { id, value } = e.target;
-    let errors = form.errors;
-
-    switch (id) {
-      case "firstName":
-        errors.firstName = mappedErrors.errors.firstName;
-        break;
-      case "lastName":
-        errors.lastName = mappedErrors.errors.lastName;
-        break;
-      case "email":
-        errors.email = mappedErrors.errors.email;
-        break;
-      case "userName":
-        errors.userName = mappedErrors.errors.userName;
-        break;
-      case "privilege":
-        errors.privilege = mappedErrors.errors.privilege;
-        break;
-      default:
-        break;
-    }
-    const userData = omit(form)
-    if (userData.password !== userData.password2) {
-      alert("Passwords don't match");
-    } else {
-      props.mappedAddUser(userData);
-      clearState();
-    }
+    setOpen(false)
+    addUserApi(form).then(resData => {
+      dispatch(fetchUsers())
+      setErrors(initialStateErrors)
+      setState(initialState)
+      dispatch(
+          updateMainAlert({
+            message: resData.message,
+            show: true,
+            severity: "success",
+          })
+        );
+    }).catch(error => {
+      const errors =
+          error.response && error.response.data && error.response.data.errors;
+      setErrors(errors || initialStateErrors);
+      dispatch(
+          updateMainAlert({
+            message:
+              error.response &&
+              error.response.data &&
+              error.response.data.message,
+            show: true,
+            severity: "error",
+            extra: createAlertBarExtraContentFromObject(
+              errors || {}),
+          })
+        );
+    })
   };
 
   const minimalSelectClasses = useMinimalSelectStyles();
@@ -260,8 +273,8 @@ const UsersToolbar = (props) => {
                       name="Email Address"
                       type="text"
                       label="email"
-                      helperText={form.errors.email}
-                      error={form.errors.email}
+                      helperText={errors.email}
+                      error={!!errors.email}
                       onChange={onChange}
                       variant="outlined"
                       value={form.email}
@@ -274,8 +287,8 @@ const UsersToolbar = (props) => {
                       name="firstName"
                       label="first name"
                       type="text"
-                      helperText={form.errors.firstName}
-                      error={form.errors.firstName}
+                      helperText={errors.firstName}
+                      error={!!errors.firstName}
                       onChange={onChange}
                       value={form.firstName}
                       variant="outlined"
@@ -287,8 +300,8 @@ const UsersToolbar = (props) => {
                       label="last name"
                       name="lastName"
                       type="text"
-                      helperText={form.errors.lastName}
-                      error={form.errors.lastName}
+                      helperText={errors.lastName}
+                      error={!!errors.lastName}
                       onChange={onChange}
                       value={form.lastName}
                       variant="outlined"
@@ -301,8 +314,8 @@ const UsersToolbar = (props) => {
                       label="organization"
                       name="organization"
                       type="text"
-                      helperText={form.errors.organization}
-                      error={form.errors.organization}
+                      helperText={errors.organization}
+                      error={!!errors.organization}
                       onChange={onChange}
                       value={form.organization}
                       disabled
@@ -316,8 +329,8 @@ const UsersToolbar = (props) => {
                       name="userName"
                       label="user name"
                       type="text"
-                      helperText={form.errors.userName}
-                      error={form.errors.userName}
+                      helperText={errors.userName}
+                      error={!!errors.userName}
                       onChange={onChange}
                       value={form.userName}
                       variant="outlined"
@@ -338,8 +351,8 @@ const UsersToolbar = (props) => {
                           className: classes.menu,
                         },
                       }}
-                      helperText={form.errors.privilege}
-                      error={form.errors.privilege}
+                      helperText={errors.privilege}
+                      error={!!errors.privilege}
                       variant="outlined"
                     >
                       {roles.map((option) => (
