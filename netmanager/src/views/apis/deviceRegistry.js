@@ -143,3 +143,7 @@ export const updateSiteApi = async (site_id, siteData) => {
     .put(SITES, siteData, { params: { id: site_id } })
     .then((response) => response.data);
 };
+
+export const createSiteApi = async (siteData) => {
+  return await axios.post(SITES, siteData).then((response) => response.data);
+};
