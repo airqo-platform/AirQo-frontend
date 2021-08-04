@@ -99,8 +99,6 @@ const UsersToolbar = (props) => {
     lastName: "",
     organization: orgData.name,
     email: "",
-    password: "",
-    password2: "",
     privilege: roles[0].value,
     errors: {},
   };
@@ -143,21 +141,11 @@ const UsersToolbar = (props) => {
       case "lastName":
         errors.lastName = value.length === 0 ? "last name is required" : "";
         break;
-      case "password":
-        errors.password = validPasswordRegex.test(value)
-          ? ""
-          : "Minimum six characters, at least one uppercase letter, one lowercase letter and one number!";
-        break;
       case "email":
         errors.email = validEmailRegex.test(value) ? "" : "Email is not valid!";
         break;
       case "userName":
         errors.userName = value.length === 0 ? "userName is required" : "";
-        break;
-      case "password2":
-        errors.password2 = validPasswordRegex.test(value)
-          ? ""
-          : "Minimum six characters, at least one uppercase letter, one lowercase letter and one number!";
         break;
       case "privilege":
         errors.privilege = value.length === 0 ? "role is required" : "";
@@ -193,12 +181,6 @@ const UsersToolbar = (props) => {
         break;
       case "email":
         errors.email = mappedErrors.errors.email;
-        break;
-      case "password":
-        errors.password = mappedErrors.errors.password;
-        break;
-      case "password2":
-        errors.password2 = mappedErrors.errors.password2;
         break;
       case "userName":
         errors.userName = mappedErrors.errors.userName;
@@ -257,7 +239,7 @@ const UsersToolbar = (props) => {
       <div className={classes.row}>
         <span className={classes.spacer} />
         <div>
-          <Button disabled variant="contained" color="primary" onClick={handleClickOpen}>
+          <Button variant="contained" color="primary" onClick={handleClickOpen}>
             Add User
           </Button>
           <Dialog
@@ -340,45 +322,6 @@ const UsersToolbar = (props) => {
                       value={form.userName}
                       variant="outlined"
                       fullWidth
-                    />
-                    <TextField
-                      margin="dense"
-                      id="password"
-                      name="password"
-                      autoComplete="new-password"
-                      label="password"
-                      helperText={form.errors.password}
-                      error={form.errors.password}
-                      type="password"
-                      onChange={onChange}
-                      value={form.password}
-                      variant="outlined"
-                      fullWidth
-                      InputProps={{
-                        autocomplete: "new-password",
-                        form: {
-                          autocomplete: "off",
-                        },
-                      }}
-                    />
-                    <TextField
-                      margin="dense"
-                      id="password2"
-                      label="confirm password"
-                      name="password2"
-                      type="password"
-                      onChange={onChange}
-                      variant="outlined"
-                      value={form.password2}
-                      helperText={form.errors.password2}
-                      error={form.errors.password2}
-                      fullWidth
-                      InputProps={{
-                        autocomplete: "new-password",
-                        form: {
-                          autocomplete: "off",
-                        },
-                      }}
                     />
                     <TextField
                       id="privilege"
