@@ -22,11 +22,9 @@ import {
   useDeviceComponentsData,
 } from "redux/DeviceRegistry/selectors";
 import { ChartContainer } from "views/charts";
-import DeviceUptimeChart from "./UptimeChart";
-import DeviceVoltageChart from "./VoltageChart";
-import DeviceSensorChart from "./SensorChart";
 import DeviceDetails from "./DeviceDetails";
 import DeviceLocation from "./DeviceLocation";
+import DeviceOverviewCharts from "./DeviceOverviewChart";
 
 // styles
 import styles from "assets/jss/material-dashboard-react/views/dashboardStyle.js";
@@ -174,11 +172,7 @@ export default function DeviceOverview({ deviceData }) {
 
       <DeviceLocation deviceData={deviceData} />
 
-      <DeviceUptimeChart deviceName={deviceData.name} />
-
-      <DeviceVoltageChart deviceName={deviceData.name} />
-
-      <DeviceSensorChart deviceName={deviceData.name} />
+      <DeviceOverviewCharts deviceName={deviceData.name} />
 
       <DeviceMaintenanceLogs deviceName={deviceData.name} />
 
