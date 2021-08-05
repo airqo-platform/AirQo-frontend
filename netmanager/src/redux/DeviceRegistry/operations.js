@@ -1,11 +1,8 @@
 // for representing chained operations using redux-thunk
 import {
   LOAD_ALL_DEVICES_SUCCESS,
-  LOAD_ALL_DEVICES_FAILURE,
   LOAD_MAINTENANCE_LOGS_SUCCESS,
-  LOAD_MAINTENANCE_LOGS_FAILURE,
   LOAD_DEVICE_COMPONENTS_SUCCESS,
-  LOAD_DEVICE_COMPONENTS_FAILURE,
   INSERT_MAINTENANCE_LOGS_SUCCESS,
   INSERT_NEW_COMPONENT_SUCCESS,
   INSERT_NEW_DEVICE_SUCCESS,
@@ -26,7 +23,6 @@ import {
 import { transformArray } from "../utils";
 import {
   getAllDevicesApi,
-  getDeviceMaintenanceLogsApi,
   getActivitiesApi,
   getDeviceComponentsApi,
   deleteDeviceApi,
@@ -38,6 +34,7 @@ import {
 } from "views/apis/deviceMonitoring";
 
 import { updateMainAlert } from "../MainAlert/operations";
+import { isEmpty } from "underscore";
 
 export const loadDevicesData = () => {
   return async (dispatch) => {
@@ -68,6 +65,7 @@ export const loadDeviceMaintenanceLogs = (deviceName) => {
       activity_type: "maintenance",
     })
       .then((responseData) => {
+        if (isEmpty(responseData.site_activities || [])) return;
         dispatch({
           type: LOAD_MAINTENANCE_LOGS_SUCCESS,
           payload: { [deviceName]: responseData.site_activities },
@@ -81,6 +79,7 @@ export const loadDeviceComponentsData = (deviceName) => {
   return async (dispatch) => {
     return await getDeviceComponentsApi(deviceName)
       .then((responseData) => {
+        if (isEmpty(responseData.components || [])) return;
         const indexedComponent = [];
         responseData.components.map((comp, tableIndex) =>
           indexedComponent.push({ ...comp, tableIndex })
