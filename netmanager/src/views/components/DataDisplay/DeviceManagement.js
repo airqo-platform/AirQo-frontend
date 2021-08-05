@@ -201,11 +201,20 @@ export default function DeviceManagement() {
         uptime: uptimeSum / deviceUptime.length,
       });
     });
+
+    const sortByName = (device1, device2) => {
+      if (device1.deviceName.toLowerCase() > device2.deviceName.toLowerCase())
+        return 1;
+      if (device1.deviceName.toLowerCase() < device2.deviceName.toLowerCase())
+        return -1;
+      return 0;
+    };
+
     // reverse sorting
     averageUptime.sort((device1, device2) => {
       if (device1.uptime < device2.uptime) return 1;
       if (device1.uptime > device2.uptime) return -1;
-      return 0;
+      return sortByName(device1, device2);
     });
     return averageUptime;
   };
