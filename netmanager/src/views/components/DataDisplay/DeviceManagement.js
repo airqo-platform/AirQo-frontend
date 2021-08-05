@@ -319,7 +319,7 @@ export default function DeviceManagement() {
     );
 
     networkUptimeData.map((val) => {
-      lineLabel.push(val.created_at.split("T")[0]);
+      lineLabel.push(val.created_at);
       lineData.push(parseFloat(val.uptime).toFixed(2));
     });
 
