@@ -13,7 +13,6 @@ import {
   DialogActions,
 } from "@material-ui/core";
 
-import { Alert, AlertTitle } from "@material-ui/lab";
 import { useMinimalSelectStyles } from "@mui-treasury/styles/select/minimal";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import { useOrgData } from "redux/Join/selectors";
@@ -109,7 +108,7 @@ const UsersToolbar = (props) => {
     userName: "",
     firstName: "",
     lastName: "",
-    organization: orgData.name,
+    organization: "",
     email: "",
     privilege: "",
     errors: "",
@@ -134,14 +133,6 @@ const UsersToolbar = (props) => {
     setErrors(initialStateErrors)
       setState(initialState)
   };
-
-  // const showAddDialog = () => {
-  //   props.mappedShowAddDialog();
-  // };
-
-  // const hideAddDialog = () => {
-  //   props.mappedHideAddDialog();
-  // };
 
   const onChange = (e) => {
     e.preventDefault();
@@ -262,147 +253,118 @@ const UsersToolbar = (props) => {
           >
             <DialogTitle id="form-dialog-title">Add User</DialogTitle>
             <DialogContent>
-              {mappeduserState.showAddDialog &&
-                !mappeduserState.successMg &&
-                !mappeduserState.newUser && (
-                  <div>
-                    <TextField
-                      autoFocus
-                      margin="dense"
-                      id="email"
-                      name="Email Address"
-                      type="text"
-                      label="email"
-                      helperText={errors.email}
-                      error={!!errors.email}
-                      onChange={onChange}
-                      variant="outlined"
-                      value={form.email}
-                      fullWidth
-                    />
+              <div>
+                <TextField
+                  autoFocus
+                  margin="dense"
+                  id="email"
+                  name="Email Address"
+                  type="text"
+                  label="email"
+                  helperText={errors.email}
+                  error={!!errors.email}
+                  onChange={onChange}
+                  variant="outlined"
+                  value={form.email}
+                  fullWidth
+                />
 
-                    <TextField
-                      margin="dense"
-                      id="firstName"
-                      name="firstName"
-                      label="first name"
-                      type="text"
-                      helperText={errors.firstName}
-                      error={!!errors.firstName}
-                      onChange={onChange}
-                      value={form.firstName}
-                      variant="outlined"
-                      fullWidth
-                    />
-                    <TextField
-                      margin="dense"
-                      id="lastName"
-                      label="last name"
-                      name="lastName"
-                      type="text"
-                      helperText={errors.lastName}
-                      error={!!errors.lastName}
-                      onChange={onChange}
-                      value={form.lastName}
-                      variant="outlined"
-                      fullWidth
-                    />
+                <TextField
+                  margin="dense"
+                  id="firstName"
+                  name="firstName"
+                  label="first name"
+                  type="text"
+                  helperText={errors.firstName}
+                  error={!!errors.firstName}
+                  onChange={onChange}
+                  value={form.firstName}
+                  variant="outlined"
+                  fullWidth
+                />
+                <TextField
+                  margin="dense"
+                  id="lastName"
+                  label="last name"
+                  name="lastName"
+                  type="text"
+                  helperText={errors.lastName}
+                  error={!!errors.lastName}
+                  onChange={onChange}
+                  value={form.lastName}
+                  variant="outlined"
+                  fullWidth
+                />
 
-                    <TextField
-                      margin="dense"
-                      id="organization"
-                      label="organization"
-                      name="organization"
-                      type="text"
-                      helperText={errors.organization}
-                      error={!!errors.organization}
-                      onChange={onChange}
-                      value={form.organization}
-                      disabled
-                      variant="outlined"
-                      fullWidth
-                    />
+                <TextField
+                  margin="dense"
+                  id="organization"
+                  label="organization"
+                  name="organization"
+                  type="text"
+                  helperText={errors.organization}
+                  error={!!errors.organization}
+                  onChange={onChange}
+                  value={form.organization}
+                  disabled
+                  variant="outlined"
+                  fullWidth
+                />
 
-                    <TextField
-                      margin="dense"
-                      id="userName"
-                      name="userName"
-                      label="user name"
-                      type="text"
-                      helperText={errors.userName}
-                      error={!!errors.userName}
-                      onChange={onChange}
-                      value={form.userName}
-                      variant="outlined"
-                      fullWidth
-                    />
-                    <TextField
-                      id="privilege"
-                      select
-                      fullWidth
-                      label="Role"
-                      style={{marginTop: "15px"}}
-                      value={form.privilege}
-                      onChange={onChange}
-                      SelectProps={{
-                        native: true,
-                        style: { width: "100%", height: "50px" },
-                        MenuProps: {
-                          className: classes.menu,
-                        },
-                      }}
-                      helperText={errors.privilege}
-                      error={!!errors.privilege}
-                      variant="outlined"
-                    >
-                      {roles.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </TextField>
-                  </div>
-                )}
-
-              {mappeduserState.newUser &&
-                !mappeduserState.error &&
-                mappeduserState.isFetching &&
-                !mappeduserState.successMg && (
-                  <Alert severity="success">
-                    <strong> Adding user.... </strong>
-                  </Alert>
-                )}
-
-              {mappeduserState.successMsg &&
-                !mappeduserState.isFetching &&
-                mappeduserState.newUser && (
-                  <Alert severity="success">
-                    <AlertTitle>Success</AlertTitle>
-                    User <strong> {mappeduserState.successMsg}</strong>
-                  </Alert>
-                )}
+                <TextField
+                  margin="dense"
+                  id="userName"
+                  name="userName"
+                  label="user name"
+                  type="text"
+                  helperText={errors.userName}
+                  error={!!errors.userName}
+                  onChange={onChange}
+                  value={form.userName}
+                  variant="outlined"
+                  fullWidth
+                />
+                <TextField
+                  id="privilege"
+                  select
+                  fullWidth
+                  label="Role"
+                  style={{marginTop: "15px"}}
+                  value={form.privilege}
+                  onChange={onChange}
+                  SelectProps={{
+                    native: true,
+                    style: { width: "100%", height: "50px" },
+                    MenuProps: {
+                      className: classes.menu,
+                    },
+                  }}
+                  helperText={errors.privilege}
+                  error={!!errors.privilege}
+                  variant="outlined"
+                >
+                  {roles.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </TextField>
+              </div>
             </DialogContent>
 
             <DialogActions>
-              {!mappeduserState.successMsg && !mappeduserState.isFetching && (
-                <div>
-                  <Button
-                    onClick={handleClose}
-                    color="primary"
-                    variant="outlined"
-                  >
-                    Cancel
-                  </Button>
-                  <Button style={{margin: "0 15px"}} onClick={onSubmit} color="primary" variant="contained">
-                    Submit
-                  </Button>
-                </div>
-              )}
-              {mappeduserState.successMsg &&
-                !mappeduserState.isFetching &&
-                mappeduserState.newUser && (
-                  <Button onClick={handleClose}>Close</Button>
-                )}
+              <div>
+                <Button
+                  onClick={handleClose}
+                  color="primary"
+                  variant="outlined"
+                >
+                  Cancel
+                </Button>
+                <Button style={{margin: "0 15px"}} onClick={onSubmit} color="primary" variant="contained">
+                  Submit
+                </Button>
+              </div>
             </DialogActions>
           </Dialog>
         </div>
@@ -410,12 +372,6 @@ const UsersToolbar = (props) => {
     </div>
   );
 };
-
-// UsersToolbar.propTypes = {
-//   className: PropTypes.string
-// };
-
-// export default UsersToolbar;
 
 UsersToolbar.propTypes = {
   auth: PropTypes.object.isRequired,
