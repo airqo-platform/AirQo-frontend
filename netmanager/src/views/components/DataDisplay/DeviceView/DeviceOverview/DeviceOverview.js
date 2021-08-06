@@ -22,11 +22,9 @@ import {
   useDeviceComponentsData,
 } from "redux/DeviceRegistry/selectors";
 import { ChartContainer } from "views/charts";
-import DeviceUptimeChart from "./UptimeChart";
-import DeviceVoltageChart from "./VoltageChart";
-import DeviceSensorChart from "./SensorChart";
 import DeviceDetails from "./DeviceDetails";
 import DeviceLocation from "./DeviceLocation";
+import DeviceOverviewCharts from "./DeviceOverviewChart";
 
 // styles
 import styles from "assets/jss/material-dashboard-react/views/dashboardStyle.js";
@@ -86,11 +84,15 @@ const DeviceMaintenanceLogs = ({ deviceName }) => {
               {deviceMaintenanceLogs.map((log, index) => (
                 <TableRow key={index}>
                   <TableCell>{formatDate(new Date(log.date))}</TableCell>
-                  <TableCell>
-                    {typeof log.tags === "string"
-                      ? log.tags
-                      : log.tags && log.tags.join(", ")}
-                  </TableCell>
+                  {log.tags && log.tags.length > 0 ? (
+                    <TableCell>
+                      {typeof log.tags === "string"
+                        ? log.tags
+                        : log.tags && log.tags.join(", ")}
+                    </TableCell>
+                  ) : (
+                    <TableCell>{log.description}</TableCell>
+                  )}
                 </TableRow>
               ))}
             </TableBody>
@@ -170,11 +172,7 @@ export default function DeviceOverview({ deviceData }) {
 
       <DeviceLocation deviceData={deviceData} />
 
-      <DeviceUptimeChart deviceName={deviceData.name} />
-
-      <DeviceVoltageChart deviceName={deviceData.name} />
-
-      <DeviceSensorChart deviceName={deviceData.name} />
+      <DeviceOverviewCharts deviceName={deviceData.name} />
 
       <DeviceMaintenanceLogs deviceName={deviceData.name} />
 
