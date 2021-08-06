@@ -9,11 +9,7 @@ import {
 } from "@material-ui/pickers";
 import DateFnsUtils from "@date-io/date-fns";
 import MaintenanceLogsTable from "./Table";
-import {
-  loadDeviceMaintenanceLogs,
-  insertMaintenanceLog,
-  updateMaintenanceLog,
-} from "redux/DeviceRegistry/operations";
+import { loadDeviceMaintenanceLogs } from "redux/DeviceRegistry/operations";
 import { useDeviceLogsData } from "redux/DeviceRegistry/selectors";
 import {
   addMaintenanceLogApi,
@@ -26,6 +22,7 @@ import Tooltip from "@material-ui/core/Tooltip";
 import EditIcon from "@material-ui/icons/EditOutlined";
 import DeleteIcon from "@material-ui/icons/DeleteOutlineOutlined";
 import ConfirmDialog from "views/containers/ConfirmDialog";
+import { humanReadableDate } from "utils/dateTime";
 
 const titleStyles = {
   fontFamily: "Roboto, Helvetica, Arial, sans-serif",
@@ -101,16 +98,29 @@ const EditLog = ({ deviceName, deviceLocation, toggleShow, log }) => {
 
     setLoading(true);
     await updateMaintenanceLogApi(log._id, logData)
-      .then((responseData) => {
-        dispatch(
-          updateMaintenanceLog(deviceName, log.tableIndex, {
-            ...(responseData.updatedActivity || {}),
-            tableIndex: log.tableIndex,
-          })
-        );
+      .then(async (responseData) => {
         dispatch(
           updateMainAlert({
             message: responseData.message,
+            show: true,
+            severity: "success",
+          })
+        );
+        setTimeout(
+          () =>
+            dispatch(
+              updateMainAlert({
+                message: "reloading maintenance logs",
+                show: true,
+                severity: "info",
+              })
+            ),
+          500
+        );
+        await dispatch(loadDeviceMaintenanceLogs(deviceName));
+        dispatch(
+          updateMainAlert({
+            message: "reload successful",
             show: true,
             severity: "success",
           })
@@ -268,12 +278,6 @@ const AddLogForm = ({ deviceName, deviceLocation, toggleShow }) => {
     setLoading(true);
     await addMaintenanceLogApi(deviceName, logData)
       .then(async (responseData) => {
-        // dispatch(
-        //   insertMaintenanceLog(
-        //     deviceName,
-        //     responseData.activityBody || responseData.activityLog
-        //   )
-        // );
         dispatch(
           updateMainAlert({
             message: responseData.message,
@@ -286,7 +290,7 @@ const AddLogForm = ({ deviceName, deviceLocation, toggleShow }) => {
           () =>
             dispatch(
               updateMainAlert({
-                message: "refreshing page",
+                message: "reloading maintenance logs",
                 show: true,
                 severity: "info",
               })
@@ -296,7 +300,7 @@ const AddLogForm = ({ deviceName, deviceLocation, toggleShow }) => {
         await dispatch(loadDeviceMaintenanceLogs(deviceName));
         dispatch(
           updateMainAlert({
-            message: "page refresh successful",
+            message: "reload successful",
             show: true,
             severity: "success",
           })
@@ -305,7 +309,7 @@ const AddLogForm = ({ deviceName, deviceLocation, toggleShow }) => {
           () =>
             dispatch(
               updateMainAlert({
-                message: "refreshing page",
+                message: "reloading maintenance logs",
                 show: false,
                 severity: "info",
               })
@@ -458,7 +462,9 @@ export default function DeviceLogs({ deviceName, deviceLocation }) {
       field: "nextMaintenance",
       cellStyle: { width: 100, maxWidth: 100 },
       render: (rowData) => (
-        <div className={"table-truncate"}>{rowData.nextMaintenance}</div>
+        <div className={"table-truncate"}>
+          {humanReadableDate(rowData.nextMaintenance)}
+        </div>
       ),
     },
     {

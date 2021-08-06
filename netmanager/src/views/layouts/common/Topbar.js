@@ -51,6 +51,20 @@ const useAlertStyles = makeStyles((theme) =>
       padding: "10px 100px",
       borderRadius: "unset",
     },
+    alertExtraContent: {
+      display: "flex",
+      padding: "10px 100px",
+      borderRadius: "unset",
+      background: "#ffffff",
+      border: "1px solid white",
+      // color: "red",
+      color: "#5b1615",
+    },
+    listStyle: {
+      listStyleType: "square",
+      listStylePosition: "outside",
+      listStyleImage: "none",
+    },
     root: {
       width: "100%",
       "& > * + *": {
@@ -86,6 +100,17 @@ export const TransitionAlerts = () => {
         >
           {mainAlertData.message}
         </Alert>
+        {mainAlertData.extra && mainAlertData.extra.length > 0 && (
+          <div className={classes.alertExtraContent}>
+            <ul>
+              {mainAlertData.extra.map((value, key) => (
+                <li style={{ textAlign: "left" }} key={key}>
+                  {value}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </Collapse>
     </div>
   );

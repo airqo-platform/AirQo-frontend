@@ -58,9 +58,13 @@ export const getFirstDuration = (dateTimeStr) => {
   return [seconds, getFirstNDurations(durations, 1)];
 };
 
-export const humanReadableDate = (dateString) => {
-  const options = { year: "numeric", month: "long", day: "numeric" };
-  return new Date(dateString).toLocaleDateString(undefined, options);
+export const humanReadableDate = (dateString, options) => {
+  const format = (options && options.format) || {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  };
+  return new Date(dateString).toLocaleDateString(undefined, format);
 };
 
 export const formatDate = (date) => {
