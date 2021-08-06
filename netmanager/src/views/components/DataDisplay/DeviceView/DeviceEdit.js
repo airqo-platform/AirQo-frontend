@@ -113,7 +113,7 @@ export default function DeviceEdit({ deviceData, sitesData }) {
                 id="long_name"
                 label="Name"
                 variant="outlined"
-                value={editData.long_name || editData.name}
+                value={editData.long_name}
                 onChange={handleTextFieldChange}
                 fullWidth
               />
