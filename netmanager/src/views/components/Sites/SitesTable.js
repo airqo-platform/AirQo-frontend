@@ -12,9 +12,13 @@ import ConfirmDialog from "../../containers/ConfirmDialog";
 import { deleteSiteApi } from "views/apis/deviceRegistry";
 import { updateMainAlert } from "redux/MainAlert/operations";
 
-
 // css
 import "assets/css/location-registry.css";
+
+const BLANK_SPACE_HOLDER = "-";
+const renderCell = (field) => (rowData) => (
+  <span>{rowData[field] || BLANK_SPACE_HOLDER}</span>
+);
 
 const SitesTable = () => {
   const history = useHistory();
@@ -71,43 +75,36 @@ const SitesTable = () => {
             {
               title: "Name",
               field: "name",
-              render: (rowData) => (
-                <span>
-                  {rowData.name ||
-                    rowData.description ||
-                    rowData.formated_name ||
-                    rowData.generated_name}
-                </span>
-              ),
+              render: renderCell("name"),
             },
             {
-              title: "Latitude",
-              field: "latitude",
+              title: "Generated Name",
+              field: "generated_name",
+              render: renderCell("generated_name"),
               cellStyle: { fontFamily: "Open Sans" },
             },
             {
-              title: "Longitude",
-              field: "longitude",
+              title: "Description",
+              field: "description",
+              render: renderCell("description"),
               cellStyle: { fontFamily: "Open Sans" },
             },
             {
               title: "County",
               field: "county",
+              render: renderCell("county"),
               cellStyle: { fontFamily: "Open Sans" },
             },
             {
               title: "District",
               field: "district",
+              render: renderCell("district"),
               cellStyle: { fontFamily: "Open Sans" },
             },
             {
               title: "Region",
               field: "region",
-              cellStyle: { fontFamily: "Open Sans" },
-            },
-            {
-              title: "Altitude",
-              field: "altitude",
+              render: renderCell("region"),
               cellStyle: { fontFamily: "Open Sans" },
             },
             {
