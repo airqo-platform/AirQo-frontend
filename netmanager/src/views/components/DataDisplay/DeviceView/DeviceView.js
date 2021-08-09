@@ -23,7 +23,6 @@ import DeviceComponents from "./DeviceComponents";
 import DeviceOverview from "./DeviceOverview/DeviceOverview";
 import { useDevicesData } from "redux/DeviceRegistry/selectors";
 import { loadDevicesData } from "redux/DeviceRegistry/operations";
-import { useSitesArrayData } from "redux/SiteRegistry/selectors";
 import { useInitScrollTop } from "utils/customHooks";
 
 export default function DeviceView() {
@@ -31,7 +30,6 @@ export default function DeviceView() {
   const match = useRouteMatch();
   const params = useParams();
   const devices = useDevicesData();
-  const sites = useSitesArrayData();
   const [deviceData, setDeviceData] = useState(
     devices[params.deviceName] || {}
   );
@@ -69,7 +67,7 @@ export default function DeviceView() {
             exact
             path={`${match.url}/edit`}
             component={() => (
-              <DeviceEdit deviceData={deviceData} sitesData={sites} />
+              <DeviceEdit deviceData={deviceData} />
             )}
           />
           <Route
