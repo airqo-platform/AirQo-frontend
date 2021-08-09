@@ -8,3 +8,7 @@ export const useSitesData = () => {
 export const useSitesArrayData = () => {
   return useSelector((state) => Object.values(state.siteRegistry.sites));
 };
+
+export const useSiteOptionsData = () => {
+  return useSelector((state) => Object.values(state.siteRegistry.siteOptions));
+};

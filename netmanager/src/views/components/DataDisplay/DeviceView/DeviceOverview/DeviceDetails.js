@@ -45,6 +45,22 @@ const DeviceDetails = ({ deviceData }) => {
             </TableRow>
             <TableRow>
               <TableCell>
+                <b>Longitude</b>
+              </TableCell>
+              <TableCell>
+                {deviceData.longitude || BLANK_PLACE_HOLDER}
+              </TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell>
+                <b>Latitude</b>
+              </TableCell>
+              <TableCell>
+                {deviceData.latitude || BLANK_PLACE_HOLDER}
+              </TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell>
                 <b>Owner</b>
               </TableCell>
               <TableCell>{deviceData.owner || BLANK_PLACE_HOLDER}</TableCell>

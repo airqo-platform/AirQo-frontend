@@ -1,8 +1,11 @@
-// for representing chained operations using redux-thunk
-import { transformArray } from "../utils";
-
-import { LOAD_SITES_SUCCESS, LOAD_SITES_FAILURE } from "./actions";
+import {
+  LOAD_SITES_SUCCESS,
+  LOAD_SITES_FAILURE,
+  LOAD_SITE_OPTIONS_SUCCESS,
+} from "./actions";
 import { getSitesApi } from "views/apis/deviceRegistry";
+import { transformArray } from "../utils";
+import { createSiteOptions } from "utils/sites";
 
 export const loadSitesData = () => {
   return async (dispatch) => {
@@ -10,7 +13,11 @@ export const loadSitesData = () => {
       .then((responseData) => {
         dispatch({
           type: LOAD_SITES_SUCCESS,
-          payload: transformArray(responseData.sites || [], '_id'),
+          payload: transformArray(responseData.sites || [], "_id"),
+        });
+        dispatch({
+          type: LOAD_SITE_OPTIONS_SUCCESS,
+          payload: createSiteOptions(responseData.sites || []),
         });
       })
       .catch((err) => {

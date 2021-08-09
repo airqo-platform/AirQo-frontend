@@ -107,22 +107,24 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const Cell = ({ fieldValue }) => {
-  return <div>{fieldValue || "N/A"}</div>;
+  return <div>{fieldValue || "-"}</div>;
 };
 
 const createDeviceColumns = (history, setDelState) => [
   {
     title: "Device Name",
-    render: (data) => <span>{data.long_name || "N/A"}</span>,
+    render: (data) => <Cell fieldValue={data.long_name} />,
     field: "long_name",
   },
   {
     title: "Generated Name",
     field: "name",
+    render: (data) => <Cell fieldValue={data.name} />,
   },
   {
     title: "Description",
     field: "description",
+    render: (data) => <Cell fieldValue={data.description} />,
   },
   {
     title: "Site",
