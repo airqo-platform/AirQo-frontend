@@ -7,7 +7,7 @@ import LabelledSelect from "../../CustomSelects/LabelledSelect";
 import { isEmpty, isEqual } from "underscore";
 import { updateMainAlert } from "redux/MainAlert/operations";
 import { updateDeviceDetails } from "views/apis/deviceRegistry";
-import { updateDevice } from "redux/DeviceRegistry/operations";
+import { loadDevicesData, updateDevice } from "redux/DeviceRegistry/operations";
 import DeviceDeployStatus from "./DeviceDeployStatus";
 import { capitalize } from "utils/string";
 import { dropEmpty } from "utils/objectManipulators";
@@ -16,7 +16,6 @@ const transformSitesOptions = (sites) => {
   const transFormedOptions = [];
   sites.map(({ name, description, generated_name, ...rest }) => {
     transFormedOptions.push({
-      ...rest,
       label: `${name || description || generated_name}`,
       value: rest._id,
     });
@@ -27,11 +26,10 @@ const transformSitesOptions = (sites) => {
 const filterLocation = (sites, site_id) => {
   const currentSite = sites.filter((site) => site._id === site_id);
   if (isEmpty(currentSite)) {
-    return { label: "Unknown or no location", value: null };
+    return { label: "", value: null };
   }
   const { name, description, generated_name } = currentSite[0];
   return {
-    ...currentSite[0],
     label: `${name || description || generated_name}`,
     value: site_id,
   };
@@ -48,6 +46,9 @@ export default function DeviceEdit({ deviceData, sitesData }) {
     siteName: "",
     ...deviceData,
   });
+  const [site, setSite] = useState(
+    filterLocation(sitesData, deviceData.site && deviceData.site._id)
+  );
   const [editLoading, setEditLoading] = useState(false);
   const handleTextFieldChange = (event) => {
     setEditData({
@@ -65,9 +66,12 @@ export default function DeviceEdit({ deviceData, sitesData }) {
 
   const handleEditSubmit = async () => {
     setEditLoading(true);
+
+    if (site && site.value) editData.site_id = site.value;
+
     await updateDeviceDetails(deviceData._id, dropEmpty(editData))
       .then((responseData) => {
-        dispatch(updateDevice(deviceData.name, responseData.updated_device));
+        dispatch(loadDevicesData());
         dispatch(
           updateMainAlert({
             message: responseData.message,
@@ -267,10 +271,8 @@ export default function DeviceEdit({ deviceData, sitesData }) {
             <Grid items xs={12} sm={4} style={gridItemStyle}>
               <LabelledSelect
                 label={"Site"}
-                value={filterLocation(
-                  sitesData,
-                  editData.site && editData.site._id
-                )}
+                defaultValue={site}
+                onChange={setSite}
                 options={transformSitesOptions(sitesData)}
               />
             </Grid>
