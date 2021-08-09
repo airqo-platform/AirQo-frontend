@@ -332,8 +332,7 @@ export const deleteUserFailed = error => {
 };
 
 /************************* Register a new User  *****************************/
-export const registerCandidate = (userData, callback) => dispatch => {
-  const tenant = userData.organization;
+export const registerCandidate = (tenant, userData, callback) => dispatch => {
   return axios
     .post(REGISTER_CANDIDATE_URI, userData, { params: { tenant }})
     .then(res => {

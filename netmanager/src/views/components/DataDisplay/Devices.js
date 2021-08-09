@@ -14,9 +14,6 @@ import {
   DialogTitle,
 } from "@material-ui/core";
 import TextField from "@material-ui/core/TextField";
-import Select from "@material-ui/core/Select";
-import FormControl from "@material-ui/core/FormControl";
-import InputLabel from "@material-ui/core/InputLabel";
 import DeleteIcon from "@material-ui/icons/DeleteOutlineOutlined";
 import EditIcon from "@material-ui/icons/EditOutlined";
 import Tooltip from "@material-ui/core/Tooltip";
@@ -31,6 +28,11 @@ import { REGISTER_DEVICE_URI } from "config/urls/deviceRegistry";
 import { humanReadableDate } from "utils/dateTime";
 import { useSitesData } from "redux/SiteRegistry/selectors";
 import { loadSitesData } from "redux/SiteRegistry/operations";
+import {
+  createAlertBarExtraContent,
+  dropEmpty,
+  mergeErrorObjects,
+} from "utils/objectManipulators";
 
 // css
 import "assets/css/device-registry.css";
@@ -105,17 +107,24 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const Cell = ({ fieldValue }) => {
-  return <div>{fieldValue || "N/A"}</div>;
+  return <div>{fieldValue || "-"}</div>;
 };
 
 const createDeviceColumns = (history, setDelState) => [
   {
     title: "Device Name",
+    render: (data) => <Cell fieldValue={data.long_name} />,
+    field: "long_name",
+  },
+  {
+    title: "Generated Name",
     field: "name",
+    render: (data) => <Cell fieldValue={data.name} />,
   },
   {
     title: "Description",
     field: "description",
+    render: (data) => <Cell fieldValue={data.description} />,
   },
   {
     title: "Site",
@@ -207,19 +216,31 @@ const CreateDevice = ({ open, setOpen, devices, setDevices }) => {
   const classes = useStyles();
   const dispatch = useDispatch();
   const newDeviceInitState = {
-    name: "",
+    long_name: "",
+    description: "",
     visibility: false,
+    generation_version: "",
+    generation_count: "",
     device_manufacturer: "",
     product_name: "",
-    owner: "",
     ISP: "",
     phoneNumber: "",
+  };
+
+  const initialErrors = {
+    long_name: "",
     description: "",
-    locationName: "",
-    siteName: "",
+    visibility: "",
+    generation_version: "",
+    generation_count: "",
+    device_manufacturer: "",
+    product_name: "",
+    ISP: "",
+    phoneNumber: "",
   };
 
   const [newDevice, setNewDevice] = useState(newDeviceInitState);
+  const [errors, setErrors] = useState(initialErrors);
 
   const handleDeviceDataChange = (key) => (event) => {
     if (key === "phoneNumber") {
@@ -239,13 +260,13 @@ const CreateDevice = ({ open, setOpen, devices, setDevices }) => {
   let handleRegisterSubmit = (e) => {
     setOpen(false);
     axios
-      .post(REGISTER_DEVICE_URI, JSON.stringify(newDevice), {
+      .post(REGISTER_DEVICE_URI, dropEmpty(newDevice), {
         headers: { "Content-Type": "application/json" },
       })
       .then((res) => res.data)
       .then((resData) => {
         handleRegisterClose();
-        setDevices([resData.device, ...devices]);
+        dispatch(loadDevicesData());
         dispatch(
           updateMainAlert({
             message: resData.message,
@@ -255,11 +276,26 @@ const CreateDevice = ({ open, setOpen, devices, setDevices }) => {
         );
       })
       .catch((error) => {
+        const errors =
+          error.response && error.response.data && error.response.data.errors;
+        setErrors(
+          mergeErrorObjects(errors || [], {
+            errorKey: "param",
+            errorMsgKey: "msg",
+          }) || initialErrors
+        );
         dispatch(
           updateMainAlert({
-            message: error.response.data.message,
+            message:
+              error.response &&
+              error.response.data &&
+              error.response.data.message,
             show: true,
             severity: "error",
+            extra: createAlertBarExtraContent(
+              errors || [],
+              (value) => `${value.param} - ${value.msg}`
+            ),
           })
         );
       });
@@ -272,96 +308,141 @@ const CreateDevice = ({ open, setOpen, devices, setDevices }) => {
       aria-labelledby="form-dialog-title"
       aria-describedby="form-dialog-description"
     >
-      <DialogTitle id="form-dialog-title">Add a device</DialogTitle>
+      <DialogTitle
+        id="form-dialog-title"
+        style={{ textTransform: "uppercase" }}
+      >
+        Add a device
+      </DialogTitle>
 
       <DialogContent>
         <form className={classes.modelWidth}>
           <TextField
-            required
-            className={classes.textFieldMargin}
-            value={newDevice.name}
-            onChange={handleDeviceDataChange("name")}
+            autoFocus
+            margin="dense"
             label="Device Name"
+            variant="outlined"
+            value={newDevice.long_name}
+            onChange={handleDeviceDataChange("long_name")}
             fullWidth
+            required
+            error={!!errors.long_name}
+            helperText={errors.long_name}
           />
           <TextField
-            className={classes.textFieldMargin}
+            autoFocus
+            margin="dense"
             label="Description"
+            variant="outlined"
             value={newDevice.description}
             onChange={handleDeviceDataChange("description")}
+            error={!!errors.description}
+            helperText={errors.description}
             fullWidth
             required
           />
           <TextField
+            select
+            fullWidth
+            label="Data Access"
+            style={{ margin: "10px 0" }}
+            value={newDevice.visibility}
+            onChange={handleDeviceDataChange("visibility")}
+            error={!!errors.visibility}
+            helperText={errors.visibility}
+            SelectProps={{
+              native: true,
+              style: { width: "100%", height: "50px" },
+              MenuProps: {
+                className: classes.menu,
+              },
+            }}
+            variant="outlined"
+            required
+          >
+            <option value={false}>Private</option>
+            <option value={true}>Public</option>
+          </TextField>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Generation Version"
+            variant="outlined"
+            type="number"
+            value={newDevice.generation_version}
+            onChange={handleDeviceDataChange("generation_version")}
+            error={!!errors.generation_version}
+            helperText={errors.generation_version}
+            fullWidth
+            required
+          />
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Generation Count"
+            variant="outlined"
+            type="number"
+            value={newDevice.generation_count}
+            error={!!errors.generation_count}
+            helperText={errors.generation_count}
+            onChange={handleDeviceDataChange("generation_count")}
+            fullWidth
+            required
+          />
+          <TextField
+            autoFocus
+            margin="dense"
             label="Manufacturer"
+            variant="outlined"
             value={newDevice.device_manufacturer}
             onChange={handleDeviceDataChange("device_manufacturer")}
+            error={!!errors.device_manufacturer}
+            helperText={errors.device_manufacturer}
             fullWidth
           />
           <TextField
+            autoFocus
+            margin="dense"
             label="Product Name"
+            variant="outlined"
             value={newDevice.product_name}
             onChange={handleDeviceDataChange("product_name")}
+            error={!!errors.product_name}
+            helperText={errors.product_name}
             fullWidth
           />
           <TextField
-            label="Map Address"
-            value={newDevice.locationName}
-            onChange={handleDeviceDataChange("locationName")}
+            select
             fullWidth
-          />
+            label="Internet Service Provider"
+            style={{ margin: "10px 0" }}
+            value={newDevice.ISP}
+            onChange={handleDeviceDataChange("ISP")}
+            error={!!errors.ISP}
+            helperText={errors.ISP}
+            SelectProps={{
+              native: true,
+              style: { width: "100%", height: "50px" },
+              MenuProps: {
+                className: classes.menu,
+              },
+            }}
+            variant="outlined"
+          >
+            <option value="" />
+            <option value="MTN">MTN</option>
+            <option value="Airtel">Airtel</option>
+            <option value="Africell">Africell</option>
+          </TextField>
           <TextField
-            label="Site Name"
-            value={newDevice.siteName}
-            onChange={handleDeviceDataChange("siteName")}
-            fullWidth
-          />
-          <FormControl required fullWidth>
-            <InputLabel htmlFor="demo-dialog-native">Data Access</InputLabel>
-            <Select
-              required
-              native
-              value={newDevice.visibility}
-              onChange={handleDeviceDataChange("visibility")}
-              inputProps={{
-                native: "true",
-                style: { height: "40px", marginTop: "10px" },
-              }}
-            >
-              <option value={true}>Public</option>
-              <option value={false}>Private</option>
-            </Select>
-          </FormControl>
-          <TextField
-            required
-            label="Owner"
-            value={newDevice.owner}
-            onChange={handleDeviceDataChange("owner")}
-            fullWidth
-          />
-          <FormControl fullWidth>
-            <InputLabel htmlFor="demo-dialog-native">
-              Internet Service Provider
-            </InputLabel>
-            <Select
-              native
-              value={newDevice.ISP}
-              onChange={handleDeviceDataChange("ISP")}
-              inputProps={{
-                native: "true",
-                style: { height: "40px", marginTop: "10px" },
-              }}
-            >
-              <option aria-label="None" value="" />
-              <option value="MTN">MTN</option>
-              <option value="Africell">Africell</option>
-              <option value="Airtel">Airtel</option>
-            </Select>
-          </FormControl>
-          <TextField
+            autoFocus
+            margin="dense"
             label="Phone Number"
+            variant="outlined"
             value={newDevice.phoneNumber}
             onChange={handleDeviceDataChange("phoneNumber")}
+            error={!!errors.phoneNumber}
+            helperText={errors.phoneNumber}
             fullWidth
           />
         </form>
@@ -475,7 +556,6 @@ const DevicesTable = (props) => {
           color="primary"
           type="submit"
           align="right"
-          disabled
           onClick={() => setRegisterOpen(true)}
         >
           {" "}

@@ -29,7 +29,17 @@ const Copyable = ({ value, className }) => {
         justifyContent: "space-between",
       }}
     >
-      <span ref={copyRef}>{value}</span>
+      <span
+        ref={copyRef}
+        style={{
+          width: "200px",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+        }}
+      >
+        {value}
+      </span>
       {copied ? (
         <CopySuccessIcon />
       ) : (

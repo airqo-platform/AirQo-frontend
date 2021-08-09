@@ -1,5 +1,6 @@
 import axios from "axios";
 import {
+  ACTIVITY_URI,
   ALL_DEVICES_URI,
   ADD_MAINTENANCE_LOGS_URI,
   ADD_COMPONENT_URI,
@@ -7,8 +8,6 @@ import {
   DEPLOY_DEVICE_URI,
   EDIT_DEVICE_URI,
   DELETE_DEVICE_URI,
-  UPDATE_ACTIVITY_LOG,
-  DELETE_ACTIVITY_LOG,
   UPDATE_COMPONENT,
   DELETE_COMPONENT,
   DELETE_DEVICE_PHOTO,
@@ -36,7 +35,7 @@ export const createDeviceComponentApi = async (
 
 export const getDeviceComponentsApi = async (deviceName) => {
   return await axios
-    .get(GET_COMPONENTS_URI + deviceName)
+    .get(GET_COMPONENTS_URI, { params: { device: deviceName } })
     .then((response) => response.data);
 };
 
@@ -49,6 +48,12 @@ export const getFilteredDevicesApi = async (params) => {
 export const getDeviceMaintenanceLogsApi = async (deviceName) => {
   return await axios
     .get(DEVICE_MAINTENANCE_LOG_URI + deviceName)
+    .then((response) => response.data);
+};
+
+export const getActivitiesApi = async (params) => {
+  return await axios
+    .get(ACTIVITY_URI, { params })
     .then((response) => response.data);
 };
 
@@ -90,13 +95,13 @@ export const deleteDeviceApi = async (deviceName) => {
 
 export const updateMaintenanceLogApi = async (deviceId, logData) => {
   return axios
-    .put(UPDATE_ACTIVITY_LOG, logData, { params: { id: deviceId } })
+    .put(ACTIVITY_URI, logData, { params: { id: deviceId } })
     .then((response) => response.data);
 };
 
 export const deleteMaintenanceLogApi = (deviceId) => {
   return axios
-    .delete(DELETE_ACTIVITY_LOG, { params: { id: deviceId } })
+    .delete(ACTIVITY_URI, { params: { id: deviceId } })
     .then((response) => response.data);
 };
 
@@ -134,5 +139,17 @@ export const getSitesApi = async () => {
 };
 
 export const updateSiteApi = async (site_id, siteData) => {
-  return await axios.put(SITES, siteData, { params: { id: site_id } }).then((response) => response.data);
+  return await axios
+    .put(SITES, siteData, { params: { id: site_id } })
+    .then((response) => response.data);
+};
+
+export const createSiteApi = async (siteData) => {
+  return await axios.post(SITES, siteData).then((response) => response.data);
+};
+
+export const deleteSiteApi = async (siteId) => {
+  return await axios
+    .delete(SITES, { params: { id: siteId } })
+    .then((response) => response.data);
 };
