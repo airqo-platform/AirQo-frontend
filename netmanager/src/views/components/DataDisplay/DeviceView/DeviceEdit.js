@@ -7,7 +7,7 @@ import LabelledSelect from "../../CustomSelects/LabelledSelect";
 import { isEmpty, isEqual } from "underscore";
 import { updateMainAlert } from "redux/MainAlert/operations";
 import { updateDeviceDetails } from "views/apis/deviceRegistry";
-import { loadDevicesData, updateDevice } from "redux/DeviceRegistry/operations";
+import { loadDevicesData } from "redux/DeviceRegistry/operations";
 import DeviceDeployStatus from "./DeviceDeployStatus";
 import { capitalize } from "utils/string";
 import { dropEmpty } from "utils/objectManipulators";
