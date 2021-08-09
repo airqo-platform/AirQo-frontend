@@ -41,28 +41,12 @@ function Overview(props) {
                 <p>
                   Is an essential tool for the growing network. After specifying
                   the broad region in which devices are to be located eg a
-                  specific town or district, \users can specify the location of
-                  existing devices,‘must-have’ locations. The tool can then
-                  recommend final locations based on either the number of
+                  specific town or district, users can also specify the location
+                  of existing devices, and ‘must-have’ locations. The tool can
+                  then recommend final locations based on either the number of
                   devices available or the accuracy required across the network.
                   Locations can then be added to scheduling for deployment in
                   the required timeframe.
-                </p>
-              </span>
-            ),
-          },
-          {
-            tabButton: "Scheduling",
-            tabIcon: Schedule,
-            tabContent: (
-              <span>
-                <p>
-                  As networks grow networks become more difficult to manage with
-                  ongoing and emergency maintenance combined with collocation
-                  and deployment activities all competing for time. The
-                  scheduling tool will provide the manager and their team with a
-                  customisable plan of action that takes into account routine
-                  works, issues arising and changing priorities
                 </p>
               </span>
             ),
@@ -90,14 +74,33 @@ function Overview(props) {
             tabContent: (
               <span>
                 <p>
-                  this feature provides an easy interface for registering new
-                  devices, new locations and their features on the network.
-                  Activities can be provisioned in advance and then finalised
-                  once deployment or activity has taken place.
+                  This feature provides an easy interface for registering new
+                  devices, updating and deleting existing devices on the
+                  network. On each device overview-page, further information
+                  about the device (location, uptime, deployment status, etc)
+                  can obtained.
                 </p>
               </span>
             ),
           },
+
+          {
+            tabButton: "Scheduling",
+            tabIcon: Schedule,
+            tabContent: (
+              <span>
+                <p>
+                  As networks grow networks become more difficult to manage with
+                  ongoing and emergency maintenance combined with collocation
+                  and deployment activities all competing for time. The
+                  scheduling tool will provide the manager and their team with a
+                  customisable plan of action that takes into account routine
+                  works, issues arising and changing priorities
+                </p>
+              </span>
+            ),
+          },
+
           {
             tabButton: "Incentives",
             tabIcon: PaymentIcon,
