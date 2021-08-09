@@ -4,11 +4,12 @@ import TextField from "@material-ui/core/TextField";
 import Paper from "@material-ui/core/Paper";
 import { Button, Grid } from "@material-ui/core";
 import LabelledSelect from "../../CustomSelects/LabelledSelect";
-import { isEqual } from "underscore";
+import { isEmpty, isEqual } from "underscore";
 import { updateMainAlert } from "redux/MainAlert/operations";
 import { updateDeviceDetails } from "views/apis/deviceRegistry";
 import { loadDevicesData } from "redux/DeviceRegistry/operations";
 import { useSiteOptionsData } from "redux/SiteRegistry/selectors";
+import { loadSitesData } from "redux/SiteRegistry/operations";
 import DeviceDeployStatus from "./DeviceDeployStatus";
 import { capitalize } from "utils/string";
 import { dropEmpty } from "utils/objectManipulators";
@@ -338,11 +339,16 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
 };
 
 export default function DeviceEdit({ deviceData }) {
+  const dispatch = useDispatch();
   const siteOptions = useSiteOptionsData();
+
+  useEffect(() => {
+    if (isEmpty(siteOptions)) dispatch(loadSitesData());
+  }, []);
   return (
     <>
       <EditDeviceForm deviceData={deviceData} siteOptions={siteOptions} />
-      <DeviceDeployStatus deviceData={deviceData} />
+      <DeviceDeployStatus deviceData={deviceData} siteOptions={siteOptions} />
     </>
   );
 }
