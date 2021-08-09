@@ -15,7 +15,6 @@ import "assets/css/device-view.css";
 
 // others
 import { DeviceToolBar, DeviceToolBarContainer } from "./DeviceToolBar";
-// import DeviceDeployStatus from "./DeviceDeployStatus";
 import DeviceEdit from "./DeviceEdit";
 import DeviceLogs from "./DeviceLogs";
 import DevicePhotos from "./DevicePhotos";
@@ -82,14 +81,9 @@ export default function DeviceView() {
           />
           {/*<Route*/}
           {/*  exact*/}
-          {/*  path={`${match.url}/deploy-status`}*/}
-          {/*  component={() => <DeviceDeployStatus deviceData={deviceData} />}*/}
+          {/*  path={`${match.url}/components`}*/}
+          {/*  component={() => <DeviceComponents deviceName={deviceData.name} />}*/}
           {/*/>*/}
-          <Route
-            exact
-            path={`${match.url}/components`}
-            component={() => <DeviceComponents deviceName={deviceData.name} />}
-          />
           <Route
             exact
             path={`${match.url}/photos`}

@@ -175,8 +175,6 @@ export default function DeviceOverview({ deviceData }) {
       <DeviceOverviewCharts deviceName={deviceData.name} />
 
       <DeviceMaintenanceLogs deviceName={deviceData.name} />
-
-      <DeviceComponents deviceName={deviceData.name} />
     </div>
   );
 }
