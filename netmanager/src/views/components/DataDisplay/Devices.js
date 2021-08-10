@@ -29,9 +29,8 @@ import { humanReadableDate } from "utils/dateTime";
 import { useSitesData } from "redux/SiteRegistry/selectors";
 import { loadSitesData } from "redux/SiteRegistry/operations";
 import {
-  createAlertBarExtraContent,
+  createAlertBarExtraContentFromObject,
   dropEmpty,
-  mergeErrorObjects,
 } from "utils/objectManipulators";
 
 // css
@@ -212,7 +211,7 @@ const createDeviceColumns = (history, setDelState) => [
   },
 ];
 
-const CreateDevice = ({ open, setOpen, devices, setDevices }) => {
+const CreateDevice = ({ open, setOpen }) => {
   const classes = useStyles();
   const dispatch = useDispatch();
   const newDeviceInitState = {
@@ -255,6 +254,7 @@ const CreateDevice = ({ open, setOpen, devices, setDevices }) => {
   const handleRegisterClose = () => {
     setOpen(false);
     setNewDevice(newDeviceInitState);
+    setErrors(initialErrors);
   };
 
   let handleRegisterSubmit = (e) => {
@@ -278,12 +278,8 @@ const CreateDevice = ({ open, setOpen, devices, setDevices }) => {
       .catch((error) => {
         const errors =
           error.response && error.response.data && error.response.data.errors;
-        setErrors(
-          mergeErrorObjects(errors || [], {
-            errorKey: "param",
-            errorMsgKey: "msg",
-          }) || initialErrors
-        );
+        console.log("errors", errors);
+        setErrors(errors || initialErrors);
         dispatch(
           updateMainAlert({
             message:
@@ -292,10 +288,7 @@ const CreateDevice = ({ open, setOpen, devices, setDevices }) => {
               error.response.data.message,
             show: true,
             severity: "error",
-            extra: createAlertBarExtraContent(
-              errors || [],
-              (value) => `${value.param} - ${value.msg}`
-            ),
+            extra: createAlertBarExtraContentFromObject(errors || {}),
           })
         );
       });
@@ -592,8 +585,6 @@ const DevicesTable = (props) => {
       <CreateDevice
         open={registerOpen}
         setOpen={setRegisterOpen}
-        devices={deviceList}
-        setDevices={setDeviceList}
       />
       <ConfirmDialog
         open={delDevice.open}
