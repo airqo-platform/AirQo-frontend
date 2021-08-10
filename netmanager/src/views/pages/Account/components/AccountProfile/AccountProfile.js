@@ -174,7 +174,15 @@ const AccountProfile = (props) => {
               );
             });
         })
-        .catch((err) => {});
+        .catch(() => {
+          dispatch(
+            updateMainAlert({
+              message: "picture upload failed",
+              show: true,
+              severity: "error",
+            })
+          );
+        });
       setProfileUploading(false);
     }
   };
