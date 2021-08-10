@@ -64,7 +64,7 @@ export class IntroPage {
   // Go To HomePage
   // --------------------------------------------------------------------------------------------------------------------
   goToHomePage(){
-    this.storage.set('intro_page', '1');
+    this.storage.set('first_use', '1');
     this.navCtrl.push(HomePage);
   }
 

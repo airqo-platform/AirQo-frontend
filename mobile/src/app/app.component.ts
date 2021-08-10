@@ -1,5 +1,6 @@
 import { HomePage } from './../pages/home/home';
 import { IntroPage } from './../pages/intro/intro';
+import { LoadingPage } from './../pages/loading-page/loaging-page';
 import {Component, ViewChild} from '@angular/core';
 import { Platform, AlertController, App, ToastController, NavController } from 'ionic-angular';
 import { StatusBar } from '@ionic-native/status-bar';
@@ -14,7 +15,9 @@ export class MyApp {
 
   @ViewChild('content') navCtrl: NavController
 
-  rootPage: any = IntroPage;
+  // rootPage: any = IntroPage;
+  rootPage: any = LoadingPage;
+  
 
   constructor(app: App, platform: Platform, statusBar: StatusBar, splashScreen: SplashScreen, private storage: Storage, device: Device, 
     alertCtrl: AlertController, toastCtrl: ToastController) {
@@ -64,6 +67,8 @@ export class MyApp {
       this.storage.get('first_use').then((val) => {
         if(val && val != '') {
           this.rootPage = HomePage;
+        }else {
+          this.rootPage = IntroPage;
         }
       });
 
