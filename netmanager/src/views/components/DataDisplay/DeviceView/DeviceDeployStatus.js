@@ -21,7 +21,6 @@ import {
 } from "../../../apis/deviceRegistry";
 import { updateMainAlert } from "redux/MainAlert/operations";
 import { getElapsedDurationMapper, getFirstNDurations } from "utils/dateTime";
-import { updateDevice } from "redux/DeviceRegistry/operations";
 import ConfirmDialog from "views/containers/ConfirmDialog";
 import LabelledSelect from "../../CustomSelects/LabelledSelect";
 import { loadDevicesData } from "redux/DeviceRegistry/operations";
@@ -411,7 +410,6 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
             severity: "success",
           })
         );
-
       })
       .catch((err) => {
         const errors =
@@ -433,6 +431,7 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
 
     await recallDeviceApi(deviceData.name)
       .then((responseData) => {
+        dispatch(loadDevicesData());
         dispatch(
           updateMainAlert({
             message: responseData.message,
@@ -440,7 +439,6 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
             severity: "success",
           })
         );
-        dispatch(updateDevice(deviceData.name, responseData.updatedDevice));
       })
       .catch((err) => {
         dispatch(
@@ -614,11 +612,12 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
             </TextField>
 
             <TextField
+              select
               label="Mount Type"
               required
               variant="outlined"
               style={{ marginBottom: "15px" }}
-              value={installationType}
+              value={capitalize(installationType)}
               error={!!errors.mountType}
               helperText={errors.mountType}
               onChange={(event) => {
@@ -631,8 +630,19 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
                       : errors.installationType,
                 });
               }}
+              SelectProps={{
+                native: true,
+                style: { width: "100%", height: "50px" },
+              }}
               fullWidth
-            />
+            >
+              <option value="" />
+              <option value="Faceboard">Faceboard</option>
+              <option value="Pole">Pole</option>
+              <option value="Rooftop">Rooftop</option>
+              <option value="Suspended">Suspended</option>
+              <option value="Wall">Wall</option>
+            </TextField>
 
             <TextField
               label="Longitude"

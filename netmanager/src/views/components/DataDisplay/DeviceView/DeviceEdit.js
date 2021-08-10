@@ -314,16 +314,28 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
           <Grid items xs={12} sm={4} style={gridItemStyle}>
             <TextField
               autoFocus
+              select
               margin="dense"
               variant="outlined"
               id="mountType"
               label="Mount Type"
-              value={editData.mountType}
-              onChange={handleTextFieldChange}
+              value={capitalize(editData.mountType)}
+              onChange={handleSelectFieldChange("mountType")}
+              SelectProps={{
+                native: true,
+                style: { width: "100%", height: "50px" },
+              }}
               error={!!errors.mountType}
               helperText={errors.mountType}
               fullWidth
-            />
+            >
+              <option value="" />
+              <option value="Faceboard">Faceboard</option>
+              <option value="Pole">Pole</option>
+              <option value="Rooftop">Rooftop</option>
+              <option value="Suspended">Suspended</option>
+              <option value="Wall">Wall</option>
+            </TextField>
           </Grid>
 
           <Grid items xs={12} sm={4} style={gridItemStyle}>

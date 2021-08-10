@@ -78,11 +78,6 @@ export default function DeviceView() {
               />
             )}
           />
-          {/*<Route*/}
-          {/*  exact*/}
-          {/*  path={`${match.url}/components`}*/}
-          {/*  component={() => <DeviceComponents deviceName={deviceData.name} />}*/}
-          {/*/>*/}
           <Route
             exact
             path={`${match.url}/photos`}
