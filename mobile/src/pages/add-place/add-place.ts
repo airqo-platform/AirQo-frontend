@@ -1,4 +1,5 @@
 import { FavoritesPage } from './../favorites/favorites';
+import { HomePage } from './../home/home';
 import { NavController, NavParams, ToastController, ViewController, LoadingController, AlertController, Searchbar } from 'ionic-angular';
 import { Storage } from '@ionic/storage';
 import { Component, ViewChild } from '@angular/core';
@@ -172,12 +173,18 @@ export class AddPlacePage {
           this.alertCtrl.create({
             message: `${ node.name } has been added to your Places.`,
             buttons: [{
-              text: 'Add Another',
+              text: 'Add Another Place',
               handler: () => { }
             },{
               text: 'Go To My Places',
               handler: () => {
                 this.navCtrl.push(FavoritesPage);
+              },
+            },
+            {
+              text: 'Take me to the Home Page',
+              handler: () => {
+                this.navCtrl.push(HomePage);
               }
             }]
           }).present();
@@ -194,12 +201,18 @@ export class AddPlacePage {
         this.alertCtrl.create({
           message:  `${ node.name } has been added to your to your Places.`,
           buttons: [{
-            text: 'Add Another',
+            text: 'Add Another Place',
             handler: () => { }
           },{
             text: 'Go To My Places',
             handler: () => {
               this.navCtrl.push(FavoritesPage);
+            }
+          },
+          {
+            text: 'Take me to the Home Page',
+            handler: () => {
+              this.navCtrl.push(HomePage);
             }
           }]
         }).present();

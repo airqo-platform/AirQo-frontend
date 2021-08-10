@@ -51,14 +51,15 @@ var KeyPage = /** @class */ (function () {
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return AddPlacePage; });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__favorites_favorites__ = __webpack_require__(49);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_ionic_angular__ = __webpack_require__(11);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__ionic_storage__ = __webpack_require__(14);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__angular_core__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__angular_common_http__ = __webpack_require__(30);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__providers_api_api__ = __webpack_require__(24);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__angular_forms__ = __webpack_require__(15);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7_rxjs_add_operator_debounceTime__ = __webpack_require__(345);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7_rxjs_add_operator_debounceTime___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_7_rxjs_add_operator_debounceTime__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__home_home__ = __webpack_require__(36);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_ionic_angular__ = __webpack_require__(11);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__ionic_storage__ = __webpack_require__(14);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__angular_core__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__angular_common_http__ = __webpack_require__(30);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__providers_api_api__ = __webpack_require__(24);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__angular_forms__ = __webpack_require__(15);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8_rxjs_add_operator_debounceTime__ = __webpack_require__(345);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8_rxjs_add_operator_debounceTime___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_8_rxjs_add_operator_debounceTime__);
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -68,6 +69,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+
 
 
 
@@ -93,7 +95,7 @@ var AddPlacePage = /** @class */ (function () {
         this.temp_array_nodes = [];
         this.holding_array_nodes = [];
         this.favorite_nodes = [];
-        this.textInput = new __WEBPACK_IMPORTED_MODULE_6__angular_forms__["a" /* FormControl */]('');
+        this.textInput = new __WEBPACK_IMPORTED_MODULE_7__angular_forms__["a" /* FormControl */]('');
         this.get_places_nodes_list_api = this.api.api_endpoint + "/airqoPlacesCached";
         this.textInput
             .valueChanges
@@ -218,12 +220,18 @@ var AddPlacePage = /** @class */ (function () {
                     _this.alertCtrl.create({
                         message: node.name + " has been added to your Places.",
                         buttons: [{
-                                text: 'Add Another',
+                                text: 'Add Another Place',
                                 handler: function () { }
                             }, {
                                 text: 'Go To My Places',
                                 handler: function () {
                                     _this.navCtrl.push(__WEBPACK_IMPORTED_MODULE_0__favorites_favorites__["a" /* FavoritesPage */]);
+                                },
+                            },
+                            {
+                                text: 'Take me to the Home Page',
+                                handler: function () {
+                                    _this.navCtrl.push(__WEBPACK_IMPORTED_MODULE_1__home_home__["a" /* HomePage */]);
                                 }
                             }]
                     }).present();
@@ -237,12 +245,18 @@ var AddPlacePage = /** @class */ (function () {
                 _this.alertCtrl.create({
                     message: node.name + " has been added to your to your Places.",
                     buttons: [{
-                            text: 'Add Another',
+                            text: 'Add Another Place',
                             handler: function () { }
                         }, {
                             text: 'Go To My Places',
                             handler: function () {
                                 _this.navCtrl.push(__WEBPACK_IMPORTED_MODULE_0__favorites_favorites__["a" /* FavoritesPage */]);
+                            }
+                        },
+                        {
+                            text: 'Take me to the Home Page',
+                            handler: function () {
+                                _this.navCtrl.push(__WEBPACK_IMPORTED_MODULE_1__home_home__["a" /* HomePage */]);
                             }
                         }]
                 }).present();
@@ -278,17 +292,16 @@ var AddPlacePage = /** @class */ (function () {
             }
         });
     };
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
     __decorate([
-        Object(__WEBPACK_IMPORTED_MODULE_3__angular_core__["_8" /* ViewChild */])('mySearchbar'),
-        __metadata("design:type", __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["m" /* Searchbar */])
+        Object(__WEBPACK_IMPORTED_MODULE_4__angular_core__["_8" /* ViewChild */])('mySearchbar'),
+        __metadata("design:type", typeof (_a = typeof __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["m" /* Searchbar */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["m" /* Searchbar */]) === "function" && _a || Object)
     ], AddPlacePage.prototype, "searchbar", void 0);
     AddPlacePage = __decorate([
-        Object(__WEBPACK_IMPORTED_MODULE_3__angular_core__["m" /* Component */])({
-            selector: 'page-add-place',template:/*ion-inline-start:"/home/noah/projects/airqo/AirQo-frontend/mobile/src/pages/add-place/add-place.html"*/'<ion-header>\n  <ion-navbar>\n    <ion-title>Add Place</ion-title>\n    <ion-buttons end>\n      <button (click)="closeModal()" color="blue" ion-button icon-only round clear>\n        <ion-icon name="md-close"></ion-icon>\n      </button>\n    </ion-buttons>\n  </ion-navbar>\n</ion-header>\n<ion-content padding>\n  <p class="title" *ngIf="places_nodes_list_api_success == \'100\'">Select or search a place to add to your places</p>\n  <ion-searchbar #mySearchbar type="text" color="light" placeholder="Search city or area" [formControl]="textInput"></ion-searchbar>\n  <ion-list *ngIf="places_nodes_list_api_success == \'100\'">\n    <ion-item *ngFor="let node of nodes" (click)="addToFavoritesList(node)">\n      <ion-icon name="pin" color="grey" item-start></ion-icon>\n      <div text-wrap class="area-title">{{ node.name }}</div>\n      <div text-wrap class="area-sub-title">{{ node.location }}</div>\n    </ion-item>\n\n    <ion-item>\n      <div class="center" text-wrap *ngIf="temp_array_nodes.length <= 0">Could not find place</div>\n    </ion-item>\n  </ion-list>\n</ion-content>'/*ion-inline-end:"/home/noah/projects/airqo/AirQo-frontend/mobile/src/pages/add-place/add-place.html"*/,
+        Object(__WEBPACK_IMPORTED_MODULE_4__angular_core__["m" /* Component */])({
+            selector: 'page-add-place',template:/*ion-inline-start:"/home/noah/projects/airqo/AirQo-frontend/mobile/src/pages/add-place/add-place.html"*/'<ion-header>\n  <ion-navbar>\n    <ion-title>Add Place</ion-title>\n    <ion-buttons end>\n      <button (click)="onlineLoadNodes()" color="blue" ion-button icon-only round clear>\n        <ion-icon name="md-refresh"></ion-icon>\n      </button>\n      <button (click)="closeModal()" color="blue" ion-button icon-only round clear>\n        <ion-icon name="md-close"></ion-icon>\n      </button>\n    </ion-buttons>\n  </ion-navbar>\n</ion-header>\n<ion-content padding>\n  <p class="title" *ngIf="places_nodes_list_api_success == \'100\'">Select or search a place to add to your places</p>\n  <ion-searchbar #mySearchbar type="text" color="light" placeholder="Search city or area" [formControl]="textInput"></ion-searchbar>\n  <ion-list *ngIf="places_nodes_list_api_success == \'100\'">\n    <ion-item *ngFor="let node of nodes" (click)="addToFavoritesList(node)">\n      <ion-icon name="pin" color="grey" item-start></ion-icon>\n      <div text-wrap class="area-title">{{ node.name }}</div>\n      <div text-wrap class="area-sub-title">{{ node.location }}</div>\n    </ion-item>\n\n    <ion-item>\n      <div class="center" text-wrap *ngIf="temp_array_nodes.length <= 0">Could not find place</div>\n    </ion-item>\n  </ion-list>\n</ion-content>'/*ion-inline-end:"/home/noah/projects/airqo/AirQo-frontend/mobile/src/pages/add-place/add-place.html"*/,
         }),
-        __metadata("design:paramtypes", [__WEBPACK_IMPORTED_MODULE_1_ionic_angular__["i" /* NavController */], __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["j" /* NavParams */], __WEBPACK_IMPORTED_MODULE_2__ionic_storage__["b" /* Storage */], __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["o" /* ToastController */],
-            __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["p" /* ViewController */], __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["g" /* LoadingController */], __WEBPACK_IMPORTED_MODULE_4__angular_common_http__["a" /* HttpClient */],
-            __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["b" /* AlertController */], __WEBPACK_IMPORTED_MODULE_5__providers_api_api__["a" /* ApiProvider */]])
+        __metadata("design:paramtypes", [typeof (_b = typeof __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["i" /* NavController */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["i" /* NavController */]) === "function" && _b || Object, typeof (_c = typeof __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["j" /* NavParams */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["j" /* NavParams */]) === "function" && _c || Object, typeof (_d = typeof __WEBPACK_IMPORTED_MODULE_3__ionic_storage__["b" /* Storage */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_3__ionic_storage__["b" /* Storage */]) === "function" && _d || Object, typeof (_e = typeof __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["o" /* ToastController */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["o" /* ToastController */]) === "function" && _e || Object, typeof (_f = typeof __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["p" /* ViewController */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["p" /* ViewController */]) === "function" && _f || Object, typeof (_g = typeof __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["g" /* LoadingController */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["g" /* LoadingController */]) === "function" && _g || Object, typeof (_h = typeof __WEBPACK_IMPORTED_MODULE_5__angular_common_http__["a" /* HttpClient */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_5__angular_common_http__["a" /* HttpClient */]) === "function" && _h || Object, typeof (_j = typeof __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["b" /* AlertController */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["b" /* AlertController */]) === "function" && _j || Object, typeof (_k = typeof __WEBPACK_IMPORTED_MODULE_6__providers_api_api__["a" /* ApiProvider */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_6__providers_api_api__["a" /* ApiProvider */]) === "function" && _k || Object])
     ], AddPlacePage);
     return AddPlacePage;
 }());
