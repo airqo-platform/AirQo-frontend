@@ -278,7 +278,6 @@ const CreateDevice = ({ open, setOpen }) => {
       .catch((error) => {
         const errors =
           error.response && error.response.data && error.response.data.errors;
-        console.log("errors", errors);
         setErrors(errors || initialErrors);
         dispatch(
           updateMainAlert({

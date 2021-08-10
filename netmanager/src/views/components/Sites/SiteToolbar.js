@@ -14,11 +14,8 @@ import {
 } from "@material-ui/core";
 import { createSiteApi } from "views/apis/deviceRegistry";
 import { loadSitesData } from "redux/SiteRegistry/operations";
-import { updateMainAlert } from "../../../redux/MainAlert/operations";
-import {
-  createAlertBarExtraContent,
-  mergeErrorObjects,
-} from "../../../utils/objectManipulators";
+import { updateMainAlert } from "redux/MainAlert/operations";
+import { createAlertBarExtraContentFromObject } from "utils/objectManipulators";
 
 const useStyles = makeStyles((theme) => ({
   root: {},
@@ -103,12 +100,7 @@ const SiteToolbar = (props) => {
       .catch((error) => {
         const errors =
           error.response && error.response.data && error.response.data.errors;
-        setErrors(
-          mergeErrorObjects(errors || [], {
-            errorKey: "param",
-            errorMsgKey: "msg",
-          }) || initErrorData
-        );
+        setErrors(errors || initErrorData);
         dispatch(
           updateMainAlert({
             message:
@@ -117,10 +109,7 @@ const SiteToolbar = (props) => {
               error.response.data.message,
             show: true,
             severity: "error",
-            extra: createAlertBarExtraContent(
-              errors || [],
-              (value) => `${value.param} - ${value.msg}`
-            ),
+            extra: createAlertBarExtraContentFromObject(errors || {}),
           })
         );
       });
