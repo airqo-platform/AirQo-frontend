@@ -18,7 +18,6 @@ import { DeviceToolBar, DeviceToolBarContainer } from "./DeviceToolBar";
 import DeviceEdit from "./DeviceEdit";
 import DeviceLogs from "./DeviceLogs";
 import DevicePhotos from "./DevicePhotos";
-import DeviceComponents from "./DeviceComponents";
 import DeviceOverview from "./DeviceOverview/DeviceOverview";
 import { useDevicesData } from "redux/DeviceRegistry/selectors";
 import { loadDevicesData } from "redux/DeviceRegistry/operations";
