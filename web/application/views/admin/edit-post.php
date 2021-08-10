@@ -198,10 +198,11 @@
 
 <script src="<?= base_url(); ?>assets/global/scripts/loadingoverlay.min.js"></script>
 <script src="<?= base_url(); ?>assets/ckeditor/build/ckeditor.js"></script>
-<!-- <script src="https://cdn.ckeditor.com/ckeditor5/29.0.0/classic/ckeditor.js"></script> -->
-<script src="https://ckeditor.com/apps/ckfinder/3.5.0/ckfinder.js"></script>
-     <!-- <script src="<?= base_url(); ?>assets/admin/pages/scripts/form-samples.js"></script> -->
-     <!-- END PAGE LEVEL SCRIPTS -->
+<script src="<?= base_url(); ?>assets/ckfinder/ckfinder.js"></script>
+<!-- <script src="https://ckeditor.com/apps/ckfinder/3.5.0/ckfinder.js"></script> -->
+
+<!-- <script src="<?= base_url(); ?>assets/admin/pages/scripts/form-samples.js"></script> -->
+<!-- END PAGE LEVEL SCRIPTS -->
     
 <!-- Insert these scripts at the bottom of the HTML, but before you use any Firebase services -->
 
@@ -349,8 +350,7 @@ $(document).ready(function() {
                         options: {
                             resourceType: 'Images'
                         },
-                        // uploadUrl: '/ckfinder/core/connector/php/connector.php?command=QuickUpload&type=Files&responseType=json'
-                        uploadUrl: '/ckfinder/core/connector/php/connector.php?command=QuickUpload&type=Files&responseType=json'
+                        uploadUrl: '/assets/ckfinder/core/connector/php/connector.php?command=QuickUpload&type=Files&responseType=json'
                     },
                     //plugins: [ Paragraph, Bold, Italic, Image, InsertImage, ImageCaption ],
                     toolbar: {
@@ -368,9 +368,9 @@ $(document).ready(function() {
                             'underline',
                             'bulletedList',
                             'numberedList',
-                            'linkImage',
+                            //'linkImage',
                             //'imageUpload',
-                            //'imageInsert',
+                            'imageInsert',
                             '|',
                             'indent',
                             'outdent',
@@ -447,7 +447,7 @@ $(document).ready(function() {
                             'tableProperties'
                         ]
                     },
-                    licenseKey: '',
+                    licenseKey: '*E?G-*1**-D**B-*D**-*6**-E*M*-2**C',
                     
                 } )
                 .then( editor => {

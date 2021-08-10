@@ -87,7 +87,7 @@ defined('EXIT__AUTO_MAX')      or define('EXIT__AUTO_MAX', 125); // highest auto
 
 define('FORECAST_LINK', 'https://staging-platform.airqo.net/api/v2/predict/');
 define('FORECAST_LINK_OLD', 'https://forecast-dot-airqo-250220.appspot.com/api/v1/forecast/feeds/');
-define('HOURLY_FEEDS', 'https://data-manager-dot-airqo-250220.appspot.com/api/v1/data/feeds/hourly/');
+define('HOURLY_FEEDS', 'https://staging-platform.airqo.net/api/v1/data/hourly/feeds?channel=');
 define('RECENT_FEEDS','https://data-manager-dot-airqo-250220.uc.r.appspot.com/api/v1/data/feeds/recent/');
 define('DEVICES_DATA', 'https://staging-platform.airqo.net/api/v1/devices?tenant=airqo');
 define('EVENTS_DATA', 'https://staging-platform.airqo.net/api/v1/devices/events?tenant=airqo&recent=true');
