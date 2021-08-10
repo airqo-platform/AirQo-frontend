@@ -90,9 +90,9 @@ const SitesTable = () => {
               cellStyle: { fontFamily: "Open Sans" },
             },
             {
-              title: "County",
-              field: "county",
-              render: renderCell("county"),
+              title: "Country",
+              field: "country",
+              render: renderCell("country"),
               cellStyle: { fontFamily: "Open Sans" },
             },
             {
