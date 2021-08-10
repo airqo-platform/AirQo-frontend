@@ -182,7 +182,7 @@ export class AddPlacePage {
               },
             },
             {
-              text: 'Take me to the Home Page',
+              text: 'Close',
               handler: () => {
                 this.navCtrl.push(HomePage);
               }
@@ -210,7 +210,7 @@ export class AddPlacePage {
             }
           },
           {
-            text: 'Take me to the Home Page',
+            text: 'Close',
             handler: () => {
               this.navCtrl.push(HomePage);
             }
