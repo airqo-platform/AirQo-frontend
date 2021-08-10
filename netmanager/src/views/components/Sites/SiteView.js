@@ -34,6 +34,7 @@ const SiteForm = ({ site }) => {
   const goBackUrl = useSiteBackUrl();
 
   const [siteInfo, setSiteInfo] = useState(site);
+  const [errors, setErrors] = useState({});
   const [manualDisable, setManualDisable] = useState(false);
 
   const weightedBool = (first, second) => {
@@ -66,10 +67,13 @@ const SiteForm = ({ site }) => {
         dispatch(loadSitesData());
       })
       .catch((err) => {
+        const errors =
+          (err.response && err.response.data && err.response.data.error) || {};
+        setErrors(errors);
         dispatch(
           updateMainAlert({
             severity: "error",
-            message: err.response.data.message,
+            message: err.response && err.response.data.message,
             show: true,
           })
         );
@@ -117,6 +121,8 @@ const SiteForm = ({ site }) => {
             variant="outlined"
             value={siteInfo.name}
             onChange={handleSiteInfoChange}
+            error={!!errors.name}
+            helperText={errors.name}
             fullWidth
             required
           />
@@ -128,6 +134,8 @@ const SiteForm = ({ site }) => {
             value={siteInfo.description}
             variant="outlined"
             onChange={handleSiteInfoChange}
+            error={!!errors.description}
+            helperText={errors.description}
             fullWidth
             required
           />
@@ -139,6 +147,8 @@ const SiteForm = ({ site }) => {
             value={siteInfo.latitude}
             variant="outlined"
             onChange={handleSiteInfoChange}
+            error={!!errors.latitude}
+            helperText={errors.latitude}
             fullWidth
             required
           />
@@ -150,6 +160,8 @@ const SiteForm = ({ site }) => {
             variant="outlined"
             value={siteInfo.longitude}
             onChange={handleSiteInfoChange}
+            error={!!errors.longitude}
+            helperText={errors.longitude}
             fullWidth
           />
         </Grid>
@@ -160,6 +172,8 @@ const SiteForm = ({ site }) => {
             variant="outlined"
             value={siteInfo.parish}
             onChange={handleSiteInfoChange}
+            error={!!errors.parish}
+            helperText={errors.parish}
             fullWidth
           />
         </Grid>
@@ -170,6 +184,8 @@ const SiteForm = ({ site }) => {
             variant="outlined"
             value={siteInfo.sub_county}
             onChange={handleSiteInfoChange}
+            error={!!errors.sub_county}
+            helperText={errors.sub_county}
             fullWidth
           />
         </Grid>
@@ -180,6 +196,8 @@ const SiteForm = ({ site }) => {
             variant="outlined"
             value={siteInfo.district}
             onChange={handleSiteInfoChange}
+            error={!!errors.district}
+            helperText={errors.district}
             fullWidth
             required
           />
@@ -191,6 +209,8 @@ const SiteForm = ({ site }) => {
             variant="outlined"
             value={siteInfo.region}
             onChange={handleSiteInfoChange}
+            error={!!errors.region}
+            helperText={errors.region}
             fullWidth
           />
         </Grid>
@@ -201,6 +221,8 @@ const SiteForm = ({ site }) => {
             variant="outlined"
             value={siteInfo.altitude}
             onChange={handleSiteInfoChange}
+            error={!!errors.altitude}
+            helperText={errors.altitude}
             fullWidth
             required
           />
@@ -212,6 +234,8 @@ const SiteForm = ({ site }) => {
             variant="outlined"
             value={siteInfo.greenness}
             onChange={handleSiteInfoChange}
+            error={!!errors.greenness}
+            helperText={errors.greenness}
             fullWidth
           />
         </Grid>
@@ -222,6 +246,8 @@ const SiteForm = ({ site }) => {
             variant="outlined"
             value={siteInfo.distance_to_nearest_road}
             onChange={handleSiteInfoChange}
+            error={!!errors.distance_to_nearest_road}
+            helperText={errors.distance_to_nearest_road}
             fullWidth
           />
         </Grid>
@@ -232,6 +258,8 @@ const SiteForm = ({ site }) => {
             variant="outlined"
             value={siteInfo.distance_to_nearest_primary_road}
             onChange={handleSiteInfoChange}
+            error={!!errors.distance_to_nearest_primary_road}
+            helperText={errors.distance_to_nearest_primary_road}
             fullWidth
           />
         </Grid>
@@ -242,6 +270,8 @@ const SiteForm = ({ site }) => {
             variant="outlined"
             value={siteInfo.distance_to_nearest_tertiary_road}
             onChange={handleSiteInfoChange}
+            error={!!errors.distance_to_nearest_tertiary_road}
+            helperText={errors.distance_to_nearest_tertiary_road}
             fullWidth
           />
         </Grid>
@@ -252,6 +282,8 @@ const SiteForm = ({ site }) => {
             variant="outlined"
             value={siteInfo.distance_to_nearest_unclassified_road}
             onChange={handleSiteInfoChange}
+            error={!!errors.distance_to_nearest_unclassified_road}
+            helperText={errors.distance_to_nearest_unclassified_road}
             fullWidth
           />
         </Grid>
@@ -262,6 +294,8 @@ const SiteForm = ({ site }) => {
             variant="outlined"
             value={siteInfo.distance_to_nearest_residential_area}
             onChange={handleSiteInfoChange}
+            error={!!errors.distance_to_nearest_residential_area}
+            helperText={errors.distance_to_nearest_residential_area}
             fullWidth
           />
         </Grid>
@@ -272,6 +306,8 @@ const SiteForm = ({ site }) => {
             variant="outlined"
             value={siteInfo.bearing_to_kampala_center}
             onChange={handleSiteInfoChange}
+            error={!!errors.bearing_to_kampala_center}
+            helperText={errors.bearing_to_kampala_center}
             fullWidth
           />
         </Grid>
@@ -282,6 +318,8 @@ const SiteForm = ({ site }) => {
             label="Distance to Kampala center (km)"
             value={siteInfo.distance_to_kampala_center}
             onChange={handleSiteInfoChange}
+            error={!!errors.distance_to_kampala_center}
+            helperText={errors.distance_to_kampala_center}
             fullWidth
           />
         </Grid>
