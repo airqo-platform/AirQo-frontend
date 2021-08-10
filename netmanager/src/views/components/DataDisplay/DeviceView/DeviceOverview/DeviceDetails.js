@@ -21,7 +21,7 @@ const DeviceDetails = ({ deviceData }) => {
               <TableCell>
                 <b>Name</b>
               </TableCell>
-              <TableCell>{deviceData.name || BLANK_PLACE_HOLDER}</TableCell>
+              <TableCell>{deviceData.long_name || BLANK_PLACE_HOLDER}</TableCell>
             </TableRow>
             <TableRow>
               <TableCell>
