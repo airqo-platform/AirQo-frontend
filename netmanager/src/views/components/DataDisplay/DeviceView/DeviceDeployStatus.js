@@ -24,7 +24,7 @@ import { getElapsedDurationMapper, getFirstNDurations } from "utils/dateTime";
 import { updateDevice } from "redux/DeviceRegistry/operations";
 import ConfirmDialog from "views/containers/ConfirmDialog";
 import LabelledSelect from "../../CustomSelects/LabelledSelect";
-import { formatDate } from "utils/dateTime";
+import { loadDevicesData } from "redux/DeviceRegistry/operations";
 import { capitalize } from "utils/string";
 import { filterSite } from "utils/sites";
 
@@ -403,6 +403,7 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
     setDeployLoading(true);
     await deployDeviceApi(deviceData.name, deployData)
       .then((responseData) => {
+        dispatch(loadDevicesData());
         dispatch(
           updateMainAlert({
             message: responseData.message,
@@ -410,7 +411,7 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
             severity: "success",
           })
         );
-        dispatch(updateDevice(deviceData.name, responseData.updatedDevice));
+
       })
       .catch((err) => {
         const errors =
@@ -629,19 +630,6 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
                       ? ""
                       : errors.installationType,
                 });
-              }}
-              fullWidth
-            />
-
-            <TextField
-              label="Date of Deployment"
-              type="date"
-              defaultValue={formatDate(new Date())}
-              required
-              variant="outlined"
-              style={{ marginBottom: "15px" }}
-              onChange={(event) => {
-                setDeploymentDate(new Date(event.target.value));
               }}
               fullWidth
             />
