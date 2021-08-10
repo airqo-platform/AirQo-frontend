@@ -1,11 +1,8 @@
-import { HomePage } from './../pages/home/home';
-import { IntroPage } from './../pages/intro/intro';
 import { LoadingPage } from './../pages/loading-page/loaging-page';
 import {Component, ViewChild} from '@angular/core';
 import { Platform, AlertController, App, ToastController, NavController } from 'ionic-angular';
 import { StatusBar } from '@ionic-native/status-bar';
 import { SplashScreen } from '@ionic-native/splash-screen';
-import { Storage } from '@ionic/storage';
 import { Device } from '@ionic-native/device';
 
 @Component({
@@ -14,12 +11,10 @@ import { Device } from '@ionic-native/device';
 export class MyApp {
 
   @ViewChild('content') navCtrl: NavController
-
-  // rootPage: any = IntroPage;
   rootPage: any = LoadingPage;
   
 
-  constructor(app: App, platform: Platform, statusBar: StatusBar, splashScreen: SplashScreen, private storage: Storage, device: Device, 
+  constructor(app: App, platform: Platform, statusBar: StatusBar, splashScreen: SplashScreen, device: Device, 
     alertCtrl: AlertController, toastCtrl: ToastController) {
 
     platform.ready().then(() => {
@@ -64,13 +59,13 @@ export class MyApp {
         }
       }
 
-      this.storage.get('first_use').then((val) => {
-        if(val && val != '') {
-          this.rootPage = HomePage;
-        }else {
-          this.rootPage = IntroPage;
-        }
-      });
+      // this.storage.get('first_use').then((val) => {
+      //   if(val && val != '') {
+      //     this.rootPage = HomePage;
+      //   }else {
+      //     this.rootPage = IntroPage;
+      //   }
+      // });
 
     });
   }
@@ -78,14 +73,14 @@ export class MyApp {
   // --------------------------------------------------------------------------------------------------------------------
   // See if user is first time user or not
   // --------------------------------------------------------------------------------------------------------------------
-  directUser() {
-    this.storage.get('first_use').then((val) => {
-      if(val && val != null && val != '') {
-        this.rootPage = HomePage;
-      } else {
-        this.rootPage = IntroPage;
-      }
-    });
-  }
+  // directUser() {
+  //   this.storage.get('first_use').then((val) => {
+  //     if(val && val != null && val != '') {
+  //       this.rootPage = HomePage;
+  //     } else {
+  //       this.rootPage = IntroPage;
+  //     }
+  //   });
+  // }
 }
 

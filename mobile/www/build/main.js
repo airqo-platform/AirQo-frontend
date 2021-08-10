@@ -2212,6 +2212,10 @@ var SettingsPage = /** @class */ (function () {
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return LoadingPage; });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__angular_core__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__ionic_storage__ = __webpack_require__(14);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_ionic_angular__ = __webpack_require__(11);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__home_home__ = __webpack_require__(31);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__intro_intro__ = __webpack_require__(353);
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -2222,8 +2226,18 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 
+
+
+
+
 var LoadingPage = /** @class */ (function () {
-    function LoadingPage() {
+    function LoadingPage(storage, navCtrl) {
+        this.storage = storage;
+        this.navCtrl = navCtrl;
+        this.sliderOptions = {
+            pager: true,
+            onlyExternal: true
+        };
     }
     // --------------------------------------------------------------------------------------------------------------------
     // When the view loads
@@ -2236,12 +2250,29 @@ var LoadingPage = /** @class */ (function () {
     LoadingPage.prototype.ionViewDidLoad = function () {
     };
     LoadingPage.prototype.ngOnInit = function () {
+        var _this = this;
+        this.storage.get('first_use').then(function (val) {
+            if (val && val != '') {
+                _this.goToHomePage();
+            }
+            else {
+                _this.goToIntroPage();
+            }
+        });
+    };
+    LoadingPage.prototype.goToHomePage = function () {
+        this.storage.set('first_use', '1');
+        this.navCtrl.push(__WEBPACK_IMPORTED_MODULE_3__home_home__["a" /* HomePage */]);
+    };
+    LoadingPage.prototype.goToIntroPage = function () {
+        this.storage.set('first_use', '1');
+        this.navCtrl.push(__WEBPACK_IMPORTED_MODULE_4__intro_intro__["a" /* IntroPage */]);
     };
     LoadingPage = __decorate([
         Object(__WEBPACK_IMPORTED_MODULE_0__angular_core__["m" /* Component */])({
-            selector: 'page-loading',template:/*ion-inline-start:"/home/noah/projects/airqo/AirQo-frontend/mobile/src/pages/loading-page/loading-page.html"*/'<ion-content class="bg-green">\n  <ion-grid class="bg-green">\n    <ion-row text-center class="bg-green">\n      <ion-col>\n        <div class="logo-section">\n          <img src="assets/logos/logo-white.png"/>\n        </div>\n        <p class="slide-sub-title">Loading....</p>\n      </ion-col>\n    </ion-row>\n  </ion-grid>\n</ion-content>\n'/*ion-inline-end:"/home/noah/projects/airqo/AirQo-frontend/mobile/src/pages/loading-page/loading-page.html"*/,
+            selector: 'page-loading',template:/*ion-inline-start:"/home/noah/projects/airqo/AirQo-frontend/mobile/src/pages/loading-page/loading-page.html"*/'\n<ion-content class="bg-blue">\n  <ion-grid class="loading-grid">\n    <ion-row text-center class="loading-row">\n      <ion-col>\n        <div class="logo-section">\n          <img src="assets/logos/logo-white-tagline.png"/>\n        </div>\n        <p class="slide-sub-title">Loading....</p>\n      </ion-col>\n    </ion-row>\n  </ion-grid>\n</ion-content>\n'/*ion-inline-end:"/home/noah/projects/airqo/AirQo-frontend/mobile/src/pages/loading-page/loading-page.html"*/,
         }),
-        __metadata("design:paramtypes", [])
+        __metadata("design:paramtypes", [__WEBPACK_IMPORTED_MODULE_1__ionic_storage__["b" /* Storage */], __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["i" /* NavController */]])
     ], LoadingPage);
     return LoadingPage;
 }());
@@ -3033,15 +3064,12 @@ webpackContext.id = 435;
 
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return MyApp; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__pages_home_home__ = __webpack_require__(31);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__pages_intro_intro__ = __webpack_require__(353);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__pages_loading_page_loaging_page__ = __webpack_require__(352);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__angular_core__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4_ionic_angular__ = __webpack_require__(11);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__ionic_native_status_bar__ = __webpack_require__(355);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__ionic_native_splash_screen__ = __webpack_require__(354);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__ionic_storage__ = __webpack_require__(14);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__ionic_native_device__ = __webpack_require__(47);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__pages_loading_page_loaging_page__ = __webpack_require__(352);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__angular_core__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_ionic_angular__ = __webpack_require__(11);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__ionic_native_status_bar__ = __webpack_require__(355);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__ionic_native_splash_screen__ = __webpack_require__(354);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__ionic_native_device__ = __webpack_require__(47);
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -3057,15 +3085,9 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 
 
 
-
-
-
 var MyApp = /** @class */ (function () {
-    function MyApp(app, platform, statusBar, splashScreen, storage, device, alertCtrl, toastCtrl) {
-        var _this = this;
-        this.storage = storage;
-        // rootPage: any = IntroPage;
-        this.rootPage = __WEBPACK_IMPORTED_MODULE_2__pages_loading_page_loaging_page__["a" /* LoadingPage */];
+    function MyApp(app, platform, statusBar, splashScreen, device, alertCtrl, toastCtrl) {
+        this.rootPage = __WEBPACK_IMPORTED_MODULE_0__pages_loading_page_loaging_page__["a" /* LoadingPage */];
         platform.ready().then(function () {
             toastCtrl.create({
                 message: 'Please wait as app sets up...',
@@ -3104,41 +3126,24 @@ var MyApp = /** @class */ (function () {
                     });
                 }
             }
-            _this.storage.get('first_use').then(function (val) {
-                if (val && val != '') {
-                    _this.rootPage = __WEBPACK_IMPORTED_MODULE_0__pages_home_home__["a" /* HomePage */];
-                }
-                else {
-                    _this.rootPage = __WEBPACK_IMPORTED_MODULE_1__pages_intro_intro__["a" /* IntroPage */];
-                }
-            });
+            // this.storage.get('first_use').then((val) => {
+            //   if(val && val != '') {
+            //     this.rootPage = HomePage;
+            //   }else {
+            //     this.rootPage = IntroPage;
+            //   }
+            // });
         });
     }
-    // --------------------------------------------------------------------------------------------------------------------
-    // See if user is first time user or not
-    // --------------------------------------------------------------------------------------------------------------------
-    MyApp.prototype.directUser = function () {
-        var _this = this;
-        this.storage.get('first_use').then(function (val) {
-            if (val && val != null && val != '') {
-                _this.rootPage = __WEBPACK_IMPORTED_MODULE_0__pages_home_home__["a" /* HomePage */];
-            }
-            else {
-                _this.rootPage = __WEBPACK_IMPORTED_MODULE_1__pages_intro_intro__["a" /* IntroPage */];
-            }
-        });
-    };
     __decorate([
-        Object(__WEBPACK_IMPORTED_MODULE_3__angular_core__["_8" /* ViewChild */])('content'),
-        __metadata("design:type", __WEBPACK_IMPORTED_MODULE_4_ionic_angular__["i" /* NavController */]
-        // rootPage: any = IntroPage;
-        )
+        Object(__WEBPACK_IMPORTED_MODULE_1__angular_core__["_8" /* ViewChild */])('content'),
+        __metadata("design:type", __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["i" /* NavController */])
     ], MyApp.prototype, "navCtrl", void 0);
     MyApp = __decorate([
-        Object(__WEBPACK_IMPORTED_MODULE_3__angular_core__["m" /* Component */])({template:/*ion-inline-start:"/home/noah/projects/airqo/AirQo-frontend/mobile/src/app/app.html"*/'<ion-nav [root]="rootPage"></ion-nav>\n'/*ion-inline-end:"/home/noah/projects/airqo/AirQo-frontend/mobile/src/app/app.html"*/
+        Object(__WEBPACK_IMPORTED_MODULE_1__angular_core__["m" /* Component */])({template:/*ion-inline-start:"/home/noah/projects/airqo/AirQo-frontend/mobile/src/app/app.html"*/'<ion-nav [root]="rootPage"></ion-nav>\n'/*ion-inline-end:"/home/noah/projects/airqo/AirQo-frontend/mobile/src/app/app.html"*/
         }),
-        __metadata("design:paramtypes", [__WEBPACK_IMPORTED_MODULE_4_ionic_angular__["c" /* App */], __WEBPACK_IMPORTED_MODULE_4_ionic_angular__["k" /* Platform */], __WEBPACK_IMPORTED_MODULE_5__ionic_native_status_bar__["a" /* StatusBar */], __WEBPACK_IMPORTED_MODULE_6__ionic_native_splash_screen__["a" /* SplashScreen */], __WEBPACK_IMPORTED_MODULE_7__ionic_storage__["b" /* Storage */], __WEBPACK_IMPORTED_MODULE_8__ionic_native_device__["a" /* Device */],
-            __WEBPACK_IMPORTED_MODULE_4_ionic_angular__["b" /* AlertController */], __WEBPACK_IMPORTED_MODULE_4_ionic_angular__["o" /* ToastController */]])
+        __metadata("design:paramtypes", [__WEBPACK_IMPORTED_MODULE_2_ionic_angular__["c" /* App */], __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["k" /* Platform */], __WEBPACK_IMPORTED_MODULE_3__ionic_native_status_bar__["a" /* StatusBar */], __WEBPACK_IMPORTED_MODULE_4__ionic_native_splash_screen__["a" /* SplashScreen */], __WEBPACK_IMPORTED_MODULE_5__ionic_native_device__["a" /* Device */],
+            __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["b" /* AlertController */], __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["o" /* ToastController */]])
     ], MyApp);
     return MyApp;
 }());
