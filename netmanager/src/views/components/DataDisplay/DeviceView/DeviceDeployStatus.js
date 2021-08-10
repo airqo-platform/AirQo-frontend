@@ -310,10 +310,11 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
   const [recallOpen, setRecallOpen] = useState(false);
   const [errors, setErrors] = useState({
     height: "",
-    power: "",
-    installationType: "",
+    powerType: "",
+    mountType: "",
     longitude: "",
     latitude: "",
+    site_id: "",
   });
 
   useEffect(() => {
@@ -350,11 +351,11 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
   const checkErrors = () => {
     const state = {
       height,
-      installationType,
-      power,
+      mountType: installationType,
+      powerType: power,
       longitude,
       latitude,
-      site,
+      site_id: site,
     };
     let newErrors = {};
     Object.keys(state).map((key) => {
@@ -412,6 +413,9 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
         dispatch(updateDevice(deviceData.name, responseData.updatedDevice));
       })
       .catch((err) => {
+        const errors =
+          (err.response && err.response.data && err.response.data.errors) || {};
+        setErrors(errors);
         dispatch(
           updateMainAlert({
             message: err.response.data.message,
@@ -551,7 +555,7 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
                   setErrors({ ...errors, site: "" });
                 }}
               />
-              {errors.site && (
+              {errors.site_id && (
                 <div
                   style={{
                     color: "red",
@@ -559,13 +563,12 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
                     fontSize: "0.7rem",
                   }}
                 >
-                  {errors.site}
+                  {errors.site_id}
                 </div>
               )}
             </div>
 
             <TextField
-              id="standard-basic"
               label="Height"
               value={height}
               onChange={handleHeightChange}
@@ -582,15 +585,14 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
             />
 
             <TextField
-              id="powerType"
               select
               fullWidth
               required
               label="Power type"
               style={{ marginBottom: "15px" }}
               value={power}
-              error={!!errors.power}
-              helperText={errors.power}
+              error={!!errors.powerType}
+              helperText={errors.powerType}
               onChange={(event) => {
                 setPower(event.target.value);
                 setErrors({
@@ -611,14 +613,13 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
             </TextField>
 
             <TextField
-              id="standard-basic"
               label="Mount Type"
               required
               variant="outlined"
               style={{ marginBottom: "15px" }}
               value={installationType}
-              error={!!errors.installationType}
-              helperText={errors.installationType}
+              error={!!errors.mountType}
+              helperText={errors.mountType}
               onChange={(event) => {
                 setInstallationType(event.target.value);
                 setErrors({
@@ -633,7 +634,6 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
             />
 
             <TextField
-              id="date)fDeployment"
               label="Date of Deployment"
               type="date"
               defaultValue={formatDate(new Date())}
@@ -647,7 +647,6 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
             />
 
             <TextField
-              id="standard-basic"
               label="Longitude"
               style={{ marginBottom: "15px" }}
               disabled={!manualCoordinate}
@@ -668,7 +667,6 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
             />
 
             <TextField
-              id="standard-basic"
               label="Latitude"
               disabled={!manualCoordinate}
               style={{ marginBottom: "15px" }}
