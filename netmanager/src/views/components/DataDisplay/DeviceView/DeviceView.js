@@ -15,7 +15,6 @@ import "assets/css/device-view.css";
 
 // others
 import { DeviceToolBar, DeviceToolBarContainer } from "./DeviceToolBar";
-// import DeviceDeployStatus from "./DeviceDeployStatus";
 import DeviceEdit from "./DeviceEdit";
 import DeviceLogs from "./DeviceLogs";
 import DevicePhotos from "./DevicePhotos";
@@ -23,7 +22,6 @@ import DeviceComponents from "./DeviceComponents";
 import DeviceOverview from "./DeviceOverview/DeviceOverview";
 import { useDevicesData } from "redux/DeviceRegistry/selectors";
 import { loadDevicesData } from "redux/DeviceRegistry/operations";
-import { useSitesArrayData } from "redux/SiteRegistry/selectors";
 import { useInitScrollTop } from "utils/customHooks";
 
 export default function DeviceView() {
@@ -31,7 +29,6 @@ export default function DeviceView() {
   const match = useRouteMatch();
   const params = useParams();
   const devices = useDevicesData();
-  const sites = useSitesArrayData();
   const [deviceData, setDeviceData] = useState(
     devices[params.deviceName] || {}
   );
@@ -69,7 +66,7 @@ export default function DeviceView() {
             exact
             path={`${match.url}/edit`}
             component={() => (
-              <DeviceEdit deviceData={deviceData} sitesData={sites} />
+              <DeviceEdit deviceData={deviceData} />
             )}
           />
           <Route
@@ -84,14 +81,9 @@ export default function DeviceView() {
           />
           {/*<Route*/}
           {/*  exact*/}
-          {/*  path={`${match.url}/deploy-status`}*/}
-          {/*  component={() => <DeviceDeployStatus deviceData={deviceData} />}*/}
+          {/*  path={`${match.url}/components`}*/}
+          {/*  component={() => <DeviceComponents deviceName={deviceData.name} />}*/}
           {/*/>*/}
-          <Route
-            exact
-            path={`${match.url}/components`}
-            component={() => <DeviceComponents deviceName={deviceData.name} />}
-          />
           <Route
             exact
             path={`${match.url}/photos`}

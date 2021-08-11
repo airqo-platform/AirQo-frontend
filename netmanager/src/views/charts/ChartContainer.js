@@ -2,6 +2,7 @@ import React from "react";
 import PropTypes from "prop-types";
 import FullscreenIcon from "@material-ui/icons/Fullscreen";
 import AccessTime from "@material-ui/icons/AccessTime";
+import { humanReadableDate } from "utils/dateTime";
 
 // css
 import "assets/css/chart-container.css";
@@ -38,7 +39,16 @@ const ChartContainer = ({
       <div className={"chart-footer"}>
         {lastUpdated && (
           <span>
-            <AccessTime /> Last updated {lastUpdated}
+            <AccessTime /> Last updated{" "}
+            {humanReadableDate(lastUpdated, {
+              format: {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+                hour: "numeric",
+                minute: "numeric",
+              },
+            })}
           </span>
         )}
         {footerContent && <span>{footerContent}</span>}

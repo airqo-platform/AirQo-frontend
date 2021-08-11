@@ -5,6 +5,7 @@ import {
   GET_USERS_URI,
   FORGOT_PWD_URI,
   DELETE_CANDIDATE_URI,
+  REGISTER_USER_URI,
 } from "config/urls/authService";
 
 export const updateUserPasswordApi = async (userId, tenant, userData) => {
@@ -37,5 +38,11 @@ export const confirmCandidateApi = async (candidateData) => {
 export const deleteCandidateApi = async (id) => {
   return await axios
     .delete(DELETE_CANDIDATE_URI, { params: { id } })
+    .then((response) => response.data);
+};
+
+export const addUserApi = async (userData) => {
+  return await axios
+    .post(REGISTER_USER_URI, userData)
     .then((response) => response.data);
 };

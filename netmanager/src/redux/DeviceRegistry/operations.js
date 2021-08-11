@@ -1,11 +1,8 @@
 // for representing chained operations using redux-thunk
 import {
   LOAD_ALL_DEVICES_SUCCESS,
-  LOAD_ALL_DEVICES_FAILURE,
   LOAD_MAINTENANCE_LOGS_SUCCESS,
-  LOAD_MAINTENANCE_LOGS_FAILURE,
   LOAD_DEVICE_COMPONENTS_SUCCESS,
-  LOAD_DEVICE_COMPONENTS_FAILURE,
   INSERT_MAINTENANCE_LOGS_SUCCESS,
   INSERT_NEW_COMPONENT_SUCCESS,
   INSERT_NEW_DEVICE_SUCCESS,
@@ -26,7 +23,7 @@ import {
 import { transformArray } from "../utils";
 import {
   getAllDevicesApi,
-  getDeviceMaintenanceLogsApi,
+  getActivitiesApi,
   getDeviceComponentsApi,
   deleteDeviceApi,
 } from "views/apis/deviceRegistry";
@@ -37,6 +34,7 @@ import {
 } from "views/apis/deviceMonitoring";
 
 import { updateMainAlert } from "../MainAlert/operations";
+import { isEmpty } from "underscore";
 
 export const loadDevicesData = () => {
   return async (dispatch) => {
@@ -62,19 +60,15 @@ export const updateDevice = (deviceName, data) => (dispatch) => {
 
 export const loadDeviceMaintenanceLogs = (deviceName) => {
   return async (dispatch) => {
-    return await getDeviceMaintenanceLogsApi(deviceName)
+    return await getActivitiesApi({
+      device: deviceName,
+      activity_type: "maintenance",
+    })
       .then((responseData) => {
-        const indexedLogs = [];
-        // sort logs in reversed order
-        responseData.sort(
-          (log1, log2) => -(new Date(log1.date) - new Date(log2.date))
-        );
-        responseData.map((log, tableIndex) =>
-          indexedLogs.push({ ...log, tableIndex })
-        );
+        if (isEmpty(responseData.site_activities || [])) return;
         dispatch({
           type: LOAD_MAINTENANCE_LOGS_SUCCESS,
-          payload: { [deviceName]: indexedLogs },
+          payload: { [deviceName]: responseData.site_activities },
         });
       })
       .catch((err) => console.log(err));
@@ -85,6 +79,7 @@ export const loadDeviceComponentsData = (deviceName) => {
   return async (dispatch) => {
     return await getDeviceComponentsApi(deviceName)
       .then((responseData) => {
+        if (isEmpty(responseData.components || [])) return;
         const indexedComponent = [];
         responseData.components.map((comp, tableIndex) =>
           indexedComponent.push({ ...comp, tableIndex })
@@ -144,7 +139,7 @@ export const updateDeviceComponent = (deviceName, index, component) => (
 export const loadDeviceUpTime = (deviceName, params) => async (dispatch) => {
   return await getDeviceUptimeApi(params)
     .then((responseData) => {
-        console.log('response data', responseData)
+      console.log("response data", responseData);
       dispatch({
         type: LOAD_DEVICE_UPTIME_SUCCESS,
         payload: { deviceName, data: responseData },
