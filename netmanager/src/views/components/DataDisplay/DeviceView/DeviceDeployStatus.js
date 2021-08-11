@@ -20,14 +20,13 @@ import {
   recallDeviceApi,
 } from "../../../apis/deviceRegistry";
 import { updateMainAlert } from "redux/MainAlert/operations";
-import { useSitesArrayData } from "redux/SiteRegistry/selectors";
-import { loadSitesData } from "redux/SiteRegistry/operations";
 import { getElapsedDurationMapper, getFirstNDurations } from "utils/dateTime";
 import { updateDevice } from "redux/DeviceRegistry/operations";
 import ConfirmDialog from "views/containers/ConfirmDialog";
 import LabelledSelect from "../../CustomSelects/LabelledSelect";
 import { formatDate } from "utils/dateTime";
 import { capitalize } from "utils/string";
+import { filterSite } from "utils/sites";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -280,9 +279,8 @@ DeviceRecentFeedView.propTypes = {
   runReport: PropTypes.object.isRequired,
 };
 
-export default function DeviceDeployStatus({ deviceData }) {
+export default function DeviceDeployStatus({ deviceData, siteOptions }) {
   const dispatch = useDispatch();
-  const sites = useSitesArrayData();
   const [height, setHeight] = useState(
     (deviceData.height && String(deviceData.height)) || ""
   );
@@ -305,15 +303,9 @@ export default function DeviceDeployStatus({ deviceData }) {
   const [manualCoordinate, setManualCoordinate] = useState(false);
   const [longitude, setLongitude] = useState("");
   const [latitude, setLatitude] = useState("");
-  const [site, setSite] = useState({
-    value: (deviceData.site && deviceData.site._id) || "",
-    label:
-      (deviceData.site &&
-        (deviceData.site.name ||
-          deviceData.site.description ||
-          deviceData.site.generated_name)) ||
-      "",
-  });
+  const [site, setSite] = useState(
+    filterSite(siteOptions, deviceData.site && deviceData.site._id)
+  );
   const [deployLoading, setDeployLoading] = useState(false);
   const [recallOpen, setRecallOpen] = useState(false);
   const [errors, setErrors] = useState({
@@ -331,10 +323,6 @@ export default function DeviceDeployStatus({ deviceData }) {
     }
   }, [recentFeed]);
 
-  useEffect(() => {
-    if (isEmpty(sites)) dispatch(loadSitesData());
-  }, []);
-
   const handleHeightChange = (enteredHeight) => {
     let re = /\s*|\d+(\.d+)?/;
     if (re.test(enteredHeight.target.value)) {
@@ -344,17 +332,6 @@ export default function DeviceDeployStatus({ deviceData }) {
         height: enteredHeight.target.value.length > 0 ? "" : errors.height,
       });
     }
-  };
-
-  const createSiteOptions = () => {
-    const options = [];
-    sites.map((site) =>
-      options.push({
-        value: site._id,
-        label: site.name || site.description || site.generated_name,
-      })
-    );
-    return options;
   };
 
   const runDeviceTest = async () => {
@@ -481,34 +458,6 @@ export default function DeviceDeployStatus({ deviceData }) {
 
   return (
     <>
-      {/*<div*/}
-      {/*  style={{*/}
-      {/*    display: "flex",*/}
-      {/*    justifyContent: "flex-end",*/}
-      {/*    margin: "10px 0",*/}
-      {/*  }}*/}
-      {/*>*/}
-      {/*  <Tooltip*/}
-      {/*    arrow*/}
-      {/*    title={"Device is not yet deployed"}*/}
-      {/*    disableTouchListener={deviceData.isActive}*/}
-      {/*    disableHoverListener={deviceData.isActive}*/}
-      {/*    disableFocusListener={deviceData.isActive}*/}
-      {/*  >*/}
-      {/*    <span>*/}
-      {/*      <Button*/}
-      {/*        variant="contained"*/}
-      {/*        color="primary"*/}
-      {/*        disabled={!deviceData.isActive}*/}
-      {/*        onClick={() => setRecallOpen(!recallOpen)}*/}
-      {/*      >*/}
-      {/*        {" "}*/}
-      {/*        Recall Device*/}
-      {/*      </Button>*/}
-      {/*    </span>*/}
-      {/*  </Tooltip>*/}
-      {/*</div>*/}
-
       <div
         style={{
           display: "flex",
@@ -595,7 +544,7 @@ export default function DeviceDeployStatus({ deviceData }) {
             <div style={{ marginBottom: "15px" }}>
               <LabelledSelect
                 label="Site"
-                options={createSiteOptions()}
+                options={siteOptions}
                 value={site}
                 onChange={(newValue, actionMeta) => {
                   setSite(newValue);
