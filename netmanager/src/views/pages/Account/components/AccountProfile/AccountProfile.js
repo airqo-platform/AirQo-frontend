@@ -82,6 +82,9 @@ const AccountProfile = (props) => {
     hiddenFileInput.current.click();
   };
 
+  // Hidden click to reset selected file
+  const onHiddenFileInputClick = (event) => (event.target.value = "");
+
   const handleInputChange = (event) => {
     if (event.target.files && event.target.files.length > 0) {
       const reader = new FileReader();
@@ -174,7 +177,15 @@ const AccountProfile = (props) => {
               );
             });
         })
-        .catch((err) => {});
+        .catch(() => {
+          dispatch(
+            updateMainAlert({
+              message: "picture upload failed",
+              show: true,
+              severity: "error",
+            })
+          );
+        });
       setProfileUploading(false);
     }
   };
@@ -261,6 +272,7 @@ const AccountProfile = (props) => {
             accept="image/*"
             ref={hiddenFileInput}
             onChange={handleInputChange}
+            onClick={onHiddenFileInputClick}
             style={{ display: "none" }}
           />
           <Button variant="text" onClick={handleRemoveImage}>
