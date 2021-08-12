@@ -75,6 +75,22 @@ export const loadDeviceMaintenanceLogs = (deviceName) => {
   };
 };
 
+export const forcedLoadDeviceMaintenanceLogs = (deviceName) => {
+  return async (dispatch) => {
+    return await getActivitiesApi({
+      device: deviceName,
+      activity_type: "maintenance",
+    })
+      .then((responseData) => {
+        dispatch({
+          type: LOAD_MAINTENANCE_LOGS_SUCCESS,
+          payload: { [deviceName]: responseData.site_activities || [] },
+        });
+      })
+      .catch((err) => console.log(err));
+  };
+};
+
 export const loadDeviceComponentsData = (deviceName) => {
   return async (dispatch) => {
     return await getDeviceComponentsApi(deviceName)
