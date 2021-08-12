@@ -354,6 +354,22 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
             />
           </Grid>
 
+          <Grid items xs={12} sm={4} style={gridItemStyle}>
+            <TextField
+              autoFocus
+              margin="dense"
+              variant="outlined"
+              id="recent_deployment_date"
+              label="Deployment Date"
+              type="date"
+              defaultValue={editData.recent_deployment_date}
+              onChange={handleTextFieldChange}
+              error={!!errors.recent_deployment_date}
+              helperText={errors.recent_deployment_date}
+              fullWidth
+            />
+          </Grid>
+
           <Grid
             container
             alignItems="flex-end"
