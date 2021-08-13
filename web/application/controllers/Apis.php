@@ -1006,7 +1006,7 @@ class Apis extends CI_Controller
         //$response = $json->{'measurements'}->{0};
         foreach($json as $key => $value){
             foreach($value as $vk => $vitem){
-                $device_number = $vitem->{'device_number'};
+                $device_number = $vitem->{'deviceDetails'}->{'device_number'};
                 $date = $vitem->{'time'};
                 $pm2_5 = $vitem->{'pm2_5'}->{'value'};
                 //$response[$vk] = array($device_number, $pm2_5, $date);
