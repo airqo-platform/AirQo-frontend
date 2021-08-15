@@ -12,7 +12,8 @@ import { useSiteOptionsData } from "redux/SiteRegistry/selectors";
 import { loadSitesData } from "redux/SiteRegistry/operations";
 import DeviceDeployStatus from "./DeviceDeployStatus";
 import { capitalize } from "utils/string";
-import { dropEmpty } from "utils/objectManipulators";
+import { getDateString } from "utils/dateTime";
+
 import { filterSite } from "utils/sites";
 
 const gridItemStyle = {
@@ -53,7 +54,12 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
 
     if (site && site.value) editData.site_id = site.value;
 
-    await updateDeviceDetails(deviceData._id, dropEmpty(editData))
+    if (editData.deployment_date)
+      editData.deployment_date = new Date(
+        editData.deployment_date
+      ).toISOString();
+
+    await updateDeviceDetails(deviceData._id, editData)
       .then((responseData) => {
         dispatch(loadDevicesData());
         dispatch(
@@ -359,13 +365,14 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
               autoFocus
               margin="dense"
               variant="outlined"
-              id="recent_deployment_date"
+              id="deployment_date"
               label="Deployment Date"
               type="date"
-              defaultValue={editData.recent_deployment_date}
+              InputLabelProps={{ shrink: true }}
+              defaultValue={getDateString(editData.deployment_date)}
               onChange={handleTextFieldChange}
-              error={!!errors.recent_deployment_date}
-              helperText={errors.recent_deployment_date}
+              error={!!errors.deployment_date}
+              helperText={errors.deployment_date}
               fullWidth
             />
           </Grid>
