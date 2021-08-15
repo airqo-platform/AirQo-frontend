@@ -90,3 +90,8 @@ export const roundToStartOfDay = (dateISOString) => {
   start.setUTCHours(0, 0, 0, 1);
   return start;
 };
+
+export const getDateString = (ISODateString) => {
+  if (ISODateString) return ISODateString.split("T")[0];
+  return "";
+};
