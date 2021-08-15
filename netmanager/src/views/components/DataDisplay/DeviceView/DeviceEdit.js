@@ -76,7 +76,7 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
         setErrors(newErrors);
         dispatch(
           updateMainAlert({
-            message: err.response.data.message,
+            message: err.response && err.response.message,
             show: true,
             severity: "error",
           })
