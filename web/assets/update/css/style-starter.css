@@ -16740,8 +16740,9 @@ screen and (max-height: 300px) {
 	line-height: 28px; }
   
   .w3l-blog blockquote {
-	max-width: 480px;
-	margin: 0 auto; }
+	max-width: 100%;
+	margin: 0 auto;
+	 }
   
   .w3l-blog blockquote q {
 	color: #151965;

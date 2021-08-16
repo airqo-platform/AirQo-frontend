@@ -115,7 +115,7 @@ class Airqo extends CI_Controller
 
 		$this->logVisitedPage($data['title']);
 
-		$this->load->view('lib/header',$data);
+		$this->load->view('lib/single-post-header',$data);
 		$this->load->view('airqo-blog-single',$data);
 		$this->load->view('lib/footer',$data);
     }
