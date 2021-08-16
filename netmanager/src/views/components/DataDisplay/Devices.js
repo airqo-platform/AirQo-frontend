@@ -116,7 +116,7 @@ const createDeviceColumns = (history, setDelState) => [
     field: "long_name",
   },
   {
-    title: "Generated Name",
+    title: "Device ID",
     field: "name",
     render: (data) => <Cell fieldValue={data.name} />,
   },

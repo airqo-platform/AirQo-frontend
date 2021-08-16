@@ -20,7 +20,11 @@ import {
   recallDeviceApi,
 } from "../../../apis/deviceRegistry";
 import { updateMainAlert } from "redux/MainAlert/operations";
-import { getElapsedDurationMapper, getFirstNDurations } from "utils/dateTime";
+import {
+  getDateString,
+  getElapsedDurationMapper,
+  getFirstNDurations,
+} from "utils/dateTime";
 import ConfirmDialog from "views/containers/ConfirmDialog";
 import LabelledSelect from "../../CustomSelects/LabelledSelect";
 import { loadDevicesData } from "redux/DeviceRegistry/operations";
@@ -287,7 +291,9 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
   const [installationType, setInstallationType] = useState(
     deviceData.mountType || ""
   );
-  const [deploymentDate, setDeploymentDate] = useState(new Date());
+  const [deploymentDate, setDeploymentDate] = useState(
+    getDateString(deviceData.deployment_date)
+  );
   const [primaryChecked, setPrimaryChecked] = useState(
     deviceData.isPrimaryInLocation || true
   );
@@ -391,7 +397,7 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
       mountType: installationType,
       height: height,
       powerType: power,
-      date: deploymentDate.toISOString(),
+      date: new Date(deploymentDate).toISOString(),
       latitude: latitude.toString(),
       longitude: longitude.toString(),
       isPrimaryInLocation: primaryChecked,
@@ -643,6 +649,22 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
               <option value="Suspended">Suspended</option>
               <option value="Wall">Wall</option>
             </TextField>
+
+            <TextField
+              autoFocus
+              margin="dense"
+              variant="outlined"
+              id="deployment_date"
+              label="Deployment Date"
+              type="date"
+              style={{ marginBottom: "15px" }}
+              InputLabelProps={{ shrink: true }}
+              defaultValue={deploymentDate}
+              onChange={event => setDeploymentDate(event.target.value)}
+              error={!!errors.deployment_date}
+              helperText={errors.deployment_date}
+              fullWidth
+            />
 
             <TextField
               label="Longitude"
