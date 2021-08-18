@@ -1,5 +1,9 @@
 # Uncomment this line to define a global platform for your project
+<<<<<<< Updated upstream
 platform :ios, '14.5'
+=======
+# platform :ios, '9.0'
+>>>>>>> Stashed changes
 
 # CocoaPods analytics sends network stats synchronously affecting flutter build latency.
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
@@ -39,4 +43,7 @@ post_install do |installer|
     flutter_additional_ios_build_settings(target)
   end
 end
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes

@@ -25,6 +25,6 @@ For IOS, add the [GOOGLE MAPS API Key](https://docs.google.com/document/d/1QawFn
 
 ### **Run the application**
 
-   ```bash
-   flutter run --no-sound-null-safety
-   ```
+```bash
+flutter run --no-sound-null-safety
+```

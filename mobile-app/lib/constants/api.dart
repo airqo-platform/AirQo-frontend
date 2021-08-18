@@ -18,3 +18,13 @@ const getForecastUrl = 'https://staging-platform.airqo.net/api/v1/predict/';
 
 const getCloundinaryUrl =
     'https://api.cloudinary.com/v1_1/happen2020/image/upload';
+
+
+class AirQoUrls {
+  final String _baseUrl = 'https://staging-platform.airqo.net/api/v1/';
+
+  String get latestMeasurements => '${_baseUrl}devices/events?tenant=airqo&recent=yes';
+  String get getDevices => '${_baseUrl}devices?tenant=airqo&active=yes';
+  String get getForecast => '${_baseUrl}predict';
+}
+

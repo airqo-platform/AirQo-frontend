@@ -1,8 +1,9 @@
 import 'dart:async';
+import 'dart:collection';
 import 'dart:convert';
 
 import 'dart:io';
-import 'package:app/config/secret.dart';
+import 'package:app/config/env.dart';
 import 'package:app/constants/api.dart';
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/device.dart';
@@ -11,7 +12,6 @@ import 'package:app/models/place.dart';
 import 'package:app/models/predict.dart';
 import 'package:app/models/suggestion.dart';
 import 'package:app/models/feedback.dart';
-import 'package:app/models/event.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/utils/ui/dialogs.dart';
 import 'package:flutter/material.dart';
@@ -99,15 +99,15 @@ class AirqoApiClient {
       String latitude, String longitude, String dateTime) async {
     try {
       var body = {
-        "selected_datetime": dateTime,
-        "latitude": latitude,
-        "longitude": longitude
+        'selected_datetime': dateTime,
+        'latitude': latitude,
+        'longitude': longitude
       };
 
       print(body);
 
       final response = await http.post(Uri.parse('$getForecastUrl'),
-          headers: {"Content-Type": "application/json"},
+          headers: {'Content-Type': 'application/json'},
           body: json.encode(body));
 
       print(response.statusCode);
@@ -329,6 +329,7 @@ class AirqoApiClient {
     // var device_02 = await fetchDeviceMeasurements(2);
 
     var measurements = <Measurement>[];
+
     // measurements.add(device_02);
     // measurements.add(device_01);
 
@@ -383,7 +384,7 @@ class AirqoApiClient {
 
     var uploadStr = 'data:image/$type;base64,$file';
     try {
-      var body = {"file": uploadStr, "upload_preset": "mobile_uploads"};
+      var body = {'file': uploadStr, 'upload_preset': 'mobile_uploads'};
 
       //   "api_key": cloudinaryApiKey,
       // "timestamp": DateTime.now().microsecondsSinceEpoch,
@@ -392,7 +393,7 @@ class AirqoApiClient {
       // print(body);
 
       final response = await http.post(Uri.parse('$getCloundinaryUrl'),
-          headers: {"Content-Type": "application/json"},
+          headers: {'Content-Type': 'application/json'},
           body: json.encode(body));
 
       print(response.statusCode);
@@ -470,6 +471,51 @@ class AirqoApiClient {
 
     return <Device>[];
   }
+
+  Future<dynamic> _performGetRequest(Map<String, dynamic> queryParams,
+      String url) async {
+    try {
+
+      if(queryParams.isNotEmpty){
+        url = '$url?';
+        queryParams.forEach((key, value) {
+          if (queryParams.keys.elementAt(0).compareTo(key) == 0) {
+            url = '$key=$value';
+          }
+          url = '$url,$key=$value';
+        });
+      }
+
+      Map<String, String> headers =  HashMap()
+        ..putIfAbsent('Authorization', () => 'JWT $airQoApiKey');
+
+      final response = await http.get(Uri.parse(url), headers: headers);
+
+      print(response.statusCode);
+      if (response.statusCode == 200) {
+
+        print(response.body);
+        return json.decode(response.body);
+
+      } else {
+        print(response.statusCode);
+        print('Unexpected status code ${response.statusCode}:'
+            ' ${response.reasonPhrase}');
+        print('Body ${response.body}:');
+        print('uri: Uri.parse($url)');
+        return null;
+      }
+    } on SocketException {
+      await showSnackBar(context, ErrorMessages().socketException);
+    } on TimeoutException {
+      await showSnackBar(context, ErrorMessages().timeoutException);
+    } on Error catch (e) {
+      await showSnackBar(context, ErrorMessages().appException);
+    }
+
+    return null;
+  }
+
 }
 
 class GoogleSearchProvider {
@@ -503,9 +549,9 @@ class GoogleSearchProvider {
         // print(result);
 
         if (result['status'] == 'OK') {
-          // List<Measurement> suggestions = Event.fromJson(json.decode(response.body));
+          // List<Measurement> suggestions =
+          // Event.fromJson(json.decode(response.body));
           // List<Measurement> measurements = event.measurements;
-          //
           // Suggestion(description: p['description'], placeId: p['place_id']);
 
           List<Suggestion> suggestions = result['predictions']

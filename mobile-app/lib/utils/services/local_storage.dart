@@ -12,7 +12,6 @@ import 'package:path/path.dart';
 
 class DBHelper {
   var _database;
-
   var constants = DbConstants();
 
   Future<Database> get database async {

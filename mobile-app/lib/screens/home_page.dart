@@ -1,5 +1,5 @@
 import 'package:app/constants/app_constants.dart';
-import 'package:app/core/on_boarding/onBoarding_page.dart';
+import 'package:app/on_boarding/onBoarding_page.dart';
 import 'package:app/screens/feedback_page.dart';
 import 'package:app/screens/map_page.dart';
 import 'package:app/screens/my_places.dart';

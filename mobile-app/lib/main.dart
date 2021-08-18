@@ -12,7 +12,7 @@ import 'config/providers/ThemeProvider.dart';
 import 'config/themes/dark_theme.dart';
 import 'config/themes/light_theme.dart';
 import 'constants/app_constants.dart';
-import 'core/on_boarding/onBoarding_page.dart';
+import 'on_boarding/onBoarding_page.dart';
 import 'screens/home_page.dart';
 
 Future<void> main() async {
