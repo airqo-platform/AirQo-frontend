@@ -449,10 +449,10 @@ class MapPageState extends State<MapPage> {
       var bitmapDescriptor = await pmToMarker(measurement.pm2_5.value);
 
       final marker = Marker(
-        markerId: MarkerId(measurement.channelID.toString()),
+        markerId: MarkerId(measurement.deviceNumber.toString()),
         icon: bitmapDescriptor,
-        position: LatLng((measurement.locationDetails.latitude),
-            measurement.locationDetails.longitude),
+        position: LatLng((measurement.device.latitude),
+            measurement.device.longitude),
         infoWindow: InfoWindow(
           title: measurement.pm2_5.value.toString(),
           // snippet: node.location,
@@ -461,7 +461,7 @@ class MapPageState extends State<MapPage> {
           updateInfoWindow(measurement);
         },
       );
-      markers[measurement.channelID.toString()] = marker;
+      markers[measurement.deviceNumber.toString()] = marker;
     }
 
     isLoading = false;
@@ -494,10 +494,10 @@ class MapPageState extends State<MapPage> {
       child: Column(
         children: [
           Text(
-            (windowProperties.locationDetails.favourite &&
-                    windowProperties.locationDetails.nickName != null)
-                ? windowProperties.locationDetails.nickName
-                : windowProperties.locationDetails.siteName,
+            (windowProperties.device.favourite &&
+                    windowProperties.device.nickName != null)
+                ? windowProperties.device.nickName
+                : windowProperties.device.siteName,
             softWrap: true,
             style: const TextStyle(color: appColor),
             overflow: TextOverflow.ellipsis,
@@ -573,9 +573,9 @@ class MapPageState extends State<MapPage> {
               ),
               IconButton(
                   onPressed: () {
-                    updateFavouritePlace(windowProperties.locationDetails);
+                    updateFavouritePlace(windowProperties.device);
                   },
-                  icon: windowProperties.locationDetails.favourite
+                  icon: windowProperties.device.favourite
                       ? const Icon(
                           Icons.favorite,
                           color: Colors.red,
@@ -586,7 +586,7 @@ class MapPageState extends State<MapPage> {
                         )),
               GestureDetector(
                 onTap: () {
-                  showDetails(windowProperties.locationDetails);
+                  showDetails(windowProperties.device);
                 },
                 child: const Text('More Details',
                     softWrap: true,

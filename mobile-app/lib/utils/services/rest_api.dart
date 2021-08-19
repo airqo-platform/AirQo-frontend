@@ -14,6 +14,7 @@ import 'package:app/models/suggestion.dart';
 import 'package:app/models/feedback.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/utils/ui/dialogs.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:mailer/mailer.dart';
@@ -57,24 +58,27 @@ class AirqoApiClient {
       if (response.statusCode == 200) {
         print(response.body);
 
-        var measurements = <Measurement>[];
+        var jsonBody = json.decode(response.body)['measurements'];
 
+        return compute(Measurement.parseMeasurements, jsonBody);
+
+        // var measurements = <Measurement>[];
         // List<Measurement> measurements = json
         //     .decode(response.body)['measurements']
         //     .map<Measurement>((m) => Measurement.fromJson(m))
         //     .toList();
-
-        var jsonBody = json.decode(response.body)['measurements'];
-        for (var element in jsonBody) {
-          try {
-            var measurement = Measurement.fromJson(element);
-            measurements.add(measurement);
-          } on Error catch (e) {
-            print('Mapping Devices error: $e');
-          }
-        }
-
-        return measurements;
+        //
+        // var jsonBody = json.decode(response.body)['measurements'];
+        // for (var element in jsonBody) {
+        //   try {
+        //     var measurement = Measurement.fromJson(element);
+        //     measurements.add(measurement);
+        //   } on Error catch (e) {
+        //     print('Mapping Devices error: $e');
+        //   }
+        // }
+        //
+        // return measurements;
       } else {
         print('Unexpected status code ${response.statusCode}:'
             ' ${response.reasonPhrase}');
@@ -94,6 +98,33 @@ class AirqoApiClient {
 
     return <Measurement>[];
   }
+
+  Future<List<Measurement>> fetchLatestMeasurements() async {
+    try {
+
+      var queryParams = <String, dynamic>{}
+        ..putIfAbsent('recent', () => 'yes')
+        ..putIfAbsent('tenant', () => 'airqo');
+
+      final responseBody = await _performGetRequest(queryParams,
+          AirQoUrls().measurements);
+
+      if (responseBody != null) {
+
+        return compute(Measurement.parseMeasurements,
+            responseBody['measurements']);
+      } else {
+        print('Measurements are null');
+        return <Measurement>[];
+      }
+
+    } on Error catch (e) {
+      print('Get Latest measurements error: $e');
+    }
+
+    return <Measurement>[];
+  }
+
 
   Future<List<Predict>> fetchForecast(
       String latitude, String longitude, String dateTime) async {
@@ -297,7 +328,7 @@ class AirqoApiClient {
       if (response.statusCode == 200) {
         print(response.body);
 
-        var readings = Measurement.fromApiMap(json.decode(response.body));
+        var readings = Measurement.mapFromApi(json.decode(response.body));
         readings['deviceDetails'] = device.toJson();
         readings['channelID'] = device.channelID;
 
@@ -480,18 +511,21 @@ class AirqoApiClient {
         url = '$url?';
         queryParams.forEach((key, value) {
           if (queryParams.keys.elementAt(0).compareTo(key) == 0) {
-            url = '$key=$value';
+            url = '$url$key=$value';
           }
-          url = '$url,$key=$value';
+          else{
+            url = '$url&$key=$value';
+          }
+
         });
       }
 
       Map<String, String> headers =  HashMap()
         ..putIfAbsent('Authorization', () => 'JWT $airQoApiKey');
+      print(url);
 
       final response = await http.get(Uri.parse(url), headers: headers);
 
-      print(response.statusCode);
       if (response.statusCode == 200) {
 
         print(response.body);

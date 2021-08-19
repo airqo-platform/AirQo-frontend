@@ -181,7 +181,7 @@ class DBHelper {
 
       if (measurements.isNotEmpty) {
         for (var measurement in measurements) {
-          var jsonData = Measurement.toDbMap(measurement);
+          var jsonData = Measurement.mapToDb(measurement);
 
           await db.insert(
             '${constants.measurementsTable}',
@@ -352,9 +352,9 @@ class DBHelper {
 
       var res = await db.query('${constants.measurementsTable}',
           where: '${constants.channelID} = ?',
-          whereArgs: [measurement.channelID]);
+          whereArgs: [measurement.deviceNumber]);
 
-      var jsonData = Measurement.toDbMap(measurement);
+      var jsonData = Measurement.mapToDb(measurement);
 
       if (res.isEmpty) {
         await db.insert(
@@ -365,7 +365,7 @@ class DBHelper {
       } else {
         await db.update('${constants.measurementsTable}', jsonData,
             where: '${constants.channelID} = ?',
-            whereArgs: [measurement.channelID]);
+            whereArgs: [measurement.deviceNumber]);
       }
     } catch (e) {
       print(e);
@@ -504,7 +504,7 @@ class DBHelper {
   Measurement unPackInnerJoin(Map<String, Object?> data) {
     var location = Device.fromDbMap(data);
 
-    var measurementsJson = Measurement.fromDbMap(data);
+    var measurementsJson = Measurement.mapFromDb(data);
 
     measurementsJson['deviceDetails'] = location;
 

@@ -54,7 +54,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
   Future<void> checkFavourite() async {
     if (locationData != null) {
       var isFav = await DBHelper()
-          .checkFavouritePlace(locationData.locationDetails.channelID);
+          .checkFavouritePlace(locationData.device.deviceNumber);
 
       setState(() {
         isFavourite = isFav;
@@ -64,7 +64,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
 
   Future<void> updatePlace() async {
     if (isFavourite) {
-      await DBHelper().updateFavouritePlace(locationData.locationDetails, true);
+      await DBHelper().updateFavouritePlace(locationData.device, true);
     }
   }
 
@@ -72,26 +72,26 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
     var place;
     if (isFavourite) {
       place = await DBHelper()
-          .updateFavouritePlace(locationData.locationDetails, false);
+          .updateFavouritePlace(locationData.device, false);
     } else {
       place = await DBHelper()
-          .updateFavouritePlace(locationData.locationDetails, true);
+          .updateFavouritePlace(locationData.device, true);
     }
 
     setState(() {
-      locationData.locationDetails = place;
-      isFavourite = locationData.locationDetails.favourite;
+      locationData.device = place;
+      isFavourite = locationData.device.favourite;
     });
 
     if (isFavourite) {
       await showSnackBarGoToMyPlaces(
           context,
-          '${locationData.locationDetails.siteName} '
+          '${locationData.device.siteName} '
           'is added to your places');
     } else {
       await showSnackBar2(
           context,
-          '${locationData.locationDetails.siteName} '
+          '${locationData.device.siteName} '
           'is removed from your places');
     }
   }
@@ -438,12 +438,12 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
     final _markers = <String, Marker>{};
 
     final marker = Marker(
-      markerId: MarkerId(measurement.channelID.toString()),
+      markerId: MarkerId(measurement.deviceNumber.toString()),
       icon: pmToMarkerPoint(measurement.pm2_5.value),
-      position: LatLng((measurement.locationDetails.latitude),
-          measurement.locationDetails.longitude),
+      position: LatLng((measurement.device.latitude),
+          measurement.device.longitude),
     );
-    _markers[measurement.channelID.toString()] = marker;
+    _markers[measurement.deviceNumber.toString()] = marker;
 
     return Padding(
         padding: const EdgeInsets.all(8.0),
@@ -457,8 +457,8 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
           tiltGesturesEnabled: false,
           mapToolbarEnabled: false,
           initialCameraPosition: CameraPosition(
-            target: LatLng(measurement.locationDetails.latitude,
-                measurement.locationDetails.longitude),
+            target: LatLng(measurement.device.latitude,
+                measurement.device.longitude),
             zoom: 13,
           ),
           markers: _markers.values.toSet(),

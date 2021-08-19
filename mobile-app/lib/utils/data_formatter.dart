@@ -53,7 +53,7 @@ List<charts.Series<ValueSeries, DateTime>> createComaprisonData(
 
     var date = DateTime.parse(time);
 
-    if (measurement.channelID == device_01) {
+    if (measurement.deviceNumber == device_01) {
       device_01_data.add(ValueSeries(date, measurement.pm2_5.value.ceil()));
     } else {
       device_02_data.add(ValueSeries(date, measurement.pm2_5.value.ceil()));

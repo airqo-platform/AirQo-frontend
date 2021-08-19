@@ -1,4 +1,5 @@
 import 'package:app/constants/app_constants.dart';
+import 'package:app/models/measurement.dart';
 import 'package:app/on_boarding/onBoarding_page.dart';
 import 'package:app/screens/feedback_page.dart';
 import 'package:app/screens/map_page.dart';
@@ -414,20 +415,20 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void initState() {
-    displayOnBoarding();
-
+    _displayOnBoarding();
     _getMeasurements();
-    _getDevices();
+
     super.initState();
   }
 
   void _getMeasurements() async {
     print('Home page Getting measurements');
 
-    var measurements = await AirqoApiClient(context).fetchMeasurements();
+    var measurements = await AirqoApiClient(context).fetchLatestMeasurements();
 
     if (measurements.isNotEmpty) {
-      await DBHelper().insertMeasurements(measurements);
+      print('inserting latest measurements into db');
+      // await DBHelper().insertMeasurements(measurements);
     }
   }
 
@@ -441,7 +442,7 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Future<void> displayOnBoarding() async {
+  Future<void> _displayOnBoarding() async {
     var prefs = await SharedPreferences.getInstance();
     var isFirstUse = prefs.getBool(firstUse) ?? true;
 

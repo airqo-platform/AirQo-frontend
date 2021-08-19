@@ -15,16 +15,16 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
 
   int _currentIndex = 0;
 
-  List<OnBoardingData> data = [
-    OnBoardingData(
+  List<OnBoardingInfo> data = [
+    OnBoardingInfo(
         description: 'Select locations important to you using MyPlaces',
         title: 'MyPlaces',
         localImageSrc: 'assets/svg/historical.png'),
-    OnBoardingData(
+    OnBoardingInfo(
         description: 'View various locations on a map',
         title: 'Map',
         localImageSrc: 'assets/svg/map.png'),
-    OnBoardingData(
+    OnBoardingInfo(
         description: 'See air quality for the last 48 hours and '
             'forecast for your next 24 hours',
         title: 'Historical and Forecast',

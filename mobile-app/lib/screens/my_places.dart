@@ -90,7 +90,7 @@ class _MyPlacesState extends State<MyPlaces> {
                     ? ListView.builder(
                         itemBuilder: (context, index) => GestureDetector(
                           onTap: () {
-                            viewDetails(searchResults[index].locationDetails);
+                            viewDetails(searchResults[index].device);
                           },
                           child: Slidable(
                             actionPane: const SlidableDrawerActionPane(),
@@ -101,7 +101,7 @@ class _MyPlacesState extends State<MyPlaces> {
                                 color: appColor,
                                 icon: Icons.share_outlined,
                                 onTap: () => shareLocation(
-                                    searchResults[index].locationDetails),
+                                    searchResults[index].device),
                               ),
                             ],
                             secondaryActions: <Widget>[
@@ -111,7 +111,7 @@ class _MyPlacesState extends State<MyPlaces> {
                                 icon: Icons.delete_outlined,
                                 onTap: () {
                                   removeFromFavourites(
-                                      searchResults[index].locationDetails);
+                                      searchResults[index].device);
                                 },
                               ),
                             ],
@@ -135,14 +135,14 @@ class _MyPlacesState extends State<MyPlaces> {
                                   ),
                                 ),
                                 title: Text(
-                                  (searchResults[index].locationDetails.nickName != null &&
-                                      searchResults[index].locationDetails.nickName != '')
-                                      ? '${searchResults[index].locationDetails.nickName} '
-                                      : '${searchResults[index].locationDetails.siteName}',
+                                  (searchResults[index].device.nickName != null &&
+                                      searchResults[index].device.nickName != '')
+                                      ? '${searchResults[index].device.nickName} '
+                                      : '${searchResults[index].device.siteName}',
                                   overflow: TextOverflow.ellipsis,
                                 ),
                                 subtitle: Text(
-                                  '${searchResults[index].locationDetails.locationName}',
+                                  '${searchResults[index].device.locationName}',
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
@@ -185,7 +185,7 @@ class _MyPlacesState extends State<MyPlaces> {
                                 itemBuilder: (context, index) =>
                                     GestureDetector(
                                   onTap: () {
-                                    viewDetails(results[index].locationDetails);
+                                    viewDetails(results[index].device);
                                   },
                                   child: Slidable(
                                     actionPane:
@@ -197,7 +197,7 @@ class _MyPlacesState extends State<MyPlaces> {
                                         color: appColor,
                                         icon: Icons.share_outlined,
                                         onTap: () => shareLocation(
-                                            results[index].locationDetails),
+                                            results[index].device),
                                       ),
                                     ],
                                     secondaryActions: <Widget>[
@@ -207,7 +207,7 @@ class _MyPlacesState extends State<MyPlaces> {
                                         icon: Icons.delete_outlined,
                                         onTap: () {
                                           removeFromFavourites(
-                                              results[index].locationDetails);
+                                              results[index].device);
                                         },
                                       ),
                                     ],
@@ -227,14 +227,14 @@ class _MyPlacesState extends State<MyPlaces> {
                                           ),
                                         ),
                                         title: Text(
-                                          (results[index].locationDetails.nickName != null &&
-                                              results[index].locationDetails.nickName != '')
-                                              ? '${results[index].locationDetails.nickName} '
-                                              : '${results[index].locationDetails.siteName}',
+                                          (results[index].device.nickName != null &&
+                                              results[index].device.nickName != '')
+                                              ? '${results[index].device.nickName} '
+                                              : '${results[index].device.siteName}',
                                           overflow: TextOverflow.ellipsis,
                                         ),
                                         subtitle: Text(
-                                          '${results[index].locationDetails.locationName}',
+                                          '${results[index].device.locationName}',
                                           overflow: TextOverflow.ellipsis,
                                         ),
                                       ),
@@ -279,7 +279,7 @@ class _MyPlacesState extends State<MyPlaces> {
       searchResults.clear();
       var dummyListData = <Measurement>[];
       for (Measurement measurement in searchList) {
-        var device = measurement.locationDetails;
+        var device = measurement.device;
 
         if ((device.description != null &&
                 device.description.toLowerCase().contains(query)) ||

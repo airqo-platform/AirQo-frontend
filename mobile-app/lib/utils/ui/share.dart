@@ -14,10 +14,10 @@ void shareLocation(Device device) {
 
 void shareMeasurement(Measurement measurement) {
   Share.share(
-      '${measurement.locationDetails.siteName} air quality readings \n'
+      '${measurement.device.siteName} air quality readings \n'
       'PM 2.5 : ${measurement.pm2_5.value.toString()} µg/m\u00B3 (${pmToString(measurement.pm2_5.value)}) \n'
       'PM 10 : ${measurement.pm10.value.toString()} µg/m\u00B3 ',
-      subject: '$appName, ${measurement.locationDetails.siteName}!');
+      subject: '$appName, ${measurement.device.siteName}!');
 }
 
 void shareApp() {

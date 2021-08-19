@@ -68,7 +68,7 @@ class _DashboardPageState extends State<DashboardPage> {
                           onTap: () async {
                             try {
                               var device = await DBHelper().getDevice(
-                                  results[index].locationDetails.channelID);
+                                  results[index].device.deviceNumber);
 
                               await Navigator.push(context,
                                   MaterialPageRoute(builder: (context) {

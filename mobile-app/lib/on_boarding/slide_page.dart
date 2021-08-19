@@ -6,7 +6,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 class SlidePage extends StatelessWidget {
   SlidePage({required this.data});
 
-  final OnBoardingData data;
+  final OnBoardingInfo data;
 
   @override
   Widget build(BuildContext context) {

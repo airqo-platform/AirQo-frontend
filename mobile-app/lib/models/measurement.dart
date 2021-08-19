@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:app/constants/app_constants.dart';
 import 'package:flutter/foundation.dart';
 import 'package:json_annotation/json_annotation.dart';
@@ -23,17 +25,17 @@ class Measurements {
 @JsonSerializable()
 class Measurement {
   Measurement({
-    required this.locationDetails,
-    required this.channelID,
+    required this.device,
+    required this.deviceNumber,
     required this.time,
     required this.pm2_5,
     required this.pm10,
-    required this.s2_pm2_5,
-    required this.s2_pm10,
+    required this.s2Pm2_5,
+    required this.s2Pm10,
     // required this.altitude,
     // required this.speed,
-    // required this.internalTemperature,
-    // required this.internalHumidity,
+    required this.externalTemperature,
+    required this.externalHumidity,
     // required this.frequency
   });
 
@@ -42,7 +44,7 @@ class Measurement {
 
   Map<String, dynamic> toJson() => _$MeasurementToJson(this);
 
-  static Map<String, dynamic> toDbMap(Measurement measurement) {
+  static Map<String, dynamic> mapToDb(Measurement measurement) {
     var constants = DbConstants();
 
     var time = measurement.time.replaceAll('T', ' ');
@@ -52,17 +54,17 @@ class Measurement {
     }
 
     return {
-      constants.channelID: measurement.channelID,
+      constants.channelID: measurement.deviceNumber,
       constants.time: time,
       constants.pm2_5: measurement.pm2_5.value,
-      constants.s2_pm2_5: measurement.s2_pm2_5.value,
-      constants.s2_pm10: measurement.s2_pm10.value,
+      constants.s2_pm2_5: measurement.s2Pm2_5.value,
+      constants.s2_pm10: measurement.s2Pm10.value,
       constants.pm10: measurement.pm10.value,
-      constants.locationDetails: measurement.locationDetails.channelID,
+      constants.locationDetails: measurement.device.channelID,
     };
   }
 
-  static Map<String, dynamic> fromDbMap(Map<String, dynamic> json) {
+  static Map<String, dynamic> mapFromDb(Map<String, dynamic> json) {
     var constants = DbConstants();
 
     return {
@@ -76,7 +78,7 @@ class Measurement {
     };
   }
 
-  static Map<String, dynamic> fromApiMap(Map<String, dynamic> json) {
+  static Map<String, dynamic> mapFromApi(Map<String, dynamic> json) {
     var constants = DbConstants();
 
     var data = <String, dynamic>{
@@ -91,48 +93,68 @@ class Measurement {
     return data;
   }
 
+  static List<Measurement> parseMeasurements(dynamic jsonBody) {
+
+    // var measurements = <Measurement>[];
+    // for (var element in jsonBody) {
+    //   var measurement = Measurement.fromJson(element);
+    //   measurements.add(measurement);
+    // }
+    // return measurements;
+
+    return jsonBody.map<Measurement>((json) =>
+        Measurement.fromJson(json)).toList();
+  }
+
   @JsonKey(required: false)
-  int channelID;
+  int deviceNumber;
+
+  // @JsonKey(required: false)
+  // final String device;
 
   @JsonKey(required: true)
   final String time;
 
   @JsonKey(required: true)
-  final Value pm2_5;
+  final MeasurementValue pm2_5;
 
   @JsonKey(required: false)
-  final Value pm10;
+  final MeasurementValue pm10;
+
+  @JsonKey(required: true, name: 's2_pm2_5')
+  final MeasurementValue s2Pm2_5;
+
+  @JsonKey(required: true, name: 's2_pm10')
+  final MeasurementValue s2Pm10;
 
   @JsonKey(required: false)
-  final Value s2_pm2_5;
+  final MeasurementValue externalTemperature;
 
   @JsonKey(required: false)
-  final Value s2_pm10;
+  final MeasurementValue externalHumidity;
 
   @JsonKey(required: true, name: 'deviceDetails')
-  Device locationDetails;
+  Device device;
 
   void setChannelId(int id) {
-    channelID = id;
+    deviceNumber = id;
   }
-
-// final Value altitude;
-// final Value speed;
-// final Value internalTemperature;
-// final Value internalHumidity;
-// final String frequency;
-
 }
 
 @JsonSerializable()
-class Value {
-  Value({required this.value});
+class MeasurementValue {
+  MeasurementValue(this.calibratedValue, {required this.value});
 
-  factory Value.fromJson(Map<String, dynamic> json) => _$ValueFromJson(json);
+  factory MeasurementValue.fromJson(Map<String, dynamic> json) =>
+      _$MeasurementValueFromJson(json);
 
-  Map<String, dynamic> toJson() => _$ValueToJson(this);
+  Map<String, dynamic> toJson() => _$MeasurementValueToJson(this);
 
+  @JsonKey(required: false, defaultValue: 0.0)
   final double value;
+
+  @JsonKey(required: false, defaultValue: 0.0)
+  final double calibratedValue;
 }
 
 // @JsonSerializable()
