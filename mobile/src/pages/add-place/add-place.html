@@ -2,6 +2,9 @@
   <ion-navbar>
     <ion-title>Add Place</ion-title>
     <ion-buttons end>
+      <button (click)="onlineLoadNodes()" color="blue" ion-button icon-only round clear>
+        <ion-icon name="md-refresh"></ion-icon>
+      </button>
       <button (click)="closeModal()" color="blue" ion-button icon-only round clear>
         <ion-icon name="md-close"></ion-icon>
       </button>

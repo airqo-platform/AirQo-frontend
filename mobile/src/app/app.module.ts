@@ -6,6 +6,7 @@ import { Geolocation } from '@ionic-native/geolocation';
 import { SettingsPage } from './../pages/settings/settings';
 import { SearchPage } from './../pages/search/search';
 import { MenuPage } from './../pages/menu/menu';
+import { LoadingPage } from './../pages/loading-page/loaging-page';
 import { MapPage } from './../pages/map/map';
 import { KeyPage } from './../pages/key/key';
 import { IntroPage } from './../pages/intro/intro';
@@ -40,6 +41,7 @@ import { Device } from '@ionic-native/device';
     SettingsPage,
     AddPlacePage,
     FeedbackPage,
+    LoadingPage,
     AddNodeSubscriptionPage,
   ],
   imports: [
@@ -66,6 +68,7 @@ import { Device } from '@ionic-native/device';
     SettingsPage,
     AddPlacePage,
     FeedbackPage,
+    LoadingPage,
     AddNodeSubscriptionPage,
   ],
   providers: [

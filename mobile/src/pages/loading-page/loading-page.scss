@@ -1,0 +1,69 @@
+page-loading {
+
+  color: color($colors, blue);
+  text-align: center;
+  font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+
+  .logo-section {
+     img {
+        width: 150px;
+        height: 150px;
+        object-fit: cover;
+     }
+  }
+
+  ion-slide {
+    text-align: center;
+  }
+
+  .grid-bottom {
+    position: fixed;
+    bottom: 3%;
+  }
+
+  .title {
+    font-weight: 400;
+  }
+
+  .slide-title {
+    font-size: 2.1em;
+    font-weight: 250;
+  }
+
+  .slide-sub-title {
+    font-size: 1.3em;
+    font-weight: 350;
+    color: color($colors, light);
+  }
+
+  .btn-getting-started {
+    position: fixed;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 200px;
+    border-radius: 5px;
+  }
+
+  .btn-border {
+    border: 0.2rem solid white;
+  }
+
+  // --------------------------------------------------------------------------------------------------------------------------------------------
+
+  .bg-blue {
+    background-color: color($colors, blue);
+  }
+
+  .bg-green {
+    background-color: color($colors, green);
+  }
+
+  .bg-yellow {
+    background-color: color($colors, orange);
+  }
+
+  .bg-black {
+    background-color: color($colors, black);
+  }
+
+}
