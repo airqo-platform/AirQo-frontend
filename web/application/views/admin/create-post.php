@@ -200,7 +200,9 @@
      <script src="<?= base_url(); ?>assets/admin/layout/scripts/demo.js" type="text/javascript"></script>
      <script src="<?= base_url(); ?>assets/global/scripts/loadingoverlay.min.js"></script>
      <script src="<?= base_url(); ?>assets/ckeditor/build/ckeditor.js"></script>
-     <script src="https://ckeditor.com/apps/ckfinder/3.5.0/ckfinder.js"></script>
+     <script src="<?= base_url(); ?>assets/ckfinder/ckfinder.js"></script>
+     <!-- <script src="https://ckeditor.com/apps/ckfinder/3.5.0/ckfinder.js"></script> -->
+
      <!-- <script src="<?= base_url(); ?>assets/admin/pages/scripts/form-samples.js"></script> -->
      <!-- END PAGE LEVEL SCRIPTS -->
     
@@ -350,7 +352,7 @@ function confirmUpload() {
                             resourceType: 'Images'
                         },
                         // uploadUrl: '/ckfinder/core/connector/php/connector.php?command=QuickUpload&type=Files&responseType=json'
-                        uploadUrl: '/ckfinder/core/connector/php/connector.php?command=QuickUpload&type=Files&responseType=json'
+                        uploadUrl: '/assets/ckfinder/core/connector/php/connector.php?command=QuickUpload&type=Files&responseType=json'
                     },
                     // plugins: [ Paragraph, Bold, Italic, Image, InsertImage, ImageCaption ],
                     toolbar: {
@@ -367,9 +369,9 @@ function confirmUpload() {
                             'underline',
                             'bulletedList',
                             'numberedList',
-                            'linkImage',
-                            // 'imageUpload',
-                            // 'imageInsert',
+                            //'linkImage',
+                            //'imageUpload',
+                            'imageInsert',
                             '|',
                             'indent',
                             'outdent',
@@ -387,7 +389,7 @@ function confirmUpload() {
                     },
                     language: 'en-gb',
                     image: {
-                        resize: true
+                        resize: true,
                         // Configure the available styles.
                         styles: [
                             'alignLeft', 'alignCenter', 'alignRight'
@@ -446,7 +448,7 @@ function confirmUpload() {
                             'tableProperties'
                         ]
                     },
-                    licenseKey: '',
+                    licenseKey: '*E?G-*1**-D**B-*D**-*6**-E*M*-2**C',
                     
                 } )
                 .then( editor => {

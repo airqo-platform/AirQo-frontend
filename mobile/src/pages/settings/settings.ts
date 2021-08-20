@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { NavController, LoadingController,  PopoverController, ModalController } from 'ionic-angular';
+import { NavController } from 'ionic-angular';
 import { Storage } from '@ionic/storage';
 import { Device } from '@ionic-native/device';
 import { AppRate } from '@ionic-native/app-rate';
@@ -19,7 +19,7 @@ export class SettingsPage {
   persistent_notifications_state: boolean = false;
 
   constructor(private navCtrl: NavController, private storage: Storage,
-    private device: Device, private modalCtrl: ModalController, public api: ApiProvider,
+    private device: Device, public api: ApiProvider,
     private appRate: AppRate,) {
       this.getPersistentNotificationsStatus();
   }

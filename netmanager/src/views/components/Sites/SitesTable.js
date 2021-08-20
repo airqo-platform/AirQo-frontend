@@ -78,7 +78,7 @@ const SitesTable = () => {
               render: renderCell("name"),
             },
             {
-              title: "Generated Name",
+              title: "Site ID",
               field: "generated_name",
               render: renderCell("generated_name"),
               cellStyle: { fontFamily: "Open Sans" },
@@ -90,9 +90,9 @@ const SitesTable = () => {
               cellStyle: { fontFamily: "Open Sans" },
             },
             {
-              title: "County",
-              field: "county",
-              render: renderCell("county"),
+              title: "Country",
+              field: "country",
+              render: renderCell("country"),
               cellStyle: { fontFamily: "Open Sans" },
             },
             {

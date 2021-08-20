@@ -126,8 +126,11 @@ export class NodePage {
     };
 
     loader.present();
+    console.log(params);
+    console.log(this.history_node_api);
 
-    this.http.post(this.history_node_api, params).subscribe((result: any) => {
+    const response = this.http.post(this.history_node_api, params).subscribe((result: any) => {
+
       console.log(result);
 
       if(result.success == '100' && result.feed.hourly_results){
@@ -160,6 +163,8 @@ export class NodePage {
 
       this.offlineLoadHistoryNodeInfo();
     });
+
+    console.log(response);
   }
 
 

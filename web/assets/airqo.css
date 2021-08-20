@@ -1109,7 +1109,7 @@ h4{
     background: -ms-linear-gradient(left, rgba(51,153,204,1) 26%, rgba(141,198,226,1) 67%, rgba(177,216,236,1) 98%, rgba(177,216,236,1) 100%);
     background: linear-gradient(to right, rgba(51,153,204,1) 26%, rgba(141,198,226,1) 67%, rgba(177,216,236,1) 98%, rgba(177,216,236,1) 100%);
     filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#3399cc', endColorstr='#b1d8ec', GradientType=1 );
-    progid:DXImageTransform.Microsoft.gradient( startColorstr='#21b4e2', endColorstr='#b7deed', GradientType=1 );
+    progid: DXImageTransform.Microsoft.gradient( startColorstr='#21b4e2', endColorstr='#b7deed', GradientType=1 );
 
 }
 .buzen-app-section .downloads img {
@@ -1186,7 +1186,7 @@ h4{
     margin-right: auto;
     margin-left: auto;
 }
-}
+
 /*end*/
 
 /*buzen-airqo-partners starts here*/
@@ -1252,7 +1252,7 @@ h4{
 .buzen-footer h4{
 
   color: #fff;
-  font-family: Montserrat-Regular
+  font-family: Montserrat-Regular;
   font-size: 16px;
   /*text-transform: capitalize;*/
 }
@@ -1328,4 +1328,6 @@ h4{
    font-size: 14px;
 }
 
+#ckeditor {
+    color:black;
 }

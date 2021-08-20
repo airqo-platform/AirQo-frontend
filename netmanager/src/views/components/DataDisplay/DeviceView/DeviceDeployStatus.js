@@ -20,11 +20,14 @@ import {
   recallDeviceApi,
 } from "../../../apis/deviceRegistry";
 import { updateMainAlert } from "redux/MainAlert/operations";
-import { getElapsedDurationMapper, getFirstNDurations } from "utils/dateTime";
-import { updateDevice } from "redux/DeviceRegistry/operations";
+import {
+  getDateString,
+  getElapsedDurationMapper,
+  getFirstNDurations,
+} from "utils/dateTime";
 import ConfirmDialog from "views/containers/ConfirmDialog";
 import LabelledSelect from "../../CustomSelects/LabelledSelect";
-import { formatDate } from "utils/dateTime";
+import { loadDevicesData } from "redux/DeviceRegistry/operations";
 import { capitalize } from "utils/string";
 import { filterSite } from "utils/sites";
 
@@ -288,7 +291,9 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
   const [installationType, setInstallationType] = useState(
     deviceData.mountType || ""
   );
-  const [deploymentDate, setDeploymentDate] = useState(new Date());
+  const [deploymentDate, setDeploymentDate] = useState(
+    getDateString(deviceData.deployment_date)
+  );
   const [primaryChecked, setPrimaryChecked] = useState(
     deviceData.isPrimaryInLocation || true
   );
@@ -310,10 +315,11 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
   const [recallOpen, setRecallOpen] = useState(false);
   const [errors, setErrors] = useState({
     height: "",
-    power: "",
-    installationType: "",
+    powerType: "",
+    mountType: "",
     longitude: "",
     latitude: "",
+    site_id: "",
   });
 
   useEffect(() => {
@@ -350,11 +356,11 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
   const checkErrors = () => {
     const state = {
       height,
-      installationType,
-      power,
+      mountType: installationType,
+      powerType: power,
       longitude,
       latitude,
-      site,
+      site_id: site,
     };
     let newErrors = {};
     Object.keys(state).map((key) => {
@@ -391,7 +397,7 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
       mountType: installationType,
       height: height,
       powerType: power,
-      date: deploymentDate.toISOString(),
+      date: new Date(deploymentDate).toISOString(),
       latitude: latitude.toString(),
       longitude: longitude.toString(),
       isPrimaryInLocation: primaryChecked,
@@ -402,6 +408,7 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
     setDeployLoading(true);
     await deployDeviceApi(deviceData.name, deployData)
       .then((responseData) => {
+        dispatch(loadDevicesData());
         dispatch(
           updateMainAlert({
             message: responseData.message,
@@ -409,9 +416,11 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
             severity: "success",
           })
         );
-        dispatch(updateDevice(deviceData.name, responseData.updatedDevice));
       })
       .catch((err) => {
+        const errors =
+          (err.response && err.response.data && err.response.data.errors) || {};
+        setErrors(errors);
         dispatch(
           updateMainAlert({
             message: err.response.data.message,
@@ -428,6 +437,7 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
 
     await recallDeviceApi(deviceData.name)
       .then((responseData) => {
+        dispatch(loadDevicesData());
         dispatch(
           updateMainAlert({
             message: responseData.message,
@@ -435,7 +445,6 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
             severity: "success",
           })
         );
-        dispatch(updateDevice(deviceData.name, responseData.updatedDevice));
       })
       .catch((err) => {
         dispatch(
@@ -551,7 +560,7 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
                   setErrors({ ...errors, site: "" });
                 }}
               />
-              {errors.site && (
+              {errors.site_id && (
                 <div
                   style={{
                     color: "red",
@@ -559,13 +568,12 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
                     fontSize: "0.7rem",
                   }}
                 >
-                  {errors.site}
+                  {errors.site_id}
                 </div>
               )}
             </div>
 
             <TextField
-              id="standard-basic"
               label="Height"
               value={height}
               onChange={handleHeightChange}
@@ -582,15 +590,14 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
             />
 
             <TextField
-              id="powerType"
               select
               fullWidth
               required
               label="Power type"
               style={{ marginBottom: "15px" }}
               value={power}
-              error={!!errors.power}
-              helperText={errors.power}
+              error={!!errors.powerType}
+              helperText={errors.powerType}
               onChange={(event) => {
                 setPower(event.target.value);
                 setErrors({
@@ -611,14 +618,14 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
             </TextField>
 
             <TextField
-              id="standard-basic"
+              select
               label="Mount Type"
               required
               variant="outlined"
               style={{ marginBottom: "15px" }}
-              value={installationType}
-              error={!!errors.installationType}
-              helperText={errors.installationType}
+              value={capitalize(installationType)}
+              error={!!errors.mountType}
+              helperText={errors.mountType}
               onChange={(event) => {
                 setInstallationType(event.target.value);
                 setErrors({
@@ -629,25 +636,37 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
                       : errors.installationType,
                 });
               }}
-              fullWidth
-            />
-
-            <TextField
-              id="date)fDeployment"
-              label="Date of Deployment"
-              type="date"
-              defaultValue={formatDate(new Date())}
-              required
-              variant="outlined"
-              style={{ marginBottom: "15px" }}
-              onChange={(event) => {
-                setDeploymentDate(new Date(event.target.value));
+              SelectProps={{
+                native: true,
+                style: { width: "100%", height: "50px" },
               }}
               fullWidth
+            >
+              <option value="" />
+              <option value="Faceboard">Faceboard</option>
+              <option value="Pole">Pole</option>
+              <option value="Rooftop">Rooftop</option>
+              <option value="Suspended">Suspended</option>
+              <option value="Wall">Wall</option>
+            </TextField>
+
+            <TextField
+              autoFocus
+              margin="dense"
+              variant="outlined"
+              id="deployment_date"
+              label="Deployment Date"
+              type="date"
+              style={{ marginBottom: "15px" }}
+              InputLabelProps={{ shrink: true }}
+              defaultValue={deploymentDate}
+              onChange={event => setDeploymentDate(event.target.value)}
+              error={!!errors.deployment_date}
+              helperText={errors.deployment_date}
+              fullWidth
             />
 
             <TextField
-              id="standard-basic"
               label="Longitude"
               style={{ marginBottom: "15px" }}
               disabled={!manualCoordinate}
@@ -668,7 +687,6 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
             />
 
             <TextField
-              id="standard-basic"
               label="Latitude"
               disabled={!manualCoordinate}
               style={{ marginBottom: "15px" }}

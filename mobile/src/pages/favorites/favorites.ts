@@ -6,6 +6,8 @@ import { AddPlacePage } from '../add-place/add-place';
 import { NodePage } from '../node/node';
 import {FormControl} from "@angular/forms";
 
+import { HomePage } from '../home/home';
+
 @Component({
   selector: 'page-favorites',
   templateUrl: 'favorites.html',
@@ -96,6 +98,13 @@ export class FavoritesPage {
       this.offlineLoadFavorites();
     });
     modal.present();
+  }
+
+    // --------------------------------------------------------------------------------------------------------------------
+  // Go to home
+  // --------------------------------------------------------------------------------------------------------------------
+  openHome() {
+    this.navCtrl.push(HomePage);
   }
 
 

@@ -65460,6 +65460,22 @@ ion-navbar html, ion-navbar body, ion-navbar ion-app, ion-navbar ion-content, io
   background-color: transparent !important;
 }
 
+.loading-grid {
+  height: 100% !important;
+}
+
+.loading-row {
+  height: 100% !important;
+  -webkit-box-align: center !important;
+  -webkit-align-items: center !important;
+  -ms-flex-align: center !important;
+  align-items: center !important;
+  -webkit-box-pack: center !important;
+  -webkit-justify-content: center !important;
+  -ms-flex-pack: center !important;
+  justify-content: center !important;
+}
+
 page-add-node-subscription .title {
   font-size: 2rem;
 }
@@ -65815,6 +65831,72 @@ page-key .bg-purple {
 
 page-key .bg-maroon {
   background-color: #81202e;
+}
+
+page-loading {
+  color: #3067e2;
+  text-align: center;
+  font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+page-loading .logo-section img {
+  width: 150px;
+  height: 150px;
+  -o-object-fit: cover;
+  object-fit: cover;
+}
+
+page-loading ion-slide {
+  text-align: center;
+}
+
+page-loading .grid-bottom {
+  position: fixed;
+  bottom: 3%;
+}
+
+page-loading .title {
+  font-weight: 400;
+}
+
+page-loading .slide-title {
+  font-size: 2.1em;
+  font-weight: 250;
+}
+
+page-loading .slide-sub-title {
+  font-size: 1.3em;
+  font-weight: 350;
+  color: #f4f4f4;
+}
+
+page-loading .btn-getting-started {
+  position: fixed;
+  left: 50%;
+  -webkit-transform: translateX(-50%);
+  transform: translateX(-50%);
+  width: 200px;
+  border-radius: 5px;
+}
+
+page-loading .btn-border {
+  border: 0.2rem solid white;
+}
+
+page-loading .bg-blue {
+  background-color: #3067e2;
+}
+
+page-loading .bg-green {
+  background-color: #45e50d;
+}
+
+page-loading .bg-yellow {
+  background-color: #ee8310;
+}
+
+page-loading .bg-black {
+  background-color: #000000;
 }
 
 page-map #map {

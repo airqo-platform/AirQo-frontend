@@ -988,44 +988,79 @@ class Apis extends CI_Controller
     {
         $response = array();
         $this->ApisModel->init();
-        $sql_pick_nodes = "SELECT n.an_channel_id, n.an_name, n.an_map_address, n.an_lat, n.an_lng
-                                        FROM tbl_app_nodes n
-                                        WHERE n.an_deleted = '0' 
-                                        AND n.an_active = '1'
-                                        ORDER BY n.an_channel_id";
-        $query_pick_nodes = $this->db->query($sql_pick_nodes);
-        if ($query_pick_nodes->num_rows() > 0) {
-            $pnodes = $query_pick_nodes->result_array();
-            $total = 0;
-            $mr = "";
-            foreach ($pnodes as $prow) {
-                $channel = $prow["an_channel_id"];
-                $json_url_lt = RECENT_FEEDS.$channel;
-                $json = file_get_contents($json_url_lt);
-                $json = json_decode($json);
+        // $sql_pick_nodes = "SELECT n.an_channel_id, n.an_name, n.an_map_address, n.an_lat, n.an_lng
+        //                    FROM tbl_app_nodes n
+        //                    WHERE n.an_deleted = '0' 
+        //                    AND n.an_active = '1'
+        //                    ORDER BY n.an_channel_id";
+
+        // $query_pick_nodes = $this->db->query($sql_pick_nodes);
+        // if ($query_pick_nodes->num_rows() > 0) {
+        //     $pnodes = $query_pick_nodes->result_array();
+        $total = 0;
+        $mr = "";
+        $json_url_lt = EVENTS_DATA;
+        $json = file_get_contents($json_url_lt);
+        $json = json_decode($json);
+
+        //$response = $json->{'measurements'}->{0};
+        foreach($json as $key => $value){
+            foreach($value as $vk => $vitem){
+                $device_number = $vitem->{'deviceDetails'}->{'device_number'};
+                $date = $vitem->{'time'};
+                $pm2_5 = $vitem->{'pm2_5'}->{'value'};
+                //$response[$vk] = array($device_number, $pm2_5, $date);
+
+                if(!is_null($pm2_5) or !is_nan($pm2_5) or !empty($pm2_5)){
+            
+                    $update_node = $this->db->query("UPDATE tbl_app_nodes 
+                                                        SET time = '$date', 
+                                                        reading = '$pm2_5', 
+                                                        an_dateUpdated = NOW(),
+                                                        an_active = '1'
+                                                    WHERE an_channel_id = '$device_number' 
+                                                    LIMIT 1");
+                }
+                if($update_node){
+                    $mr .= "" . $reading;
+                }
+                $total = $total + 1;
+            }
+            //}
+
+            // update the remaining nodes
+            $this->db->query("UPDATE tbl_app_nodes SET an_active = '0'
+                            WHERE reading IS NULL");
+           
+            // foreach ($pnodes as $prow) {
+            //     $channel = $prow["an_channel_id"];
+            //     $json_url_lt = EVENTS_DATA;
+            //     $json = file_get_contents($json_url_lt);
+            //     $json = json_decode($json);
 
                 //$response[$channel] = $json;
-                if ($json) {
-                    $date = $json->{'created_at'};
-                    $reading = $json->{'field2'};
-                    $reading = trim($reading);
-                    $lat = $json->{'field5'};
-                    $lng = $json->{'field6'};
-                    $update_node = $this->db->query("UPDATE tbl_app_nodes SET time = '$date', reading = '$reading', an_dateUpdated = NOW()
-                                                    WHERE an_channel_id = '$channel' LIMIT 1");
-                    if($update_node){
-                        $mr .= "" . $reading;
-                    }
-                    $total = $total + 1;
-                } else {
-                    // $channel passed to RECENT_FEEDS url returned null
-                    // $channel is deleted 
-                    $this->db->query("UPDATE tbl_app_nodes SET an_deleted = '1'
-                                        WHERE an_channel_id = '$channel' LIMIT 1");
+                // if ($json) {
+                //     $date = $json->{'created_at'};
+                //     $reading = $json->{'field2'};
+                //     $reading = trim($reading);
+                //     $lat = $json->{'field5'};
+                //     $lng = $json->{'field6'};
+                //     $update_node = $this->db->query("UPDATE tbl_app_nodes SET time = '$date', reading = '$reading', an_dateUpdated = NOW()
+                //                                     WHERE an_channel_id = '$channel' LIMIT 1");
+                //     if($update_node){
+                //         $mr .= "" . $reading;
+                //     }
+                //     $total = $total + 1;
+                // } else {
+                //     // $channel passed to events url returned null
+                //     // $channel is deleted 
+                //     $this->db->query("UPDATE tbl_app_nodes SET an_deleted = '1'
+                //                         WHERE an_channel_id = '$channel' LIMIT 1");
 
-                }
+                // }
                 
             }
+        if($total > 0){
                 
             $state      = $this->ApisModel->stateOk();
             $state_name = "success";
@@ -1248,13 +1283,109 @@ public function airqoPlace24Hours()
             if($success == true) {
                 $devices = $json->devices;
                 
-                $sql_delete = "TRUNCATE tbl_app_nodes";
-                    
-                if($this->db->query($sql_delete)) {
-                    $total = 0;
+                //$sql_delete = "TRUNCATE tbl_app_nodes";
+                $sql = "SELECT an_channel_id FROM tbl_app_nodes";
+                $channel = $this->db->query($sql);
+                $update_count = 0;
+                $new_device_count = 0;
+                $delete_count = 0;
+
+                // some device details already exit in db
+                if($channel->num_rows() > 0){
+                    $array_channel_id = [];
+                    // get channels
+                    foreach($channel->result_array() as $channel_id){
+                        // create of list of channel id
+                        $array_channel_id[] = $channel_id['an_channel_id'];
+                        //loop through each device and update the detail accordingly 
+                        foreach($devices as $device){
+                            $device_id          = $device->device_number;
+                            $device_name        = $device->siteName;
+                            $device_location    = $device->locationName;
+                            $device_lat         = number_format((float)$device->latitude, 8, '.', '');
+                            $device_lng         = number_format((float)$device->longitude, 8, '.', '');
+                            $device_type        = 'Commercial area';
+                            $delete_status      = '0';
+
+                            if($device->isActive == true){
+                                //$active_status = '1';
+                                // check if device's channel id (device_number already exist)
+                                if($channel_id['an_channel_id'] == $device_id){
+                                    // just update the details of this device
+                                    $sql_insert = "UPDATE tbl_app_nodes
+                                                    SET an_name = '$device_name',
+                                                        an_lat = '$device_lat',
+                                                        an_lng = '$device_lng', 
+                                                        an_map_address = '$device_location' 
+                                                    WHERE an_channel_id = '$device_id'
+                                                    ";
+
+                                    $update_node_details = $this->db->query($sql_insert);
+
+                                    $update_count++;
+                                }
+
+                            } else {
+                                //check if any inactive device exists in the db and delete it
+                                if($channel_id['an_channel_id'] == $device_id){
+                                    $sql_delete =  "DELETE FROM tbl_app_nodes 
+                                                    WHERE an_channel_id = '$device_id' 
+                                                    LIMIT 1";
+
+                                    $this->db->query($sql_delete);
+                                    $delete_count++;
+                                }
+                            }
+
+                        }
+                        
+                    }
+
+                    // insert a new device detail
+                    foreach($devices as $device){
+                        $device_id          = $device->device_number;
+                        $device_name        = $device->siteName;
+                        $device_location    = $device->locationName;
+                        $device_lat         = number_format((float)$device->latitude, 8, '.', '');
+                        $device_lng         = number_format((float)$device->longitude, 8, '.', '');
+                        $device_type        = 'Commercial area';
+                        $delete_status      = '0';
+
+                        if($device->isActive == true){
+                            $active_status = '1';
+
+                            if(in_array($device_id, $array_channel_id) == false){
+                                    $sql_insert = "INSERT INTO tbl_app_nodes (
+                                                    an_id,
+                                                    an_channel_id,
+                                                    an_name,
+                                                    an_lat, 
+                                                    an_lng, 
+                                                    an_map_address, 
+                                                    an_type, 
+                                                    an_active, 
+                                                    an_deleted ) 
+                                                    VALUES (
+                                                        NULL, 
+                                                        '$device_id',
+                                                        '$device_name',
+                                                        '$device_lat',
+                                                        '$device_lng',
+                                                        '$device_location',
+                                                        '$device_type',
+                                                        '$active_status',
+                                                        '$delete_status'
+                                                    )";
+                                    $update_node_details = $this->db->query($sql_insert);
+                                    $new_device_count++;
+                            }
+                        }
+                    }
+                } else {
+                    // create new active devices in the db - incase the table was truncated
                     foreach($devices as $device) {
                 
-                        $device_id          = $device->channelID;
+                        $device_id          = $device->device_number;
                         $device_name        = $device->siteName;
                         $device_location    = $device->locationName;
                         $device_lat         = number_format((float)$device->latitude, 8, '.', '');
@@ -1265,29 +1396,50 @@ public function airqoPlace24Hours()
                         if($device->isActive == true){
                             $active_status = '1';
                             
-                            $sql_insert = "INSERT INTO tbl_app_nodes (an_id, an_channel_id, an_name, an_lat, an_lng, an_map_address, an_type, an_active, an_deleted) VALUES (NULL, '$device_id', '$device_name', '$device_lat', '$device_lng', '$device_location', '$device_type', '$active_status', '$delete_status')";
+                            $sql_insert = "INSERT INTO tbl_app_nodes (
+                                an_id, 
+                                an_channel_id,
+                                an_name,
+                                an_lat,
+                                an_lng,
+                                an_map_address,
+                                an_type,
+                                an_active,
+                                an_deleted ) 
+                                VALUES (
+                                    NULL, 
+                                    '$device_id', 
+                                    '$device_name', 
+                                    '$device_lat', 
+                                    '$device_lng', 
+                                    '$device_location', 
+                                    '$device_type', 
+                                    '$active_status', 
+                                    '$delete_status'
+                                )";
                             $update_node_details = $this->db->query($sql_insert);
 
-                            $total =  $total + 1;
+                            $new_device_count =  $new_device_count + 1;
                         }
                     }
-
-                    if($total > 0){
-                        $state      = $this->ApisModel->stateOk();
-                        $state_name = "success";
-                        $state_code = 100;
-                        $message    = "Sucessful (".$total." places updated)";
-                        $debug      = "API Config OK";
-                        echo  $this->ApisModel->api_response($response, $state, $state_name, $state_code, $message, $debug);  
-                    }else{
-                        $state      = $this->ApisModel->stateOk();
-                        $state_name = "success";
-                        $state_code = 109;
-                        $message    = "No places to update";
-                        $debug      = "API Config OK";
-                        echo  $this->ApisModel->api_response($response, $state, $state_name, $state_code, $message, $debug);
-                    }
                 }
+
+                if($update_count > 0 || $new_device_count > 0){
+                    $state      = $this->ApisModel->stateOk();
+                    $state_name = "success";
+                    $state_code = 100;
+                    $message    = "Sucessful (".$update_count." places updated, ".$new_device_count." device(s) added. ". $delete_count. " device(s) deleted)";
+                    $debug      = "API Config OK";
+                    echo  $this->ApisModel->api_response($response, $state, $state_name, $state_code, $message, $debug);  
+                }else{
+                    $state      = $this->ApisModel->stateOk();
+                    $state_name = "success";
+                    $state_code = 109;
+                    $message    = "No places to update, ".$delete_count." deleted";
+                    $debug      = "API Config OK";
+                    echo  $this->ApisModel->api_response($response, $state, $state_name, $state_code, $message, $debug);
+                }
+
             }
         }
     }

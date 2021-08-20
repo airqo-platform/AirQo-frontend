@@ -9,7 +9,10 @@ import {
 } from "@material-ui/pickers";
 import DateFnsUtils from "@date-io/date-fns";
 import MaintenanceLogsTable from "./Table";
-import { loadDeviceMaintenanceLogs } from "redux/DeviceRegistry/operations";
+import {
+  forcedLoadDeviceMaintenanceLogs,
+  loadDeviceMaintenanceLogs,
+} from "redux/DeviceRegistry/operations";
 import { useDeviceLogsData } from "redux/DeviceRegistry/selectors";
 import {
   addMaintenanceLogApi,
@@ -499,7 +502,7 @@ export default function DeviceLogs({ deviceName, deviceLocation }) {
     if (delState.data._id) {
       await deleteMaintenanceLogApi(delState.data._id)
         .then(async (responseData) => {
-          await dispatch(
+          dispatch(
             updateMainAlert({
               message: responseData.message,
               show: true,
@@ -517,7 +520,9 @@ export default function DeviceLogs({ deviceName, deviceLocation }) {
               ),
             500
           );
-          await dispatch(loadDeviceMaintenanceLogs(deviceName));
+
+          await dispatch(forcedLoadDeviceMaintenanceLogs(deviceName));
+
           dispatch(
             updateMainAlert({
               message: "page refresh successful",
@@ -525,6 +530,7 @@ export default function DeviceLogs({ deviceName, deviceLocation }) {
               severity: "success",
             })
           );
+
           setTimeout(
             () =>
               dispatch(

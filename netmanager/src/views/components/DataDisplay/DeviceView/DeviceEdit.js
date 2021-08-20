@@ -12,7 +12,8 @@ import { useSiteOptionsData } from "redux/SiteRegistry/selectors";
 import { loadSitesData } from "redux/SiteRegistry/operations";
 import DeviceDeployStatus from "./DeviceDeployStatus";
 import { capitalize } from "utils/string";
-import { dropEmpty } from "utils/objectManipulators";
+import { getDateString } from "utils/dateTime";
+
 import { filterSite } from "utils/sites";
 
 const gridItemStyle = {
@@ -27,10 +28,11 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
     ...deviceData,
   });
 
+  const [errors, setErrors] = useState({});
+
   const [site, setSite] = useState(
     filterSite(siteOptions, deviceData.site && deviceData.site._id)
   );
-  console.log("site", site);
   const [editLoading, setEditLoading] = useState(false);
 
   const handleTextFieldChange = (event) => {
@@ -52,7 +54,12 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
 
     if (site && site.value) editData.site_id = site.value;
 
-    await updateDeviceDetails(deviceData._id, dropEmpty(editData))
+    if (editData.deployment_date)
+      editData.deployment_date = new Date(
+        editData.deployment_date
+      ).toISOString();
+
+    await updateDeviceDetails(deviceData._id, editData)
       .then((responseData) => {
         dispatch(loadDevicesData());
         dispatch(
@@ -64,9 +71,16 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
         );
       })
       .catch((err) => {
+        const newErrors =
+          (err.response && err.response.data && err.response.data.errors) || {};
+        setErrors(newErrors);
         dispatch(
           updateMainAlert({
-            message: err.response.data.message,
+            message:
+              (err.response &&
+                err.response.data &&
+                err.response.data.message) ||
+              (err.response && err.response.message),
             show: true,
             severity: "error",
           })
@@ -102,6 +116,8 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
               variant="outlined"
               value={editData.long_name}
               onChange={handleTextFieldChange}
+              error={!!errors.long_name}
+              helperText={errors.long_name}
               fullWidth
             />
           </Grid>
@@ -114,6 +130,8 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
               label="Owner"
               value={editData.owner}
               onChange={handleTextFieldChange}
+              error={!!errors.owner}
+              helperText={errors.owner}
               fullWidth
             />
           </Grid>
@@ -126,6 +144,8 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
               label="Description"
               value={editData.description}
               onChange={handleTextFieldChange}
+              error={!!errors.description}
+              helperText={errors.description}
               fullWidth
             />
           </Grid>
@@ -138,6 +158,8 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
               label="Manufacturer"
               value={editData.device_manufacturer}
               onChange={handleTextFieldChange}
+              error={!!errors.device_manufacturer}
+              helperText={errors.device_manufacturer}
               fullWidth
             />
           </Grid>
@@ -150,6 +172,8 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
               label="Map Address"
               value={editData.locationName}
               onChange={handleTextFieldChange}
+              error={!!errors.locationName}
+              helperText={errors.locationName}
               fullWidth
             />
           </Grid>
@@ -162,6 +186,8 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
               label="Site Name"
               value={editData.siteName}
               onChange={handleTextFieldChange}
+              error={!!errors.siteName}
+              helperText={errors.siteName}
               fullWidth
             />
           </Grid>
@@ -174,6 +200,8 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
               label="Product Name"
               value={editData.product_name}
               onChange={handleTextFieldChange}
+              error={!!errors.product_name}
+              helperText={errors.product_name}
               fullWidth
             />
           </Grid>
@@ -186,6 +214,8 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
               label="Latitude"
               value={editData.latitude}
               onChange={handleTextFieldChange}
+              error={!!errors.latitude}
+              helperText={errors.latitude}
               fullWidth
             />
           </Grid>
@@ -198,6 +228,8 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
               label="Longitude"
               value={editData.longitude}
               onChange={handleTextFieldChange}
+              error={!!errors.longitude}
+              helperText={errors.longitude}
               fullWidth
             />
           </Grid>
@@ -210,6 +242,8 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
               label="Phone Number"
               value={editData.phoneNumber}
               onChange={handleTextFieldChange}
+              error={!!errors.phoneNumber}
+              helperText={errors.phoneNumber}
               fullWidth
             />
           </Grid>
@@ -225,6 +259,8 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
                 native: true,
                 style: { width: "100%", height: "50px" },
               }}
+              error={!!errors.visibility}
+              helperText={errors.visibility}
               variant="outlined"
             >
               <option value={false}>Private</option>
@@ -244,6 +280,8 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
                 style: { width: "100%", height: "50px" },
               }}
               variant="outlined"
+              error={!!errors.ISP}
+              helperText={errors.ISP}
             >
               <option value="" />
               <option value="MTN">MTN</option>
@@ -272,6 +310,8 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
                 native: true,
                 style: { width: "100%", height: "50px" },
               }}
+              error={!!errors.powerType}
+              helperText={errors.powerType}
               variant="outlined"
             >
               <option aria-label="None" value="" />
@@ -284,14 +324,28 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
           <Grid items xs={12} sm={4} style={gridItemStyle}>
             <TextField
               autoFocus
+              select
               margin="dense"
               variant="outlined"
               id="mountType"
               label="Mount Type"
-              value={editData.mountType}
-              onChange={handleTextFieldChange}
+              value={capitalize(editData.mountType)}
+              onChange={handleSelectFieldChange("mountType")}
+              SelectProps={{
+                native: true,
+                style: { width: "100%", height: "50px" },
+              }}
+              error={!!errors.mountType}
+              helperText={errors.mountType}
               fullWidth
-            />
+            >
+              <option value="" />
+              <option value="Faceboard">Faceboard</option>
+              <option value="Pole">Pole</option>
+              <option value="Rooftop">Rooftop</option>
+              <option value="Suspended">Suspended</option>
+              <option value="Wall">Wall</option>
+            </TextField>
           </Grid>
 
           <Grid items xs={12} sm={4} style={gridItemStyle}>
@@ -301,8 +355,28 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
               variant="outlined"
               id="height"
               label="height"
+              type="number"
               value={editData.height}
               onChange={handleTextFieldChange}
+              error={!!errors.height}
+              helperText={errors.height}
+              fullWidth
+            />
+          </Grid>
+
+          <Grid items xs={12} sm={4} style={gridItemStyle}>
+            <TextField
+              autoFocus
+              margin="dense"
+              variant="outlined"
+              id="deployment_date"
+              label="Deployment Date"
+              type="date"
+              InputLabelProps={{ shrink: true }}
+              defaultValue={getDateString(editData.deployment_date)}
+              onChange={handleTextFieldChange}
+              error={!!errors.deployment_date}
+              helperText={errors.deployment_date}
               fullWidth
             />
           </Grid>

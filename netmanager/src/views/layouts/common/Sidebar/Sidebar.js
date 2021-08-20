@@ -56,6 +56,7 @@ const roleExcludePageMapper = {
     "Device Management",
     "Location Registry",
     "Device Registry",
+    "Site Registry",
   ],
   user: [
     "Users",
@@ -64,6 +65,7 @@ const roleExcludePageMapper = {
     "Device Management",
     "Location Registry",
     "Device Registry",
+    "Site Registry",
   ],
   netmanager: ["Users", "Candidates"],
   admin: ["Candidates"],
