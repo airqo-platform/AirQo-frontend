@@ -22,7 +22,7 @@ class Measurements {
   final List<Measurement> measurements;
 }
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class Measurement {
   Measurement({
     required this.device,
@@ -141,7 +141,7 @@ class Measurement {
   }
 }
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class MeasurementValue {
   MeasurementValue(this.calibratedValue, {required this.value});
 

@@ -215,7 +215,8 @@ class DbConstants {
   final String _searchTableHistory = 'searchHistory';
   final String _locationsTable = 'locations';
 
-  final String _channelID = 'channelID';
+  final String _channelID = 'deviceNumber';
+  final String _device = 'device';
   final String _description = 'description';
   final String _isActive = 'isActive';
   final String _locationName = 'locationName';
@@ -232,11 +233,18 @@ class DbConstants {
   final String _time = 'time';
   final String _pm2_5 = 'pm2_5';
   final String _pm10 = 'pm10';
+  final String _externalTemp = 'externalTemperature';
+  final String _externalHumidity = 'externalHumidity';
   final String _s2_pm2_5 = 's2_pm2_5';
   final String _latitude = 'latitude';
   final String _longitude = 'longitude';
   final String _s2_pm10 = 's2_pm10';
   final String _address = 'address';
+
+
+  String get externalTemp => _externalTemp;
+
+  String get device => _device;
 
   String get searchTableHistory => _searchTableHistory;
 
@@ -283,6 +291,8 @@ class DbConstants {
   String get siteName => _siteName;
 
   String get name => _name;
+
+  String get externalHumidity => _externalHumidity;
 }
 
 class ErrorMessages {

@@ -36,13 +36,14 @@ class DBHelper {
   Future<void> createDefaultTables(Database db) async {
     await db.execute('''
         CREATE TABLE IF NOT EXISTS ${constants.measurementsTable} (
-          ${constants.channelID} INTEGER PRIMARY KEY,
+          ${constants.device} PRIMARY KEY,
           ${constants.pm2_5} not null,
           ${constants.pm10} not null,
           ${constants.time} not null,
           ${constants.s2_pm2_5} not null,
           ${constants.s2_pm10} not null,
-          ${constants.locationDetails} not null
+          ${constants.externalHumidity} not null,
+          ${constants.externalTemp} not null,
           )
       ''');
 
