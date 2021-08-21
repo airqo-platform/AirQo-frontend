@@ -101,7 +101,7 @@ class _HomePageV2State extends State<HomePageV2> {
                     color: appColor,
                   ),
                   title: Text(
-                    'Feedback',
+                    'Support',
                   ),
                 ),
               ),

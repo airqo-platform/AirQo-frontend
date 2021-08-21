@@ -1,7 +1,11 @@
+import 'dart:io';
+
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/feedback.dart' as feedback_model;
 import 'package:app/utils/services/rest_api.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'home_page_v2.dart';
 
@@ -136,7 +140,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
     final height = MediaQuery.of(context).size.height;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Feedback'),
+        title: const Text('AirQo'),
       ),
       body: Container(
         height: height,
@@ -151,26 +155,25 @@ class _FeedbackPageState extends State<FeedbackPage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
                     const SizedBox(height: 10),
-                    emailInput(),
-                    const SizedBox(height: 5),
+                    // emailInput(),
+                    // const SizedBox(height: 5),
                     feedbackInput(),
-                    const SizedBox(
-                      height: 10,
-                    ),
+                    const SizedBox(height: 10,),
                     submitButton(),
+                    support(),
+                    footer()
                   ],
                 ),
               ),
             ),
-            // Positioned(
-            //   child: isLoading ? const Loading() : Container(),
-            // ),
-            Positioned(bottom: 10, left: 0, right: 0, child: airqoLogo()),
           ],
         ),
       ),
     );
   }
+
+
+
 
   @override
   void dispose() {
@@ -194,15 +197,18 @@ class _FeedbackPageState extends State<FeedbackPage> {
 
   Widget feedbackInput() {
     return TextFormField(
+      autofocus: true,
       controller: feedbackController,
       decoration: const InputDecoration(
         labelText: 'Feedback',
+        hintText: 'Share your feedback to enable us make the application '
+            'better for you.',
       ),
       textInputAction: TextInputAction.done,
-      maxLines: 8,
+      maxLines: 5,
       validator: (value) {
         if (value == null || value.isEmpty) {
-          return 'Feedback is required';
+          return 'Required';
         }
         return null;
       },
@@ -226,10 +232,6 @@ class _FeedbackPageState extends State<FeedbackPage> {
         style: ElevatedButton.styleFrom(primary: appColor),
         onPressed: () async {
           if (_formKey.currentState!.validate()) {
-            // var email = emailController.text;
-            // if (emailController.text.isNotEmpty) {
-            //   email = emailController.text;
-            // }
             var email = emailController.text;
             var feedback = feedbackController.text;
             var feedBackModel =
@@ -263,8 +265,244 @@ class _FeedbackPageState extends State<FeedbackPage> {
             }
           }
         },
-        child: const Text('Submit'),
+        child: const Text('Send', style: TextStyle(fontSize: 15.0),),
       );
     }
   }
+
+
+  TextStyle headerStyle(){
+    return const TextStyle(
+      fontWeight: FontWeight.bold,
+      fontSize: 16,
+    );
+  }
+
+  EdgeInsets containerPadding(){
+    return const EdgeInsets.fromLTRB(10, 10, 10, 0);
+  }
+
+  Future<void> _launchURL(String page) async {
+    page = page.trim().toLowerCase();
+
+    switch(page){
+      case 'faqs':
+        await canLaunch(faqs)
+            ? await launch(faqs)
+            : throw 'Could not launch faqs, try opening $faqs';
+        return;
+      case 'about':
+        await canLaunch(about)
+            ? await launch(about)
+            : throw 'Could not launch about, try opening $about';
+        return;
+      case 'contact us':
+        await canLaunch(contactUs)
+            ? await launch(contactUs)
+            : throw 'Could not launch contact us, try opening $contactUs';
+        return;
+      case 'terms':
+        await canLaunch(terms)
+            ? await launch(terms)
+            : throw 'Could not launch terms, try opening $terms';
+        return;
+      case 'rate':
+        if(Platform.isAndroid){
+          await canLaunch(appPlayStoreLink)
+              ? await launch(appPlayStoreLink)
+              : throw 'Could not launch rate us, try opening $appPlayStoreLink';
+        }
+        else if(Platform.isIOS){
+          await canLaunch(appIOSLink)
+              ? await launch(appIOSLink)
+              : throw 'Could not launch rate us, try opening $appIOSLink';
+        }
+        else{
+          await canLaunch(appPlayStoreLink)
+              ? await launch(appPlayStoreLink)
+              : throw 'Could not launch rate us, try opening $appPlayStoreLink';
+        }
+        return;
+      case 'facebook':
+        await canLaunch(facebook)
+            ? await launch(facebook)
+            : throw 'Could not launch facebook, try opening $facebook';
+        return;
+      case 'twitter':
+        await canLaunch(twitter)
+            ? await launch(twitter)
+            : throw 'Could not launch twitter, try opening $twitter';
+        return;
+      case 'linkedin':
+        await canLaunch(linkedin)
+            ? await launch(linkedin)
+            : throw 'Could not launch linkedin, try opening $linkedin';
+        return;
+      case 'youtube':
+        await canLaunch(youtube)
+            ? await launch(youtube)
+            : throw 'Could not launch youtube, try opening $youtube';
+        return;
+      case 'airqo':
+        await canLaunch(appWebsite)
+            ? await launch(appWebsite)
+            : throw 'Could not launch airqo, try opening $appWebsite';
+        return;
+      default:
+        await canLaunch(appWebsite)
+            ? await launch(appWebsite)
+            : throw 'Could not launch airqo, try opening $appWebsite';
+        return;
+    }
+  }
+
+
+  Widget support() {
+    return Container(
+      padding: containerPadding(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text('Support',
+            style: headerStyle(),),
+
+          InkWell(
+            onTap: (){
+              _launchURL('faqs');
+            },
+            child: const ListTile(
+              title: Text('FAQs'),
+              leading: Icon(
+                Icons.help_outline_outlined,
+                color: appColor,
+              ),
+            ),
+          ),
+          InkWell(
+            onTap: (){
+              _launchURL('Contact Us');
+            },
+            child: const ListTile(
+              title: Text('Contact Us'),
+              leading: Icon(
+                Icons.contact_support_outlined,
+                color: appColor,
+              ),
+            ),
+          ),
+          InkWell(
+            onTap: (){
+              _launchURL('terms');
+            },
+            child: const ListTile(
+              title: Text('Terms of Use & Privacy Policy'),
+              leading: Icon(
+                Icons.description,
+                color: appColor,
+              ),
+            ),
+          ),
+          InkWell(
+            onTap: (){
+              _launchURL('About');
+            },
+            child: const ListTile(
+              title: Text('About AirQo'),
+              leading: Icon(
+                Icons.info_outline_rounded,
+                color: appColor,
+              ),
+            ),
+          ),
+          InkWell(
+            onTap: (){
+              _launchURL('rate');
+            },
+            child: const ListTile(
+              title: Text('Rate App'),
+              leading: Icon(
+                Icons.rate_review_outlined,
+                color: appColor,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget footer() {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(0, 10, 0, 10),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+
+          GestureDetector(
+            onTap: () { _launchURL('airqo'); },
+            child: Image.asset(
+              'assets/icon/airqo_logo.png',
+              height: 50,
+              width: 50,
+            ),
+          ),
+
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              IconButton(
+                  icon: const FaIcon(
+                    FontAwesomeIcons.facebook,
+                    color: facebookColor,
+                  ),
+                  onPressed: () { _launchURL('facebook'); }
+              ),
+
+              IconButton(
+                  icon: const FaIcon(
+                    FontAwesomeIcons.twitter,
+                    color: twitterColor,),
+                  onPressed: () { _launchURL('twitter'); }
+              ),
+
+              IconButton(
+                  icon: const FaIcon(FontAwesomeIcons.youtube,
+                    color: youtubeColor,),
+                  onPressed: () { _launchURL('youtube'); }
+              ),
+
+              IconButton(
+                  icon: const FaIcon(FontAwesomeIcons.linkedin,
+                    color: linkedInColor,),
+                  onPressed: () { _launchURL('linkedin'); }
+              ),
+
+            ],
+          ),
+          const SizedBox(height: 5,),
+          Text(
+            '\u00a9 AirQo 2021',
+            style: TextStyle(
+                color: ColorConstants().appColor
+            ),
+          ),
+          Text(
+            'Air Quality Initiative',
+            style: TextStyle(
+                color: ColorConstants().appColor
+            ),
+          ),
+          const SizedBox(height: 5,),
+
+          Text(
+            'v1.21.7',
+            style: TextStyle(
+                color: ColorConstants().appColor
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
 }
