@@ -181,6 +181,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
 
   Widget emailInput() {
     return TextFormField(
+      controller: emailController,
       decoration: const InputDecoration(
         icon: Icon(Icons.email_outlined),
         labelText: 'Email Address (Optional)',
@@ -225,11 +226,11 @@ class _FeedbackPageState extends State<FeedbackPage> {
         style: ElevatedButton.styleFrom(primary: appColor),
         onPressed: () async {
           if (_formKey.currentState!.validate()) {
-            var email = '';
-            if (emailController.text.isNotEmpty) {
-              email = emailController.text;
-            }
-
+            // var email = emailController.text;
+            // if (emailController.text.isNotEmpty) {
+            //   email = emailController.text;
+            // }
+            var email = emailController.text;
             var feedback = feedbackController.text;
             var feedBackModel =
                 feedback_model.UserFeedback(email: email, feedback: feedback);

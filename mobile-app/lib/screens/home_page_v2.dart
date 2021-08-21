@@ -1,13 +1,10 @@
 import 'package:app/constants/app_constants.dart';
-import 'package:app/models/measurement.dart';
 import 'package:app/on_boarding/onBoarding_page.dart';
 import 'package:app/screens/feedback_page.dart';
 import 'package:app/screens/map_page.dart';
 import 'package:app/screens/my_places.dart';
 import 'package:app/screens/resources_page.dart';
-import 'package:app/screens/search.dart';
 import 'package:app/screens/search_location_page.dart';
-
 import 'package:app/screens/settings_page.dart';
 import 'package:app/screens/share_picture.dart';
 import 'package:app/utils/services/local_storage.dart';
@@ -18,15 +15,12 @@ import 'package:app/widgets/help/aqi_index.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import 'compare_page.dart';
-import 'dashboard_page.dart';
-import 'faqs_page.dart';
-
 import 'package:url_launcher/url_launcher.dart';
 
-const _url = 'https://forms.gle/oFjqpNoUKPY5ubAcA';
+import 'dashboard_page.dart';
+
 const _faqsUrl = 'https://www.airqo.net/faqs';
+const _url = 'https://forms.gle/oFjqpNoUKPY5ubAcA';
 
 class HomePageV2 extends StatefulWidget {
   final String title = 'AirQo';
@@ -41,6 +35,7 @@ class _HomePageV2State extends State<HomePageV2> {
   bool showAddPlace = true;
   DateTime? exitTime;
 
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -86,7 +81,6 @@ class _HomePageV2State extends State<HomePageV2> {
                   ),
                 ),
               ),
-
               const PopupMenuItem<String>(
                 value: 'Faqs',
                 child: ListTile(
@@ -215,13 +209,58 @@ class _HomePageV2State extends State<HomePageV2> {
     );
   }
 
-  void _launchURL() async => await canLaunch(_url)
-      ? await launch(_url)
-      : throw 'Could not launch feedback form, try opening $_url';
+  @override
+  void initState() {
+    _displayOnBoarding();
+    _getMeasurements();
+    _getDevices();
 
-  void _launchURLFaqs() async => await canLaunch(_faqsUrl)
-      ? await launch(_faqsUrl)
-      : throw 'Could not launch feedback form, try opening $_faqsUrl';
+    super.initState();
+  }
+
+  void navigateToMenuItem(dynamic position) {
+    var menuItem = position.toString();
+
+    if (menuItem.trim().toLowerCase() == 'feedback') {
+      // _launchURL();
+      Navigator.push(context, MaterialPageRoute(builder: (context) {
+        return FeedbackPage();
+      }));
+    } else if (menuItem.trim().toLowerCase() == 'share') {
+      shareApp();
+    } else if (menuItem.trim().toLowerCase() == 'aqi index') {
+      Navigator.push(
+        context,
+        MaterialPageRoute<void>(
+          builder: (BuildContext context) => AQI_Dialog(),
+          fullscreenDialog: true,
+        ),
+      );
+    } else if (menuItem.trim().toLowerCase() == 'faqs') {
+      _launchURLFaqs();
+      // Navigator.push(context, MaterialPageRoute(builder: (context) {
+      //   return FaqsPage();
+      // }));
+    } else if (menuItem.trim().toLowerCase() == 'myplaces') {
+      Navigator.push(context, MaterialPageRoute(builder: (context) {
+        return const MyPlaces();
+      })).then((value) {
+        setState(() {});
+      });
+    } else if (menuItem.trim().toLowerCase() == 'settings') {
+      Navigator.push(context, MaterialPageRoute(builder: (context) {
+        return SettingsPage();
+      })).then((value) {
+        setState(() {});
+      });
+    } else if (menuItem.trim().toLowerCase() == 'camera') {
+      takePhoto();
+    } else {
+      Navigator.push(context, MaterialPageRoute(builder: (context) {
+        return SettingsPage();
+      }));
+    }
+  }
 
   Future<bool> onWillPop() {
     var now = DateTime.now();
@@ -265,83 +304,18 @@ class _HomePageV2State extends State<HomePageV2> {
     }
   }
 
-  void navigateToMenuItem(dynamic position) {
-    var menuItem = position.toString();
+  Future<void> takePhoto() async {
+    // Obtain a list of the available cameras on the device.
+    final cameras = await availableCameras();
 
-    if (menuItem.trim().toLowerCase() == 'feedback') {
-      // _launchURL();
-      Navigator.push(context, MaterialPageRoute(builder: (context) {
-        return FeedbackPage();
-      }));
-    } else if (menuItem.trim().toLowerCase() == 'share') {
-      shareApp();
-    }
+    // Get a specific camera from the list of available cameras.
+    final firstCamera = cameras.first;
 
-    else if (menuItem.trim().toLowerCase() == 'aqi index'){
-      Navigator.push(
-        context,
-        MaterialPageRoute<void>(
-          builder: (BuildContext context) => AQI_Dialog(),
-          fullscreenDialog: true,
-        ),
+    await Navigator.push(context, MaterialPageRoute(builder: (context) {
+      return TakePicture(
+        camera: firstCamera,
       );
-    }
-
-    else if (menuItem.trim().toLowerCase() == 'faqs') {
-      _launchURLFaqs();
-      // Navigator.push(context, MaterialPageRoute(builder: (context) {
-      //   return FaqsPage();
-      // }));
-    } else if (menuItem.trim().toLowerCase() == 'myplaces') {
-      Navigator.push(context, MaterialPageRoute(builder: (context) {
-        return const MyPlaces();
-      })).then((value) {
-        setState(() {});
-      });
-    }
-    else if (menuItem.trim().toLowerCase() == 'settings') {
-      Navigator.push(context, MaterialPageRoute(builder: (context) {
-        return SettingsPage();
-      })).then((value) {
-        setState(() {});
-      });
-    } else if (menuItem.trim().toLowerCase() == 'camera') {
-      takePhoto();
-    } else {
-      Navigator.push(context, MaterialPageRoute(builder: (context) {
-        return SettingsPage();
-      }));
-    }
-  }
-
-  @override
-  void initState() {
-    _displayOnBoarding();
-    _getMeasurements();
-    _getDevices();
-
-    super.initState();
-  }
-
-  void _getMeasurements() async {
-    print('Home page Getting measurements');
-
-    var measurements = await AirqoApiClient(context).fetchLatestMeasurements();
-
-    if (measurements.isNotEmpty) {
-      print('inserting latest measurements into db');
-      await DBHelper().insertMeasurements(measurements);
-    }
-  }
-
-  Future<void> _getDevices() async {
-    print('Home page Getting devices');
-
-    var results = await AirqoApiClient(context).fetchDevices();
-
-    if (results.isNotEmpty) {
-      await DBHelper().insertDevices(results);
-    }
+    }));
   }
 
   Future<void> _displayOnBoarding() async {
@@ -356,17 +330,32 @@ class _HomePageV2State extends State<HomePageV2> {
     }
   }
 
-  Future<void> takePhoto() async {
-    // Obtain a list of the available cameras on the device.
-    final cameras = await availableCameras();
+  Future<void> _getDevices() async {
+    print('Home page Getting devices');
 
-    // Get a specific camera from the list of available cameras.
-    final firstCamera = cameras.first;
+    var results = await AirqoApiClient(context).fetchDevices();
 
-    await Navigator.push(context, MaterialPageRoute(builder: (context) {
-      return TakePicture(
-        camera: firstCamera,
-      );
-    }));
+    if (results.isNotEmpty) {
+      await DBHelper().insertDevices(results);
+    }
   }
+
+  void _getMeasurements() async {
+    print('Home page Getting measurements');
+
+    var measurements = await AirqoApiClient(context).fetchLatestMeasurements();
+
+    if (measurements.isNotEmpty) {
+      print('inserting latest measurements into db');
+      await DBHelper().insertMeasurements(measurements);
+    }
+  }
+
+  void _launchURL() async => await canLaunch(_url)
+      ? await launch(_url)
+      : throw 'Could not launch feedback form, try opening $_url';
+
+  void _launchURLFaqs() async => await canLaunch(_faqsUrl)
+      ? await launch(_faqsUrl)
+      : throw 'Could not launch feedback form, try opening $_faqsUrl';
 }

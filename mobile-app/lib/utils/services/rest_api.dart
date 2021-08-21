@@ -384,8 +384,9 @@ class AirqoApiClient {
   Future<List<Device>> getDevicesByCoordinates(
       double latitude, double longitude) async {
     try {
-      String url =
-          '$getDevicesByGeoCoordinates&radius=1&latitude=$latitude&longitude=$longitude';
+      var url =
+          '$getDevicesByGeoCoordinates&radius=1&latitude='
+          '$latitude&longitude=$longitude';
       print(url);
       final response = await http.get(Uri.parse(url));
 
@@ -502,23 +503,25 @@ class AirqoApiClient {
   Future<bool> sendFeedbackV2(UserFeedback feedback) async {
     try {
       var body = {
-        'text': {'type': 'mrkdwn', 'text': '@channel, ${feedback.feedback}'},
+        'text': {'type': 'mrkdwn', 'text': '@channel, Mobile App feedback'},
         'attachments': [
           {
-            'fallback': '${feedback.feedback}',
+            'fallback': 'Mobile App feedback',
             'color': '#3067e2',
-            'title': '${feedback.feedback}',
+            'title': 'Mobile App feedback',
             'fields': [
               {'title': 'Email', 'value': '${feedback.email}'},
-              {'title': 'Feedback', 'value': '${feedback.feedback}'},
+              {'title': 'Message', 'value': '${feedback.feedback}'},
             ],
             'footer': 'AirQo Mobile App'
           }
         ]
       };
+
       final response = await _performPostRequest(
           <String, dynamic>{}, slackWebhook, jsonEncode(body));
       return response;
+
     } on Error catch (e) {
       print('Send Feedback: $e');
       return false;
