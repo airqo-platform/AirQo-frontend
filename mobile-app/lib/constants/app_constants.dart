@@ -296,9 +296,9 @@ class DbConstants {
 }
 
 class ErrorMessages {
-  final String _socketException = 'Connection timeout';
+  final String _socketException = 'Socket timeout';
   final String _timeoutException = 'Connection timeout';
-  final String _appException = 'Connection timeout';
+  final String _appException = 'App exception';
 
   String get socketException => _socketException;
 

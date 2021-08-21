@@ -2,19 +2,17 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
-// import 'dart:html';
-//
-// import 'dart:io';
+
 import 'package:app/config/env.dart';
 import 'package:app/constants/api.dart';
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/device.dart';
+import 'package:app/models/feedback.dart';
 import 'package:app/models/hourly.dart';
+import 'package:app/models/measurement.dart';
 import 'package:app/models/place.dart';
 import 'package:app/models/predict.dart';
 import 'package:app/models/suggestion.dart';
-import 'package:app/models/feedback.dart';
-import 'package:app/models/measurement.dart';
 import 'package:app/utils/ui/dialogs.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -23,273 +21,20 @@ import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server.dart';
 
 class AirqoApiClient {
-  AirqoApiClient(this.context);
-
   final BuildContext context;
 
-  Future<bool> sendFeedbackV2(UserFeedback feedback) async {
+  AirqoApiClient(this.context);
 
-    return true;
+  Future<List<Measurement>> fetchComparisonMeasurements() async {
+    // var device_01 = await fetchDeviceMeasurements(1);
+    // var device_02 = await fetchDeviceMeasurements(2);
 
-  }
+    var measurements = <Measurement>[];
 
+    // measurements.add(device_02);
+    // measurements.add(device_01);
 
-  Future<bool> sendFeedback(UserFeedback feedback) async {
-    final smtpServer = gmail(fromEmail, emailPassword);
-
-    final message = Message()
-      ..from = const Address(fromEmail, 'AirQo Analytics')
-      ..recipients.add(emailRecipient)
-      ..ccRecipients.addAll(emailCC)
-      ..subject = 'Mobile App Feedback ${DateTime.now()}'
-      ..text = feedback.feedback;
-
-    try {
-      final sendReport = await send(message, smtpServer);
-      print('Message sent: $sendReport');
-      return true;
-    } on MailerException catch (e) {
-      print('Message not sent.');
-      print(e);
-      for (var p in e.problems) {
-        print('Problem: ${p.code}: ${p.msg}');
-      }
-
-      return false;
-    }
-  }
-
-  Future<List<Measurement>> fetchMeasurements() async {
-    try {
-      final response = await http.get(Uri.parse(getLatestEvents));
-
-      print(response.statusCode);
-      if (response.statusCode == 200) {
-        print(response.body);
-
-        var jsonBody = json.decode(response.body)['measurements'];
-
-        return compute(Measurement.parseMeasurements, jsonBody);
-
-        // var measurements = <Measurement>[];
-        // List<Measurement> measurements = json
-        //     .decode(response.body)['measurements']
-        //     .map<Measurement>((m) => Measurement.fromJson(m))
-        //     .toList();
-        //
-        // var jsonBody = json.decode(response.body)['measurements'];
-        // for (var element in jsonBody) {
-        //   try {
-        //     var measurement = Measurement.fromJson(element);
-        //     measurements.add(measurement);
-        //   } on Error catch (e) {
-        //     print('Mapping Devices error: $e');
-        //   }
-        // }
-        //
-        // return measurements;
-      } else {
-        print('Unexpected status code ${response.statusCode}:'
-            ' ${response.reasonPhrase}');
-        print('Body ${response.body}:');
-        print('uri: Uri.parse($getLatestEvents)');
-        return <Measurement>[];
-      }
-    } on SocketException {
-      await showSnackBar(context, ErrorMessages().socketException);
-    } on TimeoutException {
-      await showSnackBar(context, ErrorMessages().timeoutException);
-    } on Error catch (e) {
-      print('Get Latest events error: $e');
-      await showSnackBar(
-          context, 'Measurements not available, try again later');
-    }
-
-    return <Measurement>[];
-  }
-
-  Future<List<Measurement>> fetchLatestMeasurements() async {
-    try {
-
-      var queryParams = <String, dynamic>{}
-        ..putIfAbsent('recent', () => 'yes')
-        ..putIfAbsent('tenant', () => 'airqo');
-
-      final responseBody = await _performGetRequest(queryParams,
-          AirQoUrls().measurements);
-
-      if (responseBody != null) {
-
-        return compute(Measurement.parseMeasurements,
-            responseBody['measurements']);
-      } else {
-        print('Measurements are null');
-        return <Measurement>[];
-      }
-
-    } on Error catch (e) {
-      print('Get Latest measurements error: $e');
-    }
-
-    return <Measurement>[];
-  }
-
-
-  Future<List<Predict>> fetchForecast(
-      String latitude, String longitude, String dateTime) async {
-    try {
-      var body = {
-        'selected_datetime': dateTime,
-        'latitude': latitude,
-        'longitude': longitude
-      };
-
-      print(body);
-
-      final response = await http.post(Uri.parse('$getForecastUrl'),
-          headers: {'Content-Type': 'application/json'},
-          body: json.encode(body));
-
-      print(response.statusCode);
-      if (response.statusCode == 200) {
-        print(response.body);
-
-        var predictions = <Predict>[];
-
-        var jsonBody =
-            json.decode(response.body)['formatted_results']['predictions'];
-
-        for (var element in jsonBody) {
-          try {
-            var predict = Predict.fromJson(element);
-            predictions.add(predict);
-          } on Error catch (e) {
-            print('Get predictions error: $e');
-          }
-        }
-
-        return predictions;
-      } else {
-        print('Unexpected status code ${response.statusCode}:'
-            ' ${response.reasonPhrase}');
-        print('Body ${response.body}:');
-        print('uri: Uri.parse($getForecastUrl)');
-        return <Predict>[];
-      }
-    } on SocketException {
-      await showSnackBar(context, ErrorMessages().socketException);
-    } on TimeoutException {
-      await showSnackBar(context, ErrorMessages().timeoutException);
-    } on Error catch (e) {
-      print('Get Forecast error: $e');
-      // var message = 'Forecast data is not available, try again later';
-      // await showSnackBar(context, message);
-    }
-
-    return <Predict>[];
-  }
-
-  Future<List<Measurement>> fetchMeasurementsByDate(
-      String datetime, String channelID) async {
-    try {
-      final response = await http
-          .get(Uri.parse('$getEvensByTime$datetime&device=$channelID'));
-
-      print('$getEvensByTime$datetime&channeID=$channelID');
-
-      print(response.statusCode);
-      if (response.statusCode == 200) {
-        print(response.body);
-
-        // List<Measurement> measurements = json
-        //     .decode(response.body)['measurements']
-        //     .map<Measurement>((m) => Measurement.fromJson(m))
-        //     .toList();
-        //
-        // return measurements;
-
-        var measurements = <Measurement>[];
-
-        var jsonBody = json.decode(response.body)['measurements'];
-
-        for (var element in jsonBody) {
-          try {
-            var measurement = Measurement.fromJson(element);
-            measurements.add(measurement);
-          } on Error catch (e) {
-            print('Get measurements error: $e');
-          }
-        }
-
-        return measurements;
-      } else {
-        print('Unexpected status code ${response.statusCode}:'
-            ' ${response.reasonPhrase}');
-        throw HttpException(
-            'Unexpected status code ${response.statusCode}:'
-            ' ${response.reasonPhrase}',
-            uri: Uri.parse(getLatestEvents));
-      }
-    } on SocketException {
-      await showSnackBar(context, ErrorMessages().socketException);
-    } on TimeoutException {
-      await showSnackBar(context, ErrorMessages().timeoutException);
-    } on Error catch (e) {
-      print('Get Latest events error: $e');
-      var message = 'Connection timeout, please check your internet connection';
-      // await showSnackBar(context, message);
-    }
-
-    return <Measurement>[];
-  }
-
-  Future<List<Device>> fetchDevices() async {
-    try {
-      final response = await http.get(Uri.parse(getDevices));
-
-      print(response.statusCode);
-      if (response.statusCode == 200) {
-        print(response.body);
-
-        // List<Device> devices = json.decode(response.body)['devices']
-        //     .map<Device>((d) => {
-        //   Device.fromJson(d)
-        // })
-        //     .toList();
-
-        var devices = <Device>[];
-
-        var j = json.decode(response.body)['devices'];
-        for (var t in j) {
-          try {
-            Device device = Device.fromJson(t);
-            devices.add(device);
-          } on Error catch (e) {
-            print('Get Devices error: $e');
-          }
-        }
-
-        return devices;
-      } else {
-        print('Unexpected status code ${response.statusCode}:'
-            ' ${response.reasonPhrase}');
-        throw HttpException(
-            'Unexpected status code ${response.statusCode}:'
-            ' ${response.reasonPhrase}',
-            uri: Uri.parse(getDevices));
-      }
-    } on SocketException {
-      await showSnackBar(context, ErrorMessages().socketException);
-    } on TimeoutException {
-      await showSnackBar(context, ErrorMessages().timeoutException);
-    } on Error catch (e) {
-      print('Get Devices error: $e');
-      var message =
-          'Recent locations are not available, please try again later';
-      await showSnackBar(context, message);
-    }
-
-    return <Device>[];
+    return measurements;
   }
 
   Future<Device> fetchDevice(String name) async {
@@ -364,16 +109,107 @@ class AirqoApiClient {
     throw Exception('device doesn\'t exist');
   }
 
-  Future<List<Measurement>> fetchComparisonMeasurements() async {
-    // var device_01 = await fetchDeviceMeasurements(1);
-    // var device_02 = await fetchDeviceMeasurements(2);
+  Future<List<Device>> fetchDevices() async {
+    try {
+      final response = await http.get(Uri.parse(getDevices));
 
-    var measurements = <Measurement>[];
+      print(response.statusCode);
+      if (response.statusCode == 200) {
+        print(response.body);
 
-    // measurements.add(device_02);
-    // measurements.add(device_01);
+        // List<Device> devices = json.decode(response.body)['devices']
+        //     .map<Device>((d) => {
+        //   Device.fromJson(d)
+        // })
+        //     .toList();
 
-    return measurements;
+        var devices = <Device>[];
+
+        var j = json.decode(response.body)['devices'];
+        for (var t in j) {
+          try {
+            Device device = Device.fromJson(t);
+            devices.add(device);
+          } on Error catch (e) {
+            print('Get Devices error: $e');
+          }
+        }
+
+        return devices;
+      } else {
+        print('Unexpected status code ${response.statusCode}:'
+            ' ${response.reasonPhrase}');
+        throw HttpException(
+            'Unexpected status code ${response.statusCode}:'
+            ' ${response.reasonPhrase}',
+            uri: Uri.parse(getDevices));
+      }
+    } on SocketException {
+      await showSnackBar(context, ErrorMessages().socketException);
+    } on TimeoutException {
+      await showSnackBar(context, ErrorMessages().timeoutException);
+    } on Error catch (e) {
+      print('Get Devices error: $e');
+      var message =
+          'Recent locations are not available, please try again later';
+      await showSnackBar(context, message);
+    }
+
+    return <Device>[];
+  }
+
+  Future<List<Predict>> fetchForecast(
+      String latitude, String longitude, String dateTime) async {
+    try {
+      var body = {
+        'selected_datetime': dateTime,
+        'latitude': latitude,
+        'longitude': longitude
+      };
+
+      print(body);
+
+      final response = await http.post(Uri.parse('$getForecastUrl'),
+          headers: {'Content-Type': 'application/json'},
+          body: json.encode(body));
+
+      print(response.statusCode);
+      if (response.statusCode == 200) {
+        print(response.body);
+
+        var predictions = <Predict>[];
+
+        var jsonBody =
+            json.decode(response.body)['formatted_results']['predictions'];
+
+        for (var element in jsonBody) {
+          try {
+            var predict = Predict.fromJson(element);
+            predictions.add(predict);
+          } on Error catch (e) {
+            print('Get predictions error: $e');
+          }
+        }
+
+        return predictions;
+      } else {
+        print('Unexpected status code ${response.statusCode}:'
+            ' ${response.reasonPhrase}');
+        print('Body ${response.body}:');
+        print('uri: Uri.parse($getForecastUrl)');
+        return <Predict>[];
+      }
+    } on SocketException {
+      await showSnackBar(context, ErrorMessages().socketException);
+    } on TimeoutException {
+      await showSnackBar(context, ErrorMessages().timeoutException);
+    } on Error catch (e) {
+      print('Get Forecast error: $e');
+      // var message = 'Forecast data is not available, try again later';
+      // await showSnackBar(context, message);
+    }
+
+    return <Predict>[];
   }
 
   Future<List<Hourly>> fetchHourlyMeasurements(int channelId) async {
@@ -419,46 +255,130 @@ class AirqoApiClient {
     return <Hourly>[];
   }
 
-  Future<String> imageUpload(String file, String? type) async {
-    type ??= 'jpeg';
-
-    var uploadStr = 'data:image/$type;base64,$file';
+  Future<List<Measurement>> fetchLatestMeasurements() async {
     try {
-      var body = {'file': uploadStr, 'upload_preset': 'mobile_uploads'};
+      var queryParams = <String, dynamic>{}
+        ..putIfAbsent('recent', () => 'yes')
+        ..putIfAbsent('tenant', () => 'airqo');
 
-      //   "api_key": cloudinaryApiKey,
-      // "timestamp": DateTime.now().microsecondsSinceEpoch,
-      // "signature": "",
+      final responseBody =
+          await _performGetRequest(queryParams, AirQoUrls().measurements);
 
-      // print(body);
+      if (responseBody != null) {
+        return compute(
+            Measurement.parseMeasurements, responseBody['measurements']);
+      } else {
+        print('Measurements are null');
+        return <Measurement>[];
+      }
+    } on Error catch (e) {
+      print('Get Latest measurements error: $e');
+    }
 
-      final response = await http.post(Uri.parse('$getCloundinaryUrl'),
-          headers: {'Content-Type': 'application/json'},
-          body: json.encode(body));
+    return <Measurement>[];
+  }
+
+  Future<List<Measurement>> fetchMeasurements() async {
+    try {
+      final response = await http.get(Uri.parse(getLatestEvents));
 
       print(response.statusCode);
       if (response.statusCode == 200) {
         print(response.body);
-        return response.body.toString();
+
+        var jsonBody = json.decode(response.body)['measurements'];
+
+        return compute(Measurement.parseMeasurements, jsonBody);
+
+        // var measurements = <Measurement>[];
+        // List<Measurement> measurements = json
+        //     .decode(response.body)['measurements']
+        //     .map<Measurement>((m) => Measurement.fromJson(m))
+        //     .toList();
+        //
+        // var jsonBody = json.decode(response.body)['measurements'];
+        // for (var element in jsonBody) {
+        //   try {
+        //     var measurement = Measurement.fromJson(element);
+        //     measurements.add(measurement);
+        //   } on Error catch (e) {
+        //     print('Mapping Devices error: $e');
+        //   }
+        // }
+        //
+        // return measurements;
       } else {
         print('Unexpected status code ${response.statusCode}:'
             ' ${response.reasonPhrase}');
         print('Body ${response.body}:');
-        print('uri: Uri.parse($getForecastUrl)');
-        throw Exception('Error');
+        print('uri: Uri.parse($getLatestEvents)');
+        return <Measurement>[];
       }
     } on SocketException {
       await showSnackBar(context, ErrorMessages().socketException);
-      throw Exception('Error');
     } on TimeoutException {
       await showSnackBar(context, ErrorMessages().timeoutException);
-      throw Exception('Error');
     } on Error catch (e) {
-      print('Get Forecast error: $e');
-      throw Exception('Error');
-      // var message = 'Forecast data is not available, try again later';
+      print('Get Latest events error: $e');
+      await showSnackBar(
+          context, 'Measurements not available, try again later');
+    }
+
+    return <Measurement>[];
+  }
+
+  Future<List<Measurement>> fetchMeasurementsByDate(
+      String datetime, String channelID) async {
+    try {
+      final response = await http
+          .get(Uri.parse('$getEvensByTime$datetime&device=$channelID'));
+
+      print('$getEvensByTime$datetime&channeID=$channelID');
+
+      print(response.statusCode);
+      if (response.statusCode == 200) {
+        print(response.body);
+
+        // List<Measurement> measurements = json
+        //     .decode(response.body)['measurements']
+        //     .map<Measurement>((m) => Measurement.fromJson(m))
+        //     .toList();
+        //
+        // return measurements;
+
+        var measurements = <Measurement>[];
+
+        var jsonBody = json.decode(response.body)['measurements'];
+
+        for (var element in jsonBody) {
+          try {
+            var measurement = Measurement.fromJson(element);
+            measurements.add(measurement);
+          } on Error catch (e) {
+            print('Get measurements error: $e');
+          }
+        }
+
+        return measurements;
+      } else {
+        print('Unexpected status code ${response.statusCode}:'
+            ' ${response.reasonPhrase}');
+        throw HttpException(
+            'Unexpected status code ${response.statusCode}:'
+            ' ${response.reasonPhrase}',
+            uri: Uri.parse(getLatestEvents));
+      }
+    } on SocketException {
+      await showSnackBar(context, ErrorMessages().socketException);
+    } on TimeoutException {
+      await showSnackBar(context, ErrorMessages().timeoutException);
+    } on Error catch (e) {
+      print('Get Latest events error: $e');
+      var message = 'Connection timeout, please check your internet connection';
       // await showSnackBar(context, message);
     }
+
+    return <Measurement>[];
   }
 
   Future<List<Device>> getDevicesByCoordinates(
@@ -512,34 +432,122 @@ class AirqoApiClient {
     return <Device>[];
   }
 
-  Future<dynamic> _performGetRequest(Map<String, dynamic> queryParams,
-      String url) async {
-    try {
+  Future<String> imageUpload(String file, String? type) async {
+    type ??= 'jpeg';
 
-      if(queryParams.isNotEmpty){
+    var uploadStr = 'data:image/$type;base64,$file';
+    try {
+      var body = {'file': uploadStr, 'upload_preset': 'mobile_uploads'};
+
+      //   "api_key": cloudinaryApiKey,
+      // "timestamp": DateTime.now().microsecondsSinceEpoch,
+      // "signature": "",
+
+      // print(body);
+
+      final response = await http.post(Uri.parse('$getCloundinaryUrl'),
+          headers: {'Content-Type': 'application/json'},
+          body: json.encode(body));
+
+      print(response.statusCode);
+      if (response.statusCode == 200) {
+        print(response.body);
+        return response.body.toString();
+      } else {
+        print('Unexpected status code ${response.statusCode}:'
+            ' ${response.reasonPhrase}');
+        print('Body ${response.body}:');
+        print('uri: Uri.parse($getForecastUrl)');
+        throw Exception('Error');
+      }
+    } on SocketException {
+      await showSnackBar(context, ErrorMessages().socketException);
+      throw Exception('Error');
+    } on TimeoutException {
+      await showSnackBar(context, ErrorMessages().timeoutException);
+      throw Exception('Error');
+    } on Error catch (e) {
+      print('Get Forecast error: $e');
+      throw Exception('Error');
+      // var message = 'Forecast data is not available, try again later';
+      // await showSnackBar(context, message);
+    }
+  }
+
+  Future<bool> sendFeedback(UserFeedback feedback) async {
+    final smtpServer = gmail(fromEmail, emailPassword);
+
+    final message = Message()
+      ..from = const Address(fromEmail, 'AirQo Analytics')
+      ..recipients.add(emailRecipient)
+      ..ccRecipients.addAll(emailCC)
+      ..subject = 'Mobile App Feedback ${DateTime.now()}'
+      ..text = feedback.feedback;
+
+    try {
+      final sendReport = await send(message, smtpServer);
+      print('Message sent: $sendReport');
+      return true;
+    } on MailerException catch (e) {
+      print('Message not sent.');
+      print(e);
+      for (var p in e.problems) {
+        print('Problem: ${p.code}: ${p.msg}');
+      }
+
+      return false;
+    }
+  }
+
+  Future<bool> sendFeedbackV2(UserFeedback feedback) async {
+    try {
+      var body = {
+        'text': {'type': 'mrkdwn', 'text': '@channel, ${feedback.feedback}'},
+        'attachments': [
+          {
+            'fallback': '${feedback.feedback}',
+            'color': '#3067e2',
+            'title': '${feedback.feedback}',
+            'fields': [
+              {'title': 'Email', 'value': '${feedback.email}'},
+              {'title': 'Feedback', 'value': '${feedback.feedback}'},
+            ],
+            'footer': 'AirQo Mobile App'
+          }
+        ]
+      };
+      final response = await _performPostRequest(
+          <String, dynamic>{}, slackWebhook, jsonEncode(body));
+      return response;
+    } on Error catch (e) {
+      print('Send Feedback: $e');
+      return false;
+    }
+  }
+
+  Future<dynamic> _performGetRequest(
+      Map<String, dynamic> queryParams, String url) async {
+    try {
+      if (queryParams.isNotEmpty) {
         url = '$url?';
         queryParams.forEach((key, value) {
           if (queryParams.keys.elementAt(0).compareTo(key) == 0) {
             url = '$url$key=$value';
-          }
-          else{
+          } else {
             url = '$url&$key=$value';
           }
-
         });
       }
 
-      Map<String, String> headers =  HashMap()
+      Map<String, String> headers = HashMap()
         ..putIfAbsent('Authorization', () => 'JWT $airQoApiKey');
       print(url);
 
       final response = await http.get(Uri.parse(url), headers: headers);
 
       if (response.statusCode == 200) {
-
         print(response.body);
         return json.decode(response.body);
-
       } else {
         print(response.statusCode);
         print('Unexpected status code ${response.statusCode}:'
@@ -559,17 +567,61 @@ class AirqoApiClient {
     return null;
   }
 
+  Future<bool> _performPostRequest(
+      Map<String, dynamic> queryParams, String url, dynamic body) async {
+    try {
+      if (queryParams.isNotEmpty) {
+        url = '$url?';
+        queryParams.forEach((key, value) {
+          if (queryParams.keys.elementAt(0).compareTo(key) == 0) {
+            url = '$url$key=$value';
+          } else {
+            url = '$url&$key=$value';
+          }
+        });
+      }
+
+      Map<String, String> headers = HashMap()
+        ..putIfAbsent('Content-Type', () => 'application/json');
+
+      print(body);
+      print(url);
+      final response =
+          await http.post(Uri.parse(url), headers: headers, body: body);
+
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        print(response.statusCode);
+        print('Unexpected status code ${response.statusCode}:'
+            ' ${response.reasonPhrase}');
+        print('Body ${response.body}:');
+        print('uri: $url');
+        return false;
+      }
+    } on SocketException {
+      await showSnackBar(context, ErrorMessages().socketException);
+      return false;
+    } on TimeoutException {
+      await showSnackBar(context, ErrorMessages().timeoutException);
+      return false;
+    } on Error catch (e) {
+      print(e);
+      await showSnackBar(context, ErrorMessages().appException);
+      return false;
+    }
+  }
 }
 
 class GoogleSearchProvider {
-  GoogleSearchProvider(this.sessionToken);
-
-  final sessionToken;
-
   static final String androidKey = googleApiKey;
+
   static final String iosKey = iosApiKey;
 
+  final sessionToken;
   final apiKey = Platform.isAndroid ? androidKey : iosKey;
+
+  GoogleSearchProvider(this.sessionToken);
 
   Future<List<Suggestion>> fetchSuggestions(String input) async {
     print('Session Token ==> $sessionToken');
@@ -632,7 +684,6 @@ class GoogleSearchProvider {
       final response = await http.get(Uri.parse(request));
 
       if (response.statusCode != 200) {
-        // throw Exception(result['error_message']);
         throw Exception('Failed to get details, please try again later');
       }
 
