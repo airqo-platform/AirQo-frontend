@@ -204,10 +204,10 @@ class SplashScreenState extends State<SplashScreen> {
         return OnBoardingPage();
       }));
     } else {
-      await Navigator.pushReplacement(context,
+      await Navigator.pushAndRemoveUntil(context,
           MaterialPageRoute(builder: (context) {
-        return HomePageV2();
-      }));
+            return HomePageV2();
+          }), (r) => false);
     }
   }
 }

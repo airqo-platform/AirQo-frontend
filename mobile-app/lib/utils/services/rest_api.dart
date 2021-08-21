@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
-
 import 'dart:io';
+// import 'dart:html';
+//
+// import 'dart:io';
 import 'package:app/config/env.dart';
 import 'package:app/constants/api.dart';
 import 'package:app/constants/app_constants.dart';
@@ -24,6 +26,13 @@ class AirqoApiClient {
   AirqoApiClient(this.context);
 
   final BuildContext context;
+
+  Future<bool> sendFeedbackV2(UserFeedback feedback) async {
+
+    return true;
+
+  }
+
 
   Future<bool> sendFeedback(UserFeedback feedback) async {
     final smtpServer = gmail(fromEmail, emailPassword);

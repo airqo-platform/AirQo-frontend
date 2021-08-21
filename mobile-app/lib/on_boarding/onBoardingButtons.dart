@@ -31,11 +31,10 @@ class OnBoardingButtons extends StatelessWidget {
                     child: FlatButton(
                         onPressed: () {
                           updateFirstUse();
-
-                          Navigator.pushReplacement(context,
+                          Navigator.pushAndRemoveUntil(context,
                               MaterialPageRoute(builder: (context) {
-                            return HomePageV2();
-                          }));
+                                return HomePageV2();
+                              }), (r) => false);
                         },
                         color: Colors.white,
                         height: MediaQuery.of(context).size.height * 0.1,
@@ -59,10 +58,10 @@ class OnBoardingButtons extends StatelessWidget {
                 onPressed: () {
                   updateFirstUse();
 
-                  Navigator.pushReplacement(context,
+                  Navigator.pushAndRemoveUntil(context,
                       MaterialPageRoute(builder: (context) {
-                    return HomePageV2();
-                  }));
+                        return HomePageV2();
+                      }), (r) => false);
                 },
                 child: const Text(
                   'Skip',
