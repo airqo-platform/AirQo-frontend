@@ -1,5 +1,6 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/screens/home_page.dart';
+import 'package:app/screens/home_page_v2.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -33,7 +34,7 @@ class OnBoardingButtons extends StatelessWidget {
 
                           Navigator.pushReplacement(context,
                               MaterialPageRoute(builder: (context) {
-                            return HomePage();
+                            return HomePageV2();
                           }));
                         },
                         color: Colors.white,
@@ -60,7 +61,7 @@ class OnBoardingButtons extends StatelessWidget {
 
                   Navigator.pushReplacement(context,
                       MaterialPageRoute(builder: (context) {
-                    return HomePage();
+                    return HomePageV2();
                   }));
                 },
                 child: const Text(

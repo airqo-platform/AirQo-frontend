@@ -26,121 +26,66 @@ class _FeedbackPageState extends State<FeedbackPage> {
       appBar: AppBar(
         title: const Text('Feedback'),
       ),
-      body: Stack(
-        children: <Widget>[
-          Positioned(
-            child: Align(
-                alignment: Alignment.center,
-                child: Center(
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(primary: appColor),
-                    onPressed: _launchURL,
-                    child: const Text('Click to open the feedback form'),
-                  ),
-                )),
-          )
-          // Form(
-          //   key: _formKey,
-          //   child: SingleChildScrollView(
-          //     padding: EdgeInsets.symmetric(horizontal: 20),
-          //     child: Column(
-          //       crossAxisAlignment: CrossAxisAlignment.center,
-          //       mainAxisAlignment: MainAxisAlignment.center,
-          //       children: <Widget>[
-          //         // SizedBox(height: height * .2),
-          //         const SizedBox(height: 2),
-          //         emailInput(),
-          //         const SizedBox(
-          //           height: 5,
-          //         ),
-          //         feedbackInput(),
-          //         const SizedBox(
-          //           height: 5,
-          //         ),
-          //         submitButton(),
-          //         const SizedBox(
-          //           height: 10,
-          //         ),
-          //         // SizedBox(height: height * .14),
-          //         // _loginAccountLabel(),
-          //       ],
-          //     ),
-          //   ),
-          // ),
-          // Positioned(
-          //   child: isLoading ? const Loading() : Container(),
-          // ),
-          // Positioned(bottom: 10, left: 0, right: 0,
-          //     child: airqoLogo()
-          // ),
-        ],
+      body: Container(
+        height: height,
+        child: Stack(
+          children: <Widget>[
+            Positioned.fill(
+              child: Align(
+                  alignment: Alignment.center,
+                  child: Column(
+                    children: <Widget>[
+                    Center(
+                      child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                          primary: appColor
+                      ),
+                        onPressed: _launchURL,
+                        child: const Text('Click to open the feedback form'),
+                      ),
+                    ),
+                    ]
+                  )
+              ),
+            ),
+            Form(
+              key: _formKey,
+              child: SingleChildScrollView(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    // SizedBox(height: height * .2),
+                    const SizedBox(height: 2),
+                    emailInput(),
+                    const SizedBox(
+                      height: 5,
+                    ),
+                    feedbackInput(),
+                    const SizedBox(
+                      height: 5,
+                    ),
+                    submitButton(),
+                    const SizedBox(
+                      height: 10,
+                    ),
+                    // SizedBox(height: height * .14),
+                    // _loginAccountLabel(),
+                  ],
+                ),
+              ),
+            ),
+            // Positioned(
+            //   child: isLoading ? const Loading() : Container(),
+            // ),
+            Positioned(bottom: 10, left: 0, right: 0,
+                child: airqoLogo()
+            ),
+          ],
+        ),
       ),
     );
-
-    // return Scaffold(
-    //   appBar: AppBar(
-    //     title: const Text('Feedback'),
-    //   ),
-    //   body: Container(
-    //     height: height,
-    //     child: Stack(
-    //       children: <Widget>[
-    //         Positioned.fill(
-    //           child: Align(
-    //               alignment: Alignment.center,
-    //               child: Column(
-    //                 children: <Widget>[
-    //                 Center(
-    //                   child: ElevatedButton(
-    //                   style: ElevatedButton.styleFrom(
-    //                       primary: appColor
-    //                   ),
-    //                     onPressed: _launchURL,
-    //                     child: const Text('Click to open the feedback form'),
-    //                   ),
-    //                 ),
-    //                 ]
-    //               )
-    //           ),
-    //         )
-    //         // Form(
-    //         //   key: _formKey,
-    //         //   child: SingleChildScrollView(
-    //         //     padding: EdgeInsets.symmetric(horizontal: 20),
-    //         //     child: Column(
-    //         //       crossAxisAlignment: CrossAxisAlignment.center,
-    //         //       mainAxisAlignment: MainAxisAlignment.center,
-    //         //       children: <Widget>[
-    //         //         // SizedBox(height: height * .2),
-    //         //         const SizedBox(height: 2),
-    //         //         emailInput(),
-    //         //         const SizedBox(
-    //         //           height: 5,
-    //         //         ),
-    //         //         feedbackInput(),
-    //         //         const SizedBox(
-    //         //           height: 5,
-    //         //         ),
-    //         //         submitButton(),
-    //         //         const SizedBox(
-    //         //           height: 10,
-    //         //         ),
-    //         //         // SizedBox(height: height * .14),
-    //         //         // _loginAccountLabel(),
-    //         //       ],
-    //         //     ),
-    //         //   ),
-    //         // ),
-    //         // Positioned(
-    //         //   child: isLoading ? const Loading() : Container(),
-    //         // ),
-    //         // Positioned(bottom: 10, left: 0, right: 0,
-    //         //     child: airqoLogo()
-    //         // ),
-    //       ],
-    //     ),
-    //   ),
-    // );
   }
 
   void _launchURL() async => await canLaunch(_url)

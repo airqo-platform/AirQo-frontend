@@ -39,7 +39,7 @@ class AQI_Dialog extends StatelessWidget {
         title: const Text('AQI Guide'),
       ),
       body: Container(
-        padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
+        padding: const EdgeInsets.fromLTRB(0, 0,0, 0),
         child: ListView(
           children: [
             whatIsAQI,
@@ -56,23 +56,22 @@ class AQI_Dialog extends StatelessWidget {
   }
 
   Widget whatIsAQI = Container(
-    child: const Text(
-        'An air quality index is used by government agencies to communicate to '
-        'the public how polluted the air currently is or how polluted it is '
-        'forecast to become.'
-        'Different countries have their own air quality indices, '
-        'corresponding to different national air quality standards.',
-        softWrap: true,
-        style: TextStyle(
-          height: 1.2,
-          // letterSpacing: 1.0
-        )
-    ),
-  );
+  padding: const EdgeInsets.all(10),
+      child: const Text(
+      'An air quality index is used by government agencies to communicate to '
+      'the public how polluted the air currently is or how polluted it is '
+      'forecast to become.'
+      'Different countries have their own air quality indices, '
+      'corresponding to different national air quality standards.',
+      softWrap: true,
+      style: TextStyle(
+      height: 1.2,
+  // letterSpacing: 1.0
+  )));
 
   Widget AQI_Quide(String image, String body, Color color, Color textColor) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(0, 2, 0, 0),
+      padding: const EdgeInsets.all(5),
       decoration: BoxDecoration(color: color),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,

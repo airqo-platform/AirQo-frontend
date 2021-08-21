@@ -1,4 +1,5 @@
 import 'package:app/config/providers/LocalProvider.dart';
+import 'package:app/screens/home_page_v2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -205,7 +206,7 @@ class SplashScreenState extends State<SplashScreen> {
     } else {
       await Navigator.pushReplacement(context,
           MaterialPageRoute(builder: (context) {
-        return HomePage();
+        return HomePageV2();
       }));
     }
   }
