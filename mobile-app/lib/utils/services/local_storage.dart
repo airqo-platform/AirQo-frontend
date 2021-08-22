@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:app/config/languages/CustomLocalizations.dart';
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/device.dart';
 import 'package:app/models/measurement.dart';
@@ -34,41 +35,54 @@ class DBHelper {
   }
 
   Future<void> createDefaultTables(Database db) async {
-    await db.execute('''
-        CREATE TABLE IF NOT EXISTS ${constants.measurementsTable} (
-          ${constants.device} PRIMARY KEY,
-          ${constants.pm2_5} not null,
-          ${constants.pm10} not null,
-          ${constants.time} not null,
-          ${constants.s2_pm2_5} not null,
-          ${constants.s2_pm10} not null,
-          ${constants.externalHumidity} not null,
-          ${constants.externalTemp} not null,
-          )
-      ''');
 
-    await db.execute('''
-        CREATE TABLE IF NOT EXISTS ${constants.locationsTable} (
-          ${constants.channelID} INTEGER PRIMARY KEY,
-          ${constants.description} not null,
-          ${constants.siteName} not null,
-          ${constants.locationName} not null,
-          ${constants.name} not null,
-          ${constants.latitude} not null,
-          ${constants.longitude} not null,
-          ${constants.isActive} not null default 0,
-          ${constants.favourite} null default 0,
-          ${constants.nickName} null
-          )
-      ''');
+    // devices table
+    await db.execute(Device.createTableStmt());
 
-    await db.execute('''
-        CREATE TABLE IF NOT EXISTS ${constants.searchTableHistory} (
-          id INTEGER PRIMARY KEY,
-          ${constants.description} not null,
-          ${constants.place_id} not null
-          )
-      ''');
+    // latest measurements table
+    await db.execute(Measurement.latestMeasurementsTableStmt());
+
+    // historical measurements table
+    await db.execute(Measurement.historicalMeasurementsTableStmt());
+
+    // forecast data table
+    await db.execute(Measurement.forecastDataTableStmt());
+
+    // await db.execute('''
+    //     CREATE TABLE IF NOT EXISTS ${constants.measurementsTable} (
+    //       ${constants.device} PRIMARY KEY,
+    //       ${constants.pm2_5} not null,
+    //       ${constants.pm10} not null,
+    //       ${constants.time} not null,
+    //       ${constants.s2_pm2_5} not null,
+    //       ${constants.s2_pm10} not null,
+    //       ${constants.externalHumidity} not null,
+    //       ${constants.externalTemp} not null,
+    //       )
+    //   ''');
+    //
+    // await db.execute('''
+    //     CREATE TABLE IF NOT EXISTS ${constants.locationsTable} (
+    //       ${constants.channelID} INTEGER PRIMARY KEY,
+    //       ${constants.description} not null,
+    //       ${constants.siteName} not null,
+    //       ${constants.locationName} not null,
+    //       ${constants.name} not null,
+    //       ${constants.latitude} not null,
+    //       ${constants.longitude} not null,
+    //       ${constants.isActive} not null default 0,
+    //       ${constants.favourite} null default 0,
+    //       ${constants.nickName} null
+    //       )
+    //   ''');
+    //
+    // await db.execute('''
+    //     CREATE TABLE IF NOT EXISTS ${constants.searchTableHistory} (
+    //       id INTEGER PRIMARY KEY,
+    //       ${constants.description} not null,
+    //       ${constants.place_id} not null
+    //       )
+    //   ''');
   }
 
   Future<void> insertSearchHistory(Suggestion suggestion) async {
@@ -229,7 +243,7 @@ class DBHelper {
     final db = await database;
 
     var res = await db.query('${constants.locationsTable}',
-        where: '${constants.channelID} = ?', whereArgs: [device.channelID]);
+        where: '${constants.channelID} = ?', whereArgs: [device.name]);
 
     print(res);
 
@@ -256,7 +270,7 @@ class DBHelper {
           '${constants.locationsTable}',
           updateMap,
           where: '${constants.channelID} = ?',
-          whereArgs: [device.channelID],
+          whereArgs: [device.name],
           conflictAlgorithm: ConflictAlgorithm.replace,
         );
 
@@ -272,7 +286,7 @@ class DBHelper {
           '${constants.locationsTable}',
           updateMap,
           where: '${constants.channelID} = ?',
-          whereArgs: [device.channelID],
+          whereArgs: [device.name],
           conflictAlgorithm: ConflictAlgorithm.replace,
         );
       }
@@ -288,7 +302,7 @@ class DBHelper {
       final db = await database;
 
       var res = await db.query('${constants.locationsTable}',
-          where: '${constants.channelID} = ?', whereArgs: [device.channelID]);
+          where: '${constants.name} = ?', whereArgs: [device.name]);
 
       if (res.isEmpty) {
         var locationMap = Device.toDbMap(device);
@@ -302,28 +316,28 @@ class DBHelper {
         var num = await db.update(
           '${constants.locationsTable}',
           updateMap,
-          where: '${constants.channelID} = ?',
-          whereArgs: [device.channelID],
+          where: '${constants.name} = ?',
+          whereArgs: [device.name],
           conflictAlgorithm: ConflictAlgorithm.replace,
         );
 
         print('updated rows : $num');
       }
-      return getDevice(device.channelID);
+      return getDevice(device.name);
     } on Error catch (e) {
       print(e);
       return device;
     }
   }
 
-  Future<bool> checkFavouritePlace(int channelID) async {
+  Future<bool> checkFavouritePlace(int name) async {
     try {
       print('checking favourite place in local db');
 
       final db = await database;
 
       var res = await db.query('${constants.locationsTable}',
-          where: '${constants.channelID} = ?', whereArgs: [channelID]);
+          where: '${constants.name} = ?', whereArgs: [name]);
 
       var res2 = await db.query('${constants.locationsTable}',
           where: '${constants.favourite} = ?', whereArgs: [1]);
@@ -336,7 +350,7 @@ class DBHelper {
 
       var device = Device.fromJson(Device.fromDbMap(res.first));
 
-      print('$channelID is favourite ? ${device.favourite}');
+      print('$name is favourite ? ${device.favourite}');
 
       return device.favourite;
     } catch (e) {
@@ -352,8 +366,8 @@ class DBHelper {
       final db = await database;
 
       var res = await db.query('${constants.measurementsTable}',
-          where: '${constants.channelID} = ?',
-          whereArgs: [measurement.deviceNumber]);
+          where: '${constants.name} = ?',
+          whereArgs: [measurement.device]);
 
       var jsonData = Measurement.mapToDb(measurement);
 
@@ -365,15 +379,15 @@ class DBHelper {
         );
       } else {
         await db.update('${constants.measurementsTable}', jsonData,
-            where: '${constants.channelID} = ?',
-            whereArgs: [measurement.deviceNumber]);
+            where: '${constants.device} = ?',
+            whereArgs: [measurement.device]);
       }
     } catch (e) {
       print(e);
     }
   }
 
-  Future<Measurement?> getMeasurement(int channelId) async {
+  Future<Measurement?> getMeasurement(String name) async {
     try {
       print('Getting measurements locally');
 
@@ -382,10 +396,10 @@ class DBHelper {
       var res = await db.rawQuery('SELECT * FROM '
           '${constants.locationsTable} INNER JOIN '
           '${constants.measurementsTable} '
-          'ON ${constants.locationsTable}.${constants.channelID} = '
+          'ON ${constants.locationsTable}.${constants.name} = '
           '${constants.measurementsTable}.${constants.locationDetails} '
-          'WHERE ${constants.locationsTable}.${constants.channelID} = '
-          '$channelId');
+          'WHERE ${constants.locationsTable}.${constants.name} = '
+          '$name');
 
       if (res.isEmpty) {
         return null;
@@ -414,7 +428,7 @@ class DBHelper {
       var res = await db.rawQuery('SELECT * FROM '
           '${constants.locationsTable} INNER JOIN '
           '${constants.measurementsTable} '
-          'ON ${constants.locationsTable}.${constants.channelID} = '
+          'ON ${constants.locationsTable}.${constants.name} = '
           '${constants.measurementsTable}.${constants.locationDetails} ');
 
       print('Got ${res.length} measurements from local db');
@@ -435,7 +449,7 @@ class DBHelper {
       print('Getting devices from local db');
 
       final db = await database;
-      var res = await db.query(constants.locationsTable);
+      var res = await db.query(Device.dbName());
 
       print('Got ${res.length} places from local db');
 
@@ -452,13 +466,13 @@ class DBHelper {
     }
   }
 
-  Future<Device> getDevice(int channelID) async {
+  Future<Device> getDevice(String name) async {
     try {
       print('Getting device from local db');
 
       final db = await database;
       var res = await db.query(constants.locationsTable,
-          where: '${constants.channelID} = ?', whereArgs: [channelID]);
+          where: '${constants.name} = ?', whereArgs: [name]);
 
       var device = Device.fromJson(Device.fromDbMap(res.first));
 
@@ -478,7 +492,7 @@ class DBHelper {
       var res = await db.rawQuery('SELECT * FROM '
           '${constants.locationsTable} JOIN '
           '${constants.measurementsTable} '
-          'ON ${constants.locationsTable}.${constants.channelID} = '
+          'ON ${constants.locationsTable}.${constants.name} = '
           '${constants.measurementsTable}.${constants.locationDetails} '
           'WHERE ${constants.locationsTable}.${constants.favourite} = 1');
 

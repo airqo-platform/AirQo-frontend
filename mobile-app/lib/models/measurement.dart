@@ -26,18 +26,49 @@ class Measurements {
 class Measurement {
   Measurement({
     required this.device,
-    required this.deviceNumber,
     required this.time,
     required this.pm2_5,
     required this.pm10,
-    required this.s2Pm2_5,
-    required this.s2Pm10,
-    // required this.altitude,
-    // required this.speed,
-    required this.externalTemperature,
-    required this.externalHumidity,
-    // required this.frequency
+    required this.altitude,
+    required this.speed,
+    required this.temperature,
+    required this.humidity,
   });
+
+  static String latestMeasurementsTableStmt() =>
+      'CREATE TABLE IF NOT EXISTS latest_measurements ('
+          'device_name PRIMARY KEY,'
+          'time not null, '
+          'pm2_5 not null, '
+          'pm10 not null, '
+          'altitude not null, '
+          'speed not null, '
+          'temperature not null, '
+          'humidity not null)';
+
+  static String historicalMeasurementsTableStmt() =>
+      'CREATE TABLE IF NOT EXISTS historical_measurements ('
+          'id INTEGER PRIMARY KEY, '
+          'device_name not null,'
+          'time not null, '
+          'pm2_5 not null, '
+          'pm10 not null, '
+          'altitude not null, '
+          'speed not null, '
+          'temperature not null, '
+          'humidity not null)';
+
+  static String forecastDataTableStmt() =>
+      'CREATE TABLE IF NOT EXISTS forecast_data ('
+          'id INTEGER PRIMARY KEY, '
+          'device_name not null,'
+          'time not null, '
+          'pm2_5 not null, '
+          'pm10 null, '
+          'altitude null, '
+          'speed null, '
+          'temperature null, '
+          'humidity null)';
 
   factory Measurement.fromJson(Map<String, dynamic> json) =>
       _$MeasurementFromJson(json);
@@ -54,13 +85,9 @@ class Measurement {
     }
 
     return {
-      constants.channelID: measurement.deviceNumber,
       constants.time: time,
       constants.pm2_5: measurement.pm2_5.value,
-      constants.s2_pm2_5: measurement.s2Pm2_5.value,
-      constants.s2_pm10: measurement.s2Pm10.value,
       constants.pm10: measurement.pm10.value,
-      constants.locationDetails: measurement.device.channelID,
     };
   }
 
@@ -106,12 +133,6 @@ class Measurement {
         Measurement.fromJson(json)).toList();
   }
 
-  @JsonKey(required: false)
-  int deviceNumber;
-
-  // @JsonKey(required: false)
-  // final String device;
-
   @JsonKey(required: true)
   final String time;
 
@@ -121,24 +142,21 @@ class Measurement {
   @JsonKey(required: false)
   final MeasurementValue pm10;
 
-  @JsonKey(required: true, name: 's2_pm2_5')
-  final MeasurementValue s2Pm2_5;
-
-  @JsonKey(required: true, name: 's2_pm10')
-  final MeasurementValue s2Pm10;
+  @JsonKey(required: false)
+  final MeasurementValue altitude;
 
   @JsonKey(required: false)
-  final MeasurementValue externalTemperature;
+  final MeasurementValue speed;
 
-  @JsonKey(required: false)
-  final MeasurementValue externalHumidity;
+  @JsonKey(required: false, name: 'externalTemperature')
+  final MeasurementValue temperature;
+
+  @JsonKey(required: false, name: 'externalHumidity')
+  final MeasurementValue humidity;
 
   @JsonKey(required: true, name: 'deviceDetails')
   Device device;
 
-  void setChannelId(int id) {
-    deviceNumber = id;
-  }
 }
 
 @JsonSerializable(explicitToJson: true)

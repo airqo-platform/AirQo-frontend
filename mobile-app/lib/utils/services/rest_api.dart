@@ -84,7 +84,7 @@ class AirqoApiClient {
 
         var readings = Measurement.mapFromApi(json.decode(response.body));
         readings['deviceDetails'] = device.toJson();
-        readings['channelID'] = device.channelID;
+        readings['channelID'] = device.name;
 
         var measurement = Measurement.fromJson(readings);
 
@@ -212,7 +212,7 @@ class AirqoApiClient {
     return <Predict>[];
   }
 
-  Future<List<Hourly>> fetchHourlyMeasurements(int channelId) async {
+  Future<List<Hourly>> fetchHourlyMeasurements(String channelId) async {
     try {
       final response = await http.get(Uri.parse('$getHourlyEvents$channelId'));
 

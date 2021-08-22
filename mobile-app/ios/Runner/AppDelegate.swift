@@ -8,7 +8,22 @@ import GoogleMaps
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
-    GMSServices.provideAPIKey("")
+
+      var config: [String: Any]?
+      if let envPlistPath = Bundle.main.url(forResource: "env", withExtension: "plist") {
+          do {
+              let envPlistData = try Data(contentsOf: envPlistPath)
+
+              if let dict = try PropertyListSerialization.propertyList(from: envPlistData, options: [], format: nil) as? [String: Any] {
+                  config = dict
+              }
+          } catch {
+              print(error)
+          }
+      }
+
+//     print(config)
+    GMSServices.provideAPIKey("config?['GoogleMapsKey']")
     GeneratedPluginRegistrant.register(with: self)
     if #available(iOS 10.0, *) {
       UNUserNotificationCenter.current().delegate = self as? UNUserNotificationCenterDelegate

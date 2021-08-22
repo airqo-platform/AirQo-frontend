@@ -124,7 +124,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
 
   Future<void> localFetch() async {
     try {
-      var measurements = await DBHelper().getMeasurement(device.channelID);
+      var measurements = await DBHelper().getMeasurement(device.name);
 
       if (measurements != null) {
         setState(() {
@@ -142,7 +142,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
 
   Future<void> getDeviceDetails() async {
     try {
-      var deviceDetails = await DBHelper().getDevice(device.channelID);
+      var deviceDetails = await DBHelper().getDevice(device.name);
 
       print(deviceDetails);
       if (deviceDetails != null) {
@@ -285,7 +285,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                   // Historical Data
                   FutureBuilder(
                       future: AirqoApiClient(context)
-                          .fetchHourlyMeasurements(device.channelID),
+                          .fetchHourlyMeasurements(device.name),
                       builder: (context, snapshot) {
                         if (snapshot.hasData) {
                           var results = snapshot.data as List<Hourly>;
@@ -438,12 +438,12 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
     final _markers = <String, Marker>{};
 
     final marker = Marker(
-      markerId: MarkerId(measurement.deviceNumber.toString()),
+      markerId: MarkerId(measurement.device.toString()),
       icon: pmToMarkerPoint(measurement.pm2_5.value),
       position: LatLng((measurement.device.latitude),
           measurement.device.longitude),
     );
-    _markers[measurement.deviceNumber.toString()] = marker;
+    _markers[measurement.device.toString()] = marker;
 
     return Padding(
         padding: const EdgeInsets.all(8.0),
