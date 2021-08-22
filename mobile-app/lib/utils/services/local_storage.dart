@@ -36,7 +36,8 @@ class DBHelper {
 
   Future<void> createDefaultTables(Database db) async {
 
-    // await db.execute(Measurement.latestMeasurementsTableDropStmt());
+    await db.execute(Measurement.latestMeasurementsTableDropStmt());
+    // await db.execute(Device.devicesTableDropStmt());
 
     // devices table
     await db.execute(Device.createTableStmt());
@@ -128,6 +129,8 @@ class DBHelper {
   Future<void> insertDevices(List<Device> devices) async {
     try {
       final db = await database;
+      await createDefaultTables(db);
+
 
       if (devices.isNotEmpty) {
         for (var device in devices) {
@@ -135,19 +138,18 @@ class DBHelper {
 
           try {
             await db.insert(
-              '${constants.locationsTable}',
+              '${Device.dbName()}',
               jsonData,
               conflictAlgorithm: ConflictAlgorithm.abort,
             );
-          } on DatabaseException {
-            await updatePlace(jsonData);
+          } on DatabaseException catch (e) {
+            await updateDevice(jsonData);
           } on Error catch (e) {
-            print('Inserting devices into local db');
+            print('Error while Inserting devices into local db');
             print(e);
           }
         }
 
-        print('Location insertion into local db complete');
       }
     } catch (e) {
       print(e);
@@ -176,30 +178,32 @@ class DBHelper {
 
   }
 
-  Future<void> updatePlace(Map<String, dynamic> device) async {
-    print('Updating place in local db');
+  Future<void> updateDevice(Map<String, dynamic> device) async {
 
     try {
       final db = await database;
 
-      var res = await db.query('${constants.locationsTable}',
-          where: '${constants.channelID} = ?',
-          whereArgs: [device['${constants.channelID}']]);
+      var res = await db.query('${Device.dbName()}',
+          where: '${Device.dbDeviceName()} = ?',
+          whereArgs: [device['${Device.dbDeviceName()}']]);
 
-      Device deviceDetails = Device.fromJson(Device.fromDbMap(res.first));
+      var deviceDetails = Device.fromDbMap(res.first);
 
-      var isFavourite = deviceDetails.favourite;
+      var isFavourite = deviceDetails['${Device.dbFavourite()}'];
 
-      device['${constants.favourite}'] = isFavourite ? 1 : 0;
-      device['${constants.nickName}'] = deviceDetails.nickName;
+      device['${Device.dbFavourite()}'] = isFavourite ? 'true' : 'false';
+      device['${Device.dbNickName()}'] =
+      deviceDetails['${Device.dbNickName()}'];
 
       await db.insert(
-        '${constants.locationsTable}',
+        '${Device.dbName()}',
         device,
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
     } on Error catch (e) {
+      print('Updating device in local db');
       print(e);
+      print(device);
     }
   }
 
@@ -483,14 +487,37 @@ class DBHelper {
   }
 
   Measurement unPackInnerJoin(Map<String, Object?> data) {
-    var location = Device.fromDbMap(data);
+    var device;
+    try {
+      device = Device.fromDbMap(data);
+      print(device);
+    } catch (e) {
+      print('error on device');
+      print(e);
+    }
 
-    var measurementsJson = Measurement.mapFromDb(data);
+    var measurementsJson;
 
-    measurementsJson['deviceDetails'] = location;
+    try {
+      measurementsJson = Measurement.mapFromDb(data);
+      print(measurementsJson);
+    } catch (e) {
+      print('error on measurements');
+      print(e);
+    }
+
+    measurementsJson['deviceDetails'] = device;
 
     print(measurementsJson);
 
-    return Measurement.fromJson(measurementsJson);
+    var measurements;
+    try {
+      measurements = Measurement.fromJson(measurementsJson);
+    } catch (e) {
+      print('error on measurements 2');
+      print(e);
+    }
+
+    return measurements;
   }
 }

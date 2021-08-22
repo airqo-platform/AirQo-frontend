@@ -331,7 +331,6 @@ class _HomePageV2State extends State<HomePageV2> {
   }
 
   Future<void> _getDevices() async {
-
     var results = await AirqoApiClient(context).fetchDevices();
 
     if (results.isNotEmpty) {
@@ -340,12 +339,9 @@ class _HomePageV2State extends State<HomePageV2> {
   }
 
   void _getMeasurements() async {
-    print('Home page Getting measurements');
-
     var measurements = await AirqoApiClient(context).fetchLatestMeasurements();
 
     if (measurements.isNotEmpty) {
-      print('inserting latest measurements into db');
       await DBHelper().insertLatestMeasurements(measurements);
     }
   }

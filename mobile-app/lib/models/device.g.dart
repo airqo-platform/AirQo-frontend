@@ -23,12 +23,12 @@ Device _$DeviceFromJson(Map<String, dynamic> json) {
     distance: (json['distance'] as num?)?.toDouble() ?? 0.0,
     favourite: json['favourite'] as bool? ?? false,
     nickName: json['nickName'] as String? ?? '',
-    description: json['description'] as String,
-    latitude: (json['latitude'] as num).toDouble(),
-    longitude: (json['longitude'] as num).toDouble(),
-    locationName: json['locationName'] as String,
-    siteName: json['siteName'] as String,
-    name: json['name'] as String,
+    description: json['description'] as String? ?? '',
+    latitude: (json['latitude'] as num?)?.toDouble() ?? 0.0,
+    longitude: (json['longitude'] as num?)?.toDouble() ?? 0.0,
+    locationName: json['locationName'] as String? ?? '',
+    siteName: json['siteName'] as String? ?? '',
+    name: json['name'] as String? ?? '',
   );
 }
 

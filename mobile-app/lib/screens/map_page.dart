@@ -448,6 +448,9 @@ class MapPageState extends State<MapPage> {
 
   Future<void> setMeasurements(List<Measurement> measurements) async {
 
+    print("Measurements to be set");
+    print(measurements);
+
     _showInfoWindow = false;
     var markers = <String, Marker>{};
     for (final measurement in measurements) {

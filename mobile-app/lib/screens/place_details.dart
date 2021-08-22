@@ -182,7 +182,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
           ? Container(
               decoration: BoxDecoration(
                 image: DecorationImage(
-                  image: AssetImage(pmToImage(locationData.pm2_5.value)),
+                  image: AssetImage(pmToImage(locationData.pm2_5.calibratedValue)),
                   fit: BoxFit.cover,
                 ),
               ),
@@ -439,7 +439,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
 
     final marker = Marker(
       markerId: MarkerId(measurement.device.toString()),
-      icon: pmToMarkerPoint(measurement.pm2_5.value),
+      icon: pmToMarkerPoint(measurement.pm2_5.calibratedValue),
       position: LatLng((measurement.device.latitude),
           measurement.device.longitude),
     );
@@ -478,9 +478,9 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                 child: Container(
                     padding: const EdgeInsets.all(5.0),
                     decoration: BoxDecoration(
-                        color: pmToColor(measurement.pm2_5.value),
+                        color: pmToColor(measurement.pm2_5.calibratedValue),
                         border: Border.all(
-                          color: pmToColor(measurement.pm2_5.value),
+                          color: pmToColor(measurement.pm2_5.calibratedValue),
                         ),
                         borderRadius:
                             const BorderRadius.all(Radius.circular(10))),
@@ -490,26 +490,26 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                         Padding(
                           padding: const EdgeInsets.fromLTRB(5, 5, 5, 5),
                           child: Image.asset(
-                            pmToEmoji(measurement.pm2_5.value),
+                            pmToEmoji(measurement.pm2_5.calibratedValue),
                             height: 40,
                             width: 40,
                           ),
                         ),
                         Text(
-                          measurement.pm2_5.value.toString(),
+                          measurement.pm2_5.calibratedValue.toString(),
                           style: TextStyle(
-                            color: pmTextColor(measurement.pm2_5.value),
+                            color: pmTextColor(measurement.pm2_5.calibratedValue),
                             fontWeight: FontWeight.bold,
                             fontSize: 20,
                           ),
                         ),
                         Text(
-                          pmToString(measurement.pm2_5.value),
+                          pmToString(measurement.pm2_5.calibratedValue),
                           textAlign: TextAlign.center,
                           softWrap: true,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            color: pmTextColor(measurement.pm2_5.value),
+                            color: pmTextColor(measurement.pm2_5.calibratedValue),
                           ),
                         ),
                       ],

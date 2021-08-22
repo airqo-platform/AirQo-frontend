@@ -97,7 +97,7 @@ List<charts.Series<TimeSeriesData, DateTime>> createChartData(
 
     var date = DateTime.parse(time);
 
-    data.add(TimeSeriesData(date, measurement.pm2_5.value.ceil()));
+    data.add(TimeSeriesData(date, measurement.pm2_5.calibratedValue.ceil()));
   }
 
   return [
@@ -120,7 +120,7 @@ List<charts.Series<TimeSeriesData, DateTime>> historicalChartData(
 
     var date = DateTime.parse(time);
 
-    data.add(TimeSeriesData(date, measurement.pm2_5.value.ceil()));
+    data.add(TimeSeriesData(date, measurement.pm2_5.calibratedValue.ceil()));
   }
 
   return [

@@ -119,18 +119,18 @@ class _MyPlacesState extends State<MyPlaces> {
                               child: ListTile(
                                 leading: CircleAvatar(
                                   backgroundColor: pmToColor(
-                                      searchResults[index].pm2_5.value),
+                                      searchResults[index].pm2_5.calibratedValue),
                                   foregroundColor: Colors.black54,
                                   child: Center(
                                     child: Text(
-                                      '${searchResults[index].pm2_5.value}',
+                                      '${searchResults[index].pm2_5.calibratedValue}',
                                       textAlign: TextAlign.center,
                                       style: TextStyle(
                                           fontSize: 10.0,
                                           color: pmTextColor(
                                               searchResults[index]
                                                   .pm2_5
-                                                  .value)),
+                                                  .calibratedValue)),
                                     ),
                                   ),
                                 ),
@@ -215,11 +215,11 @@ class _MyPlacesState extends State<MyPlaces> {
                                       child: ListTile(
                                         leading: CircleAvatar(
                                           backgroundColor: pmToColor(
-                                              results[index].pm2_5.value),
+                                              results[index].pm2_5.calibratedValue),
                                           foregroundColor: Colors.black54,
                                           child: Center(
                                             child: Text(
-                                              '${results[index].pm2_5.value}',
+                                              '${results[index].pm2_5.calibratedValue}',
                                               textAlign: TextAlign.center,
                                               style: const TextStyle(
                                                   fontSize: 10.0),

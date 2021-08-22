@@ -39,24 +39,24 @@ Measurement _$MeasurementFromJson(Map<String, dynamic> json) {
 Map<String, dynamic> _$MeasurementToJson(Measurement instance) =>
     <String, dynamic>{
       'time': instance.time,
-      'pm2_5': instance.pm2_5.toJson(),
-      'pm10': instance.pm10.toJson(),
-      'altitude': instance.altitude.toJson(),
-      'speed': instance.speed.toJson(),
-      'externalTemperature': instance.temperature.toJson(),
-      'externalHumidity': instance.humidity.toJson(),
-      'deviceDetails': instance.device.toJson(),
+      'pm2_5': instance.pm2_5,
+      'pm10': instance.pm10,
+      'altitude': instance.altitude,
+      'speed': instance.speed,
+      'externalTemperature': instance.temperature,
+      'externalHumidity': instance.humidity,
+      'deviceDetails': instance.device,
     };
 
 MeasurementValue _$MeasurementValueFromJson(Map<String, dynamic> json) {
   return MeasurementValue(
-    (json['calibratedValue'] as num?)?.toDouble() ?? 0.0,
-    value: (json['value'] as num?)?.toDouble() ?? 0.0,
+    value: (json['value'] as num?)?.toDouble() ?? 0.2,
+    calibratedValue: (json['calibratedValue'] as num?)?.toDouble() ?? 0.1,
   );
 }
 
 Map<String, dynamic> _$MeasurementValueToJson(MeasurementValue instance) =>
     <String, dynamic>{
-      'value': instance.value,
       'calibratedValue': instance.calibratedValue,
+      'value': instance.value,
     };

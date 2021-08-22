@@ -42,17 +42,19 @@ class Device {
   static String dbLocationName() => 'location_name';
   static String dbFavourite() => 'favourite';
 
+  static String devicesTableDropStmt() =>
+      'DROP TABLE IF EXISTS ${dbName()}';
+
   static String createTableStmt() =>
       'CREATE TABLE IF NOT EXISTS ${dbName()} ('
           '${dbDeviceName()} PRIMARY KEY, '
-          '${dbSiteName()} not null, '
-          '${dbLocationName()} not null, '
-          '${dbLongitude()} not null, '
-          '${dbLatitude()} not null, '
-          '${dbDescription()} not null, '
-          '${dbDistance()} not null, '
-          '${dbFavourite()} not null, '
-          '${dbNickName()} not null )';
+          '${dbSiteName()} null, '
+          '${dbLocationName()} null, '
+          '${dbLongitude()} null, '
+          '${dbLatitude()} null, '
+          '${dbDescription()} null, '
+          '${dbFavourite()} null, '
+          '${dbNickName()} null )';
 
   factory Device.fromJson(Map<String, dynamic> json) => _$DeviceFromJson(json);
 
@@ -62,13 +64,18 @@ class Device {
   final String nickName;
   @JsonKey(defaultValue: 0.0, required: false)
   final double distance;
+  @JsonKey(defaultValue: '')
   final String name;
+  @JsonKey(defaultValue: '')
   final String description;
+  @JsonKey(defaultValue: '')
   final String siteName;
+  @JsonKey(defaultValue: '')
   final String locationName;
+  @JsonKey(defaultValue: 0.0)
   final double latitude;
+  @JsonKey(defaultValue: 0.0)
   final double longitude;
-
   @JsonKey(required: false, defaultValue: false)
   bool favourite;
 

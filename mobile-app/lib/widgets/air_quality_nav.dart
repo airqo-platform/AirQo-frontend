@@ -62,7 +62,7 @@ class TitleSection extends StatelessWidget {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-              pmToColor(data.pm2_5.value),
+              pmToColor(data.pm2_5.calibratedValue),
               Colors.white,
             ])),
         child: Padding(
@@ -74,7 +74,7 @@ class TitleSection extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
                 child: Image.asset(
-                  pmToEmoji(data.pm2_5.value),
+                  pmToEmoji(data.pm2_5.calibratedValue),
                   height: 40,
                   width: 40,
                 ),
@@ -91,23 +91,23 @@ class TitleSection extends StatelessWidget {
                       maxLines: 4,
                       softWrap: true,
                       style: TextStyle(
-                        color: pmTextColor(data.pm2_5.value)
+                        color: pmTextColor(data.pm2_5.calibratedValue)
                       ),
                     ),
                     Text(
-                      '${data.pm2_5.value} µg/m\u00B3',
+                      '${data.pm2_5.calibratedValue} µg/m\u00B3',
                       maxLines: 4,
                       softWrap: true,
                       style: TextStyle(
-                          color: pmTextColor(data.pm2_5.value)
+                          color: pmTextColor(data.pm2_5.calibratedValue)
                       ),
                     ),
                     Text(
-                      pmToString(data.pm2_5.value).replaceAll('\n', ' '),
+                      pmToString(data.pm2_5.calibratedValue).replaceAll('\n', ' '),
                       maxLines: 4,
                       softWrap: true,
                       style: TextStyle(
-                          color: pmTextColor(data.pm2_5.value)
+                          color: pmTextColor(data.pm2_5.calibratedValue)
                       ),
                     ),
                   ],
