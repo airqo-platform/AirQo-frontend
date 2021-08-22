@@ -429,7 +429,7 @@ class _HomePageState extends State<HomePage> {
 
     if (measurements.isNotEmpty) {
       print('inserting latest measurements into db');
-      await DBHelper().insertMeasurements(measurements);
+      await DBHelper().insertLatestMeasurements(measurements);
     }
   }
 

@@ -128,7 +128,7 @@ class AirqoApiClient {
         var j = json.decode(response.body)['devices'];
         for (var t in j) {
           try {
-            Device device = Device.fromJson(t);
+            var device = Device.fromJson(t);
             devices.add(device);
           } on Error catch (e) {
             print('Get Devices error: $e');

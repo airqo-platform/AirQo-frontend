@@ -35,16 +35,32 @@ class Measurement {
     required this.humidity,
   });
 
+  static String dbNameLatestMeasurements() => 'latest_measurements';
+  static String dbNameHistoricalMeasurements() => 'historical_measurements';
+
+  static String dbDevice() => 'device';
+  static String dbPm25() => 'pm2_5';
+  static String dbTime() => 'time';
+  static String dbPm10() => 'pm10';
+  static String dbAltitude() => 'altitude';
+  static String dbSpeed() => 'speed';
+  static String dbTemperature() => 'temperature';
+  static String dbHumidity() => 'humidity';
+
+
   static String latestMeasurementsTableStmt() =>
-      'CREATE TABLE IF NOT EXISTS latest_measurements ('
-          'device_name PRIMARY KEY,'
-          'time not null, '
-          'pm2_5 not null, '
-          'pm10 not null, '
-          'altitude not null, '
-          'speed not null, '
-          'temperature not null, '
-          'humidity not null)';
+      'CREATE TABLE IF NOT EXISTS ${dbNameLatestMeasurements()}('
+          '${dbDevice()} TEXT PRIMARY KEY, '
+          '${dbTime()} TEXT, '
+          '${dbPm25()} TEXT, '
+          '${dbPm10()} TEXT, '
+          '${dbAltitude()} TEXT, '
+          '${dbSpeed()} TEXT, '
+          '${dbTemperature()} TEXT, '
+          '${dbHumidity()} TEXT)';
+
+  static String latestMeasurementsTableDropStmt() =>
+      'DROP TABLE IF EXISTS ${dbNameLatestMeasurements()}';
 
   static String historicalMeasurementsTableStmt() =>
       'CREATE TABLE IF NOT EXISTS historical_measurements ('
@@ -76,8 +92,6 @@ class Measurement {
   Map<String, dynamic> toJson() => _$MeasurementToJson(this);
 
   static Map<String, dynamic> mapToDb(Measurement measurement) {
-    var constants = DbConstants();
-
     var time = measurement.time.replaceAll('T', ' ');
 
     if (time.contains('.')) {
@@ -85,10 +99,16 @@ class Measurement {
     }
 
     return {
-      constants.time: time,
-      constants.pm2_5: measurement.pm2_5.value,
-      constants.pm10: measurement.pm10.value,
+      '${dbTime()}': '$time',
+      '${dbDevice()}': measurement.device.name.toString(),
+      '${dbPm25()}': measurement.pm2_5.value.toString(),
+      '${dbPm10()}': measurement.pm10.value.toString(),
+      '${dbAltitude()}': measurement.altitude.value.toString(),
+      '${dbSpeed()}': measurement.speed.value.toString(),
+      '${dbTemperature()}': measurement.temperature.value.toString(),
+      '${dbHumidity()}': measurement.humidity.value.toString(),
     };
+
   }
 
   static Map<String, dynamic> mapFromDb(Map<String, dynamic> json) {

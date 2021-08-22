@@ -36,6 +36,8 @@ class DBHelper {
 
   Future<void> createDefaultTables(Database db) async {
 
+    // await db.execute(Measurement.latestMeasurementsTableDropStmt());
+
     // devices table
     await db.execute(Device.createTableStmt());
 
@@ -43,46 +45,11 @@ class DBHelper {
     await db.execute(Measurement.latestMeasurementsTableStmt());
 
     // historical measurements table
-    await db.execute(Measurement.historicalMeasurementsTableStmt());
+    // await db.execute(Measurement.historicalMeasurementsTableStmt());
 
     // forecast data table
-    await db.execute(Measurement.forecastDataTableStmt());
+    // await db.execute(Measurement.forecastDataTableStmt());
 
-    // await db.execute('''
-    //     CREATE TABLE IF NOT EXISTS ${constants.measurementsTable} (
-    //       ${constants.device} PRIMARY KEY,
-    //       ${constants.pm2_5} not null,
-    //       ${constants.pm10} not null,
-    //       ${constants.time} not null,
-    //       ${constants.s2_pm2_5} not null,
-    //       ${constants.s2_pm10} not null,
-    //       ${constants.externalHumidity} not null,
-    //       ${constants.externalTemp} not null,
-    //       )
-    //   ''');
-    //
-    // await db.execute('''
-    //     CREATE TABLE IF NOT EXISTS ${constants.locationsTable} (
-    //       ${constants.channelID} INTEGER PRIMARY KEY,
-    //       ${constants.description} not null,
-    //       ${constants.siteName} not null,
-    //       ${constants.locationName} not null,
-    //       ${constants.name} not null,
-    //       ${constants.latitude} not null,
-    //       ${constants.longitude} not null,
-    //       ${constants.isActive} not null default 0,
-    //       ${constants.favourite} null default 0,
-    //       ${constants.nickName} null
-    //       )
-    //   ''');
-    //
-    // await db.execute('''
-    //     CREATE TABLE IF NOT EXISTS ${constants.searchTableHistory} (
-    //       id INTEGER PRIMARY KEY,
-    //       ${constants.description} not null,
-    //       ${constants.place_id} not null
-    //       )
-    //   ''');
   }
 
   Future<void> insertSearchHistory(Suggestion suggestion) async {
@@ -160,8 +127,6 @@ class DBHelper {
 
   Future<void> insertDevices(List<Device> devices) async {
     try {
-      print('Inserting location into local db');
-
       final db = await database;
 
       if (devices.isNotEmpty) {
@@ -177,6 +142,7 @@ class DBHelper {
           } on DatabaseException {
             await updatePlace(jsonData);
           } on Error catch (e) {
+            print('Inserting devices into local db');
             print(e);
           }
         }
@@ -188,26 +154,26 @@ class DBHelper {
     }
   }
 
-  Future<void> insertMeasurements(List<Measurement> measurements) async {
-    try {
-      print('Inserting measurements into local db');
+  Future<void> insertLatestMeasurements(List<Measurement> measurements) async {
 
       final db = await database;
 
       if (measurements.isNotEmpty) {
         for (var measurement in measurements) {
-          var jsonData = Measurement.mapToDb(measurement);
-
-          await db.insert(
-            '${constants.measurementsTable}',
-            jsonData,
-            conflictAlgorithm: ConflictAlgorithm.replace,
-          );
+          try {
+            var jsonData = Measurement.mapToDb(measurement);
+            await db.insert(
+              '${Measurement.dbNameLatestMeasurements()}',
+              jsonData,
+              conflictAlgorithm: ConflictAlgorithm.replace,
+            );
+          } catch (e) {
+            print('Inserting latest measurements into db');
+            print(e);
+          }
         }
       }
-    } catch (e) {
-      print(e);
-    }
+
   }
 
   Future<void> updatePlace(Map<String, dynamic> device) async {
@@ -242,50 +208,49 @@ class DBHelper {
 
     final db = await database;
 
-    var res = await db.query('${constants.locationsTable}',
-        where: '${constants.channelID} = ?', whereArgs: [device.name]);
+    var res = await db.query('${Device.dbName()}',
+        where: '${Device.dbDeviceName()} = ?', whereArgs: [device.name]);
 
-    print(res);
-
+    device.setFavourite(isFavourite);
     if (isFavourite) {
-      device.setFavourite(true);
+      // device.setFavourite(true);
+      var deviceMap = Device.toDbMap(device);
 
       if (res.isEmpty) {
-        var locationMap = Device.toDbMap(device);
-        locationMap['${constants.favourite}'] = 1;
 
-        if (device.nickName == null || device.nickName == '') {
-          locationMap['${constants.nickName}'] = device.siteName;
-        }
+        // deviceMap['${Device.dbFavourite()}'] = 'true';
+        //
+        // if (device.nickName == '') {
+        //   deviceMap['${Device.dbNickName()}'] = device.siteName;
+        // }
 
-        await db.insert('${constants.locationsTable}', locationMap);
+        await db.insert('${Device.dbName()}', deviceMap);
       } else {
-        var updateMap = <String, Object?>{'${constants.favourite}': 1};
-
-        if (device.nickName == null || device.nickName == '') {
-          updateMap['${constants.nickName}'] = device.siteName;
-        }
+        // var deviceMap = <String, Object?>{'${Device.dbFavourite()}': 'true'};
+        //
+        // if (device.nickName == '') {
+        //   deviceMap['${Device.dbNickName()}'] = device.siteName;
+        // }
 
         var num = await db.update(
-          '${constants.locationsTable}',
-          updateMap,
-          where: '${constants.channelID} = ?',
+          '${Device.dbName()}',
+          deviceMap,
+          where: '${Device.dbDeviceName()} = ?',
           whereArgs: [device.name],
           conflictAlgorithm: ConflictAlgorithm.replace,
         );
-
-        print('updated rows : $num');
       }
-    } else {
-      device.setFavourite(false);
+    }
+    else {
+      // device.setFavourite(false);
 
       if (res.isNotEmpty) {
-        var updateMap = <String, Object?>{'${constants.favourite}': 0};
+        var updateMap = <String, Object?>{'${Device.dbFavourite()}': 'false'};
 
         await db.update(
-          '${constants.locationsTable}',
+          '${Device.dbName()}',
           updateMap,
-          where: '${constants.channelID} = ?',
+          where: '${Device.dbDeviceName()} = ?',
           whereArgs: [device.name],
           conflictAlgorithm: ConflictAlgorithm.replace,
         );
@@ -426,10 +391,11 @@ class DBHelper {
 
       final db = await database;
       var res = await db.rawQuery('SELECT * FROM '
-          '${constants.locationsTable} INNER JOIN '
-          '${constants.measurementsTable} '
-          'ON ${constants.locationsTable}.${constants.name} = '
-          '${constants.measurementsTable}.${constants.locationDetails} ');
+          '${Device.dbName()} INNER JOIN '
+          '${Measurement.dbNameLatestMeasurements()} '
+          'ON ${Device.dbName()}.${Device.dbDeviceName()} = '
+          '${Measurement.dbNameLatestMeasurements()}'
+          '.${Measurement.dbDevice()} ');
 
       print('Got ${res.length} measurements from local db');
 

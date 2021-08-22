@@ -43,16 +43,16 @@ class Device {
   static String dbFavourite() => 'favourite';
 
   static String createTableStmt() =>
-      'CREATE TABLE IF NOT EXISTS $dbName ('
-          '$dbDeviceName PRIMARY KEY, '
-          '$dbSiteName not null, '
-          '$dbLocationName not null, '
-          '$dbLongitude not null, '
-          '$dbLatitude not null, '
-          '$dbDescription not null, '
-          '$dbDistance not null, '
-          '$dbFavourite not null, '
-          '$dbNickName not null )';
+      'CREATE TABLE IF NOT EXISTS ${dbName()} ('
+          '${dbDeviceName()} PRIMARY KEY, '
+          '${dbSiteName()} not null, '
+          '${dbLocationName()} not null, '
+          '${dbLongitude()} not null, '
+          '${dbLatitude()} not null, '
+          '${dbDescription()} not null, '
+          '${dbDistance()} not null, '
+          '${dbFavourite()} not null, '
+          '${dbNickName()} not null )';
 
   factory Device.fromJson(Map<String, dynamic> json) => _$DeviceFromJson(json);
 
@@ -76,35 +76,31 @@ class Device {
     favourite = fav;
   }
 
-
-
-  static Map<String, dynamic> toDbMap(Device device) {
-    var constants = DbConstants();
-
-    return {
-      constants.nickName:
-          device.nickName == '' ? device.locationName : device.nickName,
-      constants.description: device.description,
-      constants.siteName: device.siteName,
-      constants.locationName: device.locationName,
-      constants.name: device.name,
-      constants.latitude: device.latitude,
-      constants.longitude: device.longitude,
+  static Map<String, dynamic> toDbMap(Device device) =>
+     {
+      '${dbNickName()}': device.nickName == '' ? device.locationName
+          : device.nickName,
+      '${dbDescription()}': device.description,
+      '${dbSiteName()}': device.siteName,
+      '${dbLocationName()}': device.locationName,
+      '${dbDeviceName()}': device.name,
+      '${dbLatitude()}': device.latitude,
+      '${dbLongitude()}': device.longitude,
+      '${dbFavourite()}': device.favourite ? 'true' : 'false',
     };
-  }
+
 
   static Map<String, dynamic> fromDbMap(Map<String, dynamic> json) {
-    var constants = DbConstants();
 
     return {
-      'favourite': json[constants.favourite] == 0 ? false : true,
-      'nickName': json[constants.nickName] as String,
-      'description': json[constants.description] as String,
-      'name': json[constants.name] as String,
-      'siteName': json[constants.siteName] as String,
-      'locationName': json[constants.locationName] as String,
-      'latitude': json[constants.latitude] as double,
-      'longitude': json[constants.longitude] as double,
+      'favourite': json['${dbFavourite()}'] == 'true' ? true : false,
+      'nickName': json['${dbNickName()}'] as String,
+      'description': json['${dbDescription()}'] as String,
+      'name': json['${dbDeviceName()}'] as String,
+      'siteName': json['${dbSiteName()}'] as String,
+      'locationName': json['${dbLocationName()}'] as String,
+      'latitude': json['${dbLatitude()}'] as double,
+      'longitude': json['${dbLongitude()}'] as double,
     };
   }
 }

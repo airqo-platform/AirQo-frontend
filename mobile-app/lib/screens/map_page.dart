@@ -91,13 +91,13 @@ class MapPageState extends State<MapPage> {
   }
 
   Future<void> _getMeasurements() async {
-    // await localFetch();
+    await localFetch();
 
     var measurements = await AirqoApiClient(context).fetchMeasurements();
 
     if (measurements.isNotEmpty) {
       await setMeasurements(measurements);
-      // await dbHelper.insertMeasurements(measurements);
+      await dbHelper.insertLatestMeasurements(measurements);
     }
 
     setState(() {
@@ -122,10 +122,9 @@ class MapPageState extends State<MapPage> {
       await controller
           .animateCamera(CameraUpdate.newCameraPosition(defaultCameraPosition));
 
-      var message = 'Refresh Complete';
-      await showSnackBar(context, message);
+      await showSnackBar(context, 'Refresh Complete');
 
-      // await dbHelper.insertMeasurements(measurements);
+      await dbHelper.insertLatestMeasurements(measurements);
     }
   }
 

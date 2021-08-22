@@ -212,8 +212,8 @@ class _HomePageV2State extends State<HomePageV2> {
   @override
   void initState() {
     _displayOnBoarding();
-    _getMeasurements();
     _getDevices();
+    _getMeasurements();
 
     super.initState();
   }
@@ -331,7 +331,6 @@ class _HomePageV2State extends State<HomePageV2> {
   }
 
   Future<void> _getDevices() async {
-    print('Home page Getting devices');
 
     var results = await AirqoApiClient(context).fetchDevices();
 
@@ -347,7 +346,7 @@ class _HomePageV2State extends State<HomePageV2> {
 
     if (measurements.isNotEmpty) {
       print('inserting latest measurements into db');
-      await DBHelper().insertMeasurements(measurements);
+      await DBHelper().insertLatestMeasurements(measurements);
     }
   }
 
