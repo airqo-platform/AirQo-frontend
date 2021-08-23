@@ -13,8 +13,8 @@ import {
   DialogActions,
   DialogContent,
   IconButton,
+  TextField,
 } from "@material-ui/core";
-import Select from "react-select";
 import { useEffect, useState } from "react";
 import DateFnsUtils from "@date-io/date-fns";
 import {
@@ -35,7 +35,7 @@ import MenuItem from "@material-ui/core/MenuItem";
 import domtoimage from "dom-to-image";
 import JsPDF from "jspdf";
 import { isEmpty } from "underscore";
-import LabelledSelect from "../../../../components/CustomSelects/LabelledSelect";
+import OutlinedSelect from "views/components/CustomSelects/OutlinedSelect";
 import { useDashboardSitesData } from "redux/Dashboard/selectors";
 import { formatDateString } from "utils/dateTime";
 import { setUserDefaultGraphData, loadSites } from "redux/Dashboard/operations";
@@ -790,80 +790,69 @@ const CustomisableChart = (props) => {
                 <form onSubmit={handleSubmit} id="customisable-form">
                   <Grid container spacing={2}>
                     <Grid item md={12} xs={12}>
-                      <Select
+                      <TextField
+                        autoFocus
+                        margin="dense"
+                        label="Location(s) Name"
+                        variant="outlined"
+                        // value={newDevice.generation_count}
+                        // error={!!errors.generation_count}
+                        // helperText={errors.generation_count}
+                        // onChange={handleDeviceDataChange("generation_count")}
+                        fullWidth
+                        required
+                      />
+                    </Grid>
+                    <Grid item md={12} xs={12}>
+                      <OutlinedSelect
                         fullWidth
                         className="reactSelect"
-                        name="location"
-                        placeholder="Location(s)"
+                        label="Location(s)"
                         value={tempState.sites.selectedOption}
                         options={sitesOptions}
                         onChange={handleMultiChange}
                         isMulti
-                        variant="outlined"
-                        margin="dense"
-                        required
+                        scrollable
+                        height={"100px"}
                       />
                     </Grid>
 
                     <Grid item md={6} xs={12}>
-                      <LabelledSelect
+                      <OutlinedSelect
                         fullWidth
                         label="Chart Type"
-                        className="reactSelect"
-                        name="chartType"
-                        placeholder="Chart Type"
                         value={tempState.chartType}
                         options={chartTypeOptions}
                         onChange={handleChartTypeChange}
-                        variant="outlined"
-                        margin="dense"
-                        required
                       />
                     </Grid>
 
                     <Grid item md={6} xs={12}>
-                      <LabelledSelect
+                      <OutlinedSelect
                         fullWidth
                         label="Frequency"
-                        className=""
-                        name="chartFrequency"
-                        placeholder="Frequency"
                         value={tempState.frequency}
                         options={frequencyOptions}
                         onChange={handleFrequencyChange}
-                        variant="outlined"
-                        margin="dense"
-                        required
                       />
                     </Grid>
                     <Grid item md={6} xs={12}>
-                      <LabelledSelect
+                      <OutlinedSelect
                         fullWidth
                         label="Pollutant"
-                        className=""
-                        name="pollutant"
-                        placeholder="Pollutant"
                         value={tempState.pollutant}
                         options={pollutantOptions}
                         onChange={handlePollutantChange}
-                        variant="outlined"
-                        margin="dense"
-                        required
                       />
                     </Grid>
 
                     <Grid item md={6} xs={12}>
-                      <LabelledSelect
+                      <OutlinedSelect
                         fullWidth
                         label="Time range"
-                        name="Time range"
-                        placeholder="Time range"
                         value={selectedPeriod}
                         options={periodOptions}
                         onChange={handlePeriodChange}
-                        variant="outlined"
-                        margin="dense"
-                        required
                       />
                     </Grid>
 
@@ -954,7 +943,7 @@ const CustomisableChart = (props) => {
                 </Button>
                 <Button
                   //disabled={!formState.isValid}
-                  variant="outlined"
+                  variant="contained"
                   // onClick={handleClose}
                   color="primary"
                   type="submit" //set the buttom type is submit
