@@ -26,7 +26,11 @@ const CustomValueContainer = ({ children, ...props }) => {
 };
 
 export default function OutlinedSelect({ label, components, ...props }) {
-  const modfiedLabel =
+  const scrollStyle = (props.scrollable && {
+    height: props.height || "50px",
+    overflow: "scroll",
+  }) || { height: props.height || "50px", overflow: "visible" };
+  const modifiedLabel =
     (props.required && <span>{label.trimEnd()} &#42;</span>) || label;
   return (
     <Select
@@ -34,7 +38,7 @@ export default function OutlinedSelect({ label, components, ...props }) {
         ...components,
         ValueContainer: CustomValueContainer,
       }}
-      {...{ ...props, placeholder: modfiedLabel }}
+      {...{ ...props, placeholder: modifiedLabel }}
       styles={{
         container: (provided, state) => ({
           ...provided,
@@ -42,8 +46,7 @@ export default function OutlinedSelect({ label, components, ...props }) {
         }),
         valueContainer: (provided, state) => ({
           ...provided,
-          height: "50px",
-          overflow: "visible",
+          ...scrollStyle,
         }),
         placeholder: (provided, state) => ({
           ...provided,
