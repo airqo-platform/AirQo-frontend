@@ -25,18 +25,16 @@ const CustomValueContainer = ({ children, ...props }) => {
   );
 };
 
-export default function OutlinedSelect({
-  label,
-  components,
-  ...props
-}) {
+export default function OutlinedSelect({ label, components, ...props }) {
+  const modfiedLabel =
+    (props.required && <span>{label.trimEnd()} &#42;</span>) || label;
   return (
     <Select
       components={{
         ...components,
         ValueContainer: CustomValueContainer,
       }}
-      {...{ ...props, placeholder: label }}
+      {...{ ...props, placeholder: modfiedLabel }}
       styles={{
         container: (provided, state) => ({
           ...provided,
@@ -56,7 +54,9 @@ export default function OutlinedSelect({
             state.hasValue || state.selectProps.inputValue
               ? "black"
               : "inherit",
-          fontSize: (state.hasValue || state.selectProps.inputValue) && 13,
+          lineHeight: 1,
+          letterSpacing: "-0.05px",
+          fontSize: (state.hasValue || state.selectProps.inputValue) && 11,
         }),
       }}
     />
