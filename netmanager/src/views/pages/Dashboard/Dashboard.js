@@ -13,6 +13,7 @@ import { Bar } from "react-chartjs-2";
 import clsx from "clsx";
 import PropTypes from "prop-types";
 import {
+  AddChart,
   CustomisableChart,
   PollutantCategory,
   ExceedancesChart,
@@ -32,7 +33,6 @@ import { useUserDefaultGraphsData } from "redux/Dashboard/selectors";
 import { loadUserDefaultGraphData } from "redux/Dashboard/operations";
 import { loadMapEventsData } from "redux/MapData/operations";
 import { useEventsMapData } from "redux/MapData/selectors";
-import { useOrgData } from "redux/Join/selectors";
 import { PM_25_CATEGORY } from "utils/categories";
 import { isEmpty, unzip, zip } from "underscore";
 import { roundToStartOfDay, roundToEndOfDay } from "utils/dateTime";
@@ -42,6 +42,9 @@ const useStyles = makeStyles((theme) => ({
     padding: theme.spacing(4),
   },
   chartCard: {},
+  customChartCard: {
+    height: '70vh'
+  },
   differenceIcon: {
     color: theme.palette.text.secondary,
   },
@@ -68,7 +71,6 @@ const Dashboard = (props) => {
 
   const dispatch = useDispatch();
   const userDefaultGraphs = useUserDefaultGraphsData();
-  const orgData = useOrgData();
   const recentEventsData = useEventsMapData();
 
   const [pm2_5SiteCount, setPm2_5SiteCount] = useState({
@@ -479,13 +481,17 @@ const Dashboard = (props) => {
                 key={`userDefaultGraphs-${key}`}
               >
                 <CustomisableChart
-                  className={clsx(classes.chartCard)}
+                  className={clsx(classes.customChartCard)}
                   defaultFilter={filter}
                   idSuffix={`custom-${key + 1}`}
                 />
               </Grid>
             );
           })}
+
+        <Grid item lg={6} md={6} sm={12} xl={6} xs={12}>
+          <AddChart className={classes.customChartCard} />
+        </Grid>
       </Grid>
     </div>
   );
