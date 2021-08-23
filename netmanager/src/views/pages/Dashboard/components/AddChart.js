@@ -1,10 +1,11 @@
 import React, { useState } from "react";
-import { Button, Card, Grid } from "@material-ui/core";
+import { Button, Card, Grid, TextField } from "@material-ui/core";
 import OutlinedSelect from "views/components/CustomSelects/OutlinedSelect";
-import TextField from "@material-ui/core/TextField";
+import { useDashboardSiteOptions } from "utils/customHooks/DashboardHooks";
 
 const AddChart = ({ className }) => {
   const [showForm, setShowForm] = useState(false);
+  const siteOptions = useDashboardSiteOptions();
 
   const pollutantOptions = [
     { value: "pm2_5", label: "PM 2.5" },
@@ -73,16 +74,14 @@ const AddChart = ({ className }) => {
                   // name="location"
                   label="Location(s)"
                   // value={tempState.sites.selectedOption}
-                  options={[
-                    { label: "red", value: "red" },
-                    { label: "blue", value: "blue" },
-                    { label: "green", value: "green" },
-                  ]}
+                  options={siteOptions}
                   // onChange={handleMultiChange}
                   isMulti
                   variant="outlined"
                   margin="dense"
                   required
+                  scrollable
+                  height={"100px"}
                 />
               </Grid>
 
