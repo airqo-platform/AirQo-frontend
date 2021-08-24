@@ -36,7 +36,7 @@ Future<void> showSnackBarGoToMyPlaces(context, String message) async {
       softWrap: true,
       textAlign: TextAlign.start,
     ),
-    backgroundColor: appColor,
+    backgroundColor: ColorConstants().appColor,
     action: SnackBarAction(
       textColor: Colors.white,
       label: 'View MyPlaces',

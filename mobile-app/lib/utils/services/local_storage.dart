@@ -120,36 +120,6 @@ class DBHelper {
     }
   }
 
-  // Future<void> insertDevices(List<Device> devices) async {
-  //   try {
-  //     final db = await database;
-  //     await createDefaultTables(db);
-  //
-  //
-  //     if (devices.isNotEmpty) {
-  //       for (var device in devices) {
-  //         var jsonData = Device.toDbMap(device);
-  //
-  //         try {
-  //           await db.insert(
-  //             '${Device.dbName()}',
-  //             jsonData,
-  //             conflictAlgorithm: ConflictAlgorithm.abort,
-  //           );
-  //         } on DatabaseException catch (e) {
-  //           await updateDevice(jsonData);
-  //         } on Error catch (e) {
-  //           print('Error while Inserting devices into local db');
-  //           print(e);
-  //         }
-  //       }
-  //
-  //     }
-  //   } catch (e) {
-  //     print(e);
-  //   }
-  // }
-
   Future<void> insertLatestMeasurements(List<Measurement> measurements) async {
 
       final db = await database;
@@ -171,35 +141,6 @@ class DBHelper {
       }
 
   }
-
-  // Future<void> updateDevice(Map<String, dynamic> device) async {
-  //
-  //   try {
-  //     final db = await database;
-  //
-  //     var res = await db.query('${Device.dbName()}',
-  //         where: '${Device.dbDeviceName()} = ?',
-  //         whereArgs: [device['${Device.dbDeviceName()}']]);
-  //
-  //     var deviceDetails = Device.fromDbMap(res.first);
-  //
-  //     var isFavourite = deviceDetails['${Device.dbFavourite()}'];
-  //
-  //     device['${Device.dbFavourite()}'] = isFavourite ? 'true' : 'false';
-  //     device['${Device.dbNickName()}'] =
-  //     deviceDetails['${Device.dbNickName()}'];
-  //
-  //     await db.insert(
-  //       '${Device.dbName()}',
-  //       device,
-  //       conflictAlgorithm: ConflictAlgorithm.replace,
-  //     );
-  //   } on Error catch (e) {
-  //     print('Updating device in local db');
-  //     print(e);
-  //     print(device);
-  //   }
-  // }
 
   Future<bool> updateFavouritePlaces(Device device) async {
     var prefs = await SharedPreferences.getInstance();
@@ -225,63 +166,6 @@ class DBHelper {
     await prefs.setStringList(PrefConstants().favouritePlaces, favouritePlaces);
     return favouritePlaces.contains(name);
 
-  }
-
-  Future<Device> updateFavouritePlace(Device device, bool isFavourite) async {
-    print('Updating favourite places in local db');
-
-    // final db = await database;
-    //
-    // var res = await db.query('${Device.dbName()}',
-    //     where: '${Device.dbDeviceName()} = ?', whereArgs: [device.name]);
-    //
-    // device.setFavourite(isFavourite);
-    // if (isFavourite) {
-    //   // device.setFavourite(true);
-    //   var deviceMap = Device.toDbMap(device);
-    //
-    //   if (res.isEmpty) {
-    //
-    //     // deviceMap['${Device.dbFavourite()}'] = 'true';
-    //     //
-    //     // if (device.nickName == '') {
-    //     //   deviceMap['${Device.dbNickName()}'] = device.siteName;
-    //     // }
-    //
-    //     await db.insert('${Device.dbName()}', deviceMap);
-    //   } else {
-    //     // var deviceMap = <String, Object?>{'${Device.dbFavourite()}': 'true'};
-    //     //
-    //     // if (device.nickName == '') {
-    //     //   deviceMap['${Device.dbNickName()}'] = device.siteName;
-    //     // }
-    //
-    //     var num = await db.update(
-    //       '${Device.dbName()}',
-    //       deviceMap,
-    //       where: '${Device.dbDeviceName()} = ?',
-    //       whereArgs: [device.name],
-    //       conflictAlgorithm: ConflictAlgorithm.replace,
-    //     );
-    //   }
-    // }
-    // else {
-    //   // device.setFavourite(false);
-    //
-    //   if (res.isNotEmpty) {
-    //     var updateMap = <String, Object?>{'${Device.dbFavourite()}': 'false'};
-    //
-    //     await db.update(
-    //       '${Device.dbName()}',
-    //       updateMap,
-    //       where: '${Device.dbDeviceName()} = ?',
-    //       whereArgs: [device.name],
-    //       conflictAlgorithm: ConflictAlgorithm.replace,
-    //     );
-    //   }
-    // }
-
-    return device;
   }
 
   Future<Device> renameFavouritePlace(Device device, String name) async {
@@ -319,90 +203,22 @@ class DBHelper {
     }
   }
 
-  // Future<bool> checkFavouritePlace(int name) async {
-  //   try {
-  //     print('checking favourite place in local db');
-  //
-  //     final db = await database;
-  //
-  //     var res = await db.query('${constants.locationsTable}',
-  //         where: '${constants.name} = ?', whereArgs: [name]);
-  //
-  //     var res2 = await db.query('${constants.locationsTable}',
-  //         where: '${constants.favourite} = ?', whereArgs: [1]);
-  //
-  //     print(res2);
-  //
-  //     if (res.isEmpty) {
-  //       return false;
-  //     }
-  //
-  //     var device = Device.fromJson(Device.fromDbMap(res.first));
-  //
-  //     print('$name is favourite ? ${device.favourite}');
-  //
-  //     return device.favourite;
-  //   } catch (e) {
-  //     print(e);
-  //     return false;
-  //   }
-  // }
-
-  Future<void> updateMeasurement(Measurement measurement) async {
-    try {
-      print('Updating measurement in local db');
-
-      final db = await database;
-
-      var res = await db.query('${constants.measurementsTable}',
-          where: '${constants.name} = ?',
-          whereArgs: [measurement.device]);
-
-      var jsonData = Measurement.mapToDb(measurement);
-
-      if (res.isEmpty) {
-        await db.insert(
-          '${constants.measurementsTable}',
-          jsonData,
-          conflictAlgorithm: ConflictAlgorithm.replace,
-        );
-      } else {
-        await db.update('${constants.measurementsTable}', jsonData,
-            where: '${constants.device} = ?',
-            whereArgs: [measurement.device]);
-      }
-    } catch (e) {
-      print(e);
-    }
-  }
-
   Future<Measurement?> getMeasurement(String name) async {
     try {
       print('Getting measurements locally');
 
       final db = await database;
 
-      var res = await db.rawQuery('SELECT * FROM '
-          '${constants.locationsTable} INNER JOIN '
-          '${constants.measurementsTable} '
-          'ON ${constants.locationsTable}.${constants.name} = '
-          '${constants.measurementsTable}.${constants.locationDetails} '
-          'WHERE ${constants.locationsTable}.${constants.name} = '
-          '$name');
+      var res = await db.query(Measurement.latestMeasurementsDb(),
+          where: '${Measurement.dbDeviceName()} = ?', whereArgs: [name]);
 
       if (res.isEmpty) {
         return null;
       }
 
-      print('Got measurements locally');
+      print('Got measurement locally');
+      return Measurement.fromJson(Measurement.mapFromDb(res.first));
 
-      // var location = Device.fromDbMap(res.first);
-      //
-      // var measurementsJson = Measurement.fromDbMap(res.first);
-      //
-      // measurementsJson['${constants.locationDetails}'] = location;
-
-      return unPackInnerJoin(res.first);
     } catch (e) {
       print(e);
       return null;
@@ -431,32 +247,6 @@ class DBHelper {
     }
   }
 
-  // Future<List<Measurement>> getMeasurements() async {
-  //   try {
-  //     print('Getting measurements from local db');
-  //
-  //     final db = await database;
-  //
-  //     var res = await db.rawQuery('SELECT * FROM '
-  //         '${Device.dbName()} INNER JOIN '
-  //         '${Measurement.latestMeasurementsDb()} '
-  //         'ON ${Device.dbName()}.${Device.dbDeviceName()} = '
-  //         '${Measurement.latestMeasurementsDb()}'
-  //         '.${Measurement.dbDeviceName()} ');
-  //
-  //     print('Got ${res.length} measurements from local db');
-  //
-  //     return res.isNotEmpty
-  //         ? List.generate(res.length, (i) {
-  //       return unPackInnerJoin(res[i]);
-  //     })
-  //         : <Measurement>[];
-  //   } catch (e) {
-  //     print(e);
-  //     return <Measurement>[];
-  //   }
-  // }
-  
   Future<List<Device>> getDevices() async {
     try {
       print('Getting devices from local db');
@@ -504,37 +294,26 @@ class DBHelper {
       var favouritePlaces = prefs
           .getStringList(PrefConstants().favouritePlaces) ?? [];
 
-      var whereClause = '';
-      for(var fav in favouritePlaces){
-
-        if (favouritePlaces.elementAt(favouritePlaces.length - 1).compareTo(fav)
-            == 0) {
-          whereClause = '$whereClause${'${Measurement.dbDeviceName()} = ?'}';
-        } else {
-          whereClause = '$whereClause${'${Measurement.dbDeviceName()} = ?,'}';
-        }
+      if(favouritePlaces.isEmpty){
+        return [];
       }
 
-      var res = await db.query('${Measurement.latestMeasurementsDb()}',
-          where: whereClause, whereArgs: favouritePlaces);
+      var placesRes = <Map<String, Object?>>[];
+      for(var fav in favouritePlaces){
 
-      // var res = await db.rawQuery('SELECT * FROM '
-      //     '${constants.locationsTable} JOIN '
-      //     '${constants.measurementsTable} '
-      //     'ON ${constants.locationsTable}.${constants.name} = '
-      //     '${constants.measurementsTable}.${constants.locationDetails} '
-      //     'WHERE ${constants.locationsTable}.${constants.favourite} = 1');
-      // print('Got ${res.length} favourite places from local db');
-      //
-      // var res2 = await db.rawQuery('SELECT * FROM '
-      //     '${constants.locationsTable} '
-      //     'WHERE ${constants.locationsTable}.${constants.favourite} = 1');
-      //
-      // print('Got ${res2.length} favourite places 2 from local db');
+        var res = await db.query('${Measurement.latestMeasurementsDb()}',
+            where: '${'${Measurement.dbDeviceName()} = ?'}',
+            whereArgs: [fav]);
+        placesRes.addAll(res);
 
-      return res.isNotEmpty
-          ? List.generate(res.length, (i) {
-              return Measurement.fromJson(Measurement.mapFromDb(res[i]));
+      }
+      if (placesRes.isEmpty) {
+        return [];
+      }
+
+      return placesRes.isNotEmpty
+          ? List.generate(placesRes.length, (i) {
+              return Measurement.fromJson(Measurement.mapFromDb(placesRes[i]));
             })
           : <Measurement>[];
     } catch (e) {
@@ -544,38 +323,4 @@ class DBHelper {
     }
   }
 
-  Measurement unPackInnerJoin(Map<String, Object?> data) {
-    var device;
-    try {
-      device = Device.fromDbMap(data);
-      print(device);
-    } catch (e) {
-      print('error on device');
-      print(e);
-    }
-
-    var measurementsJson;
-
-    try {
-      measurementsJson = Measurement.mapFromDb(data);
-      print(measurementsJson);
-    } catch (e) {
-      print('error on measurements');
-      print(e);
-    }
-
-    measurementsJson['deviceDetails'] = device;
-
-    print(measurementsJson);
-
-    var measurements;
-    try {
-      measurements = Measurement.fromJson(measurementsJson);
-    } catch (e) {
-      print('error on measurements 2');
-      print(e);
-    }
-
-    return measurements;
-  }
 }

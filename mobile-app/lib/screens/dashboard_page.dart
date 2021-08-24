@@ -16,7 +16,7 @@ class DashboardPage extends StatefulWidget {
 }
 
 class _DashboardPageState extends State<DashboardPage> {
-  var results;
+  List<Measurement> results = [];
 
   @override
   Widget build(BuildContext context) {
@@ -67,8 +67,7 @@ class _DashboardPageState extends State<DashboardPage> {
                         itemBuilder: (context, index) => InkWell(
                           onTap: () async {
                             try {
-                              var device = await DBHelper().getDevice(
-                                  results[index].device.deviceNumber);
+                              var device = results[index].device;
 
                               await Navigator.push(context,
                                   MaterialPageRoute(builder: (context) {
@@ -100,7 +99,7 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Future<void> refreshData() async {
-    var data = DBHelper().getFavouritePlaces();
+    var data = await DBHelper().getFavouritePlaces();
 
     setState(() {
       results = data;

@@ -40,7 +40,7 @@ class _MyPlacesState extends State<MyPlaces> {
                   style: const TextStyle(fontSize: 18, color: Colors.white),
                   decoration: const InputDecoration(
                     hintStyle: TextStyle(fontSize: 18, color: Colors.white),
-                    hintText: 'Search',
+                    hintText: 'Search MyPlaces',
                     border: InputBorder.none,
                     contentPadding: EdgeInsets.all(15),
                   ),
@@ -264,10 +264,9 @@ class _MyPlacesState extends State<MyPlaces> {
   }
 
   Future<void> removeFromFavourites(Device device) async {
-    var place = await DBHelper().updateFavouritePlace(device, false);
-
-    await showSnackBar2(
-        context, '${place.siteName} is removed from your places');
+    await DBHelper().updateFavouritePlaces(device).then((value) => {
+    showSnackBar2(context, '${device.siteName} is removed from your places')
+    });
 
     setState(() {});
   }

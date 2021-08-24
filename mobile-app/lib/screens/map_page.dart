@@ -391,17 +391,17 @@ class MapPageState extends State<MapPage> {
     });
   }
 
-  @override
-  void dispose() {
-    // if (mounted) {
-    //   setState(() {
-    //     _showInfoWindow = false;
-    //     _markers = {};
-    //     isLoading = false;
-    //   });
-    // }
-    super.dispose();
-  }
+  // @override
+  // void dispose() {
+  //   if (mounted) {
+  //     setState(() {
+  //       _showInfoWindow = false;
+  //       _markers = {};
+  //       isLoading = false;
+  //     });
+  //   }
+  //   super.dispose();
+  // }
 
   Widget infoWindow() {
     return Card(
@@ -410,8 +410,7 @@ class MapPageState extends State<MapPage> {
       child: Column(
         children: [
           Text(
-            (windowProperties.device.favourite &&
-                    windowProperties.device.nickName != null)
+            (windowProperties.device.nickName != '')
                 ? windowProperties.device.nickName
                 : windowProperties.device.siteName,
             softWrap: true,

@@ -38,25 +38,7 @@ class _ComparePageState extends State<ComparePage> {
         child: ListView(
           children: <Widget>[
             formInput(),
-            // lineDisplay(),
-            FutureBuilder(
-                future: apiClient.fetchComparisonMeasurements(),
-                builder: (context, snapshot) {
-                  if (snapshot.hasError) {
-                    return SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: graphDisplay(),
-                    );
-                  } else if (snapshot.hasData) {
-                    var data = snapshot.data as List<Measurement>;
-                    List<charts.Series<dynamic, DateTime>> dataset =
-                        createComaprisonData(data);
-
-                    return ComparisonLineChart(dataset);
-                  } else {
-                    return Text('Computing');
-                  }
-                })
+            const Text('Comparing places')
           ],
         ),
       ),

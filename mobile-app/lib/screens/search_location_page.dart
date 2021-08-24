@@ -150,10 +150,11 @@ class LocationSearch extends SearchDelegate<Suggestion> {
         if (snapshot.hasError) {
           return Container(
             padding: const EdgeInsets.all(16.0),
-            child: Text(
-                '${snapshot.error.toString().replaceAll('Exception: ', '')}'),
+            child: const Text(
+                'Could not get suggestions. try again later or use the map'),
           );
-        } else if (snapshot.hasData) {
+        }
+        else if (snapshot.hasData) {
           // print(snapshot.data);
 
           var results = snapshot.data as List<Suggestion>;
@@ -380,8 +381,10 @@ class LocationSearch extends SearchDelegate<Suggestion> {
         future: DBHelper().getDevices(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
+            print(snapshot.error);
             return loadApiDevices();
-          } else if (snapshot.hasData) {
+          }
+          else if (snapshot.hasData) {
             var devices = snapshot.data as List<Device>;
 
             if (devices.isEmpty) {
@@ -425,7 +428,8 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                         valueColor: AlwaysStoppedAnimation<Color>(appColor),
                       ),
                       const Text(
-                        'Getting all air quality sensor locations. Please wait...',
+                        'Getting all air quality sensor locations. '
+                            'Please wait...',
                         textAlign: TextAlign.center,
                         style: TextStyle(color: appColor),
                       )
@@ -504,7 +508,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       const Text(
-                          'Sorry, coundn\'t get places. Try again later'),
+                          'Sorry, couldn\'t get places. Try again later'),
                     ],
                   ));
             }
@@ -534,7 +538,8 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                     );
               },
             );
-          } else {
+          }
+          else {
             return Align(
                 alignment: Alignment.center,
                 child: Column(
@@ -553,58 +558,5 @@ class LocationSearch extends SearchDelegate<Suggestion> {
           }
         });
   }
-// @override
-// PreferredSizeWidget buildBottom(BuildContext context) {
-//
-//   return PreferredSize(
-//     preferredSize: const Size.fromHeight(40.0),
-//     child: Container(
-//
-//       padding: const EdgeInsets.fromLTRB(8, 0, 8, 0),
-//       decoration: const BoxDecoration(
-//         color: Colors.white,
-//         // gradient: LinearGradient(
-//         //   colors: [Colors.blue, Colors.pink],
-//         // ),
-//       ),
-//       child: Row(
-//         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-//         children: [
-//           SingleChildScrollView(
-//               scrollDirection: Axis.horizontal,
-//               child: Container(
-//                 width: 1000,
-//                 padding: EdgeInsets.all(8),
-//                 child: ListView(
-//                   scrollDirection: Axis.horizontal,
-//                   children: [
-//                     ElevatedButton(
-//                       style: ElevatedButton.styleFrom(
-//                           primary: appColor
-//                       ),
-//                       onPressed: () {
-//
-//                       },
-//                       child: const Text('Places'),
-//                     ),
-//                     ElevatedButton(
-//                       style: ElevatedButton.styleFrom(
-//                           primary: appColor
-//                       ),
-//                       onPressed: () {
-//
-//                       },
-//                       child: const Text('News'),
-//                     ),
-//                   ],
-//                 ),
-//               )
-//           ),
-//
-//         ],
-//       ),
-//     ),
-//   );
-//
-// }
+
 }

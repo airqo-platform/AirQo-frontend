@@ -50,7 +50,6 @@ dependencies:
   charts_flutter: ^0.10.0
   intl: ^0.17.0
   uuid: ^3.0.4
-  mailer: ^5.0.0
   flutter_slidable: ^0.6.0
   flutter_svg: ^0.22.0
   animated_text_kit: ^4.2.1

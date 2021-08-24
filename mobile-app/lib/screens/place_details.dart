@@ -47,7 +47,6 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
 
   @override
   void initState() {
-    getDeviceDetails();
     getMeasurements();
     super.initState();
   }
@@ -60,33 +59,20 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
           .favouritePlaces) ?? [];
 
       setState(() {
-        isFavourite = favourites.contains(measurementData.device);
+        isFavourite = favourites.contains(measurementData.device.name);
       });
     }
   }
 
-  Future<void> updatePlace() async {
-    if (isFavourite) {
-      await DBHelper().updateFavouritePlace(measurementData.device, true);
-    }
-  }
-
   Future<void> updateFavouritePlace() async {
-    var place;
-    if (isFavourite) {
-      place = await DBHelper()
-          .updateFavouritePlace(measurementData.device, false);
-    } else {
-      place = await DBHelper()
-          .updateFavouritePlace(measurementData.device, true);
-    }
+    var fav = await DBHelper()
+        .updateFavouritePlaces(measurementData.device);
 
     setState(() {
-      measurementData.device = place;
-      isFavourite = measurementData.device.favourite;
+      isFavourite = fav;
     });
 
-    if (isFavourite) {
+    if (fav) {
       await showSnackBarGoToMyPlaces(
           context,
           '${measurementData.device.siteName} '
@@ -112,7 +98,6 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
 
       if (measurementData != null) {
         await checkFavourite();
-        await updatePlace();
       }
     } catch (e) {
       print('Getting device events error: $e');
@@ -126,36 +111,21 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
   }
 
   Future<void> localFetch() async {
-    // try {
-    //   var measurements = await DBHelper().getMeasurement(device.name);
-    //
-    //   if (measurements != null) {
-    //     setState(() {
-    //       locationData = measurements;
-    //     });
-    //
-    //     if (locationData != null) {
-    //       await checkFavourite();
-    //     }
-    //   }
-    // } on Error catch (e) {
-    //   print('Getting device events locally error: $e');
-    // }
-  }
+    try {
+      var measurements = await DBHelper().getMeasurement(device.name);
 
-  Future<void> getDeviceDetails() async {
-    // try {
-    //   var deviceDetails = await DBHelper().getDevice(device.name);
-    //
-    //   print(deviceDetails);
-    //   if (deviceDetails != null) {
-    //     setState(() {
-    //       device = deviceDetails;
-    //     });
-    //   }
-    // } on Error catch (e) {
-    //   print('Getting device details locally error: $e');
-    // }
+      if (measurements != null) {
+        setState(() {
+          measurementData = measurements;
+        });
+
+        if (measurementData != null) {
+          await checkFavourite();
+        }
+      }
+    } on Error catch (e) {
+      print('Getting device events locally error: $e');
+    }
   }
 
   void updateView(Measurement measurement) {
@@ -170,22 +140,23 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
       appBar: AppBar(
         title: const Text(appName),
         actions: [
-          if (isFavourite)
-          IconButton(
-            icon: const Icon(
-              Icons.edit_outlined,
-            ),
-            onPressed: () {
-              updateTitleDialog(device);;
-            },
-          ),
+          // if (isFavourite)
+          // IconButton(
+          //   icon: const Icon(
+          //     Icons.edit_outlined,
+          //   ),
+          //   onPressed: () {
+          //     updateTitleDialog(device);
+          //   },
+          // ),
         ],
       ),
       body: measurementData != null
           ? Container(
               decoration: BoxDecoration(
                 image: DecorationImage(
-                  image: AssetImage(pmToImage(measurementData.pm2_5.calibratedValue)),
+                  image: AssetImage(pmToImage(
+                      measurementData.pm2_5.calibratedValue)),
                   fit: BoxFit.cover,
                 ),
               ),
@@ -202,13 +173,13 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                         Expanded(
                             child: GestureDetector(
                               onTap: () {
-                                if (isFavourite) {
-                                  print('editing');
-                                  setState(() {
-                                    titleText = '';
-                                  });
-                                  updateTitleDialog(device);
-                                }
+                                // if (isFavourite) {
+                                //   print('editing');
+                                //   setState(() {
+                                //     titleText = '';
+                                //   });
+                                //   updateTitleDialog(device);
+                                // }
                               },
                           child: RichText(
                             overflow: TextOverflow.ellipsis,
@@ -220,7 +191,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                                 color: appColor,
                                 fontWeight: FontWeight.bold,
                               ),
-                              text: (isFavourite && device.nickName != null)
+                              text: (isFavourite && device.nickName != '')
                                   ? '${device.nickName} '
                                   : '${device.siteName}',
                               children: <TextSpan>[
@@ -246,13 +217,13 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                     padding: const EdgeInsets.fromLTRB(8.0, 0, 8.0, 8.0),
                       child: GestureDetector(
                         onTap: () {
-                          if (isFavourite) {
-                            print('editing');
-                            setState(() {
-                              titleText = '';
-                            });
-                            updateTitleDialog(device);
-                          }
+                          // if (isFavourite) {
+                          //   print('editing');
+                          //   setState(() {
+                          //     titleText = '';
+                          //   });
+                          //   updateTitleDialog(device);
+                          // }
                         },
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -524,7 +495,8 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                         Text(
                           measurement.pm2_5.calibratedValue.toString(),
                           style: TextStyle(
-                            color: pmTextColor(measurement.pm2_5.calibratedValue),
+                            color: pmTextColor(
+                                measurement.pm2_5.calibratedValue),
                             fontWeight: FontWeight.bold,
                             fontSize: 20,
                           ),
@@ -535,7 +507,8 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                           softWrap: true,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            color: pmTextColor(measurement.pm2_5.calibratedValue),
+                            color: pmTextColor(
+                                measurement.pm2_5.calibratedValue),
                           ),
                         ),
                       ],
@@ -543,7 +516,8 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(0, 5, 0, 0),
-                child: Text('Last updated : ${dateToString(measurementData.time)}',
+                child: Text(
+                    'Last updated : ${dateToString(measurementData.time)}',
                     style: const TextStyle(
                       fontSize: 11,
                       color: appColor,
@@ -554,15 +528,6 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
             ],
           ),
         )));
-  }
-
-  Widget airqoLogo() {
-    return Center(
-        child: Image.asset(
-      'assets/icon/airqo_logo.png',
-      height: 50,
-      width: 50,
-    ));
   }
 
   Widget headerSection(String image, String body) {
@@ -628,9 +593,9 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                     textStyle: const TextStyle(color: Colors.white)),
                 onPressed: () async {
                   if (titleText != '') {
-                    await DBHelper()
-                        .renameFavouritePlace(device, titleText)
-                        .then((value) => {getDeviceDetails()});
+                    // await DBHelper()
+                    //     .renameFavouritePlace(device, titleText)
+                    //     .then((value) => {getDeviceDetails()});
                   }
                   Navigator.pop(context);
                 },
