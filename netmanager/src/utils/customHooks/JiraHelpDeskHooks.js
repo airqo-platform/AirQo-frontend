@@ -1,12 +1,6 @@
 import { useEffect, useState } from "react";
 import { useUserPreferenceData } from "redux/UserPreference/selectors";
 
-export function useInitScrollTop() {
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
-}
-
 export function useJiraHelpDesk() {
   const preferenceKey = "feedbackBtn";
   const userPreferenceData = useUserPreferenceData();
