@@ -40,7 +40,12 @@ import { formatDateString } from "utils/dateTime";
 import { omit } from "underscore";
 import { roundToStartOfDay, roundToEndOfDay } from "utils/dateTime";
 import { useDashboardSiteOptions } from "utils/customHooks";
-import { updateUserChartDefaultsApi } from "views/apis/authService";
+import {
+  deleteUserChartDefaultsApi,
+  updateUserChartDefaultsApi,
+} from "views/apis/authService";
+import { loadUserDefaultGraphData } from "redux/Dashboard/operations";
+import { updateMainAlert } from "redux/MainAlert/operations";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -444,7 +449,7 @@ const CustomisableChart = (props) => {
     };
 
     transferFromTempState();
-    updateUserChartDefaultsApi(newFilter._id, newFilter)
+    updateUserChartDefaultsApi(newFilter._id, newFilter);
     await fetchAndSetGraphData(newFilter);
   };
 
@@ -655,12 +660,43 @@ const CustomisableChart = (props) => {
     }
   };
 
+  const deleteChart = async () => {
+    setAnchorEl(null);
+    await deleteUserChartDefaultsApi(defaultFilter._id)
+      .then((responseData) => {
+        dispatch(loadUserDefaultGraphData());
+        dispatch(
+          updateMainAlert({
+            show: true,
+            message: responseData.message,
+            severity: "success",
+          })
+        );
+      })
+      .catch((err) => {
+        console.log("err", err.response.data);
+        dispatch(
+          updateMainAlert({
+            show: true,
+            message:
+              err.response && err.response.data && err.response.data.message,
+            severity: "error",
+          })
+        );
+      });
+  };
+
   const menuOptions = [
     { key: "Customise", action: handleClickOpen, text: "Customise Chart" },
     { key: "Print", action: print, text: "Print" },
     { key: "JPEG", action: exportToJpeg, text: "Save as JPEG" },
     { key: "PNG", action: exportToPng, text: "Save as PNG" },
     { key: "PDF", action: exportToPdf, text: "Save as PDF" },
+    {
+      key: "Delete",
+      action: deleteChart,
+      text: <span style={{ color: "red" }}>Delete Chart</span>,
+    },
   ];
 
   const handleClick = (event) => {
