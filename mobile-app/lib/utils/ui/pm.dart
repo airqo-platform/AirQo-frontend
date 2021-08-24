@@ -7,67 +7,67 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 
 charts.Color pmToChartColor(double pm2_5) {
-  if (pm2_5 <= 12) {
+  if (pm2_5 <= 12.09) {
     //good
-    return charts.ColorUtil.fromDartColor(greenColor);
-  } else if (pm2_5 >= 12.1 && pm2_5 <= 35.4) {
+    return charts.ColorUtil.fromDartColor(ColorConstants().green);
+  } else if (pm2_5 >= 12.1 && pm2_5 <= 35.49) {
     //moderate
-    return charts.ColorUtil.fromDartColor(yellowColor);
-  } else if (pm2_5 >= 35.5 && pm2_5 <= 55.4) {
+    return charts.ColorUtil.fromDartColor(ColorConstants().yellow);
+  } else if (pm2_5 >= 35.5 && pm2_5 <= 55.49) {
     //sensitive
-    return charts.ColorUtil.fromDartColor(orangeColor);
-  } else if (pm2_5 >= 55.5 && pm2_5 <= 150.4) {
+    return charts.ColorUtil.fromDartColor(ColorConstants().orange);
+  } else if (pm2_5 >= 55.5 && pm2_5 <= 150.49) {
     // unhealthy
-    return charts.ColorUtil.fromDartColor(redColor);
-  } else if (pm2_5 >= 150.5 && pm2_5 <= 250.4) {
+    return charts.ColorUtil.fromDartColor(ColorConstants().red);
+  } else if (pm2_5 >= 150.5 && pm2_5 <= 250.49) {
     // very unhealthy
-    return charts.ColorUtil.fromDartColor(purpleColor);
+    return charts.ColorUtil.fromDartColor(ColorConstants().purple);
   } else if (pm2_5 >= 250.5) {
     // hazardous
-    return charts.ColorUtil.fromDartColor(maroonColor);
+    return charts.ColorUtil.fromDartColor(ColorConstants().maroon);
   } else {
     return charts.ColorUtil.fromDartColor(appColor);
   }
 }
 
 Color pmToColor(double pm2_5) {
-  if (pm2_5 <= 12) {
+  if (pm2_5 <= 12.09) {
     //good
-    return greenColor;
-  } else if (pm2_5 >= 12.1 && pm2_5 <= 35.4) {
+    return ColorConstants().green;
+  } else if (pm2_5 >= 12.1 && pm2_5 <= 35.49) {
     //moderate
-    return yellowColor;
-  } else if (pm2_5 >= 35.5 && pm2_5 <= 55.4) {
+    return ColorConstants().yellow;
+  } else if (pm2_5 >= 35.5 && pm2_5 <= 55.49) {
     //sensitive
-    return orangeColor;
-  } else if (pm2_5 >= 55.5 && pm2_5 <= 150.4) {
+    return ColorConstants().orange;
+  } else if (pm2_5 >= 55.5 && pm2_5 <= 150.49) {
     // unhealthy
-    return redColor;
-  } else if (pm2_5 >= 150.5 && pm2_5 <= 250.4) {
+    return ColorConstants().red;
+  } else if (pm2_5 >= 150.5 && pm2_5 <= 250.49) {
     // very unhealthy
-    return purpleColor;
+    return ColorConstants().purple;
   } else if (pm2_5 >= 250.5) {
     // hazardous
-    return maroonColor;
+    return ColorConstants().maroon;
   } else {
-    return appColor;
+    return ColorConstants().appColor;
   }
 }
 
 Color pmTextColor(double pm2_5) {
-  if (pm2_5 <= 12) {
+  if (pm2_5 <= 12.09) {
     //good
     return Colors.black;
-  } else if (pm2_5 >= 12.1 && pm2_5 <= 35.4) {
+  } else if (pm2_5 >= 12.1 && pm2_5 <= 35.49) {
     //moderate
     return Colors.black;
-  } else if (pm2_5 >= 35.5 && pm2_5 <= 55.4) {
+  } else if (pm2_5 >= 35.5 && pm2_5 <= 55.49) {
     //sensitive
     return Colors.black;
-  } else if (pm2_5 >= 55.5 && pm2_5 <= 150.4) {
+  } else if (pm2_5 >= 55.5 && pm2_5 <= 150.49) {
     // unhealthy
     return Colors.white;
-  } else if (pm2_5 >= 150.5 && pm2_5 <= 250.4) {
+  } else if (pm2_5 >= 150.5 && pm2_5 <= 250.49) {
     // very unhealthy
     return Colors.white;
   } else if (pm2_5 >= 250.5) {
@@ -79,19 +79,19 @@ Color pmTextColor(double pm2_5) {
 }
 
 String pmToString(double pm2_5) {
-  if (pm2_5 <= 12) {
+  if (pm2_5 <= 12.09) {
     //good
     return 'Good';
-  } else if (pm2_5 >= 12.1 && pm2_5 <= 35.4) {
+  } else if (pm2_5 >= 12.1 && pm2_5 <= 35.49) {
     //moderate
     return 'Moderate';
-  } else if (pm2_5 >= 35.5 && pm2_5 <= 55.4) {
+  } else if (pm2_5 >= 35.5 && pm2_5 <= 55.49) {
     //sensitive
     return 'Unhealthy for\nsensitive people';
-  } else if (pm2_5 >= 55.5 && pm2_5 <= 150.4) {
+  } else if (pm2_5 >= 55.5 && pm2_5 <= 150.49) {
     // unhealthy
     return 'Unhealthy';
-  } else if (pm2_5 >= 150.5 && pm2_5 <= 250.4) {
+  } else if (pm2_5 >= 150.5 && pm2_5 <= 250.49) {
     // very unhealthy
     return 'Very Unhealthy';
   } else if (pm2_5 >= 250.5) {
@@ -103,19 +103,19 @@ String pmToString(double pm2_5) {
 }
 
 String pmToImage(double pm2_5) {
-  if (pm2_5 <= 12) {
+  if (pm2_5 <= 12.09) {
     //good
     return 'assets/images/good.png';
-  } else if (pm2_5 >= 12.1 && pm2_5 <= 35.4) {
+  } else if (pm2_5 >= 12.1 && pm2_5 <= 35.49) {
     //moderate
     return 'assets/images/moderate.png';
-  } else if (pm2_5 >= 35.5 && pm2_5 <= 55.4) {
+  } else if (pm2_5 >= 35.5 && pm2_5 <= 55.49) {
     //sensitive
     return 'assets/images/sensitive.png';
-  } else if (pm2_5 >= 55.5 && pm2_5 <= 150.4) {
+  } else if (pm2_5 >= 55.5 && pm2_5 <= 150.49) {
     // unhealthy
     return 'assets/images/unhealthy.png';
-  } else if (pm2_5 >= 150.5 && pm2_5 <= 250.4) {
+  } else if (pm2_5 >= 150.5 && pm2_5 <= 250.49) {
     // very unhealthy
     return 'assets/images/veryUnhealthy.png';
   } else if (pm2_5 >= 250.5) {
@@ -127,19 +127,19 @@ String pmToImage(double pm2_5) {
 }
 
 String pmToEmoji(double pm2_5) {
-  if (pm2_5 <= 12) {
+  if (pm2_5 <= 12.09) {
     //good
     return 'assets/images/good-face.png';
-  } else if (pm2_5 >= 12.1 && pm2_5 <= 35.4) {
+  } else if (pm2_5 >= 12.1 && pm2_5 <= 35.49) {
     //moderate
     return 'assets/images/moderate-face.png';
-  } else if (pm2_5 >= 35.5 && pm2_5 <= 55.4) {
+  } else if (pm2_5 >= 35.5 && pm2_5 <= 55.49) {
     //sensitive
     return 'assets/images/sensitive-face.png';
-  } else if (pm2_5 >= 55.5 && pm2_5 <= 150.4) {
+  } else if (pm2_5 >= 55.5 && pm2_5 <= 150.49) {
     // unhealthy
     return 'assets/images/unhealthy-face.png';
-  } else if (pm2_5 >= 150.5 && pm2_5 <= 250.4) {
+  } else if (pm2_5 >= 150.5 && pm2_5 <= 250.49) {
     // very unhealthy
     return 'assets/images/very-unhealthy-face.png';
   } else if (pm2_5 >= 250.5) {
@@ -151,30 +151,30 @@ String pmToEmoji(double pm2_5) {
 }
 
 BitmapDescriptor pmToMarkerPoint(double pm2_5) {
-  if (pm2_5 <= 12) {
+  if (pm2_5 <= 12.09) {
     //good
     return BitmapDescriptor.defaultMarkerWithHue(
-        HSVColor.fromColor(greenColor).hue);
-  } else if (pm2_5 >= 12.1 && pm2_5 <= 35.4) {
+        HSVColor.fromColor(ColorConstants().green).hue);
+  } else if (pm2_5 >= 12.10 && pm2_5 <= 35.49) {
     //moderate
     return BitmapDescriptor.defaultMarkerWithHue(
-        HSVColor.fromColor(yellowColor).hue);
-  } else if (pm2_5 >= 35.5 && pm2_5 <= 55.4) {
+        HSVColor.fromColor(ColorConstants().yellow).hue);
+  } else if (pm2_5 >= 35.50 && pm2_5 <= 55.49) {
     //sensitive
     return BitmapDescriptor.defaultMarkerWithHue(
-        HSVColor.fromColor(orangeColor).hue);
-  } else if (pm2_5 >= 55.5 && pm2_5 <= 150.4) {
+        HSVColor.fromColor(ColorConstants().orange).hue);
+  } else if (pm2_5 >= 55.50 && pm2_5 <= 150.49) {
     // unhealthy
     return BitmapDescriptor.defaultMarkerWithHue(
-        HSVColor.fromColor(redColor).hue);
-  } else if (pm2_5 >= 150.5 && pm2_5 <= 250.4) {
+        HSVColor.fromColor(ColorConstants().red).hue);
+  } else if (pm2_5 >= 150.50 && pm2_5 <= 250.49) {
     // very unhealthy
     return BitmapDescriptor.defaultMarkerWithHue(
-        HSVColor.fromColor(purpleColor).hue);
+        HSVColor.fromColor(ColorConstants().purple).hue);
   } else if (pm2_5 >= 250.5) {
     // hazardous
     return BitmapDescriptor.defaultMarkerWithHue(
-        HSVColor.fromColor(maroonColor).hue);
+        HSVColor.fromColor(ColorConstants().maroon).hue);
   } else {
     return BitmapDescriptor.defaultMarker;
   }
@@ -236,17 +236,27 @@ Future<BitmapDescriptor> pmToMarker(double pm2_5) async {
   );
 
   var textPainter = TextPainter(
-      textDirection: TextDirection.ltr, textAlign: TextAlign.center);
+      textDirection: TextDirection.ltr,
+      text: TextSpan(
+        text: value.toString(),
+        style: TextStyle(
+          fontSize: radius - 10,
+          fontWeight: FontWeight.bold,
+          color: textColor,
+        ),
+      ),
+      textAlign: TextAlign.center,)..layout();
 
-  textPainter.text = TextSpan(
-    text: value.toString(),
-    style: TextStyle(
-      fontSize: radius - 10,
-      fontWeight: FontWeight.bold,
-      color: textColor,
-    ),
-  );
-  textPainter.layout();
+  // textPainter.text = TextSpan(
+  //   text: value.toString(),
+  //   style: TextStyle(
+  //     fontSize: radius - 10,
+  //     fontWeight: FontWeight.bold,
+  //     color: textColor,
+  //   ),
+  // );
+
+  // textPainter.layout();
   textPainter.paint(
     canvas,
     Offset(

@@ -198,20 +198,18 @@ class MapPageState extends State<MapPage> {
                           // }
 
                           if (snapshot.hasError) {
-                            return Padding(
-                              padding: const EdgeInsets.all(16.0),
+                            print('${snapshot.error.toString()}');
+                            return const Padding(
+                              padding: EdgeInsets.all(16.0),
                               child: Text(
-                                '${snapshot.error.toString()
-                                    .replaceAll('Exception: ', '')}',
-                                style: const TextStyle(
+                                'Try again later',
+                                style: TextStyle(
                                     color: appColor,
                                     fontSize: 16,
                                     backgroundColor: Colors.white),
                               ),
                             );
                           } else if (snapshot.hasData) {
-                            print(snapshot.data);
-
                             var results = snapshot.data as List<Suggestion>;
 
                             return Padding(
@@ -254,12 +252,13 @@ class MapPageState extends State<MapPage> {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
-                                    const Padding(
-                                      padding: EdgeInsets.fromLTRB(0, 5, 0, 0),
+                                    Padding(
+                                      padding: const EdgeInsets
+                                          .fromLTRB(0, 5, 0, 0),
                                       child: CircularProgressIndicator(
                                         valueColor:
                                             AlwaysStoppedAnimation<Color>(
-                                                appColor),
+                                                ColorConstants().appColor),
                                       ),
                                     ),
 
@@ -293,11 +292,31 @@ class MapPageState extends State<MapPage> {
               ),
             ),
             if (isLoading)
-              const Positioned.fill(
+              Positioned.fill(
                 child: Align(
                     alignment: Alignment.center,
-                    child: CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(appColor),
+                    child: SizedBox(
+                      height: 200.0,
+                      child: Stack(
+                        children: <Widget>[
+                          Center(
+                            child: Container(
+                                width: 100,
+                                height: 100,
+                                child:
+                                CircularProgressIndicator(
+                                  valueColor:
+                                  AlwaysStoppedAnimation
+                                  <Color>(ColorConstants()
+                                      .appColor),
+                                )
+                            ),
+                          ),
+                          Center(child: Text('Loading', style: TextStyle(
+                            color: ColorConstants().appColor
+                          ),)),
+                        ],
+                      ),
                     )),
               ),
             // Positioned(
@@ -380,7 +399,7 @@ class MapPageState extends State<MapPage> {
     //     isLoading = false;
     //   });
     // }
-    // super.dispose();
+    super.dispose();
   }
 
   Widget infoWindow() {
@@ -416,7 +435,8 @@ class MapPageState extends State<MapPage> {
                       child: Text(
                         windowProperties.pm2_5.calibratedValue.toString(),
                         style: TextStyle(
-                            color: pmTextColor(windowProperties.pm2_5.calibratedValue)),
+                            color: pmTextColor(windowProperties
+                                .pm2_5.calibratedValue)),
                       ),
                     ),
                     // Expanded(child: Text(
@@ -432,7 +452,8 @@ class MapPageState extends State<MapPage> {
                       softWrap: true,
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                          color: pmTextColor(windowProperties.pm2_5.calibratedValue)),
+                          color: pmTextColor(windowProperties
+                              .pm2_5.calibratedValue)),
                     ),
 
                     Padding(
@@ -531,13 +552,12 @@ class MapPageState extends State<MapPage> {
   }
 
   Future<void> setMeasurements(List<Measurement> measurements) async {
-    print("Measurements to be set");
-    print(measurements);
 
     _showInfoWindow = false;
     var markers = <String, Marker>{};
     for (final measurement in measurements) {
-      var bitmapDescriptor = await pmToMarker(measurement.pm2_5.calibratedValue);
+      var bitmapDescriptor = await pmToMarker(
+          measurement.pm2_5.calibratedValue);
 
       final marker = Marker(
         markerId: MarkerId(measurement.device.name),

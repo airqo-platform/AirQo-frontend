@@ -116,11 +116,13 @@ List<charts.Series<TimeSeriesData, DateTime>> historicalChartData(
   var data = <TimeSeriesData>[];
 
   for (var measurement in measurements) {
-    var time = measurement.time.substring(0, measurement.time.indexOf('.'));
-
-    var date = DateTime.parse(time);
-
-    data.add(TimeSeriesData(date, measurement.pm2_5.calibratedValue.ceil()));
+    try {
+      final dateTime = DateTime.parse(measurement.time);
+      data.add(TimeSeriesData(dateTime,
+              measurement.pm2_5.calibratedValue.ceil()));
+    } catch (e) {
+      print(e);
+    }
   }
 
   return [
@@ -130,10 +132,14 @@ List<charts.Series<TimeSeriesData, DateTime>> historicalChartData(
           pmToChartColor(series.value.toDouble()),
       domainFn: (TimeSeriesData sales, _) => sales.time,
       measureFn: (TimeSeriesData sales, _) => sales.value,
+      // measureLowerBoundFn: (TimeSeriesData sales, _) => sales.value - 5,
+      // measureUpperBoundFn: (TimeSeriesData sales, _) => sales.value + 5,
       data: data,
+      // displayName: 'Forecast',
     )
   ];
 }
+
 
 List<charts.Series<TimeSeriesData, DateTime>> hourlyChartData(
     List<Hourly> measurements) {

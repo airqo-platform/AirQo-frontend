@@ -149,13 +149,13 @@ class Measurement {
   }
 
   static List<Measurement> parseMeasurements(dynamic jsonBody) {
-
-    // return jsonBody
-    //     .map<Measurement>((json) => Measurement.fromJson(json))
-    //     .toList();
-
     return Measurements.fromJson(jsonBody).measurements;
 
+  }
+
+  static Measurement parseMeasurement(dynamic jsonBody) {
+    var measurements = Measurements.fromJson(jsonBody).measurements;
+    return measurements.first;
   }
 }
 

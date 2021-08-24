@@ -17,6 +17,7 @@ import 'package:app/utils/ui/dialogs.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server.dart';
 
@@ -73,40 +74,66 @@ class AirqoApiClient {
   }
 
   Future<Measurement> fetchDeviceMeasurements(Device device) async {
+
     try {
-      var url = '$getLatestDeviceEvents${device.name}';
-      print(url);
-      final response = await http.get(Uri.parse(url));
+      var queryParams = <String, dynamic>{}
+        ..putIfAbsent('recent', () => 'yes')
+        ..putIfAbsent('device', () => device.name)
+        ..putIfAbsent('frequency', () => 'hourly')
+        ..putIfAbsent('tenant', () => 'airqo');
 
-      print(response.statusCode);
-      if (response.statusCode == 200) {
-        print(response.body);
+      final responseBody =
+      await _performGetRequest(queryParams, AirQoUrls().measurements);
 
-        var readings = Measurement.mapFromApi(json.decode(response.body));
-        readings['deviceDetails'] = device.toJson();
-        readings['channelID'] = device.name;
+      if (responseBody != null) {
 
-        var measurement = Measurement.fromJson(readings);
-
-        return measurement;
+        return compute(
+            Measurement.parseMeasurement, responseBody);
       } else {
-        print('Unexpected status code ${response.statusCode}:'
-            ' ${response.reasonPhrase}');
-        throw HttpException(
-            'Unexpected status code ${response.statusCode}:'
-            ' ${response.reasonPhrase}',
-            uri: Uri.parse(url));
+        print('Device latest measurements are null');
+        throw Exception('device does not exist');
       }
-    } on SocketException {
-      await showSnackBar(context, ErrorMessages().socketException);
-    } on TimeoutException {
-      await showSnackBar(context, ErrorMessages().timeoutException);
     } on Error catch (e) {
-      print('Get Devices error: $e');
-      var message = 'Couldn\'t get location data, please try again later';
-      await showSnackBar(context, message);
+      print('Get device latest measurements error: $e');
+      throw Exception('device does not exist');
     }
-    throw Exception('device doesn\'t exist');
+
+
+
+    // try {
+    //   var url = '$getLatestDeviceEvents${device.name}';
+    //   print(url);
+    //   final response = await http.get(Uri.parse(url));
+    //
+    //   print(response.statusCode);
+    //   if (response.statusCode == 200) {
+    //     print(response.body);
+    //
+    //     var readings = Measurement.mapFromApi(json.decode(response.body));
+    //     readings['deviceDetails'] = device.toJson();
+    //     readings['channelID'] = device.name;
+    //
+    //     var measurement = Measurement.fromJson(readings);
+    //
+    //     return measurement;
+    //   } else {
+    //     print('Unexpected status code ${response.statusCode}:'
+    //         ' ${response.reasonPhrase}');
+    //     throw HttpException(
+    //         'Unexpected status code ${response.statusCode}:'
+    //         ' ${response.reasonPhrase}',
+    //         uri: Uri.parse(url));
+    //   }
+    // } on SocketException {
+    //   await showSnackBar(context, ErrorMessages().socketException);
+    // } on TimeoutException {
+    //   await showSnackBar(context, ErrorMessages().timeoutException);
+    // } on Error catch (e) {
+    //   print('Get Devices error: $e');
+    //   var message = 'Couldn\'t get location data, please try again later';
+    //   await showSnackBar(context, message);
+    // }
+    // throw Exception('device doesn\'t exist');
   }
 
   Future<List<Device>> fetchDevices() async {
@@ -254,6 +281,40 @@ class AirqoApiClient {
 
     return <Hourly>[];
   }
+
+  Future<List<Measurement>> fetchDeviceHistoricalMeasurements(Device device)
+  async {
+
+    try {
+      var startTimeUtc = DateTime.now().toUtc().add(const Duration(hours: -48));
+      var date = DateFormat('yyyy-MM-dd').format(startTimeUtc);
+      var time = startTimeUtc.hour;
+      var startTime = '${date}T$time:00:00Z';
+
+      var queryParams = <String, dynamic>{}
+        ..putIfAbsent('device', () => device.name)
+        ..putIfAbsent('startTime', () => startTime)
+        ..putIfAbsent('frequency', () => 'hourly')
+        ..putIfAbsent('recent', () => 'no')
+        ..putIfAbsent('tenant', () => 'airqo');
+
+      final responseBody =
+      await _performGetRequest(queryParams, AirQoUrls().measurements);
+
+      if (responseBody != null) {
+        return compute(
+            Measurement.parseMeasurements, responseBody);
+      } else {
+        print('Measurements are null');
+        return <Measurement>[];
+      }
+    } on Error catch (e) {
+      print('Get Device historical measurements error: $e');
+    }
+
+    return <Measurement>[];
+  }
+
 
   Future<List<Measurement>> fetchLatestMeasurements() async {
     try {
@@ -557,7 +618,7 @@ class AirqoApiClient {
         print('Unexpected status code ${response.statusCode}:'
             ' ${response.reasonPhrase}');
         print('Body ${response.body}:');
-        print('uri: Uri.parse($url)');
+        print('uri: $url');
         return null;
       }
     } on SocketException {

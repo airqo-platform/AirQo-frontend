@@ -34,7 +34,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
   _PlaceDetailsPageState(this.device);
 
   bool isFavourite = false;
-  var locationData;
+  var measurementData;
   var response;
   var dbHelper = DBHelper();
   var startDate = DateFormat('yyyy-MM-dd').format(DateTime(
@@ -52,9 +52,9 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
   }
 
   Future<void> checkFavourite() async {
-    if (locationData != null) {
+    if (measurementData != null) {
       var isFav = await DBHelper()
-          .checkFavouritePlace(locationData.device.deviceNumber);
+          .checkFavouritePlace(measurementData.device.deviceNumber);
 
       setState(() {
         isFavourite = isFav;
@@ -64,7 +64,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
 
   Future<void> updatePlace() async {
     if (isFavourite) {
-      await DBHelper().updateFavouritePlace(locationData.device, true);
+      await DBHelper().updateFavouritePlace(measurementData.device, true);
     }
   }
 
@@ -72,26 +72,26 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
     var place;
     if (isFavourite) {
       place = await DBHelper()
-          .updateFavouritePlace(locationData.device, false);
+          .updateFavouritePlace(measurementData.device, false);
     } else {
       place = await DBHelper()
-          .updateFavouritePlace(locationData.device, true);
+          .updateFavouritePlace(measurementData.device, true);
     }
 
     setState(() {
-      locationData.device = place;
-      isFavourite = locationData.device.favourite;
+      measurementData.device = place;
+      isFavourite = measurementData.device.favourite;
     });
 
     if (isFavourite) {
       await showSnackBarGoToMyPlaces(
           context,
-          '${locationData.device.siteName} '
+          '${measurementData.device.siteName} '
           'is added to your places');
     } else {
       await showSnackBar2(
           context,
-          '${locationData.device.siteName} '
+          '${measurementData.device.siteName} '
           'is removed from your places');
     }
   }
@@ -104,10 +104,10 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
           await AirqoApiClient(context).fetchDeviceMeasurements(device);
 
       setState(() {
-        locationData = measurement;
+        measurementData = measurement;
       });
 
-      if (locationData != null) {
+      if (measurementData != null) {
         await checkFavourite();
         await updatePlace();
       }
@@ -123,41 +123,41 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
   }
 
   Future<void> localFetch() async {
-    try {
-      var measurements = await DBHelper().getMeasurement(device.name);
-
-      if (measurements != null) {
-        setState(() {
-          locationData = measurements;
-        });
-
-        if (locationData != null) {
-          await checkFavourite();
-        }
-      }
-    } on Error catch (e) {
-      print('Getting device events locally error: $e');
-    }
+    // try {
+    //   var measurements = await DBHelper().getMeasurement(device.name);
+    //
+    //   if (measurements != null) {
+    //     setState(() {
+    //       locationData = measurements;
+    //     });
+    //
+    //     if (locationData != null) {
+    //       await checkFavourite();
+    //     }
+    //   }
+    // } on Error catch (e) {
+    //   print('Getting device events locally error: $e');
+    // }
   }
 
   Future<void> getDeviceDetails() async {
-    try {
-      var deviceDetails = await DBHelper().getDevice(device.name);
-
-      print(deviceDetails);
-      if (deviceDetails != null) {
-        setState(() {
-          device = deviceDetails;
-        });
-      }
-    } on Error catch (e) {
-      print('Getting device details locally error: $e');
-    }
+    // try {
+    //   var deviceDetails = await DBHelper().getDevice(device.name);
+    //
+    //   print(deviceDetails);
+    //   if (deviceDetails != null) {
+    //     setState(() {
+    //       device = deviceDetails;
+    //     });
+    //   }
+    // } on Error catch (e) {
+    //   print('Getting device details locally error: $e');
+    // }
   }
 
   void updateView(Measurement measurement) {
     setState(() {
-      locationData = measurement;
+      measurementData = measurement;
     });
   }
 
@@ -178,11 +178,11 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
           ),
         ],
       ),
-      body: locationData != null
+      body: measurementData != null
           ? Container(
               decoration: BoxDecoration(
                 image: DecorationImage(
-                  image: AssetImage(pmToImage(locationData.pm2_5.calibratedValue)),
+                  image: AssetImage(pmToImage(measurementData.pm2_5.calibratedValue)),
                   fit: BoxFit.cover,
                 ),
               ),
@@ -276,19 +276,20 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                   // card section
                   Padding(
                     padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
-                    child: cardSection(locationData),
+                    child: cardSection(measurementData),
                   ),
 
                   // Pollutants
-                  PollutantsContainer(locationData),
+                  PollutantsContainer(measurementData),
 
                   // Historical Data
                   FutureBuilder(
                       future: AirqoApiClient(context)
-                          .fetchHourlyMeasurements(device.name),
+                          .fetchDeviceHistoricalMeasurements(device),
                       builder: (context, snapshot) {
+                        print(snapshot);
                         if (snapshot.hasData) {
-                          var results = snapshot.data as List<Hourly>;
+                          var results = snapshot.data as List<Measurement>;
 
                           if (results.isEmpty) {
                             return Center(
@@ -303,10 +304,15 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                             );
                           }
 
-                          var formattedData = hourlyChartData(results);
-
+                          var formattedData = historicalChartData(results);
+                          // Crunching the latest data, just for you.
+                          // Hang tight…
+                          print('loading chart');
+                          print(results);
+                          print(formattedData);
                           return HourlyBarChart(formattedData);
-                        } else {
+                        }
+                        else {
                           return Center(
                               child: Container(
                             padding: const EdgeInsets.all(16.0),
@@ -380,7 +386,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                   Container(
                       padding: const EdgeInsets.fromLTRB(0, 0, 0, 50),
                       constraints: const BoxConstraints.expand(height: 300.0),
-                      child: mapSection(locationData)),
+                      child: mapSection(measurementData)),
 
                   // LocationBarChart(),
                 ],
@@ -390,12 +396,29 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
               ? Center(
                   child: Text(response),
                 )
-              : const Center(
-                  child: CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(appColor),
+              : Center(
+                  child: Stack(
+                    children: <Widget>[
+                      Center(
+                        child: Container(
+                            width: 100,
+                            height: 100,
+                            child:
+                            CircularProgressIndicator(
+                              valueColor:
+                              AlwaysStoppedAnimation
+                              <Color>(ColorConstants()
+                                  .appColor),
+                            )
+                        ),
+                      ),
+                      Center(child: Text('Loading', style: TextStyle(
+                          color: ColorConstants().appColor
+                      ),)),
+                    ],
                   ),
                 ),
-      floatingActionButton: locationData != null
+      floatingActionButton: measurementData != null
           ? ExpandableFab(
               distance: 112.0,
               children: [
@@ -412,7 +435,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                 ),
                 ActionButton(
                   onPressed: () {
-                    shareMeasurement(locationData);
+                    shareMeasurement(measurementData);
                   },
                   icon: const Icon(Icons.share_outlined),
                 ),
@@ -517,7 +540,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(0, 5, 0, 0),
-                child: Text('Last updated : ${dateToString(locationData.time)}',
+                child: Text('Last updated : ${dateToString(measurementData.time)}',
                     style: const TextStyle(
                       fontSize: 11,
                       color: appColor,
