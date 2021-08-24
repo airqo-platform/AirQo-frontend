@@ -1,5 +1,7 @@
 import 'package:app/config/providers/LocalProvider.dart';
 import 'package:app/screens/home_page_v2.dart';
+import 'package:app/utils/services/local_storage.dart';
+import 'package:app/utils/services/rest_api.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -194,6 +196,13 @@ class SplashScreenState extends State<SplashScreen> {
   }
 
   Future checkFirstUse() async {
+
+    try {
+      var db = await DBHelper().initDB();
+      await DBHelper().createDefaultTables(db);
+    } catch (e) {
+      print(e);
+    }
 
     var prefs = await SharedPreferences.getInstance();
     var isFirstUse = prefs.getBool(firstUse) ?? true;

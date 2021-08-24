@@ -21,7 +21,6 @@ Map<String, dynamic> _$DevicesToJson(Devices instance) => <String, dynamic>{
 Device _$DeviceFromJson(Map<String, dynamic> json) {
   return Device(
     distance: (json['distance'] as num?)?.toDouble() ?? 0.0,
-    favourite: json['favourite'] as bool? ?? false,
     nickName: json['nickName'] as String? ?? '',
     description: json['description'] as String? ?? '',
     latitude: (json['latitude'] as num?)?.toDouble() ?? 0.0,
@@ -41,5 +40,4 @@ Map<String, dynamic> _$DeviceToJson(Device instance) => <String, dynamic>{
       'locationName': instance.locationName,
       'latitude': instance.latitude,
       'longitude': instance.longitude,
-      'favourite': instance.favourite,
     };

@@ -45,13 +45,13 @@ class Measurement {
 
   static String dbAltitude() => 'altitude';
 
-  static String dbDevice() => 'device';
+  static String dbDeviceName() => 'device_name';
 
   static String dbHumidity() => 'humidity';
 
   static String dbNameHistoricalMeasurements() => 'historical_measurements';
 
-  static String dbNameLatestMeasurements() => 'latest_measurements';
+  static String latestMeasurementsDb() => 'latest_measurements';
 
   static String dbPm10() => 'pm10';
 
@@ -62,6 +62,20 @@ class Measurement {
   static String dbTemperature() => 'temperature';
 
   static String dbTime() => 'time';
+
+  static String dbDistance() => 'distance';
+
+  static String dbNickName() => 'nickname';
+
+  static String dbDescription() => 'description';
+
+  static String dbLatitude() => 'latitude';
+
+  static String dbLongitude() => 'longitude';
+
+  static String dbSiteName() => 'site_name';
+
+  static String dbLocationName() => 'location_name';
 
   static String forecastDataTableStmt() =>
       'CREATE TABLE IF NOT EXISTS forecast_data ('
@@ -88,18 +102,17 @@ class Measurement {
       'humidity not null)';
 
   static String latestMeasurementsTableDropStmt() =>
-      'DROP TABLE IF EXISTS ${dbNameLatestMeasurements()}';
+      'DROP TABLE IF EXISTS ${latestMeasurementsDb()}';
 
-  static String latestMeasurementsTableStmt() =>
-      'CREATE TABLE IF NOT EXISTS ${dbNameLatestMeasurements()}('
-      '${dbDevice()} TEXT PRIMARY KEY, '
-      '${dbTime()} TEXT, '
-      '${dbPm25()} REAL, '
-      '${dbPm10()} REAL, '
-      '${dbAltitude()} REAL, '
-      '${dbSpeed()} REAL, '
-      '${dbTemperature()} REAL, '
-      '${dbHumidity()} REAL)';
+  static String latestMeasurementsTableCreateStmt() =>
+      'CREATE TABLE IF NOT EXISTS ${latestMeasurementsDb()}('
+          '${dbDeviceName()} TEXT PRIMARY KEY, ${dbLatitude()} REAL, '
+          '${dbTime()} TEXT, ${dbPm25()} REAL, '
+          '${dbPm10()} REAL, ${dbAltitude()} REAL, '
+          '${dbSpeed()} REAL, ${dbTemperature()} REAL, '
+          '${dbHumidity()} REAL, ${dbLocationName()} TEXT, '
+          '${dbSiteName()} TEXT, ${dbLongitude()} REAL, '
+          '${dbDescription()} TEXT, ${dbNickName()} TEXT )';
 
   static Map<String, dynamic> mapFromApi(Map<String, dynamic> json) {
     var constants = DbConstants();
@@ -117,34 +130,54 @@ class Measurement {
   }
 
   static Map<String, dynamic> mapFromDb(Map<String, dynamic> json) {
+
+    var deviceDetails = {
+      'nickName': json['${dbNickName()}'] as String,
+      'description': json['${dbDescription()}'] as String,
+      'name': json['${dbDeviceName()}'] as String,
+      'siteName': json['${dbSiteName()}'] as String,
+      'locationName': json['${dbLocationName()}'] as String,
+      'latitude': json['${dbLatitude()}'] as double,
+      'longitude': json['${dbLongitude()}'] as double,
+    };
+
     return {
-      'device': json['${dbDevice()}'] as String,
+      'deviceDetails': deviceDetails,
       'time': json['${dbTime()}'] as String,
-      'pm2_5': {'calibratedValue': json['${dbPm25()}'] as int},
-      'pm10': {'value': json['${dbPm10()}'] as int},
-      'temperature': {'value': json['${dbTemperature()}'] as int},
-      'humidity': {'value': json['${dbHumidity()}'] as int},
-      'speed': {'value': json['${dbSpeed()}'] as int},
-      'altitude': {'value': json['${dbAltitude()}'] as int},
+      'pm2_5': {'calibratedValue': json['${dbPm25()}'] as double},
+      'pm10': {'value': json['${dbPm10()}'] as double},
+      'externalTemperature': {'value': json['${dbTemperature()}'] as double},
+      'externalHumidity': {'value': json['${dbHumidity()}'] as double},
+      'speed': {'value': json['${dbSpeed()}'] as double},
+      'altitude': {'value': json['${dbAltitude()}'] as double},
     };
   }
 
   static Map<String, dynamic> mapToDb(Measurement measurement) {
-    var time = measurement.time.replaceAll('T', ' ');
+    // var time = measurement.time.replaceAll('T', ' ');
+    //
+    // if (time.contains('.')) {
+    //   time = time.substring(0, time.indexOf('.'));
+    // }
 
-    if (time.contains('.')) {
-      time = time.substring(0, time.indexOf('.'));
-    }
+    var device = measurement.device;
 
     return {
-      '${dbTime()}': '$time',
-      '${dbDevice()}': measurement.device.name.toString(),
+      '${dbTime()}': measurement.time,
       '${dbPm25()}': measurement.pm2_5.calibratedValue,
       '${dbPm10()}': measurement.pm10.value,
       '${dbAltitude()}': measurement.altitude.value,
       '${dbSpeed()}': measurement.speed.value,
       '${dbTemperature()}': measurement.temperature.value,
       '${dbHumidity()}': measurement.humidity.value,
+      '${dbNickName()}': device.nickName == '' ? device.locationName
+          : device.nickName,
+      '${dbDescription()}': device.description,
+      '${dbSiteName()}': device.siteName,
+      '${dbLocationName()}': device.locationName,
+      '${dbDeviceName()}': device.name,
+      '${dbLatitude()}': device.latitude,
+      '${dbLongitude()}': device.longitude,
     };
   }
 

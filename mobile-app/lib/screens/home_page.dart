@@ -417,7 +417,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     _displayOnBoarding();
     _getMeasurements();
-    _getDevices();
+    // _getDevices();
 
     super.initState();
   }
@@ -433,15 +433,15 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Future<void> _getDevices() async {
-    print('Home page Getting devices');
-
-    var results = await AirqoApiClient(context).fetchDevices();
-
-    if (results.isNotEmpty) {
-      await DBHelper().insertDevices(results);
-    }
-  }
+  // Future<void> _getDevices() async {
+  //   print('Home page Getting devices');
+  //
+  //   var results = await AirqoApiClient(context).fetchDevices();
+  //
+  //   if (results.isNotEmpty) {
+  //     await DBHelper().insertDevices(results);
+  //   }
+  // }
 
   Future<void> _displayOnBoarding() async {
     var prefs = await SharedPreferences.getInstance();

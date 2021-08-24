@@ -184,6 +184,13 @@ class PollutantReduction {
   static String get s2_pm10 => _s2_pm10;
 }
 
+class PrefConstants {
+  final String _favouritePlaces = 'favourite_places';
+  final String _firstUse = 'first_use';
+
+  String get favouritePlaces => _favouritePlaces;
+  String get firstUse => _firstUse;
+}
 class ColorConstants {
   final Color _green = const Color(0xff3FFF33);
   final Color _yellow = const Color(0xffFFF933);

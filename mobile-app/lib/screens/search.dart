@@ -40,22 +40,22 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   Future<void> getDevices() async {
-    await getDevicesLocally();
-
-    var results = await AirqoApiClient(context).fetchDevices();
-
-    if (results.isNotEmpty) {
-      updateLists(results);
-      await dbHelper.insertDevices(results);
-    }
+    // await getDevicesLocally();
+    //
+    // var results = await AirqoApiClient(context).fetchDevices();
+    //
+    // if (results.isNotEmpty) {
+    //   updateLists(results);
+    //   await dbHelper.insertDevices(results);
+    // }
   }
 
   Future<void> getDevicesLocally() async {
-    var offlineDevices = await dbHelper.getDevices();
-
-    if (offlineDevices.isNotEmpty) {
-      updateLists(offlineDevices);
-    }
+    // var offlineDevices = await dbHelper.getDevices();
+    //
+    // if (offlineDevices.isNotEmpty) {
+    //   updateLists(offlineDevices);
+    // }
   }
 
   @override

@@ -21,7 +21,6 @@ class Devices {
 class Device {
   Device({
     required this.distance,
-    required this.favourite,
     required this.nickName,
     required this.description,
     required this.latitude,
@@ -40,7 +39,6 @@ class Device {
   static String dbLongitude() => 'longitude';
   static String dbSiteName() => 'site_name';
   static String dbLocationName() => 'location_name';
-  static String dbFavourite() => 'favourite';
 
   static String devicesTableDropStmt() =>
       'DROP TABLE IF EXISTS ${dbName()}';
@@ -53,7 +51,6 @@ class Device {
           '${dbLongitude()} null, '
           '${dbLatitude()} null, '
           '${dbDescription()} null, '
-          '${dbFavourite()} null, '
           '${dbNickName()} null )';
 
   factory Device.fromJson(Map<String, dynamic> json) => _$DeviceFromJson(json);
@@ -76,12 +73,6 @@ class Device {
   final double latitude;
   @JsonKey(defaultValue: 0.0)
   final double longitude;
-  @JsonKey(required: false, defaultValue: false)
-  bool favourite;
-
-  void setFavourite(bool fav) {
-    favourite = fav;
-  }
 
   static Map<String, dynamic> toDbMap(Device device) =>
      {
@@ -93,14 +84,12 @@ class Device {
       '${dbDeviceName()}': device.name,
       '${dbLatitude()}': device.latitude,
       '${dbLongitude()}': device.longitude,
-      '${dbFavourite()}': device.favourite ? 'true' : 'false',
     };
 
 
   static Map<String, dynamic> fromDbMap(Map<String, dynamic> json) {
 
     return {
-      'favourite': json['${dbFavourite()}'] == 'true' ? true : false,
       'nickName': json['${dbNickName()}'] as String,
       'description': json['${dbDescription()}'] as String,
       'name': json['${dbDeviceName()}'] as String,

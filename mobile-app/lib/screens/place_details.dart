@@ -20,6 +20,7 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class PlaceDetailsPage extends StatefulWidget {
   PlaceDetailsPage({Key? key, required this.device}) : super(key: key);
@@ -53,11 +54,13 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
 
   Future<void> checkFavourite() async {
     if (measurementData != null) {
-      var isFav = await DBHelper()
-          .checkFavouritePlace(measurementData.device.deviceNumber);
+
+      var prefs = await SharedPreferences.getInstance();
+      var favourites =  prefs.getStringList(PrefConstants()
+          .favouritePlaces) ?? [];
 
       setState(() {
-        isFavourite = isFav;
+        isFavourite = favourites.contains(measurementData.device);
       });
     }
   }

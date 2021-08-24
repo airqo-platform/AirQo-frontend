@@ -37,6 +37,7 @@ class MapPageState extends State<MapPage> {
   bool _isSearching = false;
   var searchedPalce;
   String query = '';
+  List<String> favourites = [];
   var defaultLatLng = const LatLng(1.6183002, 32.504365);
   var defaultZoom = 6.6;
   var defaultCameraPosition =
@@ -492,14 +493,15 @@ class MapPageState extends State<MapPage> {
                   onPressed: () {
                     updateFavouritePlace(windowProperties.device);
                   },
-                  icon: windowProperties.device.favourite
-                      ? const Icon(
+                  icon: favourites.contains(
+                      windowProperties.device.name.trim().toLowerCase())
+                      ? Icon(
                           Icons.favorite,
-                          color: Colors.red,
+                          color: ColorConstants().red,
                         )
-                      : const Icon(
+                      : Icon(
                           Icons.favorite_border_outlined,
-                          color: Colors.red,
+                          color: ColorConstants().red,
                         )),
               GestureDetector(
                 onTap: () {
@@ -521,7 +523,16 @@ class MapPageState extends State<MapPage> {
   void initState() {
     _showInfoWindow = false;
     isLoading = true;
+    getFavouritePlaces();
     super.initState();
+  }
+
+  Future<void> getFavouritePlaces() async {
+    var prefs = await SharedPreferences.getInstance();
+
+    setState(() {
+      favourites =  prefs.getStringList(PrefConstants().favouritePlaces) ?? [];
+    });
   }
 
   Future<void> loadTheme() async {
@@ -544,11 +555,11 @@ class MapPageState extends State<MapPage> {
   }
 
   Future<void> localFetch() async {
-    // var measurements = await dbHelper.getMeasurements();
-    //
-    // if (measurements.isNotEmpty) {
-    //   await setMeasurements(measurements);
-    // }
+    var measurements = await dbHelper.getLatestMeasurements();
+
+    if (measurements.isNotEmpty) {
+      await setMeasurements(measurements);
+    }
   }
 
   Future<void> setMeasurements(List<Measurement> measurements) async {
@@ -592,23 +603,18 @@ class MapPageState extends State<MapPage> {
   }
 
   Future<void> updateFavouritePlace(Device device) async {
-    Device place;
-    if (device.favourite) {
-      place = await DBHelper().updateFavouritePlace(device, false);
-    } else {
-      place = await DBHelper().updateFavouritePlace(device, true);
-    }
+    bool favourite;
 
-    setState(() {
-      _showInfoWindow = false;
-    });
+    favourite = await DBHelper().updateFavouritePlaces(device);
 
-    if (place.favourite) {
+    await getFavouritePlaces();
+
+    if (favourite) {
       await showSnackBarGoToMyPlaces(
-          context, '${place.siteName} is added to your places');
+          context, '${device.siteName} is added to your places');
     } else {
       await showSnackBar2(
-          context, '${place.siteName} is removed from your places');
+          context, '${device.siteName} is removed from your places');
     }
   }
 

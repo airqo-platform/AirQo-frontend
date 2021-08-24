@@ -330,13 +330,13 @@ class _HomePageV2State extends State<HomePageV2> {
     }
   }
 
-  Future<void> _getDevices() async {
-    var results = await AirqoApiClient(context).fetchDevices();
-
-    if (results.isNotEmpty) {
-      await DBHelper().insertDevices(results);
-    }
-  }
+  // Future<void> _getDevices() async {
+  //   var results = await AirqoApiClient(context).fetchDevices();
+  //
+  //   if (results.isNotEmpty) {
+  //     await DBHelper().insertDevices(results);
+  //   }
+  // }
 
   void _getMeasurements() async {
     var measurements = await AirqoApiClient(context).fetchLatestMeasurements();
