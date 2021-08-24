@@ -227,13 +227,13 @@ const CustomisableChart = (props) => {
   };
 
   const [values, setReactSelectValue] = useState({
-    selectedOption: sitesOptions.filter(siteFilter(defaultFilter.locations)),
+    selectedOption: sitesOptions.filter(siteFilter(defaultFilter.sites)),
   });
 
   const [initialLoad, setInitialLoad] = useState(true);
 
   useEffect(() => {
-    const sites = sitesOptions.filter(siteFilter(defaultFilter.locations));
+    const sites = sitesOptions.filter(siteFilter(defaultFilter.sites));
     setReactSelectValue({
       selectedOption: sites,
     });
@@ -241,7 +241,7 @@ const CustomisableChart = (props) => {
     if (initialLoad && !isEmpty(sites)) {
       setInitialLoad(false);
       fetchAndSetGraphData({
-        locations: sitesOptions.filter(siteFilter(defaultFilter.locations)),
+        locations: sitesOptions.filter(siteFilter(defaultFilter.sites)),
         sites: optionToList(sites),
         startDate: selectedDate.toISOString(),
         endDate: selectedEndDate.toISOString(),

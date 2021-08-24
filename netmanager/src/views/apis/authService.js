@@ -51,8 +51,7 @@ export const addUserApi = async (userData) => {
 export const getUserChartDefaultsApi = async (userID, airqloudID) => {
   return await axios
     .get(CHART_DEFAULTS_URI, {
-      // params: { id: userID },
-      params: { id: userID, airqloud_id: airqloudID },
+      params: { user: userID, airqloud: airqloudID },
     })
     .then((response) => response.data);
 };

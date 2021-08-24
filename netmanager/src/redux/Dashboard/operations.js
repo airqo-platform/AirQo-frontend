@@ -53,33 +53,10 @@ export const refreshFilterLocationData = () => {
   };
 };
 
-export const loadUserDefaultGraphDataNew = () => {
-  return async (dispatch, getState) => {
-    const userID = getState().auth.user._id;
-    return await getUserChartDefaultsApi(userID, 'all')
-      .then((userDefaultsData) => {
-        console.log('user defaults', userDefaultsData)
-        dispatch({
-          type: LOAD_USER_DEFAULT_GRAPHS_SUCCESS,
-          payload: userDefaultsData.defaults || [],
-        });
-      })
-      .catch((err) => {
-        dispatch({
-          type: LOAD_USER_DEFAULT_GRAPHS_ERROR,
-          payload: err,
-        });
-      });
-  };
-};
-
 export const loadUserDefaultGraphData = () => {
   return async (dispatch, getState) => {
-    const user = getState().auth.user._id;
-    return await axios
-      // .get(DEFAULTS_URI, { params: { user } })
-      .get('https://staging-platform.airqo.net/api/v1/users/defaults', { params: { user } })
-      .then((res) => res.data)
+    const userID = getState().auth.user._id;
+    return await getUserChartDefaultsApi(userID, userID)
       .then((userDefaultsData) => {
         dispatch({
           type: LOAD_USER_DEFAULT_GRAPHS_SUCCESS,
