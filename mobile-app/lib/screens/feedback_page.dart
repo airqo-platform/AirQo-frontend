@@ -441,9 +441,9 @@ class _FeedbackPageState extends State<FeedbackPage> {
           GestureDetector(
             onTap: () { _launchURL('airqo'); },
             child: Image.asset(
-              'assets/icon/airqo_logo.png',
-              height: 50,
-              width: 50,
+              'assets/icon/airqo_logo_tagline_transparent.png',
+              height: 100,
+              width: 100,
             ),
           ),
 

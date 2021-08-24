@@ -61,8 +61,8 @@ dependencies:
 flutter_icons:
   android: "launcher_icon"
   ios: true
-  image_path: "assets/icon/airqo_logo.png"
-
+  image_path_ios: "assets/icon/airqo_logo.png"
+  image_path_android: "assets/icon/airqo_logo.jpg"
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -100,7 +100,10 @@ flutter:
     - assets/images/pmDefault.png
     - assets/svg/historical.png
     - assets/svg/map.png
-
+    - assets/icon/airqo_logo.jpg
+    - assets/icon/airqo_logo_tagline.jpg
+    - assets/icon/airqo_logo_tagline_transparent.png
+    - assets/icon/airqo_logo.png
     # HTML files
     - assets/html/privacy_policy.html
 
@@ -123,12 +126,17 @@ flutter:
   # "family" key with the font family name, and a "fonts" key with a
   # list giving the asset and other descriptors for the font. For
   # example:
-  # fonts:
-  #   - family: Schyler
-  #     fonts:
-  #       - asset: fonts/Schyler-Regular.ttf
-  #       - asset: fonts/Schyler-Italic.ttf
-  #         style: italic
+
+  fonts:
+   - family: OpenSans
+     fonts:
+       - asset: assets/fonts/OpenSans-Bold.ttf
+       - asset: assets/fonts/OpenSans-BoldItalic.ttf
+       - asset: assets/fonts/OpenSans-ExtraBold.ttf
+       - asset: assets/fonts/OpenSans-Light.ttf
+       - asset: assets/fonts/OpenSans-Regular.ttf
+       - asset: assets/fonts/OpenSans-Semibold.ttf
+
   #   - family: Trajan Pro
   #     fonts:
   #       - asset: fonts/TrajanPro.ttf

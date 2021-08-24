@@ -39,14 +39,15 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
             child: SafeArea(
                 child: Container(
               padding: const EdgeInsets.all(16),
-              decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                    appColor,
-                    appColorPale,
-                  ])),
+              color: appColor,
+              // decoration: const BoxDecoration(
+              //     gradient: LinearGradient(
+              //         begin: Alignment.topCenter,
+              //         end: Alignment.bottomCenter,
+              //         colors: [
+              //       appColor,
+              //       appColorPale,
+              //     ])),
               alignment: Alignment.center,
               child: Column(children: [
                 Expanded(
