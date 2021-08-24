@@ -1,7 +1,5 @@
-import 'dart:convert';
-
 import 'package:app/constants/app_constants.dart';
-import 'package:flutter/foundation.dart';
+import 'package:app/models/site.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import 'device.dart';
@@ -9,150 +7,15 @@ import 'device.dart';
 part 'measurement.g.dart';
 
 @JsonSerializable()
-class Measurements {
-  Measurements({
-    required this.measurements,
-  });
-
-  factory Measurements.fromJson(Map<String, dynamic> json) =>
-      _$MeasurementsFromJson(json);
-
-  Map<String, dynamic> toJson() => _$MeasurementsToJson(this);
-
-  final List<Measurement> measurements;
-}
-
-@JsonSerializable()
 // @JsonSerializable(explicitToJson: true)
 class Measurement {
-  Measurement({
-    required this.device,
-    required this.time,
-    required this.pm2_5,
-    required this.pm10,
-    required this.altitude,
-    required this.speed,
-    required this.temperature,
-    required this.humidity,
-  });
 
-  static String dbNameLatestMeasurements() => 'latest_measurements';
-  static String dbNameHistoricalMeasurements() => 'historical_measurements';
-
-  static String dbDevice() => 'device';
-  static String dbPm25() => 'pm2_5';
-  static String dbTime() => 'time';
-  static String dbPm10() => 'pm10';
-  static String dbAltitude() => 'altitude';
-  static String dbSpeed() => 'speed';
-  static String dbTemperature() => 'temperature';
-  static String dbHumidity() => 'humidity';
-
-
-  static String latestMeasurementsTableStmt() =>
-      'CREATE TABLE IF NOT EXISTS ${dbNameLatestMeasurements()}('
-          '${dbDevice()} TEXT PRIMARY KEY, '
-          '${dbTime()} TEXT, '
-          '${dbPm25()} REAL, '
-          '${dbPm10()} REAL, '
-          '${dbAltitude()} REAL, '
-          '${dbSpeed()} REAL, '
-          '${dbTemperature()} REAL, '
-          '${dbHumidity()} REAL)';
-
-  static String latestMeasurementsTableDropStmt() =>
-      'DROP TABLE IF EXISTS ${dbNameLatestMeasurements()}';
-
-  static String historicalMeasurementsTableStmt() =>
-      'CREATE TABLE IF NOT EXISTS historical_measurements ('
-          'id INTEGER PRIMARY KEY, '
-          'device_name not null,'
-          'time not null, '
-          'pm2_5 not null, '
-          'pm10 not null, '
-          'altitude not null, '
-          'speed not null, '
-          'temperature not null, '
-          'humidity not null)';
-
-  static String forecastDataTableStmt() =>
-      'CREATE TABLE IF NOT EXISTS forecast_data ('
-          'id INTEGER PRIMARY KEY, '
-          'device_name not null,'
-          'time not null, '
-          'pm2_5 not null, '
-          'pm10 null, '
-          'altitude null, '
-          'speed null, '
-          'temperature null, '
-          'humidity null)';
+  Measurement({required this.time, required this.pm2_5, required this.pm10,
+    required this.altitude, required this.speed,
+      required this.temperature, required this.humidity, required this.device});
 
   factory Measurement.fromJson(Map<String, dynamic> json) =>
       _$MeasurementFromJson(json);
-
-  Map<String, dynamic> toJson() => _$MeasurementToJson(this);
-
-  static Map<String, dynamic> mapToDb(Measurement measurement) {
-    var time = measurement.time.replaceAll('T', ' ');
-
-    if (time.contains('.')) {
-      time = time.substring(0, time.indexOf('.'));
-    }
-
-    return {
-      '${dbTime()}': '$time',
-      '${dbDevice()}': measurement.device.name.toString(),
-      '${dbPm25()}': measurement.pm2_5.calibratedValue,
-      '${dbPm10()}': measurement.pm10.value,
-      '${dbAltitude()}': measurement.altitude.value,
-      '${dbSpeed()}': measurement.speed.value,
-      '${dbTemperature()}': measurement.temperature.value,
-      '${dbHumidity()}': measurement.humidity.value,
-    };
-
-  }
-
-  static Map<String, dynamic> mapFromDb(Map<String, dynamic> json) {
-
-    return {
-      'device': json['${dbDevice()}'] as String,
-      'time': json['${dbTime()}'] as String,
-      'pm2_5': {'calibratedValue': json['${dbPm25()}'] as int},
-      'pm10': {'value': json['${dbPm10()}'] as int},
-      'temperature': {'value': json['${dbTemperature()}'] as int},
-      'humidity': {'value': json['${dbHumidity()}'] as int},
-      'speed': {'value': json['${dbSpeed()}'] as int},
-      'altitude': {'value': json['${dbAltitude()}'] as int},
-    };
-  }
-
-  static Map<String, dynamic> mapFromApi(Map<String, dynamic> json) {
-    var constants = DbConstants();
-
-    var data = <String, dynamic>{
-      'time': json['created_at'] as String,
-      'pm2_5': {'value': double.parse(json[constants.pm2_5])},
-      'altitude': {'value': double.parse(json['altitude'])},
-      'speed': {'value': double.parse(json['speed'])},
-      'pm10': {'value': double.parse(json[constants.pm10])},
-    };
-
-    print(data);
-    return data;
-  }
-
-  static List<Measurement> parseMeasurements(dynamic jsonBody) {
-
-    // var measurements = <Measurement>[];
-    // for (var element in jsonBody) {
-    //   var measurement = Measurement.fromJson(element);
-    //   measurements.add(measurement);
-    // }
-    // return measurements;
-
-    return jsonBody.map<Measurement>((json) =>
-        Measurement.fromJson(json)).toList();
-  }
 
   @JsonKey(required: true)
   final String time;
@@ -176,24 +39,156 @@ class Measurement {
   final MeasurementValue humidity;
 
   @JsonKey(required: true, name: 'deviceDetails')
-  Device device;
+  final Device device;
 
+  Map<String, dynamic> toJson() => _$MeasurementToJson(this);
+
+  static String dbAltitude() => 'altitude';
+
+  static String dbDevice() => 'device';
+
+  static String dbHumidity() => 'humidity';
+
+  static String dbNameHistoricalMeasurements() => 'historical_measurements';
+
+  static String dbNameLatestMeasurements() => 'latest_measurements';
+
+  static String dbPm10() => 'pm10';
+
+  static String dbPm25() => 'pm2_5';
+
+  static String dbSpeed() => 'speed';
+
+  static String dbTemperature() => 'temperature';
+
+  static String dbTime() => 'time';
+
+  static String forecastDataTableStmt() =>
+      'CREATE TABLE IF NOT EXISTS forecast_data ('
+      'id INTEGER PRIMARY KEY, '
+      'device_name not null,'
+      'time not null, '
+      'pm2_5 not null, '
+      'pm10 null, '
+      'altitude null, '
+      'speed null, '
+      'temperature null, '
+      'humidity null)';
+
+  static String historicalMeasurementsTableStmt() =>
+      'CREATE TABLE IF NOT EXISTS historical_measurements ('
+      'id INTEGER PRIMARY KEY, '
+      'device_name not null,'
+      'time not null, '
+      'pm2_5 not null, '
+      'pm10 not null, '
+      'altitude not null, '
+      'speed not null, '
+      'temperature not null, '
+      'humidity not null)';
+
+  static String latestMeasurementsTableDropStmt() =>
+      'DROP TABLE IF EXISTS ${dbNameLatestMeasurements()}';
+
+  static String latestMeasurementsTableStmt() =>
+      'CREATE TABLE IF NOT EXISTS ${dbNameLatestMeasurements()}('
+      '${dbDevice()} TEXT PRIMARY KEY, '
+      '${dbTime()} TEXT, '
+      '${dbPm25()} REAL, '
+      '${dbPm10()} REAL, '
+      '${dbAltitude()} REAL, '
+      '${dbSpeed()} REAL, '
+      '${dbTemperature()} REAL, '
+      '${dbHumidity()} REAL)';
+
+  static Map<String, dynamic> mapFromApi(Map<String, dynamic> json) {
+    var constants = DbConstants();
+
+    var data = <String, dynamic>{
+      'time': json['created_at'] as String,
+      'pm2_5': {'value': double.parse(json[constants.pm2_5])},
+      'altitude': {'value': double.parse(json['altitude'])},
+      'speed': {'value': double.parse(json['speed'])},
+      'pm10': {'value': double.parse(json[constants.pm10])},
+    };
+
+    print(data);
+    return data;
+  }
+
+  static Map<String, dynamic> mapFromDb(Map<String, dynamic> json) {
+    return {
+      'device': json['${dbDevice()}'] as String,
+      'time': json['${dbTime()}'] as String,
+      'pm2_5': {'calibratedValue': json['${dbPm25()}'] as int},
+      'pm10': {'value': json['${dbPm10()}'] as int},
+      'temperature': {'value': json['${dbTemperature()}'] as int},
+      'humidity': {'value': json['${dbHumidity()}'] as int},
+      'speed': {'value': json['${dbSpeed()}'] as int},
+      'altitude': {'value': json['${dbAltitude()}'] as int},
+    };
+  }
+
+  static Map<String, dynamic> mapToDb(Measurement measurement) {
+    var time = measurement.time.replaceAll('T', ' ');
+
+    if (time.contains('.')) {
+      time = time.substring(0, time.indexOf('.'));
+    }
+
+    return {
+      '${dbTime()}': '$time',
+      '${dbDevice()}': measurement.device.name.toString(),
+      '${dbPm25()}': measurement.pm2_5.calibratedValue,
+      '${dbPm10()}': measurement.pm10.value,
+      '${dbAltitude()}': measurement.altitude.value,
+      '${dbSpeed()}': measurement.speed.value,
+      '${dbTemperature()}': measurement.temperature.value,
+      '${dbHumidity()}': measurement.humidity.value,
+    };
+  }
+
+  static List<Measurement> parseMeasurements(dynamic jsonBody) {
+
+    // return jsonBody
+    //     .map<Measurement>((json) => Measurement.fromJson(json))
+    //     .toList();
+
+    return Measurements.fromJson(jsonBody).measurements;
+
+  }
+}
+
+@JsonSerializable()
+class Measurements {
+
+  Measurements({
+    required this.measurements,
+  });
+
+  factory Measurements.fromJson(Map<String, dynamic> json) =>
+      _$MeasurementsFromJson(json);
+
+
+  final List<Measurement> measurements;
+  Map<String, dynamic> toJson() => _$MeasurementsToJson(this);
 }
 
 @JsonSerializable()
 class MeasurementValue {
+
   MeasurementValue({required this.value, required this.calibratedValue});
 
   factory MeasurementValue.fromJson(Map<String, dynamic> json) =>
       _$MeasurementValueFromJson(json);
-
-  Map<String, dynamic> toJson() => _$MeasurementValueToJson(this);
 
   @JsonKey(required: false, defaultValue: 0.1, name: 'calibratedValue')
   final double calibratedValue;
 
   @JsonKey(required: false, defaultValue: 0.2, name: 'value')
   final double value;
+
+  Map<String, dynamic> toJson() => _$MeasurementValueToJson(this);
 }
 
 // @JsonSerializable()

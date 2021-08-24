@@ -158,23 +158,23 @@ class DBHelper {
 
   Future<void> insertLatestMeasurements(List<Measurement> measurements) async {
 
-      final db = await database;
+      // final db = await database;
 
-      if (measurements.isNotEmpty) {
-        for (var measurement in measurements) {
-          try {
-            var jsonData = Measurement.mapToDb(measurement);
-            await db.insert(
-              '${Measurement.dbNameLatestMeasurements()}',
-              jsonData,
-              conflictAlgorithm: ConflictAlgorithm.replace,
-            );
-          } catch (e) {
-            print('Inserting latest measurements into db');
-            print(e);
-          }
-        }
-      }
+      // if (measurements.isNotEmpty) {
+      //   for (var measurement in measurements) {
+      //     try {
+      //       var jsonData = Measurement.mapToDb(measurement);
+      //       await db.insert(
+      //         '${Measurement.dbNameLatestMeasurements()}',
+      //         jsonData,
+      //         conflictAlgorithm: ConflictAlgorithm.replace,
+      //       );
+      //     } catch (e) {
+      //       print('Inserting latest measurements into db');
+      //       print(e);
+      //     }
+      //   }
+      // }
 
   }
 

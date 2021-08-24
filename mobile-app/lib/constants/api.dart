@@ -21,7 +21,7 @@ const getCloundinaryUrl =
 
 
 class AirQoUrls {
-  final String _baseUrl = 'https://platform.airqo.net/api/v1/';
+  final String _baseUrl = 'https://staging-platform.airqo.net/api/v1/';
 
   String get measurements => '${_baseUrl}devices/events';
   String get devices => '${_baseUrl}devices';

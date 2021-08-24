@@ -259,6 +259,7 @@ class AirqoApiClient {
     try {
       var queryParams = <String, dynamic>{}
         ..putIfAbsent('recent', () => 'yes')
+        ..putIfAbsent('frequency', () => 'hourly')
         ..putIfAbsent('tenant', () => 'airqo');
 
       final responseBody =
@@ -266,7 +267,7 @@ class AirqoApiClient {
 
       if (responseBody != null) {
         return compute(
-            Measurement.parseMeasurements, responseBody['measurements']);
+            Measurement.parseMeasurements, responseBody);
       } else {
         print('Measurements are null');
         return <Measurement>[];
@@ -321,7 +322,7 @@ class AirqoApiClient {
     } on Error catch (e) {
       print('Get Latest events error: $e');
       await showSnackBar(
-          context, 'Measurements not available, try again later');
+          context, 'We could not fulfil your request, try again later');
     }
 
     return <Measurement>[];

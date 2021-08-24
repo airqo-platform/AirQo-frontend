@@ -39,8 +39,8 @@ class MapPageState extends State<MapPage> {
   String query = '';
   var defaultLatLng = const LatLng(1.6183002, 32.504365);
   var defaultZoom = 6.6;
-  var defaultCameraPosition = const CameraPosition(
-      target: LatLng(1.6183002, 32.504365), zoom: 6.6);
+  var defaultCameraPosition =
+      const CameraPosition(target: LatLng(1.6183002, 32.504365), zoom: 6.6);
   final TextEditingController _searchController = TextEditingController();
 
   late GoogleMapController _mapController;
@@ -48,103 +48,6 @@ class MapPageState extends State<MapPage> {
 
   GoogleSearchProvider googleApiClient =
       GoogleSearchProvider(const Uuid().v4());
-
-  @override
-  void initState() {
-    _showInfoWindow = false;
-    isLoading = true;
-    super.initState();
-  }
-
-  void updateInfoWindow(Measurement measurement) {
-    setState(() {
-      _isSearching = false;
-      windowProperties = measurement;
-      _showInfoWindow = true;
-    });
-  }
-
-  Future<void> _onMapCreated(GoogleMapController controller) async {
-    _mapController = controller;
-    await loadTheme();
-
-    await _getMeasurements();
-  }
-
-  Future<void> loadTheme() async {
-    var prefs = await SharedPreferences.getInstance();
-    var theme = prefs.getString(appTheme);
-
-    if (theme != null) {
-      switch (theme) {
-        case 'light':
-          await _mapController.setMapStyle(jsonEncode(googleMapsLightTheme));
-          break;
-        case 'dark':
-          await _mapController.setMapStyle(jsonEncode(googleMapsDarkTheme));
-          break;
-        default:
-          await _mapController.setMapStyle(jsonEncode([]));
-          break;
-      }
-    }
-  }
-
-  Future<void> _getMeasurements() async {
-    await localFetch();
-
-    var measurements = await AirqoApiClient(context).fetchMeasurements();
-
-    if (measurements.isNotEmpty) {
-      await setMeasurements(measurements);
-      await dbHelper.insertLatestMeasurements(measurements);
-    }
-
-    setState(() {
-      isLoading = false;
-    });
-  }
-
-  Future<void> _refreshMeasurements() async {
-    var message = 'Refreshing map.... ';
-    await showSnackBar(context, message);
-
-    var measurements = await AirqoApiClient(context).fetchMeasurements();
-
-    if (measurements.isNotEmpty) {
-
-      await setMeasurements(measurements);
-
-      // var _cameraPosition = CameraPosition(
-      //     target: defaultLatLng, zoom: defaultZoom);
-
-      final controller = _mapController;
-      await controller
-          .animateCamera(CameraUpdate.newCameraPosition(defaultCameraPosition));
-
-      await showSnackBar(context, 'Refresh Complete');
-
-      await dbHelper.insertLatestMeasurements(measurements);
-    }
-  }
-
-  void _setCircles(LatLng point) {
-    final circleIdVal = 'circle_id_$_circleIdCounter';
-
-    setState(() {
-      _circleIdCounter++;
-    });
-
-    _circles
-      ..clear()
-      ..add(Circle(
-        circleId: CircleId(circleIdVal),
-        center: point,
-        radius: 1000,
-        fillColor: appColor.withOpacity(0.5),
-        strokeWidth: 2,
-        strokeColor: appColor));
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -432,68 +335,53 @@ class MapPageState extends State<MapPage> {
         ));
   }
 
-  Future<void> localFetch() async {
-    var measurements = await dbHelper.getMeasurements();
-
-    if (measurements.isNotEmpty) {
-      await setMeasurements(measurements);
-    }
-  }
-
-  void showDetails(Device device) async {
-    await Navigator.push(context, MaterialPageRoute(builder: (context) {
-      return PlaceDetailsPage(device: device);
-    })).then((value) => _getMeasurements());
-  }
-
-  Future<void> setMeasurements(List<Measurement> measurements) async {
-
-    print("Measurements to be set");
-    print(measurements);
-
-    _showInfoWindow = false;
-    var markers = <String, Marker>{};
-    for (final measurement in measurements) {
-      var bitmapDescriptor = await pmToMarker(measurement.pm2_5.value);
-
-      final marker = Marker(
-        markerId: MarkerId(measurement.device.name),
-        icon: bitmapDescriptor,
-        position:
-            LatLng((measurement.device.latitude), measurement.device.longitude),
-        infoWindow: InfoWindow(
-          title: measurement.pm2_5.value.toString(),
-          // snippet: node.location,
-        ),
-        onTap: () {
-          updateInfoWindow(measurement);
-        },
-      );
-      markers[measurement.device.name] = marker;
-    }
-
-    isLoading = false;
-
+  Future<void> displaySearchResults(Suggestion selection) async {
     setState(() {
+      _isSearching = false;
+      searchedPalce = selection;
       _showInfoWindow = false;
-      _markers.clear();
-      _markers = markers;
-      isLoading = false;
+      _searchController.text = selection.description;
+    });
+
+    await googleApiClient
+        .getPlaceDetailFromId(selection.placeId)
+        .then((value) async {
+      var latLng =
+          LatLng(value.geometry.location.lat, value.geometry.location.lng);
+
+      var _cameraPosition = CameraPosition(target: latLng, zoom: 14);
+
+      // final controller = await _mapController.future;
+      final controller = _mapController;
+
+      await controller
+          .animateCamera(CameraUpdate.newCameraPosition(_cameraPosition));
+
+      _setCircles(latLng);
+
+      var marker = Marker(
+        markerId: const MarkerId('mysearch'),
+        position: latLng,
+      );
+
+      setState(() {
+        _markers['mysearch'] = marker;
+        // _markers.addAll(markers);
+      });
     });
   }
 
-  // @override
-  // void dispose() {
-  //
-  //   if (mounted) {
-  //     setState(() {
-  //       _showInfoWindow = false;
-  //       _markers = {};
-  //       isLoading = false;
-  //     });
-  //   }
-  //   super.dispose();
-  // }
+  @override
+  void dispose() {
+    // if (mounted) {
+    //   setState(() {
+    //     _showInfoWindow = false;
+    //     _markers = {};
+    //     isLoading = false;
+    //   });
+    // }
+    // super.dispose();
+  }
 
   Widget infoWindow() {
     return Card(
@@ -515,9 +403,9 @@ class MapPageState extends State<MapPage> {
             child: Container(
                 padding: const EdgeInsets.all(5.0),
                 decoration: BoxDecoration(
-                    color: pmToColor(windowProperties.pm2_5.value),
+                    color: pmToColor(windowProperties.pm2_5.calibratedValue),
                     border: Border.all(
-                      color: pmToColor(windowProperties.pm2_5.value),
+                      color: pmToColor(windowProperties.pm2_5.calibratedValue),
                     ),
                     borderRadius: const BorderRadius.all(Radius.circular(10))),
                 child: Row(
@@ -526,25 +414,25 @@ class MapPageState extends State<MapPage> {
                     Padding(
                       padding: const EdgeInsets.fromLTRB(5, 0, 0, 0),
                       child: Text(
-                        windowProperties.pm2_5.value.toString(),
+                        windowProperties.pm2_5.calibratedValue.toString(),
                         style: TextStyle(
-                            color: pmTextColor(windowProperties.pm2_5.value)),
+                            color: pmTextColor(windowProperties.pm2_5.calibratedValue)),
                       ),
                     ),
                     // Expanded(child: Text(
-                    //   pmToString(windowProperties.pm2_5.value),
+                    //   pmToString(windowProperties.pm2_5.calibratedValue),
                     //   maxLines: 4,
                     //   softWrap: true,
                     //   textAlign: TextAlign.center,
                     // ),
                     // ),
                     Text(
-                      pmToString(windowProperties.pm2_5.value),
+                      pmToString(windowProperties.pm2_5.calibratedValue),
                       maxLines: 4,
                       softWrap: true,
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                          color: pmTextColor(windowProperties.pm2_5.value)),
+                          color: pmTextColor(windowProperties.pm2_5.calibratedValue)),
                     ),
 
                     Padding(
@@ -552,7 +440,7 @@ class MapPageState extends State<MapPage> {
                       child: Text(
                         dateToString(windowProperties.time),
                         style: TextStyle(
-                            color: pmTextColor(windowProperties.pm2_5.value)),
+                            color: pmTextColor(windowProperties.pm2_5.calibratedValue)),
                       ),
                     ),
                   ],
@@ -608,6 +496,81 @@ class MapPageState extends State<MapPage> {
     ));
   }
 
+  @override
+  void initState() {
+    _showInfoWindow = false;
+    isLoading = true;
+    super.initState();
+  }
+
+  Future<void> loadTheme() async {
+    var prefs = await SharedPreferences.getInstance();
+    var theme = prefs.getString(appTheme);
+
+    if (theme != null) {
+      switch (theme) {
+        case 'light':
+          await _mapController.setMapStyle(jsonEncode(googleMapsLightTheme));
+          break;
+        case 'dark':
+          await _mapController.setMapStyle(jsonEncode(googleMapsDarkTheme));
+          break;
+        default:
+          await _mapController.setMapStyle(jsonEncode([]));
+          break;
+      }
+    }
+  }
+
+  Future<void> localFetch() async {
+    // var measurements = await dbHelper.getMeasurements();
+    //
+    // if (measurements.isNotEmpty) {
+    //   await setMeasurements(measurements);
+    // }
+  }
+
+  Future<void> setMeasurements(List<Measurement> measurements) async {
+    print("Measurements to be set");
+    print(measurements);
+
+    _showInfoWindow = false;
+    var markers = <String, Marker>{};
+    for (final measurement in measurements) {
+      var bitmapDescriptor = await pmToMarker(measurement.pm2_5.calibratedValue);
+
+      final marker = Marker(
+        markerId: MarkerId(measurement.device.name),
+        icon: bitmapDescriptor,
+        position:
+            LatLng((measurement.device.latitude), measurement.device.longitude),
+        infoWindow: InfoWindow(
+          title: measurement.pm2_5.calibratedValue.toString(),
+          // snippet: node.location,
+        ),
+        onTap: () {
+          updateInfoWindow(measurement);
+        },
+      );
+      markers[measurement.device.name] = marker;
+    }
+
+    isLoading = false;
+
+    setState(() {
+      _showInfoWindow = false;
+      _markers.clear();
+      _markers = markers;
+      isLoading = false;
+    });
+  }
+
+  void showDetails(Device device) async {
+    await Navigator.push(context, MaterialPageRoute(builder: (context) {
+      return PlaceDetailsPage(device: device);
+    })).then((value) => _getMeasurements());
+  }
+
   Future<void> updateFavouritePlace(Device device) async {
     Device place;
     if (device.favourite) {
@@ -629,39 +592,69 @@ class MapPageState extends State<MapPage> {
     }
   }
 
-  Future<void> displaySearchResults(Suggestion selection) async {
+  void updateInfoWindow(Measurement measurement) {
     setState(() {
       _isSearching = false;
-      searchedPalce = selection;
-      _showInfoWindow = false;
-      _searchController.text = selection.description;
+      windowProperties = measurement;
+      _showInfoWindow = true;
     });
+  }
 
-    await googleApiClient
-        .getPlaceDetailFromId(selection.placeId)
-        .then((value) async {
-      var latLng =
-          LatLng(value.geometry.location.lat, value.geometry.location.lng);
+  Future<void> _getMeasurements() async {
+    await localFetch();
 
-      var _cameraPosition = CameraPosition(target: latLng, zoom: 14);
+    var measurements = await AirqoApiClient(context).fetchLatestMeasurements();
 
-      // final controller = await _mapController.future;
+    if (measurements.isNotEmpty) {
+      await setMeasurements(measurements);
+      await dbHelper.insertLatestMeasurements(measurements);
+    }
+
+    setState(() {
+      isLoading = false;
+    });
+  }
+
+  Future<void> _onMapCreated(GoogleMapController controller) async {
+    _mapController = controller;
+    await loadTheme();
+
+    await _getMeasurements();
+  }
+
+  Future<void> _refreshMeasurements() async {
+    var message = 'Refreshing map.... ';
+    await showSnackBar(context, message);
+
+    var measurements = await AirqoApiClient(context).fetchLatestMeasurements();
+
+    if (measurements.isNotEmpty) {
+      await setMeasurements(measurements);
+
       final controller = _mapController;
-
       await controller
-          .animateCamera(CameraUpdate.newCameraPosition(_cameraPosition));
+          .animateCamera(CameraUpdate.newCameraPosition(defaultCameraPosition));
 
-      _setCircles(latLng);
+      await showSnackBar(context, 'Refresh Complete');
+      await dbHelper.insertLatestMeasurements(measurements);
+    }
+  }
 
-      var marker = Marker(
-        markerId: const MarkerId('mysearch'),
-        position: latLng,
-      );
+  void _setCircles(LatLng point) {
+    final circleIdVal = 'circle_id_$_circleIdCounter';
 
-      setState(() {
-        _markers['mysearch'] = marker;
-        // _markers.addAll(markers);
-      });
+    setState(() {
+      _circleIdCounter++;
     });
+
+    _circles
+      ..clear()
+      ..add(Circle(
+          circleId: CircleId(circleIdVal),
+          center: point,
+          radius: 1000,
+          fillColor: appColor.withOpacity(0.5),
+          strokeWidth: 2,
+          strokeColor: appColor));
   }
 }

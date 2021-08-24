@@ -212,8 +212,8 @@ class _HomePageV2State extends State<HomePageV2> {
   @override
   void initState() {
     _displayOnBoarding();
-    _getDevices();
-    _getMeasurements();
+    // _getDevices();
+    // _getMeasurements();
 
     super.initState();
   }
