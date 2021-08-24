@@ -36,11 +36,11 @@ import domtoimage from "dom-to-image";
 import JsPDF from "jspdf";
 import { isEmpty } from "underscore";
 import OutlinedSelect from "views/components/CustomSelects/OutlinedSelect";
-import { useDashboardSitesData } from "redux/Dashboard/selectors";
 import { formatDateString } from "utils/dateTime";
-import { setUserDefaultGraphData, loadSites } from "redux/Dashboard/operations";
+import { setUserDefaultGraphData } from "redux/Dashboard/operations";
 import { omit } from "underscore";
 import { roundToStartOfDay, roundToEndOfDay } from "utils/dateTime";
+import { useDashboardSiteOptions } from "utils/customHooks";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -72,18 +72,8 @@ const capitalize = (str) => {
   return str && str.charAt(0).toUpperCase() + str.slice(1);
 };
 
-const valueLabelToString = (valueLabelArray) => {
-  return valueLabelArray.map((element) => element.label);
-};
-
 const toValueLabelObject = (value) => {
   return { value, label: capitalize(value) };
-};
-
-const toValueLabelArray = (arr) => {
-  const newArr = [];
-  arr.map((value) => newArr.push(toValueLabelObject(value)));
-  return newArr;
 };
 
 const optionToList = (options) => {
@@ -230,27 +220,7 @@ const CustomisableChart = (props) => {
     clearTempState();
   };
 
-  const sites = useDashboardSitesData();
-
-  const [sitesOptions, setSiteOptions] = useState([]);
-
-  if (!sites.length) {
-    // Ensure to load the filterLocation data if empty
-    dispatch(loadSites());
-  }
-
-  useEffect(() => {
-    const options = [];
-    sites.map((site) => {
-      options.push({
-        label: `${site.name || site.description || site.generated_name} (${
-          site.generated_name
-        })`,
-        value: site._id,
-      });
-    });
-    setSiteOptions(options);
-  }, [sites]);
+  const sitesOptions = useDashboardSiteOptions();
 
   const siteFilter = (selectedSites) => (site) => {
     return selectedSites.includes(site.value);
