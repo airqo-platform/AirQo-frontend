@@ -1,11 +1,53 @@
 import React, { useState } from "react";
+import { useDispatch } from "react-redux";
 import { Button, Card, Grid, TextField } from "@material-ui/core";
 import OutlinedSelect from "views/components/CustomSelects/OutlinedSelect";
 import { useDashboardSiteOptions } from "utils/customHooks/DashboardHooks";
+import { useAuthUser } from "redux/Join/selectors";
+import { createUserChartDefaultsApi } from "views/apis/authService";
+import { roundToStartOfDay, roundToEndOfDay } from "utils/dateTime";
+import { updateMainAlert } from "redux/MainAlert/operations";
+
+const generateStartAndEndDates = () => {
+  let endDate = new Date();
+  let startDate = new Date(
+    endDate.getFullYear(),
+    endDate.getMonth(),
+    endDate.getDate() - 30
+  );
+
+  return [startDate, endDate];
+};
+
+const optionToList = (options) => {
+  const arr = [];
+  options.map((opt) => arr.push(opt.value));
+  return arr;
+};
 
 const AddChart = ({ className }) => {
+  const dispatch = useDispatch();
   const [showForm, setShowForm] = useState(false);
+  const [loading, setLoading] = useState(false);
   const siteOptions = useDashboardSiteOptions();
+  const user = useAuthUser();
+
+  const [startDate, endDate] = generateStartAndEndDates();
+
+  const initialDefaultsData = {
+    sites: [],
+    startDate: roundToStartOfDay(startDate).toISOString(),
+    endDate: roundToEndOfDay(endDate).toISOString(),
+    chartType: "",
+    frequency: "",
+    pollutant: "",
+    chartSubTitle: "",
+    chartTitle: "default chart title",
+    period: {},
+    user: user._id,
+    airqloud: user._id,
+  };
+  const [defaultsData, setDefaultsData] = useState(initialDefaultsData);
 
   const pollutantOptions = [
     { value: "pm2_5", label: "PM 2.5" },
@@ -25,7 +67,49 @@ const AddChart = ({ className }) => {
     { value: "pie", label: "Pie" },
   ];
 
+  const handleTextFieldChange = (key) => (event) => {
+    setDefaultsData({ ...defaultsData, [key]: event.target.value });
+  };
+  const handleSelectChange = (key) => (selectedValue) => {
+    setDefaultsData({ ...defaultsData, [key]: selectedValue });
+  };
+
   const handleClose = () => setShowForm(false);
+
+  const validateInput = () => {};
+
+  const handleSubmit = async () => {
+    const data = {
+      ...defaultsData,
+      chartType: defaultsData.chartType.value,
+      frequency: defaultsData.frequency.value,
+      pollutant: defaultsData.pollutant.value,
+      sites: optionToList(defaultsData.sites),
+    };
+    setLoading(true);
+    await createUserChartDefaultsApi(data)
+      .then((responseData) => {
+        dispatch(
+          updateMainAlert({
+            show: true,
+            message: "Successfully created chart",
+            severity: "success",
+          })
+        );
+      })
+      .catch((err) => {
+        dispatch(
+          updateMainAlert({
+            show: true,
+            message:
+              err.response && err.response.data && err.response.data.message,
+            severity: "error",
+          })
+        );
+        console.log("err", err);
+      });
+    setLoading(false);
+  };
 
   return (
     <Card className={className}>
@@ -50,8 +134,10 @@ const AddChart = ({ className }) => {
         )}
 
         {showForm && (
-          // <form onSubmit={handleSubmit} id="customisable-form">
-          <form style={{ width: "60%", minWidth: "250px" }}>
+          <form
+            onSubmit={handleSubmit}
+            style={{ width: "60%", minWidth: "250px" }}
+          >
             <Grid container spacing={2}>
               <Grid item md={12} xs={12}>
                 <TextField
@@ -59,10 +145,10 @@ const AddChart = ({ className }) => {
                   margin="dense"
                   label="Location(s) Name"
                   variant="outlined"
-                  // value={newDevice.generation_count}
+                  value={defaultsData.chartSubTitle}
                   // error={!!errors.generation_count}
                   // helperText={errors.generation_count}
-                  // onChange={handleDeviceDataChange("generation_count")}
+                  onChange={handleTextFieldChange("chartSubTitle")}
                   fullWidth
                   required
                 />
@@ -71,11 +157,10 @@ const AddChart = ({ className }) => {
                 <OutlinedSelect
                   fullWidth
                   className="reactSelect"
-                  // name="location"
                   label="Location(s)"
-                  // value={tempState.sites.selectedOption}
+                  value={defaultsData.sites}
                   options={siteOptions}
-                  // onChange={handleMultiChange}
+                  onChange={handleSelectChange("sites")}
                   isMulti
                   variant="outlined"
                   margin="dense"
@@ -92,9 +177,9 @@ const AddChart = ({ className }) => {
                   className="reactSelect"
                   name="chartType"
                   placeholder="Chart Type"
-                  // value={tempState.chartType}
+                  value={defaultsData.chartType}
                   options={chartTypeOptions}
-                  // onChange={handleChartTypeChange}
+                  onChange={handleSelectChange("chartType")}
                   variant="outlined"
                   margin="dense"
                   required
@@ -108,9 +193,9 @@ const AddChart = ({ className }) => {
                   className=""
                   name="chartFrequency"
                   placeholder="Frequency"
-                  // value={tempState.frequency}
+                  value={defaultsData.frequency}
                   options={frequencyOptions}
-                  // onChange={handleFrequencyChange}
+                  onChange={handleSelectChange("frequency")}
                   variant="outlined"
                   margin="dense"
                   required
@@ -123,9 +208,9 @@ const AddChart = ({ className }) => {
                   className=""
                   name="pollutant"
                   placeholder="Pollutant"
-                  // value={tempState.pollutant}
+                  value={defaultsData.pollutant}
                   options={pollutantOptions}
-                  // onChange={handlePollutantChange}
+                  onChange={handleSelectChange("pollutant")}
                   variant="outlined"
                   margin="dense"
                   required
@@ -143,10 +228,9 @@ const AddChart = ({ className }) => {
                   <Button
                     style={{ marginLeft: "10px" }}
                     variant="contained"
-                    onClick={handleClose}
+                    onClick={handleSubmit}
                     color="primary"
-                    type="submit" //set the buttom type is submit
-                    form="customisable-form"
+                    disabled={loading}
                   >
                     Add Chart
                   </Button>

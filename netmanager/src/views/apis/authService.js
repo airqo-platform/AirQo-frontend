@@ -58,12 +58,9 @@ export const getUserChartDefaultsApi = async (userID, airqloudID) => {
 };
 
 export const createUserChartDefaultsApi = async (defaultsData) => {
-  console.log("running User default create")
-  console.log('data', defaultsData)
   return await axios
     .post(CHART_DEFAULTS_URI, defaultsData)
-    .then((response) => response.data)
-    .catch((err) => console.log('err', err.response));
+    .then((response) => response.data);
 };
 
 export const updateUserChartDefaultsApi = async (
