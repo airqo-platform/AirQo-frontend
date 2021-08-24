@@ -37,10 +37,10 @@ import JsPDF from "jspdf";
 import { isEmpty } from "underscore";
 import OutlinedSelect from "views/components/CustomSelects/OutlinedSelect";
 import { formatDateString } from "utils/dateTime";
-import { setUserDefaultGraphData } from "redux/Dashboard/operations";
 import { omit } from "underscore";
 import { roundToStartOfDay, roundToEndOfDay } from "utils/dateTime";
 import { useDashboardSiteOptions } from "utils/customHooks";
+import { updateUserChartDefaultsApi } from "views/apis/authService";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -241,7 +241,6 @@ const CustomisableChart = (props) => {
     if (initialLoad && !isEmpty(sites)) {
       setInitialLoad(false);
       fetchAndSetGraphData({
-        locations: sitesOptions.filter(siteFilter(defaultFilter.sites)),
         sites: optionToList(sites),
         startDate: selectedDate.toISOString(),
         endDate: selectedEndDate.toISOString(),
@@ -354,6 +353,13 @@ const CustomisableChart = (props) => {
     pollutant: selectedPollutant,
   });
 
+  const title = `Mean ${selectedFrequency.label} ${
+    selectedPollutant.label
+  } from ${formatDate(startDate, "YYYY-MM-DD")} to ${formatDateString(
+    endDate,
+    "YYYY-MM-DD"
+  )}`;
+
   const transferFromTempState = () => {
     setReactSelectValue(tempState.sites);
     setSelectedChartType(tempState.chartType);
@@ -427,22 +433,18 @@ const CustomisableChart = (props) => {
 
     let newFilter = {
       ...defaultFilter,
-      period: JSON.stringify(period),
+      period: period,
       sites: optionToList(tempState.sites.selectedOption),
       startDate: selectedDate.toISOString(),
       endDate: selectedEndDate.toISOString(),
       chartType: tempState.chartType.value,
       frequency: tempState.frequency.value,
       pollutant: tempState.pollutant.value,
+      chartTitle: title,
     };
 
     transferFromTempState();
-    dispatch(
-      setUserDefaultGraphData({
-        ...newFilter,
-        locations: optionToList(tempState.sites.selectedOption),
-      })
-    );
+    updateUserChartDefaultsApi(newFilter._id, newFilter)
     await fetchAndSetGraphData(newFilter);
   };
 
@@ -716,12 +718,7 @@ const CustomisableChart = (props) => {
             </Menu>
           </Grid>
         }
-        title={`Mean ${selectedFrequency.label} ${
-          selectedPollutant.label
-        } from ${formatDate(startDate, "YYYY-MM-DD")} to ${formatDateString(
-          endDate,
-          "YYYY-MM-DD"
-        )}`}
+        title={title}
         subheader={
           <Typography noWrap>
             for {sitesToString(values.selectedOption)}
@@ -760,18 +757,18 @@ const CustomisableChart = (props) => {
                 <form onSubmit={handleSubmit} id="customisable-form">
                   <Grid container spacing={2}>
                     <Grid item md={12} xs={12}>
-                      <TextField
-                        autoFocus
-                        margin="dense"
-                        label="Location(s) Name"
-                        variant="outlined"
-                        // value={newDevice.generation_count}
-                        // error={!!errors.generation_count}
-                        // helperText={errors.generation_count}
-                        // onChange={handleDeviceDataChange("generation_count")}
-                        fullWidth
-                        required
-                      />
+                      {/*<TextField*/}
+                      {/*  autoFocus*/}
+                      {/*  margin="dense"*/}
+                      {/*  label="Location(s) Name"*/}
+                      {/*  variant="outlined"*/}
+                      {/*  // value={newDevice.generation_count}*/}
+                      {/*  // error={!!errors.generation_count}*/}
+                      {/*  // helperText={errors.generation_count}*/}
+                      {/*  // onChange={handleDeviceDataChange("generation_count")}*/}
+                      {/*  fullWidth*/}
+                      {/*  required*/}
+                      {/*/>*/}
                     </Grid>
                     <Grid item md={12} xs={12}>
                       <OutlinedSelect
