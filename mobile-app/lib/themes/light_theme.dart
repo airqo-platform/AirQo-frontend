@@ -2,18 +2,14 @@ import 'package:app/constants/app_constants.dart';
 import 'package:flutter/material.dart';
 
 ThemeData lightTheme() {
-
   final base = ThemeData.light();
 
   return base.copyWith(
-    primaryColor: appColor,
+    primaryColor: ColorConstants().appColor,
     // bottomAppBarColor: Colors.white,
-    accentColor: appColor,
+    accentColor: ColorConstants().appColor,
     visualDensity: VisualDensity.adaptivePlatformDensity,
   );
 }
 
-const googleMapsLightTheme =
-[
-
-];
+const googleMapsLightTheme = [];

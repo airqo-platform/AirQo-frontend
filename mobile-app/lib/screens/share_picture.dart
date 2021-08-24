@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:app/constants/app_constants.dart';
-import 'package:app/screens/home_page.dart';
-import 'package:app/utils/services/rest_api.dart';
-import 'package:app/utils/ui/dialogs.dart';
+import 'package:app/services/rest_api.dart';
+import 'package:app/utils/dialogs.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:mime/mime.dart';
@@ -24,6 +24,7 @@ class TakePicture extends StatefulWidget {
 class TakePictureState extends State<TakePicture> {
   late CameraController _controller;
   late Future<void> _initializeControllerFuture;
+
   @override
   void initState() {
     super.initState();
@@ -63,15 +64,16 @@ class TakePictureState extends State<TakePicture> {
             //     ),
             //   ),);
           } else {
-            return const Center(
+            return Center(
                 child: CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(appColor),
+              valueColor:
+                  AlwaysStoppedAnimation<Color>(ColorConstants().appColor),
             ));
           }
         },
       ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: appColor,
+        backgroundColor: ColorConstants().appColor,
         onPressed: () async {
           try {
             await _initializeControllerFuture;
@@ -157,7 +159,8 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
                     color: Colors.white70,
                     child: IconButton(
                       iconSize: 30.0,
-                      icon: const Icon(Icons.send_outlined, color: appColor),
+                      icon: Icon(Icons.send_outlined,
+                          color: ColorConstants().appColor),
                       onPressed: sendPicture,
                     ),
                   ),
@@ -168,16 +171,15 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
           if (isUploading)
             Positioned.fill(
               child: Container(
-                child: const Align(
+                child: Align(
                     alignment: Alignment.center,
                     child: CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(appColor),
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                          ColorConstants().appColor),
                     )),
               ),
             ),
-        ]
-        )
-    );
+        ]));
   }
 
   Future<void> sendPicture() async {

@@ -12,7 +12,7 @@ import 'package:app/models/measurement.dart';
 import 'package:app/models/place.dart';
 import 'package:app/models/predict.dart';
 import 'package:app/models/suggestion.dart';
-import 'package:app/utils/ui/dialogs.dart';
+import 'package:app/utils/dialogs.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -59,7 +59,6 @@ class AirqoApiClient {
   }
 
   Future<Measurement> fetchDeviceMeasurements(Device device) async {
-
     try {
       var queryParams = <String, dynamic>{}
         ..putIfAbsent('recent', () => 'yes')
@@ -68,12 +67,10 @@ class AirqoApiClient {
         ..putIfAbsent('tenant', () => 'airqo');
 
       final responseBody =
-      await _performGetRequest(queryParams, AirQoUrls().measurements);
+          await _performGetRequest(queryParams, AirQoUrls().measurements);
 
       if (responseBody != null) {
-
-        return compute(
-            Measurement.parseMeasurement, responseBody);
+        return compute(Measurement.parseMeasurement, responseBody);
       } else {
         print('Device latest measurements are null');
         throw Exception('device does not exist');
@@ -82,8 +79,6 @@ class AirqoApiClient {
       print('Get device latest measurements error: $e');
       throw Exception('device does not exist');
     }
-
-
 
     // try {
     //   var url = '$getLatestDeviceEvents${device.name}';
@@ -224,9 +219,8 @@ class AirqoApiClient {
     return <Predict>[];
   }
 
-  Future<List<Measurement>> fetchDeviceHistoricalMeasurements(Device device)
-  async {
-
+  Future<List<Measurement>> fetchDeviceHistoricalMeasurements(
+      Device device) async {
     try {
       var startTimeUtc = DateTime.now().toUtc().add(const Duration(hours: -48));
       var date = DateFormat('yyyy-MM-dd').format(startTimeUtc);
@@ -241,11 +235,10 @@ class AirqoApiClient {
         ..putIfAbsent('tenant', () => 'airqo');
 
       final responseBody =
-      await _performGetRequest(queryParams, AirQoUrls().measurements);
+          await _performGetRequest(queryParams, AirQoUrls().measurements);
 
       if (responseBody != null) {
-        return compute(
-            Measurement.parseMeasurements, responseBody);
+        return compute(Measurement.parseMeasurements, responseBody);
       } else {
         print('Measurements are null');
         return <Measurement>[];
@@ -268,8 +261,7 @@ class AirqoApiClient {
           await _performGetRequest(queryParams, AirQoUrls().measurements);
 
       if (responseBody != null) {
-        return compute(
-            Measurement.parseMeasurements, responseBody);
+        return compute(Measurement.parseMeasurements, responseBody);
       } else {
         print('Measurements are null');
         return <Measurement>[];
@@ -284,8 +276,7 @@ class AirqoApiClient {
   Future<List<Device>> getDevicesByCoordinates(
       double latitude, double longitude) async {
     try {
-      var url =
-          '$getDevicesByGeoCoordinates&radius=1&latitude='
+      var url = '$getDevicesByGeoCoordinates&radius=1&latitude='
           '$latitude&longitude=$longitude';
       print(url);
       final response = await http.get(Uri.parse(url));
@@ -396,7 +387,6 @@ class AirqoApiClient {
       final response = await _performPostRequest(
           <String, dynamic>{}, slackWebhook, jsonEncode(body));
       return response;
-
     } on Error catch (e) {
       print('Send Feedback: $e');
       return false;
@@ -585,8 +575,6 @@ class GoogleSearchProvider {
     }
   }
 }
-
-
 
 // Future<List<Hourly>> fetchHourlyMeasurements(String channelId) async {
 //   try {

@@ -1,16 +1,12 @@
 import 'dart:async';
 
-import 'package:app/config/languages/CustomLocalizations.dart';
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/device.dart';
 import 'package:app/models/measurement.dart';
-import 'package:app/models/place.dart';
 import 'package:app/models/suggestion.dart';
-import 'package:intl/intl.dart';
+import 'package:path/path.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
-
-import 'package:path/path.dart';
 
 class DBHelper {
   var _database;
@@ -36,11 +32,13 @@ class DBHelper {
   }
 
   Future<void> createDefaultTables(Database db) async {
-
     print('creating databases');
 
     await db.execute(Measurement.latestMeasurementsTableDropStmt());
     await db.execute(Measurement.latestMeasurementsTableCreateStmt());
+
+    await db.execute(Suggestion.searchHistoryTableDropStmt());
+    await db.execute(Suggestion.searchHistoryTableCreateStmt());
 
     // await db.execute(Device.devicesTableDropStmt());
     // await db.execute(Device.createTableStmt());
@@ -50,7 +48,6 @@ class DBHelper {
 
     // forecast data table
     // await db.execute(Measurement.forecastDataTableStmt());
-
   }
 
   Future<void> insertSearchHistory(Suggestion suggestion) async {
@@ -63,7 +60,7 @@ class DBHelper {
 
       try {
         await db.insert(
-          '${constants.searchTableHistory}',
+          '${Suggestion.dbName()}',
           jsonData,
           conflictAlgorithm: ConflictAlgorithm.replace,
         );
@@ -79,19 +76,15 @@ class DBHelper {
 
   Future<void> deleteSearchHistory(Suggestion suggestion) async {
     try {
-      print('Inserting search term into local db');
-
       final db = await database;
 
       try {
-        await db.delete('${constants.searchTableHistory}',
-            where: '${constants.place_id} = ?',
+        await db.delete('${Suggestion.dbName()}',
+            where: '${Suggestion.dbPlaceId()} = ?',
             whereArgs: [suggestion.placeId]);
       } on Error catch (e) {
         print(e);
       }
-
-      print('Search term deletion from local db complete');
     } catch (e) {
       print(e);
     }
@@ -99,13 +92,11 @@ class DBHelper {
 
   Future<List<Suggestion>> getSearchHistory() async {
     try {
-      print('Getting search history from local db');
-
       final db = await database;
 
-      var res = await db.query(constants.searchTableHistory);
+      var res = await db.query(Suggestion.dbName());
 
-      print('Got ${res.length} places from local db');
+      print('Got ${res.length} search history from local db');
 
       var history = res.isNotEmpty
           ? List.generate(res.length, (i) {
@@ -121,86 +112,46 @@ class DBHelper {
   }
 
   Future<void> insertLatestMeasurements(List<Measurement> measurements) async {
+    final db = await database;
 
-      final db = await database;
-
-      if (measurements.isNotEmpty) {
-        for (var measurement in measurements) {
-          try {
-            var jsonData = Measurement.mapToDb(measurement);
-            await db.insert(
-              '${Measurement.latestMeasurementsDb()}',
-              jsonData,
-              conflictAlgorithm: ConflictAlgorithm.replace,
-            );
-          } catch (e) {
-            print('Inserting latest measurements into db');
-            print(e);
-          }
+    if (measurements.isNotEmpty) {
+      for (var measurement in measurements) {
+        try {
+          var jsonData = Measurement.mapToDb(measurement);
+          await db.insert(
+            '${Measurement.latestMeasurementsDb()}',
+            jsonData,
+            conflictAlgorithm: ConflictAlgorithm.replace,
+          );
+        } catch (e) {
+          print('Inserting latest measurements into db');
+          print(e);
         }
       }
-
+    }
   }
 
   Future<bool> updateFavouritePlaces(Device device) async {
     var prefs = await SharedPreferences.getInstance();
-    var favouritePlaces = prefs
-        .getStringList(PrefConstants().favouritePlaces) ?? [];
+    var favouritePlaces =
+        prefs.getStringList(PrefConstants().favouritePlaces) ?? [];
 
     var name = device.name.trim().toLowerCase();
-    if(favouritePlaces.contains(name)){
-
+    if (favouritePlaces.contains(name)) {
       var updatedList = <String>[];
 
       for (var fav in favouritePlaces) {
-        if(name != fav.trim().toLowerCase()) {
+        if (name != fav.trim().toLowerCase()) {
           updatedList.add(fav.trim().toLowerCase());
         }
       }
       favouritePlaces = updatedList;
-    }
-    else{
+    } else {
       favouritePlaces.add(name);
     }
 
     await prefs.setStringList(PrefConstants().favouritePlaces, favouritePlaces);
     return favouritePlaces.contains(name);
-
-  }
-
-  Future<Device> renameFavouritePlace(Device device, String name) async {
-    print('Renaming favourite place in local db');
-
-    try {
-      final db = await database;
-
-      var res = await db.query('${constants.locationsTable}',
-          where: '${constants.name} = ?', whereArgs: [device.name]);
-
-      if (res.isEmpty) {
-        var locationMap = Device.toDbMap(device);
-        locationMap['${constants.favourite}'] = 1;
-        locationMap['${constants.nickName}'] = name;
-
-        await db.insert('${constants.locationsTable}', locationMap);
-      } else {
-        var updateMap = <String, Object?>{'${constants.nickName}': name};
-
-        var num = await db.update(
-          '${constants.locationsTable}',
-          updateMap,
-          where: '${constants.name} = ?',
-          whereArgs: [device.name],
-          conflictAlgorithm: ConflictAlgorithm.replace,
-        );
-
-        print('updated rows : $num');
-      }
-      return getDevice(device.name);
-    } on Error catch (e) {
-      print(e);
-      return device;
-    }
   }
 
   Future<Measurement?> getMeasurement(String name) async {
@@ -218,7 +169,6 @@ class DBHelper {
 
       print('Got measurement locally');
       return Measurement.fromJson(Measurement.mapFromDb(res.first));
-
     } catch (e) {
       print(e);
       return null;
@@ -232,7 +182,6 @@ class DBHelper {
       final db = await database;
 
       var res = await db.query(Measurement.latestMeasurementsDb());
-
 
       print('Got ${res.length} measurements from local db');
 
@@ -269,43 +218,23 @@ class DBHelper {
     }
   }
 
-  Future<Device> getDevice(String name) async {
-    try {
-      print('Getting device from local db');
-
-      final db = await database;
-      var res = await db.query(constants.locationsTable,
-          where: '${constants.name} = ?', whereArgs: [name]);
-
-      var device = Device.fromJson(Device.fromDbMap(res.first));
-
-      return device;
-    } catch (e) {
-      print(e);
-      throw Exception('Device doesn\'t exist');
-    }
-  }
-
   Future<List<Measurement>> getFavouritePlaces() async {
     try {
       final db = await database;
 
       var prefs = await SharedPreferences.getInstance();
-      var favouritePlaces = prefs
-          .getStringList(PrefConstants().favouritePlaces) ?? [];
+      var favouritePlaces =
+          prefs.getStringList(PrefConstants().favouritePlaces) ?? [];
 
-      if(favouritePlaces.isEmpty){
+      if (favouritePlaces.isEmpty) {
         return [];
       }
 
       var placesRes = <Map<String, Object?>>[];
-      for(var fav in favouritePlaces){
-
+      for (var fav in favouritePlaces) {
         var res = await db.query('${Measurement.latestMeasurementsDb()}',
-            where: '${'${Measurement.dbDeviceName()} = ?'}',
-            whereArgs: [fav]);
+            where: '${'${Measurement.dbDeviceName()} = ?'}', whereArgs: [fav]);
         placesRes.addAll(res);
-
       }
       if (placesRes.isEmpty) {
         return [];
@@ -322,5 +251,4 @@ class DBHelper {
       return <Measurement>[];
     }
   }
-
 }

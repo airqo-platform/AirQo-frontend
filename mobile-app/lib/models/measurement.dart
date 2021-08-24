@@ -1,5 +1,3 @@
-import 'package:app/constants/app_constants.dart';
-import 'package:app/models/site.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import 'device.dart';
@@ -9,10 +7,15 @@ part 'measurement.g.dart';
 @JsonSerializable()
 // @JsonSerializable(explicitToJson: true)
 class Measurement {
-
-  Measurement({required this.time, required this.pm2_5, required this.pm10,
-    required this.altitude, required this.speed,
-      required this.temperature, required this.humidity, required this.device});
+  Measurement(
+      {required this.time,
+      required this.pm2_5,
+      required this.pm10,
+      required this.altitude,
+      required this.speed,
+      required this.temperature,
+      required this.humidity,
+      required this.device});
 
   factory Measurement.fromJson(Map<String, dynamic> json) =>
       _$MeasurementFromJson(json);
@@ -106,31 +109,15 @@ class Measurement {
 
   static String latestMeasurementsTableCreateStmt() =>
       'CREATE TABLE IF NOT EXISTS ${latestMeasurementsDb()}('
-          '${dbDeviceName()} TEXT PRIMARY KEY, ${dbLatitude()} REAL, '
-          '${dbTime()} TEXT, ${dbPm25()} REAL, '
-          '${dbPm10()} REAL, ${dbAltitude()} REAL, '
-          '${dbSpeed()} REAL, ${dbTemperature()} REAL, '
-          '${dbHumidity()} REAL, ${dbLocationName()} TEXT, '
-          '${dbSiteName()} TEXT, ${dbLongitude()} REAL, '
-          '${dbDescription()} TEXT, ${dbNickName()} TEXT )';
-
-  static Map<String, dynamic> mapFromApi(Map<String, dynamic> json) {
-    var constants = DbConstants();
-
-    var data = <String, dynamic>{
-      'time': json['created_at'] as String,
-      'pm2_5': {'value': double.parse(json[constants.pm2_5])},
-      'altitude': {'value': double.parse(json['altitude'])},
-      'speed': {'value': double.parse(json['speed'])},
-      'pm10': {'value': double.parse(json[constants.pm10])},
-    };
-
-    print(data);
-    return data;
-  }
+      '${dbDeviceName()} TEXT PRIMARY KEY, ${dbLatitude()} REAL, '
+      '${dbTime()} TEXT, ${dbPm25()} REAL, '
+      '${dbPm10()} REAL, ${dbAltitude()} REAL, '
+      '${dbSpeed()} REAL, ${dbTemperature()} REAL, '
+      '${dbHumidity()} REAL, ${dbLocationName()} TEXT, '
+      '${dbSiteName()} TEXT, ${dbLongitude()} REAL, '
+      '${dbDescription()} TEXT, ${dbNickName()} TEXT )';
 
   static Map<String, dynamic> mapFromDb(Map<String, dynamic> json) {
-
     var deviceDetails = {
       'nickName': json['${dbNickName()}'] as String,
       'description': json['${dbDescription()}'] as String,
@@ -170,8 +157,8 @@ class Measurement {
       '${dbSpeed()}': measurement.speed.value,
       '${dbTemperature()}': measurement.temperature.value,
       '${dbHumidity()}': measurement.humidity.value,
-      '${dbNickName()}': device.nickName == '' ? device.locationName
-          : device.nickName,
+      '${dbNickName()}':
+          device.nickName == '' ? device.locationName : device.nickName,
       '${dbDescription()}': device.description,
       '${dbSiteName()}': device.siteName,
       '${dbLocationName()}': device.locationName,
@@ -183,7 +170,6 @@ class Measurement {
 
   static List<Measurement> parseMeasurements(dynamic jsonBody) {
     return Measurements.fromJson(jsonBody).measurements;
-
   }
 
   static Measurement parseMeasurement(dynamic jsonBody) {
@@ -194,7 +180,6 @@ class Measurement {
 
 @JsonSerializable()
 class Measurements {
-
   Measurements({
     required this.measurements,
   });
@@ -202,14 +187,13 @@ class Measurements {
   factory Measurements.fromJson(Map<String, dynamic> json) =>
       _$MeasurementsFromJson(json);
 
-
   final List<Measurement> measurements;
+
   Map<String, dynamic> toJson() => _$MeasurementsToJson(this);
 }
 
 @JsonSerializable()
 class MeasurementValue {
-
   MeasurementValue({required this.value, required this.calibratedValue});
 
   factory MeasurementValue.fromJson(Map<String, dynamic> json) =>

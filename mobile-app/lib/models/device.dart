@@ -1,4 +1,3 @@
-import 'package:app/constants/app_constants.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'device.g.dart';
@@ -31,27 +30,33 @@ class Device {
   });
 
   static String dbDeviceName() => 'name';
+
   static String dbName() => 'devices';
+
   static String dbDistance() => 'distance';
+
   static String dbNickName() => 'nickname';
+
   static String dbDescription() => 'description';
+
   static String dbLatitude() => 'latitude';
+
   static String dbLongitude() => 'longitude';
+
   static String dbSiteName() => 'site_name';
+
   static String dbLocationName() => 'location_name';
 
-  static String devicesTableDropStmt() =>
-      'DROP TABLE IF EXISTS ${dbName()}';
+  static String devicesTableDropStmt() => 'DROP TABLE IF EXISTS ${dbName()}';
 
-  static String createTableStmt() =>
-      'CREATE TABLE IF NOT EXISTS ${dbName()} ('
-          '${dbDeviceName()} PRIMARY KEY, '
-          '${dbSiteName()} null, '
-          '${dbLocationName()} null, '
-          '${dbLongitude()} null, '
-          '${dbLatitude()} null, '
-          '${dbDescription()} null, '
-          '${dbNickName()} null )';
+  static String createTableStmt() => 'CREATE TABLE IF NOT EXISTS ${dbName()} ('
+      '${dbDeviceName()} PRIMARY KEY, '
+      '${dbSiteName()} null, '
+      '${dbLocationName()} null, '
+      '${dbLongitude()} null, '
+      '${dbLatitude()} null, '
+      '${dbDescription()} null, '
+      '${dbNickName()} null )';
 
   factory Device.fromJson(Map<String, dynamic> json) => _$DeviceFromJson(json);
 
@@ -74,21 +79,18 @@ class Device {
   @JsonKey(defaultValue: 0.0)
   final double longitude;
 
-  static Map<String, dynamic> toDbMap(Device device) =>
-     {
-      '${dbNickName()}': device.nickName == '' ? device.locationName
-          : device.nickName,
-      '${dbDescription()}': device.description,
-      '${dbSiteName()}': device.siteName,
-      '${dbLocationName()}': device.locationName,
-      '${dbDeviceName()}': device.name,
-      '${dbLatitude()}': device.latitude,
-      '${dbLongitude()}': device.longitude,
-    };
-
+  static Map<String, dynamic> toDbMap(Device device) => {
+        '${dbNickName()}':
+            device.nickName == '' ? device.locationName : device.nickName,
+        '${dbDescription()}': device.description,
+        '${dbSiteName()}': device.siteName,
+        '${dbLocationName()}': device.locationName,
+        '${dbDeviceName()}': device.name,
+        '${dbLatitude()}': device.latitude,
+        '${dbLongitude()}': device.longitude,
+      };
 
   static Map<String, dynamic> fromDbMap(Map<String, dynamic> json) {
-
     return {
       'nickName': json['${dbNickName()}'] as String,
       'description': json['${dbDescription()}'] as String,

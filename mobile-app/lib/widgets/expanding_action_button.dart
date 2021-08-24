@@ -1,6 +1,7 @@
+import 'dart:math' as math;
+
 import 'package:app/constants/app_constants.dart';
 import 'package:flutter/material.dart';
-import 'dart:math' as math;
 
 @immutable
 class ExpandableFab extends StatefulWidget {
@@ -133,7 +134,7 @@ class _ExpandableFabState extends State<ExpandableFab>
           curve: const Interval(0.25, 1.0, curve: Curves.easeInOut),
           duration: const Duration(milliseconds: 250),
           child: FloatingActionButton(
-            backgroundColor: appColor,
+            backgroundColor: ColorConstants().appColor,
             onPressed: _toggle,
             child: const Icon(Icons.menu),
           ),

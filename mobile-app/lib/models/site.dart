@@ -8,8 +8,7 @@ class Sites {
     required this.sites,
   });
 
-  factory Sites.fromJson(Map<String, dynamic> json) =>
-      _$SitesFromJson(json);
+  factory Sites.fromJson(Map<String, dynamic> json) => _$SitesFromJson(json);
 
   Map<String, dynamic> toJson() => _$SitesToJson(this);
 
@@ -18,9 +17,15 @@ class Sites {
 
 @JsonSerializable()
 class Site {
-  Site(this.favourite, {required this.id, required this.latitude,
-    required this.longitude, required this.district, required this.country,
-    required this.description, required this.nickName, required this.distance});
+  Site(this.favourite,
+      {required this.id,
+      required this.latitude,
+      required this.longitude,
+      required this.district,
+      required this.country,
+      required this.description,
+      required this.nickName,
+      required this.distance});
 
   factory Site.fromJson(Map<String, dynamic> json) => _$SiteFromJson(json);
 

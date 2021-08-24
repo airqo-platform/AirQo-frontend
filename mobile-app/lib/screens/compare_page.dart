@@ -1,11 +1,7 @@
 import 'package:app/constants/app_constants.dart';
-import 'package:app/models/measurement.dart';
-import 'package:app/utils/data_formatter.dart';
-import 'package:app/utils/services/rest_api.dart';
+import 'package:app/services/rest_api.dart';
 import 'package:app/widgets/compare_chart.dart';
-import 'package:app/widgets/location_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:charts_flutter/flutter.dart' as charts;
 
 class ComparePage extends StatefulWidget {
   @override
@@ -36,10 +32,7 @@ class _ComparePageState extends State<ComparePage> {
       child: Padding(
         padding: const EdgeInsets.fromLTRB(0, 4, 0, 0),
         child: ListView(
-          children: <Widget>[
-            formInput(),
-            const Text('Comparing places')
-          ],
+          children: <Widget>[formInput(), const Text('Comparing places')],
         ),
       ),
     );
@@ -71,8 +64,9 @@ class _ComparePageState extends State<ComparePage> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               IconButton(
-                  icon: Icon(Icons.compare_arrows, color: appColor),
-                  splashColor: appColor,
+                  icon: Icon(Icons.compare_arrows,
+                      color: ColorConstants().appColor),
+                  splashColor: ColorConstants().appColor,
                   onPressed: () {
                     // setShareIcon(true);
                   }),
@@ -80,9 +74,9 @@ class _ComparePageState extends State<ComparePage> {
               IconButton(
                   icon: Icon(
                     Icons.share_outlined,
-                    color: appColor,
+                    color: ColorConstants().appColor,
                   ),
-                  splashColor: appColor,
+                  splashColor: ColorConstants().appColor,
                   onPressed: () {})
               //     :
               // const Placeholder(),

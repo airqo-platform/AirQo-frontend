@@ -2,9 +2,9 @@ import 'dart:ui';
 
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/pollutant.dart';
+import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:charts_flutter/flutter.dart' as charts;
 
 charts.Color pmToChartColor(double pm2_5) {
   if (pm2_5 <= 12.09) {
@@ -26,7 +26,7 @@ charts.Color pmToChartColor(double pm2_5) {
     // hazardous
     return charts.ColorUtil.fromDartColor(ColorConstants().maroon);
   } else {
-    return charts.ColorUtil.fromDartColor(appColor);
+    return charts.ColorUtil.fromDartColor(ColorConstants().appColor);
   }
 }
 
@@ -74,7 +74,7 @@ Color pmTextColor(double pm2_5) {
     // hazardous
     return Colors.white;
   } else {
-    return appColor;
+    return ColorConstants().appColor;
   }
 }
 
@@ -236,16 +236,17 @@ Future<BitmapDescriptor> pmToMarker(double pm2_5) async {
   );
 
   var textPainter = TextPainter(
-      textDirection: TextDirection.ltr,
-      text: TextSpan(
-        text: value.toString(),
-        style: TextStyle(
-          fontSize: radius - 10,
-          fontWeight: FontWeight.bold,
-          color: textColor,
-        ),
+    textDirection: TextDirection.ltr,
+    text: TextSpan(
+      text: value.toString(),
+      style: TextStyle(
+        fontSize: radius - 10,
+        fontWeight: FontWeight.bold,
+        color: textColor,
       ),
-      textAlign: TextAlign.center,)..layout();
+    ),
+    textAlign: TextAlign.center,
+  )..layout();
 
   // textPainter.text = TextSpan(
   //   text: value.toString(),

@@ -1,4 +1,3 @@
-import 'package:app/screens/resources_page.dart';
 import 'package:flutter/material.dart';
 
 import 'news_and_stats_page.dart';

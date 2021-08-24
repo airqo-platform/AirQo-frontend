@@ -13,7 +13,7 @@ class PollutantDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: appColor,
+        backgroundColor: ColorConstants().appColor,
         title: Text(pollutant.pollutant),
       ),
       body: Padding(
@@ -38,10 +38,10 @@ class PollutantDialog extends StatelessWidget {
                 'What is ${pollutant.pollutant}, '
                 'and how does it get into the air?',
                 softWrap: true,
-                style:
-                    const TextStyle(height: 1.2, color: appColor, fontSize: 15
-                        // letterSpacing: 1.0
-                        )),
+                style: TextStyle(
+                    height: 1.2, color: ColorConstants().appColor, fontSize: 15
+                    // letterSpacing: 1.0
+                    )),
           ),
           Padding(
             padding: const EdgeInsets.all(5),
@@ -68,10 +68,10 @@ class PollutantDialog extends StatelessWidget {
             padding: const EdgeInsets.all(5),
             child: Text('Sources of ${pollutant.pollutant}',
                 softWrap: true,
-                style:
-                    const TextStyle(height: 1.2, color: appColor, fontSize: 15
-                        // letterSpacing: 1.0
-                        )),
+                style: TextStyle(
+                    height: 1.2, color: ColorConstants().appColor, fontSize: 15
+                    // letterSpacing: 1.0
+                    )),
           ),
           Padding(
             padding: const EdgeInsets.all(5),
@@ -100,10 +100,10 @@ class PollutantDialog extends StatelessWidget {
                 'What are the Harmful Effects '
                 'of ${pollutant.pollutant}',
                 softWrap: true,
-                style:
-                    const TextStyle(height: 1.2, color: appColor, fontSize: 15
-                        // letterSpacing: 1.0
-                        )),
+                style: TextStyle(
+                    height: 1.2, color: ColorConstants().appColor, fontSize: 15
+                    // letterSpacing: 1.0
+                    )),
           ),
           Padding(
             padding: const EdgeInsets.all(5),
@@ -132,10 +132,10 @@ class PollutantDialog extends StatelessWidget {
                 'How Can I Reduce My Exposure to'
                 ' ${pollutant.pollutant}',
                 softWrap: true,
-                style:
-                    const TextStyle(height: 1.5, color: appColor, fontSize: 15
-                        // letterSpacing: 1.0
-                        )),
+                style: TextStyle(
+                    height: 1.5, color: ColorConstants().appColor, fontSize: 15
+                    // letterSpacing: 1.0
+                    )),
           ),
           Padding(
             padding: const EdgeInsets.all(5),
@@ -159,7 +159,8 @@ class PollutantDialog extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           ElevatedButton(
-              style: ElevatedButton.styleFrom(primary: appColor),
+              style:
+                  ElevatedButton.styleFrom(primary: ColorConstants().appColor),
               onPressed: _launchURL,
               child: Text('Learn more about ${pollutant.pollutant}',
                   softWrap: true,

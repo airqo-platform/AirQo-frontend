@@ -2,12 +2,11 @@ import 'package:app/constants/app_constants.dart';
 import 'package:app/models/device.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/screens/place_details.dart';
-import 'package:app/screens/search.dart';
 import 'package:app/screens/search_location_page.dart';
-import 'package:app/utils/services/local_storage.dart';
-import 'package:app/utils/ui/dialogs.dart';
-import 'package:app/utils/ui/pm.dart';
-import 'package:app/utils/ui/share.dart';
+import 'package:app/services/local_storage.dart';
+import 'package:app/utils/dialogs.dart';
+import 'package:app/utils/pm.dart';
+import 'package:app/utils/share.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 
@@ -98,10 +97,10 @@ class _MyPlacesState extends State<MyPlaces> {
                             actions: <Widget>[
                               IconSlideAction(
                                 caption: 'Share',
-                                color: appColor,
+                                color: ColorConstants().appColor,
                                 icon: Icons.share_outlined,
-                                onTap: () => shareLocation(
-                                    searchResults[index].device),
+                                onTap: () =>
+                                    shareLocation(searchResults[index].device),
                               ),
                             ],
                             secondaryActions: <Widget>[
@@ -119,7 +118,9 @@ class _MyPlacesState extends State<MyPlaces> {
                               child: ListTile(
                                 leading: CircleAvatar(
                                   backgroundColor: pmToColor(
-                                      searchResults[index].pm2_5.calibratedValue),
+                                      searchResults[index]
+                                          .pm2_5
+                                          .calibratedValue),
                                   foregroundColor: Colors.black54,
                                   child: Center(
                                     child: Text(
@@ -135,8 +136,12 @@ class _MyPlacesState extends State<MyPlaces> {
                                   ),
                                 ),
                                 title: Text(
-                                  (searchResults[index].device.nickName != null &&
-                                      searchResults[index].device.nickName != '')
+                                  (searchResults[index].device.nickName !=
+                                              null &&
+                                          searchResults[index]
+                                                  .device
+                                                  .nickName !=
+                                              '')
                                       ? '${searchResults[index].device.nickName} '
                                       : '${searchResults[index].device.siteName}',
                                   overflow: TextOverflow.ellipsis,
@@ -165,14 +170,14 @@ class _MyPlacesState extends State<MyPlaces> {
                               return Center(
                                 child: Container(
                                   padding: const EdgeInsets.all(16.0),
-                                  child: const Text(
+                                  child: Text(
                                     'You haven\'t added any locations you care about '
                                     'to MyPlaces yet, use the add icon at '
                                     'the top to add them to your list',
                                     softWrap: true,
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
-                                      color: appColor,
+                                      color: ColorConstants().appColor,
                                     ),
                                   ),
                                 ),
@@ -194,7 +199,7 @@ class _MyPlacesState extends State<MyPlaces> {
                                     actions: <Widget>[
                                       IconSlideAction(
                                         caption: 'Share',
-                                        color: appColor,
+                                        color: ColorConstants().appColor,
                                         icon: Icons.share_outlined,
                                         onTap: () => shareLocation(
                                             results[index].device),
@@ -215,7 +220,9 @@ class _MyPlacesState extends State<MyPlaces> {
                                       child: ListTile(
                                         leading: CircleAvatar(
                                           backgroundColor: pmToColor(
-                                              results[index].pm2_5.calibratedValue),
+                                              results[index]
+                                                  .pm2_5
+                                                  .calibratedValue),
                                           foregroundColor: Colors.black54,
                                           child: Center(
                                             child: Text(
@@ -227,8 +234,12 @@ class _MyPlacesState extends State<MyPlaces> {
                                           ),
                                         ),
                                         title: Text(
-                                          (results[index].device.nickName != null &&
-                                              results[index].device.nickName != '')
+                                          (results[index].device.nickName !=
+                                                      null &&
+                                                  results[index]
+                                                          .device
+                                                          .nickName !=
+                                                      '')
                                               ? '${results[index].device.nickName} '
                                               : '${results[index].device.siteName}',
                                           overflow: TextOverflow.ellipsis,
@@ -245,10 +256,10 @@ class _MyPlacesState extends State<MyPlaces> {
                               ),
                             );
                           } else {
-                            return const Center(
+                            return Center(
                               child: CircularProgressIndicator(
-                                valueColor:
-                                    AlwaysStoppedAnimation<Color>(appColor),
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                    ColorConstants().appColor),
                               ),
                             );
                           }
@@ -265,8 +276,9 @@ class _MyPlacesState extends State<MyPlaces> {
 
   Future<void> removeFromFavourites(Device device) async {
     await DBHelper().updateFavouritePlaces(device).then((value) => {
-    showSnackBar2(context, '${device.siteName} is removed from your places')
-    });
+          showSnackBar2(
+              context, '${device.siteName} is removed from your places')
+        });
 
     setState(() {});
   }

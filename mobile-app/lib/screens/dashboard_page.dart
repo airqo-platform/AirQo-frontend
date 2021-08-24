@@ -1,10 +1,8 @@
-import 'package:app/config/languages/CustomLocalizations.dart';
-import 'package:app/config/providers/LocalProvider.dart';
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/screens/place_details.dart';
-import 'package:app/utils/services/local_storage.dart';
-import 'package:app/utils/ui/dialogs.dart';
+import 'package:app/services/local_storage.dart';
+import 'package:app/utils/dialogs.dart';
 import 'package:app/widgets/air_quality_nav.dart';
 import 'package:flutter/material.dart';
 
@@ -33,14 +31,14 @@ class _DashboardPageState extends State<DashboardPage> {
                       return Center(
                         child: Container(
                           padding: const EdgeInsets.all(16.0),
-                          child: const Text(
+                          child: Text(
                             'You haven\'t added any locations you care about '
                             'to MyPlaces yet, search here or use the map '
                             'to add them to your list',
                             softWrap: true,
                             textAlign: TextAlign.center,
                             style: TextStyle(
-                              color: appColor,
+                              color: ColorConstants().appColor,
                             ),
                           ),
                           // child: Column(
@@ -85,9 +83,10 @@ class _DashboardPageState extends State<DashboardPage> {
                       ),
                     );
                   } else {
-                    return const Center(
+                    return Center(
                       child: CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(appColor),
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                            ColorConstants().appColor),
                       ),
                     );
                     // return Center( child: Container(

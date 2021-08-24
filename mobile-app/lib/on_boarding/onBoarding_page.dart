@@ -35,18 +35,18 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
   Widget build(BuildContext context) {
     return Scaffold(
         body: Container(
-            color: appColor,
+            color: ColorConstants().appColor,
             child: SafeArea(
                 child: Container(
               padding: const EdgeInsets.all(16),
-              color: appColor,
+              color: ColorConstants().appColor,
               // decoration: const BoxDecoration(
               //     gradient: LinearGradient(
               //         begin: Alignment.topCenter,
               //         end: Alignment.bottomCenter,
               //         colors: [
-              //       appColor,
-              //       appColorPale,
+              //       ColorConstants().appColor,
+              //       ColorConstants().appColorPale,
               //     ])),
               alignment: Alignment.center,
               child: Column(children: [

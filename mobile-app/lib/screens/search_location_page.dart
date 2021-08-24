@@ -3,9 +3,9 @@ import 'package:app/models/device.dart';
 import 'package:app/models/place.dart';
 import 'package:app/models/suggestion.dart';
 import 'package:app/screens/place_details.dart';
-import 'package:app/utils/services/local_storage.dart';
-import 'package:app/utils/services/rest_api.dart';
-import 'package:app/utils/ui/distance.dart';
+import 'package:app/services/local_storage.dart';
+import 'package:app/services/rest_api.dart';
+import 'package:app/utils/distance.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
@@ -36,11 +36,10 @@ class LocationSearch extends SearchDelegate<Suggestion> {
 
   @override
   ThemeData appBarTheme(BuildContext context) {
-
     final base = Theme.of(context);
 
     return base.copyWith(
-      primaryColor: appColor,
+      primaryColor: ColorConstants().appColor,
     );
   }
 
@@ -94,9 +93,9 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                       alignment: Alignment.topCenter,
                       child: Container(
                         padding: const EdgeInsets.all(16.0),
-                        child: const Text(
+                        child: Text(
                           'Search a place',
-                          style: TextStyle(color: appColor),
+                          style: TextStyle(color: ColorConstants().appColor),
                         ),
                       ));
                 }
@@ -108,9 +107,9 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                       style:
                           const TextStyle(fontSize: 12, color: Colors.black54),
                     ),
-                    leading: const Icon(
+                    leading: Icon(
                       Icons.history,
-                      color: appColor,
+                      color: ColorConstants().appColor,
                     ),
                     trailing: GestureDetector(
                       onTap: () {
@@ -138,9 +137,9 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                   alignment: Alignment.topCenter,
                   child: Container(
                     padding: const EdgeInsets.all(16.0),
-                    child: const Text(
+                    child: Text(
                       'Search a place',
-                      style: TextStyle(color: appColor),
+                      style: TextStyle(color: ColorConstants().appColor),
                     ),
                   ));
             },
@@ -153,8 +152,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
             child: const Text(
                 'Could not get suggestions. try again later or use the map'),
           );
-        }
-        else if (snapshot.hasData) {
+        } else if (snapshot.hasData) {
           // print(snapshot.data);
 
           var results = snapshot.data as List<Suggestion>;
@@ -184,16 +182,16 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    const CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(appColor),
+                    CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                          ColorConstants().appColor),
                     ),
-                    const Text(
+                    Text(
                       'Loading...',
-                      style: TextStyle(color: appColor),
+                      style: TextStyle(color: ColorConstants().appColor),
                     )
                   ],
-                )
-            ),
+                )),
           );
         }
       },
@@ -211,9 +209,9 @@ class LocationSearch extends SearchDelegate<Suggestion> {
           alignment: Alignment.topCenter,
           child: Container(
             padding: const EdgeInsets.all(16.0),
-            child: const Text(
+            child: Text(
               'Search a place',
-              style: TextStyle(color: appColor),
+              style: TextStyle(color: ColorConstants().appColor),
             ),
           ));
     }
@@ -221,23 +219,18 @@ class LocationSearch extends SearchDelegate<Suggestion> {
     print(searchPlaceId);
 
     if (searchPlaceId == '') {
-
       return Align(
           alignment: Alignment.topCenter,
           child: Container(
             padding: const EdgeInsets.all(16.0),
             child: Text(
               'Failed to locate $query, search again and tap on any of the '
-                  'available suggestions or use the map '
-                  'on the top right corner',
+              'available suggestions or use the map '
+              'on the top right corner',
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                  color: appColor
-              ),
+              style: TextStyle(color: ColorConstants().appColor),
             ),
-          )
-      );
-
+          ));
     }
 
     return FutureBuilder(
@@ -273,9 +266,11 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
                                 Text(
-                                  'Sorry, we dont have any sensors close to $query',
+                                  'Sorry, we dont have any sensors'
+                                  ' close to $query',
                                   textAlign: TextAlign.center,
-                                  style: const TextStyle(color: appColor),
+                                  style: TextStyle(
+                                      color: ColorConstants().appColor),
                                 ),
                                 showAllLocationsCustomButton(context),
                                 showMapCustomButton(context)
@@ -286,15 +281,16 @@ class LocationSearch extends SearchDelegate<Suggestion> {
 
                     return Column(
                       children: [
-                       Padding( padding: const EdgeInsets.all(8.0),
-                         child: Text(
-                           'Air quality sensors near $query',
-                           textAlign: TextAlign.center,
-                           style: const TextStyle(
-                               color: appColor
-                           ),
-                         ),),
-                        Expanded(child:                ListView.builder(
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(
+                            'Air quality sensors near $query',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: ColorConstants().appColor),
+                          ),
+                        ),
+                        Expanded(
+                            child: ListView.builder(
                           shrinkWrap: true,
                           itemCount: devices.length,
                           itemBuilder: (context, index) {
@@ -303,27 +299,29 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                                   var device = devices[index];
                                   Navigator.push(context,
                                       MaterialPageRoute(builder: (context) {
-                                        return PlaceDetailsPage(
-                                          device: device,
-                                        );
-                                      }));
+                                    return PlaceDetailsPage(
+                                      device: device,
+                                    );
+                                  }));
                                 },
                                 child: ListTile(
                                   title: Text('${devices[index].siteName}'),
-                                  subtitle: Text('${devices[index].locationName}'),
+                                  subtitle:
+                                      Text('${devices[index].locationName}'),
                                   // leading: const Icon(
                                   //   Icons.location_pin,
-                                  //   color: appColor,
+                                  //   color: ColorConstants().appColor,
                                   // ),
                                   trailing: Text(
-                                    '${kmToMeters(devices[index].distance)} meters',
-                                    style: const TextStyle(color: appColor),
+                                    '${kmToMeters(devices[index].distance)}'
+                                    ' meters',
+                                    style: TextStyle(
+                                        color: ColorConstants().appColor),
                                   ),
                                 ) //your content here
-                            );
+                                );
                           },
                         ))
-
                       ],
                     );
                   } else {
@@ -335,14 +333,16 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            const CircularProgressIndicator(
-                              valueColor:
-                                  AlwaysStoppedAnimation<Color>(appColor),
+                            CircularProgressIndicator(
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                  ColorConstants().appColor),
                             ),
-                            const Text(
-                              'Searching for nearby air quality sensors. Please wait...',
+                            Text(
+                              'Searching for nearby air '
+                              'quality sensors. Please wait...',
                               textAlign: TextAlign.center,
-                              style: TextStyle(color: appColor),
+                              style:
+                                  TextStyle(color: ColorConstants().appColor),
                             )
                           ],
                         ),
@@ -357,12 +357,13 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    const CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(appColor),
+                    CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                          ColorConstants().appColor),
                     ),
-                    const Text(
+                    Text(
                       'Getting place details...',
-                      style: TextStyle(color: appColor),
+                      style: TextStyle(color: ColorConstants().appColor),
                     )
                   ],
                 ));
@@ -383,8 +384,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
           if (snapshot.hasError) {
             print(snapshot.error);
             return loadApiDevices();
-          }
-          else if (snapshot.hasData) {
+          } else if (snapshot.hasData) {
             var devices = snapshot.data as List<Device>;
 
             if (devices.isEmpty) {
@@ -408,9 +408,9 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                     child: ListTile(
                       title: Text('${devices[index].siteName}'),
                       subtitle: Text('${devices[index].locationName}'),
-                      leading: const Icon(
+                      leading: Icon(
                         Icons.location_pin,
-                        color: appColor,
+                        color: ColorConstants().appColor,
                       ),
                     ));
               },
@@ -424,14 +424,15 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      const CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(appColor),
+                      CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                            ColorConstants().appColor),
                       ),
-                      const Text(
+                      Text(
                         'Getting all air quality sensor locations. '
-                            'Please wait...',
+                        'Please wait...',
                         textAlign: TextAlign.center,
-                        style: TextStyle(color: appColor),
+                        style: TextStyle(color: ColorConstants().appColor),
                       )
                     ],
                   ),
@@ -440,49 +441,49 @@ class LocationSearch extends SearchDelegate<Suggestion> {
         });
   }
 
-  RawMaterialButton showAllLocationsCustomButton(context){
+  RawMaterialButton showAllLocationsCustomButton(context) {
     return RawMaterialButton(
       shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(4.0),
-          side: const BorderSide(color: appColor, width: 1)),
+          side: BorderSide(color: ColorConstants().appColor, width: 1)),
       fillColor: Colors.transparent,
       elevation: 0,
       highlightElevation: 0,
       splashColor: Colors.black12,
-      highlightColor: appColor.withOpacity(0.4),
+      highlightColor: ColorConstants().appColor.withOpacity(0.4),
       onPressed: () {
         showAllLocations(context);
       },
-      child: const Padding(
-        padding: EdgeInsets.all(4),
+      child: Padding(
+        padding: const EdgeInsets.all(4),
         child: Text(
           'Show all sensor locations',
-          style: TextStyle(color: appColor),
+          style: TextStyle(color: ColorConstants().appColor),
         ),
       ),
     );
   }
 
-  RawMaterialButton showMapCustomButton(context){
+  RawMaterialButton showMapCustomButton(context) {
     return RawMaterialButton(
       shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(4.0),
-          side: const BorderSide(color: appColor, width: 1)),
+          side: BorderSide(color: ColorConstants().appColor, width: 1)),
       fillColor: Colors.transparent,
       elevation: 0,
       highlightElevation: 0,
       splashColor: Colors.black12,
-      highlightColor: appColor.withOpacity(0.4),
+      highlightColor: ColorConstants().appColor.withOpacity(0.4),
       onPressed: () {
         Navigator.push(context, MaterialPageRoute(builder: (context) {
           return MapPage();
         }));
       },
-      child: const Padding(
-        padding: EdgeInsets.all(4),
+      child: Padding(
+        padding: const EdgeInsets.all(4),
         child: Text(
           'Go to Map',
-          style: TextStyle(color: appColor),
+          style: TextStyle(color: ColorConstants().appColor),
         ),
       ),
     );
@@ -530,33 +531,32 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                     child: ListTile(
                       title: Text('${devices[index].siteName}'),
                       subtitle: Text('${devices[index].locationName}'),
-                      leading: const Icon(
+                      leading: Icon(
                         Icons.location_pin,
-                        color: appColor,
+                        color: ColorConstants().appColor,
                       ),
                     ) //your content here
                     );
               },
             );
-          }
-          else {
+          } else {
             return Align(
                 alignment: Alignment.center,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    const CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(appColor),
+                    CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                          ColorConstants().appColor),
                     ),
-                    const Text(
+                    Text(
                       'Getting all places. Please wait...',
-                      style: TextStyle(color: appColor),
+                      style: TextStyle(color: ColorConstants().appColor),
                     )
                   ],
                 ));
           }
         });
   }
-
 }

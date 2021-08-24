@@ -1,7 +1,7 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/chartData.dart';
-import 'package:app/utils/ui/date.dart';
-import 'package:app/utils/ui/pm.dart';
+import 'package:app/utils/date.dart';
+import 'package:app/utils/pm.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 
@@ -25,12 +25,14 @@ class _HourlyBarChartState extends State<HourlyBarChart> {
       padding: const EdgeInsets.fromLTRB(12, 20, 5, 20),
       child: Column(
         children: <Widget>[
-          const Center(
+          Center(
             child: Text(
               '48 hour History',
               softWrap: true,
               style: TextStyle(
-                  fontSize: 17, color: appColor, fontWeight: FontWeight.bold),
+                  fontSize: 17,
+                  color: ColorConstants().appColor,
+                  fontWeight: FontWeight.bold),
             ),
           ),
           if (display != null)
@@ -42,17 +44,17 @@ class _HourlyBarChartState extends State<HourlyBarChart> {
                   Text(
                     dateToEnglishString(display['time']),
                     softWrap: true,
-                    style: const TextStyle(color: appColor),
+                    style: TextStyle(color: ColorConstants().appColor),
                   ),
                   Text(
                     display['value'].toString(),
                     softWrap: true,
-                    style: const TextStyle(color: appColor),
+                    style: TextStyle(color: ColorConstants().appColor),
                   ),
                   Text(
                     pmToString(display['value']),
                     softWrap: true,
-                    style: const TextStyle(color: appColor),
+                    style: TextStyle(color: ColorConstants().appColor),
                   ),
                 ],
               ),

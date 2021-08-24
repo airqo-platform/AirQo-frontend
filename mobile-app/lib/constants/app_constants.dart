@@ -13,7 +13,8 @@ const appTheme = 'appTheme';
 
 const faqs = 'https://www.airqo.net/faqs';
 const about = 'https://www.airqo.net/about';
-const terms = 'https://docs.airqo.net/airqo-platform-api/mobile-app-privacy-policy';
+const terms =
+    'https://docs.airqo.net/airqo-platform-api/mobile-app-privacy-policy';
 const contactUs = 'https://www.airqo.net/contact-us';
 const rate = 'https://www.airqo.net/faqs';
 const facebook = 'https://web.facebook.com/AirQo/';
@@ -27,13 +28,6 @@ const smartNotificationId = 4877231;
 const pushNotificationId = 9239203;
 
 const appColor = Color(0xff3067e2);
-const appColorPale = Color(0xff3086e2);
-const greenColor = Color(0xff3FFF33);
-const yellowColor = Color(0xffFFF933);
-const orangeColor = Color(0xffFF9633);
-const redColor = Color(0xffF62E2E);
-const purpleColor = Color(0xFF7B1FA2);
-const maroonColor = Color(0xff570B0B);
 
 const facebookColor = Color(0xff4267B2);
 const twitterColor = Color(0xff1DA1F2);
@@ -189,8 +183,10 @@ class PrefConstants {
   final String _firstUse = 'first_use';
 
   String get favouritePlaces => _favouritePlaces;
+
   String get firstUse => _firstUse;
 }
+
 class ColorConstants {
   final Color _green = const Color(0xff3FFF33);
   final Color _yellow = const Color(0xffFFF933);
@@ -218,88 +214,8 @@ class ColorConstants {
 
 class DbConstants {
   final String _dbName = 'airqo_db.db';
-  final String _measurementsTable = 'measurements';
-  final String _searchTableHistory = 'searchHistory';
-  final String _locationsTable = 'locations';
-
-  final String _channelID = 'deviceNumber';
-  final String _device = 'device';
-  final String _description = 'description';
-  final String _isActive = 'isActive';
-  final String _locationName = 'locationName';
-  final String _siteName = 'siteName';
-  final String _name = 'name';
-  final String _favourite = 'favourite';
-  final String _locationDetails = 'locationDetails';
-
-  final String _nickName = 'nickName';
-
-  final String _searchText = 'searchText';
-  final String _place_id = 'place_id';
-
-  final String _time = 'time';
-  final String _pm2_5 = 'pm2_5';
-  final String _pm10 = 'pm10';
-  final String _externalTemp = 'externalTemperature';
-  final String _externalHumidity = 'externalHumidity';
-  final String _s2_pm2_5 = 's2_pm2_5';
-  final String _latitude = 'latitude';
-  final String _longitude = 'longitude';
-  final String _s2_pm10 = 's2_pm10';
-  final String _address = 'address';
-
-
-  String get externalTemp => _externalTemp;
-
-  String get device => _device;
-
-  String get searchTableHistory => _searchTableHistory;
-
-  String get place_id => _place_id;
-
-  String get searchText => _searchText;
-
-  String get locationDetails => _locationDetails;
-
-  String get nickName => _nickName;
-
-  String get favourite => _favourite;
-
-  String get locationsTable => _locationsTable;
-
-  String get address => _address;
-
-  String get latitude => _latitude;
-
-  String get measurementsTable => _measurementsTable;
 
   String get dbName => _dbName;
-
-  String get channelID => _channelID;
-
-  String get time => _time;
-
-  String get pm2_5 => _pm2_5;
-
-  String get pm10 => _pm10;
-
-  String get s2_pm2_5 => _s2_pm2_5;
-
-  String get s2_pm10 => _s2_pm10;
-
-  String get longitude => _longitude;
-
-  String get description => _description;
-
-  String get isActive => _isActive;
-
-  String get locationName => _locationName;
-
-  String get siteName => _siteName;
-
-  String get name => _name;
-
-  String get externalHumidity => _externalHumidity;
 }
 
 class ErrorMessages {

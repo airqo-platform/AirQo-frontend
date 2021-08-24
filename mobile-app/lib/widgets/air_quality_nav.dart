@@ -1,13 +1,9 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/measurement.dart';
-import 'package:app/screens/place_details.dart';
-import 'package:app/utils/services/local_storage.dart';
-import 'package:app/utils/ui/date.dart';
-import 'package:app/utils/ui/dialogs.dart';
-import 'package:app/utils/ui/pm.dart';
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/material.dart';
+import 'package:app/utils/date.dart';
+import 'package:app/utils/pm.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 
 class AirQualityCard extends StatefulWidget {
   AirQualityCard({Key? key, required this.data}) : super(key: key);
@@ -91,24 +87,22 @@ class TitleSection extends StatelessWidget {
                       maxLines: 4,
                       softWrap: true,
                       style: TextStyle(
-                        color: pmTextColor(data.pm2_5.calibratedValue)
-                      ),
+                          color: pmTextColor(data.pm2_5.calibratedValue)),
                     ),
                     Text(
                       '${data.pm2_5.calibratedValue} µg/m\u00B3',
                       maxLines: 4,
                       softWrap: true,
                       style: TextStyle(
-                          color: pmTextColor(data.pm2_5.calibratedValue)
-                      ),
+                          color: pmTextColor(data.pm2_5.calibratedValue)),
                     ),
                     Text(
-                      pmToString(data.pm2_5.calibratedValue).replaceAll('\n', ' '),
+                      pmToString(data.pm2_5.calibratedValue)
+                          .replaceAll('\n', ' '),
                       maxLines: 4,
                       softWrap: true,
                       style: TextStyle(
-                          color: pmTextColor(data.pm2_5.calibratedValue)
-                      ),
+                          color: pmTextColor(data.pm2_5.calibratedValue)),
                     ),
                   ],
                 ),
@@ -133,9 +127,9 @@ class CardSection extends StatelessWidget {
         children: [
           Expanded(
               child: Text('Last updated : ${dateToString(data.time)}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 11,
-                    color: appColor,
+                    color: ColorConstants().appColor,
                     fontWeight: FontWeight.w300,
                     fontStyle: FontStyle.italic,
                   ))),

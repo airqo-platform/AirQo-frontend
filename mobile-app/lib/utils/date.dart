@@ -9,17 +9,14 @@ String dateToString(String formattedString) {
 
     final difference = now.difference(newDate).inDays;
 
-    var dateString = DateFormat('EEE, MMM d, hh:mm a')
-        .format(newDate);
+    var dateString = DateFormat('EEE, MMM d, hh:mm a').format(newDate);
 
     switch (difference) {
       case 0:
-        dateString =
-        '${DateFormat('hh:mm a').format(newDate)}';
+        dateString = '${DateFormat('hh:mm a').format(newDate)}';
         break;
       case 1:
-        dateString =
-        'Yesterday, ${DateFormat('hh:mm a').format(newDate)}';
+        dateString = 'Yesterday, ${DateFormat('hh:mm a').format(newDate)}';
         break;
       case 2:
         dateString = '2 days ago';

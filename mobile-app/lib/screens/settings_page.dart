@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:app/constants/app_constants.dart';
-import 'package:app/utils/services/notifications.dart';
+import 'package:app/services/notifications.dart';
 import 'package:app/widgets/change_language.dart';
 import 'package:app/widgets/change_theme.dart';
 import 'package:app/widgets/clear_app_data.dart';
@@ -28,7 +28,7 @@ class _SettingsPageState extends State<SettingsPage> {
   bool _morningForecast = false;
   bool _eveningForecast = false;
   Themes _theme = Themes.lightTheme;
-  final Notifications _notifications =  Notifications();
+  final Notifications _notifications = Notifications();
 
   @override
   void initState() {
@@ -41,8 +41,8 @@ class _SettingsPageState extends State<SettingsPage> {
     var prefs = await SharedPreferences.getInstance();
     var theme = prefs.getString(appTheme);
     print(theme);
-    if(theme != null){
-      switch(theme){
+    if (theme != null) {
+      switch (theme) {
         case 'light':
           _theme = Themes.lightTheme;
           break;
@@ -62,61 +62,58 @@ class _SettingsPageState extends State<SettingsPage> {
     _notifications.showOngoingNotification();
   }
 
-
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Settings'),
       ),
       body: Container(
           child: Column(
-            children: [
-              Expanded(child: ListView(
-                // physics:  const BouncingScrollPhysics(
-                //     parent: AlwaysScrollableScrollPhysics()
-                // ),
-                children: <Widget>[
-
-                  userPreferences(),
-                  const Divider(
-                    indent: 30,
-                    endIndent: 30,
-                    color: appColor,
-                  ),
-                  notifications(),
-                  const Divider(
-                    indent: 30,
-                    endIndent: 30,
-                    color: appColor,
-                  ),
-                  reports(),
-                  const Divider(
-                    indent: 30,
-                    endIndent: 30,
-                    color: appColor,
-                  ),
-                  support(),
-                  footer()
-
-                ],
-              ),),
-              // footer()
-            ],
-          )
-      ),
+        children: [
+          Expanded(
+            child: ListView(
+              // physics:  const BouncingScrollPhysics(
+              //     parent: AlwaysScrollableScrollPhysics()
+              // ),
+              children: <Widget>[
+                userPreferences(),
+                Divider(
+                  indent: 30,
+                  endIndent: 30,
+                  color: ColorConstants().appColor,
+                ),
+                notifications(),
+                Divider(
+                  indent: 30,
+                  endIndent: 30,
+                  color: ColorConstants().appColor,
+                ),
+                reports(),
+                Divider(
+                  indent: 30,
+                  endIndent: 30,
+                  color: ColorConstants().appColor,
+                ),
+                support(),
+                footer()
+              ],
+            ),
+          ),
+          // footer()
+        ],
+      )),
     );
   }
 
-  TextStyle headerStyle(){
+  TextStyle headerStyle() {
     return const TextStyle(
       fontWeight: FontWeight.bold,
       fontSize: 16,
     );
   }
 
-  EdgeInsets containerPadding(){
+  EdgeInsets containerPadding() {
     return const EdgeInsets.fromLTRB(10, 10, 10, 0);
   }
 
@@ -126,47 +123,53 @@ class _SettingsPageState extends State<SettingsPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Text('User Preferences',
-            style: headerStyle(),),
+          Text(
+            'User Preferences',
+            style: headerStyle(),
+          ),
           InkWell(
-            onTap: (){
+            onTap: () {
               Navigator.push(context, MaterialPageRoute(builder: (context) {
                 return const MyPlaces();
               }));
             },
-            child: const ListTile(
-              title: Text('Manage MyPlaces'),
+            child: ListTile(
+              title: const Text('Manage MyPlaces'),
               leading: Icon(
                 Icons.favorite_outlined,
-                color: appColor,),
+                color: ColorConstants().appColor,
+              ),
               trailing: Icon(
                 Icons.arrow_forward_ios_rounded,
-                color: appColor,),
+                color: ColorConstants().appColor,
+              ),
             ),
           ),
           InkWell(
-            onTap: (){
-
+            onTap: () {
               showDialog(
                   context: context,
-                builder: (context) {
+                  builder: (context) {
                     return ChangeThemeDialog(
                       onValueChange: _onThemeValueChange,
                       initialValue: _theme,
                     );
-              });
+                  });
             },
-            child: const ListTile(
-              title: Text('Appearance'),
-              leading: FaIcon(FontAwesomeIcons.paintRoller,
-                color: linkedInColor,),
+            child: ListTile(
+              title: const Text('Appearance'),
+              leading: const FaIcon(
+                FontAwesomeIcons.paintRoller,
+                color: linkedInColor,
+              ),
               trailing: Icon(
                 Icons.arrow_forward_ios_rounded,
-                color: appColor,),
+                color: ColorConstants().appColor,
+              ),
             ),
           ),
           InkWell(
-            onTap: (){
+            onTap: () {
               showDialog(
                   context: context,
                   builder: (context) {
@@ -176,36 +179,39 @@ class _SettingsPageState extends State<SettingsPage> {
                     );
                   });
             },
-            child: const ListTile(
-              title: Text('Language'),
-              leading: FaIcon(FontAwesomeIcons.language,
-                color: linkedInColor,),
+            child: ListTile(
+              title: const Text('Language'),
+              leading: const FaIcon(
+                FontAwesomeIcons.language,
+                color: linkedInColor,
+              ),
               trailing: Icon(
                 Icons.arrow_forward_ios_rounded,
-                color: appColor,),
+                color: ColorConstants().appColor,
+              ),
             ),
           ),
           // const ListTile(
           //   title: Text('System Permissions'),
           // ),
           InkWell(
-            onTap: (){
+            onTap: () {
               showDialog(
                   context: context,
                   builder: (context) {
                     return ClearAppDialog();
                   });
             },
-            child: const ListTile(
-              title: Text('Clear All Data'),
+            child: ListTile(
+              title: const Text('Clear All Data'),
               leading: Icon(
                 Icons.delete,
-                color: appColor,),
-              subtitle: Text('Clear all saved data including saved '
+                color: ColorConstants().appColor,
+              ),
+              subtitle: const Text('Clear all saved data including saved '
                   'places and preferences'),
             ),
           ),
-
         ],
       ),
     );
@@ -217,16 +223,18 @@ class _SettingsPageState extends State<SettingsPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Text('Notifications',
-            style: headerStyle(),),
+          Text(
+            'Notifications',
+            style: headerStyle(),
+          ),
           // ListTile(
           //   title: const Text('Persistent Notifications'),
           //   subtitle: const Text('Display persistent notifications '
           //       'in the notification tray'),
           //   trailing: Switch(
           //     value: _persistentNotification,
-          //     activeColor: appColor,
-          //     activeTrackColor: appColor.withOpacity(0.6),
+          //     activeColor: ColorConstants().appColor,
+          //     activeTrackColor: ColorConstants().appColor.withOpacity(0.6),
           //     inactiveThumbColor: Colors.white,
           //     inactiveTrackColor: Colors.black12,
           //     onChanged: (bool value) {
@@ -248,15 +256,14 @@ class _SettingsPageState extends State<SettingsPage> {
                 'recommendations for your saved places'),
             trailing: Switch(
               value: _smartNotification,
-              activeColor: appColor,
-              activeTrackColor: appColor.withOpacity(0.6),
+              activeColor: ColorConstants().appColor,
+              activeTrackColor: ColorConstants().appColor.withOpacity(0.6),
               inactiveThumbColor: Colors.white,
               inactiveTrackColor: Colors.black12,
               onChanged: (bool value) {
-                if(value){
+                if (value) {
                   showNotification(smartNotificationId);
-                }
-                else{
+                } else {
                   cancelNotification(smartNotificationId);
                 }
 
@@ -272,20 +279,18 @@ class _SettingsPageState extends State<SettingsPage> {
                 'blog posts from the AirQo team'),
             trailing: Switch(
               value: _pushNotification,
-              activeColor: appColor,
-              activeTrackColor: appColor.withOpacity(0.6),
+              activeColor: ColorConstants().appColor,
+              activeTrackColor: ColorConstants().appColor.withOpacity(0.6),
               inactiveThumbColor: Colors.white,
               inactiveTrackColor: Colors.black12,
               onChanged: (bool value) {
-                if(value){
+                if (value) {
                   showNotification(pushNotificationId);
-                }
-                else{
+                } else {
                   cancelNotification(pushNotificationId);
                 }
 
                 setState(() {
-
                   _pushNotification = value;
                 });
               },
@@ -297,24 +302,24 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Widget reports() {
-
     return Container(
       padding: containerPadding(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Text('Reports',
-            style: headerStyle(),),
+          Text(
+            'Reports',
+            style: headerStyle(),
+          ),
           ListTile(
             title: const Text('Daily'),
             trailing: Switch(
               value: _dailyReports,
-              activeColor: appColor,
-              activeTrackColor: appColor.withOpacity(0.6),
+              activeColor: ColorConstants().appColor,
+              activeTrackColor: ColorConstants().appColor.withOpacity(0.6),
               inactiveThumbColor: Colors.white,
               inactiveTrackColor: Colors.black12,
               onChanged: (bool value) {
-
                 setState(() {
                   _dailyReports = value;
                 });
@@ -325,8 +330,8 @@ class _SettingsPageState extends State<SettingsPage> {
             title: const Text('Weekly'),
             trailing: Switch(
               value: _weeklyReports,
-              activeColor: appColor,
-              activeTrackColor: appColor.withOpacity(0.6),
+              activeColor: ColorConstants().appColor,
+              activeTrackColor: ColorConstants().appColor.withOpacity(0.6),
               inactiveThumbColor: Colors.white,
               inactiveTrackColor: Colors.black12,
               onChanged: (bool value) {
@@ -340,8 +345,8 @@ class _SettingsPageState extends State<SettingsPage> {
             title: const Text('Monthly'),
             trailing: Switch(
               value: _monthlyReports,
-              activeColor: appColor,
-              activeTrackColor: appColor.withOpacity(0.6),
+              activeColor: ColorConstants().appColor,
+              activeTrackColor: ColorConstants().appColor.withOpacity(0.6),
               inactiveThumbColor: Colors.white,
               inactiveTrackColor: Colors.black12,
               onChanged: (bool value) {
@@ -356,8 +361,8 @@ class _SettingsPageState extends State<SettingsPage> {
             subtitle: const Text('The day\'s forecast received at 6AM'),
             trailing: Switch(
               value: _morningForecast,
-              activeColor: appColor,
-              activeTrackColor: appColor.withOpacity(0.6),
+              activeColor: ColorConstants().appColor,
+              activeTrackColor: ColorConstants().appColor.withOpacity(0.6),
               inactiveThumbColor: Colors.white,
               inactiveTrackColor: Colors.black12,
               onChanged: (bool value) {
@@ -372,8 +377,8 @@ class _SettingsPageState extends State<SettingsPage> {
             subtitle: const Text('Tomorrow\'s forecast received at 8PM'),
             trailing: Switch(
               value: _eveningForecast,
-              activeColor: appColor,
-              activeTrackColor: appColor.withOpacity(0.6),
+              activeColor: ColorConstants().appColor,
+              activeTrackColor: ColorConstants().appColor.withOpacity(0.6),
               inactiveThumbColor: Colors.white,
               inactiveTrackColor: Colors.black12,
               onChanged: (bool value) {
@@ -394,80 +399,81 @@ class _SettingsPageState extends State<SettingsPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Text('Support',
-            style: headerStyle(),),
-
+          Text(
+            'Support',
+            style: headerStyle(),
+          ),
           InkWell(
-            onTap: (){
+            onTap: () {
               _launchURL('faqs');
             },
-            child: const ListTile(
-              title: Text('FAQs'),
+            child: ListTile(
+              title: const Text('FAQs'),
               leading: Icon(
                 Icons.help_outline_outlined,
-                color: appColor,
+                color: ColorConstants().appColor,
               ),
             ),
           ),
           InkWell(
-            onTap: (){
+            onTap: () {
               _launchURL('Contact Us');
             },
-            child: const ListTile(
-              title: Text('Contact Us'),
+            child: ListTile(
+              title: const Text('Contact Us'),
               leading: Icon(
                 Icons.contact_support_outlined,
-                color: appColor,
+                color: ColorConstants().appColor,
               ),
             ),
           ),
           InkWell(
-            onTap: (){
+            onTap: () {
               _launchURL('terms');
             },
-            child: const ListTile(
-              title: Text('Terms of Use & Privacy Policy'),
+            child: ListTile(
+              title: const Text('Terms of Use & Privacy Policy'),
               leading: Icon(
                 Icons.description,
-                color: appColor,
+                color: ColorConstants().appColor,
               ),
             ),
           ),
           InkWell(
-            onTap: (){
+            onTap: () {
               _launchURL('About');
             },
-            child: const ListTile(
-              title: Text('About AirQo'),
+            child: ListTile(
+              title: const Text('About AirQo'),
               leading: Icon(
                 Icons.info_outline_rounded,
-                color: appColor,
+                color: ColorConstants().appColor,
               ),
             ),
           ),
           InkWell(
-            onTap: (){
+            onTap: () {
               _launchURL('rate');
             },
-            child: const ListTile(
-              title: Text('Rate App'),
+            child: ListTile(
+              title: const Text('Rate App'),
               leading: Icon(
                 Icons.rate_review_outlined,
-                color: appColor,
+                color: ColorConstants().appColor,
               ),
             ),
           ),
           InkWell(
-            onTap: (){
+            onTap: () {
               _launchEmail('feedback');
             },
-            child: const ListTile(
-              title: Text('Feedback'),
+            child: ListTile(
+              title: const Text('Feedback'),
               leading: Icon(
                 Icons.feedback_outlined,
-                color: appColor,
+                color: ColorConstants().appColor,
               ),
-              subtitle: Text('Tell us which functionality is most '
+              subtitle: const Text('Tell us which functionality is most '
                   'important to you and what you would like '
                   'to be improved in the app'),
             ),
@@ -485,22 +491,22 @@ class _SettingsPageState extends State<SettingsPage> {
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                Colors.white.withOpacity(0.5),
-                appColor,
-              ])),
+            Colors.white.withOpacity(0.5),
+            ColorConstants().appColor,
+          ])),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-
           GestureDetector(
-            onTap: () { _launchURL('airqo'); },
+            onTap: () {
+              _launchURL('airqo');
+            },
             child: Image.asset(
               'assets/icon/airqo_logo.png',
               height: 50,
               width: 50,
             ),
           ),
-
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -509,36 +515,38 @@ class _SettingsPageState extends State<SettingsPage> {
                     FontAwesomeIcons.facebook,
                     color: facebookColor,
                   ),
-                  onPressed: () { _launchURL('facebook'); }
-              ),
-
+                  onPressed: () {
+                    _launchURL('facebook');
+                  }),
               IconButton(
                   icon: const FaIcon(
                     FontAwesomeIcons.twitter,
-                    color: twitterColor,),
-                  onPressed: () { _launchURL('twitter'); }
-              ),
-
+                    color: twitterColor,
+                  ),
+                  onPressed: () {
+                    _launchURL('twitter');
+                  }),
               IconButton(
-                  icon: const FaIcon(FontAwesomeIcons.youtube,
-                    color: youtubeColor,),
-                  onPressed: () { _launchURL('youtube'); }
-              ),
-
+                  icon: const FaIcon(
+                    FontAwesomeIcons.youtube,
+                    color: youtubeColor,
+                  ),
+                  onPressed: () {
+                    _launchURL('youtube');
+                  }),
               IconButton(
-                  icon: const FaIcon(FontAwesomeIcons.linkedin,
-                    color: linkedInColor,),
-                  onPressed: () { _launchURL('linkedin'); }
-              ),
-
+                  icon: const FaIcon(
+                    FontAwesomeIcons.linkedin,
+                    color: linkedInColor,
+                  ),
+                  onPressed: () {
+                    _launchURL('linkedin');
+                  }),
             ],
           ),
-
           const Text(
             'v1.21.7',
-            style: TextStyle(
-              color: Colors.white
-            ),
+            style: TextStyle(color: Colors.white),
           )
         ],
       ),
@@ -548,15 +556,13 @@ class _SettingsPageState extends State<SettingsPage> {
   Future<void> _launchEmail(String action) async {
     action = action.trim().toLowerCase();
 
-    switch(action){
+    switch (action) {
       case 'feedback':
         final _emailFeedbackUri = Uri(
-            scheme: 'mailto',
-            path: '$appFeedbackEmail',
-            queryParameters: {
-              'subject': 'Mobile\bApplication\bFeedback!'
-            }
-        ).toString();
+                scheme: 'mailto',
+                path: '$appFeedbackEmail',
+                queryParameters: {'subject': 'Mobile\bApplication\bFeedback!'})
+            .toString();
 
         await canLaunch(_emailFeedbackUri)
             ? await launch(_emailFeedbackUri)
@@ -570,7 +576,7 @@ class _SettingsPageState extends State<SettingsPage> {
   Future<void> _launchURL(String page) async {
     page = page.trim().toLowerCase();
 
-    switch(page){
+    switch (page) {
       case 'faqs':
         await canLaunch(faqs)
             ? await launch(faqs)
@@ -592,17 +598,15 @@ class _SettingsPageState extends State<SettingsPage> {
             : throw 'Could not launch terms, try opening $terms';
         return;
       case 'rate':
-        if(Platform.isAndroid){
+        if (Platform.isAndroid) {
           await canLaunch(appPlayStoreLink)
               ? await launch(appPlayStoreLink)
               : throw 'Could not launch rate us, try opening $appPlayStoreLink';
-        }
-        else if(Platform.isIOS){
+        } else if (Platform.isIOS) {
           await canLaunch(appIOSLink)
               ? await launch(appIOSLink)
               : throw 'Could not launch rate us, try opening $appIOSLink';
-        }
-        else{
+        } else {
           await canLaunch(appPlayStoreLink)
               ? await launch(appPlayStoreLink)
               : throw 'Could not launch rate us, try opening $appPlayStoreLink';
@@ -642,21 +646,17 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> _onThemeValueChange(Themes value) async {
-
-
     setState(() {
       _theme = value;
     });
 
     var prefs = await SharedPreferences.getInstance();
 
-    if(value == Themes.lightTheme){
+    if (value == Themes.lightTheme) {
       await prefs.setString(appTheme, 'light');
-    }
-    else{
+    } else {
       await prefs.setString(appTheme, 'dark');
     }
-
   }
 
   Future<void> _onLanguageValueChange(Languages value) async {
@@ -672,7 +672,6 @@ class _SettingsPageState extends State<SettingsPage> {
     // else{
     //   await prefs.setString(appTheme, 'dark');
     // }
-
   }
 
   void cancelNotification(int id) {
@@ -680,7 +679,7 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   void showNotification(int id) {
-    switch(id){
+    switch (id) {
       case persistentNotificationId:
         _notifications.showOngoingNotification();
         return;
@@ -696,8 +695,5 @@ class _SettingsPageState extends State<SettingsPage> {
       default:
         return;
     }
-
   }
-
 }
-

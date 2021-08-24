@@ -1,9 +1,7 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/device.dart';
 import 'package:app/screens/place_details.dart';
-import 'package:app/utils/services/local_storage.dart';
-import 'package:app/utils/services/rest_api.dart';
-import 'package:app/utils/ui/dialogs.dart';
+import 'package:app/services/local_storage.dart';
 import 'package:flutter/material.dart';
 
 class SearchPage extends StatefulWidget {
@@ -185,9 +183,9 @@ class _SearchPageState extends State<SearchPage> {
                       child: ListTile(
                         title: Text('${devices[index].siteName}'),
                         subtitle: Text('${devices[index].locationName}'),
-                        leading: const Icon(
+                        leading: Icon(
                           Icons.location_pin,
-                          color: appColor,
+                          color: ColorConstants().appColor,
                         ),
                       ) //your content here
                       );

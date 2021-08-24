@@ -1,22 +1,19 @@
-import 'package:app/config/providers/LocalProvider.dart';
+import 'package:app/providers/LocalProvider.dart';
 import 'package:app/screens/home_page_v2.dart';
-import 'package:app/utils/services/local_storage.dart';
-import 'package:app/utils/services/rest_api.dart';
+import 'package:app/services/local_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'config/languages/CustomLocalizations.dart';
-import 'config/languages/lg_intl.dart';
-import 'config/providers/ThemeProvider.dart';
-import 'config/themes/dark_theme.dart';
-import 'config/themes/light_theme.dart';
 import 'constants/app_constants.dart';
+import 'languages/CustomLocalizations.dart';
+import 'languages/lg_intl.dart';
 import 'on_boarding/onBoarding_page.dart';
-import 'screens/home_page.dart';
+import 'providers/ThemeProvider.dart';
+import 'themes/dark_theme.dart';
+import 'themes/light_theme.dart';
 
 Future<void> main() async {
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
@@ -24,7 +21,7 @@ Future<void> main() async {
     statusBarColor: Colors.transparent,
     // statusBarBrightness: Brightness.light,
     // statusBarIconBrightness:Brightness.light ,
-    // systemNavigationBarDividerColor: appColor,
+    // systemNavigationBarDividerColor: ColorConstants().appColor,
     systemNavigationBarIconBrightness: Brightness.light,
   ));
 
@@ -86,7 +83,6 @@ class AirQoApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     return AnimatedBuilder(
       animation: themeController,
       builder: (context, _) {
@@ -153,9 +149,9 @@ class AirQoApp extends StatelessWidget {
       },
     );
   }
-  
+
   final ThemeController themeController;
-  
+
   ThemeData _buildCurrentTheme() {
     switch (themeController.currentTheme) {
       case 'dark':
@@ -185,7 +181,7 @@ class SplashScreenState extends State<SplashScreen> {
     return Scaffold(
       body: Center(
         child: Container(
-            color: appColor,
+            color: ColorConstants().appColor,
             child: const Center(
               child: CircularProgressIndicator(
                 valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
@@ -196,7 +192,6 @@ class SplashScreenState extends State<SplashScreen> {
   }
 
   Future checkFirstUse() async {
-
     try {
       var db = await DBHelper().initDB();
       await DBHelper().createDefaultTables(db);
@@ -216,9 +211,8 @@ class SplashScreenState extends State<SplashScreen> {
     } else {
       await Navigator.pushAndRemoveUntil(context,
           MaterialPageRoute(builder: (context) {
-            return HomePageV2();
-          }), (r) => false);
+        return HomePageV2();
+      }), (r) => false);
     }
   }
 }
-

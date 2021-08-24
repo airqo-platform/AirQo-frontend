@@ -17,12 +17,14 @@ class PollutantsContainer extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              const Text(
+              Text(
                 'Pollutants',
                 // CustomLocalizations.of(context)!.title,
                 softWrap: true,
                 style: TextStyle(
-                    fontSize: 17, color: appColor, fontWeight: FontWeight.bold),
+                    fontSize: 17,
+                    color: ColorConstants().appColor,
+                    fontWeight: FontWeight.bold),
               ),
               Padding(
                 padding: const EdgeInsets.all(5.0),
@@ -30,7 +32,8 @@ class PollutantsContainer extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     if (measurement.pm2_5.calibratedValue != null)
-                      PollutantsCard('PM 2.5',
+                      PollutantsCard(
+                          'PM 2.5',
                           measurement.pm2_5.calibratedValue,
                           '${PollutantConstants.pm2_5}'),
                     if (measurement.pm10.calibratedValue != null)

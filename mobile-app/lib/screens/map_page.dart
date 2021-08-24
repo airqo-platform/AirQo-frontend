@@ -2,20 +2,20 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
 
-import 'package:app/config/themes/dark_theme.dart';
-import 'package:app/config/themes/light_theme.dart';
+import 'package:app/themes/dark_theme.dart';
+import 'package:app/themes/light_theme.dart';
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/device.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/suggestion.dart';
 import 'package:app/screens/place_details.dart';
-import 'package:app/utils/services/local_storage.dart';
-import 'package:app/utils/services/rest_api.dart';
-import 'package:app/utils/ui/date.dart';
-import 'package:app/utils/ui/dialogs.dart';
-import 'package:app/utils/ui/help.dart';
-import 'package:app/utils/ui/pm.dart';
-import 'package:app/utils/ui/share.dart';
+import 'package:app/services/local_storage.dart';
+import 'package:app/services/rest_api.dart';
+import 'package:app/utils/date.dart';
+import 'package:app/utils/dialogs.dart';
+import 'package:app/utils/help.dart';
+import 'package:app/utils/pm.dart';
+import 'package:app/utils/share.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -88,8 +88,8 @@ class MapPageState extends State<MapPage> {
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.arrow_back_outlined,
-                              color: appColor),
+                          icon: Icon(Icons.arrow_back_outlined,
+                              color: ColorConstants().appColor),
                           onPressed: () {
                             Navigator.pop(context);
                           },
@@ -107,15 +107,16 @@ class MapPageState extends State<MapPage> {
                                   _showInfoWindow = false;
                                 });
                               },
-                              decoration: const InputDecoration(
-                                hintStyle: TextStyle(fontSize: 13),
+                              decoration: InputDecoration(
+                                hintStyle: const TextStyle(fontSize: 13),
                                 hintText: 'Search',
-                                suffixIcon: Icon(Icons.search, color: appColor),
+                                suffixIcon: Icon(Icons.search,
+                                    color: ColorConstants().appColor),
                                 // border: InputBorder.none,
-                                border: OutlineInputBorder(
+                                border: const OutlineInputBorder(
                                     borderRadius: BorderRadius.all(
                                         Radius.circular(25.0))),
-                                contentPadding: EdgeInsets.all(15),
+                                contentPadding: const EdgeInsets.all(15),
                               ),
                               onChanged: (value) {
                                 setState(() {
@@ -136,8 +137,8 @@ class MapPageState extends State<MapPage> {
                         ),
                         IconButton(
                           iconSize: 30.0,
-                          icon: const Icon(Icons.refresh_outlined,
-                              color: appColor),
+                          icon: Icon(Icons.refresh_outlined,
+                              color: ColorConstants().appColor),
                           onPressed: _refreshMeasurements,
                         ),
                       ],
@@ -170,7 +171,7 @@ class MapPageState extends State<MapPage> {
                           //             ),
                           //             leading: const Icon(
                           //               Icons.history,
-                          //               color: appColor,
+                          //               color: ColorConstants().appColor,
                           //             ),
                           //             trailing: GestureDetector(
                           //               onTap: () {
@@ -200,12 +201,12 @@ class MapPageState extends State<MapPage> {
 
                           if (snapshot.hasError) {
                             print('${snapshot.error.toString()}');
-                            return const Padding(
+                            return Padding(
                               padding: EdgeInsets.all(16.0),
                               child: Text(
                                 'Try again later',
                                 style: TextStyle(
-                                    color: appColor,
+                                    color: ColorConstants().appColor,
                                     fontSize: 16,
                                     backgroundColor: Colors.white),
                               ),
@@ -229,8 +230,8 @@ class MapPageState extends State<MapPage> {
                                       itemBuilder: (context, index) => ListTile(
                                         title: Text(
                                           (results[index]).description,
-                                          style:
-                                              const TextStyle(color: appColor),
+                                          style: TextStyle(
+                                              color: ColorConstants().appColor),
                                         ),
                                         onTap: () {
                                           query = (results[index]).description;
@@ -254,8 +255,8 @@ class MapPageState extends State<MapPage> {
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
                                     Padding(
-                                      padding: const EdgeInsets
-                                          .fromLTRB(0, 5, 0, 0),
+                                      padding:
+                                          const EdgeInsets.fromLTRB(0, 5, 0, 0),
                                       child: CircularProgressIndicator(
                                         valueColor:
                                             AlwaysStoppedAnimation<Color>(
@@ -265,7 +266,7 @@ class MapPageState extends State<MapPage> {
 
                                     // const Text(
                                     //   'Loading...',
-                                    //   style: TextStyle(color: appColor),
+                                    //   style: TextStyle(color: ColorConstants().appColor),
                                     // )
                                   ],
                                 ));
@@ -304,18 +305,16 @@ class MapPageState extends State<MapPage> {
                             child: Container(
                                 width: 100,
                                 height: 100,
-                                child:
-                                CircularProgressIndicator(
-                                  valueColor:
-                                  AlwaysStoppedAnimation
-                                  <Color>(ColorConstants()
-                                      .appColor),
-                                )
-                            ),
+                                child: CircularProgressIndicator(
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                      ColorConstants().appColor),
+                                )),
                           ),
-                          Center(child: Text('Loading', style: TextStyle(
-                            color: ColorConstants().appColor
-                          ),)),
+                          Center(
+                              child: Text(
+                            'Loading',
+                            style: TextStyle(color: ColorConstants().appColor),
+                          )),
                         ],
                       ),
                     )),
@@ -331,13 +330,13 @@ class MapPageState extends State<MapPage> {
             //         IconButton(
             //           iconSize: 30.0,
             //           icon: const Icon(Icons.refresh_outlined,
-            //           color: appColor),
+            //           color: ColorConstants().appColor),
             //           onPressed: _refreshMeasurements,
             //         ),
             //         IconButton(
             //           iconSize: 30.0,
             //           icon: const Icon(Icons.help_outline_outlined,
-            //               color: appColor),
+            //               color: ColorConstants().appColor),
             //           onPressed: () {
             //             Navigator.push(
             //               context,
@@ -414,7 +413,7 @@ class MapPageState extends State<MapPage> {
                 ? windowProperties.device.nickName
                 : windowProperties.device.siteName,
             softWrap: true,
-            style: const TextStyle(color: appColor),
+            style: TextStyle(color: ColorConstants().appColor),
             overflow: TextOverflow.ellipsis,
           ),
           Padding(
@@ -435,8 +434,8 @@ class MapPageState extends State<MapPage> {
                       child: Text(
                         windowProperties.pm2_5.calibratedValue.toString(),
                         style: TextStyle(
-                            color: pmTextColor(windowProperties
-                                .pm2_5.calibratedValue)),
+                            color: pmTextColor(
+                                windowProperties.pm2_5.calibratedValue)),
                       ),
                     ),
                     // Expanded(child: Text(
@@ -452,8 +451,8 @@ class MapPageState extends State<MapPage> {
                       softWrap: true,
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                          color: pmTextColor(windowProperties
-                              .pm2_5.calibratedValue)),
+                          color: pmTextColor(
+                              windowProperties.pm2_5.calibratedValue)),
                     ),
 
                     Padding(
@@ -461,7 +460,8 @@ class MapPageState extends State<MapPage> {
                       child: Text(
                         dateToString(windowProperties.time),
                         style: TextStyle(
-                            color: pmTextColor(windowProperties.pm2_5.calibratedValue)),
+                            color: pmTextColor(
+                                windowProperties.pm2_5.calibratedValue)),
                       ),
                     ),
                   ],
@@ -480,20 +480,22 @@ class MapPageState extends State<MapPage> {
                     ),
                   );
                 },
-                icon: const Icon(Icons.info_outline, color: appColor),
+                icon:
+                    Icon(Icons.info_outline, color: ColorConstants().appColor),
               ),
               IconButton(
                 onPressed: () {
                   shareMeasurement(windowProperties);
                 },
-                icon: const Icon(Icons.share_outlined, color: appColor),
+                icon: Icon(Icons.share_outlined,
+                    color: ColorConstants().appColor),
               ),
               IconButton(
                   onPressed: () {
                     updateFavouritePlace(windowProperties.device);
                   },
                   icon: favourites.contains(
-                      windowProperties.device.name.trim().toLowerCase())
+                          windowProperties.device.name.trim().toLowerCase())
                       ? Icon(
                           Icons.favorite,
                           color: ColorConstants().red,
@@ -506,10 +508,11 @@ class MapPageState extends State<MapPage> {
                 onTap: () {
                   showDetails(windowProperties.device);
                 },
-                child: const Text('More Details',
+                child: Text('More Details',
                     softWrap: true,
                     style: TextStyle(
-                        color: appColor, fontWeight: FontWeight.bold)),
+                        color: ColorConstants().appColor,
+                        fontWeight: FontWeight.bold)),
               )
             ],
           ),
@@ -530,7 +533,7 @@ class MapPageState extends State<MapPage> {
     var prefs = await SharedPreferences.getInstance();
 
     setState(() {
-      favourites =  prefs.getStringList(PrefConstants().favouritePlaces) ?? [];
+      favourites = prefs.getStringList(PrefConstants().favouritePlaces) ?? [];
     });
   }
 
@@ -562,12 +565,11 @@ class MapPageState extends State<MapPage> {
   }
 
   Future<void> setMeasurements(List<Measurement> measurements) async {
-
     _showInfoWindow = false;
     var markers = <String, Marker>{};
     for (final measurement in measurements) {
-      var bitmapDescriptor = await pmToMarker(
-          measurement.pm2_5.calibratedValue);
+      var bitmapDescriptor =
+          await pmToMarker(measurement.pm2_5.calibratedValue);
 
       final marker = Marker(
         markerId: MarkerId(measurement.device.name),
@@ -678,8 +680,8 @@ class MapPageState extends State<MapPage> {
           circleId: CircleId(circleIdVal),
           center: point,
           radius: 1000,
-          fillColor: appColor.withOpacity(0.5),
+          fillColor: ColorConstants().appColor.withOpacity(0.5),
           strokeWidth: 2,
-          strokeColor: appColor));
+          strokeColor: ColorConstants().appColor));
   }
 }

@@ -1,25 +1,23 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/device.dart';
-import 'package:app/models/hourly.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/predict.dart';
 import 'package:app/utils/data_formatter.dart';
-import 'package:app/utils/services/local_storage.dart';
-import 'package:app/utils/services/rest_api.dart';
-import 'package:app/utils/ui/date.dart';
-import 'package:app/utils/ui/dialogs.dart';
-import 'package:app/utils/ui/pm.dart';
-import 'package:app/utils/ui/share.dart';
+import 'package:app/services/local_storage.dart';
+import 'package:app/services/rest_api.dart';
+import 'package:app/utils/date.dart';
+import 'package:app/utils/dialogs.dart';
+import 'package:app/utils/pm.dart';
+import 'package:app/utils/share.dart';
+import 'package:app/widgets/expanding_action_button.dart';
 import 'package:app/widgets/forecast_chart.dart';
 import 'package:app/widgets/help/aqi_index.dart';
-import 'package:app/widgets/expanding_action_button.dart';
-import 'package:app/widgets/historical_chart.dart';
 import 'package:app/widgets/hourly_chart.dart';
 import 'package:app/widgets/pollutantContainer.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
-import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class PlaceDetailsPage extends StatefulWidget {
@@ -53,10 +51,9 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
 
   Future<void> checkFavourite() async {
     if (measurementData != null) {
-
       var prefs = await SharedPreferences.getInstance();
-      var favourites =  prefs.getStringList(PrefConstants()
-          .favouritePlaces) ?? [];
+      var favourites =
+          prefs.getStringList(PrefConstants().favouritePlaces) ?? [];
 
       setState(() {
         isFavourite = favourites.contains(measurementData.device.name);
@@ -65,8 +62,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
   }
 
   Future<void> updateFavouritePlace() async {
-    var fav = await DBHelper()
-        .updateFavouritePlaces(measurementData.device);
+    var fav = await DBHelper().updateFavouritePlaces(measurementData.device);
 
     setState(() {
       isFavourite = fav;
@@ -155,8 +151,8 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
           ? Container(
               decoration: BoxDecoration(
                 image: DecorationImage(
-                  image: AssetImage(pmToImage(
-                      measurementData.pm2_5.calibratedValue)),
+                  image: AssetImage(
+                      pmToImage(measurementData.pm2_5.calibratedValue)),
                   fit: BoxFit.cover,
                 ),
               ),
@@ -172,23 +168,23 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                       children: [
                         Expanded(
                             child: GestureDetector(
-                              onTap: () {
-                                // if (isFavourite) {
-                                //   print('editing');
-                                //   setState(() {
-                                //     titleText = '';
-                                //   });
-                                //   updateTitleDialog(device);
-                                // }
-                              },
+                          onTap: () {
+                            // if (isFavourite) {
+                            //   print('editing');
+                            //   setState(() {
+                            //     titleText = '';
+                            //   });
+                            //   updateTitleDialog(device);
+                            // }
+                          },
                           child: RichText(
                             overflow: TextOverflow.ellipsis,
                             textAlign: TextAlign.center,
                             maxLines: 10,
                             text: TextSpan(
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 20,
-                                color: appColor,
+                                color: ColorConstants().appColor,
                                 fontWeight: FontWeight.bold,
                               ),
                               text: (isFavourite && device.nickName != '')
@@ -201,7 +197,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                                 //     style: const TextStyle(
                                 //       fontSize: 15,
                                 //       fontFamily: 'MaterialIcons',
-                                //       color: appColor,
+                                //       color: ColorConstants().appColor,
                                 //     ),
                                 //   )
                               ],
@@ -214,7 +210,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
 
                   // location name
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(8.0, 0, 8.0, 8.0),
+                      padding: const EdgeInsets.fromLTRB(8.0, 0, 8.0, 8.0),
                       child: GestureDetector(
                         onTap: () {
                           // if (isFavourite) {
@@ -235,17 +231,16 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                                 overflow: TextOverflow.ellipsis,
                                 textAlign: TextAlign.center,
                                 maxLines: 10,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 15,
-                                  color: appColor,
+                                  color: ColorConstants().appColor,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
                             ),
                           ],
                         ),
-                      )
-                  ),
+                      )),
 
                   // card section
                   Padding(
@@ -285,14 +280,13 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                           print(results);
                           print(formattedData);
                           return HourlyBarChart(formattedData);
-                        }
-                        else {
+                        } else {
                           return Center(
                               child: Container(
                             padding: const EdgeInsets.all(16.0),
-                            child: const CircularProgressIndicator(
-                              valueColor:
-                                  AlwaysStoppedAnimation<Color>(appColor),
+                            child: CircularProgressIndicator(
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                  ColorConstants().appColor),
                             ),
                           ));
                         }
@@ -348,9 +342,9 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                           return Center(
                               child: Container(
                             padding: const EdgeInsets.all(16.0),
-                            child: const CircularProgressIndicator(
-                              valueColor:
-                                  AlwaysStoppedAnimation<Color>(appColor),
+                            child: CircularProgressIndicator(
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                  ColorConstants().appColor),
                             ),
                           ));
                         }
@@ -377,18 +371,16 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                         child: Container(
                             width: 100,
                             height: 100,
-                            child:
-                            CircularProgressIndicator(
-                              valueColor:
-                              AlwaysStoppedAnimation
-                              <Color>(ColorConstants()
-                                  .appColor),
-                            )
-                        ),
+                            child: CircularProgressIndicator(
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                  ColorConstants().appColor),
+                            )),
                       ),
-                      Center(child: Text('Loading', style: TextStyle(
-                          color: ColorConstants().appColor
-                      ),)),
+                      Center(
+                          child: Text(
+                        'Loading',
+                        style: TextStyle(color: ColorConstants().appColor),
+                      )),
                     ],
                   ),
                 ),
@@ -437,8 +429,8 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
     final marker = Marker(
       markerId: MarkerId(measurement.device.toString()),
       icon: pmToMarkerPoint(measurement.pm2_5.calibratedValue),
-      position: LatLng((measurement.device.latitude),
-          measurement.device.longitude),
+      position:
+          LatLng((measurement.device.latitude), measurement.device.longitude),
     );
     _markers[measurement.device.toString()] = marker;
 
@@ -454,8 +446,8 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
           tiltGesturesEnabled: false,
           mapToolbarEnabled: false,
           initialCameraPosition: CameraPosition(
-            target: LatLng(measurement.device.latitude,
-                measurement.device.longitude),
+            target: LatLng(
+                measurement.device.latitude, measurement.device.longitude),
             zoom: 13,
           ),
           markers: _markers.values.toSet(),
@@ -495,8 +487,8 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                         Text(
                           measurement.pm2_5.calibratedValue.toString(),
                           style: TextStyle(
-                            color: pmTextColor(
-                                measurement.pm2_5.calibratedValue),
+                            color:
+                                pmTextColor(measurement.pm2_5.calibratedValue),
                             fontWeight: FontWeight.bold,
                             fontSize: 20,
                           ),
@@ -507,8 +499,8 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                           softWrap: true,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            color: pmTextColor(
-                                measurement.pm2_5.calibratedValue),
+                            color:
+                                pmTextColor(measurement.pm2_5.calibratedValue),
                           ),
                         ),
                       ],
@@ -516,14 +508,14 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(0, 5, 0, 0),
-                child: Text(
-                    'Last updated : ${dateToString(measurementData.time)}',
-                    style: const TextStyle(
-                      fontSize: 11,
-                      color: appColor,
-                      fontWeight: FontWeight.w300,
-                      fontStyle: FontStyle.italic,
-                    )),
+                child:
+                    Text('Last updated : ${dateToString(measurementData.time)}',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: ColorConstants().appColor,
+                          fontWeight: FontWeight.w300,
+                          fontStyle: FontStyle.italic,
+                        )),
               ),
             ],
           ),

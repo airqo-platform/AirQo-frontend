@@ -1,5 +1,5 @@
 import 'package:app/constants/app_constants.dart';
-import 'package:app/utils/ui/pm.dart';
+import 'package:app/utils/pm.dart';
 import 'package:flutter/material.dart';
 
 class AQI_Dialog extends StatelessWidget {
@@ -35,20 +35,26 @@ class AQI_Dialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: appColor,
+        backgroundColor: ColorConstants().appColor,
         title: const Text('AQI Guide'),
       ),
       body: Container(
-        padding: const EdgeInsets.fromLTRB(0, 0,0, 0),
+        padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
         child: ListView(
           children: [
             whatIsAQI,
-            AQI_Quide('assets/images/good-face.png', good, pmToColor(0), pmTextColor(0)),
-            AQI_Quide('assets/images/moderate-face.png', moderate, pmToColor(20), pmTextColor(20)),
-            AQI_Quide('assets/images/sensitive-face.png', sensitive, pmToColor(40), pmTextColor(40)),
-            AQI_Quide('assets/images/unhealthy-face.png', unHeathy, pmToColor(100), pmTextColor(100)),
-            AQI_Quide('assets/images/very-unhealthy-face.png', veryUnhealthy, pmToColor(200), pmTextColor(200)),
-            AQI_Quide('assets/images/hazardous-face.png', hazardous, pmToColor(500), pmTextColor(500)),
+            AQI_Quide('assets/images/good-face.png', good, pmToColor(0),
+                pmTextColor(0)),
+            AQI_Quide('assets/images/moderate-face.png', moderate,
+                pmToColor(20), pmTextColor(20)),
+            AQI_Quide('assets/images/sensitive-face.png', sensitive,
+                pmToColor(40), pmTextColor(40)),
+            AQI_Quide('assets/images/unhealthy-face.png', unHeathy,
+                pmToColor(100), pmTextColor(100)),
+            AQI_Quide('assets/images/very-unhealthy-face.png', veryUnhealthy,
+                pmToColor(200), pmTextColor(200)),
+            AQI_Quide('assets/images/hazardous-face.png', hazardous,
+                pmToColor(500), pmTextColor(500)),
           ],
         ),
       ),
@@ -56,18 +62,18 @@ class AQI_Dialog extends StatelessWidget {
   }
 
   Widget whatIsAQI = Container(
-  padding: const EdgeInsets.all(10),
+      padding: const EdgeInsets.all(10),
       child: const Text(
-      'An air quality index is used by government agencies to communicate to '
-      'the public how polluted the air currently is or how polluted it is '
-      'forecast to become.'
-      'Different countries have their own air quality indices, '
-      'corresponding to different national air quality standards.',
-      softWrap: true,
-      style: TextStyle(
-      height: 1.2,
-  // letterSpacing: 1.0
-  )));
+          'An air quality index is used by government agencies to communicate to '
+          'the public how polluted the air currently is or how polluted it is '
+          'forecast to become.'
+          'Different countries have their own air quality indices, '
+          'corresponding to different national air quality standards.',
+          softWrap: true,
+          style: TextStyle(
+            height: 1.2,
+            // letterSpacing: 1.0
+          )));
 
   Widget AQI_Quide(String image, String body, Color color, Color textColor) {
     return Container(
@@ -90,12 +96,9 @@ class AQI_Dialog extends StatelessWidget {
               padding: const EdgeInsets.all(5),
               child: Text(body,
                   softWrap: true,
-                  style: TextStyle(
-                    height: 1.2,
-                    color: textColor
-                    // letterSpacing: 1.0
-                  )
-              ),
+                  style: TextStyle(height: 1.2, color: textColor
+                      // letterSpacing: 1.0
+                      )),
             ),
           )
         ],

@@ -7,10 +7,10 @@ import 'package:app/screens/resources_page.dart';
 import 'package:app/screens/search_location_page.dart';
 import 'package:app/screens/settings_page.dart';
 import 'package:app/screens/share_picture.dart';
-import 'package:app/utils/services/local_storage.dart';
-import 'package:app/utils/services/rest_api.dart';
-import 'package:app/utils/ui/dialogs.dart';
-import 'package:app/utils/ui/share.dart';
+import 'package:app/services/local_storage.dart';
+import 'package:app/services/rest_api.dart';
+import 'package:app/utils/dialogs.dart';
+import 'package:app/utils/share.dart';
 import 'package:app/widgets/help/aqi_index.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
@@ -57,63 +57,63 @@ class _HomePageV2State extends State<HomePageV2> {
           PopupMenuButton<dynamic>(
             onSelected: (value) => {navigateToMenuItem(value)},
             itemBuilder: (context) => <PopupMenuEntry<String>>[
-              const PopupMenuItem<String>(
+              PopupMenuItem<String>(
                 value: 'MyPlaces',
                 child: ListTile(
                   leading: Icon(
                     Icons.favorite_outlined,
-                    color: appColor,
+                    color: ColorConstants().appColor,
                   ),
-                  title: Text(
+                  title: const Text(
                     'MyPlaces',
                   ),
                 ),
               ),
-              const PopupMenuItem<String>(
+              PopupMenuItem<String>(
                 value: 'AQI Index',
                 child: ListTile(
                   leading: Icon(
                     Icons.info_outline_rounded,
-                    color: appColor,
+                    color: ColorConstants().appColor,
                   ),
-                  title: Text(
+                  title: const Text(
                     'AQI Guide',
                   ),
                 ),
               ),
-              const PopupMenuItem<String>(
+              PopupMenuItem<String>(
                 value: 'Faqs',
                 child: ListTile(
                   leading: Icon(
                     Icons.help_outline_outlined,
-                    color: appColor,
+                    color: ColorConstants().appColor,
                   ),
-                  title: Text(
+                  title: const Text(
                     'Faqs',
                   ),
                 ),
               ),
-              const PopupMenuItem<String>(
+              PopupMenuItem<String>(
                 value: 'Feedback',
                 child: ListTile(
                   leading: Icon(
                     Icons.feedback_outlined,
-                    color: appColor,
+                    color: ColorConstants().appColor,
                   ),
-                  title: Text(
+                  title: const Text(
                     'Support',
                   ),
                 ),
               ),
               const PopupMenuDivider(),
-              const PopupMenuItem<String>(
+              PopupMenuItem<String>(
                 value: 'Share',
                 child: ListTile(
                   leading: Icon(
                     Icons.share_outlined,
-                    color: appColor,
+                    color: ColorConstants().appColor,
                   ),
-                  title: Text(
+                  title: const Text(
                     'Share',
                     // style: Theme.of(context).textTheme.headline1,
                   ),
@@ -138,8 +138,9 @@ class _HomePageV2State extends State<HomePageV2> {
               IconButton(
                 // iconSize: 30.0,
                 // padding: const EdgeInsets.only(left: 28.0),
-                icon: const Icon(Icons.home_outlined, color: appColor),
-                splashColor: appColor,
+                icon:
+                    Icon(Icons.home_outlined, color: ColorConstants().appColor),
+                splashColor: ColorConstants().appColor,
                 onPressed: () {
                   setState(() {
                     _pageCtrl.jumpToPage(0);
@@ -155,8 +156,9 @@ class _HomePageV2State extends State<HomePageV2> {
               IconButton(
                 // iconSize: 30.0,
                 // padding: const EdgeInsets.only(right: 28.0),
-                icon: const Icon(Icons.library_books_outlined, color: appColor),
-                splashColor: appColor,
+                icon: Icon(Icons.library_books_outlined,
+                    color: ColorConstants().appColor),
+                splashColor: ColorConstants().appColor,
                 onPressed: () {
                   setState(() {
                     _pageCtrl.jumpToPage(3);
@@ -190,7 +192,7 @@ class _HomePageV2State extends State<HomePageV2> {
         // width: 60.0,
         child: FittedBox(
           child: FloatingActionButton(
-            backgroundColor: appColor,
+            backgroundColor: ColorConstants().appColor,
             onPressed: () {
               Navigator.push(context, MaterialPageRoute(builder: (context) {
                 return MapPage();
@@ -272,7 +274,7 @@ class _HomePageV2State extends State<HomePageV2> {
       showSnackBar(context, 'Tap again to exit !');
       // final snackBar = const SnackBar(
       //   content: Text('Tap again to exit !'),
-      //   backgroundColor: appColor,
+      //   backgroundColor: ColorConstants().appColor,
       // );
       // ScaffoldMessenger.of(context).showSnackBar(snackBar);
 

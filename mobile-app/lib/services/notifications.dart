@@ -6,16 +6,14 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class Notifications {
   FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-  FlutterLocalNotificationsPlugin();
+      FlutterLocalNotificationsPlugin();
 
   void initNotifications() async {
     final initializationSettingsAndroid =
-    const AndroidInitializationSettings('launcher_icon');
+        const AndroidInitializationSettings('launcher_icon');
     final initializationSettingsIOS =
-    const IOSInitializationSettings(
-        onDidReceiveLocalNotification: null);
-    final initializationSettingsMacOS =
-    const MacOSInitializationSettings();
+        const IOSInitializationSettings(onDidReceiveLocalNotification: null);
+    final initializationSettingsMacOS = const MacOSInitializationSettings();
     final initializationSettings = InitializationSettings(
         android: initializationSettingsAndroid,
         iOS: initializationSettingsIOS,
@@ -29,11 +27,9 @@ class Notifications {
   }
 
   Future<void> showPushNotification() async {
-
-    const bigTextStyleInformation =
-    BigTextStyleInformation(
+    const bigTextStyleInformation = BigTextStyleInformation(
       'You will be receiving push notifications from the AirQo team about'
-          ' new features and blog posts',
+      ' new features and blog posts',
       htmlFormatBigText: true,
       contentTitle: 'AirQo',
       htmlFormatContentTitle: true,
@@ -41,10 +37,9 @@ class Notifications {
       htmlFormatSummaryText: true,
     );
 
-
-    const androidPlatformChannelSpecifics =
-    AndroidNotificationDetails(
-      'push_messages: 0', 'push_messages: push_messages',
+    const androidPlatformChannelSpecifics = AndroidNotificationDetails(
+      'push_messages: 0',
+      'push_messages: push_messages',
       'push_messages: AirQo',
       styleInformation: bigTextStyleInformation,
       importance: Importance.max,
@@ -53,19 +48,16 @@ class Notifications {
       enableVibration: true,
     );
     const platformChannelSpecifics =
-    NotificationDetails(android: androidPlatformChannelSpecifics);
+        NotificationDetails(android: androidPlatformChannelSpecifics);
     await flutterLocalNotificationsPlugin.show(
-        0, 'AirQo',
-        'Push Notifications',
-        platformChannelSpecifics,
+        0, 'AirQo', 'Push Notifications', platformChannelSpecifics,
         payload: 'load');
   }
 
   Future<void> showSmartNotification() async {
-    const bigTextStyleInformation =
-    BigTextStyleInformation(
+    const bigTextStyleInformation = BigTextStyleInformation(
       'You will be receiving notifications on air pollution alerts and '
-          'recommendations for your saved places',
+      'recommendations for your saved places',
       htmlFormatBigText: true,
       contentTitle: 'AirQo',
       htmlFormatContentTitle: true,
@@ -73,23 +65,20 @@ class Notifications {
       htmlFormatSummaryText: true,
     );
 
-    const androidPlatformChannelSpecifics =
-    AndroidNotificationDetails(
-      'smart_messages: 0', 'smart_messages: smart_messages',
+    const androidPlatformChannelSpecifics = AndroidNotificationDetails(
+      'smart_messages: 0',
+      'smart_messages: smart_messages',
       'smart_messages: AirQo',
       styleInformation: bigTextStyleInformation,
       importance: Importance.max,
       priority: Priority.high,
       showWhen: false,
       enableVibration: true,
-
     );
     const platformChannelSpecifics =
-    NotificationDetails(android: androidPlatformChannelSpecifics);
+        NotificationDetails(android: androidPlatformChannelSpecifics);
     await flutterLocalNotificationsPlugin.show(
-        0, 'AirQo',
-        'Smart Notifications',
-        platformChannelSpecifics,
+        0, 'AirQo', 'Smart Notifications', platformChannelSpecifics,
         payload: 'load');
   }
 
@@ -136,16 +125,16 @@ class Notifications {
         'id', 'channel ', 'description',
         priority: Priority.high, importance: Importance.max);
     var iOSDetails = const IOSNotificationDetails();
-    var platformDetails = NotificationDetails(
-        android: androidDetails, iOS: iOSDetails);
+    var platformDetails =
+        NotificationDetails(android: androidDetails, iOS: iOSDetails);
     await flutterLocalNotificationsPlugin.show(
-        0, 'AirQo', 'Simple Notification',
-        platformDetails, payload: 'Destination Screen (Simple Notification)');
+        0, 'AirQo', 'Simple Notification', platformDetails,
+        payload: 'Destination Screen (Simple Notification)');
   }
 
   Future<void> showScheduleNotification() async {
-    var scheduledNotificationDateTime = DateTime.now()
-        .add(const Duration(seconds: 5));
+    var scheduledNotificationDateTime =
+        DateTime.now().add(const Duration(seconds: 5));
     var androidDetails = const AndroidNotificationDetails(
       'channel_id',
       'Channel Name',
@@ -154,20 +143,28 @@ class Notifications {
       largeIcon: DrawableResourceAndroidBitmap('launcher_icon'),
     );
     var iOSDetails = const IOSNotificationDetails();
-    var platformDetails = NotificationDetails(android: androidDetails, iOS: iOSDetails);
-    await flutterLocalNotificationsPlugin.schedule(0, 'AirQo', 'Scheduled Notification',
-        scheduledNotificationDateTime, platformDetails, payload: 'Destination Screen(Schedule Notification)');
+    var platformDetails =
+        NotificationDetails(android: androidDetails, iOS: iOSDetails);
+    await flutterLocalNotificationsPlugin.schedule(
+        0,
+        'AirQo',
+        'Scheduled Notification',
+        scheduledNotificationDateTime,
+        platformDetails,
+        payload: 'Destination Screen(Schedule Notification)');
   }
 
   Future<void> showPeriodicNotification() async {
-
     const androidNotificationDetails = AndroidNotificationDetails(
         'channel_id', 'Channel Name', 'Channel Description');
     var notificationDetails = const NotificationDetails(
         android: androidNotificationDetails, iOS: null);
     await flutterLocalNotificationsPlugin.periodicallyShow(
-        0, 'AirQo', 'Periodic Notification',
-        RepeatInterval.everyMinute, notificationDetails,
+        0,
+        'AirQo',
+        'Periodic Notification',
+        RepeatInterval.everyMinute,
+        notificationDetails,
         payload: 'Destination Screen(Periodic Notification)');
   }
 
@@ -179,29 +176,25 @@ class Notifications {
       summaryText: 'Big Picture Notification Summary Text',
     );
     var androidDetails = AndroidNotificationDetails(
-        'channel_id',
-        'Channel Name',
-        'Channel Description',
+        'channel_id', 'Channel Name', 'Channel Description',
         styleInformation: bigPictureStyleInformation);
-    var platformDetails = NotificationDetails(
-        android: androidDetails, iOS: null);
-    await flutterLocalNotificationsPlugin.show(0,
-        'AirQo', 'Flutter Big Picture Notification',
-        platformDetails,
+    var platformDetails =
+        NotificationDetails(android: androidDetails, iOS: null);
+    await flutterLocalNotificationsPlugin.show(
+        0, 'AirQo', 'Flutter Big Picture Notification', platformDetails,
         payload: 'Destination Screen(Big Picture Notification)');
   }
 
   Future<void> showBigTextNotification() async {
-    const bigTextStyleInformation =
-    BigTextStyleInformation(
+    const bigTextStyleInformation = BigTextStyleInformation(
       'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do '
-          'eiusmod tempor incididunt ut labore et dolore magna aliqua.'
-          ' Ut enim ad minim veniam, quis nostrud exercitation ullamco '
-          'laboris nisi ut aliquip ex ea commodo consequat. '
-          'Duis aute irure dolor in reprehenderit in voluptate velit esse '
-          'cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat '
-          'cupidatat non proident, sunt in culpa qui officia deserunt'
-          ' mollit anim id est laborum.',
+      'eiusmod tempor incididunt ut labore et dolore magna aliqua.'
+      ' Ut enim ad minim veniam, quis nostrud exercitation ullamco '
+      'laboris nisi ut aliquip ex ea commodo consequat. '
+      'Duis aute irure dolor in reprehenderit in voluptate velit esse '
+      'cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat '
+      'cupidatat non proident, sunt in culpa qui officia deserunt'
+      ' mollit anim id est laborum.',
       htmlFormatBigText: true,
       contentTitle: 'Big Text Notification Title',
       htmlFormatContentTitle: true,
@@ -211,47 +204,40 @@ class Notifications {
     const androidNotificationDetails = AndroidNotificationDetails(
         'channel_id', 'Channel Name', 'Channel Description',
         styleInformation: bigTextStyleInformation);
-    const notificationDetails = NotificationDetails(
-        android: androidNotificationDetails, iOS: null);
+    const notificationDetails =
+        NotificationDetails(android: androidNotificationDetails, iOS: null);
     await flutterLocalNotificationsPlugin.show(
-        0, 'AirQo', 'Big Text Notification',
-        notificationDetails,
+        0, 'AirQo', 'Big Text Notification', notificationDetails,
         payload: 'Destination Screen(Big Text Notification)');
   }
 
   Future<void> showInsistentNotification() async {
     const int insistentFlag = 4;
-    final androidPlatformChannelSpecifics =
-    AndroidNotificationDetails('channel_id',
-        'Channel Name', 'Channel Description',
+    final androidPlatformChannelSpecifics = AndroidNotificationDetails(
+        'channel_id', 'Channel Name', 'Channel Description',
         importance: Importance.max,
         priority: Priority.high,
         ticker: 'ticker',
         additionalFlags: Int32List.fromList(<int>[insistentFlag]));
     final notificationDetails = NotificationDetails(
-        android: androidPlatformChannelSpecifics, iOS:null);
-    await flutterLocalNotificationsPlugin.show(0,
-        'AirQo', 'Insistent Notification',
-        notificationDetails,
+        android: androidPlatformChannelSpecifics, iOS: null);
+    await flutterLocalNotificationsPlugin.show(
+        0, 'AirQo', 'Insistent Notification', notificationDetails,
         payload: 'Destination Screen(Insistent Notification)');
   }
 
   Future<void> showOngoingNotification() async {
-    const androidNotificationDetails =
-    AndroidNotificationDetails('$persistentNotificationId',
-        'Channel Name', 'Channel Description',
+    const androidNotificationDetails = AndroidNotificationDetails(
+        '$persistentNotificationId', 'Channel Name', 'Channel Description',
         importance: Importance.max,
         icon: 'launcher_icon',
         priority: Priority.high,
         ongoing: true,
         autoCancel: false);
     const notificationDetails =
-    NotificationDetails(android: androidNotificationDetails, iOS:null);
-    await flutterLocalNotificationsPlugin.show(
-        persistentNotificationId,
-        'AirQo',
-        'Ongoing Notification',
-        notificationDetails,
+        NotificationDetails(android: androidNotificationDetails, iOS: null);
+    await flutterLocalNotificationsPlugin.show(persistentNotificationId,
+        'AirQo', 'Ongoing Notification', notificationDetails,
         payload: 'Destination Screen(Ongoing Notification)');
   }
 
@@ -259,8 +245,7 @@ class Notifications {
     const int maxProgress = 5;
     for (int i = 0; i <= maxProgress; i++) {
       await Future<void>.delayed(const Duration(seconds: 1), () async {
-        final androidNotificationDetails =
-        AndroidNotificationDetails(
+        final androidNotificationDetails = AndroidNotificationDetails(
             'channel_id', 'Channel Name', 'Channel Description',
             channelShowBadge: false,
             importance: Importance.max,
@@ -269,14 +254,12 @@ class Notifications {
             showProgress: true,
             maxProgress: maxProgress,
             progress: i);
-        final notificationDetails = NotificationDetails(
-            android: androidNotificationDetails, iOS: null);
+        final notificationDetails =
+            NotificationDetails(android: androidNotificationDetails, iOS: null);
         await flutterLocalNotificationsPlugin.show(progressNotificationId,
-            'AirQo', 'Progress Notification',
-            notificationDetails,
+            'AirQo', 'Progress Notification', notificationDetails,
             payload: 'Destination Screen(Progress Notification)');
       });
     }
   }
-
 }

@@ -16,12 +16,14 @@ class HistoricalBarChart extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 30),
       child: Column(
         children: <Widget>[
-          const Center(
+          Center(
             child: Text(
               'Forecast',
               softWrap: true,
               style: TextStyle(
-                  fontSize: 17, color: appColor, fontWeight: FontWeight.bold),
+                  fontSize: 17,
+                  color: ColorConstants().appColor,
+                  fontWeight: FontWeight.bold),
             ),
           ),
           Expanded(

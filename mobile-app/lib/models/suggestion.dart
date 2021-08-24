@@ -11,8 +11,21 @@ class Suggestion {
 
   @JsonKey(name: 'place_id', required: true)
   final String placeId;
-
   final String description;
+
+  static String dbName() => 'search_table';
+
+  static String dbDescription() => 'description';
+
+  static String dbPlaceId() => 'place_id';
+
+  static String searchHistoryTableDropStmt() =>
+      'DROP TABLE IF EXISTS ${dbName()}';
+
+  static String searchHistoryTableCreateStmt() =>
+      'CREATE TABLE IF NOT EXISTS ${dbName()}('
+      'id INTEGER PRIMARY KEY, '
+      '${dbDescription()} TEXT, ${dbPlaceId()} TEXT)';
 
   @override
   String toString() {

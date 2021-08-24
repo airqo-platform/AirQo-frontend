@@ -3,10 +3,8 @@ import 'package:app/models/hourly.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/predict.dart';
 import 'package:app/models/series.dart';
-import 'package:app/utils/ui/pm.dart';
-import 'package:app/widgets/location_chart.dart';
+import 'package:app/utils/pm.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
-import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class Pm2_5TimeSeries {
@@ -118,8 +116,8 @@ List<charts.Series<TimeSeriesData, DateTime>> historicalChartData(
   for (var measurement in measurements) {
     try {
       final dateTime = DateTime.parse(measurement.time);
-      data.add(TimeSeriesData(dateTime,
-              measurement.pm2_5.calibratedValue.ceil()));
+      data.add(
+          TimeSeriesData(dateTime, measurement.pm2_5.calibratedValue.ceil()));
     } catch (e) {
       print(e);
     }
@@ -139,7 +137,6 @@ List<charts.Series<TimeSeriesData, DateTime>> historicalChartData(
     )
   ];
 }
-
 
 List<charts.Series<TimeSeriesData, DateTime>> hourlyChartData(
     List<Hourly> measurements) {

@@ -1,7 +1,5 @@
 import 'package:app/constants/app_constants.dart';
-import 'package:app/models/device.dart';
 import 'package:app/screens/my_places.dart';
-import 'package:app/screens/place_details.dart';
 import 'package:flutter/material.dart';
 
 Future<void> showSnackBar(context, String message) async {
@@ -12,7 +10,7 @@ Future<void> showSnackBar(context, String message) async {
       softWrap: true,
       textAlign: TextAlign.center,
     ),
-    backgroundColor: appColor,
+    backgroundColor: ColorConstants().appColor,
   );
   ScaffoldMessenger.of(context).showSnackBar(snackBar);
 }
@@ -24,7 +22,7 @@ Future<void> showSnackBar2(context, String message) async {
       softWrap: true,
       textAlign: TextAlign.center,
     ),
-    backgroundColor: appColor,
+    backgroundColor: ColorConstants().appColor,
   );
   ScaffoldMessenger.of(context).showSnackBar(snackBar);
 }

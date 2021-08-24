@@ -1,7 +1,7 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/device.dart';
 import 'package:app/models/measurement.dart';
-import 'package:app/utils/ui/pm.dart';
+import 'package:app/utils/pm.dart';
 import 'package:share/share.dart';
 
 void shareLocation(Device device) {

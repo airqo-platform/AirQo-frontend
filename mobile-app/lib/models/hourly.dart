@@ -24,9 +24,9 @@ class Hourly {
     final formatted = formatter.parse(hourly.time);
 
     return {
-      constants.channelID: hourly.channelId,
-      constants.time: formatted.toString(),
-      constants.pm2_5: hourly.pm2_5,
+      'constants.channelID': hourly.channelId,
+      'constants.time': formatted.toString(),
+      'constants.pm2_5': hourly.pm2_5,
     };
   }
 
@@ -34,9 +34,9 @@ class Hourly {
     var constants = DbConstants();
 
     return {
-      'channelId': json[constants.channelID] as int,
-      'time': json[constants.time] as String,
-      'pm2_5': json[constants.pm2_5],
+      'channelId': json['constants.channelID'] as int,
+      'time': json['constants.time'] as String,
+      'pm2_5': json['constants.pm2_5'],
     };
   }
 }

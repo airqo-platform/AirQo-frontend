@@ -1,11 +1,11 @@
 import 'dart:async';
 
-import 'package:intl/intl.dart' as intl;
-import 'package:intl/date_symbols.dart' as intl;
-import 'package:intl/date_symbol_data_custom.dart' as date_symbol_data_custom;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:intl/date_symbol_data_custom.dart' as date_symbol_data_custom;
+import 'package:intl/date_symbols.dart' as intl;
+import 'package:intl/intl.dart' as intl;
 
 /// A custom set of date patterns for the `lg` locale.
 ///
@@ -264,6 +264,7 @@ class _LgMaterialLocalizationsDelegate
 
   @override
   bool isSupported(Locale locale) => locale.languageCode == 'lg';
+
   // bool isSupported(Locale locale) => ['en', 'lg'].contains(locale.languageCode);
 
   @override
@@ -347,6 +348,7 @@ class LgMaterialLocalizations extends GlobalMaterialLocalizations {
 
   @override
   String get alertDialogLabel => r'Alert';
+
 // #enddocregion Getters
 
   @override
@@ -423,6 +425,7 @@ class LgMaterialLocalizations extends GlobalMaterialLocalizations {
   @override
   String get pageRowsInfoTitleApproximateRaw =>
       r'$firstRow–$lastRow of about $rowCount';
+
 // #enddocregion Raw
 
   @override

@@ -1,5 +1,5 @@
 import 'package:app/constants/app_constants.dart';
-import 'package:app/utils/ui/help.dart';
+import 'package:app/utils/help.dart';
 import 'package:flutter/material.dart';
 
 class PollutantsCard extends StatelessWidget {
@@ -27,8 +27,8 @@ class PollutantsCard extends StatelessWidget {
           Row(
             children: [
               Text(name),
-              const Icon(Icons.help_outline_outlined,
-                  color: appColor, size: 10),
+              Icon(Icons.help_outline_outlined,
+                  color: ColorConstants().appColor, size: 10),
             ],
           ),
           Padding(
