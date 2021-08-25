@@ -33,6 +33,7 @@ class _HomePageState extends State<HomePage> {
   bool showAddPlace = true;
   DateTime? exitTime;
 
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -170,7 +171,7 @@ class _HomePageState extends State<HomePage> {
             mainAxisSize: MainAxisSize.max,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
-              Spacer(
+              const Spacer(
                 flex: 1,
               ),
               IconButton(
@@ -185,7 +186,7 @@ class _HomePageState extends State<HomePage> {
                   });
                 },
               ),
-              Spacer(
+              const Spacer(
                 flex: 1,
               ),
               // IconButton(
@@ -215,7 +216,7 @@ class _HomePageState extends State<HomePage> {
               //     });
               //   },
               // ),
-              Spacer(
+              const Spacer(
                 flex: 1,
               ),
               IconButton(

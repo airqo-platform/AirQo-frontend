@@ -384,8 +384,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
           if (snapshot.hasError) {
             print(snapshot.error);
             return loadApiDevices(context);
-          }
-          else if (snapshot.hasData) {
+          } else if (snapshot.hasData) {
             var devices = snapshot.data as List<Device>;
 
             if (devices.isEmpty) {
@@ -501,8 +500,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
               child: const Text('Your request could not be fulfilled, '
                   'try again later'),
             );
-          }
-          else if (snapshot.hasData) {
+          } else if (snapshot.hasData) {
             var devices = snapshot.data as List<Device>;
 
             if (devices.isEmpty) {

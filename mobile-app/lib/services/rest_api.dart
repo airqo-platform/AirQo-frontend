@@ -84,15 +84,13 @@ class AirqoApiClient {
   }
 
   Future<List<Device>> fetchDevices() async {
-
     try {
-
       var queryParams = <String, dynamic>{}
         ..putIfAbsent('active', () => 'yes')
         ..putIfAbsent('tenant', () => 'airqo');
 
       final responseBody =
-      await _performGetRequest(queryParams, AirQoUrls().devices);
+          await _performGetRequest(queryParams, AirQoUrls().devices);
 
       if (responseBody != null) {
         return compute(Device.parseDevices, responseBody);
@@ -235,21 +233,19 @@ class AirqoApiClient {
     return <Measurement>[];
   }
 
-  Future<List<Measurement>> fetchLatestDevicesMeasurements
-      (List<String> devices) async {
-
+  Future<List<Measurement>> fetchLatestDevicesMeasurements(
+      List<String> devices) async {
     try {
-
-      if(devices.isEmpty){
+      if (devices.isEmpty) {
         return <Measurement>[];
       }
 
       var devicesStr = '';
-      for(var device in devices){
+      for (var device in devices) {
         devicesStr = '$devicesStr,$device,';
       }
 
-      devicesStr = devicesStr.substring(1, devicesStr.length-1);
+      devicesStr = devicesStr.substring(1, devicesStr.length - 1);
 
       var queryParams = <String, dynamic>{}
         ..putIfAbsent('device', () => devicesStr)
@@ -258,7 +254,7 @@ class AirqoApiClient {
         ..putIfAbsent('tenant', () => 'airqo');
 
       final responseBody =
-      await _performGetRequest(queryParams, AirQoUrls().measurements);
+          await _performGetRequest(queryParams, AirQoUrls().measurements);
 
       if (responseBody != null) {
         return compute(Measurement.parseMeasurements, responseBody);
@@ -276,15 +272,14 @@ class AirqoApiClient {
   Future<List<Device>> getDevicesByCoordinates(
       double latitude, double longitude) async {
     try {
-
       var queryParams = <String, dynamic>{}
         ..putIfAbsent('radius', () => '$defaultRadius')
         ..putIfAbsent('tenant', () => 'airqo')
         ..putIfAbsent('longitude', () => longitude)
         ..putIfAbsent('latitude', () => latitude);
 
-      final responseBody = await _performGetRequest(queryParams,
-          AirQoUrls().devicesByGeoCoordinates);
+      final responseBody = await _performGetRequest(
+          queryParams, AirQoUrls().devicesByGeoCoordinates);
 
       if (responseBody != null) {
         return compute(Device.parseDevicesV2, responseBody);
@@ -297,7 +292,6 @@ class AirqoApiClient {
     }
 
     return <Device>[];
-
   }
 
   Future<String> imageUpload(String file, String? type) async {
@@ -482,7 +476,6 @@ class GoogleSearchProvider {
         final result = json.decode(response.body);
 
         if (result['status'] == 'OK') {
-
           List<Suggestion> suggestions = result['predictions']
               .map<Suggestion>((p) => Suggestion.fromJson(p))
               .toList();

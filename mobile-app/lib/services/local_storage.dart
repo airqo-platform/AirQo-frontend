@@ -37,25 +37,25 @@ class DBHelper {
     print('creating tables');
 
     // latest measurements table
-    await db.execute(Measurement.latestMeasurementsTableDropStmt());
+    // await db.execute(Measurement.latestMeasurementsTableDropStmt());
     await db.execute(Measurement.latestMeasurementsTableCreateStmt());
 
     // search history table
-    await db.execute(Suggestion.searchHistoryTableDropStmt());
+    // await db.execute(Suggestion.searchHistoryTableDropStmt());
     await db.execute(Suggestion.searchHistoryTableCreateStmt());
 
     // historical measurements table
-    await db
-        .execute(HistoricalMeasurement.historicalMeasurementsTableDropStmt());
-    await db
-        .execute(HistoricalMeasurement.historicalMeasurementsTableCreateStmt());
+    // await db.execute(HistoricalMeasurement
+    //     .historicalMeasurementsTableDropStmt());
+    await db.execute(HistoricalMeasurement
+        .historicalMeasurementsTableCreateStmt());
 
     // forecast table
-    await db.execute(Predict.forecastTableDropStmt());
+    // await db.execute(Predict.forecastTableDropStmt());
     await db.execute(Predict.forecastTableCreateStmt());
 
     // devices table
-    await db.execute(Device.devicesTableDropStmt());
+    // await db.execute(Device.devicesTableDropStmt());
     await db.execute(Device.createTableStmt());
   }
 
@@ -197,13 +197,11 @@ class DBHelper {
 
   Future<void> insertDeviceHistoricalMeasurements(
       List<HistoricalMeasurement> measurements, String device) async {
-
     try {
       final db = await database;
 
       if (measurements.isNotEmpty) {
-        await db.delete(
-            HistoricalMeasurement.historicalMeasurementsDb(),
+        await db.delete(HistoricalMeasurement.historicalMeasurementsDb(),
             where: '${HistoricalMeasurement.dbDevice()} = ?',
             whereArgs: [device]);
 
@@ -364,7 +362,6 @@ class DBHelper {
 
   Future<List<Device>> getDevices() async {
     try {
-
       final db = await database;
       var res = await db.query(Device.dbName());
 

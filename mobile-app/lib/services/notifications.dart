@@ -187,14 +187,8 @@ class Notifications {
 
   Future<void> showBigTextNotification() async {
     const bigTextStyleInformation = BigTextStyleInformation(
-      'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do '
-      'eiusmod tempor incididunt ut labore et dolore magna aliqua.'
-      ' Ut enim ad minim veniam, quis nostrud exercitation ullamco '
-      'laboris nisi ut aliquip ex ea commodo consequat. '
-      'Duis aute irure dolor in reprehenderit in voluptate velit esse '
-      'cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat '
-      'cupidatat non proident, sunt in culpa qui officia deserunt'
-      ' mollit anim id est laborum.',
+      'You will be receiving notifications on air pollution alerts and '
+      'recommendations for your saved places',
       htmlFormatBigText: true,
       contentTitle: 'Big Text Notification Title',
       htmlFormatContentTitle: true,
@@ -212,7 +206,7 @@ class Notifications {
   }
 
   Future<void> showInsistentNotification() async {
-    const int insistentFlag = 4;
+    const insistentFlag = 4;
     final androidPlatformChannelSpecifics = AndroidNotificationDetails(
         'channel_id', 'Channel Name', 'Channel Description',
         importance: Importance.max,
@@ -242,8 +236,8 @@ class Notifications {
   }
 
   Future<void> showProgressNotification() async {
-    const int maxProgress = 5;
-    for (int i = 0; i <= maxProgress; i++) {
+    const maxProgress = 5;
+    for (var i = 0; i <= maxProgress; i++) {
       await Future<void>.delayed(const Duration(seconds: 1), () async {
         final androidNotificationDetails = AndroidNotificationDetails(
             'channel_id', 'Channel Name', 'Channel Description',

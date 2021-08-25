@@ -227,8 +227,8 @@ class _HomePageV2State extends State<HomePageV2> {
       Navigator.push(context, MaterialPageRoute(builder: (context) {
         return FeedbackPage();
       })).then((value) => setState(() {
-        _pageCtrl.jumpToPage(0);
-      }));
+            _pageCtrl.jumpToPage(0);
+          }));
     } else if (menuItem.trim().toLowerCase() == 'share') {
       shareApp();
     } else if (menuItem.trim().toLowerCase() == 'aqi index') {
@@ -239,8 +239,8 @@ class _HomePageV2State extends State<HomePageV2> {
           fullscreenDialog: true,
         ),
       ).then((value) => setState(() {
-        _pageCtrl.jumpToPage(0);
-      }));
+            _pageCtrl.jumpToPage(0);
+          }));
     } else if (menuItem.trim().toLowerCase() == 'faqs') {
       try {
         _launchURLFaqs();
@@ -251,22 +251,22 @@ class _HomePageV2State extends State<HomePageV2> {
       Navigator.push(context, MaterialPageRoute(builder: (context) {
         return const MyPlaces();
       })).then((value) => setState(() {
-        _pageCtrl.jumpToPage(0);
-      }));
+            _pageCtrl.jumpToPage(0);
+          }));
     } else if (menuItem.trim().toLowerCase() == 'settings') {
       Navigator.push(context, MaterialPageRoute(builder: (context) {
         return SettingsPage();
       })).then((value) => setState(() {
-        _pageCtrl.jumpToPage(0);
-      }));
+            _pageCtrl.jumpToPage(0);
+          }));
     } else if (menuItem.trim().toLowerCase() == 'camera') {
       takePhoto();
     } else {
       Navigator.push(context, MaterialPageRoute(builder: (context) {
         return SettingsPage();
       })).then((value) => setState(() {
-        _pageCtrl.jumpToPage(0);
-      }));
+            _pageCtrl.jumpToPage(0);
+          }));
     }
   }
 
@@ -318,8 +318,8 @@ class _HomePageV2State extends State<HomePageV2> {
         camera: firstCamera,
       );
     })).then((value) => setState(() {
-      _pageCtrl.jumpToPage(0);
-    }));
+          _pageCtrl.jumpToPage(0);
+        }));
   }
 
   Future<void> _displayOnBoarding() async {
@@ -329,8 +329,8 @@ class _HomePageV2State extends State<HomePageV2> {
     if (isFirstUse) {
       await Navigator.pushAndRemoveUntil(context,
           MaterialPageRoute(builder: (context) {
-            return OnBoardingPage();
-          }), (r) => false);
+        return OnBoardingPage();
+      }), (r) => false);
     }
   }
 
@@ -350,12 +350,9 @@ class _HomePageV2State extends State<HomePageV2> {
   }
 
   Future<void> _getDevices() async {
-    await AirqoApiClient(context)
-        .fetchDevices()
-        .then((value) => {
-      if (value.isNotEmpty)
-        {DBHelper().insertDevices(value)}
-    });
+    await AirqoApiClient(context).fetchDevices().then((value) => {
+          if (value.isNotEmpty) {DBHelper().insertDevices(value)}
+        });
   }
 
   void _launchURLFaqs() async => await canLaunch(_faqsUrl)

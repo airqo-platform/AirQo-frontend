@@ -80,7 +80,8 @@ class TitleSection extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(data.device.siteName,
+                    Text(
+                      data.device.siteName,
                       maxLines: 4,
                       softWrap: true,
                       style: TextStyle(

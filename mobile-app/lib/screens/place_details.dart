@@ -137,8 +137,8 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                     setState(() {
                       historicalData = value;
                     }),
-                    DBHelper().
-                    insertDeviceHistoricalMeasurements(value, device.name)
+                    DBHelper()
+                        .insertDeviceHistoricalMeasurements(value, device.name)
                   }
                 else
                   {
@@ -381,19 +381,18 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                   // Forecast Data
                   forecastData != null && forecastData.isNotEmpty
                       ? forecastDataSection(forecastData)
-                      :
-                  forecastResponse != ''
-                          ?
-                  Center(child: Text(forecastResponse),)
-                          :
-                  Center(
-                      child: Container(
-                        padding: const EdgeInsets.all(16.0),
-                        child: CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                              ColorConstants().appColor),
-                        ),
-                      )),
+                      : forecastResponse != ''
+                          ? Center(
+                              child: Text(forecastResponse),
+                            )
+                          : Center(
+                              child: Container(
+                              padding: const EdgeInsets.all(16.0),
+                              child: CircularProgressIndicator(
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                    ColorConstants().appColor),
+                              ),
+                            )),
                   Container(
                       padding: const EdgeInsets.fromLTRB(0, 0, 0, 50),
                       constraints: const BoxConstraints.expand(height: 300.0),

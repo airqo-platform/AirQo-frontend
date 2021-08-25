@@ -145,14 +145,12 @@ class Measurement {
   }
 
   static List<Measurement> parseMeasurements(dynamic jsonBody) {
-
-    var measurements = Measurements
-        .fromJson(jsonBody).measurements;
+    var measurements = Measurements.fromJson(jsonBody).measurements;
 
     var measurementsForActiveDevices = <Measurement>[];
 
-    for(var measurement in measurements){
-      if(measurement.device.isActive){
+    for (var measurement in measurements) {
+      if (measurement.device.isActive) {
         measurementsForActiveDevices.add(measurement);
       }
     }

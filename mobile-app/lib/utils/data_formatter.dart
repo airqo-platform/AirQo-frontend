@@ -35,30 +35,20 @@ List<charts.Series<Pm2_5TimeSeries, DateTime>> createPm2_5ChartData(
   ];
 }
 
-List<charts.Series<ValueSeries, DateTime>> createComaprisonData(
+List<charts.Series<ValueSeries, DateTime>> createComparisonData(
     List<Measurement> measurements) {
   var device_01 = 675740;
   var device_02 = 675801;
 
-  var device_01_data = <ValueSeries>[];
-  var device_02_data = <ValueSeries>[];
-  var base_data = <ValueSeries>[];
+  var device01Data = <ValueSeries>[];
+  var device02Data = <ValueSeries>[];
+  var baseData = <ValueSeries>[];
 
   for (var measurement in measurements) {
-    // var time = measurement.time.replaceAll('T', ' ');
-    // time = time.substring(0, time.indexOf('.'));
-
     var time = measurement.time.substring(0, measurement.time.indexOf('.'));
 
     var date = DateTime.parse(time);
-
-    // if (measurement.deviceNumber == device_01) {
-    //   device_01_data.add(ValueSeries(date, measurement.pm2_5.value.ceil()));
-    // } else {
-    //   device_02_data.add(ValueSeries(date, measurement.pm2_5.value.ceil()));
-    // }
-
-    base_data.add(ValueSeries(date, 50));
+    baseData.add(ValueSeries(date, 50));
   }
 
   return [
@@ -67,22 +57,21 @@ List<charts.Series<ValueSeries, DateTime>> createComaprisonData(
       colorFn: (_, __) => charts.MaterialPalette.blue.shadeDefault,
       domainFn: (ValueSeries sales, _) => sales.time,
       measureFn: (ValueSeries sales, _) => sales.values,
-      data: device_01_data,
+      data: device01Data,
     ),
-    new charts.Series<ValueSeries, DateTime>(
+    charts.Series<ValueSeries, DateTime>(
       id: device_02.toString(),
       colorFn: (_, __) => charts.MaterialPalette.red.shadeDefault,
       domainFn: (ValueSeries sales, _) => sales.time,
       measureFn: (ValueSeries sales, _) => sales.values,
-      data: device_02_data,
+      data: device02Data,
     ),
-    new charts.Series<ValueSeries, DateTime>(
+    charts.Series<ValueSeries, DateTime>(
         id: 'Mobile',
         colorFn: (_, __) => charts.MaterialPalette.green.shadeDefault,
         domainFn: (ValueSeries sales, _) => sales.time,
         measureFn: (ValueSeries sales, _) => sales.values,
-        data: base_data)
-// Configure our custom point renderer for this series.
+        data: baseData)
       ..setAttribute(charts.rendererIdKey, 'customPoint'),
   ];
 }
