@@ -1,6 +1,6 @@
 // for representing chained operations using redux-thunk
 import axios from "axios";
-import {isEmpty} from "underscore";
+import { isEmpty } from "underscore";
 import {
   REFRESH_FILTER_LOCATION_DATA_SUCCESS,
   REFRESH_FILTER_LOCATION_DATA_ERROR,
@@ -12,6 +12,8 @@ import {
   RESET_LOCATION_FILTER_SUCCESS,
   LOAD_DASHBOARD_SITES_SUCCESS,
   LOAD_DASHBOARD_SITES_FAILURE,
+  UPDATE_USER_DEFAULT_GRAPHS_SUCCESS,
+  UPDATE_USER_DEFAULT_GRAPHS_FAILURE,
 } from "./actions";
 import { DEFAULTS_URI } from "config/urls/authService";
 import { getMonitoringSitesLocationsApi } from "views/apis/location";
@@ -94,6 +96,13 @@ export const setUserDefaultGraphData = (filter) => {
         });
       });
   };
+};
+
+export const updateUserDefaultGraphData = (newChartDefault) => (dispatch) => {
+  return dispatch({
+    type: UPDATE_USER_DEFAULT_GRAPHS_SUCCESS,
+    payload: newChartDefault,
+  });
 };
 
 export const resetDashboardState = () => (dispatch) => {
