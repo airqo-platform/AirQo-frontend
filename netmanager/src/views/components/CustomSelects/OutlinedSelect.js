@@ -33,35 +33,58 @@ export default function OutlinedSelect({ label, components, ...props }) {
   const modifiedLabel =
     (props.required && <span>{label.trimEnd()} &#42;</span>) || label;
   return (
-    <Select
-      components={{
-        ...components,
-        ValueContainer: CustomValueContainer,
-      }}
-      {...{ ...props, placeholder: modifiedLabel }}
-      styles={{
-        container: (provided, state) => ({
-          ...provided,
-          // marginTop: 20,
-        }),
-        valueContainer: (provided, state) => ({
-          ...provided,
-          ...scrollStyle,
-        }),
-        placeholder: (provided, state) => ({
-          ...provided,
-          position: "absolute",
-          top: state.hasValue || state.selectProps.inputValue ? -4 : "50%",
-          transition: "top 0.1s, font-size 0.1s",
-          color:
-            state.hasValue || state.selectProps.inputValue
-              ? "black"
-              : "inherit",
-          lineHeight: 1,
-          letterSpacing: "-0.05px",
-          fontSize: (state.hasValue || state.selectProps.inputValue) && 11,
-        }),
-      }}
-    />
+    <>
+      <Select
+        components={{
+          ...components,
+          ValueContainer: CustomValueContainer,
+        }}
+        {...{ ...props, placeholder: modifiedLabel }}
+        styles={{
+          container: (provided, state) => ({
+            ...provided,
+            // marginTop: 20,
+          }),
+          control: (provided, state, other) => ({
+            ...provided,
+            borderColor:
+              state.selectProps && state.selectProps.error ? "red" : "inherit",
+          }),
+          valueContainer: (provided, state) => ({
+            ...provided,
+            ...scrollStyle,
+          }),
+          placeholder: (provided, state) => ({
+            ...provided,
+            position: "absolute",
+            top: state.hasValue || state.selectProps.inputValue ? -4 : "50%",
+            transition: "top 0.1s, font-size 0.1s",
+            color:
+              state.selectProps && state.selectProps.error
+                ? "red"
+                : state.hasValue || state.selectProps.inputValue
+                ? "black"
+                : "inherit",
+            lineHeight: 1,
+            letterSpacing: "-0.05px",
+            fontSize: (state.hasValue || state.selectProps.inputValue) && 11,
+          }),
+        }}
+      />
+      {props.helperText && (
+        <div
+          style={{
+            fontSize: "11px",
+            textAlign: "left",
+            color: props.error ? "red" : "inherit",
+            marginTop: "4px",
+            marginLeft: "14px",
+            marginRight: "14px",
+          }}
+        >
+          {props.helperText}
+        </div>
+      )}
+    </>
   );
 }
