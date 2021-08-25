@@ -212,11 +212,13 @@ class _HomePageV2State extends State<HomePageV2> {
   @override
   void initState() {
     _displayOnBoarding();
-    // _getDevices();
-    _getLatestMeasurements();
-    _getHistoricalMeasurements();
-
+    initialize();
     super.initState();
+  }
+
+  Future<void> initialize() async {
+    await _getLatestMeasurements();
+    await _getHistoricalMeasurements();
   }
 
   void navigateToMenuItem(dynamic position) {
@@ -340,21 +342,19 @@ class _HomePageV2State extends State<HomePageV2> {
   //   }
   // }
 
-  void _getLatestMeasurements() async {
-
+  Future<void> _getLatestMeasurements() async {
     await AirqoApiClient(context).fetchLatestMeasurements().then((value) => {
-      if (value.isNotEmpty) {
-        DBHelper().insertLatestMeasurements(value)
-      }});
+          if (value.isNotEmpty) {DBHelper().insertLatestMeasurements(value)}
+        });
   }
 
-  void _getHistoricalMeasurements() async {
-
-    await AirqoApiClient(context).fetchHistoricalMeasurements()
+  Future<void> _getHistoricalMeasurements() async {
+    await AirqoApiClient(context)
+        .fetchHistoricalMeasurements()
         .then((value) => {
-      if (value.isNotEmpty) {
-        DBHelper().insertHistoricalMeasurements(value)
-      }});
+              if (value.isNotEmpty)
+                {DBHelper().insertHistoricalMeasurements(value)}
+            });
   }
 
   void _launchURLFaqs() async => await canLaunch(_faqsUrl)

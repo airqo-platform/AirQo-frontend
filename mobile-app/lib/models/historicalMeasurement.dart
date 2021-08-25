@@ -1,6 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
 
-import 'device.dart';
 import 'measurementValue.dart';
 
 part 'historicalMeasurement.g.dart';
@@ -46,8 +45,6 @@ class HistoricalMeasurement {
   @JsonKey(required: true, name: 'device')
   final String device;
 
-
-
   static String dbAltitude() => 'altitude';
 
   static String dbDevice() => 'device';
@@ -66,7 +63,6 @@ class HistoricalMeasurement {
 
   static String dbTime() => 'time';
 
-
   static String historicalMeasurementsTableDropStmt() =>
       'DROP TABLE IF EXISTS ${historicalMeasurementsDb()}';
 
@@ -79,7 +75,6 @@ class HistoricalMeasurement {
       '${dbHumidity()} REAL)';
 
   static Map<String, dynamic> mapFromDb(Map<String, dynamic> json) {
-
     return {
       'device': json['${dbDevice()}'] as String,
       'time': json['${dbTime()}'] as String,
@@ -93,7 +88,6 @@ class HistoricalMeasurement {
   }
 
   static Map<String, dynamic> mapToDb(HistoricalMeasurement measurement) {
-
     return {
       '${dbTime()}': measurement.time,
       '${dbPm25()}': measurement.pm2_5.calibratedValue,
@@ -129,4 +123,3 @@ class HistoricalMeasurements {
 
   Map<String, dynamic> toJson() => _$HistoricalMeasurementsToJson(this);
 }
-

@@ -248,16 +248,6 @@ Future<BitmapDescriptor> pmToMarker(double pm2_5) async {
     textAlign: TextAlign.center,
   )..layout();
 
-  // textPainter.text = TextSpan(
-  //   text: value.toString(),
-  //   style: TextStyle(
-  //     fontSize: radius - 10,
-  //     fontWeight: FontWeight.bold,
-  //     color: textColor,
-  //   ),
-  // );
-
-  // textPainter.layout();
   textPainter.paint(
     canvas,
     Offset(

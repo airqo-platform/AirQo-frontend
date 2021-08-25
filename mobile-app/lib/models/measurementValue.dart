@@ -1,7 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
 
-import 'device.dart';
-
 part 'measurementValue.g.dart';
 
 @JsonSerializable()
@@ -18,5 +16,4 @@ class MeasurementValue {
 
   @JsonKey(required: false, defaultValue: 0.2, name: 'value')
   final double value;
-
 }

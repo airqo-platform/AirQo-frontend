@@ -3,9 +3,9 @@ import 'package:app/models/device.dart';
 import 'package:app/models/historicalMeasurement.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/predict.dart';
-import 'package:app/utils/data_formatter.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/services/rest_api.dart';
+import 'package:app/utils/data_formatter.dart';
 import 'package:app/utils/date.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/pm.dart';
@@ -35,23 +35,37 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
 
   bool isFavourite = false;
   var measurementData;
+
   // List<HistoricalMeasurement> historicalData;
   var historicalData;
+  var forecastData;
+
+  // var forecastData;
   var response;
   var historicalResponse = '';
+  var forecastResponse = '';
   var dbHelper = DBHelper();
-  var startDate = DateFormat('yyyy-MM-dd').format(DateTime(
-      DateTime.now().year, DateTime.now().month - 1, DateTime.now().day));
-  var forecastDate = DateFormat('yyyy-MM-dd HH:mm').format(
-      DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day));
+
+  // var forecastDate = DateFormat('yyyy-MM-dd HH:mm').format(
+  //     DateTime(DateTime.now().year,
+  //     DateTime.now().month, DateTime.now().day));
+
+  var forecastDate =
+      DateFormat('yyyy-MM-dd HH:mm').format(DateTime.now().toUtc());
+
   String titleText = '';
   Device device;
 
   @override
   void initState() {
-    getMeasurements();
-    getHistoricalMeasurements();
+    initialize();
     super.initState();
+  }
+
+  Future<void> initialize() async {
+    await getMeasurements();
+    await getHistoricalMeasurements();
+    await getForecastMeasurements();
   }
 
   Future<void> checkFavourite() async {
@@ -115,22 +129,24 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
     await localFetchHistoricalData();
 
     try {
-
-      await AirqoApiClient(context).fetchDeviceHistoricalMeasurements(device)
+      await AirqoApiClient(context)
+          .fetchDeviceHistoricalMeasurements(device)
           .then((value) => {
-            if(value.isNotEmpty){
-              setState(() {
-                historicalData = value;
-              })
-            }
-            else{
-              setState(() {
-                historicalResponse = 'Historical data is not available...';
-              })
-            }
-      });
-
-    } catch (e){
+                if (value.isNotEmpty)
+                  {
+                    setState(() {
+                      historicalData = value;
+                    })
+                  }
+                else
+                  {
+                    setState(() {
+                      historicalResponse =
+                          'Historical data is not available...';
+                    })
+                  }
+              });
+    } catch (e) {
       setState(() {
         historicalResponse = 'Historical data is not available...';
       });
@@ -140,17 +156,61 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
 
   Future<void> localFetchHistoricalData() async {
     try {
-      var measurements = await DBHelper()
-          .getHistoricalMeasurements(device.name);
+      var measurements =
+          await DBHelper().getHistoricalMeasurements(device.name);
 
       if (measurements.isNotEmpty) {
         setState(() {
           historicalData = measurements;
         });
-
       }
     } on Error catch (e) {
       print('Getting historical data locally error: $e');
+    }
+  }
+
+  Future<void> getForecastMeasurements() async {
+    await localFetchForecastData();
+
+    try {
+      await AirqoApiClient(context)
+          .fetchForecast(device.latitude.toString(),
+              device.longitude.toString(), forecastDate)
+          .then((value) => {
+                if (value.isNotEmpty)
+                  {
+                    setState(() {
+                      forecastData = value;
+                    }),
+                    DBHelper().insertForecastMeasurements(value, device.name)
+                  }
+                else
+                  {
+                    setState(() {
+                      forecastResponse = 'Forecast data is not available...';
+                    })
+                  }
+              });
+    } catch (e) {
+      setState(() {
+        forecastResponse = 'Forecast data is not available...';
+      });
+      print('Getting Forecast events error: $e');
+    }
+  }
+
+  Future<void> localFetchForecastData() async {
+    try {
+      await DBHelper().getForecastMeasurements(device.name).then((value) => {
+            if (value.isNotEmpty)
+              {
+                setState(() {
+                  forecastData = value;
+                })
+              }
+          });
+    } on Error catch (e) {
+      print('Getting forecast data locally error: $e');
     }
   }
 
@@ -301,80 +361,93 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
 
                   // historicalData
                   historicalData != null && historicalData.isNotEmpty
-                      ?
-                  historicalDataSection(historicalData)
-                      : historicalResponse != '' ?
-                  Center(
-                    child: Text(historicalResponse),
-                  )
-                      :
-                  Center(
-                      child: Container(
-                        padding: const EdgeInsets.all(16.0),
-                        child: CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                              ColorConstants().appColor),
-                        ),
-                      ))
-                  ,
+                      ? historicalDataSection(historicalData)
+                      : historicalResponse != ''
+                          ? Center(
+                              child: Text(historicalResponse),
+                            )
+                          : Center(
+                              child: Container(
+                              padding: const EdgeInsets.all(16.0),
+                              child: CircularProgressIndicator(
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                    ColorConstants().appColor),
+                              ),
+                            )),
 
                   // Forecast Data
-                  FutureBuilder(
-                      future: AirqoApiClient(context).fetchForecast(
-                          device.latitude.toString(),
-                          device.longitude.toString(),
-                          forecastDate),
-                      builder: (context, snapshot) {
-                        if (snapshot.hasData) {
-                          var results = snapshot.data as List<Predict>;
-
-                          if (results.isEmpty) {
-                            return Center(
+                  forecastData != null && forecastData.isNotEmpty
+                      ? forecastDataSection(forecastData)
+                      : forecastResponse != ''
+                          ? Center(
+                              child: Text(forecastResponse),
+                            )
+                          : Center(
                               child: Container(
-                                padding: const EdgeInsets.all(16.0),
-                                child: const Text(
-                                  'Forecast data is not available...',
-                                  softWrap: true,
-                                  textAlign: TextAlign.center,
-                                ),
+                              padding: const EdgeInsets.all(16.0),
+                              child: CircularProgressIndicator(
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                    ColorConstants().appColor),
                               ),
-                            );
-                          }
+                            )),
 
-                          var forecastData = predictChartData(results);
-
-                          return ForecastBarChart(forecastData);
-
-                          // return SingleChildScrollView(
-                          //     scrollDirection: Axis.horizontal,
-                          //     child: Container(
-                          //       width: 500,
-                          //       height: 400,
-                          //       padding: const EdgeInsets.all(8),
-                          //       child: Column(
-                          //         children: [
-                          //           const Padding(padding: EdgeInsets.all(2),
-                          //             child: Center(
-                          //               child: Text('Forecast'),
-                          //             ),
-                          //           ),
-                          //           LocationBarChart(formattedData)
-                          //         ],
-                          //       ),
-                          //     )
-                          // );
-
-                        } else {
-                          return Center(
-                              child: Container(
-                            padding: const EdgeInsets.all(16.0),
-                            child: CircularProgressIndicator(
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                  ColorConstants().appColor),
-                            ),
-                          ));
-                        }
-                      }),
+                  // Forecast Data
+                  // FutureBuilder(
+                  //     future: AirqoApiClient(context).fetchForecast(
+                  //         device.latitude.toString(),
+                  //         device.longitude.toString(),
+                  //         forecastDate),
+                  //     builder: (context, snapshot) {
+                  //       if (snapshot.hasData) {
+                  //         var results = snapshot.data as List<Predict>;
+                  //
+                  //         if (results.isEmpty) {
+                  //           return Center(
+                  //             child: Container(
+                  //               padding: const EdgeInsets.all(16.0),
+                  //               child: const Text(
+                  //                 'Forecast data is not available...',
+                  //                 softWrap: true,
+                  //                 textAlign: TextAlign.center,
+                  //               ),
+                  //             ),
+                  //           );
+                  //         }
+                  //
+                  //         var forecastData = predictChartData(results);
+                  //
+                  //         return ForecastBarChart(forecastData);
+                  //
+                  //         // return SingleChildScrollView(
+                  //         //     scrollDirection: Axis.horizontal,
+                  //         //     child: Container(
+                  //         //       width: 500,
+                  //         //       height: 400,
+                  //         //       padding: const EdgeInsets.all(8),
+                  //         //       child: Column(
+                  //         //         children: [
+                  //         //           const Padding(padding: EdgeInsets.all(2),
+                  //         //             child: Center(
+                  //         //               child: Text('Forecast'),
+                  //         //             ),
+                  //         //           ),
+                  //         //           LocationBarChart(formattedData)
+                  //         //         ],
+                  //         //       ),
+                  //         //     )
+                  //         // );
+                  //
+                  //       } else {
+                  //         return Center(
+                  //             child: Container(
+                  //           padding: const EdgeInsets.all(16.0),
+                  //           child: CircularProgressIndicator(
+                  //             valueColor: AlwaysStoppedAnimation<Color>(
+                  //                 ColorConstants().appColor),
+                  //           ),
+                  //         ));
+                  //       }
+                  //     }),
 
                   // Map
                   Container(
@@ -484,10 +557,12 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
     var formattedData = historicalChartData(measurements);
     // Crunching the latest data, just for you.
     // Hang tight…
-    print('loading historical chart');
-    print(measurements);
-    print(formattedData);
     return HourlyBarChart(formattedData);
+  }
+
+  Widget forecastDataSection(List<Predict> measurements) {
+    var forecastData = predictChartData(measurements);
+    return ForecastBarChart(forecastData);
   }
 
   Widget cardSection(Measurement measurement) {

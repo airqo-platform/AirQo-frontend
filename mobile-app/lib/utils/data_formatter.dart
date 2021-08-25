@@ -1,6 +1,5 @@
 import 'package:app/models/chartData.dart';
 import 'package:app/models/historicalMeasurement.dart';
-import 'package:app/models/hourly.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/predict.dart';
 import 'package:app/models/series.dart';
@@ -16,12 +15,13 @@ class Pm2_5TimeSeries {
 }
 
 List<charts.Series<Pm2_5TimeSeries, DateTime>> createPm2_5ChartData(
-    List<Hourly> data) {
+    List<HistoricalMeasurement> data) {
   var values = <Pm2_5TimeSeries>[];
   for (var value in data) {
     var time = value.time.replaceAll(' GMT', '');
 
-    values.add(Pm2_5TimeSeries(DateTime.parse(time), value.pm2_5));
+    values.add(
+        Pm2_5TimeSeries(DateTime.parse(time), value.pm2_5.calibratedValue));
   }
 
   return [
@@ -118,11 +118,10 @@ List<charts.Series<TimeSeriesData, DateTime>> historicalChartData(
 
   for (var measurement in measurements) {
     try {
-      final dateTime = DateTime.parse(measurement.time)
-          .add(Duration(hours: offSet));
+      final dateTime =
+          DateTime.parse(measurement.time).add(Duration(hours: offSet));
       data.add(
           TimeSeriesData(dateTime, measurement.pm2_5.calibratedValue.ceil()));
-
     } catch (e) {
       print(e);
     }
@@ -144,7 +143,7 @@ List<charts.Series<TimeSeriesData, DateTime>> historicalChartData(
 }
 
 List<charts.Series<TimeSeriesData, DateTime>> hourlyChartData(
-    List<Hourly> measurements) {
+    List<HistoricalMeasurement> measurements) {
   var data = <TimeSeriesData>[];
 
   for (var measurement in measurements) {
@@ -153,7 +152,7 @@ List<charts.Series<TimeSeriesData, DateTime>> hourlyChartData(
 
     var date = DateTime.parse(dateTime.toString());
 
-    data.add(TimeSeriesData(date, measurement.pm2_5.ceil()));
+    data.add(TimeSeriesData(date, measurement.pm2_5.calibratedValue.ceil()));
   }
 
   return [
@@ -175,9 +174,14 @@ List<charts.Series<TimeSeriesData, DateTime>> predictChartData(
     List<Predict> predictions) {
   var data = <TimeSeriesData>[];
 
+  var offSet = DateTime.now().timeZoneOffset.inHours;
+
   for (var prediction in predictions) {
     final formatter = DateFormat('EEE, d MMM yyyy HH:mm:ss');
-    final dateTime = formatter.parse(prediction.time);
+    // final dateTime = formatter.parse(prediction.time);
+
+    final dateTime = DateTime.parse(formatter.parse(prediction.time).toString())
+        .add(Duration(hours: offSet));
 
     var date = DateTime.parse(dateTime.toString());
 

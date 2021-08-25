@@ -4,6 +4,7 @@ import 'package:app/constants/app_constants.dart';
 import 'package:app/models/device.dart';
 import 'package:app/models/historicalMeasurement.dart';
 import 'package:app/models/measurement.dart';
+import 'package:app/models/predict.dart';
 import 'package:app/models/suggestion.dart';
 import 'package:path/path.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -44,16 +45,17 @@ class DBHelper {
     await db.execute(Suggestion.searchHistoryTableCreateStmt());
 
     // historical measurements table
-    await db.execute(HistoricalMeasurement
-        .historicalMeasurementsTableDropStmt());
-    await db.execute(HistoricalMeasurement
-        .historicalMeasurementsTableCreateStmt());
+    await db
+        .execute(HistoricalMeasurement.historicalMeasurementsTableDropStmt());
+    await db
+        .execute(HistoricalMeasurement.historicalMeasurementsTableCreateStmt());
+
+    // forecast table
+    await db.execute(Predict.forecastTableDropStmt());
+    await db.execute(Predict.forecastTableCreateStmt());
 
     // await db.execute(Device.devicesTableDropStmt());
     // await db.execute(Device.createTableStmt());
-
-    // forecast data table
-    // await db.execute(Measurement.forecastDataTableStmt());
   }
 
   Future<void> insertSearchHistory(Suggestion suggestion) async {
@@ -147,28 +149,26 @@ class DBHelper {
       final db = await database;
 
       if (measurements.isNotEmpty) {
-
         await db.delete(HistoricalMeasurement.historicalMeasurementsDb());
 
-          for (var measurement in measurements) {
-            try {
-              var jsonData = HistoricalMeasurement.mapToDb(measurement);
-              await db.insert(
-                '${HistoricalMeasurement.historicalMeasurementsDb()}',
-                jsonData,
-                conflictAlgorithm: ConflictAlgorithm.replace,
-              );
-            } catch (e) {
-              print('Inserting historical measurements into db');
-              print(e);
-            }
+        for (var measurement in measurements) {
+          try {
+            var jsonData = HistoricalMeasurement.mapToDb(measurement);
+            await db.insert(
+              '${HistoricalMeasurement.historicalMeasurementsDb()}',
+              jsonData,
+              conflictAlgorithm: ConflictAlgorithm.replace,
+            );
+          } catch (e) {
+            print('Inserting historical measurements into db');
+            print(e);
           }
+        }
       }
     } catch (e) {
       print(e);
     }
   }
-
 
   Future<bool> updateFavouritePlaces(Device device) async {
     var prefs = await SharedPreferences.getInstance();
@@ -235,28 +235,74 @@ class DBHelper {
     }
   }
 
-  Future<List<HistoricalMeasurement>> getHistoricalMeasurements(String device)
-  async {
+  Future<List<HistoricalMeasurement>> getHistoricalMeasurements(
+      String device) async {
     try {
-
       final db = await database;
 
-      var res = await db.query(
-          HistoricalMeasurement.historicalMeasurementsDb(),
-        where: '${HistoricalMeasurement.dbDevice()} = ?', whereArgs: [device]
-      );
+      var res = await db.query(HistoricalMeasurement.historicalMeasurementsDb(),
+          where: '${HistoricalMeasurement.dbDevice()} = ?',
+          whereArgs: [device]);
 
       print('Got ${res.length} historical measurements from db');
 
       return res.isNotEmpty
           ? List.generate(res.length, (i) {
-        return HistoricalMeasurement
-            .fromJson(HistoricalMeasurement.mapFromDb(res[i]));
-      })
+              return HistoricalMeasurement.fromJson(
+                  HistoricalMeasurement.mapFromDb(res[i]));
+            })
           : <HistoricalMeasurement>[];
     } catch (e) {
       print(e);
       return <HistoricalMeasurement>[];
+    }
+  }
+
+  Future<void> insertForecastMeasurements(
+      List<Predict> measurements, String device) async {
+    try {
+      final db = await database;
+
+      if (measurements.isNotEmpty) {
+        await db.delete(Predict.forecastDb(),
+            where: '${Predict.dbDevice()} = ?', whereArgs: [device]);
+
+        for (var measurement in measurements) {
+          try {
+            var jsonData = Predict.mapToDb(measurement, device);
+            await db.insert(
+              '${Predict.forecastDb()}',
+              jsonData,
+              conflictAlgorithm: ConflictAlgorithm.replace,
+            );
+          } catch (e) {
+            print('Inserting predicted measurements into db');
+            print(e);
+          }
+        }
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  Future<List<Predict>> getForecastMeasurements(String device) async {
+    try {
+      final db = await database;
+
+      var res = await db.query(Predict.forecastDb(),
+          where: '${Predict.dbDevice()} = ?', whereArgs: [device]);
+
+      print('Got ${res.length} predict measurements from db');
+
+      return res.isNotEmpty
+          ? List.generate(res.length, (i) {
+              return Predict.fromJson(Predict.mapFromDb(res[i]));
+            })
+          : <Predict>[];
+    } catch (e) {
+      print(e);
+      return <Predict>[];
     }
   }
 
