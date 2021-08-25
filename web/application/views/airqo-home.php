@@ -409,6 +409,8 @@
 				// var markers = L.markerClusterGroup();
 
 				for (let i = 0; i < nodes.length; i++) {
+					// fallback to "district, country" if description is empty
+					if(nodes[i].name == ""){ nodes[i].name = nodes[i].location}
 					var customPopup = ' <table class="table table-striped" style="width: 300px !important;">' +
 						'<tr>' +
 						'<th>' +
