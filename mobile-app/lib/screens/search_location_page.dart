@@ -314,8 +314,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                                   //   color: ColorConstants().appColor,
                                   // ),
                                   trailing: Text(
-                                    '${kmToMeters(devices[index].distance)}'
-                                    ' meters',
+                                    '${toDistance(devices[index].distance)}',
                                     style: TextStyle(
                                         color: ColorConstants().appColor),
                                   ),

@@ -96,7 +96,7 @@ class _DashboardPageState extends State<DashboardPage> {
                                     ColorConstants().appColor),
                               ),
                               Text(
-                                'Collecting information about your places'
+                                'Collecting information about your places. '
                                     ' Please wait...',
                                 textAlign: TextAlign.center,
                                 style:

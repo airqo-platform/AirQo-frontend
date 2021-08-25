@@ -117,7 +117,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
     } catch (e) {
       print('Getting device events error: $e');
 
-      var message = 'Sorry, information is not available';
+      var message = 'Sorry, information currently is not available';
 
       setState(() {
         response = message;
@@ -144,13 +144,13 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                   {
                     setState(() {
                       historicalResponse =
-                          'Historical data is not available...';
+                          'Historical data is currently not available...';
                     })
                   }
               });
     } catch (e) {
       setState(() {
-        historicalResponse = 'Historical data is not available...';
+        historicalResponse = 'Historical data is currently not available...';
       });
       print('Getting device historical events error: $e');
     }
@@ -189,13 +189,14 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                 else
                   {
                     setState(() {
-                      forecastResponse = 'Forecast data is not available...';
+                      forecastResponse = 'Forecast data is currently'
+                          ' not available...';
                     })
                   }
               });
     } catch (e) {
       setState(() {
-        forecastResponse = 'Forecast data is not available...';
+        forecastResponse = 'Forecast data is currently not available...';
       });
       print('Getting Forecast events error: $e');
     }
@@ -380,78 +381,19 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                   // Forecast Data
                   forecastData != null && forecastData.isNotEmpty
                       ? forecastDataSection(forecastData)
-                      : forecastResponse != ''
-                          ? Center(
-                              child: Text(forecastResponse),
-                            )
-                          : Center(
-                              child: Container(
-                              padding: const EdgeInsets.all(16.0),
-                              child: CircularProgressIndicator(
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                    ColorConstants().appColor),
-                              ),
-                            )),
-
-                  // Forecast Data
-                  // FutureBuilder(
-                  //     future: AirqoApiClient(context).fetchForecast(
-                  //         device.latitude.toString(),
-                  //         device.longitude.toString(),
-                  //         forecastDate),
-                  //     builder: (context, snapshot) {
-                  //       if (snapshot.hasData) {
-                  //         var results = snapshot.data as List<Predict>;
-                  //
-                  //         if (results.isEmpty) {
-                  //           return Center(
-                  //             child: Container(
-                  //               padding: const EdgeInsets.all(16.0),
-                  //               child: const Text(
-                  //                 'Forecast data is not available...',
-                  //                 softWrap: true,
-                  //                 textAlign: TextAlign.center,
-                  //               ),
-                  //             ),
-                  //           );
-                  //         }
-                  //
-                  //         var forecastData = predictChartData(results);
-                  //
-                  //         return ForecastBarChart(forecastData);
-                  //
-                  //         // return SingleChildScrollView(
-                  //         //     scrollDirection: Axis.horizontal,
-                  //         //     child: Container(
-                  //         //       width: 500,
-                  //         //       height: 400,
-                  //         //       padding: const EdgeInsets.all(8),
-                  //         //       child: Column(
-                  //         //         children: [
-                  //         //           const Padding(padding: EdgeInsets.all(2),
-                  //         //             child: Center(
-                  //         //               child: Text('Forecast'),
-                  //         //             ),
-                  //         //           ),
-                  //         //           LocationBarChart(formattedData)
-                  //         //         ],
-                  //         //       ),
-                  //         //     )
-                  //         // );
-                  //
-                  //       } else {
-                  //         return Center(
-                  //             child: Container(
-                  //           padding: const EdgeInsets.all(16.0),
-                  //           child: CircularProgressIndicator(
-                  //             valueColor: AlwaysStoppedAnimation<Color>(
-                  //                 ColorConstants().appColor),
-                  //           ),
-                  //         ));
-                  //       }
-                  //     }),
-
-                  // Map
+                      :
+                  forecastResponse != ''
+                          ?
+                  Center(child: Text(forecastResponse),)
+                          :
+                  Center(
+                      child: Container(
+                        padding: const EdgeInsets.all(16.0),
+                        child: CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                              ColorConstants().appColor),
+                        ),
+                      )),
                   Container(
                       padding: const EdgeInsets.fromLTRB(0, 0, 0, 50),
                       constraints: const BoxConstraints.expand(height: 300.0),
