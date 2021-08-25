@@ -1,11 +1,11 @@
 import 'package:json_annotation/json_annotation.dart';
 
 import 'device.dart';
+import 'measurementValue.dart';
 
 part 'measurement.g.dart';
 
 @JsonSerializable()
-// @JsonSerializable(explicitToJson: true)
 class Measurement {
   Measurement(
       {required this.time,
@@ -91,18 +91,6 @@ class Measurement {
       'speed null, '
       'temperature null, '
       'humidity null)';
-
-  static String historicalMeasurementsTableStmt() =>
-      'CREATE TABLE IF NOT EXISTS historical_measurements ('
-      'id INTEGER PRIMARY KEY, '
-      'device_name not null,'
-      'time not null, '
-      'pm2_5 not null, '
-      'pm10 not null, '
-      'altitude not null, '
-      'speed not null, '
-      'temperature not null, '
-      'humidity not null)';
 
   static String latestMeasurementsTableDropStmt() =>
       'DROP TABLE IF EXISTS ${latestMeasurementsDb()}';
@@ -191,51 +179,3 @@ class Measurements {
 
   Map<String, dynamic> toJson() => _$MeasurementsToJson(this);
 }
-
-@JsonSerializable()
-class MeasurementValue {
-  MeasurementValue({required this.value, required this.calibratedValue});
-
-  factory MeasurementValue.fromJson(Map<String, dynamic> json) =>
-      _$MeasurementValueFromJson(json);
-
-  @JsonKey(required: false, defaultValue: 0.1, name: 'calibratedValue')
-  final double calibratedValue;
-
-  @JsonKey(required: false, defaultValue: 0.2, name: 'value')
-  final double value;
-
-  Map<String, dynamic> toJson() => _$MeasurementValueToJson(this);
-}
-
-// @JsonSerializable()
-// class MeasurementValue2 {
-//   MeasurementValue2({required this.value});
-//
-//   factory MeasurementValue2.fromJson(Map<String, dynamic> json) =>
-//       _$MeasurementValue2FromJson(json);
-//
-//   Map<String, dynamic> toJson() => _$MeasurementValue2ToJson(this);
-//
-//   @JsonKey(required: false, defaultValue: 0.0, name: 'value')
-//   final double value;
-// }
-
-// @JsonSerializable()
-// class Coordinates {
-//   Coordinates({
-//     required this.latitude,
-//     required this.longitude
-//   });
-//
-//
-//   factory Coordinates.fromJson(Map<String, dynamic> json) =>
-//       _$LocationFromJson(json);
-//   Map<String, dynamic> toJson() => _$LocationToJson(this);
-//
-//
-//   final Value latitude;
-//   final Value longitude;
-//
-//
-// }

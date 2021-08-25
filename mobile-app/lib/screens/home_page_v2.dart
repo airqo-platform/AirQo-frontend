@@ -19,9 +19,6 @@ import 'package:url_launcher/url_launcher.dart';
 
 import 'dashboard_page.dart';
 
-const _faqsUrl = 'https://www.airqo.net/faqs';
-const _url = 'https://forms.gle/oFjqpNoUKPY5ubAcA';
-
 class HomePageV2 extends StatefulWidget {
   final String title = 'AirQo';
 
@@ -34,6 +31,7 @@ class _HomePageV2State extends State<HomePageV2> {
   String title = appName;
   bool showAddPlace = true;
   DateTime? exitTime;
+  var _faqsUrl = 'https://www.airqo.net/faqs';
 
   @override
   Widget build(BuildContext context) {
@@ -215,7 +213,8 @@ class _HomePageV2State extends State<HomePageV2> {
   void initState() {
     _displayOnBoarding();
     // _getDevices();
-    // _getMeasurements();
+    _getLatestMeasurements();
+    _getHistoricalMeasurements();
 
     super.initState();
   }
@@ -239,10 +238,11 @@ class _HomePageV2State extends State<HomePageV2> {
         ),
       );
     } else if (menuItem.trim().toLowerCase() == 'faqs') {
-      _launchURLFaqs();
-      // Navigator.push(context, MaterialPageRoute(builder: (context) {
-      //   return FaqsPage();
-      // }));
+      try {
+        _launchURLFaqs();
+      } catch (e) {
+        print(e);
+      }
     } else if (menuItem.trim().toLowerCase() == 'myplaces') {
       Navigator.push(context, MaterialPageRoute(builder: (context) {
         return const MyPlaces();
@@ -340,17 +340,22 @@ class _HomePageV2State extends State<HomePageV2> {
   //   }
   // }
 
-  void _getMeasurements() async {
-    var measurements = await AirqoApiClient(context).fetchLatestMeasurements();
+  void _getLatestMeasurements() async {
 
-    if (measurements.isNotEmpty) {
-      await DBHelper().insertLatestMeasurements(measurements);
-    }
+    await AirqoApiClient(context).fetchLatestMeasurements().then((value) => {
+      if (value.isNotEmpty) {
+        DBHelper().insertLatestMeasurements(value)
+      }});
   }
 
-  void _launchURL() async => await canLaunch(_url)
-      ? await launch(_url)
-      : throw 'Could not launch feedback form, try opening $_url';
+  void _getHistoricalMeasurements() async {
+
+    await AirqoApiClient(context).fetchHistoricalMeasurements()
+        .then((value) => {
+      if (value.isNotEmpty) {
+        DBHelper().insertHistoricalMeasurements(value)
+      }});
+  }
 
   void _launchURLFaqs() async => await canLaunch(_faqsUrl)
       ? await launch(_faqsUrl)

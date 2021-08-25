@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/device.dart';
+import 'package:app/models/historicalMeasurement.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/suggestion.dart';
 import 'package:path/path.dart';
@@ -32,19 +33,24 @@ class DBHelper {
   }
 
   Future<void> createDefaultTables(Database db) async {
-    print('creating databases');
+    print('creating tables');
 
+    // latest measurements table
     await db.execute(Measurement.latestMeasurementsTableDropStmt());
     await db.execute(Measurement.latestMeasurementsTableCreateStmt());
 
+    // search history table
     await db.execute(Suggestion.searchHistoryTableDropStmt());
     await db.execute(Suggestion.searchHistoryTableCreateStmt());
 
+    // historical measurements table
+    await db.execute(HistoricalMeasurement
+        .historicalMeasurementsTableDropStmt());
+    await db.execute(HistoricalMeasurement
+        .historicalMeasurementsTableCreateStmt());
+
     // await db.execute(Device.devicesTableDropStmt());
     // await db.execute(Device.createTableStmt());
-
-    // historical measurements table
-    // await db.execute(Measurement.historicalMeasurementsTableStmt());
 
     // forecast data table
     // await db.execute(Measurement.forecastDataTableStmt());
@@ -112,24 +118,57 @@ class DBHelper {
   }
 
   Future<void> insertLatestMeasurements(List<Measurement> measurements) async {
-    final db = await database;
+    try {
+      final db = await database;
 
-    if (measurements.isNotEmpty) {
-      for (var measurement in measurements) {
-        try {
-          var jsonData = Measurement.mapToDb(measurement);
-          await db.insert(
-            '${Measurement.latestMeasurementsDb()}',
-            jsonData,
-            conflictAlgorithm: ConflictAlgorithm.replace,
-          );
-        } catch (e) {
-          print('Inserting latest measurements into db');
-          print(e);
+      if (measurements.isNotEmpty) {
+        for (var measurement in measurements) {
+          try {
+            var jsonData = Measurement.mapToDb(measurement);
+            await db.insert(
+              '${Measurement.latestMeasurementsDb()}',
+              jsonData,
+              conflictAlgorithm: ConflictAlgorithm.replace,
+            );
+          } catch (e) {
+            print('Inserting latest measurements into db');
+            print(e);
+          }
         }
       }
+    } catch (e) {
+      print(e);
     }
   }
+
+  Future<void> insertHistoricalMeasurements(
+      List<HistoricalMeasurement> measurements) async {
+    try {
+      final db = await database;
+
+      if (measurements.isNotEmpty) {
+
+        await db.delete(HistoricalMeasurement.historicalMeasurementsDb());
+
+          for (var measurement in measurements) {
+            try {
+              var jsonData = HistoricalMeasurement.mapToDb(measurement);
+              await db.insert(
+                '${HistoricalMeasurement.historicalMeasurementsDb()}',
+                jsonData,
+                conflictAlgorithm: ConflictAlgorithm.replace,
+              );
+            } catch (e) {
+              print('Inserting historical measurements into db');
+              print(e);
+            }
+          }
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
+
 
   Future<bool> updateFavouritePlaces(Device device) async {
     var prefs = await SharedPreferences.getInstance();
@@ -193,6 +232,31 @@ class DBHelper {
     } catch (e) {
       print(e);
       return <Measurement>[];
+    }
+  }
+
+  Future<List<HistoricalMeasurement>> getHistoricalMeasurements(String device)
+  async {
+    try {
+
+      final db = await database;
+
+      var res = await db.query(
+          HistoricalMeasurement.historicalMeasurementsDb(),
+        where: '${HistoricalMeasurement.dbDevice()} = ?', whereArgs: [device]
+      );
+
+      print('Got ${res.length} historical measurements from db');
+
+      return res.isNotEmpty
+          ? List.generate(res.length, (i) {
+        return HistoricalMeasurement
+            .fromJson(HistoricalMeasurement.mapFromDb(res[i]));
+      })
+          : <HistoricalMeasurement>[];
+    } catch (e) {
+      print(e);
+      return <HistoricalMeasurement>[];
     }
   }
 

@@ -8,6 +8,7 @@ import 'package:app/constants/api.dart';
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/device.dart';
 import 'package:app/models/feedback.dart';
+import 'package:app/models/historicalMeasurement.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/place.dart';
 import 'package:app/models/predict.dart';
@@ -219,12 +220,16 @@ class AirqoApiClient {
     return <Predict>[];
   }
 
-  Future<List<Measurement>> fetchDeviceHistoricalMeasurements(
+  Future<List<HistoricalMeasurement>> fetchDeviceHistoricalMeasurements(
       Device device) async {
     try {
       var startTimeUtc = DateTime.now().toUtc().add(const Duration(hours: -48));
       var date = DateFormat('yyyy-MM-dd').format(startTimeUtc);
-      var time = startTimeUtc.hour;
+      var time = '${startTimeUtc.hour}';
+
+      if ('$time'.length == 1){
+        time = '0$time';
+      }
       var startTime = '${date}T$time:00:00Z';
 
       var queryParams = <String, dynamic>{}
@@ -238,17 +243,52 @@ class AirqoApiClient {
           await _performGetRequest(queryParams, AirQoUrls().measurements);
 
       if (responseBody != null) {
-        return compute(Measurement.parseMeasurements, responseBody);
+        return compute(HistoricalMeasurement.parseMeasurements, responseBody);
       } else {
         print('Measurements are null');
-        return <Measurement>[];
+        return <HistoricalMeasurement>[];
       }
     } on Error catch (e) {
       print('Get Device historical measurements error: $e');
     }
 
-    return <Measurement>[];
+    return <HistoricalMeasurement>[];
   }
+
+  Future<List<HistoricalMeasurement>> fetchHistoricalMeasurements() async {
+    try {
+
+      var startTimeUtc = DateTime.now().toUtc().add(const Duration(hours: -48));
+      var date = DateFormat('yyyy-MM-dd').format(startTimeUtc);
+      var time = '${startTimeUtc.hour}';
+
+      if ('$time'.length == 1){
+        time = '0$time';
+      }
+      var startTime = '${date}T$time:00:00Z';
+
+      var queryParams = <String, dynamic>{}
+        ..putIfAbsent('startTime', () => startTime)
+        ..putIfAbsent('frequency', () => 'hourly')
+        ..putIfAbsent('recent', () => 'no')
+        ..putIfAbsent('tenant', () => 'airqo');
+
+      final responseBody =
+      await _performGetRequest(queryParams, AirQoUrls().measurements);
+
+      if (responseBody != null) {
+        return compute(HistoricalMeasurement.parseMeasurements, responseBody);
+      } else {
+        print('Historical Measurements are null');
+        return <HistoricalMeasurement>[];
+      }
+    } on Error catch (e) {
+      print('Get Historical measurements error: $e');
+    }
+
+    return <HistoricalMeasurement>[];
+  }
+
 
   Future<List<Measurement>> fetchLatestMeasurements() async {
     try {

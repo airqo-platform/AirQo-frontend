@@ -1,4 +1,5 @@
 import 'package:app/models/chartData.dart';
+import 'package:app/models/historicalMeasurement.dart';
 import 'package:app/models/hourly.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/predict.dart';
@@ -110,14 +111,18 @@ List<charts.Series<TimeSeriesData, DateTime>> createChartData(
 }
 
 List<charts.Series<TimeSeriesData, DateTime>> historicalChartData(
-    List<Measurement> measurements) {
+    List<HistoricalMeasurement> measurements) {
   var data = <TimeSeriesData>[];
+
+  var offSet = DateTime.now().timeZoneOffset.inHours;
 
   for (var measurement in measurements) {
     try {
-      final dateTime = DateTime.parse(measurement.time);
+      final dateTime = DateTime.parse(measurement.time)
+          .add(Duration(hours: offSet));
       data.add(
           TimeSeriesData(dateTime, measurement.pm2_5.calibratedValue.ceil()));
+
     } catch (e) {
       print(e);
     }

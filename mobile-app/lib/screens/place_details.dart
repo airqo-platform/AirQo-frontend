@@ -1,5 +1,6 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/device.dart';
+import 'package:app/models/historicalMeasurement.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/predict.dart';
 import 'package:app/utils/data_formatter.dart';
@@ -34,7 +35,10 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
 
   bool isFavourite = false;
   var measurementData;
+  // List<HistoricalMeasurement> historicalData;
+  var historicalData;
   var response;
+  var historicalResponse = '';
   var dbHelper = DBHelper();
   var startDate = DateFormat('yyyy-MM-dd').format(DateTime(
       DateTime.now().year, DateTime.now().month - 1, DateTime.now().day));
@@ -46,6 +50,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
   @override
   void initState() {
     getMeasurements();
+    getHistoricalMeasurements();
     super.initState();
   }
 
@@ -103,6 +108,49 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
       setState(() {
         response = message;
       });
+    }
+  }
+
+  Future<void> getHistoricalMeasurements() async {
+    await localFetchHistoricalData();
+
+    try {
+
+      await AirqoApiClient(context).fetchDeviceHistoricalMeasurements(device)
+          .then((value) => {
+            if(value.isNotEmpty){
+              setState(() {
+                historicalData = value;
+              })
+            }
+            else{
+              setState(() {
+                historicalResponse = 'Historical data is not available...';
+              })
+            }
+      });
+
+    } catch (e){
+      setState(() {
+        historicalResponse = 'Historical data is not available...';
+      });
+      print('Getting device historical events error: $e');
+    }
+  }
+
+  Future<void> localFetchHistoricalData() async {
+    try {
+      var measurements = await DBHelper()
+          .getHistoricalMeasurements(device.name);
+
+      if (measurements.isNotEmpty) {
+        setState(() {
+          historicalData = measurements;
+        });
+
+      }
+    } on Error catch (e) {
+      print('Getting historical data locally error: $e');
     }
   }
 
@@ -251,46 +299,24 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                   // Pollutants
                   PollutantsContainer(measurementData),
 
-                  // Historical Data
-                  FutureBuilder(
-                      future: AirqoApiClient(context)
-                          .fetchDeviceHistoricalMeasurements(device),
-                      builder: (context, snapshot) {
-                        print(snapshot);
-                        if (snapshot.hasData) {
-                          var results = snapshot.data as List<Measurement>;
-
-                          if (results.isEmpty) {
-                            return Center(
-                              child: Container(
-                                padding: const EdgeInsets.all(16.0),
-                                child: const Text(
-                                  'Historical data is not available...',
-                                  softWrap: true,
-                                  textAlign: TextAlign.center,
-                                ),
-                              ),
-                            );
-                          }
-
-                          var formattedData = historicalChartData(results);
-                          // Crunching the latest data, just for you.
-                          // Hang tight…
-                          print('loading chart');
-                          print(results);
-                          print(formattedData);
-                          return HourlyBarChart(formattedData);
-                        } else {
-                          return Center(
-                              child: Container(
-                            padding: const EdgeInsets.all(16.0),
-                            child: CircularProgressIndicator(
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                  ColorConstants().appColor),
-                            ),
-                          ));
-                        }
-                      }),
+                  // historicalData
+                  historicalData != null && historicalData.isNotEmpty
+                      ?
+                  historicalDataSection(historicalData)
+                      : historicalResponse != '' ?
+                  Center(
+                    child: Text(historicalResponse),
+                  )
+                      :
+                  Center(
+                      child: Container(
+                        padding: const EdgeInsets.all(16.0),
+                        child: CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                              ColorConstants().appColor),
+                        ),
+                      ))
+                  ,
 
                   // Forecast Data
                   FutureBuilder(
@@ -452,6 +478,16 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
           ),
           markers: _markers.values.toSet(),
         )));
+  }
+
+  Widget historicalDataSection(List<HistoricalMeasurement> measurements) {
+    var formattedData = historicalChartData(measurements);
+    // Crunching the latest data, just for you.
+    // Hang tight…
+    print('loading historical chart');
+    print(measurements);
+    print(formattedData);
+    return HourlyBarChart(formattedData);
   }
 
   Widget cardSection(Measurement measurement) {
