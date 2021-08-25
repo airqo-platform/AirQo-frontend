@@ -1017,7 +1017,8 @@ class Apis extends CI_Controller
                                                         SET time = '$date', 
                                                         reading = '$pm2_5', 
                                                         an_dateUpdated = NOW(),
-                                                        an_active = '1'
+                                                        an_active = '1',
+                                                        an_deleted = '0'
                                                     WHERE an_channel_id = '$device_number' 
                                                     LIMIT 1");
                 }
@@ -1283,7 +1284,8 @@ public function airqoPlace24Hours()
             if($success == true) {
                 $devices = $json->devices;
                 
-                //$sql_delete = "TRUNCATE tbl_app_nodes";
+                // $sql_delete = "TRUNCATE tbl_app_nodes";
+                // $this->db->query($sql_delete);
                 $sql = "SELECT an_channel_id FROM tbl_app_nodes";
                 $channel = $this->db->query($sql);
                 $update_count = 0;
