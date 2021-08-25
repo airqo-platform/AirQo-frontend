@@ -80,18 +80,6 @@ class Measurement {
 
   static String dbLocationName() => 'location_name';
 
-  static String forecastDataTableStmt() =>
-      'CREATE TABLE IF NOT EXISTS forecast_data ('
-      'id INTEGER PRIMARY KEY, '
-      'device_name not null,'
-      'time not null, '
-      'pm2_5 not null, '
-      'pm10 null, '
-      'altitude null, '
-      'speed null, '
-      'temperature null, '
-      'humidity null)';
-
   static String latestMeasurementsTableDropStmt() =>
       'DROP TABLE IF EXISTS ${latestMeasurementsDb()}';
 

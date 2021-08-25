@@ -116,9 +116,9 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                         DBHelper().deleteSearchHistory(results[index]);
                         query = '';
                       },
-                      child: const Icon(
+                      child: Icon(
                         Icons.delete_outlined,
-                        color: Colors.red,
+                        color: ColorConstants().red,
                       ),
                     ),
                     onTap: () {
@@ -201,7 +201,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
   @override
   Widget buildResults(BuildContext context) {
     if (showAllDevices) {
-      return loadLocalDevices();
+      return loadLocalDevices(context);
     }
 
     if (query == '') {
@@ -215,8 +215,6 @@ class LocationSearch extends SearchDelegate<Suggestion> {
             ),
           ));
     }
-
-    print(searchPlaceId);
 
     if (searchPlaceId == '') {
       return Align(
@@ -237,9 +235,11 @@ class LocationSearch extends SearchDelegate<Suggestion> {
         future: googleApiClient.getPlaceDetailFromId(searchPlaceId),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
+            print('${snapshot.error.toString()}');
             return Container(
               padding: const EdgeInsets.all(16.0),
-              child: Text('${snapshot.error.toString()}'),
+              child: const Text('Cannot full fill your request now, check your '
+                  'internet connection or try again later'),
             );
           } else if (snapshot.hasData) {
             var place = snapshot.data as Place;
@@ -249,9 +249,10 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                     place.geometry.location.lat, place.geometry.location.lng),
                 builder: (context, snapshot) {
                   if (snapshot.hasError) {
+                    print('${snapshot.error.toString()}');
                     return Container(
                       padding: const EdgeInsets.all(16.0),
-                      child: Text('${snapshot.error.toString()}'),
+                      child: const Text('Cannot full fill your request now'),
                     );
                   } else if (snapshot.hasData) {
                     var devices = snapshot.data as List<Device>;
@@ -266,7 +267,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
                                 Text(
-                                  'Sorry, we dont have any sensors'
+                                  'Sorry, we dont have any air quality stations'
                                   ' close to $query',
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
@@ -284,7 +285,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                         Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: Text(
-                            'Air quality sensors near $query',
+                            'Air quality stations near $query',
                             textAlign: TextAlign.center,
                             style: TextStyle(color: ColorConstants().appColor),
                           ),
@@ -339,7 +340,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                             ),
                             Text(
                               'Searching for nearby air '
-                              'quality sensors. Please wait...',
+                              'quality stations. Please wait...',
                               textAlign: TextAlign.center,
                               style:
                                   TextStyle(color: ColorConstants().appColor),
@@ -377,18 +378,19 @@ class LocationSearch extends SearchDelegate<Suggestion> {
     showResults(context);
   }
 
-  Widget loadLocalDevices() {
+  Widget loadLocalDevices(context) {
     return FutureBuilder(
         future: DBHelper().getDevices(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             print(snapshot.error);
-            return loadApiDevices();
-          } else if (snapshot.hasData) {
+            return loadApiDevices(context);
+          }
+          else if (snapshot.hasData) {
             var devices = snapshot.data as List<Device>;
 
             if (devices.isEmpty) {
-              return loadApiDevices();
+              return loadApiDevices(context);
             }
 
             return ListView.builder(
@@ -429,7 +431,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                             ColorConstants().appColor),
                       ),
                       Text(
-                        'Getting all air quality sensor locations. '
+                        'Getting air quality stations. '
                         'Please wait...',
                         textAlign: TextAlign.center,
                         style: TextStyle(color: ColorConstants().appColor),
@@ -457,7 +459,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
       child: Padding(
         padding: const EdgeInsets.all(4),
         child: Text(
-          'Show all sensor locations',
+          'Show all air quality stations',
           style: TextStyle(color: ColorConstants().appColor),
         ),
       ),
@@ -482,23 +484,26 @@ class LocationSearch extends SearchDelegate<Suggestion> {
       child: Padding(
         padding: const EdgeInsets.all(4),
         child: Text(
-          'Go to Map',
+          'Go to the Map',
           style: TextStyle(color: ColorConstants().appColor),
         ),
       ),
     );
   }
 
-  Widget loadApiDevices() {
+  Widget loadApiDevices(context) {
     return FutureBuilder(
-        future: DBHelper().getDevices(),
+        future: AirqoApiClient(context).fetchDevices(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
+            print('${snapshot.error.toString()}');
             return Container(
               padding: const EdgeInsets.all(16.0),
-              child: Text('${snapshot.error.toString()}'),
+              child: const Text('Your request could not be fulfilled, '
+                  'try again later'),
             );
-          } else if (snapshot.hasData) {
+          }
+          else if (snapshot.hasData) {
             var devices = snapshot.data as List<Device>;
 
             if (devices.isEmpty) {

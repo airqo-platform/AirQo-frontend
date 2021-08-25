@@ -54,8 +54,9 @@ class DBHelper {
     await db.execute(Predict.forecastTableDropStmt());
     await db.execute(Predict.forecastTableCreateStmt());
 
-    // await db.execute(Device.devicesTableDropStmt());
-    // await db.execute(Device.createTableStmt());
+    // devices table
+    await db.execute(Device.devicesTableDropStmt());
+    await db.execute(Device.createTableStmt());
   }
 
   Future<void> insertSearchHistory(Suggestion suggestion) async {
@@ -134,6 +135,30 @@ class DBHelper {
             );
           } catch (e) {
             print('Inserting latest measurements into db');
+            print(e);
+          }
+        }
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  Future<void> insertDevices(List<Device> devices) async {
+    try {
+      final db = await database;
+
+      if (devices.isNotEmpty) {
+        for (var device in devices) {
+          try {
+            var jsonData = Device.toDbMap(device);
+            await db.insert(
+              '${Device.dbName()}',
+              jsonData,
+              conflictAlgorithm: ConflictAlgorithm.replace,
+            );
+          } catch (e) {
+            print('Inserting devices into db');
             print(e);
           }
         }
@@ -308,12 +333,11 @@ class DBHelper {
 
   Future<List<Device>> getDevices() async {
     try {
-      print('Getting devices from local db');
 
       final db = await database;
       var res = await db.query(Device.dbName());
 
-      print('Got ${res.length} places from local db');
+      print('Got ${res.length} devices from local db');
 
       var devices = res.isNotEmpty
           ? List.generate(res.length, (i) {

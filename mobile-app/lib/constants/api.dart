@@ -18,4 +18,6 @@ class AirQoUrls {
   String get devices => '${_baseUrl}devices';
 
   String get forecast => '${_baseUrl}predict';
+
+  String get devicesByGeoCoordinates => '${_baseUrl}devices/by/nearest-coordinates';
 }

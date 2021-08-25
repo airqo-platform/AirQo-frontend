@@ -24,8 +24,8 @@ class Suggestion {
 
   static String searchHistoryTableCreateStmt() =>
       'CREATE TABLE IF NOT EXISTS ${dbName()}('
-      'id INTEGER PRIMARY KEY, '
-      '${dbDescription()} TEXT, ${dbPlaceId()} TEXT)';
+      '${dbPlaceId()} TEXT PRIMARY KEY, '
+      '${dbDescription()} TEXT)';
 
   @override
   String toString() {

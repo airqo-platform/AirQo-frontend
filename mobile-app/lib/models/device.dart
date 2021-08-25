@@ -62,6 +62,26 @@ class Device {
 
   Map<String, dynamic> toJson() => _$DeviceToJson(this);
 
+  static List<Device> parseDevices(dynamic jsonBody) {
+    return Devices.fromJson(jsonBody).devices;
+  }
+
+  static List<Device> parseDevicesV2(dynamic jsonBody) {
+
+    var devices = <Device>[];
+
+    for (var t in jsonBody) {
+      try {
+        var device = Device.fromJson(t);
+        devices.add(device);
+      } on Error catch (e) {
+        print('Get Devices error: $e');
+      }
+    }
+
+    return devices;
+  }
+
   @JsonKey(defaultValue: '', required: false)
   final String nickName;
   @JsonKey(defaultValue: 0.0, required: false)

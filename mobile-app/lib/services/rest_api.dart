@@ -83,46 +83,69 @@ class AirqoApiClient {
   }
 
   Future<List<Device>> fetchDevices() async {
+
     try {
-      final response = await http.get(Uri.parse(getDevices));
 
-      print(response.statusCode);
-      if (response.statusCode == 200) {
-        print(response.body);
+      var queryParams = <String, dynamic>{}
+        ..putIfAbsent('active', () => 'yes')
+        ..putIfAbsent('tenant', () => 'airqo');
 
-        var devices = <Device>[];
+      final responseBody =
+      await _performGetRequest(queryParams, AirQoUrls().devices);
 
-        var j = json.decode(response.body)['devices'];
-        for (var t in j) {
-          try {
-            var device = Device.fromJson(t);
-            devices.add(device);
-          } on Error catch (e) {
-            print('Get Devices error: $e');
-          }
-        }
-
-        return devices;
+      if (responseBody != null) {
+        return compute(Device.parseDevices, responseBody);
       } else {
-        print('Unexpected status code ${response.statusCode}:'
-            ' ${response.reasonPhrase}');
-        throw HttpException(
-            'Unexpected status code ${response.statusCode}:'
-            ' ${response.reasonPhrase}',
-            uri: Uri.parse(getDevices));
+        print('Devices are null');
+        return <Device>[];
       }
-    } on SocketException {
-      await showSnackBar(context, ErrorMessages().socketException);
-    } on TimeoutException {
-      await showSnackBar(context, ErrorMessages().timeoutException);
     } on Error catch (e) {
-      print('Get Devices error: $e');
-      var message =
-          'Recent locations are not available, please try again later';
-      await showSnackBar(context, message);
+      print('Get devices error: $e');
     }
 
     return <Device>[];
+
+
+    // try {
+    //   final response = await http.get(Uri.parse(getDevices));
+    //
+    //   print(response.statusCode);
+    //   if (response.statusCode == 200) {
+    //     print(response.body);
+    //
+    //     var devices = <Device>[];
+    //
+    //     var j = json.decode(response.body)['devices'];
+    //     for (var t in j) {
+    //       try {
+    //         var device = Device.fromJson(t);
+    //         devices.add(device);
+    //       } on Error catch (e) {
+    //         print('Get Devices error: $e');
+    //       }
+    //     }
+    //
+    //     return devices;
+    //   } else {
+    //     print('Unexpected status code ${response.statusCode}:'
+    //         ' ${response.reasonPhrase}');
+    //     throw HttpException(
+    //         'Unexpected status code ${response.statusCode}:'
+    //         ' ${response.reasonPhrase}',
+    //         uri: Uri.parse(getDevices));
+    //   }
+    // } on SocketException {
+    //   await showSnackBar(context, ErrorMessages().socketException);
+    // } on TimeoutException {
+    //   await showSnackBar(context, ErrorMessages().timeoutException);
+    // } on Error catch (e) {
+    //   print('Get Devices error: $e');
+    //   var message =
+    //       'Recent locations are not available, please try again later';
+    //   await showSnackBar(context, message);
+    // }
+    //
+    // return <Device>[];
   }
 
   Future<List<Predict>> fetchForecast(
@@ -256,52 +279,28 @@ class AirqoApiClient {
   Future<List<Device>> getDevicesByCoordinates(
       double latitude, double longitude) async {
     try {
-      var url = '$getDevicesByGeoCoordinates&radius=1&latitude='
-          '$latitude&longitude=$longitude';
-      print(url);
-      final response = await http.get(Uri.parse(url));
 
-      print(response.statusCode);
-      if (response.statusCode == 200) {
-        // List<Device> devices = json.decode(response.body)['devices']
-        //     .map<Device>((d) => {
-        //   Device.fromJson(d)
-        // })
-        //     .toList();
+      var queryParams = <String, dynamic>{}
+        ..putIfAbsent('radius', () => '1')
+        ..putIfAbsent('tenant', () => 'airqo')
+        ..putIfAbsent('longitude', () => longitude)
+        ..putIfAbsent('latitude', () => latitude);
 
-        var devices = <Device>[];
+      final responseBody = await _performGetRequest(queryParams,
+          AirQoUrls().devicesByGeoCoordinates);
 
-        var j = json.decode(response.body);
-        for (var t in j) {
-          try {
-            var device = Device.fromJson(t);
-            devices.add(device);
-          } on Error catch (e) {
-            print('Get Devices error: $e');
-          }
-        }
-
-        return devices;
+      if (responseBody != null) {
+        return compute(Device.parseDevicesV2, responseBody);
       } else {
-        print('Unexpected status code ${response.statusCode}:'
-            ' ${response.reasonPhrase}');
-        throw HttpException(
-            'Unexpected status code ${response.statusCode}:'
-            ' ${response.reasonPhrase}',
-            uri: Uri.parse(getDevices));
+        print('Devices are null');
+        return <Device>[];
       }
-    } on SocketException {
-      await showSnackBar(context, ErrorMessages().socketException);
-    } on TimeoutException {
-      await showSnackBar(context, ErrorMessages().timeoutException);
     } on Error catch (e) {
-      print('Get Devices error: $e');
-      var message =
-          'Recent locations are not available, please try again later';
-      await showSnackBar(context, message);
+      print('Get devices error: $e');
     }
 
     return <Device>[];
+
   }
 
   Future<String> imageUpload(String file, String? type) async {
@@ -480,8 +479,6 @@ class GoogleSearchProvider {
         'components=country:ug&'
         'key=$apiKey&'
         'sessiontoken=$sessionToken';
-    // 'types=address&'
-    // print(request);
 
     try {
       final response = await http.get(Uri.parse(request));
@@ -490,10 +487,6 @@ class GoogleSearchProvider {
         final result = json.decode(response.body);
 
         if (result['status'] == 'OK') {
-          // List<Measurement> suggestions =
-          // Event.fromJson(json.decode(response.body));
-          // List<Measurement> measurements = event.measurements;
-          // Suggestion(description: p['description'], placeId: p['place_id']);
 
           List<Suggestion> suggestions = result['predictions']
               .map<Suggestion>((p) => Suggestion.fromJson(p))
@@ -513,7 +506,6 @@ class GoogleSearchProvider {
     } on TimeoutException {
       throw Exception(ErrorMessages().timeoutException);
     } on Error catch (e) {
-      print('Update Latest events error: $e');
       throw Exception('Cannot get locations, please try again later');
     }
   }
@@ -525,7 +517,6 @@ class GoogleSearchProvider {
         'key=$apiKey&'
         'sessiontoken=$sessionToken';
 
-    print(request);
     try {
       final response = await http.get(Uri.parse(request));
 
@@ -534,7 +525,6 @@ class GoogleSearchProvider {
       }
 
       final result = json.decode(response.body);
-      print(result);
 
       if (result['status'] != 'OK') {
         throw Exception('Failed to get details');
@@ -548,49 +538,7 @@ class GoogleSearchProvider {
     } on TimeoutException {
       throw Exception(ErrorMessages().timeoutException);
     } on Error catch (e) {
-      print('Update Latest events error: $e');
       throw Exception('Cannot get details, please try again later');
     }
   }
 }
-
-// Future<List<Hourly>> fetchHourlyMeasurements(String channelId) async {
-//   try {
-//     final response = await http.get(Uri.parse('$getHourlyEvents$channelId'));
-//
-//     print(response.statusCode);
-//
-//     if (response.statusCode == 200) {
-//       print(response.body);
-//
-//       var measurements = <Hourly>[];
-//
-//       var jsonBody = json.decode(response.body)['hourly_results'];
-//
-//       for (var element in jsonBody) {
-//         try {
-//           var measurement = Hourly.fromJson(element);
-//           measurements.add(measurement);
-//         } on Error catch (e) {
-//           print('Get hourly measurements error: $e');
-//         }
-//       }
-//
-//       return measurements;
-//     } else {
-//       print('Unexpected status code ${response.statusCode}:'
-//           ' ${response.reasonPhrase}');
-//       print('Body ${response.body}:');
-//       print('uri: Uri.parse($getForecastUrl)');
-//       return <Hourly>[];
-//     }
-//   } on SocketException {
-//     await showSnackBar(context, ErrorMessages().socketException);
-//   } on TimeoutException {
-//     await showSnackBar(context, ErrorMessages().timeoutException);
-//   } on Error catch (e) {
-//     print('Get hourly measurements error: $e');
-//   }
-//
-//   return <Hourly>[];
-// }

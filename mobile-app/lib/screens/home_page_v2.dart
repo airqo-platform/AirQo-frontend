@@ -219,6 +219,7 @@ class _HomePageV2State extends State<HomePageV2> {
   Future<void> initialize() async {
     await _getLatestMeasurements();
     await _getHistoricalMeasurements();
+    await _getDevices();
   }
 
   void navigateToMenuItem(dynamic position) {
@@ -274,12 +275,6 @@ class _HomePageV2State extends State<HomePageV2> {
       exitTime = now;
 
       showSnackBar(context, 'Tap again to exit !');
-      // final snackBar = const SnackBar(
-      //   content: Text('Tap again to exit !'),
-      //   backgroundColor: ColorConstants().appColor,
-      // );
-      // ScaffoldMessenger.of(context).showSnackBar(snackBar);
-
       return Future.value(false);
     }
     return Future.value(true);
@@ -334,14 +329,6 @@ class _HomePageV2State extends State<HomePageV2> {
     }
   }
 
-  // Future<void> _getDevices() async {
-  //   var results = await AirqoApiClient(context).fetchDevices();
-  //
-  //   if (results.isNotEmpty) {
-  //     await DBHelper().insertDevices(results);
-  //   }
-  // }
-
   Future<void> _getLatestMeasurements() async {
     await AirqoApiClient(context).fetchLatestMeasurements().then((value) => {
           if (value.isNotEmpty) {DBHelper().insertLatestMeasurements(value)}
@@ -355,6 +342,15 @@ class _HomePageV2State extends State<HomePageV2> {
               if (value.isNotEmpty)
                 {DBHelper().insertHistoricalMeasurements(value)}
             });
+  }
+
+  Future<void> _getDevices() async {
+    await AirqoApiClient(context)
+        .fetchDevices()
+        .then((value) => {
+      if (value.isNotEmpty)
+        {DBHelper().insertDevices(value)}
+    });
   }
 
   void _launchURLFaqs() async => await canLaunch(_faqsUrl)
