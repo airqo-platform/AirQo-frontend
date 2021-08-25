@@ -14,6 +14,6 @@ class UserFeedback {
 
   Map<String, dynamic> toJson() => _$UserFeedbackToJson(this);
 
-  String email;
+  String email = '';
   String feedback;
 }

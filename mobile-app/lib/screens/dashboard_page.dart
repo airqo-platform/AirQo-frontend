@@ -52,20 +52,21 @@ class _DashboardPageState extends State<DashboardPage> {
       });
 
       await AirqoApiClient(context)
-          .fetchLatestDevicesMeasurements(favouritePlaces).then((value) => {
-        if(value.isNotEmpty){
-          setState(() {
-            results = value;
-          })
-        }
-        else{
-          if (results.isEmpty && hasFavPlaces){
-            error = 'Sorry, we are not able to gather information'
+          .fetchLatestDevicesMeasurements(favouritePlaces)
+          .then((value) => {
+            if(value.isNotEmpty){
+              setState(() {
+                results = value;
+              }),
+              DBHelper().insertLatestMeasurements(value)
+            }
+            else{
+              if (results.isEmpty && hasFavPlaces){
+                error = 'Sorry, we are not able to gather information'
                 ' about your places. Try again later'
-          }
-        }
-      });
-
+              }
+            }
+          });
     }
   }
 

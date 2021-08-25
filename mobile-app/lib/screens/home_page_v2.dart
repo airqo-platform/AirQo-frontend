@@ -31,7 +31,7 @@ class _HomePageV2State extends State<HomePageV2> {
   String title = appName;
   bool showAddPlace = true;
   DateTime? exitTime;
-  var _faqsUrl = 'https://www.airqo.net/faqs';
+  final _faqsUrl = 'https://www.airqo.net/faqs';
 
   @override
   Widget build(BuildContext context) {
@@ -174,10 +174,7 @@ class _HomePageV2State extends State<HomePageV2> {
         onWillPop: onWillPop,
         child: PageView(
           controller: _pageCtrl,
-          onPageChanged: (int) {
-            switchTitle(int);
-            print('Page Changes to index $int');
-          },
+          onPageChanged: switchTitle,
           physics: const NeverScrollableScrollPhysics(),
           children: <Widget>[
             DashboardPage(),
@@ -229,6 +226,8 @@ class _HomePageV2State extends State<HomePageV2> {
       // _launchURL();
       Navigator.push(context, MaterialPageRoute(builder: (context) {
         return FeedbackPage();
+      })).then((value) => setState(() {
+        _pageCtrl.jumpToPage(0);
       }));
     } else if (menuItem.trim().toLowerCase() == 'share') {
       shareApp();
@@ -239,7 +238,9 @@ class _HomePageV2State extends State<HomePageV2> {
           builder: (BuildContext context) => AQI_Dialog(),
           fullscreenDialog: true,
         ),
-      );
+      ).then((value) => setState(() {
+        _pageCtrl.jumpToPage(0);
+      }));
     } else if (menuItem.trim().toLowerCase() == 'faqs') {
       try {
         _launchURLFaqs();
@@ -249,20 +250,22 @@ class _HomePageV2State extends State<HomePageV2> {
     } else if (menuItem.trim().toLowerCase() == 'myplaces') {
       Navigator.push(context, MaterialPageRoute(builder: (context) {
         return const MyPlaces();
-      })).then((value) {
-        setState(() {});
-      });
+      })).then((value) => setState(() {
+        _pageCtrl.jumpToPage(0);
+      }));
     } else if (menuItem.trim().toLowerCase() == 'settings') {
       Navigator.push(context, MaterialPageRoute(builder: (context) {
         return SettingsPage();
-      })).then((value) {
-        setState(() {});
-      });
+      })).then((value) => setState(() {
+        _pageCtrl.jumpToPage(0);
+      }));
     } else if (menuItem.trim().toLowerCase() == 'camera') {
       takePhoto();
     } else {
       Navigator.push(context, MaterialPageRoute(builder: (context) {
         return SettingsPage();
+      })).then((value) => setState(() {
+        _pageCtrl.jumpToPage(0);
       }));
     }
   }
@@ -280,8 +283,8 @@ class _HomePageV2State extends State<HomePageV2> {
     return Future.value(true);
   }
 
-  void switchTitle(int) {
-    switch (int) {
+  void switchTitle(tile) {
+    switch (tile) {
       case 0:
         setState(() {
           title = appName;
@@ -314,6 +317,8 @@ class _HomePageV2State extends State<HomePageV2> {
       return TakePicture(
         camera: firstCamera,
       );
+    })).then((value) => setState(() {
+      _pageCtrl.jumpToPage(0);
     }));
   }
 
@@ -322,10 +327,10 @@ class _HomePageV2State extends State<HomePageV2> {
     var isFirstUse = prefs.getBool(firstUse) ?? true;
 
     if (isFirstUse) {
-      await Navigator.pushReplacement(context,
+      await Navigator.pushAndRemoveUntil(context,
           MaterialPageRoute(builder: (context) {
-        return OnBoardingPage();
-      }));
+            return OnBoardingPage();
+          }), (r) => false);
     }
   }
 

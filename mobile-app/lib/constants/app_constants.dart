@@ -14,7 +14,7 @@ const appTheme = 'appTheme';
 const faqs = 'https://www.airqo.net/faqs';
 const about = 'https://www.airqo.net/about';
 const terms =
-    'https://docs.airqo.net/airqo-platform-api/mobile-app-privacy-policy';
+    'https://docs.airqo.net/airqo-application-documentations/';
 const contactUs = 'https://www.airqo.net/contact-us';
 const rate = 'https://www.airqo.net/faqs';
 const facebook = 'https://web.facebook.com/AirQo/';
