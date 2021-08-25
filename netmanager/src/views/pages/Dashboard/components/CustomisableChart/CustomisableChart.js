@@ -455,7 +455,9 @@ const CustomisableChart = (props) => {
     };
 
     transferFromTempState();
-    updateUserChartDefaultsApi(newFilter._id, newFilter);
+    updateUserChartDefaultsApi(newFilter._id, newFilter).then(() =>
+      dispatch(loadUserDefaultGraphData())
+    );
     await fetchAndSetGraphData(newFilter);
   };
 
@@ -816,7 +818,6 @@ const CustomisableChart = (props) => {
                           })
                         }
                         fullWidth
-                        required
                       />
                     </Grid>
                     <Grid item md={12} xs={12}>
