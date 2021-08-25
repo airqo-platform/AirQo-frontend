@@ -3,6 +3,7 @@ import { useDispatch } from "react-redux";
 import { Button, Card, Grid, TextField } from "@material-ui/core";
 import OutlinedSelect from "views/components/CustomSelects/OutlinedSelect";
 import { useDashboardSiteOptions } from "utils/customHooks/DashboardHooks";
+import { updateUserDefaultGraphData } from "redux/Dashboard/operations";
 import { useAuthUser } from "redux/Join/selectors";
 import { createUserChartDefaultsApi } from "views/apis/authService";
 import { roundToStartOfDay, roundToEndOfDay } from "utils/dateTime";
@@ -74,7 +75,15 @@ const AddChart = ({ className }) => {
     setDefaultsData({ ...defaultsData, [key]: selectedValue });
   };
 
-  const handleClose = () => setShowForm(false);
+  const clearDefaultsData = () => {
+    setShowForm(false);
+    setDefaultsData(initialDefaultsData);
+  };
+
+  const handleClose = () => {
+    setShowForm(false);
+    clearDefaultsData();
+  };
 
   const validateInput = () => {};
 
@@ -96,6 +105,8 @@ const AddChart = ({ className }) => {
             severity: "success",
           })
         );
+        dispatch(updateUserDefaultGraphData(responseData.default));
+        clearDefaultsData();
       })
       .catch((err) => {
         dispatch(
@@ -106,7 +117,6 @@ const AddChart = ({ className }) => {
             severity: "error",
           })
         );
-        console.log("err", err);
       });
     setLoading(false);
   };
