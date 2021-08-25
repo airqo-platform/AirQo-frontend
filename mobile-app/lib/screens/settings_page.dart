@@ -31,38 +31,6 @@ class _SettingsPageState extends State<SettingsPage> {
   final Notifications _notifications = Notifications();
 
   @override
-  void initState() {
-    loadPreferences();
-    _notifications.initNotifications();
-    super.initState();
-  }
-
-  Future<void> loadPreferences() async {
-    var prefs = await SharedPreferences.getInstance();
-    var theme = prefs.getString(appTheme);
-    print(theme);
-    if (theme != null) {
-      switch (theme) {
-        case 'light':
-          _theme = Themes.lightTheme;
-          break;
-        case 'dark':
-          _theme = Themes.darkTheme;
-          break;
-        default:
-          _theme = Themes.lightTheme;
-          break;
-      }
-    }
-
-    _language = Languages.English;
-  }
-
-  void pushNotification() {
-    _notifications.showOngoingNotification();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -106,6 +74,84 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
+  void cancelNotification(int id) {
+    _notifications.cancelNotifications(id);
+  }
+
+  EdgeInsets containerPadding() {
+    return const EdgeInsets.fromLTRB(10, 10, 10, 0);
+  }
+
+  Widget footer() {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(0, 10, 0, 10),
+      decoration: BoxDecoration(
+          gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+            Colors.white.withOpacity(0.5),
+            ColorConstants().appColor,
+          ])),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          GestureDetector(
+            onTap: () {
+              _launchURL('airqo');
+            },
+            child: Image.asset(
+              'assets/icon/airqo_logo.png',
+              height: 50,
+              width: 50,
+            ),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              IconButton(
+                  icon: const FaIcon(
+                    FontAwesomeIcons.facebook,
+                    color: facebookColor,
+                  ),
+                  onPressed: () {
+                    _launchURL('facebook');
+                  }),
+              IconButton(
+                  icon: const FaIcon(
+                    FontAwesomeIcons.twitter,
+                    color: twitterColor,
+                  ),
+                  onPressed: () {
+                    _launchURL('twitter');
+                  }),
+              IconButton(
+                  icon: const FaIcon(
+                    FontAwesomeIcons.youtube,
+                    color: youtubeColor,
+                  ),
+                  onPressed: () {
+                    _launchURL('youtube');
+                  }),
+              IconButton(
+                  icon: const FaIcon(
+                    FontAwesomeIcons.linkedin,
+                    color: linkedInColor,
+                  ),
+                  onPressed: () {
+                    _launchURL('linkedin');
+                  }),
+            ],
+          ),
+          const Text(
+            'v1.21.7',
+            style: TextStyle(color: Colors.white),
+          )
+        ],
+      ),
+    );
+  }
+
   TextStyle headerStyle() {
     return const TextStyle(
       fontWeight: FontWeight.bold,
@@ -113,8 +159,321 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  EdgeInsets containerPadding() {
-    return const EdgeInsets.fromLTRB(10, 10, 10, 0);
+  @override
+  void initState() {
+    loadPreferences();
+    _notifications.initNotifications();
+    super.initState();
+  }
+
+  Future<void> loadPreferences() async {
+    var prefs = await SharedPreferences.getInstance();
+    var theme = prefs.getString(appTheme);
+    print(theme);
+    if (theme != null) {
+      switch (theme) {
+        case 'light':
+          _theme = Themes.lightTheme;
+          break;
+        case 'dark':
+          _theme = Themes.darkTheme;
+          break;
+        default:
+          _theme = Themes.lightTheme;
+          break;
+      }
+    }
+
+    _language = Languages.English;
+  }
+
+  Widget notifications() {
+    return Container(
+      padding: containerPadding(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text(
+            'Notifications',
+            style: headerStyle(),
+          ),
+          // ListTile(
+          //   title: const Text('Persistent Notifications'),
+          //   subtitle: const Text('Display persistent notifications '
+          //       'in the notification tray'),
+          //   trailing: Switch(
+          //     value: _persistentNotification,
+          //     activeColor: ColorConstants().appColor,
+          //     activeTrackColor: ColorConstants().appColor.withOpacity(0.6),
+          //     inactiveThumbColor: Colors.white,
+          //     inactiveTrackColor: Colors.black12,
+          //     onChanged: (bool value) {
+          //       if(value){
+          //         showNotification(persistentNotificationId);
+          //       }
+          //       else{
+          //         cancelNotification(persistentNotificationId);
+          //       }
+          //       setState(() {
+          //         _persistentNotification = value;
+          //       });
+          //     },
+          //   ),
+          // ),
+          ListTile(
+            title: const Text('Smart Notifications'),
+            subtitle: const Text('Receive air pollution alerts and '
+                'recommendations for your saved places'),
+            trailing: Switch(
+              value: _smartNotification,
+              activeColor: ColorConstants().appColor,
+              activeTrackColor: ColorConstants().appColor.withOpacity(0.6),
+              inactiveThumbColor: Colors.white,
+              inactiveTrackColor: Colors.black12,
+              onChanged: (bool value) {
+                if (value) {
+                  showNotification(smartNotificationId);
+                } else {
+                  cancelNotification(smartNotificationId);
+                }
+
+                setState(() {
+                  _smartNotification = value;
+                });
+              },
+            ),
+          ),
+          ListTile(
+            title: const Text('Push Notifications'),
+            subtitle: const Text('Get notifications about new features and '
+                'blog posts from the AirQo team'),
+            trailing: Switch(
+              value: _pushNotification,
+              activeColor: ColorConstants().appColor,
+              activeTrackColor: ColorConstants().appColor.withOpacity(0.6),
+              inactiveThumbColor: Colors.white,
+              inactiveTrackColor: Colors.black12,
+              onChanged: (bool value) {
+                if (value) {
+                  showNotification(pushNotificationId);
+                } else {
+                  cancelNotification(pushNotificationId);
+                }
+
+                setState(() {
+                  _pushNotification = value;
+                });
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void pushNotification() {
+    _notifications.showOngoingNotification();
+  }
+
+  Widget reports() {
+    return Container(
+      padding: containerPadding(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text(
+            'Reports',
+            style: headerStyle(),
+          ),
+          ListTile(
+            title: const Text('Daily'),
+            trailing: Switch(
+              value: _dailyReports,
+              activeColor: ColorConstants().appColor,
+              activeTrackColor: ColorConstants().appColor.withOpacity(0.6),
+              inactiveThumbColor: Colors.white,
+              inactiveTrackColor: Colors.black12,
+              onChanged: (bool value) {
+                setState(() {
+                  _dailyReports = value;
+                });
+              },
+            ),
+          ),
+          ListTile(
+            title: const Text('Weekly'),
+            trailing: Switch(
+              value: _weeklyReports,
+              activeColor: ColorConstants().appColor,
+              activeTrackColor: ColorConstants().appColor.withOpacity(0.6),
+              inactiveThumbColor: Colors.white,
+              inactiveTrackColor: Colors.black12,
+              onChanged: (bool value) {
+                setState(() {
+                  _weeklyReports = value;
+                });
+              },
+            ),
+          ),
+          ListTile(
+            title: const Text('Monthly'),
+            trailing: Switch(
+              value: _monthlyReports,
+              activeColor: ColorConstants().appColor,
+              activeTrackColor: ColorConstants().appColor.withOpacity(0.6),
+              inactiveThumbColor: Colors.white,
+              inactiveTrackColor: Colors.black12,
+              onChanged: (bool value) {
+                setState(() {
+                  _monthlyReports = value;
+                });
+              },
+            ),
+          ),
+          ListTile(
+            title: const Text('Today\'s Forecast'),
+            subtitle: const Text('The day\'s forecast received at 6AM'),
+            trailing: Switch(
+              value: _morningForecast,
+              activeColor: ColorConstants().appColor,
+              activeTrackColor: ColorConstants().appColor.withOpacity(0.6),
+              inactiveThumbColor: Colors.white,
+              inactiveTrackColor: Colors.black12,
+              onChanged: (bool value) {
+                setState(() {
+                  _morningForecast = value;
+                });
+              },
+            ),
+          ),
+          ListTile(
+            title: const Text('Tomorrow\'s Forecast'),
+            subtitle: const Text('Tomorrow\'s forecast received at 8PM'),
+            trailing: Switch(
+              value: _eveningForecast,
+              activeColor: ColorConstants().appColor,
+              activeTrackColor: ColorConstants().appColor.withOpacity(0.6),
+              inactiveThumbColor: Colors.white,
+              inactiveTrackColor: Colors.black12,
+              onChanged: (bool value) {
+                setState(() {
+                  _eveningForecast = value;
+                });
+              },
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  void showNotification(int id) {
+    switch (id) {
+      case persistentNotificationId:
+        _notifications.showOngoingNotification();
+        return;
+      case progressNotificationId:
+        _notifications.showProgressNotification();
+        return;
+      case smartNotificationId:
+        _notifications.showSmartNotification();
+        return;
+      case pushNotificationId:
+        _notifications.showPushNotification();
+        return;
+      default:
+        return;
+    }
+  }
+
+  Widget support() {
+    return Container(
+      padding: containerPadding(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text(
+            'Support',
+            style: headerStyle(),
+          ),
+          InkWell(
+            onTap: () {
+              _launchURL('faqs');
+            },
+            child: ListTile(
+              title: const Text('FAQs'),
+              leading: Icon(
+                Icons.help_outline_outlined,
+                color: ColorConstants().appColor,
+              ),
+            ),
+          ),
+          InkWell(
+            onTap: () {
+              _launchURL('Contact Us');
+            },
+            child: ListTile(
+              title: const Text('Contact Us'),
+              leading: Icon(
+                Icons.contact_support_outlined,
+                color: ColorConstants().appColor,
+              ),
+            ),
+          ),
+          InkWell(
+            onTap: () {
+              _launchURL('terms');
+            },
+            child: ListTile(
+              title: const Text('Terms of Use & Privacy Policy'),
+              leading: Icon(
+                Icons.description,
+                color: ColorConstants().appColor,
+              ),
+            ),
+          ),
+          InkWell(
+            onTap: () {
+              _launchURL('About');
+            },
+            child: ListTile(
+              title: const Text('About AirQo'),
+              leading: Icon(
+                Icons.info_outline_rounded,
+                color: ColorConstants().appColor,
+              ),
+            ),
+          ),
+          InkWell(
+            onTap: () {
+              _launchURL('rate');
+            },
+            child: ListTile(
+              title: const Text('Rate App'),
+              leading: Icon(
+                Icons.rate_review_outlined,
+                color: ColorConstants().appColor,
+              ),
+            ),
+          ),
+          InkWell(
+            onTap: () {
+              _launchEmail('feedback');
+            },
+            child: ListTile(
+              title: const Text('Feedback'),
+              leading: Icon(
+                Icons.feedback_outlined,
+                color: ColorConstants().appColor,
+              ),
+              subtitle: const Text('Tell us which functionality is most '
+                  'important to you and what you would like '
+                  'to be improved in the app'),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget userPreferences() {
@@ -217,342 +576,6 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  Widget notifications() {
-    return Container(
-      padding: containerPadding(),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Text(
-            'Notifications',
-            style: headerStyle(),
-          ),
-          // ListTile(
-          //   title: const Text('Persistent Notifications'),
-          //   subtitle: const Text('Display persistent notifications '
-          //       'in the notification tray'),
-          //   trailing: Switch(
-          //     value: _persistentNotification,
-          //     activeColor: ColorConstants().appColor,
-          //     activeTrackColor: ColorConstants().appColor.withOpacity(0.6),
-          //     inactiveThumbColor: Colors.white,
-          //     inactiveTrackColor: Colors.black12,
-          //     onChanged: (bool value) {
-          //       if(value){
-          //         showNotification(persistentNotificationId);
-          //       }
-          //       else{
-          //         cancelNotification(persistentNotificationId);
-          //       }
-          //       setState(() {
-          //         _persistentNotification = value;
-          //       });
-          //     },
-          //   ),
-          // ),
-          ListTile(
-            title: const Text('Smart Notifications'),
-            subtitle: const Text('Receive air pollution alerts and '
-                'recommendations for your saved places'),
-            trailing: Switch(
-              value: _smartNotification,
-              activeColor: ColorConstants().appColor,
-              activeTrackColor: ColorConstants().appColor.withOpacity(0.6),
-              inactiveThumbColor: Colors.white,
-              inactiveTrackColor: Colors.black12,
-              onChanged: (bool value) {
-                if (value) {
-                  showNotification(smartNotificationId);
-                } else {
-                  cancelNotification(smartNotificationId);
-                }
-
-                setState(() {
-                  _smartNotification = value;
-                });
-              },
-            ),
-          ),
-          ListTile(
-            title: const Text('Push Notifications'),
-            subtitle: const Text('Get notifications about new features and '
-                'blog posts from the AirQo team'),
-            trailing: Switch(
-              value: _pushNotification,
-              activeColor: ColorConstants().appColor,
-              activeTrackColor: ColorConstants().appColor.withOpacity(0.6),
-              inactiveThumbColor: Colors.white,
-              inactiveTrackColor: Colors.black12,
-              onChanged: (bool value) {
-                if (value) {
-                  showNotification(pushNotificationId);
-                } else {
-                  cancelNotification(pushNotificationId);
-                }
-
-                setState(() {
-                  _pushNotification = value;
-                });
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget reports() {
-    return Container(
-      padding: containerPadding(),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Text(
-            'Reports',
-            style: headerStyle(),
-          ),
-          ListTile(
-            title: const Text('Daily'),
-            trailing: Switch(
-              value: _dailyReports,
-              activeColor: ColorConstants().appColor,
-              activeTrackColor: ColorConstants().appColor.withOpacity(0.6),
-              inactiveThumbColor: Colors.white,
-              inactiveTrackColor: Colors.black12,
-              onChanged: (bool value) {
-                setState(() {
-                  _dailyReports = value;
-                });
-              },
-            ),
-          ),
-          ListTile(
-            title: const Text('Weekly'),
-            trailing: Switch(
-              value: _weeklyReports,
-              activeColor: ColorConstants().appColor,
-              activeTrackColor: ColorConstants().appColor.withOpacity(0.6),
-              inactiveThumbColor: Colors.white,
-              inactiveTrackColor: Colors.black12,
-              onChanged: (bool value) {
-                setState(() {
-                  _weeklyReports = value;
-                });
-              },
-            ),
-          ),
-          ListTile(
-            title: const Text('Monthly'),
-            trailing: Switch(
-              value: _monthlyReports,
-              activeColor: ColorConstants().appColor,
-              activeTrackColor: ColorConstants().appColor.withOpacity(0.6),
-              inactiveThumbColor: Colors.white,
-              inactiveTrackColor: Colors.black12,
-              onChanged: (bool value) {
-                setState(() {
-                  _monthlyReports = value;
-                });
-              },
-            ),
-          ),
-          ListTile(
-            title: const Text('Today\'s Forecast'),
-            subtitle: const Text('The day\'s forecast received at 6AM'),
-            trailing: Switch(
-              value: _morningForecast,
-              activeColor: ColorConstants().appColor,
-              activeTrackColor: ColorConstants().appColor.withOpacity(0.6),
-              inactiveThumbColor: Colors.white,
-              inactiveTrackColor: Colors.black12,
-              onChanged: (bool value) {
-                setState(() {
-                  _morningForecast = value;
-                });
-              },
-            ),
-          ),
-          ListTile(
-            title: const Text('Tomorrow\'s Forecast'),
-            subtitle: const Text('Tomorrow\'s forecast received at 8PM'),
-            trailing: Switch(
-              value: _eveningForecast,
-              activeColor: ColorConstants().appColor,
-              activeTrackColor: ColorConstants().appColor.withOpacity(0.6),
-              inactiveThumbColor: Colors.white,
-              inactiveTrackColor: Colors.black12,
-              onChanged: (bool value) {
-                setState(() {
-                  _eveningForecast = value;
-                });
-              },
-            ),
-          )
-        ],
-      ),
-    );
-  }
-
-  Widget support() {
-    return Container(
-      padding: containerPadding(),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Text(
-            'Support',
-            style: headerStyle(),
-          ),
-          InkWell(
-            onTap: () {
-              _launchURL('faqs');
-            },
-            child: ListTile(
-              title: const Text('FAQs'),
-              leading: Icon(
-                Icons.help_outline_outlined,
-                color: ColorConstants().appColor,
-              ),
-            ),
-          ),
-          InkWell(
-            onTap: () {
-              _launchURL('Contact Us');
-            },
-            child: ListTile(
-              title: const Text('Contact Us'),
-              leading: Icon(
-                Icons.contact_support_outlined,
-                color: ColorConstants().appColor,
-              ),
-            ),
-          ),
-          InkWell(
-            onTap: () {
-              _launchURL('terms');
-            },
-            child: ListTile(
-              title: const Text('Terms of Use & Privacy Policy'),
-              leading: Icon(
-                Icons.description,
-                color: ColorConstants().appColor,
-              ),
-            ),
-          ),
-          InkWell(
-            onTap: () {
-              _launchURL('About');
-            },
-            child: ListTile(
-              title: const Text('About AirQo'),
-              leading: Icon(
-                Icons.info_outline_rounded,
-                color: ColorConstants().appColor,
-              ),
-            ),
-          ),
-          InkWell(
-            onTap: () {
-              _launchURL('rate');
-            },
-            child: ListTile(
-              title: const Text('Rate App'),
-              leading: Icon(
-                Icons.rate_review_outlined,
-                color: ColorConstants().appColor,
-              ),
-            ),
-          ),
-          InkWell(
-            onTap: () {
-              _launchEmail('feedback');
-            },
-            child: ListTile(
-              title: const Text('Feedback'),
-              leading: Icon(
-                Icons.feedback_outlined,
-                color: ColorConstants().appColor,
-              ),
-              subtitle: const Text('Tell us which functionality is most '
-                  'important to you and what you would like '
-                  'to be improved in the app'),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget footer() {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(0, 10, 0, 10),
-      decoration: BoxDecoration(
-          gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-            Colors.white.withOpacity(0.5),
-            ColorConstants().appColor,
-          ])),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          GestureDetector(
-            onTap: () {
-              _launchURL('airqo');
-            },
-            child: Image.asset(
-              'assets/icon/airqo_logo.png',
-              height: 50,
-              width: 50,
-            ),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              IconButton(
-                  icon: const FaIcon(
-                    FontAwesomeIcons.facebook,
-                    color: facebookColor,
-                  ),
-                  onPressed: () {
-                    _launchURL('facebook');
-                  }),
-              IconButton(
-                  icon: const FaIcon(
-                    FontAwesomeIcons.twitter,
-                    color: twitterColor,
-                  ),
-                  onPressed: () {
-                    _launchURL('twitter');
-                  }),
-              IconButton(
-                  icon: const FaIcon(
-                    FontAwesomeIcons.youtube,
-                    color: youtubeColor,
-                  ),
-                  onPressed: () {
-                    _launchURL('youtube');
-                  }),
-              IconButton(
-                  icon: const FaIcon(
-                    FontAwesomeIcons.linkedin,
-                    color: linkedInColor,
-                  ),
-                  onPressed: () {
-                    _launchURL('linkedin');
-                  }),
-            ],
-          ),
-          const Text(
-            'v1.21.7',
-            style: TextStyle(color: Colors.white),
-          )
-        ],
-      ),
-    );
-  }
-
   Future<void> _launchEmail(String action) async {
     action = action.trim().toLowerCase();
 
@@ -645,20 +668,6 @@ class _SettingsPageState extends State<SettingsPage> {
     }
   }
 
-  Future<void> _onThemeValueChange(Themes value) async {
-    setState(() {
-      _theme = value;
-    });
-
-    var prefs = await SharedPreferences.getInstance();
-
-    if (value == Themes.lightTheme) {
-      await prefs.setString(appTheme, 'light');
-    } else {
-      await prefs.setString(appTheme, 'dark');
-    }
-  }
-
   Future<void> _onLanguageValueChange(Languages value) async {
     setState(() {
       _language = value;
@@ -674,26 +683,17 @@ class _SettingsPageState extends State<SettingsPage> {
     // }
   }
 
-  void cancelNotification(int id) {
-    _notifications.cancelNotifications(id);
-  }
+  Future<void> _onThemeValueChange(Themes value) async {
+    setState(() {
+      _theme = value;
+    });
 
-  void showNotification(int id) {
-    switch (id) {
-      case persistentNotificationId:
-        _notifications.showOngoingNotification();
-        return;
-      case progressNotificationId:
-        _notifications.showProgressNotification();
-        return;
-      case smartNotificationId:
-        _notifications.showSmartNotification();
-        return;
-      case pushNotificationId:
-        _notifications.showPushNotification();
-        return;
-      default:
-        return;
+    var prefs = await SharedPreferences.getInstance();
+
+    if (value == Themes.lightTheme) {
+      await prefs.setString(appTheme, 'light');
+    } else {
+      await prefs.setString(appTheme, 'dark');
     }
   }
 }

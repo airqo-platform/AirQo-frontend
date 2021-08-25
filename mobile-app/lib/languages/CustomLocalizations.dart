@@ -2,14 +2,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class CustomLocalizations {
-  CustomLocalizations(this.locale);
-
-  final Locale locale;
-
-  static CustomLocalizations? of(BuildContext context) {
-    return Localizations.of<CustomLocalizations>(context, CustomLocalizations);
-  }
-
   static const LocalizationsDelegate<CustomLocalizations> delegate =
       CustomLocalizationsDelegate();
 
@@ -21,6 +13,14 @@ class CustomLocalizations {
     },
   };
 
+  final Locale locale;
+
+  CustomLocalizations(this.locale);
+
+  String? get message {
+    return _resources[locale.languageCode]!['message'];
+  }
+
   String get title {
     var title = _resources[locale.languageCode]!['title'];
     if (title == null) {
@@ -30,8 +30,8 @@ class CustomLocalizations {
     return title;
   }
 
-  String? get message {
-    return _resources[locale.languageCode]!['message'];
+  static CustomLocalizations? of(BuildContext context) {
+    return Localizations.of<CustomLocalizations>(context, CustomLocalizations);
   }
 }
 

@@ -31,36 +31,6 @@ class AQI_Dialog extends StatelessWidget {
       'Sensitive people should remain indoors and keep activity levels low. '
       'Follow tips for keeping particle levels low indoors.';
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: ColorConstants().appColor,
-        title: const Text('AQI Guide'),
-      ),
-      body: Container(
-        padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
-        child: ListView(
-          children: [
-            whatIsAQI,
-            AQI_Quide('assets/images/good-face.png', good, pmToColor(0),
-                pmTextColor(0)),
-            AQI_Quide('assets/images/moderate-face.png', moderate,
-                pmToColor(20), pmTextColor(20)),
-            AQI_Quide('assets/images/sensitive-face.png', sensitive,
-                pmToColor(40), pmTextColor(40)),
-            AQI_Quide('assets/images/unhealthy-face.png', unHeathy,
-                pmToColor(100), pmTextColor(100)),
-            AQI_Quide('assets/images/very-unhealthy-face.png', veryUnhealthy,
-                pmToColor(200), pmTextColor(200)),
-            AQI_Quide('assets/images/hazardous-face.png', hazardous,
-                pmToColor(500), pmTextColor(500)),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget whatIsAQI = Container(
       padding: const EdgeInsets.all(10),
       child: const Text(
@@ -102,6 +72,36 @@ class AQI_Dialog extends StatelessWidget {
             ),
           )
         ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: ColorConstants().appColor,
+        title: const Text('AQI Guide'),
+      ),
+      body: Container(
+        padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
+        child: ListView(
+          children: [
+            whatIsAQI,
+            AQI_Quide('assets/images/good-face.png', good, pmToColor(0),
+                pmTextColor(0)),
+            AQI_Quide('assets/images/moderate-face.png', moderate,
+                pmToColor(20), pmTextColor(20)),
+            AQI_Quide('assets/images/sensitive-face.png', sensitive,
+                pmToColor(40), pmTextColor(40)),
+            AQI_Quide('assets/images/unhealthy-face.png', unHeathy,
+                pmToColor(100), pmTextColor(100)),
+            AQI_Quide('assets/images/very-unhealthy-face.png', veryUnhealthy,
+                pmToColor(200), pmTextColor(200)),
+            AQI_Quide('assets/images/hazardous-face.png', hazardous,
+                pmToColor(500), pmTextColor(500)),
+          ],
+        ),
       ),
     );
   }

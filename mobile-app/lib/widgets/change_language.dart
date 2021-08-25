@@ -2,11 +2,12 @@ import 'package:app/constants/app_constants.dart';
 import 'package:flutter/material.dart';
 
 class ChangeLanguageDialog extends StatefulWidget {
+  final Languages initialValue;
+
+  final void Function(Languages) onValueChange;
+
   const ChangeLanguageDialog(
       {required this.onValueChange, required this.initialValue});
-
-  final Languages initialValue;
-  final void Function(Languages) onValueChange;
 
   @override
   State createState() => ChangeLanguageDialogState();
@@ -14,12 +15,6 @@ class ChangeLanguageDialog extends StatefulWidget {
 
 class ChangeLanguageDialogState extends State<ChangeLanguageDialog> {
   Languages? _language = Languages.English;
-
-  @override
-  void initState() {
-    super.initState();
-    _language = widget.initialValue;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -65,5 +60,11 @@ class ChangeLanguageDialogState extends State<ChangeLanguageDialog> {
         ),
       ],
     );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _language = widget.initialValue;
   }
 }

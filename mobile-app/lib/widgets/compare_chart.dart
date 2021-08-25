@@ -2,6 +2,41 @@ import 'package:app/models/series.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 
+class ComparisonLineChart extends StatelessWidget {
+  final List<charts.Series<dynamic, DateTime>> dataset;
+
+  ComparisonLineChart(this.dataset);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 400,
+      padding: EdgeInsets.fromLTRB(20, 20, 20, 0),
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            children: <Widget>[
+              Expanded(
+                child: charts.TimeSeriesChart(
+                  dataset,
+                  animate: true,
+                  defaultRenderer: new charts.LineRendererConfig(),
+                  customSeriesRenderers: [
+                    new charts.PointRendererConfig(
+                        customRendererId: 'customPoint')
+                  ],
+                  dateTimeFactory: const charts.LocalDateTimeFactory(),
+                ),
+              )
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class LocationCompareChart extends StatelessWidget {
   final List<charts.Series<dynamic, DateTime>> seriesList = _createSampleData();
   final bool animate = false;
@@ -92,40 +127,5 @@ class LocationCompareChart extends StatelessWidget {
         // Configure our custom point renderer for this series.
         ..setAttribute(charts.rendererIdKey, 'customPoint'),
     ];
-  }
-}
-
-class ComparisonLineChart extends StatelessWidget {
-  ComparisonLineChart(this.dataset);
-
-  final List<charts.Series<dynamic, DateTime>> dataset;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 400,
-      padding: EdgeInsets.fromLTRB(20, 20, 20, 0),
-      child: Card(
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Column(
-            children: <Widget>[
-              Expanded(
-                child: charts.TimeSeriesChart(
-                  dataset,
-                  animate: true,
-                  defaultRenderer: new charts.LineRendererConfig(),
-                  customSeriesRenderers: [
-                    new charts.PointRendererConfig(
-                        customRendererId: 'customPoint')
-                  ],
-                  dateTimeFactory: const charts.LocalDateTimeFactory(),
-                ),
-              )
-            ],
-          ),
-        ),
-      ),
-    );
   }
 }

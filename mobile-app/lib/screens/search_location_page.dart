@@ -13,25 +13,26 @@ import 'package:uuid/uuid.dart';
 import 'map_page.dart';
 
 class LocationSearch extends SearchDelegate<Suggestion> {
-  LocationSearch() {
-    googleApiClient = GoogleSearchProvider(const Uuid().v4());
-  }
-
   GoogleSearchProvider googleApiClient = GoogleSearchProvider('');
 
   String _searchPlaceId = '';
+
   bool _showAllDevices = false;
 
-  bool get showAllDevices => _showAllDevices;
-
-  set showAllDevices(bool value) {
-    _showAllDevices = value;
+  LocationSearch() {
+    googleApiClient = GoogleSearchProvider(const Uuid().v4());
   }
 
   String get searchPlaceId => _searchPlaceId;
 
   set searchPlaceId(String value) {
     _searchPlaceId = value;
+  }
+
+  bool get showAllDevices => _showAllDevices;
+
+  set showAllDevices(bool value) {
+    _showAllDevices = value;
   }
 
   @override
@@ -72,128 +73,6 @@ class LocationSearch extends SearchDelegate<Suggestion> {
       icon: const Icon(Icons.arrow_back),
       onPressed: () {
         close(context, Suggestion(description: '', placeId: ''));
-      },
-    );
-  }
-
-  @override
-  Widget buildSuggestions(BuildContext context) {
-    return FutureBuilder(
-      future: query == '' ? null : googleApiClient.fetchSuggestions(query),
-      builder: (context, snapshot) {
-        if (query == '') {
-          return FutureBuilder(
-            future: DBHelper().getSearchHistory(),
-            builder: (context, snapshot) {
-              if (snapshot.hasData) {
-                var results = snapshot.data as List<Suggestion>;
-
-                if (results.isEmpty) {
-                  return Align(
-                      alignment: Alignment.topCenter,
-                      child: Container(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Text(
-                          'Search a place',
-                          style: TextStyle(color: ColorConstants().appColor),
-                        ),
-                      ));
-                }
-
-                return ListView.builder(
-                  itemBuilder: (context, index) => ListTile(
-                    title: Text(
-                      (results[index]).description,
-                      style:
-                          const TextStyle(fontSize: 12, color: Colors.black54),
-                    ),
-                    leading: Icon(
-                      Icons.history,
-                      color: ColorConstants().appColor,
-                    ),
-                    trailing: GestureDetector(
-                      onTap: () {
-                        DBHelper().deleteSearchHistory(results[index]);
-                        query = '';
-                      },
-                      child: Icon(
-                        Icons.delete_outlined,
-                        color: ColorConstants().red,
-                      ),
-                    ),
-                    onTap: () {
-                      query = (results[index]).description;
-                      showAllDevices = false;
-                      searchPlaceId = (results[index]).placeId;
-                      showResults(context);
-                      // close(context, results[index]);
-                    },
-                  ),
-                  itemCount: results.length,
-                );
-              }
-
-              return Align(
-                  alignment: Alignment.topCenter,
-                  child: Container(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Text(
-                      'Search a place',
-                      style: TextStyle(color: ColorConstants().appColor),
-                    ),
-                  ));
-            },
-          );
-        }
-
-        if (snapshot.hasError) {
-          return Container(
-            padding: const EdgeInsets.all(16.0),
-            child: const Text(
-                'Could not get suggestions. try again later or use the map'),
-          );
-        } else if (snapshot.hasData) {
-          // print(snapshot.data);
-
-          var results = snapshot.data as List<Suggestion>;
-
-          return ListView.builder(
-            itemBuilder: (context, index) => ListTile(
-              title: Text(
-                (results[index]).description,
-              ),
-              onTap: () {
-                query = (results[index]).description;
-                showAllDevices = false;
-                searchPlaceId = (results[index]).placeId;
-                DBHelper().insertSearchHistory(results[index]);
-                showResults(context);
-                // close(context, results[index]);
-              },
-            ),
-            itemCount: results.length,
-          );
-        } else {
-          return Container(
-            padding: const EdgeInsets.all(16.0),
-            child: Align(
-                alignment: Alignment.topCenter,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                          ColorConstants().appColor),
-                    ),
-                    Text(
-                      'Loading...',
-                      style: TextStyle(color: ColorConstants().appColor),
-                    )
-                  ],
-                )),
-          );
-        }
       },
     );
   }
@@ -371,121 +250,125 @@ class LocationSearch extends SearchDelegate<Suggestion> {
         });
   }
 
-  void showAllLocations(var context) {
-    showAllDevices = true;
-    query = '';
-    showResults(context);
-  }
-
-  Widget loadLocalDevices(context) {
+  @override
+  Widget buildSuggestions(BuildContext context) {
     return FutureBuilder(
-        future: DBHelper().getDevices(),
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            print(snapshot.error);
-            return loadApiDevices(context);
-          } else if (snapshot.hasData) {
-            var devices = snapshot.data as List<Device>;
+      future: query == '' ? null : googleApiClient.fetchSuggestions(query),
+      builder: (context, snapshot) {
+        if (query == '') {
+          return FutureBuilder(
+            future: DBHelper().getSearchHistory(),
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                var results = snapshot.data as List<Suggestion>;
 
-            if (devices.isEmpty) {
-              return loadApiDevices(context);
-            }
+                if (results.isEmpty) {
+                  return Align(
+                      alignment: Alignment.topCenter,
+                      child: Container(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Text(
+                          'Search a place',
+                          style: TextStyle(color: ColorConstants().appColor),
+                        ),
+                      ));
+                }
 
-            return ListView.builder(
-              shrinkWrap: true,
-              itemCount: devices.length,
-              itemBuilder: (context, index) {
-                return InkWell(
+                return ListView.builder(
+                  itemBuilder: (context, index) => ListTile(
+                    title: Text(
+                      (results[index]).description,
+                      style:
+                          const TextStyle(fontSize: 12, color: Colors.black54),
+                    ),
+                    leading: Icon(
+                      Icons.history,
+                      color: ColorConstants().appColor,
+                    ),
+                    trailing: GestureDetector(
+                      onTap: () {
+                        DBHelper().deleteSearchHistory(results[index]);
+                        query = '';
+                      },
+                      child: Icon(
+                        Icons.delete_outlined,
+                        color: ColorConstants().red,
+                      ),
+                    ),
                     onTap: () {
-                      var device = devices[index];
-                      Navigator.push(context,
-                          MaterialPageRoute(builder: (context) {
-                        return PlaceDetailsPage(
-                          device: device,
-                        );
-                      }));
+                      query = (results[index]).description;
+                      showAllDevices = false;
+                      searchPlaceId = (results[index]).placeId;
+                      showResults(context);
+                      // close(context, results[index]);
                     },
-                    child: ListTile(
-                      title: Text('${devices[index].siteName}'),
-                      subtitle: Text('${devices[index].locationName}'),
-                      leading: Icon(
-                        Icons.location_pin,
-                        color: ColorConstants().appColor,
-                      ),
-                    ));
-              },
-            );
-          } else {
-            return Align(
-                alignment: Alignment.center,
-                child: Padding(
-                  padding: const EdgeInsets.all(8),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                            ColorConstants().appColor),
-                      ),
-                      Text(
-                        'Getting air quality stations. '
-                        'Please wait...',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: ColorConstants().appColor),
-                      )
-                    ],
                   ),
-                ));
-          }
-        });
-  }
+                  itemCount: results.length,
+                );
+              }
 
-  RawMaterialButton showAllLocationsCustomButton(context) {
-    return RawMaterialButton(
-      shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(4.0),
-          side: BorderSide(color: ColorConstants().appColor, width: 1)),
-      fillColor: Colors.transparent,
-      elevation: 0,
-      highlightElevation: 0,
-      splashColor: Colors.black12,
-      highlightColor: ColorConstants().appColor.withOpacity(0.4),
-      onPressed: () {
-        showAllLocations(context);
-      },
-      child: Padding(
-        padding: const EdgeInsets.all(4),
-        child: Text(
-          'Show all air quality stations',
-          style: TextStyle(color: ColorConstants().appColor),
-        ),
-      ),
-    );
-  }
+              return Align(
+                  alignment: Alignment.topCenter,
+                  child: Container(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Text(
+                      'Search a place',
+                      style: TextStyle(color: ColorConstants().appColor),
+                    ),
+                  ));
+            },
+          );
+        }
 
-  RawMaterialButton showMapCustomButton(context) {
-    return RawMaterialButton(
-      shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(4.0),
-          side: BorderSide(color: ColorConstants().appColor, width: 1)),
-      fillColor: Colors.transparent,
-      elevation: 0,
-      highlightElevation: 0,
-      splashColor: Colors.black12,
-      highlightColor: ColorConstants().appColor.withOpacity(0.4),
-      onPressed: () {
-        Navigator.push(context, MaterialPageRoute(builder: (context) {
-          return MapPage();
-        }));
+        if (snapshot.hasError) {
+          return Container(
+            padding: const EdgeInsets.all(16.0),
+            child: const Text(
+                'Could not get suggestions. try again later or use the map'),
+          );
+        } else if (snapshot.hasData) {
+          // print(snapshot.data);
+
+          var results = snapshot.data as List<Suggestion>;
+
+          return ListView.builder(
+            itemBuilder: (context, index) => ListTile(
+              title: Text(
+                (results[index]).description,
+              ),
+              onTap: () {
+                query = (results[index]).description;
+                showAllDevices = false;
+                searchPlaceId = (results[index]).placeId;
+                DBHelper().insertSearchHistory(results[index]);
+                showResults(context);
+                // close(context, results[index]);
+              },
+            ),
+            itemCount: results.length,
+          );
+        } else {
+          return Container(
+            padding: const EdgeInsets.all(16.0),
+            child: Align(
+                alignment: Alignment.topCenter,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                          ColorConstants().appColor),
+                    ),
+                    Text(
+                      'Loading...',
+                      style: TextStyle(color: ColorConstants().appColor),
+                    )
+                  ],
+                )),
+          );
+        }
       },
-      child: Padding(
-        padding: const EdgeInsets.all(4),
-        child: Text(
-          'Go to the Map',
-          style: TextStyle(color: ColorConstants().appColor),
-        ),
-      ),
     );
   }
 
@@ -560,5 +443,123 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                 ));
           }
         });
+  }
+
+  Widget loadLocalDevices(context) {
+    return FutureBuilder(
+        future: DBHelper().getDevices(),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            print(snapshot.error);
+            return loadApiDevices(context);
+          } else if (snapshot.hasData) {
+            var devices = snapshot.data as List<Device>;
+
+            if (devices.isEmpty) {
+              return loadApiDevices(context);
+            }
+
+            return ListView.builder(
+              shrinkWrap: true,
+              itemCount: devices.length,
+              itemBuilder: (context, index) {
+                return InkWell(
+                    onTap: () {
+                      var device = devices[index];
+                      Navigator.push(context,
+                          MaterialPageRoute(builder: (context) {
+                        return PlaceDetailsPage(
+                          device: device,
+                        );
+                      }));
+                    },
+                    child: ListTile(
+                      title: Text('${devices[index].siteName}'),
+                      subtitle: Text('${devices[index].locationName}'),
+                      leading: Icon(
+                        Icons.location_pin,
+                        color: ColorConstants().appColor,
+                      ),
+                    ));
+              },
+            );
+          } else {
+            return Align(
+                alignment: Alignment.center,
+                child: Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                            ColorConstants().appColor),
+                      ),
+                      Text(
+                        'Getting air quality stations. '
+                        'Please wait...',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: ColorConstants().appColor),
+                      )
+                    ],
+                  ),
+                ));
+          }
+        });
+  }
+
+  void showAllLocations(var context) {
+    showAllDevices = true;
+    query = '';
+    showResults(context);
+  }
+
+  RawMaterialButton showAllLocationsCustomButton(context) {
+    return RawMaterialButton(
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(4.0),
+          side: BorderSide(color: ColorConstants().appColor, width: 1)),
+      fillColor: Colors.transparent,
+      elevation: 0,
+      highlightElevation: 0,
+      splashColor: Colors.black12,
+      highlightColor: ColorConstants().appColor.withOpacity(0.4),
+      onPressed: () {
+        showAllLocations(context);
+      },
+      child: Padding(
+        padding: const EdgeInsets.all(4),
+        child: Text(
+          'Show all air quality stations',
+          style: TextStyle(color: ColorConstants().appColor),
+        ),
+      ),
+    );
+  }
+
+  RawMaterialButton showMapCustomButton(context) {
+    return RawMaterialButton(
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(4.0),
+          side: BorderSide(color: ColorConstants().appColor, width: 1)),
+      fillColor: Colors.transparent,
+      elevation: 0,
+      highlightElevation: 0,
+      splashColor: Colors.black12,
+      highlightColor: ColorConstants().appColor.withOpacity(0.4),
+      onPressed: () {
+        Navigator.push(context, MaterialPageRoute(builder: (context) {
+          return MapPage();
+        }));
+      },
+      child: Padding(
+        padding: const EdgeInsets.all(4),
+        child: Text(
+          'Go to the Map',
+          style: TextStyle(color: ColorConstants().appColor),
+        ),
+      ),
+    );
   }
 }

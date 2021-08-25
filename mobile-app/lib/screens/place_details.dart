@@ -22,224 +22,36 @@ import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class PlaceDetailsPage extends StatefulWidget {
-  PlaceDetailsPage({Key? key, required this.device}) : super(key: key);
-
   final Device device;
+
+  PlaceDetailsPage({Key? key, required this.device}) : super(key: key);
 
   @override
   _PlaceDetailsPageState createState() => _PlaceDetailsPageState(device);
 }
 
 class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
-  _PlaceDetailsPageState(this.device);
-
   bool isFavourite = false;
+
   var measurementData;
+  var historicalData;
 
   // List<HistoricalMeasurement> historicalData;
-  var historicalData;
   var forecastData;
+  var response;
 
   // var forecastData;
-  var response;
   var historicalResponse = '';
   var forecastResponse = '';
   var dbHelper = DBHelper();
-
-  // var forecastDate = DateFormat('yyyy-MM-dd HH:mm').format(
-  //     DateTime(DateTime.now().year,
-  //     DateTime.now().month, DateTime.now().day));
-
   var forecastDate =
       DateFormat('yyyy-MM-dd HH:mm').format(DateTime.now().toUtc());
 
   String titleText = '';
+
   Device device;
 
-  @override
-  void initState() {
-    initialize();
-    super.initState();
-  }
-
-  Future<void> initialize() async {
-    await getMeasurements();
-    await getHistoricalMeasurements();
-    await getForecastMeasurements();
-  }
-
-  Future<void> checkFavourite() async {
-    if (measurementData != null) {
-      var prefs = await SharedPreferences.getInstance();
-      var favourites =
-          prefs.getStringList(PrefConstants().favouritePlaces) ?? [];
-
-      setState(() {
-        isFavourite = favourites.contains(measurementData.device.name);
-      });
-    }
-  }
-
-  Future<void> updateFavouritePlace() async {
-    var fav = await DBHelper().updateFavouritePlaces(measurementData.device);
-
-    setState(() {
-      isFavourite = fav;
-    });
-
-    if (fav) {
-      await showSnackBarGoToMyPlaces(
-          context,
-          '${measurementData.device.siteName} '
-          'is added to your places');
-    } else {
-      await showSnackBar2(
-          context,
-          '${measurementData.device.siteName} '
-          'is removed from your places');
-    }
-  }
-
-  Future<void> getMeasurements() async {
-    await localFetch();
-
-    try {
-      var measurement =
-          await AirqoApiClient(context).fetchDeviceMeasurements(device);
-
-      setState(() {
-        measurementData = measurement;
-      });
-
-      if (measurementData != null) {
-        await checkFavourite();
-      }
-    } catch (e) {
-      print('Getting device events error: $e');
-
-      var message = 'Sorry, information currently is not available';
-
-      setState(() {
-        response = message;
-      });
-    }
-  }
-
-  Future<void> getHistoricalMeasurements() async {
-    await localFetchHistoricalData();
-
-    try {
-      await AirqoApiClient(context)
-          .fetchDeviceHistoricalMeasurements(device)
-          .then((value) => {
-                if (value.isNotEmpty)
-                  {
-                    setState(() {
-                      historicalData = value;
-                    }),
-                    DBHelper()
-                        .insertDeviceHistoricalMeasurements(value, device.name)
-                  }
-                else
-                  {
-                    setState(() {
-                      historicalResponse =
-                          'Historical data is currently not available...';
-                    })
-                  }
-              });
-    } catch (e) {
-      setState(() {
-        historicalResponse = 'Historical data is currently not available...';
-      });
-      print('Getting device historical events error: $e');
-    }
-  }
-
-  Future<void> localFetchHistoricalData() async {
-    try {
-      var measurements =
-          await DBHelper().getHistoricalMeasurements(device.name);
-
-      if (measurements.isNotEmpty) {
-        setState(() {
-          historicalData = measurements;
-        });
-      }
-    } on Error catch (e) {
-      print('Getting historical data locally error: $e');
-    }
-  }
-
-  Future<void> getForecastMeasurements() async {
-    await localFetchForecastData();
-
-    try {
-      await AirqoApiClient(context)
-          .fetchForecast(device.latitude.toString(),
-              device.longitude.toString(), forecastDate)
-          .then((value) => {
-                if (value.isNotEmpty)
-                  {
-                    setState(() {
-                      forecastData = value;
-                    }),
-                    DBHelper().insertForecastMeasurements(value, device.name)
-                  }
-                else
-                  {
-                    setState(() {
-                      forecastResponse = 'Forecast data is currently'
-                          ' not available...';
-                    })
-                  }
-              });
-    } catch (e) {
-      setState(() {
-        forecastResponse = 'Forecast data is currently not available...';
-      });
-      print('Getting Forecast events error: $e');
-    }
-  }
-
-  Future<void> localFetchForecastData() async {
-    try {
-      await DBHelper().getForecastMeasurements(device.name).then((value) => {
-            if (value.isNotEmpty)
-              {
-                setState(() {
-                  forecastData = value;
-                })
-              }
-          });
-    } on Error catch (e) {
-      print('Getting forecast data locally error: $e');
-    }
-  }
-
-  Future<void> localFetch() async {
-    try {
-      var measurements = await DBHelper().getMeasurement(device.name);
-
-      if (measurements != null) {
-        setState(() {
-          measurementData = measurements;
-        });
-
-        if (measurementData != null) {
-          await checkFavourite();
-        }
-      }
-    } on Error catch (e) {
-      print('Getting device events locally error: $e');
-    }
-  }
-
-  void updateView(Measurement measurement) {
-    setState(() {
-      measurementData = measurement;
-    });
-  }
+  _PlaceDetailsPageState(this.device);
 
   @override
   Widget build(BuildContext context) {
@@ -465,49 +277,6 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
     );
   }
 
-  Widget mapSection(Measurement measurement) {
-    final _markers = <String, Marker>{};
-
-    final marker = Marker(
-      markerId: MarkerId(measurement.device.toString()),
-      icon: pmToMarkerPoint(measurement.pm2_5.calibratedValue),
-      position:
-          LatLng((measurement.device.latitude), measurement.device.longitude),
-    );
-    _markers[measurement.device.toString()] = marker;
-
-    return Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Card(
-            child: GoogleMap(
-          compassEnabled: false,
-          mapType: MapType.normal,
-          myLocationButtonEnabled: false,
-          myLocationEnabled: false,
-          rotateGesturesEnabled: false,
-          tiltGesturesEnabled: false,
-          mapToolbarEnabled: false,
-          initialCameraPosition: CameraPosition(
-            target: LatLng(
-                measurement.device.latitude, measurement.device.longitude),
-            zoom: 13,
-          ),
-          markers: _markers.values.toSet(),
-        )));
-  }
-
-  Widget historicalDataSection(List<HistoricalMeasurement> measurements) {
-    var formattedData = historicalChartData(measurements);
-    // Crunching the latest data, just for you.
-    // Hang tight…
-    return HourlyBarChart(formattedData);
-  }
-
-  Widget forecastDataSection(List<Predict> measurements) {
-    var forecastData = predictChartData(measurements);
-    return ForecastBarChart(forecastData);
-  }
-
   Widget cardSection(Measurement measurement) {
     return Padding(
         padding: const EdgeInsets.all(8.0),
@@ -576,6 +345,110 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
         )));
   }
 
+  Future<void> checkFavourite() async {
+    if (measurementData != null) {
+      var prefs = await SharedPreferences.getInstance();
+      var favourites =
+          prefs.getStringList(PrefConstants().favouritePlaces) ?? [];
+
+      setState(() {
+        isFavourite = favourites.contains(measurementData.device.name);
+      });
+    }
+  }
+
+  Widget forecastDataSection(List<Predict> measurements) {
+    var forecastData = predictChartData(measurements);
+    return ForecastBarChart(forecastData);
+  }
+
+  Future<void> getForecastMeasurements() async {
+    await localFetchForecastData();
+
+    try {
+      await AirqoApiClient(context)
+          .fetchForecast(device.latitude.toString(),
+              device.longitude.toString(), forecastDate)
+          .then((value) => {
+                if (value.isNotEmpty)
+                  {
+                    setState(() {
+                      forecastData = value;
+                    }),
+                    DBHelper().insertForecastMeasurements(value, device.name)
+                  }
+                else
+                  {
+                    setState(() {
+                      forecastResponse = 'Forecast data is currently'
+                          ' not available...';
+                    })
+                  }
+              });
+    } catch (e) {
+      setState(() {
+        forecastResponse = 'Forecast data is currently not available...';
+      });
+      print('Getting Forecast events error: $e');
+    }
+  }
+
+  Future<void> getHistoricalMeasurements() async {
+    await localFetchHistoricalData();
+
+    try {
+      await AirqoApiClient(context)
+          .fetchDeviceHistoricalMeasurements(device)
+          .then((value) => {
+                if (value.isNotEmpty)
+                  {
+                    setState(() {
+                      historicalData = value;
+                    }),
+                    DBHelper()
+                        .insertDeviceHistoricalMeasurements(value, device.name)
+                  }
+                else
+                  {
+                    setState(() {
+                      historicalResponse =
+                          'Historical data is currently not available...';
+                    })
+                  }
+              });
+    } catch (e) {
+      setState(() {
+        historicalResponse = 'Historical data is currently not available...';
+      });
+      print('Getting device historical events error: $e');
+    }
+  }
+
+  Future<void> getMeasurements() async {
+    await localFetch();
+
+    try {
+      var measurement =
+          await AirqoApiClient(context).fetchDeviceMeasurements(device);
+
+      setState(() {
+        measurementData = measurement;
+      });
+
+      if (measurementData != null) {
+        await checkFavourite();
+      }
+    } catch (e) {
+      print('Getting device events error: $e');
+
+      var message = 'Sorry, information currently is not available';
+
+      setState(() {
+        response = message;
+      });
+    }
+  }
+
   Widget headerSection(String image, String body) {
     return Container(
       padding: const EdgeInsets.fromLTRB(0, 2, 0, 0),
@@ -605,6 +478,124 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
         ],
       ),
     );
+  }
+
+  Widget historicalDataSection(List<HistoricalMeasurement> measurements) {
+    var formattedData = historicalChartData(measurements);
+    // Crunching the latest data, just for you.
+    // Hang tight…
+    return HourlyBarChart(formattedData);
+  }
+
+  Future<void> initialize() async {
+    await getMeasurements();
+    await getHistoricalMeasurements();
+    await getForecastMeasurements();
+  }
+
+  @override
+  void initState() {
+    initialize();
+    super.initState();
+  }
+
+  Future<void> localFetch() async {
+    try {
+      var measurements = await DBHelper().getMeasurement(device.name);
+
+      if (measurements != null) {
+        setState(() {
+          measurementData = measurements;
+        });
+
+        if (measurementData != null) {
+          await checkFavourite();
+        }
+      }
+    } on Error catch (e) {
+      print('Getting device events locally error: $e');
+    }
+  }
+
+  Future<void> localFetchForecastData() async {
+    try {
+      await DBHelper().getForecastMeasurements(device.name).then((value) => {
+            if (value.isNotEmpty)
+              {
+                setState(() {
+                  forecastData = value;
+                })
+              }
+          });
+    } on Error catch (e) {
+      print('Getting forecast data locally error: $e');
+    }
+  }
+
+  Future<void> localFetchHistoricalData() async {
+    try {
+      var measurements =
+          await DBHelper().getHistoricalMeasurements(device.name);
+
+      if (measurements.isNotEmpty) {
+        setState(() {
+          historicalData = measurements;
+        });
+      }
+    } on Error catch (e) {
+      print('Getting historical data locally error: $e');
+    }
+  }
+
+  Widget mapSection(Measurement measurement) {
+    final _markers = <String, Marker>{};
+
+    final marker = Marker(
+      markerId: MarkerId(measurement.device.toString()),
+      icon: pmToMarkerPoint(measurement.pm2_5.calibratedValue),
+      position:
+          LatLng((measurement.device.latitude), measurement.device.longitude),
+    );
+    _markers[measurement.device.toString()] = marker;
+
+    return Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Card(
+            child: GoogleMap(
+          compassEnabled: false,
+          mapType: MapType.normal,
+          myLocationButtonEnabled: false,
+          myLocationEnabled: false,
+          rotateGesturesEnabled: false,
+          tiltGesturesEnabled: false,
+          mapToolbarEnabled: false,
+          initialCameraPosition: CameraPosition(
+            target: LatLng(
+                measurement.device.latitude, measurement.device.longitude),
+            zoom: 13,
+          ),
+          markers: _markers.values.toSet(),
+        )));
+  }
+
+  Future<void> updateFavouritePlace() async {
+    var fav = await DBHelper().updateFavouritePlaces(measurementData.device);
+
+    setState(() {
+      isFavourite = fav;
+    });
+
+    if (fav) {
+      await showSnackBarGoToMyPlaces(
+          context,
+          '${measurementData.device.siteName} '
+          'is added to your places');
+    } else {
+      await showSnackBar2(
+          context,
+          '${measurementData.device.siteName} '
+          'is removed from your places');
+    }
   }
 
   Future<void> updateTitleDialog(Device device) async {
@@ -650,5 +641,11 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
             ],
           );
         });
+  }
+
+  void updateView(Measurement measurement) {
+    setState(() {
+      measurementData = measurement;
+    });
   }
 }

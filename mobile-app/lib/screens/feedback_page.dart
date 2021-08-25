@@ -174,6 +174,10 @@ class _FeedbackPageState extends State<FeedbackPage> {
     );
   }
 
+  EdgeInsets containerPadding() {
+    return const EdgeInsets.fromLTRB(10, 10, 10, 0);
+  }
+
   @override
   void dispose() {
     emailController.dispose();
@@ -210,6 +214,89 @@ class _FeedbackPageState extends State<FeedbackPage> {
         }
         return null;
       },
+    );
+  }
+
+  Widget footer() {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(0, 10, 0, 10),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          GestureDetector(
+            onTap: () {
+              _launchURL('airqo');
+            },
+            child: Image.asset(
+              'assets/icon/airqo_logo_tagline_transparent.png',
+              height: 100,
+              width: 100,
+            ),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              IconButton(
+                  icon: const FaIcon(
+                    FontAwesomeIcons.facebook,
+                    color: facebookColor,
+                  ),
+                  onPressed: () {
+                    _launchURL('facebook');
+                  }),
+              IconButton(
+                  icon: const FaIcon(
+                    FontAwesomeIcons.twitter,
+                    color: twitterColor,
+                  ),
+                  onPressed: () {
+                    _launchURL('twitter');
+                  }),
+              IconButton(
+                  icon: const FaIcon(
+                    FontAwesomeIcons.youtube,
+                    color: youtubeColor,
+                  ),
+                  onPressed: () {
+                    _launchURL('youtube');
+                  }),
+              IconButton(
+                  icon: const FaIcon(
+                    FontAwesomeIcons.linkedin,
+                    color: linkedInColor,
+                  ),
+                  onPressed: () {
+                    _launchURL('linkedin');
+                  }),
+            ],
+          ),
+          const SizedBox(
+            height: 5,
+          ),
+          Text(
+            '\u00a9 AirQo 2021',
+            style: TextStyle(color: ColorConstants().appColor),
+          ),
+          Text(
+            'Air Quality Initiative',
+            style: TextStyle(color: ColorConstants().appColor),
+          ),
+          const SizedBox(
+            height: 5,
+          ),
+          Text(
+            'v1.21.7',
+            style: TextStyle(color: ColorConstants().appColor),
+          )
+        ],
+      ),
+    );
+  }
+
+  TextStyle headerStyle() {
+    return const TextStyle(
+      fontWeight: FontWeight.bold,
+      fontSize: 16,
     );
   }
 
@@ -268,95 +355,6 @@ class _FeedbackPageState extends State<FeedbackPage> {
           style: TextStyle(fontSize: 15.0),
         ),
       );
-    }
-  }
-
-  TextStyle headerStyle() {
-    return const TextStyle(
-      fontWeight: FontWeight.bold,
-      fontSize: 16,
-    );
-  }
-
-  EdgeInsets containerPadding() {
-    return const EdgeInsets.fromLTRB(10, 10, 10, 0);
-  }
-
-  Future<void> _launchURL(String page) async {
-    page = page.trim().toLowerCase();
-
-    try {
-      switch (page) {
-        case 'faqs':
-          await canLaunch(faqs)
-              ? await launch(faqs)
-              : throw 'Could not launch faqs, try opening $faqs';
-          return;
-        case 'about':
-          await canLaunch(about)
-              ? await launch(about)
-              : throw 'Could not launch about, try opening $about';
-          return;
-        case 'contact us':
-          await canLaunch(contactUs)
-              ? await launch(contactUs)
-              : throw 'Could not launch contact us, try opening $contactUs';
-          return;
-        case 'terms':
-          await canLaunch(terms)
-              ? await launch(terms)
-              : throw 'Could not launch terms, try opening $terms';
-          return;
-        case 'rate':
-          if (Platform.isAndroid) {
-            await canLaunch(appPlayStoreLink)
-                ? await launch(appPlayStoreLink)
-                : throw 'Could not launch rate us, try opening'
-                    ' $appPlayStoreLink';
-          } else if (Platform.isIOS) {
-            await canLaunch(appIOSLink)
-                ? await launch(appIOSLink)
-                : throw 'Could not launch rate us, try opening $appIOSLink';
-          } else {
-            await canLaunch(appPlayStoreLink)
-                ? await launch(appPlayStoreLink)
-                : throw 'Could not launch rate us, try opening'
-                    ' $appPlayStoreLink';
-          }
-          return;
-        case 'facebook':
-          await canLaunch(facebook)
-              ? await launch(facebook)
-              : throw 'Could not launch facebook, try opening $facebook';
-          return;
-        case 'twitter':
-          await canLaunch(twitter)
-              ? await launch(twitter)
-              : throw 'Could not launch twitter, try opening $twitter';
-          return;
-        case 'linkedin':
-          await canLaunch(linkedin)
-              ? await launch(linkedin)
-              : throw 'Could not launch linkedin, try opening $linkedin';
-          return;
-        case 'youtube':
-          await canLaunch(youtube)
-              ? await launch(youtube)
-              : throw 'Could not launch youtube, try opening $youtube';
-          return;
-        case 'airqo':
-          await canLaunch(appWebsite)
-              ? await launch(appWebsite)
-              : throw 'Could not launch airqo, try opening $appWebsite';
-          return;
-        default:
-          await canLaunch(appWebsite)
-              ? await launch(appWebsite)
-              : throw 'Could not launch airqo, try opening $appWebsite';
-          return;
-      }
-    } catch (e) {
-      print(e);
     }
   }
 
@@ -435,79 +433,81 @@ class _FeedbackPageState extends State<FeedbackPage> {
     );
   }
 
-  Widget footer() {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(0, 10, 0, 10),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          GestureDetector(
-            onTap: () {
-              _launchURL('airqo');
-            },
-            child: Image.asset(
-              'assets/icon/airqo_logo_tagline_transparent.png',
-              height: 100,
-              width: 100,
-            ),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              IconButton(
-                  icon: const FaIcon(
-                    FontAwesomeIcons.facebook,
-                    color: facebookColor,
-                  ),
-                  onPressed: () {
-                    _launchURL('facebook');
-                  }),
-              IconButton(
-                  icon: const FaIcon(
-                    FontAwesomeIcons.twitter,
-                    color: twitterColor,
-                  ),
-                  onPressed: () {
-                    _launchURL('twitter');
-                  }),
-              IconButton(
-                  icon: const FaIcon(
-                    FontAwesomeIcons.youtube,
-                    color: youtubeColor,
-                  ),
-                  onPressed: () {
-                    _launchURL('youtube');
-                  }),
-              IconButton(
-                  icon: const FaIcon(
-                    FontAwesomeIcons.linkedin,
-                    color: linkedInColor,
-                  ),
-                  onPressed: () {
-                    _launchURL('linkedin');
-                  }),
-            ],
-          ),
-          const SizedBox(
-            height: 5,
-          ),
-          Text(
-            '\u00a9 AirQo 2021',
-            style: TextStyle(color: ColorConstants().appColor),
-          ),
-          Text(
-            'Air Quality Initiative',
-            style: TextStyle(color: ColorConstants().appColor),
-          ),
-          const SizedBox(
-            height: 5,
-          ),
-          Text(
-            'v1.21.7',
-            style: TextStyle(color: ColorConstants().appColor),
-          )
-        ],
-      ),
-    );
+  Future<void> _launchURL(String page) async {
+    page = page.trim().toLowerCase();
+
+    try {
+      switch (page) {
+        case 'faqs':
+          await canLaunch(faqs)
+              ? await launch(faqs)
+              : throw 'Could not launch faqs, try opening $faqs';
+          return;
+        case 'about':
+          await canLaunch(about)
+              ? await launch(about)
+              : throw 'Could not launch about, try opening $about';
+          return;
+        case 'contact us':
+          await canLaunch(contactUs)
+              ? await launch(contactUs)
+              : throw 'Could not launch contact us, try opening $contactUs';
+          return;
+        case 'terms':
+          await canLaunch(terms)
+              ? await launch(terms)
+              : throw 'Could not launch terms, try opening $terms';
+          return;
+        case 'rate':
+          if (Platform.isAndroid) {
+            await canLaunch(appPlayStoreLink)
+                ? await launch(appPlayStoreLink)
+                : throw 'Could not launch rate us, try opening'
+                    ' $appPlayStoreLink';
+          } else if (Platform.isIOS) {
+            await canLaunch(appIOSLink)
+                ? await launch(appIOSLink)
+                : throw 'Could not launch rate us, try opening $appIOSLink';
+          } else {
+            await canLaunch(appPlayStoreLink)
+                ? await launch(appPlayStoreLink)
+                : throw 'Could not launch rate us, try opening'
+                    ' $appPlayStoreLink';
+          }
+          return;
+        case 'facebook':
+          await canLaunch(facebook)
+              ? await launch(facebook)
+              : throw 'Could not launch facebook, try opening $facebook';
+          return;
+        case 'twitter':
+          await canLaunch(twitter)
+              ? await launch(twitter)
+              : throw 'Could not launch twitter, try opening $twitter';
+          return;
+        case 'linkedin':
+          await canLaunch(linkedin)
+              ? await launch(linkedin)
+              : throw 'Could not launch linkedin, try opening $linkedin';
+          return;
+        case 'youtube':
+          await canLaunch(youtube)
+              ? await launch(youtube)
+              : throw 'Could not launch youtube, try opening $youtube';
+          return;
+        case 'airqo':
+          await canLaunch(appWebsite)
+              ? await launch(appWebsite)
+              : throw 'Could not launch airqo, try opening $appWebsite';
+          return;
+        default:
+          await canLaunch(appWebsite)
+              ? await launch(appWebsite)
+              : throw 'Could not launch airqo, try opening $appWebsite';
+          return;
+      }
+    } catch (e) {
+      print(e);
+    }
   }
 }

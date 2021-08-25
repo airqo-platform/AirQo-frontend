@@ -3,9 +3,9 @@ import 'package:app/models/onBoardingData.dart';
 import 'package:flutter/material.dart';
 
 class SlidePage extends StatelessWidget {
-  SlidePage({required this.data});
-
   final OnBoardingInfo data;
+
+  SlidePage({required this.data});
 
   @override
   Widget build(BuildContext context) {

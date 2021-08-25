@@ -9,13 +9,23 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:mime/mime.dart';
 
+class DisplayPictureScreen extends StatefulWidget {
+  final String imagePath;
+
+  const DisplayPictureScreen({Key? key, required this.imagePath})
+      : super(key: key);
+
+  @override
+  _DisplayPictureScreenState createState() => _DisplayPictureScreenState();
+}
+
 class TakePicture extends StatefulWidget {
+  final CameraDescription camera;
+
   const TakePicture({
     Key? key,
     required this.camera,
   }) : super(key: key);
-
-  final CameraDescription camera;
 
   @override
   TakePictureState createState() => TakePictureState();
@@ -24,22 +34,6 @@ class TakePicture extends StatefulWidget {
 class TakePictureState extends State<TakePicture> {
   late CameraController _controller;
   late Future<void> _initializeControllerFuture;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = CameraController(
-      widget.camera,
-      ResolutionPreset.medium,
-    );
-    _initializeControllerFuture = _controller.initialize();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -96,20 +90,28 @@ class TakePictureState extends State<TakePicture> {
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
-}
-
-class DisplayPictureScreen extends StatefulWidget {
-  final String imagePath;
-
-  const DisplayPictureScreen({Key? key, required this.imagePath})
-      : super(key: key);
 
   @override
-  _DisplayPictureScreenState createState() => _DisplayPictureScreenState();
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = CameraController(
+      widget.camera,
+      ResolutionPreset.medium,
+    );
+    _initializeControllerFuture = _controller.initialize();
+  }
 }
 
 class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
   var isUploading = false;
+
+  String base64Encode(List<int> bytes) => base64.encode(bytes);
 
   @override
   Widget build(BuildContext context) {
@@ -199,17 +201,6 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
         });
   }
 
-  String base64Encode(List<int> bytes) => base64.encode(bytes);
-
-  Future<void> uploadSuccessHandler(var value) async {
-    setState(() {
-      isUploading = false;
-    });
-    await showSnackBar(context, 'Upload complete, thank you for sharing');
-
-    Navigator.pop(context);
-  }
-
   Future<void> uploadCompeteHandler() async {
     setState(() {
       isUploading = false;
@@ -230,5 +221,14 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
     //       return HomePage();
     //     })
     // );
+  }
+
+  Future<void> uploadSuccessHandler(var value) async {
+    setState(() {
+      isUploading = false;
+    });
+    await showSnackBar(context, 'Upload complete, thank you for sharing');
+
+    Navigator.pop(context);
   }
 }

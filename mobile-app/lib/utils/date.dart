@@ -1,5 +1,44 @@
 import 'package:intl/intl.dart';
 
+String dateToEnglishString(String formattedString) {
+  try {
+    var now = DateTime.now();
+    var offSet = now.timeZoneOffset.inHours;
+    var formattedDate = DateTime.parse(formattedString);
+    var newDate = formattedDate.add(Duration(hours: offSet));
+
+    final difference = now.difference(newDate).inDays;
+    //
+    // var date = DateFormat('yyyy-MM-dd').parse(
+    //     DateFormat('yyyy-MM-dd').format(DateTime.parse(formattedString)));
+
+    var dateString = DateFormat('EEE, MMM d, hh:mm a')
+        .format(DateTime.parse(formattedString));
+
+    // if (now.weekday == newDate.weekday){
+    //   dateString =
+    //       'Today, ${DateFormat('hh:mm a')
+    //           .format(newDate)}';
+    //   return dateString;
+    // }
+
+    // switch (difference) {
+    //   case 1:
+    //     dateString =
+    //         'Yesterday, ${DateFormat('hh:mm a')
+    //             .format(newDate)}';
+    //     break;
+    //   default:
+    //     break;
+    // }
+
+    return dateString;
+  } on Error catch (e) {
+    print('Date Formatting error: $e');
+    return formattedString;
+  }
+}
+
 String dateToString(String formattedString) {
   try {
     var now = DateTime.now();
@@ -66,45 +105,6 @@ String dateToString(String formattedString) {
     //   default:
     //     dateString = DateFormat('EEE, MMM d, hh:mm a')
     //         .format(DateTime.parse(formattedString));
-    //     break;
-    // }
-
-    return dateString;
-  } on Error catch (e) {
-    print('Date Formatting error: $e');
-    return formattedString;
-  }
-}
-
-String dateToEnglishString(String formattedString) {
-  try {
-    var now = DateTime.now();
-    var offSet = now.timeZoneOffset.inHours;
-    var formattedDate = DateTime.parse(formattedString);
-    var newDate = formattedDate.add(Duration(hours: offSet));
-
-    final difference = now.difference(newDate).inDays;
-    //
-    // var date = DateFormat('yyyy-MM-dd').parse(
-    //     DateFormat('yyyy-MM-dd').format(DateTime.parse(formattedString)));
-
-    var dateString = DateFormat('EEE, MMM d, hh:mm a')
-        .format(DateTime.parse(formattedString));
-
-    // if (now.weekday == newDate.weekday){
-    //   dateString =
-    //       'Today, ${DateFormat('hh:mm a')
-    //           .format(newDate)}';
-    //   return dateString;
-    // }
-
-    // switch (difference) {
-    //   case 1:
-    //     dateString =
-    //         'Yesterday, ${DateFormat('hh:mm a')
-    //             .format(newDate)}';
-    //     break;
-    //   default:
     //     break;
     // }
 

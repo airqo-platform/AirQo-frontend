@@ -4,9 +4,9 @@ import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 
 class HistoricalBarChart extends StatelessWidget {
-  HistoricalBarChart(this.seriesList);
-
   final List<charts.Series<TimeSeriesData, DateTime>> seriesList;
+
+  HistoricalBarChart(this.seriesList);
 
   @override
   Widget build(BuildContext context) {

@@ -12,11 +12,6 @@ class ResourcesPage extends StatefulWidget {
 class _ResourcesPageState extends State<ResourcesPage> {
   bool isLoading = true;
   int loadingValue = 0;
-  @override
-  void initState() {
-    super.initState();
-    if (Platform.isAndroid) WebView.platform = SurfaceAndroidWebView();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,5 +45,11 @@ class _ResourcesPageState extends State<ResourcesPage> {
             : Stack(),
       ],
     );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    if (Platform.isAndroid) WebView.platform = SurfaceAndroidWebView();
   }
 }

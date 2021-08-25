@@ -3,11 +3,12 @@ import 'package:app/providers/ThemeProvider.dart';
 import 'package:flutter/material.dart';
 
 class ChangeThemeDialog extends StatefulWidget {
+  final Themes initialValue;
+
+  final void Function(Themes) onValueChange;
+
   const ChangeThemeDialog(
       {required this.onValueChange, required this.initialValue});
-
-  final Themes initialValue;
-  final void Function(Themes) onValueChange;
 
   @override
   State createState() => ChangeThemeDialogState();
@@ -15,12 +16,6 @@ class ChangeThemeDialog extends StatefulWidget {
 
 class ChangeThemeDialogState extends State<ChangeThemeDialog> {
   Themes? _theme = Themes.lightTheme;
-
-  @override
-  void initState() {
-    super.initState();
-    _theme = widget.initialValue;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -65,5 +60,11 @@ class ChangeThemeDialogState extends State<ChangeThemeDialog> {
         ),
       ],
     );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _theme = widget.initialValue;
   }
 }

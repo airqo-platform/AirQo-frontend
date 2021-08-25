@@ -16,7 +16,6 @@ import 'package:app/models/suggestion.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
@@ -25,39 +24,39 @@ class AirqoApiClient {
 
   AirqoApiClient(this.context);
 
-  Future<Device> fetchDevice(String name) async {
+  Future<List<HistoricalMeasurement>> fetchDeviceHistoricalMeasurements(
+      Device device) async {
     try {
-      final response = await http.get(Uri.parse('$getDevice$name'));
+      var startTimeUtc = DateTime.now().toUtc().add(const Duration(hours: -48));
+      var date = DateFormat('yyyy-MM-dd').format(startTimeUtc);
+      var time = '${startTimeUtc.hour}';
 
-      print(response.statusCode);
-      if (response.statusCode == 200) {
-        print(response.body);
-
-        var devices = json
-            .decode(response.body)['devices']
-            .map<Device>((d) => Device.fromJson(d))
-            .toList();
-
-        return devices.first;
-      } else {
-        print('Unexpected status code ${response.statusCode}:'
-            ' ${response.reasonPhrase}');
-        throw HttpException(
-            'Unexpected status code ${response.statusCode}:'
-            ' ${response.reasonPhrase}',
-            uri: Uri.parse(getDevices));
+      if ('$time'.length == 1) {
+        time = '0$time';
       }
-    } on SocketException {
-      await showSnackBar(context, ErrorMessages().socketException);
-    } on TimeoutException {
-      await showSnackBar(context, ErrorMessages().timeoutException);
+      var startTime = '${date}T$time:00:00Z';
+
+      var queryParams = <String, dynamic>{}
+        ..putIfAbsent('device', () => device.name)
+        ..putIfAbsent('startTime', () => startTime)
+        ..putIfAbsent('frequency', () => 'hourly')
+        ..putIfAbsent('recent', () => 'no')
+        ..putIfAbsent('tenant', () => 'airqo');
+
+      final responseBody =
+          await _performGetRequest(queryParams, AirQoUrls().measurements);
+
+      if (responseBody != null) {
+        return compute(HistoricalMeasurement.parseMeasurements, responseBody);
+      } else {
+        print('Measurements are null');
+        return <HistoricalMeasurement>[];
+      }
     } on Error catch (e) {
-      print('Get Devices error: $e');
-      var message = 'Location data is not available, please try again later';
-      await showSnackBar(context, message);
+      print('Get Device historical measurements error: $e');
     }
 
-    throw Exception('device doesn\'t exist');
+    return <HistoricalMeasurement>[];
   }
 
   Future<Measurement> fetchDeviceMeasurements(Device device) async {
@@ -114,7 +113,7 @@ class AirqoApiClient {
         'longitude': longitude
       };
 
-      final response = await http.post(Uri.parse('$getForecastUrl'),
+      final response = await http.post(Uri.parse('${AirQoUrls().forecast}'),
           headers: {'Content-Type': 'application/json'},
           body: json.encode(body));
 
@@ -128,7 +127,7 @@ class AirqoApiClient {
         print('Unexpected status code ${response.statusCode}:'
             ' ${response.reasonPhrase}');
         print('Body ${response.body}:');
-        print('uri: $getForecastUrl');
+        print('uri: ${AirQoUrls().forecast}');
         return <Predict>[];
       }
     } on SocketException {
@@ -140,41 +139,6 @@ class AirqoApiClient {
     }
 
     return <Predict>[];
-  }
-
-  Future<List<HistoricalMeasurement>> fetchDeviceHistoricalMeasurements(
-      Device device) async {
-    try {
-      var startTimeUtc = DateTime.now().toUtc().add(const Duration(hours: -48));
-      var date = DateFormat('yyyy-MM-dd').format(startTimeUtc);
-      var time = '${startTimeUtc.hour}';
-
-      if ('$time'.length == 1) {
-        time = '0$time';
-      }
-      var startTime = '${date}T$time:00:00Z';
-
-      var queryParams = <String, dynamic>{}
-        ..putIfAbsent('device', () => device.name)
-        ..putIfAbsent('startTime', () => startTime)
-        ..putIfAbsent('frequency', () => 'hourly')
-        ..putIfAbsent('recent', () => 'no')
-        ..putIfAbsent('tenant', () => 'airqo');
-
-      final responseBody =
-          await _performGetRequest(queryParams, AirQoUrls().measurements);
-
-      if (responseBody != null) {
-        return compute(HistoricalMeasurement.parseMeasurements, responseBody);
-      } else {
-        print('Measurements are null');
-        return <HistoricalMeasurement>[];
-      }
-    } on Error catch (e) {
-      print('Get Device historical measurements error: $e');
-    }
-
-    return <HistoricalMeasurement>[];
   }
 
   Future<List<HistoricalMeasurement>> fetchHistoricalMeasurements() async {
@@ -210,29 +174,6 @@ class AirqoApiClient {
     return <HistoricalMeasurement>[];
   }
 
-  Future<List<Measurement>> fetchLatestMeasurements() async {
-    try {
-      var queryParams = <String, dynamic>{}
-        ..putIfAbsent('recent', () => 'yes')
-        ..putIfAbsent('frequency', () => 'hourly')
-        ..putIfAbsent('tenant', () => 'airqo');
-
-      final responseBody =
-          await _performGetRequest(queryParams, AirQoUrls().measurements);
-
-      if (responseBody != null) {
-        return compute(Measurement.parseMeasurements, responseBody);
-      } else {
-        print('Measurements are null');
-        return <Measurement>[];
-      }
-    } on Error catch (e) {
-      print('Get Latest measurements error: $e');
-    }
-
-    return <Measurement>[];
-  }
-
   Future<List<Measurement>> fetchLatestDevicesMeasurements(
       List<String> devices) async {
     try {
@@ -264,6 +205,29 @@ class AirqoApiClient {
       }
     } on Error catch (e) {
       print('Get Latest measurements for specific devices error: $e');
+    }
+
+    return <Measurement>[];
+  }
+
+  Future<List<Measurement>> fetchLatestMeasurements() async {
+    try {
+      var queryParams = <String, dynamic>{}
+        ..putIfAbsent('recent', () => 'yes')
+        ..putIfAbsent('frequency', () => 'hourly')
+        ..putIfAbsent('tenant', () => 'airqo');
+
+      final responseBody =
+          await _performGetRequest(queryParams, AirQoUrls().measurements);
+
+      if (responseBody != null) {
+        return compute(Measurement.parseMeasurements, responseBody);
+      } else {
+        print('Measurements are null');
+        return <Measurement>[];
+      }
+    } on Error catch (e) {
+      print('Get Latest measurements error: $e');
     }
 
     return <Measurement>[];
@@ -307,7 +271,8 @@ class AirqoApiClient {
 
       // print(body);
 
-      final response = await http.post(Uri.parse('$getCloundinaryUrl'),
+      final response = await http.post(
+          Uri.parse('${AirQoUrls().cloundinaryUrl}'),
           headers: {'Content-Type': 'application/json'},
           body: json.encode(body));
 
@@ -319,7 +284,7 @@ class AirqoApiClient {
         print('Unexpected status code ${response.statusCode}:'
             ' ${response.reasonPhrase}');
         print('Body ${response.body}:');
-        print('uri: Uri.parse($getForecastUrl)');
+        print('uri: ${AirQoUrls().cloundinaryUrl}');
         throw Exception('Error');
       }
     } on SocketException {
@@ -455,7 +420,6 @@ class GoogleSearchProvider {
   static final String androidKey = googleApiKey;
 
   static final String iosKey = iosApiKey;
-
   final sessionToken;
   final apiKey = Platform.isAndroid ? androidKey : iosKey;
 
@@ -526,6 +490,7 @@ class GoogleSearchProvider {
     } on TimeoutException {
       throw Exception(ErrorMessages().timeoutException);
     } on Error catch (e) {
+      print(e);
       throw Exception('Cannot get details, please try again later');
     }
   }

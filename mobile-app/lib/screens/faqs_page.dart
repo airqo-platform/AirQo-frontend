@@ -10,12 +10,6 @@ class FaqsPage extends StatefulWidget {
 
 class FaqsPageState extends State<FaqsPage> {
   @override
-  void initState() {
-    super.initState();
-    if (Platform.isAndroid) WebView.platform = SurfaceAndroidWebView();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -27,5 +21,11 @@ class FaqsPageState extends State<FaqsPage> {
         ),
       ),
     );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    if (Platform.isAndroid) WebView.platform = SurfaceAndroidWebView();
   }
 }

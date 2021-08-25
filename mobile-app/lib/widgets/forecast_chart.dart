@@ -6,9 +6,9 @@ import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 
 class ForecastBarChart extends StatefulWidget {
-  ForecastBarChart(this.seriesList);
-
   final List<charts.Series<TimeSeriesData, DateTime>> seriesList;
+
+  ForecastBarChart(this.seriesList);
 
   @override
   _ForecastBarChartState createState() => _ForecastBarChartState();

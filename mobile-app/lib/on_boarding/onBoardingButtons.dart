@@ -4,16 +4,17 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class OnBoardingButtons extends StatelessWidget {
+  final int currentIndex;
+
+  final int dataLength;
+  final PageController controller;
+
   OnBoardingButtons(
       {Key? key,
       required this.currentIndex,
       required this.dataLength,
       required this.controller})
       : super(key: key);
-
-  final int currentIndex;
-  final int dataLength;
-  final PageController controller;
 
   @override
   Widget build(BuildContext context) {

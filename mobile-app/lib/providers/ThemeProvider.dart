@@ -3,12 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ThemeController extends ChangeNotifier {
+  final SharedPreferences _prefs;
+
+  String _currentTheme = 'light';
+
   ThemeController(this._prefs) {
     _currentTheme = _prefs.getString(appTheme) ?? 'light';
   }
-
-  final SharedPreferences _prefs;
-  String _currentTheme = 'light';
 
   String get currentTheme => _currentTheme;
 
@@ -28,11 +29,11 @@ class ThemeController extends ChangeNotifier {
 }
 
 class ThemeControllerProvider extends InheritedWidget {
+  final ThemeController controller;
+
   const ThemeControllerProvider(
       {Key? key, required this.controller, required Widget child})
       : super(key: key, child: child);
-
-  final ThemeController controller;
 
   @override
   bool updateShouldNotify(ThemeControllerProvider old) =>

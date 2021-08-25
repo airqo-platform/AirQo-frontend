@@ -6,49 +6,91 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class AirQualityCard extends StatefulWidget {
-  AirQualityCard({Key? key, required this.data}) : super(key: key);
-
   final Measurement data;
+
+  AirQualityCard({Key? key, required this.data}) : super(key: key);
 
   @override
   _AirQualityCardState createState() => _AirQualityCardState();
 }
 
-class _AirQualityCardState extends State<AirQualityCard> {
+class CardBody extends StatefulWidget {
+  @override
+  _CardBodyState createState() => _CardBodyState();
+}
+
+class CardBodySection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      child: Padding(
-        padding: const EdgeInsets.all(8),
-        child: Column(
-          children: [
-            Card(
-              clipBehavior: Clip.antiAlias,
-              child: Column(
-                children: [
-                  TitleSection(
-                    data: widget.data,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(8),
-                    child: CardSection(
-                      data: widget.data,
-                    ),
-                  )
-                ],
-              ),
-            ),
-          ],
-        ),
+      child: const Center(child: Text("Body")),
+    );
+  }
+}
+
+class CardSection extends StatelessWidget {
+  final Measurement data;
+
+  CardSection({Key? key, required this.data}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      child: Row(
+        // crossAxisAlignment: CrossAxisAlignment.center,
+        // mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          Expanded(
+              child: Text('Last updated : ${dateToString(data.time)}',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: ColorConstants().appColor,
+                    fontWeight: FontWeight.w300,
+                    fontStyle: FontStyle.italic,
+                  ))),
+          // const Padding(
+          //   padding: EdgeInsets.fromLTRB(5, 5, 5, 5),
+          //   child: Icon(
+          //     Icons.arrow_forward_outlined,
+          //     color: appColor,
+          //   ),
+          // ),
+          // Column(
+          //   children: [
+          //     Row(
+          //       children: [
+          //         const Padding(
+          //           padding: EdgeInsets.fromLTRB(5, 5, 5, 5),
+          //           child: Icon(Icons.thermostat_outlined),
+          //         ),
+          //         Text('20')
+          //       ],
+          //     )
+          //   ],
+          // ),
+          // Column(
+          //   children: [
+          //     Row(
+          //       children: [
+          //         const Padding(
+          //           padding: EdgeInsets.fromLTRB(5, 5, 5, 5),
+          //           child: Icon(Icons.wb_cloudy_outlined),
+          //         ),
+          //         Text('20')
+          //       ],
+          //     )
+          //   ],
+          // ),
+        ],
       ),
     );
   }
 }
 
 class TitleSection extends StatelessWidget {
-  TitleSection({Key? key, required this.data}) : super(key: key);
-
   final Measurement data;
+
+  TitleSection({Key? key, required this.data}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -111,68 +153,35 @@ class TitleSection extends StatelessWidget {
   }
 }
 
-class CardSection extends StatelessWidget {
-  CardSection({Key? key, required this.data}) : super(key: key);
-
-  final Measurement data;
-
+class _AirQualityCardState extends State<AirQualityCard> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      child: Row(
-        // crossAxisAlignment: CrossAxisAlignment.center,
-        // mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          Expanded(
-              child: Text('Last updated : ${dateToString(data.time)}',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: ColorConstants().appColor,
-                    fontWeight: FontWeight.w300,
-                    fontStyle: FontStyle.italic,
-                  ))),
-          // const Padding(
-          //   padding: EdgeInsets.fromLTRB(5, 5, 5, 5),
-          //   child: Icon(
-          //     Icons.arrow_forward_outlined,
-          //     color: appColor,
-          //   ),
-          // ),
-          // Column(
-          //   children: [
-          //     Row(
-          //       children: [
-          //         const Padding(
-          //           padding: EdgeInsets.fromLTRB(5, 5, 5, 5),
-          //           child: Icon(Icons.thermostat_outlined),
-          //         ),
-          //         Text('20')
-          //       ],
-          //     )
-          //   ],
-          // ),
-          // Column(
-          //   children: [
-          //     Row(
-          //       children: [
-          //         const Padding(
-          //           padding: EdgeInsets.fromLTRB(5, 5, 5, 5),
-          //           child: Icon(Icons.wb_cloudy_outlined),
-          //         ),
-          //         Text('20')
-          //       ],
-          //     )
-          //   ],
-          // ),
-        ],
+      child: Padding(
+        padding: const EdgeInsets.all(8),
+        child: Column(
+          children: [
+            Card(
+              clipBehavior: Clip.antiAlias,
+              child: Column(
+                children: [
+                  TitleSection(
+                    data: widget.data,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8),
+                    child: CardSection(
+                      data: widget.data,
+                    ),
+                  )
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
-}
-
-class CardBody extends StatefulWidget {
-  @override
-  _CardBodyState createState() => _CardBodyState();
 }
 
 class _CardBodyState extends State<CardBody> {
@@ -182,15 +191,6 @@ class _CardBodyState extends State<CardBody> {
       child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[CardBodySection()]),
-    );
-  }
-}
-
-class CardBodySection extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      child: const Center(child: Text("Body")),
     );
   }
 }

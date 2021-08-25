@@ -7,30 +7,25 @@ import 'package:app/utils/pm.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:intl/intl.dart';
 
-class Pm2_5TimeSeries {
-  Pm2_5TimeSeries(this.time, this.pm2_5Value);
+List<charts.Series<TimeSeriesData, DateTime>> createChartData(
+    List<Measurement> measurements) {
+  var data = <TimeSeriesData>[];
 
-  final DateTime time;
-  final double pm2_5Value;
-}
+  for (var measurement in measurements) {
+    var time = measurement.time.substring(0, measurement.time.indexOf('.'));
 
-List<charts.Series<Pm2_5TimeSeries, DateTime>> createPm2_5ChartData(
-    List<HistoricalMeasurement> data) {
-  var values = <Pm2_5TimeSeries>[];
-  for (var value in data) {
-    var time = value.time.replaceAll(' GMT', '');
+    var date = DateTime.parse(time);
 
-    values.add(
-        Pm2_5TimeSeries(DateTime.parse(time), value.pm2_5.calibratedValue));
+    data.add(TimeSeriesData(date, measurement.pm2_5.calibratedValue.ceil()));
   }
 
   return [
-    charts.Series<Pm2_5TimeSeries, DateTime>(
-      id: 'Pm2_5',
+    charts.Series<TimeSeriesData, DateTime>(
+      id: 'Location',
       colorFn: (_, __) => charts.MaterialPalette.blue.shadeDefault,
-      domainFn: (Pm2_5TimeSeries value, _) => value.time,
-      measureFn: (Pm2_5TimeSeries value, _) => value.pm2_5Value,
-      data: values,
+      domainFn: (TimeSeriesData sales, _) => sales.time,
+      measureFn: (TimeSeriesData sales, _) => sales.value,
+      data: data,
     )
   ];
 }
@@ -76,25 +71,23 @@ List<charts.Series<ValueSeries, DateTime>> createComparisonData(
   ];
 }
 
-List<charts.Series<TimeSeriesData, DateTime>> createChartData(
-    List<Measurement> measurements) {
-  var data = <TimeSeriesData>[];
+List<charts.Series<Pm2_5TimeSeries, DateTime>> createPm2_5ChartData(
+    List<HistoricalMeasurement> data) {
+  var values = <Pm2_5TimeSeries>[];
+  for (var value in data) {
+    var time = value.time.replaceAll(' GMT', '');
 
-  for (var measurement in measurements) {
-    var time = measurement.time.substring(0, measurement.time.indexOf('.'));
-
-    var date = DateTime.parse(time);
-
-    data.add(TimeSeriesData(date, measurement.pm2_5.calibratedValue.ceil()));
+    values.add(
+        Pm2_5TimeSeries(DateTime.parse(time), value.pm2_5.calibratedValue));
   }
 
   return [
-    charts.Series<TimeSeriesData, DateTime>(
-      id: 'Location',
+    charts.Series<Pm2_5TimeSeries, DateTime>(
+      id: 'Pm2_5',
       colorFn: (_, __) => charts.MaterialPalette.blue.shadeDefault,
-      domainFn: (TimeSeriesData sales, _) => sales.time,
-      measureFn: (TimeSeriesData sales, _) => sales.value,
-      data: data,
+      domainFn: (Pm2_5TimeSeries value, _) => value.time,
+      measureFn: (Pm2_5TimeSeries value, _) => value.pm2_5Value,
+      data: values,
     )
   ];
 }
@@ -190,4 +183,12 @@ List<charts.Series<TimeSeriesData, DateTime>> predictChartData(
       // displayName: 'Forecast',
     )
   ];
+}
+
+class Pm2_5TimeSeries {
+  final DateTime time;
+
+  final double pm2_5Value;
+
+  Pm2_5TimeSeries(this.time, this.pm2_5Value);
 }

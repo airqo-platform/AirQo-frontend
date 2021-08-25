@@ -20,90 +20,6 @@ class _SearchPageState extends State<SearchPage> {
   bool notFound = false;
 
   @override
-  void initState() {
-    notFound = false;
-    getDevices();
-
-    super.initState();
-  }
-
-  void updateLists(List<Device> results) {
-    setState(() {
-      notFound = false;
-      dbDevices.clear();
-      devices.clear();
-      dbDevices.addAll(results);
-      devices.addAll(results);
-    });
-  }
-
-  Future<void> getDevices() async {
-    // await getDevicesLocally();
-    //
-    // var results = await AirqoApiClient(context).fetchDevices();
-    //
-    // if (results.isNotEmpty) {
-    //   updateLists(results);
-    //   await dbHelper.insertDevices(results);
-    // }
-  }
-
-  Future<void> getDevicesLocally() async {
-    // var offlineDevices = await dbHelper.getDevices();
-    //
-    // if (offlineDevices.isNotEmpty) {
-    //   updateLists(offlineDevices);
-    // }
-  }
-
-  @override
-  void dispose() {
-    editingController.dispose();
-    super.dispose();
-  }
-
-  void filterSearchResults(String query) async {
-    query = query.toLowerCase();
-
-    if (query.isNotEmpty) {
-      var dummyListData = <Device>[];
-      for (var device in dbDevices) {
-        if ((device.description != null &&
-                device.description.toLowerCase().contains(query)) ||
-            (device.siteName != null &&
-                device.siteName.toLowerCase().contains(query)) ||
-            (device.locationName != null &&
-                device.locationName.toLowerCase().contains(query))) {
-          dummyListData.add(device);
-        }
-      }
-
-      setState(() {
-        devices.clear();
-
-        for (var device in dummyListData) {
-          devices.add(device);
-        }
-      });
-
-      if (devices.isEmpty) {
-        notFound = true;
-      } else {
-        notFound = false;
-      }
-      return;
-    } else {
-      print(dbDevices.length);
-      setState(() {
-        devices.clear();
-        for (var device in dbDevices) {
-          devices.add(device);
-        }
-      });
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -196,5 +112,89 @@ class _SearchPageState extends State<SearchPage> {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    editingController.dispose();
+    super.dispose();
+  }
+
+  void filterSearchResults(String query) async {
+    query = query.toLowerCase();
+
+    if (query.isNotEmpty) {
+      var dummyListData = <Device>[];
+      for (var device in dbDevices) {
+        if ((device.description != null &&
+                device.description.toLowerCase().contains(query)) ||
+            (device.siteName != null &&
+                device.siteName.toLowerCase().contains(query)) ||
+            (device.locationName != null &&
+                device.locationName.toLowerCase().contains(query))) {
+          dummyListData.add(device);
+        }
+      }
+
+      setState(() {
+        devices.clear();
+
+        for (var device in dummyListData) {
+          devices.add(device);
+        }
+      });
+
+      if (devices.isEmpty) {
+        notFound = true;
+      } else {
+        notFound = false;
+      }
+      return;
+    } else {
+      print(dbDevices.length);
+      setState(() {
+        devices.clear();
+        for (var device in dbDevices) {
+          devices.add(device);
+        }
+      });
+    }
+  }
+
+  Future<void> getDevices() async {
+    // await getDevicesLocally();
+    //
+    // var results = await AirqoApiClient(context).fetchDevices();
+    //
+    // if (results.isNotEmpty) {
+    //   updateLists(results);
+    //   await dbHelper.insertDevices(results);
+    // }
+  }
+
+  Future<void> getDevicesLocally() async {
+    // var offlineDevices = await dbHelper.getDevices();
+    //
+    // if (offlineDevices.isNotEmpty) {
+    //   updateLists(offlineDevices);
+    // }
+  }
+
+  @override
+  void initState() {
+    notFound = false;
+    getDevices();
+
+    super.initState();
+  }
+
+  void updateLists(List<Device> results) {
+    setState(() {
+      notFound = false;
+      dbDevices.clear();
+      devices.clear();
+      dbDevices.addAll(results);
+      devices.addAll(results);
+    });
   }
 }

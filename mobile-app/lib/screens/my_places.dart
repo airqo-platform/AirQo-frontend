@@ -266,23 +266,6 @@ class _MyPlacesState extends State<MyPlaces> {
                         }))));
   }
 
-  Future<void> refreshData() async {
-    var data = DBHelper().getFavouritePlaces();
-
-    setState(() {
-      results = data;
-    });
-  }
-
-  Future<void> removeFromFavourites(Device device) async {
-    await DBHelper().updateFavouritePlaces(device).then((value) => {
-          showSnackBar2(
-              context, '${device.siteName} is removed from your places')
-        });
-
-    setState(() {});
-  }
-
   void doSearch(String query) {
     query = query.toLowerCase();
 
@@ -314,6 +297,23 @@ class _MyPlacesState extends State<MyPlaces> {
     } else {
       setState(() {});
     }
+  }
+
+  Future<void> refreshData() async {
+    var data = DBHelper().getFavouritePlaces();
+
+    setState(() {
+      results = data;
+    });
+  }
+
+  Future<void> removeFromFavourites(Device device) async {
+    await DBHelper().updateFavouritePlaces(device).then((value) => {
+          showSnackBar2(
+              context, '${device.siteName} is removed from your places')
+        });
+
+    setState(() {});
   }
 
   Future<void> viewDetails(Device device) async {

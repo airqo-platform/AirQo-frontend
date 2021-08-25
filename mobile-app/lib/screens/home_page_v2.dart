@@ -206,6 +206,12 @@ class _HomePageV2State extends State<HomePageV2> {
     );
   }
 
+  Future<void> initialize() async {
+    await _getLatestMeasurements();
+    await _getHistoricalMeasurements();
+    await _getDevices();
+  }
+
   @override
   void initState() {
     _displayOnBoarding();
@@ -213,17 +219,10 @@ class _HomePageV2State extends State<HomePageV2> {
     super.initState();
   }
 
-  Future<void> initialize() async {
-    await _getLatestMeasurements();
-    await _getHistoricalMeasurements();
-    await _getDevices();
-  }
-
   void navigateToMenuItem(dynamic position) {
     var menuItem = position.toString();
 
     if (menuItem.trim().toLowerCase() == 'feedback') {
-      // _launchURL();
       Navigator.push(context, MaterialPageRoute(builder: (context) {
         return FeedbackPage();
       })).then((value) => setState(() {
@@ -334,9 +333,9 @@ class _HomePageV2State extends State<HomePageV2> {
     }
   }
 
-  Future<void> _getLatestMeasurements() async {
-    await AirqoApiClient(context).fetchLatestMeasurements().then((value) => {
-          if (value.isNotEmpty) {DBHelper().insertLatestMeasurements(value)}
+  Future<void> _getDevices() async {
+    await AirqoApiClient(context).fetchDevices().then((value) => {
+          if (value.isNotEmpty) {DBHelper().insertDevices(value)}
         });
   }
 
@@ -349,9 +348,9 @@ class _HomePageV2State extends State<HomePageV2> {
             });
   }
 
-  Future<void> _getDevices() async {
-    await AirqoApiClient(context).fetchDevices().then((value) => {
-          if (value.isNotEmpty) {DBHelper().insertDevices(value)}
+  Future<void> _getLatestMeasurements() async {
+    await AirqoApiClient(context).fetchLatestMeasurements().then((value) => {
+          if (value.isNotEmpty) {DBHelper().insertLatestMeasurements(value)}
         });
   }
 

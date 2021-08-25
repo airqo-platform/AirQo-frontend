@@ -4,6 +4,13 @@ import 'package:app/models/measurement.dart';
 import 'package:app/utils/pm.dart';
 import 'package:share/share.dart';
 
+void shareApp() {
+  Share.share(
+      'Download the $appName app from Play Store $appPlayStoreLink '
+      'or App Store $appIOSLink',
+      subject: '$appName app!');
+}
+
 void shareLocation(Device device) {
   Share.share(
       'Checkout the air quality of '
@@ -18,11 +25,4 @@ void shareMeasurement(Measurement measurement) {
       'PM 2.5 : ${measurement.pm2_5.calibratedValue.toString()} µg/m\u00B3 (${pmToString(measurement.pm2_5.calibratedValue)}) \n'
       'PM 10 : ${measurement.pm10.calibratedValue.toString()} µg/m\u00B3 ',
       subject: '$appName, ${measurement.device.siteName}!');
-}
-
-void shareApp() {
-  Share.share(
-      'Download the $appName app from Play Store $appPlayStoreLink '
-      'or App Store $appIOSLink',
-      subject: '$appName app!');
 }

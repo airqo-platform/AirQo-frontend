@@ -5,6 +5,15 @@ class CardBody extends StatefulWidget {
   _CardBodyState createState() => _CardBodyState();
 }
 
+class CardBodySection extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      child: const Center(child: Text("Body")),
+    );
+  }
+}
+
 class _CardBodyState extends State<CardBody>
     with SingleTickerProviderStateMixin, RestorationMixin {
   late TabController _tabController;
@@ -20,37 +29,6 @@ class _CardBodyState extends State<CardBody>
 
   @override
   String get restorationId => 'card_body';
-
-  @override
-  void restoreState(RestorationBucket? oldBucket, bool initialRestore) {
-    registerForRestoration(tabIndex, 'tab_index');
-    _tabController.index = tabIndex.value;
-  }
-
-  @override
-  void initState() {
-    _tabController = TabController(
-      initialIndex: 0,
-      length: tabs.length,
-      vsync: this,
-    );
-    _tabController.addListener(() {
-      setState(() {
-        tabIndex.value = _tabController.index;
-      });
-    });
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    searchController.dispose();
-    tabIndex.dispose();
-    super.dispose();
-  }
-
-  void search() {}
 
   @override
   Widget build(BuildContext context) {
@@ -89,13 +67,35 @@ class _CardBodyState extends State<CardBody>
           ]),
     );
   }
-}
 
-class CardBodySection extends StatelessWidget {
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      child: const Center(child: Text("Body")),
-    );
+  void dispose() {
+    _tabController.dispose();
+    searchController.dispose();
+    tabIndex.dispose();
+    super.dispose();
   }
+
+  @override
+  void initState() {
+    _tabController = TabController(
+      initialIndex: 0,
+      length: tabs.length,
+      vsync: this,
+    );
+    _tabController.addListener(() {
+      setState(() {
+        tabIndex.value = _tabController.index;
+      });
+    });
+    super.initState();
+  }
+
+  @override
+  void restoreState(RestorationBucket? oldBucket, bool initialRestore) {
+    registerForRestoration(tabIndex, 'tab_index');
+    _tabController.index = tabIndex.value;
+  }
+
+  void search() {}
 }

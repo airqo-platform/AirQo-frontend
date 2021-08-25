@@ -1,3 +1,8 @@
+double kmIntToMetersDouble(int km) {
+  var meters = km * 1000;
+  return meters.toDouble();
+}
+
 String toDistance(double km) {
   var meters = (km * 1000).ceil();
   if (meters > 1000) {
@@ -5,9 +10,4 @@ String toDistance(double km) {
   } else {
     return '$meters meters';
   }
-}
-
-double kmIntToMetersDouble(int km) {
-  var meters = km * 1000;
-  return meters.toDouble();
 }

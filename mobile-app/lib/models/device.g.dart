@@ -6,18 +6,6 @@ part of 'device.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-Devices _$DevicesFromJson(Map<String, dynamic> json) {
-  return Devices(
-    devices: (json['devices'] as List<dynamic>)
-        .map((e) => Device.fromJson(e as Map<String, dynamic>))
-        .toList(),
-  );
-}
-
-Map<String, dynamic> _$DevicesToJson(Devices instance) => <String, dynamic>{
-      'devices': instance.devices,
-    };
-
 Device _$DeviceFromJson(Map<String, dynamic> json) {
   return Device(
     distance: (json['distance'] as num?)?.toDouble() ?? 0.0,
@@ -31,6 +19,18 @@ Device _$DeviceFromJson(Map<String, dynamic> json) {
     isActive: json['isActive'] as bool? ?? true,
   );
 }
+
+Devices _$DevicesFromJson(Map<String, dynamic> json) {
+  return Devices(
+    devices: (json['devices'] as List<dynamic>)
+        .map((e) => Device.fromJson(e as Map<String, dynamic>))
+        .toList(),
+  );
+}
+
+Map<String, dynamic> _$DevicesToJson(Devices instance) => <String, dynamic>{
+      'devices': instance.devices,
+    };
 
 Map<String, dynamic> _$DeviceToJson(Device instance) => <String, dynamic>{
       'nickName': instance.nickName,

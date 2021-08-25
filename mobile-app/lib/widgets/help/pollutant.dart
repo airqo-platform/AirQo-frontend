@@ -4,10 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class PollutantDialog extends StatelessWidget {
-  PollutantDialog(this.pollutant);
-
   final Pollutant pollutant;
+
   final _url = 'https://www.epa.gov/pm-pollution/particulate-matter-pm-basics';
+
+  PollutantDialog(this.pollutant);
 
   @override
   Widget build(BuildContext context) {
@@ -21,68 +22,6 @@ class PollutantDialog extends StatelessWidget {
         child: ListView(
           children: [whatIs(), source(), effects(), howToReduce()],
         ),
-      ),
-    );
-  }
-
-  Widget whatIs() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(0, 2, 0, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(5),
-            child: Text(
-                'What is ${pollutant.pollutant}, '
-                'and how does it get into the air?',
-                softWrap: true,
-                style: TextStyle(
-                    height: 1.2, color: ColorConstants().appColor, fontSize: 15
-                    // letterSpacing: 1.0
-                    )),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(5),
-            child: Text('${pollutant.description}',
-                softWrap: true,
-                style: const TextStyle(
-                  height: 1.5,
-                  // letterSpacing: 1.0
-                )),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget source() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(0, 2, 0, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(5),
-            child: Text('Sources of ${pollutant.pollutant}',
-                softWrap: true,
-                style: TextStyle(
-                    height: 1.2, color: ColorConstants().appColor, fontSize: 15
-                    // letterSpacing: 1.0
-                    )),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(5),
-            child: Text('${pollutant.source}',
-                softWrap: true,
-                style: const TextStyle(
-                  height: 1.5,
-                  // letterSpacing: 1.0
-                )),
-          ),
-        ],
       ),
     );
   }
@@ -168,6 +107,68 @@ class PollutantDialog extends StatelessWidget {
                       height: 1.5, color: Colors.white, fontSize: 15
                       // letterSpacing: 1.0
                       )))
+        ],
+      ),
+    );
+  }
+
+  Widget source() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(0, 2, 0, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(5),
+            child: Text('Sources of ${pollutant.pollutant}',
+                softWrap: true,
+                style: TextStyle(
+                    height: 1.2, color: ColorConstants().appColor, fontSize: 15
+                    // letterSpacing: 1.0
+                    )),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(5),
+            child: Text('${pollutant.source}',
+                softWrap: true,
+                style: const TextStyle(
+                  height: 1.5,
+                  // letterSpacing: 1.0
+                )),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget whatIs() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(0, 2, 0, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(5),
+            child: Text(
+                'What is ${pollutant.pollutant}, '
+                'and how does it get into the air?',
+                softWrap: true,
+                style: TextStyle(
+                    height: 1.2, color: ColorConstants().appColor, fontSize: 15
+                    // letterSpacing: 1.0
+                    )),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(5),
+            child: Text('${pollutant.description}',
+                softWrap: true,
+                style: const TextStyle(
+                  height: 1.5,
+                  // letterSpacing: 1.0
+                )),
+          ),
         ],
       ),
     );

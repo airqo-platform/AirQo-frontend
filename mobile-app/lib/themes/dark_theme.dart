@@ -1,16 +1,6 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:flutter/material.dart';
 
-ThemeData darkTheme() {
-  final base = ThemeData.dark();
-
-  return base.copyWith(
-    primaryColor: ColorConstants().appColor,
-    accentColor: ColorConstants().appColor,
-    visualDensity: VisualDensity.adaptivePlatformDensity,
-  );
-}
-
 const googleMapsDarkTheme = [
   {
     "elementType": "geometry",
@@ -136,3 +126,13 @@ const googleMapsDarkTheme = [
     ]
   }
 ];
+
+ThemeData darkTheme() {
+  final base = ThemeData.dark();
+
+  return base.copyWith(
+    primaryColor: ColorConstants().appColor,
+    accentColor: ColorConstants().appColor,
+    visualDensity: VisualDensity.adaptivePlatformDensity,
+  );
+}

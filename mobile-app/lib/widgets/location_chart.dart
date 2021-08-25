@@ -3,9 +3,9 @@ import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 
 class LocationBarChart extends StatelessWidget {
-  LocationBarChart(this.seriesList);
-
   final List<charts.Series<TimeSeriesData, DateTime>> seriesList;
+
+  LocationBarChart(this.seriesList);
 
   @override
   Widget build(BuildContext context) {

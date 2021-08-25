@@ -13,44 +13,6 @@ class _AddPlacePageState extends State<AddPlacePage> {
   List<String> _locationDetails = [];
 
   @override
-  void dispose() {
-    searchController.dispose();
-    super.dispose();
-  }
-
-  void search() {}
-
-  void getLocationDetails() async {
-    setState(() {
-      _locationDetails = ['Makerere', 'Kyambogo'];
-    });
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _searchResult = [];
-    getLocationDetails();
-  }
-
-  onSearchTextChanged(String text) async {
-    _searchResult.clear();
-
-    if (text.isEmpty) {
-      setState(() {});
-      return;
-    }
-
-    _locationDetails.forEach((location) {
-      if (location.toLowerCase().contains(text.toLowerCase())) {
-        _searchResult.add(location);
-      }
-    });
-
-    setState(() {});
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
@@ -95,4 +57,42 @@ class _AddPlacePageState extends State<AddPlacePage> {
                 ),
         ));
   }
+
+  @override
+  void dispose() {
+    searchController.dispose();
+    super.dispose();
+  }
+
+  void getLocationDetails() async {
+    setState(() {
+      _locationDetails = ['Makerere', 'Kyambogo'];
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _searchResult = [];
+    getLocationDetails();
+  }
+
+  onSearchTextChanged(String text) async {
+    _searchResult.clear();
+
+    if (text.isEmpty) {
+      setState(() {});
+      return;
+    }
+
+    _locationDetails.forEach((location) {
+      if (location.toLowerCase().contains(text.toLowerCase())) {
+        _searchResult.add(location);
+      }
+    });
+
+    setState(() {});
+  }
+
+  void search() {}
 }

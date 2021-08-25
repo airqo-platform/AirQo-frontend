@@ -1,6 +1,8 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:flutter/material.dart';
 
+const googleMapsLightTheme = [];
+
 ThemeData lightTheme() {
   final base = ThemeData.light();
 
@@ -11,5 +13,3 @@ ThemeData lightTheme() {
     visualDensity: VisualDensity.adaptivePlatformDensity,
   );
 }
-
-const googleMapsLightTheme = [];

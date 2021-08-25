@@ -7,19 +7,6 @@ part 'measurement.g.dart';
 
 @JsonSerializable()
 class Measurement {
-  Measurement(
-      {required this.time,
-      required this.pm2_5,
-      required this.pm10,
-      required this.altitude,
-      required this.speed,
-      required this.temperature,
-      required this.humidity,
-      required this.device});
-
-  factory Measurement.fromJson(Map<String, dynamic> json) =>
-      _$MeasurementFromJson(json);
-
   @JsonKey(required: true)
   final String time;
 
@@ -44,21 +31,46 @@ class Measurement {
   @JsonKey(required: true, name: 'deviceDetails')
   final Device device;
 
+  Measurement(
+      {required this.time,
+      required this.pm2_5,
+      required this.pm10,
+      required this.altitude,
+      required this.speed,
+      required this.temperature,
+      required this.humidity,
+      required this.device});
+
+  factory Measurement.fromJson(Map<String, dynamic> json) =>
+      _$MeasurementFromJson(json);
+
   Map<String, dynamic> toJson() => _$MeasurementToJson(this);
 
   static String dbAltitude() => 'altitude';
 
+  static String dbDescription() => 'description';
+
   static String dbDeviceName() => 'device_name';
+
+  static String dbDistance() => 'distance';
 
   static String dbHumidity() => 'humidity';
 
+  static String dbLatitude() => 'latitude';
+
+  static String dbLocationName() => 'location_name';
+
+  static String dbLongitude() => 'longitude';
+
   static String dbNameHistoricalMeasurements() => 'historical_measurements';
 
-  static String latestMeasurementsDb() => 'latest_measurements';
+  static String dbNickName() => 'nickname';
 
   static String dbPm10() => 'pm10';
 
   static String dbPm25() => 'pm2_5';
+
+  static String dbSiteName() => 'site_name';
 
   static String dbSpeed() => 'speed';
 
@@ -66,22 +78,7 @@ class Measurement {
 
   static String dbTime() => 'time';
 
-  static String dbDistance() => 'distance';
-
-  static String dbNickName() => 'nickname';
-
-  static String dbDescription() => 'description';
-
-  static String dbLatitude() => 'latitude';
-
-  static String dbLongitude() => 'longitude';
-
-  static String dbSiteName() => 'site_name';
-
-  static String dbLocationName() => 'location_name';
-
-  static String latestMeasurementsTableDropStmt() =>
-      'DROP TABLE IF EXISTS ${latestMeasurementsDb()}';
+  static String latestMeasurementsDb() => 'latest_measurements';
 
   static String latestMeasurementsTableCreateStmt() =>
       'CREATE TABLE IF NOT EXISTS ${latestMeasurementsDb()}('
@@ -92,6 +89,9 @@ class Measurement {
       '${dbHumidity()} REAL, ${dbLocationName()} TEXT, '
       '${dbSiteName()} TEXT, ${dbLongitude()} REAL, '
       '${dbDescription()} TEXT, ${dbNickName()} TEXT )';
+
+  static String latestMeasurementsTableDropStmt() =>
+      'DROP TABLE IF EXISTS ${latestMeasurementsDb()}';
 
   static Map<String, dynamic> mapFromDb(Map<String, dynamic> json) {
     var deviceDetails = {
@@ -144,6 +144,11 @@ class Measurement {
     };
   }
 
+  static Measurement parseMeasurement(dynamic jsonBody) {
+    var measurements = Measurements.fromJson(jsonBody).measurements;
+    return measurements.first;
+  }
+
   static List<Measurement> parseMeasurements(dynamic jsonBody) {
     var measurements = Measurements.fromJson(jsonBody).measurements;
 
@@ -157,23 +162,18 @@ class Measurement {
 
     return measurementsForActiveDevices;
   }
-
-  static Measurement parseMeasurement(dynamic jsonBody) {
-    var measurements = Measurements.fromJson(jsonBody).measurements;
-    return measurements.first;
-  }
 }
 
 @JsonSerializable()
 class Measurements {
+  final List<Measurement> measurements;
+
   Measurements({
     required this.measurements,
   });
 
   factory Measurements.fromJson(Map<String, dynamic> json) =>
       _$MeasurementsFromJson(json);
-
-  final List<Measurement> measurements;
 
   Map<String, dynamic> toJson() => _$MeasurementsToJson(this);
 }

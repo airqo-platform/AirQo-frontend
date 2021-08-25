@@ -16,17 +16,6 @@ class _ComparePageState extends State<ComparePage> {
   var apiClient;
 
   @override
-  void initState() {
-    apiClient = AirqoApiClient(context);
-  }
-
-  void setShareIcon(value) {
-    setState(() {
-      displayShareIcon = value;
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Container(
       child: Padding(
@@ -38,13 +27,23 @@ class _ComparePageState extends State<ComparePage> {
     );
   }
 
-  Widget graphDisplay() {
-    return LocationCompareChart();
+  Widget firstInput() {
+    return TextFormField(
+      controller: firstPlaceController,
+      decoration: const InputDecoration(
+        labelText: 'First Place',
+        // helperText: 'Optional',
+      ),
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Required';
+        }
+        return null;
+      },
+      onChanged: (value) {},
+      textInputAction: TextInputAction.next,
+    );
   }
-
-  // Widget lineDisplay() {
-  //   return LocationBarChart();
-  // }
 
   Widget formInput() {
     return SingleChildScrollView(
@@ -87,22 +86,17 @@ class _ComparePageState extends State<ComparePage> {
     ));
   }
 
-  Widget firstInput() {
-    return TextFormField(
-      controller: firstPlaceController,
-      decoration: const InputDecoration(
-        labelText: 'First Place',
-        // helperText: 'Optional',
-      ),
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Required';
-        }
-        return null;
-      },
-      onChanged: (value) {},
-      textInputAction: TextInputAction.next,
-    );
+  Widget graphDisplay() {
+    return LocationCompareChart();
+  }
+
+  // Widget lineDisplay() {
+  //   return LocationBarChart();
+  // }
+
+  @override
+  void initState() {
+    apiClient = AirqoApiClient(context);
   }
 
   Widget secondInput() {
@@ -119,5 +113,11 @@ class _ComparePageState extends State<ComparePage> {
         return null;
       },
     );
+  }
+
+  void setShareIcon(value) {
+    setState(() {
+      displayShareIcon = value;
+    });
   }
 }

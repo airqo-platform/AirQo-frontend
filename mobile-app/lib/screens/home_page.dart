@@ -17,8 +17,8 @@ import 'package:url_launcher/url_launcher.dart';
 
 import 'dashboard_page.dart';
 
-const _url = 'https://forms.gle/oFjqpNoUKPY5ubAcA';
 const _faqsUrl = 'https://www.airqo.net/faqs';
+const _url = 'https://forms.gle/oFjqpNoUKPY5ubAcA';
 
 class HomePage extends StatefulWidget {
   final String title = 'AirQo';
@@ -288,13 +288,50 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void _launchURL() async => await canLaunch(_url)
-      ? await launch(_url)
-      : throw 'Could not launch feedback form, try opening $_url';
+  @override
+  void initState() {
+    _displayOnBoarding();
+    _getMeasurements();
+    // _getDevices();
 
-  void _launchURLFaqs() async => await canLaunch(_faqsUrl)
-      ? await launch(_faqsUrl)
-      : throw 'Could not launch feedback form, try opening $_faqsUrl';
+    super.initState();
+  }
+
+  void navigateToMenuItem(dynamic position) {
+    var menuItem = position.toString();
+
+    if (menuItem.trim().toLowerCase() == 'feedback') {
+      _launchURL();
+      // Navigator.push(context, MaterialPageRoute(builder: (context) {
+      //   return FeedbackPage();
+      // }));
+    } else if (menuItem.trim().toLowerCase() == 'share') {
+      shareApp();
+    } else if (menuItem.trim().toLowerCase() == 'faqs') {
+      _launchURLFaqs();
+      // Navigator.push(context, MaterialPageRoute(builder: (context) {
+      //   return FaqsPage();
+      // }));
+    } else if (menuItem.trim().toLowerCase() == 'myplaces') {
+      Navigator.push(context, MaterialPageRoute(builder: (context) {
+        return const MyPlaces();
+      })).then((value) {
+        setState(() {});
+      });
+    } else if (menuItem.trim().toLowerCase() == 'settings') {
+      Navigator.push(context, MaterialPageRoute(builder: (context) {
+        return SettingsPage();
+      })).then((value) {
+        setState(() {});
+      });
+    } else if (menuItem.trim().toLowerCase() == 'camera') {
+      takePhoto();
+    } else {
+      Navigator.push(context, MaterialPageRoute(builder: (context) {
+        return SettingsPage();
+      }));
+    }
+  }
 
   Future<bool> onWillPop() {
     var now = DateTime.now();
@@ -370,49 +407,30 @@ class _HomePageState extends State<HomePage> {
     // }
   }
 
-  void navigateToMenuItem(dynamic position) {
-    var menuItem = position.toString();
+  Future<void> takePhoto() async {
+    // Obtain a list of the available cameras on the device.
+    final cameras = await availableCameras();
 
-    if (menuItem.trim().toLowerCase() == 'feedback') {
-      _launchURL();
-      // Navigator.push(context, MaterialPageRoute(builder: (context) {
-      //   return FeedbackPage();
-      // }));
-    } else if (menuItem.trim().toLowerCase() == 'share') {
-      shareApp();
-    } else if (menuItem.trim().toLowerCase() == 'faqs') {
-      _launchURLFaqs();
-      // Navigator.push(context, MaterialPageRoute(builder: (context) {
-      //   return FaqsPage();
-      // }));
-    } else if (menuItem.trim().toLowerCase() == 'myplaces') {
-      Navigator.push(context, MaterialPageRoute(builder: (context) {
-        return const MyPlaces();
-      })).then((value) {
-        setState(() {});
-      });
-    } else if (menuItem.trim().toLowerCase() == 'settings') {
-      Navigator.push(context, MaterialPageRoute(builder: (context) {
-        return SettingsPage();
-      })).then((value) {
-        setState(() {});
-      });
-    } else if (menuItem.trim().toLowerCase() == 'camera') {
-      takePhoto();
-    } else {
-      Navigator.push(context, MaterialPageRoute(builder: (context) {
-        return SettingsPage();
-      }));
-    }
+    // Get a specific camera from the list of available cameras.
+    final firstCamera = cameras.first;
+
+    await Navigator.push(context, MaterialPageRoute(builder: (context) {
+      return TakePicture(
+        camera: firstCamera,
+      );
+    }));
   }
 
-  @override
-  void initState() {
-    _displayOnBoarding();
-    _getMeasurements();
-    // _getDevices();
+  Future<void> _displayOnBoarding() async {
+    var prefs = await SharedPreferences.getInstance();
+    var isFirstUse = prefs.getBool(firstUse) ?? true;
 
-    super.initState();
+    if (isFirstUse) {
+      await Navigator.pushReplacement(context,
+          MaterialPageRoute(builder: (context) {
+        return OnBoardingPage();
+      }));
+    }
   }
 
   void _getMeasurements() async {
@@ -436,29 +454,11 @@ class _HomePageState extends State<HomePage> {
   //   }
   // }
 
-  Future<void> _displayOnBoarding() async {
-    var prefs = await SharedPreferences.getInstance();
-    var isFirstUse = prefs.getBool(firstUse) ?? true;
+  void _launchURL() async => await canLaunch(_url)
+      ? await launch(_url)
+      : throw 'Could not launch feedback form, try opening $_url';
 
-    if (isFirstUse) {
-      await Navigator.pushReplacement(context,
-          MaterialPageRoute(builder: (context) {
-        return OnBoardingPage();
-      }));
-    }
-  }
-
-  Future<void> takePhoto() async {
-    // Obtain a list of the available cameras on the device.
-    final cameras = await availableCameras();
-
-    // Get a specific camera from the list of available cameras.
-    final firstCamera = cameras.first;
-
-    await Navigator.push(context, MaterialPageRoute(builder: (context) {
-      return TakePicture(
-        camera: firstCamera,
-      );
-    }));
-  }
+  void _launchURLFaqs() async => await canLaunch(_faqsUrl)
+      ? await launch(_faqsUrl)
+      : throw 'Could not launch feedback form, try opening $_faqsUrl';
 }

@@ -403,6 +403,14 @@ class MapPageState extends State<MapPage> {
   //   super.dispose();
   // }
 
+  Future<void> getFavouritePlaces() async {
+    var prefs = await SharedPreferences.getInstance();
+
+    setState(() {
+      favourites = prefs.getStringList(PrefConstants().favouritePlaces) ?? [];
+    });
+  }
+
   Widget infoWindow() {
     return Card(
         child: Padding(
@@ -528,14 +536,6 @@ class MapPageState extends State<MapPage> {
     isLoading = true;
     getFavouritePlaces();
     super.initState();
-  }
-
-  Future<void> getFavouritePlaces() async {
-    var prefs = await SharedPreferences.getInstance();
-
-    setState(() {
-      favourites = prefs.getStringList(PrefConstants().favouritePlaces) ?? [];
-    });
   }
 
   Future<void> loadTheme() async {

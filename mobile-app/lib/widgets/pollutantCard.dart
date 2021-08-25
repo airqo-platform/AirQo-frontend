@@ -3,11 +3,12 @@ import 'package:app/utils/help.dart';
 import 'package:flutter/material.dart';
 
 class PollutantsCard extends StatelessWidget {
-  PollutantsCard(this.name, this.value, this.type);
-
   final String name;
+
   final double value;
   final String type;
+
+  PollutantsCard(this.name, this.value, this.type);
 
   @override
   Widget build(BuildContext context) {

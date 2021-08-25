@@ -6,18 +6,6 @@ part of 'site.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-Sites _$SitesFromJson(Map<String, dynamic> json) {
-  return Sites(
-    sites: (json['sites'] as List<dynamic>)
-        .map((e) => Site.fromJson(e as Map<String, dynamic>))
-        .toList(),
-  );
-}
-
-Map<String, dynamic> _$SitesToJson(Sites instance) => <String, dynamic>{
-      'sites': instance.sites,
-    };
-
 Site _$SiteFromJson(Map<String, dynamic> json) {
   $checkKeys(json, requiredKeys: const [
     'lat_long',
@@ -38,6 +26,18 @@ Site _$SiteFromJson(Map<String, dynamic> json) {
     distance: (json['distance'] as num?)?.toDouble() ?? 0.0,
   );
 }
+
+Sites _$SitesFromJson(Map<String, dynamic> json) {
+  return Sites(
+    sites: (json['sites'] as List<dynamic>)
+        .map((e) => Site.fromJson(e as Map<String, dynamic>))
+        .toList(),
+  );
+}
+
+Map<String, dynamic> _$SitesToJson(Sites instance) => <String, dynamic>{
+      'sites': instance.sites,
+    };
 
 Map<String, dynamic> _$SiteToJson(Site instance) => <String, dynamic>{
       'lat_long': instance.id,

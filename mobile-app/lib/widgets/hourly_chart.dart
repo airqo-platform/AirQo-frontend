@@ -6,9 +6,9 @@ import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 
 class HourlyBarChart extends StatefulWidget {
-  HourlyBarChart(this.seriesList);
-
   final List<charts.Series<TimeSeriesData, DateTime>> seriesList;
+
+  HourlyBarChart(this.seriesList);
 
   @override
   _HourlyBarChartState createState() => _HourlyBarChartState();

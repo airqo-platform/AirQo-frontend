@@ -4,33 +4,6 @@ part 'predict.g.dart';
 
 @JsonSerializable()
 class Predict {
-  Predict({
-    required this.value,
-    required this.lower,
-    required this.time,
-    required this.upper,
-  });
-
-  factory Predict.fromJson(Map<String, dynamic> json) =>
-      _$PredictFromJson(json);
-
-  static List<Predict> parsePredictions(dynamic jsonBody) {
-    var predictions = <Predict>[];
-
-    for (var element in jsonBody) {
-      try {
-        var predict = Predict.fromJson(element);
-        predictions.add(predict);
-      } on Error catch (e) {
-        print('Parse predictions error: $e');
-      }
-    }
-
-    return predictions;
-  }
-
-  Map<String, dynamic> toJson() => _$PredictToJson(this);
-
   @JsonKey(required: true, name: 'prediction_time')
   String time;
 
@@ -46,26 +19,38 @@ class Predict {
   @JsonKey(required: false)
   String device = '';
 
-  static String forecastDb() => 'forecast_measurements';
+  Predict({
+    required this.value,
+    required this.lower,
+    required this.time,
+    required this.upper,
+  });
 
-  static String dbTime() => 'time';
+  factory Predict.fromJson(Map<String, dynamic> json) =>
+      _$PredictFromJson(json);
 
-  static String dbValue() => 'value';
+  Map<String, dynamic> toJson() => _$PredictToJson(this);
 
   static String dbDevice() => 'device';
 
   static String dbLower() => 'lower';
 
+  static String dbTime() => 'time';
+
   static String dbUpper() => 'upper';
 
-  static String forecastTableDropStmt() =>
-      'DROP TABLE IF EXISTS ${forecastDb()}';
+  static String dbValue() => 'value';
+
+  static String forecastDb() => 'forecast_measurements';
 
   static String forecastTableCreateStmt() =>
       'CREATE TABLE IF NOT EXISTS ${forecastDb()}('
       'id INTEGER PRIMARY KEY, ${dbDevice()} TEXT,'
       '${dbTime()} TEXT, ${dbUpper()} REAL, '
       '${dbValue()} REAL, ${dbLower()} REAL)';
+
+  static String forecastTableDropStmt() =>
+      'DROP TABLE IF EXISTS ${forecastDb()}';
 
   static Map<String, dynamic> mapFromDb(Map<String, dynamic> json) {
     return {
@@ -84,5 +69,20 @@ class Predict {
       '${dbLower()}': predict.lower,
       '${dbUpper()}': predict.upper
     };
+  }
+
+  static List<Predict> parsePredictions(dynamic jsonBody) {
+    var predictions = <Predict>[];
+
+    for (var element in jsonBody) {
+      try {
+        var predict = Predict.fromJson(element);
+        predictions.add(predict);
+      } on Error catch (e) {
+        print('Parse predictions error: $e');
+      }
+    }
+
+    return predictions;
   }
 }

@@ -79,6 +79,8 @@ class AirQoApp extends StatelessWidget {
   //   );
   // }
 
+  final ThemeController themeController;
+
   const AirQoApp({Key? key, required this.themeController}) : super(key: key);
 
   @override
@@ -150,8 +152,6 @@ class AirQoApp extends StatelessWidget {
     );
   }
 
-  final ThemeController themeController;
-
   ThemeData _buildCurrentTheme() {
     switch (themeController.currentTheme) {
       case 'dark':
@@ -170,12 +170,6 @@ class SplashScreen extends StatefulWidget {
 }
 
 class SplashScreenState extends State<SplashScreen> {
-  @override
-  void initState() {
-    super.initState();
-    checkFirstUse();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -213,5 +207,11 @@ class SplashScreenState extends State<SplashScreen> {
         return HomePageV2();
       }), (r) => false);
     }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    checkFirstUse();
   }
 }

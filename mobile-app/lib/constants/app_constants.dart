@@ -1,41 +1,83 @@
 import 'package:flutter/material.dart';
 
-const appName = 'AirQo';
-const appWebsite = 'https://www.airqo.net';
+const about = 'https://www.airqo.net/about';
+const appColor = Color(0xff3067e2);
 const appFeedbackEmail = 'info@airqo.net';
 const appIOSLink =
     'https://apps.apple.com/ug/app/airqo-monitoring-air-quality/id1337573091';
+const appName = 'AirQo';
 const appPlayStoreLink =
     'https://play.google.com/store/apps/details?id=com.airqo.app';
-const firstUse = 'firstUse';
 
 const appTheme = 'appTheme';
 
-const faqs = 'https://www.airqo.net/faqs';
-const about = 'https://www.airqo.net/about';
-const terms = 'https://docs.airqo.net/airqo-application-documentations/';
+const appWebsite = 'https://www.airqo.net';
 const contactUs = 'https://www.airqo.net/contact-us';
-const rate = 'https://www.airqo.net/faqs';
+const defaultRadius = 2;
 const facebook = 'https://web.facebook.com/AirQo/';
-const twitter = 'https://twitter.com/AirQoProject';
-const youtube = 'https://www.youtube.com/channel/UCx7YtV55TcqKGeKsDdT5_XQ/';
+const facebookColor = Color(0xff4267B2);
+const faqs = 'https://www.airqo.net/faqs';
+const firstUse = 'firstUse';
 const linkedin = 'https://www.linkedin.com/company/airqo/';
+const linkedInColor = Color(0xff2867B2);
 
 const persistentNotificationId = 1294732;
 const progressNotificationId = 482842;
-const smartNotificationId = 4877231;
 const pushNotificationId = 9239203;
+const rate = 'https://www.airqo.net/faqs';
 
-const appColor = Color(0xff3067e2);
-const defaultRadius = 2;
+const smartNotificationId = 4877231;
+const terms = 'https://docs.airqo.net/airqo-application-documentations/';
 
-const facebookColor = Color(0xff4267B2);
+const twitter = 'https://twitter.com/AirQoProject';
 const twitterColor = Color(0xff1DA1F2);
+const youtube = 'https://www.youtube.com/channel/UCx7YtV55TcqKGeKsDdT5_XQ/';
 const youtubeColor = Color(0xffFF0000);
-const linkedInColor = Color(0xff2867B2);
+
+class ColorConstants {
+  final Color _green = const Color(0xff3FFF33);
+  final Color _yellow = const Color(0xffFFF933);
+  final Color _orange = const Color(0xffFF9633);
+  final Color _red = const Color(0xffF62E2E);
+  final Color _purple = const Color(0xFF7B1FA2);
+  final Color _maroon = const Color(0xff570B0B);
+
+  final Color _appColor = const Color(0xff3067e2);
+
+  Color get appColor => _appColor;
+
+  Color get green => _green;
+
+  Color get maroon => _maroon;
+
+  Color get orange => _orange;
+
+  Color get purple => _purple;
+
+  Color get red => _red;
+
+  Color get yellow => _yellow;
+}
+
+class DbConstants {
+  final String _dbName = 'airqo_db.db';
+
+  String get dbName => _dbName;
+}
+
+class ErrorMessages {
+  final String _socketException = 'Connection timeout';
+  final String _timeoutException = 'Connection timeout';
+  final String _appException = 'App exception';
+
+  String get appException => _appException;
+
+  String get socketException => _socketException;
+
+  String get timeoutException => _timeoutException;
+}
 
 enum Languages { English, Luganda }
-enum Themes { lightTheme, darkTheme }
 
 class PollutantConstants {
   static final String _pm2_5 = 'pm2_5';
@@ -43,13 +85,13 @@ class PollutantConstants {
   static final String _s2_pm2_5 = 's2_pm2_5';
   static final String _s2_pm10 = 's2_pm10';
 
-  static String get pm2_5 => _pm2_5;
-
   static String get pm10 => _pm10;
 
-  static String get s2_pm2_5 => _s2_pm2_5;
+  static String get pm2_5 => _pm2_5;
 
   static String get s2_pm10 => _s2_pm10;
+
+  static String get s2_pm2_5 => _s2_pm2_5;
 }
 
 class PollutantDescription {
@@ -70,43 +112,13 @@ class PollutantDescription {
   static final String _s2_pm2_5 = 's2_pm2_5';
   static final String _s2_pm10 = 's2_pm10';
 
-  static String get pm2_5 => _pm2_5;
-
   static String get pm10 => _pm10;
-
-  static String get s2_pm2_5 => _s2_pm2_5;
-
-  static String get s2_pm10 => _s2_pm10;
-}
-
-class PollutantSource {
-  static final String _pm2_5 = 'These particles come in many sizes and shapes'
-      ' and can be made up of hundreds of different chemicals. '
-      '\n\nSome are emitted directly from a source, such as construction '
-      'sites, unpaved roads, fields, smokestacks or fires. '
-      '\n\nMost particles form in the atmosphere as a result of complex '
-      'reactions of chemicals such as sulfur dioxide and nitrogen oxides, '
-      'which are pollutants emitted from power plants, '
-      'industries and automobiles.';
-
-  static final String _pm10 = 'These particles come in many sizes and shapes'
-      ' and can be made up of hundreds of different chemicals. '
-      '\nSome are emitted directly from a source, such as construction '
-      'sites, unpaved roads, fields, smokestacks or fires. '
-      '\nMost particles form in the atmosphere as a result of complex '
-      'reactions of chemicals such as sulfur dioxide and nitrogen oxides, '
-      'which are pollutants emitted from power plants, '
-      'industries and automobiles.';
-  static final String _s2_pm2_5 = 's2_pm2_5';
-  static final String _s2_pm10 = 's2_pm10';
 
   static String get pm2_5 => _pm2_5;
 
-  static String get pm10 => _pm10;
+  static String get s2_pm10 => _s2_pm10;
 
   static String get s2_pm2_5 => _s2_pm2_5;
-
-  static String get s2_pm10 => _s2_pm10;
 }
 
 class PollutantEffects {
@@ -134,13 +146,13 @@ class PollutantEffects {
   static final String _s2_pm2_5 = 's2_pm2_5';
   static final String _s2_pm10 = 's2_pm10';
 
-  static String get pm2_5 => _pm2_5;
-
   static String get pm10 => _pm10;
 
-  static String get s2_pm2_5 => _s2_pm2_5;
+  static String get pm2_5 => _pm2_5;
 
   static String get s2_pm10 => _s2_pm10;
+
+  static String get s2_pm2_5 => _s2_pm2_5;
 }
 
 class PollutantReduction {
@@ -169,13 +181,43 @@ class PollutantReduction {
   static final String _s2_pm2_5 = 's2_pm2_5';
   static final String _s2_pm10 = 's2_pm10';
 
+  static String get pm10 => _pm10;
+
   static String get pm2_5 => _pm2_5;
+
+  static String get s2_pm10 => _s2_pm10;
+
+  static String get s2_pm2_5 => _s2_pm2_5;
+}
+
+class PollutantSource {
+  static final String _pm2_5 = 'These particles come in many sizes and shapes'
+      ' and can be made up of hundreds of different chemicals. '
+      '\n\nSome are emitted directly from a source, such as construction '
+      'sites, unpaved roads, fields, smokestacks or fires. '
+      '\n\nMost particles form in the atmosphere as a result of complex '
+      'reactions of chemicals such as sulfur dioxide and nitrogen oxides, '
+      'which are pollutants emitted from power plants, '
+      'industries and automobiles.';
+
+  static final String _pm10 = 'These particles come in many sizes and shapes'
+      ' and can be made up of hundreds of different chemicals. '
+      '\nSome are emitted directly from a source, such as construction '
+      'sites, unpaved roads, fields, smokestacks or fires. '
+      '\nMost particles form in the atmosphere as a result of complex '
+      'reactions of chemicals such as sulfur dioxide and nitrogen oxides, '
+      'which are pollutants emitted from power plants, '
+      'industries and automobiles.';
+  static final String _s2_pm2_5 = 's2_pm2_5';
+  static final String _s2_pm10 = 's2_pm10';
 
   static String get pm10 => _pm10;
 
-  static String get s2_pm2_5 => _s2_pm2_5;
+  static String get pm2_5 => _pm2_5;
 
   static String get s2_pm10 => _s2_pm10;
+
+  static String get s2_pm2_5 => _s2_pm2_5;
 }
 
 class PrefConstants {
@@ -187,45 +229,4 @@ class PrefConstants {
   String get firstUse => _firstUse;
 }
 
-class ColorConstants {
-  final Color _green = const Color(0xff3FFF33);
-  final Color _yellow = const Color(0xffFFF933);
-  final Color _orange = const Color(0xffFF9633);
-  final Color _red = const Color(0xffF62E2E);
-  final Color _purple = const Color(0xFF7B1FA2);
-  final Color _maroon = const Color(0xff570B0B);
-
-  final Color _appColor = const Color(0xff3067e2);
-
-  Color get green => _green;
-
-  Color get maroon => _maroon;
-
-  Color get purple => _purple;
-
-  Color get red => _red;
-
-  Color get orange => _orange;
-
-  Color get yellow => _yellow;
-
-  Color get appColor => _appColor;
-}
-
-class DbConstants {
-  final String _dbName = 'airqo_db.db';
-
-  String get dbName => _dbName;
-}
-
-class ErrorMessages {
-  final String _socketException = 'Connection timeout';
-  final String _timeoutException = 'Connection timeout';
-  final String _appException = 'App exception';
-
-  String get socketException => _socketException;
-
-  String get timeoutException => _timeoutException;
-
-  String get appException => _appException;
-}
+enum Themes { lightTheme, darkTheme }

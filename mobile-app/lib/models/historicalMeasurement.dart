@@ -6,21 +6,6 @@ part 'historicalMeasurement.g.dart';
 
 @JsonSerializable()
 class HistoricalMeasurement {
-  HistoricalMeasurement(
-      {required this.time,
-      required this.pm2_5,
-      required this.pm10,
-      required this.altitude,
-      required this.speed,
-      required this.temperature,
-      required this.humidity,
-      required this.device});
-
-  factory HistoricalMeasurement.fromJson(Map<String, dynamic> json) =>
-      _$HistoricalMeasurementFromJson(json);
-
-  Map<String, dynamic> toJson() => _$HistoricalMeasurementToJson(this);
-
   @JsonKey(required: true)
   final String time;
 
@@ -45,13 +30,26 @@ class HistoricalMeasurement {
   @JsonKey(required: true, name: 'device')
   final String device;
 
+  HistoricalMeasurement(
+      {required this.time,
+      required this.pm2_5,
+      required this.pm10,
+      required this.altitude,
+      required this.speed,
+      required this.temperature,
+      required this.humidity,
+      required this.device});
+
+  factory HistoricalMeasurement.fromJson(Map<String, dynamic> json) =>
+      _$HistoricalMeasurementFromJson(json);
+
+  Map<String, dynamic> toJson() => _$HistoricalMeasurementToJson(this);
+
   static String dbAltitude() => 'altitude';
 
   static String dbDevice() => 'device';
 
   static String dbHumidity() => 'humidity';
-
-  static String historicalMeasurementsDb() => 'historical_measurements';
 
   static String dbPm10() => 'pm10';
 
@@ -63,8 +61,7 @@ class HistoricalMeasurement {
 
   static String dbTime() => 'time';
 
-  static String historicalMeasurementsTableDropStmt() =>
-      'DROP TABLE IF EXISTS ${historicalMeasurementsDb()}';
+  static String historicalMeasurementsDb() => 'historical_measurements';
 
   static String historicalMeasurementsTableCreateStmt() =>
       'CREATE TABLE IF NOT EXISTS ${historicalMeasurementsDb()}('
@@ -73,6 +70,9 @@ class HistoricalMeasurement {
       '${dbPm10()} REAL, ${dbAltitude()} REAL, '
       '${dbSpeed()} REAL, ${dbTemperature()} REAL, '
       '${dbHumidity()} REAL)';
+
+  static String historicalMeasurementsTableDropStmt() =>
+      'DROP TABLE IF EXISTS ${historicalMeasurementsDb()}';
 
   static Map<String, dynamic> mapFromDb(Map<String, dynamic> json) {
     return {
@@ -100,26 +100,26 @@ class HistoricalMeasurement {
     };
   }
 
-  static List<HistoricalMeasurement> parseMeasurements(dynamic jsonBody) {
-    return HistoricalMeasurements.fromJson(jsonBody).measurements;
-  }
-
   static HistoricalMeasurement parseMeasurement(dynamic jsonBody) {
     var measurements = HistoricalMeasurements.fromJson(jsonBody).measurements;
     return measurements.first;
+  }
+
+  static List<HistoricalMeasurement> parseMeasurements(dynamic jsonBody) {
+    return HistoricalMeasurements.fromJson(jsonBody).measurements;
   }
 }
 
 @JsonSerializable()
 class HistoricalMeasurements {
+  final List<HistoricalMeasurement> measurements;
+
   HistoricalMeasurements({
     required this.measurements,
   });
 
   factory HistoricalMeasurements.fromJson(Map<String, dynamic> json) =>
       _$HistoricalMeasurementsFromJson(json);
-
-  final List<HistoricalMeasurement> measurements;
 
   Map<String, dynamic> toJson() => _$HistoricalMeasurementsToJson(this);
 }
