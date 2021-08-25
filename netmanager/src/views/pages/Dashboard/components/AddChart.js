@@ -8,6 +8,7 @@ import { useAuthUser } from "redux/Join/selectors";
 import { createUserChartDefaultsApi } from "views/apis/authService";
 import { roundToStartOfDay, roundToEndOfDay } from "utils/dateTime";
 import { updateMainAlert } from "redux/MainAlert/operations";
+import { isEmpty } from "underscore";
 
 const generateStartAndEndDates = () => {
   let endDate = new Date();
@@ -44,11 +45,17 @@ const AddChart = ({ className }) => {
     pollutant: "",
     chartSubTitle: "",
     chartTitle: "default chart title",
-    period: {},
+    period: {
+      value: "Last 30 days",
+      label: "Last 30 days",
+      unitValue: 30,
+      unit: "day",
+    },
     user: user._id,
     airqloud: user._id,
   };
   const [defaultsData, setDefaultsData] = useState(initialDefaultsData);
+  const [errors, setErrors] = useState({});
 
   const pollutantOptions = [
     { value: "pm2_5", label: "PM 2.5" },
@@ -70,9 +77,17 @@ const AddChart = ({ className }) => {
 
   const handleTextFieldChange = (key) => (event) => {
     setDefaultsData({ ...defaultsData, [key]: event.target.value });
+    setErrors({
+      ...errors,
+      [key]: event.target.value ? "" : "This field is required",
+    });
   };
   const handleSelectChange = (key) => (selectedValue) => {
     setDefaultsData({ ...defaultsData, [key]: selectedValue });
+    setErrors({
+      ...errors,
+      [key]: selectedValue ? "" : "This field is required",
+    });
   };
 
   const clearDefaultsData = () => {
@@ -85,7 +100,13 @@ const AddChart = ({ className }) => {
     clearDefaultsData();
   };
 
-  const validateInput = () => {};
+  const validateInputData = (data) => {
+    const errors = {};
+    Object.keys(data).map((key) => {
+      if (isEmpty(data[key])) errors[key] = "This field is required";
+    });
+    return errors;
+  };
 
   const handleSubmit = async () => {
     const data = {
@@ -95,6 +116,12 @@ const AddChart = ({ className }) => {
       pollutant: defaultsData.pollutant.value,
       sites: optionToList(defaultsData.sites),
     };
+    const newErrors = validateInputData(data);
+    if (!isEmpty(newErrors)) {
+      console.log("new errors", newErrors);
+      setErrors(newErrors);
+      return;
+    }
     setLoading(true);
     await createUserChartDefaultsApi(data)
       .then((responseData) => {
@@ -156,8 +183,8 @@ const AddChart = ({ className }) => {
                   label="Location(s) Name"
                   variant="outlined"
                   value={defaultsData.chartSubTitle}
-                  // error={!!errors.generation_count}
-                  // helperText={errors.generation_count}
+                  error={!!errors.chartSubTitle}
+                  helperText={errors.chartSubTitle}
                   onChange={handleTextFieldChange("chartSubTitle")}
                   fullWidth
                   required
@@ -166,11 +193,12 @@ const AddChart = ({ className }) => {
               <Grid item md={12} xs={12}>
                 <OutlinedSelect
                   fullWidth
-                  className="reactSelect"
                   label="Location(s)"
                   value={defaultsData.sites}
                   options={siteOptions}
                   onChange={handleSelectChange("sites")}
+                  error={!!errors.sites}
+                  helperText={errors.sites}
                   isMulti
                   variant="outlined"
                   margin="dense"
@@ -184,12 +212,13 @@ const AddChart = ({ className }) => {
                 <OutlinedSelect
                   fullWidth
                   label="Chart Type"
-                  className="reactSelect"
                   name="chartType"
                   placeholder="Chart Type"
                   value={defaultsData.chartType}
                   options={chartTypeOptions}
                   onChange={handleSelectChange("chartType")}
+                  error={!!errors.chartType}
+                  helperText={errors.chartType}
                   variant="outlined"
                   margin="dense"
                   required
@@ -200,12 +229,13 @@ const AddChart = ({ className }) => {
                 <OutlinedSelect
                   fullWidth
                   label="Frequency"
-                  className=""
                   name="chartFrequency"
                   placeholder="Frequency"
                   value={defaultsData.frequency}
                   options={frequencyOptions}
                   onChange={handleSelectChange("frequency")}
+                  error={!!errors.frequency}
+                  helperText={errors.frequency}
                   variant="outlined"
                   margin="dense"
                   required
@@ -215,12 +245,13 @@ const AddChart = ({ className }) => {
                 <OutlinedSelect
                   fullWidth
                   label="Pollutant"
-                  className=""
                   name="pollutant"
                   placeholder="Pollutant"
                   value={defaultsData.pollutant}
                   options={pollutantOptions}
                   onChange={handleSelectChange("pollutant")}
+                  error={!!errors.pollutant}
+                  helperText={errors.pollutant}
                   variant="outlined"
                   margin="dense"
                   required
