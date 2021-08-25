@@ -195,6 +195,37 @@ class DBHelper {
     }
   }
 
+  Future<void> insertDeviceHistoricalMeasurements(
+      List<HistoricalMeasurement> measurements, String device) async {
+
+    try {
+      final db = await database;
+
+      if (measurements.isNotEmpty) {
+        await db.delete(
+            HistoricalMeasurement.historicalMeasurementsDb(),
+            where: '${HistoricalMeasurement.dbDevice()} = ?',
+            whereArgs: [device]);
+
+        for (var measurement in measurements) {
+          try {
+            var jsonData = HistoricalMeasurement.mapToDb(measurement);
+            await db.insert(
+              '${HistoricalMeasurement.historicalMeasurementsDb()}',
+              jsonData,
+              conflictAlgorithm: ConflictAlgorithm.replace,
+            );
+          } catch (e) {
+            print('Inserting device historical measurements into db');
+            print(e);
+          }
+        }
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
+
   Future<bool> updateFavouritePlaces(Device device) async {
     var prefs = await SharedPreferences.getInstance();
     var favouritePlaces =

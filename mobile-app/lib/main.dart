@@ -200,8 +200,8 @@ class SplashScreenState extends State<SplashScreen> {
     }
 
     var prefs = await SharedPreferences.getInstance();
-    var isFirstUse = prefs.getBool(firstUse) ?? true;
-    // var isFirstUse =  true;
+    // var isFirstUse = prefs.getBool(firstUse) ?? true;
+    var isFirstUse =  true;
 
     if (isFirstUse) {
       await Navigator.pushReplacement(context,

@@ -17,13 +17,13 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
 
   List<OnBoardingInfo> data = [
     OnBoardingInfo(
-        description: 'Select locations important to you using MyPlaces',
-        title: 'MyPlaces',
-        localImageSrc: 'assets/svg/historical.png'),
-    OnBoardingInfo(
         description: 'View various locations on a map',
         title: 'Map',
         localImageSrc: 'assets/svg/map.png'),
+    OnBoardingInfo(
+        description: 'Select locations important to you using MyPlaces',
+        title: 'MyPlaces',
+        localImageSrc: 'assets/images/target.png'),
     OnBoardingInfo(
         description: 'See air quality for the last 48 hours and '
             'forecast for your next 24 hours',

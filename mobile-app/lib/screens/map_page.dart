@@ -13,6 +13,7 @@ import 'package:app/themes/dark_theme.dart';
 import 'package:app/themes/light_theme.dart';
 import 'package:app/utils/date.dart';
 import 'package:app/utils/dialogs.dart';
+import 'package:app/utils/distance.dart';
 import 'package:app/utils/help.dart';
 import 'package:app/utils/pm.dart';
 import 'package:app/utils/share.dart';
@@ -679,7 +680,7 @@ class MapPageState extends State<MapPage> {
       ..add(Circle(
           circleId: CircleId(circleIdVal),
           center: point,
-          radius: 1000,
+          radius: kmIntToMetersDouble(defaultRadius),
           fillColor: ColorConstants().appColor.withOpacity(0.5),
           strokeWidth: 2,
           strokeColor: ColorConstants().appColor));

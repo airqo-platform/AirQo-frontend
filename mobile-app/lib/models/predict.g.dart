@@ -18,7 +18,7 @@ Predict _$PredictFromJson(Map<String, dynamic> json) {
     lower: (json['lower_ci'] as num).toDouble(),
     time: json['prediction_time'] as String,
     upper: (json['upper_ci'] as num).toDouble(),
-  );
+  )..device = json['device'] as String;
 }
 
 Map<String, dynamic> _$PredictToJson(Predict instance) => <String, dynamic>{
@@ -26,4 +26,5 @@ Map<String, dynamic> _$PredictToJson(Predict instance) => <String, dynamic>{
       'prediction_value': instance.value,
       'lower_ci': instance.lower,
       'upper_ci': instance.upper,
+      'device': instance.device,
     };

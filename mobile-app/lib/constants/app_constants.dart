@@ -28,6 +28,7 @@ const smartNotificationId = 4877231;
 const pushNotificationId = 9239203;
 
 const appColor = Color(0xff3067e2);
+const defaultRadius = 2;
 
 const facebookColor = Color(0xff4267B2);
 const twitterColor = Color(0xff1DA1F2);

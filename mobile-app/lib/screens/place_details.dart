@@ -136,7 +136,9 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                   {
                     setState(() {
                       historicalData = value;
-                    })
+                    }),
+                    DBHelper().
+                    insertDeviceHistoricalMeasurements(value, device.name)
                   }
                 else
                   {

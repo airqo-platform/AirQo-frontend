@@ -16,6 +16,7 @@ import 'package:app/models/suggestion.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
@@ -104,48 +105,6 @@ class AirqoApiClient {
     }
 
     return <Device>[];
-
-
-    // try {
-    //   final response = await http.get(Uri.parse(getDevices));
-    //
-    //   print(response.statusCode);
-    //   if (response.statusCode == 200) {
-    //     print(response.body);
-    //
-    //     var devices = <Device>[];
-    //
-    //     var j = json.decode(response.body)['devices'];
-    //     for (var t in j) {
-    //       try {
-    //         var device = Device.fromJson(t);
-    //         devices.add(device);
-    //       } on Error catch (e) {
-    //         print('Get Devices error: $e');
-    //       }
-    //     }
-    //
-    //     return devices;
-    //   } else {
-    //     print('Unexpected status code ${response.statusCode}:'
-    //         ' ${response.reasonPhrase}');
-    //     throw HttpException(
-    //         'Unexpected status code ${response.statusCode}:'
-    //         ' ${response.reasonPhrase}',
-    //         uri: Uri.parse(getDevices));
-    //   }
-    // } on SocketException {
-    //   await showSnackBar(context, ErrorMessages().socketException);
-    // } on TimeoutException {
-    //   await showSnackBar(context, ErrorMessages().timeoutException);
-    // } on Error catch (e) {
-    //   print('Get Devices error: $e');
-    //   var message =
-    //       'Recent locations are not available, please try again later';
-    //   await showSnackBar(context, message);
-    // }
-    //
-    // return <Device>[];
   }
 
   Future<List<Predict>> fetchForecast(
@@ -276,12 +235,50 @@ class AirqoApiClient {
     return <Measurement>[];
   }
 
+  Future<List<Measurement>> fetchLatestDevicesMeasurements
+      (List<String> devices) async {
+
+    try {
+
+      if(devices.isEmpty){
+        return <Measurement>[];
+      }
+
+      var devicesStr = '';
+      for(var device in devices){
+        devicesStr = '$devicesStr,$device,';
+      }
+
+      devicesStr = devicesStr.substring(1, devicesStr.length-1);
+
+      var queryParams = <String, dynamic>{}
+        ..putIfAbsent('device', () => devicesStr)
+        ..putIfAbsent('recent', () => 'yes')
+        ..putIfAbsent('frequency', () => 'hourly')
+        ..putIfAbsent('tenant', () => 'airqo');
+
+      final responseBody =
+      await _performGetRequest(queryParams, AirQoUrls().measurements);
+
+      if (responseBody != null) {
+        return compute(Measurement.parseMeasurements, responseBody);
+      } else {
+        print('Latest devices Measurements are null');
+        return <Measurement>[];
+      }
+    } on Error catch (e) {
+      print('Get Latest measurements for specific devices error: $e');
+    }
+
+    return <Measurement>[];
+  }
+
   Future<List<Device>> getDevicesByCoordinates(
       double latitude, double longitude) async {
     try {
 
       var queryParams = <String, dynamic>{}
-        ..putIfAbsent('radius', () => '1')
+        ..putIfAbsent('radius', () => '$defaultRadius')
         ..putIfAbsent('tenant', () => 'airqo')
         ..putIfAbsent('longitude', () => longitude)
         ..putIfAbsent('latitude', () => latitude);
@@ -471,8 +468,6 @@ class GoogleSearchProvider {
   GoogleSearchProvider(this.sessionToken);
 
   Future<List<Suggestion>> fetchSuggestions(String input) async {
-    print('Session Token ==> $sessionToken');
-
     final request =
         'https://maps.googleapis.com/maps/api/place/autocomplete/json?'
         'input=$input&'

@@ -28,6 +28,7 @@ Device _$DeviceFromJson(Map<String, dynamic> json) {
     locationName: json['locationName'] as String? ?? '',
     siteName: json['siteName'] as String? ?? '',
     name: json['name'] as String? ?? '',
+    isActive: json['isActive'] as bool? ?? true,
   );
 }
 
@@ -40,4 +41,5 @@ Map<String, dynamic> _$DeviceToJson(Device instance) => <String, dynamic>{
       'locationName': instance.locationName,
       'latitude': instance.latitude,
       'longitude': instance.longitude,
+      'isActive': instance.isActive,
     };

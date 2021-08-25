@@ -97,6 +97,7 @@ flutter:
     - assets/images/hazardous.png
     - assets/images/sensitive.png
     - assets/images/pmDefault.png
+    - assets/images/target.png
     - assets/svg/historical.png
     - assets/svg/map.png
     - assets/icon/airqo_logo.jpg

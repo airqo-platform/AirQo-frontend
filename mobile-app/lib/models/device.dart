@@ -18,16 +18,16 @@ class Devices {
 
 @JsonSerializable()
 class Device {
-  Device({
-    required this.distance,
-    required this.nickName,
-    required this.description,
-    required this.latitude,
-    required this.longitude,
-    required this.locationName,
-    required this.siteName,
-    required this.name,
-  });
+  Device(
+      {required this.distance,
+      required this.nickName,
+      required this.description,
+      required this.latitude,
+      required this.longitude,
+      required this.locationName,
+      required this.siteName,
+      required this.name,
+      required this.isActive});
 
   static String dbDeviceName() => 'name';
 
@@ -67,7 +67,6 @@ class Device {
   }
 
   static List<Device> parseDevicesV2(dynamic jsonBody) {
-
     var devices = <Device>[];
 
     for (var t in jsonBody) {
@@ -98,6 +97,8 @@ class Device {
   final double latitude;
   @JsonKey(defaultValue: 0.0)
   final double longitude;
+  @JsonKey(defaultValue: true, required: false)
+  final bool isActive;
 
   static Map<String, dynamic> toDbMap(Device device) => {
         '${dbNickName()}':
