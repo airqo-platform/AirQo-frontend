@@ -351,13 +351,6 @@ const CustomisableChart = (props) => {
     annotationMapper[selectedPollutant.value]
   );
 
-  const [tempState, setTempState] = useState({
-    sites: values,
-    chartType: selectedChart,
-    frequency: selectedFrequency,
-    pollutant: selectedPollutant,
-  });
-
   const title = `Mean ${selectedFrequency.label} ${
     selectedPollutant.label
   } from ${formatDate(startDate, "YYYY-MM-DD")} to ${formatDateString(
@@ -365,7 +358,18 @@ const CustomisableChart = (props) => {
     "YYYY-MM-DD"
   )}`;
 
+  const [subTitle, setSubTitle] = useState(defaultFilter.chartSubTitle);
+
+  const [tempState, setTempState] = useState({
+    subTitle: subTitle,
+    sites: values,
+    chartType: selectedChart,
+    frequency: selectedFrequency,
+    pollutant: selectedPollutant,
+  });
+
   const transferFromTempState = () => {
+    setSubTitle(tempState.subTitle);
     setReactSelectValue(tempState.sites);
     setSelectedChartType(tempState.chartType);
     setSelectedFrequency(tempState.frequency);
@@ -374,6 +378,7 @@ const CustomisableChart = (props) => {
 
   const clearTempState = () => {
     setTempState({
+      subTitle: subTitle,
       sites: values,
       chartType: selectedChart,
       frequency: selectedFrequency,
@@ -446,6 +451,7 @@ const CustomisableChart = (props) => {
       frequency: tempState.frequency.value,
       pollutant: tempState.pollutant.value,
       chartTitle: title,
+      chartSubTitle: tempState.subTitle,
     };
 
     transferFromTempState();
@@ -757,7 +763,11 @@ const CustomisableChart = (props) => {
         title={title}
         subheader={
           <Typography noWrap>
-            for {sitesToString(values.selectedOption)}
+            for{" "}
+            <span style={{ textTransform: "capitalize", fontWeight: "bold" }}>
+              {tempState.subTitle}
+            </span>{" "}
+            {!tempState.subTitle && sitesToString(values.selectedOption)}
           </Typography>
         }
         style={{ textAlign: "center" }}
@@ -793,18 +803,21 @@ const CustomisableChart = (props) => {
                 <form onSubmit={handleSubmit} id="customisable-form">
                   <Grid container spacing={2}>
                     <Grid item md={12} xs={12}>
-                      {/*<TextField*/}
-                      {/*  autoFocus*/}
-                      {/*  margin="dense"*/}
-                      {/*  label="Location(s) Name"*/}
-                      {/*  variant="outlined"*/}
-                      {/*  // value={newDevice.generation_count}*/}
-                      {/*  // error={!!errors.generation_count}*/}
-                      {/*  // helperText={errors.generation_count}*/}
-                      {/*  // onChange={handleDeviceDataChange("generation_count")}*/}
-                      {/*  fullWidth*/}
-                      {/*  required*/}
-                      {/*/>*/}
+                      <TextField
+                        autoFocus
+                        margin="dense"
+                        label="Location(s) Name"
+                        variant="outlined"
+                        value={tempState.subTitle}
+                        onChange={(evt) =>
+                          setTempState({
+                            ...tempState,
+                            subTitle: evt.target.value,
+                          })
+                        }
+                        fullWidth
+                        required
+                      />
                     </Grid>
                     <Grid item md={12} xs={12}>
                       <OutlinedSelect
