@@ -130,9 +130,27 @@ const CandidatesTable = (props) => {
       })
   }
 
-  const denyCandidate = () => {
+  const deleteCandidate = () => {
       setOpenDel(false);
       return deleteCandidateApi(currentCandidate._id).then(res => {
+          props.fetchCandidates()
+          dispatch(updateMainAlert({
+              show: true,
+              message: res.message,
+              severity: "success",
+          }))
+      }).catch(err => {
+          dispatch(updateMainAlert({
+              show: true,
+              message: err.response.data.message,
+              severity: "error",
+          }))
+      })
+  }
+
+  const modifyCandidate = (id, data) => {
+      setOpenDel(false);
+      return updateCandidateApi(id, data).then(res => {
           props.fetchCandidates()
           dispatch(updateMainAlert({
               show: true,
@@ -216,8 +234,24 @@ const CandidatesTable = (props) => {
               {
                 title: "Action",
                   render: (candidate) => <div>
-                      <Button color="primary" onClick={onConfirmBtnClick(candidate)}>Confirm</Button>
-                      <Button style={{color: "red"}} onClick={onDenyBtnClick(candidate)}>Delete</Button>
+                      <Button
+                          disabled={candidate.status === 'rejected'}
+                          color="primary"
+                          onClick={onConfirmBtnClick(candidate)}
+                      >
+                          Confirm
+                      </Button>
+                      {
+                          candidate.status === 'rejected' ?
+                              <Button
+                                  style={{color: "#008CBA"}}
+                                  onClick={() => modifyCandidate(candidate._id, { status: 'pending' })}
+                              >
+                                  Revert
+                              </Button>
+                              :
+                              <Button style={{color: "red"}} onClick={onDenyBtnClick(candidate)}>Reject</Button>
+                      }
                 </div>,
               },
             ]}
@@ -240,10 +274,10 @@ const CandidatesTable = (props) => {
       <ConfirmDialog
           open={openDel}
           close={() => setOpenDel(false)}
-          confirmBtnMsg={"Delete"}
-          confirm={denyCandidate}
-          title={"Delete candidate"}
-          message={"Are you sure you want to delete this candidate? This process can not be reversed"}
+          confirmBtnMsg={"Reject"}
+          confirm={() => modifyCandidate(currentCandidate._id, {status: 'rejected'})}
+          title={"Reject candidate"}
+          message={"Are you sure you want to deny access to this candidate? This process can be reverted"}
           error
       />
       <Dialog
