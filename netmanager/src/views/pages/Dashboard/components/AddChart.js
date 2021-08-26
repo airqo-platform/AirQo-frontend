@@ -180,7 +180,7 @@ const AddChart = ({ className }) => {
                 <TextField
                   autoFocus
                   margin="dense"
-                  label="Location(s) Name"
+                  label="Location Name"
                   variant="outlined"
                   value={defaultsData.chartSubTitle}
                   error={!!errors.chartSubTitle}
@@ -193,7 +193,7 @@ const AddChart = ({ className }) => {
               <Grid item md={12} xs={12}>
                 <OutlinedSelect
                   fullWidth
-                  label="Location(s)"
+                  label="Sites"
                   value={defaultsData.sites}
                   options={siteOptions}
                   onChange={handleSelectChange("sites")}

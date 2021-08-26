@@ -808,7 +808,7 @@ const CustomisableChart = (props) => {
                       <TextField
                         autoFocus
                         margin="dense"
-                        label="Location(s) Name"
+                        label="Location Name"
                         variant="outlined"
                         value={tempState.subTitle}
                         onChange={(evt) =>
@@ -824,7 +824,7 @@ const CustomisableChart = (props) => {
                       <OutlinedSelect
                         fullWidth
                         className="reactSelect"
-                        label="Location(s)"
+                        label="Sites"
                         value={tempState.sites.selectedOption}
                         options={sitesOptions}
                         onChange={handleMultiChange}
