@@ -455,9 +455,7 @@ const CustomisableChart = (props) => {
     };
 
     transferFromTempState();
-    updateUserChartDefaultsApi(newFilter._id, newFilter).then(() =>
-      dispatch(loadUserDefaultGraphData())
-    );
+    updateUserChartDefaultsApi(newFilter._id, newFilter);
     await fetchAndSetGraphData(newFilter);
   };
 

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { makeStyles } from "@material-ui/styles";
 import {
@@ -18,7 +18,6 @@ import {
   PollutantCategory,
   ExceedancesChart,
 } from "./components";
-import { useEffect, useState } from "react";
 import "chartjs-plugin-annotation";
 import palette from "theme/palette";
 import { MoreHoriz } from "@material-ui/icons";
@@ -364,6 +363,11 @@ const Dashboard = (props) => {
   };
 
   const open = Boolean(anchorEl);
+
+  // componentWillUnmount
+  useEffect(() => {
+    return () => dispatch(loadUserDefaultGraphData());
+  }, []);
 
   return (
     <div className={classes.root}>
