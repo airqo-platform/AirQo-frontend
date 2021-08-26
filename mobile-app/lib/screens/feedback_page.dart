@@ -127,14 +127,6 @@ class _FeedbackPageState extends State<FeedbackPage> {
   final emailController = TextEditingController();
   bool sendingFeedback = false;
 
-  Widget airqoLogo() {
-    return Image.asset(
-      'assets/icon/airqo_logo.png',
-      height: 50,
-      width: 50,
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final height = MediaQuery.of(context).size.height;

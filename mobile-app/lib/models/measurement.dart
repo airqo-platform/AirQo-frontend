@@ -7,13 +7,26 @@ part 'measurement.g.dart';
 
 @JsonSerializable()
 class Measurement {
+  Measurement(
+      {required this.time,
+      required this.pm2_5,
+      required this.pm10,
+      required this.altitude,
+      required this.speed,
+      required this.temperature,
+      required this.humidity,
+      required this.device});
+
+  factory Measurement.fromJson(Map<String, dynamic> json) =>
+      _$MeasurementFromJson(json);
+
   @JsonKey(required: true)
   final String time;
 
-  @JsonKey(required: true)
+  @JsonKey(required: true, name: 'average_pm2_5')
   final MeasurementValue pm2_5;
 
-  @JsonKey(required: false)
+  @JsonKey(required: true, name: 'average_pm10')
   final MeasurementValue pm10;
 
   @JsonKey(required: false)
@@ -30,19 +43,6 @@ class Measurement {
 
   @JsonKey(required: true, name: 'deviceDetails')
   final Device device;
-
-  Measurement(
-      {required this.time,
-      required this.pm2_5,
-      required this.pm10,
-      required this.altitude,
-      required this.speed,
-      required this.temperature,
-      required this.humidity,
-      required this.device});
-
-  factory Measurement.fromJson(Map<String, dynamic> json) =>
-      _$MeasurementFromJson(json);
 
   Map<String, dynamic> toJson() => _$MeasurementToJson(this);
 
@@ -107,8 +107,8 @@ class Measurement {
     return {
       'deviceDetails': deviceDetails,
       'time': json['${dbTime()}'] as String,
-      'pm2_5': {'calibratedValue': json['${dbPm25()}'] as double},
-      'pm10': {'value': json['${dbPm10()}'] as double},
+      'average_pm2_5': {'calibratedValue': json['${dbPm25()}'] as double},
+      'average_pm10': {'value': json['${dbPm10()}'] as double},
       'externalTemperature': {'value': json['${dbTemperature()}'] as double},
       'externalHumidity': {'value': json['${dbHumidity()}'] as double},
       'speed': {'value': json['${dbSpeed()}'] as double},
@@ -166,14 +166,14 @@ class Measurement {
 
 @JsonSerializable()
 class Measurements {
-  final List<Measurement> measurements;
-
   Measurements({
     required this.measurements,
   });
 
   factory Measurements.fromJson(Map<String, dynamic> json) =>
       _$MeasurementsFromJson(json);
+
+  final List<Measurement> measurements;
 
   Map<String, dynamic> toJson() => _$MeasurementsToJson(this);
 }

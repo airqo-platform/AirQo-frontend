@@ -6,13 +6,27 @@ part 'historicalMeasurement.g.dart';
 
 @JsonSerializable()
 class HistoricalMeasurement {
+
+  HistoricalMeasurement(
+      {required this.time,
+        required this.pm2_5,
+        required this.pm10,
+        required this.altitude,
+        required this.speed,
+        required this.temperature,
+        required this.humidity,
+        required this.device});
+
+  factory HistoricalMeasurement.fromJson(Map<String, dynamic> json) =>
+      _$HistoricalMeasurementFromJson(json);
+
   @JsonKey(required: true)
   final String time;
 
-  @JsonKey(required: true)
+  @JsonKey(required: true, name: 'average_pm2_5')
   final MeasurementValue pm2_5;
 
-  @JsonKey(required: false)
+  @JsonKey(required: true, name: 'average_pm10')
   final MeasurementValue pm10;
 
   @JsonKey(required: false)
@@ -29,19 +43,6 @@ class HistoricalMeasurement {
 
   @JsonKey(required: true, name: 'device')
   final String device;
-
-  HistoricalMeasurement(
-      {required this.time,
-      required this.pm2_5,
-      required this.pm10,
-      required this.altitude,
-      required this.speed,
-      required this.temperature,
-      required this.humidity,
-      required this.device});
-
-  factory HistoricalMeasurement.fromJson(Map<String, dynamic> json) =>
-      _$HistoricalMeasurementFromJson(json);
 
   Map<String, dynamic> toJson() => _$HistoricalMeasurementToJson(this);
 
@@ -78,8 +79,8 @@ class HistoricalMeasurement {
     return {
       'device': json['${dbDevice()}'] as String,
       'time': json['${dbTime()}'] as String,
-      'pm2_5': {'calibratedValue': json['${dbPm25()}'] as double},
-      'pm10': {'value': json['${dbPm10()}'] as double},
+      'average_pm2_5': {'calibratedValue': json['${dbPm25()}'] as double},
+      'average_pm10': {'value': json['${dbPm10()}'] as double},
       'externalTemperature': {'value': json['${dbTemperature()}'] as double},
       'externalHumidity': {'value': json['${dbHumidity()}'] as double},
       'speed': {'value': json['${dbSpeed()}'] as double},
@@ -112,7 +113,6 @@ class HistoricalMeasurement {
 
 @JsonSerializable()
 class HistoricalMeasurements {
-  final List<HistoricalMeasurement> measurements;
 
   HistoricalMeasurements({
     required this.measurements,
@@ -120,6 +120,8 @@ class HistoricalMeasurements {
 
   factory HistoricalMeasurements.fromJson(Map<String, dynamic> json) =>
       _$HistoricalMeasurementsFromJson(json);
+
+  final List<HistoricalMeasurement> measurements;
 
   Map<String, dynamic> toJson() => _$HistoricalMeasurementsToJson(this);
 }
