@@ -47,7 +47,7 @@ class _HomePageV2State extends State<HomePageV2> {
               await showSearch(
                 context: context,
                 delegate: LocationSearch(),
-              ).then((value) {
+              ).then((_) {
                 setState(() {});
               });
             },
@@ -191,8 +191,9 @@ class _HomePageV2State extends State<HomePageV2> {
             onPressed: () {
               Navigator.push(context, MaterialPageRoute(builder: (context) {
                 return MapPage();
-              })).then((value) => setState(() {
-                    _pageCtrl.jumpToPage(0);
+              })).then((_) => setState(() {
+                    // setState(() {});
+                    // _pageCtrl.jumpToPage(0);
                   }));
             },
             child: const Icon(
@@ -225,8 +226,9 @@ class _HomePageV2State extends State<HomePageV2> {
     if (menuItem.trim().toLowerCase() == 'feedback') {
       Navigator.push(context, MaterialPageRoute(builder: (context) {
         return FeedbackPage();
-      })).then((value) => setState(() {
-            _pageCtrl.jumpToPage(0);
+      })).then((_) => setState(() {
+            // setState(() {});
+            // _pageCtrl.jumpToPage(0);
           }));
     } else if (menuItem.trim().toLowerCase() == 'share') {
       shareApp();
@@ -237,8 +239,9 @@ class _HomePageV2State extends State<HomePageV2> {
           builder: (BuildContext context) => AQI_Dialog(),
           fullscreenDialog: true,
         ),
-      ).then((value) => setState(() {
-            _pageCtrl.jumpToPage(0);
+      ).then((_) => setState(() {
+            // setState(() {});
+            // _pageCtrl.jumpToPage(0);
           }));
     } else if (menuItem.trim().toLowerCase() == 'faqs') {
       try {
@@ -249,22 +252,25 @@ class _HomePageV2State extends State<HomePageV2> {
     } else if (menuItem.trim().toLowerCase() == 'myplaces') {
       Navigator.push(context, MaterialPageRoute(builder: (context) {
         return const MyPlaces();
-      })).then((value) => setState(() {
-            _pageCtrl.jumpToPage(0);
+      })).then((_) => setState(() {
+            // setState(() {});
+            // _pageCtrl.jumpToPage(0);
           }));
     } else if (menuItem.trim().toLowerCase() == 'settings') {
       Navigator.push(context, MaterialPageRoute(builder: (context) {
         return SettingsPage();
-      })).then((value) => setState(() {
-            _pageCtrl.jumpToPage(0);
+      })).then((_) => setState(() {
+            // setState(() {});
+            // _pageCtrl.jumpToPage(0);
           }));
     } else if (menuItem.trim().toLowerCase() == 'camera') {
       takePhoto();
     } else {
       Navigator.push(context, MaterialPageRoute(builder: (context) {
         return SettingsPage();
-      })).then((value) => setState(() {
-            _pageCtrl.jumpToPage(0);
+      })).then((_) => setState(() {
+            // setState(() {});
+            // _pageCtrl.jumpToPage(0);
           }));
     }
   }
@@ -316,8 +322,9 @@ class _HomePageV2State extends State<HomePageV2> {
       return TakePicture(
         camera: firstCamera,
       );
-    })).then((value) => setState(() {
-          _pageCtrl.jumpToPage(0);
+    })).then((_) => setState(() {
+          // setState(() {});
+          // _pageCtrl.jumpToPage(0);
         }));
   }
 

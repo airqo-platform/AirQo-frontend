@@ -23,7 +23,7 @@ class CardBodySection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      child: const Center(child: Text("Body")),
+      child: const Center(child: Text('Body')),
     );
   }
 }
@@ -130,7 +130,7 @@ class TitleSection extends StatelessWidget {
                           color: pmTextColor(data.pm2_5.calibratedValue)),
                     ),
                     Text(
-                      '${data.pm2_5.calibratedValue} µg/m\u00B3',
+                      '${data.pm2_5.calibratedValue.toStringAsFixed(2)} µg/m\u00B3',
                       maxLines: 4,
                       softWrap: true,
                       style: TextStyle(

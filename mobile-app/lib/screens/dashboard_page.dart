@@ -9,8 +9,6 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class DashboardPage extends StatefulWidget {
-  const DashboardPage({Key? key}) : super(key: key);
-
   @override
   _DashboardPageState createState() => _DashboardPageState();
 }
@@ -70,7 +68,7 @@ class _DashboardPageState extends State<DashboardPage> {
                             ),
                           )
                     : RefreshIndicator(
-                        onRefresh: refreshData,
+                        onRefresh: initialize,
                         child: ListView.builder(
                           itemBuilder: (context, index) => InkWell(
                             onTap: () async {
@@ -83,8 +81,10 @@ class _DashboardPageState extends State<DashboardPage> {
                                 })).then((value) => setState(() {}));
                               } catch (e) {
                                 print(e);
-                                await showSnackBar(context,
-                                    'Information not available. Try again later');
+                                await showSnackBar(
+                                    context,
+                                    'Information not available.'
+                                    ' Try again later');
                               }
                             },
                             child: AirQualityCard(data: results[index]),
@@ -92,105 +92,24 @@ class _DashboardPageState extends State<DashboardPage> {
                           itemCount: results.length,
                         ),
                       )
-                : Center(
-                    child: Container(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Text(
-                        'You haven\'t added any locations you care about '
-                        'to MyPlaces yet, click the search icon '
-                        'or use the map to add them to your list',
-                        softWrap: true,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: ColorConstants().appColor,
-                        ),
-                      ),
-                    ),
-                  )));
-  }
-
-  Widget build3(BuildContext context) {
-    return Container(
-        child: Padding(
-            padding: const EdgeInsets.fromLTRB(6, 6, 6, 6),
-            child: hasFavPlaces
-                ? FutureBuilder(
-                    future: DBHelper().getFavouritePlaces(),
-                    builder: (context, snapshot) {
-                      if (snapshot.hasData) {
-                        results = snapshot.data as List<Measurement>;
-
-                        if (results.isEmpty) {
-                          return Align(
-                            alignment: Alignment.center,
-                            child: Padding(
-                              padding: const EdgeInsets.all(8),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  CircularProgressIndicator(
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                        ColorConstants().appColor),
-                                  ),
-                                  Text(
-                                    'Collecting information about your places. '
-                                    ' Please wait...',
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                        color: ColorConstants().appColor),
-                                  )
-                                ],
-                              ),
-                            ),
-                          );
-                        }
-
-                        return RefreshIndicator(
-                          onRefresh: refreshData,
-                          child: ListView.builder(
-                            itemBuilder: (context, index) => InkWell(
-                              onTap: () async {
-                                try {
-                                  var device = results[index].device;
-
-                                  await Navigator.push(context,
-                                      MaterialPageRoute(builder: (context) {
-                                    return PlaceDetailsPage(device: device);
-                                  })).then((value) => setState(() {}));
-                                } catch (e) {
-                                  print(e);
-                                  await showSnackBar(context,
-                                      'Information not available. Try again later');
-                                }
-                              },
-                              child: AirQualityCard(data: results[index]),
-                            ),
-                            itemCount: results.length,
+                : Container(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text(
+                          'You haven\'t added any locations you care about '
+                          'to MyPlaces yet, click the search icon '
+                          'or use the map to add them to your list',
+                          softWrap: true,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: ColorConstants().appColor,
                           ),
-                        );
-                      } else {
-                        return Center(
-                          child: CircularProgressIndicator(
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                                ColorConstants().appColor),
-                          ),
-                        );
-                      }
-                    })
-                : Center(
-                    child: Container(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Text(
-                        'You haven\'t added any locations you care about '
-                        'to MyPlaces yet, click the search icon '
-                        'or use the map to add them to your list',
-                        softWrap: true,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: ColorConstants().appColor,
                         ),
-                      ),
+                        reloadButton()
+                      ],
                     ),
                   )));
   }
@@ -248,11 +167,24 @@ class _DashboardPageState extends State<DashboardPage> {
     super.initState();
   }
 
-  Future<void> refreshData() async {
-    var data = await DBHelper().getFavouritePlaces();
-
-    setState(() {
-      results = data;
-    });
+  RawMaterialButton reloadButton() {
+    return RawMaterialButton(
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(4.0),
+          side: BorderSide(color: ColorConstants().appColor, width: 1)),
+      fillColor: Colors.transparent,
+      elevation: 0,
+      highlightElevation: 0,
+      splashColor: Colors.black12,
+      highlightColor: ColorConstants().appColor.withOpacity(0.4),
+      onPressed: initialize,
+      child: Padding(
+        padding: const EdgeInsets.all(4),
+        child: Text(
+          'Refresh',
+          style: TextStyle(color: ColorConstants().appColor),
+        ),
+      ),
+    );
   }
 }

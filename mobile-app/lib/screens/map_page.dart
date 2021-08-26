@@ -441,14 +441,16 @@ class MapPageState extends State<MapPage> {
                     Padding(
                       padding: const EdgeInsets.fromLTRB(5, 0, 0, 0),
                       child: Text(
-                        windowProperties.pm2_5.calibratedValue.toString(),
+                        windowProperties.pm2_5.calibratedValue
+                            .toStringAsFixed(2),
                         style: TextStyle(
                             color: pmTextColor(
                                 windowProperties.pm2_5.calibratedValue)),
                       ),
                     ),
                     // Expanded(child: Text(
-                    //   pmToString(windowProperties.pm2_5.calibratedValue),
+                    //   pmToString(windowProperties.pm2_5.calibratedValue
+                    //   .toStringAsFixed(2)),
                     //   maxLines: 4,
                     //   softWrap: true,
                     //   textAlign: TextAlign.center,
@@ -578,7 +580,7 @@ class MapPageState extends State<MapPage> {
         position:
             LatLng((measurement.device.latitude), measurement.device.longitude),
         infoWindow: InfoWindow(
-          title: measurement.pm2_5.calibratedValue.toString(),
+          title: measurement.pm2_5.calibratedValue.toStringAsFixed(2),
           // snippet: node.location,
         ),
         onTap: () {

@@ -308,7 +308,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                           ),
                         ),
                         Text(
-                          measurement.pm2_5.calibratedValue.toString(),
+                          measurement.pm2_5.calibratedValue.toStringAsFixed(2),
                           style: TextStyle(
                             color:
                                 pmTextColor(measurement.pm2_5.calibratedValue),

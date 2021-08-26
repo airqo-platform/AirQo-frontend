@@ -28,242 +28,227 @@ class _MyPlacesState extends State<MyPlaces> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: isSearching
-              ? TextField(
-                  autofocus: true,
-                  controller: searchController,
-                  onSubmitted: doSearch,
-                  onChanged: doSearch,
-                  onTap: () {},
-                  style: const TextStyle(fontSize: 18, color: Colors.white),
-                  decoration: const InputDecoration(
-                    hintStyle: TextStyle(fontSize: 18, color: Colors.white),
-                    hintText: 'Search MyPlaces',
-                    border: InputBorder.none,
-                    contentPadding: EdgeInsets.all(15),
-                  ),
-                )
-              : const Text('MyPlaces'),
-          actions: [
-            IconButton(
-              icon: const Icon(
-                Icons.search_outlined,
-              ),
-              onPressed: () {
-                if (isSearching) {
-                  setState(() {
-                    isSearching = false;
-                  });
-                } else {
-                  setState(() {
-                    isSearching = true;
-                  });
-                }
-              },
+      appBar: AppBar(
+        title: isSearching
+            ? TextField(
+                autofocus: true,
+                controller: searchController,
+                onSubmitted: doSearch,
+                onChanged: doSearch,
+                onTap: () {},
+                style: const TextStyle(fontSize: 18, color: Colors.white),
+                decoration: const InputDecoration(
+                  hintStyle: TextStyle(fontSize: 18, color: Colors.white),
+                  hintText: 'Search in MyPlaces',
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.all(15),
+                ),
+              )
+            : const Text('MyPlaces'),
+        actions: [
+          IconButton(
+            icon: const Icon(
+              Icons.add_circle_outline_outlined,
             ),
-            IconButton(
-              icon: const Icon(
-                Icons.add_circle_outline_outlined,
-              ),
-              onPressed: () async {
-                await showSearch(
-                  context: context,
-                  delegate: LocationSearch(),
-                ).then((value) {
-                  setState(() {});
-                });
-
-                // Navigator.push(
-                //   context,
-                //   MaterialPageRoute(builder: (context) => SearchPage()),
-                // );
-              },
-            ),
-          ],
-        ),
-        body: Container(
-            child: Padding(
-                padding: const EdgeInsets.fromLTRB(6, 6, 6, 6),
-                child: isSearching
-                    ? ListView.builder(
-                        itemBuilder: (context, index) => GestureDetector(
-                          onTap: () {
-                            viewDetails(searchResults[index].device);
-                          },
-                          child: Slidable(
-                            actionPane: const SlidableDrawerActionPane(),
-                            actionExtentRatio: 0.25,
-                            actions: <Widget>[
-                              IconSlideAction(
-                                caption: 'Share',
-                                color: ColorConstants().appColor,
-                                icon: Icons.share_outlined,
-                                onTap: () =>
-                                    shareLocation(searchResults[index].device),
-                              ),
-                            ],
-                            secondaryActions: <Widget>[
-                              IconSlideAction(
-                                caption: 'Remove',
-                                color: ColorConstants().red,
-                                icon: Icons.delete_outlined,
-                                onTap: () {
-                                  removeFromFavourites(
-                                      searchResults[index].device);
-                                },
-                              ),
-                            ],
-                            child: Container(
-                              child: ListTile(
-                                leading: CircleAvatar(
-                                  backgroundColor: pmToColor(
-                                      searchResults[index]
-                                          .pm2_5
-                                          .calibratedValue),
-                                  foregroundColor: Colors.black54,
-                                  child: Center(
-                                    child: Text(
-                                      '${searchResults[index].pm2_5.calibratedValue}',
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                          fontSize: 10.0,
-                                          color: pmTextColor(
-                                              searchResults[index]
-                                                  .pm2_5
-                                                  .calibratedValue)),
-                                    ),
+            onPressed: () async {
+              await showSearch(
+                context: context,
+                delegate: LocationSearch(),
+              ).then((value) {
+                setState(() {});
+              });
+            },
+          ),
+        ],
+      ),
+      body: Container(
+          child: Padding(
+              padding: const EdgeInsets.fromLTRB(6, 6, 6, 6),
+              child: isSearching
+                  ? ListView.builder(
+                      itemBuilder: (context, index) => GestureDetector(
+                        onTap: () {
+                          viewDetails(searchResults[index].device);
+                        },
+                        child: Slidable(
+                          actionPane: const SlidableDrawerActionPane(),
+                          actionExtentRatio: 0.25,
+                          actions: <Widget>[
+                            IconSlideAction(
+                              caption: 'Share',
+                              color: ColorConstants().appColor,
+                              icon: Icons.share_outlined,
+                              onTap: () =>
+                                  shareLocation(searchResults[index].device),
+                            ),
+                          ],
+                          secondaryActions: <Widget>[
+                            IconSlideAction(
+                              caption: 'Remove',
+                              color: ColorConstants().red,
+                              icon: Icons.delete_outlined,
+                              onTap: () {
+                                removeFromFavourites(
+                                    searchResults[index].device);
+                              },
+                            ),
+                          ],
+                          child: Container(
+                            child: ListTile(
+                              leading: CircleAvatar(
+                                backgroundColor: pmToColor(
+                                    searchResults[index].pm2_5.calibratedValue),
+                                foregroundColor: Colors.black54,
+                                child: Center(
+                                  child: Text(
+                                    '${searchResults[index].pm2_5.calibratedValue.toStringAsFixed(2)}',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                        fontSize: 10.0,
+                                        color: pmTextColor(searchResults[index]
+                                            .pm2_5
+                                            .calibratedValue)),
                                   ),
                                 ),
-                                title: Text(
-                                  (searchResults[index].device.nickName !=
-                                              null &&
-                                          searchResults[index]
-                                                  .device
-                                                  .nickName !=
-                                              '')
-                                      ? '${searchResults[index].device.nickName} '
-                                      : '${searchResults[index].device.siteName}',
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                subtitle: Text(
-                                  '${searchResults[index].device.locationName}',
-                                  overflow: TextOverflow.ellipsis,
-                                ),
+                              ),
+                              title: Text(
+                                '${searchResults[index].device.siteName}',
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              subtitle: Text(
+                                '${searchResults[index].device.locationName}',
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                           ),
                         ),
-                        itemCount: searchResults.length,
-                      )
-                    : FutureBuilder(
-                        future: DBHelper().getFavouritePlaces(),
-                        builder: (context, snapshot) {
-                          if (snapshot.hasData) {
-                            results = snapshot.data as List<Measurement>;
+                      ),
+                      itemCount: searchResults.length,
+                    )
+                  : FutureBuilder(
+                      future: DBHelper().getFavouritePlaces(),
+                      builder: (context, snapshot) {
+                        if (snapshot.hasData) {
+                          results = snapshot.data as List<Measurement>;
 
-                            if (searchList.isEmpty) {
-                              searchList = snapshot.data as List<Measurement>;
-                            }
+                          if (searchList.isEmpty) {
+                            searchList = snapshot.data as List<Measurement>;
+                          }
 
-                            if (results.isEmpty) {
-                              return Center(
-                                child: Container(
-                                  padding: const EdgeInsets.all(16.0),
-                                  child: Text(
-                                    'You haven\'t added any locations you care about '
-                                    'to MyPlaces yet, use the add icon at '
-                                    'the top to add them to your list',
-                                    softWrap: true,
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      color: ColorConstants().appColor,
-                                    ),
-                                  ),
-                                ),
-                              );
-                            }
-
-                            return RefreshIndicator(
-                              onRefresh: refreshData,
-                              child: ListView.builder(
-                                itemBuilder: (context, index) =>
-                                    GestureDetector(
-                                  onTap: () {
-                                    viewDetails(results[index].device);
-                                  },
-                                  child: Slidable(
-                                    actionPane:
-                                        const SlidableDrawerActionPane(),
-                                    actionExtentRatio: 0.25,
-                                    actions: <Widget>[
-                                      IconSlideAction(
-                                        caption: 'Share',
-                                        color: ColorConstants().appColor,
-                                        icon: Icons.share_outlined,
-                                        onTap: () => shareLocation(
-                                            results[index].device),
-                                      ),
-                                    ],
-                                    secondaryActions: <Widget>[
-                                      IconSlideAction(
-                                        caption: 'Remove',
-                                        color: Colors.red,
-                                        icon: Icons.delete_outlined,
-                                        onTap: () {
-                                          removeFromFavourites(
-                                              results[index].device);
-                                        },
-                                      ),
-                                    ],
-                                    child: Container(
-                                      child: ListTile(
-                                        leading: CircleAvatar(
-                                          backgroundColor: pmToColor(
-                                              results[index]
-                                                  .pm2_5
-                                                  .calibratedValue),
-                                          foregroundColor: Colors.black54,
-                                          child: Center(
-                                            child: Text(
-                                              '${results[index].pm2_5.calibratedValue}',
-                                              textAlign: TextAlign.center,
-                                              style: const TextStyle(
-                                                  fontSize: 10.0),
-                                            ),
-                                          ),
-                                        ),
-                                        title: Text(
-                                          (results[index].device.nickName !=
-                                                      null &&
-                                                  results[index]
-                                                          .device
-                                                          .nickName !=
-                                                      '')
-                                              ? '${results[index].device.nickName} '
-                                              : '${results[index].device.siteName}',
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                        subtitle: Text(
-                                          '${results[index].device.locationName}',
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                itemCount: results.length,
-                              ),
-                            );
-                          } else {
+                          if (results.isEmpty) {
                             return Center(
-                              child: CircularProgressIndicator(
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                    ColorConstants().appColor),
+                              child: Container(
+                                padding: const EdgeInsets.all(16.0),
+                                child: Text(
+                                  'You haven\'t added any locations you'
+                                  ' care about '
+                                  'to MyPlaces yet, use the add icon at '
+                                  'the top to add them to your list',
+                                  softWrap: true,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: ColorConstants().appColor,
+                                  ),
+                                ),
                               ),
                             );
                           }
-                        }))));
+
+                          return RefreshIndicator(
+                            onRefresh: refreshData,
+                            child: ListView.builder(
+                              itemBuilder: (context, index) => GestureDetector(
+                                onTap: () {
+                                  viewDetails(results[index].device);
+                                },
+                                child: Slidable(
+                                  actionPane: const SlidableDrawerActionPane(),
+                                  actionExtentRatio: 0.25,
+                                  actions: <Widget>[
+                                    IconSlideAction(
+                                      caption: 'Share',
+                                      color: ColorConstants().appColor,
+                                      icon: Icons.share_outlined,
+                                      onTap: () =>
+                                          shareLocation(results[index].device),
+                                    ),
+                                  ],
+                                  secondaryActions: <Widget>[
+                                    IconSlideAction(
+                                      caption: 'Remove',
+                                      color: Colors.red,
+                                      icon: Icons.delete_outlined,
+                                      onTap: () {
+                                        removeFromFavourites(
+                                            results[index].device);
+                                      },
+                                    ),
+                                  ],
+                                  child: Container(
+                                    child: ListTile(
+                                      leading: CircleAvatar(
+                                        backgroundColor: pmToColor(
+                                            results[index]
+                                                .pm2_5
+                                                .calibratedValue),
+                                        foregroundColor: pmTextColor(
+                                            results[index]
+                                                .pm2_5
+                                                .calibratedValue),
+                                        child: Center(
+                                          child: Text(
+                                            '${results[index].pm2_5.calibratedValue.toStringAsFixed(2)}',
+                                            textAlign: TextAlign.center,
+                                            style:
+                                                const TextStyle(fontSize: 10.0),
+                                          ),
+                                        ),
+                                      ),
+                                      title: Text(
+                                        '${results[index].device.siteName}',
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      subtitle: Text(
+                                        '${results[index].device.locationName}',
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              itemCount: results.length,
+                            ),
+                          );
+                        } else {
+                          return Center(
+                            child: CircularProgressIndicator(
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                  ColorConstants().appColor),
+                            ),
+                          );
+                        }
+                      }))),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      floatingActionButton: FloatingActionButton(
+        // isExtended: true,
+        backgroundColor: ColorConstants().appColor,
+        onPressed: () {
+          setState(() {
+            if (isSearching) {
+              setState(() {
+                isSearching = false;
+              });
+            } else {
+              setState(() {
+                isSearching = true;
+              });
+            }
+          });
+        },
+        // isExtended: true,
+        child: const Icon(Icons.search_outlined),
+      ),
+    );
   }
 
   void doSearch(String query) {

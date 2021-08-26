@@ -145,7 +145,7 @@ Future<BitmapDescriptor> pmToMarker(double pm2_5) async {
   var textPainter = TextPainter(
     textDirection: TextDirection.ltr,
     text: TextSpan(
-      text: value.toString(),
+      text: value.toStringAsFixed(2),
       style: TextStyle(
         fontSize: radius - 10,
         fontWeight: FontWeight.bold,

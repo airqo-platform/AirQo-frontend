@@ -22,7 +22,7 @@ void shareLocation(Device device) {
 void shareMeasurement(Measurement measurement) {
   Share.share(
       '${measurement.device.siteName} air quality readings \n'
-      'PM 2.5 : ${measurement.pm2_5.calibratedValue.toString()} µg/m\u00B3 (${pmToString(measurement.pm2_5.calibratedValue)}) \n'
-      'PM 10 : ${measurement.pm10.calibratedValue.toString()} µg/m\u00B3 ',
+      'PM 2.5 : ${measurement.pm2_5.calibratedValue.toStringAsFixed(2)} µg/m\u00B3 (${pmToString(measurement.pm2_5.calibratedValue)}) \n'
+      'PM 10 : ${measurement.pm10.calibratedValue.toStringAsFixed(2)} µg/m\u00B3 ',
       subject: '$appName, ${measurement.device.siteName}!');
 }
