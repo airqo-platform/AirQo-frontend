@@ -6,16 +6,15 @@ part 'historicalMeasurement.g.dart';
 
 @JsonSerializable()
 class HistoricalMeasurement {
-
   HistoricalMeasurement(
       {required this.time,
-        required this.pm2_5,
-        required this.pm10,
-        required this.altitude,
-        required this.speed,
-        required this.temperature,
-        required this.humidity,
-        required this.device});
+      required this.pm2_5,
+      required this.pm10,
+      required this.altitude,
+      required this.speed,
+      required this.temperature,
+      required this.humidity,
+      required this.device});
 
   factory HistoricalMeasurement.fromJson(Map<String, dynamic> json) =>
       _$HistoricalMeasurementFromJson(json);
@@ -23,10 +22,10 @@ class HistoricalMeasurement {
   @JsonKey(required: true)
   final String time;
 
-  @JsonKey(required: true, name: 'average_pm2_5')
+  @JsonKey(required: true, name: 'pm2_5')
   final MeasurementValue pm2_5;
 
-  @JsonKey(required: true, name: 'average_pm10')
+  @JsonKey(required: true, name: 'pm10')
   final MeasurementValue pm10;
 
   @JsonKey(required: false)
@@ -79,8 +78,8 @@ class HistoricalMeasurement {
     return {
       'device': json['${dbDevice()}'] as String,
       'time': json['${dbTime()}'] as String,
-      'average_pm2_5': {'calibratedValue': json['${dbPm25()}'] as double},
-      'average_pm10': {'value': json['${dbPm10()}'] as double},
+      'pm2_5': {'calibratedValue': json['${dbPm25()}'] as double},
+      'pm10': {'value': json['${dbPm10()}'] as double},
       'externalTemperature': {'value': json['${dbTemperature()}'] as double},
       'externalHumidity': {'value': json['${dbHumidity()}'] as double},
       'speed': {'value': json['${dbSpeed()}'] as double},
@@ -102,18 +101,38 @@ class HistoricalMeasurement {
   }
 
   static HistoricalMeasurement parseMeasurement(dynamic jsonBody) {
-    var measurements = HistoricalMeasurements.fromJson(jsonBody).measurements;
-    return measurements.first;
+    var measurementsForActiveDevices = <HistoricalMeasurement>[];
+
+    var jsonArray = jsonBody['measurements'];
+    for (var jsonElement in jsonArray) {
+      try {
+        var measurement = HistoricalMeasurement.fromJson(jsonElement);
+        measurementsForActiveDevices.add(measurement);
+      } catch (e) {
+        print(e);
+      }
+    }
+    return measurementsForActiveDevices.first;
   }
 
   static List<HistoricalMeasurement> parseMeasurements(dynamic jsonBody) {
-    return HistoricalMeasurements.fromJson(jsonBody).measurements;
+    var measurementsForActiveDevices = <HistoricalMeasurement>[];
+
+    var jsonArray = jsonBody['measurements'];
+    for (var jsonElement in jsonArray) {
+      try {
+        var measurement = HistoricalMeasurement.fromJson(jsonElement);
+        measurementsForActiveDevices.add(measurement);
+      } catch (e) {
+        print(e);
+      }
+    }
+    return measurementsForActiveDevices;
   }
 }
 
 @JsonSerializable()
 class HistoricalMeasurements {
-
   HistoricalMeasurements({
     required this.measurements,
   });

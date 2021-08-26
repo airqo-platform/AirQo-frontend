@@ -20,18 +20,6 @@ Device _$DeviceFromJson(Map<String, dynamic> json) {
   );
 }
 
-Devices _$DevicesFromJson(Map<String, dynamic> json) {
-  return Devices(
-    devices: (json['devices'] as List<dynamic>)
-        .map((e) => Device.fromJson(e as Map<String, dynamic>))
-        .toList(),
-  );
-}
-
-Map<String, dynamic> _$DevicesToJson(Devices instance) => <String, dynamic>{
-      'devices': instance.devices,
-    };
-
 Map<String, dynamic> _$DeviceToJson(Device instance) => <String, dynamic>{
       'nickName': instance.nickName,
       'distance': instance.distance,
@@ -42,4 +30,16 @@ Map<String, dynamic> _$DeviceToJson(Device instance) => <String, dynamic>{
       'latitude': instance.latitude,
       'longitude': instance.longitude,
       'isActive': instance.isActive,
+    };
+
+Devices _$DevicesFromJson(Map<String, dynamic> json) {
+  return Devices(
+    devices: (json['devices'] as List<dynamic>)
+        .map((e) => Device.fromJson(e as Map<String, dynamic>))
+        .toList(),
+  );
+}
+
+Map<String, dynamic> _$DevicesToJson(Devices instance) => <String, dynamic>{
+      'devices': instance.devices,
     };

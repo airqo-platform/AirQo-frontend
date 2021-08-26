@@ -40,6 +40,7 @@ class AirqoApiClient {
         ..putIfAbsent('device', () => device.name)
         ..putIfAbsent('startTime', () => startTime)
         ..putIfAbsent('frequency', () => 'hourly')
+        ..putIfAbsent('metadata', () => 'device')
         ..putIfAbsent('recent', () => 'no')
         ..putIfAbsent('tenant', () => 'airqo');
 
@@ -65,6 +66,7 @@ class AirqoApiClient {
         ..putIfAbsent('recent', () => 'yes')
         ..putIfAbsent('device', () => device.name)
         ..putIfAbsent('frequency', () => 'hourly')
+        ..putIfAbsent('metadata', () => 'device')
         ..putIfAbsent('tenant', () => 'airqo');
 
       final responseBody =
@@ -156,6 +158,7 @@ class AirqoApiClient {
         ..putIfAbsent('startTime', () => startTime)
         ..putIfAbsent('frequency', () => 'hourly')
         ..putIfAbsent('recent', () => 'no')
+        ..putIfAbsent('metadata', () => 'device')
         ..putIfAbsent('tenant', () => 'airqo');
 
       final responseBody =
@@ -191,6 +194,7 @@ class AirqoApiClient {
       var queryParams = <String, dynamic>{}
         ..putIfAbsent('device', () => devicesStr)
         ..putIfAbsent('recent', () => 'yes')
+        ..putIfAbsent('metadata', () => 'device')
         ..putIfAbsent('frequency', () => 'hourly')
         ..putIfAbsent('tenant', () => 'airqo');
 
@@ -214,6 +218,7 @@ class AirqoApiClient {
     try {
       var queryParams = <String, dynamic>{}
         ..putIfAbsent('recent', () => 'yes')
+        ..putIfAbsent('metadata', () => 'device')
         ..putIfAbsent('frequency', () => 'hourly')
         ..putIfAbsent('tenant', () => 'airqo');
 

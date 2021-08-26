@@ -206,7 +206,6 @@ class _HomePageV2State extends State<HomePageV2> {
 
   Future<void> initialize() async {
     await _getLatestMeasurements();
-    await _getHistoricalMeasurements();
     await _getDevices();
   }
 
