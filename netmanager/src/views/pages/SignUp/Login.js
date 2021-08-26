@@ -10,6 +10,7 @@ import classnames from "classnames";
 import { isEmpty, omit } from "underscore";
 import { isFormFullyFilled } from "./utils";
 import usersStateConnector from "views/stateConnectors/usersStateConnector";
+import AlertMinimal from "../../layouts/AlertsMininal";
 
 class Login extends Component {
   constructor(props) {
@@ -104,132 +105,136 @@ class Login extends Component {
   render() {
     const { errors } = this.state;
     return (
-      <div
-        className="container"
-        style={{
-          marginTop: "4rem",
-          height: "auto",
-          backgroundColor: "#fff",
-          maxWidth: "1000px",
-        }}
-      >
-        <Grid container>
-          <Grid
-            item
-            xs={12}
-            sm={4}
-            style={{
-              padding: "1em",
-              backgroundColor: "#3067e2",
-              height: "100% !important",
-              minHeight: "100px",
-            }}
-          />
-          <Grid item xs={12} sm={8}>
-            <div style={{ margin: "10px" }}>
-              <div>
-                <h4>
-                  <b>Login</b>
-                </h4>
-                <p className="grey-text text-darken-1">
-                  Don't have an account?{" "}
-                  <Link to="/request-access">Request Access</Link>
-                </p>
-              </div>
-              <form noValidate onSubmit={this.onSubmit}>
-                <CardContent
-                  style={
-                    isEmpty((this.props.errors && this.props.errors.data) || {})
-                      ? { display: "none" }
-                      : {}
-                  }
-                >
-                  <Alert
-                    severity="error"
-                    onClose={() => {
-                      this.props.clearErrors();
-                    }}
+      <AlertMinimal>
+        <div
+          className="container"
+          style={{
+            marginTop: "4rem",
+            height: "auto",
+            backgroundColor: "#fff",
+            maxWidth: "1000px",
+          }}
+        >
+          <Grid container>
+            <Grid
+              item
+              xs={12}
+              sm={4}
+              style={{
+                padding: "1em",
+                backgroundColor: "#3067e2",
+                height: "100% !important",
+                minHeight: "100px",
+              }}
+            />
+            <Grid item xs={12} sm={8}>
+              <div style={{ margin: "10px" }}>
+                <div>
+                  <h4>
+                    <b>Login</b>
+                  </h4>
+                  <p className="grey-text text-darken-1">
+                    Don't have an account?{" "}
+                    <Link to="/request-access">Request Access</Link>
+                  </p>
+                </div>
+                <form noValidate onSubmit={this.onSubmit}>
+                  <CardContent
+                    style={
+                      isEmpty(
+                        (this.props.errors && this.props.errors.data) || {}
+                      )
+                        ? { display: "none" }
+                        : {}
+                    }
                   >
-                    {this.props.errors &&
-                      this.props.errors.data &&
-                      this.props.errors.data.message}
-                  </Alert>
-                </CardContent>
-                <div className="input-field col s12">
-                  <input
-                    onChange={this.onChange}
-                    value={this.state.organization}
-                    error={errors.organization}
-                    id="organization"
-                    type="text"
-                    className={classnames("", {
-                      invalid:
-                        errors.organization || errors.credentialsnotfound,
-                    })}
-                  />
-                  <label htmlFor="organization">Organization</label>
-                  <span className="red-text">
-                    {errors.organization}
-                    {errors.credentialsnotfound}
-                  </span>
+                    <Alert
+                      severity="error"
+                      onClose={() => {
+                        this.props.clearErrors();
+                      }}
+                    >
+                      {this.props.errors &&
+                        this.props.errors.data &&
+                        this.props.errors.data.message}
+                    </Alert>
+                  </CardContent>
+                  <div className="input-field col s12">
+                    <input
+                      onChange={this.onChange}
+                      value={this.state.organization}
+                      error={errors.organization}
+                      id="organization"
+                      type="text"
+                      className={classnames("", {
+                        invalid:
+                          errors.organization || errors.credentialsnotfound,
+                      })}
+                    />
+                    <label htmlFor="organization">Organization</label>
+                    <span className="red-text">
+                      {errors.organization}
+                      {errors.credentialsnotfound}
+                    </span>
+                  </div>
+                  <div className="input-field col s12">
+                    <input
+                      onChange={this.onChange}
+                      value={this.state.userName}
+                      error={errors.userName}
+                      id="userName"
+                      type="text"
+                      className={classnames("", {
+                        invalid: errors.userName || errors.credentialsnotfound,
+                      })}
+                    />
+                    <label htmlFor="userName">Username or Email</label>
+                    <span className="red-text">
+                      {errors.userName}
+                      {errors.credentialsnotfound}
+                    </span>
+                  </div>
+                  <div className="input-field col s12">
+                    <input
+                      onChange={this.onChange}
+                      value={this.state.password}
+                      error={errors.password}
+                      id="password"
+                      type="password"
+                      className={classnames("", {
+                        invalid: errors.password || errors.passwordincorrect,
+                      })}
+                    />
+                    <label htmlFor="password">Password</label>
+                    <span className="red-text">
+                      {errors.password}
+                      {errors.passwordincorrect}
+                    </span>
+                  </div>
+                  <div className="col s12" style={{ paddingLeft: "11.250px" }}>
+                    <button
+                      style={{
+                        width: "150px",
+                        borderRadius: "3px",
+                        letterSpacing: "1.5px",
+                        marginTop: "1rem",
+                      }}
+                      type="submit"
+                      className="btn btn-large waves-effect waves-light hoverable blue accent-3"
+                    >
+                      Login
+                    </button>
+                  </div>
+                </form>
+                {/*<div></div>*/}
+                <div className="col s12" style={{ paddingTop: "20px" }}>
+                  <Link to="/forgot"> Forgotten Password?</Link>
                 </div>
-                <div className="input-field col s12">
-                  <input
-                    onChange={this.onChange}
-                    value={this.state.userName}
-                    error={errors.userName}
-                    id="userName"
-                    type="text"
-                    className={classnames("", {
-                      invalid: errors.userName || errors.credentialsnotfound,
-                    })}
-                  />
-                  <label htmlFor="userName">Username or Email</label>
-                  <span className="red-text">
-                    {errors.userName}
-                    {errors.credentialsnotfound}
-                  </span>
-                </div>
-                <div className="input-field col s12">
-                  <input
-                    onChange={this.onChange}
-                    value={this.state.password}
-                    error={errors.password}
-                    id="password"
-                    type="password"
-                    className={classnames("", {
-                      invalid: errors.password || errors.passwordincorrect,
-                    })}
-                  />
-                  <label htmlFor="password">Password</label>
-                  <span className="red-text">
-                    {errors.password}
-                    {errors.passwordincorrect}
-                  </span>
-                </div>
-                <div className="col s12" style={{ paddingLeft: "11.250px" }}>
-                  <button
-                    style={{
-                      width: "150px",
-                      borderRadius: "3px",
-                      letterSpacing: "1.5px",
-                      marginTop: "1rem",
-                    }}
-                    type="submit"
-                    className="btn btn-large waves-effect waves-light hoverable blue accent-3"
-                  >
-                    Login
-                  </button>
-                </div>
-              </form>
-              {/*<div></div>*/}
-              <div className="col s12" style={{ paddingTop: "20px" }}>
-                <Link to="/forgot"> Forgotten Password?</Link>
               </div>
-            </div>
+            </Grid>
           </Grid>
-        </Grid>
-      </div>
+        </div>
+      </AlertMinimal>
     );
   }
 }
