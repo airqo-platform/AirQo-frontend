@@ -385,9 +385,7 @@ export const OverlayMap = ({
       {showSensors &&
         map &&
         monitoringSiteData.features.forEach((feature) => {
-          const [seconds, duration] = getFirstDuration(
-            formatDateString(feature.properties.time)
-          );
+          const [seconds, duration] = getFirstDuration(feature.properties.time);
           let pollutantValue =
             (showPollutant.pm2_5 &&
               feature.properties.pm2_5 &&
