@@ -1,1 +1,3 @@
 .vscode
+k8s/platform/env-stage-configmap.yaml
+k8s/platform/env-prod-configmap.yaml
