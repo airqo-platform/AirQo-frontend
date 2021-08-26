@@ -81,6 +81,18 @@ class Airqo extends CI_Controller
 			$this->load->view('lib/footer',$data);
 		}
 	}
+	// medium blog
+	public function medium_blog()
+	{
+		
+			$data['title'] = 'Medium Blog';
+			$this->logVisitedPage($data['title']);
+
+			$this->load->view('lib/header',$data);
+			$this->load->view('airqo-blog',$data);
+			$this->load->view('lib/footer',$data);
+
+	}
 
 	public function blogsearch()
 	{
