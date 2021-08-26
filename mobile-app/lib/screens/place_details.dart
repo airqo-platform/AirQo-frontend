@@ -39,8 +39,6 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
   // List<HistoricalMeasurement> historicalData;
   var forecastData;
   var response;
-
-  // var forecastData;
   var historicalResponse = '';
   var forecastResponse = '';
   var dbHelper = DBHelper();

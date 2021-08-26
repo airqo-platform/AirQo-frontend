@@ -9,7 +9,7 @@ class _NewsAndStatsPageState extends State<NewsAndStatsPage> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      child: const Center(child: Text("Resources")),
+      child: const Center(child: Text('Resources')),
     );
   }
 
