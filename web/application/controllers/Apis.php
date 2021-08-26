@@ -1300,8 +1300,10 @@ public function airqoPlace24Hours()
                         //loop through each device and update the detail accordingly 
                         foreach($devices as $device){
                             $device_id          = $device->device_number;
-                            $device_name        = $device->siteName;
-                            $device_location    = $device->locationName;
+                            //$device_name        = $device->siteName;
+                            //$device_location    = $device->locationName;
+                            $device_name        = $device->{'site'}->{'description'};
+                            $device_location    = $device->{'site'}->{'district'}.", ".$device->{'site'}->{'country'};
                             $device_lat         = number_format((float)$device->latitude, 8, '.', '');
                             $device_lng         = number_format((float)$device->longitude, 8, '.', '');
                             $device_type        = 'Commercial area';
@@ -1344,8 +1346,10 @@ public function airqoPlace24Hours()
                     // insert a new device detail
                     foreach($devices as $device){
                         $device_id          = $device->device_number;
-                        $device_name        = $device->siteName;
-                        $device_location    = $device->locationName;
+                        //$device_name        = $device->siteName;
+                        //$device_location    = $device->locationName;
+                        $device_name        = $device->{'site'}->{'description'};
+                        $device_location    = $device->{'site'}->{'district'}.", ".$device->{'site'}->{'country'};
                         $device_lat         = number_format((float)$device->latitude, 8, '.', '');
                         $device_lng         = number_format((float)$device->longitude, 8, '.', '');
                         $device_type        = 'Commercial area';
@@ -1386,8 +1390,10 @@ public function airqoPlace24Hours()
                     foreach($devices as $device) {
                 
                         $device_id          = $device->device_number;
-                        $device_name        = $device->siteName;
-                        $device_location    = $device->locationName;
+                        //$device_name        = $device->siteName;
+                        //$device_location    = $device->locationName;
+                        $device_name        = $device->{'site'}->{'description'};
+                        $device_location    = $device->{'site'}->{'district'}.", ".$device->{'site'}->{'country'};
                         $device_lat         = number_format((float)$device->latitude, 8, '.', '');
                         $device_lng         = number_format((float)$device->longitude, 8, '.', '');
                         $device_type        = 'Commercial area';
