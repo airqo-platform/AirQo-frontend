@@ -55,7 +55,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(appName),
+        title: const Text(appName, style: TextStyle(color: Colors.white),),
         actions: [
           // if (isFavourite)
           // IconButton(

@@ -44,7 +44,8 @@ class _MyPlacesState extends State<MyPlaces> {
                   contentPadding: EdgeInsets.all(15),
                 ),
               )
-            : const Text('MyPlaces'),
+            : const Text('MyPlaces',
+          style: TextStyle(color: Colors.white),),
         actions: [
           IconButton(
             icon: const Icon(

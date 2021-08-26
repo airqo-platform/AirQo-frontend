@@ -81,7 +81,7 @@ class AQI_Dialog extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: ColorConstants().appColor,
-        title: const Text('AQI Guide'),
+        title: const Text('AQI Guide', style: TextStyle(color: Colors.white),),
       ),
       body: Container(
         padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),

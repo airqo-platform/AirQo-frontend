@@ -37,7 +37,7 @@ class _HomePageV2State extends State<HomePageV2> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(title),
+        title: Text(title, style: const TextStyle(color: Colors.white),),
         actions: [
           IconButton(
             icon: const Icon(

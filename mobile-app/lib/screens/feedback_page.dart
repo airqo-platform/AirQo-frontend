@@ -140,7 +140,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
     final height = MediaQuery.of(context).size.height;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('AirQo'),
+        title: const Text('AirQo', style: TextStyle(color: Colors.white),),
       ),
       body: Container(
         height: height,

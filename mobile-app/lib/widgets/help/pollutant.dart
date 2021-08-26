@@ -15,7 +15,8 @@ class PollutantDialog extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: ColorConstants().appColor,
-        title: Text(pollutant.pollutant),
+        title: Text(pollutant.pollutant,
+          style: const TextStyle(color: Colors.white),),
       ),
       body: Padding(
         padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
