@@ -146,17 +146,6 @@ const createDeviceColumns = (history, setDelState) => [
       />
     ),
   },
-
-  {
-    title: "Site Name",
-    field: "siteName",
-    render: (data) => <Cell fieldValue={data.siteName} />,
-  },
-  {
-    title: "Location Name",
-    field: "locationName",
-    render: (data) => <Cell fieldValue={data.locationName} />,
-  },
   {
     title: "Registration Date",
     field: "createdAt",

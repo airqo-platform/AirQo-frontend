@@ -1,13 +1,11 @@
-import React, { useState, Component, useEffect } from "react";
-import { useDispatch } from "react-redux";
+import React, { useState, useEffect } from "react";
 import clsx from "clsx";
 import PropTypes from "prop-types";
 import { Link as RouterLink, useHistory } from "react-router-dom";
 import { connect } from "react-redux";
-import { makeStyles, createStyles } from "@material-ui/styles";
+import { makeStyles } from "@material-ui/styles";
 import {
   AppBar,
-  Collapse,
   Divider,
   Toolbar,
   Badge,
@@ -18,9 +16,7 @@ import {
   ListItemIcon,
   ListItemText,
 } from "@material-ui/core";
-import Alert from "@material-ui/lab/Alert";
 import NotificationsIcon from "@material-ui/icons/NotificationsOutlined";
-import CloseIcon from "@material-ui/icons/Close";
 import InputIcon from "@material-ui/icons/Input";
 import HelpIcon from "@material-ui/icons/Help";
 import MoreVertIcon from "@material-ui/icons/MoreVert";
@@ -29,8 +25,7 @@ import AccountBoxIcon from "@material-ui/icons/AccountBox";
 import SettingsIcon from "@material-ui/icons/Settings";
 import { logoutUser } from "redux/Join/actions";
 import { useOrgData } from "redux/Join/selectors";
-import { useMainAlertData } from "redux/MainAlert/selectors";
-import { hideMainAlert } from "redux/MainAlert/operations";
+import TransitionAlerts from "./TransitionAlerts";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -44,77 +39,6 @@ const useStyles = makeStyles((theme) => ({
     marginLeft: theme.spacing(1),
   },
 }));
-
-const useAlertStyles = makeStyles((theme) =>
-  createStyles({
-    alertRoot: {
-      padding: "10px 100px",
-      borderRadius: "unset",
-    },
-    alertExtraContent: {
-      display: "flex",
-      padding: "10px 100px",
-      borderRadius: "unset",
-      background: "#ffffff",
-      border: "1px solid white",
-      // color: "red",
-      color: "#5b1615",
-    },
-    listStyle: {
-      listStyleType: "square",
-      listStylePosition: "outside",
-      listStyleImage: "none",
-    },
-    root: {
-      width: "100%",
-      "& > * + *": {
-        marginTop: theme.spacing(2),
-      },
-    },
-  })
-);
-
-export const TransitionAlerts = () => {
-  const classes = useAlertStyles();
-  const mainAlertData = useMainAlertData();
-  const dispatch = useDispatch();
-
-  return (
-    <div className={classes.root}>
-      <Collapse in={mainAlertData.show}>
-        <Alert
-          className={classes.alertRoot}
-          action={
-            <IconButton
-              aria-label="close"
-              color="inherit"
-              size="small"
-              onClick={() => {
-                dispatch(hideMainAlert());
-              }}
-            >
-              <CloseIcon fontSize="inherit" />
-            </IconButton>
-          }
-          severity={mainAlertData.severity}
-        >
-          {mainAlertData.message}
-        </Alert>
-        {mainAlertData.extra && mainAlertData.extra.length > 0 && (
-          <div className={classes.alertExtraContent}>
-            <ul>
-              {mainAlertData.extra.map((value, key) => (
-                <li style={{ textAlign: "left" }} key={key}>
-                  {value}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-      </Collapse>
-    </div>
-  );
-};
 
 function withMyHook(Component) {
   return function WrappedComponent(props) {

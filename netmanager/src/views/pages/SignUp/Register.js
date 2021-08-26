@@ -11,6 +11,7 @@ import { withStyles } from "@material-ui/core";
 import { isEmpty, isEqual } from "underscore";
 import { isFormFullyFilled, containsEmptyValues } from "./utils";
 import usersStateConnector from "views/stateConnectors/usersStateConnector";
+import AlertMinimal from "../../layouts/AlertsMininal";
 
 const styles = (theme) => ({
   root: {
@@ -183,192 +184,194 @@ class Register extends Component {
     const { errors } = this.state;
     const { classes } = this.props;
     return (
-      <div
-          className="container"
-          style={{
-            maxWidth: "600px",
-            marginTop: "4rem",
-            backgroundColor: "#fff",
-          }}>
-        <div className="row">
+        <AlertMinimal>
           <div
-            className=" offset-s2"
-            style={{
-              backgroundColor: "#3067e2",
-              height: "15vh",
-              padding: "1em",
-            }}
-          />
-          <div
-            className="offset-s2"
-            style={{ backgroundColor: "#fff", padding: "1em" }}
-          >
-            <div className="col s12" style={{ paddingLeft: "11.250px" }}>
-              <h4>
-                <b>Request Access to <span style={{textTransform: "uppercase"}}>{this.tenant}</span></b>
-              </h4>
-              <p className="grey-text text-darken-1">
-                Already have an account? <Link to="/login">Log in</Link>
-              </p>
-            </div>
-            <form noValidate onSubmit={this.onSubmit}>
+              className="container"
+              style={{
+                maxWidth: "600px",
+                marginTop: "4rem",
+                backgroundColor: "#fff",
+              }}>
+            <div className="row">
               <div
-                  style={
-                    isEmpty((this.props.errors && this.props.errors.data) || {})
-                      ? { display: "none" }
-                      : {}
-                  }
+                className=" offset-s2"
+                style={{
+                  backgroundColor: "#3067e2",
+                  height: "15vh",
+                  padding: "1em",
+                }}
+              />
+              <div
+                className="offset-s2"
+                style={{ backgroundColor: "#fff", padding: "1em" }}
               >
-                <Alert
-                  severity="error"
-                  onClose={() => {
-                    this.props.clearErrors();
-                  }}
-                >
-                  {this.props.errors &&
-                    this.props.errors.data &&
-                    this.props.errors.data.message}
-                </Alert>
-              </div>
-
-              <div className="col s12">
-                <TextField
-                    onChange={this.onChange}
-                    value={this.state.firstName}
-                    error={!!errors.firstName}
-                    id="firstName"
-                    label="first Name"
-                    fullWidth
-                    margin="normal"
-                    variant="outlined"
-                    helperText={errors.firstName}
-                />
-                <TextField
-                    onChange={this.onChange}
-                    value={this.state.lastName}
-                    error={!!errors.lastName}
-                    id="lastName"
-                    label="Last Name"
-                    fullWidth
-                    margin="normal"
-                    variant="outlined"
-                    helperText={errors.lastName}
-                />
-                <TextField
-                    onChange={this.onChange}
-                    value={this.state.email}
-                    error={!!errors.email}
-                    id="email"
-                    label="Official Email"
-                    fullWidth
-                    margin="normal"
-                    variant="outlined"
-                    helperText={errors.email}
-                />
-                <TextField
-                    onChange={this.onChange}
-                    value={this.state.organization}
-                    error={!!errors.organization}
-                    id="organization"
-                    label="Organization"
-                    fullWidth
-                    margin="normal"
-                    variant="outlined"
-                    helperText={errors.organization}
-                />
-                <TextField
-                    onChange={this.onChange}
-                    value={this.state.jobTitle}
-                    error={!!errors.jobTitle}
-                    id="jobTitle"
-                    label="Job Title"
-                    fullWidth
-                    margin="normal"
-                    variant="outlined"
-                    helperText={errors.jobTitle}
-                />
-                <TextField
-                    onChange={this.onChange}
-                    value={this.state.website}
-                    error={!!errors.website}
-                    id="website"
-                    label="Website"
-                    fullWidth
-                    margin="normal"
-                    variant="outlined"
-                    helperText={errors.website}
-                />
-                <TextField
-                    id="category"
-                    select
-                    label="What best describes you?"
-                    value={this.state.category}
-                    error={!!errors.category}
-                    onChange={this.onChange}
-                    fullWidth
-                    SelectProps={{
-                      native: true,
-                      style: { width: "100%", height: "50px" },
-                    }}
-                    variant="outlined"
-                    helperText={errors.category}
-
-                >
-                  {categories.array.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                  ))}
-                </TextField>
-
-                <TextField
-                    id="description"
-                    label="Outline in detailed nature your interest in AirQuality"
-                    fullWidth
-                    multiline
-                    rows="5"
-                    rowsMax="10"
-                    value={this.state.description}
-                    onChange={this.onChange}
-                    margin="normal"
-                    variant="outlined"
-                    error={!!errors.description}
-                    helperText={errors.description}
-                    InputLabelProps={{style: {fontSize: "0.8rem"}}}
-                />
-              </div>
-
-              <div className="col s12" style={{ paddingLeft: "11.250px" }}>
-                {this.state.isChecked ? (
-                  <button
-                    style={{
-                      width: "150px",
-                      borderRadius: "3px",
-                      letterSpacing: "1.5px",
-                      margin: "1rem",
-                    }}
-                    type="submit"
-                    className="btn btn-large waves-effect waves-light hoverable blue accent-3"
-                    disabled={
-                      isEqual(this.getInitialState(), { ...this.state, errors: {}, isChecked: {} }) ||
-                         !validateForm(this.state.errors)
-                    }
+                <div className="col s12" style={{ paddingLeft: "11.250px" }}>
+                  <h4>
+                    <b>Request Access to <span style={{textTransform: "uppercase"}}>{this.tenant}</span></b>
+                  </h4>
+                  <p className="grey-text text-darken-1">
+                    Already have an account? <Link to="/login">Log in</Link>
+                  </p>
+                </div>
+                <form noValidate onSubmit={this.onSubmit}>
+                  <div
+                      style={
+                        isEmpty((this.props.errors && this.props.errors.data) || {})
+                          ? { display: "none" }
+                          : {}
+                      }
                   >
-                    REQUEST
-                  </button>
-                ) : null}
+                    <Alert
+                      severity="error"
+                      onClose={() => {
+                        this.props.clearErrors();
+                      }}
+                    >
+                      {this.props.errors &&
+                        this.props.errors.data &&
+                        this.props.errors.data.message}
+                    </Alert>
+                  </div>
+
+                  <div className="col s12">
+                    <TextField
+                        onChange={this.onChange}
+                        value={this.state.firstName}
+                        error={!!errors.firstName}
+                        id="firstName"
+                        label="first Name"
+                        fullWidth
+                        margin="normal"
+                        variant="outlined"
+                        helperText={errors.firstName}
+                    />
+                    <TextField
+                        onChange={this.onChange}
+                        value={this.state.lastName}
+                        error={!!errors.lastName}
+                        id="lastName"
+                        label="Last Name"
+                        fullWidth
+                        margin="normal"
+                        variant="outlined"
+                        helperText={errors.lastName}
+                    />
+                    <TextField
+                        onChange={this.onChange}
+                        value={this.state.email}
+                        error={!!errors.email}
+                        id="email"
+                        label="Official Email"
+                        fullWidth
+                        margin="normal"
+                        variant="outlined"
+                        helperText={errors.email}
+                    />
+                    <TextField
+                        onChange={this.onChange}
+                        value={this.state.organization}
+                        error={!!errors.organization}
+                        id="organization"
+                        label="Organization"
+                        fullWidth
+                        margin="normal"
+                        variant="outlined"
+                        helperText={errors.organization}
+                    />
+                    <TextField
+                        onChange={this.onChange}
+                        value={this.state.jobTitle}
+                        error={!!errors.jobTitle}
+                        id="jobTitle"
+                        label="Job Title"
+                        fullWidth
+                        margin="normal"
+                        variant="outlined"
+                        helperText={errors.jobTitle}
+                    />
+                    <TextField
+                        onChange={this.onChange}
+                        value={this.state.website}
+                        error={!!errors.website}
+                        id="website"
+                        label="Website"
+                        fullWidth
+                        margin="normal"
+                        variant="outlined"
+                        helperText={errors.website}
+                    />
+                    <TextField
+                        id="category"
+                        select
+                        label="What best describes you?"
+                        value={this.state.category}
+                        error={!!errors.category}
+                        onChange={this.onChange}
+                        fullWidth
+                        SelectProps={{
+                          native: true,
+                          style: { width: "100%", height: "50px" },
+                        }}
+                        variant="outlined"
+                        helperText={errors.category}
+
+                    >
+                      {categories.array.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                      ))}
+                    </TextField>
+
+                    <TextField
+                        id="description"
+                        label="Outline in detailed nature your interest in AirQuality"
+                        fullWidth
+                        multiline
+                        rows="5"
+                        rowsMax="10"
+                        value={this.state.description}
+                        onChange={this.onChange}
+                        margin="normal"
+                        variant="outlined"
+                        error={!!errors.description}
+                        helperText={errors.description}
+                        InputLabelProps={{style: {fontSize: "0.8rem"}}}
+                    />
+                  </div>
+
+                  <div className="col s12" style={{ paddingLeft: "11.250px" }}>
+                    {this.state.isChecked ? (
+                      <button
+                        style={{
+                          width: "150px",
+                          borderRadius: "3px",
+                          letterSpacing: "1.5px",
+                          margin: "1rem",
+                        }}
+                        type="submit"
+                        className="btn btn-large waves-effect waves-light hoverable blue accent-3"
+                        disabled={
+                          isEqual(this.getInitialState(), { ...this.state, errors: {}, isChecked: {} }) ||
+                             !validateForm(this.state.errors)
+                        }
+                      >
+                        REQUEST
+                      </button>
+                    ) : null}
+                  </div>
+                  {this.props.auth.newUser && (
+                    <Alert severity="success">
+                      <AlertTitle>Success</AlertTitle>
+                      Your request has been successfully received! —{" "}
+                      <strong>Thank you!</strong>
+                    </Alert>
+                  )}
+                </form>
               </div>
-              {this.props.auth.newUser && (
-                <Alert severity="success">
-                  <AlertTitle>Success</AlertTitle>
-                  Your request has been successfully received! —{" "}
-                  <strong>Thank you!</strong>
-                </Alert>
-              )}
-            </form>
+            </div>
           </div>
-        </div>
-      </div>
+        </AlertMinimal>
     );
   }
 }

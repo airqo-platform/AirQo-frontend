@@ -168,40 +168,26 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
               autoFocus
               margin="dense"
               variant="outlined"
-              id="locationName"
-              label="Map Address"
-              value={editData.locationName}
-              onChange={handleTextFieldChange}
-              error={!!errors.locationName}
-              helperText={errors.locationName}
-              fullWidth
-            />
-          </Grid>
-          <Grid items xs={12} sm={4} style={gridItemStyle}>
-            <TextField
-              autoFocus
-              margin="dense"
-              variant="outlined"
-              id="siteName"
-              label="Site Name"
-              value={editData.siteName}
-              onChange={handleTextFieldChange}
-              error={!!errors.siteName}
-              helperText={errors.siteName}
-              fullWidth
-            />
-          </Grid>
-          <Grid items xs={12} sm={4} style={gridItemStyle}>
-            <TextField
-              autoFocus
-              margin="dense"
-              variant="outlined"
               id="product_name"
               label="Product Name"
               value={editData.product_name}
               onChange={handleTextFieldChange}
               error={!!errors.product_name}
               helperText={errors.product_name}
+              fullWidth
+            />
+          </Grid>
+          <Grid items xs={12} sm={4} style={gridItemStyle}>
+            <TextField
+              autoFocus
+              margin="dense"
+              variant="outlined"
+              id="phoneNumber"
+              label="Phone Number"
+              value={editData.phoneNumber}
+              onChange={handleTextFieldChange}
+              error={!!errors.phoneNumber}
+              helperText={errors.phoneNumber}
               fullWidth
             />
           </Grid>
@@ -230,20 +216,6 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
               onChange={handleTextFieldChange}
               error={!!errors.longitude}
               helperText={errors.longitude}
-              fullWidth
-            />
-          </Grid>
-          <Grid items xs={12} sm={4} style={gridItemStyle}>
-            <TextField
-              autoFocus
-              margin="dense"
-              variant="outlined"
-              id="phoneNumber"
-              label="Phone Number"
-              value={editData.phoneNumber}
-              onChange={handleTextFieldChange}
-              error={!!errors.phoneNumber}
-              helperText={errors.phoneNumber}
               fullWidth
             />
           </Grid>
