@@ -270,7 +270,10 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
             <OutlinedSelect
               label={"Site"}
               defaultValue={site}
-              onChange={setSite}
+              onChange={(selectedValue) => {
+                setEditData({ ...editData, site: selectedValue });
+                setSite(selectedValue);
+              }}
               options={siteOptions}
               fullWidth
             />
