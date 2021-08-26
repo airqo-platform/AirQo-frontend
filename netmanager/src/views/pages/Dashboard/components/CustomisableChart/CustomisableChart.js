@@ -13,8 +13,8 @@ import {
   DialogActions,
   DialogContent,
   IconButton,
+  TextField,
 } from "@material-ui/core";
-import Select from "react-select";
 import { useEffect, useState } from "react";
 import DateFnsUtils from "@date-io/date-fns";
 import {
@@ -35,12 +35,17 @@ import MenuItem from "@material-ui/core/MenuItem";
 import domtoimage from "dom-to-image";
 import JsPDF from "jspdf";
 import { isEmpty } from "underscore";
-import LabelledSelect from "../../../../components/CustomSelects/LabelledSelect";
-import { useDashboardSitesData } from "redux/Dashboard/selectors";
+import OutlinedSelect from "views/components/CustomSelects/OutlinedSelect";
 import { formatDateString } from "utils/dateTime";
-import { setUserDefaultGraphData, loadSites } from "redux/Dashboard/operations";
 import { omit } from "underscore";
 import { roundToStartOfDay, roundToEndOfDay } from "utils/dateTime";
+import { useDashboardSiteOptions } from "utils/customHooks";
+import {
+  deleteUserChartDefaultsApi,
+  updateUserChartDefaultsApi,
+} from "views/apis/authService";
+import { loadUserDefaultGraphData } from "redux/Dashboard/operations";
+import { updateMainAlert } from "redux/MainAlert/operations";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -72,18 +77,8 @@ const capitalize = (str) => {
   return str && str.charAt(0).toUpperCase() + str.slice(1);
 };
 
-const valueLabelToString = (valueLabelArray) => {
-  return valueLabelArray.map((element) => element.label);
-};
-
 const toValueLabelObject = (value) => {
   return { value, label: capitalize(value) };
-};
-
-const toValueLabelArray = (arr) => {
-  const newArr = [];
-  arr.map((value) => newArr.push(toValueLabelObject(value)));
-  return newArr;
 };
 
 const optionToList = (options) => {
@@ -230,40 +225,20 @@ const CustomisableChart = (props) => {
     clearTempState();
   };
 
-  const sites = useDashboardSitesData();
-
-  const [sitesOptions, setSiteOptions] = useState([]);
-
-  if (!sites.length) {
-    // Ensure to load the filterLocation data if empty
-    dispatch(loadSites());
-  }
-
-  useEffect(() => {
-    const options = [];
-    sites.map((site) => {
-      options.push({
-        label: `${site.name || site.description || site.generated_name} (${
-          site.generated_name
-        })`,
-        value: site._id,
-      });
-    });
-    setSiteOptions(options);
-  }, [sites]);
+  const sitesOptions = useDashboardSiteOptions();
 
   const siteFilter = (selectedSites) => (site) => {
     return selectedSites.includes(site.value);
   };
 
   const [values, setReactSelectValue] = useState({
-    selectedOption: sitesOptions.filter(siteFilter(defaultFilter.locations)),
+    selectedOption: sitesOptions.filter(siteFilter(defaultFilter.sites)),
   });
 
   const [initialLoad, setInitialLoad] = useState(true);
 
   useEffect(() => {
-    const sites = sitesOptions.filter(siteFilter(defaultFilter.locations));
+    const sites = sitesOptions.filter(siteFilter(defaultFilter.sites));
     setReactSelectValue({
       selectedOption: sites,
     });
@@ -271,7 +246,6 @@ const CustomisableChart = (props) => {
     if (initialLoad && !isEmpty(sites)) {
       setInitialLoad(false);
       fetchAndSetGraphData({
-        locations: sitesOptions.filter(siteFilter(defaultFilter.locations)),
         sites: optionToList(sites),
         startDate: selectedDate.toISOString(),
         endDate: selectedEndDate.toISOString(),
@@ -377,7 +351,17 @@ const CustomisableChart = (props) => {
     annotationMapper[selectedPollutant.value]
   );
 
+  const title = `Mean ${selectedFrequency.label} ${
+    selectedPollutant.label
+  } from ${formatDate(startDate, "YYYY-MM-DD")} to ${formatDateString(
+    endDate,
+    "YYYY-MM-DD"
+  )}`;
+
+  const [subTitle, setSubTitle] = useState(defaultFilter.chartSubTitle);
+
   const [tempState, setTempState] = useState({
+    subTitle: subTitle,
     sites: values,
     chartType: selectedChart,
     frequency: selectedFrequency,
@@ -385,6 +369,7 @@ const CustomisableChart = (props) => {
   });
 
   const transferFromTempState = () => {
+    setSubTitle(tempState.subTitle);
     setReactSelectValue(tempState.sites);
     setSelectedChartType(tempState.chartType);
     setSelectedFrequency(tempState.frequency);
@@ -393,6 +378,7 @@ const CustomisableChart = (props) => {
 
   const clearTempState = () => {
     setTempState({
+      subTitle: subTitle,
       sites: values,
       chartType: selectedChart,
       frequency: selectedFrequency,
@@ -457,22 +443,19 @@ const CustomisableChart = (props) => {
 
     let newFilter = {
       ...defaultFilter,
-      period: JSON.stringify(period),
+      period: period,
       sites: optionToList(tempState.sites.selectedOption),
       startDate: selectedDate.toISOString(),
       endDate: selectedEndDate.toISOString(),
       chartType: tempState.chartType.value,
       frequency: tempState.frequency.value,
       pollutant: tempState.pollutant.value,
+      chartTitle: title,
+      chartSubTitle: tempState.subTitle,
     };
 
     transferFromTempState();
-    dispatch(
-      setUserDefaultGraphData({
-        ...newFilter,
-        locations: optionToList(tempState.sites.selectedOption),
-      })
-    );
+    updateUserChartDefaultsApi(newFilter._id, newFilter);
     await fetchAndSetGraphData(newFilter);
   };
 
@@ -683,12 +666,45 @@ const CustomisableChart = (props) => {
     }
   };
 
+  const [hidden, setHidden] = useState(false);
+
+  const deleteChart = async () => {
+    setAnchorEl(null);
+    await deleteUserChartDefaultsApi(defaultFilter._id)
+      .then((responseData) => {
+        setHidden(true);
+        dispatch(
+          updateMainAlert({
+            show: true,
+            message: responseData.message,
+            severity: "success",
+          })
+        );
+      })
+      .catch((err) => {
+        console.log("err", err.response.data);
+        dispatch(
+          updateMainAlert({
+            show: true,
+            message:
+              err.response && err.response.data && err.response.data.message,
+            severity: "error",
+          })
+        );
+      });
+  };
+
   const menuOptions = [
     { key: "Customise", action: handleClickOpen, text: "Customise Chart" },
     { key: "Print", action: print, text: "Print" },
     { key: "JPEG", action: exportToJpeg, text: "Save as JPEG" },
     { key: "PNG", action: exportToPng, text: "Save as PNG" },
     { key: "PDF", action: exportToPdf, text: "Save as PDF" },
+    {
+      key: "Delete",
+      action: deleteChart,
+      text: <span style={{ color: "red" }}>Delete Chart</span>,
+    },
   ];
 
   const handleClick = (event) => {
@@ -716,258 +732,259 @@ const CustomisableChart = (props) => {
   };
 
   return (
-    <Card {...rest} className={className} id={rootCustomChartContainerId}>
-      <CardHeader
-        action={
-          <Grid>
-            <IconButton
-              size="small"
-              color="primary"
-              id={iconButton}
-              onClick={handleClick}
-              className={classes.chartSaveButton}
-            >
-              <MoreHoriz />
-            </IconButton>
-            <Menu
-              anchorEl={anchorEl}
-              open={openMenu}
-              onClose={handleMenuClose}
-              PaperProps={paperProps}
-            >
-              {menuOptions.map((option) => (
-                <MenuItem
-                  key={option.key}
-                  onClick={handleExportCustomChart(option)}
-                >
-                  {option.text}
-                </MenuItem>
-              ))}
-            </Menu>
+    <Grid
+      item
+      lg={6}
+      md={6}
+      sm={12}
+      xl={6}
+      xs={12}
+      key={`userDefaultGraphs-${props.key}`}
+      style={hidden ? { display: "none" } : {}}
+    >
+      <Card {...rest} className={className} id={rootCustomChartContainerId}>
+        <CardHeader
+          action={
+            <Grid>
+              <IconButton
+                size="small"
+                color="primary"
+                id={iconButton}
+                onClick={handleClick}
+                className={classes.chartSaveButton}
+              >
+                <MoreHoriz />
+              </IconButton>
+              <Menu
+                anchorEl={anchorEl}
+                open={openMenu}
+                onClose={handleMenuClose}
+                PaperProps={paperProps}
+              >
+                {menuOptions.map((option) => (
+                  <MenuItem
+                    key={option.key}
+                    onClick={handleExportCustomChart(option)}
+                  >
+                    {option.text}
+                  </MenuItem>
+                ))}
+              </Menu>
+            </Grid>
+          }
+          title={title}
+          subheader={
+            <Typography noWrap>
+              for{" "}
+              <span style={{ textTransform: "capitalize", fontWeight: "bold" }}>
+                {tempState.subTitle}
+              </span>{" "}
+              {!tempState.subTitle && sitesToString(values.selectedOption)}
+            </Typography>
+          }
+          style={{ textAlign: "center" }}
+          classes={{
+            root: classes.cardHeaderRoot,
+            content: classes.cardHeaderContent,
+          }}
+        />
+
+        <Divider />
+        <CardContent>
+          <Grid container spacing={1}>
+            <Grid item lg={12} sm={12} xl={12} xs={12}>
+              <CustomDisplayChart
+                chart_type={selectedChart.value}
+                customisedGraphData={customGraphData}
+                loading={loading}
+                options={options}
+              />
+            </Grid>
+
+            <Grid item lg={12} sm={12} xl={12} xs={12}>
+              <Dialog
+                open={open}
+                onClose={handleClose}
+                aria-labelledby="form-dialog-title"
+              >
+                <DialogTitle id="form-dialog-title" onClose={handleClose}>
+                  Customise Chart by Selecting the Various Options
+                </DialogTitle>
+                <Divider />
+                <DialogContent>
+                  <form onSubmit={handleSubmit} id="customisable-form">
+                    <Grid container spacing={2}>
+                      <Grid item md={12} xs={12}>
+                        <TextField
+                          autoFocus
+                          margin="dense"
+                          label="Location Name"
+                          variant="outlined"
+                          value={tempState.subTitle}
+                          onChange={(evt) =>
+                            setTempState({
+                              ...tempState,
+                              subTitle: evt.target.value,
+                            })
+                          }
+                          fullWidth
+                        />
+                      </Grid>
+                      <Grid item md={12} xs={12}>
+                        <OutlinedSelect
+                          fullWidth
+                          className="reactSelect"
+                          label="Sites"
+                          value={tempState.sites.selectedOption}
+                          options={sitesOptions}
+                          onChange={handleMultiChange}
+                          isMulti
+                          scrollable
+                          height={"100px"}
+                        />
+                      </Grid>
+
+                      <Grid item md={6} xs={12}>
+                        <OutlinedSelect
+                          fullWidth
+                          label="Chart Type"
+                          value={tempState.chartType}
+                          options={chartTypeOptions}
+                          onChange={handleChartTypeChange}
+                        />
+                      </Grid>
+
+                      <Grid item md={6} xs={12}>
+                        <OutlinedSelect
+                          fullWidth
+                          label="Frequency"
+                          value={tempState.frequency}
+                          options={frequencyOptions}
+                          onChange={handleFrequencyChange}
+                        />
+                      </Grid>
+                      <Grid item md={6} xs={12}>
+                        <OutlinedSelect
+                          fullWidth
+                          label="Pollutant"
+                          value={tempState.pollutant}
+                          options={pollutantOptions}
+                          onChange={handlePollutantChange}
+                        />
+                      </Grid>
+
+                      <Grid item md={6} xs={12}>
+                        <OutlinedSelect
+                          fullWidth
+                          label="Time range"
+                          value={selectedPeriod}
+                          options={periodOptions}
+                          onChange={handlePeriodChange}
+                        />
+                      </Grid>
+
+                      <Grid item md={12} xs={12}>
+                        <MuiPickersUtilsProvider utils={DateFnsUtils}>
+                          <Grid container spacing={1}>
+                            <Grid item lg={6} md={6} sm={6} xl={6} xs={12}>
+                              <KeyboardDatePicker
+                                disabled={disableDatePickers}
+                                disableToolbar
+                                variant="dialog"
+                                format="yyyy-MM-dd"
+                                margin="normal"
+                                id="date-picker-inline"
+                                label="Start Date"
+                                value={selectedDate}
+                                onChange={handleDateChange}
+                                KeyboardButtonProps={{
+                                  "aria-label": "change date",
+                                }}
+                                required
+                                disableFuture
+                              />
+                            </Grid>
+                            <Grid item lg={6} md={6} sm={6} xl={6} xs={12}>
+                              <KeyboardTimePicker
+                                disabled={disableDatePickers}
+                                variant="dialog"
+                                margin="normal"
+                                id="time-picker"
+                                label="Start Time "
+                                value={selectedDate}
+                                onChange={handleDateChange}
+                                KeyboardButtonProps={{
+                                  "aria-label": "change time",
+                                }}
+                                //required
+                              />
+                            </Grid>
+
+                            <Grid item lg={6} md={6} sm={6} xl={6} xs={12}>
+                              <KeyboardDatePicker
+                                disabled={disableDatePickers}
+                                disableToolbar
+                                variant="dialog"
+                                format="yyyy-MM-dd"
+                                margin="normal"
+                                id="date-picker-inline"
+                                label="End Date"
+                                value={selectedEndDate}
+                                onChange={handleEndDateChange}
+                                KeyboardButtonProps={{
+                                  "aria-label": "change end date",
+                                }}
+                                required
+                                disableFuture
+                              />
+                            </Grid>
+                            <Grid item lg={6} md={6} sm={6} xl={6} xs={12}>
+                              <KeyboardTimePicker
+                                disabled={disableDatePickers}
+                                variant="dialog"
+                                margin="normal"
+                                id="time-picker"
+                                label="End Time "
+                                value={selectedEndDate}
+                                onChange={handleEndDateChange}
+                                KeyboardButtonProps={{
+                                  "aria-label": "change end time",
+                                }}
+                                required
+                              />
+                            </Grid>
+                          </Grid>
+                        </MuiPickersUtilsProvider>
+                      </Grid>
+                    </Grid>
+                  </form>
+                </DialogContent>
+                <Divider />
+                <DialogActions>
+                  <Button
+                    onClick={handleClose}
+                    color="primary"
+                    variant="outlined"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    //disabled={!formState.isValid}
+                    variant="contained"
+                    // onClick={handleClose}
+                    color="primary"
+                    type="submit" //set the buttom type is submit
+                    form="customisable-form"
+                  >
+                    Customise
+                  </Button>
+                </DialogActions>
+              </Dialog>
+            </Grid>
           </Grid>
-        }
-        title={`Mean ${selectedFrequency.label} ${
-          selectedPollutant.label
-        } from ${formatDate(startDate, "YYYY-MM-DD")} to ${formatDateString(
-          endDate,
-          "YYYY-MM-DD"
-        )}`}
-        subheader={
-          <Typography noWrap>
-            for {sitesToString(values.selectedOption)}
-          </Typography>
-        }
-        style={{ textAlign: "center" }}
-        classes={{
-          root: classes.cardHeaderRoot,
-          content: classes.cardHeaderContent,
-        }}
-      />
-
-      <Divider />
-      <CardContent>
-        <Grid container spacing={1}>
-          <Grid item lg={12} sm={12} xl={12} xs={12}>
-            <CustomDisplayChart
-              chart_type={selectedChart.value}
-              customisedGraphData={customGraphData}
-              loading={loading}
-              options={options}
-            />
-          </Grid>
-
-          <Grid item lg={12} sm={12} xl={12} xs={12}>
-            <Dialog
-              open={open}
-              onClose={handleClose}
-              aria-labelledby="form-dialog-title"
-            >
-              <DialogTitle id="form-dialog-title" onClose={handleClose}>
-                Customise Chart by Selecting the Various Options
-              </DialogTitle>
-              <Divider />
-              <DialogContent>
-                <form onSubmit={handleSubmit} id="customisable-form">
-                  <Grid container spacing={2}>
-                    <Grid item md={12} xs={12}>
-                      <Select
-                        fullWidth
-                        className="reactSelect"
-                        name="location"
-                        placeholder="Location(s)"
-                        value={tempState.sites.selectedOption}
-                        options={sitesOptions}
-                        onChange={handleMultiChange}
-                        isMulti
-                        variant="outlined"
-                        margin="dense"
-                        required
-                      />
-                    </Grid>
-
-                    <Grid item md={6} xs={12}>
-                      <LabelledSelect
-                        fullWidth
-                        label="Chart Type"
-                        className="reactSelect"
-                        name="chartType"
-                        placeholder="Chart Type"
-                        value={tempState.chartType}
-                        options={chartTypeOptions}
-                        onChange={handleChartTypeChange}
-                        variant="outlined"
-                        margin="dense"
-                        required
-                      />
-                    </Grid>
-
-                    <Grid item md={6} xs={12}>
-                      <LabelledSelect
-                        fullWidth
-                        label="Frequency"
-                        className=""
-                        name="chartFrequency"
-                        placeholder="Frequency"
-                        value={tempState.frequency}
-                        options={frequencyOptions}
-                        onChange={handleFrequencyChange}
-                        variant="outlined"
-                        margin="dense"
-                        required
-                      />
-                    </Grid>
-                    <Grid item md={6} xs={12}>
-                      <LabelledSelect
-                        fullWidth
-                        label="Pollutant"
-                        className=""
-                        name="pollutant"
-                        placeholder="Pollutant"
-                        value={tempState.pollutant}
-                        options={pollutantOptions}
-                        onChange={handlePollutantChange}
-                        variant="outlined"
-                        margin="dense"
-                        required
-                      />
-                    </Grid>
-
-                    <Grid item md={6} xs={12}>
-                      <LabelledSelect
-                        fullWidth
-                        label="Time range"
-                        name="Time range"
-                        placeholder="Time range"
-                        value={selectedPeriod}
-                        options={periodOptions}
-                        onChange={handlePeriodChange}
-                        variant="outlined"
-                        margin="dense"
-                        required
-                      />
-                    </Grid>
-
-                    <Grid item md={12} xs={12}>
-                      <MuiPickersUtilsProvider utils={DateFnsUtils}>
-                        <Grid container spacing={1}>
-                          <Grid item lg={6} md={6} sm={6} xl={6} xs={12}>
-                            <KeyboardDatePicker
-                              disabled={disableDatePickers}
-                              disableToolbar
-                              variant="dialog"
-                              format="yyyy-MM-dd"
-                              margin="normal"
-                              id="date-picker-inline"
-                              label="Start Date"
-                              value={selectedDate}
-                              onChange={handleDateChange}
-                              KeyboardButtonProps={{
-                                "aria-label": "change date",
-                              }}
-                              required
-                              disableFuture
-                            />
-                          </Grid>
-                          <Grid item lg={6} md={6} sm={6} xl={6} xs={12}>
-                            <KeyboardTimePicker
-                              disabled={disableDatePickers}
-                              variant="dialog"
-                              margin="normal"
-                              id="time-picker"
-                              label="Start Time "
-                              value={selectedDate}
-                              onChange={handleDateChange}
-                              KeyboardButtonProps={{
-                                "aria-label": "change time",
-                              }}
-                              //required
-                            />
-                          </Grid>
-
-                          <Grid item lg={6} md={6} sm={6} xl={6} xs={12}>
-                            <KeyboardDatePicker
-                              disabled={disableDatePickers}
-                              disableToolbar
-                              variant="dialog"
-                              format="yyyy-MM-dd"
-                              margin="normal"
-                              id="date-picker-inline"
-                              label="End Date"
-                              value={selectedEndDate}
-                              onChange={handleEndDateChange}
-                              KeyboardButtonProps={{
-                                "aria-label": "change end date",
-                              }}
-                              required
-                              disableFuture
-                            />
-                          </Grid>
-                          <Grid item lg={6} md={6} sm={6} xl={6} xs={12}>
-                            <KeyboardTimePicker
-                              disabled={disableDatePickers}
-                              variant="dialog"
-                              margin="normal"
-                              id="time-picker"
-                              label="End Time "
-                              value={selectedEndDate}
-                              onChange={handleEndDateChange}
-                              KeyboardButtonProps={{
-                                "aria-label": "change end time",
-                              }}
-                              required
-                            />
-                          </Grid>
-                        </Grid>
-                      </MuiPickersUtilsProvider>
-                    </Grid>
-                  </Grid>
-                </form>
-              </DialogContent>
-              <Divider />
-              <DialogActions>
-                <Button
-                  onClick={handleClose}
-                  color="primary"
-                  variant="outlined"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  //disabled={!formState.isValid}
-                  variant="outlined"
-                  // onClick={handleClose}
-                  color="primary"
-                  type="submit" //set the buttom type is submit
-                  form="customisable-form"
-                >
-                  Customise
-                </Button>
-              </DialogActions>
-            </Dialog>
-          </Grid>
-        </Grid>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </Grid>
   );
 };
 

@@ -1,5 +1,6 @@
 // for representing chained operations using redux-thunk
 import axios from "axios";
+import { isEmpty } from "underscore";
 import {
   REFRESH_FILTER_LOCATION_DATA_SUCCESS,
   REFRESH_FILTER_LOCATION_DATA_ERROR,
@@ -11,16 +12,18 @@ import {
   RESET_LOCATION_FILTER_SUCCESS,
   LOAD_DASHBOARD_SITES_SUCCESS,
   LOAD_DASHBOARD_SITES_FAILURE,
+  UPDATE_USER_DEFAULT_GRAPHS_SUCCESS,
+  UPDATE_USER_DEFAULT_GRAPHS_FAILURE,
 } from "./actions";
 import { DEFAULTS_URI } from "config/urls/authService";
-import { KCCAInitialUserDefaultGraphsState } from "./constants";
-import { filterDefaults } from "./utils";
 import { getMonitoringSitesLocationsApi } from "views/apis/location";
+import { getUserChartDefaultsApi } from "views/apis/authService";
 import { getSitesApi } from "views/apis/analytics";
 
 export const loadSites = () => async (dispatch) => {
   return await getSitesApi()
     .then((res) => {
+      if (isEmpty(res.data)) return;
       dispatch({
         type: LOAD_DASHBOARD_SITES_SUCCESS,
         payload: res.data || [],
@@ -54,15 +57,12 @@ export const refreshFilterLocationData = () => {
 
 export const loadUserDefaultGraphData = () => {
   return async (dispatch, getState) => {
-    const user = getState().auth.user._id;
-    return await axios
-      .get(DEFAULTS_URI, { params: { user } })
-      .then((res) => res.data)
+    const userID = getState().auth.user._id;
+    return await getUserChartDefaultsApi(userID, userID)
       .then((userDefaultsData) => {
-        const { defaults } = userDefaultsData;
         dispatch({
           type: LOAD_USER_DEFAULT_GRAPHS_SUCCESS,
-          payload: filterDefaults(defaults, KCCAInitialUserDefaultGraphsState),
+          payload: userDefaultsData.defaults || [],
         });
       })
       .catch((err) => {
@@ -96,6 +96,13 @@ export const setUserDefaultGraphData = (filter) => {
         });
       });
   };
+};
+
+export const updateUserDefaultGraphData = (newChartDefault) => (dispatch) => {
+  return dispatch({
+    type: UPDATE_USER_DEFAULT_GRAPHS_SUCCESS,
+    payload: newChartDefault,
+  });
 };
 
 export const resetDashboardState = () => (dispatch) => {

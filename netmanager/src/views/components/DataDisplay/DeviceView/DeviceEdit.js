@@ -3,7 +3,7 @@ import { useDispatch } from "react-redux";
 import TextField from "@material-ui/core/TextField";
 import Paper from "@material-ui/core/Paper";
 import { Button, Grid } from "@material-ui/core";
-import LabelledSelect from "../../CustomSelects/LabelledSelect";
+import OutlinedSelect from "../../CustomSelects/OutlinedSelect";
 import { isEmpty, isEqual } from "underscore";
 import { updateMainAlert } from "redux/MainAlert/operations";
 import { updateDeviceDetails } from "views/apis/deviceRegistry";
@@ -261,12 +261,18 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
               <option value="Africell">Africell</option>
             </TextField>
           </Grid>
-          <Grid items xs={12} sm={4} style={gridItemStyle}>
-            <LabelledSelect
+          <Grid
+            items
+            xs={12}
+            sm={4}
+            style={{ display: "flex", alignItems: "center" }}
+          >
+            <OutlinedSelect
               label={"Site"}
               defaultValue={site}
               onChange={setSite}
               options={siteOptions}
+              fullWidth
             />
           </Grid>
 
