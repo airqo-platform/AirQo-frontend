@@ -1,5 +1,6 @@
 /* eslint-disable */
 import React, { useState, useEffect } from "react";
+import { useDispatch } from "react-redux";
 import clsx from "clsx";
 import PropTypes from "prop-types";
 import { makeStyles } from "@material-ui/styles";
@@ -25,7 +26,7 @@ import usersStateConnector from "views/stateConnectors/usersStateConnector";
 import ConfirmDialog from "views/containers/ConfirmDialog";
 import { confirmCandidateApi, deleteCandidateApi } from "views/apis/authService";
 import { updateMainAlert } from "redux/MainAlert/operations";
-import { useDispatch } from "react-redux";
+import { updateCandidateApi } from "views/apis/authService";
 
 const useStyles = makeStyles((theme) => ({
   root: {},
@@ -185,16 +186,32 @@ const CandidatesTable = (props) => {
                 field: "organization",
               },
               {
-                title: "Country",
-                field: "country",
-              },
-              {
                 title: "Job Title",
                 field: "jobTitle",
               },
               {
-                title: "Phone Number",
-                field: "phoneNumber"
+                title: "Status",
+                field: "status",
+                  render: (candidate) => (<div>
+                      <span
+                          style={
+                              candidate.status === 'pending' ? {
+                                  padding: "5px",
+                                  border: "1px solid #e3e3e3",
+                                  background: "#e3e3e3",
+                                  fontWeight: "bold",
+                                  borderRadius: "5px"
+                              } : {
+                                  padding: "5px",
+                                  border: "1px solid #d70c00",
+                                  background: "#d70c00",
+                                  color: "white",
+                                  fontWeight: "bold",
+                                  borderRadius: "5px"
+                              }}>
+                          {candidate.status}
+                      </span>
+                  </div>)
               },
               {
                 title: "Action",
