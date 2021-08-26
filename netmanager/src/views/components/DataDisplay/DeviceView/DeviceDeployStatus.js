@@ -26,7 +26,7 @@ import {
   getFirstNDurations,
 } from "utils/dateTime";
 import ConfirmDialog from "views/containers/ConfirmDialog";
-import LabelledSelect from "../../CustomSelects/LabelledSelect";
+import OutlinedSelect from "../../CustomSelects/OutlinedSelect";
 import { loadDevicesData } from "redux/DeviceRegistry/operations";
 import { capitalize } from "utils/string";
 import { filterSite } from "utils/sites";
@@ -551,7 +551,7 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
         <Grid container spacing={1}>
           <Grid items xs={12} sm={6}>
             <div style={{ marginBottom: "15px" }}>
-              <LabelledSelect
+              <OutlinedSelect
                 label="Site"
                 options={siteOptions}
                 value={site}

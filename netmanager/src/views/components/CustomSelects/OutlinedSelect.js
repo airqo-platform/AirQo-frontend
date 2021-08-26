@@ -33,7 +33,7 @@ export default function OutlinedSelect({ label, components, ...props }) {
   const modifiedLabel =
     (props.required && <span>{label.trimEnd()} &#42;</span>) || label;
   return (
-    <>
+    <div style={{width: "100%"}}>
       <Select
         components={{
           ...components,
@@ -86,6 +86,6 @@ export default function OutlinedSelect({ label, components, ...props }) {
           {props.helperText}
         </div>
       )}
-    </>
+    </div>
   );
 }
