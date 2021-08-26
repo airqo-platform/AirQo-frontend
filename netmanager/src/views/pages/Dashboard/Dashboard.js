@@ -43,7 +43,7 @@ const useStyles = makeStyles((theme) => ({
   },
   chartCard: {},
   customChartCard: {
-    height: '70vh'
+    height: "70vh",
   },
   differenceIcon: {
     color: theme.palette.text.secondary,
@@ -471,21 +471,12 @@ const Dashboard = (props) => {
         {userDefaultGraphs &&
           userDefaultGraphs.map((filter, key) => {
             return (
-              <Grid
-                item
-                lg={6}
-                md={6}
-                sm={12}
-                xl={6}
-                xs={12}
-                key={`userDefaultGraphs-${key}`}
-              >
-                <CustomisableChart
-                  className={clsx(classes.customChartCard)}
-                  defaultFilter={filter}
-                  idSuffix={`custom-${key + 1}`}
-                />
-              </Grid>
+              <CustomisableChart
+                className={clsx(classes.customChartCard)}
+                defaultFilter={filter}
+                idSuffix={`custom-${key + 1}`}
+                key={key}
+              />
             );
           })}
 

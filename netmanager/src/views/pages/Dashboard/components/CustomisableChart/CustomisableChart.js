@@ -668,11 +668,13 @@ const CustomisableChart = (props) => {
     }
   };
 
+  const [hidden, setHidden] = useState(false);
+
   const deleteChart = async () => {
     setAnchorEl(null);
     await deleteUserChartDefaultsApi(defaultFilter._id)
       .then((responseData) => {
-        dispatch(loadUserDefaultGraphData());
+        setHidden(true);
         dispatch(
           updateMainAlert({
             show: true,
@@ -732,248 +734,259 @@ const CustomisableChart = (props) => {
   };
 
   return (
-    <Card {...rest} className={className} id={rootCustomChartContainerId}>
-      <CardHeader
-        action={
-          <Grid>
-            <IconButton
-              size="small"
-              color="primary"
-              id={iconButton}
-              onClick={handleClick}
-              className={classes.chartSaveButton}
-            >
-              <MoreHoriz />
-            </IconButton>
-            <Menu
-              anchorEl={anchorEl}
-              open={openMenu}
-              onClose={handleMenuClose}
-              PaperProps={paperProps}
-            >
-              {menuOptions.map((option) => (
-                <MenuItem
-                  key={option.key}
-                  onClick={handleExportCustomChart(option)}
-                >
-                  {option.text}
-                </MenuItem>
-              ))}
-            </Menu>
+    <Grid
+      item
+      lg={6}
+      md={6}
+      sm={12}
+      xl={6}
+      xs={12}
+      key={`userDefaultGraphs-${props.key}`}
+      style={hidden ? { display: "none" } : {}}
+    >
+      <Card {...rest} className={className} id={rootCustomChartContainerId}>
+        <CardHeader
+          action={
+            <Grid>
+              <IconButton
+                size="small"
+                color="primary"
+                id={iconButton}
+                onClick={handleClick}
+                className={classes.chartSaveButton}
+              >
+                <MoreHoriz />
+              </IconButton>
+              <Menu
+                anchorEl={anchorEl}
+                open={openMenu}
+                onClose={handleMenuClose}
+                PaperProps={paperProps}
+              >
+                {menuOptions.map((option) => (
+                  <MenuItem
+                    key={option.key}
+                    onClick={handleExportCustomChart(option)}
+                  >
+                    {option.text}
+                  </MenuItem>
+                ))}
+              </Menu>
+            </Grid>
+          }
+          title={title}
+          subheader={
+            <Typography noWrap>
+              for{" "}
+              <span style={{ textTransform: "capitalize", fontWeight: "bold" }}>
+                {tempState.subTitle}
+              </span>{" "}
+              {!tempState.subTitle && sitesToString(values.selectedOption)}
+            </Typography>
+          }
+          style={{ textAlign: "center" }}
+          classes={{
+            root: classes.cardHeaderRoot,
+            content: classes.cardHeaderContent,
+          }}
+        />
+
+        <Divider />
+        <CardContent>
+          <Grid container spacing={1}>
+            <Grid item lg={12} sm={12} xl={12} xs={12}>
+              <CustomDisplayChart
+                chart_type={selectedChart.value}
+                customisedGraphData={customGraphData}
+                loading={loading}
+                options={options}
+              />
+            </Grid>
+
+            <Grid item lg={12} sm={12} xl={12} xs={12}>
+              <Dialog
+                open={open}
+                onClose={handleClose}
+                aria-labelledby="form-dialog-title"
+              >
+                <DialogTitle id="form-dialog-title" onClose={handleClose}>
+                  Customise Chart by Selecting the Various Options
+                </DialogTitle>
+                <Divider />
+                <DialogContent>
+                  <form onSubmit={handleSubmit} id="customisable-form">
+                    <Grid container spacing={2}>
+                      <Grid item md={12} xs={12}>
+                        <TextField
+                          autoFocus
+                          margin="dense"
+                          label="Location Name"
+                          variant="outlined"
+                          value={tempState.subTitle}
+                          onChange={(evt) =>
+                            setTempState({
+                              ...tempState,
+                              subTitle: evt.target.value,
+                            })
+                          }
+                          fullWidth
+                        />
+                      </Grid>
+                      <Grid item md={12} xs={12}>
+                        <OutlinedSelect
+                          fullWidth
+                          className="reactSelect"
+                          label="Sites"
+                          value={tempState.sites.selectedOption}
+                          options={sitesOptions}
+                          onChange={handleMultiChange}
+                          isMulti
+                          scrollable
+                          height={"100px"}
+                        />
+                      </Grid>
+
+                      <Grid item md={6} xs={12}>
+                        <OutlinedSelect
+                          fullWidth
+                          label="Chart Type"
+                          value={tempState.chartType}
+                          options={chartTypeOptions}
+                          onChange={handleChartTypeChange}
+                        />
+                      </Grid>
+
+                      <Grid item md={6} xs={12}>
+                        <OutlinedSelect
+                          fullWidth
+                          label="Frequency"
+                          value={tempState.frequency}
+                          options={frequencyOptions}
+                          onChange={handleFrequencyChange}
+                        />
+                      </Grid>
+                      <Grid item md={6} xs={12}>
+                        <OutlinedSelect
+                          fullWidth
+                          label="Pollutant"
+                          value={tempState.pollutant}
+                          options={pollutantOptions}
+                          onChange={handlePollutantChange}
+                        />
+                      </Grid>
+
+                      <Grid item md={6} xs={12}>
+                        <OutlinedSelect
+                          fullWidth
+                          label="Time range"
+                          value={selectedPeriod}
+                          options={periodOptions}
+                          onChange={handlePeriodChange}
+                        />
+                      </Grid>
+
+                      <Grid item md={12} xs={12}>
+                        <MuiPickersUtilsProvider utils={DateFnsUtils}>
+                          <Grid container spacing={1}>
+                            <Grid item lg={6} md={6} sm={6} xl={6} xs={12}>
+                              <KeyboardDatePicker
+                                disabled={disableDatePickers}
+                                disableToolbar
+                                variant="dialog"
+                                format="yyyy-MM-dd"
+                                margin="normal"
+                                id="date-picker-inline"
+                                label="Start Date"
+                                value={selectedDate}
+                                onChange={handleDateChange}
+                                KeyboardButtonProps={{
+                                  "aria-label": "change date",
+                                }}
+                                required
+                                disableFuture
+                              />
+                            </Grid>
+                            <Grid item lg={6} md={6} sm={6} xl={6} xs={12}>
+                              <KeyboardTimePicker
+                                disabled={disableDatePickers}
+                                variant="dialog"
+                                margin="normal"
+                                id="time-picker"
+                                label="Start Time "
+                                value={selectedDate}
+                                onChange={handleDateChange}
+                                KeyboardButtonProps={{
+                                  "aria-label": "change time",
+                                }}
+                                //required
+                              />
+                            </Grid>
+
+                            <Grid item lg={6} md={6} sm={6} xl={6} xs={12}>
+                              <KeyboardDatePicker
+                                disabled={disableDatePickers}
+                                disableToolbar
+                                variant="dialog"
+                                format="yyyy-MM-dd"
+                                margin="normal"
+                                id="date-picker-inline"
+                                label="End Date"
+                                value={selectedEndDate}
+                                onChange={handleEndDateChange}
+                                KeyboardButtonProps={{
+                                  "aria-label": "change end date",
+                                }}
+                                required
+                                disableFuture
+                              />
+                            </Grid>
+                            <Grid item lg={6} md={6} sm={6} xl={6} xs={12}>
+                              <KeyboardTimePicker
+                                disabled={disableDatePickers}
+                                variant="dialog"
+                                margin="normal"
+                                id="time-picker"
+                                label="End Time "
+                                value={selectedEndDate}
+                                onChange={handleEndDateChange}
+                                KeyboardButtonProps={{
+                                  "aria-label": "change end time",
+                                }}
+                                required
+                              />
+                            </Grid>
+                          </Grid>
+                        </MuiPickersUtilsProvider>
+                      </Grid>
+                    </Grid>
+                  </form>
+                </DialogContent>
+                <Divider />
+                <DialogActions>
+                  <Button
+                    onClick={handleClose}
+                    color="primary"
+                    variant="outlined"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    //disabled={!formState.isValid}
+                    variant="contained"
+                    // onClick={handleClose}
+                    color="primary"
+                    type="submit" //set the buttom type is submit
+                    form="customisable-form"
+                  >
+                    Customise
+                  </Button>
+                </DialogActions>
+              </Dialog>
+            </Grid>
           </Grid>
-        }
-        title={title}
-        subheader={
-          <Typography noWrap>
-            for{" "}
-            <span style={{ textTransform: "capitalize", fontWeight: "bold" }}>
-              {tempState.subTitle}
-            </span>{" "}
-            {!tempState.subTitle && sitesToString(values.selectedOption)}
-          </Typography>
-        }
-        style={{ textAlign: "center" }}
-        classes={{
-          root: classes.cardHeaderRoot,
-          content: classes.cardHeaderContent,
-        }}
-      />
-
-      <Divider />
-      <CardContent>
-        <Grid container spacing={1}>
-          <Grid item lg={12} sm={12} xl={12} xs={12}>
-            <CustomDisplayChart
-              chart_type={selectedChart.value}
-              customisedGraphData={customGraphData}
-              loading={loading}
-              options={options}
-            />
-          </Grid>
-
-          <Grid item lg={12} sm={12} xl={12} xs={12}>
-            <Dialog
-              open={open}
-              onClose={handleClose}
-              aria-labelledby="form-dialog-title"
-            >
-              <DialogTitle id="form-dialog-title" onClose={handleClose}>
-                Customise Chart by Selecting the Various Options
-              </DialogTitle>
-              <Divider />
-              <DialogContent>
-                <form onSubmit={handleSubmit} id="customisable-form">
-                  <Grid container spacing={2}>
-                    <Grid item md={12} xs={12}>
-                      <TextField
-                        autoFocus
-                        margin="dense"
-                        label="Location Name"
-                        variant="outlined"
-                        value={tempState.subTitle}
-                        onChange={(evt) =>
-                          setTempState({
-                            ...tempState,
-                            subTitle: evt.target.value,
-                          })
-                        }
-                        fullWidth
-                      />
-                    </Grid>
-                    <Grid item md={12} xs={12}>
-                      <OutlinedSelect
-                        fullWidth
-                        className="reactSelect"
-                        label="Sites"
-                        value={tempState.sites.selectedOption}
-                        options={sitesOptions}
-                        onChange={handleMultiChange}
-                        isMulti
-                        scrollable
-                        height={"100px"}
-                      />
-                    </Grid>
-
-                    <Grid item md={6} xs={12}>
-                      <OutlinedSelect
-                        fullWidth
-                        label="Chart Type"
-                        value={tempState.chartType}
-                        options={chartTypeOptions}
-                        onChange={handleChartTypeChange}
-                      />
-                    </Grid>
-
-                    <Grid item md={6} xs={12}>
-                      <OutlinedSelect
-                        fullWidth
-                        label="Frequency"
-                        value={tempState.frequency}
-                        options={frequencyOptions}
-                        onChange={handleFrequencyChange}
-                      />
-                    </Grid>
-                    <Grid item md={6} xs={12}>
-                      <OutlinedSelect
-                        fullWidth
-                        label="Pollutant"
-                        value={tempState.pollutant}
-                        options={pollutantOptions}
-                        onChange={handlePollutantChange}
-                      />
-                    </Grid>
-
-                    <Grid item md={6} xs={12}>
-                      <OutlinedSelect
-                        fullWidth
-                        label="Time range"
-                        value={selectedPeriod}
-                        options={periodOptions}
-                        onChange={handlePeriodChange}
-                      />
-                    </Grid>
-
-                    <Grid item md={12} xs={12}>
-                      <MuiPickersUtilsProvider utils={DateFnsUtils}>
-                        <Grid container spacing={1}>
-                          <Grid item lg={6} md={6} sm={6} xl={6} xs={12}>
-                            <KeyboardDatePicker
-                              disabled={disableDatePickers}
-                              disableToolbar
-                              variant="dialog"
-                              format="yyyy-MM-dd"
-                              margin="normal"
-                              id="date-picker-inline"
-                              label="Start Date"
-                              value={selectedDate}
-                              onChange={handleDateChange}
-                              KeyboardButtonProps={{
-                                "aria-label": "change date",
-                              }}
-                              required
-                              disableFuture
-                            />
-                          </Grid>
-                          <Grid item lg={6} md={6} sm={6} xl={6} xs={12}>
-                            <KeyboardTimePicker
-                              disabled={disableDatePickers}
-                              variant="dialog"
-                              margin="normal"
-                              id="time-picker"
-                              label="Start Time "
-                              value={selectedDate}
-                              onChange={handleDateChange}
-                              KeyboardButtonProps={{
-                                "aria-label": "change time",
-                              }}
-                              //required
-                            />
-                          </Grid>
-
-                          <Grid item lg={6} md={6} sm={6} xl={6} xs={12}>
-                            <KeyboardDatePicker
-                              disabled={disableDatePickers}
-                              disableToolbar
-                              variant="dialog"
-                              format="yyyy-MM-dd"
-                              margin="normal"
-                              id="date-picker-inline"
-                              label="End Date"
-                              value={selectedEndDate}
-                              onChange={handleEndDateChange}
-                              KeyboardButtonProps={{
-                                "aria-label": "change end date",
-                              }}
-                              required
-                              disableFuture
-                            />
-                          </Grid>
-                          <Grid item lg={6} md={6} sm={6} xl={6} xs={12}>
-                            <KeyboardTimePicker
-                              disabled={disableDatePickers}
-                              variant="dialog"
-                              margin="normal"
-                              id="time-picker"
-                              label="End Time "
-                              value={selectedEndDate}
-                              onChange={handleEndDateChange}
-                              KeyboardButtonProps={{
-                                "aria-label": "change end time",
-                              }}
-                              required
-                            />
-                          </Grid>
-                        </Grid>
-                      </MuiPickersUtilsProvider>
-                    </Grid>
-                  </Grid>
-                </form>
-              </DialogContent>
-              <Divider />
-              <DialogActions>
-                <Button
-                  onClick={handleClose}
-                  color="primary"
-                  variant="outlined"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  //disabled={!formState.isValid}
-                  variant="contained"
-                  // onClick={handleClose}
-                  color="primary"
-                  type="submit" //set the buttom type is submit
-                  form="customisable-form"
-                >
-                  Customise
-                </Button>
-              </DialogActions>
-            </Dialog>
-          </Grid>
-        </Grid>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </Grid>
   );
 };
 
