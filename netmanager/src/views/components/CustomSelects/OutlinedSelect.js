@@ -47,8 +47,9 @@ export default function OutlinedSelect({ label, components, ...props }) {
           }),
           control: (provided, state, other) => ({
             ...provided,
-            borderColor:
-              state.selectProps && state.selectProps.error ? "red" : "inherit",
+            ...(state.selectProps && state.selectProps.error
+              ? { borderColor: "red" }
+              : {}),
           }),
           valueContainer: (provided, state) => ({
             ...provided,
