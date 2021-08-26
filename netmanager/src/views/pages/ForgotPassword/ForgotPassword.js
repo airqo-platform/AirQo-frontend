@@ -1,5 +1,6 @@
 /* eslint-disable */
 import React, { Component } from "react";
+import { useDispatch } from "react-redux";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { forgotPassword } from "../../../redux/Join/actions";
@@ -10,6 +11,7 @@ import Alert from "@material-ui/lab/Alert";
 import { CardContent } from "@material-ui/core";
 import Grid from "@material-ui/core/Grid";
 import AlertMinimal from "../../layouts/AlertsMininal";
+import { updateMainAlert } from "redux/MainAlert/operations";
 
 const title = {
   pageTitle: "Forgot Password Screen",
@@ -76,10 +78,10 @@ class ForgotPassword extends Component {
 
     await forgotPasswordResetApi(userData)
         .then(responseData => {
-          this.setAlert({
+          this.props.updateMainAlert({
             show: true,
             message: responseData.message,
-            type: "success"
+            severity: "success"
           })
           this.setState({
             email: "",
@@ -208,6 +210,6 @@ const mapSateToProps = (state) => ({
   errors: state.errors,
 });
 
-export default connect(mapSateToProps, { forgotPassword })(ForgotPassword);
+export default connect(mapSateToProps, { forgotPassword, updateMainAlert })(ForgotPassword);
 
 //
