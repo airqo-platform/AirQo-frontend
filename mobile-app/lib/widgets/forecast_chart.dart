@@ -19,7 +19,13 @@ class _ForecastBarChartState extends State<ForecastBarChart> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return Card(
+      color: ColorConstants().appColor,
+      elevation: 20,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Container(
       color: Colors.white,
       height: 300,
       padding: const EdgeInsets.fromLTRB(12, 10, 5, 10),
@@ -90,31 +96,32 @@ class _ForecastBarChartState extends State<ForecastBarChart> {
               selectionModels: [
                 charts.SelectionModelConfig(
                     changedListener: (charts.SelectionModel model) {
-                  if (model.hasDatumSelection) {
-                    try {
-                      setState(() {
-                        display = {
-                          'time': (model.selectedSeries[0]
+                      if (model.hasDatumSelection) {
+                        try {
+                          setState(() {
+                            display = {
+                              'time': (model.selectedSeries[0]
                                   .domainFn(model.selectedDatum[0].index))
-                              .toString(),
-                          'value': double.parse((model.selectedSeries[0]
+                                  .toString(),
+                              'value': double.parse((model.selectedSeries[0]
                                   .measureFn(model.selectedDatum[0].index))
-                              .toString())
-                        };
-                      });
-                    } on Error catch (e) {
-                      print(e);
-                    }
-                  }
-                })
+                                  .toString())
+                            };
+                          });
+                        } on Error catch (e) {
+                          print(e);
+                        }
+                      }
+                    })
               ],
               primaryMeasureAxis: const charts.NumericAxisSpec(
                   tickProviderSpec:
-                      charts.BasicNumericTickProviderSpec(desiredTickCount: 7)),
+                  charts.BasicNumericTickProviderSpec(desiredTickCount: 7)),
             ),
           )
         ],
       ),
+    ),
     );
   }
 }

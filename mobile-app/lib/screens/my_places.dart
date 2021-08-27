@@ -1,7 +1,7 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/device.dart';
 import 'package:app/models/measurement.dart';
-import 'package:app/screens/place_details.dart';
+import 'package:app/screens/place_details_v2.dart';
 import 'package:app/screens/search_location_page.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/utils/dialogs.dart';
@@ -45,7 +45,10 @@ class _MyPlacesState extends State<MyPlaces> {
                 ),
               )
             : const Text('MyPlaces',
-          style: TextStyle(color: Colors.white),),
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          )),
         actions: [
           IconButton(
             icon: const Icon(
@@ -119,10 +122,19 @@ class _MyPlacesState extends State<MyPlaces> {
                           title: Text(
                             '${searchResults[index].device.siteName}',
                             overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 17,
+                                color: ColorConstants().appColor,
+                                fontWeight: FontWeight.bold,
+                              )
                           ),
                           subtitle: Text(
                             '${searchResults[index].device.locationName}',
                             overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: ColorConstants().appColor,
+                              )
                           ),
                         ),
                       ),
@@ -213,10 +225,19 @@ class _MyPlacesState extends State<MyPlaces> {
                                 title: Text(
                                   '${results[index].device.siteName}',
                                   overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: 17,
+                                      color: ColorConstants().appColor,
+                                      fontWeight: FontWeight.bold,
+                                    )
                                 ),
                                 subtitle: Text(
                                   '${results[index].device.locationName}',
                                   overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: ColorConstants().appColor,
+                                    )
                                 ),
                               ),
                             ),

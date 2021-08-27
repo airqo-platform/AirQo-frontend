@@ -6,7 +6,7 @@ import 'package:app/constants/app_constants.dart';
 import 'package:app/models/device.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/suggestion.dart';
-import 'package:app/screens/place_details.dart';
+import 'package:app/screens/place_details_v2.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/services/rest_api.dart';
 import 'package:app/themes/dark_theme.dart';
@@ -277,7 +277,7 @@ class MapPageState extends State<MapPage> {
                     Visibility(
                       visible: _showInfoWindow,
                       child: windowProperties != null
-                          ? infoWindow()
+                          ? infoWindowV2()
                           : Card(
                               child: Padding(
                               padding: const EdgeInsets.all(8.0),
@@ -531,6 +531,114 @@ class MapPageState extends State<MapPage> {
       ),
     ));
   }
+
+  Widget infoWindowV2() {
+    return Card(
+        color: ColorConstants().appColor,
+        elevation: 20,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            children: [
+              Text(windowProperties.device.siteName,
+                softWrap: true,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    fontSize: 20),
+                overflow: TextOverflow.ellipsis,
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
+                child: Container(
+                    padding: const EdgeInsets.all(5.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        Text(
+                          windowProperties.pm2_5.calibratedValue
+                              .toStringAsFixed(2),
+                          style: TextStyle(
+                              fontSize: 17,
+                              color: Colors.white),
+                        ),
+                        Text(
+                          pmToString(windowProperties.pm2_5.calibratedValue),
+                          maxLines: 4,
+                          softWrap: true,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                              color: Colors.white),
+                        ),
+                        Text(
+                          dateToString(windowProperties.time),
+                          style: TextStyle(
+                              fontSize: 17,
+                              color: Colors.white),
+                        ),
+                      ],
+                    )),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  IconButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute<void>(
+                          builder: (BuildContext context) => getHelpPage(''),
+                          fullscreenDialog: true,
+                        ),
+                      );
+                    },
+                    icon:
+                    Icon(Icons.info_outline, color: Colors.white),
+                  ),
+                  IconButton(
+                    onPressed: () {
+                      shareMeasurement(windowProperties);
+                    },
+                    icon: Icon(Icons.share_outlined,
+                        color: Colors.white),
+                  ),
+                  IconButton(
+                      onPressed: () {
+                        updateFavouritePlace(windowProperties.device);
+                      },
+                      icon: favourites.contains(
+                          windowProperties.device.name.trim().toLowerCase())
+                          ? Icon(
+                        Icons.favorite,
+                        color: ColorConstants().red,
+                      )
+                          : Icon(
+                        Icons.favorite_border_outlined,
+                        color: ColorConstants().red,
+                      )),
+                  GestureDetector(
+                    onTap: () {
+                      showDetails(windowProperties.device);
+                    },
+                    child: Text('More Details',
+                        softWrap: true,
+                        style: TextStyle(
+                          fontSize: 17,
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold)),
+                  )
+                ],
+              ),
+            ],
+          ),
+        ));
+  }
+
 
   @override
   void initState() {

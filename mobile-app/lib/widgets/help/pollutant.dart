@@ -16,7 +16,10 @@ class PollutantDialog extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: ColorConstants().appColor,
         title: Text(pollutant.pollutant,
-          style: const TextStyle(color: Colors.white),),
+          style: const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+        ),),
       ),
       body: Padding(
         padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
@@ -41,7 +44,8 @@ class PollutantDialog extends StatelessWidget {
                 'of ${pollutant.pollutant}',
                 softWrap: true,
                 style: TextStyle(
-                    height: 1.2, color: ColorConstants().appColor, fontSize: 15
+                    height: 1.2, color: ColorConstants().appColor, fontSize: 15,
+                    fontWeight: FontWeight.bold
                     // letterSpacing: 1.0
                     )),
           ),
@@ -73,7 +77,8 @@ class PollutantDialog extends StatelessWidget {
                 ' ${pollutant.pollutant}',
                 softWrap: true,
                 style: TextStyle(
-                    height: 1.5, color: ColorConstants().appColor, fontSize: 15
+                    height: 1.5, color: ColorConstants().appColor, fontSize: 15,
+                    fontWeight: FontWeight.bold
                     // letterSpacing: 1.0
                     )),
           ),
@@ -105,7 +110,8 @@ class PollutantDialog extends StatelessWidget {
               child: Text('Learn more about ${pollutant.pollutant}',
                   softWrap: true,
                   style: const TextStyle(
-                      height: 1.5, color: Colors.white, fontSize: 15
+                      height: 1.5, color: Colors.white, fontSize: 15,
+                      fontWeight: FontWeight.bold
                       // letterSpacing: 1.0
                       )))
         ],
@@ -125,7 +131,8 @@ class PollutantDialog extends StatelessWidget {
             child: Text('Sources of ${pollutant.pollutant}',
                 softWrap: true,
                 style: TextStyle(
-                    height: 1.2, color: ColorConstants().appColor, fontSize: 15
+                    height: 1.2, color: ColorConstants().appColor, fontSize: 15,
+                    fontWeight: FontWeight.bold
                     // letterSpacing: 1.0
                     )),
           ),
@@ -157,7 +164,8 @@ class PollutantDialog extends StatelessWidget {
                 'and how does it get into the air?',
                 softWrap: true,
                 style: TextStyle(
-                    height: 1.2, color: ColorConstants().appColor, fontSize: 15
+                    height: 1.2, color: ColorConstants().appColor, fontSize: 15,
+                    fontWeight: FontWeight.bold
                     // letterSpacing: 1.0
                     )),
           ),

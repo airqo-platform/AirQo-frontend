@@ -2,7 +2,7 @@ import 'package:app/constants/app_constants.dart';
 import 'package:app/models/device.dart';
 import 'package:app/models/place.dart';
 import 'package:app/models/suggestion.dart';
-import 'package:app/screens/place_details.dart';
+import 'package:app/screens/place_details_v2.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/services/rest_api.dart';
 import 'package:app/utils/distance.dart';
@@ -185,9 +185,18 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                                   }));
                                 },
                                 child: ListTile(
-                                  title: Text('${devices[index].siteName}'),
+                                  title: Text('${devices[index].siteName}',
+                                      style: TextStyle(
+                                        fontSize: 17,
+                                        color: ColorConstants().appColor,
+                                        fontWeight: FontWeight.bold,
+                                      )),
                                   subtitle:
-                                      Text('${devices[index].locationName}'),
+                                      Text('${devices[index].locationName}',
+                                          style: TextStyle(
+                                            fontSize: 15,
+                                            color: ColorConstants().appColor,
+                                          )),
                                   // leading: const Icon(
                                   //   Icons.location_pin,
                                   //   color: ColorConstants().appColor,
@@ -279,7 +288,8 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                     title: Text(
                       (results[index]).description,
                       style:
-                          const TextStyle(fontSize: 12, color: Colors.black54),
+                           TextStyle(fontSize: 12, color:
+                           ColorConstants().appColor),
                     ),
                     leading: Icon(
                       Icons.history,
@@ -335,6 +345,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
             itemBuilder: (context, index) => ListTile(
               title: Text(
                 (results[index]).description,
+                  style: TextStyle(color: ColorConstants().appColor)
               ),
               onTap: () {
                 query = (results[index]).description;
@@ -414,8 +425,17 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                       }));
                     },
                     child: ListTile(
-                      title: Text('${devices[index].siteName}'),
-                      subtitle: Text('${devices[index].locationName}'),
+                      title: Text('${devices[index].siteName}',
+                          style: TextStyle(
+                            fontSize: 17,
+                            color: ColorConstants().appColor,
+                            fontWeight: FontWeight.bold,
+                          )),
+                      subtitle: Text('${devices[index].locationName}',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: ColorConstants().appColor,
+                          )),
                       leading: Icon(
                         Icons.location_pin,
                         color: ColorConstants().appColor,
@@ -474,8 +494,17 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                       }));
                     },
                     child: ListTile(
-                      title: Text('${devices[index].siteName}'),
-                      subtitle: Text('${devices[index].locationName}'),
+                      title: Text('${devices[index].siteName}',
+                          style: TextStyle(
+                            fontSize: 17,
+                            color: ColorConstants().appColor,
+                            fontWeight: FontWeight.bold,
+                          )),
+                      subtitle: Text('${devices[index].locationName}',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: ColorConstants().appColor,
+                          )),
                       leading: Icon(
                         Icons.location_pin,
                         color: ColorConstants().appColor,
