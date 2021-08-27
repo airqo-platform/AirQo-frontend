@@ -21,6 +21,8 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'help_page.dart';
+
 class PlaceDetailsPage extends StatefulWidget {
   final Device device;
 
@@ -262,7 +264,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                     Navigator.push(
                       context,
                       MaterialPageRoute<void>(
-                        builder: (BuildContext context) => AQI_Dialog(),
+                        builder: (BuildContext context) => HelpPage(),
                         fullscreenDialog: true,
                       ),
                     );

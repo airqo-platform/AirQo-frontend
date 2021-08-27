@@ -18,6 +18,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'dashboard_page.dart';
+import 'help_page.dart';
 
 class HomePageV2 extends StatefulWidget {
   final String title = 'AirQo';
@@ -232,7 +233,7 @@ class _HomePageV2State extends State<HomePageV2> {
       Navigator.push(
         context,
         MaterialPageRoute<void>(
-          builder: (BuildContext context) => AQI_Dialog(),
+          builder: (BuildContext context) => HelpPage(),
           fullscreenDialog: true,
         ),
       );

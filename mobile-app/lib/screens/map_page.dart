@@ -621,17 +621,7 @@ class MapPageState extends State<MapPage> {
                         Icons.favorite_border_outlined,
                         color: ColorConstants().red,
                       )),
-                  GestureDetector(
-                    onTap: () {
-                      showDetails(windowProperties.device);
-                    },
-                    child: Text('More Details',
-                        softWrap: true,
-                        style: TextStyle(
-                          fontSize: 17,
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold)),
-                  )
+                  detailsButton(windowProperties.device),
                 ],
               ),
             ],
@@ -795,4 +785,29 @@ class MapPageState extends State<MapPage> {
           strokeWidth: 2,
           strokeColor: ColorConstants().appColor));
   }
+
+  RawMaterialButton detailsButton(Device device) {
+    return RawMaterialButton(
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10.0),
+          side: const BorderSide(color: Colors.white, width: 1)),
+      fillColor: Colors.white,
+      elevation: 20,
+      highlightElevation: 20,
+      splashColor: Colors.black12,
+      highlightColor: Colors.white.withOpacity(0.4),
+      onPressed: () async {
+        showDetails(device);
+      },
+      child: Padding(
+        padding: const EdgeInsets.all(10),
+        child: Text(
+          'More Details',
+          style: TextStyle(color: ColorConstants().appColor),
+        ),
+      ),
+    );
+  }
 }
+
+

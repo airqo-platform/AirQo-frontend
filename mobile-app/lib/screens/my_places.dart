@@ -180,7 +180,7 @@ class _MyPlacesState extends State<MyPlaces> {
                         itemBuilder: (context, index) => GestureDetector(
                           onTap: () {
                             if(results[index] != null){
-                              viewDetails(searchResults[index].device);
+                              viewDetails(results[index].device);
                             }
                           },
                           child: Slidable(
