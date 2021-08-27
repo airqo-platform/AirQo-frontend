@@ -28,65 +28,6 @@ class CardBodySection extends StatelessWidget {
   }
 }
 
-class CardSection extends StatelessWidget {
-  final Measurement data;
-
-  CardSection({Key? key, required this.data}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      child: Row(
-        // crossAxisAlignment: CrossAxisAlignment.center,
-        // mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          Expanded(
-              child: Text('Last updated : ${dateToString(data.time)}',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: ColorConstants().appColor,
-                    fontWeight: FontWeight.w300,
-                    fontStyle: FontStyle.italic,
-                  ))),
-          // const Padding(
-          //   padding: EdgeInsets.fromLTRB(5, 5, 5, 5),
-          //   child: Icon(
-          //     Icons.arrow_forward_outlined,
-          //     color: appColor,
-          //   ),
-          // ),
-          // Column(
-          //   children: [
-          //     Row(
-          //       children: [
-          //         const Padding(
-          //           padding: EdgeInsets.fromLTRB(5, 5, 5, 5),
-          //           child: Icon(Icons.thermostat_outlined),
-          //         ),
-          //         Text('20')
-          //       ],
-          //     )
-          //   ],
-          // ),
-          // Column(
-          //   children: [
-          //     Row(
-          //       children: [
-          //         const Padding(
-          //           padding: EdgeInsets.fromLTRB(5, 5, 5, 5),
-          //           child: Icon(Icons.wb_cloudy_outlined),
-          //         ),
-          //         Text('20')
-          //       ],
-          //     )
-          //   ],
-          // ),
-        ],
-      ),
-    );
-  }
-}
-
 class TitleSection extends StatelessWidget {
   final Measurement data;
 
@@ -95,14 +36,6 @@ class TitleSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-        decoration: BoxDecoration(
-            gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-              pmToColor(data.pm2_5.calibratedValue),
-              Colors.white,
-            ])),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(4, 12, 4, 4),
           child: Row(
@@ -113,8 +46,8 @@ class TitleSection extends StatelessWidget {
                 padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
                 child: Image.asset(
                   pmToEmoji(data.pm2_5.calibratedValue),
-                  height: 40,
-                  width: 40,
+                  height: 50,
+                  width: 50,
                 ),
               ),
               Expanded(
@@ -127,14 +60,17 @@ class TitleSection extends StatelessWidget {
                       maxLines: 4,
                       softWrap: true,
                       style: TextStyle(
-                          color: pmTextColor(data.pm2_5.calibratedValue)),
+                        fontWeight: FontWeight.bold,
+                          fontSize: 17,
+                          color: ColorConstants().appColor),
                     ),
                     Text(
-                      '${data.pm2_5.calibratedValue.toStringAsFixed(2)} µg/m\u00B3',
+                      '${data.pm2_5.calibratedValue.toStringAsFixed(2)}',
                       maxLines: 4,
                       softWrap: true,
                       style: TextStyle(
-                          color: pmTextColor(data.pm2_5.calibratedValue)),
+                          fontSize: 15,
+                          color: ColorConstants().appColor),
                     ),
                     Text(
                       pmToString(data.pm2_5.calibratedValue)
@@ -142,7 +78,8 @@ class TitleSection extends StatelessWidget {
                       maxLines: 4,
                       softWrap: true,
                       style: TextStyle(
-                          color: pmTextColor(data.pm2_5.calibratedValue)),
+                          fontSize: 15,
+                          color: ColorConstants().appColor),
                     ),
                   ],
                 ),
@@ -156,31 +93,31 @@ class TitleSection extends StatelessWidget {
 class _AirQualityCardState extends State<AirQualityCard> {
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: Padding(
-        padding: const EdgeInsets.all(8),
-        child: Column(
-          children: [
-            Card(
-              clipBehavior: Clip.antiAlias,
-              child: Column(
-                children: [
-                  TitleSection(
-                    data: widget.data,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(8),
-                    child: CardSection(
-                      data: widget.data,
-                    ),
-                  )
-                ],
-              ),
-            ),
-          ],
+    return
+      Card(
+        elevation: 5,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
         ),
-      ),
-    );
+        child: Container(
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: Column(
+              children: [
+                TitleSection(
+                  data: widget.data,
+                ),
+                Text('${dateToString(widget.data.time)}',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: ColorConstants().appColor,
+                      fontStyle: FontStyle.italic,
+                    )),
+              ],
+            ),
+          ),
+        )
+      );
   }
 }
 

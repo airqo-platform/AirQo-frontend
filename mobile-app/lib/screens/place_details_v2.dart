@@ -246,7 +246,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                   ),
 
                   Padding(padding: const EdgeInsets.all(1.0),
-                    child: Text('Last updated '
+                    child: Text(''
                         '${dateToString(measurement.time)}',
                         style: const TextStyle(
                           fontSize: 13,
