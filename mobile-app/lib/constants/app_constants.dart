@@ -13,7 +13,7 @@ const appTheme = 'appTheme';
 
 const appWebsite = 'https://www.airqo.net';
 const contactUs = 'https://www.airqo.net/contact-us';
-const defaultRadius = 2;
+const defaultRadius = 1;
 const facebook = 'https://web.facebook.com/AirQo/';
 const facebookColor = Color(0xff4267B2);
 const faqs = 'https://www.airqo.net/faqs';
