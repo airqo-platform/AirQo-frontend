@@ -21,6 +21,10 @@ void showInfoDialog(BuildContext context, String text) {
 
 Future<void> showSnackBar(context, String message) async {
   var snackBar = SnackBar(
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(10),
+    ),
+    elevation: 20,
     behavior: SnackBarBehavior.floating,
     content: Text(
       message,
@@ -34,6 +38,10 @@ Future<void> showSnackBar(context, String message) async {
 
 Future<void> showSnackBar2(context, String message) async {
   var snackBar = SnackBar(
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(10),
+    ),
+    elevation: 20,
     content: Text(
       message,
       softWrap: true,
@@ -46,6 +54,10 @@ Future<void> showSnackBar2(context, String message) async {
 
 Future<void> showSnackBarGoToMyPlaces(context, String message) async {
   var snackBar = SnackBar(
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(10),
+    ),
+    elevation: 20,
     content: Text(
       message,
       softWrap: true,

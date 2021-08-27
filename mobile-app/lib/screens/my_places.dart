@@ -75,7 +75,9 @@ class _MyPlacesState extends State<MyPlaces> {
                 child:ListView.builder(
                   itemBuilder: (context, index) => GestureDetector(
                     onTap: () {
-                      viewDetails(searchResults[index].device);
+                      if(searchResults[index] != null){
+                        viewDetails(searchResults[index].device);
+                      }
                     },
                     child: Slidable(
                       actionPane: const SlidableDrawerActionPane(),
@@ -177,7 +179,9 @@ class _MyPlacesState extends State<MyPlaces> {
                       child: ListView.builder(
                         itemBuilder: (context, index) => GestureDetector(
                           onTap: () {
-                            viewDetails(results[index].device);
+                            if(results[index] != null){
+                              viewDetails(searchResults[index].device);
+                            }
                           },
                           child: Slidable(
                             actionPane: const SlidableDrawerActionPane(),

@@ -91,7 +91,7 @@ class PollutantsCard2 extends StatelessWidget {
                   padding: const EdgeInsets.all(1.0),
                   child: Text('${value.toStringAsFixed(2)}',
                     style: TextStyle(
-                      fontSize: 20,  color: ColorConstants().appColor,
+                      fontSize: 17,  color: ColorConstants().appColor,
                       fontWeight: FontWeight.bold,
                   ),),
                 ),
