@@ -205,26 +205,14 @@ const CreateDevice = ({ open, setOpen }) => {
   const dispatch = useDispatch();
   const newDeviceInitState = {
     long_name: "",
-    description: "",
-    visibility: false,
     generation_version: "",
     generation_count: "",
-    device_manufacturer: "",
-    product_name: "",
-    ISP: "",
-    phoneNumber: "",
   };
 
   const initialErrors = {
     long_name: "",
-    description: "",
-    visibility: "",
     generation_version: "",
     generation_count: "",
-    device_manufacturer: "",
-    product_name: "",
-    ISP: "",
-    phoneNumber: "",
   };
 
   const [newDevice, setNewDevice] = useState(newDeviceInitState);
@@ -313,40 +301,6 @@ const CreateDevice = ({ open, setOpen }) => {
           <TextField
             autoFocus
             margin="dense"
-            label="Description"
-            variant="outlined"
-            value={newDevice.description}
-            onChange={handleDeviceDataChange("description")}
-            error={!!errors.description}
-            helperText={errors.description}
-            fullWidth
-            required
-          />
-          <TextField
-            select
-            fullWidth
-            label="Data Access"
-            style={{ margin: "10px 0" }}
-            value={newDevice.visibility}
-            onChange={handleDeviceDataChange("visibility")}
-            error={!!errors.visibility}
-            helperText={errors.visibility}
-            SelectProps={{
-              native: true,
-              style: { width: "100%", height: "50px" },
-              MenuProps: {
-                className: classes.menu,
-              },
-            }}
-            variant="outlined"
-            required
-          >
-            <option value={false}>Private</option>
-            <option value={true}>Public</option>
-          </TextField>
-          <TextField
-            autoFocus
-            margin="dense"
             label="Generation Version"
             variant="outlined"
             type="number"
@@ -369,62 +323,6 @@ const CreateDevice = ({ open, setOpen }) => {
             onChange={handleDeviceDataChange("generation_count")}
             fullWidth
             required
-          />
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Manufacturer"
-            variant="outlined"
-            value={newDevice.device_manufacturer}
-            onChange={handleDeviceDataChange("device_manufacturer")}
-            error={!!errors.device_manufacturer}
-            helperText={errors.device_manufacturer}
-            fullWidth
-          />
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Product Name"
-            variant="outlined"
-            value={newDevice.product_name}
-            onChange={handleDeviceDataChange("product_name")}
-            error={!!errors.product_name}
-            helperText={errors.product_name}
-            fullWidth
-          />
-          <TextField
-            select
-            fullWidth
-            label="Internet Service Provider"
-            style={{ margin: "10px 0" }}
-            value={newDevice.ISP}
-            onChange={handleDeviceDataChange("ISP")}
-            error={!!errors.ISP}
-            helperText={errors.ISP}
-            SelectProps={{
-              native: true,
-              style: { width: "100%", height: "50px" },
-              MenuProps: {
-                className: classes.menu,
-              },
-            }}
-            variant="outlined"
-          >
-            <option value="" />
-            <option value="MTN">MTN</option>
-            <option value="Airtel">Airtel</option>
-            <option value="Africell">Africell</option>
-          </TextField>
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Phone Number"
-            variant="outlined"
-            value={newDevice.phoneNumber}
-            onChange={handleDeviceDataChange("phoneNumber")}
-            error={!!errors.phoneNumber}
-            helperText={errors.phoneNumber}
-            fullWidth
           />
         </form>
       </DialogContent>
@@ -570,10 +468,7 @@ const DevicesTable = (props) => {
         }}
       />
 
-      <CreateDevice
-        open={registerOpen}
-        setOpen={setRegisterOpen}
-      />
+      <CreateDevice open={registerOpen} setOpen={setRegisterOpen} />
       <ConfirmDialog
         open={delDevice.open}
         title={"Delete a device?"}
