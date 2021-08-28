@@ -25,7 +25,7 @@ spec:
               name: airqo-platform
           envFrom:
             - configMapRef:
-                name: env-production
+                name: env-platform-production
 
             
 

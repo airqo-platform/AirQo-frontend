@@ -3,7 +3,7 @@ env:
   deployment_name: airqo-platform-frontend
   service_name: airqo-platform-ui-svc
   labels: airqo-platform
-  secret: env-production
+  secret: env-platform-production
 
 replicaCount: 2
 
