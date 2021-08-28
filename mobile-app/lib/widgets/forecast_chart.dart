@@ -44,26 +44,41 @@ class _ForecastBarChartState extends State<ForecastBarChart> {
             if (display != null)
               Padding(
                 padding: const EdgeInsets.fromLTRB(0, 2, 0, 0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                child: Column(
                   children: [
-                    Text(
-                      dateToString(display['time'], false),
-                      softWrap: true,
-                      style: TextStyle(color: ColorConstants().appColor),
+                    Row(
+                      children: [
+                        const Spacer(
+                          flex: 1,
+                        ),
+                        Text(
+                          dateToString(display['time'], false),
+                          softWrap: true,
+                          style: TextStyle(color: ColorConstants().appColor),
+                        ),
+                        const Spacer(
+                          flex: 1,
+                        ),
+                        Text(
+                          display['value'].toString(),
+                          softWrap: true,
+                          style: TextStyle(color: ColorConstants().appColor),
+                        ),
+                        const Spacer(
+                          flex: 1,
+                        ),
+                      ],
                     ),
                     Text(
-                      display['value'].toString(),
+                      pmToString(display['value']).replaceAll('\n', ' '),
                       softWrap: true,
-                      style: TextStyle(color: ColorConstants().appColor),
-                    ),
-                    Text(
-                      pmToString(display['value']),
-                      softWrap: true,
-                      style: TextStyle(color: ColorConstants().appColor),
+                      style: TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w600,
+                          color: ColorConstants().appColor),
                     ),
                   ],
-                ),
+                )
               ),
             Expanded(
               child: charts.TimeSeriesChart(

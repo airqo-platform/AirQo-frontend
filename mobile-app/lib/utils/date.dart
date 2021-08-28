@@ -14,8 +14,6 @@ String dateToString(String formattedString, bool addOffset) {
       formattedDate = DateTime.parse(formattedString);
     }
 
-    print('$now vs $formattedDate');
-
     if (now.day == formattedDate.day) {
       return '${DateFormat('hh:mm a').format(formattedDate)}';
     } else {
@@ -25,6 +23,9 @@ String dateToString(String formattedString, bool addOffset) {
           return 'Yesterday, ${DateFormat('hh:mm a').format(formattedDate)}';
         } else {
           var daysAgo = now.difference(formattedDate).inDays;
+          if (daysAgo == 1) {
+            return '$daysAgo day ago';
+          }
           return '$daysAgo days ago';
         }
       } else {

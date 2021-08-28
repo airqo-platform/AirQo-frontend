@@ -2,7 +2,7 @@ import 'package:app/constants/app_constants.dart';
 import 'package:app/models/device.dart';
 import 'package:app/models/place.dart';
 import 'package:app/models/suggestion.dart';
-import 'package:app/screens/place_details_v2.dart';
+import 'package:app/screens/place_details.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/services/rest_api.dart';
 import 'package:app/utils/distance.dart';

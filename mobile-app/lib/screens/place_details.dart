@@ -13,7 +13,7 @@ import 'package:app/utils/share.dart';
 import 'package:app/widgets/expanding_action_button.dart';
 import 'package:app/widgets/forecast_chart.dart';
 import 'package:app/widgets/hourly_chart.dart';
-import 'package:app/widgets/pollutantContainer.dart';
+import 'package:app/widgets/pollutant_card.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -58,7 +58,10 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
       appBar: AppBar(
         title: const Text(
           appName,
-          style: TextStyle(color: Colors.white),
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         actions: [
           // if (isFavourite)
@@ -74,99 +77,9 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
       ),
       body: measurementData != null
           ? Container(
-              decoration: BoxDecoration(
-                image: DecorationImage(
-                  image: AssetImage(
-                      pmToImage(measurementData.pm2_5.calibratedValue)),
-                  fit: BoxFit.cover,
-                ),
-              ),
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
                 children: <Widget>[
-                  // Site Name
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(8.0, 20.0, 8.0, 8.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Expanded(
-                            child: GestureDetector(
-                          onTap: () {
-                            // if (isFavourite) {
-                            //   print('editing');
-                            //   setState(() {
-                            //     titleText = '';
-                            //   });
-                            //   updateTitleDialog(device);
-                            // }
-                          },
-                          child: RichText(
-                            overflow: TextOverflow.ellipsis,
-                            textAlign: TextAlign.center,
-                            maxLines: 10,
-                            text: TextSpan(
-                              style: TextStyle(
-                                fontSize: 20,
-                                color: ColorConstants().appColor,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              text: (isFavourite && device.nickName != '')
-                                  ? '${device.nickName} '
-                                  : '${device.siteName}',
-                              children: <TextSpan>[
-                                // if (isFavourite)
-                                //   TextSpan(
-                                //     text: String.fromCharCode(0xe169),
-                                //     style: const TextStyle(
-                                //       fontSize: 15,
-                                //       fontFamily: 'MaterialIcons',
-                                //       color: ColorConstants().appColor,
-                                //     ),
-                                //   )
-                              ],
-                            ),
-                          ),
-                        )),
-                      ],
-                    ),
-                  ),
-
-                  // location name
-                  Padding(
-                      padding: const EdgeInsets.fromLTRB(8.0, 0, 8.0, 8.0),
-                      child: GestureDetector(
-                        onTap: () {
-                          // if (isFavourite) {
-                          //   print('editing');
-                          //   setState(() {
-                          //     titleText = '';
-                          //   });
-                          //   updateTitleDialog(device);
-                          // }
-                        },
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Expanded(
-                              child: Text(
-                                '${device.locationName}',
-                                overflow: TextOverflow.ellipsis,
-                                textAlign: TextAlign.center,
-                                maxLines: 10,
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  color: ColorConstants().appColor,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      )),
-
                   // card section
                   Padding(
                     padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
@@ -174,14 +87,24 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                   ),
 
                   // Pollutants
-                  PollutantsContainer(measurementData),
+                  PollutantCard(measurementData),
 
                   // historicalData
                   historicalData != null && historicalData.isNotEmpty
                       ? historicalDataSection(historicalData)
                       : historicalResponse != ''
-                          ? Center(
-                              child: Text(historicalResponse),
+                          ? Card(
+                              elevation: 20,
+                              child: Padding(
+                                padding: EdgeInsets.all(5.0),
+                                child: Center(
+                                  child: Text(
+                                    historicalResponse,
+                                    style: TextStyle(
+                                        color: ColorConstants().appColor),
+                                  ),
+                                ),
+                              ),
                             )
                           : Center(
                               child: Container(
@@ -196,8 +119,16 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                   forecastData != null && forecastData.isNotEmpty
                       ? forecastDataSection(forecastData)
                       : forecastResponse != ''
-                          ? Center(
-                              child: Text(forecastResponse),
+                          ? Card(
+                              elevation: 20,
+                              child: Padding(
+                                padding: EdgeInsets.all(5.0),
+                                child: Center(
+                                  child: Text(forecastResponse,
+                                      style: TextStyle(
+                                          color: ColorConstants().appColor)),
+                                ),
+                              ),
                             )
                           : Center(
                               child: Container(
@@ -283,68 +214,64 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
     return Padding(
         padding: const EdgeInsets.all(8.0),
         child: Card(
+            color: ColorConstants().appColor,
+            elevation: 20,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
             child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(0, 5, 0, 0),
-                child: Container(
-                    padding: const EdgeInsets.all(5.0),
-                    decoration: BoxDecoration(
-                        color: pmToColor(measurement.pm2_5.calibratedValue),
-                        border: Border.all(
-                          color: pmToColor(measurement.pm2_5.calibratedValue),
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                children: [
+                  Padding(
+                      padding: const EdgeInsets.all(1.0),
+                      child: Text(
+                        '${device.locationName}',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          color: Colors.white,
                         ),
-                        borderRadius:
-                            const BorderRadius.all(Radius.circular(10))),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(5, 5, 5, 5),
-                          child: Image.asset(
-                            pmToEmoji(measurement.pm2_5.calibratedValue),
-                            height: 40,
-                            width: 40,
-                          ),
-                        ),
-                        Text(
-                          measurement.pm2_5.calibratedValue.toStringAsFixed(2),
-                          style: TextStyle(
-                            color:
-                                pmTextColor(measurement.pm2_5.calibratedValue),
-                            fontWeight: FontWeight.bold,
-                            fontSize: 20,
-                          ),
-                        ),
-                        Text(
-                          pmToString(measurement.pm2_5.calibratedValue),
-                          textAlign: TextAlign.center,
-                          softWrap: true,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            color:
-                                pmTextColor(measurement.pm2_5.calibratedValue),
-                          ),
-                        ),
-                      ],
-                    )),
+                        textAlign: TextAlign.center,
+                      )),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(1.0, 3.0, 1.0, 3.0),
+                    child: Text(
+                      '${device.siteName}',
+                      style: const TextStyle(
+                        fontSize: 20,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(1.0),
+                    child: Text(
+                      'Air Quality '
+                      '${pmToString(measurement.pm2_5.calibratedValue)}',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        color: Colors.white,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(1.0),
+                    child: Text(
+                        ''
+                        '${dateToString(measurement.time, true)}',
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: Colors.white,
+                          fontWeight: FontWeight.w300,
+                          fontStyle: FontStyle.italic,
+                        )),
+                  ),
+                ],
               ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(0, 5, 0, 0),
-                child: Text(
-                    'Last updated : ${dateToString(measurementData.time, true)}',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: ColorConstants().appColor,
-                      fontWeight: FontWeight.w300,
-                      fontStyle: FontStyle.italic,
-                    )),
-              ),
-            ],
-          ),
-        )));
+            )));
   }
 
   Future<void> checkFavourite() async {

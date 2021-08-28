@@ -1,7 +1,7 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/device.dart';
 import 'package:app/models/measurement.dart';
-import 'package:app/screens/place_details_v2.dart';
+import 'package:app/screens/place_details.dart';
 import 'package:app/screens/search_location_page.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/utils/dialogs.dart';
