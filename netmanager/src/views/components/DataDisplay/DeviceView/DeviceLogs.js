@@ -81,10 +81,6 @@ const EditLog = ({ deviceName, deviceLocation, toggleShow, log }) => {
     createTagOption("Air quality sensor(s) works/replacement"),
   ];
 
-  const maintenanceTypeOptions = [
-    { value: "preventive", label: "Preventive" },
-    { value: "Corrective", label: "Corrective" },
-  ];
 
   const handleSubmit = async (evt) => {
     evt.preventDefault();
@@ -95,7 +91,6 @@ const EditLog = ({ deviceName, deviceLocation, toggleShow, log }) => {
       locationName: deviceLocation,
       date: selectedDate.toISOString(),
       tags: extracted_tags,
-      maintenanceType: (maintenanceType && maintenanceType.value) || "",
       description: description,
     };
 
@@ -158,17 +153,6 @@ const EditLog = ({ deviceName, deviceLocation, toggleShow, log }) => {
             value={deviceName}
             fullWidth
             disabled
-          />
-        </div>
-        <div style={{ margin: "5px 0" }}>
-          <CreatableLabelledSelect
-            label={"Type of Maintenance"}
-            options={maintenanceTypeOptions}
-            isClearable
-            value={maintenanceType}
-            onChange={(newValue: any, actionMeta: any) =>
-              setMaintenanceType(newValue)
-            }
           />
         </div>
         <div style={{ margin: "10px 0" }}>
@@ -238,7 +222,6 @@ const EditLog = ({ deviceName, deviceLocation, toggleShow, log }) => {
 const AddLogForm = ({ deviceName, deviceLocation, toggleShow }) => {
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
-  const [maintenanceType, setMaintenanceType] = useState(null);
   const [description, setDescription] = useState("");
   const [tags, setTags] = useState([]);
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -262,11 +245,6 @@ const AddLogForm = ({ deviceName, deviceLocation, toggleShow }) => {
     createTagOption("Air quality sensor(s) works/replacement"),
   ];
 
-  const maintenanceTypeOptions = [
-    { value: "preventive", label: "Preventive" },
-    { value: "corrective", label: "Corrective" },
-  ];
-
   const handleSubmit = async (evt) => {
     evt.preventDefault();
     const extracted_tags = [];
@@ -274,7 +252,6 @@ const AddLogForm = ({ deviceName, deviceLocation, toggleShow }) => {
     const logData = {
       date: selectedDate.toISOString(),
       tags: extracted_tags,
-      maintenanceType: (maintenanceType && maintenanceType.value) || "",
       description: description,
     };
 
@@ -349,17 +326,6 @@ const AddLogForm = ({ deviceName, deviceLocation, toggleShow }) => {
             value={deviceName}
             fullWidth
             disabled
-          />
-        </div>
-        <div style={{ margin: "5px 0" }}>
-          <CreatableLabelledSelect
-            label={"Type of Maintenance"}
-            options={maintenanceTypeOptions}
-            isClearable
-            value={maintenanceType}
-            onChange={(newValue: any, actionMeta: any) =>
-              setMaintenanceType(newValue)
-            }
           />
         </div>
         <div style={{ margin: "10px 0" }}>
@@ -439,7 +405,6 @@ export default function DeviceLogs({ deviceName, deviceLocation }) {
   const maintenanceLogs = useDeviceLogsData(deviceName);
 
   const logsColumns = [
-    { title: "Maintenance type", field: "maintenanceType" },
     {
       title: "Description",
       field: "description",
@@ -461,12 +426,12 @@ export default function DeviceLogs({ deviceName, deviceLocation }) {
       },
     },
     {
-      title: "Next Maintenance",
-      field: "nextMaintenance",
+      title: "Created On",
+      field: "createdAt",
       cellStyle: { width: 100, maxWidth: 100 },
       render: (rowData) => (
         <div className={"table-truncate"}>
-          {humanReadableDate(rowData.nextMaintenance)}
+          {humanReadableDate(rowData.createdAt)}
         </div>
       ),
     },
