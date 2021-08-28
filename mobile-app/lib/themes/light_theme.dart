@@ -10,13 +10,12 @@ ThemeData lightTheme() {
       primaryColor: ColorConstants().appColor,
       accentColor: ColorConstants().appColor,
       visualDensity: VisualDensity.adaptivePlatformDensity,
-      textTheme: ThemeData.light().textTheme.apply(fontFamily:'OpenSans'),
-      primaryTextTheme: ThemeData.light()
-          .textTheme.apply(
-        fontFamily:'OpenSans',
-        bodyColor: ColorConstants().appColor,
-        displayColor: Colors.white,
-      ),
-      accentTextTheme: ThemeData.light().textTheme.apply(fontFamily:'OpenSans')
-  );
+      textTheme: ThemeData.light().textTheme.apply(fontFamily: 'OpenSans'),
+      primaryTextTheme: ThemeData.light().textTheme.apply(
+            fontFamily: 'OpenSans',
+            bodyColor: ColorConstants().appColor,
+            displayColor: Colors.white,
+          ),
+      accentTextTheme:
+          ThemeData.light().textTheme.apply(fontFamily: 'OpenSans'));
 }

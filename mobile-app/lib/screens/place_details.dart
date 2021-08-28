@@ -12,7 +12,6 @@ import 'package:app/utils/pm.dart';
 import 'package:app/utils/share.dart';
 import 'package:app/widgets/expanding_action_button.dart';
 import 'package:app/widgets/forecast_chart.dart';
-import 'package:app/widgets/help/aqi_index.dart';
 import 'package:app/widgets/hourly_chart.dart';
 import 'package:app/widgets/pollutantContainer.dart';
 import 'package:flutter/foundation.dart';
@@ -57,7 +56,10 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(appName, style: TextStyle(color: Colors.white),),
+        title: const Text(
+          appName,
+          style: TextStyle(color: Colors.white),
+        ),
         actions: [
           // if (isFavourite)
           // IconButton(
@@ -331,14 +333,14 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(0, 5, 0, 0),
-                child:
-                    Text('Last updated : ${dateToString(measurementData.time)}',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: ColorConstants().appColor,
-                          fontWeight: FontWeight.w300,
-                          fontStyle: FontStyle.italic,
-                        )),
+                child: Text(
+                    'Last updated : ${dateToString(measurementData.time, true)}',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: ColorConstants().appColor,
+                      fontWeight: FontWeight.w300,
+                      fontStyle: FontStyle.italic,
+                    )),
               ),
             ],
           ),

@@ -469,7 +469,7 @@ class MapPageState extends State<MapPage> {
                     Padding(
                       padding: const EdgeInsets.fromLTRB(0, 0, 5, 0),
                       child: Text(
-                        dateToString(windowProperties.time),
+                        dateToString(windowProperties.time, true),
                         style: TextStyle(
                             color: pmTextColor(
                                 windowProperties.pm2_5.calibratedValue)),
@@ -543,11 +543,12 @@ class MapPageState extends State<MapPage> {
           padding: const EdgeInsets.all(8.0),
           child: Column(
             children: [
-              Text(windowProperties.device.siteName,
+              Text(
+                windowProperties.device.siteName,
                 softWrap: true,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
-                  fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.bold,
                     color: Colors.white,
                     fontSize: 20),
                 overflow: TextOverflow.ellipsis,
@@ -562,9 +563,7 @@ class MapPageState extends State<MapPage> {
                         Text(
                           windowProperties.pm2_5.calibratedValue
                               .toStringAsFixed(2),
-                          style: TextStyle(
-                              fontSize: 17,
-                              color: Colors.white),
+                          style: TextStyle(fontSize: 17, color: Colors.white),
                         ),
                         Text(
                           pmToString(windowProperties.pm2_5.calibratedValue),
@@ -572,14 +571,11 @@ class MapPageState extends State<MapPage> {
                           softWrap: true,
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                              color: Colors.white),
+                              fontWeight: FontWeight.bold, color: Colors.white),
                         ),
                         Text(
-                          dateToString(windowProperties.time),
-                          style: TextStyle(
-                              fontSize: 17,
-                              color: Colors.white),
+                          dateToString(windowProperties.time, true),
+                          style: TextStyle(fontSize: 17, color: Colors.white),
                         ),
                       ],
                     )),
@@ -587,40 +583,59 @@ class MapPageState extends State<MapPage> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  IconButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute<void>(
-                          builder: (BuildContext context) => getHelpPage(''),
-                          fullscreenDialog: true,
-                        ),
-                      );
-                    },
-                    icon:
-                    Icon(Icons.info_outline, color: Colors.white),
-                  ),
-                  IconButton(
-                    onPressed: () {
-                      shareMeasurement(windowProperties);
-                    },
-                    icon: Icon(Icons.share_outlined,
-                        color: Colors.white),
-                  ),
-                  IconButton(
-                      onPressed: () {
-                        updateFavouritePlace(windowProperties.device);
-                      },
-                      icon: favourites.contains(
-                          windowProperties.device.name.trim().toLowerCase())
-                          ? Icon(
-                        Icons.favorite,
-                        color: ColorConstants().red,
-                      )
-                          : Icon(
-                        Icons.favorite_border_outlined,
-                        color: ColorConstants().red,
+                  Card(
+                      elevation: 20,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(150),
+                      ),
+                      child: IconButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute<void>(
+                              builder: (BuildContext context) =>
+                                  getHelpPage(''),
+                              fullscreenDialog: true,
+                            ),
+                          );
+                        },
+                        icon: Icon(Icons.info_outline,
+                            color: ColorConstants().appColor),
                       )),
+                  Card(
+                    elevation: 20,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(150),
+                    ),
+                    child: IconButton(
+                      onPressed: () {
+                        shareMeasurement(windowProperties);
+                      },
+                      icon: Icon(Icons.share_outlined,
+                          color: ColorConstants().appColor),
+                    ),
+                  ),
+                  Card(
+                    elevation: 20,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(150),
+                    ),
+                    child: IconButton(
+                        onPressed: () {
+                          updateFavouritePlace(windowProperties.device);
+                        },
+                        icon: favourites.contains(windowProperties.device.name
+                                .trim()
+                                .toLowerCase())
+                            ? Icon(
+                                Icons.favorite,
+                                color: ColorConstants().red,
+                              )
+                            : Icon(
+                                Icons.favorite_border_outlined,
+                                color: ColorConstants().red,
+                              )),
+                  ),
                   detailsButton(windowProperties.device),
                 ],
               ),
@@ -628,7 +643,6 @@ class MapPageState extends State<MapPage> {
           ),
         ));
   }
-
 
   @override
   void initState() {
@@ -809,5 +823,3 @@ class MapPageState extends State<MapPage> {
     );
   }
 }
-
-

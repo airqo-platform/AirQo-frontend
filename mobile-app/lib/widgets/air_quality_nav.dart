@@ -37,64 +37,60 @@ class TitleSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(4, 12, 4, 4),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
-                child: Image.asset(
-                  pmToEmoji(data.pm2_5.calibratedValue),
-                  height: 50,
-                  width: 50,
-                ),
-              ),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      data.device.siteName,
-                      maxLines: 4,
-                      softWrap: true,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                          fontSize: 17,
-                          color: ColorConstants().appColor),
-                    ),
-                    Text(
-                      '${data.pm2_5.calibratedValue.toStringAsFixed(2)}',
-                      maxLines: 4,
-                      softWrap: true,
-                      style: TextStyle(
-                          fontSize: 15,
-                          color: ColorConstants().appColor),
-                    ),
-                    Text(
-                      pmToString(data.pm2_5.calibratedValue)
-                          .replaceAll('\n', ' '),
-                      maxLines: 4,
-                      softWrap: true,
-                      style: TextStyle(
-                          fontSize: 15,
-                          color: ColorConstants().appColor),
-                    ),
-                  ],
-                ),
-              )
-            ],
+      padding: const EdgeInsets.fromLTRB(4, 12, 4, 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
+            child: Image.asset(
+              pmToEmoji(data.pm2_5.calibratedValue),
+              height: 50,
+              width: 50,
+            ),
           ),
-        ));
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  data.device.siteName,
+                  maxLines: 4,
+                  softWrap: true,
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 17,
+                      color: ColorConstants().appColor),
+                ),
+                Text(
+                  '${data.pm2_5.calibratedValue.toStringAsFixed(2)}',
+                  maxLines: 4,
+                  softWrap: true,
+                  style:
+                      TextStyle(fontSize: 15, color: ColorConstants().appColor),
+                ),
+                Text(
+                  pmToString(data.pm2_5.calibratedValue).replaceAll('\n', ' '),
+                  maxLines: 4,
+                  softWrap: true,
+                  style:
+                      TextStyle(fontSize: 15, color: ColorConstants().appColor),
+                ),
+              ],
+            ),
+          )
+        ],
+      ),
+    ));
   }
 }
 
 class _AirQualityCardState extends State<AirQualityCard> {
   @override
   Widget build(BuildContext context) {
-    return
-      Card(
+    return Card(
         elevation: 5,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
@@ -107,7 +103,7 @@ class _AirQualityCardState extends State<AirQualityCard> {
                 TitleSection(
                   data: widget.data,
                 ),
-                Text('${dateToString(widget.data.time)}',
+                Text('${dateToString(widget.data.time, true)}',
                     style: TextStyle(
                       fontSize: 13,
                       color: ColorConstants().appColor,
@@ -116,8 +112,7 @@ class _AirQualityCardState extends State<AirQualityCard> {
               ],
             ),
           ),
-        )
-      );
+        ));
   }
 }
 

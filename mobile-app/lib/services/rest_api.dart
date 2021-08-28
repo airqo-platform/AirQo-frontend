@@ -27,18 +27,22 @@ class AirqoApiClient {
   Future<List<HistoricalMeasurement>> fetchDeviceHistoricalMeasurements(
       Device device) async {
     try {
-      var startTimeUtc = DateTime.now().toUtc().add(const Duration(hours: -48));
-      var date = DateFormat('yyyy-MM-dd').format(startTimeUtc);
-      var time = '${startTimeUtc.hour}';
+      var nowUtc = DateTime.now().toUtc();
+      var startTimeUtc = nowUtc.subtract(const Duration(hours: 48));
 
+      var time = '${startTimeUtc.hour}';
       if ('$time'.length == 1) {
         time = '0$time';
       }
+
+      var date = DateFormat('yyyy-MM-dd').format(startTimeUtc);
       var startTime = '${date}T$time:00:00Z';
+      var endTime = '${DateFormat('yyyy-MM-dd').format(nowUtc)}T$time:00:00Z';
 
       var queryParams = <String, dynamic>{}
         ..putIfAbsent('device', () => device.name)
         ..putIfAbsent('startTime', () => startTime)
+        ..putIfAbsent('endTime', () => endTime)
         ..putIfAbsent('frequency', () => 'hourly')
         ..putIfAbsent('metadata', () => 'device')
         ..putIfAbsent('recent', () => 'no')
@@ -316,8 +320,7 @@ class AirqoApiClient {
             'color': '#3067e2',
             'title': 'Mobile App feedback',
             'fields': [
-              {'title': 'Email', 'value': '${feedback.email}'},
-              {'title': 'Message', 'value': '${feedback.feedback}'},
+              {'title': 'Feedback', 'value': '${feedback.feedback}'},
             ],
             'footer': 'AirQo Mobile App'
           }

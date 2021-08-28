@@ -1,17 +1,13 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/utils/help.dart';
-import 'package:app/utils/pm.dart';
 import 'package:flutter/material.dart';
 
 class PollutantsCard extends StatelessWidget {
-
-
   PollutantsCard(this.name, this.value, this.type);
 
   final String name;
   final double value;
   final String type;
-
 
   @override
   Widget build(BuildContext context) {
@@ -46,14 +42,11 @@ class PollutantsCard extends StatelessWidget {
 }
 
 class PollutantsCard2 extends StatelessWidget {
-
-
   PollutantsCard2(this.name, this.value, this.type);
 
   final String name;
   final double value;
   final String type;
-
 
   @override
   Widget build(BuildContext context) {
@@ -67,8 +60,8 @@ class PollutantsCard2 extends StatelessWidget {
           ),
         );
       },
-      child:Card(
-        color: Colors.white,
+      child: Card(
+          color: Colors.white,
           elevation: 20,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
@@ -80,20 +73,26 @@ class PollutantsCard2 extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Text(name, style:
-                    TextStyle(
-                        fontSize: 20, color: ColorConstants().appColor,
-                      fontWeight: FontWeight.bold,
-                    ),),
+                    Text(
+                      name,
+                      style: TextStyle(
+                        fontSize: 20,
+                        color: ColorConstants().appColor,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ],
                 ),
                 Padding(
                   padding: const EdgeInsets.all(1.0),
-                  child: Text('${value.toStringAsFixed(2)}',
+                  child: Text(
+                    '${value.toStringAsFixed(2)}',
                     style: TextStyle(
-                      fontSize: 17,  color: ColorConstants().appColor,
+                      fontSize: 17,
+                      color: ColorConstants().appColor,
                       fontWeight: FontWeight.bold,
-                  ),),
+                    ),
+                  ),
                 ),
               ],
             ),

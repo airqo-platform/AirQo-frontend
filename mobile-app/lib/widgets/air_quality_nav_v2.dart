@@ -41,7 +41,7 @@ class CardSection extends StatelessWidget {
         // mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           Expanded(
-              child: Text('Last updated : ${dateToString(data.time)}',
+              child: Text('Last updated : ${dateToString(data.time, true)}',
                   style: TextStyle(
                     fontSize: 11,
                     color: ColorConstants().appColor,
@@ -100,7 +100,7 @@ class TitleSection extends StatelessWidget {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  Colors.white,
+              Colors.white,
               Colors.white,
             ])),
         child: Padding(
@@ -126,23 +126,20 @@ class TitleSection extends StatelessWidget {
                       data.device.siteName,
                       maxLines: 4,
                       softWrap: true,
-                      style: TextStyle(
-                          color: ColorConstants().appColor),
+                      style: TextStyle(color: ColorConstants().appColor),
                     ),
                     Text(
                       '${data.pm2_5.calibratedValue.toStringAsFixed(2)} µg/m\u00B3',
                       maxLines: 4,
                       softWrap: true,
-                      style: TextStyle(
-                          color: ColorConstants().appColor),
+                      style: TextStyle(color: ColorConstants().appColor),
                     ),
                     Text(
                       pmToString(data.pm2_5.calibratedValue)
                           .replaceAll('\n', ' '),
                       maxLines: 4,
                       softWrap: true,
-                      style: TextStyle(
-                          color: ColorConstants().appColor),
+                      style: TextStyle(color: ColorConstants().appColor),
                     ),
                   ],
                 ),

@@ -11,7 +11,6 @@ import 'package:app/services/local_storage.dart';
 import 'package:app/services/rest_api.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/share.dart';
-import 'package:app/widgets/help/aqi_index.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -38,10 +37,11 @@ class _HomePageV2State extends State<HomePageV2> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(title, style: const TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.bold,
-        )),
+        title: Text(title,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            )),
         actions: [
           IconButton(
             icon: const Icon(
@@ -66,21 +66,26 @@ class _HomePageV2State extends State<HomePageV2> {
                     Icons.favorite_outlined,
                     color: ColorConstants().appColor,
                   ),
-                  title: const Text(
-                    'MyPlaces',
-                  ),
+                  title: Text('MyPlaces',
+                      style: TextStyle(
+                        color: ColorConstants().appColor,
+                      )),
                 ),
               ),
               PopupMenuItem<String>(
+                textStyle: TextStyle(
+                  color: ColorConstants().appColor,
+                ),
                 value: 'AQI Index',
                 child: ListTile(
                   leading: Icon(
                     Icons.info_outline_rounded,
                     color: ColorConstants().appColor,
                   ),
-                  title: const Text(
-                    'AQI Guide',
-                  ),
+                  title: Text('Guides',
+                      style: TextStyle(
+                        color: ColorConstants().appColor,
+                      )),
                 ),
               ),
               PopupMenuItem<String>(
@@ -90,9 +95,10 @@ class _HomePageV2State extends State<HomePageV2> {
                     Icons.help_outline_outlined,
                     color: ColorConstants().appColor,
                   ),
-                  title: const Text(
-                    'Faqs',
-                  ),
+                  title: Text('Faqs',
+                      style: TextStyle(
+                        color: ColorConstants().appColor,
+                      )),
                 ),
               ),
               PopupMenuItem<String>(
@@ -102,9 +108,10 @@ class _HomePageV2State extends State<HomePageV2> {
                     Icons.feedback_outlined,
                     color: ColorConstants().appColor,
                   ),
-                  title: const Text(
-                    'Support',
-                  ),
+                  title: Text('Support',
+                      style: TextStyle(
+                        color: ColorConstants().appColor,
+                      )),
                 ),
               ),
               const PopupMenuDivider(),
@@ -115,10 +122,12 @@ class _HomePageV2State extends State<HomePageV2> {
                     Icons.share_outlined,
                     color: ColorConstants().appColor,
                   ),
-                  title: const Text(
-                    'Share',
-                    // style: Theme.of(context).textTheme.headline1,
-                  ),
+                  title: Text('Share',
+                      style: TextStyle(
+                        color: ColorConstants().appColor,
+                      )
+                      // style: Theme.of(context).textTheme.headline1,
+                      ),
                 ),
               ),
             ],

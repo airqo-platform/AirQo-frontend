@@ -132,7 +132,10 @@ class _FeedbackPageState extends State<FeedbackPage> {
     final height = MediaQuery.of(context).size.height;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('AirQo', style: TextStyle(color: Colors.white),),
+        title: const Text(
+          'AirQo',
+          style: TextStyle(color: Colors.white),
+        ),
       ),
       body: Container(
         height: height,
@@ -192,12 +195,16 @@ class _FeedbackPageState extends State<FeedbackPage> {
 
   Widget feedbackInput() {
     return TextFormField(
+      style: TextStyle(color: ColorConstants().appColor),
       autofocus: true,
       controller: feedbackController,
-      decoration: const InputDecoration(
-        labelText: 'Feedback',
-        hintText: 'Share your feedback to enable us make improvements.',
-      ),
+      decoration: InputDecoration(
+          labelText: 'Feedback',
+          hintText: 'Share your feedback to enable us make improvements.',
+          labelStyle: TextStyle(
+            color: ColorConstants().appColor,
+          ),
+          hintStyle: TextStyle(color: ColorConstants().appColor)),
       textInputAction: TextInputAction.done,
       maxLines: 5,
       validator: (value) {
@@ -231,6 +238,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
               IconButton(
                   icon: const FaIcon(
                     FontAwesomeIcons.facebook,
+                    size: 30,
                     color: facebookColor,
                   ),
                   onPressed: () {
@@ -239,6 +247,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
               IconButton(
                   icon: const FaIcon(
                     FontAwesomeIcons.twitter,
+                    size: 30,
                     color: twitterColor,
                   ),
                   onPressed: () {
@@ -247,6 +256,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
               IconButton(
                   icon: const FaIcon(
                     FontAwesomeIcons.youtube,
+                    size: 30,
                     color: youtubeColor,
                   ),
                   onPressed: () {
@@ -255,6 +265,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
               IconButton(
                   icon: const FaIcon(
                     FontAwesomeIcons.linkedin,
+                    size: 30,
                     color: linkedInColor,
                   ),
                   onPressed: () {
@@ -277,7 +288,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
             height: 5,
           ),
           Text(
-            'v1.21.7',
+            'v2.0.1',
             style: TextStyle(color: ColorConstants().appColor),
           )
         ],
@@ -286,10 +297,10 @@ class _FeedbackPageState extends State<FeedbackPage> {
   }
 
   TextStyle headerStyle() {
-    return const TextStyle(
-      fontWeight: FontWeight.bold,
-      fontSize: 16,
-    );
+    return TextStyle(
+        fontWeight: FontWeight.bold,
+        fontSize: 20,
+        color: ColorConstants().appColor);
   }
 
   @override
@@ -365,7 +376,10 @@ class _FeedbackPageState extends State<FeedbackPage> {
               _launchURL('faqs');
             },
             child: ListTile(
-              title: const Text('FAQs'),
+              title: Text(
+                'FAQs',
+                style: TextStyle(color: ColorConstants().appColor),
+              ),
               leading: Icon(
                 Icons.help_outline_outlined,
                 color: ColorConstants().appColor,
@@ -377,7 +391,10 @@ class _FeedbackPageState extends State<FeedbackPage> {
               _launchURL('Contact Us');
             },
             child: ListTile(
-              title: Text('Contact Us'),
+              title: Text(
+                'Contact Us',
+                style: TextStyle(color: ColorConstants().appColor),
+              ),
               leading: Icon(
                 Icons.contact_support_outlined,
                 color: ColorConstants().appColor,
@@ -389,7 +406,10 @@ class _FeedbackPageState extends State<FeedbackPage> {
               _launchURL('terms');
             },
             child: ListTile(
-              title: const Text('Terms of Use & Privacy Policy'),
+              title: Text(
+                'Terms of Use & Privacy Policy',
+                style: TextStyle(color: ColorConstants().appColor),
+              ),
               leading: Icon(
                 Icons.description,
                 color: ColorConstants().appColor,
@@ -401,7 +421,10 @@ class _FeedbackPageState extends State<FeedbackPage> {
               _launchURL('About');
             },
             child: ListTile(
-              title: const Text('About AirQo'),
+              title: Text(
+                'About AirQo',
+                style: TextStyle(color: ColorConstants().appColor),
+              ),
               leading: Icon(
                 Icons.info_outline_rounded,
                 color: ColorConstants().appColor,
@@ -413,7 +436,10 @@ class _FeedbackPageState extends State<FeedbackPage> {
               _launchURL('rate');
             },
             child: ListTile(
-              title: Text('Rate App'),
+              title: Text(
+                'Rate App',
+                style: TextStyle(color: ColorConstants().appColor),
+              ),
               leading: Icon(
                 Icons.rate_review_outlined,
                 color: ColorConstants().appColor,

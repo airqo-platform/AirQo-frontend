@@ -40,14 +40,13 @@ class AQI_Dialog extends StatelessWidget {
           'Different countries have their own air quality indices, '
           'corresponding to different national air quality standards.',
           softWrap: true,
-
           style: TextStyle(
-            fontSize: 17,
-            fontWeight: FontWeight.w500,
-            height: 1.2,
+              fontSize: 17,
+              fontWeight: FontWeight.w500,
+              height: 1.2,
               color: ColorConstants().appColor
-            // letterSpacing: 1.0
-          )));
+              // letterSpacing: 1.0
+              )));
 
   Widget AQI_Quide(String image, String body, Color color, Color textColor) {
     return Container(
@@ -69,12 +68,13 @@ class AQI_Dialog extends StatelessWidget {
               padding: const EdgeInsets.all(5),
               child: Text(body,
                   softWrap: true,
-                  style: TextStyle(height: 1.2,
-                      color: ColorConstants().appColor,
+                  style: TextStyle(
+                    height: 1.2,
+                    color: ColorConstants().appColor,
                     fontSize: 15,
                     fontWeight: FontWeight.w500,
-                      // letterSpacing: 1.0
-                      )),
+                    // letterSpacing: 1.0
+                  )),
             ),
           )
         ],
@@ -91,8 +91,8 @@ class AQI_Dialog extends StatelessWidget {
           whatIsAQI,
           AQI_Quide('assets/images/good-face.png', good, pmToColor(0),
               pmTextColor(0)),
-          AQI_Quide('assets/images/moderate-face.png', moderate,
-              pmToColor(20), pmTextColor(20)),
+          AQI_Quide('assets/images/moderate-face.png', moderate, pmToColor(20),
+              pmTextColor(20)),
           AQI_Quide('assets/images/sensitive-face.png', sensitive,
               pmToColor(40), pmTextColor(40)),
           AQI_Quide('assets/images/unhealthy-face.png', unHeathy,

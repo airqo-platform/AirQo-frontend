@@ -12,9 +12,7 @@ import 'package:app/utils/pm.dart';
 import 'package:app/utils/share.dart';
 import 'package:app/widgets/expanding_action_button.dart';
 import 'package:app/widgets/forecast_chart.dart';
-import 'package:app/widgets/help/aqi_index.dart';
 import 'package:app/widgets/hourly_chart.dart';
-import 'package:app/widgets/pollutantContainer.dart';
 import 'package:app/widgets/pollutant_card.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -58,10 +56,13 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(appName, style: const TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.bold,
-        ),),
+        title: const Text(
+          appName,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         actions: [
           // if (isFavourite)
           // IconButton(
@@ -93,17 +94,18 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                       ? historicalDataSection(historicalData)
                       : historicalResponse != ''
                           ? Card(
-                    elevation: 20,
-                    child: Padding(
-                      padding: EdgeInsets.all(5.0),
-                      child: Center(
-                        child: Text(historicalResponse,
-                        style: TextStyle(
-                          color: ColorConstants().appColor
-                        ),),
-                      ),
-                    ),
-                  )
+                              elevation: 20,
+                              child: Padding(
+                                padding: EdgeInsets.all(5.0),
+                                child: Center(
+                                  child: Text(
+                                    historicalResponse,
+                                    style: TextStyle(
+                                        color: ColorConstants().appColor),
+                                  ),
+                                ),
+                              ),
+                            )
                           : Center(
                               child: Container(
                               padding: const EdgeInsets.all(16.0),
@@ -118,16 +120,16 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                       ? forecastDataSection(forecastData)
                       : forecastResponse != ''
                           ? Card(
-                    elevation: 20,
-                    child: Padding(
-                      padding: EdgeInsets.all(5.0),
-                      child: Center(
-                        child: Text(forecastResponse,style: TextStyle(
-                            color: ColorConstants().appColor
-                        )),
-                      ),
-                    ),
-                  )
+                              elevation: 20,
+                              child: Padding(
+                                padding: EdgeInsets.all(5.0),
+                                child: Center(
+                                  child: Text(forecastResponse,
+                                      style: TextStyle(
+                                          color: ColorConstants().appColor)),
+                                ),
+                              ),
+                            )
                           : Center(
                               child: Container(
                               padding: const EdgeInsets.all(16.0),
@@ -221,35 +223,45 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
               padding: const EdgeInsets.all(8.0),
               child: Column(
                 children: [
-                  Padding(padding: const EdgeInsets.all(1.0),
-                    child: Text('${device.locationName}',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        color: Colors.white,
-                      ),textAlign: TextAlign.center,)
-                  ),
-                  Padding(padding: const EdgeInsets.fromLTRB(1.0, 3.0, 1.0, 3.0),
-                      child: Text('${device.siteName}',
-                        style: const TextStyle(
-                          fontSize: 20,
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),textAlign: TextAlign.center,),
-                  ),
-                  Padding(padding: const EdgeInsets.all(1.0),
-                      child: Text('Air Quality '
-                          '${pmToString(measurement.pm2_5.calibratedValue)}',
+                  Padding(
+                      padding: const EdgeInsets.all(1.0),
+                      child: Text(
+                        '${device.locationName}',
                         style: const TextStyle(
                           fontSize: 16,
                           color: Colors.white,
                         ),
                         textAlign: TextAlign.center,
+                      )),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(1.0, 3.0, 1.0, 3.0),
+                    child: Text(
+                      '${device.siteName}',
+                      style: const TextStyle(
+                        fontSize: 20,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
                       ),
+                      textAlign: TextAlign.center,
+                    ),
                   ),
-
-                  Padding(padding: const EdgeInsets.all(1.0),
-                    child: Text(''
-                        '${dateToString(measurement.time)}',
+                  Padding(
+                    padding: const EdgeInsets.all(1.0),
+                    child: Text(
+                      'Air Quality '
+                      '${pmToString(measurement.pm2_5.calibratedValue)}',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        color: Colors.white,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(1.0),
+                    child: Text(
+                        ''
+                        '${dateToString(measurement.time, true)}',
                         style: const TextStyle(
                           fontSize: 13,
                           color: Colors.white,
@@ -257,9 +269,6 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                           fontStyle: FontStyle.italic,
                         )),
                   ),
-
-         
-
                 ],
               ),
             )));

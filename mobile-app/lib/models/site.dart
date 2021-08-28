@@ -108,7 +108,6 @@ class Site {
 
 @JsonSerializable()
 class Sites {
-
   Sites({
     required this.sites,
   });

@@ -287,9 +287,8 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                   itemBuilder: (context, index) => ListTile(
                     title: Text(
                       (results[index]).description,
-                      style:
-                           TextStyle(fontSize: 12, color:
-                           ColorConstants().appColor),
+                      style: TextStyle(
+                          fontSize: 12, color: ColorConstants().appColor),
                     ),
                     leading: Icon(
                       Icons.history,
@@ -343,10 +342,8 @@ class LocationSearch extends SearchDelegate<Suggestion> {
 
           return ListView.builder(
             itemBuilder: (context, index) => ListTile(
-              title: Text(
-                (results[index]).description,
-                  style: TextStyle(color: ColorConstants().appColor)
-              ),
+              title: Text((results[index]).description,
+                  style: TextStyle(color: ColorConstants().appColor)),
               onTap: () {
                 query = (results[index]).description;
                 showAllDevices = false;
