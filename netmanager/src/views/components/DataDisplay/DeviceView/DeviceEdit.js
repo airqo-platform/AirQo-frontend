@@ -69,6 +69,10 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
         editData.deployment_date
       ).toISOString();
 
+    if (isEmpty(editData.latitude)) delete editData.latitude;
+
+    if (isEmpty(editData.longitude)) delete editData.longitude;
+
     await updateDeviceDetails(deviceData._id, editData)
       .then((responseData) => {
         dispatch(loadDevicesData());
