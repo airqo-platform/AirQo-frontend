@@ -36,7 +36,7 @@ class _HourlyBarChartState extends State<HourlyBarChart> {
                   '48 hour History',
                   softWrap: true,
                   style: TextStyle(
-                      fontSize: 17,
+                      fontSize: 19,
                       color: ColorConstants().appColor,
                       fontWeight: FontWeight.bold),
                 ),

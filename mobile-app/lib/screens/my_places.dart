@@ -111,7 +111,7 @@ class _MyPlacesState extends State<MyPlaces> {
                                   foregroundColor: Colors.black54,
                                   child: Center(
                                     child: Text(
-                                      '${searchResults[index].pm2_5.calibratedValue.toStringAsFixed(2)}',
+                                      '${searchResults[index].getPm2_5Value().toStringAsFixed(2)}',
                                       textAlign: TextAlign.center,
                                       style: TextStyle(
                                           fontSize: 10.0,
@@ -218,7 +218,7 @@ class _MyPlacesState extends State<MyPlaces> {
                                                 .calibratedValue),
                                         child: Center(
                                           child: Text(
-                                            '${results[index].pm2_5.calibratedValue.toStringAsFixed(2)}',
+                                            '${results[index].getPm2_5Value().toStringAsFixed(2)}',
                                             textAlign: TextAlign.center,
                                             style:
                                                 const TextStyle(fontSize: 10.0),

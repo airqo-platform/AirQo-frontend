@@ -249,7 +249,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                     padding: const EdgeInsets.all(1.0),
                     child: Text(
                       'Air Quality '
-                      '${pmToString(measurement.pm2_5.calibratedValue)}',
+                      '${pmToString(measurement.getPm2_5Value())}',
                       style: const TextStyle(
                         fontSize: 16,
                         color: Colors.white,
@@ -481,7 +481,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
 
     final marker = Marker(
       markerId: MarkerId(measurement.device.toString()),
-      icon: pmToMarkerPoint(measurement.pm2_5.calibratedValue),
+      icon: pmToMarkerPoint(measurement.getPm2_5Value()),
       position:
           LatLng((measurement.device.latitude), measurement.device.longitude),
     );

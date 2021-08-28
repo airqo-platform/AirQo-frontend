@@ -45,7 +45,7 @@ class TitleSection extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
             child: Image.asset(
-              pmToEmoji(data.pm2_5.calibratedValue),
+              pmToEmoji(data.getPm2_5Value()),
               height: 50,
               width: 50,
             ),
@@ -65,14 +65,14 @@ class TitleSection extends StatelessWidget {
                       color: ColorConstants().appColor),
                 ),
                 Text(
-                  '${data.pm2_5.calibratedValue.toStringAsFixed(2)}',
+                  '${data.getPm2_5Value().toStringAsFixed(2)}',
                   maxLines: 4,
                   softWrap: true,
                   style:
                       TextStyle(fontSize: 15, color: ColorConstants().appColor),
                 ),
                 Text(
-                  pmToString(data.pm2_5.calibratedValue).replaceAll('\n', ' '),
+                  pmToString(data.getPm2_5Value()).replaceAll('\n', ' '),
                   maxLines: 4,
                   softWrap: true,
                   style:

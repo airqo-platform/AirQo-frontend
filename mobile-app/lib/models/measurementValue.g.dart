@@ -8,8 +8,8 @@ part of 'measurementValue.dart';
 
 MeasurementValue _$MeasurementValueFromJson(Map<String, dynamic> json) {
   return MeasurementValue(
-    value: (json['value'] as num?)?.toDouble() ?? 0.2,
-    calibratedValue: (json['calibratedValue'] as num?)?.toDouble() ?? 0.1,
+    value: (json['value'] as num?)?.toDouble() ?? -0.1,
+    calibratedValue: (json['calibratedValue'] as num?)?.toDouble() ?? -0.1,
   );
 }
 

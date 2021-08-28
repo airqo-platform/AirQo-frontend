@@ -44,6 +44,20 @@ class Measurement {
   @JsonKey(required: true, name: 'deviceDetails')
   final Device device;
 
+  double getPm2_5Value() {
+    if (pm2_5.calibratedValue == -0.1) {
+      return pm2_5.value;
+    }
+    return pm2_5.calibratedValue;
+  }
+
+  double getPm10Value() {
+    if (pm10.calibratedValue == -0.1) {
+      return pm10.value;
+    }
+    return pm10.calibratedValue;
+  }
+
   Map<String, dynamic> toJson() => _$MeasurementToJson(this);
 
   static String dbAltitude() => 'altitude';
@@ -121,8 +135,8 @@ class Measurement {
 
     return {
       '${dbTime()}': measurement.time,
-      '${dbPm25()}': measurement.pm2_5.calibratedValue,
-      '${dbPm10()}': measurement.pm10.value,
+      '${dbPm25()}': measurement.getPm2_5Value(),
+      '${dbPm10()}': measurement.getPm10Value(),
       '${dbAltitude()}': measurement.altitude.value,
       '${dbSpeed()}': measurement.speed.value,
       '${dbTemperature()}': measurement.temperature.value,

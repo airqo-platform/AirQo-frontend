@@ -21,7 +21,7 @@ class HistoricalBarChart extends StatelessWidget {
               'Forecast',
               softWrap: true,
               style: TextStyle(
-                  fontSize: 17,
+                  fontSize: 19,
                   color: ColorConstants().appColor,
                   fontWeight: FontWeight.bold),
             ),

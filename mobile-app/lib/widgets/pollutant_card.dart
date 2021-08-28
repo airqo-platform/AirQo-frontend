@@ -33,14 +33,14 @@ class PollutantCard extends StatelessWidget {
                 const Spacer(
                   flex: 1,
                 ),
-                if (measurement.pm2_5.calibratedValue != null)
-                  PollutantsCard2('PM 2.5', measurement.pm2_5.calibratedValue,
+                if (measurement.getPm2_5Value() != null)
+                  PollutantsCard2('PM 2.5', measurement.getPm2_5Value(),
                       '${PollutantConstants.pm2_5}'),
                 const Spacer(
                   flex: 1,
                 ),
-                if (measurement.pm10.calibratedValue != null)
-                  PollutantsCard2('PM 10', measurement.pm10.value,
+                if (measurement.getPm10Value() != null)
+                  PollutantsCard2('PM 10', measurement.getPm10Value(),
                       '${PollutantConstants.pm10}'),
                 const Spacer(
                   flex: 1,

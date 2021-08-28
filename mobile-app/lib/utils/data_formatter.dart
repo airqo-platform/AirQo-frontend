@@ -16,7 +16,7 @@ List<charts.Series<TimeSeriesData, DateTime>> createChartData(
 
     var date = DateTime.parse(time);
 
-    data.add(TimeSeriesData(date, measurement.pm2_5.calibratedValue.ceil()));
+    data.add(TimeSeriesData(date, measurement.getPm2_5Value().ceil()));
   }
 
   return [
@@ -77,8 +77,7 @@ List<charts.Series<Pm2_5TimeSeries, DateTime>> createPm2_5ChartData(
   for (var value in data) {
     var time = value.time.replaceAll(' GMT', '');
 
-    values.add(
-        Pm2_5TimeSeries(DateTime.parse(time), value.pm2_5.calibratedValue));
+    values.add(Pm2_5TimeSeries(DateTime.parse(time), value.getPm2_5Value()));
   }
 
   return [
@@ -102,8 +101,7 @@ List<charts.Series<TimeSeriesData, DateTime>> historicalChartData(
     try {
       final dateTime =
           DateTime.parse(measurement.time).add(Duration(hours: offSet));
-      data.add(
-          TimeSeriesData(dateTime, measurement.pm2_5.calibratedValue.ceil()));
+      data.add(TimeSeriesData(dateTime, measurement.getPm2_5Value().ceil()));
     } catch (e) {
       print(e);
     }
@@ -134,7 +132,7 @@ List<charts.Series<TimeSeriesData, DateTime>> hourlyChartData(
 
     var date = DateTime.parse(dateTime.toString());
 
-    data.add(TimeSeriesData(date, measurement.pm2_5.calibratedValue.ceil()));
+    data.add(TimeSeriesData(date, measurement.getPm2_5Value().ceil()));
   }
 
   return [

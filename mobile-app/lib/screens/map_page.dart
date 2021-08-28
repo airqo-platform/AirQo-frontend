@@ -430,9 +430,9 @@ class MapPageState extends State<MapPage> {
             child: Container(
                 padding: const EdgeInsets.all(5.0),
                 decoration: BoxDecoration(
-                    color: pmToColor(windowProperties.pm2_5.calibratedValue),
+                    color: pmToColor(windowProperties.getPm2_5Value()),
                     border: Border.all(
-                      color: pmToColor(windowProperties.pm2_5.calibratedValue),
+                      color: pmToColor(windowProperties.getPm2_5Value()),
                     ),
                     borderRadius: const BorderRadius.all(Radius.circular(10))),
                 child: Row(
@@ -441,15 +441,14 @@ class MapPageState extends State<MapPage> {
                     Padding(
                       padding: const EdgeInsets.fromLTRB(5, 0, 0, 0),
                       child: Text(
-                        windowProperties.pm2_5.calibratedValue
-                            .toStringAsFixed(2),
+                        windowProperties.getPm2_5Value().toStringAsFixed(2),
                         style: TextStyle(
-                            color: pmTextColor(
-                                windowProperties.pm2_5.calibratedValue)),
+                            color:
+                                pmTextColor(windowProperties.getPm2_5Value())),
                       ),
                     ),
                     // Expanded(child: Text(
-                    //   pmToString(windowProperties.pm2_5.calibratedValue
+                    //   pmToString(windowProperties.getPm2_5Value()
                     //   .toStringAsFixed(2)),
                     //   maxLines: 4,
                     //   softWrap: true,
@@ -457,13 +456,12 @@ class MapPageState extends State<MapPage> {
                     // ),
                     // ),
                     Text(
-                      pmToString(windowProperties.pm2_5.calibratedValue),
+                      pmToString(windowProperties.getPm2_5Value()),
                       maxLines: 4,
                       softWrap: true,
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                          color: pmTextColor(
-                              windowProperties.pm2_5.calibratedValue)),
+                          color: pmTextColor(windowProperties.getPm2_5Value())),
                     ),
 
                     Padding(
@@ -471,8 +469,8 @@ class MapPageState extends State<MapPage> {
                       child: Text(
                         dateToString(windowProperties.time, true),
                         style: TextStyle(
-                            color: pmTextColor(
-                                windowProperties.pm2_5.calibratedValue)),
+                            color:
+                                pmTextColor(windowProperties.getPm2_5Value())),
                       ),
                     ),
                   ],
@@ -561,12 +559,11 @@ class MapPageState extends State<MapPage> {
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
                         Text(
-                          windowProperties.pm2_5.calibratedValue
-                              .toStringAsFixed(2),
+                          windowProperties.getPm2_5Value().toStringAsFixed(2),
                           style: TextStyle(fontSize: 17, color: Colors.white),
                         ),
                         Text(
-                          pmToString(windowProperties.pm2_5.calibratedValue),
+                          pmToString(windowProperties.getPm2_5Value()),
                           maxLines: 4,
                           softWrap: true,
                           textAlign: TextAlign.center,
@@ -683,8 +680,7 @@ class MapPageState extends State<MapPage> {
     _showInfoWindow = false;
     var markers = <String, Marker>{};
     for (final measurement in measurements) {
-      var bitmapDescriptor =
-          await pmToMarker(measurement.pm2_5.calibratedValue);
+      var bitmapDescriptor = await pmToMarker(measurement.getPm2_5Value());
 
       final marker = Marker(
         markerId: MarkerId(measurement.device.name),
@@ -692,7 +688,7 @@ class MapPageState extends State<MapPage> {
         position:
             LatLng((measurement.device.latitude), measurement.device.longitude),
         infoWindow: InfoWindow(
-          title: measurement.pm2_5.calibratedValue.toStringAsFixed(2),
+          title: measurement.getPm2_5Value().toStringAsFixed(2),
           // snippet: node.location,
         ),
         onTap: () {
