@@ -81,10 +81,6 @@ const EditLog = ({ deviceName, deviceLocation, toggleShow, log }) => {
     createTagOption("Air quality sensor(s) works/replacement"),
   ];
 
-  const maintenanceTypeOptions = [
-    { value: "preventive", label: "Preventive" },
-    { value: "Corrective", label: "Corrective" },
-  ];
 
   const handleSubmit = async (evt) => {
     evt.preventDefault();
@@ -95,7 +91,6 @@ const EditLog = ({ deviceName, deviceLocation, toggleShow, log }) => {
       locationName: deviceLocation,
       date: selectedDate.toISOString(),
       tags: extracted_tags,
-      maintenanceType: (maintenanceType && maintenanceType.value) || "",
       description: description,
     };
 
@@ -158,17 +153,6 @@ const EditLog = ({ deviceName, deviceLocation, toggleShow, log }) => {
             value={deviceName}
             fullWidth
             disabled
-          />
-        </div>
-        <div style={{ margin: "5px 0" }}>
-          <CreatableLabelledSelect
-            label={"Type of Maintenance"}
-            options={maintenanceTypeOptions}
-            isClearable
-            value={maintenanceType}
-            onChange={(newValue: any, actionMeta: any) =>
-              setMaintenanceType(newValue)
-            }
           />
         </div>
         <div style={{ margin: "10px 0" }}>
