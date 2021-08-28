@@ -442,12 +442,12 @@ export default function DeviceLogs({ deviceName, deviceLocation }) {
       },
     },
     {
-      title: "Next Maintenance",
-      field: "nextMaintenance",
+      title: "Created On",
+      field: "createdAt",
       cellStyle: { width: 100, maxWidth: 100 },
       render: (rowData) => (
         <div className={"table-truncate"}>
-          {humanReadableDate(rowData.nextMaintenance)}
+          {humanReadableDate(rowData.createdAt)}
         </div>
       ),
     },
