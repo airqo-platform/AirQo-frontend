@@ -5,6 +5,7 @@ import Alert from "@material-ui/lab/Alert";
 import Collapse from "@material-ui/core/Collapse";
 import PropTypes from "prop-types";
 import { isEqual, isEmpty } from "underscore";
+import AlertMinimal from "../../layouts/AlertsMininal";
 
 import { Link, useLocation } from "react-router-dom";
 
@@ -112,150 +113,152 @@ export default function ResetPassword() {
   };
 
   return (
-    <div
-        className="container"
-        style={{
-          maxWidth: "1000px",
-          marginTop: "4rem",
-          backgroundColor: "#fff",
-        }}
-    >
-      <Grid container>
-        <Grid
-            item
-            xs={12}
-            sm={4}
+      <AlertMinimal>
+        <div
+            className="container"
             style={{
-              padding: "1em",
-              backgroundColor: "#3067e2",
-              height: "100% !important",
-              minHeight: "100px",
+              maxWidth: "1000px",
+              marginTop: "4rem",
+              backgroundColor: "#fff",
             }}
-          />
-        <Grid item xs={12} sm={8}>
-      <div className="row">
-        <div>
-          {!updated && (
-              <>
-                <div className="col s12" style={{ paddingLeft: "11.250px" }}>
-                  <h4>
-                    <b>Reset Password</b>
-                  </h4>
-                </div>
-                <form noValidate onSubmit={onSubmit}>
-                  <div className="input-field col s12">
-                    <Collapse in={alert.open}>
-                      <Alert
-                        severity={alert.severity}
-                        onClose={() => setAlert({ ...alert, open: false })}
-                      >
-                        {alert.message}
-                      </Alert>
-                    </Collapse>
-                  </div>
-                  <div className="input-field col s12">
-                    <input
-                      onChange={onChange}
-                      value={newPassword.password}
-                      error={errors.password}
-                      id="password"
-                      type="password"
-                      className={classnames("", {
-                        invalid: errors.password,
-                      })}
-                    />
-                    <label htmlFor="password">Password</label>
-                    <span className="red-text">{errors.password}</span>
-                  </div>
-                  <div className="input-field col s12">
-                    <input
-                      onChange={onChange}
-                      value={newPassword.confirmPassword}
-                      error={errors.confirmPassword}
-                      id="confirmPassword"
-                      type="password"
-                      className={classnames("", {
-                        invalid: errors.confirmPassword,
-                      })}
-                    />
-                    <label htmlFor="confirmPassword">Confirm Password</label>
-                    <span className="red-text">{errors.confirmPassword}</span>
-                  </div>
-                  <div className="col s12" style={{ paddingLeft: "11.250px" }}>
-                    <button
-                      style={{
-                        width: "150px",
-                        borderRadius: "3px",
-                        letterSpacing: "1.5px",
-                        marginTop: "1rem",
-                      }}
-                      type="submit"
-                      disabled={!isEnabled}
-                      className="btn btn-large waves-effect waves-light hoverable blue accent-3"
-                    >
-                      Reset
-                    </button>
-                  </div>
-                </form>
-              </>
-          )}
-          {updated && (
+        >
+          <Grid container>
+            <Grid
+                item
+                xs={12}
+                sm={4}
+                style={{
+                  padding: "1em",
+                  backgroundColor: "#3067e2",
+                  height: "100% !important",
+                  minHeight: "100px",
+                }}
+              />
+            <Grid item xs={12} sm={8}>
+          <div className="row">
             <div>
-              <div className="col s12" style={{ paddingLeft: "11.250px" }}>
-                <h4>
-                  <b>Password Reset Successful</b>
-                </h4>
-              </div>
+              {!updated && (
+                  <>
+                    <div className="col s12" style={{ paddingLeft: "11.250px" }}>
+                      <h4>
+                        <b>Reset Password</b>
+                      </h4>
+                    </div>
+                    <form noValidate onSubmit={onSubmit}>
+                      <div className="input-field col s12">
+                        <Collapse in={alert.open}>
+                          <Alert
+                            severity={alert.severity}
+                            onClose={() => setAlert({ ...alert, open: false })}
+                          >
+                            {alert.message}
+                          </Alert>
+                        </Collapse>
+                      </div>
+                      <div className="input-field col s12">
+                        <input
+                          onChange={onChange}
+                          value={newPassword.password}
+                          error={errors.password}
+                          id="password"
+                          type="password"
+                          className={classnames("", {
+                            invalid: errors.password,
+                          })}
+                        />
+                        <label htmlFor="password">Password</label>
+                        <span className="red-text">{errors.password}</span>
+                      </div>
+                      <div className="input-field col s12">
+                        <input
+                          onChange={onChange}
+                          value={newPassword.confirmPassword}
+                          error={errors.confirmPassword}
+                          id="confirmPassword"
+                          type="password"
+                          className={classnames("", {
+                            invalid: errors.confirmPassword,
+                          })}
+                        />
+                        <label htmlFor="confirmPassword">Confirm Password</label>
+                        <span className="red-text">{errors.confirmPassword}</span>
+                      </div>
+                      <div className="col s12" style={{ paddingLeft: "11.250px" }}>
+                        <button
+                          style={{
+                            width: "150px",
+                            borderRadius: "3px",
+                            letterSpacing: "1.5px",
+                            marginTop: "1rem",
+                          }}
+                          type="submit"
+                          disabled={!isEnabled}
+                          className="btn btn-large waves-effect waves-light hoverable blue accent-3"
+                        >
+                          Reset
+                        </button>
+                      </div>
+                    </form>
+                  </>
+              )}
+              {updated && (
+                <div>
+                  <div className="col s12" style={{ paddingLeft: "11.250px" }}>
+                    <h4>
+                      <b>Password Reset Successful</b>
+                    </h4>
+                  </div>
 
-              <p>
-                Your password has been successfully reset, please <Link to="/login">log in</Link> or return back to {" "}
-                <Link to="/">home</Link>.
-              </p>
+                  <p>
+                    Your password has been successfully reset, please <Link to="/login">log in</Link> or return back to {" "}
+                    <Link to="/">home</Link>.
+                  </p>
 
-              <div style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                margin: "20px 0",
-              }}>
-                <br />
-                <div >
-                  <Link
-                    to="/"
-                    style={{
-                      width: "140px",
-                      borderRadius: "3px",
-                      letterSpacing: "1.5px",
-                      margin: "0 10px",
-                    }}
-                    className="btn btn-large btn-flat waves-effect white black-text"
-                  >
-                    Home
-                  </Link>
+                  <div style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    margin: "20px 0",
+                  }}>
+                    <br />
+                    <div >
+                      <Link
+                        to="/"
+                        style={{
+                          width: "140px",
+                          borderRadius: "3px",
+                          letterSpacing: "1.5px",
+                          margin: "0 10px",
+                        }}
+                        className="btn btn-large btn-flat waves-effect white black-text"
+                      >
+                        Home
+                      </Link>
+                    </div>
+                    <div >
+                      <Link
+                        to="/login"
+                        style={{
+                          width: "140px",
+                          borderRadius: "3px",
+                          letterSpacing: "1.5px",
+                          margin: "0 10px",
+                        }}
+                        className="btn btn-large waves-effect waves-light hoverable blue accent-3"
+                      >
+                        login
+                      </Link>
+                    </div>
+                  </div>
                 </div>
-                <div >
-                  <Link
-                    to="/login"
-                    style={{
-                      width: "140px",
-                      borderRadius: "3px",
-                      letterSpacing: "1.5px",
-                      margin: "0 10px",
-                    }}
-                    className="btn btn-large waves-effect waves-light hoverable blue accent-3"
-                  >
-                    login
-                  </Link>
-                </div>
-              </div>
+              )}
             </div>
-          )}
-        </div>
-      </div>
-        </Grid>
-      </Grid>
+          </div>
+            </Grid>
+          </Grid>
 
-    </div>
+        </div>
+      </AlertMinimal>
   );
 }
 

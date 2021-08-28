@@ -1,14 +1,15 @@
 name: deploy-platform-production
 
 on:
-  #push:
   pull_request:
-    branches: master
-    types: [closed]
+    branches: 
+      - master
+    types:
+      - closed
 jobs:
   check:
-    if: github.event.pull_request.merged == 'true'
-    #if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true
+    # this job will only run if the PR has been merged
+    if: github.event.pull_request.merged == true
     name: check for changes in platform
     outputs:
       run_job: ${{ steps.check_files.outputs.run_job }}
@@ -58,14 +59,13 @@ jobs:
         uses: azure/k8s-set-context@v1
         with:
           method: kubeconfig
-          kubeconfig: ${{ secrets.K8S_CONFIG }}
+          kubeconfig: ${{ secrets.K8S_CONFIG_PROD }}
       
       - name: NPM Build
         run: |
           cd netmanager/
           export NODE_PATH=src/
           npm install
-          npm audit fix
           CI=false npm run build
       
       - name: Build and Push Docker Image

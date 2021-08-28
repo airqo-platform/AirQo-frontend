@@ -6,6 +6,8 @@ import {
   FORGOT_PWD_URI,
   DELETE_CANDIDATE_URI,
   REGISTER_USER_URI,
+  CHART_DEFAULTS_URI,
+  CANDIDATES_URI,
 } from "config/urls/authService";
 
 export const updateUserPasswordApi = async (userId, tenant, userData) => {
@@ -35,6 +37,12 @@ export const confirmCandidateApi = async (candidateData) => {
     .then((response) => response.data);
 };
 
+export const updateCandidateApi = async (id, newData) => {
+  return await axios
+    .put(CANDIDATES_URI, newData, { params: { id } })
+    .then((response) => response.data);
+};
+
 export const deleteCandidateApi = async (id) => {
   return await axios
     .delete(DELETE_CANDIDATE_URI, { params: { id } })
@@ -44,5 +52,36 @@ export const deleteCandidateApi = async (id) => {
 export const addUserApi = async (userData) => {
   return await axios
     .post(REGISTER_USER_URI, userData)
+    .then((response) => response.data);
+};
+
+export const getUserChartDefaultsApi = async (userID, airqloudID) => {
+  return await axios
+    .get(CHART_DEFAULTS_URI, {
+      params: { user: userID, airqloud: airqloudID },
+    })
+    .then((response) => response.data);
+};
+
+export const createUserChartDefaultsApi = async (defaultsData) => {
+  return await axios
+    .post(CHART_DEFAULTS_URI, defaultsData)
+    .then((response) => response.data);
+};
+
+export const updateUserChartDefaultsApi = async (
+  chartDefaultID,
+  defaultsData
+) => {
+  return await axios
+    .put(CHART_DEFAULTS_URI, defaultsData, {
+      params: { id: chartDefaultID },
+    })
+    .then((response) => response.data);
+};
+
+export const deleteUserChartDefaultsApi = async (chartDefaultID) => {
+  return await axios
+    .delete(CHART_DEFAULTS_URI, { params: { id: chartDefaultID } })
     .then((response) => response.data);
 };

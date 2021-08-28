@@ -336,10 +336,20 @@ export const registerCandidate = (tenant, userData, callback) => dispatch => {
   return axios
     .post(REGISTER_CANDIDATE_URI, userData, { params: { tenant }})
     .then(res => {
-      if (res.data.success == true) {
+      if (res.data.success) {
         dispatch(registrationSuccess(res.data));
+        dispatch(updateMainAlert({
+          show: true,
+          message: "Your access request has been submitted successfully.",
+          severity: "success",
+        }))
         callback && callback()
       } else {
+        dispatch(updateMainAlert({
+          show: true,
+          message: res.data.message,
+          severity: "error",
+        }))
         dispatch({
           type: GET_ERRORS,
           payload: (res.data && res.data.message) || null

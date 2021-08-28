@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { makeStyles } from "@material-ui/styles";
 import {
@@ -13,11 +13,11 @@ import { Bar } from "react-chartjs-2";
 import clsx from "clsx";
 import PropTypes from "prop-types";
 import {
+  AddChart,
   CustomisableChart,
   PollutantCategory,
   ExceedancesChart,
 } from "./components";
-import { useEffect, useState } from "react";
 import "chartjs-plugin-annotation";
 import palette from "theme/palette";
 import { MoreHoriz } from "@material-ui/icons";
@@ -32,7 +32,6 @@ import { useUserDefaultGraphsData } from "redux/Dashboard/selectors";
 import { loadUserDefaultGraphData } from "redux/Dashboard/operations";
 import { loadMapEventsData } from "redux/MapData/operations";
 import { useEventsMapData } from "redux/MapData/selectors";
-import { useOrgData } from "redux/Join/selectors";
 import { PM_25_CATEGORY } from "utils/categories";
 import { isEmpty, unzip, zip } from "underscore";
 import { roundToStartOfDay, roundToEndOfDay } from "utils/dateTime";
@@ -42,6 +41,9 @@ const useStyles = makeStyles((theme) => ({
     padding: theme.spacing(4),
   },
   chartCard: {},
+  customChartCard: {
+    height: "70vh",
+  },
   differenceIcon: {
     color: theme.palette.text.secondary,
   },
@@ -68,7 +70,6 @@ const Dashboard = (props) => {
 
   const dispatch = useDispatch();
   const userDefaultGraphs = useUserDefaultGraphsData();
-  const orgData = useOrgData();
   const recentEventsData = useEventsMapData();
 
   const [pm2_5SiteCount, setPm2_5SiteCount] = useState({
@@ -363,6 +364,11 @@ const Dashboard = (props) => {
 
   const open = Boolean(anchorEl);
 
+  // componentWillUnmount
+  useEffect(() => {
+    return () => dispatch(loadUserDefaultGraphData());
+  }, []);
+
   return (
     <div className={classes.root}>
       <Grid container spacing={4}>
@@ -469,23 +475,18 @@ const Dashboard = (props) => {
         {userDefaultGraphs &&
           userDefaultGraphs.map((filter, key) => {
             return (
-              <Grid
-                item
-                lg={6}
-                md={6}
-                sm={12}
-                xl={6}
-                xs={12}
-                key={`userDefaultGraphs-${key}`}
-              >
-                <CustomisableChart
-                  className={clsx(classes.chartCard)}
-                  defaultFilter={filter}
-                  idSuffix={`custom-${key + 1}`}
-                />
-              </Grid>
+              <CustomisableChart
+                className={clsx(classes.customChartCard)}
+                defaultFilter={filter}
+                idSuffix={`custom-${key + 1}`}
+                key={key}
+              />
             );
           })}
+
+        <Grid item lg={6} md={6} sm={12} xl={6} xs={12}>
+          <AddChart className={classes.customChartCard} />
+        </Grid>
       </Grid>
     </div>
   );
