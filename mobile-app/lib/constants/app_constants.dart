@@ -140,7 +140,7 @@ class PollutantEffects {
       'into your lungs and some may even get into your bloodstream. '
       'Of these, particles less than 10 micrometers in diameter, also known '
       'as fine particles or PM10, pose the greatest risk to health. '
-      '\nFine particles are also the main cause of reduced visibility (haze)'
+      '\n\nFine particles are also the main cause of reduced visibility (haze)'
       ' in parts of the United States, including many of our treasured national'
       ' parks and wilderness areas.';
   static final String _s2_pm2_5 = 's2_pm2_5';
@@ -174,7 +174,7 @@ class PollutantReduction {
       'into your lungs and some may even get into your bloodstream. '
       'Of these, particles less than 10 micrometers in diameter, also known '
       'as fine particles or PM10, pose the greatest risk to health. '
-      '\nFine particles are also the main cause of reduced visibility (haze)'
+      '\n\nFine particles are also the main cause of reduced visibility (haze)'
       ' in parts of the United States, including many of our treasured national'
       ' parks and wilderness areas.';
 
@@ -202,9 +202,9 @@ class PollutantSource {
 
   static final String _pm10 = 'These particles come in many sizes and shapes'
       ' and can be made up of hundreds of different chemicals. '
-      '\nSome are emitted directly from a source, such as construction '
+      '\n\nSome are emitted directly from a source, such as construction '
       'sites, unpaved roads, fields, smokestacks or fires. '
-      '\nMost particles form in the atmosphere as a result of complex '
+      '\n\nMost particles form in the atmosphere as a result of complex '
       'reactions of chemicals such as sulfur dioxide and nitrogen oxides, '
       'which are pollutants emitted from power plants, '
       'industries and automobiles.';

@@ -320,7 +320,7 @@ class AirqoApiClient {
             'color': '#3067e2',
             'title': 'Mobile App feedback',
             'fields': [
-              {'title': 'Feedback', 'value': '${feedback.feedback}'},
+              {'title': 'Message', 'value': '${feedback.feedback}'},
             ],
             'footer': 'AirQo Mobile App'
           }

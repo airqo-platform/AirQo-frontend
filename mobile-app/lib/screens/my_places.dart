@@ -19,9 +19,9 @@ class MyPlaces extends StatefulWidget {
 
 class _MyPlacesState extends State<MyPlaces> {
   // List<Measurement> results;
-  var results;
-  var searchResults = [];
-  var searchList = [];
+  var results = <Measurement>[];
+  var searchResults = <Measurement>[];
+  var searchList = <Measurement>[];
   bool isSearching = false;
   TextEditingController searchController = TextEditingController();
 
@@ -150,8 +150,8 @@ class _MyPlacesState extends State<MyPlaces> {
                         if (snapshot.hasData) {
                           results = snapshot.data as List<Measurement>;
 
-                          if (searchList.isEmpty) {
-                            searchList = snapshot.data as List<Measurement>;
+                          if (results.isNotEmpty) {
+                              searchList = results;
                           }
 
                           if (results.isEmpty) {
@@ -265,10 +265,14 @@ class _MyPlacesState extends State<MyPlaces> {
             if (isSearching) {
               setState(() {
                 isSearching = false;
+                searchController.clear();
+                searchResults.clear();
               });
             } else {
               setState(() {
                 isSearching = true;
+                searchController.clear();
+                searchResults.clear();
               });
             }
           });
@@ -283,7 +287,11 @@ class _MyPlacesState extends State<MyPlaces> {
     query = query.toLowerCase();
 
     if (query.isNotEmpty) {
-      searchResults.clear();
+
+      setState(() {
+        searchResults.clear();
+      });
+
       var dummyListData = <Measurement>[];
       for (Measurement measurement in searchList) {
         var device = measurement.device;
@@ -300,23 +308,23 @@ class _MyPlacesState extends State<MyPlaces> {
         }
       }
 
-      for (var measurement in dummyListData) {
-        setState(() {
-          searchResults.add(measurement);
-        });
-      }
+      setState(() {
+        searchResults = dummyListData;
+      });
 
       return;
     } else {
-      setState(() {});
+      setState(() {
+        searchResults.clear();
+      });
     }
   }
 
   Future<void> refreshData() async {
-    var data = DBHelper().getFavouritePlaces();
-
-    setState(() {
-      results = data;
+    await DBHelper().getFavouritePlaces().then((value) => {
+      setState(() {
+        results = value;
+      })
     });
   }
 

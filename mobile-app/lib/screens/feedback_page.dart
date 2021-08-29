@@ -14,7 +14,7 @@ RawMaterialButton customOkayButton(context, success) {
     shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(4.0),
         side: BorderSide(color: ColorConstants().appColor, width: 1)),
-    fillColor: Colors.transparent,
+    fillColor: ColorConstants().appColor,
     elevation: 0,
     highlightElevation: 0,
     splashColor: Colors.black12,
@@ -29,11 +29,11 @@ RawMaterialButton customOkayButton(context, success) {
         Navigator.of(context).pop();
       }
     },
-    child: Padding(
-      padding: const EdgeInsets.all(4),
+    child: const Padding(
+      padding: EdgeInsets.all(4),
       child: Text(
         'Close',
-        style: TextStyle(color: ColorConstants().appColor),
+        style: TextStyle(color: Colors.white),
       ),
     ),
   );
@@ -58,12 +58,15 @@ class FailureDialog extends StatelessWidget {
                   Icons.info_outline_rounded,
                   color: ColorConstants().red,
                 ),
-                const Flexible(
+                Flexible(
                   child: Padding(
                     padding: EdgeInsets.all(10),
                     child: Text(
                       'Oops! Something went wrong, try again later',
                       softWrap: true,
+                      style: TextStyle(
+                        color: ColorConstants().appColor,
+                      ),
                     ),
                   ),
                 ),
@@ -101,13 +104,16 @@ class SuccessDialog extends StatelessWidget {
                   Icons.info_outline_rounded,
                   color: ColorConstants().appColor,
                 ),
-                const Flexible(
+                Flexible(
                   child: Padding(
                     padding: EdgeInsets.all(10),
                     child: Text(
                       'Thanks for your feedback.'
                       ' The AirQo team shall address it asap',
                       softWrap: true,
+                      style: TextStyle(
+                        color: ColorConstants().appColor,
+                      ),
                     ),
                   ),
                 ),
@@ -134,7 +140,9 @@ class _FeedbackPageState extends State<FeedbackPage> {
       appBar: AppBar(
         title: const Text(
           'AirQo',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+              color: Colors.white),
         ),
       ),
       body: Container(

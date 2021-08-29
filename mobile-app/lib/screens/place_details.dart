@@ -149,7 +149,9 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
             )
           : response != null
               ? Center(
-                  child: Text(response),
+                  child: Text(response, style: TextStyle(
+                    color: ColorConstants().appColor
+                  ),),
                 )
               : Center(
                   child: Stack(
@@ -310,13 +312,13 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                   {
                     setState(() {
                       forecastResponse = 'Forecast data is currently'
-                          ' not available...';
+                          ' not available.';
                     })
                   }
               });
     } catch (e) {
       setState(() {
-        forecastResponse = 'Forecast data is currently not available...';
+        forecastResponse = 'Forecast data is currently not available.';
       });
       print('Getting Forecast events error: $e');
     }
@@ -341,13 +343,13 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                   {
                     setState(() {
                       historicalResponse =
-                          'Historical data is currently not available...';
+                          'Historical data is currently not available.';
                     })
                   }
               });
     } catch (e) {
       setState(() {
-        historicalResponse = 'Historical data is currently not available...';
+        historicalResponse = 'Historical data is currently not available.';
       });
       print('Getting device historical events error: $e');
     }
@@ -370,7 +372,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
     } catch (e) {
       print('Getting device events error: $e');
 
-      var message = 'Sorry, information currently is not available';
+      var message = 'Sorry, air quality data currently is not available';
 
       setState(() {
         response = message;
