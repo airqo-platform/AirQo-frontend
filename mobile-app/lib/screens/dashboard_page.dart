@@ -62,22 +62,24 @@ class _DashboardPageState extends State<DashboardPage> {
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
                                         color: ColorConstants().appColor),
-                                  )
+                                  ),
+                                  reloadButton()
                                 ],
                               ),
                             ),
                           )
                     : RefreshIndicator(
-                        onRefresh: initialize,
+                        onRefresh: reload,
+                        color: ColorConstants().appColor,
                         child: ListView.builder(
                           itemBuilder: (context, index) => InkWell(
                             onTap: () async {
                               try {
-                                var device = results[index].device;
+                                var site = results[index].site;
 
                                 await Navigator.push(context,
                                     MaterialPageRoute(builder: (context) {
-                                  return PlaceDetailsPage(device: device);
+                                  return PlaceDetailsPage(site: site);
                                 })).then((value) => setState(() {}));
                               } catch (e) {
                                 print(e);
@@ -123,43 +125,68 @@ class _DashboardPageState extends State<DashboardPage> {
       setState(() {
         hasFavPlaces = false;
       });
-    }
-
-    if (favouritePlaces.isNotEmpty) {
+    } else {
       setState(() {
         hasFavPlaces = true;
       });
 
-      await DBHelper().getFavouritePlaces().then((value) => {
-            if (value.isNotEmpty)
-              {
-                setState(() {
-                  results = value;
-                })
-              }
-          });
-
-      await AirqoApiClient(context)
-          .fetchLatestDevicesMeasurements(favouritePlaces)
-          .then((value) => {
-                if (value.isNotEmpty)
-                  {
-                    setState(() {
-                      results = value;
-                    }),
-                    DBHelper().insertLatestMeasurements(value)
-                  }
-                else
-                  {
-                    if (results.isEmpty && hasFavPlaces)
-                      {
-                        error = 'Sorry, we are not able to gather information'
-                            ' about your places. Try again later'
-                      }
-                  }
-              });
+      await loadFromDb();
+      await reload();
     }
   }
+
+  Future<void> reload() async {
+
+    setState(() {
+      error = '';
+    });
+
+    await AirqoApiClient(context)
+      .fetchLatestMeasurements()
+      .then((value) => {
+        if (value.isNotEmpty)
+          {
+            setState(() {
+              results = value;
+              error = '';
+            }),
+            DBHelper().insertLatestMeasurements(value)
+                .then((value) => loadFromDb()),
+          }
+        else
+          {
+            if (results.isEmpty && hasFavPlaces)
+              setState(() {
+                error = 'Sorry, we are not able to gather information'
+                    ' about your places. Try again later';
+              }),
+          }
+    });
+  }
+
+  Future<void> loadFromDb() async {
+
+      await DBHelper().getFavouritePlaces().then((value) => {
+        if (value.isNotEmpty)
+          {
+            setState(() {
+              error = '';
+              results = value;
+            })
+          }
+        else
+          {
+            if (results.isEmpty && hasFavPlaces)
+              {
+                setState(() {
+                  error = 'Sorry, we are not able to gather information'
+                      ' about your places. Try again later';
+                }),
+              }
+          }
+      });
+
+    }
 
   @override
   void initState() {
@@ -177,7 +204,7 @@ class _DashboardPageState extends State<DashboardPage> {
       highlightElevation: 0,
       splashColor: Colors.black12,
       highlightColor: ColorConstants().appColor.withOpacity(0.4),
-      onPressed: initialize,
+      onPressed: reload,
       child: Padding(
         padding: const EdgeInsets.all(4),
         child: Text(

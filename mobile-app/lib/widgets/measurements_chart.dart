@@ -6,7 +6,6 @@ import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 
 class MeasurementsBarChart extends StatefulWidget {
-
   MeasurementsBarChart(this.seriesList, this.header);
 
   final List<charts.Series<TimeSeriesData, DateTime>> seriesList;
@@ -28,7 +27,8 @@ class _MeasurementsBarChartState extends State<MeasurementsBarChart> {
       ),
       child: Column(
         children: <Widget>[
-          Padding(padding: const EdgeInsets.fromLTRB(5, 10, 5, 10),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(5, 10, 5, 10),
             child: Center(
               child: Text(
                 widget.header,
@@ -38,7 +38,8 @@ class _MeasurementsBarChartState extends State<MeasurementsBarChart> {
                     color: ColorConstants().appColor,
                     fontWeight: FontWeight.bold),
               ),
-            ),),
+            ),
+          ),
           if (display != null)
             Column(
               children: [
@@ -84,8 +85,7 @@ class _MeasurementsBarChartState extends State<MeasurementsBarChart> {
               defaultRenderer: charts.BarRendererConfig<DateTime>(),
               defaultInteractions: true,
               domainAxis: const charts.DateTimeAxisSpec(
-                  tickProviderSpec:
-                  charts.DayTickProviderSpec(increments: [1]),
+                  tickProviderSpec: charts.DayTickProviderSpec(increments: [1]),
                   tickFormatterSpec: charts.AutoDateTimeTickFormatterSpec(
                     day: charts.TimeFormatterSpec(
                         format: 'EEE, hh a',
@@ -109,30 +109,31 @@ class _MeasurementsBarChartState extends State<MeasurementsBarChart> {
               selectionModels: [
                 charts.SelectionModelConfig(
                     changedListener: (charts.SelectionModel model) {
-                      if (model.hasDatumSelection) {
-                        try {
-                          setState(() {
-                            display = {
-                              'time': (model.selectedSeries[0]
+                  if (model.hasDatumSelection) {
+                    try {
+                      setState(() {
+                        display = {
+                          'time': (model.selectedSeries[0]
                                   .domainFn(model.selectedDatum[0].index))
-                                  .toString(),
-                              'value': double.parse((model.selectedSeries[0]
+                              .toString(),
+                          'value': double.parse((model.selectedSeries[0]
                                   .measureFn(model.selectedDatum[0].index))
-                                  .toString())
-                            };
-                          });
-                        } on Error catch (e) {
-                          print(e);
-                        }
-                      }
-                    })
+                              .toString())
+                        };
+                      });
+                    } on Error catch (e) {
+                      print(e);
+                    }
+                  }
+                })
               ],
               primaryMeasureAxis: const charts.NumericAxisSpec(
-                  tickProviderSpec: charts.BasicNumericTickProviderSpec(
-                      desiredTickCount: 7)),
+                  tickProviderSpec:
+                      charts.BasicNumericTickProviderSpec(desiredTickCount: 7)),
             ),
           )
         ],
-      ),);
+      ),
+    );
   }
 }

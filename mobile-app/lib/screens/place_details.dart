@@ -1,8 +1,8 @@
 import 'package:app/constants/app_constants.dart';
-import 'package:app/models/device.dart';
 import 'package:app/models/historicalMeasurement.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/predict.dart';
+import 'package:app/models/site.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/services/rest_api.dart';
 import 'package:app/utils/data_formatter.dart';
@@ -11,8 +11,6 @@ import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/pm.dart';
 import 'package:app/utils/share.dart';
 import 'package:app/widgets/expanding_action_button.dart';
-import 'package:app/widgets/forecast_chart.dart';
-import 'package:app/widgets/hourly_chart.dart';
 import 'package:app/widgets/measurements_chart.dart';
 import 'package:app/widgets/pollutant_card.dart';
 import 'package:flutter/foundation.dart';
@@ -25,12 +23,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'help_page.dart';
 
 class PlaceDetailsPage extends StatefulWidget {
-  final Device device;
+  final Site site;
 
-  PlaceDetailsPage({Key? key, required this.device}) : super(key: key);
+  PlaceDetailsPage({Key? key, required this.site}) : super(key: key);
 
   @override
-  _PlaceDetailsPageState createState() => _PlaceDetailsPageState(device);
+  _PlaceDetailsPageState createState() => _PlaceDetailsPageState(site);
 }
 
 class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
@@ -50,9 +48,9 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
 
   String titleText = '';
 
-  Device device;
+  Site site;
 
-  _PlaceDetailsPageState(this.device);
+  _PlaceDetailsPageState(this.site);
 
   @override
   Widget build(BuildContext context) {
@@ -72,7 +70,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
           //     Icons.edit_outlined,
           //   ),
           //   onPressed: () {
-          //     updateTitleDialog(device);
+          //     updateTitleDialog(site);
           //   },
           // ),
         ],
@@ -234,7 +232,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                   Padding(
                       padding: const EdgeInsets.all(1.0),
                       child: Text(
-                        '${device.locationName}',
+                        '${site.getName()}',
                         style: const TextStyle(
                           fontSize: 16,
                           color: Colors.white,
@@ -244,7 +242,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                   Padding(
                     padding: const EdgeInsets.fromLTRB(1.0, 3.0, 1.0, 3.0),
                     child: Text(
-                      '${device.siteName}',
+                      '${site.district} ${site.country}',
                       style: const TextStyle(
                         fontSize: 20,
                         color: Colors.white,
@@ -289,7 +287,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
           prefs.getStringList(PrefConstants().favouritePlaces) ?? [];
 
       setState(() {
-        isFavourite = favourites.contains(measurementData.device.name);
+        isFavourite = favourites.contains(measurementData.site.id);
       });
     }
   }
@@ -310,15 +308,15 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
 
     try {
       await AirqoApiClient(context)
-          .fetchForecast(device.latitude.toString(),
-              device.longitude.toString(), forecastDate)
+          .fetchForecast(
+              site.latitude.toString(), site.longitude.toString(), forecastDate)
           .then((value) => {
                 if (value.isNotEmpty)
                   {
                     setState(() {
                       forecastData = value;
                     }),
-                    dbHelper.insertForecastMeasurements(value, device.name)
+                    dbHelper.insertForecastMeasurements(value, site.id)
                   }
                 else
                   {
@@ -341,15 +339,14 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
 
     try {
       await AirqoApiClient(context)
-          .fetchDeviceHistoricalMeasurements(device)
+          .fetchSiteHistoricalMeasurements(site)
           .then((value) => {
                 if (value.isNotEmpty)
                   {
                     setState(() {
                       historicalData = value;
                     }),
-                    dbHelper
-                        .insertDeviceHistoricalMeasurements(value, device.name)
+                    dbHelper.insertSiteHistoricalMeasurements(value, site.id)
                   }
                 else
                   {
@@ -363,7 +360,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
       setState(() {
         historicalResponse = 'Historical data is currently not available.';
       });
-      print('Getting device historical events error: $e');
+      print('Getting site historical events error: $e');
     }
   }
 
@@ -372,15 +369,16 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
       await localFetch();
 
       await AirqoApiClient(context)
-          .fetchDeviceMeasurements(device)
+          .fetchSiteMeasurements(site)
           .then((value) => {
                 setState(() {
                   measurementData = value;
                 }),
                 if (measurementData != null) {checkFavourite()}
-              });
+              })
+          .catchError((error) => {print(error)});
     } catch (e) {
-      print('Getting device events error: $e');
+      print('Getting site latest events error: $e');
 
       var message = 'Sorry, air quality data currently is not available';
 
@@ -460,7 +458,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
 
   Future<void> localFetch() async {
     try {
-      await dbHelper.getMeasurement(device.name).then((value) => {
+      await dbHelper.getMeasurement(site.id).then((value) => {
             if (value != null)
               {
                 setState(() {
@@ -470,13 +468,13 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
             if (measurementData != null) {checkFavourite()}
           });
     } on Error catch (e) {
-      print('Getting device events locally error: $e');
+      print('Getting site events locally error: $e');
     }
   }
 
   Future<void> localFetchForecastData() async {
     try {
-      await dbHelper.getForecastMeasurements(device.name).then((value) => {
+      await dbHelper.getForecastMeasurements(site.id).then((value) => {
             if (value.isNotEmpty)
               {
                 setState(() {
@@ -491,8 +489,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
 
   Future<void> localFetchHistoricalData() async {
     try {
-      var measurements =
-          await dbHelper.getHistoricalMeasurements(device.name);
+      var measurements = await dbHelper.getHistoricalMeasurements(site.id);
 
       if (measurements.isNotEmpty) {
         setState(() {
@@ -508,12 +505,11 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
     final _markers = <String, Marker>{};
 
     final marker = Marker(
-      markerId: MarkerId(measurement.device.toString()),
+      markerId: MarkerId(measurement.site.toString()),
       icon: pmToMarkerPoint(measurement.getPm2_5Value()),
-      position:
-          LatLng((measurement.device.latitude), measurement.device.longitude),
+      position: LatLng((measurement.site.latitude), measurement.site.longitude),
     );
-    _markers[measurement.device.toString()] = marker;
+    _markers[measurement.site.toString()] = marker;
 
     return Padding(
         padding: const EdgeInsets.fromLTRB(0.0, 2.0, 0.0, 2.0),
@@ -532,7 +528,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
               mapToolbarEnabled: false,
               initialCameraPosition: CameraPosition(
                 target: LatLng(
-                    measurement.device.latitude, measurement.device.longitude),
+                    measurement.site.latitude, measurement.site.longitude),
                 zoom: 13,
               ),
               markers: _markers.values.toSet(),
@@ -546,7 +542,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
   }
 
   Future<void> updateFavouritePlace() async {
-    var fav = await dbHelper.updateFavouritePlaces(measurementData.device);
+    var fav = await dbHelper.updateFavouritePlaces(measurementData.site);
 
     setState(() {
       isFavourite = fav;
@@ -555,17 +551,17 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
     if (fav) {
       await showSnackBarGoToMyPlaces(
           context,
-          '${measurementData.device.siteName} '
+          '${measurementData.site.getName()} '
           'is added to your places');
     } else {
       await showSnackBar2(
           context,
-          '${measurementData.device.siteName} '
+          '${measurementData.site.getName()} '
           'is removed from your places');
     }
   }
 
-  Future<void> updateTitleDialog(Device device) async {
+  Future<void> updateTitleDialog(Site site) async {
     return showDialog(
         context: context,
         builder: (context) {
@@ -577,7 +573,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                   titleText = value;
                 });
               },
-              decoration: InputDecoration(hintText: device.nickName),
+              decoration: InputDecoration(hintText: site.getName()),
             ),
             actions: <Widget>[
               ElevatedButton(
@@ -598,8 +594,8 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                 onPressed: () async {
                   if (titleText != '') {
                     // await dbHelper
-                    //     .renameFavouritePlace(device, titleText)
-                    //     .then((value) => {getDeviceDetails()});
+                    //     .renameFavouritePlace(site, titleText)
+                    //     .then((value) => {getSiteDetails()});
                   }
                   Navigator.pop(context);
                 },

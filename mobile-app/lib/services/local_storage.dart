@@ -1,10 +1,10 @@
 import 'dart:async';
 
 import 'package:app/constants/app_constants.dart';
-import 'package:app/models/device.dart';
 import 'package:app/models/historicalMeasurement.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/predict.dart';
+import 'package:app/models/site.dart';
 import 'package:app/models/suggestion.dart';
 import 'package:path/path.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -21,29 +21,25 @@ class DBHelper {
   }
 
   Future<void> createDefaultTables(Database db) async {
-    print('creating tables');
 
-    // latest measurements table
-    // await db.execute(Measurement.latestMeasurementsTableDropStmt());
-    await db.execute(Measurement.latestMeasurementsTableCreateStmt());
+    var prefs = await SharedPreferences.getInstance();
+    var initialLoading = prefs.getBool(initialDbLoad) ?? true;
 
-    // search history table
-    // await db.execute(Suggestion.searchHistoryTableDropStmt());
-    await db.execute(Suggestion.searchHistoryTableCreateStmt());
+    if (initialLoading) {
+      print('creating tables');
+      await db.execute(Measurement.dropTableStmt());
+      await db.execute(Suggestion.dropTableStmt());
+      await db.execute(HistoricalMeasurement.dropTableStmt());
+      await db.execute(Predict.dropTableStmt());
+      await db.execute(Site.dropTableStmt());
+      await prefs.setBool(initialDbLoad, false);
+    }
 
-    // historical measurements table
-    // await db.execute(HistoricalMeasurement
-    //     .historicalMeasurementsTableDropStmt());
-    await db
-        .execute(HistoricalMeasurement.historicalMeasurementsTableCreateStmt());
-
-    // forecast table
-    // await db.execute(Predict.forecastTableDropStmt());
-    await db.execute(Predict.forecastTableCreateStmt());
-
-    // devices table
-    // await db.execute(Device.devicesTableDropStmt());
-    await db.execute(Device.createTableStmt());
+    await db.execute(Measurement.createTableStmt());
+    await db.execute(Suggestion.createTableStmt());
+    await db.execute(HistoricalMeasurement.createTableStmt());
+    await db.execute(Predict.createTableStmt());
+    await db.execute(Site.createTableStmt());
   }
 
   Future<void> deleteSearchHistory(Suggestion suggestion) async {
@@ -62,23 +58,23 @@ class DBHelper {
     }
   }
 
-  Future<List<Device>> getDevices() async {
+  Future<List<Site>> getSites() async {
     try {
       final db = await database;
-      var res = await db.query(Device.dbName());
+      var res = await db.query(Site.sitesDbName());
 
-      print('Got ${res.length} devices from local db');
+      print('Got ${res.length} sites from local db');
 
-      var devices = res.isNotEmpty
+      var sites = res.isNotEmpty
           ? List.generate(res.length, (i) {
-              return Device.fromJson(Device.fromDbMap(res[i]));
+              return Site.fromJson(Site.fromDbMap(res[i]));
             })
-          : <Device>[];
+          : <Site>[];
 
-      return devices;
+      return sites;
     } catch (e) {
       print(e);
-      return <Device>[];
+      return <Site>[];
     }
   }
 
@@ -95,9 +91,11 @@ class DBHelper {
       }
 
       var placesRes = <Map<String, Object?>>[];
+
       for (var fav in favouritePlaces) {
         var res = await db.query('${Measurement.latestMeasurementsDb()}',
-            where: '${'${Measurement.dbDeviceName()} = ?'}', whereArgs: [fav]);
+            where: '${'${Site.dbId()} = ?'}', whereArgs: [fav]);
+
         placesRes.addAll(res);
       }
       if (placesRes.isEmpty) {
@@ -116,12 +114,12 @@ class DBHelper {
     }
   }
 
-  Future<List<Predict>> getForecastMeasurements(String device) async {
+  Future<List<Predict>> getForecastMeasurements(String siteId) async {
     try {
       final db = await database;
 
       var res = await db.query(Predict.forecastDb(),
-          where: '${Predict.dbDevice()} = ?', whereArgs: [device]);
+          where: '${Site.dbId()} = ?', whereArgs: [siteId]);
 
       print('Got ${res.length} predict measurements from db');
 
@@ -137,13 +135,12 @@ class DBHelper {
   }
 
   Future<List<HistoricalMeasurement>> getHistoricalMeasurements(
-      String device) async {
+      String siteId) async {
     try {
       final db = await database;
 
       var res = await db.query(HistoricalMeasurement.historicalMeasurementsDb(),
-          where: '${HistoricalMeasurement.dbDevice()} = ?',
-          whereArgs: [device]);
+          where: '${Site.dbId()} = ?', whereArgs: [siteId]);
 
       print('Got ${res.length} historical measurements from db');
 
@@ -180,20 +177,16 @@ class DBHelper {
     }
   }
 
-  Future<Measurement?> getMeasurement(String name) async {
+  Future<Measurement?> getMeasurement(String siteId) async {
     try {
-      print('Getting measurements locally');
-
       final db = await database;
 
       var res = await db.query(Measurement.latestMeasurementsDb(),
-          where: '${Measurement.dbDeviceName()} = ?', whereArgs: [name]);
+          where: '${Site.dbId()} = ?', whereArgs: [siteId]);
 
       if (res.isEmpty) {
         return null;
       }
-
-      print('Got measurement locally');
       return Measurement.fromJson(Measurement.mapFromDb(res.first));
     } catch (e) {
       print(e);
@@ -235,15 +228,15 @@ class DBHelper {
     );
   }
 
-  Future<void> insertDeviceHistoricalMeasurements(
-      List<HistoricalMeasurement> measurements, String device) async {
+  Future<void> insertSiteHistoricalMeasurements(
+      List<HistoricalMeasurement> measurements, String siteId) async {
     try {
       final db = await database;
+      print('inserting historical data');
 
       if (measurements.isNotEmpty) {
         await db.delete(HistoricalMeasurement.historicalMeasurementsDb(),
-            where: '${HistoricalMeasurement.dbDevice()} = ?',
-            whereArgs: [device]);
+            where: '${Site.dbId()} = ?', whereArgs: [siteId]);
 
         for (var measurement in measurements) {
           try {
@@ -254,7 +247,7 @@ class DBHelper {
               conflictAlgorithm: ConflictAlgorithm.replace,
             );
           } catch (e) {
-            print('Inserting device historical measurements into db');
+            print('Inserting site historical measurements into db');
             print(e);
           }
         }
@@ -264,21 +257,22 @@ class DBHelper {
     }
   }
 
-  Future<void> insertDevices(List<Device> devices) async {
+  Future<void> insertSites(List<Site> sites) async {
     try {
       final db = await database;
 
-      if (devices.isNotEmpty) {
-        for (var device in devices) {
+      if (sites.isNotEmpty) {
+        await db.delete(Site.sitesDbName());
+        for (var site in sites) {
           try {
-            var jsonData = Device.toDbMap(device);
+            var jsonData = Site.toDbMap(site);
             await db.insert(
-              '${Device.dbName()}',
+              '${Site.sitesDbName()}',
               jsonData,
               conflictAlgorithm: ConflictAlgorithm.replace,
             );
           } catch (e) {
-            print('Inserting devices into db');
+            print('Inserting sites into db');
             print(e);
           }
         }
@@ -289,17 +283,17 @@ class DBHelper {
   }
 
   Future<void> insertForecastMeasurements(
-      List<Predict> measurements, String device) async {
+      List<Predict> measurements, String siteId) async {
     try {
       final db = await database;
 
       if (measurements.isNotEmpty) {
         await db.delete(Predict.forecastDb(),
-            where: '${Predict.dbDevice()} = ?', whereArgs: [device]);
+            where: '${Site.dbId()} = ?', whereArgs: [siteId]);
 
         for (var measurement in measurements) {
           try {
-            var jsonData = Predict.mapToDb(measurement, device);
+            var jsonData = Predict.mapToDb(measurement, siteId);
             await db.insert(
               '${Predict.forecastDb()}',
               jsonData,
@@ -349,6 +343,7 @@ class DBHelper {
 
       if (measurements.isNotEmpty) {
         await db.delete(Measurement.latestMeasurementsDb());
+
         for (var measurement in measurements) {
           try {
             var jsonData = Measurement.mapToDb(measurement);
@@ -392,12 +387,12 @@ class DBHelper {
     }
   }
 
-  Future<bool> updateFavouritePlaces(Device device) async {
+  Future<bool> updateFavouritePlaces(Site site) async {
     var prefs = await SharedPreferences.getInstance();
     var favouritePlaces =
         prefs.getStringList(PrefConstants().favouritePlaces) ?? [];
 
-    var name = device.name.trim().toLowerCase();
+    var name = site.id.trim().toLowerCase();
     if (favouritePlaces.contains(name)) {
       var updatedList = <String>[];
 

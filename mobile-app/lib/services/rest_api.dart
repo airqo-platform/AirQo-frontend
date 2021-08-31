@@ -6,12 +6,12 @@ import 'dart:io';
 import 'package:app/config/env.dart';
 import 'package:app/constants/api.dart';
 import 'package:app/constants/app_constants.dart';
-import 'package:app/models/device.dart';
 import 'package:app/models/feedback.dart';
 import 'package:app/models/historicalMeasurement.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/place.dart';
 import 'package:app/models/predict.dart';
+import 'package:app/models/site.dart';
 import 'package:app/models/suggestion.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:flutter/foundation.dart';
@@ -24,8 +24,8 @@ class AirqoApiClient {
 
   AirqoApiClient(this.context);
 
-  Future<List<HistoricalMeasurement>> fetchDeviceHistoricalMeasurements(
-      Device device) async {
+  Future<List<HistoricalMeasurement>> fetchSiteHistoricalMeasurements(
+      Site site) async {
     try {
       var nowUtc = DateTime.now().toUtc();
       var startTimeUtc = nowUtc.subtract(const Duration(hours: 48));
@@ -37,14 +37,14 @@ class AirqoApiClient {
 
       var date = DateFormat('yyyy-MM-dd').format(startTimeUtc);
       var startTime = '${date}T$time:00:00Z';
-      var endTime = '${DateFormat('yyyy-MM-dd').format(nowUtc)}T$time:00:00Z';
+      // var endTime = '${DateFormat('yyyy-MM-dd')
+      // .format(nowUtc)}T$time:00:00Z';
 
       var queryParams = <String, dynamic>{}
-        ..putIfAbsent('device', () => device.name)
+        ..putIfAbsent('site_id', () => site.id)
         ..putIfAbsent('startTime', () => startTime)
-        ..putIfAbsent('endTime', () => endTime)
         ..putIfAbsent('frequency', () => 'raw')
-        ..putIfAbsent('metadata', () => 'device')
+        ..putIfAbsent('metadata', () => 'site_id')
         ..putIfAbsent('recent', () => 'no')
         ..putIfAbsent('tenant', () => 'airqo');
 
@@ -58,19 +58,19 @@ class AirqoApiClient {
         return <HistoricalMeasurement>[];
       }
     } on Error catch (e) {
-      print('Get Device historical measurements error: $e');
+      print('Get site historical measurements error: $e');
     }
 
     return <HistoricalMeasurement>[];
   }
 
-  Future<Measurement> fetchDeviceMeasurements(Device device) async {
+  Future<Measurement> fetchSiteMeasurements(Site site) async {
     try {
       var queryParams = <String, dynamic>{}
         ..putIfAbsent('recent', () => 'yes')
-        ..putIfAbsent('device', () => device.name)
+        ..putIfAbsent('site_id', () => site.id)
         ..putIfAbsent('frequency', () => 'raw')
-        ..putIfAbsent('metadata', () => 'device')
+        ..putIfAbsent('metadata', () => 'site_id')
         ..putIfAbsent('tenant', () => 'airqo');
 
       final responseBody =
@@ -79,35 +79,35 @@ class AirqoApiClient {
       if (responseBody != null) {
         return compute(Measurement.parseMeasurement, responseBody);
       } else {
-        print('Device latest measurements are null');
-        throw Exception('device does not exist');
+        print('Site latest measurements are null');
+        throw Exception('site does not exist');
       }
     } on Error catch (e) {
-      print('Get device latest measurements error: $e');
-      throw Exception('device does not exist');
+      print('Get site latest measurements error: $e');
+      throw Exception('site does not exist');
     }
   }
 
-  Future<List<Device>> fetchDevices() async {
+  Future<List<Site>> fetchSites() async {
     try {
       var queryParams = <String, dynamic>{}
         ..putIfAbsent('active', () => 'yes')
         ..putIfAbsent('tenant', () => 'airqo');
 
       final responseBody =
-          await _performGetRequest(queryParams, AirQoUrls().devices);
+          await _performGetRequest(queryParams, AirQoUrls().sites);
 
       if (responseBody != null) {
-        return compute(Device.parseDevices, responseBody);
+        return compute(Site.parseSites, responseBody);
       } else {
-        print('Devices are null');
-        return <Device>[];
+        print('sites are null');
+        return <Site>[];
       }
     } on Error catch (e) {
-      print('Get devices error: $e');
+      print('Get sites error: $e');
     }
 
-    return <Device>[];
+    return <Site>[];
   }
 
   Future<List<Predict>> fetchForecast(
@@ -162,7 +162,7 @@ class AirqoApiClient {
         ..putIfAbsent('startTime', () => startTime)
         ..putIfAbsent('frequency', () => 'raw')
         ..putIfAbsent('recent', () => 'no')
-        ..putIfAbsent('metadata', () => 'device')
+        ..putIfAbsent('metadata', () => 'site_id')
         ..putIfAbsent('tenant', () => 'airqo');
 
       final responseBody =
@@ -181,24 +181,24 @@ class AirqoApiClient {
     return <HistoricalMeasurement>[];
   }
 
-  Future<List<Measurement>> fetchLatestDevicesMeasurements(
-      List<String> devices) async {
+  Future<List<Measurement>> fetchLatestSitesMeasurements(
+      List<String> sitesIds) async {
     try {
-      if (devices.isEmpty) {
+      if (sitesIds.isEmpty) {
         return <Measurement>[];
       }
 
-      var devicesStr = '';
-      for (var device in devices) {
-        devicesStr = '$devicesStr,$device,';
+      var sitesStr = '';
+      for (var site in sitesIds) {
+        sitesStr = '$sitesStr,$site';
       }
 
-      devicesStr = devicesStr.substring(1, devicesStr.length - 1);
+      sitesStr = sitesStr.substring(1, sitesStr.length);
 
       var queryParams = <String, dynamic>{}
-        ..putIfAbsent('device', () => devicesStr)
+        ..putIfAbsent('site_id', () => sitesStr)
         ..putIfAbsent('recent', () => 'yes')
-        ..putIfAbsent('metadata', () => 'device')
+        ..putIfAbsent('metadata', () => 'site_id')
         ..putIfAbsent('frequency', () => 'raw')
         ..putIfAbsent('tenant', () => 'airqo');
 
@@ -208,11 +208,11 @@ class AirqoApiClient {
       if (responseBody != null) {
         return compute(Measurement.parseMeasurements, responseBody);
       } else {
-        print('Latest devices Measurements are null');
+        print('Latest sites Measurements are null');
         return <Measurement>[];
       }
     } on Error catch (e) {
-      print('Get Latest measurements for specific devices error: $e');
+      print('Get Latest measurements for specific sites error: $e');
     }
 
     return <Measurement>[];
@@ -222,7 +222,7 @@ class AirqoApiClient {
     try {
       var queryParams = <String, dynamic>{}
         ..putIfAbsent('recent', () => 'yes')
-        ..putIfAbsent('metadata', () => 'device')
+        ..putIfAbsent('metadata', () => 'site_id')
         ..putIfAbsent('frequency', () => 'raw')
         ..putIfAbsent('tenant', () => 'airqo');
 
@@ -242,7 +242,7 @@ class AirqoApiClient {
     return <Measurement>[];
   }
 
-  Future<List<Device>> getDevicesByCoordinates(
+  Future<List<Site>> getSitesByCoordinates(
       double latitude, double longitude) async {
     try {
       var queryParams = <String, dynamic>{}
@@ -252,19 +252,19 @@ class AirqoApiClient {
         ..putIfAbsent('latitude', () => latitude);
 
       final responseBody = await _performGetRequest(
-          queryParams, AirQoUrls().devicesByGeoCoordinates);
+          queryParams, AirQoUrls().sitesByGeoCoordinates);
 
       if (responseBody != null) {
-        return compute(Device.parseDevicesV2, responseBody);
+        return compute(Site.parseSites, responseBody);
       } else {
-        print('Devices are null');
-        return <Device>[];
+        print('Sites are null');
+        return <Site>[];
       }
     } on Error catch (e) {
-      print('Get devices error: $e');
+      print('Get sites by coordinates error: $e');
     }
 
-    return <Device>[];
+    return <Site>[];
   }
 
   Future<String> imageUpload(String file, String? type) async {

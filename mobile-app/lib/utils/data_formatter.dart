@@ -2,7 +2,6 @@ import 'package:app/models/chartData.dart';
 import 'package:app/models/historicalMeasurement.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/predict.dart';
-import 'package:app/models/series.dart';
 import 'package:app/utils/pm.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:intl/intl.dart';
@@ -27,47 +26,6 @@ List<charts.Series<TimeSeriesData, DateTime>> createChartData(
       measureFn: (TimeSeriesData sales, _) => sales.value,
       data: data,
     )
-  ];
-}
-
-List<charts.Series<ValueSeries, DateTime>> createComparisonData(
-    List<Measurement> measurements) {
-  var device_01 = 675740;
-  var device_02 = 675801;
-
-  var device01Data = <ValueSeries>[];
-  var device02Data = <ValueSeries>[];
-  var baseData = <ValueSeries>[];
-
-  for (var measurement in measurements) {
-    var time = measurement.time.substring(0, measurement.time.indexOf('.'));
-
-    var date = DateTime.parse(time);
-    baseData.add(ValueSeries(date, 50));
-  }
-
-  return [
-    charts.Series<ValueSeries, DateTime>(
-      id: device_01.toString(),
-      colorFn: (_, __) => charts.MaterialPalette.blue.shadeDefault,
-      domainFn: (ValueSeries sales, _) => sales.time,
-      measureFn: (ValueSeries sales, _) => sales.values,
-      data: device01Data,
-    ),
-    charts.Series<ValueSeries, DateTime>(
-      id: device_02.toString(),
-      colorFn: (_, __) => charts.MaterialPalette.red.shadeDefault,
-      domainFn: (ValueSeries sales, _) => sales.time,
-      measureFn: (ValueSeries sales, _) => sales.values,
-      data: device02Data,
-    ),
-    charts.Series<ValueSeries, DateTime>(
-        id: 'Mobile',
-        colorFn: (_, __) => charts.MaterialPalette.green.shadeDefault,
-        domainFn: (ValueSeries sales, _) => sales.time,
-        measureFn: (ValueSeries sales, _) => sales.values,
-        data: baseData)
-      ..setAttribute(charts.rendererIdKey, 'customPoint'),
   ];
 }
 

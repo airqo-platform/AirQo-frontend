@@ -8,7 +8,7 @@ part of 'measurement.dart';
 
 Measurement _$MeasurementFromJson(Map<String, dynamic> json) {
   $checkKeys(json,
-      requiredKeys: const ['time', 'pm2_5', 'pm10', 'deviceDetails']);
+      requiredKeys: const ['time', 'pm2_5', 'pm10', 'siteDetails']);
   return Measurement(
     time: json['time'] as String,
     pm2_5: MeasurementValue.fromJson(json['pm2_5'] as Map<String, dynamic>),
@@ -20,9 +20,21 @@ Measurement _$MeasurementFromJson(Map<String, dynamic> json) {
         json['externalTemperature'] as Map<String, dynamic>),
     humidity: MeasurementValue.fromJson(
         json['externalHumidity'] as Map<String, dynamic>),
-    device: Device.fromJson(json['deviceDetails'] as Map<String, dynamic>),
+    site: Site.fromJson(json['siteDetails'] as Map<String, dynamic>),
   );
 }
+
+Map<String, dynamic> _$MeasurementToJson(Measurement instance) =>
+    <String, dynamic>{
+      'time': instance.time,
+      'pm2_5': instance.pm2_5,
+      'pm10': instance.pm10,
+      'altitude': instance.altitude,
+      'speed': instance.speed,
+      'externalTemperature': instance.temperature,
+      'externalHumidity': instance.humidity,
+      'siteDetails': instance.site,
+    };
 
 Measurements _$MeasurementsFromJson(Map<String, dynamic> json) {
   return Measurements(
@@ -35,16 +47,4 @@ Measurements _$MeasurementsFromJson(Map<String, dynamic> json) {
 Map<String, dynamic> _$MeasurementsToJson(Measurements instance) =>
     <String, dynamic>{
       'measurements': instance.measurements,
-    };
-
-Map<String, dynamic> _$MeasurementToJson(Measurement instance) =>
-    <String, dynamic>{
-      'time': instance.time,
-      'pm2_5': instance.pm2_5,
-      'pm10': instance.pm10,
-      'altitude': instance.altitude,
-      'speed': instance.speed,
-      'externalTemperature': instance.temperature,
-      'externalHumidity': instance.humidity,
-      'deviceDetails': instance.device,
     };

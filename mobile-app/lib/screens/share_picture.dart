@@ -38,7 +38,7 @@ class TakePictureState extends State<TakePicture> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    final deviceRatio = size.width / size.height;
+    final phoneRatio = size.width / size.height;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Take a picture')),
@@ -51,7 +51,7 @@ class TakePictureState extends State<TakePicture> {
             );
             // return Center(
             //   child:Transform.scale(
-            //     scale: _controller.value.aspectRatio/deviceRatio,
+            //     scale: _controller.value.aspectRatio/phoneRatio,
             //     child: AspectRatio(
             //       aspectRatio: _controller.value.aspectRatio,
             //       child: CameraPreview(_controller),
@@ -116,7 +116,7 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    final deviceRatio = size.width / size.height;
+    final phoneRatio = size.width / size.height;
 
     return Scaffold(
         appBar: AppBar(title: const Text('Share Picture')),

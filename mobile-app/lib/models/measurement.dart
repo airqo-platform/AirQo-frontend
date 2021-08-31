@@ -1,6 +1,6 @@
+import 'package:app/models/site.dart';
 import 'package:json_annotation/json_annotation.dart';
 
-import 'device.dart';
 import 'measurementValue.dart';
 
 part 'measurement.g.dart';
@@ -28,8 +28,8 @@ class Measurement {
   @JsonKey(required: false, name: 'externalHumidity')
   final MeasurementValue humidity;
 
-  @JsonKey(required: true, name: 'deviceDetails')
-  final Device device;
+  @JsonKey(required: true, name: 'siteDetails')
+  final Site site;
 
   Measurement(
       {required this.time,
@@ -39,7 +39,7 @@ class Measurement {
       required this.speed,
       required this.temperature,
       required this.humidity,
-      required this.device});
+      required this.site});
 
   factory Measurement.fromJson(Map<String, dynamic> json) =>
       _$MeasurementFromJson(json);
@@ -62,29 +62,11 @@ class Measurement {
 
   static String dbAltitude() => 'altitude';
 
-  static String dbDescription() => 'description';
-
-  static String dbDeviceName() => 'device_name';
-
-  static String dbDistance() => 'distance';
-
   static String dbHumidity() => 'humidity';
-
-  static String dbLatitude() => 'latitude';
-
-  static String dbLocationName() => 'location_name';
-
-  static String dbLongitude() => 'longitude';
-
-  static String dbNameHistoricalMeasurements() => 'historical_measurements';
-
-  static String dbNickName() => 'nickname';
 
   static String dbPm10() => 'pm10';
 
   static String dbPm25() => 'pm2_5';
-
-  static String dbSiteName() => 'site_name';
 
   static String dbSpeed() => 'speed';
 
@@ -94,32 +76,32 @@ class Measurement {
 
   static String latestMeasurementsDb() => 'latest_measurements';
 
-  static String latestMeasurementsTableCreateStmt() =>
+  static String createTableStmt() =>
       'CREATE TABLE IF NOT EXISTS ${latestMeasurementsDb()}('
-      '${dbDeviceName()} TEXT PRIMARY KEY, ${dbLatitude()} REAL, '
-      '${dbTime()} TEXT, ${dbPm25()} REAL, '
+      '${Site.dbId()} TEXT PRIMARY KEY, ${Site.dbLatitude()} REAL, '
+      '${Site.dbSiteName()} TEXT, ${Site.dbLongitude()} REAL, '
+      '${dbTime()} TEXT, ${dbPm25()} REAL, ${Site.dbCountry()} TEXT, '
       '${dbPm10()} REAL, ${dbAltitude()} REAL, '
       '${dbSpeed()} REAL, ${dbTemperature()} REAL, '
-      '${dbHumidity()} REAL, ${dbLocationName()} TEXT, '
-      '${dbSiteName()} TEXT, ${dbLongitude()} REAL, '
-      '${dbDescription()} TEXT, ${dbNickName()} TEXT )';
+      '${dbHumidity()} REAL, ${Site.dbDistrict()} TEXT, '
+      '${Site.dbDescription()} TEXT )';
 
-  static String latestMeasurementsTableDropStmt() =>
+  static String dropTableStmt() =>
       'DROP TABLE IF EXISTS ${latestMeasurementsDb()}';
 
   static Map<String, dynamic> mapFromDb(Map<String, dynamic> json) {
-    var deviceDetails = {
-      'nickName': json['${dbNickName()}'] as String,
-      'description': json['${dbDescription()}'] as String,
-      'name': json['${dbDeviceName()}'] as String,
-      'siteName': json['${dbSiteName()}'] as String,
-      'locationName': json['${dbLocationName()}'] as String,
-      'latitude': json['${dbLatitude()}'] as double,
-      'longitude': json['${dbLongitude()}'] as double,
+    var siteDetails = {
+      '_id': json['${Site.dbId()}'] as String,
+      'country': json['${Site.dbCountry()}'] as String,
+      'district': json['${Site.dbDistrict()}'] as String,
+      'description': json['${Site.dbDescription()}'] as String,
+      'name': json['${Site.dbSiteName()}'] as String,
+      'latitude': json['${Site.dbLatitude()}'] as double,
+      'longitude': json['${Site.dbLongitude()}'] as double,
     };
 
     return {
-      'deviceDetails': deviceDetails,
+      'siteDetails': siteDetails,
       'time': json['${dbTime()}'] as String,
       'pm2_5': {'value': json['${dbPm25()}'] as double},
       'pm10': {'value': json['${dbPm10()}'] as double},
@@ -131,7 +113,7 @@ class Measurement {
   }
 
   static Map<String, dynamic> mapToDb(Measurement measurement) {
-    var device = measurement.device;
+    var site = measurement.site;
 
     return {
       '${dbTime()}': measurement.time,
@@ -141,61 +123,50 @@ class Measurement {
       '${dbSpeed()}': measurement.speed.value,
       '${dbTemperature()}': measurement.temperature.value,
       '${dbHumidity()}': measurement.humidity.value,
-      '${dbNickName()}':
-          device.nickName == '' ? device.locationName : device.nickName,
-      '${dbDescription()}': device.description,
-      '${dbSiteName()}': device.siteName,
-      '${dbLocationName()}': device.locationName,
-      '${dbDeviceName()}': device.name,
-      '${dbLatitude()}': device.latitude,
-      '${dbLongitude()}': device.longitude,
+      '${Site.dbSiteName()}': site.name,
+      '${Site.dbDescription()}': site.description,
+      '${Site.dbId()}': site.id,
+      '${Site.dbCountry()}': site.country,
+      '${Site.dbDistrict()}': site.district,
+      '${Site.dbLongitude()}': site.longitude,
+      '${Site.dbLatitude()}': site.latitude,
     };
   }
 
   static Measurement parseMeasurement(dynamic jsonBody) {
-    var measurementsForActiveDevices = <Measurement>[];
+    var measurements = <Measurement>[];
 
     var jsonArray = jsonBody['measurements'];
     for (var jsonElement in jsonArray) {
       try {
         var measurement = Measurement.fromJson(jsonElement);
-        if (measurement.device.isActive) {
-
-          var value = measurement.getPm2_5Value();
-          if (value != -0.1 && value >= 0.00 && value <= 500.4 &&
-              measurement.device.siteName != '' &&
-              measurement.device.locationName != '') {
-            measurementsForActiveDevices.add(measurement);
-          }
+        var value = measurement.getPm2_5Value();
+        if (value != -0.1 && value >= 0.00 && value <= 500.4) {
+          measurements.add(measurement);
         }
       } catch (e) {
         print(e);
       }
     }
-    return measurementsForActiveDevices.first;
+    return measurements.first;
   }
 
   static List<Measurement> parseMeasurements(dynamic jsonBody) {
-    var measurementsForActiveDevices = <Measurement>[];
+    var measurements = <Measurement>[];
 
     var jsonArray = jsonBody['measurements'];
     for (var jsonElement in jsonArray) {
       try {
         var measurement = Measurement.fromJson(jsonElement);
-        if (measurement.device.isActive) {
-
-          var value = measurement.getPm2_5Value();
-          if (value != -0.1 && value >= 0.00 && value <= 500.40 &&
-              measurement.device.siteName != '' &&
-              measurement.device.locationName != '') {
-            measurementsForActiveDevices.add(measurement);
-          }
+        var value = measurement.getPm2_5Value();
+        if (value != -0.1 && value >= 0.00 && value <= 500.40) {
+          measurements.add(measurement);
         }
       } catch (e) {
         print(e);
       }
     }
-    return measurementsForActiveDevices;
+    return measurements;
   }
 }
 

@@ -1,6 +1,6 @@
 import 'package:app/constants/app_constants.dart';
-import 'package:app/models/device.dart';
 import 'package:app/models/measurement.dart';
+import 'package:app/models/site.dart';
 import 'package:app/screens/place_details.dart';
 import 'package:app/screens/search_location_page.dart';
 import 'package:app/services/local_storage.dart';
@@ -18,7 +18,6 @@ class MyPlaces extends StatefulWidget {
 }
 
 class _MyPlacesState extends State<MyPlaces> {
-  // List<Measurement> results;
   var results = <Measurement>[];
   var searchResults = <Measurement>[];
   var searchList = <Measurement>[];
@@ -70,12 +69,13 @@ class _MyPlacesState extends State<MyPlaces> {
               padding: const EdgeInsets.fromLTRB(6, 6, 6, 6),
               child: isSearching
                   ? RefreshIndicator(
+                color: ColorConstants().appColor,
                       onRefresh: exitSearch,
                       child: ListView.builder(
                         itemBuilder: (context, index) => GestureDetector(
                           onTap: () {
                             if (searchResults[index] != null) {
-                              viewDetails(searchResults[index].device);
+                              viewDetails(searchResults[index].site);
                             }
                           },
                           child: Slidable(
@@ -87,7 +87,7 @@ class _MyPlacesState extends State<MyPlaces> {
                                 color: ColorConstants().appColor,
                                 icon: Icons.share_outlined,
                                 onTap: () =>
-                                    shareLocation(searchResults[index].device),
+                                    shareLocation(searchResults[index].site),
                               ),
                             ],
                             secondaryActions: <Widget>[
@@ -97,7 +97,7 @@ class _MyPlacesState extends State<MyPlaces> {
                                 icon: Icons.delete_outlined,
                                 onTap: () {
                                   removeFromFavourites(
-                                      searchResults[index].device);
+                                      searchResults[index].site);
                                 },
                               ),
                             ],
@@ -123,7 +123,7 @@ class _MyPlacesState extends State<MyPlaces> {
                                   ),
                                 ),
                                 title: Text(
-                                    '${searchResults[index].device.siteName}',
+                                    '${searchResults[index].site.getName()}',
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
                                       fontSize: 17,
@@ -131,7 +131,7 @@ class _MyPlacesState extends State<MyPlaces> {
                                       fontWeight: FontWeight.bold,
                                     )),
                                 subtitle: Text(
-                                    '${searchResults[index].device.locationName}',
+                                    '${searchResults[index].site.getLocation()}',
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
                                       fontSize: 14,
@@ -174,12 +174,13 @@ class _MyPlacesState extends State<MyPlaces> {
                           }
 
                           return RefreshIndicator(
+                            color: ColorConstants().appColor,
                             onRefresh: refreshData,
                             child: ListView.builder(
                               itemBuilder: (context, index) => GestureDetector(
                                 onTap: () {
                                   if (results[index] != null) {
-                                    viewDetails(results[index].device);
+                                    viewDetails(results[index].site);
                                   }
                                 },
                                 child: Slidable(
@@ -191,7 +192,7 @@ class _MyPlacesState extends State<MyPlaces> {
                                       color: ColorConstants().appColor,
                                       icon: Icons.share_outlined,
                                       onTap: () =>
-                                          shareLocation(results[index].device),
+                                          shareLocation(results[index].site),
                                     ),
                                   ],
                                   secondaryActions: <Widget>[
@@ -201,7 +202,7 @@ class _MyPlacesState extends State<MyPlaces> {
                                       icon: Icons.delete_outlined,
                                       onTap: () {
                                         removeFromFavourites(
-                                            results[index].device);
+                                            results[index].site);
                                       },
                                     ),
                                   ],
@@ -209,13 +210,9 @@ class _MyPlacesState extends State<MyPlaces> {
                                     child: ListTile(
                                       leading: CircleAvatar(
                                         backgroundColor: pmToColor(
-                                            results[index]
-                                                .pm2_5
-                                                .calibratedValue),
+                                            results[index].getPm2_5Value()),
                                         foregroundColor: pmTextColor(
-                                            results[index]
-                                                .pm2_5
-                                                .calibratedValue),
+                                            results[index].getPm2_5Value()),
                                         child: Center(
                                           child: Text(
                                             '${results[index].getPm2_5Value().toStringAsFixed(2)}',
@@ -226,7 +223,7 @@ class _MyPlacesState extends State<MyPlaces> {
                                         ),
                                       ),
                                       title: Text(
-                                          '${results[index].device.siteName}',
+                                          '${results[index].site.getName()}',
                                           overflow: TextOverflow.ellipsis,
                                           style: TextStyle(
                                             fontSize: 17,
@@ -234,7 +231,7 @@ class _MyPlacesState extends State<MyPlaces> {
                                             fontWeight: FontWeight.bold,
                                           )),
                                       subtitle: Text(
-                                          '${results[index].device.locationName}',
+                                          '${results[index].site.getLocation()}',
                                           overflow: TextOverflow.ellipsis,
                                           style: TextStyle(
                                             fontSize: 14,
@@ -292,17 +289,13 @@ class _MyPlacesState extends State<MyPlaces> {
       });
 
       var dummyListData = <Measurement>[];
-      for (Measurement measurement in searchList) {
-        var device = measurement.device;
+      for (var measurement in searchList) {
+        var site = measurement.site;
 
-        if ((device.description != null &&
-                device.description.toLowerCase().contains(query)) ||
-            (device.siteName != null &&
-                device.siteName.toLowerCase().contains(query)) ||
-            (device.locationName != null &&
-                device.locationName.toLowerCase().contains(query)) ||
-            (device.nickName != null &&
-                device.nickName.toLowerCase().contains(query))) {
+        if ((site.description.toLowerCase().contains(query)) ||
+            (site.name.toLowerCase().contains(query)) ||
+            (site.district.toLowerCase().contains(query)) ||
+            (site.country.toLowerCase().contains(query))) {
           dummyListData.add(measurement);
         }
       }
@@ -333,18 +326,18 @@ class _MyPlacesState extends State<MyPlaces> {
         });
   }
 
-  Future<void> removeFromFavourites(Device device) async {
-    await DBHelper().updateFavouritePlaces(device).then((value) => {
+  Future<void> removeFromFavourites(Site site) async {
+    await DBHelper().updateFavouritePlaces(site).then((value) => {
           showSnackBar2(
-              context, '${device.siteName} is removed from your places')
+              context, '${site.getName()} is removed from your places')
         });
 
     setState(() {});
   }
 
-  Future<void> viewDetails(Device device) async {
+  Future<void> viewDetails(Site site) async {
     await Navigator.push(context, MaterialPageRoute(builder: (context) {
-      return PlaceDetailsPage(device: device);
+      return PlaceDetailsPage(site: site);
     })).then((value) {
       setState(() {});
     });

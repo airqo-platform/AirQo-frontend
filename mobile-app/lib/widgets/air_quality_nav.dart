@@ -14,20 +14,6 @@ class AirQualityCard extends StatefulWidget {
   _AirQualityCardState createState() => _AirQualityCardState();
 }
 
-class CardBody extends StatefulWidget {
-  @override
-  _CardBodyState createState() => _CardBodyState();
-}
-
-class CardBodySection extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      child: const Center(child: Text('Body')),
-    );
-  }
-}
-
 class TitleSection extends StatelessWidget {
   final Measurement data;
 
@@ -56,7 +42,7 @@ class TitleSection extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  data.device.siteName,
+                  data.site.getName(),
                   maxLines: 4,
                   softWrap: true,
                   style: TextStyle(
@@ -113,16 +99,5 @@ class _AirQualityCardState extends State<AirQualityCard> {
             ),
           ),
         ));
-  }
-}
-
-class _CardBodyState extends State<CardBody> {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[CardBodySection()]),
-    );
   }
 }

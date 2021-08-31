@@ -7,6 +7,7 @@ class PollutantsCard extends StatelessWidget {
 
   final double value;
   final String type;
+
   PollutantsCard(this.name, this.value, this.type);
 
   @override
@@ -46,6 +47,7 @@ class PollutantsCard2 extends StatelessWidget {
 
   final double value;
   final String type;
+
   PollutantsCard2(this.name, this.value, this.type);
 
   @override

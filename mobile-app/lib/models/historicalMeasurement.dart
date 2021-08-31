@@ -1,3 +1,4 @@
+import 'package:app/models/site.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import 'measurementValue.dart';
@@ -27,8 +28,8 @@ class HistoricalMeasurement {
   @JsonKey(required: false, name: 'externalHumidity')
   final MeasurementValue humidity;
 
-  @JsonKey(required: true, name: 'device')
-  final String device;
+  @JsonKey(required: true, name: 'site_id')
+  final String siteId;
 
   HistoricalMeasurement(
       {required this.time,
@@ -38,7 +39,7 @@ class HistoricalMeasurement {
       required this.speed,
       required this.temperature,
       required this.humidity,
-      required this.device});
+      required this.siteId});
 
   factory HistoricalMeasurement.fromJson(Map<String, dynamic> json) =>
       _$HistoricalMeasurementFromJson(json);
@@ -61,8 +62,6 @@ class HistoricalMeasurement {
 
   static String dbAltitude() => 'altitude';
 
-  static String dbDevice() => 'device';
-
   static String dbHumidity() => 'humidity';
 
   static String dbPm10() => 'pm10';
@@ -77,20 +76,20 @@ class HistoricalMeasurement {
 
   static String historicalMeasurementsDb() => 'historical_measurements';
 
-  static String historicalMeasurementsTableCreateStmt() =>
+  static String createTableStmt() =>
       'CREATE TABLE IF NOT EXISTS ${historicalMeasurementsDb()}('
-      'id INTEGER PRIMARY KEY, ${dbDevice()} TEXT,'
+      'id INTEGER PRIMARY KEY, ${Site.dbId()} TEXT,'
       '${dbTime()} TEXT, ${dbPm25()} REAL, '
       '${dbPm10()} REAL, ${dbAltitude()} REAL, '
       '${dbSpeed()} REAL, ${dbTemperature()} REAL, '
       '${dbHumidity()} REAL)';
 
-  static String historicalMeasurementsTableDropStmt() =>
+  static String dropTableStmt() =>
       'DROP TABLE IF EXISTS ${historicalMeasurementsDb()}';
 
   static Map<String, dynamic> mapFromDb(Map<String, dynamic> json) {
     return {
-      'device': json['${dbDevice()}'] as String,
+      'site_id': json['${Site.dbId()}'] as String,
       'time': json['${dbTime()}'] as String,
       'pm2_5': {'value': json['${dbPm25()}'] as double},
       'pm10': {'value': json['${dbPm10()}'] as double},
@@ -110,12 +109,12 @@ class HistoricalMeasurement {
       '${dbSpeed()}': measurement.speed.value,
       '${dbTemperature()}': measurement.temperature.value,
       '${dbHumidity()}': measurement.humidity.value,
-      '${dbDevice()}': measurement.device
+      '${Site.dbId()}': measurement.siteId
     };
   }
 
   static HistoricalMeasurement parseMeasurement(dynamic jsonBody) {
-    var measurementsForActiveDevices = <HistoricalMeasurement>[];
+    var measurements = <HistoricalMeasurement>[];
 
     var jsonArray = jsonBody['measurements'];
     for (var jsonElement in jsonArray) {
@@ -124,17 +123,17 @@ class HistoricalMeasurement {
         if (measurement.getPm2_5Value() != -0.1 &&
             measurement.getPm2_5Value() >= 0 &&
             measurement.getPm2_5Value() <= 500.4) {
-          measurementsForActiveDevices.add(measurement);
+          measurements.add(measurement);
         }
       } catch (e) {
         print(e);
       }
     }
-    return measurementsForActiveDevices.first;
+    return measurements.first;
   }
 
   static List<HistoricalMeasurement> parseMeasurements(dynamic jsonBody) {
-    var measurementsForActiveDevices = <HistoricalMeasurement>[];
+    var measurements = <HistoricalMeasurement>[];
 
     var jsonArray = jsonBody['measurements'];
     for (var jsonElement in jsonArray) {
@@ -143,13 +142,13 @@ class HistoricalMeasurement {
         if (measurement.getPm2_5Value() != -0.1 &&
             measurement.getPm2_5Value() >= 0 &&
             measurement.getPm2_5Value() <= 500.4) {
-          measurementsForActiveDevices.add(measurement);
+          measurements.add(measurement);
         }
       } catch (e) {
         print(e);
       }
     }
-    return measurementsForActiveDevices;
+    return measurements;
   }
 }
 

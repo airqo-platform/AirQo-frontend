@@ -27,11 +27,9 @@ class Suggestion {
 
   static String dbPlaceId() => 'place_id';
 
-  static String searchHistoryTableCreateStmt() =>
-      'CREATE TABLE IF NOT EXISTS ${dbName()}('
+  static String createTableStmt() => 'CREATE TABLE IF NOT EXISTS ${dbName()}('
       '${dbPlaceId()} TEXT PRIMARY KEY, '
       '${dbDescription()} TEXT)';
 
-  static String searchHistoryTableDropStmt() =>
-      'DROP TABLE IF EXISTS ${dbName()}';
+  static String dropTableStmt() => 'DROP TABLE IF EXISTS ${dbName()}';
 }

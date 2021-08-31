@@ -17,7 +17,6 @@ class ForecastBarChart extends StatefulWidget {
 class _ForecastBarChartState extends State<ForecastBarChart> {
   var display = null;
 
-
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -27,7 +26,8 @@ class _ForecastBarChartState extends State<ForecastBarChart> {
       ),
       child: Column(
         children: <Widget>[
-          Padding(padding: const EdgeInsets.fromLTRB(5, 10, 5, 10),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(5, 10, 5, 10),
             child: Center(
               child: Text(
                 '24 hour Forecast',
@@ -37,7 +37,8 @@ class _ForecastBarChartState extends State<ForecastBarChart> {
                     color: ColorConstants().appColor,
                     fontWeight: FontWeight.bold),
               ),
-            ),),
+            ),
+          ),
           if (display != null)
             Column(
               children: [
@@ -83,8 +84,7 @@ class _ForecastBarChartState extends State<ForecastBarChart> {
               defaultRenderer: charts.BarRendererConfig<DateTime>(),
               defaultInteractions: true,
               domainAxis: const charts.DateTimeAxisSpec(
-                  tickProviderSpec:
-                  charts.DayTickProviderSpec(increments: [1]),
+                  tickProviderSpec: charts.DayTickProviderSpec(increments: [1]),
                   tickFormatterSpec: charts.AutoDateTimeTickFormatterSpec(
                     day: charts.TimeFormatterSpec(
                         format: 'EEE, hh a',
@@ -108,30 +108,31 @@ class _ForecastBarChartState extends State<ForecastBarChart> {
               selectionModels: [
                 charts.SelectionModelConfig(
                     changedListener: (charts.SelectionModel model) {
-                      if (model.hasDatumSelection) {
-                        try {
-                          setState(() {
-                            display = {
-                              'time': (model.selectedSeries[0]
+                  if (model.hasDatumSelection) {
+                    try {
+                      setState(() {
+                        display = {
+                          'time': (model.selectedSeries[0]
                                   .domainFn(model.selectedDatum[0].index))
-                                  .toString(),
-                              'value': double.parse((model.selectedSeries[0]
+                              .toString(),
+                          'value': double.parse((model.selectedSeries[0]
                                   .measureFn(model.selectedDatum[0].index))
-                                  .toString())
-                            };
-                          });
-                        } on Error catch (e) {
-                          print(e);
-                        }
-                      }
-                    })
+                              .toString())
+                        };
+                      });
+                    } on Error catch (e) {
+                      print(e);
+                    }
+                  }
+                })
               ],
               primaryMeasureAxis: const charts.NumericAxisSpec(
-                  tickProviderSpec: charts.BasicNumericTickProviderSpec(
-                      desiredTickCount: 7)),
+                  tickProviderSpec:
+                      charts.BasicNumericTickProviderSpec(desiredTickCount: 7)),
             ),
           )
         ],
-      ),);
+      ),
+    );
   }
 }

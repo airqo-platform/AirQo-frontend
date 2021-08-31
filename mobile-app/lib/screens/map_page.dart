@@ -3,8 +3,8 @@ import 'dart:collection';
 import 'dart:convert';
 
 import 'package:app/constants/app_constants.dart';
-import 'package:app/models/device.dart';
 import 'package:app/models/measurement.dart';
+import 'package:app/models/site.dart';
 import 'package:app/models/suggestion.dart';
 import 'package:app/screens/place_details.dart';
 import 'package:app/services/local_storage.dart';
@@ -355,7 +355,7 @@ class MapPageState extends State<MapPage> {
         ));
   }
 
-  RawMaterialButton detailsButton(Device device) {
+  RawMaterialButton detailsButton(Site site) {
     return RawMaterialButton(
       shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10.0),
@@ -366,7 +366,7 @@ class MapPageState extends State<MapPage> {
       splashColor: Colors.black12,
       highlightColor: Colors.white.withOpacity(0.4),
       onPressed: () async {
-        showDetails(device);
+        showDetails(site);
       },
       child: Padding(
         padding: const EdgeInsets.all(10),
@@ -441,7 +441,7 @@ class MapPageState extends State<MapPage> {
       child: Column(
         children: [
           Text(
-            windowProperties.device.siteName,
+            windowProperties.site.getName(),
             softWrap: true,
             style: TextStyle(color: ColorConstants().appColor),
             overflow: TextOverflow.ellipsis,
@@ -522,10 +522,10 @@ class MapPageState extends State<MapPage> {
               ),
               IconButton(
                   onPressed: () {
-                    updateFavouritePlace(windowProperties.device);
+                    updateFavouritePlace(windowProperties.site);
                   },
                   icon: favourites.contains(
-                          windowProperties.device.name.trim().toLowerCase())
+                          windowProperties.site.id.trim().toLowerCase())
                       ? Icon(
                           Icons.favorite,
                           color: ColorConstants().red,
@@ -536,7 +536,7 @@ class MapPageState extends State<MapPage> {
                         )),
               GestureDetector(
                 onTap: () {
-                  showDetails(windowProperties.device);
+                  showDetails(windowProperties.site);
                 },
                 child: Text('More Details',
                     softWrap: true,
@@ -563,7 +563,7 @@ class MapPageState extends State<MapPage> {
           child: Column(
             children: [
               Text(
-                windowProperties.device.siteName,
+                windowProperties.site.getName(),
                 softWrap: true,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
@@ -581,19 +581,21 @@ class MapPageState extends State<MapPage> {
                       children: [
                         Text(
                           windowProperties.getPm2_5Value().toStringAsFixed(2),
-                          style: TextStyle(fontSize: 17, color: Colors.white),
+                          style: const TextStyle(
+                              fontSize: 17, color: Colors.white),
                         ),
                         Text(
                           pmToString(windowProperties.getPm2_5Value()),
                           maxLines: 4,
                           softWrap: true,
                           textAlign: TextAlign.center,
-                          style: TextStyle(
+                          style: const TextStyle(
                               fontWeight: FontWeight.bold, color: Colors.white),
                         ),
                         Text(
                           dateToString(windowProperties.time, true),
-                          style: TextStyle(fontSize: 17, color: Colors.white),
+                          style: const TextStyle(
+                              fontSize: 17, color: Colors.white),
                         ),
                       ],
                     )),
@@ -640,11 +642,10 @@ class MapPageState extends State<MapPage> {
                     ),
                     child: IconButton(
                         onPressed: () {
-                          updateFavouritePlace(windowProperties.device);
+                          updateFavouritePlace(windowProperties.site);
                         },
-                        icon: favourites.contains(windowProperties.device.name
-                                .trim()
-                                .toLowerCase())
+                        icon: favourites.contains(
+                                windowProperties.site.id.trim().toLowerCase())
                             ? Icon(
                                 Icons.favorite,
                                 color: ColorConstants().red,
@@ -654,7 +655,7 @@ class MapPageState extends State<MapPage> {
                                 color: ColorConstants().red,
                               )),
                   ),
-                  detailsButton(windowProperties.device),
+                  detailsButton(windowProperties.site),
                 ],
               ),
             ],
@@ -704,10 +705,10 @@ class MapPageState extends State<MapPage> {
       var bitmapDescriptor = await pmToMarker(measurement.getPm2_5Value());
 
       final marker = Marker(
-        markerId: MarkerId(measurement.device.name),
+        markerId: MarkerId(measurement.site.id),
         icon: bitmapDescriptor,
         position:
-            LatLng((measurement.device.latitude), measurement.device.longitude),
+            LatLng((measurement.site.latitude), measurement.site.longitude),
         infoWindow: InfoWindow(
           title: measurement.getPm2_5Value().toStringAsFixed(2),
           // snippet: node.location,
@@ -716,7 +717,7 @@ class MapPageState extends State<MapPage> {
           updateInfoWindow(measurement);
         },
       );
-      markers[measurement.device.name] = marker;
+      markers[measurement.site.id] = marker;
     }
 
     isLoading = false;
@@ -729,25 +730,25 @@ class MapPageState extends State<MapPage> {
     });
   }
 
-  void showDetails(Device device) async {
+  void showDetails(Site site) async {
     await Navigator.push(context, MaterialPageRoute(builder: (context) {
-      return PlaceDetailsPage(device: device);
+      return PlaceDetailsPage(site: site);
     })).then((value) => _getMeasurements());
   }
 
-  Future<void> updateFavouritePlace(Device device) async {
+  Future<void> updateFavouritePlace(Site site) async {
     bool favourite;
 
-    favourite = await DBHelper().updateFavouritePlaces(device);
+    favourite = await DBHelper().updateFavouritePlaces(site);
 
     await getFavouritePlaces();
 
     if (favourite) {
       await showSnackBarGoToMyPlaces(
-          context, '${device.siteName} is added to your places');
+          context, '${site.getName()} is added to your places');
     } else {
       await showSnackBar2(
-          context, '${device.siteName} is removed from your places');
+          context, '${site.getName()} is removed from your places');
     }
   }
 

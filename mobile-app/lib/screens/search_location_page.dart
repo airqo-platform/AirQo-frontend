@@ -1,6 +1,6 @@
 import 'package:app/constants/app_constants.dart';
-import 'package:app/models/device.dart';
 import 'package:app/models/place.dart';
+import 'package:app/models/site.dart';
 import 'package:app/models/suggestion.dart';
 import 'package:app/screens/place_details.dart';
 import 'package:app/services/local_storage.dart';
@@ -17,7 +17,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
 
   String _searchPlaceId = '';
 
-  bool _showAllDevices = false;
+  bool _showAllSites = false;
 
   LocationSearch() {
     googleApiClient = GoogleSearchProvider(const Uuid().v4());
@@ -29,10 +29,10 @@ class LocationSearch extends SearchDelegate<Suggestion> {
     _searchPlaceId = value;
   }
 
-  bool get showAllDevices => _showAllDevices;
+  bool get showAllSites => _showAllSites;
 
-  set showAllDevices(bool value) {
-    _showAllDevices = value;
+  set showAllSites(bool value) {
+    _showAllSites = value;
   }
 
   @override
@@ -79,8 +79,8 @@ class LocationSearch extends SearchDelegate<Suggestion> {
 
   @override
   Widget buildResults(BuildContext context) {
-    if (showAllDevices) {
-      return loadLocalDevices(context);
+    if (showAllSites) {
+      return loadLocalSites(context);
     }
 
     if (query == '') {
@@ -124,7 +124,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
             var place = snapshot.data as Place;
 
             return FutureBuilder(
-                future: AirqoApiClient(context).getDevicesByCoordinates(
+                future: AirqoApiClient(context).getSitesByCoordinates(
                     place.geometry.location.lat, place.geometry.location.lng),
                 builder: (context, snapshot) {
                   if (snapshot.hasError) {
@@ -132,16 +132,14 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                     return Container(
                       padding: const EdgeInsets.all(16.0),
                       child: Text(
-                          'Cannot full fill your request now',
-                        style: TextStyle(
-                          color: ColorConstants().appColor
-                        ),
+                        'Cannot full fill your request now',
+                        style: TextStyle(color: ColorConstants().appColor),
                       ),
                     );
                   } else if (snapshot.hasData) {
-                    var devices = snapshot.data as List<Device>;
+                    var sites = snapshot.data as List<Site>;
 
-                    if (devices.isEmpty) {
+                    if (sites.isEmpty) {
                       return Align(
                           alignment: Alignment.center,
                           child: Padding(
@@ -152,7 +150,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                               children: [
                                 Text(
                                   'Sorry, we do not have any air '
-                                      'quality stations close to $query',
+                                  'quality stations close to $query',
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                       color: ColorConstants().appColor),
@@ -177,27 +175,27 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                         Expanded(
                             child: ListView.builder(
                           shrinkWrap: true,
-                          itemCount: devices.length,
+                          itemCount: sites.length,
                           itemBuilder: (context, index) {
                             return InkWell(
                                 onTap: () {
-                                  var device = devices[index];
+                                  var site = sites[index];
                                   Navigator.push(context,
                                       MaterialPageRoute(builder: (context) {
                                     return PlaceDetailsPage(
-                                      device: device,
+                                      site: site,
                                     );
                                   }));
                                 },
                                 child: ListTile(
-                                  title: Text('${devices[index].siteName}',
+                                  title: Text('${sites[index].getName()}',
                                       style: TextStyle(
                                         fontSize: 17,
                                         color: ColorConstants().appColor,
                                         fontWeight: FontWeight.bold,
                                       )),
                                   subtitle:
-                                      Text('${devices[index].locationName}',
+                                      Text('${sites[index].getLocation()}',
                                           style: TextStyle(
                                             fontSize: 15,
                                             color: ColorConstants().appColor,
@@ -207,7 +205,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                                   //   color: ColorConstants().appColor,
                                   // ),
                                   trailing: Text(
-                                    '${toDistance(devices[index].distance)}',
+                                    '${toDistance(sites[index].distance)}',
                                     style: TextStyle(
                                         color: ColorConstants().appColor),
                                   ),
@@ -311,7 +309,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                     ),
                     onTap: () {
                       query = (results[index]).description;
-                      showAllDevices = false;
+                      showAllSites = false;
                       searchPlaceId = (results[index]).placeId;
                       showResults(context);
                       // close(context, results[index]);
@@ -351,7 +349,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                   style: TextStyle(color: ColorConstants().appColor)),
               onTap: () {
                 query = (results[index]).description;
-                showAllDevices = false;
+                showAllSites = false;
                 searchPlaceId = (results[index]).placeId;
                 DBHelper().insertSearchHistory(results[index]);
                 showResults(context);
@@ -385,9 +383,9 @@ class LocationSearch extends SearchDelegate<Suggestion> {
     );
   }
 
-  Widget loadApiDevices(context) {
+  Widget loadApiSites(context) {
     return FutureBuilder(
-        future: AirqoApiClient(context).fetchDevices(),
+        future: AirqoApiClient(context).fetchSites(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             print('${snapshot.error.toString()}');
@@ -397,9 +395,9 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                   'try again later'),
             );
           } else if (snapshot.hasData) {
-            var devices = snapshot.data as List<Device>;
+            var sites = snapshot.data as List<Site>;
 
-            if (devices.isEmpty) {
+            if (sites.isEmpty) {
               return Align(
                   alignment: Alignment.center,
                   child: Column(
@@ -414,26 +412,26 @@ class LocationSearch extends SearchDelegate<Suggestion> {
 
             return ListView.builder(
               shrinkWrap: true,
-              itemCount: devices.length,
+              itemCount: sites.length,
               itemBuilder: (context, index) {
                 return InkWell(
                     onTap: () {
-                      var device = devices[index];
+                      var site = sites[index];
                       Navigator.push(context,
                           MaterialPageRoute(builder: (context) {
                         return PlaceDetailsPage(
-                          device: device,
+                          site: site,
                         );
                       }));
                     },
                     child: ListTile(
-                      title: Text('${devices[index].siteName}',
+                      title: Text('${sites[index].getName()}',
                           style: TextStyle(
                             fontSize: 17,
                             color: ColorConstants().appColor,
                             fontWeight: FontWeight.bold,
                           )),
-                      subtitle: Text('${devices[index].locationName}',
+                      subtitle: Text('${sites[index].getLocation()}',
                           style: TextStyle(
                             fontSize: 14,
                             color: ColorConstants().appColor,
@@ -467,42 +465,42 @@ class LocationSearch extends SearchDelegate<Suggestion> {
         });
   }
 
-  Widget loadLocalDevices(context) {
+  Widget loadLocalSites(context) {
     return FutureBuilder(
-        future: DBHelper().getDevices(),
+        future: DBHelper().getSites(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             print(snapshot.error);
-            return loadApiDevices(context);
+            return loadApiSites(context);
           } else if (snapshot.hasData) {
-            var devices = snapshot.data as List<Device>;
+            var sites = snapshot.data as List<Site>;
 
-            if (devices.isEmpty) {
-              return loadApiDevices(context);
+            if (sites.isEmpty) {
+              return loadApiSites(context);
             }
 
             return ListView.builder(
               shrinkWrap: true,
-              itemCount: devices.length,
+              itemCount: sites.length,
               itemBuilder: (context, index) {
                 return InkWell(
                     onTap: () {
-                      var device = devices[index];
+                      var site = sites[index];
                       Navigator.push(context,
                           MaterialPageRoute(builder: (context) {
                         return PlaceDetailsPage(
-                          device: device,
+                          site: site,
                         );
                       }));
                     },
                     child: ListTile(
-                      title: Text('${devices[index].siteName}',
+                      title: Text('${sites[index].getName()}',
                           style: TextStyle(
                             fontSize: 17,
                             color: ColorConstants().appColor,
                             fontWeight: FontWeight.bold,
                           )),
-                      subtitle: Text('${devices[index].locationName}',
+                      subtitle: Text('${sites[index].getLocation()}',
                           style: TextStyle(
                             fontSize: 14,
                             color: ColorConstants().appColor,
@@ -541,7 +539,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
   }
 
   void showAllLocations(var context) {
-    showAllDevices = true;
+    showAllSites = true;
     query = '';
     showResults(context);
   }

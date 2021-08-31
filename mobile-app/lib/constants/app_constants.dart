@@ -18,6 +18,7 @@ const facebook = 'https://web.facebook.com/AirQo/';
 const facebookColor = Color(0xff4267B2);
 const faqs = 'https://www.airqo.net/faqs';
 const firstUse = 'firstUse';
+const initialDbLoad = 'initialDbLoad';
 const linkedin = 'https://www.linkedin.com/company/airqo/';
 const linkedInColor = Color(0xff2867B2);
 

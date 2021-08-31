@@ -1,5 +1,5 @@
 import 'package:app/constants/app_constants.dart';
-import 'package:app/models/device.dart';
+import 'package:app/models/site.dart';
 import 'package:app/screens/place_details.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:flutter/material.dart';
@@ -14,8 +14,8 @@ class SearchPage extends StatefulWidget {
 class _SearchPageState extends State<SearchPage> {
   TextEditingController editingController = TextEditingController();
 
-  var dbDevices = <Device>[];
-  var devices = <Device>[];
+  var dbSites = <Site>[];
+  var sites = <Site>[];
   var dbHelper = DBHelper();
   bool notFound = false;
 
@@ -84,21 +84,21 @@ class _SearchPageState extends State<SearchPage> {
             Expanded(
               child: ListView.builder(
                 shrinkWrap: true,
-                itemCount: devices.length,
+                itemCount: sites.length,
                 itemBuilder: (context, index) {
                   return InkWell(
                       onTap: () {
-                        var device = devices[index];
+                        var site = sites[index];
                         Navigator.push(context,
                             MaterialPageRoute(builder: (context) {
                           return PlaceDetailsPage(
-                            device: device,
+                            site: site,
                           );
                         }));
                       },
                       child: ListTile(
-                        title: Text('${devices[index].siteName}'),
-                        subtitle: Text('${devices[index].locationName}'),
+                        title: Text('${sites[index].getName()}'),
+                        subtitle: Text('${sites[index].getLocation()}'),
                         leading: Icon(
                           Icons.location_pin,
                           color: ColorConstants().appColor,
@@ -124,77 +124,75 @@ class _SearchPageState extends State<SearchPage> {
     query = query.toLowerCase();
 
     if (query.isNotEmpty) {
-      var dummyListData = <Device>[];
-      for (var device in dbDevices) {
-        if ((device.description != null &&
-                device.description.toLowerCase().contains(query)) ||
-            (device.siteName != null &&
-                device.siteName.toLowerCase().contains(query)) ||
-            (device.locationName != null &&
-                device.locationName.toLowerCase().contains(query))) {
-          dummyListData.add(device);
+      var dummyListData = <Site>[];
+      for (var site in dbSites) {
+        if ((site.description.toLowerCase().contains(query)) ||
+            (site.name.toLowerCase().contains(query)) ||
+            (site.district.toLowerCase().contains(query)) ||
+            (site.country.toLowerCase().contains(query))) {
+          dummyListData.add(site);
         }
       }
 
       setState(() {
-        devices.clear();
+        sites.clear();
 
-        for (var device in dummyListData) {
-          devices.add(device);
+        for (var site in dummyListData) {
+          sites.add(site);
         }
       });
 
-      if (devices.isEmpty) {
+      if (sites.isEmpty) {
         notFound = true;
       } else {
         notFound = false;
       }
       return;
     } else {
-      print(dbDevices.length);
+      print(dbSites.length);
       setState(() {
-        devices.clear();
-        for (var device in dbDevices) {
-          devices.add(device);
+        sites.clear();
+        for (var site in dbSites) {
+          sites.add(site);
         }
       });
     }
   }
 
-  Future<void> getDevices() async {
-    // await getDevicesLocally();
+  Future<void> getSites() async {
+    // await getSitesLocally();
     //
-    // var results = await AirqoApiClient(context).fetchDevices();
+    // var results = await AirqoApiClient(context).fetchSites();
     //
     // if (results.isNotEmpty) {
     //   updateLists(results);
-    //   await dbHelper.insertDevices(results);
+    //   await dbHelper.insertSites(results);
     // }
   }
 
-  Future<void> getDevicesLocally() async {
-    // var offlineDevices = await dbHelper.getDevices();
+  Future<void> getSitesLocally() async {
+    // var offlineSites = await dbHelper.getSites();
     //
-    // if (offlineDevices.isNotEmpty) {
-    //   updateLists(offlineDevices);
+    // if (offlineSites.isNotEmpty) {
+    //   updateLists(offlineSites);
     // }
   }
 
   @override
   void initState() {
     notFound = false;
-    getDevices();
+    getSites();
 
     super.initState();
   }
 
-  void updateLists(List<Device> results) {
+  void updateLists(List<Site> results) {
     setState(() {
       notFound = false;
-      dbDevices.clear();
-      devices.clear();
-      dbDevices.addAll(results);
-      devices.addAll(results);
+      dbSites.clear();
+      sites.clear();
+      dbSites.addAll(results);
+      sites.addAll(results);
     });
   }
 }

@@ -1,3 +1,4 @@
+import 'package:app/models/site.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'predict.g.dart';
@@ -17,7 +18,7 @@ class Predict {
   double upper;
 
   @JsonKey(required: false)
-  String device = '';
+  String site = '';
 
   Predict({
     required this.value,
@@ -31,8 +32,6 @@ class Predict {
 
   Map<String, dynamic> toJson() => _$PredictToJson(this);
 
-  static String dbDevice() => 'device';
-
   static String dbLower() => 'lower';
 
   static String dbTime() => 'time';
@@ -43,14 +42,13 @@ class Predict {
 
   static String forecastDb() => 'forecast_measurements';
 
-  static String forecastTableCreateStmt() =>
+  static String createTableStmt() =>
       'CREATE TABLE IF NOT EXISTS ${forecastDb()}('
-      'id INTEGER PRIMARY KEY, ${dbDevice()} TEXT,'
+      'id INTEGER PRIMARY KEY, ${Site.dbId()} TEXT,'
       '${dbTime()} TEXT, ${dbUpper()} REAL, '
       '${dbValue()} REAL, ${dbLower()} REAL)';
 
-  static String forecastTableDropStmt() =>
-      'DROP TABLE IF EXISTS ${forecastDb()}';
+  static String dropTableStmt() => 'DROP TABLE IF EXISTS ${forecastDb()}';
 
   static Map<String, dynamic> mapFromDb(Map<String, dynamic> json) {
     return {
@@ -61,10 +59,10 @@ class Predict {
     };
   }
 
-  static Map<String, dynamic> mapToDb(Predict predict, String device) {
+  static Map<String, dynamic> mapToDb(Predict predict, String siteId) {
     return {
       '${dbTime()}': predict.time,
-      '${dbDevice()}': device,
+      '${Site.dbId()}': siteId,
       '${dbValue()}': predict.value,
       '${dbLower()}': predict.lower,
       '${dbUpper()}': predict.upper

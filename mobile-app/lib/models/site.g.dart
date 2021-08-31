@@ -8,24 +8,35 @@ part of 'site.dart';
 
 Site _$SiteFromJson(Map<String, dynamic> json) {
   $checkKeys(json, requiredKeys: const [
-    'lat_long',
+    '_id',
     'latitude',
     'longitude',
     'district',
-    'country'
+    'country',
+    'name'
   ]);
   return Site(
-    json['favourite'] as bool? ?? false,
-    id: json['lat_long'] as String,
+    json['name'] as String,
+    id: json['_id'] as String,
     latitude: (json['latitude'] as num).toDouble(),
     longitude: (json['longitude'] as num).toDouble(),
     district: json['district'] as String,
     country: json['country'] as String,
     description: json['description'] as String? ?? '',
-    nickName: json['nickName'] as String? ?? '',
     distance: (json['distance'] as num?)?.toDouble() ?? 0.0,
   );
 }
+
+Map<String, dynamic> _$SiteToJson(Site instance) => <String, dynamic>{
+      '_id': instance.id,
+      'latitude': instance.latitude,
+      'longitude': instance.longitude,
+      'district': instance.district,
+      'country': instance.country,
+      'name': instance.name,
+      'description': instance.description,
+      'distance': instance.distance,
+    };
 
 Sites _$SitesFromJson(Map<String, dynamic> json) {
   return Sites(
@@ -37,16 +48,4 @@ Sites _$SitesFromJson(Map<String, dynamic> json) {
 
 Map<String, dynamic> _$SitesToJson(Sites instance) => <String, dynamic>{
       'sites': instance.sites,
-    };
-
-Map<String, dynamic> _$SiteToJson(Site instance) => <String, dynamic>{
-      'lat_long': instance.id,
-      'latitude': instance.latitude,
-      'longitude': instance.longitude,
-      'district': instance.district,
-      'country': instance.country,
-      'description': instance.description,
-      'nickName': instance.nickName,
-      'favourite': instance.favourite,
-      'distance': instance.distance,
     };

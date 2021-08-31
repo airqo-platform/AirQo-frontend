@@ -219,7 +219,7 @@ class _HomePageV2State extends State<HomePageV2> {
 
   Future<void> initialize() async {
     await _getLatestMeasurements();
-    await _getDevices();
+    await _getSites();
   }
 
   @override
@@ -306,7 +306,7 @@ class _HomePageV2State extends State<HomePageV2> {
   }
 
   Future<void> takePhoto() async {
-    // Obtain a list of the available cameras on the device.
+    // Obtain a list of the available cameras on the phone.
     final cameras = await availableCameras();
 
     // Get a specific camera from the list of available cameras.
@@ -331,9 +331,9 @@ class _HomePageV2State extends State<HomePageV2> {
     }
   }
 
-  Future<void> _getDevices() async {
-    await AirqoApiClient(context).fetchDevices().then((value) => {
-          if (value.isNotEmpty) {DBHelper().insertDevices(value)}
+  Future<void> _getSites() async {
+    await AirqoApiClient(context).fetchSites().then((value) => {
+          if (value.isNotEmpty) {DBHelper().insertSites(value)}
         });
   }
 

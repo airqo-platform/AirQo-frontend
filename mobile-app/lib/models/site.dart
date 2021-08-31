@@ -4,7 +4,7 @@ part 'site.g.dart';
 
 @JsonSerializable()
 class Site {
-  @JsonKey(required: true, name: 'lat_long')
+  @JsonKey(required: true, name: '_id')
   final String id;
 
   @JsonKey(required: true)
@@ -19,45 +19,61 @@ class Site {
   @JsonKey(required: true)
   final String country;
 
+  @JsonKey(required: true)
+  final String name;
+
   @JsonKey(required: false, defaultValue: '')
   final String description;
-
-  @JsonKey(required: false, defaultValue: '')
-  final String nickName;
-
-  @JsonKey(required: false, defaultValue: false)
-  bool favourite;
 
   @JsonKey(required: false, defaultValue: 0.0)
   final double distance;
 
-  Site(this.favourite,
+  String getName() {
+    if (description == '') {
+      return name;
+    }
+    return description;
+  }
+
+  String getLocation() {
+    if (description == '') {
+      return name;
+    }
+    return '$district $country';
+  }
+
+  Site(this.name,
       {required this.id,
       required this.latitude,
       required this.longitude,
       required this.district,
       required this.country,
       required this.description,
-      required this.nickName,
       required this.distance});
 
   factory Site.fromJson(Map<String, dynamic> json) => _$SiteFromJson(json);
 
-  void setFavourite(bool fav) {
-    favourite = fav;
-  }
-
   Map<String, dynamic> toJson() => _$SiteToJson(this);
 
-  static String createTableStmt() => 'CREATE TABLE IF NOT EXISTS ${dbName()} ('
-      '${dbId()} PRIMARY KEY TEXT, '
+  static String createTableStmt() =>
+      'CREATE TABLE IF NOT EXISTS ${sitesDbName()}('
+      '${dbId()} TEXT PRIMARY KEY, '
       '${dbCountry()} TEXT, '
       '${dbDistrict()} TEXT, '
-      '${dbLongitude()} TEXT, '
-      '${dbLatitude()} TEXT, '
+      '${dbLongitude()} REAL, '
+      '${dbLatitude()} REAL, '
       '${dbDescription()} TEXT, '
-      '${dbFavourite()} TEXT, '
-      '${dbNickName()} TEXT )';
+      '${dbSiteName()} TEXT )';
+
+  // static String latestMeasurementsTableCreateStmt() =>
+  //     'CREATE TABLE IF NOT EXISTS ${latestMeasurementsDb()}('
+  //         '${Site.dbId()} TEXT PRIMARY KEY, ${Site.dbLatitude()} REAL, '
+  //         '${Site.dbSiteName()} TEXT, ${Site.dbLongitude()} REAL, '
+  //         '${dbTime()} TEXT, ${dbPm25()} REAL, ${Site.dbCountry()} TEXT, '
+  //         '${dbPm10()} REAL, ${dbAltitude()} REAL, '
+  //         '${dbSpeed()} REAL, ${dbTemperature()} REAL, '
+  //         '${dbHumidity()} REAL, ${Site.dbDistrict()} TEXT, '
+  //         '${Site.dbDescription()} TEXT )';
 
   static String dbCountry() => 'country';
 
@@ -67,25 +83,22 @@ class Site {
 
   static String dbDistrict() => 'district';
 
-  static String dbFavourite() => 'favourite';
-
-  static String dbId() => 'id';
+  static String dbId() => 'site_id';
 
   static String dbLatitude() => 'latitude';
 
   static String dbLongitude() => 'longitude';
 
-  static String dbName() => 'sites';
+  static String sitesDbName() => 'sites';
 
-  static String dbNickName() => 'nickname';
+  static String dbSiteName() => 'site_name';
 
-  static String dropTableStmt() => 'DROP TABLE IF EXISTS ${dbName()}';
+  static String dropTableStmt() => 'DROP TABLE IF EXISTS ${sitesDbName()}';
 
   static Map<String, dynamic> fromDbMap(Map<String, dynamic> json) => {
-        'favourite': json['${dbFavourite()}'] == 'true' ? true : false,
-        'nickName': json['${dbNickName()}'] as String,
+        'name': json['${dbSiteName()}'] as String,
         'description': json['${dbDescription()}'] as String,
-        'lat_long': json['${dbId()}'] as String,
+        '_id': json['${dbId()}'] as String,
         'country': json['${dbCountry()}'] as String,
         'district': json['${dbDistrict()}'] as String,
         'latitude': json['${dbLatitude()}'] as double,
@@ -93,17 +106,29 @@ class Site {
       };
 
   static Map<String, dynamic> toDbMap(Site site) => {
-        '${dbNickName()}': site.nickName == ''
-            ? '${site.district} ${site.country}'
-            : site.nickName,
+        '${dbSiteName()}': site.name,
         '${dbDescription()}': site.description,
         '${dbId()}': site.id,
         '${dbCountry()}': site.country,
         '${dbDistrict()}': site.district,
         '${dbLatitude()}': site.latitude,
-        '${dbLongitude()}': site.longitude,
-        '${dbFavourite()}': site.favourite ? 'true' : 'false',
+        '${dbLongitude()}': site.longitude
       };
+
+  static List<Site> parseSites(dynamic jsonBody) {
+    var sites = <Site>[];
+
+    var jsonArray = jsonBody['sites'];
+    for (var jsonElement in jsonArray) {
+      try {
+        var site = Site.fromJson(jsonElement);
+        sites.add(site);
+      } catch (e) {
+        print('Error parsing sites : $e');
+      }
+    }
+    return sites;
+  }
 }
 
 @JsonSerializable()

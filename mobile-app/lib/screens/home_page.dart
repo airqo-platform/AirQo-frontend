@@ -292,7 +292,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     _displayOnBoarding();
     _getMeasurements();
-    // _getDevices();
+    // _getsites();
 
     super.initState();
   }
@@ -408,7 +408,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> takePhoto() async {
-    // Obtain a list of the available cameras on the device.
+    // Obtain a list of the available cameras on the site.
     final cameras = await availableCameras();
 
     // Get a specific camera from the list of available cameras.
@@ -444,13 +444,13 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  // Future<void> _getDevices() async {
-  //   print('Home page Getting devices');
+  // Future<void> _getSites() async {
+  //   print('Home page Getting sites');
   //
-  //   var results = await AirqoApiClient(context).fetchDevices();
+  //   var results = await AirqoApiClient(context).fetchSites();
   //
   //   if (results.isNotEmpty) {
-  //     await DBHelper().insertDevices(results);
+  //     await DBHelper().insertSites(results);
   //   }
   // }
 
