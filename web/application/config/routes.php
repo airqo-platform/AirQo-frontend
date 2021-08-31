@@ -18,9 +18,9 @@ $route['news/(:any)']  = 'airqo/newsdetails/$1';
 $route['node-search']     = 'airqo/nodesearch';
 $route['projects']     = 'airqo/projects';
 $route['project/(:any)']     = 'airqo/projectdetails/$1';
-$route['blog']         = 'airqo/blog';
+#$route['blog']         = 'airqo/blog';
 //...blogs from medium...
-$route['airqo-blog']         = 'airqo/medium_blog';
+$route['blog']         = 'airqo/blog';
 $route['blog-search']         = 'airqo/blogsearch';
 $route['blog-post/(:any)']  = 'airqo/blogdetails/$1';
 $route['blog-post-preview/(:any)']  = 'airqo/previewblogdetails/$1';

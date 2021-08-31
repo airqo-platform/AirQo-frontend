@@ -1,5 +1,5 @@
 <style>
-.slider-post[data-v-5e6923b3] {
+/* .grid-post[data-v-5e6923b3] {
     position: relative;
 	border-radius: var(--card-curve);
 	transition: 0.3s ease-in;
@@ -9,6 +9,17 @@
 	display: block;
 	height: 100%;
 	margin-right: 1.5em;
+} */
+#rtb .col-sm-4 {
+	position: relative;
+	border-radius: var(--card-curve);
+	transition: 0.3s ease-in;
+	border: 1px solid #eee;
+	padding: 2rem;
+	box-shadow: var(--card-box-shadow);
+	display: block;
+	height: 45em;
+	width: 100%;
 }
 </style>
 <section class="w3l-index-block10 py-0" style="background-image: linear-gradient(to right, rgba(25, 51, 101, 0.85), rgba(0, 0, 0, 0.08)), url('<?= base_url(); ?>assets/update/images/partners-1.png'); background-size: cover; background-repeat: no-repeat;">
@@ -30,14 +41,15 @@
 			<!-- Know your air header -->
 			<div class="col-md-12 col-lg-12 col-sm-12 col-xs-12">
 				<br/>
+				<br/>
 				<div id="retainable-rss-embed"
 				data-rss="https://airqo.medium.com/feed"
 				data-maxcols="3" 
-				data-layout="slider" 
+				data-layout="grid" 
 				data-poststyle="external" 
 				data-readmore="Read more" 
 				data-buttonclass="btn btn-primary" 
-				data-offset="-200">&#160;</div>
+				>&#160;</div>
 			</div>
 			<!-- End of know your air header -->
 			<div class="col-md-4 col-lg-4 col-sm-4 col-xs-12">
