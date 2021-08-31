@@ -3,12 +3,7 @@ import 'package:intl/intl.dart';
 String chartDateToString(String formattedString) {
   try {
     var now = DateTime.now();
-
-    DateTime formattedDate;
-
-    var offSet = now.timeZoneOffset.inHours;
-    formattedDate =
-        DateTime.parse(formattedString).add(Duration(hours: offSet));
+    var formattedDate = DateTime.parse(formattedString);
 
     if (now.day == formattedDate.day) {
       return '${DateFormat('hh:mm a').format(formattedDate)}';

@@ -318,7 +318,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                     setState(() {
                       forecastData = value;
                     }),
-                    DBHelper().insertForecastMeasurements(value, device.name)
+                    dbHelper.insertForecastMeasurements(value, device.name)
                   }
                 else
                   {
@@ -348,7 +348,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                     setState(() {
                       historicalData = value;
                     }),
-                    DBHelper()
+                    dbHelper
                         .insertDeviceHistoricalMeasurements(value, device.name)
                   }
                 else
@@ -460,7 +460,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
 
   Future<void> localFetch() async {
     try {
-      await DBHelper().getMeasurement(device.name).then((value) => {
+      await dbHelper.getMeasurement(device.name).then((value) => {
             if (value != null)
               {
                 setState(() {
@@ -476,7 +476,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
 
   Future<void> localFetchForecastData() async {
     try {
-      await DBHelper().getForecastMeasurements(device.name).then((value) => {
+      await dbHelper.getForecastMeasurements(device.name).then((value) => {
             if (value.isNotEmpty)
               {
                 setState(() {
@@ -492,7 +492,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
   Future<void> localFetchHistoricalData() async {
     try {
       var measurements =
-          await DBHelper().getHistoricalMeasurements(device.name);
+          await dbHelper.getHistoricalMeasurements(device.name);
 
       if (measurements.isNotEmpty) {
         setState(() {
@@ -546,7 +546,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
   }
 
   Future<void> updateFavouritePlace() async {
-    var fav = await DBHelper().updateFavouritePlaces(measurementData.device);
+    var fav = await dbHelper.updateFavouritePlaces(measurementData.device);
 
     setState(() {
       isFavourite = fav;
@@ -597,7 +597,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                     textStyle: const TextStyle(color: Colors.white)),
                 onPressed: () async {
                   if (titleText != '') {
-                    // await DBHelper()
+                    // await dbHelper
                     //     .renameFavouritePlace(device, titleText)
                     //     .then((value) => {getDeviceDetails()});
                   }
