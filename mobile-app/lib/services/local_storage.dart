@@ -348,6 +348,7 @@ class DBHelper {
       final db = await database;
 
       if (measurements.isNotEmpty) {
+        await db.delete(Measurement.latestMeasurementsDb());
         for (var measurement in measurements) {
           try {
             var jsonData = Measurement.mapToDb(measurement);

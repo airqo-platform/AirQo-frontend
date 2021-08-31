@@ -13,6 +13,7 @@ import 'package:app/utils/share.dart';
 import 'package:app/widgets/expanding_action_button.dart';
 import 'package:app/widgets/forecast_chart.dart';
 import 'package:app/widgets/hourly_chart.dart';
+import 'package:app/widgets/measurements_chart.dart';
 import 'package:app/widgets/pollutant_card.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -301,7 +302,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
 
   Widget forecastDataSection(List<Predict> measurements) {
     var forecastData = predictChartData(measurements);
-    return ForecastBarChart(forecastData);
+    return MeasurementsBarChart(forecastData, '24 hour Forecast');
   }
 
   Future<void> getForecastMeasurements() async {
@@ -441,7 +442,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
     var formattedData = historicalChartData(measurements);
     // Crunching the latest data, just for you.
     // Hang tight…
-    return HourlyBarChart(formattedData);
+    return MeasurementsBarChart(formattedData, '48 hour History');
   }
 
   Future<void> initialize() async {

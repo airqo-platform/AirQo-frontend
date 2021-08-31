@@ -5,32 +5,33 @@ import 'package:app/utils/pm.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 
-class ForecastBarChart extends StatefulWidget {
-  final List<charts.Series<TimeSeriesData, DateTime>> seriesList;
+class MeasurementsBarChart extends StatefulWidget {
 
-  ForecastBarChart(this.seriesList);
+  MeasurementsBarChart(this.seriesList, this.header);
+
+  final List<charts.Series<TimeSeriesData, DateTime>> seriesList;
+  final String header;
 
   @override
-  _ForecastBarChartState createState() => _ForecastBarChartState();
+  _MeasurementsBarChartState createState() => _MeasurementsBarChartState();
 }
 
-class _ForecastBarChartState extends State<ForecastBarChart> {
+class _MeasurementsBarChartState extends State<MeasurementsBarChart> {
   var display = null;
-
 
   @override
   Widget build(BuildContext context) {
     return Card(
       elevation: 20,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(5),
       ),
       child: Column(
         children: <Widget>[
           Padding(padding: const EdgeInsets.fromLTRB(5, 10, 5, 10),
             child: Center(
               child: Text(
-                '24 hour Forecast',
+                widget.header,
                 softWrap: true,
                 style: TextStyle(
                     fontSize: 19,

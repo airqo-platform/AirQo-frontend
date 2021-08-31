@@ -160,9 +160,11 @@ class Measurement {
       try {
         var measurement = Measurement.fromJson(jsonElement);
         if (measurement.device.isActive) {
-          if (measurement.getPm2_5Value() != -0.1 &&
-              measurement.getPm2_5Value() >= 0 &&
-              measurement.getPm2_5Value() <= 500.4) {
+
+          var value = measurement.getPm2_5Value();
+          if (value != -0.1 && value >= 0.00 && value <= 500.4 &&
+              measurement.device.siteName != '' &&
+              measurement.device.locationName != '') {
             measurementsForActiveDevices.add(measurement);
           }
         }
@@ -181,9 +183,11 @@ class Measurement {
       try {
         var measurement = Measurement.fromJson(jsonElement);
         if (measurement.device.isActive) {
-          if (measurement.getPm2_5Value() != -0.1 &&
-              measurement.getPm2_5Value() >= 0 &&
-              measurement.getPm2_5Value() <= 500.4) {
+
+          var value = measurement.getPm2_5Value();
+          if (value != -0.1 && value >= 0.00 && value <= 500.40 &&
+              measurement.device.siteName != '' &&
+              measurement.device.locationName != '') {
             measurementsForActiveDevices.add(measurement);
           }
         }

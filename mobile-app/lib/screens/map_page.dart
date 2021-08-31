@@ -441,9 +441,7 @@ class MapPageState extends State<MapPage> {
       child: Column(
         children: [
           Text(
-            (windowProperties.device.nickName != '')
-                ? windowProperties.device.nickName
-                : windowProperties.device.siteName,
+            windowProperties.device.siteName,
             softWrap: true,
             style: TextStyle(color: ColorConstants().appColor),
             overflow: TextOverflow.ellipsis,

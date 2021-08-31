@@ -9,7 +9,7 @@ class AirQoUrls {
   String get devicesByGeoCoordinates =>
       '${_baseUrl}devices/by/nearest-coordinates';
 
-  String get forecast => '${_baseUrl}predict';
+  String get forecast => '${_baseUrl}predict/';
 
   String get measurements => '${_baseUrl}devices/events';
 }

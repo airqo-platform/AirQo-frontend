@@ -88,7 +88,21 @@ class Device {
   }
 
   static List<Device> parseDevices(dynamic jsonBody) {
-    return Devices.fromJson(jsonBody).devices;
+
+    var allDevices = Devices.fromJson(jsonBody).devices;
+    var devices = <Device>[];
+
+    for (var device in allDevices) {
+      try {
+        if(device.locationName != '' && device.siteName != '') {
+          devices.add(device);
+        }
+      } on Error catch (e) {
+        print('Transform Devices error: $e');
+      }
+    }
+
+    return devices;
   }
 
   static List<Device> parseDevicesV2(dynamic jsonBody) {
@@ -97,9 +111,11 @@ class Device {
     for (var t in jsonBody) {
       try {
         var device = Device.fromJson(t);
-        devices.add(device);
+        if(device.locationName != '' && device.siteName != '') {
+          devices.add(device);
+        }
       } on Error catch (e) {
-        print('Get Devices error: $e');
+        print('Transform Devices error: $e');
       }
     }
 

@@ -131,7 +131,12 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                     print('${snapshot.error.toString()}');
                     return Container(
                       padding: const EdgeInsets.all(16.0),
-                      child: const Text('Cannot full fill your request now'),
+                      child: Text(
+                          'Cannot full fill your request now',
+                        style: TextStyle(
+                          color: ColorConstants().appColor
+                        ),
+                      ),
                     );
                   } else if (snapshot.hasData) {
                     var devices = snapshot.data as List<Device>;
@@ -146,8 +151,8 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
                                 Text(
-                                  'Sorry, we dont have any air quality stations'
-                                  ' close to $query',
+                                  'Sorry, we do not have any air '
+                                      'quality stations close to $query',
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                       color: ColorConstants().appColor),
