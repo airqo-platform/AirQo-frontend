@@ -52,7 +52,7 @@ class _HourlyBarChartState extends State<HourlyBarChart> {
                             flex: 1,
                           ),
                           Text(
-                            dateToString(display['time'], false),
+                            chartDateToString(display['time']),
                             softWrap: true,
                             style: TextStyle(color: ColorConstants().appColor),
                           ),

@@ -108,6 +108,8 @@ class Site {
 
 @JsonSerializable()
 class Sites {
+  final List<Site> sites;
+
   Sites({
     required this.sites,
   });
@@ -115,6 +117,4 @@ class Sites {
   factory Sites.fromJson(Map<String, dynamic> json) => _$SitesFromJson(json);
 
   Map<String, dynamic> toJson() => _$SitesToJson(this);
-
-  final List<Site> sites;
 }

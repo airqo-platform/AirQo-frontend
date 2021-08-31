@@ -355,6 +355,41 @@ class MapPageState extends State<MapPage> {
         ));
   }
 
+  RawMaterialButton detailsButton(Device device) {
+    return RawMaterialButton(
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10.0),
+          side: const BorderSide(color: Colors.white, width: 1)),
+      fillColor: Colors.white,
+      elevation: 20,
+      highlightElevation: 20,
+      splashColor: Colors.black12,
+      highlightColor: Colors.white.withOpacity(0.4),
+      onPressed: () async {
+        showDetails(device);
+      },
+      child: Padding(
+        padding: const EdgeInsets.all(10),
+        child: Text(
+          'More Details',
+          style: TextStyle(color: ColorConstants().appColor),
+        ),
+      ),
+    );
+  }
+
+  // @override
+  // void dispose() {
+  //   if (mounted) {
+  //     setState(() {
+  //       _showInfoWindow = false;
+  //       _markers = {};
+  //       isLoading = false;
+  //     });
+  //   }
+  //   super.dispose();
+  // }
+
   Future<void> displaySearchResults(Suggestion selection) async {
     setState(() {
       _isSearching = false;
@@ -390,18 +425,6 @@ class MapPageState extends State<MapPage> {
       });
     });
   }
-
-  // @override
-  // void dispose() {
-  //   if (mounted) {
-  //     setState(() {
-  //       _showInfoWindow = false;
-  //       _markers = {};
-  //       isLoading = false;
-  //     });
-  //   }
-  //   super.dispose();
-  // }
 
   Future<void> getFavouritePlaces() async {
     var prefs = await SharedPreferences.getInstance();
@@ -794,28 +817,5 @@ class MapPageState extends State<MapPage> {
           fillColor: ColorConstants().appColor.withOpacity(0.5),
           strokeWidth: 2,
           strokeColor: ColorConstants().appColor));
-  }
-
-  RawMaterialButton detailsButton(Device device) {
-    return RawMaterialButton(
-      shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10.0),
-          side: const BorderSide(color: Colors.white, width: 1)),
-      fillColor: Colors.white,
-      elevation: 20,
-      highlightElevation: 20,
-      splashColor: Colors.black12,
-      highlightColor: Colors.white.withOpacity(0.4),
-      onPressed: () async {
-        showDetails(device);
-      },
-      child: Padding(
-        padding: const EdgeInsets.all(10),
-        child: Text(
-          'More Details',
-          style: TextStyle(color: ColorConstants().appColor),
-        ),
-      ),
-    );
   }
 }

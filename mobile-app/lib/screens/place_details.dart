@@ -16,6 +16,7 @@ import 'package:app/widgets/hourly_chart.dart';
 import 'package:app/widgets/pollutant_card.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -35,11 +36,11 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
   bool isFavourite = false;
 
   var measurementData;
-  var historicalData;
-
-  // List<HistoricalMeasurement> historicalData;
-  var forecastData;
-  var response;
+  var historicalData = <HistoricalMeasurement>[];
+  var forecastData = <Predict>[];
+  var response = '';
+  bool _showMenuButton = true;
+  final ScrollController _scrollCtrl = ScrollController();
   var historicalResponse = '';
   var forecastResponse = '';
   var dbHelper = DBHelper();
@@ -58,7 +59,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
       appBar: AppBar(
         title: const Text(
           appName,
-          style: const TextStyle(
+          style: TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,
           ),
@@ -78,6 +79,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
       body: measurementData != null
           ? Container(
               child: ListView(
+                controller: _scrollCtrl,
                 padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
                 children: <Widget>[
                   // card section
@@ -96,7 +98,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                           ? Card(
                               elevation: 20,
                               child: Padding(
-                                padding: EdgeInsets.all(5.0),
+                                padding: const EdgeInsets.all(5.0),
                                 child: Center(
                                   child: Text(
                                     historicalResponse,
@@ -122,7 +124,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                           ? Card(
                               elevation: 20,
                               child: Padding(
-                                padding: EdgeInsets.all(5.0),
+                                padding: const EdgeInsets.all(5.0),
                                 child: Center(
                                   child: Text(forecastResponse,
                                       style: TextStyle(
@@ -147,11 +149,12 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                 ],
               ),
             )
-          : response != null
+          : response != ''
               ? Center(
-                  child: Text(response, style: TextStyle(
-                    color: ColorConstants().appColor
-                  ),),
+                  child: Text(
+                    response,
+                    style: TextStyle(color: ColorConstants().appColor),
+                  ),
                 )
               : Center(
                   child: Stack(
@@ -174,40 +177,42 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                   ),
                 ),
       floatingActionButton: measurementData != null
-          ? ExpandableFab(
-              distance: 112.0,
-              children: [
-                ActionButton(
-                  onPressed: updateFavouritePlace,
-                  icon: isFavourite
-                      ? const Icon(
-                          Icons.favorite,
-                          color: Colors.red,
-                        )
-                      : const Icon(
-                          Icons.favorite_border_outlined,
-                        ),
-                ),
-                ActionButton(
-                  onPressed: () {
-                    shareMeasurement(measurementData);
-                  },
-                  icon: const Icon(Icons.share_outlined),
-                ),
-                ActionButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute<void>(
-                        builder: (BuildContext context) => HelpPage(),
-                        fullscreenDialog: true,
-                      ),
-                    );
-                  },
-                  icon: const Icon(Icons.info_outline_rounded),
-                ),
-              ],
-            )
+          ? _showMenuButton
+              ? ExpandableFab(
+                  distance: 112.0,
+                  children: [
+                    ActionButton(
+                      onPressed: updateFavouritePlace,
+                      icon: isFavourite
+                          ? const Icon(
+                              Icons.favorite,
+                              color: Colors.red,
+                            )
+                          : const Icon(
+                              Icons.favorite_border_outlined,
+                            ),
+                    ),
+                    ActionButton(
+                      onPressed: () {
+                        shareMeasurement(measurementData);
+                      },
+                      icon: const Icon(Icons.share_outlined),
+                    ),
+                    ActionButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute<void>(
+                            builder: (BuildContext context) => HelpPage(),
+                            fullscreenDialog: true,
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.info_outline_rounded),
+                    ),
+                  ],
+                )
+              : null
           : null,
     );
   }
@@ -288,6 +293,12 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
     }
   }
 
+  @override
+  void dispose() {
+    _scrollCtrl.removeListener(() {});
+    super.dispose();
+  }
+
   Widget forecastDataSection(List<Predict> measurements) {
     var forecastData = predictChartData(measurements);
     return ForecastBarChart(forecastData);
@@ -356,19 +367,17 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
   }
 
   Future<void> getMeasurements() async {
-    await localFetch();
-
     try {
-      var measurement =
-          await AirqoApiClient(context).fetchDeviceMeasurements(device);
+      await localFetch();
 
-      setState(() {
-        measurementData = measurement;
-      });
-
-      if (measurementData != null) {
-        await checkFavourite();
-      }
+      await AirqoApiClient(context)
+          .fetchDeviceMeasurements(device)
+          .then((value) => {
+                setState(() {
+                  measurementData = value;
+                }),
+                if (measurementData != null) {checkFavourite()}
+              });
     } catch (e) {
       print('Getting device events error: $e');
 
@@ -378,6 +387,17 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
         response = message;
       });
     }
+  }
+
+  void handleScroll() async {
+    _scrollCtrl.addListener(() {
+      if (_scrollCtrl.position.userScrollDirection == ScrollDirection.reverse) {
+        hideMenuButton();
+      }
+      if (_scrollCtrl.position.userScrollDirection == ScrollDirection.forward) {
+        showMenuButton();
+      }
+    });
   }
 
   Widget headerSection(String image, String body) {
@@ -411,6 +431,12 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
     );
   }
 
+  void hideMenuButton() {
+    setState(() {
+      _showMenuButton = false;
+    });
+  }
+
   Widget historicalDataSection(List<HistoricalMeasurement> measurements) {
     var formattedData = historicalChartData(measurements);
     // Crunching the latest data, just for you.
@@ -427,22 +453,21 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
   @override
   void initState() {
     initialize();
+    handleScroll();
     super.initState();
   }
 
   Future<void> localFetch() async {
     try {
-      var measurements = await DBHelper().getMeasurement(device.name);
-
-      if (measurements != null) {
-        setState(() {
-          measurementData = measurements;
-        });
-
-        if (measurementData != null) {
-          await checkFavourite();
-        }
-      }
+      await DBHelper().getMeasurement(device.name).then((value) => {
+            if (value != null)
+              {
+                setState(() {
+                  measurementData = value;
+                })
+              },
+            if (measurementData != null) {checkFavourite()}
+          });
     } on Error catch (e) {
       print('Getting device events locally error: $e');
     }
@@ -490,23 +515,33 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
     _markers[measurement.device.toString()] = marker;
 
     return Padding(
-        padding: const EdgeInsets.all(8.0),
+        padding: const EdgeInsets.fromLTRB(0.0, 2.0, 0.0, 2.0),
         child: Card(
+            elevation: 20,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
             child: GoogleMap(
-          compassEnabled: false,
-          mapType: MapType.normal,
-          myLocationButtonEnabled: false,
-          myLocationEnabled: false,
-          rotateGesturesEnabled: false,
-          tiltGesturesEnabled: false,
-          mapToolbarEnabled: false,
-          initialCameraPosition: CameraPosition(
-            target: LatLng(
-                measurement.device.latitude, measurement.device.longitude),
-            zoom: 13,
-          ),
-          markers: _markers.values.toSet(),
-        )));
+              compassEnabled: false,
+              mapType: MapType.normal,
+              myLocationButtonEnabled: false,
+              myLocationEnabled: false,
+              rotateGesturesEnabled: false,
+              tiltGesturesEnabled: false,
+              mapToolbarEnabled: false,
+              initialCameraPosition: CameraPosition(
+                target: LatLng(
+                    measurement.device.latitude, measurement.device.longitude),
+                zoom: 13,
+              ),
+              markers: _markers.values.toSet(),
+            )));
+  }
+
+  void showMenuButton() {
+    setState(() {
+      _showMenuButton = true;
+    });
   }
 
   Future<void> updateFavouritePlace() async {

@@ -151,7 +151,7 @@ class _MyPlacesState extends State<MyPlaces> {
                           results = snapshot.data as List<Measurement>;
 
                           if (results.isNotEmpty) {
-                              searchList = results;
+                            searchList = results;
                           }
 
                           if (results.isEmpty) {
@@ -287,7 +287,6 @@ class _MyPlacesState extends State<MyPlaces> {
     query = query.toLowerCase();
 
     if (query.isNotEmpty) {
-
       setState(() {
         searchResults.clear();
       });
@@ -320,18 +319,18 @@ class _MyPlacesState extends State<MyPlaces> {
     }
   }
 
-  Future<void> refreshData() async {
-    await DBHelper().getFavouritePlaces().then((value) => {
-      setState(() {
-        results = value;
-      })
-    });
-  }
-
   Future<void> exitSearch() async {
     setState(() {
       isSearching = false;
     });
+  }
+
+  Future<void> refreshData() async {
+    await DBHelper().getFavouritePlaces().then((value) => {
+          setState(() {
+            results = value;
+          })
+        });
   }
 
   Future<void> removeFromFavourites(Device device) async {

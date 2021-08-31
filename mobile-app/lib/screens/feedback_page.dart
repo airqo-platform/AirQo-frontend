@@ -140,9 +140,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
       appBar: AppBar(
         title: const Text(
           'AirQo',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-              color: Colors.white),
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
         ),
       ),
       body: Container(

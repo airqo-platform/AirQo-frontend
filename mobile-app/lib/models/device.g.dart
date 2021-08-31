@@ -20,18 +20,6 @@ Device _$DeviceFromJson(Map<String, dynamic> json) {
   );
 }
 
-Map<String, dynamic> _$DeviceToJson(Device instance) => <String, dynamic>{
-      'nickName': instance.nickName,
-      'distance': instance.distance,
-      'name': instance.name,
-      'description': instance.description,
-      'siteName': instance.siteName,
-      'locationName': instance.locationName,
-      'latitude': instance.latitude,
-      'longitude': instance.longitude,
-      'isActive': instance.isActive,
-    };
-
 Devices _$DevicesFromJson(Map<String, dynamic> json) {
   return Devices(
     devices: (json['devices'] as List<dynamic>)
@@ -42,4 +30,16 @@ Devices _$DevicesFromJson(Map<String, dynamic> json) {
 
 Map<String, dynamic> _$DevicesToJson(Devices instance) => <String, dynamic>{
       'devices': instance.devices,
+    };
+
+Map<String, dynamic> _$DeviceToJson(Device instance) => <String, dynamic>{
+      'nickName': instance.nickName,
+      'distance': instance.distance,
+      'name': instance.name,
+      'description': instance.description,
+      'siteName': instance.siteName,
+      'locationName': instance.locationName,
+      'latitude': instance.latitude,
+      'longitude': instance.longitude,
+      'isActive': instance.isActive,
     };

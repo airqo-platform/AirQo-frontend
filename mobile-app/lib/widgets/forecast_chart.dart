@@ -43,43 +43,42 @@ class _ForecastBarChartState extends State<ForecastBarChart> {
             ),
             if (display != null)
               Padding(
-                padding: const EdgeInsets.fromLTRB(0, 2, 0, 0),
-                child: Column(
-                  children: [
-                    Row(
-                      children: [
-                        const Spacer(
-                          flex: 1,
-                        ),
-                        Text(
-                          dateToString(display['time'], false),
-                          softWrap: true,
-                          style: TextStyle(color: ColorConstants().appColor),
-                        ),
-                        const Spacer(
-                          flex: 1,
-                        ),
-                        Text(
-                          display['value'].toString(),
-                          softWrap: true,
-                          style: TextStyle(color: ColorConstants().appColor),
-                        ),
-                        const Spacer(
-                          flex: 1,
-                        ),
-                      ],
-                    ),
-                    Text(
-                      pmToString(display['value']).replaceAll('\n', ' '),
-                      softWrap: true,
-                      style: TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w600,
-                          color: ColorConstants().appColor),
-                    ),
-                  ],
-                )
-              ),
+                  padding: const EdgeInsets.fromLTRB(0, 2, 0, 0),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          const Spacer(
+                            flex: 1,
+                          ),
+                          Text(
+                            chartDateToString(display['time']),
+                            softWrap: true,
+                            style: TextStyle(color: ColorConstants().appColor),
+                          ),
+                          const Spacer(
+                            flex: 1,
+                          ),
+                          Text(
+                            display['value'].toString(),
+                            softWrap: true,
+                            style: TextStyle(color: ColorConstants().appColor),
+                          ),
+                          const Spacer(
+                            flex: 1,
+                          ),
+                        ],
+                      ),
+                      Text(
+                        pmToString(display['value']).replaceAll('\n', ' '),
+                        softWrap: true,
+                        style: TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w600,
+                            color: ColorConstants().appColor),
+                      ),
+                    ],
+                  )),
             Expanded(
               child: charts.TimeSeriesChart(
                 widget.seriesList,

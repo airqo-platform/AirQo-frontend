@@ -4,9 +4,9 @@ import 'package:app/widgets/pollutantCard.dart';
 import 'package:flutter/material.dart';
 
 class PollutantCard extends StatelessWidget {
-  PollutantCard(this.measurement);
-
   final Measurement measurement;
+
+  PollutantCard(this.measurement);
 
   @override
   Widget build(BuildContext context) {
