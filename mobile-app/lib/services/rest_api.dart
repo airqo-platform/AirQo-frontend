@@ -246,7 +246,7 @@ class AirqoApiClient {
       double latitude, double longitude) async {
     try {
       var queryParams = <String, dynamic>{}
-        ..putIfAbsent('radius', () => '$defaultRadius')
+        ..putIfAbsent('radius', () => '$defaultSearchRadius')
         ..putIfAbsent('tenant', () => 'airqo')
         ..putIfAbsent('longitude', () => longitude)
         ..putIfAbsent('latitude', () => latitude);
@@ -273,12 +273,6 @@ class AirqoApiClient {
     var uploadStr = 'data:image/$type;base64,$file';
     try {
       var body = {'file': uploadStr, 'upload_preset': 'mobile_uploads'};
-
-      //   "api_key": cloudinaryApiKey,
-      // "timestamp": DateTime.now().microsecondsSinceEpoch,
-      // "signature": "",
-
-      // print(body);
 
       final response = await http.post(
           Uri.parse('${AirQoUrls().cloundinaryUrl}'),

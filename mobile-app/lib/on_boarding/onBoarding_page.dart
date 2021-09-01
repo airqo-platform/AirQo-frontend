@@ -19,7 +19,7 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
     OnBoardingInfo(
         description: 'View various locations on a map',
         title: 'Map',
-        localImageSrc: 'assets/svg/map.png'),
+        localImageSrc: 'assets/images/map.png'),
     OnBoardingInfo(
         description: 'Select locations important to you using MyPlaces',
         title: 'MyPlaces',
@@ -28,7 +28,7 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
         description: 'See air quality for the last 48 hours and '
             'forecast for your next 24 hours',
         title: 'Historical and Forecast',
-        localImageSrc: 'assets/svg/historical.png'),
+        localImageSrc: 'assets/images/historical.png'),
   ];
 
   @override

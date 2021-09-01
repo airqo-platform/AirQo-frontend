@@ -140,7 +140,7 @@ class _DashboardPageState extends State<DashboardPage> {
     setState(() {
       error = '';
     });
-
+    await loadFromDb();
     await AirqoApiClient(context)
       .fetchLatestMeasurements()
       .then((value) => {

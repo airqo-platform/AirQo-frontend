@@ -102,30 +102,6 @@ String pmToEmoji(double pm2_5) {
   }
 }
 
-String pmToImage(double pm2_5) {
-  if (pm2_5 <= 12.09) {
-    //good
-    return 'assets/images/good.png';
-  } else if (pm2_5 >= 12.1 && pm2_5 <= 35.49) {
-    //moderate
-    return 'assets/images/moderate.png';
-  } else if (pm2_5 >= 35.5 && pm2_5 <= 55.49) {
-    //sensitive
-    return 'assets/images/sensitive.png';
-  } else if (pm2_5 >= 55.5 && pm2_5 <= 150.49) {
-    // unhealthy
-    return 'assets/images/unhealthy.png';
-  } else if (pm2_5 >= 150.5 && pm2_5 <= 250.49) {
-    // very unhealthy
-    return 'assets/images/veryUnhealthy.png';
-  } else if (pm2_5 >= 250.5) {
-    // hazardous
-    return 'assets/images/hazardous.png';
-  } else {
-    return 'assets/images/pmDefault.png';
-  }
-}
-
 Future<BitmapDescriptor> pmToMarker(double pm2_5) async {
   var width = 55;
   var value = pm2_5;

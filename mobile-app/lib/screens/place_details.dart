@@ -12,7 +12,7 @@ import 'package:app/utils/pm.dart';
 import 'package:app/utils/share.dart';
 import 'package:app/widgets/expanding_action_button.dart';
 import 'package:app/widgets/measurements_chart.dart';
-import 'package:app/widgets/pollutant_card.dart';
+import 'package:app/widgets/pollutants_container.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -88,7 +88,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                   ),
 
                   // Pollutants
-                  PollutantCard(measurementData),
+                  PollutantsSection(measurementData),
 
                   // historicalData
                   historicalData != null && historicalData.isNotEmpty
@@ -202,7 +202,8 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                         Navigator.push(
                           context,
                           MaterialPageRoute<void>(
-                            builder: (BuildContext context) => HelpPage(),
+                            builder: (BuildContext context) =>
+                                const HelpPage(initialIndex: 0,),
                             fullscreenDialog: true,
                           ),
                         );

@@ -8,7 +8,7 @@ class ThemeController extends ChangeNotifier {
   String _currentTheme = 'light';
 
   ThemeController(this._prefs) {
-    _currentTheme = _prefs.getString(appTheme) ?? 'light';
+    _currentTheme = _prefs.getString(PrefConstants().appTheme) ?? 'light';
   }
 
   String get currentTheme => _currentTheme;
@@ -17,7 +17,7 @@ class ThemeController extends ChangeNotifier {
     _currentTheme = theme;
     notifyListeners();
 
-    _prefs.setString(appTheme, theme);
+    _prefs.setString(PrefConstants().appTheme, theme);
   }
 
   static ThemeController of(BuildContext context) {

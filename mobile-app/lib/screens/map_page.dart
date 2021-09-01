@@ -14,13 +14,14 @@ import 'package:app/themes/light_theme.dart';
 import 'package:app/utils/date.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/distance.dart';
-import 'package:app/utils/help.dart';
 import 'package:app/utils/pm.dart';
 import 'package:app/utils/share.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
+
+import 'help_page.dart';
 
 class MapPage extends StatefulWidget {
   @override
@@ -505,7 +506,8 @@ class MapPageState extends State<MapPage> {
                   Navigator.push(
                     context,
                     MaterialPageRoute<void>(
-                      builder: (BuildContext context) => getHelpPage(''),
+                      builder: (BuildContext context) =>
+                      const HelpPage(initialIndex: 0,),
                       fullscreenDialog: true,
                     ),
                   );
@@ -614,7 +616,7 @@ class MapPageState extends State<MapPage> {
                             context,
                             MaterialPageRoute<void>(
                               builder: (BuildContext context) =>
-                                  getHelpPage(''),
+                                  const HelpPage(initialIndex: 0,),
                               fullscreenDialog: true,
                             ),
                           );
@@ -673,7 +675,7 @@ class MapPageState extends State<MapPage> {
 
   Future<void> loadTheme() async {
     var prefs = await SharedPreferences.getInstance();
-    var theme = prefs.getString(appTheme);
+    var theme = prefs.getString(PrefConstants().appTheme);
 
     if (theme != null) {
       switch (theme) {
@@ -812,7 +814,7 @@ class MapPageState extends State<MapPage> {
       ..add(Circle(
           circleId: CircleId(circleIdVal),
           center: point,
-          radius: kmIntToMetersDouble(defaultRadius),
+          radius: kmIntToMetersDouble(defaultSearchRadius),
           fillColor: ColorConstants().appColor.withOpacity(0.5),
           strokeWidth: 2,
           strokeColor: ColorConstants().appColor));

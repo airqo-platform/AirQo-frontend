@@ -91,6 +91,6 @@ class OnBoardingButtons extends StatelessWidget {
 
   Future<void> updateFirstUse() async {
     var prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(firstUse, false);
+    await prefs.setBool(PrefConstants().firstUse, false);
   }
 }

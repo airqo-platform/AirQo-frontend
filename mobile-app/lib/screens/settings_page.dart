@@ -110,33 +110,33 @@ class _SettingsPageState extends State<SettingsPage> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               IconButton(
-                  icon: const FaIcon(
+                  icon: FaIcon(
                     FontAwesomeIcons.facebook,
-                    color: facebookColor,
+                    color: ColorConstants().facebookColor,
                   ),
                   onPressed: () {
                     _launchURL('facebook');
                   }),
               IconButton(
-                  icon: const FaIcon(
+                  icon: FaIcon(
                     FontAwesomeIcons.twitter,
-                    color: twitterColor,
+                    color: ColorConstants().twitterColor,
                   ),
                   onPressed: () {
                     _launchURL('twitter');
                   }),
               IconButton(
-                  icon: const FaIcon(
+                  icon: FaIcon(
                     FontAwesomeIcons.youtube,
-                    color: youtubeColor,
+                    color: ColorConstants().youtubeColor,
                   ),
                   onPressed: () {
                     _launchURL('youtube');
                   }),
               IconButton(
-                  icon: const FaIcon(
+                  icon: FaIcon(
                     FontAwesomeIcons.linkedin,
-                    color: linkedInColor,
+                    color: ColorConstants().linkedInColor,
                   ),
                   onPressed: () {
                     _launchURL('linkedin');
@@ -168,7 +168,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Future<void> loadPreferences() async {
     var prefs = await SharedPreferences.getInstance();
-    var theme = prefs.getString(appTheme);
+    var theme = prefs.getString(PrefConstants().appTheme);
     print(theme);
     if (theme != null) {
       switch (theme) {
@@ -517,9 +517,9 @@ class _SettingsPageState extends State<SettingsPage> {
             },
             child: ListTile(
               title: const Text('Appearance'),
-              leading: const FaIcon(
+              leading: FaIcon(
                 FontAwesomeIcons.paintRoller,
-                color: linkedInColor,
+                color: ColorConstants().appColor,
               ),
               trailing: Icon(
                 Icons.arrow_forward_ios_rounded,
@@ -540,9 +540,9 @@ class _SettingsPageState extends State<SettingsPage> {
             },
             child: ListTile(
               title: const Text('Language'),
-              leading: const FaIcon(
+              leading: FaIcon(
                 FontAwesomeIcons.language,
-                color: linkedInColor,
+                color: ColorConstants().appColor,
               ),
               trailing: Icon(
                 Icons.arrow_forward_ios_rounded,
@@ -583,7 +583,7 @@ class _SettingsPageState extends State<SettingsPage> {
       case 'feedback':
         final _emailFeedbackUri = Uri(
                 scheme: 'mailto',
-                path: '$appFeedbackEmail',
+                path: '${Links().feedbackEmail}',
                 queryParameters: {'subject': 'Mobile\bApplication\bFeedback!'})
             .toString();
 
@@ -596,77 +596,78 @@ class _SettingsPageState extends State<SettingsPage> {
     }
   }
 
+
   Future<void> _launchURL(String page) async {
     page = page.trim().toLowerCase();
 
     try {
       switch (page) {
         case 'faqs':
-          await canLaunch(faqs)
-              ? await launch(faqs)
-              : throw 'Could not launch faqs, try opening $faqs';
+          await canLaunch(Links().faqs)
+              ? await launch(Links().faqs)
+              : throw 'Could not launch faqs, try opening ${Links().faqs}';
           return;
         case 'about':
-          await canLaunch(about)
-              ? await launch(about)
-              : throw 'Could not launch about, try opening $about';
+          await canLaunch(Links().about)
+              ? await launch(Links().about)
+              : throw 'Could not launch about, try opening ${Links().about}';
           return;
         case 'contact us':
-          await canLaunch(contactUs)
-              ? await launch(contactUs)
-              : throw 'Could not launch contact us, try opening $contactUs';
+          await canLaunch(Links().contactUs)
+              ? await launch(Links().contactUs)
+              : throw 'Could not launch contact us, try opening ${Links().contactUs}';
           return;
         case 'terms':
-          await canLaunch(terms)
-              ? await launch(terms)
-              : throw 'Could not launch terms, try opening $terms';
+          await canLaunch(Links().terms)
+              ? await launch(Links().terms)
+              : throw 'Could not launch terms, try opening ${Links().terms}';
           return;
         case 'rate':
           if (Platform.isAndroid) {
-            await canLaunch(appPlayStoreLink)
-                ? await launch(appPlayStoreLink)
-                : throw 'Could not launch rate us, try opening '
-                    '$appPlayStoreLink';
-          } else if (Platform.isIOS) {
-            await canLaunch(appIOSLink)
-                ? await launch(appIOSLink)
-                : throw 'Could not launch rate us, try opening $appIOSLink';
-          } else {
-            await canLaunch(appPlayStoreLink)
-                ? await launch(appPlayStoreLink)
+            await canLaunch(Links().playStoreLink)
+                ? await launch(Links().playStoreLink)
                 : throw 'Could not launch rate us, try opening'
-                    ' $appPlayStoreLink';
+                ' ${Links().playStoreLink}';
+          } else if (Platform.isIOS) {
+            await canLaunch(Links().iOSLink)
+                ? await launch(Links().iOSLink)
+                : throw 'Could not launch rate us, try opening ${Links().iOSLink}';
+          } else {
+            await canLaunch(Links().playStoreLink)
+                ? await launch(Links().playStoreLink)
+                : throw 'Could not launch rate us, try opening'
+                ' ${Links().playStoreLink}';
           }
           return;
         case 'facebook':
-          await canLaunch(facebook)
-              ? await launch(facebook)
-              : throw 'Could not launch facebook, try opening $facebook';
+          await canLaunch(Links().facebook)
+              ? await launch(Links().facebook)
+              : throw 'Could not launch facebook, try opening ${Links().facebook}';
           return;
         case 'twitter':
-          await canLaunch(twitter)
-              ? await launch(twitter)
-              : throw 'Could not launch twitter, try opening $twitter';
+          await canLaunch(Links().twitter)
+              ? await launch(Links().twitter)
+              : throw 'Could not launch twitter, try opening ${Links().twitter}';
           return;
         case 'linkedin':
-          await canLaunch(linkedin)
-              ? await launch(linkedin)
-              : throw 'Could not launch linkedin, try opening $linkedin';
+          await canLaunch(Links().linkedin)
+              ? await launch(Links().linkedin)
+              : throw 'Could not launch linkedin, try opening ${Links().linkedin}';
           return;
         case 'youtube':
-          await canLaunch(youtube)
-              ? await launch(youtube)
-              : throw 'Could not launch youtube, try opening $youtube';
+          await canLaunch(Links().youtube)
+              ? await launch(Links().youtube)
+              : throw 'Could not launch youtube, try opening ${Links().youtube}';
           return;
         case 'airqo':
-          await canLaunch(appWebsite)
-              ? await launch(appWebsite)
-              : throw 'Could not launch airqo, try opening $appWebsite';
+          await canLaunch(Links().airqoWebsite)
+              ? await launch(Links().airqoWebsite)
+              : throw 'Could not launch airqo, try opening ${Links().airqoWebsite}';
           return;
         default:
-          await canLaunch(appWebsite)
-              ? await launch(appWebsite)
-              : throw 'Could not launch airqo, try opening $appWebsite';
+          await canLaunch(Links().airqoWebsite)
+              ? await launch(Links().airqoWebsite)
+              : throw 'Could not launch airqo, try opening ${Links().airqoWebsite}';
           return;
       }
     } catch (e) {
@@ -697,9 +698,9 @@ class _SettingsPageState extends State<SettingsPage> {
     var prefs = await SharedPreferences.getInstance();
 
     if (value == Themes.lightTheme) {
-      await prefs.setString(appTheme, 'light');
+      await prefs.setString(PrefConstants().appTheme, 'light');
     } else {
-      await prefs.setString(appTheme, 'dark');
+      await prefs.setString(PrefConstants().appTheme, 'dark');
     }
   }
 }

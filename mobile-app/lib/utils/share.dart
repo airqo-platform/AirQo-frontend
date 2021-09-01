@@ -6,8 +6,8 @@ import 'package:share/share.dart';
 
 void shareApp() {
   Share.share(
-      'Download the $appName app from Play Store $appPlayStoreLink '
-      'or App Store $appIOSLink',
+      'Download the $appName app from Play Store  ${Links().playStoreLink} '
+      'or App Store ${Links().iOSLink}',
       subject: '$appName app!');
 }
 
@@ -15,7 +15,7 @@ void shareLocation(Site site) {
   Share.share(
       'Checkout the air quality of '
       '${site.getName()} '
-      '$appWebsite',
+      ' ${Links().airqoWebsite}',
       subject: '$appName, ${site.getName()}!');
 }
 

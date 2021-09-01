@@ -1,39 +1,55 @@
 import 'package:flutter/material.dart';
 
-const about = 'https://www.airqo.net/about';
 const appColor = Color(0xff3067e2);
-const appFeedbackEmail = 'info@airqo.net';
-const appIOSLink =
-    'https://apps.apple.com/ug/app/airqo-monitoring-air-quality/id1337573091';
 const appName = 'AirQo';
-const appPlayStoreLink =
-    'https://play.google.com/store/apps/details?id=com.airqo.app';
-
-const appTheme = 'appTheme';
-
-const appWebsite = 'https://www.airqo.net';
-const contactUs = 'https://www.airqo.net/contact-us';
-const defaultRadius = 2;
-const facebook = 'https://web.facebook.com/AirQo/';
-const facebookColor = Color(0xff4267B2);
-const faqs = 'https://www.airqo.net/faqs';
-const firstUse = 'firstUse';
-const initialDbLoad = 'initialDbLoad';
-const linkedin = 'https://www.linkedin.com/company/airqo/';
-const linkedInColor = Color(0xff2867B2);
+const defaultSearchRadius = 2;
 
 const persistentNotificationId = 1294732;
 const progressNotificationId = 482842;
 const pushNotificationId = 9239203;
-const rate = 'https://www.airqo.net/faqs';
-
 const smartNotificationId = 4877231;
-const terms = 'https://docs.airqo.net/airqo-application-documentations/';
 
-const twitter = 'https://twitter.com/AirQoProject';
-const twitterColor = Color(0xff1DA1F2);
-const youtube = 'https://www.youtube.com/channel/UCx7YtV55TcqKGeKsDdT5_XQ/';
-const youtubeColor = Color(0xffFF0000);
+class Links {
+  final String _airqoReference = 'https://www.airqo.net/about';
+  final String _about = 'https://www.airqo.net/about';
+  final String _iOSLink = 'https://apps.apple.com/ug/app/airqo-monitoring-air-quality/id1337573091';
+  final String _playStoreLink = 'https://play.google.com/store/apps/details?id=com.airqo.app';
+  final String _airqoWebsite = 'https://www.airqo.net';
+  final String _contactUs = 'https://www.airqo.net/contact-us';
+  final String _faqs = 'https://www.airqo.net/faqs';
+  final String _linkedin = 'https://www.linkedin.com/company/airqo/';
+  final String _facebook = 'https://web.facebook.com/AirQo/';
+  final String _terms = 'https://docs.airqo.net/airqo-application-documentations/';
+  final String _youtube = 'https://www.youtube.com/channel/UCx7YtV55TcqKGeKsDdT5_XQ/';
+  final String _twitter = 'https://twitter.com/AirQoProject';
+  final String _feedbackEmail = 'info@airqo.net';
+
+  String get feedbackEmail => _feedbackEmail;
+
+  String get twitter => _twitter;
+
+  String get about => _about;
+
+  String get airqoReference => _airqoReference;
+
+  String get iOSLink => _iOSLink;
+
+  String get playStoreLink => _playStoreLink;
+
+  String get airqoWebsite => _airqoWebsite;
+
+  String get contactUs => _contactUs;
+
+  String get faqs => _faqs;
+
+  String get linkedin => _linkedin;
+
+  String get facebook => _facebook;
+
+  String get terms => _terms;
+
+  String get youtube => _youtube;
+}
 
 class ColorConstants {
   final Color _green = const Color(0xff3FFF33);
@@ -42,6 +58,11 @@ class ColorConstants {
   final Color _red = const Color(0xffF62E2E);
   final Color _purple = const Color(0xFF7B1FA2);
   final Color _maroon = const Color(0xff570B0B);
+
+  final Color _facebookColor = const Color(0xff4267B2);
+  final Color _linkedInColor = const Color(0xff2867B2);
+  final Color _twitterColor = const Color(0xff1DA1F2);
+  final Color _youtubeColor = const Color(0xffFF0000);
 
   final Color _appColor = const Color(0xff3067e2);
 
@@ -58,6 +79,14 @@ class ColorConstants {
   Color get red => _red;
 
   Color get yellow => _yellow;
+
+  Color get youtubeColor => _youtubeColor;
+
+  Color get twitterColor => _twitterColor;
+
+  Color get linkedInColor => _linkedInColor;
+
+  Color get facebookColor => _facebookColor;
 }
 
 class DbConstants {
@@ -223,11 +252,17 @@ class PollutantSource {
 
 class PrefConstants {
   final String _favouritePlaces = 'favourite_places';
-  final String _firstUse = 'first_use';
+  final String _firstUse = 'firstUse';
+  final String _initialDbLoad = 'initialDbLoad';
+  final String _appTheme = 'appTheme';
 
   String get favouritePlaces => _favouritePlaces;
 
   String get firstUse => _firstUse;
+
+  String get initialDbLoad => _initialDbLoad;
+
+  String get appTheme => _appTheme;
 }
 
 enum Themes { lightTheme, darkTheme }

@@ -423,7 +423,7 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _displayOnBoarding() async {
     var prefs = await SharedPreferences.getInstance();
-    var isFirstUse = prefs.getBool(firstUse) ?? true;
+    var isFirstUse = prefs.getBool(PrefConstants().firstUse) ?? true;
 
     if (isFirstUse) {
       await Navigator.pushReplacement(context,

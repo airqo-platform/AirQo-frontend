@@ -69,7 +69,7 @@ class _MyPlacesState extends State<MyPlaces> {
               padding: const EdgeInsets.fromLTRB(6, 6, 6, 6),
               child: isSearching
                   ? RefreshIndicator(
-                color: ColorConstants().appColor,
+                      color: ColorConstants().appColor,
                       onRefresh: exitSearch,
                       child: ListView.builder(
                         itemBuilder: (context, index) => GestureDetector(

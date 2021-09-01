@@ -242,7 +242,7 @@ class _HomePageV2State extends State<HomePageV2> {
       Navigator.push(
         context,
         MaterialPageRoute<void>(
-          builder: (BuildContext context) => HelpPage(),
+          builder: (BuildContext context) => const HelpPage(initialIndex: 0,),
           fullscreenDialog: true,
         ),
       );
@@ -321,7 +321,7 @@ class _HomePageV2State extends State<HomePageV2> {
 
   Future<void> _displayOnBoarding() async {
     var prefs = await SharedPreferences.getInstance();
-    var isFirstUse = prefs.getBool(firstUse) ?? true;
+    var isFirstUse = prefs.getBool(PrefConstants().firstUse) ?? true;
 
     if (isFirstUse) {
       await Navigator.pushAndRemoveUntil(context,

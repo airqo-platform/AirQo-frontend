@@ -19,10 +19,12 @@ class ClearAppDialogState extends State<ClearAppDialog> {
               color: ColorConstants().appColor,
             ),
           ),
-          const Expanded(
+          Expanded(
               child: Text(
             'This procedure is irreversible, do you wish to proceed?',
-            style: TextStyle(fontSize: 15, fontWeight: FontWeight.normal),
+            style: TextStyle(fontSize: 15,
+                color: ColorConstants().appColor,
+                fontWeight: FontWeight.normal),
           ))
         ],
       ),

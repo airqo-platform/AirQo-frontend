@@ -23,7 +23,7 @@ class DBHelper {
   Future<void> createDefaultTables(Database db) async {
 
     var prefs = await SharedPreferences.getInstance();
-    var initialLoading = prefs.getBool(initialDbLoad) ?? true;
+    var initialLoading = prefs.getBool(PrefConstants().initialDbLoad) ?? true;
 
     if (initialLoading) {
       print('creating tables');
@@ -32,7 +32,7 @@ class DBHelper {
       await db.execute(HistoricalMeasurement.dropTableStmt());
       await db.execute(Predict.dropTableStmt());
       await db.execute(Site.dropTableStmt());
-      await prefs.setBool(initialDbLoad, false);
+      await prefs.setBool(PrefConstants().initialDbLoad, false);
     }
 
     await db.execute(Measurement.createTableStmt());

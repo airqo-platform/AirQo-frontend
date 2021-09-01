@@ -4,11 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class PollutantDialog extends StatelessWidget {
-  final Pollutant pollutant;
-
-  final _url = 'https://www.epa.gov/pm-pollution/particulate-matter-pm-basics';
 
   PollutantDialog(this.pollutant);
+  final Pollutant pollutant;
 
   @override
   Widget build(BuildContext context) {
@@ -197,9 +195,10 @@ class PollutantDialog extends StatelessWidget {
 
   Future<void> _launchURL() async {
     try {
-      await canLaunch(_url)
-          ? await launch(_url)
-          : throw 'Could not launch reference, try opening $_url';
+      await canLaunch(Links().airqoReference)
+          ? await launch(Links().airqoReference)
+          : throw 'Could not launch reference,'
+          ' try opening ${Links().airqoReference}';
     } on Error catch (e) {
       print(e);
     }
