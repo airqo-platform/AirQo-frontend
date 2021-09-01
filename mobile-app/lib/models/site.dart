@@ -28,20 +28,6 @@ class Site {
   @JsonKey(required: false, defaultValue: 0.0)
   final double distance;
 
-  String getName() {
-    if (description == '') {
-      return name;
-    }
-    return description;
-  }
-
-  String getLocation() {
-    if (description == '') {
-      return name;
-    }
-    return '$district $country';
-  }
-
   Site(this.name,
       {required this.id,
       required this.latitude,
@@ -52,6 +38,20 @@ class Site {
       required this.distance});
 
   factory Site.fromJson(Map<String, dynamic> json) => _$SiteFromJson(json);
+
+  String getLocation() {
+    if (description == '') {
+      return name;
+    }
+    return '$district $country';
+  }
+
+  String getName() {
+    if (description == '') {
+      return name;
+    }
+    return description;
+  }
 
   Map<String, dynamic> toJson() => _$SiteToJson(this);
 
@@ -64,16 +64,6 @@ class Site {
       '${dbLatitude()} REAL, '
       '${dbDescription()} TEXT, '
       '${dbSiteName()} TEXT )';
-
-  // static String latestMeasurementsTableCreateStmt() =>
-  //     'CREATE TABLE IF NOT EXISTS ${latestMeasurementsDb()}('
-  //         '${Site.dbId()} TEXT PRIMARY KEY, ${Site.dbLatitude()} REAL, '
-  //         '${Site.dbSiteName()} TEXT, ${Site.dbLongitude()} REAL, '
-  //         '${dbTime()} TEXT, ${dbPm25()} REAL, ${Site.dbCountry()} TEXT, '
-  //         '${dbPm10()} REAL, ${dbAltitude()} REAL, '
-  //         '${dbSpeed()} REAL, ${dbTemperature()} REAL, '
-  //         '${dbHumidity()} REAL, ${Site.dbDistrict()} TEXT, '
-  //         '${Site.dbDescription()} TEXT )';
 
   static String dbCountry() => 'country';
 
@@ -89,8 +79,6 @@ class Site {
 
   static String dbLongitude() => 'longitude';
 
-  static String sitesDbName() => 'sites';
-
   static String dbSiteName() => 'site_name';
 
   static String dropTableStmt() => 'DROP TABLE IF EXISTS ${sitesDbName()}';
@@ -105,16 +93,6 @@ class Site {
         'longitude': json['${dbLongitude()}'] as double,
       };
 
-  static Map<String, dynamic> toDbMap(Site site) => {
-        '${dbSiteName()}': site.name,
-        '${dbDescription()}': site.description,
-        '${dbId()}': site.id,
-        '${dbCountry()}': site.country,
-        '${dbDistrict()}': site.district,
-        '${dbLatitude()}': site.latitude,
-        '${dbLongitude()}': site.longitude
-      };
-
   static List<Site> parseSites(dynamic jsonBody) {
     var sites = <Site>[];
 
@@ -127,8 +105,25 @@ class Site {
         print('Error parsing sites : $e');
       }
     }
+
+    sites.sort((siteA, siteB) {
+      return siteA.getName().compareTo(siteB.getName().toLowerCase());
+    });
+
     return sites;
   }
+
+  static String sitesDbName() => 'sites';
+
+  static Map<String, dynamic> toDbMap(Site site) => {
+        '${dbSiteName()}': site.name,
+        '${dbDescription()}': site.description,
+        '${dbId()}': site.id,
+        '${dbCountry()}': site.country,
+        '${dbDistrict()}': site.district,
+        '${dbLatitude()}': site.latitude,
+        '${dbLongitude()}': site.longitude
+      };
 }
 
 @JsonSerializable()

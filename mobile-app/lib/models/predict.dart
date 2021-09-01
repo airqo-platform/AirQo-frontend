@@ -32,6 +32,12 @@ class Predict {
 
   Map<String, dynamic> toJson() => _$PredictToJson(this);
 
+  static String createTableStmt() =>
+      'CREATE TABLE IF NOT EXISTS ${forecastDb()}('
+      'id INTEGER PRIMARY KEY, ${Site.dbId()} TEXT,'
+      '${dbTime()} TEXT, ${dbUpper()} REAL, '
+      '${dbValue()} REAL, ${dbLower()} REAL)';
+
   static String dbLower() => 'lower';
 
   static String dbTime() => 'time';
@@ -40,15 +46,9 @@ class Predict {
 
   static String dbValue() => 'value';
 
-  static String forecastDb() => 'forecast_measurements';
-
-  static String createTableStmt() =>
-      'CREATE TABLE IF NOT EXISTS ${forecastDb()}('
-      'id INTEGER PRIMARY KEY, ${Site.dbId()} TEXT,'
-      '${dbTime()} TEXT, ${dbUpper()} REAL, '
-      '${dbValue()} REAL, ${dbLower()} REAL)';
-
   static String dropTableStmt() => 'DROP TABLE IF EXISTS ${forecastDb()}';
+
+  static String forecastDb() => 'forecast_measurements';
 
   static Map<String, dynamic> mapFromDb(Map<String, dynamic> json) {
     return {

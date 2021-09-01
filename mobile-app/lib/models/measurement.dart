@@ -60,6 +60,16 @@ class Measurement {
 
   Map<String, dynamic> toJson() => _$MeasurementToJson(this);
 
+  static String createTableStmt() =>
+      'CREATE TABLE IF NOT EXISTS ${latestMeasurementsDb()}('
+      '${Site.dbId()} TEXT PRIMARY KEY, ${Site.dbLatitude()} REAL, '
+      '${Site.dbSiteName()} TEXT, ${Site.dbLongitude()} REAL, '
+      '${dbTime()} TEXT, ${dbPm25()} REAL, ${Site.dbCountry()} TEXT, '
+      '${dbPm10()} REAL, ${dbAltitude()} REAL, '
+      '${dbSpeed()} REAL, ${dbTemperature()} REAL, '
+      '${dbHumidity()} REAL, ${Site.dbDistrict()} TEXT, '
+      '${Site.dbDescription()} TEXT )';
+
   static String dbAltitude() => 'altitude';
 
   static String dbHumidity() => 'humidity';
@@ -74,20 +84,10 @@ class Measurement {
 
   static String dbTime() => 'time';
 
-  static String latestMeasurementsDb() => 'latest_measurements';
-
-  static String createTableStmt() =>
-      'CREATE TABLE IF NOT EXISTS ${latestMeasurementsDb()}('
-      '${Site.dbId()} TEXT PRIMARY KEY, ${Site.dbLatitude()} REAL, '
-      '${Site.dbSiteName()} TEXT, ${Site.dbLongitude()} REAL, '
-      '${dbTime()} TEXT, ${dbPm25()} REAL, ${Site.dbCountry()} TEXT, '
-      '${dbPm10()} REAL, ${dbAltitude()} REAL, '
-      '${dbSpeed()} REAL, ${dbTemperature()} REAL, '
-      '${dbHumidity()} REAL, ${Site.dbDistrict()} TEXT, '
-      '${Site.dbDescription()} TEXT )';
-
   static String dropTableStmt() =>
       'DROP TABLE IF EXISTS ${latestMeasurementsDb()}';
+
+  static String latestMeasurementsDb() => 'latest_measurements';
 
   static Map<String, dynamic> mapFromDb(Map<String, dynamic> json) {
     var siteDetails = {

@@ -440,8 +440,6 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
 
   Widget historicalDataSection(List<HistoricalMeasurement> measurements) {
     var formattedData = historicalChartData(measurements);
-    // Crunching the latest data, just for you.
-    // Hang tight…
     return MeasurementsBarChart(formattedData, '48 hour History');
   }
 

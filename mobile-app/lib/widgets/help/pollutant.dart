@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class PollutantDialog extends StatelessWidget {
-  PollutantDialog(this.pollutant);
-
   final Pollutant pollutant;
+
+  PollutantDialog(this.pollutant);
 
   @override
   Widget build(BuildContext context) {

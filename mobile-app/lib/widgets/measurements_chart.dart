@@ -6,10 +6,10 @@ import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 
 class MeasurementsBarChart extends StatefulWidget {
-  MeasurementsBarChart(this.seriesList, this.header);
-
   final List<charts.Series<TimeSeriesData, DateTime>> seriesList;
+
   final String header;
+  MeasurementsBarChart(this.seriesList, this.header);
 
   @override
   _MeasurementsBarChartState createState() => _MeasurementsBarChartState();

@@ -5,15 +5,9 @@ import 'package:app/widgets/help/pollutant.dart';
 import 'package:flutter/material.dart';
 
 class HelpPage extends StatelessWidget {
-  const HelpPage({Key? key, required this.initialIndex}) : super(key: key);
   final int initialIndex;
 
-  int getInitialIndex() {
-    if (initialIndex > 2 || initialIndex < 0) {
-      return 0;
-    }
-    return initialIndex;
-  }
+  const HelpPage({Key? key, required this.initialIndex}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -64,5 +58,12 @@ class HelpPage extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  int getInitialIndex() {
+    if (initialIndex > 2 || initialIndex < 0) {
+      return 0;
+    }
+    return initialIndex;
   }
 }

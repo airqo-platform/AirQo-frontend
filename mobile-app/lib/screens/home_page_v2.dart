@@ -332,12 +332,6 @@ class _HomePageV2State extends State<HomePageV2> {
     }
   }
 
-  Future<void> _getSites() async {
-    await AirqoApiClient(context).fetchSites().then((value) => {
-          if (value.isNotEmpty) {DBHelper().insertSites(value)}
-        });
-  }
-
   Future<void> _getHistoricalMeasurements() async {
     await AirqoApiClient(context)
         .fetchHistoricalMeasurements()
@@ -350,6 +344,12 @@ class _HomePageV2State extends State<HomePageV2> {
   Future<void> _getLatestMeasurements() async {
     await AirqoApiClient(context).fetchLatestMeasurements().then((value) => {
           if (value.isNotEmpty) {DBHelper().insertLatestMeasurements(value)}
+        });
+  }
+
+  Future<void> _getSites() async {
+    await AirqoApiClient(context).fetchSites().then((value) => {
+          if (value.isNotEmpty) {DBHelper().insertSites(value)}
         });
   }
 

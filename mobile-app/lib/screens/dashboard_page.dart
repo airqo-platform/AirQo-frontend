@@ -69,7 +69,7 @@ class _DashboardPageState extends State<DashboardPage> {
                             ),
                           )
                     : RefreshIndicator(
-                        onRefresh: reload,
+                        onRefresh: initialize,
                         color: ColorConstants().appColor,
                         child: ListView.builder(
                           itemBuilder: (context, index) => InkWell(
@@ -135,31 +135,10 @@ class _DashboardPageState extends State<DashboardPage> {
     }
   }
 
-  Future<void> reload() async {
-    setState(() {
-      error = '';
-    });
-    await loadFromDb();
-    await AirqoApiClient(context).fetchLatestMeasurements().then((value) => {
-          if (value.isNotEmpty)
-            {
-              setState(() {
-                results = value;
-                error = '';
-              }),
-              DBHelper()
-                  .insertLatestMeasurements(value)
-                  .then((value) => loadFromDb()),
-            }
-          else
-            {
-              if (results.isEmpty && hasFavPlaces)
-                setState(() {
-                  error = 'Sorry, we are not able to gather information'
-                      ' about your places. Try again later';
-                }),
-            }
-        });
+  @override
+  void initState() {
+    initialize();
+    super.initState();
   }
 
   Future<void> loadFromDb() async {
@@ -184,10 +163,30 @@ class _DashboardPageState extends State<DashboardPage> {
         });
   }
 
-  @override
-  void initState() {
-    initialize();
-    super.initState();
+  Future<void> reload() async {
+    setState(() {
+      error = '';
+    });
+
+    await AirqoApiClient(context).fetchLatestMeasurements().then((value) => {
+          if (value.isNotEmpty)
+            {
+              setState(() {
+                error = '';
+              }),
+              DBHelper()
+                  .insertLatestMeasurements(value)
+                  .then((value) => loadFromDb()),
+            }
+          else
+            {
+              if (results.isEmpty && hasFavPlaces)
+                setState(() {
+                  error = 'Sorry, we are not able to gather information'
+                      ' about your places. Try again later';
+                }),
+            }
+        });
   }
 
   RawMaterialButton reloadButton() {
@@ -200,7 +199,7 @@ class _DashboardPageState extends State<DashboardPage> {
       highlightElevation: 0,
       splashColor: Colors.black12,
       highlightColor: ColorConstants().appColor.withOpacity(0.4),
-      onPressed: reload,
+      onPressed: initialize,
       child: Padding(
         padding: const EdgeInsets.all(4),
         child: Text(

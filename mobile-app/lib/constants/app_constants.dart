@@ -2,58 +2,13 @@ import 'package:flutter/material.dart';
 
 const appColor = Color(0xff3067e2);
 const appName = 'AirQo';
+const appVersion = 'v2.0.1';
 const defaultSearchRadius = 2;
 
 const persistentNotificationId = 1294732;
 const progressNotificationId = 482842;
 const pushNotificationId = 9239203;
 const smartNotificationId = 4877231;
-
-class Links {
-  final String _airqoReference = 'https://www.airqo.net/about';
-  final String _about = 'https://www.airqo.net/about';
-  final String _iOSLink =
-      'https://apps.apple.com/ug/app/airqo-monitoring-air-quality/id1337573091';
-  final String _playStoreLink =
-      'https://play.google.com/store/apps/details?id=com.airqo.app';
-  final String _airqoWebsite = 'https://www.airqo.net';
-  final String _contactUs = 'https://www.airqo.net/contact-us';
-  final String _faqs = 'https://www.airqo.net/faqs';
-  final String _linkedin = 'https://www.linkedin.com/company/airqo/';
-  final String _facebook = 'https://web.facebook.com/AirQo/';
-  final String _terms =
-      'https://docs.airqo.net/airqo-application-documentations/';
-  final String _youtube =
-      'https://www.youtube.com/channel/UCx7YtV55TcqKGeKsDdT5_XQ/';
-  final String _twitter = 'https://twitter.com/AirQoProject';
-  final String _feedbackEmail = 'info@airqo.net';
-
-  String get feedbackEmail => _feedbackEmail;
-
-  String get twitter => _twitter;
-
-  String get about => _about;
-
-  String get airqoReference => _airqoReference;
-
-  String get iOSLink => _iOSLink;
-
-  String get playStoreLink => _playStoreLink;
-
-  String get airqoWebsite => _airqoWebsite;
-
-  String get contactUs => _contactUs;
-
-  String get faqs => _faqs;
-
-  String get linkedin => _linkedin;
-
-  String get facebook => _facebook;
-
-  String get terms => _terms;
-
-  String get youtube => _youtube;
-}
 
 class ColorConstants {
   final Color _green = const Color(0xff3FFF33);
@@ -72,7 +27,11 @@ class ColorConstants {
 
   Color get appColor => _appColor;
 
+  Color get facebookColor => _facebookColor;
+
   Color get green => _green;
+
+  Color get linkedInColor => _linkedInColor;
 
   Color get maroon => _maroon;
 
@@ -82,15 +41,11 @@ class ColorConstants {
 
   Color get red => _red;
 
+  Color get twitterColor => _twitterColor;
+
   Color get yellow => _yellow;
 
   Color get youtubeColor => _youtubeColor;
-
-  Color get twitterColor => _twitterColor;
-
-  Color get linkedInColor => _linkedInColor;
-
-  Color get facebookColor => _facebookColor;
 }
 
 class DbConstants {
@@ -112,6 +67,55 @@ class ErrorMessages {
 }
 
 enum Languages { English, Luganda }
+
+class Links {
+  final String _airqoReference = 'https://www.airqo.net/about';
+  final String _about = 'https://www.airqo.net/about';
+  final String _iOSLink =
+      'https://apps.apple.com/ug/app/airqo-monitoring-air-quality/id1337573091';
+  final String _playStoreLink =
+      'https://play.google.com/store/apps/details?id=com.airqo.app';
+  final String _airqoWebsite = 'https://www.airqo.net';
+  final String _contactUs = 'https://www.airqo.net/contact-us';
+  final String _faqs = 'https://www.airqo.net/faqs';
+  final String _linkedin = 'https://www.linkedin.com/company/airqo/';
+  final String _facebook = 'https://web.facebook.com/AirQo/';
+  final String _terms =
+      'https://docs.airqo.net/airqo-application-documentations/';
+  final String _youtube =
+      'https://www.youtube.com/channel/UCx7YtV55TcqKGeKsDdT5_XQ/';
+  final String _twitter = 'https://twitter.com/AirQoProject';
+  final String _feedbackEmail = 'info@airqo.net';
+  final String _airqoBlog = 'https://www.airqo.net/blog';
+
+  String get about => _about;
+
+  String get airqoBlog => _airqoBlog;
+
+  String get airqoReference => _airqoReference;
+
+  String get airqoWebsite => _airqoWebsite;
+
+  String get contactUs => _contactUs;
+
+  String get facebook => _facebook;
+
+  String get faqs => _faqs;
+
+  String get feedbackEmail => _feedbackEmail;
+
+  String get iOSLink => _iOSLink;
+
+  String get linkedin => _linkedin;
+
+  String get playStoreLink => _playStoreLink;
+
+  String get terms => _terms;
+
+  String get twitter => _twitter;
+
+  String get youtube => _youtube;
+}
 
 class PollutantConstants {
   static final String _pm2_5 = 'pm2_5';
@@ -162,10 +166,7 @@ class PollutantEffects {
       'Some particles less than 10 micrometers in diameter can get deep '
       'into your lungs and some may even get into your bloodstream. '
       'Of these, particles less than 2.5 micrometers in diameter, also known '
-      'as fine particles or PM2.5, pose the greatest risk to health.\n '
-      '\n\nFine particles are also the main cause of reduced visibility (haze)'
-      ' in parts of the United States, including many of our treasured national'
-      ' parks and wilderness areas.';
+      'as fine particles or PM2.5, pose the greatest risk to health.';
 
   static final String _pm10 = 'Particulate matter contains microscopic '
       'solids or liquid droplets that are so small that they '
@@ -173,10 +174,8 @@ class PollutantEffects {
       'Some particles less than 10 micrometers in diameter can get deep '
       'into your lungs and some may even get into your bloodstream. '
       'Of these, particles less than 10 micrometers in diameter, also known '
-      'as fine particles or PM10, pose the greatest risk to health. '
-      '\n\nFine particles are also the main cause of reduced visibility (haze)'
-      ' in parts of the United States, including many of our treasured national'
-      ' parks and wilderness areas.';
+      'as fine particles or PM10, pose the greatest risk to health.';
+
   static final String _s2_pm2_5 = 's2_pm2_5';
   static final String _s2_pm10 = 's2_pm10';
 
@@ -196,10 +195,7 @@ class PollutantReduction {
       'Some particles less than 10 micrometers in diameter can get deep '
       'into your lungs and some may even get into your bloodstream. '
       'Of these, particles less than 2.5 micrometers in diameter, also known '
-      'as fine particles or PM2.5, pose the greatest risk to health. '
-      '\n\nFine particles are also the main cause of reduced visibility (haze)'
-      ' in parts of the United States, including many of our treasured national'
-      ' parks and wilderness areas.';
+      'as fine particles or PM2.5, pose the greatest risk to health.';
 
   static final String _pm10 = 'Particulate matter contains microscopic '
       'solids or liquid droplets that are so small that they '
@@ -207,10 +203,7 @@ class PollutantReduction {
       'Some particles less than 10 micrometers in diameter can get deep '
       'into your lungs and some may even get into your bloodstream. '
       'Of these, particles less than 10 micrometers in diameter, also known '
-      'as fine particles or PM10, pose the greatest risk to health. '
-      '\n\nFine particles are also the main cause of reduced visibility (haze)'
-      ' in parts of the United States, including many of our treasured national'
-      ' parks and wilderness areas.';
+      'as fine particles or PM10, pose the greatest risk to health.';
 
   static final String _s2_pm2_5 = 's2_pm2_5';
   static final String _s2_pm10 = 's2_pm10';
@@ -235,9 +228,9 @@ class PollutantSource {
       'industries and automobiles.';
 
   static final String _pm10 = 'These particles come in many sizes and shapes'
-      ' and can be made up of hundreds of different chemicals. '
+      ' and can be made up of hundreds of different chemicals.'
       '\n\nSome are emitted directly from a source, such as construction '
-      'sites, unpaved roads, fields, smokestacks or fires. '
+      'sites, unpaved roads, fields, smokestacks or fires.'
       '\n\nMost particles form in the atmosphere as a result of complex '
       'reactions of chemicals such as sulfur dioxide and nitrogen oxides, '
       'which are pollutants emitted from power plants, '
@@ -255,18 +248,18 @@ class PollutantSource {
 }
 
 class PrefConstants {
-  final String _favouritePlaces = 'favourite_places';
+  final String _favouritePlaces = 'favouriteSites';
   final String _firstUse = 'firstUse';
   final String _initialDbLoad = 'initialDbLoad';
   final String _appTheme = 'appTheme';
+
+  String get appTheme => _appTheme;
 
   String get favouritePlaces => _favouritePlaces;
 
   String get firstUse => _firstUse;
 
   String get initialDbLoad => _initialDbLoad;
-
-  String get appTheme => _appTheme;
 }
 
 enum Themes { lightTheme, darkTheme }

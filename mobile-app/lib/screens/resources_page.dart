@@ -36,7 +36,7 @@ class _ResourcesPageState extends State<ResourcesPage> {
           },
           onWebResourceError: webResourceErrorHandler,
           javascriptMode: JavascriptMode.unrestricted,
-          initialUrl: 'https://www.airqo.net/blog',
+          initialUrl: Links().airqoBlog,
         ),
         isLoading
             ? Center(
@@ -49,17 +49,17 @@ class _ResourcesPageState extends State<ResourcesPage> {
     );
   }
 
+  @override
+  void initState() {
+    super.initState();
+    if (Platform.isAndroid) WebView.platform = SurfaceAndroidWebView();
+  }
+
   void webResourceErrorHandler(error) {
     showDialog<void>(
       context: context,
       builder: (_) => ShowErrorDialog(
           message: 'Oops! Something went wrong, try again later'),
     );
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    if (Platform.isAndroid) WebView.platform = SurfaceAndroidWebView();
   }
 }

@@ -99,7 +99,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'AirQo',
+          '$appName',
           style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
         ),
       ),
@@ -243,7 +243,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
             height: 5,
           ),
           Text(
-            '\u00a9 AirQo 2021',
+            '\u00a9 $appName ${DateTime.now().year}',
             style: TextStyle(color: ColorConstants().appColor),
           ),
           Text(
@@ -254,7 +254,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
             height: 5,
           ),
           Text(
-            'v2.0.1',
+            '$appVersion',
             style: TextStyle(color: ColorConstants().appColor),
           )
         ],
@@ -390,7 +390,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
             },
             child: ListTile(
               title: Text(
-                'About AirQo',
+                'About $appName',
                 style: TextStyle(color: ColorConstants().appColor),
               ),
               leading: Icon(

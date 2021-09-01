@@ -49,8 +49,7 @@ class MapPageState extends State<MapPage> {
   late GoogleMapController _mapController;
   final Set<Circle> _circles = HashSet<Circle>();
 
-  GoogleSearchProvider googleApiClient =
-      GoogleSearchProvider(const Uuid().v4());
+  SearchApi searchApiClient = SearchApi(const Uuid().v4());
 
   @override
   Widget build(BuildContext context) {
@@ -147,7 +146,7 @@ class MapPageState extends State<MapPage> {
                     ),
                     if (query != '' && _isSearching)
                       FutureBuilder(
-                        future: googleApiClient.fetchSuggestions(query),
+                        future: searchApiClient.fetchSuggestions(query),
                         builder: (context, snapshot) {
                           // if (query == '') {
                           //   return FutureBuilder(
@@ -400,8 +399,8 @@ class MapPageState extends State<MapPage> {
       _searchController.text = selection.description;
     });
 
-    await googleApiClient
-        .getPlaceDetailFromId(selection.placeId)
+    await searchApiClient
+        .getPlaceDetails(selection.placeId)
         .then((value) async {
       var latLng =
           LatLng(value.geometry.location.lat, value.geometry.location.lng);

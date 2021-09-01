@@ -1,53 +1,9 @@
 import 'package:app/models/chartData.dart';
 import 'package:app/models/historicalMeasurement.dart';
-import 'package:app/models/measurement.dart';
 import 'package:app/models/predict.dart';
 import 'package:app/utils/pm.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:intl/intl.dart';
-
-List<charts.Series<TimeSeriesData, DateTime>> createChartData(
-    List<Measurement> measurements) {
-  var data = <TimeSeriesData>[];
-
-  for (var measurement in measurements) {
-    var time = measurement.time.substring(0, measurement.time.indexOf('.'));
-
-    var date = DateTime.parse(time);
-
-    data.add(TimeSeriesData(date, measurement.getPm2_5Value().ceil()));
-  }
-
-  return [
-    charts.Series<TimeSeriesData, DateTime>(
-      id: 'Location',
-      colorFn: (_, __) => charts.MaterialPalette.blue.shadeDefault,
-      domainFn: (TimeSeriesData sales, _) => sales.time,
-      measureFn: (TimeSeriesData sales, _) => sales.value,
-      data: data,
-    )
-  ];
-}
-
-List<charts.Series<Pm2_5TimeSeries, DateTime>> createPm2_5ChartData(
-    List<HistoricalMeasurement> data) {
-  var values = <Pm2_5TimeSeries>[];
-  for (var value in data) {
-    var time = value.time.replaceAll(' GMT', '');
-
-    values.add(Pm2_5TimeSeries(DateTime.parse(time), value.getPm2_5Value()));
-  }
-
-  return [
-    charts.Series<Pm2_5TimeSeries, DateTime>(
-      id: 'Pm2_5',
-      colorFn: (_, __) => charts.MaterialPalette.blue.shadeDefault,
-      domainFn: (Pm2_5TimeSeries value, _) => value.time,
-      measureFn: (Pm2_5TimeSeries value, _) => value.pm2_5Value,
-      data: values,
-    )
-  ];
-}
 
 List<charts.Series<TimeSeriesData, DateTime>> historicalChartData(
     List<HistoricalMeasurement> measurements) {

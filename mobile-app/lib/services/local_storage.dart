@@ -57,26 +57,6 @@ class DBHelper {
     }
   }
 
-  Future<List<Site>> getSites() async {
-    try {
-      final db = await database;
-      var res = await db.query(Site.sitesDbName());
-
-      print('Got ${res.length} sites from local db');
-
-      var sites = res.isNotEmpty
-          ? List.generate(res.length, (i) {
-              return Site.fromJson(Site.fromDbMap(res[i]));
-            })
-          : <Site>[];
-
-      return sites;
-    } catch (e) {
-      print(e);
-      return <Site>[];
-    }
-  }
-
   Future<List<Measurement>> getFavouritePlaces() async {
     try {
       final db = await database;
@@ -214,6 +194,29 @@ class DBHelper {
     }
   }
 
+  Future<List<Site>> getSites() async {
+    try {
+      final db = await database;
+      var res = await db.query(Site.sitesDbName());
+
+      print('Got ${res.length} sites from local db');
+
+      var sites = res.isNotEmpty
+          ? List.generate(res.length, (i) {
+              return Site.fromJson(Site.fromDbMap(res[i]));
+            })
+          : <Site>[]
+        ..sort((siteA, siteB) {
+          return siteA.getName().compareTo(siteB.getName().toLowerCase());
+        });
+
+      return sites;
+    } catch (e) {
+      print(e);
+      return <Site>[];
+    }
+  }
+
   Future<Database> initDB() async {
     return await openDatabase(
       join(await getDatabasesPath(), constants.dbName),
@@ -225,60 +228,6 @@ class DBHelper {
       //
       // },
     );
-  }
-
-  Future<void> insertSiteHistoricalMeasurements(
-      List<HistoricalMeasurement> measurements, String siteId) async {
-    try {
-      final db = await database;
-      print('inserting historical data');
-
-      if (measurements.isNotEmpty) {
-        await db.delete(HistoricalMeasurement.historicalMeasurementsDb(),
-            where: '${Site.dbId()} = ?', whereArgs: [siteId]);
-
-        for (var measurement in measurements) {
-          try {
-            var jsonData = HistoricalMeasurement.mapToDb(measurement);
-            await db.insert(
-              '${HistoricalMeasurement.historicalMeasurementsDb()}',
-              jsonData,
-              conflictAlgorithm: ConflictAlgorithm.replace,
-            );
-          } catch (e) {
-            print('Inserting site historical measurements into db');
-            print(e);
-          }
-        }
-      }
-    } catch (e) {
-      print(e);
-    }
-  }
-
-  Future<void> insertSites(List<Site> sites) async {
-    try {
-      final db = await database;
-
-      if (sites.isNotEmpty) {
-        await db.delete(Site.sitesDbName());
-        for (var site in sites) {
-          try {
-            var jsonData = Site.toDbMap(site);
-            await db.insert(
-              '${Site.sitesDbName()}',
-              jsonData,
-              conflictAlgorithm: ConflictAlgorithm.replace,
-            );
-          } catch (e) {
-            print('Inserting sites into db');
-            print(e);
-          }
-        }
-      }
-    } catch (e) {
-      print(e);
-    }
   }
 
   Future<void> insertForecastMeasurements(
@@ -381,6 +330,60 @@ class DBHelper {
       }
 
       print('Search term insertion into local db complete');
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  Future<void> insertSiteHistoricalMeasurements(
+      List<HistoricalMeasurement> measurements, String siteId) async {
+    try {
+      final db = await database;
+      print('inserting historical data');
+
+      if (measurements.isNotEmpty) {
+        await db.delete(HistoricalMeasurement.historicalMeasurementsDb(),
+            where: '${Site.dbId()} = ?', whereArgs: [siteId]);
+
+        for (var measurement in measurements) {
+          try {
+            var jsonData = HistoricalMeasurement.mapToDb(measurement);
+            await db.insert(
+              '${HistoricalMeasurement.historicalMeasurementsDb()}',
+              jsonData,
+              conflictAlgorithm: ConflictAlgorithm.replace,
+            );
+          } catch (e) {
+            print('Inserting site historical measurements into db');
+            print(e);
+          }
+        }
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  Future<void> insertSites(List<Site> sites) async {
+    try {
+      final db = await database;
+
+      if (sites.isNotEmpty) {
+        await db.delete(Site.sitesDbName());
+        for (var site in sites) {
+          try {
+            var jsonData = Site.toDbMap(site);
+            await db.insert(
+              '${Site.sitesDbName()}',
+              jsonData,
+              conflictAlgorithm: ConflictAlgorithm.replace,
+            );
+          } catch (e) {
+            print('Inserting sites into db');
+            print(e);
+          }
+        }
+      }
     } catch (e) {
       print(e);
     }

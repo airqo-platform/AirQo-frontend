@@ -13,14 +13,14 @@ import 'package:uuid/uuid.dart';
 import 'map_page.dart';
 
 class LocationSearch extends SearchDelegate<Suggestion> {
-  GoogleSearchProvider googleApiClient = GoogleSearchProvider('');
+  SearchApi searchApiClient = SearchApi('');
 
   String _searchPlaceId = '';
 
   bool _showAllSites = false;
 
   LocationSearch() {
-    googleApiClient = GoogleSearchProvider(const Uuid().v4());
+    searchApiClient = SearchApi(const Uuid().v4());
   }
 
   String get searchPlaceId => _searchPlaceId;
@@ -111,7 +111,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
     }
 
     return FutureBuilder(
-        future: googleApiClient.getPlaceDetailFromId(searchPlaceId),
+        future: searchApiClient.getPlaceDetails(searchPlaceId),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             print('${snapshot.error.toString()}');
@@ -265,7 +265,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
   @override
   Widget buildSuggestions(BuildContext context) {
     return FutureBuilder(
-      future: query == '' ? null : googleApiClient.fetchSuggestions(query),
+      future: query == '' ? null : searchApiClient.fetchSuggestions(query),
       builder: (context, snapshot) {
         if (query == '') {
           return FutureBuilder(
@@ -397,7 +397,10 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                   'try again later'),
             );
           } else if (snapshot.hasData) {
-            var sites = snapshot.data as List<Site>;
+            var sites = snapshot.data as List<Site>
+              ..sort((siteA, siteB) {
+                return siteA.getName().compareTo(siteB.getName().toLowerCase());
+              });
 
             if (sites.isEmpty) {
               return Align(
@@ -475,7 +478,10 @@ class LocationSearch extends SearchDelegate<Suggestion> {
             print(snapshot.error);
             return loadApiSites(context);
           } else if (snapshot.hasData) {
-            var sites = snapshot.data as List<Site>;
+            var sites = snapshot.data as List<Site>
+              ..sort((siteA, siteB) {
+                return siteA.getName().compareTo(siteB.getName().toLowerCase());
+              });
 
             if (sites.isEmpty) {
               return loadApiSites(context);

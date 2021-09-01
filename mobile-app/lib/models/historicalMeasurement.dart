@@ -60,6 +60,14 @@ class HistoricalMeasurement {
 
   Map<String, dynamic> toJson() => _$HistoricalMeasurementToJson(this);
 
+  static String createTableStmt() =>
+      'CREATE TABLE IF NOT EXISTS ${historicalMeasurementsDb()}('
+      'id INTEGER PRIMARY KEY, ${Site.dbId()} TEXT,'
+      '${dbTime()} TEXT, ${dbPm25()} REAL, '
+      '${dbPm10()} REAL, ${dbAltitude()} REAL, '
+      '${dbSpeed()} REAL, ${dbTemperature()} REAL, '
+      '${dbHumidity()} REAL)';
+
   static String dbAltitude() => 'altitude';
 
   static String dbHumidity() => 'humidity';
@@ -74,18 +82,10 @@ class HistoricalMeasurement {
 
   static String dbTime() => 'time';
 
-  static String historicalMeasurementsDb() => 'historical_measurements';
-
-  static String createTableStmt() =>
-      'CREATE TABLE IF NOT EXISTS ${historicalMeasurementsDb()}('
-      'id INTEGER PRIMARY KEY, ${Site.dbId()} TEXT,'
-      '${dbTime()} TEXT, ${dbPm25()} REAL, '
-      '${dbPm10()} REAL, ${dbAltitude()} REAL, '
-      '${dbSpeed()} REAL, ${dbTemperature()} REAL, '
-      '${dbHumidity()} REAL)';
-
   static String dropTableStmt() =>
       'DROP TABLE IF EXISTS ${historicalMeasurementsDb()}';
+
+  static String historicalMeasurementsDb() => 'historical_measurements';
 
   static Map<String, dynamic> mapFromDb(Map<String, dynamic> json) {
     return {

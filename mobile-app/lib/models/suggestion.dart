@@ -21,15 +21,30 @@ class Suggestion {
     return '$description';
   }
 
+  static String createTableStmt() => 'CREATE TABLE IF NOT EXISTS ${dbName()}('
+      '${dbPlaceId()} TEXT PRIMARY KEY, '
+      '${dbDescription()} TEXT)';
+
   static String dbDescription() => 'description';
 
   static String dbName() => 'search_table';
 
   static String dbPlaceId() => 'place_id';
 
-  static String createTableStmt() => 'CREATE TABLE IF NOT EXISTS ${dbName()}('
-      '${dbPlaceId()} TEXT PRIMARY KEY, '
-      '${dbDescription()} TEXT)';
-
   static String dropTableStmt() => 'DROP TABLE IF EXISTS ${dbName()}';
+
+  static List<Suggestion> parseSuggestions(dynamic jsonBody) {
+    var suggestions = <Suggestion>[];
+
+    var jsonArray = jsonBody['predictions'];
+    for (var jsonElement in jsonArray) {
+      try {
+        var measurement = Suggestion.fromJson(jsonElement);
+        suggestions.add(measurement);
+      } catch (e) {
+        print(e);
+      }
+    }
+    return suggestions;
+  }
 }
