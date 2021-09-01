@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 const appColor = Color(0xff3067e2);
 const appName = 'AirQo';
-const appVersion = 'v2.0.1';
+const appVersion = 'v1.21.7';
 const defaultSearchRadius = 2;
 
 const persistentNotificationId = 1294732;
