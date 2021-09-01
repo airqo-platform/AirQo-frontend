@@ -288,9 +288,21 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
       var favourites =
           prefs.getStringList(PrefConstants().favouritePlaces) ?? [];
 
-      setState(() {
-        isFavourite = favourites.contains(measurementData.site.id);
-      });
+      if (mounted) {
+        setState(() {
+          isFavourite = favourites.contains(measurementData.site.id);
+        });
+      }
+    }
+  }
+
+  Future<void> dbFetch() async {
+    try {
+      await localFetch();
+      await localFetchHistoricalData();
+      await localFetchForecastData();
+    } on Error catch (e) {
+      print('Getting data locally: $e');
     }
   }
 
@@ -306,8 +318,6 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
   }
 
   Future<void> getForecastMeasurements() async {
-    await localFetchForecastData();
-
     try {
       await AirqoApiClient(context)
           .fetchForecast(
@@ -315,78 +325,96 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
           .then((value) => {
                 if (value.isNotEmpty)
                   {
-                    setState(() {
-                      forecastData = value;
-                    }),
+                    if (mounted)
+                      {
+                        setState(() {
+                          forecastData = value;
+                        })
+                      },
                     dbHelper.insertForecastMeasurements(value, site.id)
                   }
                 else
                   {
-                    setState(() {
-                      forecastResponse = 'Forecast data is currently'
-                          ' not available.';
-                    })
+                    if (mounted)
+                      {
+                        setState(() {
+                          forecastResponse = 'Forecast data is currently'
+                              ' not available.';
+                        })
+                      }
                   }
               });
     } catch (e) {
-      setState(() {
-        forecastResponse = 'Forecast data is currently not available.';
-      });
+      if (mounted) {
+        setState(() {
+          forecastResponse = 'Forecast data is currently not available.';
+        });
+      }
+
       print('Getting Forecast events error: $e');
     }
   }
 
   Future<void> getHistoricalMeasurements() async {
-    await localFetchHistoricalData();
-
     try {
       await AirqoApiClient(context)
           .fetchSiteHistoricalMeasurements(site)
           .then((value) => {
                 if (value.isNotEmpty)
                   {
-                    setState(() {
-                      historicalData = value;
-                    }),
-                    dbHelper.insertSiteHistoricalMeasurements(value, site.id)
+                    if (mounted)
+                      {
+                        setState(() {
+                          historicalData = value;
+                        }),
+                        dbHelper.insertSiteHistoricalMeasurements(
+                            value, site.id)
+                      },
                   }
                 else
                   {
-                    setState(() {
-                      historicalResponse =
-                          'Historical data is currently not available.';
-                    })
+                    if (mounted)
+                      {
+                        setState(() {
+                          historicalResponse =
+                              'Historical data is currently not available.';
+                        })
+                      }
                   }
               });
     } catch (e) {
-      setState(() {
-        historicalResponse = 'Historical data is currently not available.';
-      });
+      if (mounted) {
+        setState(() {
+          historicalResponse = 'Historical data is currently not available.';
+        });
+      }
       print('Getting site historical events error: $e');
     }
   }
 
   Future<void> getMeasurements() async {
     try {
-      await localFetch();
-
       await AirqoApiClient(context)
           .fetchSiteMeasurements(site)
           .then((value) => {
-                setState(() {
-                  measurementData = value;
-                }),
+                if (mounted)
+                  {
+                    setState(() {
+                      measurementData = value;
+                    })
+                  },
                 if (measurementData != null) {checkFavourite()}
-              })
-          .catchError((error) => {print(error)});
+              });
     } catch (e) {
       print('Getting site latest events error: $e');
 
       var message = 'Sorry, air quality data currently is not available';
 
-      setState(() {
-        response = message;
-      });
+      if (mounted) {
+        setState(() {
+          response = message;
+        });
+      }
     }
   }
 
@@ -433,9 +461,11 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
   }
 
   void hideMenuButton() {
-    setState(() {
-      _showMenuButton = false;
-    });
+    if (mounted) {
+      setState(() {
+        _showMenuButton = false;
+      });
+    }
   }
 
   Widget historicalDataSection(List<HistoricalMeasurement> measurements) {
@@ -444,6 +474,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
   }
 
   Future<void> initialize() async {
+    await dbFetch();
     await getMeasurements();
     await getHistoricalMeasurements();
     await getForecastMeasurements();
@@ -461,9 +492,12 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
       await dbHelper.getMeasurement(site.id).then((value) => {
             if (value != null)
               {
-                setState(() {
-                  measurementData = value;
-                })
+                if (mounted)
+                  {
+                    setState(() {
+                      measurementData = value;
+                    })
+                  }
               },
             if (measurementData != null) {checkFavourite()}
           });
@@ -477,9 +511,12 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
       await dbHelper.getForecastMeasurements(site.id).then((value) => {
             if (value.isNotEmpty)
               {
-                setState(() {
-                  forecastData = value;
-                })
+                if (mounted)
+                  {
+                    setState(() {
+                      forecastData = value;
+                    })
+                  }
               }
           });
     } on Error catch (e) {
@@ -489,13 +526,17 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
 
   Future<void> localFetchHistoricalData() async {
     try {
-      var measurements = await dbHelper.getHistoricalMeasurements(site.id);
-
-      if (measurements.isNotEmpty) {
-        setState(() {
-          historicalData = measurements;
-        });
-      }
+      await dbHelper.getHistoricalMeasurements(site.id).then((measurements) => {
+            if (measurements.isNotEmpty)
+              {
+                if (mounted)
+                  {
+                    setState(() {
+                      historicalData = measurements;
+                    })
+                  }
+              }
+          });
     } on Error catch (e) {
       print('Getting historical data locally error: $e');
     }
@@ -536,17 +577,21 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
   }
 
   void showMenuButton() {
-    setState(() {
-      _showMenuButton = true;
-    });
+    if (mounted) {
+      setState(() {
+        _showMenuButton = true;
+      });
+    }
   }
 
   Future<void> updateFavouritePlace() async {
     var fav = await dbHelper.updateFavouritePlaces(measurementData.site);
 
-    setState(() {
-      isFavourite = fav;
-    });
+    if (mounted) {
+      setState(() {
+        isFavourite = fav;
+      });
+    }
 
     if (fav) {
       await showSnackBarGoToMyPlaces(
@@ -604,11 +649,5 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
             ],
           );
         });
-  }
-
-  void updateView(Measurement measurement) {
-    setState(() {
-      measurementData = measurement;
-    });
   }
 }

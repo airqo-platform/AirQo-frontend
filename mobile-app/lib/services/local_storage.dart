@@ -313,8 +313,6 @@ class DBHelper {
 
   Future<void> insertSearchHistory(Suggestion suggestion) async {
     try {
-      print('Inserting search term into local db');
-
       final db = await database;
 
       var jsonData = suggestion.toJson();
@@ -328,8 +326,6 @@ class DBHelper {
       } on Error catch (e) {
         print(e);
       }
-
-      print('Search term insertion into local db complete');
     } catch (e) {
       print(e);
     }

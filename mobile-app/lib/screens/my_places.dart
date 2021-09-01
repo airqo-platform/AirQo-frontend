@@ -284,9 +284,11 @@ class _MyPlacesState extends State<MyPlaces> {
     query = query.toLowerCase();
 
     if (query.isNotEmpty) {
-      setState(() {
-        searchResults.clear();
-      });
+      if (mounted) {
+        setState(() {
+          searchResults.clear();
+        });
+      }
 
       var dummyListData = <Measurement>[];
       for (var measurement in searchList) {
@@ -300,15 +302,19 @@ class _MyPlacesState extends State<MyPlaces> {
         }
       }
 
-      setState(() {
-        searchResults = dummyListData;
-      });
+      if (mounted) {
+        setState(() {
+          searchResults = dummyListData;
+        });
+      }
 
       return;
     } else {
-      setState(() {
-        searchResults.clear();
-      });
+      if (mounted) {
+        setState(() {
+          searchResults.clear();
+        });
+      }
     }
   }
 
@@ -320,9 +326,12 @@ class _MyPlacesState extends State<MyPlaces> {
 
   Future<void> refreshData() async {
     await DBHelper().getFavouritePlaces().then((value) => {
-          setState(() {
-            results = value;
-          })
+          if (mounted)
+            {
+              setState(() {
+                results = value;
+              })
+            }
         });
   }
 
@@ -332,7 +341,9 @@ class _MyPlacesState extends State<MyPlaces> {
               context, '${site.getName()} is removed from your places')
         });
 
-    setState(() {});
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   Future<void> viewDetails(Site site) async {

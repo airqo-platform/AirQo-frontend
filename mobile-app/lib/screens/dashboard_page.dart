@@ -145,19 +145,25 @@ class _DashboardPageState extends State<DashboardPage> {
     await DBHelper().getFavouritePlaces().then((value) => {
           if (value.isNotEmpty)
             {
-              setState(() {
-                error = '';
-                results = value;
-              })
+              if (mounted)
+                {
+                  setState(() {
+                    error = '';
+                    results = value;
+                  })
+                }
             }
           else
             {
               if (results.isEmpty && hasFavPlaces)
                 {
-                  setState(() {
-                    error = 'Sorry, we are not able to gather information'
-                        ' about your places. Try again later';
-                  }),
+                  if (mounted)
+                    {
+                      setState(() {
+                        error = 'Sorry, we are not able to gather information'
+                            ' about your places. Try again later';
+                      })
+                    }
                 }
             }
         });
@@ -171,9 +177,12 @@ class _DashboardPageState extends State<DashboardPage> {
     await AirqoApiClient(context).fetchLatestMeasurements().then((value) => {
           if (value.isNotEmpty)
             {
-              setState(() {
-                error = '';
-              }),
+              if (mounted)
+                {
+                  setState(() {
+                    error = '';
+                  })
+                },
               DBHelper()
                   .insertLatestMeasurements(value)
                   .then((value) => loadFromDb()),
@@ -181,10 +190,15 @@ class _DashboardPageState extends State<DashboardPage> {
           else
             {
               if (results.isEmpty && hasFavPlaces)
-                setState(() {
-                  error = 'Sorry, we are not able to gather information'
-                      ' about your places. Try again later';
-                }),
+                {
+                  if (mounted)
+                    {
+                      setState(() {
+                        error = 'Sorry, we are not able to gather information'
+                            ' about your places. Try again later';
+                      })
+                    }
+                },
             }
         });
   }

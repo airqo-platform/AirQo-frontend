@@ -37,7 +37,6 @@ class AirqoApiClient {
           headers: {'Content-Type': 'application/json'},
           body: json.encode(body));
 
-      print(response.statusCode);
       if (response.statusCode == 200) {
         var jsonBody =
             json.decode(response.body)['formatted_results']['predictions'];
@@ -46,8 +45,8 @@ class AirqoApiClient {
       } else {
         print('Unexpected status code ${response.statusCode}:'
             ' ${response.reasonPhrase}');
-        print('Body ${response.body}:');
-        print('uri: ${AirQoUrls().forecast}');
+        // print('Body ${response.body}:');
+        // print('uri: ${AirQoUrls().forecast}');
         return <Predict>[];
       }
     } on SocketException {
@@ -248,8 +247,8 @@ class AirqoApiClient {
       var queryParams = <String, dynamic>{}
         ..putIfAbsent('radius', () => '$defaultSearchRadius')
         ..putIfAbsent('tenant', () => 'airqo')
-        ..putIfAbsent('longitude', () => longitude)
-        ..putIfAbsent('latitude', () => latitude);
+        ..putIfAbsent('longitude', () => longitude.toStringAsFixed(8))
+        ..putIfAbsent('latitude', () => latitude.toStringAsFixed(8));
 
       final responseBody = await _performGetRequest(
           queryParams, AirQoUrls().sitesByGeoCoordinates);
@@ -281,7 +280,6 @@ class AirqoApiClient {
 
       print(response.statusCode);
       if (response.statusCode == 200) {
-        print(response.body);
         return response.body.toString();
       } else {
         print('Unexpected status code ${response.statusCode}:'
@@ -344,19 +342,17 @@ class AirqoApiClient {
 
       Map<String, String> headers = HashMap()
         ..putIfAbsent('Authorization', () => 'JWT $airQoApiKey');
-      print(url);
 
       final response = await http.get(Uri.parse(url), headers: headers);
 
       if (response.statusCode == 200) {
-        print(response.body);
         return json.decode(response.body);
       } else {
         print(response.statusCode);
         print('Unexpected status code ${response.statusCode}:'
             ' ${response.reasonPhrase}');
-        print('Body ${response.body}:');
-        print('uri: $url');
+        // print('Body ${response.body}:');
+        // print('uri: $url');
         return null;
       }
     } on SocketException {
@@ -482,21 +478,16 @@ class SearchApi {
         });
       }
 
-      Map<String, String> headers = HashMap()
-        ..putIfAbsent('Authorization', () => 'JWT $airQoApiKey');
-      print(url);
-
-      final response = await http.get(Uri.parse(url), headers: headers);
+      final response = await http.get(Uri.parse(url));
 
       if (response.statusCode == 200) {
-        print(response.body);
         return json.decode(response.body);
       } else {
         print(response.statusCode);
         print('Unexpected status code ${response.statusCode}:'
             ' ${response.reasonPhrase}');
-        print('Body ${response.body}:');
-        print('uri: $url');
+        // print('Body ${response.body}:');
+        // print('uri: $url');
         return null;
       }
     } on SocketException {

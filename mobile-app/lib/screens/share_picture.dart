@@ -215,12 +215,6 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
       isUploading = false;
     });
     await showSnackBar(context, 'Upload failed, try again');
-
-    // await Navigator.push(context,
-    //     MaterialPageRoute(builder: (context) {
-    //       return HomePage();
-    //     })
-    // );
   }
 
   Future<void> uploadSuccessHandler(var value) async {

@@ -299,25 +299,29 @@ class _FeedbackPageState extends State<FeedbackPage> {
                 await AirqoApiClient(context).sendFeedback(feedBackModel);
 
             if (success) {
-              setState(() {
-                sendingFeedback = false;
-              });
+              if (mounted) {
+                setState(() {
+                  sendingFeedback = false;
+                });
 
-              await showDialog<void>(
-                context: context,
-                builder: (_) => SuccessDialog(),
-              );
+                await showDialog<void>(
+                  context: context,
+                  builder: (_) => SuccessDialog(),
+                );
+              }
             } else {
-              setState(() {
-                sendingFeedback = false;
-              });
+              if (mounted) {
+                setState(() {
+                  sendingFeedback = false;
+                });
 
-              await showDialog<void>(
-                context: context,
-                builder: (_) => ShowErrorDialog(
-                  message: 'Oops! Something went wrong, try again later',
-                ),
-              );
+                await showDialog<void>(
+                  context: context,
+                  builder: (_) => ShowErrorDialog(
+                    message: 'Oops! Something went wrong, try again later',
+                  ),
+                );
+              }
             }
           }
         },

@@ -17,6 +17,13 @@ Event _$EventFromJson(Map<String, dynamic> json) {
   );
 }
 
+Map<String, dynamic> _$EventToJson(Event instance) => <String, dynamic>{
+      'isCache': instance.isCache,
+      'success': instance.success,
+      'message': instance.message,
+      'measurements': instance.measurements,
+    };
+
 Events _$EventsFromJson(Map<String, dynamic> json) {
   return Events(
     events: (json['events'] as List<dynamic>)
@@ -27,11 +34,4 @@ Events _$EventsFromJson(Map<String, dynamic> json) {
 
 Map<String, dynamic> _$EventsToJson(Events instance) => <String, dynamic>{
       'events': instance.events,
-    };
-
-Map<String, dynamic> _$EventToJson(Event instance) => <String, dynamic>{
-      'isCache': instance.isCache,
-      'success': instance.success,
-      'message': instance.message,
-      'measurements': instance.measurements,
     };

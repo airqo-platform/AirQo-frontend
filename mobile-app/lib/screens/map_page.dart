@@ -726,12 +726,14 @@ class MapPageState extends State<MapPage> {
 
     isLoading = false;
 
-    setState(() {
-      _showInfoWindow = false;
-      _markers.clear();
-      _markers = markers;
-      isLoading = false;
-    });
+    if (mounted) {
+      setState(() {
+        _showInfoWindow = false;
+        _markers.clear();
+        _markers = markers;
+        isLoading = false;
+      });
+    }
   }
 
   void showDetails(Site site) async {
@@ -747,12 +749,14 @@ class MapPageState extends State<MapPage> {
 
     await getFavouritePlaces();
 
-    if (favourite) {
-      await showSnackBarGoToMyPlaces(
-          context, '${site.getName()} is added to your places');
-    } else {
-      await showSnackBar2(
-          context, '${site.getName()} is removed from your places');
+    if (mounted) {
+      if (favourite) {
+        await showSnackBarGoToMyPlaces(
+            context, '${site.getName()} is added to your places');
+      } else {
+        await showSnackBar2(
+            context, '${site.getName()} is removed from your places');
+      }
     }
   }
 
@@ -774,9 +778,11 @@ class MapPageState extends State<MapPage> {
       await dbHelper.insertLatestMeasurements(measurements);
     }
 
-    setState(() {
-      isLoading = false;
-    });
+    if (mounted) {
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 
   Future<void> _onMapCreated(GoogleMapController controller) async {

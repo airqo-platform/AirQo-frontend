@@ -11,14 +11,11 @@ class Predict {
   @JsonKey(required: true, name: 'prediction_value')
   double value;
 
-  @JsonKey(required: true, name: 'lower_ci')
+  @JsonKey(required: false, name: 'lower_ci', defaultValue: 0.0)
   double lower;
 
-  @JsonKey(required: true, name: 'upper_ci')
+  @JsonKey(required: false, name: 'upper_ci', defaultValue: 0.0)
   double upper;
-
-  @JsonKey(required: false)
-  String site = '';
 
   Predict({
     required this.value,

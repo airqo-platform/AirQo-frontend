@@ -1,5 +1,5 @@
 import 'package:app/constants/app_constants.dart';
-import 'package:app/models/onBoardingData.dart';
+import 'package:app/models/onBoardingInfo.dart';
 import 'package:flutter/material.dart';
 
 import 'onBoardingButtons.dart';
@@ -40,14 +40,6 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
                 child: Container(
               padding: const EdgeInsets.all(16),
               color: ColorConstants().appColor,
-              // decoration: const BoxDecoration(
-              //     gradient: LinearGradient(
-              //         begin: Alignment.topCenter,
-              //         end: Alignment.bottomCenter,
-              //         colors: [
-              //       ColorConstants().appColor,
-              //       ColorConstants().appColorPale,
-              //     ])),
               alignment: Alignment.center,
               child: Column(children: [
                 Expanded(

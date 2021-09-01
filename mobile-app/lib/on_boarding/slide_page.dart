@@ -1,5 +1,5 @@
 import 'package:animated_text_kit/animated_text_kit.dart';
-import 'package:app/models/onBoardingData.dart';
+import 'package:app/models/onBoardingInfo.dart';
 import 'package:flutter/material.dart';
 
 class SlidePage extends StatelessWidget {
@@ -53,13 +53,6 @@ class SlidePage extends StatelessWidget {
                     ),
                   ],
                 ),
-                // child: Text(
-                //   data.description,
-                //   style: const TextStyle(
-                //       fontSize: 16.0, height: 1.3,
-                //       color: Colors.white, fontWeight: FontWeight.w200),
-                //   textAlign: TextAlign.center,
-                // )
               )
             ],
           ),

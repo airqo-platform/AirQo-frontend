@@ -149,8 +149,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
                                 Text(
-                                  'Sorry, we do not have any air '
-                                  'quality stations close to $query',
+                                  'Could not find stations near $query',
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                       color: ColorConstants().appColor),
@@ -229,8 +228,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                                   ColorConstants().appColor),
                             ),
                             Text(
-                              'Searching for nearby air '
-                              'quality stations. Please wait...',
+                              'Searching for nearby stations. Please wait...',
                               textAlign: TextAlign.center,
                               style:
                                   TextStyle(color: ColorConstants().appColor),
@@ -461,7 +459,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                           ColorConstants().appColor),
                     ),
                     Text(
-                      'Getting all places. Please wait...',
+                      'Searching for stations. Please wait...',
                       style: TextStyle(color: ColorConstants().appColor),
                     )
                   ],
@@ -557,7 +555,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
       shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(4.0),
           side: BorderSide(color: ColorConstants().appColor, width: 1)),
-      fillColor: Colors.transparent,
+      fillColor: ColorConstants().appColor,
       elevation: 0,
       highlightElevation: 0,
       splashColor: Colors.black12,
@@ -565,11 +563,11 @@ class LocationSearch extends SearchDelegate<Suggestion> {
       onPressed: () {
         showAllLocations(context);
       },
-      child: Padding(
-        padding: const EdgeInsets.all(4),
+      child: const Padding(
+        padding: EdgeInsets.all(10.0),
         child: Text(
-          'Show all air quality stations',
-          style: TextStyle(color: ColorConstants().appColor),
+          'Show available air quality stations',
+          style: TextStyle(color: Colors.white),
         ),
       ),
     );
@@ -580,7 +578,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
       shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(4.0),
           side: BorderSide(color: ColorConstants().appColor, width: 1)),
-      fillColor: Colors.transparent,
+      fillColor: ColorConstants().appColor,
       elevation: 0,
       highlightElevation: 0,
       splashColor: Colors.black12,
@@ -590,11 +588,11 @@ class LocationSearch extends SearchDelegate<Suggestion> {
           return MapPage();
         }));
       },
-      child: Padding(
-        padding: const EdgeInsets.all(4),
+      child: const Padding(
+        padding: EdgeInsets.all(10.0),
         child: Text(
           'Go to the Map',
-          style: TextStyle(color: ColorConstants().appColor),
+          style: TextStyle(color: Colors.white),
         ),
       ),
     );

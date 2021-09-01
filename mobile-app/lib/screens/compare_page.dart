@@ -1,6 +1,5 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/services/rest_api.dart';
-import 'package:app/widgets/compare_chart.dart';
 import 'package:flutter/material.dart';
 
 class ComparePage extends StatefulWidget {
@@ -85,14 +84,6 @@ class _ComparePageState extends State<ComparePage> {
       ),
     ));
   }
-
-  Widget graphDisplay() {
-    return LocationCompareChart();
-  }
-
-  // Widget lineDisplay() {
-  //   return LocationBarChart();
-  // }
 
   @override
   void initState() {
