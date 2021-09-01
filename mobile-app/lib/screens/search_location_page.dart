@@ -335,8 +335,10 @@ class LocationSearch extends SearchDelegate<Suggestion> {
         if (snapshot.hasError) {
           return Container(
             padding: const EdgeInsets.all(16.0),
-            child: const Text(
-                'Could not get suggestions. try again later or use the map'),
+            child: Text(
+              'Could not load suggestions. Try again later or use the map',
+              style: TextStyle(color: ColorConstants().appColor),
+            ),
           );
         } else if (snapshot.hasData) {
           // print(snapshot.data);

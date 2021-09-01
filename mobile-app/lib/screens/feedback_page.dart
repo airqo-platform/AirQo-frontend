@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/feedback.dart' as feedback_model;
 import 'package:app/services/rest_api.dart';
+import 'package:app/utils/dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -37,47 +38,6 @@ RawMaterialButton customOkayButton(context, success) {
       ),
     ),
   );
-}
-
-class FailureDialog extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Dialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Row(
-              mainAxisSize: MainAxisSize.max,
-              children: <Widget>[
-                Icon(
-                  Icons.info_outline_rounded,
-                  color: ColorConstants().red,
-                ),
-                Flexible(
-                  child: Padding(
-                    padding: const EdgeInsets.all(10),
-                    child: Text(
-                      'Oops! Something went wrong, try again later',
-                      softWrap: true,
-                      style: TextStyle(
-                        color: ColorConstants().appColor,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            customOkayButton(context, false),
-          ],
-        ),
-      ),
-    );
-  }
 }
 
 class FeedbackPage extends StatefulWidget {
@@ -354,7 +314,9 @@ class _FeedbackPageState extends State<FeedbackPage> {
 
               await showDialog<void>(
                 context: context,
-                builder: (_) => FailureDialog(),
+                builder: (_) => ShowErrorDialog(
+                  message: 'Oops! Something went wrong, try again later',
+                ),
               );
             }
           }

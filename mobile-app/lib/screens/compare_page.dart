@@ -97,6 +97,7 @@ class _ComparePageState extends State<ComparePage> {
   @override
   void initState() {
     apiClient = AirqoApiClient(context);
+    super.initState();
   }
 
   Widget secondInput() {

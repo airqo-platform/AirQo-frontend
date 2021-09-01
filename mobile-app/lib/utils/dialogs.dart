@@ -19,6 +19,74 @@ void showInfoDialog(BuildContext context, String text) {
   );
 }
 
+class ShowErrorDialog extends StatelessWidget {
+  ShowErrorDialog({Key? key, required this.message}) : super(key: key);
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Row(
+              mainAxisSize: MainAxisSize.max,
+              children: <Widget>[
+                Icon(
+                  Icons.info_outline_rounded,
+                  color: ColorConstants().red,
+                ),
+                Flexible(
+                  child: Padding(
+                    padding: const EdgeInsets.all(10),
+                    child: Text(
+                      message,
+                      softWrap: true,
+                      style: TextStyle(
+                        color: ColorConstants().appColor,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            customOkayButton(context),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+RawMaterialButton customOkayButton(context) {
+  return RawMaterialButton(
+    shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(4.0),
+        side: BorderSide(color: ColorConstants().appColor, width: 1)),
+    fillColor: ColorConstants().appColor,
+    elevation: 0,
+    highlightElevation: 0,
+    splashColor: Colors.black12,
+    highlightColor: ColorConstants().appColor.withOpacity(0.4),
+    onPressed: () async {
+      Navigator.of(context).pop();
+    },
+    child: const Padding(
+      padding: EdgeInsets.all(4),
+      child: Text(
+        'Close',
+        style: TextStyle(color: Colors.white),
+      ),
+    ),
+  );
+}
+
 Future<void> showSnackBar(context, String message) async {
   var snackBar = SnackBar(
     shape: RoundedRectangleBorder(

@@ -202,8 +202,9 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                         Navigator.push(
                           context,
                           MaterialPageRoute<void>(
-                            builder: (BuildContext context) =>
-                                const HelpPage(initialIndex: 0,),
+                            builder: (BuildContext context) => const HelpPage(
+                              initialIndex: 0,
+                            ),
                             fullscreenDialog: true,
                           ),
                         );

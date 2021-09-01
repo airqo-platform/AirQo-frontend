@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class PollutantDialog extends StatelessWidget {
-
   PollutantDialog(this.pollutant);
+
   final Pollutant pollutant;
 
   @override
@@ -198,7 +198,7 @@ class PollutantDialog extends StatelessWidget {
       await canLaunch(Links().airqoReference)
           ? await launch(Links().airqoReference)
           : throw 'Could not launch reference,'
-          ' try opening ${Links().airqoReference}';
+              ' try opening ${Links().airqoReference}';
     } on Error catch (e) {
       print(e);
     }

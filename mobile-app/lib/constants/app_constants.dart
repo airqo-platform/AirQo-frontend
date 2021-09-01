@@ -12,15 +12,19 @@ const smartNotificationId = 4877231;
 class Links {
   final String _airqoReference = 'https://www.airqo.net/about';
   final String _about = 'https://www.airqo.net/about';
-  final String _iOSLink = 'https://apps.apple.com/ug/app/airqo-monitoring-air-quality/id1337573091';
-  final String _playStoreLink = 'https://play.google.com/store/apps/details?id=com.airqo.app';
+  final String _iOSLink =
+      'https://apps.apple.com/ug/app/airqo-monitoring-air-quality/id1337573091';
+  final String _playStoreLink =
+      'https://play.google.com/store/apps/details?id=com.airqo.app';
   final String _airqoWebsite = 'https://www.airqo.net';
   final String _contactUs = 'https://www.airqo.net/contact-us';
   final String _faqs = 'https://www.airqo.net/faqs';
   final String _linkedin = 'https://www.linkedin.com/company/airqo/';
   final String _facebook = 'https://web.facebook.com/AirQo/';
-  final String _terms = 'https://docs.airqo.net/airqo-application-documentations/';
-  final String _youtube = 'https://www.youtube.com/channel/UCx7YtV55TcqKGeKsDdT5_XQ/';
+  final String _terms =
+      'https://docs.airqo.net/airqo-application-documentations/';
+  final String _youtube =
+      'https://www.youtube.com/channel/UCx7YtV55TcqKGeKsDdT5_XQ/';
   final String _twitter = 'https://twitter.com/AirQoProject';
   final String _feedbackEmail = 'info@airqo.net';
 

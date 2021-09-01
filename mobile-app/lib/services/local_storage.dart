@@ -21,7 +21,6 @@ class DBHelper {
   }
 
   Future<void> createDefaultTables(Database db) async {
-
     var prefs = await SharedPreferences.getInstance();
     var initialLoading = prefs.getBool(PrefConstants().initialDbLoad) ?? true;
 

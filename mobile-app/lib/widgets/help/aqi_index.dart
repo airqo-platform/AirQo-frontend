@@ -35,7 +35,7 @@ class AqiDialog extends StatelessWidget {
       padding: const EdgeInsets.all(10),
       child: Text(
           'An air quality index is used by government agencies to '
-              'communicate to '
+          'communicate to '
           'the public how polluted the air currently is or how polluted it is '
           'forecast to become.'
           'Different countries have their own air quality indices, '
@@ -47,8 +47,7 @@ class AqiDialog extends StatelessWidget {
               height: 1.2,
               color: ColorConstants().appColor
               // letterSpacing: 1.0
-              ))
-  );
+              )));
 
   Widget aqiGuide(String image, String body, Color color, Color textColor) {
     return Container(
@@ -95,8 +94,8 @@ class AqiDialog extends StatelessWidget {
               pmTextColor(0)),
           aqiGuide('assets/images/moderate-face.png', moderate, pmToColor(20),
               pmTextColor(20)),
-          aqiGuide('assets/images/sensitive-face.png', sensitive,
-              pmToColor(40), pmTextColor(40)),
+          aqiGuide('assets/images/sensitive-face.png', sensitive, pmToColor(40),
+              pmTextColor(40)),
           aqiGuide('assets/images/unhealthy-face.png', unHealthy,
               pmToColor(100), pmTextColor(100)),
           aqiGuide('assets/images/very-unhealthy-face.png', veryUnhealthy,

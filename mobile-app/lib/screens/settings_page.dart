@@ -596,7 +596,6 @@ class _SettingsPageState extends State<SettingsPage> {
     }
   }
 
-
   Future<void> _launchURL(String page) async {
     page = page.trim().toLowerCase();
 
@@ -627,7 +626,7 @@ class _SettingsPageState extends State<SettingsPage> {
             await canLaunch(Links().playStoreLink)
                 ? await launch(Links().playStoreLink)
                 : throw 'Could not launch rate us, try opening'
-                ' ${Links().playStoreLink}';
+                    ' ${Links().playStoreLink}';
           } else if (Platform.isIOS) {
             await canLaunch(Links().iOSLink)
                 ? await launch(Links().iOSLink)
@@ -636,7 +635,7 @@ class _SettingsPageState extends State<SettingsPage> {
             await canLaunch(Links().playStoreLink)
                 ? await launch(Links().playStoreLink)
                 : throw 'Could not launch rate us, try opening'
-                ' ${Links().playStoreLink}';
+                    ' ${Links().playStoreLink}';
           }
           return;
         case 'facebook':

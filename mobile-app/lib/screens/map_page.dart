@@ -202,14 +202,15 @@ class MapPageState extends State<MapPage> {
                           // }
 
                           if (snapshot.hasError) {
-                            print('${snapshot.error.toString()}');
                             return Padding(
-                              padding: EdgeInsets.all(16.0),
+                              padding: const EdgeInsets.all(16.0),
                               child: Text(
-                                'Try again later',
+                                'Unable to search on map.\nTry again later',
+                                textAlign: TextAlign.center,
                                 style: TextStyle(
                                     color: ColorConstants().appColor,
                                     fontSize: 16,
+                                    fontWeight: FontWeight.w700,
                                     backgroundColor: Colors.white),
                               ),
                             );
@@ -506,8 +507,9 @@ class MapPageState extends State<MapPage> {
                   Navigator.push(
                     context,
                     MaterialPageRoute<void>(
-                      builder: (BuildContext context) =>
-                      const HelpPage(initialIndex: 0,),
+                      builder: (BuildContext context) => const HelpPage(
+                        initialIndex: 0,
+                      ),
                       fullscreenDialog: true,
                     ),
                   );
@@ -615,8 +617,9 @@ class MapPageState extends State<MapPage> {
                           Navigator.push(
                             context,
                             MaterialPageRoute<void>(
-                              builder: (BuildContext context) =>
-                                  const HelpPage(initialIndex: 0,),
+                              builder: (BuildContext context) => const HelpPage(
+                                initialIndex: 0,
+                              ),
                               fullscreenDialog: true,
                             ),
                           );

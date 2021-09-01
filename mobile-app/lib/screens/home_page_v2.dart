@@ -31,7 +31,6 @@ class _HomePageV2State extends State<HomePageV2> {
   String title = appName;
   bool showAddPlace = true;
   DateTime? exitTime;
-  final _faqsUrl = 'https://www.airqo.net/faqs';
 
   @override
   Widget build(BuildContext context) {
@@ -242,7 +241,9 @@ class _HomePageV2State extends State<HomePageV2> {
       Navigator.push(
         context,
         MaterialPageRoute<void>(
-          builder: (BuildContext context) => const HelpPage(initialIndex: 0,),
+          builder: (BuildContext context) => const HelpPage(
+            initialIndex: 0,
+          ),
           fullscreenDialog: true,
         ),
       );
@@ -352,7 +353,7 @@ class _HomePageV2State extends State<HomePageV2> {
         });
   }
 
-  void _launchURLFaqs() async => await canLaunch(_faqsUrl)
-      ? await launch(_faqsUrl)
-      : throw 'Could not launch feedback form, try opening $_faqsUrl';
+  void _launchURLFaqs() async => await canLaunch(Links().faqs)
+      ? await launch(Links().faqs)
+      : throw 'Could not launch feedback form, try opening ${Links().faqs}';
 }

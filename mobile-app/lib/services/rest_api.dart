@@ -389,8 +389,6 @@ class AirqoApiClient {
       Map<String, String> headers = HashMap()
         ..putIfAbsent('Content-Type', () => 'application/json');
 
-      print(body);
-      print(url);
       final response =
           await http.post(Uri.parse(url), headers: headers, body: body);
 
@@ -400,8 +398,6 @@ class AirqoApiClient {
         print(response.statusCode);
         print('Unexpected status code ${response.statusCode}:'
             ' ${response.reasonPhrase}');
-        print('Body ${response.body}:');
-        print('uri: $url');
         return false;
       }
     } on SocketException {
@@ -411,7 +407,6 @@ class AirqoApiClient {
       await showSnackBar(context, ErrorMessages().timeoutException);
       return false;
     } on Error catch (e) {
-      print(e);
       await showSnackBar(context, ErrorMessages().appException);
       return false;
     }
@@ -488,11 +483,10 @@ class GoogleSearchProvider {
 
       return place;
     } on SocketException {
-      throw Exception(ErrorMessages().socketException);
+      throw Exception(ErrorMessages().timeoutException);
     } on TimeoutException {
       throw Exception(ErrorMessages().timeoutException);
     } on Error catch (e) {
-      print(e);
       throw Exception('Cannot get details, please try again later');
     }
   }

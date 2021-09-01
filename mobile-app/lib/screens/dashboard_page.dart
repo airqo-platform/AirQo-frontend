@@ -136,57 +136,53 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Future<void> reload() async {
-
     setState(() {
       error = '';
     });
     await loadFromDb();
-    await AirqoApiClient(context)
-      .fetchLatestMeasurements()
-      .then((value) => {
-        if (value.isNotEmpty)
-          {
-            setState(() {
-              results = value;
-              error = '';
-            }),
-            DBHelper().insertLatestMeasurements(value)
-                .then((value) => loadFromDb()),
-          }
-        else
-          {
-            if (results.isEmpty && hasFavPlaces)
+    await AirqoApiClient(context).fetchLatestMeasurements().then((value) => {
+          if (value.isNotEmpty)
+            {
               setState(() {
-                error = 'Sorry, we are not able to gather information'
-                    ' about your places. Try again later';
+                results = value;
+                error = '';
               }),
-          }
-    });
-  }
-
-  Future<void> loadFromDb() async {
-
-      await DBHelper().getFavouritePlaces().then((value) => {
-        if (value.isNotEmpty)
-          {
-            setState(() {
-              error = '';
-              results = value;
-            })
-          }
-        else
-          {
-            if (results.isEmpty && hasFavPlaces)
-              {
+              DBHelper()
+                  .insertLatestMeasurements(value)
+                  .then((value) => loadFromDb()),
+            }
+          else
+            {
+              if (results.isEmpty && hasFavPlaces)
                 setState(() {
                   error = 'Sorry, we are not able to gather information'
                       ' about your places. Try again later';
                 }),
-              }
-          }
-      });
+            }
+        });
+  }
 
-    }
+  Future<void> loadFromDb() async {
+    await DBHelper().getFavouritePlaces().then((value) => {
+          if (value.isNotEmpty)
+            {
+              setState(() {
+                error = '';
+                results = value;
+              })
+            }
+          else
+            {
+              if (results.isEmpty && hasFavPlaces)
+                {
+                  setState(() {
+                    error = 'Sorry, we are not able to gather information'
+                        ' about your places. Try again later';
+                  }),
+                }
+            }
+        });
+  }
 
   @override
   void initState() {

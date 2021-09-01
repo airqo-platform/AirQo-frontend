@@ -3,7 +3,6 @@ import 'package:app/screens/help_page.dart';
 import 'package:flutter/material.dart';
 
 class PollutantCard extends StatelessWidget {
-
   final String name;
   final double value;
   final String type;
@@ -62,16 +61,13 @@ class PollutantCard extends StatelessWidget {
     );
   }
 
-  Widget getHelpTab(){
-    if(type == PollutantConstants.pm2_5){
+  Widget getHelpTab() {
+    if (type == PollutantConstants.pm2_5) {
       return const HelpPage(initialIndex: 1);
-    }
-    else if(type == PollutantConstants.pm10){
+    } else if (type == PollutantConstants.pm10) {
       return const HelpPage(initialIndex: 2);
-    }
-    else{
+    } else {
       return const HelpPage(initialIndex: 0);
     }
   }
-
 }

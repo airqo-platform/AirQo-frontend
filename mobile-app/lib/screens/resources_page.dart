@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:app/constants/app_constants.dart';
+import 'package:app/utils/dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
@@ -33,6 +34,7 @@ class _ResourcesPageState extends State<ResourcesPage> {
               isLoading = false;
             });
           },
+          onWebResourceError: webResourceErrorHandler,
           javascriptMode: JavascriptMode.unrestricted,
           initialUrl: 'https://www.airqo.net/blog',
         ),
@@ -44,6 +46,14 @@ class _ResourcesPageState extends State<ResourcesPage> {
               )
             : Stack(),
       ],
+    );
+  }
+
+  void webResourceErrorHandler(error) {
+    showDialog<void>(
+      context: context,
+      builder: (_) => ShowErrorDialog(
+          message: 'Oops! Something went wrong, try again later'),
     );
   }
 
