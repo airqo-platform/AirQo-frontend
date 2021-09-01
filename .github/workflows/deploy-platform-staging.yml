@@ -72,11 +72,11 @@ jobs:
       - name: Build and Push Docker Image
         run: |
           cd netmanager/
-          docker build --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-platform-frontend:latest .
+          docker build --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-platform-frontend:latest -f Dockerfile.stage .
           docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-platform-frontend:latest
       - name: Deploy to K8S
         run: |
-          cd k8s/
+          cd k8s/platform/
           kubectl apply -f stage-airqo-platform-frontend.yaml
           kubectl rollout restart deployment/airqo-stage-platform-frontend -n staging
 
