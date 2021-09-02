@@ -176,7 +176,7 @@ RecallDevice.propTypes = {
 const DeviceRecentFeedView = ({ recentFeed, runReport }) => {
   const classes = useStyles();
   const feedKeys = Object.keys(
-    omit(recentFeed, "isCache", "created_at", "errors")
+    omit(recentFeed, "isCache", "created_at", "errors", "success", "message")
   );
   const [
     elapsedDurationSeconds,
@@ -306,8 +306,8 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
   });
   const [deviceTestLoading, setDeviceTestLoading] = useState(false);
   const [manualCoordinate, setManualCoordinate] = useState(false);
-  const [longitude, setLongitude] = useState(deviceData.longitude);
-  const [latitude, setLatitude] = useState(deviceData.latitude);
+  const [longitude, setLongitude] = useState(deviceData.longitude || "");
+  const [latitude, setLatitude] = useState(deviceData.latitude || "");
   const [site, setSite] = useState(
     filterSite(siteOptions, deviceData.site && deviceData.site._id)
   );
