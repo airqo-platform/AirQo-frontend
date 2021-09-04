@@ -1,19 +1,52 @@
+import 'dart:math' as math;
+
 import 'package:app/constants/app_constants.dart';
 import 'package:flutter/material.dart';
-import 'dart:math' as math;
+
+@immutable
+class ActionButton extends StatelessWidget {
+  final VoidCallback? onPressed;
+
+  final Widget icon;
+
+  const ActionButton({
+    Key? key,
+    this.onPressed,
+    required this.icon,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Material(
+      shape: const CircleBorder(),
+      clipBehavior: Clip.antiAlias,
+      color: theme.accentColor,
+      elevation: 4.0,
+      child: IconTheme.merge(
+        data: theme.accentIconTheme,
+        child: IconButton(
+          onPressed: onPressed,
+          icon: icon,
+        ),
+      ),
+    );
+  }
+}
 
 @immutable
 class ExpandableFab extends StatefulWidget {
+  final bool? initialOpen;
+
+  final double distance;
+  final List<Widget> children;
+
   const ExpandableFab({
     Key? key,
     this.initialOpen,
     required this.distance,
     required this.children,
   }) : super(key: key);
-
-  final bool? initialOpen;
-  final double distance;
-  final List<Widget> children;
 
   @override
   _ExpandableFabState createState() => _ExpandableFabState();
@@ -24,6 +57,27 @@ class _ExpandableFabState extends State<ExpandableFab>
   late final AnimationController _controller;
   late final Animation<double> _expandAnimation;
   bool _open = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox.expand(
+      child: Stack(
+        alignment: Alignment.bottomRight,
+        clipBehavior: Clip.none,
+        children: [
+          _buildTapToCloseFab(),
+          ..._buildExpandingActionButtons(),
+          _buildTapToOpenFab(),
+        ],
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -41,36 +95,23 @@ class _ExpandableFabState extends State<ExpandableFab>
     );
   }
 
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  void _toggle() {
-    setState(() {
-      _open = !_open;
-      if (_open) {
-        _controller.forward();
-      } else {
-        _controller.reverse();
-      }
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox.expand(
-      child: Stack(
-        alignment: Alignment.bottomRight,
-        clipBehavior: Clip.none,
-        children: [
-          _buildTapToCloseFab(),
-          ..._buildExpandingActionButtons(),
-          _buildTapToOpenFab(),
-        ],
-      ),
-    );
+  List<Widget> _buildExpandingActionButtons() {
+    final children = <Widget>[];
+    final count = widget.children.length;
+    final step = 90.0 / (count - 1);
+    for (var i = 0, angleInDegrees = 0.0;
+        i < count;
+        i++, angleInDegrees += step) {
+      children.add(
+        _ExpandingActionButton(
+          directionInDegrees: angleInDegrees,
+          maxDistance: widget.distance,
+          progress: _expandAnimation,
+          child: widget.children[i],
+        ),
+      );
+    }
+    return children;
   }
 
   Widget _buildTapToCloseFab() {
@@ -97,25 +138,6 @@ class _ExpandableFabState extends State<ExpandableFab>
     );
   }
 
-  List<Widget> _buildExpandingActionButtons() {
-    final children = <Widget>[];
-    final count = widget.children.length;
-    final step = 90.0 / (count - 1);
-    for (var i = 0, angleInDegrees = 0.0;
-        i < count;
-        i++, angleInDegrees += step) {
-      children.add(
-        _ExpandingActionButton(
-          directionInDegrees: angleInDegrees,
-          maxDistance: widget.distance,
-          progress: _expandAnimation,
-          child: widget.children[i],
-        ),
-      );
-    }
-    return children;
-  }
-
   Widget _buildTapToOpenFab() {
     return IgnorePointer(
       ignoring: _open,
@@ -133,7 +155,7 @@ class _ExpandableFabState extends State<ExpandableFab>
           curve: const Interval(0.25, 1.0, curve: Curves.easeInOut),
           duration: const Duration(milliseconds: 250),
           child: FloatingActionButton(
-            backgroundColor: appColor,
+            backgroundColor: ColorConstants().appColor,
             onPressed: _toggle,
             child: const Icon(Icons.menu),
           ),
@@ -141,10 +163,27 @@ class _ExpandableFabState extends State<ExpandableFab>
       ),
     );
   }
+
+  void _toggle() {
+    setState(() {
+      _open = !_open;
+      if (_open) {
+        _controller.forward();
+      } else {
+        _controller.reverse();
+      }
+    });
+  }
 }
 
 @immutable
 class _ExpandingActionButton extends StatelessWidget {
+  final double directionInDegrees;
+
+  final double maxDistance;
+  final Animation<double> progress;
+  final Widget child;
+
   _ExpandingActionButton({
     Key? key,
     required this.directionInDegrees,
@@ -152,11 +191,6 @@ class _ExpandingActionButton extends StatelessWidget {
     required this.progress,
     required this.child,
   }) : super(key: key);
-
-  final double directionInDegrees;
-  final double maxDistance;
-  final Animation<double> progress;
-  final Widget child;
 
   @override
   Widget build(BuildContext context) {
@@ -179,36 +213,6 @@ class _ExpandingActionButton extends StatelessWidget {
       child: FadeTransition(
         opacity: progress,
         child: child,
-      ),
-    );
-  }
-}
-
-@immutable
-class ActionButton extends StatelessWidget {
-  const ActionButton({
-    Key? key,
-    this.onPressed,
-    required this.icon,
-  }) : super(key: key);
-
-  final VoidCallback? onPressed;
-  final Widget icon;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Material(
-      shape: const CircleBorder(),
-      clipBehavior: Clip.antiAlias,
-      color: theme.accentColor,
-      elevation: 4.0,
-      child: IconTheme.merge(
-        data: theme.accentIconTheme,
-        child: IconButton(
-          onPressed: onPressed,
-          icon: icon,
-        ),
       ),
     );
   }

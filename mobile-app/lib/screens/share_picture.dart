@@ -1,21 +1,31 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:app/constants/app_constants.dart';
-import 'package:app/screens/home_page.dart';
-import 'package:app/utils/services/rest_api.dart';
-import 'package:app/utils/ui/dialogs.dart';
+import 'package:app/services/rest_api.dart';
+import 'package:app/utils/dialogs.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:mime/mime.dart';
 
+class DisplayPictureScreen extends StatefulWidget {
+  final String imagePath;
+
+  const DisplayPictureScreen({Key? key, required this.imagePath})
+      : super(key: key);
+
+  @override
+  _DisplayPictureScreenState createState() => _DisplayPictureScreenState();
+}
+
 class TakePicture extends StatefulWidget {
+  final CameraDescription camera;
+
   const TakePicture({
     Key? key,
     required this.camera,
   }) : super(key: key);
-
-  final CameraDescription camera;
 
   @override
   TakePictureState createState() => TakePictureState();
@@ -24,26 +34,11 @@ class TakePicture extends StatefulWidget {
 class TakePictureState extends State<TakePicture> {
   late CameraController _controller;
   late Future<void> _initializeControllerFuture;
-  @override
-  void initState() {
-    super.initState();
-    _controller = CameraController(
-      widget.camera,
-      ResolutionPreset.medium,
-    );
-    _initializeControllerFuture = _controller.initialize();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    final deviceRatio = size.width / size.height;
+    final phoneRatio = size.width / size.height;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Take a picture')),
@@ -56,22 +51,23 @@ class TakePictureState extends State<TakePicture> {
             );
             // return Center(
             //   child:Transform.scale(
-            //     scale: _controller.value.aspectRatio/deviceRatio,
+            //     scale: _controller.value.aspectRatio/phoneRatio,
             //     child: AspectRatio(
             //       aspectRatio: _controller.value.aspectRatio,
             //       child: CameraPreview(_controller),
             //     ),
             //   ),);
           } else {
-            return const Center(
+            return Center(
                 child: CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(appColor),
+              valueColor:
+                  AlwaysStoppedAnimation<Color>(ColorConstants().appColor),
             ));
           }
         },
       ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: appColor,
+        backgroundColor: ColorConstants().appColor,
         onPressed: () async {
           try {
             await _initializeControllerFuture;
@@ -94,25 +90,33 @@ class TakePictureState extends State<TakePicture> {
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
-}
-
-class DisplayPictureScreen extends StatefulWidget {
-  final String imagePath;
-
-  const DisplayPictureScreen({Key? key, required this.imagePath})
-      : super(key: key);
 
   @override
-  _DisplayPictureScreenState createState() => _DisplayPictureScreenState();
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = CameraController(
+      widget.camera,
+      ResolutionPreset.medium,
+    );
+    _initializeControllerFuture = _controller.initialize();
+  }
 }
 
 class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
   var isUploading = false;
 
+  String base64Encode(List<int> bytes) => base64.encode(bytes);
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    final deviceRatio = size.width / size.height;
+    final phoneRatio = size.width / size.height;
 
     return Scaffold(
         appBar: AppBar(title: const Text('Share Picture')),
@@ -157,7 +161,8 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
                     color: Colors.white70,
                     child: IconButton(
                       iconSize: 30.0,
-                      icon: const Icon(Icons.send_outlined, color: appColor),
+                      icon: Icon(Icons.send_outlined,
+                          color: ColorConstants().appColor),
                       onPressed: sendPicture,
                     ),
                   ),
@@ -168,16 +173,15 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
           if (isUploading)
             Positioned.fill(
               child: Container(
-                child: const Align(
+                child: Align(
                     alignment: Alignment.center,
                     child: CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(appColor),
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                          ColorConstants().appColor),
                     )),
               ),
             ),
-        ]
-        )
-    );
+        ]));
   }
 
   Future<void> sendPicture() async {
@@ -197,17 +201,6 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
         });
   }
 
-  String base64Encode(List<int> bytes) => base64.encode(bytes);
-
-  Future<void> uploadSuccessHandler(var value) async {
-    setState(() {
-      isUploading = false;
-    });
-    await showSnackBar(context, 'Upload complete, thank you for sharing');
-
-    Navigator.pop(context);
-  }
-
   Future<void> uploadCompeteHandler() async {
     setState(() {
       isUploading = false;
@@ -222,11 +215,14 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
       isUploading = false;
     });
     await showSnackBar(context, 'Upload failed, try again');
+  }
 
-    // await Navigator.push(context,
-    //     MaterialPageRoute(builder: (context) {
-    //       return HomePage();
-    //     })
-    // );
+  Future<void> uploadSuccessHandler(var value) async {
+    setState(() {
+      isUploading = false;
+    });
+    await showSnackBar(context, 'Upload complete, thank you for sharing');
+
+    Navigator.pop(context);
   }
 }

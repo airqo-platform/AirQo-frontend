@@ -1,30 +1,24 @@
 import 'package:app/constants/app_constants.dart';
-import 'package:app/core/on_boarding/onBoarding_page.dart';
-import 'package:app/screens/feedback_page.dart';
+import 'package:app/on_boarding/onBoarding_page.dart';
 import 'package:app/screens/map_page.dart';
 import 'package:app/screens/my_places.dart';
 import 'package:app/screens/resources_page.dart';
-import 'package:app/screens/search.dart';
 import 'package:app/screens/search_location_page.dart';
-
 import 'package:app/screens/settings_page.dart';
 import 'package:app/screens/share_picture.dart';
-import 'package:app/utils/services/local_storage.dart';
-import 'package:app/utils/services/rest_api.dart';
-import 'package:app/utils/ui/dialogs.dart';
-import 'package:app/utils/ui/share.dart';
+import 'package:app/services/local_storage.dart';
+import 'package:app/services/rest_api.dart';
+import 'package:app/utils/dialogs.dart';
+import 'package:app/utils/share.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import 'compare_page.dart';
-import 'dashboard_page.dart';
-import 'faqs_page.dart';
-
 import 'package:url_launcher/url_launcher.dart';
 
-const _url = 'https://forms.gle/oFjqpNoUKPY5ubAcA';
+import 'dashboard_page.dart';
+
 const _faqsUrl = 'https://www.airqo.net/faqs';
+const _url = 'https://forms.gle/oFjqpNoUKPY5ubAcA';
 
 class HomePage extends StatefulWidget {
   final String title = 'AirQo';
@@ -39,6 +33,7 @@ class _HomePageState extends State<HomePage> {
   bool showAddPlace = true;
   DateTime? exitTime;
 
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -89,39 +84,37 @@ class _HomePageState extends State<HomePage> {
           PopupMenuButton<dynamic>(
             onSelected: (value) => {navigateToMenuItem(value)},
             itemBuilder: (context) => <PopupMenuEntry<String>>[
-              const PopupMenuItem<String>(
+              PopupMenuItem<String>(
                 value: 'MyPlaces',
                 child: ListTile(
                   leading: Icon(
                     Icons.favorite_outlined,
-                    color: appColor,
+                    color: ColorConstants().appColor,
                   ),
-                  title: Text(
+                  title: const Text(
                     'MyPlaces',
                   ),
                 ),
               ),
 
-              const PopupMenuItem<String>(
+              PopupMenuItem<String>(
                 value: 'camera',
                 child: ListTile(
                   leading: Icon(
                     Icons.camera_alt_outlined,
-                    color: appColor,
+                    color: ColorConstants().appColor,
                   ),
-                  title: Text(
-                    'Take a Photo',
-                  ),
+                  title: const Text('Take a Photo'),
                 ),
               ),
-              const PopupMenuItem<String>(
+              PopupMenuItem<String>(
                 value: 'Settings',
                 child: ListTile(
                   leading: Icon(
                     Icons.settings,
-                    color: appColor,
+                    color: ColorConstants().appColor,
                   ),
-                  title: Text(
+                  title: const Text(
                     'Settings',
                   ),
                 ),
@@ -132,7 +125,7 @@ class _HomePageState extends State<HomePage> {
               //   child: ListTile(
               //     leading: Icon(
               //       Icons.help_outline_outlined,
-              //       color: appColor,
+              //       color: ColorConstants().appColor,
               //     ),
               //     title: Text(
               //       'Faqs',
@@ -144,7 +137,7 @@ class _HomePageState extends State<HomePage> {
               //   child: ListTile(
               //     leading: Icon(
               //       Icons.feedback_outlined,
-              //       color: appColor,
+              //       color: ColorConstants().appColor,
               //     ),
               //     title: Text(
               //       'Feedback',
@@ -152,14 +145,14 @@ class _HomePageState extends State<HomePage> {
               //   ),
               // ),
               const PopupMenuDivider(),
-              const PopupMenuItem<String>(
+              PopupMenuItem<String>(
                 value: 'Share',
                 child: ListTile(
                   leading: Icon(
                     Icons.share_outlined,
-                    color: appColor,
+                    color: ColorConstants().appColor,
                   ),
-                  title: Text(
+                  title: const Text(
                     'Share',
                     // style: Theme.of(context).textTheme.headline1,
                   ),
@@ -178,29 +171,30 @@ class _HomePageState extends State<HomePage> {
             mainAxisSize: MainAxisSize.max,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
-              Spacer(
+              const Spacer(
                 flex: 1,
               ),
               IconButton(
                 // iconSize: 30.0,
                 // padding: const EdgeInsets.only(left: 28.0),
-                icon: const Icon(Icons.home_outlined, color: appColor),
-                splashColor: appColor,
+                icon:
+                    Icon(Icons.home_outlined, color: ColorConstants().appColor),
+                splashColor: ColorConstants().appColor,
                 onPressed: () {
                   setState(() {
                     _pageCtrl.jumpToPage(0);
                   });
                 },
               ),
-              Spacer(
+              const Spacer(
                 flex: 1,
               ),
               // IconButton(
               //   // iconSize: 30.0,
               //   // autofocus: true,
               //   // padding: const EdgeInsets.only(right: 28.0),
-              //   icon: const Icon(Icons.stacked_bar_chart, color: appColor),
-              //   splashColor: appColor,
+              //   icon: const Icon(Icons.stacked_bar_chart, color: ColorConstants().appColor),
+              //   splashColor: ColorConstants().appColor,
               //   onPressed: () {
               //     setState(() {
               //       _pageCtrl.jumpToPage(1);
@@ -214,22 +208,23 @@ class _HomePageState extends State<HomePage> {
               //   // iconSize: 30.0,
               //   // padding: const EdgeInsets.only(left: 28.0),
               //   icon: const Icon(Icons.notifications_none_outlined,
-              //       color: appColor),
-              //   splashColor: appColor,
+              //       color: ColorConstants().appColor),
+              //   splashColor: ColorConstants().appColor,
               //   onPressed: () {
               //     setState(() {
               //       _pageCtrl.jumpToPage(2);
               //     });
               //   },
               // ),
-              Spacer(
+              const Spacer(
                 flex: 1,
               ),
               IconButton(
                 // iconSize: 30.0,
                 // padding: const EdgeInsets.only(right: 28.0),
-                icon: const Icon(Icons.library_books_outlined, color: appColor),
-                splashColor: appColor,
+                icon: Icon(Icons.library_books_outlined,
+                    color: ColorConstants().appColor),
+                splashColor: ColorConstants().appColor,
                 onPressed: () {
                   setState(() {
                     _pageCtrl.jumpToPage(3);
@@ -274,7 +269,7 @@ class _HomePageState extends State<HomePage> {
         // width: 60.0,
         child: FittedBox(
           child: FloatingActionButton(
-            backgroundColor: appColor,
+            backgroundColor: ColorConstants().appColor,
             onPressed: () {
               Navigator.push(context, MaterialPageRoute(builder: (context) {
                 return MapPage();
@@ -293,13 +288,50 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void _launchURL() async => await canLaunch(_url)
-      ? await launch(_url)
-      : throw 'Could not launch feedback form, try opening $_url';
+  @override
+  void initState() {
+    _displayOnBoarding();
+    _getMeasurements();
+    // _getsites();
 
-  void _launchURLFaqs() async => await canLaunch(_faqsUrl)
-      ? await launch(_faqsUrl)
-      : throw 'Could not launch feedback form, try opening $_faqsUrl';
+    super.initState();
+  }
+
+  void navigateToMenuItem(dynamic position) {
+    var menuItem = position.toString();
+
+    if (menuItem.trim().toLowerCase() == 'feedback') {
+      _launchURL();
+      // Navigator.push(context, MaterialPageRoute(builder: (context) {
+      //   return FeedbackPage();
+      // }));
+    } else if (menuItem.trim().toLowerCase() == 'share') {
+      shareApp();
+    } else if (menuItem.trim().toLowerCase() == 'faqs') {
+      _launchURLFaqs();
+      // Navigator.push(context, MaterialPageRoute(builder: (context) {
+      //   return FaqsPage();
+      // }));
+    } else if (menuItem.trim().toLowerCase() == 'myplaces') {
+      Navigator.push(context, MaterialPageRoute(builder: (context) {
+        return const MyPlaces();
+      })).then((value) {
+        setState(() {});
+      });
+    } else if (menuItem.trim().toLowerCase() == 'settings') {
+      Navigator.push(context, MaterialPageRoute(builder: (context) {
+        return SettingsPage();
+      })).then((value) {
+        setState(() {});
+      });
+    } else if (menuItem.trim().toLowerCase() == 'camera') {
+      takePhoto();
+    } else {
+      Navigator.push(context, MaterialPageRoute(builder: (context) {
+        return SettingsPage();
+      }));
+    }
+  }
 
   Future<bool> onWillPop() {
     var now = DateTime.now();
@@ -311,7 +343,7 @@ class _HomePageState extends State<HomePage> {
       showSnackBar(context, 'Tap again to exit !');
       // final snackBar = const SnackBar(
       //   content: Text('Tap again to exit !'),
-      //   backgroundColor: appColor,
+      //   backgroundColor: ColorConstants().appColor,
       // );
       // ScaffoldMessenger.of(context).showSnackBar(snackBar);
 
@@ -375,86 +407,8 @@ class _HomePageState extends State<HomePage> {
     // }
   }
 
-  void navigateToMenuItem(dynamic position) {
-    var menuItem = position.toString();
-
-    if (menuItem.trim().toLowerCase() == 'feedback') {
-      _launchURL();
-      // Navigator.push(context, MaterialPageRoute(builder: (context) {
-      //   return FeedbackPage();
-      // }));
-    } else if (menuItem.trim().toLowerCase() == 'share') {
-      shareApp();
-    } else if (menuItem.trim().toLowerCase() == 'faqs') {
-      _launchURLFaqs();
-      // Navigator.push(context, MaterialPageRoute(builder: (context) {
-      //   return FaqsPage();
-      // }));
-    } else if (menuItem.trim().toLowerCase() == 'myplaces') {
-      Navigator.push(context, MaterialPageRoute(builder: (context) {
-        return const MyPlaces();
-      })).then((value) {
-        setState(() {});
-      });
-    }
-    else if (menuItem.trim().toLowerCase() == 'settings') {
-      Navigator.push(context, MaterialPageRoute(builder: (context) {
-        return SettingsPage();
-      })).then((value) {
-        setState(() {});
-      });
-    } else if (menuItem.trim().toLowerCase() == 'camera') {
-      takePhoto();
-    } else {
-      Navigator.push(context, MaterialPageRoute(builder: (context) {
-        return SettingsPage();
-      }));
-    }
-  }
-
-  @override
-  void initState() {
-    displayOnBoarding();
-
-    _getMeasurements();
-    _getDevices();
-    super.initState();
-  }
-
-  void _getMeasurements() async {
-    print('Home page Getting measurements');
-
-    var measurements = await AirqoApiClient(context).fetchMeasurements();
-
-    if (measurements.isNotEmpty) {
-      await DBHelper().insertMeasurements(measurements);
-    }
-  }
-
-  Future<void> _getDevices() async {
-    print('Home page Getting devices');
-
-    var results = await AirqoApiClient(context).fetchDevices();
-
-    if (results.isNotEmpty) {
-      await DBHelper().insertDevices(results);
-    }
-  }
-
-  Future<void> displayOnBoarding() async {
-    var prefs = await SharedPreferences.getInstance();
-    var isFirstUse = prefs.getBool(firstUse) ?? true;
-
-    if (isFirstUse) {
-      await Navigator.pushReplacement(context,
-          MaterialPageRoute(builder: (context) {
-        return OnBoardingPage();
-      }));
-    }
-  }
-
   Future<void> takePhoto() async {
-    // Obtain a list of the available cameras on the device.
+    // Obtain a list of the available cameras on the site.
     final cameras = await availableCameras();
 
     // Get a specific camera from the list of available cameras.
@@ -466,4 +420,45 @@ class _HomePageState extends State<HomePage> {
       );
     }));
   }
+
+  Future<void> _displayOnBoarding() async {
+    var prefs = await SharedPreferences.getInstance();
+    var isFirstUse = prefs.getBool(PrefConstants().firstUse) ?? true;
+
+    if (isFirstUse) {
+      await Navigator.pushReplacement(context,
+          MaterialPageRoute(builder: (context) {
+        return OnBoardingPage();
+      }));
+    }
+  }
+
+  void _getMeasurements() async {
+    print('Home page Getting measurements');
+
+    var measurements = await AirqoApiClient(context).fetchLatestMeasurements();
+
+    if (measurements.isNotEmpty) {
+      print('inserting latest measurements into db');
+      await DBHelper().insertLatestMeasurements(measurements);
+    }
+  }
+
+  // Future<void> _getSites() async {
+  //   print('Home page Getting sites');
+  //
+  //   var results = await AirqoApiClient(context).fetchSites();
+  //
+  //   if (results.isNotEmpty) {
+  //     await DBHelper().insertSites(results);
+  //   }
+  // }
+
+  void _launchURL() async => await canLaunch(_url)
+      ? await launch(_url)
+      : throw 'Could not launch feedback form, try opening $_url';
+
+  void _launchURLFaqs() async => await canLaunch(_faqsUrl)
+      ? await launch(_faqsUrl)
+      : throw 'Could not launch feedback form, try opening $_faqsUrl';
 }
