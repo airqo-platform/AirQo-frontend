@@ -1,4 +1,4 @@
-### STAGE 2: Production Environment ###
+### STAGE 2: Staging Environment ###
 FROM nginx:1.13.12-alpine
 
 # nginx configuration
