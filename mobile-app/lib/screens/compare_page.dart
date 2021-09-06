@@ -1,11 +1,6 @@
 import 'package:app/constants/app_constants.dart';
-import 'package:app/models/measurement.dart';
-import 'package:app/utils/data_formatter.dart';
-import 'package:app/utils/services/rest_api.dart';
-import 'package:app/widgets/compare_chart.dart';
-import 'package:app/widgets/location_chart.dart';
+import 'package:app/services/rest_api.dart';
 import 'package:flutter/material.dart';
-import 'package:charts_flutter/flutter.dart' as charts;
 
 class ComparePage extends StatefulWidget {
   @override
@@ -20,95 +15,15 @@ class _ComparePageState extends State<ComparePage> {
   var apiClient;
 
   @override
-  void initState() {
-    apiClient = AirqoApiClient(context);
-  }
-
-  void setShareIcon(value) {
-    setState(() {
-      displayShareIcon = value;
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Container(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(0, 4, 0, 0),
         child: ListView(
-          children: <Widget>[
-            formInput(),
-            // lineDisplay(),
-            FutureBuilder(
-                future: apiClient.fetchComparisonMeasurements(),
-                builder: (context, snapshot) {
-                  if (snapshot.hasError) {
-                    return SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: graphDisplay(),
-                    );
-                  } else if (snapshot.hasData) {
-                    var data = snapshot.data as List<Measurement>;
-                    List<charts.Series<dynamic, DateTime>> dataset =
-                        createComaprisonData(data);
-
-                    return ComparisonLineChart(dataset);
-                  } else {
-                    return Text('Computing');
-                  }
-                })
-          ],
+          children: <Widget>[formInput(), const Text('Comparing places')],
         ),
       ),
     );
-  }
-
-  Widget graphDisplay() {
-    return LocationCompareChart();
-  }
-
-  // Widget lineDisplay() {
-  //   return LocationBarChart();
-  // }
-
-  Widget formInput() {
-    return SingleChildScrollView(
-        child: Padding(
-      padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
-      child: Row(
-        children: [
-          Expanded(
-              child: Column(
-            children: [
-              firstInput(),
-              secondInput(),
-            ],
-          )),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              IconButton(
-                  icon: Icon(Icons.compare_arrows, color: appColor),
-                  splashColor: appColor,
-                  onPressed: () {
-                    // setShareIcon(true);
-                  }),
-              // displayShareIcon ?
-              IconButton(
-                  icon: Icon(
-                    Icons.share_outlined,
-                    color: appColor,
-                  ),
-                  splashColor: appColor,
-                  onPressed: () {})
-              //     :
-              // const Placeholder(),
-            ],
-          )
-        ],
-      ),
-    ));
   }
 
   Widget firstInput() {
@@ -129,6 +44,53 @@ class _ComparePageState extends State<ComparePage> {
     );
   }
 
+  Widget formInput() {
+    return SingleChildScrollView(
+        child: Padding(
+      padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
+      child: Row(
+        children: [
+          Expanded(
+              child: Column(
+            children: [
+              firstInput(),
+              secondInput(),
+            ],
+          )),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              IconButton(
+                  icon: Icon(Icons.compare_arrows,
+                      color: ColorConstants().appColor),
+                  splashColor: ColorConstants().appColor,
+                  onPressed: () {
+                    // setShareIcon(true);
+                  }),
+              // displayShareIcon ?
+              IconButton(
+                  icon: Icon(
+                    Icons.share_outlined,
+                    color: ColorConstants().appColor,
+                  ),
+                  splashColor: ColorConstants().appColor,
+                  onPressed: () {})
+              //     :
+              // const Placeholder(),
+            ],
+          )
+        ],
+      ),
+    ));
+  }
+
+  @override
+  void initState() {
+    apiClient = AirqoApiClient(context);
+    super.initState();
+  }
+
   Widget secondInput() {
     return TextFormField(
       controller: secondPlaceController,
@@ -143,5 +105,11 @@ class _ComparePageState extends State<ComparePage> {
         return null;
       },
     );
+  }
+
+  void setShareIcon(value) {
+    setState(() {
+      displayShareIcon = value;
+    });
   }
 }

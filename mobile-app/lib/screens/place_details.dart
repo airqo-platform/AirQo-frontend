@@ -1,542 +1,432 @@
 import 'package:app/constants/app_constants.dart';
-import 'package:app/models/device.dart';
-import 'package:app/models/hourly.dart';
+import 'package:app/models/historicalMeasurement.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/predict.dart';
+import 'package:app/models/site.dart';
+import 'package:app/services/local_storage.dart';
+import 'package:app/services/rest_api.dart';
 import 'package:app/utils/data_formatter.dart';
-import 'package:app/utils/services/local_storage.dart';
-import 'package:app/utils/services/rest_api.dart';
-import 'package:app/utils/ui/date.dart';
-import 'package:app/utils/ui/dialogs.dart';
-import 'package:app/utils/ui/pm.dart';
-import 'package:app/utils/ui/share.dart';
-import 'package:app/widgets/forecast_chart.dart';
-import 'package:app/widgets/help/aqi_index.dart';
+import 'package:app/utils/date.dart';
+import 'package:app/utils/dialogs.dart';
+import 'package:app/utils/pm.dart';
+import 'package:app/utils/share.dart';
 import 'package:app/widgets/expanding_action_button.dart';
-import 'package:app/widgets/historical_chart.dart';
-import 'package:app/widgets/hourly_chart.dart';
-import 'package:app/widgets/pollutantContainer.dart';
+import 'package:app/widgets/measurements_chart.dart';
+import 'package:app/widgets/pollutants_container.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
-import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'help_page.dart';
 
 class PlaceDetailsPage extends StatefulWidget {
-  PlaceDetailsPage({Key? key, required this.device}) : super(key: key);
+  final Site site;
 
-  final Device device;
+  PlaceDetailsPage({Key? key, required this.site}) : super(key: key);
 
   @override
-  _PlaceDetailsPageState createState() => _PlaceDetailsPageState(device);
+  _PlaceDetailsPageState createState() => _PlaceDetailsPageState(site);
 }
 
 class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
-  _PlaceDetailsPageState(this.device);
-
   bool isFavourite = false;
-  var locationData;
-  var response;
+
+  var measurementData;
+  var historicalData = <HistoricalMeasurement>[];
+  var forecastData = <Predict>[];
+  var response = '';
+  bool _showMenuButton = true;
+  final ScrollController _scrollCtrl = ScrollController();
+  var historicalResponse = '';
+  var forecastResponse = '';
   var dbHelper = DBHelper();
-  var startDate = DateFormat('yyyy-MM-dd').format(DateTime(
-      DateTime.now().year, DateTime.now().month - 1, DateTime.now().day));
-  var forecastDate = DateFormat('yyyy-MM-dd HH:mm').format(
-      DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day));
+  var forecastDate =
+      DateFormat('yyyy-MM-dd HH:mm').format(DateTime.now().toUtc());
+
   String titleText = '';
-  Device device;
 
-  @override
-  void initState() {
-    getDeviceDetails();
-    getMeasurements();
-    super.initState();
-  }
+  Site site;
 
-  Future<void> checkFavourite() async {
-    if (locationData != null) {
-      var isFav = await DBHelper()
-          .checkFavouritePlace(locationData.locationDetails.channelID);
-
-      setState(() {
-        isFavourite = isFav;
-      });
-    }
-  }
-
-  Future<void> updatePlace() async {
-    if (isFavourite) {
-      await DBHelper().updateFavouritePlace(locationData.locationDetails, true);
-    }
-  }
-
-  Future<void> updateFavouritePlace() async {
-    var place;
-    if (isFavourite) {
-      place = await DBHelper()
-          .updateFavouritePlace(locationData.locationDetails, false);
-    } else {
-      place = await DBHelper()
-          .updateFavouritePlace(locationData.locationDetails, true);
-    }
-
-    setState(() {
-      locationData.locationDetails = place;
-      isFavourite = locationData.locationDetails.favourite;
-    });
-
-    if (isFavourite) {
-      await showSnackBarGoToMyPlaces(
-          context,
-          '${locationData.locationDetails.siteName} '
-          'is added to your places');
-    } else {
-      await showSnackBar2(
-          context,
-          '${locationData.locationDetails.siteName} '
-          'is removed from your places');
-    }
-  }
-
-  Future<void> getMeasurements() async {
-    await localFetch();
-
-    try {
-      var measurement =
-          await AirqoApiClient(context).fetchDeviceMeasurements(device);
-
-      setState(() {
-        locationData = measurement;
-      });
-
-      if (locationData != null) {
-        await checkFavourite();
-        await updatePlace();
-      }
-    } catch (e) {
-      print('Getting device events error: $e');
-
-      var message = 'Sorry, information is not available';
-
-      setState(() {
-        response = message;
-      });
-    }
-  }
-
-  Future<void> localFetch() async {
-    try {
-      var measurements = await DBHelper().getMeasurement(device.channelID);
-
-      if (measurements != null) {
-        setState(() {
-          locationData = measurements;
-        });
-
-        if (locationData != null) {
-          await checkFavourite();
-        }
-      }
-    } on Error catch (e) {
-      print('Getting device events locally error: $e');
-    }
-  }
-
-  Future<void> getDeviceDetails() async {
-    try {
-      var deviceDetails = await DBHelper().getDevice(device.channelID);
-
-      print(deviceDetails);
-      if (deviceDetails != null) {
-        setState(() {
-          device = deviceDetails;
-        });
-      }
-    } on Error catch (e) {
-      print('Getting device details locally error: $e');
-    }
-  }
-
-  void updateView(Measurement measurement) {
-    setState(() {
-      locationData = measurement;
-    });
-  }
+  _PlaceDetailsPageState(this.site);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(appName),
-        actions: [
-          if (isFavourite)
-          IconButton(
-            icon: const Icon(
-              Icons.edit_outlined,
-            ),
-            onPressed: () {
-              updateTitleDialog(device);;
-            },
+        title: const Text(
+          appName,
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
           ),
+        ),
+        actions: [
+          // if (isFavourite)
+          // IconButton(
+          //   icon: const Icon(
+          //     Icons.edit_outlined,
+          //   ),
+          //   onPressed: () {
+          //     updateTitleDialog(site);
+          //   },
+          // ),
         ],
       ),
-      body: locationData != null
+      body: measurementData != null
           ? Container(
-              decoration: BoxDecoration(
-                image: DecorationImage(
-                  image: AssetImage(pmToImage(locationData.pm2_5.value)),
-                  fit: BoxFit.cover,
-                ),
-              ),
               child: ListView(
+                controller: _scrollCtrl,
                 padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
                 children: <Widget>[
-                  // Site Name
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(8.0, 20.0, 8.0, 8.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Expanded(
-                            child: GestureDetector(
-                              onTap: () {
-                                if (isFavourite) {
-                                  print('editing');
-                                  setState(() {
-                                    titleText = '';
-                                  });
-                                  updateTitleDialog(device);
-                                }
-                              },
-                          child: RichText(
-                            overflow: TextOverflow.ellipsis,
-                            textAlign: TextAlign.center,
-                            maxLines: 10,
-                            text: TextSpan(
-                              style: const TextStyle(
-                                fontSize: 20,
-                                color: appColor,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              text: (isFavourite && device.nickName != null)
-                                  ? '${device.nickName} '
-                                  : '${device.siteName}',
-                              children: <TextSpan>[
-                                // if (isFavourite)
-                                //   TextSpan(
-                                //     text: String.fromCharCode(0xe169),
-                                //     style: const TextStyle(
-                                //       fontSize: 15,
-                                //       fontFamily: 'MaterialIcons',
-                                //       color: appColor,
-                                //     ),
-                                //   )
-                              ],
-                            ),
-                          ),
-                        )),
-                      ],
-                    ),
-                  ),
-
-                  // location name
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(8.0, 0, 8.0, 8.0),
-                      child: GestureDetector(
-                        onTap: () {
-                          if (isFavourite) {
-                            print('editing');
-                            setState(() {
-                              titleText = '';
-                            });
-                            updateTitleDialog(device);
-                          }
-                        },
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Expanded(
-                              child: Text(
-                                '${device.locationName}',
-                                overflow: TextOverflow.ellipsis,
-                                textAlign: TextAlign.center,
-                                maxLines: 10,
-                                style: const TextStyle(
-                                  fontSize: 15,
-                                  color: appColor,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      )
-                  ),
-
                   // card section
                   Padding(
                     padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
-                    child: cardSection(locationData),
+                    child: cardSection(measurementData),
                   ),
 
                   // Pollutants
-                  PollutantsContainer(locationData),
+                  PollutantsSection(measurementData),
 
-                  // Historical Data
-                  FutureBuilder(
-                      future: AirqoApiClient(context)
-                          .fetchHourlyMeasurements(device.channelID),
-                      builder: (context, snapshot) {
-                        if (snapshot.hasData) {
-                          var results = snapshot.data as List<Hourly>;
-
-                          if (results.isEmpty) {
-                            return Center(
-                              child: Container(
-                                padding: const EdgeInsets.all(16.0),
-                                child: const Text(
-                                  'Historical data is not available...',
-                                  softWrap: true,
-                                  textAlign: TextAlign.center,
+                  // historicalData
+                  historicalData != null && historicalData.isNotEmpty
+                      ? historicalDataSection(historicalData)
+                      : historicalResponse != ''
+                          ? Card(
+                              elevation: 20,
+                              child: Padding(
+                                padding: const EdgeInsets.all(5.0),
+                                child: Center(
+                                  child: Text(
+                                    historicalResponse,
+                                    style: TextStyle(
+                                        color: ColorConstants().appColor),
+                                  ),
                                 ),
                               ),
-                            );
-                          }
-
-                          var formattedData = hourlyChartData(results);
-
-                          return HourlyBarChart(formattedData);
-                        } else {
-                          return Center(
+                            )
+                          : Center(
                               child: Container(
-                            padding: const EdgeInsets.all(16.0),
-                            child: const CircularProgressIndicator(
-                              valueColor:
-                                  AlwaysStoppedAnimation<Color>(appColor),
-                            ),
-                          ));
-                        }
-                      }),
+                              padding: const EdgeInsets.all(16.0),
+                              child: CircularProgressIndicator(
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                    ColorConstants().appColor),
+                              ),
+                            )),
 
                   // Forecast Data
-                  FutureBuilder(
-                      future: AirqoApiClient(context).fetchForecast(
-                          device.latitude.toString(),
-                          device.longitude.toString(),
-                          forecastDate),
-                      builder: (context, snapshot) {
-                        if (snapshot.hasData) {
-                          var results = snapshot.data as List<Predict>;
-
-                          if (results.isEmpty) {
-                            return Center(
-                              child: Container(
-                                padding: const EdgeInsets.all(16.0),
-                                child: const Text(
-                                  'Forecast data is not available...',
-                                  softWrap: true,
-                                  textAlign: TextAlign.center,
+                  forecastData != null && forecastData.isNotEmpty
+                      ? forecastDataSection(forecastData)
+                      : forecastResponse != ''
+                          ? Card(
+                              elevation: 20,
+                              child: Padding(
+                                padding: const EdgeInsets.all(5.0),
+                                child: Center(
+                                  child: Text(forecastResponse,
+                                      style: TextStyle(
+                                          color: ColorConstants().appColor)),
                                 ),
                               ),
-                            );
-                          }
-
-                          var forecastData = predictChartData(results);
-
-                          return ForecastBarChart(forecastData);
-
-                          // return SingleChildScrollView(
-                          //     scrollDirection: Axis.horizontal,
-                          //     child: Container(
-                          //       width: 500,
-                          //       height: 400,
-                          //       padding: const EdgeInsets.all(8),
-                          //       child: Column(
-                          //         children: [
-                          //           const Padding(padding: EdgeInsets.all(2),
-                          //             child: Center(
-                          //               child: Text('Forecast'),
-                          //             ),
-                          //           ),
-                          //           LocationBarChart(formattedData)
-                          //         ],
-                          //       ),
-                          //     )
-                          // );
-
-                        } else {
-                          return Center(
+                            )
+                          : Center(
                               child: Container(
-                            padding: const EdgeInsets.all(16.0),
-                            child: const CircularProgressIndicator(
-                              valueColor:
-                                  AlwaysStoppedAnimation<Color>(appColor),
-                            ),
-                          ));
-                        }
-                      }),
-
-                  // Map
+                              padding: const EdgeInsets.all(16.0),
+                              child: CircularProgressIndicator(
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                    ColorConstants().appColor),
+                              ),
+                            )),
                   Container(
                       padding: const EdgeInsets.fromLTRB(0, 0, 0, 50),
                       constraints: const BoxConstraints.expand(height: 300.0),
-                      child: mapSection(locationData)),
+                      child: mapSection(measurementData)),
 
                   // LocationBarChart(),
                 ],
               ),
             )
-          : response != null
+          : response != ''
               ? Center(
-                  child: Text(response),
+                  child: Text(
+                    response,
+                    style: TextStyle(color: ColorConstants().appColor),
+                  ),
                 )
-              : const Center(
-                  child: CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(appColor),
+              : Center(
+                  child: Stack(
+                    children: <Widget>[
+                      Center(
+                        child: Container(
+                            width: 100,
+                            height: 100,
+                            child: CircularProgressIndicator(
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                  ColorConstants().appColor),
+                            )),
+                      ),
+                      Center(
+                          child: Text(
+                        'Loading',
+                        style: TextStyle(color: ColorConstants().appColor),
+                      )),
+                    ],
                   ),
                 ),
-      floatingActionButton: locationData != null
-          ? ExpandableFab(
-              distance: 112.0,
-              children: [
-                ActionButton(
-                  onPressed: updateFavouritePlace,
-                  icon: isFavourite
-                      ? const Icon(
-                          Icons.favorite,
-                          color: Colors.red,
-                        )
-                      : const Icon(
-                          Icons.favorite_border_outlined,
-                        ),
-                ),
-                ActionButton(
-                  onPressed: () {
-                    shareMeasurement(locationData);
-                  },
-                  icon: const Icon(Icons.share_outlined),
-                ),
-                ActionButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute<void>(
-                        builder: (BuildContext context) => AQI_Dialog(),
-                        fullscreenDialog: true,
-                      ),
-                    );
-                  },
-                  icon: const Icon(Icons.info_outline_rounded),
-                ),
-              ],
-            )
+      floatingActionButton: measurementData != null
+          ? _showMenuButton
+              ? ExpandableFab(
+                  distance: 112.0,
+                  children: [
+                    ActionButton(
+                      onPressed: updateFavouritePlace,
+                      icon: isFavourite
+                          ? const Icon(
+                              Icons.favorite,
+                              color: Colors.red,
+                            )
+                          : const Icon(
+                              Icons.favorite_border_outlined,
+                            ),
+                    ),
+                    ActionButton(
+                      onPressed: () {
+                        shareMeasurement(measurementData);
+                      },
+                      icon: const Icon(Icons.share_outlined),
+                    ),
+                    ActionButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute<void>(
+                            builder: (BuildContext context) => const HelpPage(
+                              initialIndex: 0,
+                            ),
+                            fullscreenDialog: true,
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.info_outline_rounded),
+                    ),
+                  ],
+                )
+              : null
           : null,
     );
-  }
-
-  Widget mapSection(Measurement measurement) {
-    final _markers = <String, Marker>{};
-
-    final marker = Marker(
-      markerId: MarkerId(measurement.channelID.toString()),
-      icon: pmToMarkerPoint(measurement.pm2_5.value),
-      position: LatLng((measurement.locationDetails.latitude),
-          measurement.locationDetails.longitude),
-    );
-    _markers[measurement.channelID.toString()] = marker;
-
-    return Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Card(
-            child: GoogleMap(
-          compassEnabled: false,
-          mapType: MapType.normal,
-          myLocationButtonEnabled: false,
-          myLocationEnabled: false,
-          rotateGesturesEnabled: false,
-          tiltGesturesEnabled: false,
-          mapToolbarEnabled: false,
-          initialCameraPosition: CameraPosition(
-            target: LatLng(measurement.locationDetails.latitude,
-                measurement.locationDetails.longitude),
-            zoom: 13,
-          ),
-          markers: _markers.values.toSet(),
-        )));
   }
 
   Widget cardSection(Measurement measurement) {
     return Padding(
         padding: const EdgeInsets.all(8.0),
         child: Card(
+            color: ColorConstants().appColor,
+            elevation: 20,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
             child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(0, 5, 0, 0),
-                child: Container(
-                    padding: const EdgeInsets.all(5.0),
-                    decoration: BoxDecoration(
-                        color: pmToColor(measurement.pm2_5.value),
-                        border: Border.all(
-                          color: pmToColor(measurement.pm2_5.value),
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                children: [
+                  Padding(
+                      padding: const EdgeInsets.all(1.0),
+                      child: Text(
+                        '${site.getName()}',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          color: Colors.white,
                         ),
-                        borderRadius:
-                            const BorderRadius.all(Radius.circular(10))),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(5, 5, 5, 5),
-                          child: Image.asset(
-                            pmToEmoji(measurement.pm2_5.value),
-                            height: 40,
-                            width: 40,
-                          ),
-                        ),
-                        Text(
-                          measurement.pm2_5.value.toString(),
-                          style: TextStyle(
-                            color: pmTextColor(measurement.pm2_5.value),
-                            fontWeight: FontWeight.bold,
-                            fontSize: 20,
-                          ),
-                        ),
-                        Text(
-                          pmToString(measurement.pm2_5.value),
-                          textAlign: TextAlign.center,
-                          softWrap: true,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            color: pmTextColor(measurement.pm2_5.value),
-                          ),
-                        ),
-                      ],
-                    )),
+                        textAlign: TextAlign.center,
+                      )),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(1.0, 3.0, 1.0, 3.0),
+                    child: Text(
+                      '${site.district} ${site.country}',
+                      style: const TextStyle(
+                        fontSize: 20,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(1.0),
+                    child: Text(
+                      'Air Quality '
+                      '${pmToString(measurement.getPm2_5Value())}',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        color: Colors.white,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(1.0),
+                    child: Text(
+                        ''
+                        '${dateToString(measurement.time, true)}',
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: Colors.white,
+                          fontWeight: FontWeight.w300,
+                          fontStyle: FontStyle.italic,
+                        )),
+                  ),
+                ],
               ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(0, 5, 0, 0),
-                child: Text('Last updated : ${dateToString(locationData.time)}',
-                    style: const TextStyle(
-                      fontSize: 11,
-                      color: appColor,
-                      fontWeight: FontWeight.w300,
-                      fontStyle: FontStyle.italic,
-                    )),
-              ),
-            ],
-          ),
-        )));
+            )));
   }
 
-  Widget airqoLogo() {
-    return Center(
-        child: Image.asset(
-      'assets/icon/airqo_logo.png',
-      height: 50,
-      width: 50,
-    ));
+  Future<void> checkFavourite() async {
+    if (measurementData != null) {
+      var prefs = await SharedPreferences.getInstance();
+      var favourites =
+          prefs.getStringList(PrefConstants().favouritePlaces) ?? [];
+
+      if (mounted) {
+        setState(() {
+          isFavourite = favourites.contains(measurementData.site.id);
+        });
+      }
+    }
+  }
+
+  Future<void> dbFetch() async {
+    try {
+      await localFetch();
+      await localFetchHistoricalData();
+      await localFetchForecastData();
+    } on Error catch (e) {
+      print('Getting data locally: $e');
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollCtrl.removeListener(() {});
+    super.dispose();
+  }
+
+  Widget forecastDataSection(List<Predict> measurements) {
+    var forecastData = predictChartData(measurements);
+    return MeasurementsBarChart(forecastData, '24 hour Forecast');
+  }
+
+  Future<void> getForecastMeasurements() async {
+    try {
+      await AirqoApiClient(context)
+          .fetchForecast(
+              site.latitude.toString(), site.longitude.toString(), forecastDate)
+          .then((value) => {
+                if (value.isNotEmpty)
+                  {
+                    if (mounted)
+                      {
+                        setState(() {
+                          forecastData = value;
+                        })
+                      },
+                    dbHelper.insertForecastMeasurements(value, site.id)
+                  }
+                else
+                  {
+                    if (mounted)
+                      {
+                        setState(() {
+                          forecastResponse = 'Forecast data is currently'
+                              ' not available.';
+                        })
+                      }
+                  }
+              });
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          forecastResponse = 'Forecast data is currently not available.';
+        });
+      }
+
+      print('Getting Forecast events error: $e');
+    }
+  }
+
+  Future<void> getHistoricalMeasurements() async {
+    try {
+      await AirqoApiClient(context)
+          .fetchSiteHistoricalMeasurements(site)
+          .then((value) => {
+                if (value.isNotEmpty)
+                  {
+                    if (mounted)
+                      {
+                        setState(() {
+                          historicalData = value;
+                        }),
+                        dbHelper.insertSiteHistoricalMeasurements(
+                            value, site.id)
+                      },
+                  }
+                else
+                  {
+                    if (mounted)
+                      {
+                        setState(() {
+                          historicalResponse =
+                              'Historical data is currently not available.';
+                        })
+                      }
+                  }
+              });
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          historicalResponse = 'Historical data is currently not available.';
+        });
+      }
+      print('Getting site historical events error: $e');
+    }
+  }
+
+  Future<void> getMeasurements() async {
+    try {
+      await AirqoApiClient(context)
+          .fetchSiteMeasurements(site)
+          .then((value) => {
+                if (mounted)
+                  {
+                    setState(() {
+                      measurementData = value;
+                    })
+                  },
+                if (measurementData != null) {checkFavourite()}
+              });
+    } catch (e) {
+      print('Getting site latest events error: $e');
+
+      var message = 'Sorry, air quality data currently is not available';
+
+      if (mounted) {
+        setState(() {
+          response = message;
+        });
+      }
+    }
+  }
+
+  void handleScroll() async {
+    _scrollCtrl.addListener(() {
+      if (_scrollCtrl.position.userScrollDirection == ScrollDirection.reverse) {
+        hideMenuButton();
+      }
+      if (_scrollCtrl.position.userScrollDirection == ScrollDirection.forward) {
+        showMenuButton();
+      }
+    });
   }
 
   Widget headerSection(String image, String body) {
@@ -570,7 +460,153 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
     );
   }
 
-  Future<void> updateTitleDialog(Device device) async {
+  void hideMenuButton() {
+    if (mounted) {
+      setState(() {
+        _showMenuButton = false;
+      });
+    }
+  }
+
+  Widget historicalDataSection(List<HistoricalMeasurement> measurements) {
+    var formattedData = historicalChartData(measurements);
+    return MeasurementsBarChart(formattedData, '48 hour History');
+  }
+
+  Future<void> initialize() async {
+    await dbFetch();
+    await getMeasurements();
+    await getHistoricalMeasurements();
+    await getForecastMeasurements();
+  }
+
+  @override
+  void initState() {
+    initialize();
+    handleScroll();
+    super.initState();
+  }
+
+  Future<void> localFetch() async {
+    try {
+      await dbHelper.getMeasurement(site.id).then((value) => {
+            if (value != null)
+              {
+                if (mounted)
+                  {
+                    setState(() {
+                      measurementData = value;
+                    })
+                  }
+              },
+            if (measurementData != null) {checkFavourite()}
+          });
+    } on Error catch (e) {
+      print('Getting site events locally error: $e');
+    }
+  }
+
+  Future<void> localFetchForecastData() async {
+    try {
+      await dbHelper.getForecastMeasurements(site.id).then((value) => {
+            if (value.isNotEmpty)
+              {
+                if (mounted)
+                  {
+                    setState(() {
+                      forecastData = value;
+                    })
+                  }
+              }
+          });
+    } on Error catch (e) {
+      print('Getting forecast data locally error: $e');
+    }
+  }
+
+  Future<void> localFetchHistoricalData() async {
+    try {
+      await dbHelper.getHistoricalMeasurements(site.id).then((measurements) => {
+            if (measurements.isNotEmpty)
+              {
+                if (mounted)
+                  {
+                    setState(() {
+                      historicalData = measurements;
+                    })
+                  }
+              }
+          });
+    } on Error catch (e) {
+      print('Getting historical data locally error: $e');
+    }
+  }
+
+  Widget mapSection(Measurement measurement) {
+    final _markers = <String, Marker>{};
+
+    final marker = Marker(
+      markerId: MarkerId(measurement.site.toString()),
+      icon: pmToMarkerPoint(measurement.getPm2_5Value()),
+      position: LatLng((measurement.site.latitude), measurement.site.longitude),
+    );
+    _markers[measurement.site.toString()] = marker;
+
+    return Padding(
+        padding: const EdgeInsets.fromLTRB(0.0, 2.0, 0.0, 2.0),
+        child: Card(
+            elevation: 20,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: GoogleMap(
+              compassEnabled: false,
+              mapType: MapType.normal,
+              myLocationButtonEnabled: false,
+              myLocationEnabled: false,
+              rotateGesturesEnabled: false,
+              tiltGesturesEnabled: false,
+              mapToolbarEnabled: false,
+              initialCameraPosition: CameraPosition(
+                target: LatLng(
+                    measurement.site.latitude, measurement.site.longitude),
+                zoom: 13,
+              ),
+              markers: _markers.values.toSet(),
+            )));
+  }
+
+  void showMenuButton() {
+    if (mounted) {
+      setState(() {
+        _showMenuButton = true;
+      });
+    }
+  }
+
+  Future<void> updateFavouritePlace() async {
+    var fav = await dbHelper.updateFavouritePlaces(measurementData.site);
+
+    if (mounted) {
+      setState(() {
+        isFavourite = fav;
+      });
+    }
+
+    if (fav) {
+      await showSnackBarGoToMyPlaces(
+          context,
+          '${measurementData.site.getName()} '
+          'is added to your places');
+    } else {
+      await showSnackBar2(
+          context,
+          '${measurementData.site.getName()} '
+          'is removed from your places');
+    }
+  }
+
+  Future<void> updateTitleDialog(Site site) async {
     return showDialog(
         context: context,
         builder: (context) {
@@ -582,7 +618,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                   titleText = value;
                 });
               },
-              decoration: InputDecoration(hintText: device.nickName),
+              decoration: InputDecoration(hintText: site.getName()),
             ),
             actions: <Widget>[
               ElevatedButton(
@@ -602,9 +638,9 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                     textStyle: const TextStyle(color: Colors.white)),
                 onPressed: () async {
                   if (titleText != '') {
-                    await DBHelper()
-                        .renameFavouritePlace(device, titleText)
-                        .then((value) => {getDeviceDetails()});
+                    // await dbHelper
+                    //     .renameFavouritePlace(site, titleText)
+                    //     .then((value) => {getSiteDetails()});
                   }
                   Navigator.pop(context);
                 },

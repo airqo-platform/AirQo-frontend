@@ -6,18 +6,6 @@ part of 'event.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-Events _$EventsFromJson(Map<String, dynamic> json) {
-  return Events(
-    events: (json['events'] as List<dynamic>)
-        .map((e) => Event.fromJson(e as Map<String, dynamic>))
-        .toList(),
-  );
-}
-
-Map<String, dynamic> _$EventsToJson(Events instance) => <String, dynamic>{
-      'events': instance.events,
-    };
-
 Event _$EventFromJson(Map<String, dynamic> json) {
   return Event(
     isCache: json['isCache'] as bool,
@@ -34,4 +22,16 @@ Map<String, dynamic> _$EventToJson(Event instance) => <String, dynamic>{
       'success': instance.success,
       'message': instance.message,
       'measurements': instance.measurements,
+    };
+
+Events _$EventsFromJson(Map<String, dynamic> json) {
+  return Events(
+    events: (json['events'] as List<dynamic>)
+        .map((e) => Event.fromJson(e as Map<String, dynamic>))
+        .toList(),
+  );
+}
+
+Map<String, dynamic> _$EventsToJson(Events instance) => <String, dynamic>{
+      'events': instance.events,
     };

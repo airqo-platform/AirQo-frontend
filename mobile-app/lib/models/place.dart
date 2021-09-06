@@ -3,22 +3,9 @@ import 'package:json_annotation/json_annotation.dart';
 part 'place.g.dart';
 
 @JsonSerializable()
-class Place {
-  Place({
-    required this.geometry,
-    required this.name,
-  });
-
-  factory Place.fromJson(Map<String, dynamic> json) => _$PlaceFromJson(json);
-
-  Map<String, dynamic> toJson() => _$PlaceToJson(this);
-
-  String name;
-  Geometry geometry;
-}
-
-@JsonSerializable()
 class Geometry {
+  Location location;
+
   Geometry({
     required this.location,
   });
@@ -27,12 +14,14 @@ class Geometry {
       _$GeometryFromJson(json);
 
   Map<String, dynamic> toJson() => _$GeometryToJson(this);
-
-  Location location;
 }
 
 @JsonSerializable()
 class Location {
+  double lat;
+
+  double lng;
+
   Location({
     required this.lat,
     required this.lng,
@@ -42,7 +31,20 @@ class Location {
       _$LocationFromJson(json);
 
   Map<String, dynamic> toJson() => _$LocationToJson(this);
+}
 
-  double lat;
-  double lng;
+@JsonSerializable()
+class Place {
+  String name;
+
+  Geometry geometry;
+
+  Place({
+    required this.geometry,
+    required this.name,
+  });
+
+  factory Place.fromJson(Map<String, dynamic> json) => _$PlaceFromJson(json);
+
+  Map<String, dynamic> toJson() => _$PlaceToJson(this);
 }

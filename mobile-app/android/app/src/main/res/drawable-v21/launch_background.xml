@@ -7,6 +7,6 @@
     <item>
         <bitmap
             android:gravity="center"
-            android:src="@mipmap/launcher_icon_big_foreground" />
+            android:src="@mipmap/airqo_logo_tagline_inverted" />
     </item>
 </layer-list>
