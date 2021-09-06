@@ -1,20 +1,18 @@
-# build environment
-FROM node:12-slim as builder
-RUN apt update
-RUN apt install git -y
-RUN mkdir -p /usr/src/app
-WORKDIR /usr/src/app
-ENV PATH /usr/src/app/node_modules/.bin:$PATH
-COPY package.json /usr/src/app/package.json
-RUN npm install 
-RUN npm install @react-leaflet/core
-RUN npm install react-scripts@^3.4.3 -g
-COPY . /usr/src/app
-RUN npm run build
+### STAGE 2: Staging Environment ###
+FROM nginx:1.13.12-alpine
 
+# nginx configuration
+COPY ./nginx.conf /etc/nginx/nginx.conf
 
-# production environment
-FROM nginx:1.13.9-alpine
-COPY --from=builder /usr/src/app/build /usr/share/nginx/html
+# move build folder to nginx
+COPY ./build /usr/share/nginx/html
+
+# expose the product on port 80
 EXPOSE 80
+
+# run
 CMD ["nginx", "-g", "daemon off;"]
+
+
+#RUN ["npm", "install", "-g", "serve"]
+#CMD ["serve", "-s", "build”]

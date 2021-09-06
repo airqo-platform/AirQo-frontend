@@ -50,7 +50,7 @@ class Register extends Component {
       email: "",
       jobTitle: "",
       description: "",
-      organization: "",
+      long_organization: "",
       category: "",
       website: "",
       errors: {},
@@ -125,7 +125,7 @@ class Register extends Component {
         jobTitle: "",
         description: "",
         category: "",
-        organization: "",
+        long_organization: "",
         website: "",
         errors: {},
         isChecked: {},
@@ -166,7 +166,6 @@ class Register extends Component {
     // errors[id] = mappedErrors && mappedErrors.errors[id] || "";
 
     if (!containsEmptyValues(errors)) {
-
       this.setState(
         {
           errors,
@@ -269,14 +268,14 @@ class Register extends Component {
                     />
                     <TextField
                         onChange={this.onChange}
-                        value={this.state.organization}
-                        error={!!errors.organization}
-                        id="organization"
+                        value={this.state.long_organization}
+                        error={!!errors.long_organization}
+                        id="long_organization"
                         label="Organization"
                         fullWidth
                         margin="normal"
                         variant="outlined"
-                        helperText={errors.organization}
+                        helperText={errors.long_organization}
                     />
                     <TextField
                         onChange={this.onChange}

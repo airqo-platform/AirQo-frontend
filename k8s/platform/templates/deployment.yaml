@@ -40,37 +40,9 @@ spec:
           #   httpGet:
           #     path: /
           #     port: http
-          env:
-            - name: REACT_APP_BASE_URL
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.env.secret }}
-                  key: REACT_APP_BASE_URL
-            - name: REACT_APP_CLOUDINARY_PRESET
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.env.secret }}
-                  key: REACT_APP_CLOUDINARY_PRESET
-            - name: REACT_APP_CLOUDINARY_NAME
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.env.secret }}
-                  key: REACT_APP_CLOUDINARY_NAME
-            - name: REACT_APP_MAPBOX_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.env.secret }}
-                  key: REACT_APP_MAPBOX_TOKEN
-            - name: REACT_APP_JIRA_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.env.secret }}
-                  key: REACT_APP_JIRA_KEY
-            - name: NODE_PATH
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.env.secret }}
-                  key: NODE_PATH
+          envFrom:
+            - configMapRef:
+                name: {{ .Values.env.secret }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}

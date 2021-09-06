@@ -25,7 +25,7 @@ spec:
               name: sta-platform-ui
           envFrom:
             - configMapRef:
-                name: env-staging
+                name: env-platform-staging
 
 ---
 kind: Service
