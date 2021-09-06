@@ -3,7 +3,6 @@ const path = require('path');
 // const webpack = require('webpack');
 // const TerserPlugin = require('terser-webpack-plugin');
 
-const HtmlWebpackPlugin = require('html-webpack-plugin')
 
 const ROOT = path.resolve(__dirname, 'frontend');
 
@@ -39,7 +38,7 @@ function postCSSLoader() {
 const config = function () {
     const NODE_ENV = process.env.NODE_ENV || 'local';
 
-    let STATIC_DIR = 'static_webpack';
+    let STATIC_DIR = 'static_webpack/frontend/';
 
     const DIST_DIR = path.resolve(__dirname, STATIC_DIR);
 
@@ -48,14 +47,14 @@ const config = function () {
     }
 
     return {
-        context: ROOT,
+        context: path.resolve(__dirname),
 
         entry: './frontend/index.js',
 
         output: {
             path: DIST_DIR,
             filename: '[name].bundle.js',
-            // publicPath: `/${STATIC_DIR}/`,
+            publicPath: `/${STATIC_DIR}/`,
         },
 
          // webpack 5 comes with devServer which loads in development mode
@@ -65,7 +64,6 @@ const config = function () {
             compress: true,
             liveReload: true,
             static: './static_webpack',
-            host:'0.0.0.0'
         },
 
         resolve: {
@@ -105,8 +103,8 @@ const config = function () {
             ],
         },
 
-        plugins: [new HtmlWebpackPlugin({ template: './frontend/template/index.html' })],
+        plugins: [],
     }
 }
 
-module.exports = config;
+module.exports = config();

@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "serve": "webpack serve --mode development",
+    "standalone": "webpack serve --config webpack.fullapp.config.js --mode development --open",
     "build": "webpack --mode production"
   },
   "author": "",
