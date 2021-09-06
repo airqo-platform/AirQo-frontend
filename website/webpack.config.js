@@ -38,7 +38,7 @@ function postCSSLoader() {
 const config = function () {
     const NODE_ENV = process.env.NODE_ENV || 'local';
 
-    let STATIC_DIR = 'static_webpack/frontend/';
+    let STATIC_DIR = 'static_webpack/frontend';
 
     const DIST_DIR = path.resolve(__dirname, STATIC_DIR);
 
@@ -59,10 +59,10 @@ const config = function () {
 
          // webpack 5 comes with devServer which loads in development mode
         devServer: {
-           port: 3000,
+           port: 8081,
             headers: { 'Access-Control-Allow-Origin': '*' },
             compress: true,
-            liveReload: true,
+            hot: true,
             static: './static_webpack',
         },
 
