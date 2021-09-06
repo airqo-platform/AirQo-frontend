@@ -374,7 +374,7 @@ class _HomePageV2State extends State<HomePageV2> {
         });
   }
 
-  void _launchURLFaqs() async => await canLaunch(Links().faqsUrl)
-      ? await launch(Links().faqsUrl)
-      : throw 'Could not launch feedback form, try opening ${Links().faqsUrl}';
+  void _launchURLFaqs() async => await canLaunch(Links.faqsUrl)
+      ? await launch(Links.faqsUrl)
+      : throw 'Could not launch feedback form, try opening ${Links.faqsUrl}';
 }

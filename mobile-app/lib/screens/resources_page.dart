@@ -36,7 +36,7 @@ class _ResourcesPageState extends State<ResourcesPage> {
           },
           onWebResourceError: webResourceErrorHandler,
           javascriptMode: JavascriptMode.unrestricted,
-          initialUrl: Links().blogUrl,
+          initialUrl: Links.blogUrl,
         ),
         isLoading
             ? Center(

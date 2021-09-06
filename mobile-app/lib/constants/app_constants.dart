@@ -3,61 +3,76 @@ import 'package:flutter/material.dart';
 
 class AppConfig {
   static String get dbName => databaseName;
+
   static String get name => applicationName;
+
   static int get searchRadius => defaultSearchRadius;
+
   static String get version => applicationVersion;
 }
 
 class ColorConstants {
   static Color get appColor => const Color(0xff3067e2);
+
   static Color get facebookColor => const Color(0xff4267B2);
+
   static Color get green => const Color(0xff3FFF33);
+
   static Color get linkedInColor => const Color(0xff2867B2);
+
   static Color get maroon => const Color(0xff570B0B);
+
   static Color get orange => const Color(0xffFF9633);
+
   static Color get purple => const Color(0xFF7B1FA2);
+
   static Color get red => const Color(0xffF62E2E);
+
   static Color get twitterColor => const Color(0xff1DA1F2);
+
   static Color get yellow => const Color(0xffFFF933);
+
   static Color get youtubeColor => const Color(0xffFF0000);
 }
 
 class ErrorMessages {
   static String get appException => 'App exception';
+
   static String get socketException => 'Connection timeout';
+
   static String get timeoutException => 'Connection timeout';
 }
 
-enum Languages { English, Luganda }
+enum Languages { english, luganda }
 
 class Links {
-  String get aboutUsUrl => about;
+  static String get aboutUsUrl => about;
 
-  String get airqoFeedbackEmail => feedbackEmail;
+  static String get airqoFeedbackEmail => feedbackEmail;
 
-  String get blogUrl => airqoBlog;
+  static String get blogUrl => airqoBlog;
 
-  String get contactUsUrl => contactUs;
+  static String get contactUsUrl => contactUs;
 
-  String get facebookUrl => facebook;
+  static String get facebookUrl => facebook;
 
-  String get faqsUrl => faqs;
+  static String get faqsUrl => faqs;
 
-  String get iOSUrl => iOSLink;
+  static String get iOSUrl => iOSLink;
 
-  String get linkedinUrl => linkedin;
+  static String get linkedinUrl => linkedin;
 
-  String get playStoreUrl => playStoreLink;
+  static String get playStoreUrl => playStoreLink;
 
-  String get referenceUrl => airqoReference;
+  static String get referenceUrl => airqoReference;
 
-  String get termsUrl => terms;
+  static String get termsUrl => terms;
 
-  String get twitterUrl => twitter;
+  static String get twitterUrl => twitter;
 
-  String get websiteUrl => airqoWebsite;
+  static String get websiteUrl => airqoWebsite;
 
-  String get youtubeUrl => youtube;
+  static String get youtubeUrl => youtube;
 }
 
 class NotificationConfig {
@@ -69,6 +84,7 @@ class NotificationConfig {
 
 class PollutantConstant {
   static String get pm10 => 'pm10';
+
   static String get pm2_5 => 'pm2_5';
 }
 
@@ -155,8 +171,11 @@ class PollutantSource {
 
 class PrefConstant {
   static String get appTheme => 'appTheme';
+
   static String get favouritePlaces => 'favouriteSites';
+
   static String get firstUse => 'firstUse';
+
   static String get initialDbLoad => 'initialDbLoad';
 }
 

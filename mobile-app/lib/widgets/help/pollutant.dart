@@ -194,10 +194,10 @@ class PollutantDialog extends StatelessWidget {
 
   Future<void> _launchURL() async {
     try {
-      await canLaunch(Links().referenceUrl)
-          ? await launch(Links().referenceUrl)
+      await canLaunch(Links.referenceUrl)
+          ? await launch(Links.referenceUrl)
           : throw 'Could not launch reference,'
-              ' try opening ${Links().referenceUrl}';
+              ' try opening ${Links.referenceUrl}';
     } on Error catch (e) {
       print(e);
     }

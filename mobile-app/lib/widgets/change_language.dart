@@ -14,7 +14,7 @@ class ChangeLanguageDialog extends StatefulWidget {
 }
 
 class ChangeLanguageDialogState extends State<ChangeLanguageDialog> {
-  Languages? _language = Languages.English;
+  Languages? _language = Languages.english;
 
   @override
   Widget build(BuildContext context) {
@@ -25,9 +25,9 @@ class ChangeLanguageDialogState extends State<ChangeLanguageDialog> {
           mainAxisSize: MainAxisSize.min,
           children: [
             RadioListTile<Languages>(
-              selected: _language == Languages.English,
+              selected: _language == Languages.english,
               title: const Text('English'),
-              value: Languages.English,
+              value: Languages.english,
               groupValue: _language,
               onChanged: (Languages? value) {
                 setState(() {
@@ -41,9 +41,9 @@ class ChangeLanguageDialogState extends State<ChangeLanguageDialog> {
               },
             ),
             RadioListTile<Languages>(
-              selected: _language == Languages.Luganda,
+              selected: _language == Languages.luganda,
               title: const Text('Luganda'),
-              value: Languages.Luganda,
+              value: Languages.luganda,
               groupValue: _language,
               onChanged: (Languages? value) {
                 setState(() {
