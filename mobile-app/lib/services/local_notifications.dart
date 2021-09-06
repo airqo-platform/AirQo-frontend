@@ -118,7 +118,9 @@ class LocalNotifications {
 
   Future<void> showOngoingNotification() async {
     const androidNotificationDetails = AndroidNotificationDetails(
-        '$persistentNotificationId', 'Channel Name', 'Channel Description',
+        '${NotificationConfig.persistentNotificationId}',
+        'Channel Name',
+        'Channel Description',
         importance: Importance.max,
         icon: 'launcher_icon',
         priority: Priority.high,
@@ -126,8 +128,11 @@ class LocalNotifications {
         autoCancel: false);
     const notificationDetails =
         NotificationDetails(android: androidNotificationDetails, iOS: null);
-    await flutterLocalNotificationsPlugin.show(persistentNotificationId,
-        'AirQo', 'Ongoing Notification', notificationDetails,
+    await flutterLocalNotificationsPlugin.show(
+        NotificationConfig.persistentNotificationId,
+        'AirQo',
+        'Ongoing Notification',
+        notificationDetails,
         payload: 'Destination Screen(Ongoing Notification)');
   }
 
@@ -160,8 +165,11 @@ class LocalNotifications {
             progress: i);
         final notificationDetails =
             NotificationDetails(android: androidNotificationDetails, iOS: null);
-        await flutterLocalNotificationsPlugin.show(progressNotificationId,
-            'AirQo', 'Progress Notification', notificationDetails,
+        await flutterLocalNotificationsPlugin.show(
+            NotificationConfig.progressNotificationId,
+            'AirQo',
+            'Progress Notification',
+            notificationDetails,
             payload: 'Destination Screen(Progress Notification)');
       });
     }

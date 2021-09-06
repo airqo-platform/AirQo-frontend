@@ -45,7 +45,7 @@ class AqiDialog extends StatelessWidget {
               fontSize: 17,
               fontWeight: FontWeight.w500,
               height: 1.2,
-              color: ColorConstants().appColor
+              color: ColorConstants.appColor
               // letterSpacing: 1.0
               )));
 
@@ -71,7 +71,7 @@ class AqiDialog extends StatelessWidget {
                   softWrap: true,
                   style: TextStyle(
                     height: 1.2,
-                    color: ColorConstants().appColor,
+                    color: ColorConstants.appColor,
                     fontSize: 15,
                     fontWeight: FontWeight.w500,
                     // letterSpacing: 1.0

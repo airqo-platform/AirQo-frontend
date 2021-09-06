@@ -6,12 +6,12 @@ RawMaterialButton customOkayButton(context) {
   return RawMaterialButton(
     shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(4.0),
-        side: BorderSide(color: ColorConstants().appColor, width: 1)),
-    fillColor: ColorConstants().appColor,
+        side: BorderSide(color: ColorConstants.appColor, width: 1)),
+    fillColor: ColorConstants.appColor,
     elevation: 0,
     highlightElevation: 0,
     splashColor: Colors.black12,
-    highlightColor: ColorConstants().appColor.withOpacity(0.4),
+    highlightColor: ColorConstants.appColor.withOpacity(0.4),
     onPressed: () async {
       Navigator.of(context).pop();
     },
@@ -54,7 +54,7 @@ Future<void> showSnackBar(context, String message) async {
       softWrap: true,
       textAlign: TextAlign.center,
     ),
-    backgroundColor: ColorConstants().appColor,
+    backgroundColor: ColorConstants.appColor,
   );
   ScaffoldMessenger.of(context).showSnackBar(snackBar);
 }
@@ -70,7 +70,7 @@ Future<void> showSnackBar2(context, String message) async {
       softWrap: true,
       textAlign: TextAlign.center,
     ),
-    backgroundColor: ColorConstants().appColor,
+    backgroundColor: ColorConstants.appColor,
   );
   ScaffoldMessenger.of(context).showSnackBar(snackBar);
 }
@@ -86,7 +86,7 @@ Future<void> showSnackBarGoToMyPlaces(context, String message) async {
       softWrap: true,
       textAlign: TextAlign.start,
     ),
-    backgroundColor: ColorConstants().appColor,
+    backgroundColor: ColorConstants.appColor,
     action: SnackBarAction(
       textColor: Colors.white,
       label: 'View MyPlaces',
@@ -121,7 +121,7 @@ class ShowErrorDialog extends StatelessWidget {
               children: <Widget>[
                 Icon(
                   Icons.info_outline_rounded,
-                  color: ColorConstants().red,
+                  color: ColorConstants.red,
                 ),
                 Flexible(
                   child: Padding(
@@ -130,7 +130,7 @@ class ShowErrorDialog extends StatelessWidget {
                       message,
                       softWrap: true,
                       style: TextStyle(
-                        color: ColorConstants().appColor,
+                        color: ColorConstants.appColor,
                       ),
                     ),
                   ),

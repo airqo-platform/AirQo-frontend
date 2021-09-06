@@ -36,12 +36,12 @@ class _ResourcesPageState extends State<ResourcesPage> {
           },
           onWebResourceError: webResourceErrorHandler,
           javascriptMode: JavascriptMode.unrestricted,
-          initialUrl: Links().airqoBlog,
+          initialUrl: Links().blogUrl,
         ),
         isLoading
             ? Center(
                 child: CircularProgressIndicator(
-                  color: ColorConstants().appColor,
+                  color: ColorConstants.appColor,
                 ),
               )
             : Stack(),

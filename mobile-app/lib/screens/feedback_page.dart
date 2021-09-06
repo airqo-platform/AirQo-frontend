@@ -14,12 +14,12 @@ RawMaterialButton customOkayButton(context, success) {
   return RawMaterialButton(
     shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(4.0),
-        side: BorderSide(color: ColorConstants().appColor, width: 1)),
-    fillColor: ColorConstants().appColor,
+        side: BorderSide(color: ColorConstants.appColor, width: 1)),
+    fillColor: ColorConstants.appColor,
     elevation: 0,
     highlightElevation: 0,
     splashColor: Colors.black12,
-    highlightColor: ColorConstants().appColor.withOpacity(0.4),
+    highlightColor: ColorConstants.appColor.withOpacity(0.4),
     onPressed: () async {
       if (success) {
         await Navigator.pushAndRemoveUntil(context,
@@ -62,7 +62,7 @@ class SuccessDialog extends StatelessWidget {
               children: <Widget>[
                 Icon(
                   Icons.info_outline_rounded,
-                  color: ColorConstants().appColor,
+                  color: ColorConstants.appColor,
                 ),
                 Flexible(
                   child: Padding(
@@ -72,7 +72,7 @@ class SuccessDialog extends StatelessWidget {
                       ' The AirQo team shall address it asap',
                       softWrap: true,
                       style: TextStyle(
-                        color: ColorConstants().appColor,
+                        color: ColorConstants.appColor,
                       ),
                     ),
                   ),
@@ -98,9 +98,10 @@ class _FeedbackPageState extends State<FeedbackPage> {
     final height = MediaQuery.of(context).size.height;
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          '$appName',
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+        title: Text(
+          '${AppConfig.name}',
+          style:
+              const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
         ),
       ),
       body: Container(
@@ -161,16 +162,16 @@ class _FeedbackPageState extends State<FeedbackPage> {
 
   Widget feedbackInput() {
     return TextFormField(
-      style: TextStyle(color: ColorConstants().appColor),
+      style: TextStyle(color: ColorConstants.appColor),
       autofocus: true,
       controller: feedbackController,
       decoration: InputDecoration(
           labelText: 'Feedback',
           hintText: 'Share your feedback to enable us make improvements.',
           labelStyle: TextStyle(
-            color: ColorConstants().appColor,
+            color: ColorConstants.appColor,
           ),
-          hintStyle: TextStyle(color: ColorConstants().appColor)),
+          hintStyle: TextStyle(color: ColorConstants.appColor)),
       textInputAction: TextInputAction.done,
       maxLines: 5,
       validator: (value) {
@@ -205,7 +206,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                   icon: FaIcon(
                     FontAwesomeIcons.facebook,
                     size: 30,
-                    color: ColorConstants().facebookColor,
+                    color: ColorConstants.facebookColor,
                   ),
                   onPressed: () {
                     _launchURL('facebook');
@@ -214,7 +215,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                   icon: FaIcon(
                     FontAwesomeIcons.twitter,
                     size: 30,
-                    color: ColorConstants().twitterColor,
+                    color: ColorConstants.twitterColor,
                   ),
                   onPressed: () {
                     _launchURL('twitter');
@@ -223,7 +224,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                   icon: FaIcon(
                     FontAwesomeIcons.youtube,
                     size: 30,
-                    color: ColorConstants().youtubeColor,
+                    color: ColorConstants.youtubeColor,
                   ),
                   onPressed: () {
                     _launchURL('youtube');
@@ -232,7 +233,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                   icon: FaIcon(
                     FontAwesomeIcons.linkedin,
                     size: 30,
-                    color: ColorConstants().linkedInColor,
+                    color: ColorConstants.linkedInColor,
                   ),
                   onPressed: () {
                     _launchURL('linkedin');
@@ -243,19 +244,19 @@ class _FeedbackPageState extends State<FeedbackPage> {
             height: 5,
           ),
           Text(
-            '\u00a9 $appName ${DateTime.now().year}',
-            style: TextStyle(color: ColorConstants().appColor),
+            '\u00a9 ${AppConfig.name} ${DateTime.now().year}',
+            style: TextStyle(color: ColorConstants.appColor),
           ),
           Text(
             'Air Quality Initiative',
-            style: TextStyle(color: ColorConstants().appColor),
+            style: TextStyle(color: ColorConstants.appColor),
           ),
           const SizedBox(
             height: 5,
           ),
           Text(
-            '$appVersion',
-            style: TextStyle(color: ColorConstants().appColor),
+            '${AppConfig.version}',
+            style: TextStyle(color: ColorConstants.appColor),
           )
         ],
       ),
@@ -266,7 +267,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
     return TextStyle(
         fontWeight: FontWeight.bold,
         fontSize: 20,
-        color: ColorConstants().appColor);
+        color: ColorConstants.appColor);
   }
 
   @override
@@ -279,11 +280,11 @@ class _FeedbackPageState extends State<FeedbackPage> {
     if (sendingFeedback) {
       return Center(
           child: CircularProgressIndicator(
-        valueColor: AlwaysStoppedAnimation<Color>(ColorConstants().appColor),
+        valueColor: AlwaysStoppedAnimation<Color>(ColorConstants.appColor),
       ));
     } else {
       return ElevatedButton(
-        style: ElevatedButton.styleFrom(primary: ColorConstants().appColor),
+        style: ElevatedButton.styleFrom(primary: ColorConstants.appColor),
         onPressed: () async {
           if (_formKey.currentState!.validate()) {
             var email = emailController.text;
@@ -350,11 +351,11 @@ class _FeedbackPageState extends State<FeedbackPage> {
             child: ListTile(
               title: Text(
                 'FAQs',
-                style: TextStyle(color: ColorConstants().appColor),
+                style: TextStyle(color: ColorConstants.appColor),
               ),
               leading: Icon(
                 Icons.help_outline_outlined,
-                color: ColorConstants().appColor,
+                color: ColorConstants.appColor,
               ),
             ),
           ),
@@ -365,11 +366,11 @@ class _FeedbackPageState extends State<FeedbackPage> {
             child: ListTile(
               title: Text(
                 'Contact Us',
-                style: TextStyle(color: ColorConstants().appColor),
+                style: TextStyle(color: ColorConstants.appColor),
               ),
               leading: Icon(
                 Icons.contact_support_outlined,
-                color: ColorConstants().appColor,
+                color: ColorConstants.appColor,
               ),
             ),
           ),
@@ -380,11 +381,11 @@ class _FeedbackPageState extends State<FeedbackPage> {
             child: ListTile(
               title: Text(
                 'Terms of Use & Privacy Policy',
-                style: TextStyle(color: ColorConstants().appColor),
+                style: TextStyle(color: ColorConstants.appColor),
               ),
               leading: Icon(
                 Icons.description,
-                color: ColorConstants().appColor,
+                color: ColorConstants.appColor,
               ),
             ),
           ),
@@ -394,12 +395,12 @@ class _FeedbackPageState extends State<FeedbackPage> {
             },
             child: ListTile(
               title: Text(
-                'About $appName',
-                style: TextStyle(color: ColorConstants().appColor),
+                'About ${AppConfig.name}',
+                style: TextStyle(color: ColorConstants.appColor),
               ),
               leading: Icon(
                 Icons.info_outline_rounded,
-                color: ColorConstants().appColor,
+                color: ColorConstants.appColor,
               ),
             ),
           ),
@@ -410,11 +411,11 @@ class _FeedbackPageState extends State<FeedbackPage> {
           //   child: ListTile(
           //     title: Text(
           //       'Rate App',
-          //       style: TextStyle(color: ColorConstants().appColor),
+          //       style: TextStyle(color: ColorConstants.appColor),
           //     ),
           //     leading: Icon(
           //       Icons.rate_review_outlined,
-          //       color: ColorConstants().appColor,
+          //       color: ColorConstants.appColor,
           //     ),
           //   ),
           // ),
@@ -429,71 +430,71 @@ class _FeedbackPageState extends State<FeedbackPage> {
     try {
       switch (page) {
         case 'faqs':
-          await canLaunch(Links().faqs)
-              ? await launch(Links().faqs)
-              : throw 'Could not launch faqs, try opening ${Links().faqs}';
+          await canLaunch(Links().faqsUrl)
+              ? await launch(Links().faqsUrl)
+              : throw 'Could not launch faqs, try opening ${Links().faqsUrl}';
           return;
         case 'about':
-          await canLaunch(Links().about)
-              ? await launch(Links().about)
-              : throw 'Could not launch about, try opening ${Links().about}';
+          await canLaunch(Links().aboutUsUrl)
+              ? await launch(Links().aboutUsUrl)
+              : throw 'Could not launch about, try opening ${Links().aboutUsUrl}';
           return;
         case 'contact us':
-          await canLaunch(Links().contactUs)
-              ? await launch(Links().contactUs)
-              : throw 'Could not launch contact us, try opening ${Links().contactUs}';
+          await canLaunch(Links().contactUsUrl)
+              ? await launch(Links().contactUsUrl)
+              : throw 'Could not launch contact us, try opening ${Links().contactUsUrl}';
           return;
         case 'terms':
-          await canLaunch(Links().terms)
-              ? await launch(Links().terms)
-              : throw 'Could not launch terms, try opening ${Links().terms}';
+          await canLaunch(Links().termsUrl)
+              ? await launch(Links().termsUrl)
+              : throw 'Could not launch terms, try opening ${Links().termsUrl}';
           return;
         case 'rate':
           if (Platform.isAndroid) {
-            await canLaunch(Links().playStoreLink)
-                ? await launch(Links().playStoreLink)
+            await canLaunch(Links().playStoreUrl)
+                ? await launch(Links().playStoreUrl)
                 : throw 'Could not launch rate us, try opening'
-                    ' ${Links().playStoreLink}';
+                    ' ${Links().playStoreUrl}';
           } else if (Platform.isIOS) {
-            await canLaunch(Links().iOSLink)
-                ? await launch(Links().iOSLink)
-                : throw 'Could not launch rate us, try opening ${Links().iOSLink}';
+            await canLaunch(Links().iOSUrl)
+                ? await launch(Links().iOSUrl)
+                : throw 'Could not launch rate us, try opening ${Links().iOSUrl}';
           } else {
-            await canLaunch(Links().playStoreLink)
-                ? await launch(Links().playStoreLink)
+            await canLaunch(Links().playStoreUrl)
+                ? await launch(Links().playStoreUrl)
                 : throw 'Could not launch rate us, try opening'
-                    ' ${Links().playStoreLink}';
+                    ' ${Links().playStoreUrl}';
           }
           return;
         case 'facebook':
-          await canLaunch(Links().facebook)
-              ? await launch(Links().facebook)
-              : throw 'Could not launch facebook, try opening ${Links().facebook}';
+          await canLaunch(Links().facebookUrl)
+              ? await launch(Links().facebookUrl)
+              : throw 'Could not launch facebook, try opening ${Links().facebookUrl}';
           return;
         case 'twitter':
-          await canLaunch(Links().twitter)
-              ? await launch(Links().twitter)
-              : throw 'Could not launch twitter, try opening ${Links().twitter}';
+          await canLaunch(Links().twitterUrl)
+              ? await launch(Links().twitterUrl)
+              : throw 'Could not launch twitter, try opening ${Links().twitterUrl}';
           return;
         case 'linkedin':
-          await canLaunch(Links().linkedin)
-              ? await launch(Links().linkedin)
-              : throw 'Could not launch linkedin, try opening ${Links().linkedin}';
+          await canLaunch(Links().linkedinUrl)
+              ? await launch(Links().linkedinUrl)
+              : throw 'Could not launch linkedin, try opening ${Links().linkedinUrl}';
           return;
         case 'youtube':
-          await canLaunch(Links().youtube)
-              ? await launch(Links().youtube)
-              : throw 'Could not launch youtube, try opening ${Links().youtube}';
+          await canLaunch(Links().youtubeUrl)
+              ? await launch(Links().youtubeUrl)
+              : throw 'Could not launch youtube, try opening ${Links().youtubeUrl}';
           return;
         case 'airqo':
-          await canLaunch(Links().airqoWebsite)
-              ? await launch(Links().airqoWebsite)
-              : throw 'Could not launch airqo, try opening ${Links().airqoWebsite}';
+          await canLaunch(Links().websiteUrl)
+              ? await launch(Links().websiteUrl)
+              : throw 'Could not launch airqo, try opening ${Links().websiteUrl}';
           return;
         default:
-          await canLaunch(Links().airqoWebsite)
-              ? await launch(Links().airqoWebsite)
-              : throw 'Could not launch airqo, try opening ${Links().airqoWebsite}';
+          await canLaunch(Links().websiteUrl)
+              ? await launch(Links().websiteUrl)
+              : throw 'Could not launch airqo, try opening ${Links().websiteUrl}';
           return;
       }
     } catch (e) {

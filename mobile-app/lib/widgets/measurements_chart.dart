@@ -6,11 +6,11 @@ import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 
 class MeasurementsBarChart extends StatefulWidget {
-  MeasurementsBarChart(this.seriesList, this.header);
-
   final List<charts.Series<TimeSeriesData, DateTime>> seriesList;
 
   final String header;
+
+  MeasurementsBarChart(this.seriesList, this.header);
 
   @override
   _MeasurementsBarChartState createState() => _MeasurementsBarChartState();
@@ -36,7 +36,7 @@ class _MeasurementsBarChartState extends State<MeasurementsBarChart> {
                 softWrap: true,
                 style: TextStyle(
                     fontSize: 19,
-                    color: ColorConstants().appColor,
+                    color: ColorConstants.appColor,
                     fontWeight: FontWeight.bold),
               ),
             ),
@@ -52,7 +52,7 @@ class _MeasurementsBarChartState extends State<MeasurementsBarChart> {
                     Text(
                       chartDateToString(display['time']),
                       softWrap: true,
-                      style: TextStyle(color: ColorConstants().appColor),
+                      style: TextStyle(color: ColorConstants.appColor),
                     ),
                     const Spacer(
                       flex: 1,
@@ -60,7 +60,7 @@ class _MeasurementsBarChartState extends State<MeasurementsBarChart> {
                     Text(
                       display['value'].toString(),
                       softWrap: true,
-                      style: TextStyle(color: ColorConstants().appColor),
+                      style: TextStyle(color: ColorConstants.appColor),
                     ),
                     const Spacer(
                       flex: 1,
@@ -72,7 +72,7 @@ class _MeasurementsBarChartState extends State<MeasurementsBarChart> {
                   style: TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.w600,
-                      color: ColorConstants().appColor),
+                      color: ColorConstants.appColor),
                 ),
               ],
             ),

@@ -52,8 +52,8 @@ class HelpPage extends StatelessWidget {
         body: TabBarView(
           children: [
             AqiDialog(),
-            PollutantDialog(pollutantDetails(PollutantConstants.pm2_5)),
-            PollutantDialog(pollutantDetails(PollutantConstants.pm10)),
+            PollutantDialog(pollutantDetails(PollutantConstant.pm2_5)),
+            PollutantDialog(pollutantDetails(PollutantConstant.pm10)),
           ],
         ),
       ),

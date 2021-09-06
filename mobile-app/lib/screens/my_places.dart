@@ -69,7 +69,7 @@ class _MyPlacesState extends State<MyPlaces> {
               padding: const EdgeInsets.fromLTRB(6, 6, 6, 6),
               child: isSearching
                   ? RefreshIndicator(
-                      color: ColorConstants().appColor,
+                      color: ColorConstants.appColor,
                       onRefresh: exitSearch,
                       child: ListView.builder(
                         itemBuilder: (context, index) => GestureDetector(
@@ -84,7 +84,7 @@ class _MyPlacesState extends State<MyPlaces> {
                             actions: <Widget>[
                               IconSlideAction(
                                 caption: 'Share',
-                                color: ColorConstants().appColor,
+                                color: ColorConstants.appColor,
                                 icon: Icons.share_outlined,
                                 onTap: () =>
                                     shareLocation(searchResults[index].site),
@@ -93,7 +93,7 @@ class _MyPlacesState extends State<MyPlaces> {
                             secondaryActions: <Widget>[
                               IconSlideAction(
                                 caption: 'Remove',
-                                color: ColorConstants().red,
+                                color: ColorConstants.red,
                                 icon: Icons.delete_outlined,
                                 onTap: () {
                                   removeFromFavourites(
@@ -127,7 +127,7 @@ class _MyPlacesState extends State<MyPlaces> {
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
                                       fontSize: 17,
-                                      color: ColorConstants().appColor,
+                                      color: ColorConstants.appColor,
                                       fontWeight: FontWeight.bold,
                                     )),
                                 subtitle: Text(
@@ -135,7 +135,7 @@ class _MyPlacesState extends State<MyPlaces> {
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
                                       fontSize: 14,
-                                      color: ColorConstants().appColor,
+                                      color: ColorConstants.appColor,
                                     )),
                               ),
                             ),
@@ -166,7 +166,7 @@ class _MyPlacesState extends State<MyPlaces> {
                                   softWrap: true,
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
-                                    color: ColorConstants().appColor,
+                                    color: ColorConstants.appColor,
                                   ),
                                 ),
                               ),
@@ -174,7 +174,7 @@ class _MyPlacesState extends State<MyPlaces> {
                           }
 
                           return RefreshIndicator(
-                            color: ColorConstants().appColor,
+                            color: ColorConstants.appColor,
                             onRefresh: refreshData,
                             child: ListView.builder(
                               itemBuilder: (context, index) => GestureDetector(
@@ -189,7 +189,7 @@ class _MyPlacesState extends State<MyPlaces> {
                                   actions: <Widget>[
                                     IconSlideAction(
                                       caption: 'Share',
-                                      color: ColorConstants().appColor,
+                                      color: ColorConstants.appColor,
                                       icon: Icons.share_outlined,
                                       onTap: () =>
                                           shareLocation(results[index].site),
@@ -227,7 +227,7 @@ class _MyPlacesState extends State<MyPlaces> {
                                           overflow: TextOverflow.ellipsis,
                                           style: TextStyle(
                                             fontSize: 17,
-                                            color: ColorConstants().appColor,
+                                            color: ColorConstants.appColor,
                                             fontWeight: FontWeight.bold,
                                           )),
                                       subtitle: Text(
@@ -235,7 +235,7 @@ class _MyPlacesState extends State<MyPlaces> {
                                           overflow: TextOverflow.ellipsis,
                                           style: TextStyle(
                                             fontSize: 14,
-                                            color: ColorConstants().appColor,
+                                            color: ColorConstants.appColor,
                                           )),
                                     ),
                                   ),
@@ -248,7 +248,7 @@ class _MyPlacesState extends State<MyPlaces> {
                           return Center(
                             child: CircularProgressIndicator(
                               valueColor: AlwaysStoppedAnimation<Color>(
-                                  ColorConstants().appColor),
+                                  ColorConstants.appColor),
                             ),
                           );
                         }
@@ -256,7 +256,7 @@ class _MyPlacesState extends State<MyPlaces> {
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: FloatingActionButton(
         // isExtended: true,
-        backgroundColor: ColorConstants().appColor,
+        backgroundColor: ColorConstants.appColor,
         onPressed: () {
           setState(() {
             if (isSearching) {

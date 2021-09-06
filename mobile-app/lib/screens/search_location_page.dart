@@ -40,7 +40,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
     final base = Theme.of(context);
 
     return base.copyWith(
-      primaryColor: ColorConstants().appColor,
+      primaryColor: ColorConstants.appColor,
     );
   }
 
@@ -90,7 +90,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
             padding: const EdgeInsets.all(16.0),
             child: Text(
               'Search a place',
-              style: TextStyle(color: ColorConstants().appColor),
+              style: TextStyle(color: ColorConstants.appColor),
             ),
           ));
     }
@@ -105,7 +105,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
               'available suggestions or use the map '
               'on the top right corner',
               textAlign: TextAlign.center,
-              style: TextStyle(color: ColorConstants().appColor),
+              style: TextStyle(color: ColorConstants.appColor),
             ),
           ));
     }
@@ -133,7 +133,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                       padding: const EdgeInsets.all(16.0),
                       child: Text(
                         'Cannot full fill your request now',
-                        style: TextStyle(color: ColorConstants().appColor),
+                        style: TextStyle(color: ColorConstants.appColor),
                       ),
                     );
                   } else if (snapshot.hasData) {
@@ -151,8 +151,8 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                                 Text(
                                   'Could not find stations near $query',
                                   textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                      color: ColorConstants().appColor),
+                                  style:
+                                      TextStyle(color: ColorConstants.appColor),
                                 ),
                                 showAllLocationsCustomButton(context),
                                 showMapCustomButton(context)
@@ -168,7 +168,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                           child: Text(
                             'Air quality stations near $query',
                             textAlign: TextAlign.center,
-                            style: TextStyle(color: ColorConstants().appColor),
+                            style: TextStyle(color: ColorConstants.appColor),
                           ),
                         ),
                         Expanded(
@@ -190,23 +190,23 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                                   title: Text('${sites[index].getName()}',
                                       style: TextStyle(
                                         fontSize: 17,
-                                        color: ColorConstants().appColor,
+                                        color: ColorConstants.appColor,
                                         fontWeight: FontWeight.bold,
                                       )),
                                   subtitle:
                                       Text('${sites[index].getLocation()}',
                                           style: TextStyle(
                                             fontSize: 15,
-                                            color: ColorConstants().appColor,
+                                            color: ColorConstants.appColor,
                                           )),
                                   // leading: const Icon(
                                   //   Icons.location_pin,
-                                  //   color: ColorConstants().appColor,
+                                  //   color: ColorConstants.appColor,
                                   // ),
                                   trailing: Text(
                                     '${toDistance(sites[index].distance)}',
                                     style: TextStyle(
-                                        color: ColorConstants().appColor),
+                                        color: ColorConstants.appColor),
                                   ),
                                 ) //your content here
                                 );
@@ -225,13 +225,12 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                           children: [
                             CircularProgressIndicator(
                               valueColor: AlwaysStoppedAnimation<Color>(
-                                  ColorConstants().appColor),
+                                  ColorConstants.appColor),
                             ),
                             Text(
                               'Searching for nearby stations. Please wait...',
                               textAlign: TextAlign.center,
-                              style:
-                                  TextStyle(color: ColorConstants().appColor),
+                              style: TextStyle(color: ColorConstants.appColor),
                             )
                           ],
                         ),
@@ -248,11 +247,11 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                   children: [
                     CircularProgressIndicator(
                       valueColor: AlwaysStoppedAnimation<Color>(
-                          ColorConstants().appColor),
+                          ColorConstants.appColor),
                     ),
                     Text(
                       'Getting place details...',
-                      style: TextStyle(color: ColorConstants().appColor),
+                      style: TextStyle(color: ColorConstants.appColor),
                     )
                   ],
                 ));
@@ -279,7 +278,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                         padding: const EdgeInsets.all(16.0),
                         child: Text(
                           'Search a place',
-                          style: TextStyle(color: ColorConstants().appColor),
+                          style: TextStyle(color: ColorConstants.appColor),
                         ),
                       ));
                 }
@@ -289,11 +288,11 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                     title: Text(
                       (results[index]).description,
                       style: TextStyle(
-                          fontSize: 12, color: ColorConstants().appColor),
+                          fontSize: 12, color: ColorConstants.appColor),
                     ),
                     leading: Icon(
                       Icons.history,
-                      color: ColorConstants().appColor,
+                      color: ColorConstants.appColor,
                     ),
                     trailing: GestureDetector(
                       onTap: () {
@@ -302,7 +301,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                       },
                       child: Icon(
                         Icons.delete_outlined,
-                        color: ColorConstants().red,
+                        color: ColorConstants.red,
                       ),
                     ),
                     onTap: () {
@@ -323,7 +322,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                     padding: const EdgeInsets.all(16.0),
                     child: Text(
                       'Search a place',
-                      style: TextStyle(color: ColorConstants().appColor),
+                      style: TextStyle(color: ColorConstants.appColor),
                     ),
                   ));
             },
@@ -335,7 +334,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
             padding: const EdgeInsets.all(16.0),
             child: Text(
               'Could not load suggestions. Try again later or use the map',
-              style: TextStyle(color: ColorConstants().appColor),
+              style: TextStyle(color: ColorConstants.appColor),
             ),
           );
         } else if (snapshot.hasData) {
@@ -346,7 +345,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
           return ListView.builder(
             itemBuilder: (context, index) => ListTile(
               title: Text((results[index]).description,
-                  style: TextStyle(color: ColorConstants().appColor)),
+                  style: TextStyle(color: ColorConstants.appColor)),
               onTap: () {
                 query = (results[index]).description;
                 showAllSites = false;
@@ -369,11 +368,11 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                   children: [
                     CircularProgressIndicator(
                       valueColor: AlwaysStoppedAnimation<Color>(
-                          ColorConstants().appColor),
+                          ColorConstants.appColor),
                     ),
                     Text(
                       'Loading...',
-                      style: TextStyle(color: ColorConstants().appColor),
+                      style: TextStyle(color: ColorConstants.appColor),
                     )
                   ],
                 )),
@@ -431,17 +430,17 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                       title: Text('${sites[index].getName()}',
                           style: TextStyle(
                             fontSize: 17,
-                            color: ColorConstants().appColor,
+                            color: ColorConstants.appColor,
                             fontWeight: FontWeight.bold,
                           )),
                       subtitle: Text('${sites[index].getLocation()}',
                           style: TextStyle(
                             fontSize: 14,
-                            color: ColorConstants().appColor,
+                            color: ColorConstants.appColor,
                           )),
                       leading: Icon(
                         Icons.location_pin,
-                        color: ColorConstants().appColor,
+                        color: ColorConstants.appColor,
                       ),
                     ) //your content here
                     );
@@ -456,11 +455,11 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                   children: [
                     CircularProgressIndicator(
                       valueColor: AlwaysStoppedAnimation<Color>(
-                          ColorConstants().appColor),
+                          ColorConstants.appColor),
                     ),
                     Text(
                       'Searching for stations. Please wait...',
-                      style: TextStyle(color: ColorConstants().appColor),
+                      style: TextStyle(color: ColorConstants.appColor),
                     )
                   ],
                 ));
@@ -503,17 +502,17 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                       title: Text('${sites[index].getName()}',
                           style: TextStyle(
                             fontSize: 17,
-                            color: ColorConstants().appColor,
+                            color: ColorConstants.appColor,
                             fontWeight: FontWeight.bold,
                           )),
                       subtitle: Text('${sites[index].getLocation()}',
                           style: TextStyle(
                             fontSize: 14,
-                            color: ColorConstants().appColor,
+                            color: ColorConstants.appColor,
                           )),
                       leading: Icon(
                         Icons.location_pin,
-                        color: ColorConstants().appColor,
+                        color: ColorConstants.appColor,
                       ),
                     ));
               },
@@ -529,13 +528,13 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                     children: [
                       CircularProgressIndicator(
                         valueColor: AlwaysStoppedAnimation<Color>(
-                            ColorConstants().appColor),
+                            ColorConstants.appColor),
                       ),
                       Text(
                         'Getting air quality stations. '
                         'Please wait...',
                         textAlign: TextAlign.center,
-                        style: TextStyle(color: ColorConstants().appColor),
+                        style: TextStyle(color: ColorConstants.appColor),
                       )
                     ],
                   ),
@@ -554,12 +553,12 @@ class LocationSearch extends SearchDelegate<Suggestion> {
     return RawMaterialButton(
       shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(4.0),
-          side: BorderSide(color: ColorConstants().appColor, width: 1)),
-      fillColor: ColorConstants().appColor,
+          side: BorderSide(color: ColorConstants.appColor, width: 1)),
+      fillColor: ColorConstants.appColor,
       elevation: 0,
       highlightElevation: 0,
       splashColor: Colors.black12,
-      highlightColor: ColorConstants().appColor.withOpacity(0.4),
+      highlightColor: ColorConstants.appColor.withOpacity(0.4),
       onPressed: () {
         showAllLocations(context);
       },
@@ -577,12 +576,12 @@ class LocationSearch extends SearchDelegate<Suggestion> {
     return RawMaterialButton(
       shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(4.0),
-          side: BorderSide(color: ColorConstants().appColor, width: 1)),
-      fillColor: ColorConstants().appColor,
+          side: BorderSide(color: ColorConstants.appColor, width: 1)),
+      fillColor: ColorConstants.appColor,
       elevation: 0,
       highlightElevation: 0,
       splashColor: Colors.black12,
-      highlightColor: ColorConstants().appColor.withOpacity(0.4),
+      highlightColor: ColorConstants.appColor.withOpacity(0.4),
       onPressed: () {
         Navigator.push(context, MaterialPageRoute(builder: (context) {
           return MapPage();

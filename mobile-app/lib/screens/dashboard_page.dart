@@ -36,14 +36,14 @@ class _DashboardPageState extends State<DashboardPage> {
                                 children: [
                                   CircularProgressIndicator(
                                     valueColor: AlwaysStoppedAnimation<Color>(
-                                        ColorConstants().appColor),
+                                        ColorConstants.appColor),
                                   ),
                                   Text(
                                     'Collecting information about your places'
                                     ' Please wait...',
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
-                                        color: ColorConstants().appColor),
+                                        color: ColorConstants.appColor),
                                   )
                                 ],
                               ),
@@ -61,7 +61,7 @@ class _DashboardPageState extends State<DashboardPage> {
                                     '$error',
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
-                                        color: ColorConstants().appColor),
+                                        color: ColorConstants.appColor),
                                   ),
                                   reloadButton()
                                 ],
@@ -70,7 +70,7 @@ class _DashboardPageState extends State<DashboardPage> {
                           )
                     : RefreshIndicator(
                         onRefresh: initialize,
-                        color: ColorConstants().appColor,
+                        color: ColorConstants.appColor,
                         child: ListView.builder(
                           itemBuilder: (context, index) => InkWell(
                             onTap: () async {
@@ -107,7 +107,7 @@ class _DashboardPageState extends State<DashboardPage> {
                           softWrap: true,
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                            color: ColorConstants().appColor,
+                            color: ColorConstants.appColor,
                           ),
                         ),
                         reloadButton()
@@ -119,7 +119,7 @@ class _DashboardPageState extends State<DashboardPage> {
   Future<void> initialize() async {
     var prefs = await SharedPreferences.getInstance();
     var favouritePlaces =
-        prefs.getStringList(PrefConstants().favouritePlaces) ?? [];
+        prefs.getStringList(PrefConstant.favouritePlaces) ?? [];
 
     if (favouritePlaces.isEmpty) {
       setState(() {
@@ -207,18 +207,18 @@ class _DashboardPageState extends State<DashboardPage> {
     return RawMaterialButton(
       shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(4.0),
-          side: BorderSide(color: ColorConstants().appColor, width: 1)),
+          side: BorderSide(color: ColorConstants.appColor, width: 1)),
       fillColor: Colors.transparent,
       elevation: 0,
       highlightElevation: 0,
       splashColor: Colors.black12,
-      highlightColor: ColorConstants().appColor.withOpacity(0.4),
+      highlightColor: ColorConstants.appColor.withOpacity(0.4),
       onPressed: initialize,
       child: Padding(
         padding: const EdgeInsets.all(4),
         child: Text(
           'Refresh',
-          style: TextStyle(color: ColorConstants().appColor),
+          style: TextStyle(color: ColorConstants.appColor),
         ),
       ),
     );

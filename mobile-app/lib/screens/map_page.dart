@@ -90,7 +90,7 @@ class MapPageState extends State<MapPage> {
                       children: [
                         IconButton(
                           icon: Icon(Icons.arrow_back_outlined,
-                              color: ColorConstants().appColor),
+                              color: ColorConstants.appColor),
                           onPressed: () {
                             Navigator.pop(context);
                           },
@@ -112,7 +112,7 @@ class MapPageState extends State<MapPage> {
                                 hintStyle: const TextStyle(fontSize: 13),
                                 hintText: 'Search',
                                 suffixIcon: Icon(Icons.search,
-                                    color: ColorConstants().appColor),
+                                    color: ColorConstants.appColor),
                                 // border: InputBorder.none,
                                 border: const OutlineInputBorder(
                                     borderRadius: BorderRadius.all(
@@ -139,7 +139,7 @@ class MapPageState extends State<MapPage> {
                         IconButton(
                           iconSize: 30.0,
                           icon: Icon(Icons.refresh_outlined,
-                              color: ColorConstants().appColor),
+                              color: ColorConstants.appColor),
                           onPressed: _refreshMeasurements,
                         ),
                       ],
@@ -172,7 +172,7 @@ class MapPageState extends State<MapPage> {
                           //             ),
                           //             leading: const Icon(
                           //               Icons.history,
-                          //               color: ColorConstants().appColor,
+                          //               color: ColorConstants.appColor,
                           //             ),
                           //             trailing: GestureDetector(
                           //               onTap: () {
@@ -207,7 +207,7 @@ class MapPageState extends State<MapPage> {
                                 'Unable to search on map.\nTry again later',
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
-                                    color: ColorConstants().appColor,
+                                    color: ColorConstants.appColor,
                                     fontSize: 16,
                                     fontWeight: FontWeight.w700,
                                     backgroundColor: Colors.white),
@@ -233,7 +233,7 @@ class MapPageState extends State<MapPage> {
                                         title: Text(
                                           (results[index]).description,
                                           style: TextStyle(
-                                              color: ColorConstants().appColor),
+                                              color: ColorConstants.appColor),
                                         ),
                                         onTap: () {
                                           query = (results[index]).description;
@@ -262,13 +262,13 @@ class MapPageState extends State<MapPage> {
                                       child: CircularProgressIndicator(
                                         valueColor:
                                             AlwaysStoppedAnimation<Color>(
-                                                ColorConstants().appColor),
+                                                ColorConstants.appColor),
                                       ),
                                     ),
 
                                     // const Text(
                                     //   'Loading...',
-                                    //   style: TextStyle(color: ColorConstants().appColor),
+                                    //   style: TextStyle(color: ColorConstants.appColor),
                                     // )
                                   ],
                                 ));
@@ -284,8 +284,9 @@ class MapPageState extends State<MapPage> {
                               padding: const EdgeInsets.all(8.0),
                               child: Column(
                                 children: [
-                                  const Center(
-                                    child: Text(appName, softWrap: true),
+                                  Center(
+                                    child: Text('${AppConfig.name}',
+                                        softWrap: true),
                                   ),
                                 ],
                               ),
@@ -309,13 +310,13 @@ class MapPageState extends State<MapPage> {
                                 height: 100,
                                 child: CircularProgressIndicator(
                                   valueColor: AlwaysStoppedAnimation<Color>(
-                                      ColorConstants().appColor),
+                                      ColorConstants.appColor),
                                 )),
                           ),
                           Center(
                               child: Text(
                             'Loading',
-                            style: TextStyle(color: ColorConstants().appColor),
+                            style: TextStyle(color: ColorConstants.appColor),
                           )),
                         ],
                       ),
@@ -332,13 +333,13 @@ class MapPageState extends State<MapPage> {
             //         IconButton(
             //           iconSize: 30.0,
             //           icon: const Icon(Icons.refresh_outlined,
-            //           color: ColorConstants().appColor),
+            //           color: ColorConstants.appColor),
             //           onPressed: _refreshMeasurements,
             //         ),
             //         IconButton(
             //           iconSize: 30.0,
             //           icon: const Icon(Icons.help_outline_outlined,
-            //               color: ColorConstants().appColor),
+            //               color: ColorConstants.appColor),
             //           onPressed: () {
             //             Navigator.push(
             //               context,
@@ -373,7 +374,7 @@ class MapPageState extends State<MapPage> {
         padding: const EdgeInsets.all(10),
         child: Text(
           'More Details',
-          style: TextStyle(color: ColorConstants().appColor),
+          style: TextStyle(color: ColorConstants.appColor),
         ),
       ),
     );
@@ -431,7 +432,7 @@ class MapPageState extends State<MapPage> {
     var prefs = await SharedPreferences.getInstance();
 
     setState(() {
-      favourites = prefs.getStringList(PrefConstants().favouritePlaces) ?? [];
+      favourites = prefs.getStringList(PrefConstant.favouritePlaces) ?? [];
     });
   }
 
@@ -444,7 +445,7 @@ class MapPageState extends State<MapPage> {
           Text(
             windowProperties.site.getName(),
             softWrap: true,
-            style: TextStyle(color: ColorConstants().appColor),
+            style: TextStyle(color: ColorConstants.appColor),
             overflow: TextOverflow.ellipsis,
           ),
           Padding(
@@ -513,15 +514,14 @@ class MapPageState extends State<MapPage> {
                     ),
                   );
                 },
-                icon:
-                    Icon(Icons.info_outline, color: ColorConstants().appColor),
+                icon: Icon(Icons.info_outline, color: ColorConstants.appColor),
               ),
               IconButton(
                 onPressed: () {
                   shareMeasurement(windowProperties);
                 },
-                icon: Icon(Icons.share_outlined,
-                    color: ColorConstants().appColor),
+                icon:
+                    Icon(Icons.share_outlined, color: ColorConstants.appColor),
               ),
               IconButton(
                   onPressed: () {
@@ -531,11 +531,11 @@ class MapPageState extends State<MapPage> {
                           windowProperties.site.id.trim().toLowerCase())
                       ? Icon(
                           Icons.favorite,
-                          color: ColorConstants().red,
+                          color: ColorConstants.red,
                         )
                       : Icon(
                           Icons.favorite_border_outlined,
-                          color: ColorConstants().red,
+                          color: ColorConstants.red,
                         )),
               GestureDetector(
                 onTap: () {
@@ -544,7 +544,7 @@ class MapPageState extends State<MapPage> {
                 child: Text('More Details',
                     softWrap: true,
                     style: TextStyle(
-                        color: ColorConstants().appColor,
+                        color: ColorConstants.appColor,
                         fontWeight: FontWeight.bold)),
               )
             ],
@@ -556,7 +556,7 @@ class MapPageState extends State<MapPage> {
 
   Widget infoWindowV2() {
     return Card(
-        color: ColorConstants().appColor,
+        color: ColorConstants.appColor,
         elevation: 20,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
@@ -624,7 +624,7 @@ class MapPageState extends State<MapPage> {
                           );
                         },
                         icon: Icon(Icons.info_outline,
-                            color: ColorConstants().appColor),
+                            color: ColorConstants.appColor),
                       )),
                   Card(
                     elevation: 20,
@@ -636,7 +636,7 @@ class MapPageState extends State<MapPage> {
                         shareMeasurement(windowProperties);
                       },
                       icon: Icon(Icons.share_outlined,
-                          color: ColorConstants().appColor),
+                          color: ColorConstants.appColor),
                     ),
                   ),
                   Card(
@@ -652,11 +652,11 @@ class MapPageState extends State<MapPage> {
                                 windowProperties.site.id.trim().toLowerCase())
                             ? Icon(
                                 Icons.favorite,
-                                color: ColorConstants().red,
+                                color: ColorConstants.red,
                               )
                             : Icon(
                                 Icons.favorite_border_outlined,
-                                color: ColorConstants().red,
+                                color: ColorConstants.red,
                               )),
                   ),
                   detailsButton(windowProperties.site),
@@ -677,7 +677,7 @@ class MapPageState extends State<MapPage> {
 
   Future<void> loadTheme() async {
     var prefs = await SharedPreferences.getInstance();
-    var theme = prefs.getString(PrefConstants().appTheme);
+    var theme = prefs.getString(PrefConstant.appTheme);
 
     if (theme != null) {
       switch (theme) {
@@ -822,9 +822,9 @@ class MapPageState extends State<MapPage> {
       ..add(Circle(
           circleId: CircleId(circleIdVal),
           center: point,
-          radius: kmIntToMetersDouble(defaultSearchRadius),
-          fillColor: ColorConstants().appColor.withOpacity(0.5),
+          radius: kmIntToMetersDouble(AppConfig.searchRadius),
+          fillColor: ColorConstants.appColor.withOpacity(0.5),
           strokeWidth: 2,
-          strokeColor: ColorConstants().appColor));
+          strokeColor: ColorConstants.appColor));
   }
 }

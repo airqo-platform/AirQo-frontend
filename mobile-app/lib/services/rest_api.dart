@@ -50,9 +50,9 @@ class AirqoApiClient {
         return <Predict>[];
       }
     } on SocketException {
-      await showSnackBar(context, ErrorMessages().socketException);
+      await showSnackBar(context, ErrorMessages.socketException);
     } on TimeoutException {
-      await showSnackBar(context, ErrorMessages().timeoutException);
+      await showSnackBar(context, ErrorMessages.timeoutException);
     } on Error catch (e) {
       print('Get Forecast error: $e');
     }
@@ -289,10 +289,10 @@ class AirqoApiClient {
         throw Exception('Error');
       }
     } on SocketException {
-      await showSnackBar(context, ErrorMessages().socketException);
+      await showSnackBar(context, ErrorMessages.socketException);
       throw Exception('Error');
     } on TimeoutException {
-      await showSnackBar(context, ErrorMessages().timeoutException);
+      await showSnackBar(context, ErrorMessages.timeoutException);
       throw Exception('Error');
     } on Error catch (e) {
       print('Image upload error: $e');
@@ -356,11 +356,11 @@ class AirqoApiClient {
         return null;
       }
     } on SocketException {
-      await showSnackBar(context, ErrorMessages().socketException);
+      await showSnackBar(context, ErrorMessages.socketException);
     } on TimeoutException {
-      await showSnackBar(context, ErrorMessages().timeoutException);
+      await showSnackBar(context, ErrorMessages.timeoutException);
     } on Error catch (e) {
-      await showSnackBar(context, ErrorMessages().appException);
+      await showSnackBar(context, ErrorMessages.appException);
     }
 
     return null;
@@ -395,13 +395,13 @@ class AirqoApiClient {
         return false;
       }
     } on SocketException {
-      await showSnackBar(context, ErrorMessages().socketException);
+      await showSnackBar(context, ErrorMessages.socketException);
       return false;
     } on TimeoutException {
-      await showSnackBar(context, ErrorMessages().timeoutException);
+      await showSnackBar(context, ErrorMessages.timeoutException);
       return false;
     } on Error catch (e) {
-      await showSnackBar(context, ErrorMessages().appException);
+      await showSnackBar(context, ErrorMessages.appException);
       return false;
     }
   }
@@ -436,9 +436,9 @@ class SearchApi {
 
       throw Exception(responseBody['error_message']);
     } on SocketException {
-      throw Exception(ErrorMessages().socketException);
+      throw Exception(ErrorMessages.socketException);
     } on TimeoutException {
-      throw Exception(ErrorMessages().timeoutException);
+      throw Exception(ErrorMessages.timeoutException);
     } on Error catch (e) {
       throw Exception('Cannot get suggestions, please try again later');
     }
@@ -491,9 +491,9 @@ class SearchApi {
         return null;
       }
     } on SocketException {
-      throw Exception(ErrorMessages().timeoutException);
+      throw Exception(ErrorMessages.timeoutException);
     } on TimeoutException {
-      throw Exception(ErrorMessages().timeoutException);
+      throw Exception(ErrorMessages.timeoutException);
     } on Error catch (e) {
       throw Exception('Cannot get details, please try again later');
     }

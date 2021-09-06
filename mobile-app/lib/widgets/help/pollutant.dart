@@ -35,7 +35,7 @@ class PollutantDialog extends StatelessWidget {
                     fontSize: 17,
                     fontWeight: FontWeight.bold,
                     height: 1.2,
-                    color: ColorConstants().appColor
+                    color: ColorConstants.appColor
                     // letterSpacing: 1.0
                     )),
           ),
@@ -45,7 +45,7 @@ class PollutantDialog extends StatelessWidget {
                 softWrap: true,
                 style: TextStyle(
                   height: 1.2,
-                  color: ColorConstants().appColor,
+                  color: ColorConstants.appColor,
                   fontSize: 15,
                   fontWeight: FontWeight.w500,
                   // letterSpacing: 1.0
@@ -73,7 +73,7 @@ class PollutantDialog extends StatelessWidget {
                     fontSize: 17,
                     fontWeight: FontWeight.bold,
                     height: 1.2,
-                    color: ColorConstants().appColor
+                    color: ColorConstants.appColor
                     // letterSpacing: 1.0
                     )),
           ),
@@ -83,7 +83,7 @@ class PollutantDialog extends StatelessWidget {
                 softWrap: true,
                 style: TextStyle(
                   height: 1.2,
-                  color: ColorConstants().appColor,
+                  color: ColorConstants.appColor,
                   fontSize: 15,
                   fontWeight: FontWeight.w500,
                   // letterSpacing: 1.0
@@ -102,8 +102,7 @@ class PollutantDialog extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           ElevatedButton(
-              style:
-                  ElevatedButton.styleFrom(primary: ColorConstants().appColor),
+              style: ElevatedButton.styleFrom(primary: ColorConstants.appColor),
               onPressed: _launchURL,
               child: Text('Learn more about ${pollutant.pollutant}',
                   softWrap: true,
@@ -134,7 +133,7 @@ class PollutantDialog extends StatelessWidget {
                     fontSize: 17,
                     fontWeight: FontWeight.bold,
                     height: 1.2,
-                    color: ColorConstants().appColor
+                    color: ColorConstants.appColor
                     // letterSpacing: 1.0
                     )),
           ),
@@ -144,7 +143,7 @@ class PollutantDialog extends StatelessWidget {
                 softWrap: true,
                 style: TextStyle(
                   height: 1.2,
-                  color: ColorConstants().appColor,
+                  color: ColorConstants.appColor,
                   fontSize: 15,
                   fontWeight: FontWeight.w500,
                   // letterSpacing: 1.0
@@ -172,7 +171,7 @@ class PollutantDialog extends StatelessWidget {
                     fontSize: 17,
                     fontWeight: FontWeight.bold,
                     height: 1.2,
-                    color: ColorConstants().appColor
+                    color: ColorConstants.appColor
                     // letterSpacing: 1.0
                     )),
           ),
@@ -182,7 +181,7 @@ class PollutantDialog extends StatelessWidget {
                 softWrap: true,
                 style: TextStyle(
                   height: 1.2,
-                  color: ColorConstants().appColor,
+                  color: ColorConstants.appColor,
                   fontSize: 15,
                   fontWeight: FontWeight.w500,
                   // letterSpacing: 1.0
@@ -195,10 +194,10 @@ class PollutantDialog extends StatelessWidget {
 
   Future<void> _launchURL() async {
     try {
-      await canLaunch(Links().airqoReference)
-          ? await launch(Links().airqoReference)
+      await canLaunch(Links().referenceUrl)
+          ? await launch(Links().referenceUrl)
           : throw 'Could not launch reference,'
-              ' try opening ${Links().airqoReference}';
+              ' try opening ${Links().referenceUrl}';
     } on Error catch (e) {
       print(e);
     }

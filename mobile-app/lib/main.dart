@@ -18,12 +18,12 @@ import 'themes/dark_theme.dart';
 import 'themes/light_theme.dart';
 
 Future<void> main() async {
-  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-    systemNavigationBarColor: appColor,
+  SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+    systemNavigationBarColor: ColorConstants.appColor,
     statusBarColor: Colors.transparent,
     // statusBarBrightness: Brightness.light,
     // statusBarIconBrightness:Brightness.light ,
-    // systemNavigationBarDividerColor: ColorConstants().appColor,
+    // systemNavigationBarDividerColor: ColorConstants.appColor,
     systemNavigationBarIconBrightness: Brightness.light,
   ));
 
@@ -123,7 +123,7 @@ class AirQoApp extends StatelessWidget {
                 // },
                 supportedLocales: [const Locale('en'), const Locale('lg')],
                 locale: provider.locale,
-                title: appName,
+                title: '${AppConfig.name}',
                 theme: _buildCurrentTheme(),
                 home: SplashScreen(),
               );
@@ -181,7 +181,7 @@ class SplashScreenState extends State<SplashScreen> {
     return Scaffold(
       body: Center(
         child: Container(
-            color: ColorConstants().appColor,
+            color: ColorConstants.appColor,
             child: const Center(
               child: CircularProgressIndicator(
                 valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
@@ -200,7 +200,7 @@ class SplashScreenState extends State<SplashScreen> {
     }
 
     var prefs = await SharedPreferences.getInstance();
-    var isFirstUse = prefs.getBool(PrefConstants().firstUse) ?? true;
+    var isFirstUse = prefs.getBool(PrefConstant.firstUse) ?? true;
 
     if (isFirstUse) {
       await Navigator.pushReplacement(context,

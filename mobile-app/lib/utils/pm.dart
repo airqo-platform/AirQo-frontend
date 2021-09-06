@@ -26,55 +26,55 @@ Color pmTextColor(double pm2_5) {
     // hazardous
     return Colors.white;
   } else {
-    return ColorConstants().appColor;
+    return ColorConstants.appColor;
   }
 }
 
 charts.Color pmToChartColor(double pm2_5) {
   if (pm2_5 <= 12.09) {
     //good
-    return charts.ColorUtil.fromDartColor(ColorConstants().green);
+    return charts.ColorUtil.fromDartColor(ColorConstants.green);
   } else if (pm2_5 >= 12.1 && pm2_5 <= 35.49) {
     //moderate
-    return charts.ColorUtil.fromDartColor(ColorConstants().yellow);
+    return charts.ColorUtil.fromDartColor(ColorConstants.yellow);
   } else if (pm2_5 >= 35.5 && pm2_5 <= 55.49) {
     //sensitive
-    return charts.ColorUtil.fromDartColor(ColorConstants().orange);
+    return charts.ColorUtil.fromDartColor(ColorConstants.orange);
   } else if (pm2_5 >= 55.5 && pm2_5 <= 150.49) {
     // unhealthy
-    return charts.ColorUtil.fromDartColor(ColorConstants().red);
+    return charts.ColorUtil.fromDartColor(ColorConstants.red);
   } else if (pm2_5 >= 150.5 && pm2_5 <= 250.49) {
     // very unhealthy
-    return charts.ColorUtil.fromDartColor(ColorConstants().purple);
+    return charts.ColorUtil.fromDartColor(ColorConstants.purple);
   } else if (pm2_5 >= 250.5) {
     // hazardous
-    return charts.ColorUtil.fromDartColor(ColorConstants().maroon);
+    return charts.ColorUtil.fromDartColor(ColorConstants.maroon);
   } else {
-    return charts.ColorUtil.fromDartColor(ColorConstants().appColor);
+    return charts.ColorUtil.fromDartColor(ColorConstants.appColor);
   }
 }
 
 Color pmToColor(double pm2_5) {
   if (pm2_5 <= 12.09) {
     //good
-    return ColorConstants().green;
+    return ColorConstants.green;
   } else if (pm2_5 >= 12.1 && pm2_5 <= 35.49) {
     //moderate
-    return ColorConstants().yellow;
+    return ColorConstants.yellow;
   } else if (pm2_5 >= 35.5 && pm2_5 <= 55.49) {
     //sensitive
-    return ColorConstants().orange;
+    return ColorConstants.orange;
   } else if (pm2_5 >= 55.5 && pm2_5 <= 150.49) {
     // unhealthy
-    return ColorConstants().red;
+    return ColorConstants.red;
   } else if (pm2_5 >= 150.5 && pm2_5 <= 250.49) {
     // very unhealthy
-    return ColorConstants().purple;
+    return ColorConstants.purple;
   } else if (pm2_5 >= 250.5) {
     // hazardous
-    return ColorConstants().maroon;
+    return ColorConstants.maroon;
   } else {
-    return ColorConstants().appColor;
+    return ColorConstants.appColor;
   }
 }
 
@@ -150,27 +150,27 @@ BitmapDescriptor pmToMarkerPoint(double pm2_5) {
   if (pm2_5 <= 12.09) {
     //good
     return BitmapDescriptor.defaultMarkerWithHue(
-        HSVColor.fromColor(ColorConstants().green).hue);
+        HSVColor.fromColor(ColorConstants.green).hue);
   } else if (pm2_5 >= 12.10 && pm2_5 <= 35.49) {
     //moderate
     return BitmapDescriptor.defaultMarkerWithHue(
-        HSVColor.fromColor(ColorConstants().yellow).hue);
+        HSVColor.fromColor(ColorConstants.yellow).hue);
   } else if (pm2_5 >= 35.50 && pm2_5 <= 55.49) {
     //sensitive
     return BitmapDescriptor.defaultMarkerWithHue(
-        HSVColor.fromColor(ColorConstants().orange).hue);
+        HSVColor.fromColor(ColorConstants.orange).hue);
   } else if (pm2_5 >= 55.50 && pm2_5 <= 150.49) {
     // unhealthy
     return BitmapDescriptor.defaultMarkerWithHue(
-        HSVColor.fromColor(ColorConstants().red).hue);
+        HSVColor.fromColor(ColorConstants.red).hue);
   } else if (pm2_5 >= 150.50 && pm2_5 <= 250.49) {
     // very unhealthy
     return BitmapDescriptor.defaultMarkerWithHue(
-        HSVColor.fromColor(ColorConstants().purple).hue);
+        HSVColor.fromColor(ColorConstants.purple).hue);
   } else if (pm2_5 >= 250.5) {
     // hazardous
     return BitmapDescriptor.defaultMarkerWithHue(
-        HSVColor.fromColor(ColorConstants().maroon).hue);
+        HSVColor.fromColor(ColorConstants.maroon).hue);
   } else {
     return BitmapDescriptor.defaultMarker;
   }
@@ -203,26 +203,26 @@ String pmToString(double pm2_5) {
 Pollutant pollutantDetails(String pollutantConstant) {
   pollutantConstant = pollutantConstant.trim();
 
-  if (pollutantConstant == PollutantConstants.pm2_5.trim()) {
+  if (pollutantConstant == PollutantConstant.pm2_5.trim()) {
     return Pollutant(
-        pollutantToString(PollutantConstants.pm2_5),
+        pollutantToString(PollutantConstant.pm2_5),
         PollutantDescription.pm2_5,
         PollutantSource.pm2_5,
-        PollutantEffects.pm2_5,
+        PollutantEffect.pm2_5,
         PollutantReduction.pm2_5);
-  } else if (pollutantConstant == PollutantConstants.pm10.trim()) {
+  } else if (pollutantConstant == PollutantConstant.pm10.trim()) {
     return Pollutant(
-        pollutantToString(PollutantConstants.pm10),
+        pollutantToString(PollutantConstant.pm10),
         PollutantDescription.pm10,
         PollutantSource.pm10,
-        PollutantEffects.pm10,
+        PollutantEffect.pm10,
         PollutantReduction.pm10);
   } else {
     return Pollutant(
-        pollutantToString(PollutantConstants.pm2_5),
+        pollutantToString(PollutantConstant.pm2_5),
         PollutantDescription.pm2_5,
         PollutantSource.pm2_5,
-        PollutantEffects.pm2_5,
+        PollutantEffect.pm2_5,
         PollutantReduction.pm2_5);
   }
 }
@@ -230,9 +230,9 @@ Pollutant pollutantDetails(String pollutantConstant) {
 String pollutantToString(String pollutantConstant) {
   pollutantConstant = pollutantConstant.trim();
 
-  if (pollutantConstant == PollutantConstants.pm2_5) {
+  if (pollutantConstant == PollutantConstant.pm2_5) {
     return 'PM 2.5';
-  } else if (pollutantConstant == PollutantConstants.pm10) {
+  } else if (pollutantConstant == PollutantConstant.pm10) {
     return 'PM 10';
   } else {
     return '';

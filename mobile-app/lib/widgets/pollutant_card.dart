@@ -38,7 +38,7 @@ class PollutantCard extends StatelessWidget {
                       name,
                       style: TextStyle(
                         fontSize: 20,
-                        color: ColorConstants().appColor,
+                        color: ColorConstants.appColor,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -50,7 +50,7 @@ class PollutantCard extends StatelessWidget {
                     '${value.toStringAsFixed(2)}',
                     style: TextStyle(
                       fontSize: 17,
-                      color: ColorConstants().appColor,
+                      color: ColorConstants.appColor,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -62,9 +62,9 @@ class PollutantCard extends StatelessWidget {
   }
 
   Widget getHelpTab() {
-    if (type == PollutantConstants.pm2_5) {
+    if (type == PollutantConstant.pm2_5) {
       return const HelpPage(initialIndex: 1);
-    } else if (type == PollutantConstants.pm10) {
+    } else if (type == PollutantConstant.pm10) {
       return const HelpPage(initialIndex: 2);
     } else {
       return const HelpPage(initialIndex: 0);

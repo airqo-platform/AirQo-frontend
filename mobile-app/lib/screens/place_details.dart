@@ -56,9 +56,9 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          appName,
-          style: TextStyle(
+        title: Text(
+          '${AppConfig.name}',
+          style: const TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,
           ),
@@ -102,7 +102,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                                   child: Text(
                                     historicalResponse,
                                     style: TextStyle(
-                                        color: ColorConstants().appColor),
+                                        color: ColorConstants.appColor),
                                   ),
                                 ),
                               ),
@@ -112,7 +112,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                               padding: const EdgeInsets.all(16.0),
                               child: CircularProgressIndicator(
                                 valueColor: AlwaysStoppedAnimation<Color>(
-                                    ColorConstants().appColor),
+                                    ColorConstants.appColor),
                               ),
                             )),
 
@@ -127,7 +127,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                                 child: Center(
                                   child: Text(forecastResponse,
                                       style: TextStyle(
-                                          color: ColorConstants().appColor)),
+                                          color: ColorConstants.appColor)),
                                 ),
                               ),
                             )
@@ -136,7 +136,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                               padding: const EdgeInsets.all(16.0),
                               child: CircularProgressIndicator(
                                 valueColor: AlwaysStoppedAnimation<Color>(
-                                    ColorConstants().appColor),
+                                    ColorConstants.appColor),
                               ),
                             )),
                   Container(
@@ -152,7 +152,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
               ? Center(
                   child: Text(
                     response,
-                    style: TextStyle(color: ColorConstants().appColor),
+                    style: TextStyle(color: ColorConstants.appColor),
                   ),
                 )
               : Center(
@@ -164,13 +164,13 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                             height: 100,
                             child: CircularProgressIndicator(
                               valueColor: AlwaysStoppedAnimation<Color>(
-                                  ColorConstants().appColor),
+                                  ColorConstants.appColor),
                             )),
                       ),
                       Center(
                           child: Text(
                         'Loading',
-                        style: TextStyle(color: ColorConstants().appColor),
+                        style: TextStyle(color: ColorConstants.appColor),
                       )),
                     ],
                   ),
@@ -222,7 +222,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
     return Padding(
         padding: const EdgeInsets.all(8.0),
         child: Card(
-            color: ColorConstants().appColor,
+            color: ColorConstants.appColor,
             elevation: 20,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(20),
@@ -285,8 +285,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
   Future<void> checkFavourite() async {
     if (measurementData != null) {
       var prefs = await SharedPreferences.getInstance();
-      var favourites =
-          prefs.getStringList(PrefConstants().favouritePlaces) ?? [];
+      var favourites = prefs.getStringList(PrefConstant.favouritePlaces) ?? [];
 
       if (mounted) {
         setState(() {

@@ -12,7 +12,6 @@ import 'package:sqflite/sqflite.dart';
 
 class DBHelper {
   var _database;
-  var constants = DbConstants();
 
   Future<Database> get database async {
     if (_database != null) return _database;
@@ -22,7 +21,7 @@ class DBHelper {
 
   Future<void> createDefaultTables(Database db) async {
     var prefs = await SharedPreferences.getInstance();
-    var initialLoading = prefs.getBool(PrefConstants().initialDbLoad) ?? true;
+    var initialLoading = prefs.getBool(PrefConstant.initialDbLoad) ?? true;
 
     if (initialLoading) {
       print('creating tables');
@@ -31,7 +30,7 @@ class DBHelper {
       await db.execute(HistoricalMeasurement.dropTableStmt());
       await db.execute(Predict.dropTableStmt());
       await db.execute(Site.dropTableStmt());
-      await prefs.setBool(PrefConstants().initialDbLoad, false);
+      await prefs.setBool(PrefConstant.initialDbLoad, false);
     }
 
     await db.execute(Measurement.createTableStmt());
@@ -63,7 +62,7 @@ class DBHelper {
 
       var prefs = await SharedPreferences.getInstance();
       var favouritePlaces =
-          prefs.getStringList(PrefConstants().favouritePlaces) ?? [];
+          prefs.getStringList(PrefConstant.favouritePlaces) ?? [];
 
       if (favouritePlaces.isEmpty) {
         return [];
@@ -219,7 +218,7 @@ class DBHelper {
 
   Future<Database> initDB() async {
     return await openDatabase(
-      join(await getDatabasesPath(), constants.dbName),
+      join(await getDatabasesPath(), AppConfig.dbName),
       version: 1,
       onCreate: (db, version) {
         createDefaultTables(db);
@@ -388,7 +387,7 @@ class DBHelper {
   Future<bool> updateFavouritePlaces(Site site) async {
     var prefs = await SharedPreferences.getInstance();
     var favouritePlaces =
-        prefs.getStringList(PrefConstants().favouritePlaces) ?? [];
+        prefs.getStringList(PrefConstant.favouritePlaces) ?? [];
 
     var name = site.id.trim().toLowerCase();
     if (favouritePlaces.contains(name)) {
@@ -404,7 +403,7 @@ class DBHelper {
       favouritePlaces.add(name);
     }
 
-    await prefs.setStringList(PrefConstants().favouritePlaces, favouritePlaces);
+    await prefs.setStringList(PrefConstant.favouritePlaces, favouritePlaces);
     return favouritePlaces.contains(name);
   }
 }

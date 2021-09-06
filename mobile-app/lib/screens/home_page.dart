@@ -29,7 +29,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final PageController _pageCtrl = PageController(initialPage: 0);
-  String title = appName;
+  String title = AppConfig.name;
   bool showAddPlace = true;
   DateTime? exitTime;
 
@@ -37,7 +37,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(title),
+        title: Text('${AppConfig.name}'),
         actions: [
           // showAddPlace
           //     ? IconButton(
@@ -89,7 +89,7 @@ class _HomePageState extends State<HomePage> {
                 child: ListTile(
                   leading: Icon(
                     Icons.favorite_outlined,
-                    color: ColorConstants().appColor,
+                    color: ColorConstants.appColor,
                   ),
                   title: const Text(
                     'MyPlaces',
@@ -102,7 +102,7 @@ class _HomePageState extends State<HomePage> {
                 child: ListTile(
                   leading: Icon(
                     Icons.camera_alt_outlined,
-                    color: ColorConstants().appColor,
+                    color: ColorConstants.appColor,
                   ),
                   title: const Text('Take a Photo'),
                 ),
@@ -112,7 +112,7 @@ class _HomePageState extends State<HomePage> {
                 child: ListTile(
                   leading: Icon(
                     Icons.settings,
-                    color: ColorConstants().appColor,
+                    color: ColorConstants.appColor,
                   ),
                   title: const Text(
                     'Settings',
@@ -125,7 +125,7 @@ class _HomePageState extends State<HomePage> {
               //   child: ListTile(
               //     leading: Icon(
               //       Icons.help_outline_outlined,
-              //       color: ColorConstants().appColor,
+              //       color: ColorConstants.appColor,
               //     ),
               //     title: Text(
               //       'Faqs',
@@ -137,7 +137,7 @@ class _HomePageState extends State<HomePage> {
               //   child: ListTile(
               //     leading: Icon(
               //       Icons.feedback_outlined,
-              //       color: ColorConstants().appColor,
+              //       color: ColorConstants.appColor,
               //     ),
               //     title: Text(
               //       'Feedback',
@@ -150,7 +150,7 @@ class _HomePageState extends State<HomePage> {
                 child: ListTile(
                   leading: Icon(
                     Icons.share_outlined,
-                    color: ColorConstants().appColor,
+                    color: ColorConstants.appColor,
                   ),
                   title: const Text(
                     'Share',
@@ -177,9 +177,8 @@ class _HomePageState extends State<HomePage> {
               IconButton(
                 // iconSize: 30.0,
                 // padding: const EdgeInsets.only(left: 28.0),
-                icon:
-                    Icon(Icons.home_outlined, color: ColorConstants().appColor),
-                splashColor: ColorConstants().appColor,
+                icon: Icon(Icons.home_outlined, color: ColorConstants.appColor),
+                splashColor: ColorConstants.appColor,
                 onPressed: () {
                   setState(() {
                     _pageCtrl.jumpToPage(0);
@@ -193,8 +192,8 @@ class _HomePageState extends State<HomePage> {
               //   // iconSize: 30.0,
               //   // autofocus: true,
               //   // padding: const EdgeInsets.only(right: 28.0),
-              //   icon: const Icon(Icons.stacked_bar_chart, color: ColorConstants().appColor),
-              //   splashColor: ColorConstants().appColor,
+              //   icon: const Icon(Icons.stacked_bar_chart, color: ColorConstants.appColor),
+              //   splashColor: ColorConstants.appColor,
               //   onPressed: () {
               //     setState(() {
               //       _pageCtrl.jumpToPage(1);
@@ -208,8 +207,8 @@ class _HomePageState extends State<HomePage> {
               //   // iconSize: 30.0,
               //   // padding: const EdgeInsets.only(left: 28.0),
               //   icon: const Icon(Icons.notifications_none_outlined,
-              //       color: ColorConstants().appColor),
-              //   splashColor: ColorConstants().appColor,
+              //       color: ColorConstants.appColor),
+              //   splashColor: ColorConstants.appColor,
               //   onPressed: () {
               //     setState(() {
               //       _pageCtrl.jumpToPage(2);
@@ -223,8 +222,8 @@ class _HomePageState extends State<HomePage> {
                 // iconSize: 30.0,
                 // padding: const EdgeInsets.only(right: 28.0),
                 icon: Icon(Icons.library_books_outlined,
-                    color: ColorConstants().appColor),
-                splashColor: ColorConstants().appColor,
+                    color: ColorConstants.appColor),
+                splashColor: ColorConstants.appColor,
                 onPressed: () {
                   setState(() {
                     _pageCtrl.jumpToPage(3);
@@ -269,7 +268,7 @@ class _HomePageState extends State<HomePage> {
         // width: 60.0,
         child: FittedBox(
           child: FloatingActionButton(
-            backgroundColor: ColorConstants().appColor,
+            backgroundColor: ColorConstants.appColor,
             onPressed: () {
               Navigator.push(context, MaterialPageRoute(builder: (context) {
                 return MapPage();
@@ -343,7 +342,7 @@ class _HomePageState extends State<HomePage> {
       showSnackBar(context, 'Tap again to exit !');
       // final snackBar = const SnackBar(
       //   content: Text('Tap again to exit !'),
-      //   backgroundColor: ColorConstants().appColor,
+      //   backgroundColor: ColorConstants.appColor,
       // );
       // ScaffoldMessenger.of(context).showSnackBar(snackBar);
 
@@ -356,7 +355,7 @@ class _HomePageState extends State<HomePage> {
     switch (int) {
       case 0:
         setState(() {
-          title = appName;
+          title = '${AppConfig.name}';
           showAddPlace = true;
         });
         break;
@@ -368,7 +367,7 @@ class _HomePageState extends State<HomePage> {
         break;
       default:
         setState(() {
-          title = appName;
+          title = '${AppConfig.name}';
           showAddPlace = true;
         });
         break;
@@ -423,7 +422,7 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _displayOnBoarding() async {
     var prefs = await SharedPreferences.getInstance();
-    var isFirstUse = prefs.getBool(PrefConstants().firstUse) ?? true;
+    var isFirstUse = prefs.getBool(PrefConstant.firstUse) ?? true;
 
     if (isFirstUse) {
       await Navigator.pushReplacement(context,

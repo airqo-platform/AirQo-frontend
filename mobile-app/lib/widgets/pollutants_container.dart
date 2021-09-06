@@ -22,7 +22,7 @@ class PollutantsSection extends StatelessWidget {
             softWrap: true,
             style: TextStyle(
                 fontSize: 20,
-                color: ColorConstants().appColor,
+                color: ColorConstants.appColor,
                 fontWeight: FontWeight.bold),
           ),
           Padding(
@@ -35,13 +35,13 @@ class PollutantsSection extends StatelessWidget {
                 ),
                 if (measurement.getPm2_5Value() != null)
                   PollutantCard('PM 2.5', measurement.getPm2_5Value(),
-                      '${PollutantConstants.pm2_5}'),
+                      '${PollutantConstant.pm2_5}'),
                 const Spacer(
                   flex: 1,
                 ),
                 if (measurement.getPm10Value() != null)
                   PollutantCard('PM 10', measurement.getPm10Value(),
-                      '${PollutantConstants.pm10}'),
+                      '${PollutantConstant.pm10}'),
                 const Spacer(
                   flex: 1,
                 ),
