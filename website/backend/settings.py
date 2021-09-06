@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/3.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
-
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -37,6 +37,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    #my apps
+    'frontend.apps.FrontendConfig',
 ]
 
 MIDDLEWARE = [
@@ -117,4 +120,24 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
-STATIC_URL = '/static/'
+# Static
+STATIC_HOST = os.getenv('WEB_STATIC_HOST', '')
+
+STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+
+# This is where collectstatic will put all the static files it gathers.  These should then
+# be served out from /static by the StaticFilesStorage
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
+# This is where the files will be collected from when running `collectstatic`.
+# From Django's perspective, this is the input location.
+STATICFILES_DIRS = [
+    'static_webpack',
+]
+
+if DEBUG:
+    STATIC_HOST = 'http://localhost:8081'  # Use webpack-dev-server on port 8081
+    STATICFILES_DIR = []  # type: Sequence[str]
+
+STATIC_URL = STATIC_HOST + '/static/'
+
