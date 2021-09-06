@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:app/constants/app_constants.dart';
-import 'package:app/services/notifications.dart';
+import 'package:app/services/local_notifications.dart';
 import 'package:app/widgets/change_language.dart';
 import 'package:app/widgets/change_theme.dart';
 import 'package:app/widgets/clear_app_data.dart';
@@ -28,7 +28,7 @@ class _SettingsPageState extends State<SettingsPage> {
   bool _morningForecast = false;
   bool _eveningForecast = false;
   Themes _theme = Themes.lightTheme;
-  final Notifications _notifications = Notifications();
+  final LocalNotifications _notifications = LocalNotifications();
 
   @override
   Widget build(BuildContext context) {

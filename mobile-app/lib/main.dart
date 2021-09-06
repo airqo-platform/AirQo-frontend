@@ -1,6 +1,8 @@
 import 'package:app/providers/LocalProvider.dart';
 import 'package:app/screens/home_page_v2.dart';
+import 'package:app/services/fb_notifications.dart';
 import 'package:app/services/local_storage.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -27,10 +29,14 @@ Future<void> main() async {
 
   WidgetsFlutterBinding.ensureInitialized();
 
-  // runApp(AirQoApp());
-
   final prefs = await SharedPreferences.getInstance();
   final themeController = ThemeController(prefs);
+
+  FirebaseMessaging.onBackgroundMessage(
+      FbNotifications().backgroundMessageHandler);
+
+  FirebaseMessaging.onMessage
+      .listen(FbNotifications().foregroundMessageHandler);
 
   runApp(AirQoApp(themeController: themeController));
 }

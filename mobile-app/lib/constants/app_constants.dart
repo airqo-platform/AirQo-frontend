@@ -188,6 +188,15 @@ class PollutantEffects {
   static String get s2_pm2_5 => _s2_pm2_5;
 }
 
+enum PollutantLevel {
+  good,
+  moderate,
+  sensitive,
+  unhealthy,
+  veryUnhealthy,
+  hazardous
+}
+
 class PollutantReduction {
   static final String _pm2_5 = 'Particulate matter contains microscopic '
       'solids or liquid droplets that are so small that they '
@@ -262,4 +271,25 @@ class PrefConstants {
   String get initialDbLoad => _initialDbLoad;
 }
 
+enum Status { none, running, stopped, paused }
+
 enum Themes { lightTheme, darkTheme }
+
+extension ParsePollutantLevel on PollutantLevel {
+  String getString() {
+    return toString().split('.').last;
+  }
+
+  List<PollutantLevel> getPolutantLevels() {
+    var pollutants = <PollutantLevel>[
+      PollutantLevel.good,
+      PollutantLevel.moderate,
+      PollutantLevel.sensitive,
+      PollutantLevel.unhealthy,
+      PollutantLevel.veryUnhealthy,
+      PollutantLevel.hazardous
+    ];
+
+    return pollutants;
+  }
+}
