@@ -406,4 +406,23 @@ class DBHelper {
     await prefs.setStringList(PrefConstant.favouritePlaces, favouritePlaces);
     return favouritePlaces.contains(name);
   }
+
+  Future<bool> updateSiteAlerts(Site site, PollutantLevel pollutantLevel)
+  async {
+    var prefs = await SharedPreferences.getInstance();
+    var preferredAlerts = prefs.getStringList(PrefConstant.siteAlerts) ?? [];
+
+    var topicName = site.getTopic(pollutantLevel);
+
+    if (preferredAlerts.contains(topicName)) {
+      while(preferredAlerts.contains(topicName)){
+        preferredAlerts.remove(topicName.trim().toLowerCase());
+      }
+    } else {
+      preferredAlerts.add(topicName.trim().toLowerCase());
+    }
+
+    await prefs.setStringList(PrefConstant.siteAlerts, preferredAlerts);
+    return preferredAlerts.contains(topicName);
+  }
 }

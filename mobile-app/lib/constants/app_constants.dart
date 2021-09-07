@@ -1,4 +1,5 @@
 import 'package:app/config/env.dart';
+import 'package:app/models/site.dart';
 import 'package:flutter/material.dart';
 
 class AppConfig {
@@ -177,6 +178,8 @@ class PrefConstant {
   static String get firstUse => 'firstUse';
 
   static String get initialDbLoad => 'initialDbLoad';
+
+  static String get siteAlerts => 'siteAlerts';
 }
 
 enum Status { none, running, stopped, paused }
@@ -186,6 +189,27 @@ enum Themes { lightTheme, darkTheme }
 extension ParsePollutantLevel on PollutantLevel {
   String getString() {
     return toString().split('.').last;
+  }
+
+  String getTopic(Site site, PollutantLevel pollutantLevel){
+    if(pollutantLevel == PollutantLevel.good) {
+      return '${site.id}-good';
+    } else if(pollutantLevel == PollutantLevel.moderate) {
+      return '${site.id}-moderate';
+    }
+    else if(pollutantLevel == PollutantLevel.sensitive) {
+      return '${site.id}-sensitive';
+    }
+    else if(pollutantLevel == PollutantLevel.unhealthy) {
+      return '${site.id}-unhealthy';
+    }
+    else if(pollutantLevel == PollutantLevel.veryUnhealthy) {
+      return '${site.id}-very-unhealthy';
+    }
+    else if(pollutantLevel == PollutantLevel.hazardous) {
+      return '${site.id}-hazardous';
+    }
+    return '';
   }
 
   List<PollutantLevel> getPollutantLevels() {

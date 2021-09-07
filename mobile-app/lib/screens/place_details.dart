@@ -19,7 +19,6 @@ import 'package:flutter/rendering.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import 'help_page.dart';
 
@@ -33,11 +32,17 @@ class PlaceDetailsPage extends StatefulWidget {
 }
 
 class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
+  var siteAlerts = <String>[];
   bool isFavourite = false;
+  bool hazardousAlerts = false;
+  bool unhealthyAlerts = false;
+  bool veryUnhealthyAlerts = false;
+  bool sensitiveAlerts = false;
 
   var measurementData;
   var historicalData = <HistoricalMeasurement>[];
   var forecastData = <Predict>[];
+
   var response = '';
   bool _showMenuButton = true;
   final ScrollController _scrollCtrl = ScrollController();
@@ -484,10 +489,36 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
   }
 
   Future<void> initialize() async {
+    await initializeNotifications();
     await dbFetch();
     await getMeasurements();
     await getHistoricalMeasurements();
     await getForecastMeasurements();
+  }
+
+  Future<void> initializeNotifications() async {
+    await SharedPreferences.getInstance().then((value) => {
+          if (mounted)
+            {
+              setState(() {
+                siteAlerts = value.getStringList(PrefConstant.siteAlerts) ?? [];
+                hazardousAlerts = siteAlerts
+                    .contains(site.getTopic(PollutantLevel.hazardous));
+                sensitiveAlerts = siteAlerts
+                    .contains(site.getTopic(PollutantLevel.sensitive));
+                unhealthyAlerts = siteAlerts
+                    .contains(site.getTopic(PollutantLevel.unhealthy));
+                veryUnhealthyAlerts = siteAlerts
+                    .contains(site.getTopic(PollutantLevel.veryUnhealthy));
+              })
+            }
+        });
+  }
+
+  void updateAlerts(dynamic pollutantLevel) async {
+    await DBHelper().updateSiteAlerts(site, pollutantLevel).then((_) => {
+          initializeNotifications(),
+        });
   }
 
   @override
@@ -592,6 +623,13 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
         _showMenuButton = true;
       });
     }
+  }
+
+  bool isChecked(PollutantLevel pollutantLevel) {
+    if (siteAlerts.contains(site.getTopic(pollutantLevel))) {
+      return true;
+    }
+    return false;
   }
 
   Future<void> updateFavouritePlace() async {
@@ -723,7 +761,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                       leading: Icon(Icons.notification_important_outlined,
                           color: ColorConstants.appColor),
                       title: Text(
-                        'Receive alerts when air quality is;',
+                        'Notify me when air quality is ;',
                         style: TextStyle(
                             color: ColorConstants.appColor,
                             fontWeight: FontWeight.w600),
@@ -734,18 +772,10 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                           color: Colors.transparent),
                       title: Text('unhealthy for sensitive groups',
                           style: TextStyle(color: ColorConstants.appColor)),
-                      trailing: Switch(
-                        value: true,
-                        activeColor: ColorConstants.appColor,
-                        activeTrackColor:
-                            ColorConstants.appColor.withOpacity(0.6),
-                        inactiveThumbColor: Colors.white,
-                        inactiveTrackColor: Colors.black12,
-                        onChanged: (bool value) {
-                          setState(() {
-                            // _dailyReports = value;
-                          });
-                        },
+                      trailing: PlaceMenuSwitch(
+                        switchValue: sensitiveAlerts,
+                        valueChanged: updateAlerts,
+                        pollutantLevel: PollutantLevel.sensitive,
                       ),
                     ),
                     ListTile(
@@ -753,18 +783,10 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                           color: Colors.transparent),
                       title: Text('unhealthy',
                           style: TextStyle(color: ColorConstants.appColor)),
-                      trailing: Switch(
-                        value: false,
-                        activeColor: ColorConstants.appColor,
-                        activeTrackColor:
-                            ColorConstants.appColor.withOpacity(0.6),
-                        inactiveThumbColor: Colors.white,
-                        inactiveTrackColor: Colors.black12,
-                        onChanged: (bool value) {
-                          setState(() {
-                            // _dailyReports = value;
-                          });
-                        },
+                      trailing: PlaceMenuSwitch(
+                        switchValue: unhealthyAlerts,
+                        valueChanged: updateAlerts,
+                        pollutantLevel: PollutantLevel.unhealthy,
                       ),
                     ),
                     ListTile(
@@ -772,18 +794,10 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                           color: Colors.transparent),
                       title: Text('very unhealthy',
                           style: TextStyle(color: ColorConstants.appColor)),
-                      trailing: Switch(
-                        value: true,
-                        activeColor: ColorConstants.appColor,
-                        activeTrackColor:
-                            ColorConstants.appColor.withOpacity(0.6),
-                        inactiveThumbColor: Colors.white,
-                        inactiveTrackColor: Colors.black12,
-                        onChanged: (bool value) {
-                          setState(() {
-                            // _weeklyReports = value;
-                          });
-                        },
+                      trailing: PlaceMenuSwitch(
+                        switchValue: veryUnhealthyAlerts,
+                        valueChanged: updateAlerts,
+                        pollutantLevel: PollutantLevel.veryUnhealthy,
                       ),
                     ),
                     ListTile(
@@ -791,19 +805,16 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                           color: Colors.transparent),
                       title: Text('hazardous',
                           style: TextStyle(color: ColorConstants.appColor)),
-                      trailing: Switch(
-                        value: false,
-                        activeColor: ColorConstants.appColor,
-                        activeTrackColor:
-                            ColorConstants.appColor.withOpacity(0.6),
-                        inactiveThumbColor: Colors.white,
-                        inactiveTrackColor: Colors.black12,
-                        onChanged: (bool value) {
-                          setState(() {
-                            // _monthlyReports = value;
-                          });
-                        },
+                      trailing: PlaceMenuSwitch(
+                        switchValue: hazardousAlerts,
+                        valueChanged: updateAlerts,
+                        pollutantLevel: PollutantLevel.hazardous,
                       ),
+                    ),
+                    Divider(
+                      indent: 30,
+                      endIndent: 30,
+                      color: ColorConstants.appColor,
                     ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -847,5 +858,46 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                 )),
               ));
         });
+  }
+}
+
+class PlaceMenuSwitch extends StatefulWidget {
+  PlaceMenuSwitch(
+      {required this.switchValue,
+      required this.valueChanged,
+      required this.pollutantLevel});
+
+  final bool switchValue;
+  final ValueChanged valueChanged;
+  final PollutantLevel pollutantLevel;
+
+  @override
+  _PlaceMenuSwitch createState() => _PlaceMenuSwitch();
+}
+
+class _PlaceMenuSwitch extends State<PlaceMenuSwitch> {
+  bool _switchValue = false;
+
+  @override
+  void initState() {
+    _switchValue = widget.switchValue;
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Switch(
+      value: _switchValue,
+      activeColor: ColorConstants.appColor,
+      activeTrackColor: ColorConstants.appColor.withOpacity(0.6),
+      inactiveThumbColor: Colors.white,
+      inactiveTrackColor: Colors.black12,
+      onChanged: (bool value) {
+        setState(() {
+          _switchValue = value;
+          widget.valueChanged(widget.pollutantLevel);
+        });
+      },
+    );
   }
 }

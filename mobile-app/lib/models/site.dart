@@ -1,3 +1,4 @@
+import 'package:app/constants/app_constants.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'site.g.dart';
@@ -137,4 +138,23 @@ class Sites {
   factory Sites.fromJson(Map<String, dynamic> json) => _$SitesFromJson(json);
 
   Map<String, dynamic> toJson() => _$SitesToJson(this);
+}
+
+extension ParseSite on Site {
+  String getTopic(PollutantLevel pollutantLevel) {
+    if (pollutantLevel == PollutantLevel.good) {
+      return '$id-good';
+    } else if (pollutantLevel == PollutantLevel.moderate) {
+      return '$id-moderate';
+    } else if (pollutantLevel == PollutantLevel.sensitive) {
+      return '$id-sensitive';
+    } else if (pollutantLevel == PollutantLevel.unhealthy) {
+      return '$id-unhealthy';
+    } else if (pollutantLevel == PollutantLevel.veryUnhealthy) {
+      return '$id-very-unhealthy';
+    } else if (pollutantLevel == PollutantLevel.hazardous) {
+      return '$id-hazardous';
+    }
+    return '';
+  }
 }
