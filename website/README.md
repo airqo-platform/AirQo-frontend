@@ -9,13 +9,13 @@
 
 ## Setting up the development environment on OSX
 
-### HomeBrew
+#### HomeBrew
 
 Install homebrew
 
     /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 
-### Direnv
+#### Direnv
 
 Install direnv on your local machine, and set it up so it works
 in your shell. These are the instructions for the (default) bash shell. If
@@ -35,7 +35,7 @@ For ZSH, add below to `~/.zshrc`
     eval "$(direnv hook zsh)"
 
 
-### PostgreSQL
+#### PostgreSQL
 
 The easiest way to install postgres on MacOS is through the [native app](https://postgresapp.com/downloads.html).
 
@@ -67,10 +67,80 @@ Stop the postgresql service using
     brew services stop postgresql@13.4  # if installed using homebrew
     or
     pg_ctl -D /usr/local/var/postgres stop  # if not installed using homebrew
+    
+## Setting up the development Environment on Linux
+**_NOTE_**:
 
+Currently the environment does not run well on Windows Bash / WSL ( Windows Subsystem for Linux ).
+There are too many issues with line terminators and other environment inconsistencies.
+
+The best option is to run "bare metal" Linux or dual boot. You can run Linux in a VM, but performance will suffer, buyer beware.
+
+#### Direnv
+
+Install direnv on your local machine, and set it up so it works
+in your shell. These are the instructions for the (default) bash shell. If
+you're using a different shell, you probably know where to configure it for
+yours or the check the [direnv setup page](https://direnv.net/docs/hook.html) for your shell:
+
+    sudo apt install direnv   # for Linux
+
+Then, add the following line to the end of your shell configuration file as follows:
+
+For BASH, add below to `.bashrc`
+
+    eval "$(direnv hook bash)"
+
+For ZSH, add below to `.zshrc`
+
+    eval "$(direnv hook zsh)"
+    
+#### PostgreSQL
+
+To use the apt repository, follow these steps:  
+
+    # Create the file repository configuration:
+    sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+
+    # Import the repository signing key:
+    wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+
+    # Update the package lists:
+    sudo apt-get update
+
+    # Install the latest version of PostgreSQL.
+    # If you want a specific version, use 'postgresql-12' or similar instead of 'postgresql':
+    sudo apt-get -y install postgresql
+
+#### Set up PostgreSQL
+
+After installed, run PostgreSQL to generate the initial data using
+
+    sudo service postgresql start
+or
+
+    sudo systemctl start postgresql
+    
+Now we need to create a new user in postgresql.
+
+    sudo su postgres
+    
+- open a postgresql shell using `psql`.
+- type `CREATE USER <YOURUSERNAME> CREATEDB;` where `<YOURUSERNAME>` matches your login / `whoami`
+- type `CREATE USER gitprime_app_user CREATEDB;`
+- type `ALTER USER <YOURUSERNAME> WITH SUPERUSER;` to give your user the super role.
+- then press enter and exit the shell with `\q`
+
+Stop the postgresql service using
+
+    sudo service postgresql stop
+or
+    
+    sudo systemctl stop postgresql
+    
 ## Running the Stack
 
-### AirQo Website
+#### AirQo Website
 
 Clone the AirQo repo
 
@@ -78,7 +148,7 @@ Clone the AirQo repo
 
 `cd` into the cloned `website` folder in the `AirQo-frontend`
 
-### Create the `.envrc` and `.env` files
+#### Create the `.envrc` and `.env` files
 
 In the `.envrc` file add the following code
 
@@ -99,7 +169,7 @@ Allow `direnv` to load the new changes
 
     direnv allow .
 
-### Install both `Python` and `node` requirements
+#### Install both `Python` and `node` requirements
 
 Python requirements
 
@@ -109,7 +179,7 @@ Node requirements
 
     npm install
 
-## Running the website app
+#### Running the website app
 
 Once properly setup, run the following in two separate terminals:
 
@@ -123,7 +193,7 @@ At this point you should be able to navigate to the local instance at http://loc
 
 ## Development Invoke Commands
 
-### Running servers
+#### Running servers
 
 Running django server
 
@@ -133,7 +203,7 @@ Running webpack dev-server
 
     inv webpack-server
 
-### Lint checks and auto fixing
+#### Lint checks and auto fixing
 
 Running `JS` lint checks
 
@@ -143,7 +213,7 @@ Auto fixing `JS` lint issues
 
     inv prettier-js
 
-### Static builds
+#### Static builds
 
 Running `Webpack` build (production)
 
