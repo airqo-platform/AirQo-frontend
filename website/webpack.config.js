@@ -3,7 +3,6 @@ const path = require('path');
 // const webpack = require('webpack');
 // const TerserPlugin = require('terser-webpack-plugin');
 
-
 const ROOT = path.resolve(__dirname, 'frontend');
 
 function stripLoaderConfig() {
@@ -16,7 +15,7 @@ function stripLoaderConfig() {
 }
 
 function compact(items) {
-    return items.filter(item => item);
+    return items.filter((item) => item);
 }
 
 function postCSSLoader() {
@@ -24,13 +23,8 @@ function postCSSLoader() {
         loader: 'postcss-loader',
         options: {
             postcssOptions: {
-                plugins: [
-                    [
-                        "postcss-preset-env",
-                        {}
-                    ]
-                ]
-            }
+                plugins: [['postcss-preset-env', {}]],
+            },
         },
     };
 }
@@ -38,7 +32,7 @@ function postCSSLoader() {
 const config = function () {
     const NODE_ENV = process.env.NODE_ENV || 'local';
 
-    let STATIC_DIR = 'frontend/static/frontend';
+    const STATIC_DIR = 'frontend/static/frontend';
 
     const DIST_DIR = path.resolve(__dirname, STATIC_DIR);
 
@@ -57,9 +51,9 @@ const config = function () {
             publicPath: `/${STATIC_DIR}/`,
         },
 
-         // webpack 5 comes with devServer which loads in development mode
+        // webpack 5 comes with devServer which loads in development mode
         devServer: {
-           port: 8081,
+            port: 8081,
             headers: { 'Access-Control-Allow-Origin': '*' },
             compress: true,
             hot: true,
@@ -104,7 +98,7 @@ const config = function () {
         },
 
         plugins: [],
-    }
-}
+    };
+};
 
 module.exports = config();
