@@ -130,9 +130,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 # This is where the files will be collected from when running `collectstatic`.
 # From Django's perspective, this is the input location.
-STATICFILES_DIRS = [
-    'static_webpack',
-]
+STATICFILES_DIRS = []
 
 if DEBUG:
     STATIC_HOST = 'http://localhost:8081'  # Use webpack-dev-server on port 8081
