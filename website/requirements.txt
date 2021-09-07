@@ -1,1 +1,5 @@
 django
+djangorestframework
+dj_database_url
+python-decouple
+psycopg2-binary
