@@ -138,7 +138,68 @@ or
     
     sudo systemctl stop postgresql
     
+## Setting up the development Environment on Windows
+**_NOTE_**:
+
+Currently the environment does not run well on Windows Bash / WSL ( Windows Subsystem for Linux ).
+There are too many issues with line terminators and other environment inconsistencies.
+
+We will have to configure the environment manually, `direnv` cant help us here.
+
+First install postgresql on windows [Postgresql Windows Installers](https://www.postgresql.org/download/windows/)
+
+#### Clone The Repo
+Clone the AirQo repo
+
+    git clone https://github.com/airqo-platform/AirQo-frontend.git
+
+`cd` into the cloned `website` folder in the `AirQo-frontend`
+
+#### Create Python Virtual Environment
+In your Windows command shell prompt type in
+
+    pip install virtualenv
+ 
+Create the virtual environment 
+  
+    virtualenv env
+    
+Activate the environment
+
+    \env\Scripts\activate.bat
+    
+**_NOTE_**:
+
+It is important at this point to add the path to the `node_modules` in the environment path variable. check [windows setting path](https://www.windows-commandline.com/set-path-command-line/)
+for more details.
+    
+#### Install both `Python` and `node` requirements
+
+Python requirements
+
+    pip install -r requirements.txt
+
+Node requirements
+
+    npm install
+
+#### Running the website app
+
+Once properly setup, run the following in two separate terminals:
+
+    # Terminal 1
+    inv run-web
+
+    # Terminal 2
+    inv webpack-server
+
+At this point you should be able to navigate to the local instance at http://localhost:8000/   
+ 
+    
 ## Running the Stack
+**_NOTE_**:
+
+This is continuation to `MacOS` and `linux` setup above. **Not applicable to `Windows` setup**.
 
 #### AirQo Website
 
