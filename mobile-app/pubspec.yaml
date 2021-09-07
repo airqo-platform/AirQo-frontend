@@ -53,6 +53,7 @@ dependencies:
   mime: ^1.0.0
   font_awesome_flutter: ^9.0.0
   firebase_messaging: ^10.0.6
+  firebase_core: ^1.6.0
 
 flutter_icons:
   android: "launcher_icon"

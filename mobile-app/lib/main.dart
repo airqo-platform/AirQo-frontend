@@ -2,6 +2,7 @@ import 'package:app/providers/LocalProvider.dart';
 import 'package:app/screens/home_page_v2.dart';
 import 'package:app/services/fb_notifications.dart';
 import 'package:app/services/local_storage.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -32,11 +33,11 @@ Future<void> main() async {
   final prefs = await SharedPreferences.getInstance();
   final themeController = ThemeController(prefs);
 
-  FirebaseMessaging.onBackgroundMessage(
-      FbNotifications().backgroundMessageHandler);
-
-  FirebaseMessaging.onMessage
-      .listen(FbNotifications().foregroundMessageHandler);
+  // FirebaseMessaging.onBackgroundMessage(
+  //     FbNotifications().backgroundMessageHandler);
+  //
+  // FirebaseMessaging.onMessage
+  //     .listen(FbNotifications().foregroundMessageHandler);
 
   runApp(AirQoApp(themeController: themeController));
 }
@@ -176,6 +177,9 @@ class SplashScreen extends StatefulWidget {
 }
 
 class SplashScreenState extends State<SplashScreen> {
+  bool _initialized = false;
+  bool _error = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -215,9 +219,23 @@ class SplashScreenState extends State<SplashScreen> {
     }
   }
 
+  void initializeFlutterFire() async {
+    try {
+      await Firebase.initializeApp().then((value) => {checkFirstUse()});
+      setState(() {
+        _initialized = true;
+      });
+    } catch (e) {
+      // Set `_error` state to true if Firebase initialization fails
+      setState(() {
+        _error = true;
+      });
+    }
+  }
+
   @override
   void initState() {
-    super.initState();
     checkFirstUse();
+    super.initState();
   }
 }

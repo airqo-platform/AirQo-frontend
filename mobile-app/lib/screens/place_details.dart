@@ -19,6 +19,7 @@ import 'package:flutter/rendering.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'help_page.dart';
 
@@ -175,43 +176,14 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                     ],
                   ),
                 ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: measurementData != null
           ? _showMenuButton
-              ? ExpandableFab(
-                  distance: 112.0,
-                  children: [
-                    ActionButton(
-                      onPressed: updateFavouritePlace,
-                      icon: isFavourite
-                          ? const Icon(
-                              Icons.favorite,
-                              color: Colors.red,
-                            )
-                          : const Icon(
-                              Icons.favorite_border_outlined,
-                            ),
-                    ),
-                    ActionButton(
-                      onPressed: () {
-                        shareMeasurement(measurementData);
-                      },
-                      icon: const Icon(Icons.share_outlined),
-                    ),
-                    ActionButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute<void>(
-                            builder: (BuildContext context) => const HelpPage(
-                              initialIndex: 0,
-                            ),
-                            fullscreenDialog: true,
-                          ),
-                        );
-                      },
-                      icon: const Icon(Icons.info_outline_rounded),
-                    ),
-                  ],
+              ? FloatingActionButton(
+                  backgroundColor: ColorConstants.appColor,
+                  onPressed: _placeMenu,
+                  // isExtended: true,
+                  child: const Icon(Icons.menu),
                 )
               : null
           : null,
@@ -309,6 +281,45 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
   void dispose() {
     _scrollCtrl.removeListener(() {});
     super.dispose();
+  }
+
+  Widget expandableMenu() {
+    return ExpandableFab(
+      distance: 112.0,
+      children: [
+        ActionButton(
+          onPressed: updateFavouritePlace,
+          icon: isFavourite
+              ? const Icon(
+                  Icons.favorite,
+                  color: Colors.red,
+                )
+              : const Icon(
+                  Icons.favorite_border_outlined,
+                ),
+        ),
+        ActionButton(
+          onPressed: () {
+            shareMeasurement(measurementData);
+          },
+          icon: const Icon(Icons.share_outlined),
+        ),
+        ActionButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute<void>(
+                builder: (BuildContext context) => const HelpPage(
+                  initialIndex: 0,
+                ),
+                fullscreenDialog: true,
+              ),
+            );
+          },
+          icon: const Icon(Icons.info_outline_rounded),
+        ),
+      ],
+    );
   }
 
   Widget forecastDataSection(List<Predict> measurements) {
@@ -647,6 +658,194 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
               ),
             ],
           );
+        });
+  }
+
+  void _placeMenu() {
+    showModalBottomSheet(
+        context: context,
+        builder: (context) {
+          return Container(
+              decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(20.0),
+                      topRight: Radius.circular(20.0))),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 30.0),
+                child: SingleChildScrollView(
+                    child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    ListTile(
+                      title: Text('${site.getName()}',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 20,
+                            color: ColorConstants.appColor,
+                            fontWeight: FontWeight.bold,
+                          )),
+                      trailing: Icon(
+                        Icons.close,
+                        color: ColorConstants.appColor,
+                      ),
+                      onTap: () {
+                        Navigator.pop(context);
+                      },
+                    ),
+                    ListTile(
+                      leading: isFavourite
+                          ? const Icon(
+                              Icons.favorite,
+                              color: Colors.red,
+                            )
+                          : Icon(Icons.favorite_border_outlined,
+                              color: ColorConstants.appColor),
+                      title: isFavourite
+                          ? Text(
+                              'Remove from myPlaces',
+                              style: TextStyle(
+                                  color: ColorConstants.appColor,
+                                  fontWeight: FontWeight.w600),
+                            )
+                          : Text(
+                              'Add to myPlaces',
+                              style: TextStyle(
+                                  color: ColorConstants.appColor,
+                                  fontWeight: FontWeight.w600),
+                            ),
+                      onTap: () {
+                        Navigator.pop(context);
+                        updateFavouritePlace();
+                      },
+                    ),
+                    ListTile(
+                      leading: Icon(Icons.notification_important_outlined,
+                          color: ColorConstants.appColor),
+                      title: Text(
+                        'Receive alerts when air quality is;',
+                        style: TextStyle(
+                            color: ColorConstants.appColor,
+                            fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.notification_important_outlined,
+                          color: Colors.transparent),
+                      title: Text('unhealthy for sensitive groups',
+                          style: TextStyle(color: ColorConstants.appColor)),
+                      trailing: Switch(
+                        value: true,
+                        activeColor: ColorConstants.appColor,
+                        activeTrackColor:
+                            ColorConstants.appColor.withOpacity(0.6),
+                        inactiveThumbColor: Colors.white,
+                        inactiveTrackColor: Colors.black12,
+                        onChanged: (bool value) {
+                          setState(() {
+                            // _dailyReports = value;
+                          });
+                        },
+                      ),
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.notification_important_outlined,
+                          color: Colors.transparent),
+                      title: Text('unhealthy',
+                          style: TextStyle(color: ColorConstants.appColor)),
+                      trailing: Switch(
+                        value: false,
+                        activeColor: ColorConstants.appColor,
+                        activeTrackColor:
+                            ColorConstants.appColor.withOpacity(0.6),
+                        inactiveThumbColor: Colors.white,
+                        inactiveTrackColor: Colors.black12,
+                        onChanged: (bool value) {
+                          setState(() {
+                            // _dailyReports = value;
+                          });
+                        },
+                      ),
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.notification_important_outlined,
+                          color: Colors.transparent),
+                      title: Text('very unhealthy',
+                          style: TextStyle(color: ColorConstants.appColor)),
+                      trailing: Switch(
+                        value: true,
+                        activeColor: ColorConstants.appColor,
+                        activeTrackColor:
+                            ColorConstants.appColor.withOpacity(0.6),
+                        inactiveThumbColor: Colors.white,
+                        inactiveTrackColor: Colors.black12,
+                        onChanged: (bool value) {
+                          setState(() {
+                            // _weeklyReports = value;
+                          });
+                        },
+                      ),
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.notification_important_outlined,
+                          color: Colors.transparent),
+                      title: Text('hazardous',
+                          style: TextStyle(color: ColorConstants.appColor)),
+                      trailing: Switch(
+                        value: false,
+                        activeColor: ColorConstants.appColor,
+                        activeTrackColor:
+                            ColorConstants.appColor.withOpacity(0.6),
+                        inactiveThumbColor: Colors.white,
+                        inactiveTrackColor: Colors.black12,
+                        onChanged: (bool value) {
+                          setState(() {
+                            // _monthlyReports = value;
+                          });
+                        },
+                      ),
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        IconButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            reportPlace(site, context);
+                          },
+                          icon: Icon(Icons.report_problem_outlined,
+                              color: ColorConstants.appColor),
+                        ),
+                        IconButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute<void>(
+                                builder: (BuildContext context) =>
+                                    const HelpPage(
+                                  initialIndex: 0,
+                                ),
+                                fullscreenDialog: true,
+                              ),
+                            );
+                          },
+                          icon: Icon(Icons.info_outline,
+                              color: ColorConstants.appColor),
+                        ),
+                        IconButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            shareMeasurement(measurementData);
+                          },
+                          icon: Icon(Icons.share_outlined,
+                              color: ColorConstants.appColor),
+                        ),
+                      ],
+                    ),
+                  ],
+                )),
+              ));
         });
   }
 }
