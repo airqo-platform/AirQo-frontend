@@ -1,7 +1,7 @@
 import React, { useState, useRef } from "react";
 import CopyIcon, { CopySuccessIcon } from "assets/img/CopyIcon";
 
-const Copyable = ({ value, className }) => {
+const Copyable = ({ value, className, width, format }) => {
   const copyRef = useRef();
   const [copied, setCopied] = useState(false);
 
@@ -32,7 +32,7 @@ const Copyable = ({ value, className }) => {
       <span
         ref={copyRef}
         style={{
-          width: "200px",
+          width: width || "200px",
           textOverflow: "ellipsis",
           whiteSpace: "nowrap",
           overflow: "hidden",
