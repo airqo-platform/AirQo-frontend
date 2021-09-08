@@ -7,17 +7,12 @@ part of 'predict.dart';
 // **************************************************************************
 
 Predict _$PredictFromJson(Map<String, dynamic> json) {
-  $checkKeys(json, requiredKeys: const [
-    'prediction_time',
-    'prediction_value',
-    'lower_ci',
-    'upper_ci'
-  ]);
+  $checkKeys(json, requiredKeys: const ['prediction_time', 'prediction_value']);
   return Predict(
     value: (json['prediction_value'] as num).toDouble(),
-    lower: (json['lower_ci'] as num).toDouble(),
+    lower: (json['lower_ci'] as num?)?.toDouble() ?? 0.0,
     time: json['prediction_time'] as String,
-    upper: (json['upper_ci'] as num).toDouble(),
+    upper: (json['upper_ci'] as num?)?.toDouble() ?? 0.0,
   );
 }
 

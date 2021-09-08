@@ -4,6 +4,10 @@ part 'feedback.g.dart';
 
 @JsonSerializable()
 class UserFeedback {
+  String email = '';
+
+  String feedback;
+
   UserFeedback({
     required this.email,
     required this.feedback,
@@ -13,7 +17,4 @@ class UserFeedback {
       _$UserFeedbackFromJson(json);
 
   Map<String, dynamic> toJson() => _$UserFeedbackToJson(this);
-
-  String email;
-  String feedback;
 }
