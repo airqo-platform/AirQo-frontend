@@ -1,8 +1,9 @@
 import React from "react";
 import { Map, Marker, Popup, TileLayer } from "react-leaflet";
 import { ChartContainer } from "views/charts";
+import Copyable from "views/components/Copy/Copyable";
 
-const DeviceLocation = ({deviceData}) => {
+const DeviceLocation = ({ deviceData }) => {
   return (
     <ChartContainer title={"device location"} green centerItems>
       {deviceData.latitude && deviceData.longitude ? (
@@ -16,7 +17,11 @@ const DeviceLocation = ({deviceData}) => {
           <Marker position={[deviceData.latitude, deviceData.longitude]}>
             <Popup>
               <span>
-                <span>{deviceData.name}</span>
+                <Copyable
+                  width={"120px"}
+                  value={`${deviceData.latitude}, ${deviceData.longitude}`}
+                  format={"[latitude, longitude]"}
+                />
               </span>
             </Popup>
           </Marker>
