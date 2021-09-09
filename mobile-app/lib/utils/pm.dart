@@ -12,7 +12,7 @@ List<Recommendation> getHealthRecommendations(double pm2_5) {
   if (pm2_5 <= 12.09) {
     //good
     recommendations
-      ..add(Recommendation('Consider taking young ones out to playfor babies.',
+      ..add(Recommendation('Consider taking young ones out to play.',
           'assets/images/baby.png', ColorConstants.green.withOpacity(0.2)))
       ..add(Recommendation('Take some time and do outdoor activities.',
           'assets/images/jogging.png', ColorConstants.green.withOpacity(0.2)));

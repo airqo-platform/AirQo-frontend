@@ -78,7 +78,7 @@ class _MeasurementsBarChartState extends State<MeasurementsBarChart> {
             ),
           Container(
             color: Colors.white,
-            height: 300,
+            height: 200,
             padding: const EdgeInsets.fromLTRB(5, 10, 5, 10),
             child: charts.TimeSeriesChart(
               widget.seriesList,

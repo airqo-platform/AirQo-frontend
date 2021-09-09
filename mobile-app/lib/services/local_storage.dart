@@ -101,8 +101,6 @@ class DBHelper {
       var res = await db.query(Predict.forecastDb(),
           where: '${Site.dbId()} = ?', whereArgs: [siteId]);
 
-      print('Got ${res.length} predict measurements from db');
-
       return res.isNotEmpty
           ? List.generate(res.length, (i) {
               return Predict.fromJson(Predict.mapFromDb(res[i]));
@@ -122,8 +120,6 @@ class DBHelper {
       var res = await db.query(HistoricalMeasurement.historicalMeasurementsDb(),
           where: '${Site.dbId()} = ?', whereArgs: [siteId]);
 
-      print('Got ${res.length} historical measurements from db');
-
       return res.isNotEmpty
           ? List.generate(res.length, (i) {
               return HistoricalMeasurement.fromJson(
@@ -138,13 +134,10 @@ class DBHelper {
 
   Future<List<Measurement>> getLatestMeasurements() async {
     try {
-      print('Getting measurements from local db');
 
       final db = await database;
 
       var res = await db.query(Measurement.latestMeasurementsDb());
-
-      print('Got ${res.length} measurements from local db');
 
       return res.isNotEmpty
           ? List.generate(res.length, (i) {
@@ -180,8 +173,6 @@ class DBHelper {
 
       var res = await db.query(Suggestion.dbName());
 
-      print('Got ${res.length} search history from local db');
-
       var history = res.isNotEmpty
           ? List.generate(res.length, (i) {
               return Suggestion.fromJson(res[i]);
@@ -199,8 +190,6 @@ class DBHelper {
     try {
       final db = await database;
       var res = await db.query(Site.sitesDbName());
-
-      print('Got ${res.length} sites from local db');
 
       var sites = res.isNotEmpty
           ? List.generate(res.length, (i) {
@@ -336,7 +325,6 @@ class DBHelper {
       List<HistoricalMeasurement> measurements, String siteId) async {
     try {
       final db = await database;
-      print('inserting historical data');
 
       if (measurements.isNotEmpty) {
         await db.delete(HistoricalMeasurement.historicalMeasurementsDb(),

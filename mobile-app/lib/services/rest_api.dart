@@ -43,8 +43,8 @@ class AirqoApiClient {
 
         return compute(Predict.parsePredictions, jsonBody);
       } else {
-        print('Unexpected status code ${response.statusCode}:'
-            ' ${response.reasonPhrase}');
+        // print('Unexpected status code ${response.statusCode}:'
+        //     ' ${response.reasonPhrase}');
         // print('Body ${response.body}:');
         // print('uri: ${AirQoUrls().forecast}');
         return <Predict>[];
@@ -53,8 +53,8 @@ class AirqoApiClient {
       await showSnackBar(context, ErrorMessages.socketException);
     } on TimeoutException {
       await showSnackBar(context, ErrorMessages.timeoutException);
-    } on Error catch (e) {
-      print('Get Forecast error: $e');
+    } on Error {
+      print('Not Forecast information');
     }
 
     return <Predict>[];
@@ -108,7 +108,7 @@ class AirqoApiClient {
       if (responseBody != null) {
         return compute(Measurement.parseMeasurements, responseBody);
       } else {
-        print('Measurements are null');
+        // print('Measurements are null');
         return <Measurement>[];
       }
     } on Error catch (e) {
@@ -145,11 +145,11 @@ class AirqoApiClient {
       if (responseBody != null) {
         return compute(Measurement.parseMeasurements, responseBody);
       } else {
-        print('Latest sites Measurements are null');
+        // print('Latest sites Measurements are null');
         return <Measurement>[];
       }
-    } on Error catch (e) {
-      print('Get Latest measurements for specific sites error: $e');
+    } on Error {
+      // print('Get Latest measurements for specific sites error: $e');
     }
 
     return <Measurement>[];
@@ -185,11 +185,11 @@ class AirqoApiClient {
       if (responseBody != null) {
         return compute(HistoricalMeasurement.parseMeasurements, responseBody);
       } else {
-        print('Measurements are null');
+        // print('Measurements are null');
         return <HistoricalMeasurement>[];
       }
-    } on Error catch (e) {
-      print('Get site historical measurements error: $e');
+    } on Error {
+      // print('Get site historical measurements error: $e');
     }
 
     return <HistoricalMeasurement>[];
@@ -210,11 +210,11 @@ class AirqoApiClient {
       if (responseBody != null) {
         return compute(Measurement.parseMeasurement, responseBody);
       } else {
-        print('Site latest measurements are null');
+        // print('Site latest measurements are null');
         throw Exception('site does not exist');
       }
-    } on Error catch (e) {
-      print('Get site latest measurements error: $e');
+    } on Error {
+      // print('Get site latest measurements error: $e');
       throw Exception('site does not exist');
     }
   }

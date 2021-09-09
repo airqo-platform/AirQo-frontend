@@ -351,7 +351,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
 
   Widget forecastDataSection(List<Predict> measurements) {
     var forecastData = predictChartData(measurements);
-    return MeasurementsBarChart(forecastData, '24 hour Forecast');
+    return MeasurementsBarChart(forecastData, 'Forecast');
   }
 
   Future<void> getForecastMeasurements() async {
@@ -387,8 +387,6 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
           forecastResponse = 'Forecast data is currently not available.';
         });
       }
-
-      print('Getting Forecast events error: $e');
     }
   }
 
@@ -425,7 +423,6 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
           historicalResponse = 'Historical data is currently not available.';
         });
       }
-      print('Getting site historical events error: $e');
     }
   }
 
@@ -443,8 +440,6 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                 if (measurementData != null) {checkFavourite()}
               });
     } catch (e) {
-      print('Getting site latest events error: $e');
-
       var message = 'Sorry, air quality data currently is not available';
 
       if (mounted) {
@@ -507,7 +502,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
 
   Widget historicalDataSection(List<HistoricalMeasurement> measurements) {
     var formattedData = historicalChartData(measurements);
-    return MeasurementsBarChart(formattedData, '48 hour History');
+    return MeasurementsBarChart(formattedData, 'History');
   }
 
   Future<void> initialize() async {

@@ -19,6 +19,8 @@ class LocationSearch extends SearchDelegate<Suggestion> {
 
   bool _showAllSites = false;
 
+  var searchHistory = <Suggestion>[];
+
   LocationSearch() {
     searchApiClient = SearchApi(const Uuid().v4());
   }
@@ -296,8 +298,11 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                     ),
                     trailing: GestureDetector(
                       onTap: () {
-                        DBHelper().deleteSearchHistory(results[index]);
-                        query = '';
+                        DBHelper().deleteSearchHistory(results[index])
+                            .then((value) =>
+                        {
+                        query = ''
+                        });
                       },
                       child: Icon(
                         Icons.delete_outlined,

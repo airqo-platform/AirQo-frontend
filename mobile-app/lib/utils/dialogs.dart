@@ -47,7 +47,7 @@ Future<void> showSnackBar(context, String message) async {
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(10),
     ),
-    elevation: 20,
+    elevation: 10,
     behavior: SnackBarBehavior.floating,
     content: Text(
       message,

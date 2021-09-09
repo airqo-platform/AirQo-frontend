@@ -104,6 +104,7 @@ class AirQoApp extends StatelessWidget {
               final provider = Provider.of<LocaleProvider>(context);
 
               return MaterialApp(
+                debugShowCheckedModeBanner: false,
                 localizationsDelegates: [
                   CustomLocalizations.delegate,
                   GlobalMaterialLocalizations.delegate,

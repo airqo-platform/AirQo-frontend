@@ -93,7 +93,6 @@ class _AirQualityCardState extends State<AirQualityCard> {
                     style: TextStyle(
                       fontSize: 13,
                       color: ColorConstants.appColor,
-                      fontStyle: FontStyle.italic,
                     )),
               ],
             ),
