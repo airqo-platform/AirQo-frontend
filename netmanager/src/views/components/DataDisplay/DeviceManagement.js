@@ -15,13 +15,11 @@ import { isEmpty, mapObject, omit, values } from "underscore";
 import Map from "./Map/Map";
 import {
   useDevicesStatusData,
-  useDevicesUptimeData,
   useNetworkUptimeData,
 } from "redux/DeviceManagement/selectors";
 import {
   loadDevicesStatusData,
   loadNetworkUptimeData,
-  loadDevicesUptimeData,
 } from "redux/DeviceManagement/operations";
 import { multiFilter } from "utils/filters";
 import { createBarChartData, ApexTimeSeriesData } from "utils/charts";
@@ -35,6 +33,7 @@ import {
 import { roundToStartOfDay, roundToEndOfDay } from "utils/dateTime";
 
 import { SortAscendingIcon, SortDescendingIcon } from "assets/img";
+import { useDeviceUptimeLeaderboard } from "utils/customHooks";
 
 // css style
 import "chartjs-plugin-annotation";
@@ -123,8 +122,8 @@ export default function DeviceManagement() {
   const history = useHistory();
   const location = useLocation();
   const devicesStatusData = useDevicesStatusData();
-  const allDevicesUptimeData = useDevicesUptimeData();
   const networkUptimeData = useNetworkUptimeData();
+  const leaderboardData = useDeviceUptimeLeaderboard();
   const dispatch = useDispatch();
   const [devicesUptime, setDevicesUptime] = useState([]);
   const [showBarChart, setShowBarChart] = useState(false);
@@ -188,36 +187,21 @@ export default function DeviceManagement() {
     setDeviceFilters(toggleDeviceFilter(key));
   };
 
-  const calculateAverageUptime = (devicesUptime) => {
-    const keys = Object.keys(devicesUptime);
-    const averageUptime = [];
-    keys.map((deviceName) => {
-      const deviceUptime = devicesUptime[deviceName];
-      let uptimeSum = 0;
-      deviceUptime.map((uptime) => {
-        uptimeSum += uptime.uptime;
-      });
-      averageUptime.push({
-        deviceName,
-        uptime: uptimeSum / deviceUptime.length,
-      });
-    });
-
+  const sortLeaderBoardData = (leaderboardData) => {
     const sortByName = (device1, device2) => {
-      if (device1.deviceName.toLowerCase() > device2.deviceName.toLowerCase())
+      if (device1.device_name.toLowerCase() > device2.device_name.toLowerCase())
         return 1;
-      if (device1.deviceName.toLowerCase() < device2.deviceName.toLowerCase())
+      if (device1.device_name.toLowerCase() < device2.device_name.toLowerCase())
         return -1;
       return 0;
     };
 
     // reverse sorting
-    averageUptime.sort((device1, device2) => {
+    return leaderboardData.sort((device1, device2) => {
       if (device1.uptime < device2.uptime) return 1;
       if (device1.uptime > device2.uptime) return -1;
       return sortByName(device1, device2);
     });
-    return averageUptime;
   };
 
   const handleNetworkUptimeClick = () => {
@@ -305,16 +289,6 @@ export default function DeviceManagement() {
       );
     }
 
-    if (isEmpty(allDevicesUptimeData)) {
-      dispatch(
-        loadDevicesUptimeData({
-          startDate: roundToStartOfDay(
-            moment(new Date()).subtract(28, "days").toISOString()
-          ).toISOString(),
-          endDate: roundToEndOfDay(new Date().toISOString()).toISOString(),
-        })
-      );
-    }
     dispatch(updateDeviceBackUrl(location.pathname));
   }, []);
 
@@ -358,9 +332,9 @@ export default function DeviceManagement() {
   }, [devicesStatusData]);
 
   useEffect(() => {
-    setDevicesUptime(calculateAverageUptime(allDevicesUptimeData));
+    setDevicesUptime(sortLeaderBoardData(leaderboardData));
     setDevicesUptimeDescending(true);
-  }, [allDevicesUptimeData]);
+  }, [leaderboardData]);
 
   const series = [
     {
@@ -472,7 +446,7 @@ export default function DeviceManagement() {
               <span>downtime (%)</span>
               <span>uptime (%)</span>
             </div>
-            {devicesUptime.map(({ deviceName, uptime }, index) => {
+            {devicesUptime.map(({ device_name, uptime }, index) => {
               uptime = uptime <= 100 ? uptime : 100;
               const style =
                 uptime >= 80
@@ -483,10 +457,10 @@ export default function DeviceManagement() {
               return (
                 <div
                   className={`m-device-uptime-row`}
-                  key={`device-${deviceName}-${index}`}
-                  onClick={() => history.push(`/device/${deviceName}/overview`)}
+                  key={`device-${device_name}-${index}`}
+                  onClick={() => history.push(`/device/${device_name}/overview`)}
                 >
-                  <span>{deviceName}</span>
+                  <span>{device_name}</span>
                   <span>{(100 - uptime).toFixed(2)}</span>
                   <span className={`${style}`}>{uptime.toFixed(2)}</span>
                 </div>
