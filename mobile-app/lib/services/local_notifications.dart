@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:app/constants/app_constants.dart';
+import 'package:app/models/topicData.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
@@ -225,7 +226,7 @@ class LocalNotifications {
         payload: 'Destination Screen(Schedule Notification)');
   }
 
-  Future<void> showSimpleNotification() async {
+  Future<void> showSimpleNotification(AppNotification notification) async {
     var androidDetails = const AndroidNotificationDetails(
         'id', 'channel ', 'description',
         priority: Priority.high, importance: Importance.max);
@@ -233,7 +234,7 @@ class LocalNotifications {
     var platformDetails =
         NotificationDetails(android: androidDetails, iOS: iOSDetails);
     await flutterLocalNotificationsPlugin.show(
-        0, 'AirQo', 'Simple Notification', platformDetails,
+        notification.id, notification.title, notification.body, platformDetails,
         payload: 'Destination Screen (Simple Notification)');
   }
 

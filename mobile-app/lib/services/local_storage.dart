@@ -10,6 +10,8 @@ import 'package:path/path.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 
+import 'fb_notifications.dart';
+
 class DBHelper {
   var _database;
 
@@ -415,14 +417,19 @@ class DBHelper {
     var topicName = site.getTopic(pollutantLevel);
 
     if (preferredAlerts.contains(topicName)) {
+
+      await FbNotifications().unSubscribeFromSite(site, pollutantLevel);
       while(preferredAlerts.contains(topicName)){
         preferredAlerts.remove(topicName.trim().toLowerCase());
       }
+
     } else {
+      await FbNotifications().subscribeToSite(site, pollutantLevel);
       preferredAlerts.add(topicName.trim().toLowerCase());
     }
 
     await prefs.setStringList(PrefConstant.siteAlerts, preferredAlerts);
+
     return preferredAlerts.contains(topicName);
   }
 }

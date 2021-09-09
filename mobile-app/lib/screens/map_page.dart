@@ -490,7 +490,7 @@ class MapPageState extends State<MapPage> {
                     Padding(
                       padding: const EdgeInsets.fromLTRB(0, 0, 5, 0),
                       child: Text(
-                        dateToString(windowProperties.time, true),
+                        dateToString(windowProperties.title, true),
                         style: TextStyle(
                             color:
                                 pmTextColor(windowProperties.getPm2_5Value())),
@@ -596,7 +596,7 @@ class MapPageState extends State<MapPage> {
                               fontWeight: FontWeight.bold, color: Colors.white),
                         ),
                         Text(
-                          dateToString(windowProperties.time, true),
+                          dateToString(windowProperties.title, true),
                           style: const TextStyle(
                               fontSize: 17, color: Colors.white),
                         ),

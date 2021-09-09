@@ -33,11 +33,11 @@ Future<void> main() async {
   final prefs = await SharedPreferences.getInstance();
   final themeController = ThemeController(prefs);
 
-  // FirebaseMessaging.onBackgroundMessage(
-  //     FbNotifications().backgroundMessageHandler);
-  //
-  // FirebaseMessaging.onMessage
-  //     .listen(FbNotifications().foregroundMessageHandler);
+  FirebaseMessaging.onBackgroundMessage(
+      FbNotifications().backgroundMessageHandler);
+
+  FirebaseMessaging.onMessage
+      .listen(FbNotifications().foregroundMessageHandler);
 
   runApp(AirQoApp(themeController: themeController));
 }
@@ -177,8 +177,6 @@ class SplashScreen extends StatefulWidget {
 }
 
 class SplashScreenState extends State<SplashScreen> {
-  bool _initialized = false;
-  bool _error = false;
 
   @override
   Widget build(BuildContext context) {
@@ -221,21 +219,18 @@ class SplashScreenState extends State<SplashScreen> {
 
   void initializeFlutterFire() async {
     try {
-      await Firebase.initializeApp().then((value) => {checkFirstUse()});
-      setState(() {
-        _initialized = true;
-      });
+      await Firebase.initializeApp();
     } catch (e) {
-      // Set `_error` state to true if Firebase initialization fails
-      setState(() {
-        _error = true;
-      });
+      print(e);
+    }
+    finally{
+      await checkFirstUse();
     }
   }
 
   @override
   void initState() {
-    checkFirstUse();
+    initializeFlutterFire();
     super.initState();
   }
 }

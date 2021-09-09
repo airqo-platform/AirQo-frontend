@@ -200,6 +200,36 @@ String pmToString(double pm2_5) {
   }
 }
 
+String pmHealthRecommendation(double pm2_5) {
+  if (pm2_5 <= 12.09) {
+    //good
+    return 'Air quality is good for everyone.';
+  } else if (pm2_5 >= 12.1 && pm2_5 <= 35.49) {
+    //moderate
+    return 'Unusually sensitive people consider reducing '
+        'prolonged or heavy exertion.';
+  } else if (pm2_5 >= 35.5 && pm2_5 <= 55.49) {
+    //sensitive
+    return 'People with asthma should follow their asthma action'
+        ' plans and keep quick relief medicine handy.';
+  } else if (pm2_5 >= 55.5 && pm2_5 <= 150.49) {
+    // unhealthy
+    return 'Sensitive people should avoid prolonged or heavy exertion. '
+        'Consider moving activities indoors or rescheduling.';
+  } else if (pm2_5 >= 150.5 && pm2_5 <= 250.49) {
+    // very unhealthy
+    return 'Move activities indoors or reschedule to a time when air '
+        'quality is better.';
+  } else if (pm2_5 >= 250.5) {
+    // hazardous
+    return 'Sensitive people should remain indoors and keep activity '
+        'levels low. '
+        'Follow tips for keeping particle levels low indoors.';
+  } else {
+    return '';
+  }
+}
+
 Pollutant pollutantDetails(String pollutantConstant) {
   pollutantConstant = pollutantConstant.trim();
 
