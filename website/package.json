@@ -1,0 +1,40 @@
+{
+    "name": "website",
+    "version": "1.0.0",
+    "description": "AirQo website",
+    "main": "index.js",
+    "scripts": {
+        "serve": "webpack serve --config webpack.dev.config.js --mode development",
+        "standalone": "webpack serve --config webpack.fullapp.config.js --mode development --open",
+        "build": "webpack --mode production"
+    },
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "react": "^17.0.2",
+        "react-dom": "^17.0.2"
+    },
+    "devDependencies": {
+        "@babel/core": "^7.15.5",
+        "@babel/preset-env": "^7.15.4",
+        "@babel/preset-react": "^7.14.5",
+        "babel-loader": "^8.2.2",
+        "css-loader": "^6.2.0",
+        "eslint": "^7.32.0",
+        "eslint-config-airbnb": "^18.2.1",
+        "eslint-plugin-import": "^2.24.2",
+        "eslint-plugin-jsx-a11y": "^6.4.1",
+        "eslint-plugin-react": "^7.25.1",
+        "eslint-plugin-react-hooks": "^4.2.0",
+        "file-loader": "^6.2.0",
+        "html-webpack-plugin": "^5.3.2",
+        "postcss": "^8.3.6",
+        "postcss-loader": "^6.1.1",
+        "postcss-preset-env": "^6.7.0",
+        "prettier": "^2.3.2",
+        "style-loader": "^3.2.1",
+        "webpack": "^5.52.0",
+        "webpack-cli": "^4.8.0",
+        "webpack-dev-server": "^4.1.0"
+    }
+}
