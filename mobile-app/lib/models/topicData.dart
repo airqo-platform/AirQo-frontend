@@ -5,7 +5,6 @@ part 'topicData.g.dart';
 
 @JsonSerializable()
 class TopicData {
-
   @JsonKey(required: true)
   final String message;
 
@@ -18,20 +17,18 @@ class TopicData {
       _$TopicDataFromJson(json);
 
   Map<String, dynamic> toJson() => _$TopicDataToJson(this);
-
 }
 
-extension ParseAppNotification on AppNotification{
-  bool isEmpty(){
-    if(body == '' || id == 0) {
+extension ParseAppNotification on AppNotification {
+  bool isEmpty() {
+    if (body == '' || id == 0) {
       return true;
     }
 
     return false;
   }
 
-  AppNotification composeNotification(RemoteMessage message){
-
+  AppNotification composeNotification(RemoteMessage message) {
     print('Message data: ${message.data}');
 
     var data = message.data;
@@ -39,27 +36,21 @@ extension ParseAppNotification on AppNotification{
     var notificationMessage = AppNotification();
 
     if (notification != null && notification.body != null) {
-
       print('Message also contained a notification: ${message.notification}');
       var title = notification.title ?? 'Air Quality Alert';
       var body = notification.body ?? '';
       var id = notification.hashCode;
 
       notificationMessage = AppNotification()
-      ..id = id
-      ..body = body
-      ..title = title;
-    }
-
-    else if(data.isNotEmpty){
-
-    }
-
-    else{
+        ..id = id
+        ..body = body
+        ..title = title;
+    } else if (data.isNotEmpty) {
+    } else {
       throw Exception('');
     }
 
-    if(notificationMessage.isEmpty()){
+    if (notificationMessage.isEmpty()) {
       throw Exception('');
     }
 
@@ -67,11 +58,8 @@ extension ParseAppNotification on AppNotification{
   }
 }
 
-
 class AppNotification {
-
   String title = 'AirQo';
   String body = '';
   int id = 0;
-
 }

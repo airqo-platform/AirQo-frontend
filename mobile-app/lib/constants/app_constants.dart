@@ -87,6 +87,10 @@ class PollutantConstant {
   static String get pm10 => 'pm10';
 
   static String get pm2_5 => 'pm2_5';
+
+  static String get temperature => 'temperature';
+
+  static String get humidity => 'humidity';
 }
 
 class PollutantDescription {

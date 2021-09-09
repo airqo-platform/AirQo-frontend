@@ -86,6 +86,12 @@ flutter:
     - assets/images/historical.png
     - assets/images/map.png
     - assets/images/target.png
+    - assets/images/baby.png
+    - assets/images/cycling.png
+    - assets/images/face-mask.png
+    - assets/images/jogging.png
+    - assets/images/old.png
+    - assets/images/pregnant-woman.png
 
    # icons
     - assets/icon/airqo_logo.png

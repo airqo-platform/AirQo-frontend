@@ -11,6 +11,7 @@ import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/pm.dart';
 import 'package:app/utils/share.dart';
 import 'package:app/widgets/expanding_action_button.dart';
+import 'package:app/widgets/health_recommendation.dart';
 import 'package:app/widgets/measurements_chart.dart';
 import 'package:app/widgets/pollutants_container.dart';
 import 'package:flutter/foundation.dart';
@@ -95,6 +96,11 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
 
                   // Pollutants
                   PollutantsSection(measurementData),
+
+                  // Recommendations
+                  HealthRecommendationSection(
+                    measurement: measurementData,
+                  ),
 
                   // historicalData
                   historicalData != null && historicalData.isNotEmpty
