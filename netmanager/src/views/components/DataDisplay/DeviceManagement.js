@@ -24,6 +24,8 @@ import {
 import { multiFilter } from "utils/filters";
 import { createBarChartData, ApexTimeSeriesData } from "utils/charts";
 import { updateDeviceBackUrl } from "redux/Urls/operations";
+import { loadDevicesData } from "redux/DeviceRegistry/operations";
+import { useDevicesData } from "redux/DeviceRegistry/selectors";
 import {
   ApexChart,
   ChartContainer,
@@ -124,6 +126,7 @@ export default function DeviceManagement() {
   const devicesStatusData = useDevicesStatusData();
   const networkUptimeData = useNetworkUptimeData();
   const leaderboardData = useDeviceUptimeLeaderboard();
+  const allDevices = useDevicesData();
   const dispatch = useDispatch();
   const [devicesUptime, setDevicesUptime] = useState([]);
   const [showBarChart, setShowBarChart] = useState(false);
@@ -189,9 +192,9 @@ export default function DeviceManagement() {
 
   const sortLeaderBoardData = (leaderboardData) => {
     const sortByName = (device1, device2) => {
-      if (device1.device_name.toLowerCase() > device2.device_name.toLowerCase())
+      if (device1.long_name.toLowerCase() > device2.long_name.toLowerCase())
         return 1;
-      if (device1.device_name.toLowerCase() < device2.device_name.toLowerCase())
+      if (device1.long_name.toLowerCase() < device2.long_name.toLowerCase())
         return -1;
       return 0;
     };
@@ -202,6 +205,24 @@ export default function DeviceManagement() {
       if (device1.uptime > device2.uptime) return -1;
       return sortByName(device1, device2);
     });
+  };
+
+  const patchLeaderboardData = (leaderboardData) => {
+    if (isEmpty(allDevices)) return [];
+    const patched = [];
+
+    leaderboardData.map((data) => {
+      const device_data = allDevices[data.device_name];
+      let { long_name, isActive } = device_data;
+
+      long_name = long_name || data.device_name;
+
+      if (isActive) {
+        patched.push({ ...data, long_name });
+      }
+    });
+
+    return sortLeaderBoardData(patched);
   };
 
   const handleNetworkUptimeClick = () => {
@@ -289,6 +310,8 @@ export default function DeviceManagement() {
       );
     }
 
+    if (isEmpty(allDevices)) dispatch(loadDevicesData());
+
     dispatch(updateDeviceBackUrl(location.pathname));
   }, []);
 
@@ -332,9 +355,9 @@ export default function DeviceManagement() {
   }, [devicesStatusData]);
 
   useEffect(() => {
-    setDevicesUptime(sortLeaderBoardData(leaderboardData));
+    setDevicesUptime(patchLeaderboardData(leaderboardData));
     setDevicesUptimeDescending(true);
-  }, [leaderboardData]);
+  }, [leaderboardData, allDevices]);
 
   const series = [
     {
@@ -446,7 +469,7 @@ export default function DeviceManagement() {
               <span>downtime (%)</span>
               <span>uptime (%)</span>
             </div>
-            {devicesUptime.map(({ device_name, uptime }, index) => {
+            {devicesUptime.map(({ long_name, device_name, uptime }, index) => {
               uptime = uptime <= 100 ? uptime : 100;
               const style =
                 uptime >= 80
@@ -458,9 +481,11 @@ export default function DeviceManagement() {
                 <div
                   className={`m-device-uptime-row`}
                   key={`device-${device_name}-${index}`}
-                  onClick={() => history.push(`/device/${device_name}/overview`)}
+                  onClick={() =>
+                    history.push(`/device/${device_name}/overview`)
+                  }
                 >
-                  <span>{device_name}</span>
+                  <span>{long_name}</span>
                   <span>{(100 - uptime).toFixed(2)}</span>
                   <span className={`${style}`}>{uptime.toFixed(2)}</span>
                 </div>
