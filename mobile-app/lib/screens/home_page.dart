@@ -192,7 +192,8 @@ class _HomePageState extends State<HomePage> {
               //   // iconSize: 30.0,
               //   // autofocus: true,
               //   // padding: const EdgeInsets.only(right: 28.0),
-              //   icon: const Icon(Icons.stacked_bar_chart, color: ColorConstants.appColor),
+              //   icon: const Icon(Icons.stacked_bar_chart, color:
+              //   ColorConstants.appColor),
               //   splashColor: ColorConstants.appColor,
               //   onPressed: () {
               //     setState(() {
@@ -351,8 +352,8 @@ class _HomePageState extends State<HomePage> {
     return Future.value(true);
   }
 
-  void switchTitle(int) {
-    switch (int) {
+  void switchTitle(value) {
+    switch (value) {
       case 0:
         setState(() {
           title = '${AppConfig.name}';
@@ -455,9 +456,10 @@ class _HomePageState extends State<HomePage> {
 
   void _launchURL() async => await canLaunch(_url)
       ? await launch(_url)
-      : throw 'Could not launch feedback form, try opening $_url';
+      : throw Exception('Could not launch feedback form, try opening $_url');
 
   void _launchURLFaqs() async => await canLaunch(_faqsUrl)
       ? await launch(_faqsUrl)
-      : throw 'Could not launch feedback form, try opening $_faqsUrl';
+      : throw Exception(
+          'Could not launch feedback form, try opening $_faqsUrl');
 }

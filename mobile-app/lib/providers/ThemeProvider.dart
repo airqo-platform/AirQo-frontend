@@ -36,6 +36,6 @@ class ThemeControllerProvider extends InheritedWidget {
       : super(key: key, child: child);
 
   @override
-  bool updateShouldNotify(ThemeControllerProvider old) =>
-      controller != old.controller;
+  bool updateShouldNotify(ThemeControllerProvider oldWidget) =>
+      controller != oldWidget.controller;
 }

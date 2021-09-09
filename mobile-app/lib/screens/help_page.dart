@@ -13,10 +13,11 @@ class HelpPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return DefaultTabController(
       initialIndex: getInitialIndex(),
-      length: 3,
+      length: 5,
       child: Scaffold(
         appBar: AppBar(
           bottom: const TabBar(
+            isScrollable: true,
             tabs: [
               Tab(
                   child: Text(
@@ -42,6 +43,22 @@ class HelpPage extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                     fontSize: 17),
               )),
+              Tab(
+                  child: Text(
+                'Humidity',
+                style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 17),
+              )),
+              Tab(
+                  child: Text(
+                'Temperature',
+                style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 17),
+              )),
             ],
           ),
           title: const Text(
@@ -54,6 +71,8 @@ class HelpPage extends StatelessWidget {
             AqiDialog(),
             PollutantDialog(pollutantDetails(PollutantConstant.pm2_5)),
             PollutantDialog(pollutantDetails(PollutantConstant.pm10)),
+            PollutantDialogV2(pollutantDetails(PollutantConstant.humidity)),
+            PollutantDialogV2(pollutantDetails(PollutantConstant.temperature)),
           ],
         ),
       ),
@@ -61,7 +80,7 @@ class HelpPage extends StatelessWidget {
   }
 
   int getInitialIndex() {
-    if (initialIndex > 2 || initialIndex < 0) {
+    if (initialIndex > 4 || initialIndex < 0) {
       return 0;
     }
     return initialIndex;

@@ -32,6 +32,20 @@ class PlaceDetailsPage extends StatefulWidget {
   _PlaceDetailsPageState createState() => _PlaceDetailsPageState(site);
 }
 
+class PlaceMenuSwitch extends StatefulWidget {
+  final bool switchValue;
+
+  final ValueChanged valueChanged;
+  final PollutantLevel pollutantLevel;
+  PlaceMenuSwitch(
+      {required this.switchValue,
+      required this.valueChanged,
+      required this.pollutantLevel});
+
+  @override
+  _PlaceMenuSwitch createState() => _PlaceMenuSwitch();
+}
+
 class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
   var siteAlerts = <String>[];
   bool isFavourite = false;
@@ -58,6 +72,15 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
   Site site;
 
   _PlaceDetailsPageState(this.site);
+
+  Widget bottomSheetMenu() {
+    return FloatingActionButton(
+      backgroundColor: ColorConstants.appColor,
+      onPressed: _placeMenu,
+      // isExtended: true,
+      child: const Icon(Icons.menu),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -190,12 +213,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: measurementData != null
           ? _showMenuButton
-              ? FloatingActionButton(
-                  backgroundColor: ColorConstants.appColor,
-                  onPressed: _placeMenu,
-                  // isExtended: true,
-                  child: const Icon(Icons.menu),
-                )
+              ? expandableMenu()
               : null
           : null,
     );
@@ -251,13 +269,11 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                   Padding(
                     padding: const EdgeInsets.all(1.0),
                     child: Text(
-                        ''
-                        '${dateToString(measurement.time, true)}',
+                        '${dateToString(measurement.time, true)} (Local time)',
                         style: const TextStyle(
                           fontSize: 13,
                           color: Colors.white,
                           fontWeight: FontWeight.w300,
-                          fontStyle: FontStyle.italic,
                         )),
                   ),
                 ],
@@ -495,7 +511,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
   }
 
   Future<void> initialize() async {
-    await initializeNotifications();
+    // await initializeNotifications();
     await dbFetch();
     await getMeasurements();
     await getHistoricalMeasurements();
@@ -521,17 +537,18 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
         });
   }
 
-  void updateAlerts(dynamic pollutantLevel) async {
-    await DBHelper().updateSiteAlerts(site, pollutantLevel).then((_) => {
-          initializeNotifications(),
-        });
-  }
-
   @override
   void initState() {
     initialize();
     handleScroll();
     super.initState();
+  }
+
+  bool isChecked(PollutantLevel pollutantLevel) {
+    if (siteAlerts.contains(site.getTopic(pollutantLevel))) {
+      return true;
+    }
+    return false;
   }
 
   Future<void> localFetch() async {
@@ -631,11 +648,10 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
     }
   }
 
-  bool isChecked(PollutantLevel pollutantLevel) {
-    if (siteAlerts.contains(site.getTopic(pollutantLevel))) {
-      return true;
-    }
-    return false;
+  void updateAlerts(dynamic pollutantLevel) async {
+    await DBHelper().updateSiteAlerts(site, pollutantLevel).then((_) => {
+          initializeNotifications(),
+        });
   }
 
   Future<void> updateFavouritePlace() async {
@@ -867,28 +883,8 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
   }
 }
 
-class PlaceMenuSwitch extends StatefulWidget {
-  PlaceMenuSwitch(
-      {required this.switchValue,
-      required this.valueChanged,
-      required this.pollutantLevel});
-
-  final bool switchValue;
-  final ValueChanged valueChanged;
-  final PollutantLevel pollutantLevel;
-
-  @override
-  _PlaceMenuSwitch createState() => _PlaceMenuSwitch();
-}
-
 class _PlaceMenuSwitch extends State<PlaceMenuSwitch> {
   bool _switchValue = false;
-
-  @override
-  void initState() {
-    _switchValue = widget.switchValue;
-    super.initState();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -905,5 +901,11 @@ class _PlaceMenuSwitch extends State<PlaceMenuSwitch> {
         });
       },
     );
+  }
+
+  @override
+  void initState() {
+    _switchValue = widget.switchValue;
+    super.initState();
   }
 }

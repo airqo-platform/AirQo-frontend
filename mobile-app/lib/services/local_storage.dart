@@ -409,20 +409,18 @@ class DBHelper {
     return favouritePlaces.contains(name);
   }
 
-  Future<bool> updateSiteAlerts(Site site, PollutantLevel pollutantLevel)
-  async {
+  Future<bool> updateSiteAlerts(
+      Site site, PollutantLevel pollutantLevel) async {
     var prefs = await SharedPreferences.getInstance();
     var preferredAlerts = prefs.getStringList(PrefConstant.siteAlerts) ?? [];
 
     var topicName = site.getTopic(pollutantLevel);
 
     if (preferredAlerts.contains(topicName)) {
-
       await FbNotifications().unSubscribeFromSite(site, pollutantLevel);
-      while(preferredAlerts.contains(topicName)){
+      while (preferredAlerts.contains(topicName)) {
         preferredAlerts.remove(topicName.trim().toLowerCase());
       }
-
     } else {
       await FbNotifications().subscribeToSite(site, pollutantLevel);
       preferredAlerts.add(topicName.trim().toLowerCase());

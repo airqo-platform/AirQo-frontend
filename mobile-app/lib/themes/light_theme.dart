@@ -11,7 +11,7 @@ ThemeData lightTheme() {
       accentColor: ColorConstants.appColor,
       visualDensity: VisualDensity.adaptivePlatformDensity,
       textTheme: ThemeData.light().textTheme.apply(fontFamily: 'OpenSans'),
-      canvasColor: Colors.transparent,
+      // canvasColor: Colors.transparent,
       primaryTextTheme: ThemeData.light().textTheme.apply(
             fontFamily: 'OpenSans',
             bodyColor: ColorConstants.appColor,

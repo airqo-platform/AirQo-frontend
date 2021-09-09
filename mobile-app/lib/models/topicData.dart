@@ -3,6 +3,12 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'topicData.g.dart';
 
+class AppNotification {
+  String title = 'AirQo';
+  String body = '';
+  int id = 0;
+}
+
 @JsonSerializable()
 class TopicData {
   @JsonKey(required: true)
@@ -56,10 +62,4 @@ extension ParseAppNotification on AppNotification {
 
     return notificationMessage;
   }
-}
-
-class AppNotification {
-  String title = 'AirQo';
-  String body = '';
-  int id = 0;
 }

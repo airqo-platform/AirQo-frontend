@@ -84,16 +84,27 @@ class NotificationConfig {
 }
 
 class PollutantConstant {
+  static String get humidity => 'humidity';
+
   static String get pm10 => 'pm10';
 
   static String get pm2_5 => 'pm2_5';
 
   static String get temperature => 'temperature';
-
-  static String get humidity => 'humidity';
 }
 
 class PollutantDescription {
+  static String get humidity => 'Relative humidity is the amount of water '
+      'vapor actually in the air, expressed as a percentage of the maximum '
+      'amount of water vapor the air can hold at the same temperature. '
+      '\n\nThink of the air at a chilly -10 degrees Celsius '
+      '(14 degrees Fahrenheit). At that temperature, the air can hold,'
+      ' at most, 2.2 grams of water per cubic meter. So if there are 2.2'
+      ' grams of water per cubic meter when its -10 degrees Celsius outside, '
+      'we are at an uncomfortable 100 percent relative humidity. If there was'
+      ' 1.1 grams of water in the air at -10 degrees Celsius, '
+      'we are at 50 percent relative humidity.';
+
   static String get pm10 => 'PM stands for particulate matter '
       '(also called particle pollution): the term for a mixture of solid'
       ' particles and liquid droplets found in the air. Some particles, '
@@ -107,6 +118,12 @@ class PollutantDescription {
       'such as dust, dirt, soot, or smoke, are large or dark enough to be '
       'seen with the naked eye. Others are so small they can only be detected '
       'using an electron microscope.';
+
+  static String get temperature => 'Temperature is the degree of hotness or'
+      ' coldness of an object. When we talk about something feeling hot '
+      '(like the soup we drink when were sick) or cold (like the snow, '
+      'especially if youre not wearing gloves), '
+      'were talking about temperature.';
 }
 
 class PollutantEffect {
@@ -195,22 +212,18 @@ extension ParsePollutantLevel on PollutantLevel {
     return toString().split('.').last;
   }
 
-  String getTopic(Site site, PollutantLevel pollutantLevel){
-    if(pollutantLevel == PollutantLevel.good) {
+  String getTopic(Site site, PollutantLevel pollutantLevel) {
+    if (pollutantLevel == PollutantLevel.good) {
       return '${site.id}-good';
-    } else if(pollutantLevel == PollutantLevel.moderate) {
+    } else if (pollutantLevel == PollutantLevel.moderate) {
       return '${site.id}-moderate';
-    }
-    else if(pollutantLevel == PollutantLevel.sensitive) {
+    } else if (pollutantLevel == PollutantLevel.sensitive) {
       return '${site.id}-sensitive';
-    }
-    else if(pollutantLevel == PollutantLevel.unhealthy) {
+    } else if (pollutantLevel == PollutantLevel.unhealthy) {
       return '${site.id}-unhealthy';
-    }
-    else if(pollutantLevel == PollutantLevel.veryUnhealthy) {
+    } else if (pollutantLevel == PollutantLevel.veryUnhealthy) {
       return '${site.id}-very-unhealthy';
-    }
-    else if(pollutantLevel == PollutantLevel.hazardous) {
+    } else if (pollutantLevel == PollutantLevel.hazardous) {
       return '${site.id}-hazardous';
     }
     return '';

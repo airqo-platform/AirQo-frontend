@@ -66,7 +66,7 @@ class SuccessDialog extends StatelessWidget {
                 ),
                 Flexible(
                   child: Padding(
-                    padding: EdgeInsets.all(10),
+                    padding: const EdgeInsets.all(10),
                     child: Text(
                       'Thanks for your feedback.'
                       ' The AirQo team shall address it asap',
@@ -432,69 +432,80 @@ class _FeedbackPageState extends State<FeedbackPage> {
         case 'faqs':
           await canLaunch(Links.faqsUrl)
               ? await launch(Links.faqsUrl)
-              : throw 'Could not launch faqs, try opening ${Links.faqsUrl}';
+              : throw Exception(
+                  'Could not launch faqs, try opening ${Links.faqsUrl}');
           return;
         case 'about':
           await canLaunch(Links.aboutUsUrl)
               ? await launch(Links.aboutUsUrl)
-              : throw 'Could not launch about, try opening ${Links.aboutUsUrl}';
+              : throw Exception(
+                  'Could not launch about, try opening ${Links.aboutUsUrl}');
           return;
         case 'contact us':
           await canLaunch(Links.contactUsUrl)
               ? await launch(Links.contactUsUrl)
-              : throw 'Could not launch contact us, try opening ${Links.contactUsUrl}';
+              : throw Exception(
+                  'Could not launch contact us, try opening ${Links.contactUsUrl}');
           return;
         case 'terms':
           await canLaunch(Links.termsUrl)
               ? await launch(Links.termsUrl)
-              : throw 'Could not launch terms, try opening ${Links.termsUrl}';
+              : throw Exception(
+                  'Could not launch terms, try opening ${Links.termsUrl}');
           return;
         case 'rate':
           if (Platform.isAndroid) {
             await canLaunch(Links.playStoreUrl)
                 ? await launch(Links.playStoreUrl)
-                : throw 'Could not launch rate us, try opening'
-                    ' ${Links.playStoreUrl}';
+                : throw Exception('Could not launch rate us, try opening'
+                    ' ${Links.playStoreUrl}');
           } else if (Platform.isIOS) {
             await canLaunch(Links.iOSUrl)
                 ? await launch(Links.iOSUrl)
-                : throw 'Could not launch rate us, try opening ${Links.iOSUrl}';
+                : throw Exception(
+                    'Could not launch rate us, try opening ${Links.iOSUrl}');
           } else {
             await canLaunch(Links.playStoreUrl)
                 ? await launch(Links.playStoreUrl)
-                : throw 'Could not launch rate us, try opening'
-                    ' ${Links.playStoreUrl}';
+                : throw Exception('Could not launch rate us, try opening'
+                    ' ${Links.playStoreUrl}');
           }
           return;
         case 'facebook':
           await canLaunch(Links.facebookUrl)
               ? await launch(Links.facebookUrl)
-              : throw 'Could not launch facebook, try opening ${Links.facebookUrl}';
+              : throw Exception(
+                  'Could not launch facebook, try opening ${Links.facebookUrl}');
           return;
         case 'twitter':
           await canLaunch(Links.twitterUrl)
               ? await launch(Links.twitterUrl)
-              : throw 'Could not launch twitter, try opening ${Links.twitterUrl}';
+              : throw Exception(
+                  'Could not launch twitter, try opening ${Links.twitterUrl}');
           return;
         case 'linkedin':
           await canLaunch(Links.linkedinUrl)
               ? await launch(Links.linkedinUrl)
-              : throw 'Could not launch linkedin, try opening ${Links.linkedinUrl}';
+              : throw Exception(
+                  'Could not launch linkedin, try opening ${Links.linkedinUrl}');
           return;
         case 'youtube':
           await canLaunch(Links.youtubeUrl)
               ? await launch(Links.youtubeUrl)
-              : throw 'Could not launch youtube, try opening ${Links.youtubeUrl}';
+              : throw Exception(
+                  'Could not launch youtube, try opening ${Links.youtubeUrl}');
           return;
         case 'airqo':
           await canLaunch(Links.websiteUrl)
               ? await launch(Links.websiteUrl)
-              : throw 'Could not launch airqo, try opening ${Links.websiteUrl}';
+              : throw Exception(
+                  'Could not launch airqo, try opening ${Links.websiteUrl}');
           return;
         default:
           await canLaunch(Links.websiteUrl)
               ? await launch(Links.websiteUrl)
-              : throw 'Could not launch airqo, try opening ${Links.websiteUrl}';
+              : throw Exception(
+                  'Could not launch airqo, try opening ${Links.websiteUrl}');
           return;
       }
     } catch (e) {

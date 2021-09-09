@@ -33,7 +33,7 @@ class PollutantCard extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
+              children: [
                 Text(
                   name,
                   style: TextStyle(
@@ -53,15 +53,15 @@ class PollutantCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                if(source != '')
-                Text(
-                  'Source: Tahmo',
-                  style: TextStyle(
-                    fontSize: 8,
-                    color: ColorConstants.appColor,
-                    fontWeight: FontWeight.bold,
+                if (source != '')
+                  Text(
+                    'Source: Tahmo',
+                    style: TextStyle(
+                      fontSize: 8,
+                      color: ColorConstants.appColor,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
               ],
             ),
           )),
@@ -73,6 +73,10 @@ class PollutantCard extends StatelessWidget {
       return const HelpPage(initialIndex: 1);
     } else if (type == PollutantConstant.pm10) {
       return const HelpPage(initialIndex: 2);
+    } else if (type == PollutantConstant.humidity) {
+      return const HelpPage(initialIndex: 3);
+    } else if (type == PollutantConstant.temperature) {
+      return const HelpPage(initialIndex: 4);
     } else {
       return const HelpPage(initialIndex: 0);
     }
@@ -130,7 +134,7 @@ class RecommendationCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                if(source != '')
+                if (source != '')
                   Text(
                     'Source: Tahmo',
                     style: TextStyle(

@@ -210,11 +210,12 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
     Navigator.pop(context);
   }
 
-  uploadFailureHandler(var error) async {
+  FutureOr<String> uploadFailureHandler(var error) async {
     setState(() {
       isUploading = false;
     });
     await showSnackBar(context, 'Upload failed, try again');
+    return '';
   }
 
   Future<void> uploadSuccessHandler(var value) async {

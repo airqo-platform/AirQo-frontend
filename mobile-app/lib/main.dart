@@ -1,9 +1,6 @@
 import 'package:app/providers/LocalProvider.dart';
 import 'package:app/screens/home_page_v2.dart';
-import 'package:app/services/fb_notifications.dart';
 import 'package:app/services/local_storage.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -30,13 +27,13 @@ Future<void> main() async {
 
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Firebase.initializeApp().then((value) => {
-    FirebaseMessaging.onBackgroundMessage(
-        FbNotifications().backgroundMessageHandler),
-
-    FirebaseMessaging.onMessage
-        .listen(FbNotifications().foregroundMessageHandler)
-  });
+  // await Firebase.initializeApp().then((value) => {
+  //   FirebaseMessaging.onBackgroundMessage(
+  //       FbNotifications().backgroundMessageHandler),
+  //
+  //   FirebaseMessaging.onMessage
+  //       .listen(FbNotifications().foregroundMessageHandler)
+  // });
 
   final prefs = await SharedPreferences.getInstance();
   final themeController = ThemeController(prefs);
@@ -179,7 +176,6 @@ class SplashScreen extends StatefulWidget {
 }
 
 class SplashScreenState extends State<SplashScreen> {
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -217,20 +213,6 @@ class SplashScreenState extends State<SplashScreen> {
         return HomePageV2();
       }), (r) => false);
     }
-  }
-
-  void initializeFlutterFire() async {
-    // await Firebase.initializeApp().then((value) => {
-    //   checkFirstUse()
-    // });
-    // try {
-    //   await Firebase.initializeApp();
-    // } catch (e) {
-    //   print(e);
-    // }
-    // finally{
-    //   await checkFirstUse();
-    // }
   }
 
   @override

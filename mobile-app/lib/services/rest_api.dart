@@ -359,7 +359,7 @@ class AirqoApiClient {
       await showSnackBar(context, ErrorMessages.socketException);
     } on TimeoutException {
       await showSnackBar(context, ErrorMessages.timeoutException);
-    } on Error catch (e) {
+    } on Error {
       await showSnackBar(context, ErrorMessages.appException);
     }
 
@@ -400,7 +400,7 @@ class AirqoApiClient {
     } on TimeoutException {
       await showSnackBar(context, ErrorMessages.timeoutException);
       return false;
-    } on Error catch (e) {
+    } on Error {
       await showSnackBar(context, ErrorMessages.appException);
       return false;
     }
@@ -439,7 +439,7 @@ class SearchApi {
       throw Exception(ErrorMessages.socketException);
     } on TimeoutException {
       throw Exception(ErrorMessages.timeoutException);
-    } on Error catch (e) {
+    } on Error {
       throw Exception('Cannot get suggestions, please try again later');
     }
   }
@@ -494,7 +494,7 @@ class SearchApi {
       throw Exception(ErrorMessages.timeoutException);
     } on TimeoutException {
       throw Exception(ErrorMessages.timeoutException);
-    } on Error catch (e) {
+    } on Error {
       throw Exception('Cannot get details, please try again later');
     }
   }

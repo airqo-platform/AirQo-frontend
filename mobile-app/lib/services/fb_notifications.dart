@@ -1,6 +1,6 @@
 import 'package:app/constants/app_constants.dart';
-import 'package:app/models/topicData.dart';
 import 'package:app/models/site.dart';
+import 'package:app/models/topicData.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
 import 'local_notifications.dart';
@@ -11,7 +11,7 @@ class FbNotifications {
   Future<void> backgroundMessageHandler(RemoteMessage message) async {
     var notificationMessage = AppNotification().composeNotification(message);
 
-    if(!notificationMessage.isEmpty()){
+    if (!notificationMessage.isEmpty()) {
       await LocalNotifications().showSimpleNotification(notificationMessage);
     }
   }
@@ -19,12 +19,10 @@ class FbNotifications {
   Future<void> foregroundMessageHandler(RemoteMessage message) async {
     var notificationMessage = AppNotification().composeNotification(message);
 
-    if(!notificationMessage.isEmpty()){
+    if (!notificationMessage.isEmpty()) {
       await LocalNotifications().showSimpleNotification(notificationMessage);
     }
-
   }
-
 
   Future<void> init() async {
     var settings = await _firebaseMessaging.requestPermission(
@@ -53,6 +51,12 @@ class FbNotifications {
     await _firebaseMessaging.subscribeToTopic(site.getTopic(pollutantLevel));
   }
 
+  Future<void> unSubscribeFromSite(
+      Site site, PollutantLevel pollutantLevel) async {
+    await _firebaseMessaging
+        .unsubscribeFromTopic(site.getTopic(pollutantLevel));
+  }
+
   Future<void> unSubscribeFromSites(
       List<Site> sites, List<PollutantLevel> pollutantLevels) async {
     for (var site in sites) {
@@ -61,11 +65,4 @@ class FbNotifications {
       }
     }
   }
-
-  Future<void> unSubscribeFromSite(
-      Site site, PollutantLevel pollutantLevel) async {
-    await _firebaseMessaging
-        .unsubscribeFromTopic(site.getTopic(pollutantLevel));
-  }
-
 }

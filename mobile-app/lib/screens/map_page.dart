@@ -268,7 +268,8 @@ class MapPageState extends State<MapPage> {
 
                                     // const Text(
                                     //   'Loading...',
-                                    //   style: TextStyle(color: ColorConstants.appColor),
+                                    //   style: TextStyle(color:
+                                    //   ColorConstants.appColor),
                                     // )
                                   ],
                                 ));
