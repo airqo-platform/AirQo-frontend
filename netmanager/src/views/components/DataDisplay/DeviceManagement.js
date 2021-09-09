@@ -212,7 +212,7 @@ export default function DeviceManagement() {
     const patched = [];
 
     leaderboardData.map((data) => {
-      const device_data = allDevices[data.device_name];
+      const device_data = allDevices[data.device_name] || {};
       let { long_name, isActive } = device_data;
 
       long_name = long_name || data.device_name;
