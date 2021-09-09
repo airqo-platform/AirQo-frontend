@@ -30,14 +30,16 @@ Future<void> main() async {
 
   WidgetsFlutterBinding.ensureInitialized();
 
+  await Firebase.initializeApp().then((value) => {
+    FirebaseMessaging.onBackgroundMessage(
+        FbNotifications().backgroundMessageHandler),
+
+    FirebaseMessaging.onMessage
+        .listen(FbNotifications().foregroundMessageHandler)
+  });
+
   final prefs = await SharedPreferences.getInstance();
   final themeController = ThemeController(prefs);
-
-  FirebaseMessaging.onBackgroundMessage(
-      FbNotifications().backgroundMessageHandler);
-
-  FirebaseMessaging.onMessage
-      .listen(FbNotifications().foregroundMessageHandler);
 
   runApp(AirQoApp(themeController: themeController));
 }
@@ -218,19 +220,22 @@ class SplashScreenState extends State<SplashScreen> {
   }
 
   void initializeFlutterFire() async {
-    try {
-      await Firebase.initializeApp();
-    } catch (e) {
-      print(e);
-    }
-    finally{
-      await checkFirstUse();
-    }
+    // await Firebase.initializeApp().then((value) => {
+    //   checkFirstUse()
+    // });
+    // try {
+    //   await Firebase.initializeApp();
+    // } catch (e) {
+    //   print(e);
+    // }
+    // finally{
+    //   await checkFirstUse();
+    // }
   }
 
   @override
   void initState() {
-    initializeFlutterFire();
+    checkFirstUse();
     super.initState();
   }
 }

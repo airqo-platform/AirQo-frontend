@@ -113,28 +113,28 @@ class _HomePageV2State extends State<HomePageV2> {
                       )),
                 ),
               ),
-              PopupMenuItem<String>(
-                value: 'camera',
-                child: ListTile(
-                  leading: Icon(
-                    Icons.camera_alt_outlined,
-                    color: ColorConstants.appColor,
-                  ),
-                  title: const Text('Take a Photo'),
-                ),
-              ),
-              PopupMenuItem<String>(
-                value: 'Settings',
-                child: ListTile(
-                  leading: Icon(
-                    Icons.settings,
-                    color: ColorConstants.appColor,
-                  ),
-                  title: const Text(
-                    'Settings',
-                  ),
-                ),
-              ),
+              // PopupMenuItem<String>(
+              //   value: 'camera',
+              //   child: ListTile(
+              //     leading: Icon(
+              //       Icons.camera_alt_outlined,
+              //       color: ColorConstants.appColor,
+              //     ),
+              //     title: const Text('Take a Photo'),
+              //   ),
+              // ),
+              // PopupMenuItem<String>(
+              //   value: 'Settings',
+              //   child: ListTile(
+              //     leading: Icon(
+              //       Icons.settings,
+              //       color: ColorConstants.appColor,
+              //     ),
+              //     title: const Text(
+              //       'Settings',
+              //     ),
+              //   ),
+              // ),
               const PopupMenuDivider(),
               PopupMenuItem<String>(
                 value: 'Share',
