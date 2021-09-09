@@ -165,8 +165,7 @@ export default function DeviceManagement() {
     }
 
     const filtered = filteredDevices.filter((device) => {
-      const deviceValue = device[filter.key] || "";
-      return deviceValue.toLowerCase() !== filter.value.toLowerCase();
+      return device[filter.key] !== filter.value;
     });
     return filtered;
   };
