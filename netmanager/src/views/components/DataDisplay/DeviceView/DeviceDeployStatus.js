@@ -30,6 +30,7 @@ import OutlinedSelect from "../../CustomSelects/OutlinedSelect";
 import { loadDevicesData } from "redux/DeviceRegistry/operations";
 import { capitalize } from "utils/string";
 import { filterSite } from "utils/sites";
+import { loadSitesData } from "redux/SiteRegistry/operations";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -409,6 +410,7 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
     await deployDeviceApi(deviceData.name, deployData)
       .then((responseData) => {
         dispatch(loadDevicesData());
+        dispatch(loadSitesData());
         dispatch(
           updateMainAlert({
             message: responseData.message,
@@ -438,6 +440,7 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
     await recallDeviceApi(deviceData.name)
       .then((responseData) => {
         dispatch(loadDevicesData());
+        dispatch(loadSitesData());
         dispatch(
           updateMainAlert({
             message: responseData.message,

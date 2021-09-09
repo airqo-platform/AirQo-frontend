@@ -7,12 +7,32 @@ import {
   LOAD_NETWORK_UPTIME_FAILURE,
   LOAD_ALL_DEVICES_UPTIME_SUCCESS,
   LOAD_ALL_DEVICES_UPTIME_FAILURE,
+  LOAD_UPTIME_LEADERBOARD_SUCCESS,
+  LOAD_UPTIME_LEADERBOARD_FAILURE,
 } from "./actions";
 import {
   getDevicesStatusApi,
   getNetworkUptimeApi,
   getAllDevicesUptimeApi,
+  getUptimeLeaderboardApi,
 } from "views/apis/deviceMonitoring";
+
+export const loadUptimeLeaderboardData = (params) => async (dispatch) => {
+  return await getUptimeLeaderboardApi(params)
+    .then((responseData) => {
+      if (isEmpty(responseData.data)) return;
+      dispatch({
+        type: LOAD_UPTIME_LEADERBOARD_SUCCESS,
+        payload: responseData.data,
+      });
+    })
+    .catch((err) => {
+      dispatch({
+        type: LOAD_UPTIME_LEADERBOARD_FAILURE,
+        payload: err,
+      });
+    });
+};
 
 export const loadDevicesStatusData = (params) => async (dispatch) => {
   return await getDevicesStatusApi(params)
