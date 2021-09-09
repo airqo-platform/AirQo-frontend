@@ -46,9 +46,10 @@ const ImgLoadStatus = ({ message, error, onClose }) => {
 };
 
 const Img = ({ src, uploadOptions, setDelState, setPreviewState }) => {
-  const { upload, deviceName } = uploadOptions || {
+  const { upload, deviceName, deviceId } = uploadOptions || {
     upload: false,
     deviceName: "",
+    deviceId: "",
   };
   const [url, setUrl] = useState(src);
   const [broken, setBroken] = useState(false);
@@ -81,7 +82,7 @@ const Img = ({ src, uploadOptions, setDelState, setPreviewState }) => {
       .then((responseData) => {
         const pictures = [responseData.secure_url];
         setUrl(responseData.secure_url);
-        updateDeviceDetails(deviceName, { pictures })
+        updateDeviceDetails(deviceId, { pictures })
           .then((responseData) => {
             dispatch(
               updateMainAlert({
@@ -243,7 +244,11 @@ export default function DevicePhotos({ deviceData }) {
           {newImages.map((src, index) => (
             <Img
               src={src}
-              uploadOptions={{ upload: true, deviceName: deviceData.name }}
+              uploadOptions={{
+                upload: true,
+                deviceName: deviceData.name,
+                deviceId: deviceData._id,
+              }}
               setDelState={setPhotoDelState}
               setPreviewState={setPhotoPreview}
               key={index}

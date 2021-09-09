@@ -50,6 +50,8 @@ import jsPDF from "jspdf";
 import "jspdf-autotable";
 import jsonexport from "jsonexport";
 
+// css
+import "assets/scss/locate.sass";
 
 const typeOptions = [
   { value: "", label: "choose download option" },
@@ -699,88 +701,90 @@ class Maps extends React.Component {
         {/* End of Locate Save Menu */}
 
         {/* Map component starts here */}
-        <Map
-          center={[this.props.mapDefaults.lat, this.props.mapDefaults.lng]}
-          zoom={this.props.mapDefaults.zoom}
-        >
-          <TileLayer
-            attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-            url="http://{s}.tile.osm.org/{z}/{x}/{y}.png"
-          />
-
-          <FullscreenControl position="topright" />
-
-          <LayerGroup>
-            {this.state.polygons.map((location) => (
-              <Marker
-                key={location.parish}
-                position={{
-                  lat: location.properties.lat,
-                  lng: location.properties.long,
-                }}
-                icon={
-                  new L.Icon({
-                    iconUrl:
-                      "https://cdn.rawgit.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-" +
-                      location.properties.color +
-                      ".png",
-                    shadowUrl:
-                      "https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png",
-                    iconSize: [25, 41],
-                    iconAnchor: [12, 41],
-                    popupAnchor: [1, -34],
-                    shadowSize: [41, 41],
-                  })
-                }
-                onMouseOver={(e) => {
-                  e.target.openPopup();
-                }}
-                onMouseOut={(e) => {
-                  e.target.closePopup();
-                }}
-              >
-                <Popup>
-                  <span>
-                    <span>
-                      <b>DISTRICT: </b>
-                      {location.properties.district}, <br />
-                      <b>SUBCOUNTY: </b>
-                      {location.properties.subcounty}, <br />
-                      <b>PARISH: </b>
-                      {location.properties.parish}, <br />
-                      <b>TYPE: </b>
-                      {location.properties.type}
-                    </span>
-                  </span>
-                </Popup>
-              </Marker>
-            ))}
-          </LayerGroup>
-
-          <FeatureGroup
-            ref={(reactFGref) => {
-              this._onFeatureGroupReady(reactFGref);
-            }}
+        <div className={"locate-map-container"}>
+          <Map
+            center={[this.props.mapDefaults.lat, this.props.mapDefaults.lng]}
+            zoom={this.props.mapDefaults.zoom}
           >
-            <EditControl
-              ref="edit"
-              position="topright"
-              onEdited={this._onEdited}
-              onCreated={this._onCreated}
-              onDeleted={this._onDeleted}
-              onMounted={this._onMounted}
-              onEditStart={this._onEditStart}
-              onEditStop={this._onEditStop}
-              onDeleteStart={this._onDeleteStart}
-              onDeleteStop={this._onDeleteStop}
-              draw={{
-                rectangle: false,
-                circle: false,
-                circlemarker: false,
-              }}
+            <TileLayer
+              attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+              url="http://{s}.tile.osm.org/{z}/{x}/{y}.png"
             />
-          </FeatureGroup>
-        </Map>
+
+            <FullscreenControl position="topright" />
+
+            <LayerGroup>
+              {this.state.polygons.map((location) => (
+                <Marker
+                  key={location.parish}
+                  position={{
+                    lat: location.properties.lat,
+                    lng: location.properties.long,
+                  }}
+                  icon={
+                    new L.Icon({
+                      iconUrl:
+                        "https://cdn.rawgit.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-" +
+                        location.properties.color +
+                        ".png",
+                      shadowUrl:
+                        "https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png",
+                      iconSize: [25, 41],
+                      iconAnchor: [12, 41],
+                      popupAnchor: [1, -34],
+                      shadowSize: [41, 41],
+                    })
+                  }
+                  onMouseOver={(e) => {
+                    e.target.openPopup();
+                  }}
+                  onMouseOut={(e) => {
+                    e.target.closePopup();
+                  }}
+                >
+                  <Popup>
+                    <span>
+                      <span>
+                        <b>DISTRICT: </b>
+                        {location.properties.district}, <br />
+                        <b>SUBCOUNTY: </b>
+                        {location.properties.subcounty}, <br />
+                        <b>PARISH: </b>
+                        {location.properties.parish}, <br />
+                        <b>TYPE: </b>
+                        {location.properties.type}
+                      </span>
+                    </span>
+                  </Popup>
+                </Marker>
+              ))}
+            </LayerGroup>
+
+            <FeatureGroup
+              ref={(reactFGref) => {
+                this._onFeatureGroupReady(reactFGref);
+              }}
+            >
+              <EditControl
+                ref="edit"
+                position="topright"
+                onEdited={this._onEdited}
+                onCreated={this._onCreated}
+                onDeleted={this._onDeleted}
+                onMounted={this._onMounted}
+                onEditStart={this._onEditStart}
+                onEditStop={this._onEditStop}
+                onDeleteStart={this._onDeleteStart}
+                onDeleteStop={this._onDeleteStop}
+                draw={{
+                  rectangle: false,
+                  circle: false,
+                  circlemarker: false,
+                }}
+              />
+            </FeatureGroup>
+          </Map>
+        </div>
       </div>
     );
     // --- End of render function ---

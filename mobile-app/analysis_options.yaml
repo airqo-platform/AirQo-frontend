@@ -3,7 +3,6 @@ include: package:pedantic/analysis_options.yaml
 analyzer:
   exclude:
     - lib/src/locations.g.dart
-    - lib/src/airqo.device.dart
 
 linter:
   rules:

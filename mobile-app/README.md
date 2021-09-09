@@ -1,6 +1,6 @@
-# Airqo mobile application
+# AirQo mobile application
 
-## How to Get Started
+## Get Started
 
 ### **Install flutter on your computer**
 
@@ -25,4 +25,10 @@ For IOS, add the [GOOGLE MAPS API Key](https://docs.google.com/document/d/1QawFn
 
 ### **Run the application**
 
-   `flutter run --no-sound-null-safety`
+```bash
+flutter run --no-sound-null-safety
+```
+
+```bash
+flutter pub run build_runner build
+```

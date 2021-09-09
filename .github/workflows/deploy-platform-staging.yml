@@ -65,18 +65,27 @@ jobs:
       - name: NPM Build
         run: |
           cd netmanager/
-          export NODE_PATH=src/
+
+          export REACT_APP_BASE_URL=${{ secrets.REACT_APP_BASE_URL_STAGE }}
+          export REACT_APP_CLOUDINARY_NAME=${{ secrets.REACT_APP_CLOUDINARY_NAME }}
+          export REACT_APP_CLOUDINARY_PRESET=${{ secrets.REACT_APP_CLOUDINARY_PRESET }}
+          export REACT_APP_MAPBOX_TOKEN=${{ secrets.REACT_APP_MAPBOX_TOKEN }}
+          export REACT_APP_JIRA_KEY=${{ secrets.REACT_APP_JIRA_KEY }}
+          export NODE_PATH=${{ secrets.NODE_PATH }}
+          export PORT=${{ secrets.NODE_PORT }}
+
           npm install
+    
           CI=false npm run build
       
       - name: Build and Push Docker Image
         run: |
           cd netmanager/
-          docker build --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-platform-frontend:latest .
+          docker build --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-platform-frontend:latest -f Dockerfile.stage .
           docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-platform-frontend:latest
       - name: Deploy to K8S
         run: |
-          cd k8s/
+          cd k8s/platform/
           kubectl apply -f stage-airqo-platform-frontend.yaml
           kubectl rollout restart deployment/airqo-stage-platform-frontend -n staging
 

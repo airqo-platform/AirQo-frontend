@@ -4,85 +4,16 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class PollutantDialog extends StatelessWidget {
-  PollutantDialog(this.pollutant);
-
   final Pollutant pollutant;
-  final _url = 'https://www.epa.gov/pm-pollution/particulate-matter-pm-basics';
+
+  PollutantDialog(this.pollutant);
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: appColor,
-        title: Text(pollutant.pollutant),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
-        child: ListView(
-          children: [whatIs(), source(), effects(), howToReduce()],
-        ),
-      ),
-    );
-  }
-
-  Widget whatIs() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(0, 2, 0, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(5),
-            child: Text(
-                'What is ${pollutant.pollutant}, '
-                'and how does it get into the air?',
-                softWrap: true,
-                style:
-                    const TextStyle(height: 1.2, color: appColor, fontSize: 15
-                        // letterSpacing: 1.0
-                        )),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(5),
-            child: Text('${pollutant.description}',
-                softWrap: true,
-                style: const TextStyle(
-                  height: 1.5,
-                  // letterSpacing: 1.0
-                )),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget source() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(0, 2, 0, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(5),
-            child: Text('Sources of ${pollutant.pollutant}',
-                softWrap: true,
-                style:
-                    const TextStyle(height: 1.2, color: appColor, fontSize: 15
-                        // letterSpacing: 1.0
-                        )),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(5),
-            child: Text('${pollutant.source}',
-                softWrap: true,
-                style: const TextStyle(
-                  height: 1.5,
-                  // letterSpacing: 1.0
-                )),
-          ),
-        ],
+      padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
+      child: ListView(
+        children: [whatIs(), source(), effects(), howToReduce()],
       ),
     );
   }
@@ -100,17 +31,23 @@ class PollutantDialog extends StatelessWidget {
                 'What are the Harmful Effects '
                 'of ${pollutant.pollutant}',
                 softWrap: true,
-                style:
-                    const TextStyle(height: 1.2, color: appColor, fontSize: 15
-                        // letterSpacing: 1.0
-                        )),
+                style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.bold,
+                    height: 1.2,
+                    color: ColorConstants().appColor
+                    // letterSpacing: 1.0
+                    )),
           ),
           Padding(
             padding: const EdgeInsets.all(5),
             child: Text('${pollutant.effects}',
                 softWrap: true,
-                style: const TextStyle(
-                  height: 1.5,
+                style: TextStyle(
+                  height: 1.2,
+                  color: ColorConstants().appColor,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
                   // letterSpacing: 1.0
                 )),
           ),
@@ -132,17 +69,23 @@ class PollutantDialog extends StatelessWidget {
                 'How Can I Reduce My Exposure to'
                 ' ${pollutant.pollutant}',
                 softWrap: true,
-                style:
-                    const TextStyle(height: 1.5, color: appColor, fontSize: 15
-                        // letterSpacing: 1.0
-                        )),
+                style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.bold,
+                    height: 1.2,
+                    color: ColorConstants().appColor
+                    // letterSpacing: 1.0
+                    )),
           ),
           Padding(
             padding: const EdgeInsets.all(5),
             child: Text('${pollutant.howToReduce}',
                 softWrap: true,
-                style: const TextStyle(
-                  height: 1.5,
+                style: TextStyle(
+                  height: 1.2,
+                  color: ColorConstants().appColor,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
                   // letterSpacing: 1.0
                 )),
           ),
@@ -159,12 +102,16 @@ class PollutantDialog extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           ElevatedButton(
-              style: ElevatedButton.styleFrom(primary: appColor),
+              style:
+                  ElevatedButton.styleFrom(primary: ColorConstants().appColor),
               onPressed: _launchURL,
               child: Text('Learn more about ${pollutant.pollutant}',
                   softWrap: true,
                   style: const TextStyle(
-                      height: 1.5, color: Colors.white, fontSize: 15
+                      height: 1.5,
+                      color: Colors.white,
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold
                       // letterSpacing: 1.0
                       )))
         ],
@@ -172,11 +119,86 @@ class PollutantDialog extends StatelessWidget {
     );
   }
 
+  Widget source() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(0, 2, 0, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(5),
+            child: Text('Sources of ${pollutant.pollutant}',
+                softWrap: true,
+                style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.bold,
+                    height: 1.2,
+                    color: ColorConstants().appColor
+                    // letterSpacing: 1.0
+                    )),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(5),
+            child: Text('${pollutant.source}',
+                softWrap: true,
+                style: TextStyle(
+                  height: 1.2,
+                  color: ColorConstants().appColor,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                  // letterSpacing: 1.0
+                )),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget whatIs() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(0, 2, 0, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(5),
+            child: Text(
+                'What is ${pollutant.pollutant}, '
+                'and how does it get into the air?',
+                softWrap: true,
+                style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.bold,
+                    height: 1.2,
+                    color: ColorConstants().appColor
+                    // letterSpacing: 1.0
+                    )),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(5),
+            child: Text('${pollutant.description}',
+                softWrap: true,
+                style: TextStyle(
+                  height: 1.2,
+                  color: ColorConstants().appColor,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                  // letterSpacing: 1.0
+                )),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _launchURL() async {
     try {
-      await canLaunch(_url)
-          ? await launch(_url)
-          : throw 'Could not launch reference, try opening $_url';
+      await canLaunch(Links().airqoReference)
+          ? await launch(Links().airqoReference)
+          : throw 'Could not launch reference,'
+              ' try opening ${Links().airqoReference}';
     } on Error catch (e) {
       print(e);
     }

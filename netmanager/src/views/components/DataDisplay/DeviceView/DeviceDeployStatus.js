@@ -30,6 +30,7 @@ import OutlinedSelect from "../../CustomSelects/OutlinedSelect";
 import { loadDevicesData } from "redux/DeviceRegistry/operations";
 import { capitalize } from "utils/string";
 import { filterSite } from "utils/sites";
+import { loadSitesData } from "redux/SiteRegistry/operations";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -176,7 +177,7 @@ RecallDevice.propTypes = {
 const DeviceRecentFeedView = ({ recentFeed, runReport }) => {
   const classes = useStyles();
   const feedKeys = Object.keys(
-    omit(recentFeed, "isCache", "created_at", "errors")
+    omit(recentFeed, "isCache", "created_at", "errors", "success", "message")
   );
   const [
     elapsedDurationSeconds,
@@ -295,9 +296,9 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
     getDateString(deviceData.deployment_date)
   );
   const [primaryChecked, setPrimaryChecked] = useState(
-    deviceData.isPrimaryInLocation || true
+    deviceData.isPrimaryInLocation || false
   );
-  const [collocationChecked, setCollocationChecked] = useState(!primaryChecked);
+  const [collocationChecked, setCollocationChecked] = useState(primaryChecked && !primaryChecked || deviceData.isUsedForCollocation);
   const [recentFeed, setRecentFeed] = useState({});
   const [runReport, setRunReport] = useState({
     ranTest: false,
@@ -306,8 +307,8 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
   });
   const [deviceTestLoading, setDeviceTestLoading] = useState(false);
   const [manualCoordinate, setManualCoordinate] = useState(false);
-  const [longitude, setLongitude] = useState("");
-  const [latitude, setLatitude] = useState("");
+  const [longitude, setLongitude] = useState(deviceData.longitude || "");
+  const [latitude, setLatitude] = useState(deviceData.latitude || "");
   const [site, setSite] = useState(
     filterSite(siteOptions, deviceData.site && deviceData.site._id)
   );
@@ -409,6 +410,7 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
     await deployDeviceApi(deviceData.name, deployData)
       .then((responseData) => {
         dispatch(loadDevicesData());
+        dispatch(loadSitesData());
         dispatch(
           updateMainAlert({
             message: responseData.message,
@@ -438,6 +440,7 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
     await recallDeviceApi(deviceData.name)
       .then((responseData) => {
         dispatch(loadDevicesData());
+        dispatch(loadSitesData());
         dispatch(
           updateMainAlert({
             message: responseData.message,

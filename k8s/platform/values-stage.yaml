@@ -3,7 +3,7 @@ env:
   deployment_name: airqo-stage-platform-frontend
   service_name: airqo-stage-platform-ui-svc
   labels: sta-platform-ui
-  secret: stage-platform-frontend-secret
+  secret: env-platform-staging
 
 replicaCount: 2
 
