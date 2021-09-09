@@ -54,9 +54,9 @@ const DEVICE_FILTER_FIELDS = {
   all: {},
   due: { key: "maintenance_status", value: "due" },
   overDue: { key: "maintenance_status", value: "overdue" },
-  solar: { key: "power", value: "Solar" },
-  alternator: { key: "power", value: "Battery" },
-  mains: { key: "power", value: "Mains" },
+  solar: { key: "powerType", value: "solar" },
+  alternator: { key: "powerType", value: "battery" },
+  mains: { key: "powerType", value: "mains" },
 };
 
 const OverviewCardMini = ({ label, icon, value, filterActive, onClick }) => {
@@ -162,9 +162,10 @@ export default function DeviceManagement() {
       return [...prevFiltered, ...filtered];
     }
 
-    const filtered = filteredDevices.filter(
-      (device) => device[filter.key] !== filter.value
-    );
+    const filtered = filteredDevices.filter((device) => {
+      const deviceValue = device[filter.key] || "";
+      return deviceValue.toLowerCase() !== filter.value.toLowerCase();
+    });
     return filtered;
   };
 
