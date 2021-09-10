@@ -11,6 +11,8 @@ export const GET_NETWORK_UPTIME = `${BASE_DEVICE_MONITORING_URL}/monitor/network
 
 export const GET_DEVICE_UPTIME = `${BASE_DEVICE_MONITORING_URL}/monitor/device/uptime`;
 
+export const GET_DEVICE_UPTIME_LEADERBOARD = `${BASE_DEVICE_MONITORING_URL}/monitor/device/uptime/leaderboard`;
+
 export const GET_DEVICE_BATTERY_VOLTAGE = `${BASE_DEVICE_MONITORING_URL}/monitor/device/batteryvoltage`;
 
 export const GET_DEVICE_SENSOR_CORRELATION = `${BASE_DEVICE_MONITORING_URL}/monitor/device/sensors/correlation`;

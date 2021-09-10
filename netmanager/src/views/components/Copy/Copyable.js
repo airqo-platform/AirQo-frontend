@@ -1,9 +1,12 @@
 import React, { useState, useRef } from "react";
+import { useDispatch } from "react-redux";
 import CopyIcon, { CopySuccessIcon } from "assets/img/CopyIcon";
+import { updateMainAlert } from "redux/MainAlert/operations";
 
-const Copyable = ({ value, className }) => {
+const Copyable = ({ value, className, width, format }) => {
   const copyRef = useRef();
   const [copied, setCopied] = useState(false);
+  const dispatch = useDispatch();
 
   const onClick = () => {
     // let comp = document.getElementById(componentID);
@@ -19,6 +22,15 @@ const Copyable = ({ value, className }) => {
     document.execCommand("copy");
     textArea.remove();
     setCopied(true);
+    dispatch(
+      updateMainAlert({
+        show: true,
+        message: `Successfully copied to clipboard. ${
+          format ? "format - " + format : ""
+        }`,
+        severity: "info",
+      })
+    );
     setTimeout(() => setCopied(false), 1000);
   };
   return (
@@ -32,7 +44,7 @@ const Copyable = ({ value, className }) => {
       <span
         ref={copyRef}
         style={{
-          width: "200px",
+          width: width || "200px",
           textOverflow: "ellipsis",
           whiteSpace: "nowrap",
           overflow: "hidden",

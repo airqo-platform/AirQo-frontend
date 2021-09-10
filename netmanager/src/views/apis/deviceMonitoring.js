@@ -5,6 +5,7 @@ import {
   GET_DEVICE_SENSOR_CORRELATION,
   ALL_DEVICES_STATUS,
   GET_NETWORK_UPTIME,
+  GET_DEVICE_UPTIME_LEADERBOARD,
   DEVICES_UPTIME,
 } from "config/urls/deviceMonitoring";
 
@@ -47,5 +48,11 @@ export const getNetworkUptimeApi = async (params) => {
 export const getAllDevicesUptimeApi = async (params) => {
   return await axios
     .get(DEVICES_UPTIME, { params })
+    .then((response) => response.data);
+};
+
+export const getUptimeLeaderboardApi = async (params) => {
+  return await axios
+    .get(GET_DEVICE_UPTIME_LEADERBOARD, { params })
     .then((response) => response.data);
 };
