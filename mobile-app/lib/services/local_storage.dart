@@ -134,7 +134,6 @@ class DBHelper {
 
   Future<List<Measurement>> getLatestMeasurements() async {
     try {
-
       final db = await database;
 
       var res = await db.query(Measurement.latestMeasurementsDb());
@@ -405,6 +404,7 @@ class DBHelper {
     var topicName = site.getTopic(pollutantLevel);
 
     if (preferredAlerts.contains(topicName)) {
+      await FbNotifications().init();
       await FbNotifications().unSubscribeFromSite(site, pollutantLevel);
       while (preferredAlerts.contains(topicName)) {
         preferredAlerts.remove(topicName.trim().toLowerCase());

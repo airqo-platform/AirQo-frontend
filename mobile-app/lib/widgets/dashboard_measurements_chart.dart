@@ -5,42 +5,27 @@ import 'package:app/utils/pm.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 
-class MeasurementsBarChart extends StatefulWidget {
+class DashboardBarChart extends StatefulWidget {
   final List<charts.Series<TimeSeriesData, DateTime>> seriesList;
 
-  final String header;
-
-  MeasurementsBarChart(this.seriesList, this.header);
+  DashboardBarChart(this.seriesList);
 
   @override
-  _MeasurementsBarChartState createState() => _MeasurementsBarChartState();
+  _DashboardBarChartState createState() => _DashboardBarChartState();
 }
 
-class _MeasurementsBarChartState extends State<MeasurementsBarChart> {
+class _DashboardBarChartState extends State<DashboardBarChart> {
   var display = null;
 
   @override
   Widget build(BuildContext context) {
     return Card(
-      elevation: 20,
+      elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(5),
       ),
       child: Column(
         children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.fromLTRB(5, 10, 5, 10),
-            child: Center(
-              child: Text(
-                widget.header,
-                softWrap: true,
-                style: TextStyle(
-                    fontSize: 19,
-                    color: ColorConstants.appColor,
-                    fontWeight: FontWeight.bold),
-              ),
-            ),
-          ),
           if (display != null)
             Column(
               children: [

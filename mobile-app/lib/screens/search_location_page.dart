@@ -298,11 +298,9 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                     ),
                     trailing: GestureDetector(
                       onTap: () {
-                        DBHelper().deleteSearchHistory(results[index])
-                            .then((value) =>
-                        {
-                        query = ''
-                        });
+                        DBHelper()
+                            .deleteSearchHistory(results[index])
+                            .then((value) => {query = ''});
                       },
                       child: Icon(
                         Icons.delete_outlined,

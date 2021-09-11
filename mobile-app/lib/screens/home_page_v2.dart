@@ -16,7 +16,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import 'dashboard_page.dart';
+import 'dashboard_page_v2.dart';
 import 'help_page.dart';
 
 class HomePageV2 extends StatefulWidget {
@@ -113,28 +113,28 @@ class _HomePageV2State extends State<HomePageV2> {
                       )),
                 ),
               ),
-              // PopupMenuItem<String>(
-              //   value: 'camera',
-              //   child: ListTile(
-              //     leading: Icon(
-              //       Icons.camera_alt_outlined,
-              //       color: ColorConstants.appColor,
-              //     ),
-              //     title: const Text('Take a Photo'),
-              //   ),
-              // ),
-              // PopupMenuItem<String>(
-              //   value: 'Settings',
-              //   child: ListTile(
-              //     leading: Icon(
-              //       Icons.settings,
-              //       color: ColorConstants.appColor,
-              //     ),
-              //     title: const Text(
-              //       'Settings',
-              //     ),
-              //   ),
-              // ),
+              PopupMenuItem<String>(
+                value: 'camera',
+                child: ListTile(
+                  leading: Icon(
+                    Icons.camera_alt_outlined,
+                    color: ColorConstants.appColor,
+                  ),
+                  title: const Text('Take a Photo'),
+                ),
+              ),
+              PopupMenuItem<String>(
+                value: 'Settings',
+                child: ListTile(
+                  leading: Icon(
+                    Icons.settings,
+                    color: ColorConstants.appColor,
+                  ),
+                  title: const Text(
+                    'Settings',
+                  ),
+                ),
+              ),
               const PopupMenuDivider(),
               PopupMenuItem<String>(
                 value: 'Share',
@@ -210,7 +210,7 @@ class _HomePageV2State extends State<HomePageV2> {
           onPageChanged: switchTitle,
           physics: const NeverScrollableScrollPhysics(),
           children: <Widget>[
-            DashboardPage(),
+            DashboardPageV2(),
             ResourcesPage(),
           ],
         ),

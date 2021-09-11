@@ -213,7 +213,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: measurementData != null
           ? _showMenuButton
-              ? expandableMenu()
+              ? bottomSheetMenu()
               : null
           : null,
     );
@@ -506,7 +506,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
   }
 
   Future<void> initialize() async {
-    // await initializeNotifications();
+    await initializeNotifications();
     await dbFetch();
     await getMeasurements();
     await getHistoricalMeasurements();

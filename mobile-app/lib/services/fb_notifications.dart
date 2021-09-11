@@ -5,22 +5,50 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 
 import 'local_notifications.dart';
 
+Future<void> backgroundMessageHandler(RemoteMessage message) async {
+  var notificationMessage = AppNotification().composeNotification(message);
+
+  print(message.data);
+
+  if (!notificationMessage.isEmpty()) {
+    var notificationHandler = LocalNotifications()..initNotifications();
+    await notificationHandler.showAlertNotification(notificationMessage);
+  }
+}
+
+Future<void> foregroundMessageHandler(RemoteMessage message) async {
+  var notificationMessage = AppNotification().composeNotification(message);
+
+  print(message.data);
+
+  if (!notificationMessage.isEmpty()) {
+    var notificationHandler = LocalNotifications()..initNotifications();
+    await notificationHandler.showAlertNotification(notificationMessage);
+  }
+}
+
 class FbNotifications {
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
 
   Future<void> backgroundMessageHandler(RemoteMessage message) async {
     var notificationMessage = AppNotification().composeNotification(message);
 
+    print(message.data);
+
     if (!notificationMessage.isEmpty()) {
-      await LocalNotifications().showSimpleNotification(notificationMessage);
+      var notificationHandler = LocalNotifications()..initNotifications();
+      await notificationHandler.showAlertNotification(notificationMessage);
     }
   }
 
   Future<void> foregroundMessageHandler(RemoteMessage message) async {
     var notificationMessage = AppNotification().composeNotification(message);
 
+    print(message.data);
+
     if (!notificationMessage.isEmpty()) {
-      await LocalNotifications().showSimpleNotification(notificationMessage);
+      var notificationHandler = LocalNotifications()..initNotifications();
+      await notificationHandler.showAlertNotification(notificationMessage);
     }
   }
 
@@ -34,6 +62,7 @@ class FbNotifications {
       provisional: false,
       sound: true,
     );
+
     print('User granted permission: ${settings.authorizationStatus}');
   }
 

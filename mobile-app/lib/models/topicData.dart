@@ -38,6 +38,46 @@ extension ParseAppNotification on AppNotification {
     print('Message data: ${message.data}');
 
     var data = message.data;
+    // var notification = message.notification;
+    var notificationMessage = AppNotification();
+
+    if (data.isNotEmpty) {
+      notificationMessage = AppNotification()
+        ..id = message.hashCode
+        ..body = data['message']
+        ..title = data['message'];
+    }
+
+    // if (notification != null && notification.body != null) {
+    //   print('Message also contained a notification: ${message.notification}');
+    //   var title = notification.title ?? 'Air Quality Alert';
+    //   var body = notification.body ?? '';
+    //   var id = notification.hashCode;
+    //
+    //   notificationMessage = AppNotification()
+    //     ..id = id
+    //     ..body = body
+    //     ..title = title;
+    // } else if (data.isNotEmpty) {
+    //   notificationMessage = AppNotification()
+    //     ..id = id
+    //     ..body = body
+    //     ..title = title;
+    // } else {
+    //   throw Exception('');
+    // }
+    //
+    // if (notificationMessage.isEmpty()) {
+    //   throw Exception('');
+    // }
+
+    return notificationMessage;
+  }
+
+  AppNotification composeNotificationV1(RemoteMessage message) {
+    print('Message data: ${message.data}');
+
+    var data = message.data;
     var notification = message.notification;
     var notificationMessage = AppNotification();
 

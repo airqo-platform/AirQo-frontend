@@ -27,6 +27,11 @@ class LocalNotifications {
         onSelectNotification: selectNotification);
   }
 
+  Future onDidReceiveLocalNotification(
+      int? id, String? title, String? body, String? payload) async {
+    print('Notification paylosd$payload');
+  }
+
   Future selectNotification(String? payload) async {
     if (payload != null) {
       debugPrint('notification payload: $payload');
@@ -36,6 +41,42 @@ class LocalNotifications {
     //   context,
     //   MaterialPageRoute<void>(builder: (context) => MapPage()),
     // );
+  }
+
+  Future<void> showAlertNotification(AppNotification notification) async {
+    var bigTextStyleInformation = BigTextStyleInformation(
+      notification.body,
+      htmlFormatBigText: true,
+      contentTitle: 'AirQo',
+      htmlFormatContentTitle: true,
+      summaryText: 'Air Quality Alert',
+      htmlFormatSummaryText: true,
+    );
+
+    var androidPlatformChannelSpecifics = AndroidNotificationDetails(
+      'push_messages: 0',
+      'push_messages: push_messages',
+      'push_messages: AirQo',
+      styleInformation: bigTextStyleInformation,
+      importance: Importance.max,
+      priority: Priority.high,
+      showWhen: false,
+      enableVibration: true,
+    );
+
+    var iosPlatformChannelSpecifics = const IOSNotificationDetails(
+      presentSound: true,
+      presentBadge: true,
+      presentAlert: true,
+    );
+
+    var platformChannelSpecifics = NotificationDetails(
+        android: androidPlatformChannelSpecifics,
+        iOS: iosPlatformChannelSpecifics);
+
+    await flutterLocalNotificationsPlugin.show(
+        notification.id, 'AirQo', 'Air Quality Alert', platformChannelSpecifics,
+        payload: 'load');
   }
 
   Future<void> showBigPictureNotification() async {
@@ -74,33 +115,6 @@ class LocalNotifications {
         0, 'AirQo', 'Big Text Notification', notificationDetails,
         payload: 'Destination Screen(Big Text Notification)');
   }
-
-  // Future onDidReceiveLocalNotification(
-  //     int id, String title, String body, String payload) async {
-  //   // display a dialog with the notification details, tap ok to go to another page
-  //   showDialog(
-  //     context: context,
-  //     builder: (BuildContext context) => CupertinoAlertDialog(
-  //       title: Text(title),
-  //       content: Text(body),
-  //       actions: [
-  //         CupertinoDialogAction(
-  //           isDefaultAction: true,
-  //           child: Text('Ok'),
-  //           onPressed: () async {
-  //             Navigator.of(context, rootNavigator: true).pop();
-  //             await Navigator.push(
-  //               context,
-  //               MaterialPageRoute(
-  //                 builder: (context) => SecondScreen(payload),
-  //               ),
-  //             );
-  //           },
-  //         )
-  //       ],
-  //     ),
-  //   );
-  // }
 
   Future<void> showInsistentNotification() async {
     const insistentFlag = 4;
@@ -234,7 +248,7 @@ class LocalNotifications {
     var platformDetails =
         NotificationDetails(android: androidDetails, iOS: iOSDetails);
     await flutterLocalNotificationsPlugin.show(
-        notification.id, notification.title, notification.body, platformDetails,
+        1, 'notification.title', 'notification.body', platformDetails,
         payload: 'Destination Screen (Simple Notification)');
   }
 
