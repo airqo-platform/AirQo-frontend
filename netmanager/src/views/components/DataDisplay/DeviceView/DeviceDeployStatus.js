@@ -734,7 +734,7 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
                       color="primary"
                     />
                   }
-                  label="I wish to make this my primary device in this location"
+                  label="This is my primary device in this site"
                   style={{ margin: "10px 0 0 5px", width: "100%" }}
                 />
                 <FormControlLabel
