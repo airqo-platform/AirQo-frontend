@@ -23,13 +23,14 @@ class AirqoApiClient {
 
   AirqoApiClient(this.context);
 
-  Future<List<Predict>> fetchForecast(
-      String latitude, String longitude, String dateTime) async {
+  Future<List<Predict>> fetchForecast(Site site) async {
     try {
+      var dateTime =
+          DateFormat('yyyy-MM-dd HH:mm').format(DateTime.now().toUtc());
       var body = {
         'selected_datetime': dateTime,
-        'latitude': latitude,
-        'longitude': longitude
+        'latitude': site.latitude,
+        'longitude': site.longitude
       };
 
       final response = await http.post(Uri.parse('${AirQoUrls().forecast}'),

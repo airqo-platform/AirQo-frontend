@@ -1,6 +1,7 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/historicalMeasurement.dart';
 import 'package:app/models/measurement.dart';
+import 'package:app/models/predict.dart';
 import 'package:app/models/site.dart';
 import 'package:app/screens/place_details.dart';
 import 'package:app/services/local_storage.dart';
@@ -24,6 +25,7 @@ class _DashboardPageV2State extends State<DashboardPageV2> {
   var locationResponse = '';
   var measurementData;
   var historicalData = <HistoricalMeasurement>[];
+  var forecastData = <Predict>[];
 
   @override
   Widget build(BuildContext context) {
@@ -40,9 +42,9 @@ class _DashboardPageV2State extends State<DashboardPageV2> {
                     children: <Widget>[
                       if (measurementData != null)
                         CurrentLocationCard(
-                          measurementData: measurementData,
-                          historicalData: historicalData,
-                        ),
+                            measurementData: measurementData,
+                            historicalData: historicalData,
+                            forecastData: forecastData),
                       favouritePlaces(),
                     ],
                   ),
@@ -174,6 +176,41 @@ class _DashboardPageV2State extends State<DashboardPageV2> {
     );
   }
 
+  Future<void> getLocationForecastMeasurements(Site site) async {
+    try {
+      await DBHelper().getForecastMeasurements(site.id).then((value) => {
+            if (value.isNotEmpty)
+              {
+                if (mounted)
+                  {
+                    setState(() {
+                      forecastData = value;
+                    })
+                  }
+              }
+          });
+    } on Error catch (e) {
+      print('Getting forecast data locally error: $e');
+    } finally {
+      try {
+        await AirqoApiClient(context).fetchForecast(site).then((value) => {
+              if (value.isNotEmpty)
+                {
+                  if (mounted)
+                    {
+                      setState(() {
+                        forecastData = value;
+                      }),
+                    },
+                  DBHelper().insertForecastMeasurements(value, site.id)
+                },
+            });
+      } catch (e) {
+        print('Getting forecast data from api error: $e');
+      }
+    }
+  }
+
   Future<void> getLocationHistoricalMeasurements(Site site) async {
     try {
       await AirqoApiClient(context)
@@ -218,18 +255,13 @@ class _DashboardPageV2State extends State<DashboardPageV2> {
                     setState(() {
                       measurementData = value;
                     }),
-                    getLocationHistoricalMeasurements(value.site)
+                    getLocationHistoricalMeasurements(value.site),
+                    getLocationForecastMeasurements(value.site)
                   },
               }
           });
     } catch (e) {
-      var message = 'Sorry, air quality data currently is not available';
-
-      if (mounted) {
-        setState(() {
-          locationResponse = message;
-        });
-      }
+      print('error getting data');
     }
   }
 
@@ -247,8 +279,9 @@ class _DashboardPageV2State extends State<DashboardPageV2> {
         hasFavPlaces = true;
       });
 
-      await loadFromDb()
-          .then((value) => reload().then((value) => getLocationMeasurements()));
+      await loadFromDb().then((value) => reload().then((value) => {
+            // getLocationMeasurements()
+          }));
     }
   }
 

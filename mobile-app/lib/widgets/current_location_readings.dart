@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/historicalMeasurement.dart';
 import 'package:app/models/measurement.dart';
+import 'package:app/models/predict.dart';
 import 'package:app/utils/data_formatter.dart';
 import 'package:app/utils/date.dart';
 import 'package:app/utils/pm.dart';
@@ -16,10 +17,14 @@ class CurrentLocationCard extends StatelessWidget {
   final Measurement measurementData;
 
   final List<HistoricalMeasurement> historicalData;
+  final List<Predict> forecastData;
   final List<charts.Series> seriesList = _createSampleData();
 
   CurrentLocationCard(
-      {Key? key, required this.measurementData, required this.historicalData})
+      {Key? key,
+      required this.measurementData,
+      required this.historicalData,
+      required this.forecastData})
       : super(key: key);
 
   @override
@@ -34,7 +39,8 @@ class CurrentLocationCard extends StatelessWidget {
           child: Column(
             children: [
               titleSection(),
-              historySection(),
+              if (historicalData.isNotEmpty) historySection(),
+              if (forecastData.isNotEmpty) forecastSection(),
               footerSection(),
             ],
           ),
@@ -77,6 +83,11 @@ class CurrentLocationCard extends StatelessWidget {
     );
   }
 
+  Widget forecastSection() {
+    var data = forecastChartData(forecastData);
+    return DashboardBarChart(data);
+  }
+
   Widget gaugeChart() {
     return Container(
       height: 140.0,
@@ -103,70 +114,120 @@ class CurrentLocationCard extends StatelessWidget {
     return DashboardBarChart(formattedData);
   }
 
+  Widget recommendationsSection() {
+    var data = forecastChartData(forecastData);
+    return DashboardBarChart(data);
+  }
+
   Widget titleSection() {
-    return Row(
+    return Column(
       children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.start,
+        Card(
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            color: pmToColor(measurementData.getPm2_5Value()).withOpacity(0.5),
+            child: Padding(
+              padding: const EdgeInsets.all(8),
+              child: Row(
+                children: [
+                  // Icon(
+                  //   Icons.location_on,
+                  //   color: pmTextColor(measurementData.getPm2_5Value()),
+                  // ),
+                  Container(
+                      constraints: const BoxConstraints(maxWidth: 150),
+                      child: Text('${measurementData.site.getName()}',
+                          softWrap: true,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                              color:
+                                  pmTextColor(measurementData.getPm2_5Value()),
+                              fontWeight: FontWeight.bold))),
+                ],
+              ),
+            )),
+        Row(
           children: [
-            Card(
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                color:
-                    pmToColor(measurementData.getPm2_5Value()).withOpacity(0.5),
-                child: Padding(
-                  padding: const EdgeInsets.all(8),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.location_on,
-                        color: pmTextColor(measurementData.getPm2_5Value()),
-                      ),
-                      Container(
-                          constraints: const BoxConstraints(maxWidth: 150),
-                          child: Text('${measurementData.site.getName()}',
-                              softWrap: true,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                  color: pmTextColor(
-                                      measurementData.getPm2_5Value()),
-                                  fontWeight: FontWeight.bold))),
-                    ],
-                  ),
-                )),
             Padding(
               padding: const EdgeInsets.fromLTRB(5, 0.0, 0.0, 0.0),
-              child: Text(pmToString(measurementData.getPm2_5Value()),
-                  style: TextStyle(
-                      fontSize: 20,
-                      color: ColorConstants.appColor,
-                      fontWeight: FontWeight.bold)),
-            )
-          ],
-        ),
-        const Spacer(),
-        Stack(
-          alignment: AlignmentDirectional.center,
-          children: [
-            gaugeChart(),
-            Column(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  // Card(
+                  //     elevation: 0,
+                  //     shape: RoundedRectangleBorder(
+                  //       borderRadius: BorderRadius.circular(10),
+                  //     ),
+                  //     color:
+                  //     pmToColor(measurementData.getPm2_5Value()).withOpacity(0.5),
+                  //     child: Padding(
+                  //       padding: const EdgeInsets.all(8),
+                  //       child: Row(
+                  //         children: [
+                  //           Icon(
+                  //             Icons.location_on,
+                  //             color: pmTextColor(measurementData.getPm2_5Value()),
+                  //           ),
+                  //           Container(
+                  //               constraints: const BoxConstraints(maxWidth: 150),
+                  //               child: Text('${measurementData.site.getName()}',
+                  //                   softWrap: true,
+                  //                   maxLines: 2,
+                  //                   overflow: TextOverflow.ellipsis,
+                  //                   style: TextStyle(
+                  //                       color: pmTextColor(
+                  //                           measurementData.getPm2_5Value()),
+                  //                       fontWeight: FontWeight.bold))),
+                  //         ],
+                  //       ),
+                  //     )),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(5, 0.0, 0.0, 0.0),
+                    child: Text(pmToString(measurementData.getPm2_5Value()),
+                        style: TextStyle(
+                            fontSize: 20,
+                            color: ColorConstants.appColor,
+                            fontWeight: FontWeight.bold)),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(5, 0.0, 0.0, 0.0),
+                    child: Text(
+                        '${dateToString(measurementData.time, true)}, Local Time',
+                        style: TextStyle(
+                          color: ColorConstants.appColor,
+                          fontSize: 12,
+                        )),
+                  )
+                ],
+              ),
+            ),
+            const Spacer(),
+            Stack(
+              alignment: AlignmentDirectional.center,
               children: [
-                Text(
-                  '${measurementData.getPm2_5Value()}',
-                  style: const TextStyle(
-                      fontSize: 17, fontWeight: FontWeight.bold),
-                ),
-                const Text(
-                  'AQI',
-                  style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey),
-                ),
+                gaugeChart(),
+                Column(
+                  children: [
+                    Text(
+                      '${measurementData.getPm2_5Value()}',
+                      style: TextStyle(
+                          color: pmToColor(measurementData.getPm2_5Value()),
+                          fontSize: 17,
+                          fontWeight: FontWeight.bold),
+                    ),
+                    const Text(
+                      'AQI',
+                      style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey),
+                    ),
+                  ],
+                )
               ],
             )
           ],

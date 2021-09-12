@@ -18,7 +18,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'help_page.dart';
@@ -65,8 +64,6 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
   var historicalResponse = '';
   var forecastResponse = '';
   var dbHelper = DBHelper();
-  var forecastDate =
-      DateFormat('yyyy-MM-dd HH:mm').format(DateTime.now().toUtc());
 
   String titleText = '';
 
@@ -351,37 +348,34 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
   }
 
   Widget forecastDataSection(List<Predict> measurements) {
-    var forecastData = predictChartData(measurements);
+    var forecastData = forecastChartData(measurements);
     return MeasurementsBarChart(forecastData, 'Forecast');
   }
 
   Future<void> getForecastMeasurements() async {
     try {
-      await AirqoApiClient(context)
-          .fetchForecast(
-              site.latitude.toString(), site.longitude.toString(), forecastDate)
-          .then((value) => {
-                if (value.isNotEmpty)
+      await AirqoApiClient(context).fetchForecast(site).then((value) => {
+            if (value.isNotEmpty)
+              {
+                if (mounted)
                   {
-                    if (mounted)
-                      {
-                        setState(() {
-                          forecastData = value;
-                        })
-                      },
-                    dbHelper.insertForecastMeasurements(value, site.id)
-                  }
-                else
+                    setState(() {
+                      forecastData = value;
+                    })
+                  },
+                dbHelper.insertForecastMeasurements(value, site.id)
+              }
+            else
+              {
+                if (mounted)
                   {
-                    if (mounted)
-                      {
-                        setState(() {
-                          forecastResponse = 'Forecast data is currently'
-                              ' not available.';
-                        })
-                      }
+                    setState(() {
+                      forecastResponse = 'Forecast data is currently'
+                          ' not available.';
+                    })
                   }
-              });
+              }
+          });
     } catch (e) {
       if (mounted) {
         setState(() {
