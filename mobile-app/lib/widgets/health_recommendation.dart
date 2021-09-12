@@ -38,18 +38,18 @@ class ParallaxImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scale = 1 - horizontalSlide.abs();
-    final size = MediaQuery.of(context).size;
+    final size = 200;
     return Container(
       child: Center(
         child: SizedBox(
-          width: size.width * ((scale * 0.8) + 0.8),
-          height: size.height * ((scale * 0.2) + 0.2),
+          width: size * ((scale * 0.8) + 0.8),
+          height: size * ((scale * 0.2) + 0.2),
           child: ClipRRect(
             borderRadius: const BorderRadius.all(Radius.circular(20)),
             child: Image.asset(
               recommendation.imageUrl,
-              height: size.height * ((scale * 0.2) + 0.1),
-              width: size.width * ((scale * 0.8) + 0.4),
+              height: size * ((scale * 0.2) + 0.1),
+              width: size * ((scale * 0.8) + 0.4),
               alignment: Alignment(horizontalSlide, 1),
             ),
           ),
@@ -82,7 +82,7 @@ class _HealthRecommendationSectionState
                   fontWeight: FontWeight.bold),
             ),
           SizedBox(
-            height: 110.0,
+            height: 100.0,
             child: ListView.builder(
               physics: const ClampingScrollPhysics(),
               shrinkWrap: true,

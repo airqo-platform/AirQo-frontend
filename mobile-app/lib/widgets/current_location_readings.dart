@@ -30,25 +30,20 @@ class CurrentLocationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-        elevation: 10,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(8),
-          child: Column(
-            children: [
-              titleSection(),
-              HealthRecommendationSlider(
-                measurement: measurementData,
-              ),
-              if (historicalData.isNotEmpty) historySection(),
-              if (forecastData.isNotEmpty) forecastSection(),
-              footerSection(),
-            ],
+    return Padding(
+      padding: const EdgeInsets.all(8),
+      child: Column(
+        children: [
+          titleSection(),
+          HealthRecommendationSection(
+            measurement: measurementData,
           ),
-        ));
+          if (historicalData.isNotEmpty) historySection(),
+          if (forecastData.isNotEmpty) forecastSection(),
+          footerSection(),
+        ],
+      ),
+    );
   }
 
   Widget footerSection() {
@@ -56,11 +51,11 @@ class CurrentLocationCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.center,
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        Text('${dateToString(measurementData.time, true)}, Local Time',
-            style: TextStyle(
-              color: ColorConstants.appColor,
-              fontSize: 12,
-            )),
+        // Text('${dateToString(measurementData.time, true)}, Local Time',
+        //     style: TextStyle(
+        //       color: ColorConstants.appColor,
+        //       fontSize: 12,
+        //     )),
         const Spacer(),
         Icon(
           Icons.favorite_border_outlined,
@@ -118,11 +113,6 @@ class CurrentLocationCard extends StatelessWidget {
     return DashboardBarChart(formattedData);
   }
 
-  Widget recommendationsSection() {
-    var data = forecastChartData(forecastData);
-    return DashboardBarChart(data);
-  }
-
   Widget titleSection() {
     return Column(
       children: [
@@ -131,27 +121,17 @@ class CurrentLocationCard extends StatelessWidget {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),
             ),
-            color: pmToColor(measurementData.getPm2_5Value()).withOpacity(0.5),
+            color: pmToColor(measurementData.getPm2_5Value()),
             child: Padding(
               padding: const EdgeInsets.all(8),
-              child: Row(
-                children: [
-                  // Icon(
-                  //   Icons.location_on,
-                  //   color: pmTextColor(measurementData.getPm2_5Value()),
-                  // ),
-                  Container(
-                      constraints: const BoxConstraints(maxWidth: 150),
-                      child: Text('${measurementData.site.getName()}',
-                          softWrap: true,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                              color:
-                                  pmTextColor(measurementData.getPm2_5Value()),
-                              fontWeight: FontWeight.bold))),
-                ],
-              ),
+              child: Text('${measurementData.site.getName()}',
+                  softWrap: true,
+                  maxLines: 2,
+                  textAlign: TextAlign.center,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                      color: pmTextColor(measurementData.getPm2_5Value()),
+                      fontWeight: FontWeight.bold)),
             )),
         Row(
           children: [
@@ -269,4 +249,26 @@ class GaugeSegment {
   final int colorValue;
 
   GaugeSegment(this.segment, this.size, this.colorValue);
+
+  static List<charts.Series<GaugeSegment, String>> createSampleData() {
+    final data = [
+      GaugeSegment('Good', 1, 6),
+      GaugeSegment('Moderate', 1, 25),
+      GaugeSegment('Sensitive', 1, 40),
+      GaugeSegment('Unhealthy', 1, 100),
+      GaugeSegment('Very Unhealthy', 1, 200),
+      GaugeSegment('Hazardous', 1, 400),
+    ];
+
+    return [
+      charts.Series<GaugeSegment, String>(
+        id: 'Segments',
+        colorFn: (GaugeSegment series, _) =>
+            pmToChartColor(series.colorValue.toDouble()),
+        domainFn: (GaugeSegment segment, _) => segment.segment,
+        measureFn: (GaugeSegment segment, _) => segment.size,
+        data: data,
+      )
+    ];
+  }
 }

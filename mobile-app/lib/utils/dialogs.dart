@@ -81,6 +81,7 @@ Future<void> showSnackBarGoToMyPlaces(context, String message) async {
       borderRadius: BorderRadius.circular(10),
     ),
     elevation: 20,
+    behavior: SnackBarBehavior.floating,
     content: Text(
       message,
       softWrap: true,

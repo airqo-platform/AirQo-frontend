@@ -32,6 +32,8 @@ class ColorConstants {
 
   static Color get green => const Color(0xff3FFF33);
 
+  static Color get inactiveColor => Colors.grey;
+
   static Color get linkedInColor => const Color(0xff2867B2);
 
   static Color get maroon => const Color(0xff570B0B);
@@ -206,6 +208,8 @@ class PollutantSource {
 
 class PrefConstant {
   static String get appTheme => 'appTheme';
+
+  static String get dashboardSite => 'dashboardSite';
 
   static String get favouritePlaces => 'favouriteSites';
 

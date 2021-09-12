@@ -273,6 +273,19 @@ class DBHelper {
     }
   }
 
+  Future<Site?> getSite(String siteId) async {
+    try {
+      final db = await database;
+      var res = await db.query(Site.sitesDbName(),
+          where: '${Site.dbId()} = ?', whereArgs: [siteId]);
+
+      return Site.fromJson(Site.fromDbMap(res.first));
+    } catch (e) {
+      print(e);
+      return null;
+    }
+  }
+
   Future<List<Site>> getSites() async {
     try {
       final db = await database;

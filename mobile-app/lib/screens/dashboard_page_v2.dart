@@ -54,6 +54,30 @@ class _DashboardPageV2State extends State<DashboardPageV2> {
     }
   }
 
+  Future<void> getDashBoardSiteMeasurements(String siteId) async {
+    try {
+      await DBHelper().getSite(siteId).then((site) => {
+            if (site != null && mounted)
+              {
+                DBHelper().getMeasurement(siteId).then((measurement) => {
+                      if (measurement != null)
+                        {
+                          setState(() {
+                            measurementData = measurement;
+                          }),
+                          getLocationHistoricalMeasurements(measurement.site),
+                          getLocationForecastMeasurements(measurement.site)
+                        }
+                      else
+                        {getLocationMeasurements()}
+                    }),
+              }
+          });
+    } catch (e) {
+      print('error getting data');
+    }
+  }
+
   Future<void> getLocationForecastMeasurements(Site site) async {
     try {
       await DBHelper().getForecastMeasurements(site.id).then((value) => {
@@ -130,7 +154,19 @@ class _DashboardPageV2State extends State<DashboardPageV2> {
   }
 
   Future<void> initialize() async {
-    await getLocationMeasurements();
+    var prefs = await SharedPreferences.getInstance();
+    var dashboardSite = prefs.getString(PrefConstant.dashboardSite) ?? '';
+
+    if (dashboardSite == '') {
+      var sites = prefs.getStringList(PrefConstant.favouritePlaces) ?? [];
+      dashboardSite = sites.isEmpty ? '' : sites.first;
+    }
+
+    if (dashboardSite != '') {
+      await getDashBoardSiteMeasurements(dashboardSite);
+    } else {
+      await getLocationMeasurements();
+    }
   }
 
   @override

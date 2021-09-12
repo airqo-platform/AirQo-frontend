@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:app/providers/LocalProvider.dart';
 import 'package:app/screens/home_page_v2.dart';
 import 'package:app/services/fb_notifications.dart';
 import 'package:app/services/local_storage.dart';
+import 'package:app/services/rest_api.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -194,7 +197,19 @@ class SplashScreenState extends State<SplashScreen> {
     );
   }
 
-  Future checkFirstUse() async {
+  Future<void> initialize() async {
+    _getLatestMeasurements();
+    _getSites();
+    await _checkFirstUse();
+  }
+
+  @override
+  void initState() {
+    initialize();
+    super.initState();
+  }
+
+  Future _checkFirstUse() async {
     try {
       var db = await DBHelper().initDB();
       await DBHelper().createDefaultTables(db);
@@ -218,9 +233,15 @@ class SplashScreenState extends State<SplashScreen> {
     }
   }
 
-  @override
-  void initState() {
-    checkFirstUse();
-    super.initState();
+  void _getLatestMeasurements() async {
+    await AirqoApiClient(context).fetchLatestMeasurements().then((value) => {
+          if (value.isNotEmpty) {DBHelper().insertLatestMeasurements(value)}
+        });
+  }
+
+  void _getSites() async {
+    await AirqoApiClient(context).fetchSites().then((value) => {
+          if (value.isNotEmpty) {DBHelper().insertSites(value)}
+        });
   }
 }

@@ -33,10 +33,12 @@ class _HomePageV2State extends State<HomePageV2> {
   String title = '${AppConfig.name}';
   bool showAddPlace = true;
   DateTime? exitTime;
+  double selectedPage = 0;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         title: Text(title,
             style: const TextStyle(
@@ -176,7 +178,10 @@ class _HomePageV2State extends State<HomePageV2> {
               IconButton(
                 // iconSize: 30.0,
                 // padding: const EdgeInsets.only(left: 28.0),
-                icon: Icon(Icons.home_outlined, color: ColorConstants.appColor),
+                icon: Icon(Icons.home_outlined,
+                    color: selectedPage == 0
+                        ? ColorConstants.appColor
+                        : ColorConstants.inactiveColor),
                 splashColor: ColorConstants.appColor,
                 onPressed: () {
                   setState(() {
@@ -190,7 +195,10 @@ class _HomePageV2State extends State<HomePageV2> {
               IconButton(
                 // iconSize: 30.0,
                 // padding: const EdgeInsets.only(left: 28.0),
-                icon: Icon(Icons.favorite, color: ColorConstants.appColor),
+                icon: Icon(Icons.favorite,
+                    color: selectedPage == 1
+                        ? ColorConstants.appColor
+                        : ColorConstants.inactiveColor),
                 splashColor: ColorConstants.appColor,
                 onPressed: () {
                   setState(() {
@@ -205,7 +213,9 @@ class _HomePageV2State extends State<HomePageV2> {
                 // iconSize: 30.0,
                 // padding: const EdgeInsets.only(right: 28.0),
                 icon: Icon(Icons.library_books_outlined,
-                    color: ColorConstants.appColor),
+                    color: selectedPage == 2
+                        ? ColorConstants.appColor
+                        : ColorConstants.inactiveColor),
                 splashColor: ColorConstants.appColor,
                 onPressed: () {
                   setState(() {
@@ -219,7 +229,10 @@ class _HomePageV2State extends State<HomePageV2> {
               IconButton(
                 // iconSize: 30.0,
                 // padding: const EdgeInsets.only(right: 28.0),
-                icon: Icon(Icons.settings, color: ColorConstants.appColor),
+                icon: Icon(Icons.settings,
+                    color: selectedPage == 3
+                        ? ColorConstants.appColor
+                        : ColorConstants.inactiveColor),
                 splashColor: ColorConstants.appColor,
                 onPressed: () {
                   setState(() {
@@ -343,30 +356,35 @@ class _HomePageV2State extends State<HomePageV2> {
         setState(() {
           title = '${AppConfig.name}';
           showAddPlace = true;
+          selectedPage = 0;
         });
         break;
       case 1:
         setState(() {
           title = 'MyPlaces';
           showAddPlace = false;
+          selectedPage = 1;
         });
         break;
       case 2:
         setState(() {
           title = 'News Feed';
           showAddPlace = false;
+          selectedPage = 2;
         });
         break;
       case 3:
         setState(() {
           title = 'Settings';
           showAddPlace = false;
+          selectedPage = 3;
         });
         break;
       default:
         setState(() {
           title = '${AppConfig.name}';
           showAddPlace = true;
+          selectedPage = 0;
         });
         break;
     }
@@ -377,6 +395,10 @@ class _HomePageV2State extends State<HomePageV2> {
     final cameras = await availableCameras();
 
     // Get a specific camera from the list of available cameras.
+    if (cameras.isEmpty) {
+      await showSnackBar(context, 'Could not open AQI camera');
+      return;
+    }
     final firstCamera = cameras.first;
 
     await Navigator.push(context, MaterialPageRoute(builder: (context) {
