@@ -433,7 +433,7 @@ export default function DeviceManagement() {
         />
         <ApexChart
           options={createPieChartOptions(
-            ["#BCBD22", "#17BECF"],
+            ["#FF2E2E", "#00A300"],
             ["Offline", "Online"]
           )}
           series={pieChartStatusValues}
