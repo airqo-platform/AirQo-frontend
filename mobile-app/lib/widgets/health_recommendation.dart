@@ -14,6 +14,51 @@ class HealthRecommendationSection extends StatefulWidget {
       _HealthRecommendationSectionState();
 }
 
+class HealthRecommendationSlider extends StatefulWidget {
+  final Measurement measurement;
+
+  const HealthRecommendationSlider({Key? key, required this.measurement})
+      : super(key: key);
+
+  @override
+  _HealthRecommendationSliderState createState() =>
+      _HealthRecommendationSliderState();
+}
+
+class ParallaxImage extends StatelessWidget {
+  final Recommendation recommendation;
+  final double horizontalSlide;
+
+  const ParallaxImage({
+    Key? key,
+    required this.recommendation,
+    required this.horizontalSlide,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final scale = 1 - horizontalSlide.abs();
+    final size = MediaQuery.of(context).size;
+    return Container(
+      child: Center(
+        child: SizedBox(
+          width: size.width * ((scale * 0.8) + 0.8),
+          height: size.height * ((scale * 0.2) + 0.2),
+          child: ClipRRect(
+            borderRadius: const BorderRadius.all(Radius.circular(20)),
+            child: Image.asset(
+              recommendation.imageUrl,
+              height: size.height * ((scale * 0.2) + 0.1),
+              width: size.width * ((scale * 0.8) + 0.4),
+              alignment: Alignment(horizontalSlide, 1),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _HealthRecommendationSectionState
     extends State<HealthRecommendationSection> {
   var recommendation = '';
@@ -114,6 +159,77 @@ class _HealthRecommendationSectionState
     setState(() {
       recommendation = s.recommendation;
       recommendations = updated;
+    });
+  }
+}
+
+class _HealthRecommendationSliderState
+    extends State<HealthRecommendationSlider> {
+  late PageController _pageController;
+  double page = 0.0;
+  var recommendations = <Recommendation>[];
+
+  @override
+  Widget build(BuildContext context) {
+    if (recommendations.isNotEmpty) {
+      return Center(
+        child: SizedBox(
+          height: 200,
+          child: PageView.builder(
+            controller: _pageController,
+            itemBuilder: (context, index) {
+              return Column(
+                children: [
+                  SizedBox(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: ParallaxImage(
+                        recommendation: recommendations[index],
+                        horizontalSlide: (index - page).clamp(-1, 1).toDouble(),
+                      ),
+                    ),
+                  ),
+                  Text('${recommendations[index].recommendation}')
+                ],
+              );
+            },
+            itemCount: recommendations.length,
+          ),
+        ),
+      );
+    } else {
+      return const Text('');
+    }
+  }
+
+  @override
+  void dispose() {
+    _pageController.removeListener(_onScroll);
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  void initState() {
+    _getRecommendations();
+    _pageController = PageController(
+      initialPage: 0,
+      viewportFraction: 0.5,
+    );
+    _pageController.addListener(_onScroll);
+    super.initState();
+  }
+
+  void _getRecommendations() {
+    setState(() {
+      recommendations =
+          getHealthRecommendations(widget.measurement.getPm2_5Value());
+    });
+  }
+
+  void _onScroll() {
+    setState(() {
+      page = _pageController.page!;
     });
   }
 }

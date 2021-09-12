@@ -12,6 +12,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'dashboard_measurements_chart.dart';
+import 'health_recommendation.dart';
 
 class CurrentLocationCard extends StatelessWidget {
   final Measurement measurementData;
@@ -39,6 +40,9 @@ class CurrentLocationCard extends StatelessWidget {
           child: Column(
             children: [
               titleSection(),
+              HealthRecommendationSlider(
+                measurement: measurementData,
+              ),
               if (historicalData.isNotEmpty) historySection(),
               if (forecastData.isNotEmpty) forecastSection(),
               footerSection(),
