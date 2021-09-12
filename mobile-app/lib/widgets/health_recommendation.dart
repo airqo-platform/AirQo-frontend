@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 class HealthRecommendationSection extends StatefulWidget {
   final Measurement measurement;
+
   HealthRecommendationSection({Key? key, required this.measurement})
       : super(key: key);
 

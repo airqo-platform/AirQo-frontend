@@ -1,9 +1,22 @@
+import 'dart:io';
+
 import 'package:app/config/env.dart';
 import 'package:app/models/site.dart';
 import 'package:flutter/material.dart';
 
 class AppConfig {
+  static final String _androidApiKey = googleKey;
+
+  static final String _iOSApiKey = iosKey;
+
+  static final String googleApiKey =
+      Platform.isAndroid ? _androidApiKey : _iOSApiKey;
+
+  static final String airQoApiKey = airqoApiKey;
+
   static String get dbName => databaseName;
+
+  static int get maxSearchRadius => searchRadius * 2;
 
   static String get name => applicationName;
 

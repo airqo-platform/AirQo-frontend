@@ -6,11 +6,14 @@ import 'package:app/models/measurement.dart';
 import 'package:app/models/predict.dart';
 import 'package:app/models/site.dart';
 import 'package:app/models/suggestion.dart';
+import 'package:app/utils/distance.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:path/path.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 
 import 'fb_notifications.dart';
+import 'native_api.dart';
 
 class DBHelper {
   var _database;
@@ -146,6 +149,58 @@ class DBHelper {
     } catch (e) {
       print(e);
       return <Measurement>[];
+    }
+  }
+
+  Future<Measurement?> getLocationMeasurement() async {
+    try {
+      var nearestMeasurement;
+      var nearestMeasurements = <Measurement>[];
+
+      double distanceInMeters;
+
+      var location = await LocationApi().getLocation();
+
+      await LocationApi().getLocation().then((value) => {
+            getLatestMeasurements().then((measurements) => {
+                  if (location.longitude != null && location.latitude != null)
+                    {
+                      for (var measurement in measurements)
+                        {
+                          distanceInMeters = metersToKmDouble(
+                              Geolocator.distanceBetween(
+                                  measurement.site.latitude,
+                                  measurement.site.longitude,
+                                  location.latitude!,
+                                  location.longitude!)),
+                          if (distanceInMeters <
+                              AppConfig.maxSearchRadius.toDouble())
+                            {
+                              print('$distanceInMeters : '
+                                  '${AppConfig.maxSearchRadius.toDouble()} : '
+                                  '${measurement.site.getName()}'),
+                              measurement.site.distance = distanceInMeters,
+                              nearestMeasurements.add(measurement)
+                            }
+                        },
+                      if (nearestMeasurements.isNotEmpty)
+                        {
+                          nearestMeasurement = nearestMeasurements.first,
+                          for (var m in nearestMeasurements)
+                            {
+                              if (nearestMeasurement.site.distance >
+                                  m.site.distance)
+                                {nearestMeasurement = m}
+                            }
+                        }
+                    }
+                })
+          });
+
+      return nearestMeasurement;
+    } catch (e) {
+      print('error $e');
+      return null;
     }
   }
 

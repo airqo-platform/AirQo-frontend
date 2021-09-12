@@ -1,6 +1,7 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/historicalMeasurement.dart';
 import 'package:app/models/measurement.dart';
+import 'package:app/models/site.dart';
 import 'package:app/screens/place_details.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/services/rest_api.dart';
@@ -173,10 +174,10 @@ class _DashboardPageV2State extends State<DashboardPageV2> {
     );
   }
 
-  Future<void> getLocationHistoricalMeasurements() async {
+  Future<void> getLocationHistoricalMeasurements(Site site) async {
     try {
       await AirqoApiClient(context)
-          .fetchSiteHistoricalMeasurementsById('61287bbacd82da001f4fbeef')
+          .fetchSiteHistoricalMeasurementsById(site.id)
           .then((value) => {
                 if (value.isNotEmpty)
                   {
@@ -209,16 +210,18 @@ class _DashboardPageV2State extends State<DashboardPageV2> {
 
   Future<void> getLocationMeasurements() async {
     try {
-      await AirqoApiClient(context)
-          .fetchSiteMeasurementsById('61287bbacd82da001f4fbeef')
-          .then((value) => {
+      await DBHelper().getLocationMeasurement().then((value) => {
+            if (value != null)
+              {
                 if (mounted)
                   {
                     setState(() {
                       measurementData = value;
-                    })
+                    }),
+                    getLocationHistoricalMeasurements(value.site)
                   },
-              });
+              }
+          });
     } catch (e) {
       var message = 'Sorry, air quality data currently is not available';
 
@@ -244,10 +247,8 @@ class _DashboardPageV2State extends State<DashboardPageV2> {
         hasFavPlaces = true;
       });
 
-      await loadFromDb();
-      await reload();
-      await getLocationMeasurements();
-      await getLocationHistoricalMeasurements();
+      await loadFromDb()
+          .then((value) => reload().then((value) => getLocationMeasurements()));
     }
   }
 

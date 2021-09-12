@@ -27,7 +27,7 @@ class Site {
   final String description;
 
   @JsonKey(required: false, defaultValue: 0.0)
-  final double distance;
+  double distance;
 
   Site(this.name,
       {required this.id,

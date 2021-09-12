@@ -37,6 +37,7 @@ class PlaceMenuSwitch extends StatefulWidget {
 
   final ValueChanged valueChanged;
   final PollutantLevel pollutantLevel;
+
   PlaceMenuSwitch(
       {required this.switchValue,
       required this.valueChanged,

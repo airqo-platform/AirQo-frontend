@@ -44,6 +44,7 @@
 	<array>
 		<string>fetch</string>
 		<string>remote-notification</string>
+		<string>location</string>
 	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
@@ -64,5 +65,11 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>Can I please use get location?</string>
+    <key>NSLocationAlwaysUsageDescription</key>
+    <string>Can I please use get location while running in the background?</string>
+    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+    <string>Can I please use get location while open and running in the background?</string>
 </dict>
 </plist>

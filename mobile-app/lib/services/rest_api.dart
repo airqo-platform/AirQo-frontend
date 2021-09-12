@@ -3,7 +3,6 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:app/config/env.dart';
 import 'package:app/constants/api.dart';
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/feedback.dart';
@@ -309,7 +308,7 @@ class AirqoApiClient {
       double latitude, double longitude) async {
     try {
       var queryParams = <String, dynamic>{}
-        ..putIfAbsent('radius', () => '$defaultSearchRadius')
+        ..putIfAbsent('radius', () => '${AppConfig.searchRadius}')
         ..putIfAbsent('tenant', () => 'airqo')
         ..putIfAbsent('longitude', () => longitude.toStringAsFixed(8))
         ..putIfAbsent('latitude', () => latitude.toStringAsFixed(8));
@@ -405,7 +404,7 @@ class AirqoApiClient {
       }
 
       Map<String, String> headers = HashMap()
-        ..putIfAbsent('Authorization', () => 'JWT $airQoApiKey');
+        ..putIfAbsent('Authorization', () => 'JWT ${AppConfig.airQoApiKey}');
 
       final response = await http.get(Uri.parse(url), headers: headers);
 
@@ -472,11 +471,8 @@ class AirqoApiClient {
 }
 
 class SearchApi {
-  static final String androidKey = googleApiKey;
-
-  static final String iosKey = iosApiKey;
   final sessionToken;
-  final apiKey = Platform.isAndroid ? androidKey : iosKey;
+  final apiKey = AppConfig.googleApiKey;
 
   SearchApi(this.sessionToken);
 
