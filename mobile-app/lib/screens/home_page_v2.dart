@@ -6,6 +6,7 @@ import 'package:app/screens/my_places.dart';
 import 'package:app/screens/resources_page.dart';
 import 'package:app/screens/search_location_page.dart';
 import 'package:app/screens/settings_page.dart';
+import 'package:app/screens/settings_view.dart';
 import 'package:app/screens/share_picture.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/services/rest_api.dart';
@@ -18,6 +19,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import 'dashboard_page_v2.dart';
 import 'help_page.dart';
+import 'my_places_view.dart';
 
 class HomePageV2 extends StatefulWidget {
   final String title = 'AirQo';
@@ -58,19 +60,19 @@ class _HomePageV2State extends State<HomePageV2> {
           PopupMenuButton<dynamic>(
             onSelected: (value) => {navigateToMenuItem(value)},
             itemBuilder: (context) => <PopupMenuEntry<String>>[
-              PopupMenuItem<String>(
-                value: 'MyPlaces',
-                child: ListTile(
-                  leading: Icon(
-                    Icons.favorite_outlined,
-                    color: ColorConstants.appColor,
-                  ),
-                  title: Text('MyPlaces',
-                      style: TextStyle(
-                        color: ColorConstants.appColor,
-                      )),
-                ),
-              ),
+              // PopupMenuItem<String>(
+              //   value: 'MyPlaces',
+              //   child: ListTile(
+              //     leading: Icon(
+              //       Icons.favorite_outlined,
+              //       color: ColorConstants.appColor,
+              //     ),
+              //     title: Text('MyPlaces',
+              //         style: TextStyle(
+              //           color: ColorConstants.appColor,
+              //         )),
+              //   ),
+              // ),
               PopupMenuItem<String>(
                 textStyle: TextStyle(
                   color: ColorConstants.appColor,
@@ -87,19 +89,19 @@ class _HomePageV2State extends State<HomePageV2> {
                       )),
                 ),
               ),
-              PopupMenuItem<String>(
-                value: 'Faqs',
-                child: ListTile(
-                  leading: Icon(
-                    Icons.help_outline_outlined,
-                    color: ColorConstants.appColor,
-                  ),
-                  title: Text('Faqs',
-                      style: TextStyle(
-                        color: ColorConstants.appColor,
-                      )),
-                ),
-              ),
+              // PopupMenuItem<String>(
+              //   value: 'Faqs',
+              //   child: ListTile(
+              //     leading: Icon(
+              //       Icons.help_outline_outlined,
+              //       color: ColorConstants.appColor,
+              //     ),
+              //     title: Text('Faqs',
+              //         style: TextStyle(
+              //           color: ColorConstants.appColor,
+              //         )),
+              //   ),
+              // ),
               PopupMenuItem<String>(
                 value: 'Feedback',
                 child: ListTile(
@@ -107,7 +109,7 @@ class _HomePageV2State extends State<HomePageV2> {
                     Icons.feedback_outlined,
                     color: ColorConstants.appColor,
                   ),
-                  title: Text('Support',
+                  title: Text('Feedback',
                       style: TextStyle(
                         color: ColorConstants.appColor,
                       )),
@@ -120,21 +122,25 @@ class _HomePageV2State extends State<HomePageV2> {
                     Icons.camera_alt_outlined,
                     color: ColorConstants.appColor,
                   ),
-                  title: const Text('Take a Photo'),
+                  title: Text('AQI Camera',
+                      style: TextStyle(
+                        color: ColorConstants.appColor,
+                      )),
                 ),
               ),
-              PopupMenuItem<String>(
-                value: 'Settings',
-                child: ListTile(
-                  leading: Icon(
-                    Icons.settings,
-                    color: ColorConstants.appColor,
-                  ),
-                  title: const Text(
-                    'Settings',
-                  ),
-                ),
-              ),
+              // PopupMenuItem<String>(
+              //   value: 'Settings',
+              //   child: ListTile(
+              //     leading: Icon(
+              //
+              //       Icons.settings,
+              //       color: ColorConstants.appColor,
+              //     ),
+              //     title: const Text(
+              //       'Settings',
+              //     ),
+              //   ),
+              // ),
               const PopupMenuDivider(),
               PopupMenuItem<String>(
                 value: 'Share',
@@ -181,14 +187,39 @@ class _HomePageV2State extends State<HomePageV2> {
               const Spacer(
                 flex: 1,
               ),
+              IconButton(
+                // iconSize: 30.0,
+                // padding: const EdgeInsets.only(left: 28.0),
+                icon: Icon(Icons.favorite, color: ColorConstants.appColor),
+                splashColor: ColorConstants.appColor,
+                onPressed: () {
+                  setState(() {
+                    _pageCtrl.jumpToPage(1);
+                  });
+                },
+              ),
               const Spacer(
-                flex: 1,
+                flex: 3,
               ),
               IconButton(
                 // iconSize: 30.0,
                 // padding: const EdgeInsets.only(right: 28.0),
                 icon: Icon(Icons.library_books_outlined,
                     color: ColorConstants.appColor),
+                splashColor: ColorConstants.appColor,
+                onPressed: () {
+                  setState(() {
+                    _pageCtrl.jumpToPage(2);
+                  });
+                },
+              ),
+              const Spacer(
+                flex: 1,
+              ),
+              IconButton(
+                // iconSize: 30.0,
+                // padding: const EdgeInsets.only(right: 28.0),
+                icon: Icon(Icons.settings, color: ColorConstants.appColor),
                 splashColor: ColorConstants.appColor,
                 onPressed: () {
                   setState(() {
@@ -211,7 +242,9 @@ class _HomePageV2State extends State<HomePageV2> {
           physics: const NeverScrollableScrollPhysics(),
           children: <Widget>[
             DashboardPageV2(),
+            MyPlacesView(),
             ResourcesPage(),
+            SettingsView(),
           ],
         ),
       ),
@@ -314,7 +347,19 @@ class _HomePageV2State extends State<HomePageV2> {
         break;
       case 1:
         setState(() {
+          title = 'MyPlaces';
+          showAddPlace = false;
+        });
+        break;
+      case 2:
+        setState(() {
           title = 'News Feed';
+          showAddPlace = false;
+        });
+        break;
+      case 3:
+        setState(() {
+          title = 'Settings';
           showAddPlace = false;
         });
         break;

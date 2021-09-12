@@ -160,8 +160,41 @@ class DBHelper {
       double distanceInMeters;
 
       var location = await LocationApi().getLocation();
+      print(location.latitude);
+      await getLatestMeasurements().then((measurements) => {
+            if (location.longitude != null && location.latitude != null)
+              {
+                for (var measurement in measurements)
+                  {
+                    distanceInMeters = metersToKmDouble(
+                        Geolocator.distanceBetween(
+                            measurement.site.latitude,
+                            measurement.site.longitude,
+                            location.latitude!,
+                            location.longitude!)),
+                    if (distanceInMeters < AppConfig.maxSearchRadius.toDouble())
+                      {
+                        print('$distanceInMeters : '
+                            '${AppConfig.maxSearchRadius.toDouble()} : '
+                            '${measurement.site.getName()}'),
+                        measurement.site.distance = distanceInMeters,
+                        nearestMeasurements.add(measurement)
+                      }
+                  },
+                if (nearestMeasurements.isNotEmpty)
+                  {
+                    nearestMeasurement = nearestMeasurements.first,
+                    for (var m in nearestMeasurements)
+                      {
+                        if (nearestMeasurement.site.distance > m.site.distance)
+                          {nearestMeasurement = m}
+                      }
+                  }
+              }
+          });
 
       await LocationApi().getLocation().then((value) => {
+            print(value.latitude),
             getLatestMeasurements().then((measurements) => {
                   if (location.longitude != null && location.latitude != null)
                     {

@@ -40,11 +40,11 @@ class LocationApi {
       }
     }
 
-    await location.changeSettings(accuracy: LocationAccuracy.balanced);
-    await location.enableBackgroundMode(enable: true);
-    location.onLocationChanged.listen((LocationData locationData) {
-      print('${locationData.longitude} : ${locationData.longitude}');
-    });
+    // await location.changeSettings(accuracy: LocationAccuracy.balanced);
+    // await location.enableBackgroundMode(enable: true);
+    // location.onLocationChanged.listen((LocationData locationData) {
+    //   print('${locationData.longitude} : ${locationData.longitude}');
+    // });
 
     var _locationData = await location.getLocation();
     return _locationData;
