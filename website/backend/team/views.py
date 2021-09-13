@@ -1,3 +1,8 @@
-from django.shortcuts import render
+from rest_framework import viewsets
+from .models import Team
+from .serializers import TeamSerializer
 
-# Create your views here.
+
+class TeamViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Team.objects.all()
+    serializer_class = TeamSerializer
