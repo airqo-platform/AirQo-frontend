@@ -40,7 +40,11 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    #my apps
+    # Third-party apps
+    'rest_framework',
+
+    # My apps
+    'backend.team.apps.TeamConfig',
     'frontend.apps.FrontendConfig',
 ]
 
