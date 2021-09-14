@@ -53,8 +53,8 @@ Future<void> showSnackBar(context, String message) async {
       message,
       softWrap: true,
       textAlign: TextAlign.center,
-      style: TextStyle(
-        color:  ColorConstants.appColor,
+      style: const TextStyle(
+        color:  Colors.white,
       ),
     ),
     backgroundColor: ColorConstants.snackBarBgColor,
@@ -72,11 +72,11 @@ Future<void> showSnackBar2(context, String message) async {
       message,
       softWrap: true,
       textAlign: TextAlign.center,
-      style: TextStyle(
-        color:  ColorConstants.appColor,
+      style: const TextStyle(
+        color:  Colors.white,
       ),
     ),
-    backgroundColor: Colors.white,
+    backgroundColor: ColorConstants.snackBarBgColor,
   );
   ScaffoldMessenger.of(context).showSnackBar(snackBar);
 }

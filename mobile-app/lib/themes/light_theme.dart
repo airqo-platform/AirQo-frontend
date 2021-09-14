@@ -32,5 +32,6 @@ ThemeData lightTheme() {
     iconTheme: IconThemeData(
       color: ColorConstants.appColor,
     ),
+    appBarTheme: const AppBarTheme(elevation: 0.0),
   );
 }

@@ -37,14 +37,13 @@ class LocationSearch extends SearchDelegate<Suggestion> {
     _showAllSites = value;
   }
 
-  // @override
-  // ThemeData appBarTheme(BuildContext context) {
-  //   final base = Theme.of(context);
-  //
-  //   return base.copyWith(
-  //     primaryColor: ColorConstants.appColor,
-  //   );
-  // }
+  @override
+  ThemeData appBarTheme(BuildContext context) {
+    final theme = Theme.of(context);
+    return theme.copyWith(
+      primaryColor: Colors.grey[50],
+    );
+  }
 
   @override
   List<Widget> buildActions(BuildContext context) {
@@ -60,8 +59,11 @@ class LocationSearch extends SearchDelegate<Suggestion> {
       ),
       IconButton(
         tooltip: 'Map',
-        icon: Icon(Icons.public_sharp,
-          color: ColorConstants.appColor,),
+        icon: Image.asset(
+          'assets/images/world-map.png',
+          height: 50,
+          width: 50,
+        ),
         onPressed: () {
           Navigator.push(context, MaterialPageRoute(builder: (context) {
             return MapPage();

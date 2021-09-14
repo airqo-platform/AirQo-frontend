@@ -131,7 +131,7 @@ class _MeasurementsBarChartState extends State<MeasurementsBarChart> {
               ],
               primaryMeasureAxis: const charts.NumericAxisSpec(
                   tickProviderSpec:
-                      charts.BasicNumericTickProviderSpec(desiredTickCount: 7)),
+                      charts.BasicNumericTickProviderSpec(desiredTickCount: 5)),
             ),
           )
         ],

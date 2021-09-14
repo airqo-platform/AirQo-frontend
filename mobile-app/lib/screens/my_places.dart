@@ -28,6 +28,10 @@ class _MyPlacesState extends State<MyPlaces> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: BackButton(
+            color: ColorConstants.appColor
+        ),
+        elevation: 0.0,
         title: isSearching
             ? TextField(
                 autofocus: true,
@@ -35,19 +39,20 @@ class _MyPlacesState extends State<MyPlaces> {
                 onSubmitted: doSearch,
                 onChanged: doSearch,
                 onTap: () {},
-                style: const TextStyle(fontSize: 18, color: Colors.white),
-                decoration: const InputDecoration(
-                  hintStyle: TextStyle(fontSize: 18, color: Colors.white),
+                style: TextStyle(fontSize: 18, color: ColorConstants.appColor),
+                decoration: InputDecoration(
+                  hintStyle: TextStyle(fontSize: 18, color: ColorConstants.appColor),
                   hintText: 'Search in MyPlaces',
                   border: InputBorder.none,
                   contentPadding: EdgeInsets.all(15),
                 ),
               )
-            : const Text('MyPlaces',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                )),
+            : Text('MyPlaces',
+          style: TextStyle(
+            color: ColorConstants.appBarTitleColor,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         actions: [
           IconButton(
             icon: const Icon(
@@ -65,6 +70,7 @@ class _MyPlacesState extends State<MyPlaces> {
         ],
       ),
       body: Container(
+        color: Colors.white,
           child: Padding(
               padding: const EdgeInsets.fromLTRB(6, 6, 6, 6),
               child: isSearching

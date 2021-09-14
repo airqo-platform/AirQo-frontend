@@ -116,7 +116,7 @@ class _DashboardBarChartState extends State<DashboardBarChart> {
               ],
               primaryMeasureAxis: const charts.NumericAxisSpec(
                   tickProviderSpec:
-                      charts.BasicNumericTickProviderSpec(desiredTickCount: 7)),
+                      charts.BasicNumericTickProviderSpec(desiredTickCount: 5)),
             ),
           )
         ],

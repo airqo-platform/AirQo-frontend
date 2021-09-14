@@ -47,44 +47,46 @@ class CurrentLocationCard extends StatelessWidget {
             ),
           ),
 
-          if (historicalData.isNotEmpty)
-            Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-              elevation: 10,
-              child: Padding(
-                padding: const EdgeInsets.all(5.0),
-                child: historySection(),
-              ),
-            ),
-          if (forecastData.isNotEmpty)
-            Card(
-              elevation: 10,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: forecastSection(),
-            ),
           HealthRecommendationSection(
-              measurement: measurementData,
+            measurement: measurementData,
           ),
-          footerSection(),
+
+          // if (historicalData.isNotEmpty)
+          //   Card(
+          //     shape: RoundedRectangleBorder(
+          //       borderRadius: BorderRadius.circular(20),
+          //     ),
+          //     elevation: 10,
+          //     child: Padding(
+          //       padding: const EdgeInsets.all(5.0),
+          //       child: historySection(),
+          //     ),
+          //   ),
+          // if (forecastData.isNotEmpty)
+          //   Card(
+          //     elevation: 10,
+          //     shape: RoundedRectangleBorder(
+          //       borderRadius: BorderRadius.circular(20),
+          //     ),
+          //     child: forecastSection(),
+          //   ),
         ],
       ),
     );
   }
 
   Widget footerSection() {
-    return Row(
+    return Padding(padding: const EdgeInsets.fromLTRB(5, 0.0, 0.0, 0.0),
+    child: Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        // Text('${dateToString(measurementData.time, true)}, Local Time',
-        //     style: TextStyle(
-        //       color: ColorConstants.appColor,
-        //       fontSize: 12,
-        //     )),
+        Text(
+            '${dateToString(measurementData.time, true)}, Local Time',
+            style: TextStyle(
+              color: ColorConstants.appColor,
+              fontSize: 12,
+            )),
         const Spacer(),
         IconButton(onPressed: null, icon: Image.asset(
           'assets/images/heart.png',
@@ -108,7 +110,42 @@ class CurrentLocationCard extends StatelessWidget {
               )),
         )
       ],
+    ),
     );
+    // return Row(
+    //   crossAxisAlignment: CrossAxisAlignment.center,
+    //   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+    //   children: [
+    //     Text(
+    //         '${dateToString(measurementData.time, true)}, Local Time',
+    //         style: TextStyle(
+    //           color: ColorConstants.appColor,
+    //           fontSize: 12,
+    //         )),
+    //     const Spacer(),
+    //     IconButton(onPressed: null, icon: Image.asset(
+    //       'assets/images/heart.png',
+    //     )),
+    //
+    //     TextButton(
+    //       // style: ButtonStyle(
+    //       //   foregroundColor: MaterialStateProperty.all<Color>(Colors.blue),
+    //       // ),
+    //       onPressed: () {},
+    //       child: Card(
+    //           elevation: 5,
+    //           shape: RoundedRectangleBorder(
+    //             borderRadius: BorderRadius.circular(5),
+    //           ),
+    //           color: ColorConstants.appColor,
+    //           child: const Padding(
+    //             padding: EdgeInsets.all(8),
+    //             child: Text('SHARE',
+    //                 style: TextStyle(fontSize: 13, color: Colors.white)),
+    //           )),
+    //     )
+    //   ],
+    // );
   }
 
   Widget forecastSection() {
@@ -122,7 +159,7 @@ class CurrentLocationCard extends StatelessWidget {
       width: 140.0,
       child: charts.PieChart(
         seriesList,
-        animate: true,
+        animate: false,
         defaultRenderer: charts.ArcRendererConfig(
           arcWidth: 3,
           startAngle: 4 / 5 * pi,
@@ -145,37 +182,37 @@ class CurrentLocationCard extends StatelessWidget {
   Widget titleSection() {
     return Column(
       children: [
-        Card(
-            elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-            color: pmToColor(measurementData.getPm2_5Value()),
-            child: Padding(
-              padding: const EdgeInsets.all(8),
-              child: Column(
-                children: [
-                  Text('${measurementData.site.getUserLocation()}',
-                      softWrap: true,
-                      maxLines: 2,
-                      textAlign: TextAlign.center,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                          color: pmTextColor(measurementData.getPm2_5Value()),
-                          fontWeight: FontWeight.bold)),
-                  if (measurementData.site.getUserLocation() !=
-                      measurementData.site.getName())
-                    Text('${measurementData.site.getName()}',
-                        softWrap: true,
-                        maxLines: 2,
-                        textAlign: TextAlign.center,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                            color: pmTextColor(measurementData.getPm2_5Value()),
-                            fontWeight: FontWeight.bold)),
-                ],
-              ),
-            )),
+        // Card(
+        //     elevation: 0,
+        //     shape: RoundedRectangleBorder(
+        //       borderRadius: BorderRadius.circular(10),
+        //     ),
+        //     color: pmToColor(measurementData.getPm2_5Value()),
+        //     child: Padding(
+        //       padding: const EdgeInsets.all(8),
+        //       child: Column(
+        //         children: [
+        //           Text('${measurementData.site.getUserLocation()}',
+        //               softWrap: true,
+        //               maxLines: 2,
+        //               textAlign: TextAlign.center,
+        //               overflow: TextOverflow.ellipsis,
+        //               style: TextStyle(
+        //                   color: pmTextColor(measurementData.getPm2_5Value()),
+        //                   fontWeight: FontWeight.bold)),
+        //           if (measurementData.site.getUserLocation() !=
+        //               measurementData.site.getName())
+        //             Text('${measurementData.site.getName()}',
+        //                 softWrap: true,
+        //                 maxLines: 2,
+        //                 textAlign: TextAlign.center,
+        //                 overflow: TextOverflow.ellipsis,
+        //                 style: TextStyle(
+        //                     color: pmTextColor(measurementData.getPm2_5Value()),
+        //                     fontWeight: FontWeight.bold)),
+        //         ],
+        //       ),
+        //     )),
         Row(
           children: [
             Padding(
@@ -184,34 +221,38 @@ class CurrentLocationCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
-                  // Card(
-                  //     elevation: 0,
-                  //     shape: RoundedRectangleBorder(
-                  //       borderRadius: BorderRadius.circular(10),
-                  //     ),
-                  //     color:
-                  //     pmToColor(measurementData.getPm2_5Value()).withOpacity(0.5),
-                  //     child: Padding(
-                  //       padding: const EdgeInsets.all(8),
-                  //       child: Row(
-                  //         children: [
-                  //           Icon(
-                  //             Icons.location_on,
-                  //             color: pmTextColor(measurementData.getPm2_5Value()),
-                  //           ),
-                  //           Container(
-                  //               constraints: const BoxConstraints(maxWidth: 150),
-                  //               child: Text('${measurementData.site.getName()}',
-                  //                   softWrap: true,
-                  //                   maxLines: 2,
-                  //                   overflow: TextOverflow.ellipsis,
-                  //                   style: TextStyle(
-                  //                       color: pmTextColor(
-                  //                           measurementData.getPm2_5Value()),
-                  //                       fontWeight: FontWeight.bold))),
-                  //         ],
-                  //       ),
-                  //     )),
+                  Card(
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      color:
+                      pmToColor(measurementData.getPm2_5Value()),
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(5, 5, 10, 5),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.location_on,
+                              color: pmTextColor(measurementData
+                                  .getPm2_5Value()),
+                            ),
+                            Container(
+                                constraints:
+                                const BoxConstraints(maxWidth: 180),
+                                child:
+                                Text('${measurementData.site
+                                    .getUserLocation()}',
+                                    softWrap: true,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                        color: pmTextColor(
+                                            measurementData.getPm2_5Value()),
+                                        fontWeight: FontWeight.bold))),
+                          ],
+                        ),
+                      )),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(5, 0.0, 0.0, 0.0),
                     child: Text(pmToString(measurementData.getPm2_5Value()),
@@ -220,15 +261,15 @@ class CurrentLocationCard extends StatelessWidget {
                             color: ColorConstants.appColor,
                             fontWeight: FontWeight.bold)),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(5, 0.0, 0.0, 0.0),
-                    child: Text(
-                        '${dateToString(measurementData.time, true)}, Local Time',
-                        style: TextStyle(
-                          color: ColorConstants.appColor,
-                          fontSize: 12,
-                        )),
-                  )
+                  // Padding(
+                  //   padding: const EdgeInsets.fromLTRB(5, 0.0, 0.0, 0.0),
+                  //   child: Text(
+                  //       '${dateToString(measurementData.time, true)}, Local Time',
+                  //       style: TextStyle(
+                  //         color: ColorConstants.appColor,
+                  //         fontSize: 12,
+                  //       )),
+                  // )
                 ],
               ),
             ),
@@ -258,7 +299,12 @@ class CurrentLocationCard extends StatelessWidget {
               ],
             )
           ],
-        )
+        ),
+        if (historicalData.isNotEmpty)
+          historySection(),
+        if (forecastData.isNotEmpty)
+          forecastSection(),
+        footerSection()
       ],
     );
   }

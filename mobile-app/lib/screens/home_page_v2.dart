@@ -279,6 +279,7 @@ class _HomePageV2State extends State<HomePageV2> {
         // width: 60.0,
         child: FittedBox(
           child: FloatingActionButton(
+            mini: true,
             backgroundColor: ColorConstants.appColor,
             onPressed: () {
               Navigator.push(context, MaterialPageRoute(builder: (context) {
@@ -287,6 +288,8 @@ class _HomePageV2State extends State<HomePageV2> {
             },
             child: Image.asset(
               'assets/images/world-map.png',
+              // height: 10,
+              // width: 10,
             ),
             // child: const Icon(
             //   Icons.public_sharp,

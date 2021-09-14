@@ -43,16 +43,28 @@ class _DashboardPageV2State extends State<DashboardPageV2> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  Text(getGreetings(),
-                    textAlign: TextAlign.start,
-                    style: const TextStyle(
-                        fontSize: 30,
-                        fontWeight: FontWeight.bold
-                    ),),
+                  // Padding(padding: const EdgeInsets.fromLTRB(5.0, 5.0, 0, 5.0),
+                  //   child: Text(getGreetings(),
+                  //     textAlign: TextAlign.start,
+                  //     style: const TextStyle(
+                  //         fontSize: 30,
+                  //         fontWeight: FontWeight.bold
+                  //     ),),
+                  // ),
+
                   Expanded(
                     child: ListView(
                       shrinkWrap: true,
                       children: <Widget>[
+                        Padding(padding: const EdgeInsets
+                            .fromLTRB(5.0, 5.0, 0, 5.0),
+                          child: Text(getGreetings(),
+                            textAlign: TextAlign.start,
+                            style: const TextStyle(
+                                fontSize: 30,
+                                fontWeight: FontWeight.bold
+                            ),),
+                        ),
                         CurrentLocationCard(
                             measurementData: measurementData,
                             historicalData: historicalData,

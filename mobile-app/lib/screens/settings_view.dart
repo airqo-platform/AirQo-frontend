@@ -47,18 +47,18 @@ class _SettingsViewState extends State<SettingsView> {
                 endIndent: 30,
                 color: ColorConstants.appColor,
               ),
-              notifications(),
-              Divider(
-                indent: 30,
-                endIndent: 30,
-                color: ColorConstants.appColor,
-              ),
-              reports(),
-              Divider(
-                indent: 30,
-                endIndent: 30,
-                color: ColorConstants.appColor,
-              ),
+              // notifications(),
+              // Divider(
+              //   indent: 30,
+              //   endIndent: 30,
+              //   color: ColorConstants.appColor,
+              // ),
+              // reports(),
+              // Divider(
+              //   indent: 30,
+              //   endIndent: 30,
+              //   color: ColorConstants.appColor,
+              // ),
               supportSection(),
               footerSection()
             ],
@@ -508,52 +508,52 @@ class _SettingsViewState extends State<SettingsView> {
               ),
             ),
           ),
-          InkWell(
-            onTap: () {
-              showDialog(
-                  context: context,
-                  builder: (context) {
-                    return ChangeThemeDialog(
-                      onValueChange: _onThemeValueChange,
-                      initialValue: _theme,
-                    );
-                  });
-            },
-            child: ListTile(
-              title: const Text('Appearance'),
-              leading: FaIcon(
-                FontAwesomeIcons.paintRoller,
-                color: ColorConstants.appColor,
-              ),
-              trailing: Icon(
-                Icons.arrow_forward_ios_rounded,
-                color: ColorConstants.appColor,
-              ),
-            ),
-          ),
-          InkWell(
-            onTap: () {
-              showDialog(
-                  context: context,
-                  builder: (context) {
-                    return ChangeLanguageDialog(
-                      onValueChange: _onLanguageValueChange,
-                      initialValue: _language,
-                    );
-                  });
-            },
-            child: ListTile(
-              title: const Text('Language'),
-              leading: FaIcon(
-                FontAwesomeIcons.language,
-                color: ColorConstants.appColor,
-              ),
-              trailing: Icon(
-                Icons.arrow_forward_ios_rounded,
-                color: ColorConstants.appColor,
-              ),
-            ),
-          ),
+          // InkWell(
+          //   onTap: () {
+          //     showDialog(
+          //         context: context,
+          //         builder: (context) {
+          //           return ChangeThemeDialog(
+          //             onValueChange: _onThemeValueChange,
+          //             initialValue: _theme,
+          //           );
+          //         });
+          //   },
+          //   child: ListTile(
+          //     title: const Text('Appearance'),
+          //     leading: FaIcon(
+          //       FontAwesomeIcons.paintRoller,
+          //       color: ColorConstants.appColor,
+          //     ),
+          //     trailing: Icon(
+          //       Icons.arrow_forward_ios_rounded,
+          //       color: ColorConstants.appColor,
+          //     ),
+          //   ),
+          // ),
+          // InkWell(
+          //   onTap: () {
+          //     showDialog(
+          //         context: context,
+          //         builder: (context) {
+          //           return ChangeLanguageDialog(
+          //             onValueChange: _onLanguageValueChange,
+          //             initialValue: _language,
+          //           );
+          //         });
+          //   },
+          //   child: ListTile(
+          //     title: const Text('Language'),
+          //     leading: FaIcon(
+          //       FontAwesomeIcons.language,
+          //       color: ColorConstants.appColor,
+          //     ),
+          //     trailing: Icon(
+          //       Icons.arrow_forward_ios_rounded,
+          //       color: ColorConstants.appColor,
+          //     ),
+          //   ),
+          // ),
           // const ListTile(
           //   title: Text('System Permissions'),
           // ),
