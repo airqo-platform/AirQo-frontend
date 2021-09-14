@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'rest_framework',
 
     # My apps
+    'backend.FAQ.apps.FaqConfig',
     'backend.team.apps.TeamConfig',
     'frontend.apps.FrontendConfig',
 ]
