@@ -1,3 +1,4 @@
+cloudinary
 django
 djangorestframework
 dj_database_url
