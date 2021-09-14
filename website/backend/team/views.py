@@ -1,8 +1,8 @@
 from rest_framework import viewsets
-from .models import Team
-from .serializers import TeamSerializer
+from .models import Member
+from .serializers import TeamMemberSerializer
 
 
 class TeamViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Team.objects.all()
-    serializer_class = TeamSerializer
+    queryset = Member.objects.all()
+    serializer_class = TeamMemberSerializer
