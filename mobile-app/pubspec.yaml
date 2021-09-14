@@ -87,6 +87,8 @@ flutter:
     - assets/images/hazardous-face.png
     - assets/images/historical.png
     - assets/images/map.png
+    - assets/images/world-map.png
+    - assets/images/heart.png
     - assets/images/target.png
     - assets/images/baby.png
     - assets/images/cycling.png

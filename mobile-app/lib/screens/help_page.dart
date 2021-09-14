@@ -16,6 +16,10 @@ class HelpPage extends StatelessWidget {
       length: 5,
       child: Scaffold(
         appBar: AppBar(
+          leading: BackButton(
+              color: ColorConstants.appColor
+          ),
+          elevation: 0,
           bottom: const TabBar(
             isScrollable: true,
             tabs: [
@@ -23,7 +27,6 @@ class HelpPage extends StatelessWidget {
                   child: Text(
                 'AQI',
                 style: TextStyle(
-                    color: Colors.white,
                     fontWeight: FontWeight.bold,
                     fontSize: 17),
               )),
@@ -31,7 +34,6 @@ class HelpPage extends StatelessWidget {
                   child: Text(
                 'PM 2.5',
                 style: TextStyle(
-                    color: Colors.white,
                     fontWeight: FontWeight.bold,
                     fontSize: 17),
               )),
@@ -39,7 +41,6 @@ class HelpPage extends StatelessWidget {
                   child: Text(
                 'PM 10',
                 style: TextStyle(
-                    color: Colors.white,
                     fontWeight: FontWeight.bold,
                     fontSize: 17),
               )),
@@ -47,7 +48,6 @@ class HelpPage extends StatelessWidget {
                   child: Text(
                 'Humidity',
                 style: TextStyle(
-                    color: Colors.white,
                     fontWeight: FontWeight.bold,
                     fontSize: 17),
               )),
@@ -55,7 +55,6 @@ class HelpPage extends StatelessWidget {
                   child: Text(
                 'Temperature',
                 style: TextStyle(
-                    color: Colors.white,
                     fontWeight: FontWeight.bold,
                     fontSize: 17),
               )),
@@ -63,7 +62,7 @@ class HelpPage extends StatelessWidget {
           ),
           title: const Text(
             'Help Guides',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            style: TextStyle(fontWeight: FontWeight.bold),
           ),
         ),
         body: TabBarView(

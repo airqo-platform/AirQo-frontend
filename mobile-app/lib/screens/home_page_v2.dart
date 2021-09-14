@@ -40,15 +40,24 @@ class _HomePageV2State extends State<HomePageV2> {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
+        // title: Text(title,
+        //     style: const TextStyle(
+        //       color: Colors.white,
+        //       fontWeight: FontWeight.bold,
+        //     )),
+        // backgroundColor: ColorConstants.appBarBgColor,
+        elevation: 0,
         title: Text(title,
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            )),
+          style: TextStyle(
+              color: ColorConstants.appBarTitleColor,
+          fontWeight: FontWeight.bold,
+          ),
+        ),
         actions: [
           IconButton(
-            icon: const Icon(
+            icon: Icon(
               Icons.search,
+              color: ColorConstants.appBarTitleColor,
             ),
             onPressed: () async {
               await showSearch(
@@ -60,6 +69,10 @@ class _HomePageV2State extends State<HomePageV2> {
             },
           ),
           PopupMenuButton<dynamic>(
+            icon: Icon(
+              Icons.menu,
+              color: ColorConstants.appBarTitleColor,
+            ),
             onSelected: (value) => {navigateToMenuItem(value)},
             itemBuilder: (context) => <PopupMenuEntry<String>>[
               // PopupMenuItem<String>(
@@ -104,19 +117,19 @@ class _HomePageV2State extends State<HomePageV2> {
               //         )),
               //   ),
               // ),
-              PopupMenuItem<String>(
-                value: 'Feedback',
-                child: ListTile(
-                  leading: Icon(
-                    Icons.feedback_outlined,
-                    color: ColorConstants.appColor,
-                  ),
-                  title: Text('Feedback',
-                      style: TextStyle(
-                        color: ColorConstants.appColor,
-                      )),
-                ),
-              ),
+              // PopupMenuItem<String>(
+              //   value: 'Feedback',
+              //   child: ListTile(
+              //     leading: Icon(
+              //       Icons.feedback_outlined,
+              //       color: ColorConstants.appColor,
+              //     ),
+              //     title: Text('Feedback',
+              //         style: TextStyle(
+              //           color: ColorConstants.appColor,
+              //         )),
+              //   ),
+              // ),
               PopupMenuItem<String>(
                 value: 'camera',
                 child: ListTile(
@@ -272,10 +285,13 @@ class _HomePageV2State extends State<HomePageV2> {
                 return MapPage();
               }));
             },
-            child: const Icon(
-              Icons.public_sharp,
-              color: Colors.white,
+            child: Image.asset(
+              'assets/images/world-map.png',
             ),
+            // child: const Icon(
+            //   Icons.public_sharp,
+            //   color: Colors.white,
+            // ),
             // elevation: 5.0,
           ),
         ),

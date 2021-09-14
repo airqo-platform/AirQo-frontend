@@ -5,6 +5,7 @@ import 'package:app/models/site.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/services/native_api.dart';
 import 'package:app/services/rest_api.dart';
+import 'package:app/utils/date.dart';
 import 'package:app/utils/settings.dart';
 import 'package:app/widgets/current_location_readings.dart';
 import 'package:flutter/material.dart';
@@ -23,19 +24,31 @@ class _DashboardPageV2State extends State<DashboardPageV2> {
   @override
   Widget build(BuildContext context) {
     if (measurementData == null) {
-      return Center(
-        child: CircularProgressIndicator(
-          color: ColorConstants.appColor,
-        ),
-      );
+      return Container(
+        color: ColorConstants.appBodyColor,
+        child: Center(
+            child: CircularProgressIndicator(
+              color: ColorConstants.appColor,
+            ),
+      ));
+
     } else {
       return Container(
+        color: ColorConstants.appBodyColor,
           child: RefreshIndicator(
               onRefresh: initialize,
               color: ColorConstants.appColor,
+              child: Padding(padding: EdgeInsets.all(10.0),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
+                  Text(getGreetings(),
+                    textAlign: TextAlign.start,
+                    style: const TextStyle(
+                        fontSize: 30,
+                        fontWeight: FontWeight.bold
+                    ),),
                   Expanded(
                     child: ListView(
                       shrinkWrap: true,
@@ -46,9 +59,11 @@ class _DashboardPageV2State extends State<DashboardPageV2> {
                             forecastData: forecastData),
                       ],
                     ),
-                  )
+                  ),
                 ],
-              )));
+              ),)
+
+              ));
     }
   }
 

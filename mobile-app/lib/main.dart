@@ -23,8 +23,8 @@ import 'themes/light_theme.dart';
 
 Future<void> main() async {
   SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-    systemNavigationBarColor: ColorConstants.appColor,
-    statusBarColor: Colors.transparent,
+    systemNavigationBarColor: Colors.white,
+    statusBarColor: Colors.white,
     // statusBarBrightness: Brightness.light,
     // statusBarIconBrightness:Brightness.light ,
     // systemNavigationBarDividerColor: ColorConstants.appColor,
@@ -109,6 +109,7 @@ class AirQoApp extends StatelessWidget {
               final provider = Provider.of<LocaleProvider>(context);
 
               return MaterialApp(
+
                 debugShowCheckedModeBanner: false,
                 localizationsDelegates: [
                   CustomLocalizations.delegate,

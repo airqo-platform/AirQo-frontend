@@ -22,6 +22,7 @@ class _MyPlacesViewState extends State<MyPlacesView> {
   @override
   Widget build(BuildContext context) {
     return Container(
+        color: ColorConstants.appBodyColor,
         child: Padding(
             padding: const EdgeInsets.fromLTRB(6, 6, 6, 6),
             child: FutureBuilder(

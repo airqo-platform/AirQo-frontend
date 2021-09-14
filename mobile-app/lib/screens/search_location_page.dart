@@ -37,28 +37,31 @@ class LocationSearch extends SearchDelegate<Suggestion> {
     _showAllSites = value;
   }
 
-  @override
-  ThemeData appBarTheme(BuildContext context) {
-    final base = Theme.of(context);
-
-    return base.copyWith(
-      primaryColor: ColorConstants.appColor,
-    );
-  }
+  // @override
+  // ThemeData appBarTheme(BuildContext context) {
+  //   final base = Theme.of(context);
+  //
+  //   return base.copyWith(
+  //     primaryColor: ColorConstants.appColor,
+  //   );
+  // }
 
   @override
   List<Widget> buildActions(BuildContext context) {
     return [
       IconButton(
         tooltip: 'Clear',
-        icon: const Icon(Icons.clear),
+        icon: Icon(Icons.clear,
+          color: ColorConstants.appColor,
+        ),
         onPressed: () {
           query = '';
         },
       ),
       IconButton(
         tooltip: 'Map',
-        icon: const Icon(Icons.public_sharp),
+        icon: Icon(Icons.public_sharp,
+          color: ColorConstants.appColor,),
         onPressed: () {
           Navigator.push(context, MaterialPageRoute(builder: (context) {
             return MapPage();
@@ -72,7 +75,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
   Widget buildLeading(BuildContext context) {
     return IconButton(
       tooltip: 'Back',
-      icon: const Icon(Icons.arrow_back),
+      icon: Icon(Icons.arrow_back, color: ColorConstants.appColor,),
       onPressed: () {
         close(context, Suggestion(description: '', placeId: ''));
       },

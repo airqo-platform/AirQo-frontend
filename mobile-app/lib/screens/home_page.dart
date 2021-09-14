@@ -37,7 +37,12 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('${AppConfig.name}'),
+        backgroundColor: ColorConstants.appBarBgColor,
+        title: Text('${AppConfig.name}',
+            style: TextStyle(
+            color: ColorConstants.appBarTitleColor
+        ),
+        ),
         actions: [
           // showAddPlace
           //     ? IconButton(

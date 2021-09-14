@@ -32,11 +32,19 @@ class AppConfig {
 class ColorConstants {
   static Color get appColor => const Color(0xff3067e2);
 
+  static Color get appBarBgColor => Colors.white;
+
+  static Color get appBarTitleColor => appColor;
+
+  static Color get appBodyColor => Colors.white;
+
   static Color get facebookColor => const Color(0xff4267B2);
 
   static Color get green => const Color(0xff3FFF33);
 
-  static Color get inactiveColor => Colors.grey;
+  static Color get inactiveColor => appColor.withOpacity(0.5);
+
+  static Color get snackBarBgColor => appColor.withOpacity(0.8);
 
   static Color get linkedInColor => const Color(0xff2867B2);
 

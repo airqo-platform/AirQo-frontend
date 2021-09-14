@@ -7,16 +7,30 @@ ThemeData lightTheme() {
   final base = ThemeData.light();
 
   return base.copyWith(
-      primaryColor: ColorConstants.appColor,
-      accentColor: ColorConstants.appColor,
+      // primaryColor: Colors.white,
+      primaryColor: Colors.white,
+      // accentColor: ColorConstants.appColor,
+      // backgroundColor: Colors.white,
       visualDensity: VisualDensity.adaptivePlatformDensity,
-      textTheme: ThemeData.light().textTheme.apply(fontFamily: 'OpenSans'),
+      textTheme: ThemeData.light().textTheme.apply(
+          fontFamily: 'OpenSans',
+        bodyColor: ColorConstants.appColor,
+        displayColor: ColorConstants.appColor,
+      ),
       // canvasColor: Colors.transparent,
       primaryTextTheme: ThemeData.light().textTheme.apply(
             fontFamily: 'OpenSans',
             bodyColor: ColorConstants.appColor,
-            displayColor: Colors.white,
+            displayColor: ColorConstants.appColor,
           ),
       accentTextTheme:
-          ThemeData.light().textTheme.apply(fontFamily: 'OpenSans'));
+          ThemeData.light().textTheme.apply(
+              fontFamily: 'OpenSans',
+            bodyColor: ColorConstants.appColor,
+            displayColor: ColorConstants.appColor,
+          ),
+    iconTheme: IconThemeData(
+      color: ColorConstants.appColor,
+    ),
+  );
 }

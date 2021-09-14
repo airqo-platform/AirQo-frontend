@@ -10,10 +10,13 @@ class PollutantDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
-      child: ListView(
-        children: [whatIs(), source(), effects(), howToReduce()],
+    return Container(
+      color: ColorConstants.appBodyColor,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
+        child: ListView(
+          children: [whatIs(), source(), effects(), howToReduce()],
+        ),
       ),
     );
   }
@@ -211,12 +214,14 @@ class PollutantDialogV2 extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
-      child: ListView(
-        children: [
-          whatIs(),
-        ],
+
+    return Container(
+      color: ColorConstants.appBodyColor,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
+        child: ListView(
+          children: [whatIs()],
+        ),
       ),
     );
   }

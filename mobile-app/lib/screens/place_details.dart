@@ -84,10 +84,13 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        elevation: 0,
+        leading: BackButton(
+            color: ColorConstants.appColor
+        ),
         title: Text(
           '${AppConfig.name}',
           style: const TextStyle(
-            color: Colors.white,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -105,6 +108,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
       ),
       body: measurementData != null
           ? Container(
+        color: ColorConstants.appBodyColor,
               child: ListView(
                 controller: _scrollCtrl,
                 padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
@@ -182,32 +186,44 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
               ),
             )
           : response != ''
-              ? Center(
-                  child: Text(
-                    response,
-                    style: TextStyle(color: ColorConstants.appColor),
-                  ),
-                )
-              : Center(
-                  child: Stack(
-                    children: <Widget>[
-                      Center(
-                        child: Container(
-                            width: 100,
-                            height: 100,
-                            child: CircularProgressIndicator(
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                  ColorConstants.appColor),
-                            )),
-                      ),
-                      Center(
-                          child: Text(
-                        'Loading',
-                        style: TextStyle(color: ColorConstants.appColor),
+              ?
+          Container(
+            color: ColorConstants.appBodyColor,
+            child: Center(
+              child: Text(
+                response,
+                style: TextStyle(color: ColorConstants.appColor),
+              ),
+            )
+          )
+
+              :
+
+      Container(
+          color: ColorConstants.appBodyColor,
+          child:  Center(
+            child: Stack(
+              children: <Widget>[
+                Center(
+                  child: Container(
+                      width: 100,
+                      height: 100,
+                      child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                            ColorConstants.appColor),
                       )),
-                    ],
-                  ),
                 ),
+                Center(
+                    child: Text(
+                      'Loading',
+                      style: TextStyle(color: ColorConstants.appColor),
+                    )),
+              ],
+            ),
+          )
+      )
+
+     ,
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: measurementData != null
           ? _showMenuButton
@@ -221,8 +237,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
     return Padding(
         padding: const EdgeInsets.all(8.0),
         child: Card(
-            color: ColorConstants.appColor,
-            elevation: 20,
+            elevation: 10,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(20),
             ),
@@ -234,9 +249,9 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                       padding: const EdgeInsets.all(1.0),
                       child: Text(
                         '${site.getName()}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 16,
-                          color: Colors.white,
+                          color: ColorConstants.appColor,
                         ),
                         textAlign: TextAlign.center,
                       )),
@@ -244,9 +259,9 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                     padding: const EdgeInsets.fromLTRB(1.0, 3.0, 1.0, 3.0),
                     child: Text(
                       '${site.district} ${site.country}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 20,
-                        color: Colors.white,
+                        color: ColorConstants.appColor,
                         fontWeight: FontWeight.bold,
                       ),
                       textAlign: TextAlign.center,
@@ -257,9 +272,9 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                     child: Text(
                       'Air Quality '
                       '${pmToString(measurement.getPm2_5Value())}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
-                        color: Colors.white,
+                        color: ColorConstants.appColor,
                       ),
                       textAlign: TextAlign.center,
                     ),

@@ -32,6 +32,7 @@ class AqiDialog extends StatelessWidget {
       'Follow tips for keeping particle levels low indoors.';
 
   final Widget whatIsAQI = Container(
+    color: ColorConstants.appBodyColor,
       padding: const EdgeInsets.all(10),
       child: Text(
           'An air quality index is used by government agencies to '
@@ -51,6 +52,7 @@ class AqiDialog extends StatelessWidget {
 
   Widget aqiGuide(String image, String body, Color color, Color textColor) {
     return Container(
+      color: ColorConstants.appBodyColor,
       padding: const EdgeInsets.all(5),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,

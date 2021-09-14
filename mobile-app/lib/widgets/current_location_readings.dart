@@ -31,15 +31,44 @@ class CurrentLocationCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(8),
+      padding: const EdgeInsets.all(0),
       child: Column(
         children: [
-          titleSection(),
-          HealthRecommendationSection(
-            measurement: measurementData,
+
+
+          Card(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            elevation: 10,
+            child: Padding(
+              padding: const EdgeInsets.all(5.0),
+              child: titleSection(),
+            ),
           ),
-          if (historicalData.isNotEmpty) historySection(),
-          if (forecastData.isNotEmpty) forecastSection(),
+
+          if (historicalData.isNotEmpty)
+            Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              elevation: 10,
+              child: Padding(
+                padding: const EdgeInsets.all(5.0),
+                child: historySection(),
+              ),
+            ),
+          if (forecastData.isNotEmpty)
+            Card(
+              elevation: 10,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: forecastSection(),
+            ),
+          HealthRecommendationSection(
+              measurement: measurementData,
+          ),
           footerSection(),
         ],
       ),
@@ -57,14 +86,14 @@ class CurrentLocationCard extends StatelessWidget {
         //       fontSize: 12,
         //     )),
         const Spacer(),
-        Icon(
-          Icons.favorite_border_outlined,
-          color: ColorConstants.red,
-        ),
+        IconButton(onPressed: null, icon: Image.asset(
+          'assets/images/heart.png',
+        )),
+
         TextButton(
-          style: ButtonStyle(
-            foregroundColor: MaterialStateProperty.all<Color>(Colors.blue),
-          ),
+          // style: ButtonStyle(
+          //   foregroundColor: MaterialStateProperty.all<Color>(Colors.blue),
+          // ),
           onPressed: () {},
           child: Card(
               elevation: 5,

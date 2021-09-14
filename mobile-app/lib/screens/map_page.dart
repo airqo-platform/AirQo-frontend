@@ -98,7 +98,7 @@ class MapPageState extends State<MapPage> {
                         Expanded(
                           child: Container(
                             decoration: BoxDecoration(
-                              color: Colors.white70,
+                              color: Colors.white,
                               borderRadius: BorderRadius.circular(32),
                             ),
                             child: TextField(
@@ -437,127 +437,9 @@ class MapPageState extends State<MapPage> {
     });
   }
 
-  Widget infoWindow() {
-    return Card(
-        child: Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Column(
-        children: [
-          Text(
-            windowProperties.site.getName(),
-            softWrap: true,
-            style: TextStyle(color: ColorConstants.appColor),
-            overflow: TextOverflow.ellipsis,
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(0, 5, 0, 0),
-            child: Container(
-                padding: const EdgeInsets.all(5.0),
-                decoration: BoxDecoration(
-                    color: pmToColor(windowProperties.getPm2_5Value()),
-                    border: Border.all(
-                      color: pmToColor(windowProperties.getPm2_5Value()),
-                    ),
-                    borderRadius: const BorderRadius.all(Radius.circular(10))),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(5, 0, 0, 0),
-                      child: Text(
-                        windowProperties.getPm2_5Value().toStringAsFixed(2),
-                        style: TextStyle(
-                            color:
-                                pmTextColor(windowProperties.getPm2_5Value())),
-                      ),
-                    ),
-                    // Expanded(child: Text(
-                    //   pmToString(windowProperties.getPm2_5Value()
-                    //   .toStringAsFixed(2)),
-                    //   maxLines: 4,
-                    //   softWrap: true,
-                    //   textAlign: TextAlign.center,
-                    // ),
-                    // ),
-                    Text(
-                      pmToString(windowProperties.getPm2_5Value()),
-                      maxLines: 4,
-                      softWrap: true,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                          color: pmTextColor(windowProperties.getPm2_5Value())),
-                    ),
-
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(0, 0, 5, 0),
-                      child: Text(
-                        dateToString(windowProperties.time, true),
-                        style: TextStyle(
-                            color:
-                                pmTextColor(windowProperties.getPm2_5Value())),
-                      ),
-                    ),
-                  ],
-                )),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              IconButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute<void>(
-                      builder: (BuildContext context) => const HelpPage(
-                        initialIndex: 0,
-                      ),
-                      fullscreenDialog: true,
-                    ),
-                  );
-                },
-                icon: Icon(Icons.info_outline, color: ColorConstants.appColor),
-              ),
-              IconButton(
-                onPressed: () {
-                  shareMeasurement(windowProperties);
-                },
-                icon:
-                    Icon(Icons.share_outlined, color: ColorConstants.appColor),
-              ),
-              IconButton(
-                  onPressed: () {
-                    updateFavouritePlace(windowProperties.site);
-                  },
-                  icon: favourites.contains(
-                          windowProperties.site.id.trim().toLowerCase())
-                      ? Icon(
-                          Icons.favorite,
-                          color: ColorConstants.red,
-                        )
-                      : Icon(
-                          Icons.favorite_border_outlined,
-                          color: ColorConstants.red,
-                        )),
-              GestureDetector(
-                onTap: () {
-                  showDetails(windowProperties.site);
-                },
-                child: Text('More Details',
-                    softWrap: true,
-                    style: TextStyle(
-                        color: ColorConstants.appColor,
-                        fontWeight: FontWeight.bold)),
-              )
-            ],
-          ),
-        ],
-      ),
-    ));
-  }
-
   Widget infoWindowV2() {
     return Card(
-        color: ColorConstants.appColor,
+
         elevation: 20,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
@@ -570,9 +452,9 @@ class MapPageState extends State<MapPage> {
                 windowProperties.site.getName(),
                 softWrap: true,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
+                style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: ColorConstants.appColor,
                     fontSize: 20),
                 overflow: TextOverflow.ellipsis,
               ),
@@ -585,21 +467,24 @@ class MapPageState extends State<MapPage> {
                       children: [
                         Text(
                           windowProperties.getPm2_5Value().toStringAsFixed(2),
-                          style: const TextStyle(
-                              fontSize: 17, color: Colors.white),
+                          style: TextStyle(
+                              fontSize: 17,
+                            color: ColorConstants.appColor,),
                         ),
                         Text(
                           pmToString(windowProperties.getPm2_5Value()),
                           maxLines: 4,
                           softWrap: true,
                           textAlign: TextAlign.center,
-                          style: const TextStyle(
-                              fontWeight: FontWeight.bold, color: Colors.white),
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                            color: ColorConstants.appColor,),
                         ),
                         Text(
                           dateToString(windowProperties.time, true),
-                          style: const TextStyle(
-                              fontSize: 17, color: Colors.white),
+                          style: TextStyle(
+                              fontSize: 17,
+                            color: ColorConstants.appColor,),
                         ),
                       ],
                     )),
