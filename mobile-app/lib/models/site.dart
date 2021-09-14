@@ -29,6 +29,9 @@ class Site {
   @JsonKey(required: false, defaultValue: 0.0)
   double distance;
 
+  @JsonKey(required: false, defaultValue: '')
+  String userLocation = '';
+
   Site(this.name,
       {required this.id,
       required this.latitude,
@@ -48,6 +51,20 @@ class Site {
   }
 
   String getName() {
+    if (description == '') {
+      return name;
+    }
+    return description;
+  }
+
+  String getUserLocation() {
+    if (userLocation != '') {
+      return userLocation;
+    }
+    return getName();
+  }
+
+  String getUserLocationName() {
     if (description == '') {
       return name;
     }

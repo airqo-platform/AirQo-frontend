@@ -4,9 +4,7 @@ double kmIntToMetersDouble(int km) {
 }
 
 double metersToKmDouble(double meters) {
-  print(meters);
   var km = meters / 1000;
-  print(km);
   return km;
 }
 

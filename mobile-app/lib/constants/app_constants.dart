@@ -16,6 +16,10 @@ class AppConfig {
 
   static String get dbName => databaseName;
 
+  static double get defaultLatitude => defaultLatitudeValue;
+
+  static double get defaultLongitude => defaultLongitudeValue;
+
   static int get maxSearchRadius => searchRadius * 2;
 
   static String get name => applicationName;
@@ -209,6 +213,8 @@ class PollutantSource {
 class PrefConstant {
   static String get appTheme => 'appTheme';
 
+  static String get dashboardMeasurement => 'dashboardMeasurement';
+
   static String get dashboardSite => 'dashboardSite';
 
   static String get favouritePlaces => 'favouriteSites';
@@ -216,6 +222,8 @@ class PrefConstant {
   static String get firstUse => 'firstUse';
 
   static String get initialDbLoad => 'initialDbLoad';
+
+  static String get lastKnownLocation => 'lastKnownLocation';
 
   static String get siteAlerts => 'siteAlerts';
 }

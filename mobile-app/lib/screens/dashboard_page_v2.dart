@@ -1,13 +1,11 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/historicalMeasurement.dart';
-import 'package:app/models/measurement.dart';
 import 'package:app/models/predict.dart';
 import 'package:app/models/site.dart';
-import 'package:app/screens/place_details.dart';
 import 'package:app/services/local_storage.dart';
+import 'package:app/services/native_api.dart';
 import 'package:app/services/rest_api.dart';
-import 'package:app/utils/dialogs.dart';
-import 'package:app/widgets/air_quality_nav.dart';
+import 'package:app/utils/settings.dart';
 import 'package:app/widgets/current_location_readings.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -135,7 +133,7 @@ class _DashboardPageV2State extends State<DashboardPageV2> {
 
   Future<void> getLocationMeasurements() async {
     try {
-      await DBHelper().getLocationMeasurement().then((value) => {
+      await Settings().dashboardMeasurement().then((value) => {
             if (value != null)
               {
                 if (mounted)
@@ -144,35 +142,119 @@ class _DashboardPageV2State extends State<DashboardPageV2> {
                       measurementData = value;
                     }),
                     getLocationHistoricalMeasurements(value.site),
-                    getLocationForecastMeasurements(value.site)
+                    getLocationForecastMeasurements(value.site),
+                    updateCurrentLocation()
                   },
               }
+            else
+              {}
           });
+      // await DBHelper().getLocationMeasurement().then((value) => {
+      //   if (value != null)
+      //     {
+      //       if (mounted)
+      //         {
+      //           setState(() {
+      //             measurementData = value;
+      //           }),
+      //           getLocationHistoricalMeasurements(value.site),
+      //           getLocationForecastMeasurements(value.site)
+      //         },
+      //     }
+      // });
     } catch (e) {
-      print('error getting data');
+      print('error getting data : $e');
     }
   }
 
   Future<void> initialize() async {
-    var prefs = await SharedPreferences.getInstance();
-    var dashboardSite = prefs.getString(PrefConstant.dashboardSite) ?? '';
+    await getLocationMeasurements();
 
-    if (dashboardSite == '') {
-      var sites = prefs.getStringList(PrefConstant.favouritePlaces) ?? [];
-      dashboardSite = sites.isEmpty ? '' : sites.first;
-    }
-
-    if (dashboardSite != '') {
-      await getDashBoardSiteMeasurements(dashboardSite);
-    } else {
-      await getLocationMeasurements();
-    }
+    // var prefs = await SharedPreferences.getInstance();
+    // var dashboardSite = prefs.getString(PrefConstant.dashboardSite) ?? '';
+    //
+    // if (dashboardSite == '') {
+    //   var sites = prefs.getStringList(PrefConstant.favouritePlaces) ?? [];
+    //   dashboardSite = sites.isEmpty ? '' : sites.first;
+    // }
+    //
+    // if (dashboardSite != '') {
+    //   await getDashBoardSiteMeasurements(dashboardSite);
+    // } else {
+    //   await getLocationMeasurements();
+    // }
   }
 
   @override
   void initState() {
     initialize();
     super.initState();
+  }
+
+  Future<void> updateCurrentLocation() async {
+    var prefs = await SharedPreferences.getInstance();
+    var dashboardSite = prefs.getString(PrefConstant.dashboardSite) ?? '';
+
+    if (dashboardSite == '') {
+      await LocationApi().getLocationMeasurement().then((value) => {
+            if (value != null && mounted)
+              {
+                prefs.setStringList(PrefConstant.lastKnownLocation,
+                    ['${value.site.userLocation}', '${value.site.id}']),
+                setState(() {
+                  measurementData = value;
+                }),
+                getLocationHistoricalMeasurements(value.site),
+                getLocationForecastMeasurements(value.site),
+              }
+          });
+      // var sites = prefs.getStringList(PrefConstant.favouritePlaces) ?? [];
+      // dashboardSite = sites.isEmpty ? '' : sites.first;
+      // await getDashBoardSiteMeasurements(dashboardSite);
+    }
+
+    // if (dashboardSite == '') {
+    //
+    // } else {
+    //   await getLocationMeasurements();
+    // }
+  }
+
+  Future<void> updateLocationMeasurements() async {
+    var prefs = await SharedPreferences.getInstance();
+    var dashboardMeasurement =
+        prefs.getString(PrefConstant.dashboardMeasurement) ?? '';
+    if (dashboardMeasurement != '') {}
+    try {
+      await Settings().dashboardMeasurement().then((value) => {
+            if (value != null)
+              {
+                if (mounted)
+                  {
+                    setState(() {
+                      measurementData = value;
+                    }),
+                    getLocationHistoricalMeasurements(value.site),
+                    getLocationForecastMeasurements(value.site),
+                  },
+              }
+          });
+      // await DBHelper().getLocationMeasurement().then((value) => {
+      //   if (value != null)
+      //     {
+      //       if (mounted)
+      //         {
+      //           setState(() {
+      //             measurementData = value;
+      //           }),
+      //           getLocationHistoricalMeasurements(value.site),
+      //           getLocationForecastMeasurements(value.site)
+      //         },
+      //     }
+      // });
+    } catch (e) {
+      print('error getting data');
+    }
   }
 }
 

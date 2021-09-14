@@ -182,24 +182,58 @@ class SplashScreen extends StatefulWidget {
 }
 
 class SplashScreenState extends State<SplashScreen> {
+  bool sitesReady = false;
+  bool measurementsReady = false;
+  String error = '';
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Container(
-            color: ColorConstants.appColor,
-            child: const Center(
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+    if (error == '') {
+      return Scaffold(
+        body: Center(
+          child: Container(
+              child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Image.asset(
+                'assets/icon/airqo_logo_tagline_transparent.png',
+                height: 150,
+                width: 150,
               ),
-            )),
-      ),
-    );
+              Center(
+                child: CircularProgressIndicator(
+                  valueColor:
+                      AlwaysStoppedAnimation<Color>(ColorConstants.appColor),
+                ),
+              )
+            ],
+          )),
+        ),
+      );
+    } else {
+      return Scaffold(
+        body: Center(
+          child: Container(
+              child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(error, style: const TextStyle(fontSize: 17)),
+              ElevatedButton(
+                style:
+                    ElevatedButton.styleFrom(primary: ColorConstants.appColor),
+                onPressed: reload,
+                child: const Text('Try Again', style: TextStyle(fontSize: 17)),
+              )
+            ],
+          )),
+        ),
+      );
+    }
   }
 
   Future<void> initialize() async {
-    _getLatestMeasurements();
-    _getSites();
+    await _getLatestMeasurements();
+    await _getSites();
     await _checkFirstUse();
   }
 
@@ -209,12 +243,48 @@ class SplashScreenState extends State<SplashScreen> {
     super.initState();
   }
 
-  Future _checkFirstUse() async {
+  void reload() {
+    setState(() {
+      error = '';
+    });
+    _initDB().then((value) => {_checkFirstUse()});
+  }
+
+  Future _checkDB() async {
     try {
-      var db = await DBHelper().initDB();
-      await DBHelper().createDefaultTables(db);
+      await DBHelper().getLatestMeasurements().then((value) => {
+            if (value.isNotEmpty && mounted)
+              {
+                setState(() {
+                  measurementsReady = true;
+                })
+              },
+            DBHelper().getSites().then((value) => {
+                  if (value.isNotEmpty && mounted)
+                    {
+                      setState(() {
+                        sitesReady = true;
+                      })
+                    }
+                }),
+          });
     } catch (e) {
       print(e);
+    }
+  }
+
+  Future _checkFirstUse() async {
+    await _checkDB();
+
+    if (!measurementsReady || !sitesReady) {
+      await _checkDB();
+      sleep(const Duration(seconds: 5));
+      if (!measurementsReady || !sitesReady && mounted) {
+        setState(() {
+          error = 'Connection timeout';
+        });
+        return;
+      }
     }
 
     var prefs = await SharedPreferences.getInstance();
@@ -233,15 +303,66 @@ class SplashScreenState extends State<SplashScreen> {
     }
   }
 
-  void _getLatestMeasurements() async {
+  Future _getLatestMeasurements() async {
     await AirqoApiClient(context).fetchLatestMeasurements().then((value) => {
-          if (value.isNotEmpty) {DBHelper().insertLatestMeasurements(value)}
+          if (value.isNotEmpty)
+            {
+              DBHelper().insertLatestMeasurements(value).then((value) => {
+                    if (mounted)
+                      {
+                        setState(() {
+                          measurementsReady = true;
+                        })
+                      }
+                  })
+            }
         });
   }
 
-  void _getSites() async {
+  Future _getSites() async {
     await AirqoApiClient(context).fetchSites().then((value) => {
-          if (value.isNotEmpty) {DBHelper().insertSites(value)}
+          if (value.isNotEmpty)
+            {
+              DBHelper().insertSites(value).then((value) => {
+                    if (mounted)
+                      {
+                        setState(() {
+                          sitesReady = true;
+                        })
+                      }
+                  })
+            }
         });
+  }
+
+  Future _initDB() async {
+    try {
+      await DBHelper().getLatestMeasurements().then((value) => {
+            if (value.isNotEmpty && mounted)
+              {
+                setState(() {
+                  measurementsReady = true;
+                })
+              },
+            DBHelper().getSites().then((value) => {
+                  if (value.isNotEmpty && mounted)
+                    {
+                      setState(() {
+                        sitesReady = true;
+                      })
+                    }
+                }),
+            if (!sitesReady)
+              {
+                _getSites(),
+              },
+            if (!measurementsReady)
+              {
+                _getLatestMeasurements(),
+              },
+          });
+    } catch (e) {
+      print(e);
+    }
   }
 }

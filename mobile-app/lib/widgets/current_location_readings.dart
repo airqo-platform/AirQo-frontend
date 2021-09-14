@@ -124,14 +124,28 @@ class CurrentLocationCard extends StatelessWidget {
             color: pmToColor(measurementData.getPm2_5Value()),
             child: Padding(
               padding: const EdgeInsets.all(8),
-              child: Text('${measurementData.site.getName()}',
-                  softWrap: true,
-                  maxLines: 2,
-                  textAlign: TextAlign.center,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                      color: pmTextColor(measurementData.getPm2_5Value()),
-                      fontWeight: FontWeight.bold)),
+              child: Column(
+                children: [
+                  Text('${measurementData.site.getUserLocation()}',
+                      softWrap: true,
+                      maxLines: 2,
+                      textAlign: TextAlign.center,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                          color: pmTextColor(measurementData.getPm2_5Value()),
+                          fontWeight: FontWeight.bold)),
+                  if (measurementData.site.getUserLocation() !=
+                      measurementData.site.getName())
+                    Text('${measurementData.site.getName()}',
+                        softWrap: true,
+                        maxLines: 2,
+                        textAlign: TextAlign.center,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                            color: pmTextColor(measurementData.getPm2_5Value()),
+                            fontWeight: FontWeight.bold)),
+                ],
+              ),
             )),
         Row(
           children: [
