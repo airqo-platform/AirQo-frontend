@@ -17,10 +17,12 @@ from django.contrib import admin
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .team import views as team_views
+from .FAQ import views as FAQ_views
 
 api_router = DefaultRouter()
 
 api_router.register(r'team', team_views.TeamViewSet)
+api_router.register(r'faq', FAQ_views.FAQViewSet)
 
 urlpatterns = [
     path('api/', include(api_router.urls)),
