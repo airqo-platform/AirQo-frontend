@@ -23,6 +23,10 @@ from .career import views as career_views
 from .FAQ import views as FAQ_views
 from .team import views as team_views
 
+admin.site.site_header = "AirQo Administration"
+admin.site.site_title = "AirQo Admin Portal"
+admin.site.index_title = "Welcome to AirQo Website Administration Portal"
+
 
 api_router = DefaultRouter()
 
@@ -47,7 +51,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include(api_router.urls)),
     re_path(r'^api/doc(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
-    re_path(r'^api/doc/$', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
-    re_path(r'^api/redoc/$', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+    re_path(r'^api/doc/?$', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    re_path(r'^api/redoc/?$', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
     path('', include('frontend.urls')),
 ]
