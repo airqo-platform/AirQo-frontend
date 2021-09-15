@@ -61,7 +61,7 @@ flutter_icons:
   android: "launcher_icon"
   ios: true
   image_path_ios: "assets/icon/airqo_logo.png"
-  image_path_android: "assets/icon/airqo_logo.png"
+  image_path_android: "assets/icon/airqo_logo_android.png"
 dev_dependencies:
   flutter_test:
     sdk: flutter
