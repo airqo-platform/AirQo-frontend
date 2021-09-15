@@ -16,67 +16,83 @@ class _ResourcesPageState extends State<ResourcesPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: Colors.white,
-      child: ListView.builder(
-        itemBuilder: (context, index) => GestureDetector(
-          onTap: () {
-            viewStory(stories[index]);
-          },
-          child: ListTile(
-            leading: CachedNetworkImage(
-              width: 70,
-              height: 70,
-              placeholder: (context, url) =>
-                  const SizedBox(
-                    height: 20.0,
-                    width: 20.0,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                    ),
-                  ),
-              imageUrl: stories[index].thumbnail,
-              errorWidget: (context, url, error) => Icon(
-                  Icons.error_outline,
-                color: ColorConstants.red,
-              ),
-            ),
-
-            title: Text('${stories[index].title}',
-                overflow: TextOverflow.ellipsis,
-                maxLines: 2,
-                style: TextStyle(
-                  fontSize: 15,
-                  color: ColorConstants.appColor,
-                  fontWeight: FontWeight.bold,
-                )),
-            subtitle: Text('${stories[index].getPubDate()}',
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: ColorConstants.appColor,
-                )),
-            // trailing: const Icon(
-            //   Icons.arrow_forward_ios
-            // ),
+    if (stories.isEmpty) {
+      return Container(
+        color: Colors.white,
+        child: Center(
+          child: CircularProgressIndicator(
+            color: ColorConstants.appColor,
           ),
         ),
-        itemCount: stories.length,
-      ),
-    );
+      );
+    } else {
+      return Container(
+        color: Colors.white,
+        child: ListView.builder(
+          itemBuilder: (context, index) => GestureDetector(
+            onTap: () {
+              viewStory(stories[index]);
+            },
+            child: ListTile(
+              leading: CachedNetworkImage(
+                width: 70,
+                height: 70,
+                placeholder: (context, url) => const SizedBox(
+                  height: 20.0,
+                  width: 20.0,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                  ),
+                ),
+                imageUrl: stories[index].thumbnail,
+                errorWidget: (context, url, error) => Icon(
+                  Icons.error_outline,
+                  color: ColorConstants.red,
+                ),
+              ),
+
+              title: Text('${stories[index].title}',
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 2,
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: ColorConstants.appColor,
+                    fontWeight: FontWeight.bold,
+                  )),
+              subtitle: Text('${stories[index].getPubDate()}',
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: ColorConstants.appColor,
+                  )),
+              // trailing: const Icon(
+              //   Icons.arrow_forward_ios
+              // ),
+            ),
+          ),
+          itemCount: stories.length,
+        ),
+      );
+    }
   }
 
   void initialize() {
     DBHelper().getStories().then((value) => {
-          setState(() {
-            stories = value;
-          })
+          if (mounted)
+            {
+              setState(() {
+                stories = value;
+              })
+            }
         });
 
     AirqoApiClient(context).fetchLatestStories().then((value) => {
-          setState(() {
-            stories = value;
-          }),
+          if (mounted)
+            {
+              setState(() {
+                stories = value;
+              })
+            },
           DBHelper().insertLatestStories(value)
         });
   }

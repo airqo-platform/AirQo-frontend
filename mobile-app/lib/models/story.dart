@@ -73,18 +73,14 @@ class Story {
   }
 
   static String storyDbName() => 'stories_table';
-
 }
 
 extension ParseSite on Story {
   String getPubDate() {
     try {
-      var date = pubDate
-          .split(' ')
-          .first;
+      var date = pubDate.split(' ').first;
       return date;
-    }
-    catch (e) {
+    } catch (e) {
       print(e);
     }
     return pubDate;

@@ -80,9 +80,7 @@ class _MyPlacesState extends State<MyPlaces> {
                       child: ListView.builder(
                         itemBuilder: (context, index) => GestureDetector(
                           onTap: () {
-                            if (searchResults[index] != null) {
-                              viewDetails(searchResults[index].site);
-                            }
+                            viewDetails(searchResults[index].site);
                           },
                           child: Slidable(
                             actionPane: const SlidableDrawerActionPane(),
@@ -90,7 +88,8 @@ class _MyPlacesState extends State<MyPlaces> {
                             actions: <Widget>[
                               IconSlideAction(
                                 caption: 'Share',
-                                color: ColorConstants.appColor,
+                                color: Colors.transparent,
+                                foregroundColor: ColorConstants.appColor,
                                 icon: Icons.share_outlined,
                                 onTap: () =>
                                     shareLocation(searchResults[index].site),
@@ -99,7 +98,8 @@ class _MyPlacesState extends State<MyPlaces> {
                             secondaryActions: <Widget>[
                               IconSlideAction(
                                 caption: 'Remove',
-                                color: ColorConstants.red,
+                                color: Colors.red,
+                                foregroundColor: ColorConstants.appColor,
                                 icon: Icons.delete_outlined,
                                 onTap: () {
                                   removeFromFavourites(
@@ -185,9 +185,7 @@ class _MyPlacesState extends State<MyPlaces> {
                             child: ListView.builder(
                               itemBuilder: (context, index) => GestureDetector(
                                 onTap: () {
-                                  if (results[index] != null) {
-                                    viewDetails(results[index].site);
-                                  }
+                                  viewDetails(results[index].site);
                                 },
                                 child: Slidable(
                                   actionPane: const SlidableDrawerActionPane(),
@@ -195,7 +193,8 @@ class _MyPlacesState extends State<MyPlaces> {
                                   actions: <Widget>[
                                     IconSlideAction(
                                       caption: 'Share',
-                                      color: ColorConstants.appColor,
+                                      color: Colors.transparent,
+                                      foregroundColor: ColorConstants.appColor,
                                       icon: Icons.share_outlined,
                                       onTap: () =>
                                           shareLocation(results[index].site),
@@ -204,7 +203,8 @@ class _MyPlacesState extends State<MyPlaces> {
                                   secondaryActions: <Widget>[
                                     IconSlideAction(
                                       caption: 'Remove',
-                                      color: Colors.red,
+                                      color: Colors.transparent,
+                                      foregroundColor: Colors.red,
                                       icon: Icons.delete_outlined,
                                       onTap: () {
                                         removeFromFavourites(
@@ -343,8 +343,7 @@ class _MyPlacesState extends State<MyPlaces> {
 
   Future<void> removeFromFavourites(Site site) async {
     await DBHelper().updateFavouritePlaces(site).then((value) => {
-          showSnackBar2(
-              context, '${site.getName()} is removed from your places')
+          showSnackBar(context, '${site.getName()} is removed from your places')
         });
 
     if (mounted) {

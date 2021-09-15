@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:app/providers/LocalProvider.dart';
-import 'package:app/screens/home_page_v2.dart';
+import 'package:app/screens/home_page.dart';
 import 'package:app/services/fb_notifications.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/services/rest_api.dart';
@@ -214,18 +214,27 @@ class SplashScreenState extends State<SplashScreen> {
       return Scaffold(
         body: Center(
           child: Container(
+              padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
               child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(error, style: const TextStyle(fontSize: 17)),
-              ElevatedButton(
-                style:
-                    ElevatedButton.styleFrom(primary: ColorConstants.appColor),
-                onPressed: reload,
-                child: const Text('Try Again', style: TextStyle(fontSize: 17)),
-              )
-            ],
-          )),
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(error,
+                      maxLines: 2,
+                      textAlign: TextAlign.center,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: ColorConstants.red,
+                      )),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                        primary: ColorConstants.appColor),
+                    onPressed: reload,
+                    child:
+                        const Text('Try Again', style: TextStyle(fontSize: 15)),
+                  )
+                ],
+              )),
         ),
       );
     }
@@ -281,7 +290,8 @@ class SplashScreenState extends State<SplashScreen> {
       sleep(const Duration(seconds: 5));
       if (!measurementsReady || !sitesReady && mounted) {
         setState(() {
-          error = 'Connection timeout';
+          error = 'Your request cannot be processed right now. '
+              'Please try again';
         });
         return;
       }
@@ -298,7 +308,7 @@ class SplashScreenState extends State<SplashScreen> {
     } else {
       await Navigator.pushAndRemoveUntil(context,
           MaterialPageRoute(builder: (context) {
-        return HomePageV2();
+        return HomePage();
       }), (r) => false);
     }
   }

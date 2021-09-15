@@ -75,15 +75,15 @@ String dateToString(String formattedString, bool addOffset) {
 
 String getGreetings() {
   var hour = DateTime.now().hour;
-  if (0 <= hour && hour < 12) {
+  if (8 <= hour && hour < 12) {
     return 'Good morning!';
   }
 
-  if (12 <= hour && hour < 13) {
+  if (12 <= hour && hour < 16) {
     return 'Good afternoon!';
   }
 
-  if (13 <= hour && hour < 16) {
+  if (18 <= hour && hour < 21) {
     return 'Good evening!';
   }
 

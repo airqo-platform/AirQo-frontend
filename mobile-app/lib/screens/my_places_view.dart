@@ -38,7 +38,7 @@ class _MyPlacesViewState extends State<MyPlacesView> {
                           child: Text(
                             'You haven\'t added any locations you'
                             ' care about '
-                            'to MyPlaces yet, use the add icon at '
+                            'to MyPlaces yet, use the search icon at '
                             'the top to add them to your list',
                             softWrap: true,
                             textAlign: TextAlign.center,
@@ -115,8 +115,7 @@ class _MyPlacesViewState extends State<MyPlacesView> {
 
   Future<void> removeFromFavourites(Site site) async {
     await DBHelper().updateFavouritePlaces(site).then((value) => {
-          showSnackBar2(
-              context, '${site.getName()} is removed from your places')
+          showSnackBar(context, '${site.getName()} is removed from your places')
         });
 
     if (mounted) {

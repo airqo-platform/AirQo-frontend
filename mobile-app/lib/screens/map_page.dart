@@ -642,7 +642,7 @@ class MapPageState extends State<MapPage> {
         await showSnackBarGoToMyPlaces(
             context, '${site.getName()} is added to your places');
       } else {
-        await showSnackBar2(
+        await showSnackBar(
             context, '${site.getName()} is removed from your places');
       }
     }

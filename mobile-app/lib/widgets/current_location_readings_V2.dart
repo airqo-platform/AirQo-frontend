@@ -44,28 +44,30 @@ class CurrentLocationCard extends StatelessWidget {
               child: titleSection(),
             ),
           ),
+
           HealthRecommendationSection(
             measurement: measurementData,
           ),
-          if (historicalData.isNotEmpty)
-            Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-              elevation: 10,
-              child: Padding(
-                padding: const EdgeInsets.all(5.0),
-                child: historySection(),
-              ),
-            ),
-          if (forecastData.isNotEmpty)
-            Card(
-              elevation: 10,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: forecastSection(),
-            ),
+
+          // if (historicalData.isNotEmpty)
+          //   Card(
+          //     shape: RoundedRectangleBorder(
+          //       borderRadius: BorderRadius.circular(20),
+          //     ),
+          //     elevation: 10,
+          //     child: Padding(
+          //       padding: const EdgeInsets.all(5.0),
+          //       child: historySection(),
+          //     ),
+          //   ),
+          // if (forecastData.isNotEmpty)
+          //   Card(
+          //     elevation: 10,
+          //     shape: RoundedRectangleBorder(
+          //       borderRadius: BorderRadius.circular(20),
+          //     ),
+          //     child: forecastSection(),
+          //   ),
         ],
       ),
     );
@@ -84,29 +86,11 @@ class CurrentLocationCard extends StatelessWidget {
                 fontSize: 12,
               )),
           const Spacer(),
-          // IconButton(
-          //     onPressed: null,
-          //     icon: Image.asset(
-          //       'assets/images/heart.png',
-          //     )),
-          // TextButton(
-          //   // style: ButtonStyle(
-          //   //   foregroundColor: MaterialStateProperty.all<Color>(Colors.blue),
-          //   // ),
-          //   onPressed: () {},
-          //   child: Card(
-          //       elevation: 5,
-          //       shape: RoundedRectangleBorder(
-          //         borderRadius: BorderRadius.circular(5),
-          //       ),
-          //       color: Colors.white,
-          //       child: Padding(
-          //           padding: EdgeInsets.all(4),
-          //           child: Icon(
-          //             Icons.favorite,
-          //             color: ColorConstants.red,
-          //           ))),
-          // ),
+          IconButton(
+              onPressed: null,
+              icon: Image.asset(
+                'assets/images/heart.png',
+              )),
           TextButton(
             // style: ButtonStyle(
             //   foregroundColor: MaterialStateProperty.all<Color>(Colors.blue),
@@ -117,14 +101,13 @@ class CurrentLocationCard extends StatelessWidget {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(5),
                 ),
-                color: Colors.white,
-                child: Padding(
-                    padding: EdgeInsets.all(5),
-                    child: Icon(
-                      Icons.share_outlined,
-                      color: ColorConstants.appColor,
-                    ))),
-          ),
+                color: ColorConstants.appColor,
+                child: const Padding(
+                  padding: EdgeInsets.all(8),
+                  child: Text('SHARE',
+                      style: TextStyle(fontSize: 13, color: Colors.white)),
+                )),
+          )
         ],
       ),
     );
@@ -246,14 +229,14 @@ class CurrentLocationCard extends StatelessWidget {
                       ),
                       color: pmToColor(measurementData.getPm2_5Value()),
                       child: Padding(
-                        padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
+                        padding: const EdgeInsets.fromLTRB(5, 5, 10, 5),
                         child: Row(
                           children: [
-                            // Icon(
-                            //   Icons.location_on,
-                            //   color:
-                            //       pmTextColor(measurementData.getPm2_5Value()),
-                            // ),
+                            Icon(
+                              Icons.location_on,
+                              color:
+                                  pmTextColor(measurementData.getPm2_5Value()),
+                            ),
                             Container(
                                 constraints:
                                     const BoxConstraints(maxWidth: 180),
@@ -291,29 +274,34 @@ class CurrentLocationCard extends StatelessWidget {
               ),
             ),
             const Spacer(),
-            Padding(
-              padding: EdgeInsets.fromLTRB(0.0, 0.0, 10.0, 0.0),
-              child: Column(
-                children: [
-                  Text(
-                    '${measurementData.getPm2_5Value()}',
-                    style: TextStyle(
-                        color: ColorConstants.appColor,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold),
-                  ),
-                  const Text(
-                    'AQI',
-                    style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey),
-                  ),
-                ],
-              ),
+            Stack(
+              alignment: AlignmentDirectional.center,
+              children: [
+                gaugeChart(),
+                Column(
+                  children: [
+                    Text(
+                      '${measurementData.getPm2_5Value()}',
+                      style: TextStyle(
+                          color: pmToColor(measurementData.getPm2_5Value()),
+                          fontSize: 17,
+                          fontWeight: FontWeight.bold),
+                    ),
+                    const Text(
+                      'AQI',
+                      style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey),
+                    ),
+                  ],
+                )
+              ],
             )
           ],
         ),
+        if (historicalData.isNotEmpty) historySection(),
+        if (forecastData.isNotEmpty) forecastSection(),
         footerSection()
       ],
     );

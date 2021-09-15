@@ -109,13 +109,10 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
               color: ColorConstants.appBodyColor,
               child: ListView(
                 controller: _scrollCtrl,
-                padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
+                padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
                 children: <Widget>[
                   // card section
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
-                    child: cardSection(measurementData),
-                  ),
+                  cardSection(measurementData),
 
                   // Pollutants
                   PollutantsSection(measurementData),
@@ -126,7 +123,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                   ),
 
                   // historicalData
-                  historicalData != null && historicalData.isNotEmpty
+                  historicalData.isNotEmpty
                       ? historicalDataSection(historicalData)
                       : historicalResponse != ''
                           ? Card(
@@ -152,7 +149,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                             )),
 
                   // Forecast Data
-                  forecastData != null && forecastData.isNotEmpty
+                  forecastData.isNotEmpty
                       ? forecastDataSection(forecastData)
                       : forecastResponse != ''
                           ? Card(
@@ -664,7 +661,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
           '${measurementData.site.getName()} '
           'is added to your places');
     } else {
-      await showSnackBar2(
+      await showSnackBar(
           context,
           '${measurementData.site.getName()} '
           'is removed from your places');
