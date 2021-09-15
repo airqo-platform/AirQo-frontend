@@ -23,17 +23,20 @@ from .career import views as career_views
 from .FAQ import views as FAQ_views
 from .team import views as team_views
 
+# Config Admin Panel
 admin.site.site_header = "AirQo Administration"
 admin.site.site_title = "AirQo Admin Portal"
 admin.site.index_title = "Welcome to AirQo Website Administration Portal"
 
 
+# Config DRF ViewSet Router
 api_router = SimpleRouter()
 
 api_router.register(r'team', team_views.TeamViewSet)
 api_router.register(r'faq', FAQ_views.FAQViewSet)
 api_router.register(r'career', career_views.CareerViewSet)
 
+# Config DRF Auto-Swagger Generation
 schema_view = get_schema_view(
    openapi.Info(
       title="AirQo Website API",
