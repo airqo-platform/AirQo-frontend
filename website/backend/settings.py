@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     # Third-party apps
     'cloudinary',
     'rest_framework',
+    'drf_yasg',
 
     # My apps
     'backend.career.apps.CareerConfig',

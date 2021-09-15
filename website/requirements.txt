@@ -2,6 +2,7 @@ cloudinary
 django
 djangorestframework
 dj_database_url
+drf-yasg
 invoke
 python-decouple
 psycopg2-binary
