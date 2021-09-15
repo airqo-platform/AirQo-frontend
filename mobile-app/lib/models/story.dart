@@ -22,6 +22,9 @@ class Story {
   @JsonKey(required: true)
   final String thumbnail;
 
+  // @JsonKey(required: true)
+  // final String  content;
+
   Story(this.link, this.pubDate, this.title, this.author, this.guid,
       this.thumbnail);
 
@@ -34,7 +37,7 @@ class Story {
       '${dbGuid()} TEXT PRIMARY KEY, '
       '${dbTitle()} TEXT, '
       '${dbAuthor()} TEXT, '
-      '${dbThumbnail()} REAL, '
+      '${dbThumbnail()} TEXT, '
       '${dbLink()} TEXT, '
       '${dbPubDate()} TEXT )';
 
@@ -45,6 +48,8 @@ class Story {
   static String dbLink() => 'link';
 
   static String dbPubDate() => 'pubDate';
+
+  static String dbContent() => 'content';
 
   static String dbThumbnail() => 'thumbnail';
 

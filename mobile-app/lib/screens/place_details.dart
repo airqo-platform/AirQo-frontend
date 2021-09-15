@@ -60,6 +60,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
 
   var response = '';
   bool _showMenuButton = true;
+  bool _isDashboardView = false;
   final ScrollController _scrollCtrl = ScrollController();
   var historicalResponse = '';
   var forecastResponse = '';
@@ -235,19 +236,44 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                   Padding(
                       padding: const EdgeInsets.all(1.0),
                       child: Text(
-                        '${site.getName()}',
+                        '${site.getUserLocation()}',
+                        style: TextStyle(
+                          fontSize: 20,
+                          color: ColorConstants.appColor,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      )),
+                  if (site.getUserLocation() != site.getName())
+                    Padding(
+                        padding: const EdgeInsets.all(1.0),
+                        child: Text(
+                          '${site.getName()}',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: ColorConstants.appColor,
+                          ),
+                          textAlign: TextAlign.center,
+                        )),
+                  if (site.getUserLocation() == site.getName())
+                    Padding(
+                      padding: const EdgeInsets.all(1.0),
+                      child: Text(
+                        '${site.getLocation()}',
                         style: TextStyle(
                           fontSize: 16,
                           color: ColorConstants.appColor,
                         ),
                         textAlign: TextAlign.center,
-                      )),
+                      ),
+                    ),
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(1.0, 3.0, 1.0, 3.0),
+                    padding: const EdgeInsets.all(1.0),
                     child: Text(
-                      '${site.district} ${site.country}',
+                      'Air Quality '
+                      '${pmToString(measurement.getPm2_5Value())}',
                       style: TextStyle(
-                        fontSize: 20,
+                        fontSize: 16,
                         color: ColorConstants.appColor,
                         fontWeight: FontWeight.bold,
                       ),
@@ -257,23 +283,11 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                   Padding(
                     padding: const EdgeInsets.all(1.0),
                     child: Text(
-                      'Air Quality '
-                      '${pmToString(measurement.getPm2_5Value())}',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: ColorConstants.appColor,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(1.0),
-                    child: Text(
                         '${dateToString(measurement.time, true)} (Local time)',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 13,
-                          color: Colors.white,
-                          fontWeight: FontWeight.w300,
+                          color: ColorConstants.appColor,
+                          fontWeight: FontWeight.w500,
                         )),
                   ),
                 ],
@@ -503,6 +517,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
   }
 
   Future<void> initialize() async {
+    await checkDashboardView();
     await initializeNotifications();
     await dbFetch();
     await getMeasurements();
@@ -715,6 +730,10 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
 
   void _placeMenu() {
     showModalBottomSheet(
+        backgroundColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20.0),
+        ),
         context: context,
         builder: (context) {
           return Container(
@@ -746,7 +765,14 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                       },
                     ),
                     ListTile(
-                      leading: isFavourite
+                      // leading: isFavourite
+                      //     ? const Icon(
+                      //         Icons.favorite,
+                      //         color: Colors.red,
+                      //       )
+                      //     : Icon(Icons.favorite_border_outlined,
+                      //         color: ColorConstants.appColor),
+                      trailing: isFavourite
                           ? const Icon(
                               Icons.favorite,
                               color: Colors.red,
@@ -772,59 +798,84 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                       },
                     ),
                     ListTile(
-                      leading: Icon(Icons.notification_important_outlined,
-                          color: ColorConstants.appColor),
+                      trailing: Switch(
+                        value: _isDashboardView,
+                        activeColor: ColorConstants.appColor,
+                        activeTrackColor:
+                            ColorConstants.appColor.withOpacity(0.6),
+                        inactiveThumbColor: Colors.white,
+                        inactiveTrackColor: Colors.black12,
+                        onChanged: (bool value) {
+                          setState(() {
+                            _isDashboardView = value;
+                            Navigator.pop(context);
+                            updateDashboardView(value);
+                          });
+                        },
+                      ),
                       title: Text(
-                        'Notify me when air quality is ;',
+                        'Set as home page default',
                         style: TextStyle(
                             color: ColorConstants.appColor,
                             fontWeight: FontWeight.w600),
                       ),
                     ),
-                    ListTile(
-                      leading: const Icon(Icons.notification_important_outlined,
-                          color: Colors.transparent),
-                      title: Text('unhealthy for sensitive groups',
-                          style: TextStyle(color: ColorConstants.appColor)),
-                      trailing: PlaceMenuSwitch(
-                        switchValue: sensitiveAlerts,
-                        valueChanged: updateAlerts,
-                        pollutantLevel: PollutantLevel.sensitive,
-                      ),
-                    ),
-                    ListTile(
-                      leading: const Icon(Icons.notification_important_outlined,
-                          color: Colors.transparent),
-                      title: Text('unhealthy',
-                          style: TextStyle(color: ColorConstants.appColor)),
-                      trailing: PlaceMenuSwitch(
-                        switchValue: unhealthyAlerts,
-                        valueChanged: updateAlerts,
-                        pollutantLevel: PollutantLevel.unhealthy,
-                      ),
-                    ),
-                    ListTile(
-                      leading: const Icon(Icons.notification_important_outlined,
-                          color: Colors.transparent),
-                      title: Text('very unhealthy',
-                          style: TextStyle(color: ColorConstants.appColor)),
-                      trailing: PlaceMenuSwitch(
-                        switchValue: veryUnhealthyAlerts,
-                        valueChanged: updateAlerts,
-                        pollutantLevel: PollutantLevel.veryUnhealthy,
-                      ),
-                    ),
-                    ListTile(
-                      leading: const Icon(Icons.notification_important_outlined,
-                          color: Colors.transparent),
-                      title: Text('hazardous',
-                          style: TextStyle(color: ColorConstants.appColor)),
-                      trailing: PlaceMenuSwitch(
-                        switchValue: hazardousAlerts,
-                        valueChanged: updateAlerts,
-                        pollutantLevel: PollutantLevel.hazardous,
-                      ),
-                    ),
+
+                    // ListTile(
+                    //   leading: Icon(Icons.notification_important_outlined,
+                    //       color: ColorConstants.appColor),
+                    //   title: Text(
+                    //     'Notify me when air quality is ;',
+                    //     style: TextStyle(
+                    //         color: ColorConstants.appColor,
+                    //         fontWeight: FontWeight.w600),
+                    //   ),
+                    // ),
+                    // ListTile(
+                    //   leading: const Icon(Icons.notification_important_outlined,
+                    //       color: Colors.transparent),
+                    //   title: Text('unhealthy for sensitive groups',
+                    //       style: TextStyle(color: ColorConstants.appColor)),
+                    //   trailing: PlaceMenuSwitch(
+                    //     switchValue: sensitiveAlerts,
+                    //     valueChanged: updateAlerts,
+                    //     pollutantLevel: PollutantLevel.sensitive,
+                    //   ),
+                    // ),
+                    // ListTile(
+                    //   leading: const Icon(Icons.notification_important_outlined,
+                    //       color: Colors.transparent),
+                    //   title: Text('unhealthy',
+                    //       style: TextStyle(color: ColorConstants.appColor)),
+                    //   trailing: PlaceMenuSwitch(
+                    //     switchValue: unhealthyAlerts,
+                    //     valueChanged: updateAlerts,
+                    //     pollutantLevel: PollutantLevel.unhealthy,
+                    //   ),
+                    // ),
+                    // ListTile(
+                    //   leading: const Icon(Icons.notification_important_outlined,
+                    //       color: Colors.transparent),
+                    //   title: Text('very unhealthy',
+                    //       style: TextStyle(color: ColorConstants.appColor)),
+                    //   trailing: PlaceMenuSwitch(
+                    //     switchValue: veryUnhealthyAlerts,
+                    //     valueChanged: updateAlerts,
+                    //     pollutantLevel: PollutantLevel.veryUnhealthy,
+                    //   ),
+                    // ),
+                    // ListTile(
+                    //   leading: const Icon(Icons.notification_important_outlined,
+                    //       color: Colors.transparent),
+                    //   title: Text('hazardous',
+                    //       style: TextStyle(color: ColorConstants.appColor)),
+                    //   trailing: PlaceMenuSwitch(
+                    //     switchValue: hazardousAlerts,
+                    //     valueChanged: updateAlerts,
+                    //     pollutantLevel: PollutantLevel.hazardous,
+                    //   ),
+                    // ),
+
                     Divider(
                       indent: 30,
                       endIndent: 30,
@@ -872,6 +923,31 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                 )),
               ));
         });
+  }
+
+  Future<void> updateDashboardView(bool value) async {
+    await SharedPreferences.getInstance().then((prefs) => {
+          if (value)
+            {prefs.setString(PrefConstant.dashboardSite, widget.site.id)}
+          else
+            {prefs.setString(PrefConstant.dashboardSite, '')}
+        });
+
+    if (mounted) {
+      setState(() {
+        _isDashboardView = value;
+      });
+    }
+  }
+
+  Future<void> checkDashboardView() async {
+    var prefs = await SharedPreferences.getInstance();
+    var dashboardSite = prefs.getString(PrefConstant.dashboardSite) ?? '';
+    if (dashboardSite == widget.site.id) {
+      setState(() {
+        _isDashboardView = true;
+      });
+    }
   }
 }
 

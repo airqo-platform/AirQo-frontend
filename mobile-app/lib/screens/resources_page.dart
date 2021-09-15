@@ -111,6 +111,10 @@ class _ResourcesPageState extends State<ResourcesPage> {
               'Could not launch about, try opening ${story.link}');
     } catch (e) {
       print(e);
+      // await Navigator.push(context, MaterialPageRoute(builder: (context) {
+      //   return StoryPage(story: story,);
+      // }));
+
     }
   }
 }

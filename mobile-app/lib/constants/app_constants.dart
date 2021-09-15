@@ -221,8 +221,6 @@ class PollutantSource {
 class PrefConstant {
   static String get appTheme => 'appTheme';
 
-  static String get dashboardMeasurement => 'dashboardMeasurement';
-
   static String get dashboardSite => 'dashboardSite';
 
   static String get favouritePlaces => 'favouriteSites';

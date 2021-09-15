@@ -176,19 +176,6 @@ class _DashboardPageState extends State<DashboardPage> {
             else
               {}
           });
-      // await DBHelper().getLocationMeasurement().then((value) => {
-      //   if (value != null)
-      //     {
-      //       if (mounted)
-      //         {
-      //           setState(() {
-      //             measurementData = value;
-      //           }),
-      //           getLocationHistoricalMeasurements(value.site),
-      //           getLocationForecastMeasurements(value.site)
-      //         },
-      //     }
-      // });
     } catch (e) {
       print('error getting data : $e');
     }
@@ -196,20 +183,6 @@ class _DashboardPageState extends State<DashboardPage> {
 
   Future<void> initialize() async {
     await getLocationMeasurements();
-
-    // var prefs = await SharedPreferences.getInstance();
-    // var dashboardSite = prefs.getString(PrefConstant.dashboardSite) ?? '';
-    //
-    // if (dashboardSite == '') {
-    //   var sites = prefs.getStringList(PrefConstant.favouritePlaces) ?? [];
-    //   dashboardSite = sites.isEmpty ? '' : sites.first;
-    // }
-    //
-    // if (dashboardSite != '') {
-    //   await getDashBoardSiteMeasurements(dashboardSite);
-    // } else {
-    //   await getLocationMeasurements();
-    // }
   }
 
   @override
@@ -219,38 +192,36 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Future<void> updateCurrentLocation() async {
-    var prefs = await SharedPreferences.getInstance();
-    var dashboardSite = prefs.getString(PrefConstant.dashboardSite) ?? '';
+    try {
+      var prefs = await SharedPreferences.getInstance();
+      var dashboardSite = prefs.getString(PrefConstant.dashboardSite) ?? '';
 
-    if (dashboardSite == '') {
-      await LocationApi().getLocationMeasurement().then((value) => {
-            if (value != null && mounted)
-              {
-                prefs.setStringList(PrefConstant.lastKnownLocation,
-                    ['${value.site.userLocation}', '${value.site.id}']),
-                setState(() {
-                  measurementData = value;
-                }),
-                getLocationHistoricalMeasurements(value.site),
-                getLocationForecastMeasurements(value.site),
-              }
-          });
-      // var sites = prefs.getStringList(PrefConstant.favouritePlaces) ?? [];
-      // dashboardSite = sites.isEmpty ? '' : sites.first;
-      // await getDashBoardSiteMeasurements(dashboardSite);
+      if (dashboardSite == '') {
+        await LocationApi().getCurrentLocationReadings().then((value) => {
+              if (value != null)
+                {
+                  prefs.setStringList(PrefConstant.lastKnownLocation,
+                      ['${value.site.getUserLocation()}', '${value.site.id}']),
+                  if (mounted)
+                    {
+                      setState(() {
+                        measurementData = value;
+                      }),
+                      getLocationHistoricalMeasurements(value.site),
+                      getLocationForecastMeasurements(value.site),
+                    }
+                },
+            });
+      }
+    } catch (e) {
+      print(e);
     }
-
-    // if (dashboardSite == '') {
-    //
-    // } else {
-    //   await getLocationMeasurements();
-    // }
   }
 
   Future<void> updateLocationMeasurements() async {
     var prefs = await SharedPreferences.getInstance();
     var dashboardMeasurement =
-        prefs.getString(PrefConstant.dashboardMeasurement) ?? '';
+        prefs.getString(PrefConstant.dashboardSite) ?? '';
     if (dashboardMeasurement != '') {}
     try {
       await Settings().dashboardMeasurement().then((value) => {
@@ -266,19 +237,6 @@ class _DashboardPageState extends State<DashboardPage> {
                   },
               }
           });
-      // await DBHelper().getLocationMeasurement().then((value) => {
-      //   if (value != null)
-      //     {
-      //       if (mounted)
-      //         {
-      //           setState(() {
-      //             measurementData = value;
-      //           }),
-      //           getLocationHistoricalMeasurements(value.site),
-      //           getLocationForecastMeasurements(value.site)
-      //         },
-      //     }
-      // });
     } catch (e) {
       print('error getting data');
     }

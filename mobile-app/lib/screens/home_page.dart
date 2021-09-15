@@ -1,8 +1,6 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/on_boarding/onBoarding_page.dart';
-import 'package:app/screens/feedback_page.dart';
 import 'package:app/screens/map_page.dart';
-import 'package:app/screens/my_places.dart';
 import 'package:app/screens/resources_page.dart';
 import 'package:app/screens/search_location_page.dart';
 import 'package:app/screens/settings_page.dart';
@@ -15,7 +13,6 @@ import 'package:app/utils/share.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import 'dashboard_page.dart';
 import 'help_page.dart';
@@ -105,32 +102,6 @@ class _HomePageState extends State<HomePage> {
                       )),
                 ),
               ),
-              // PopupMenuItem<String>(
-              //   value: 'Faqs',
-              //   child: ListTile(
-              //     leading: Icon(
-              //       Icons.help_outline_outlined,
-              //       color: ColorConstants.appColor,
-              //     ),
-              //     title: Text('Faqs',
-              //         style: TextStyle(
-              //           color: ColorConstants.appColor,
-              //         )),
-              //   ),
-              // ),
-              // PopupMenuItem<String>(
-              //   value: 'Feedback',
-              //   child: ListTile(
-              //     leading: Icon(
-              //       Icons.feedback_outlined,
-              //       color: ColorConstants.appColor,
-              //     ),
-              //     title: Text('Feedback',
-              //         style: TextStyle(
-              //           color: ColorConstants.appColor,
-              //         )),
-              //   ),
-              // ),
               PopupMenuItem<String>(
                 value: 'camera',
                 child: ListTile(
@@ -144,19 +115,6 @@ class _HomePageState extends State<HomePage> {
                       )),
                 ),
               ),
-              // PopupMenuItem<String>(
-              //   value: 'Settings',
-              //   child: ListTile(
-              //     leading: Icon(
-              //
-              //       Icons.settings,
-              //       color: ColorConstants.appColor,
-              //     ),
-              //     title: const Text(
-              //       'Settings',
-              //     ),
-              //   ),
-              // ),
               const PopupMenuDivider(),
               PopupMenuItem<String>(
                 value: 'Share',
@@ -318,11 +276,7 @@ class _HomePageState extends State<HomePage> {
   void navigateToMenuItem(dynamic position) {
     var menuItem = position.toString();
 
-    if (menuItem.trim().toLowerCase() == 'feedback') {
-      Navigator.push(context, MaterialPageRoute(builder: (context) {
-        return FeedbackPage();
-      }));
-    } else if (menuItem.trim().toLowerCase() == 'share') {
+    if (menuItem.trim().toLowerCase() == 'share') {
       shareApp();
     } else if (menuItem.trim().toLowerCase() == 'aqi index') {
       Navigator.push(
@@ -334,20 +288,6 @@ class _HomePageState extends State<HomePage> {
           fullscreenDialog: true,
         ),
       );
-    } else if (menuItem.trim().toLowerCase() == 'faqs') {
-      try {
-        _launchURLFaqs();
-      } catch (e) {
-        print(e);
-      }
-    } else if (menuItem.trim().toLowerCase() == 'myplaces') {
-      Navigator.push(context, MaterialPageRoute(builder: (context) {
-        return const MyPlaces();
-      }));
-    } else if (menuItem.trim().toLowerCase() == 'settings') {
-      Navigator.push(context, MaterialPageRoute(builder: (context) {
-        return SettingsPage();
-      }));
     } else if (menuItem.trim().toLowerCase() == 'camera') {
       takePhoto();
     } else {
@@ -460,9 +400,4 @@ class _HomePageState extends State<HomePage> {
           if (value.isNotEmpty) {DBHelper().insertSites(value)}
         });
   }
-
-  void _launchURLFaqs() async => await canLaunch(Links.faqsUrl)
-      ? await launch(Links.faqsUrl)
-      : throw Exception(
-          'Could not launch feedback form, try opening ${Links.faqsUrl}');
 }

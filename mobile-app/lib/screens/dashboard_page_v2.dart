@@ -223,7 +223,7 @@ class _DashboardPageV2State extends State<DashboardPageV2> {
     var dashboardSite = prefs.getString(PrefConstant.dashboardSite) ?? '';
 
     if (dashboardSite == '') {
-      await LocationApi().getLocationMeasurement().then((value) => {
+      await LocationApi().getCurrentLocationReadings().then((value) => {
             if (value != null && mounted)
               {
                 prefs.setStringList(PrefConstant.lastKnownLocation,
@@ -250,7 +250,7 @@ class _DashboardPageV2State extends State<DashboardPageV2> {
   Future<void> updateLocationMeasurements() async {
     var prefs = await SharedPreferences.getInstance();
     var dashboardMeasurement =
-        prefs.getString(PrefConstant.dashboardMeasurement) ?? '';
+        prefs.getString(PrefConstant.dashboardSite) ?? '';
     if (dashboardMeasurement != '') {}
     try {
       await Settings().dashboardMeasurement().then((value) => {

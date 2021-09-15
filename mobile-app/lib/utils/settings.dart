@@ -11,7 +11,7 @@ class Settings {
     try {
       var prefs = await SharedPreferences.getInstance();
       var dashboardMeasurement =
-          prefs.getString(PrefConstant.dashboardMeasurement) ?? '';
+          prefs.getString(PrefConstant.dashboardSite) ?? '';
 
       if (dashboardMeasurement != '') {
         return await db.getMeasurement(dashboardMeasurement);

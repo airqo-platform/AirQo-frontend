@@ -4,6 +4,7 @@ import 'package:app/models/site.dart';
 import 'package:app/models/suggestion.dart';
 import 'package:app/screens/place_details.dart';
 import 'package:app/services/local_storage.dart';
+import 'package:app/services/native_api.dart';
 import 'package:app/services/rest_api.dart';
 import 'package:app/utils/distance.dart';
 import 'package:flutter/cupertino.dart';
@@ -320,7 +321,8 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                       query = (results[index]).description;
                       showAllSites = false;
                       searchPlaceId = (results[index]).placeId;
-                      showResults(context);
+                      // showResults(context);
+                      navigateToPlace(context, results[index]);
                       // close(context, results[index]);
                     },
                   ),
@@ -362,8 +364,9 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                 query = (results[index]).description;
                 showAllSites = false;
                 searchPlaceId = (results[index]).placeId;
-                DBHelper().insertSearchHistory(results[index]);
-                showResults(context);
+                // DBHelper().insertSearchHistory(results[index]);
+                // showResults(context);
+                navigateToPlace(context, results[index]);
                 // close(context, results[index]);
               },
             ),
@@ -392,6 +395,37 @@ class LocationSearch extends SearchDelegate<Suggestion> {
         }
       },
     );
+  }
+
+  Future<void> navigateToPlace(context, Suggestion suggestion) async {
+    try {
+      if (query == '' || searchPlaceId == '') {
+        showResults(context);
+      }
+
+      await searchApiClient.getPlaceDetails(searchPlaceId).then((place) => {
+            LocationApi()
+                .getNearestSite(
+                    place.geometry.location.lat, place.geometry.location.lng)
+                .then((nearestSite) => {
+                      if (nearestSite != null)
+                        {
+                          nearestSite.userLocation = place.name,
+                          Navigator.push(context,
+                              MaterialPageRoute(builder: (context) {
+                            return PlaceDetailsPage(
+                              site: nearestSite,
+                            );
+                          }))
+                        }
+                      else
+                        {showResults(context)}
+                    }),
+          });
+    } catch (e) {
+      print(e);
+      showResults(context);
+    }
   }
 
   Widget loadApiSites(context) {

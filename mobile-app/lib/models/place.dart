@@ -36,13 +36,9 @@ class Location {
 @JsonSerializable()
 class Place {
   String name;
-
   Geometry geometry;
 
-  Place({
-    required this.geometry,
-    required this.name,
-  });
+  Place(this.geometry, this.name);
 
   factory Place.fromJson(Map<String, dynamic> json) => _$PlaceFromJson(json);
 

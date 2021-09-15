@@ -27,18 +27,6 @@ Site _$SiteFromJson(Map<String, dynamic> json) {
   )..userLocation = json['userLocation'] as String? ?? '';
 }
 
-Sites _$SitesFromJson(Map<String, dynamic> json) {
-  return Sites(
-    sites: (json['sites'] as List<dynamic>)
-        .map((e) => Site.fromJson(e as Map<String, dynamic>))
-        .toList(),
-  );
-}
-
-Map<String, dynamic> _$SitesToJson(Sites instance) => <String, dynamic>{
-      'sites': instance.sites,
-    };
-
 Map<String, dynamic> _$SiteToJson(Site instance) => <String, dynamic>{
       '_id': instance.id,
       'latitude': instance.latitude,
@@ -49,4 +37,16 @@ Map<String, dynamic> _$SiteToJson(Site instance) => <String, dynamic>{
       'description': instance.description,
       'distance': instance.distance,
       'userLocation': instance.userLocation,
+    };
+
+Sites _$SitesFromJson(Map<String, dynamic> json) {
+  return Sites(
+    sites: (json['sites'] as List<dynamic>)
+        .map((e) => Site.fromJson(e as Map<String, dynamic>))
+        .toList(),
+  );
+}
+
+Map<String, dynamic> _$SitesToJson(Sites instance) => <String, dynamic>{
+      'sites': instance.sites,
     };

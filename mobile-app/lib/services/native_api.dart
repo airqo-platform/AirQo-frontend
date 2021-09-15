@@ -1,5 +1,6 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/measurement.dart';
+import 'package:app/models/site.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/utils/distance.dart';
 import 'package:geocoder/geocoder.dart';
@@ -62,89 +63,118 @@ class LocationApi {
     return _locationData;
   }
 
-  Future<Measurement?> getLocationMeasurement() async {
+  Future<Measurement?> getCurrentLocationReadings() async {
     try {
       var nearestMeasurement;
       var nearestMeasurements = <Measurement>[];
-
       double distanceInMeters;
 
-      var location = await LocationApi().getLocation();
-      if (location.longitude != null && location.latitude != null) {
-        var latitude = location.latitude;
-        var longitude = location.longitude;
-        var addresses =
-            await LocationApi().getAddressGoogle(latitude!, longitude!);
-        var userAddress = addresses.first;
+      // var location = await LocationApi().getLocation();
+      // if (location.longitude != null && location.latitude != null) {
+      //   var latitude = location.latitude;
+      //   var longitude = location.longitude;
+      //   var addresses =
+      //       await LocationApi().getAddressGoogle(latitude!, longitude!);
+      //   var userAddress = addresses.first;
+      //
+      //   await DBHelper().getLatestMeasurements().then((measurements) => {
+      //         for (var measurement in measurements)
+      //           {
+      //             distanceInMeters = metersToKmDouble(
+      //                 Geolocator.distanceBetween(
+      //                     measurement.site.latitude,
+      //                     measurement.site.longitude,
+      //                     location.latitude!,
+      //                     location.longitude!)),
+      //             if (distanceInMeters < AppConfig.maxSearchRadius.toDouble())
+      //               {
+      //                 // print('$distanceInMeters : '
+      //                 //     '${AppConfig.maxSearchRadius.toDouble()} : '
+      //                 //     '${measurement.site.getName()}'),
+      //                 measurement.site.distance = distanceInMeters,
+      //                 measurement.site.userLocation = userAddress.thoroughfare,
+      //                 nearestMeasurements.add(measurement)
+      //               }
+      //           },
+      //         if (nearestMeasurements.isNotEmpty)
+      //           {
+      //             nearestMeasurement = nearestMeasurements.first,
+      //             for (var m in nearestMeasurements)
+      //               {
+      //                 if (nearestMeasurement.site.distance > m.site.distance)
+      //                   {nearestMeasurement = m}
+      //               }
+      //           }
+      //       });
+      //
+      //
+      // }
 
-        await DBHelper().getLatestMeasurements().then((measurements) => {
-              for (var measurement in measurements)
-                {
-                  distanceInMeters = metersToKmDouble(
-                      Geolocator.distanceBetween(
-                          measurement.site.latitude,
-                          measurement.site.longitude,
-                          location.latitude!,
-                          location.longitude!)),
-                  if (distanceInMeters < AppConfig.maxSearchRadius.toDouble())
+      await LocationApi().getLocation().then((value) => {
+            DBHelper().getLatestMeasurements().then((measurements) => {
+                  if (value.longitude != null && value.latitude != null)
                     {
-                      // print('$distanceInMeters : '
-                      //     '${AppConfig.maxSearchRadius.toDouble()} : '
-                      //     '${measurement.site.getName()}'),
-                      measurement.site.distance = distanceInMeters,
-                      measurement.site.userLocation = userAddress.thoroughfare,
-                      nearestMeasurements.add(measurement)
+                      for (var measurement in measurements)
+                        {
+                          distanceInMeters = metersToKmDouble(
+                              Geolocator.distanceBetween(
+                                  measurement.site.latitude,
+                                  measurement.site.longitude,
+                                  value.latitude!,
+                                  value.longitude!)),
+                          if (distanceInMeters <
+                              AppConfig.maxSearchRadius.toDouble())
+                            {
+                              // print('$distanceInMeters : '
+                              //     '${AppConfig.maxSearchRadius.toDouble()} : '
+                              //     '${measurement.site.getName()}'),
+                              measurement.site.distance = distanceInMeters,
+                              nearestMeasurements.add(measurement)
+                            }
+                        },
+                      if (nearestMeasurements.isNotEmpty)
+                        {
+                          nearestMeasurement = nearestMeasurements.first,
+                          for (var measurement in nearestMeasurements)
+                            {
+                              if (nearestMeasurement.site.distance >
+                                  measurement.site.distance)
+                                {nearestMeasurement = measurement}
+                            }
+                        }
                     }
-                },
-              if (nearestMeasurements.isNotEmpty)
-                {
-                  nearestMeasurement = nearestMeasurements.first,
-                  for (var m in nearestMeasurements)
-                    {
-                      if (nearestMeasurement.site.distance > m.site.distance)
-                        {nearestMeasurement = m}
-                    }
-                }
-            });
-
-        await LocationApi().getLocation().then((value) => {
-              DBHelper().getLatestMeasurements().then((measurements) => {
-                    if (location.longitude != null && location.latitude != null)
-                      {
-                        for (var measurement in measurements)
-                          {
-                            distanceInMeters = metersToKmDouble(
-                                Geolocator.distanceBetween(
-                                    measurement.site.latitude,
-                                    measurement.site.longitude,
-                                    location.latitude!,
-                                    location.longitude!)),
-                            if (distanceInMeters <
-                                AppConfig.maxSearchRadius.toDouble())
-                              {
-                                // print('$distanceInMeters : '
-                                //     '${AppConfig.maxSearchRadius.toDouble()} : '
-                                //     '${measurement.site.getName()}'),
-                                measurement.site.distance = distanceInMeters,
-                                nearestMeasurements.add(measurement)
-                              }
-                          },
-                        if (nearestMeasurements.isNotEmpty)
-                          {
-                            nearestMeasurement = nearestMeasurements.first,
-                            for (var m in nearestMeasurements)
-                              {
-                                if (nearestMeasurement.site.distance >
-                                    m.site.distance)
-                                  {nearestMeasurement = m}
-                              }
-                          }
-                      }
-                  })
-            });
-      }
+                })
+          });
 
       return nearestMeasurement;
+    } catch (e) {
+      print('error $e');
+      return null;
+    }
+  }
+
+  Future<Site?> getNearestSite(double latitude, double longitude) async {
+    try {
+      var nearestSite;
+      var nearestSites = <Site>[];
+      double distanceInMeters;
+
+      await DBHelper().getSites().then((sites) => {
+            for (var site in sites)
+              {
+                distanceInMeters = metersToKmDouble(Geolocator.distanceBetween(
+                    site.latitude, site.longitude, latitude, longitude)),
+                site.distance = distanceInMeters,
+                nearestSites.add(site),
+              },
+            nearestSite = nearestSites.first,
+            for (var site in nearestSites)
+              {
+                if (nearestSite.distance > site.distance) {nearestSite = site}
+              },
+          });
+
+      return nearestSite;
     } catch (e) {
       print('error $e');
       return null;
