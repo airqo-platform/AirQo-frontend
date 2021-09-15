@@ -149,7 +149,7 @@ class CurrentLocationCard extends StatelessWidget {
 
   Widget forecastSection() {
     var data = forecastChartData(forecastData);
-    return DashboardBarChart(data);
+    return DashboardBarChart(data, 'Forecast');
   }
 
   Widget gaugeChart() {
@@ -175,7 +175,7 @@ class CurrentLocationCard extends StatelessWidget {
 
   Widget historySection() {
     var formattedData = historicalChartData(historicalData);
-    return DashboardBarChart(formattedData);
+    return DashboardBarChart(formattedData, 'History');
   }
 
   Widget titleSection() {

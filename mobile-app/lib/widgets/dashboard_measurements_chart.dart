@@ -7,8 +7,9 @@ import 'package:flutter/material.dart';
 
 class DashboardBarChart extends StatefulWidget {
   final List<charts.Series<TimeSeriesData, DateTime>> seriesList;
+  final String header;
 
-  DashboardBarChart(this.seriesList);
+  DashboardBarChart(this.seriesList, this.header);
 
   @override
   _DashboardBarChartState createState() => _DashboardBarChartState();
@@ -26,32 +27,22 @@ class _DashboardBarChartState extends State<DashboardBarChart> {
       ),
       child: Column(
         children: <Widget>[
+          Padding(
+            padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
+            child: Center(
+              child: Text(
+                widget.header,
+                softWrap: true,
+                style: TextStyle(
+                    fontSize: 19,
+                    color: ColorConstants.appColor,
+                    fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
           if (display != null)
             Column(
               children: [
-                Row(
-                  children: [
-                    const Spacer(
-                      flex: 1,
-                    ),
-                    Text(
-                      chartDateToString(display['time']),
-                      softWrap: true,
-                      style: TextStyle(color: ColorConstants.appColor),
-                    ),
-                    const Spacer(
-                      flex: 1,
-                    ),
-                    Text(
-                      display['value'].toString(),
-                      softWrap: true,
-                      style: TextStyle(color: ColorConstants.appColor),
-                    ),
-                    const Spacer(
-                      flex: 1,
-                    ),
-                  ],
-                ),
                 Text(
                   pmToString(display['value']).replaceAll('\n', ' '),
                   style: TextStyle(
@@ -59,10 +50,38 @@ class _DashboardBarChartState extends State<DashboardBarChart> {
                       fontWeight: FontWeight.w600,
                       color: ColorConstants.appColor),
                 ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(10.0, 0.0, 10.0, 0.0),
+                  child: Row(
+                    children: [
+                      // const Spacer(
+                      //   flex: 1,
+                      // ),
+                      Text(
+                        chartDateToString(display['time']),
+                        softWrap: true,
+                        style: TextStyle(color: ColorConstants.appColor),
+                      ),
+                      const Spacer(
+                        flex: 1,
+                      ),
+                      Text(
+                        display['value'].toString(),
+                        softWrap: true,
+                        style: TextStyle(color: ColorConstants.appColor),
+                      ),
+                      // const Spacer(
+                      //   flex: 1,
+                      // ),
+                    ],
+                  ),
+                ),
               ],
             ),
           Container(
-            color: Colors.white,
+            decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.all(Radius.circular(20.0))),
             height: 200,
             padding: const EdgeInsets.fromLTRB(5, 10, 5, 10),
             child: charts.TimeSeriesChart(

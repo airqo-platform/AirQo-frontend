@@ -6,9 +6,9 @@ import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 class StoryPage extends StatefulWidget {
-  StoryPage({Key? key, required this.story}) : super(key: key);
-
   Story story;
+
+  StoryPage({Key? key, required this.story}) : super(key: key);
 
   @override
   _StoryPageState createState() => _StoryPageState();
@@ -34,17 +34,17 @@ class _StoryPageState extends State<StoryPage> {
     );
   }
 
-  @override
-  void initState() {
-    initialize();
-    super.initState();
-  }
-
   void initialize() {
     setState(() {
       contentBase64 =
           base64Encode(const Utf8Encoder().convert(widget.story.link));
     });
+  }
+
+  @override
+  void initState() {
+    initialize();
+    super.initState();
   }
 
   void webResourceErrorHandler(error) {

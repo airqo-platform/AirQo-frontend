@@ -22,13 +22,13 @@ import 'themes/dark_theme.dart';
 import 'themes/light_theme.dart';
 
 Future<void> main() async {
-  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-    systemNavigationBarColor: Colors.white,
+  SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+    systemNavigationBarColor: ColorConstants.appColor,
     statusBarColor: Colors.white,
     statusBarBrightness: Brightness.dark,
-    statusBarIconBrightness: Brightness.dark ,
-    systemNavigationBarDividerColor: Colors.transparent,
-    systemNavigationBarIconBrightness: Brightness.dark,
+    statusBarIconBrightness: Brightness.dark,
+    systemNavigationBarDividerColor: ColorConstants.appColor,
+    // systemNavigationBarIconBrightness: Brightness.dark,
   ));
 
   WidgetsFlutterBinding.ensureInitialized();
@@ -190,25 +190,26 @@ class SplashScreenState extends State<SplashScreen> {
   Widget build(BuildContext context) {
     if (error == '') {
       return Scaffold(
-        body: Container(
-          color: Colors.white,
-          child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Image.asset(
-                    'assets/icon/airqo_logo_tagline_transparent.png',
-                    height: 150,
-                    width: 150,
-                  ),
-                  Center(
-                    child: CircularProgressIndicator(
-                      valueColor:
+          body: Container(
+        color: Colors.white,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Image.asset(
+                'assets/icon/airqo_logo_tagline_transparent.png',
+                height: 150,
+                width: 150,
+              ),
+              Center(
+                child: CircularProgressIndicator(
+                  valueColor:
                       AlwaysStoppedAnimation<Color>(ColorConstants.appColor),
-                    ),
-                  )
-                ],
-              ),),
+                ),
+              )
+            ],
+          ),
+        ),
       ));
     } else {
       return Scaffold(

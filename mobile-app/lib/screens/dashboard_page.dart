@@ -58,7 +58,7 @@ class _DashboardPageState extends State<DashboardPage> {
                         children: <Widget>[
                           Padding(
                             padding:
-                                const EdgeInsets.fromLTRB(5.0, 5.0, 0, 5.0),
+                                const EdgeInsets.fromLTRB(5.0, 0.0, 0.0, 0.0),
                             child: Text(
                               getGreetings(),
                               textAlign: TextAlign.start,
@@ -213,9 +213,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 },
             });
       }
-    } catch (e) {
-      print(e);
-    }
+    } catch (e) {}
   }
 
   Future<void> updateLocationMeasurements() async {

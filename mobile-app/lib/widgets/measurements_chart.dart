@@ -29,7 +29,7 @@ class _MeasurementsBarChartState extends State<MeasurementsBarChart> {
       child: Column(
         children: <Widget>[
           Padding(
-            padding: const EdgeInsets.fromLTRB(5, 10, 5, 10),
+            padding: const EdgeInsets.fromLTRB(0, 5, 0, 0),
             child: Center(
               child: Text(
                 widget.header,
@@ -41,32 +41,44 @@ class _MeasurementsBarChartState extends State<MeasurementsBarChart> {
               ),
             ),
           ),
+          // if (display != null)
+          //   Column(
+          //     children: [
+          //       Row(
+          //         children: [
+          //           const Spacer(
+          //             flex: 1,
+          //           ),
+          //           Text(
+          //             chartDateToString(display['time']),
+          //             softWrap: true,
+          //             style: TextStyle(color: ColorConstants.appColor),
+          //           ),
+          //           const Spacer(
+          //             flex: 1,
+          //           ),
+          //           Text(
+          //             display['value'].toString(),
+          //             softWrap: true,
+          //             style: TextStyle(color: ColorConstants.appColor),
+          //           ),
+          //           const Spacer(
+          //             flex: 1,
+          //           ),
+          //         ],
+          //       ),
+          //       Text(
+          //         pmToString(display['value']).replaceAll('\n', ' '),
+          //         style: TextStyle(
+          //             fontSize: 17,
+          //             fontWeight: FontWeight.w600,
+          //             color: ColorConstants.appColor),
+          //       ),
+          //     ],
+          //   ),
           if (display != null)
             Column(
               children: [
-                Row(
-                  children: [
-                    const Spacer(
-                      flex: 1,
-                    ),
-                    Text(
-                      chartDateToString(display['time']),
-                      softWrap: true,
-                      style: TextStyle(color: ColorConstants.appColor),
-                    ),
-                    const Spacer(
-                      flex: 1,
-                    ),
-                    Text(
-                      display['value'].toString(),
-                      softWrap: true,
-                      style: TextStyle(color: ColorConstants.appColor),
-                    ),
-                    const Spacer(
-                      flex: 1,
-                    ),
-                  ],
-                ),
                 Text(
                   pmToString(display['value']).replaceAll('\n', ' '),
                   style: TextStyle(
@@ -74,10 +86,38 @@ class _MeasurementsBarChartState extends State<MeasurementsBarChart> {
                       fontWeight: FontWeight.w600,
                       color: ColorConstants.appColor),
                 ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(10.0, 0.0, 10.0, 0.0),
+                  child: Row(
+                    children: [
+                      // const Spacer(
+                      //   flex: 1,
+                      // ),
+                      Text(
+                        chartDateToString(display['time']),
+                        softWrap: true,
+                        style: TextStyle(color: ColorConstants.appColor),
+                      ),
+                      const Spacer(
+                        flex: 1,
+                      ),
+                      Text(
+                        display['value'].toString(),
+                        softWrap: true,
+                        style: TextStyle(color: ColorConstants.appColor),
+                      ),
+                      // const Spacer(
+                      //   flex: 1,
+                      // ),
+                    ],
+                  ),
+                ),
               ],
             ),
           Container(
-            color: Colors.white,
+            decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.all(Radius.circular(20.0))),
             height: 200,
             padding: const EdgeInsets.fromLTRB(5, 10, 5, 10),
             child: charts.TimeSeriesChart(

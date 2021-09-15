@@ -102,20 +102,20 @@ class _HomePageState extends State<HomePage> {
                       )),
                 ),
               ),
-              PopupMenuItem<String>(
-                value: 'camera',
-                child: ListTile(
-                  leading: Icon(
-                    Icons.camera_alt_outlined,
-                    color: ColorConstants.appColor,
-                  ),
-                  title: Text('AQI Camera',
-                      style: TextStyle(
-                        color: ColorConstants.appColor,
-                      )),
-                ),
-              ),
-              const PopupMenuDivider(),
+              // PopupMenuItem<String>(
+              //   value: 'camera',
+              //   child: ListTile(
+              //     leading: Icon(
+              //       Icons.camera_alt_outlined,
+              //       color: ColorConstants.appColor,
+              //     ),
+              //     title: Text('AQI Camera',
+              //         style: TextStyle(
+              //           color: ColorConstants.appColor,
+              //         )),
+              //   ),
+              // ),
+              // const PopupMenuDivider(),
               PopupMenuItem<String>(
                 value: 'Share',
                 child: ListTile(

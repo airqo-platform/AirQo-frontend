@@ -178,7 +178,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                         Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: Text(
-                            'Air quality stations near $query',
+                            'Here are the locations we recommend',
                             textAlign: TextAlign.center,
                             style: TextStyle(color: ColorConstants.appColor),
                           ),
@@ -321,8 +321,8 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                       query = (results[index]).description;
                       showAllSites = false;
                       searchPlaceId = (results[index]).placeId;
-                      // showResults(context);
-                      navigateToPlace(context, results[index]);
+                      showResults(context);
+                      // navigateToPlace(context, results[index]);
                       // close(context, results[index]);
                     },
                   ),
@@ -365,8 +365,8 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                 showAllSites = false;
                 searchPlaceId = (results[index]).placeId;
                 // DBHelper().insertSearchHistory(results[index]);
-                // showResults(context);
-                navigateToPlace(context, results[index]);
+                showResults(context);
+                // navigateToPlace(context, results[index]);
                 // close(context, results[index]);
               },
             ),
@@ -395,37 +395,6 @@ class LocationSearch extends SearchDelegate<Suggestion> {
         }
       },
     );
-  }
-
-  Future<void> navigateToPlace(context, Suggestion suggestion) async {
-    try {
-      if (query == '' || searchPlaceId == '') {
-        showResults(context);
-      }
-
-      await searchApiClient.getPlaceDetails(searchPlaceId).then((place) => {
-            LocationApi()
-                .getNearestSite(
-                    place.geometry.location.lat, place.geometry.location.lng)
-                .then((nearestSite) => {
-                      if (nearestSite != null)
-                        {
-                          nearestSite.userLocation = place.name,
-                          Navigator.push(context,
-                              MaterialPageRoute(builder: (context) {
-                            return PlaceDetailsPage(
-                              site: nearestSite,
-                            );
-                          }))
-                        }
-                      else
-                        {showResults(context)}
-                    }),
-          });
-    } catch (e) {
-      print(e);
-      showResults(context);
-    }
   }
 
   Widget loadApiSites(context) {
@@ -587,6 +556,37 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                 ));
           }
         });
+  }
+
+  Future<void> navigateToPlace(context, Suggestion suggestion) async {
+    try {
+      if (query == '' || searchPlaceId == '') {
+        showResults(context);
+      }
+
+      await searchApiClient.getPlaceDetails(searchPlaceId).then((place) => {
+            LocationApi()
+                .getNearestSite(
+                    place.geometry.location.lat, place.geometry.location.lng)
+                .then((nearestSite) => {
+                      if (nearestSite != null)
+                        {
+                          nearestSite.userLocation = place.name,
+                          Navigator.push(context,
+                              MaterialPageRoute(builder: (context) {
+                            return PlaceDetailsPage(
+                              site: nearestSite,
+                            );
+                          }))
+                        }
+                      else
+                        {showResults(context)}
+                    }),
+          });
+    } catch (e) {
+      print(e);
+      showResults(context);
+    }
   }
 
   void showAllLocations(var context) {

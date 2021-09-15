@@ -43,13 +43,13 @@ class Story {
 
   static String dbAuthor() => 'author';
 
+  static String dbContent() => 'content';
+
   static String dbGuid() => 'guid';
 
   static String dbLink() => 'link';
 
   static String dbPubDate() => 'pubDate';
-
-  static String dbContent() => 'content';
 
   static String dbThumbnail() => 'thumbnail';
 

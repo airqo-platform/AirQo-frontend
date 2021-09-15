@@ -279,7 +279,7 @@ class MapPageState extends State<MapPage> {
                     Visibility(
                       visible: _showInfoWindow,
                       child: windowProperties != null
-                          ? infoWindowV2()
+                          ? infoWindow()
                           : Card(
                               child: Padding(
                               padding: const EdgeInsets.all(8.0),
@@ -364,8 +364,8 @@ class MapPageState extends State<MapPage> {
           borderRadius: BorderRadius.circular(10.0),
           side: const BorderSide(color: Colors.white, width: 1)),
       fillColor: Colors.white,
-      elevation: 20,
-      highlightElevation: 20,
+      elevation: 10,
+      highlightElevation: 10,
       splashColor: Colors.black12,
       highlightColor: Colors.white.withOpacity(0.4),
       onPressed: () async {
@@ -380,18 +380,6 @@ class MapPageState extends State<MapPage> {
       ),
     );
   }
-
-  // @override
-  // void dispose() {
-  //   if (mounted) {
-  //     setState(() {
-  //       _showInfoWindow = false;
-  //       _markers = {};
-  //       isLoading = false;
-  //     });
-  //   }
-  //   super.dispose();
-  // }
 
   Future<void> displaySearchResults(Suggestion selection) async {
     setState(() {
@@ -437,9 +425,9 @@ class MapPageState extends State<MapPage> {
     });
   }
 
-  Widget infoWindowV2() {
+  Widget infoWindow() {
     return Card(
-        elevation: 20,
+        elevation: 10,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
         ),
@@ -458,44 +446,35 @@ class MapPageState extends State<MapPage> {
                 overflow: TextOverflow.ellipsis,
               ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
-                child: Container(
-                    padding: const EdgeInsets.all(5.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        Text(
-                          windowProperties.getPm2_5Value().toStringAsFixed(2),
-                          style: TextStyle(
-                            fontSize: 17,
-                            color: ColorConstants.appColor,
-                          ),
-                        ),
-                        Text(
-                          pmToString(windowProperties.getPm2_5Value()),
-                          maxLines: 4,
-                          softWrap: true,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: ColorConstants.appColor,
-                          ),
-                        ),
-                        Text(
-                          dateToString(windowProperties.time, true),
-                          style: TextStyle(
-                            fontSize: 17,
-                            color: ColorConstants.appColor,
-                          ),
-                        ),
-                      ],
-                    )),
+                padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
+                child: Row(
+                  children: [
+                    Text(
+                      windowProperties.getPm2_5Value().toStringAsFixed(2),
+                      style: TextStyle(
+                        fontSize: 17,
+                        color: ColorConstants.appColor,
+                      ),
+                    ),
+                    const Spacer(),
+                    Text(
+                      pmToString(windowProperties.getPm2_5Value()),
+                      maxLines: 4,
+                      softWrap: true,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: ColorConstants.appColor,
+                      ),
+                    ),
+                  ],
+                ),
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   Card(
-                      elevation: 20,
+                      elevation: 10,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(150),
                       ),
@@ -515,7 +494,7 @@ class MapPageState extends State<MapPage> {
                             color: ColorConstants.appColor),
                       )),
                   Card(
-                    elevation: 20,
+                    elevation: 10,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(150),
                     ),
@@ -528,7 +507,7 @@ class MapPageState extends State<MapPage> {
                     ),
                   ),
                   Card(
-                    elevation: 20,
+                    elevation: 10,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(150),
                     ),
@@ -549,6 +528,16 @@ class MapPageState extends State<MapPage> {
                   ),
                   detailsButton(windowProperties.site),
                 ],
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
+                child: Text(
+                  dateToString(windowProperties.time, true),
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: ColorConstants.appColor,
+                  ),
+                ),
               ),
             ],
           ),

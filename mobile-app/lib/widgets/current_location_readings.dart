@@ -7,6 +7,7 @@ import 'package:app/models/predict.dart';
 import 'package:app/utils/data_formatter.dart';
 import 'package:app/utils/date.dart';
 import 'package:app/utils/pm.dart';
+import 'package:app/utils/share.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -111,7 +112,9 @@ class CurrentLocationCard extends StatelessWidget {
             // style: ButtonStyle(
             //   foregroundColor: MaterialStateProperty.all<Color>(Colors.blue),
             // ),
-            onPressed: () {},
+            onPressed: () {
+              shareMeasurement(measurementData);
+            },
             child: Card(
                 elevation: 5,
                 shape: RoundedRectangleBorder(
@@ -119,7 +122,7 @@ class CurrentLocationCard extends StatelessWidget {
                 ),
                 color: Colors.white,
                 child: Padding(
-                    padding: EdgeInsets.all(5),
+                    padding: const EdgeInsets.all(5),
                     child: Icon(
                       Icons.share_outlined,
                       color: ColorConstants.appColor,
@@ -166,7 +169,7 @@ class CurrentLocationCard extends StatelessWidget {
 
   Widget forecastSection() {
     var data = forecastChartData(forecastData);
-    return DashboardBarChart(data);
+    return DashboardBarChart(data, 'Forecast');
   }
 
   Widget gaugeChart() {
@@ -192,7 +195,7 @@ class CurrentLocationCard extends StatelessWidget {
 
   Widget historySection() {
     var formattedData = historicalChartData(historicalData);
-    return DashboardBarChart(formattedData);
+    return DashboardBarChart(formattedData, 'History');
   }
 
   Widget titleSection() {
@@ -256,7 +259,7 @@ class CurrentLocationCard extends StatelessWidget {
                             // ),
                             Container(
                                 constraints:
-                                    const BoxConstraints(maxWidth: 180),
+                                    const BoxConstraints(maxWidth: 200),
                                 child: Text(
                                     '${measurementData.site.getUserLocation()}',
                                     softWrap: true,

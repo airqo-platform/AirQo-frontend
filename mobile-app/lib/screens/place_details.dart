@@ -295,6 +295,16 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
             )));
   }
 
+  Future<void> checkDashboardView() async {
+    var prefs = await SharedPreferences.getInstance();
+    var dashboardSite = prefs.getString(PrefConstant.dashboardSite) ?? '';
+    if (dashboardSite == widget.site.id) {
+      setState(() {
+        _isDashboardView = true;
+      });
+    }
+  }
+
   Future<void> checkFavourite() async {
     if (measurementData != null) {
       var prefs = await SharedPreferences.getInstance();
@@ -661,6 +671,21 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
         });
   }
 
+  Future<void> updateDashboardView(bool value) async {
+    await SharedPreferences.getInstance().then((prefs) => {
+          if (value)
+            {prefs.setString(PrefConstant.dashboardSite, widget.site.id)}
+          else
+            {prefs.setString(PrefConstant.dashboardSite, '')}
+        });
+
+    if (mounted) {
+      setState(() {
+        _isDashboardView = value;
+      });
+    }
+  }
+
   Future<void> updateFavouritePlace() async {
     var fav = await dbHelper.updateFavouritePlaces(measurementData.site);
 
@@ -781,13 +806,13 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                               color: ColorConstants.appColor),
                       title: isFavourite
                           ? Text(
-                              'Remove from myPlaces',
+                              'Remove from MyPlaces',
                               style: TextStyle(
                                   color: ColorConstants.appColor,
                                   fontWeight: FontWeight.w600),
                             )
                           : Text(
-                              'Add to myPlaces',
+                              'Add to MyPlaces',
                               style: TextStyle(
                                   color: ColorConstants.appColor,
                                   fontWeight: FontWeight.w600),
@@ -923,31 +948,6 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                 )),
               ));
         });
-  }
-
-  Future<void> updateDashboardView(bool value) async {
-    await SharedPreferences.getInstance().then((prefs) => {
-          if (value)
-            {prefs.setString(PrefConstant.dashboardSite, widget.site.id)}
-          else
-            {prefs.setString(PrefConstant.dashboardSite, '')}
-        });
-
-    if (mounted) {
-      setState(() {
-        _isDashboardView = value;
-      });
-    }
-  }
-
-  Future<void> checkDashboardView() async {
-    var prefs = await SharedPreferences.getInstance();
-    var dashboardSite = prefs.getString(PrefConstant.dashboardSite) ?? '';
-    if (dashboardSite == widget.site.id) {
-      setState(() {
-        _isDashboardView = true;
-      });
-    }
   }
 }
 

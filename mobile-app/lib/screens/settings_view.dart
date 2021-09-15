@@ -555,24 +555,24 @@ class _SettingsViewState extends State<SettingsView> {
           // const ListTile(
           //   title: Text('System Permissions'),
           // ),
-          InkWell(
-            onTap: () {
-              showDialog(
-                  context: context,
-                  builder: (context) {
-                    return ClearAppDialog();
-                  });
-            },
-            child: ListTile(
-              title: const Text('Clear All Data'),
-              leading: Icon(
-                Icons.delete,
-                color: ColorConstants.appColor,
-              ),
-              subtitle: const Text('Clear all saved data including saved '
-                  'places and preferences'),
-            ),
-          ),
+          // InkWell(
+          //   onTap: () {
+          //     showDialog(
+          //         context: context,
+          //         builder: (context) {
+          //           return ClearAppDialog();
+          //         });
+          //   },
+          //   child: ListTile(
+          //     title: const Text('Clear All Data'),
+          //     leading: Icon(
+          //       Icons.delete,
+          //       color: ColorConstants.appColor,
+          //     ),
+          //     subtitle: const Text('Clear all saved data including saved '
+          //         'places and preferences'),
+          //   ),
+          // ),
         ],
       ),
     );
