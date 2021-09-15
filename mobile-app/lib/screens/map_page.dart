@@ -439,7 +439,6 @@ class MapPageState extends State<MapPage> {
 
   Widget infoWindowV2() {
     return Card(
-
         elevation: 20,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
@@ -468,8 +467,9 @@ class MapPageState extends State<MapPage> {
                         Text(
                           windowProperties.getPm2_5Value().toStringAsFixed(2),
                           style: TextStyle(
-                              fontSize: 17,
-                            color: ColorConstants.appColor,),
+                            fontSize: 17,
+                            color: ColorConstants.appColor,
+                          ),
                         ),
                         Text(
                           pmToString(windowProperties.getPm2_5Value()),
@@ -477,14 +477,16 @@ class MapPageState extends State<MapPage> {
                           softWrap: true,
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                            color: ColorConstants.appColor,),
+                            fontWeight: FontWeight.bold,
+                            color: ColorConstants.appColor,
+                          ),
                         ),
                         Text(
                           dateToString(windowProperties.time, true),
                           style: TextStyle(
-                              fontSize: 17,
-                            color: ColorConstants.appColor,),
+                            fontSize: 17,
+                            color: ColorConstants.appColor,
+                          ),
                         ),
                       ],
                     )),

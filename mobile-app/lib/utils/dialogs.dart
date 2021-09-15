@@ -54,7 +54,7 @@ Future<void> showSnackBar(context, String message) async {
       softWrap: true,
       textAlign: TextAlign.center,
       style: const TextStyle(
-        color:  Colors.white,
+        color: Colors.white,
       ),
     ),
     backgroundColor: ColorConstants.snackBarBgColor,
@@ -73,7 +73,7 @@ Future<void> showSnackBar2(context, String message) async {
       softWrap: true,
       textAlign: TextAlign.center,
       style: const TextStyle(
-        color:  Colors.white,
+        color: Colors.white,
       ),
     ),
     backgroundColor: ColorConstants.snackBarBgColor,
@@ -93,12 +93,12 @@ Future<void> showSnackBarGoToMyPlaces(context, String message) async {
       softWrap: true,
       textAlign: TextAlign.start,
       style: const TextStyle(
-        color:  Colors.white,
+        color: Colors.white,
       ),
     ),
     backgroundColor: ColorConstants.snackBarBgColor,
     action: SnackBarAction(
-      textColor:  Colors.white,
+      textColor: Colors.white,
       label: 'View MyPlaces',
       onPressed: () async {
         await Navigator.push(context, MaterialPageRoute(builder: (context) {

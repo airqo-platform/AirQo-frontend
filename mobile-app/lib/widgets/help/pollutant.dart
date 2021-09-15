@@ -214,7 +214,6 @@ class PollutantDialogV2 extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     return Container(
       color: ColorConstants.appBodyColor,
       child: Padding(

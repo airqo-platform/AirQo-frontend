@@ -38,10 +38,9 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: ColorConstants.appBarBgColor,
-        title: Text('${AppConfig.name}',
-            style: TextStyle(
-            color: ColorConstants.appBarTitleColor
-        ),
+        title: Text(
+          '${AppConfig.name}',
+          style: TextStyle(color: ColorConstants.appBarTitleColor),
         ),
         actions: [
           // showAddPlace

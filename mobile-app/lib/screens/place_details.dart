@@ -85,9 +85,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
-        leading: BackButton(
-            color: ColorConstants.appColor
-        ),
+        leading: BackButton(color: ColorConstants.appColor),
         title: Text(
           '${AppConfig.name}',
           style: const TextStyle(
@@ -108,7 +106,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
       ),
       body: measurementData != null
           ? Container(
-        color: ColorConstants.appBodyColor,
+              color: ColorConstants.appBodyColor,
               child: ListView(
                 controller: _scrollCtrl,
                 padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
@@ -186,44 +184,36 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
               ),
             )
           : response != ''
-              ?
-          Container(
-            color: ColorConstants.appBodyColor,
-            child: Center(
-              child: Text(
-                response,
-                style: TextStyle(color: ColorConstants.appColor),
-              ),
-            )
-          )
-
-              :
-
-      Container(
-          color: ColorConstants.appBodyColor,
-          child:  Center(
-            child: Stack(
-              children: <Widget>[
-                Center(
-                  child: Container(
-                      width: 100,
-                      height: 100,
-                      child: CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                            ColorConstants.appColor),
-                      )),
-                ),
-                Center(
+              ? Container(
+                  color: ColorConstants.appBodyColor,
+                  child: Center(
                     child: Text(
-                      'Loading',
+                      response,
                       style: TextStyle(color: ColorConstants.appColor),
-                    )),
-              ],
-            ),
-          )
-      )
-
-     ,
+                    ),
+                  ))
+              : Container(
+                  color: ColorConstants.appBodyColor,
+                  child: Center(
+                    child: Stack(
+                      children: <Widget>[
+                        Center(
+                          child: Container(
+                              width: 100,
+                              height: 100,
+                              child: CircularProgressIndicator(
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                    ColorConstants.appColor),
+                              )),
+                        ),
+                        Center(
+                            child: Text(
+                          'Loading',
+                          style: TextStyle(color: ColorConstants.appColor),
+                        )),
+                      ],
+                    ),
+                  )),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: measurementData != null
           ? _showMenuButton

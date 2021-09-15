@@ -16,9 +16,7 @@ class HelpPage extends StatelessWidget {
       length: 5,
       child: Scaffold(
         appBar: AppBar(
-          leading: BackButton(
-              color: ColorConstants.appColor
-          ),
+          leading: BackButton(color: ColorConstants.appColor),
           elevation: 0,
           bottom: const TabBar(
             isScrollable: true,
@@ -26,37 +24,27 @@ class HelpPage extends StatelessWidget {
               Tab(
                   child: Text(
                 'AQI',
-                style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 17),
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
               )),
               Tab(
                   child: Text(
                 'PM 2.5',
-                style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 17),
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
               )),
               Tab(
                   child: Text(
                 'PM 10',
-                style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 17),
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
               )),
               Tab(
                   child: Text(
                 'Humidity',
-                style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 17),
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
               )),
               Tab(
                   child: Text(
                 'Temperature',
-                style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 17),
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
               )),
             ],
           ),

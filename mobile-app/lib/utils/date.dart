@@ -1,21 +1,5 @@
 import 'package:intl/intl.dart';
 
-String getGreetings(){
-  var hour = DateTime.now().hour;
-  if(0 <= hour && hour < 12) {
-    return 'Good morning!';
-  }
-
-  if(12 <= hour && hour < 13) {
-    return 'Good afternoon!';
-  }
-
-  if(13 <= hour && hour < 16) {
-    return 'Good evening!';
-  }
-
-  return 'Hello!';
-}
 String chartDateToString(String formattedString) {
   try {
     var now = DateTime.now();
@@ -87,4 +71,21 @@ String dateToString(String formattedString, bool addOffset) {
     print('Date Formatting error: $e');
     return formattedString;
   }
+}
+
+String getGreetings() {
+  var hour = DateTime.now().hour;
+  if (0 <= hour && hour < 12) {
+    return 'Good morning!';
+  }
+
+  if (12 <= hour && hour < 13) {
+    return 'Good afternoon!';
+  }
+
+  if (13 <= hour && hour < 16) {
+    return 'Good evening!';
+  }
+
+  return 'Hello!';
 }

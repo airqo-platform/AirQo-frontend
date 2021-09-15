@@ -11,6 +11,7 @@ import 'package:app/models/measurement.dart';
 import 'package:app/models/place.dart';
 import 'package:app/models/predict.dart';
 import 'package:app/models/site.dart';
+import 'package:app/models/story.dart';
 import 'package:app/models/suggestion.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:flutter/foundation.dart';
@@ -153,6 +154,22 @@ class AirqoApiClient {
     }
 
     return <Measurement>[];
+  }
+
+  Future<List<Story>> fetchLatestStories() async {
+    try {
+      final responseBody = await _performGetRequest({}, AirQoUrls().stories);
+
+      if (responseBody != null) {
+        return compute(Story.parseStories, responseBody);
+      } else {
+        return <Story>[];
+      }
+    } on Error catch (e) {
+      print('Get Latest stories error: $e');
+    }
+
+    return <Story>[];
   }
 
   Future<List<HistoricalMeasurement>> fetchSiteHistoricalMeasurements(

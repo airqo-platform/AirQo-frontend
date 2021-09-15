@@ -24,7 +24,7 @@ Site _$SiteFromJson(Map<String, dynamic> json) {
     country: json['country'] as String,
     description: json['description'] as String? ?? '',
     distance: (json['distance'] as num?)?.toDouble() ?? 0.0,
-  );
+  )..userLocation = json['userLocation'] as String? ?? '';
 }
 
 Sites _$SitesFromJson(Map<String, dynamic> json) {
@@ -48,4 +48,5 @@ Map<String, dynamic> _$SiteToJson(Site instance) => <String, dynamic>{
       'name': instance.name,
       'description': instance.description,
       'distance': instance.distance,
+      'userLocation': instance.userLocation,
     };

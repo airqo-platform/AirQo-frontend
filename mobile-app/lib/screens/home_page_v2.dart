@@ -47,10 +47,11 @@ class _HomePageV2State extends State<HomePageV2> {
         //     )),
         // backgroundColor: ColorConstants.appBarBgColor,
         elevation: 0,
-        title: Text(title,
+        title: Text(
+          title,
           style: TextStyle(
-              color: ColorConstants.appBarTitleColor,
-          fontWeight: FontWeight.bold,
+            color: ColorConstants.appBarTitleColor,
+            fontWeight: FontWeight.bold,
           ),
         ),
         actions: [

@@ -5,6 +5,7 @@ import 'package:app/models/historicalMeasurement.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/predict.dart';
 import 'package:app/models/site.dart';
+import 'package:app/models/story.dart';
 import 'package:app/models/suggestion.dart';
 import 'package:app/utils/distance.dart';
 import 'package:geolocator/geolocator.dart';
@@ -21,6 +22,7 @@ class DBHelper {
   Future<Database> get database async {
     if (_database != null) return _database;
     _database = await initDB();
+    await createDefaultTables(_database);
     return _database;
   }
 
@@ -35,6 +37,7 @@ class DBHelper {
       await db.execute(HistoricalMeasurement.dropTableStmt());
       await db.execute(Predict.dropTableStmt());
       await db.execute(Site.dropTableStmt());
+      await db.execute(Story.dropTableStmt());
       await prefs.setBool(PrefConstant.initialDbLoad, false);
     }
 
@@ -43,6 +46,7 @@ class DBHelper {
     await db.execute(HistoricalMeasurement.createTableStmt());
     await db.execute(Predict.createTableStmt());
     await db.execute(Site.createTableStmt());
+    await db.execute(Story.createTableStmt());
   }
 
   Future<void> deleteSearchHistory(Suggestion suggestion) async {
@@ -354,6 +358,23 @@ class DBHelper {
     }
   }
 
+  Future<List<Story>> getStories() async {
+    try {
+      final db = await database;
+
+      var res = await db.query(Story.storyDbName());
+
+      return res.isNotEmpty
+          ? List.generate(res.length, (i) {
+              return Story.fromJson(res[i]);
+            })
+          : <Story>[];
+    } catch (e) {
+      print(e);
+      return <Story>[];
+    }
+  }
+
   Future<Database> initDB() async {
     return await openDatabase(
       join(await getDatabasesPath(), AppConfig.dbName),
@@ -362,7 +383,7 @@ class DBHelper {
         createDefaultTables(db);
       },
       // onUpgrade: (db, oldVersion, newVersion){
-      //
+      //   createDefaultTables(db);
       // },
     );
   }
@@ -439,6 +460,32 @@ class DBHelper {
             );
           } catch (e) {
             print('Inserting latest measurements into db');
+            print(e);
+          }
+        }
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  Future<void> insertLatestStories(List<Story> stories) async {
+    try {
+      final db = await database;
+
+      if (stories.isNotEmpty) {
+        await db.delete(Story.storyDbName());
+
+        for (var story in stories) {
+          try {
+            var jsonData = story.toJson();
+            await db.insert(
+              '${Story.storyDbName()}',
+              jsonData,
+              conflictAlgorithm: ConflictAlgorithm.replace,
+            );
+          } catch (e) {
+            print('Inserting latest stories into db');
             print(e);
           }
         }

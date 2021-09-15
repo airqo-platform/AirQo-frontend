@@ -2,8 +2,6 @@ import 'dart:io';
 
 import 'package:app/constants/app_constants.dart';
 import 'package:app/services/local_notifications.dart';
-import 'package:app/widgets/change_language.dart';
-import 'package:app/widgets/change_theme.dart';
 import 'package:app/widgets/clear_app_data.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -34,38 +32,38 @@ class _SettingsViewState extends State<SettingsView> {
     return Container(
         color: ColorConstants.appBodyColor,
         child: Column(
-      children: [
-        Expanded(
-          child: ListView(
-            // physics:  const BouncingScrollPhysics(
-            //     parent: AlwaysScrollableScrollPhysics()
-            // ),
-            children: <Widget>[
-              userPreferences(),
-              Divider(
-                indent: 30,
-                endIndent: 30,
-                color: ColorConstants.appColor,
+          children: [
+            Expanded(
+              child: ListView(
+                // physics:  const BouncingScrollPhysics(
+                //     parent: AlwaysScrollableScrollPhysics()
+                // ),
+                children: <Widget>[
+                  userPreferences(),
+                  Divider(
+                    indent: 30,
+                    endIndent: 30,
+                    color: ColorConstants.appColor,
+                  ),
+                  // notifications(),
+                  // Divider(
+                  //   indent: 30,
+                  //   endIndent: 30,
+                  //   color: ColorConstants.appColor,
+                  // ),
+                  // reports(),
+                  // Divider(
+                  //   indent: 30,
+                  //   endIndent: 30,
+                  //   color: ColorConstants.appColor,
+                  // ),
+                  supportSection(),
+                  footerSection()
+                ],
               ),
-              // notifications(),
-              // Divider(
-              //   indent: 30,
-              //   endIndent: 30,
-              //   color: ColorConstants.appColor,
-              // ),
-              // reports(),
-              // Divider(
-              //   indent: 30,
-              //   endIndent: 30,
-              //   color: ColorConstants.appColor,
-              // ),
-              supportSection(),
-              footerSection()
-            ],
-          ),
-        ),
-      ],
-    ));
+            ),
+          ],
+        ));
   }
 
   void cancelNotification(int id) {

@@ -25,57 +25,57 @@ class _DashboardPageV2State extends State<DashboardPageV2> {
   Widget build(BuildContext context) {
     if (measurementData == null) {
       return Container(
-        color: ColorConstants.appBodyColor,
-        child: Center(
+          color: ColorConstants.appBodyColor,
+          child: Center(
             child: CircularProgressIndicator(
               color: ColorConstants.appColor,
             ),
-      ));
-
+          ));
     } else {
       return Container(
-        color: ColorConstants.appBodyColor,
+          color: ColorConstants.appBodyColor,
           child: RefreshIndicator(
               onRefresh: initialize,
               color: ColorConstants.appColor,
-              child: Padding(padding: EdgeInsets.all(10.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  // Padding(padding: const EdgeInsets.fromLTRB(5.0, 5.0, 0, 5.0),
-                  //   child: Text(getGreetings(),
-                  //     textAlign: TextAlign.start,
-                  //     style: const TextStyle(
-                  //         fontSize: 30,
-                  //         fontWeight: FontWeight.bold
-                  //     ),),
-                  // ),
+              child: Padding(
+                padding: EdgeInsets.all(10.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    // Padding(padding: const EdgeInsets.fromLTRB(5.0, 5.0, 0, 5.0),
+                    //   child: Text(getGreetings(),
+                    //     textAlign: TextAlign.start,
+                    //     style: const TextStyle(
+                    //         fontSize: 30,
+                    //         fontWeight: FontWeight.bold
+                    //     ),),
+                    // ),
 
-                  Expanded(
-                    child: ListView(
-                      shrinkWrap: true,
-                      children: <Widget>[
-                        Padding(padding: const EdgeInsets
-                            .fromLTRB(5.0, 5.0, 0, 5.0),
-                          child: Text(getGreetings(),
-                            textAlign: TextAlign.start,
-                            style: const TextStyle(
-                                fontSize: 30,
-                                fontWeight: FontWeight.bold
-                            ),),
-                        ),
-                        CurrentLocationCard(
-                            measurementData: measurementData,
-                            historicalData: historicalData,
-                            forecastData: forecastData),
-                      ],
+                    Expanded(
+                      child: ListView(
+                        shrinkWrap: true,
+                        children: <Widget>[
+                          Padding(
+                            padding:
+                                const EdgeInsets.fromLTRB(5.0, 5.0, 0, 5.0),
+                            child: Text(
+                              getGreetings(),
+                              textAlign: TextAlign.start,
+                              style: const TextStyle(
+                                  fontSize: 30, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                          CurrentLocationCard(
+                              measurementData: measurementData,
+                              historicalData: historicalData,
+                              forecastData: forecastData),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
-              ),)
-
-              ));
+                  ],
+                ),
+              )));
     }
   }
 

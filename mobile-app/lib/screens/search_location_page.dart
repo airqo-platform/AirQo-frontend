@@ -50,7 +50,8 @@ class LocationSearch extends SearchDelegate<Suggestion> {
     return [
       IconButton(
         tooltip: 'Clear',
-        icon: Icon(Icons.clear,
+        icon: Icon(
+          Icons.clear,
           color: ColorConstants.appColor,
         ),
         onPressed: () {
@@ -77,7 +78,10 @@ class LocationSearch extends SearchDelegate<Suggestion> {
   Widget buildLeading(BuildContext context) {
     return IconButton(
       tooltip: 'Back',
-      icon: Icon(Icons.arrow_back, color: ColorConstants.appColor,),
+      icon: Icon(
+        Icons.arrow_back,
+        color: ColorConstants.appColor,
+      ),
       onPressed: () {
         close(context, Suggestion(description: '', placeId: ''));
       },

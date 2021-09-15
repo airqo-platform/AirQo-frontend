@@ -19,4 +19,6 @@ class AirQoUrls {
   String get sites => '${_baseUrl}devices/sites';
 
   String get sitesByGeoCoordinates => '${_baseUrl}devices/sites/nearest';
+
+  String get stories => storiesLink;
 }
