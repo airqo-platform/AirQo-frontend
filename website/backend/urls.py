@@ -15,7 +15,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include, re_path
-from rest_framework.routers import DefaultRouter
+from rest_framework.routers import SimpleRouter
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
@@ -28,7 +28,7 @@ admin.site.site_title = "AirQo Admin Portal"
 admin.site.index_title = "Welcome to AirQo Website Administration Portal"
 
 
-api_router = DefaultRouter()
+api_router = SimpleRouter()
 
 api_router.register(r'team', team_views.TeamViewSet)
 api_router.register(r'faq', FAQ_views.FAQViewSet)
@@ -50,6 +50,7 @@ schema_view = get_schema_view(
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include(api_router.urls)),
+    re_path(r'^api/?$', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     re_path(r'^api/doc(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
     re_path(r'^api/doc/?$', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     re_path(r'^api/redoc/?$', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
