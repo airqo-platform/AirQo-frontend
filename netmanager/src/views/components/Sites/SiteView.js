@@ -289,13 +289,13 @@ const SiteForm = ({ site }) => {
         </Grid>
         <Grid items xs={12} sm={6} style={gridItemStyle}>
           <TextField
-            id="distance_to_nearest_residential_area"
-            label="Nearest residential area (m)"
+            id="distance_to_nearest_residential_road"
+            label="Nearest residential road (m)"
             variant="outlined"
-            value={siteInfo.distance_to_nearest_residential_area}
+            value={siteInfo.distance_to_nearest_residential_road}
             onChange={handleSiteInfoChange}
-            error={!!errors.distance_to_nearest_residential_area}
-            helperText={errors.distance_to_nearest_residential_area}
+            error={!!errors.distance_to_nearest_residential_road}
+            helperText={errors.distance_to_nearest_residential_road}
             fullWidth
           />
         </Grid>
