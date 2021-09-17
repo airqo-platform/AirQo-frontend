@@ -43,6 +43,12 @@ export const updateCandidateApi = async (id, newData) => {
     .then((response) => response.data);
 };
 
+export const deleteUserApi = async (id) => {
+  return await axios
+    .delete(GET_USERS_URI, { params: { id } })
+    .then((response) => response.data);
+};
+
 export const deleteCandidateApi = async (id) => {
   return await axios
     .delete(DELETE_CANDIDATE_URI, { params: { id } })
