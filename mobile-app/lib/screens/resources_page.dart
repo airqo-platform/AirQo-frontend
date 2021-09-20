@@ -1,5 +1,6 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/story.dart';
+import 'package:app/screens/story_page.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/services/rest_api.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -34,26 +35,31 @@ class _ResourcesPageState extends State<ResourcesPage> {
               viewStory(stories[index]);
             },
             child: ListTile(
-              leading: CachedNetworkImage(
-                width: 70,
-                height: 70,
-                placeholder: (context, url) => const SizedBox(
-                  height: 20.0,
-                  width: 20.0,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
+              trailing: ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: CachedNetworkImage(
+                  width: 100,
+                  height: 100,
+                  fit: BoxFit.cover,
+                  placeholder: (context, url) => const SizedBox(
+                    height: 20.0,
+                    width: 20.0,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                    ),
                   ),
-                ),
-                imageUrl: stories[index].thumbnail,
-                errorWidget: (context, url, error) => Icon(
-                  Icons.error_outline,
-                  color: ColorConstants.red,
+                  imageUrl: stories[index].thumbnail,
+                  errorWidget: (context, url, error) => Icon(
+                    Icons.error_outline,
+                    color: ColorConstants.red,
+                  ),
                 ),
               ),
 
+
               title: Text('${stories[index].title}',
                   overflow: TextOverflow.ellipsis,
-                  maxLines: 2,
+                  maxLines: 3,
                   style: TextStyle(
                     fontSize: 15,
                     color: ColorConstants.appColor,
@@ -104,17 +110,22 @@ class _ResourcesPageState extends State<ResourcesPage> {
   }
 
   Future<void> viewStory(Story story) async {
-    try {
-      await canLaunch(story.link)
-          ? await launch(story.link)
-          : throw Exception(
-              'Could not launch about, try opening ${story.link}');
-    } catch (e) {
-      print(e);
-      // await Navigator.push(context, MaterialPageRoute(builder: (context) {
-      //   return StoryPage(story: story,);
-      // }));
 
-    }
+    await Navigator.push(context, MaterialPageRoute(builder: (context) {
+      return StoryPage(story: story,);
+    }));
+
+    // try {
+    //   await canLaunch(story.link)
+    //       ? await launch(story.link)
+    //       : throw Exception(
+    //           'Could not launch about, try opening ${story.link}');
+    // } catch (e) {
+    //   print(e);
+    //   await Navigator.push(context, MaterialPageRoute(builder: (context) {
+    //     return StoryPage(story: story,);
+    //   }));
+    //
+    // }
   }
 }

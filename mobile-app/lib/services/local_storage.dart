@@ -591,6 +591,20 @@ class DBHelper {
     return favouritePlaces.contains(name);
   }
 
+  Future<bool> addFavouritePlaces(Site site) async {
+    var prefs = await SharedPreferences.getInstance();
+    var favouritePlaces =
+        prefs.getStringList(PrefConstant.favouritePlaces) ?? [];
+
+    var name = site.id.trim().toLowerCase();
+    if (!favouritePlaces.contains(name)) {
+      favouritePlaces.add(name);
+    }
+
+    await prefs.setStringList(PrefConstant.favouritePlaces, favouritePlaces);
+    return favouritePlaces.contains(name);
+  }
+
   Future<bool> updateSiteAlerts(
       Site site, PollutantLevel pollutantLevel) async {
     var prefs = await SharedPreferences.getInstance();

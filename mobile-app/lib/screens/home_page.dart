@@ -12,6 +12,7 @@ import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/share.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'dashboard_page.dart';
@@ -238,24 +239,28 @@ class _HomePageState extends State<HomePage> {
         // width: 60.0,
         child: FittedBox(
           child: FloatingActionButton(
-            mini: true,
-            backgroundColor: ColorConstants.appColor,
-            onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) {
-                return MapPage();
-              }));
-            },
-            child: Image.asset(
-              'assets/images/world-map.png',
-              // height: 10,
-              // width: 10,
-            ),
-            // child: const Icon(
-            //   Icons.public_sharp,
-            //   color: Colors.white,
-            // ),
-            // elevation: 5.0,
-          ),
+              mini: false,
+              backgroundColor: Colors.white,
+              onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) {
+                  return MapPage();
+                }));
+              },
+              child: FaIcon(
+                FontAwesomeIcons.map,
+                color: ColorConstants.appColor,
+              )
+              // child: Image.asset(
+              //   'assets/images/world-map.png',
+              //   // height: 10,
+              //   // width: 10,
+              // ),
+              // child: const Icon(
+              //   Icons.public_sharp,
+              //   color: Colors.white,
+              // ),
+              // elevation: 5.0,
+              ),
         ),
       ),
     );

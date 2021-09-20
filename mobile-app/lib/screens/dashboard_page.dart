@@ -140,6 +140,41 @@ class _DashboardPageState extends State<DashboardPage> {
 
   Future<void> getLocationHistoricalMeasurements(Site site) async {
     try {
+      await DBHelper().getHistoricalMeasurements(site.id).then((value) => {
+        if (value.isNotEmpty)
+          {
+            if (mounted)
+              {
+                setState(() {
+                  historicalData = value;
+                })
+              }
+          }
+      });
+    } catch (e) {
+      print('Historical data is currently not available.');
+    } finally {
+      try {
+        await AirqoApiClient(context)
+            .fetchSiteHistoricalMeasurementsById(site.id)
+            .then((value) => {
+          if (value.isNotEmpty)
+            {
+              if (mounted)
+                {
+                  setState(() {
+                    historicalData = value;
+                  }),
+                },
+              DBHelper().insertSiteHistoricalMeasurements(value, site.id)
+            }
+        });
+      } catch (e) {
+        print('Historical data is currently not available.');
+      }
+    }
+
+    try {
       await AirqoApiClient(context)
           .fetchSiteHistoricalMeasurementsById(site.id)
           .then((value) => {

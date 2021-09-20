@@ -2,6 +2,7 @@ import 'package:app/constants/app_constants.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/site.dart';
 import 'package:app/screens/place_details.dart';
+import 'package:app/screens/search_location_page.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/share.dart';
@@ -30,22 +31,39 @@ class _MyPlacesViewState extends State<MyPlacesView> {
                 builder: (context, snapshot) {
                   if (snapshot.hasData) {
                     results = snapshot.data as List<Measurement>;
-
                     if (results.isEmpty) {
                       return Center(
                         child: Container(
                           padding: const EdgeInsets.all(16.0),
-                          child: Text(
-                            'You haven\'t added any locations you'
-                            ' care about '
-                            'to MyPlaces yet, use the search icon at '
-                            'the top to add them to your list',
-                            softWrap: true,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: ColorConstants.appColor,
+                          child: OutlinedButton(
+                            onPressed: () async {
+                              await showSearch(
+                                  context: context,
+                                  delegate: LocationSearch(),
+                              ).then((_) {
+                              setState(() {});
+                              });
+                            },
+                            style: OutlinedButton.styleFrom(
+                              shape: const CircleBorder(),
+                              padding: const EdgeInsets.all(24),
                             ),
+                            child: Text('Add',
+                            style: TextStyle(
+                              color: ColorConstants.appColor
+                            ),),
                           ),
+                          // child: Text(
+                          //   'You haven\'t added any locations you'
+                          //   ' care about '
+                          //   'to MyPlaces yet, use the search icon at '
+                          //   'the top to add them to your list',
+                          //   softWrap: true,
+                          //   textAlign: TextAlign.center,
+                          //   style: TextStyle(
+                          //     color: ColorConstants.appColor,
+                          //   ),
+                          // ),
                         ),
                       );
                     }
@@ -56,9 +74,7 @@ class _MyPlacesViewState extends State<MyPlacesView> {
                       child: ListView.builder(
                         itemBuilder: (context, index) => GestureDetector(
                           onTap: () {
-                            if (results[index] != null) {
-                              viewDetails(results[index].site);
-                            }
+                            viewDetails(results[index].site);
                           },
                           child: Slidable(
                               actionPane: const SlidableDrawerActionPane(),

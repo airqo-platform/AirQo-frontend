@@ -116,7 +116,7 @@ class CurrentLocationCard extends StatelessWidget {
               shareMeasurement(measurementData);
             },
             child: Card(
-                elevation: 5,
+                elevation: 2,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(5),
                 ),
@@ -295,7 +295,7 @@ class CurrentLocationCard extends StatelessWidget {
             ),
             const Spacer(),
             Padding(
-              padding: EdgeInsets.fromLTRB(0.0, 0.0, 10.0, 0.0),
+              padding: const EdgeInsets.fromLTRB(0.0, 0.0, 10.0, 0.0),
               child: Column(
                 children: [
                   Text(
@@ -306,7 +306,7 @@ class CurrentLocationCard extends StatelessWidget {
                         fontWeight: FontWeight.bold),
                   ),
                   const Text(
-                    'AQI',
+                    'PM 2.5',
                     style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.bold,
