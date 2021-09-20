@@ -310,13 +310,15 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
       var prefs = await SharedPreferences.getInstance();
       var favourites = prefs.getStringList(PrefConstant.favouritePlaces) ?? [];
 
-      if(!favourites.contains(measurementData.site.id)){
+      if (!favourites.contains(measurementData.site.id)) {
         await DBHelper()
             .addFavouritePlaces(measurementData.site)
             .then((value) => {
-        showSnackBar(context, '${measurementData.site.getUserLocation()}'
-            ' has been added to your places')
-        });
+                  showSnackBar(
+                      context,
+                      '${measurementData.site.getUserLocation()}'
+                      ' has been added to your places')
+                });
       }
 
       if (mounted) {

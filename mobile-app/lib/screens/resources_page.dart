@@ -44,8 +44,10 @@ class _ResourcesPageState extends State<ResourcesPage> {
                   placeholder: (context, url) => const SizedBox(
                     height: 20.0,
                     width: 20.0,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
+                    child: Center(
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                      ),
                     ),
                   ),
                   imageUrl: stories[index].thumbnail,
@@ -55,7 +57,6 @@ class _ResourcesPageState extends State<ResourcesPage> {
                   ),
                 ),
               ),
-
 
               title: Text('${stories[index].title}',
                   overflow: TextOverflow.ellipsis,
@@ -110,22 +111,10 @@ class _ResourcesPageState extends State<ResourcesPage> {
   }
 
   Future<void> viewStory(Story story) async {
-
     await Navigator.push(context, MaterialPageRoute(builder: (context) {
-      return StoryPage(story: story,);
+      return StoryPage(
+        story: story,
+      );
     }));
-
-    // try {
-    //   await canLaunch(story.link)
-    //       ? await launch(story.link)
-    //       : throw Exception(
-    //           'Could not launch about, try opening ${story.link}');
-    // } catch (e) {
-    //   print(e);
-    //   await Navigator.push(context, MaterialPageRoute(builder: (context) {
-    //     return StoryPage(story: story,);
-    //   }));
-    //
-    // }
   }
 }

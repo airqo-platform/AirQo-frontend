@@ -22,11 +22,14 @@ class Story {
   @JsonKey(required: true)
   final String thumbnail;
 
-  // @JsonKey(required: true)
-  // final String  content;
+  @JsonKey(required: true)
+  final String content;
+
+  @JsonKey(required: true)
+  final String description;
 
   Story(this.link, this.pubDate, this.title, this.author, this.guid,
-      this.thumbnail);
+      this.thumbnail, this.content, this.description);
 
   factory Story.fromJson(Map<String, dynamic> json) => _$StoryFromJson(json);
 
@@ -38,12 +41,16 @@ class Story {
       '${dbTitle()} TEXT, '
       '${dbAuthor()} TEXT, '
       '${dbThumbnail()} TEXT, '
+      '${dbDescription()} TEXT, '
+      '${dbContent()} TEXT, '
       '${dbLink()} TEXT, '
       '${dbPubDate()} TEXT )';
 
   static String dbAuthor() => 'author';
 
   static String dbContent() => 'content';
+
+  static String dbDescription() => 'description';
 
   static String dbGuid() => 'guid';
 

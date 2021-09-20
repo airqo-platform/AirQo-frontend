@@ -38,20 +38,20 @@ class _MyPlacesViewState extends State<MyPlacesView> {
                           child: OutlinedButton(
                             onPressed: () async {
                               await showSearch(
-                                  context: context,
-                                  delegate: LocationSearch(),
+                                context: context,
+                                delegate: LocationSearch(),
                               ).then((_) {
-                              setState(() {});
+                                setState(() {});
                               });
                             },
                             style: OutlinedButton.styleFrom(
                               shape: const CircleBorder(),
                               padding: const EdgeInsets.all(24),
                             ),
-                            child: Text('Add',
-                            style: TextStyle(
-                              color: ColorConstants.appColor
-                            ),),
+                            child: Text(
+                              'Add',
+                              style: TextStyle(color: ColorConstants.appColor),
+                            ),
                           ),
                           // child: Text(
                           //   'You haven\'t added any locations you'
