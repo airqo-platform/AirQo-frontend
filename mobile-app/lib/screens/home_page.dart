@@ -267,8 +267,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> initialize() async {
-    await _getLatestMeasurements();
-    await _getSites();
+    _getLatestMeasurements();
+    _getSites();
   }
 
   @override
@@ -394,13 +394,13 @@ class _HomePageState extends State<HomePage> {
             });
   }
 
-  Future<void> _getLatestMeasurements() async {
+  void _getLatestMeasurements() async {
     await AirqoApiClient(context).fetchLatestMeasurements().then((value) => {
           if (value.isNotEmpty) {DBHelper().insertLatestMeasurements(value)}
         });
   }
 
-  Future<void> _getSites() async {
+  void _getSites() async {
     await AirqoApiClient(context).fetchSites().then((value) => {
           if (value.isNotEmpty) {DBHelper().insertSites(value)}
         });

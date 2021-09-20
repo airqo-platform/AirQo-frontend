@@ -295,7 +295,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
             )));
   }
 
-  Future<void> checkDashboardView() async {
+  void checkDashboardView() async {
     var prefs = await SharedPreferences.getInstance();
     var dashboardSite = prefs.getString(PrefConstant.dashboardSite) ?? '';
     if (dashboardSite == widget.site.id) {
@@ -331,9 +331,9 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
 
   Future<void> dbFetch() async {
     try {
-      await localFetch();
-      await localFetchHistoricalData();
-      await localFetchForecastData();
+      localFetch();
+      localFetchHistoricalData();
+      localFetchForecastData();
     } on Error catch (e) {
       print('Getting data locally: $e');
     }
@@ -389,7 +389,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
     return MeasurementsBarChart(forecastData, 'Forecast');
   }
 
-  Future<void> getForecastMeasurements() async {
+  void getForecastMeasurements() async {
     try {
       await AirqoApiClient(context).fetchForecast(site).then((value) => {
             if (value.isNotEmpty)
@@ -422,7 +422,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
     }
   }
 
-  Future<void> getHistoricalMeasurements() async {
+  void getHistoricalMeasurements() async {
     try {
       await AirqoApiClient(context)
           .fetchSiteHistoricalMeasurements(site)
@@ -458,7 +458,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
     }
   }
 
-  Future<void> getMeasurements() async {
+  void getMeasurements() async {
     try {
       await AirqoApiClient(context)
           .fetchSiteMeasurements(site)
@@ -538,15 +538,15 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
   }
 
   Future<void> initialize() async {
-    await checkDashboardView();
-    await initializeNotifications();
+    checkDashboardView();
+    initializeNotifications();
     await dbFetch();
-    await getMeasurements();
-    await getHistoricalMeasurements();
-    await getForecastMeasurements();
+    getMeasurements();
+    getHistoricalMeasurements();
+    getForecastMeasurements();
   }
 
-  Future<void> initializeNotifications() async {
+  void initializeNotifications() async {
     await SharedPreferences.getInstance().then((value) => {
           if (mounted)
             {
@@ -579,7 +579,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
     return false;
   }
 
-  Future<void> localFetch() async {
+  void localFetch() async {
     try {
       await dbHelper.getMeasurement(site.id).then((value) => {
             if (value != null)
@@ -598,7 +598,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
     }
   }
 
-  Future<void> localFetchForecastData() async {
+  void localFetchForecastData() async {
     try {
       await dbHelper.getForecastMeasurements(site.id).then((value) => {
             if (value.isNotEmpty)
@@ -616,7 +616,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
     }
   }
 
-  Future<void> localFetchHistoricalData() async {
+  void localFetchHistoricalData() async {
     try {
       await dbHelper.getHistoricalMeasurements(site.id).then((measurements) => {
             if (measurements.isNotEmpty)
@@ -850,7 +850,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                         },
                       ),
                       title: Text(
-                        'Set as home page default',
+                        'Set as dashboard default',
                         style: TextStyle(
                             color: ColorConstants.appColor,
                             fontWeight: FontWeight.w600),

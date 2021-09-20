@@ -79,31 +79,7 @@ class _DashboardPageState extends State<DashboardPage> {
     }
   }
 
-  Future<void> getDashBoardSiteMeasurements(String siteId) async {
-    try {
-      await DBHelper().getSite(siteId).then((site) => {
-            if (site != null && mounted)
-              {
-                DBHelper().getMeasurement(siteId).then((measurement) => {
-                      if (measurement != null)
-                        {
-                          setState(() {
-                            measurementData = measurement;
-                          }),
-                          getLocationHistoricalMeasurements(measurement.site),
-                          getLocationForecastMeasurements(measurement.site)
-                        }
-                      else
-                        {getLocationMeasurements()}
-                    }),
-              }
-          });
-    } catch (e) {
-      print('error getting data');
-    }
-  }
-
-  Future<void> getLocationForecastMeasurements(Site site) async {
+  void getLocationForecastMeasurements(Site site) async {
     try {
       await DBHelper().getForecastMeasurements(site.id).then((value) => {
             if (value.isNotEmpty)
@@ -138,7 +114,7 @@ class _DashboardPageState extends State<DashboardPage> {
     }
   }
 
-  Future<void> getLocationHistoricalMeasurements(Site site) async {
+  void getLocationHistoricalMeasurements(Site site) async {
     try {
       await DBHelper().getHistoricalMeasurements(site.id).then((value) => {
             if (value.isNotEmpty)
@@ -227,7 +203,7 @@ class _DashboardPageState extends State<DashboardPage> {
     super.initState();
   }
 
-  Future<void> updateCurrentLocation() async {
+  void updateCurrentLocation() async {
     try {
       var prefs = await SharedPreferences.getInstance();
       var dashboardSite = prefs.getString(PrefConstant.dashboardSite) ?? '';

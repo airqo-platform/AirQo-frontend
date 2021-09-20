@@ -4,6 +4,8 @@ import 'package:app/constants/app_constants.dart';
 import 'package:app/models/historicalMeasurement.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/predict.dart';
+import 'package:app/models/site.dart';
+import 'package:app/screens/place_details.dart';
 import 'package:app/utils/data_formatter.dart';
 import 'package:app/utils/date.dart';
 import 'package:app/utils/pm.dart';
@@ -42,7 +44,7 @@ class CurrentLocationCard extends StatelessWidget {
             elevation: 10,
             child: Padding(
               padding: const EdgeInsets.all(5.0),
-              child: titleSection(),
+              child: titleSection(context),
             ),
           ),
           HealthRecommendationSection(
@@ -198,7 +200,7 @@ class CurrentLocationCard extends StatelessWidget {
     return DashboardBarChart(formattedData, 'History');
   }
 
-  Widget titleSection() {
+  Widget titleSection(context) {
     return Column(
       children: [
         // Card(
@@ -234,92 +236,104 @@ class CurrentLocationCard extends StatelessWidget {
         //         ],
         //       ),
         //     )),
-        Row(
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(5, 0.0, 0.0, 0.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Card(
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      color: pmToColor(measurementData.getPm2_5Value()),
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
-                        child: Row(
-                          children: [
-                            // Icon(
-                            //   Icons.location_on,
-                            //   color:
-                            //       pmTextColor(measurementData.getPm2_5Value()),
-                            // ),
-                            Container(
-                                constraints:
-                                    const BoxConstraints(maxWidth: 200),
-                                child: Text(
-                                    '${measurementData.site.getUserLocation()}',
-                                    softWrap: true,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                        color: pmTextColor(
-                                            measurementData.getPm2_5Value()),
-                                        fontWeight: FontWeight.bold))),
-                          ],
+        GestureDetector(
+          onTap: () {
+            viewDetails(context, measurementData.site);
+          },
+          child: Row(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(5, 0.0, 0.0, 0.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Card(
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
                         ),
-                      )),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(5, 0.0, 0.0, 0.0),
-                    child: Text(pmToString(measurementData.getPm2_5Value()),
-                        style: TextStyle(
-                            fontSize: 20,
-                            color: ColorConstants.appColor,
-                            fontWeight: FontWeight.bold)),
-                  ),
-                  // Padding(
-                  //   padding: const EdgeInsets.fromLTRB(5, 0.0, 0.0, 0.0),
-                  //   child: Text(
-                  //       '${dateToString(
-                  //       measurementData.time, true)}, Local Time',
-                  //       style: TextStyle(
-                  //         color: ColorConstants.appColor,
-                  //         fontSize: 12,
-                  //       )),
-                  // )
-                ],
+                        color: pmToColor(measurementData.getPm2_5Value()),
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
+                          child: Row(
+                            children: [
+                              // Icon(
+                              //   Icons.location_on,
+                              //   color:
+                              //       pmTextColor(measurementData.getPm2_5Value()),
+                              // ),
+                              Container(
+                                  constraints:
+                                      const BoxConstraints(maxWidth: 200),
+                                  child: Text(
+                                      '${measurementData.site.getUserLocation()}',
+                                      softWrap: true,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                          color: pmTextColor(
+                                              measurementData.getPm2_5Value()),
+                                          fontWeight: FontWeight.bold))),
+                            ],
+                          ),
+                        )),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(5, 0.0, 0.0, 0.0),
+                      child: Text(pmToString(measurementData.getPm2_5Value()),
+                          style: TextStyle(
+                              fontSize: 20,
+                              color: ColorConstants.appColor,
+                              fontWeight: FontWeight.bold)),
+                    ),
+                    // Padding(
+                    //   padding: const EdgeInsets.fromLTRB(5, 0.0, 0.0, 0.0),
+                    //   child: Text(
+                    //       '${dateToString(
+                    //       measurementData.time, true)}, Local Time',
+                    //       style: TextStyle(
+                    //         color: ColorConstants.appColor,
+                    //         fontSize: 12,
+                    //       )),
+                    // )
+                  ],
+                ),
               ),
-            ),
-            const Spacer(),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(0.0, 0.0, 10.0, 0.0),
-              child: Column(
-                children: [
-                  Text(
-                    '${measurementData.getPm2_5Value()}',
-                    style: TextStyle(
-                        color: ColorConstants.appColor,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold),
-                  ),
-                  const Text(
-                    'PM 2.5',
-                    style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey),
-                  ),
-                ],
-              ),
-            )
-          ],
+              const Spacer(),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(0.0, 0.0, 10.0, 0.0),
+                child: Column(
+                  children: [
+                    Text(
+                      '${measurementData.getPm2_5Value()}',
+                      style: TextStyle(
+                          color: ColorConstants.appColor,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold),
+                    ),
+                    const Text(
+                      'PM 2.5',
+                      style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey),
+                    ),
+                  ],
+                ),
+              )
+            ],
+          ),
         ),
+
         footerSection()
       ],
     );
+  }
+
+  Future<void> viewDetails(context, Site site) async {
+    await Navigator.push(context, MaterialPageRoute(builder: (context) {
+      return PlaceDetailsPage(site: site);
+    }));
   }
 
   static List<charts.Series<GaugeSegment, String>> _createSampleData() {

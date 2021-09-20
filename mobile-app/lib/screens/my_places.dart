@@ -164,17 +164,36 @@ class _MyPlacesState extends State<MyPlaces> {
                             return Center(
                               child: Container(
                                 padding: const EdgeInsets.all(16.0),
-                                child: Text(
-                                  'You haven\'t added any locations you'
-                                  ' care about '
-                                  'to MyPlaces yet, use the add icon at '
-                                  'the top to add them to your list',
-                                  softWrap: true,
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    color: ColorConstants.appColor,
+                                child: OutlinedButton(
+                                  onPressed: () async {
+                                    await showSearch(
+                                      context: context,
+                                      delegate: LocationSearch(),
+                                    ).then((_) {
+                                      setState(() {});
+                                    });
+                                  },
+                                  style: OutlinedButton.styleFrom(
+                                    shape: const CircleBorder(),
+                                    padding: const EdgeInsets.all(24),
+                                  ),
+                                  child: Text(
+                                    'Add',
+                                    style: TextStyle(
+                                        color: ColorConstants.appColor),
                                   ),
                                 ),
+                                // child: Text(
+                                //   'You haven\'t added any locations you'
+                                //   ' care about '
+                                //   'to MyPlaces yet, use the add icon at '
+                                //   'the top to add them to your list',
+                                //   softWrap: true,
+                                //   textAlign: TextAlign.center,
+                                //   style: TextStyle(
+                                //     color: ColorConstants.appColor,
+                                //   ),
+                                // ),
                               ),
                             );
                           }
@@ -259,30 +278,30 @@ class _MyPlacesState extends State<MyPlaces> {
                           );
                         }
                       }))),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-      floatingActionButton: FloatingActionButton(
-        // isExtended: true,
-        backgroundColor: ColorConstants.appColor,
-        onPressed: () {
-          setState(() {
-            if (isSearching) {
-              setState(() {
-                isSearching = false;
-                searchController.clear();
-                searchResults.clear();
-              });
-            } else {
-              setState(() {
-                isSearching = true;
-                searchController.clear();
-                searchResults.clear();
-              });
-            }
-          });
-        },
-        // isExtended: true,
-        child: const Icon(Icons.search_outlined),
-      ),
+      // floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      // floatingActionButton: FloatingActionButton(
+      //   // isExtended: true,
+      //   backgroundColor: ColorConstants.appColor,
+      //   onPressed: () {
+      //     setState(() {
+      //       if (isSearching) {
+      //         setState(() {
+      //           isSearching = false;
+      //           searchController.clear();
+      //           searchResults.clear();
+      //         });
+      //       } else {
+      //         setState(() {
+      //           isSearching = true;
+      //           searchController.clear();
+      //           searchResults.clear();
+      //         });
+      //       }
+      //     });
+      //   },
+      //   // isExtended: true,
+      //   child: const Icon(Icons.search_outlined),
+      // ),
     );
   }
 

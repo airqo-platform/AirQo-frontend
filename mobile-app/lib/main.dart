@@ -201,12 +201,12 @@ class SplashScreenState extends State<SplashScreen> {
                 height: 150,
                 width: 150,
               ),
-              Center(
-                child: CircularProgressIndicator(
-                  valueColor:
-                      AlwaysStoppedAnimation<Color>(ColorConstants.appColor),
-                ),
-              )
+              // Center(
+              //   child: CircularProgressIndicator(
+              //     valueColor:
+              //         AlwaysStoppedAnimation<Color>(ColorConstants.appColor),
+              //   ),
+              // )
             ],
           ),
         ),
@@ -242,9 +242,9 @@ class SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> initialize() async {
-    await _getLatestMeasurements();
-    await _getSites();
-    await _checkFirstUse();
+    _getLatestMeasurements();
+    _getSites();
+    Future.delayed(const Duration(seconds: 4), _checkFirstUse);
   }
 
   @override
@@ -283,9 +283,7 @@ class SplashScreenState extends State<SplashScreen> {
     }
   }
 
-  Future _checkFirstUse() async {
-    await _checkDB();
-
+  Future _initializeApp() async {
     if (!measurementsReady || !sitesReady) {
       await _checkDB();
       sleep(const Duration(seconds: 5));
@@ -297,7 +295,9 @@ class SplashScreenState extends State<SplashScreen> {
         return;
       }
     }
+  }
 
+  Future _checkFirstUse() async {
     var prefs = await SharedPreferences.getInstance();
     var isFirstUse = prefs.getBool(PrefConstant.firstUse) ?? true;
 
@@ -314,7 +314,19 @@ class SplashScreenState extends State<SplashScreen> {
     }
   }
 
-  Future _getLatestMeasurements() async {
+  Route _createRoute() {
+    return PageRouteBuilder(
+      pageBuilder: (context, animation, secondaryAnimation) => HomePage(),
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        return FadeTransition(
+          opacity: animation,
+          child: child,
+        );
+      },
+    );
+  }
+
+  void _getLatestMeasurements() async {
     await AirqoApiClient(context).fetchLatestMeasurements().then((value) => {
           if (value.isNotEmpty)
             {
@@ -330,7 +342,7 @@ class SplashScreenState extends State<SplashScreen> {
         });
   }
 
-  Future _getSites() async {
+  void _getSites() async {
     await AirqoApiClient(context).fetchSites().then((value) => {
           if (value.isNotEmpty)
             {
