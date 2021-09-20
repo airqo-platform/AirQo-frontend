@@ -1006,10 +1006,10 @@ class Apis extends CI_Controller
         //$response = $json->{'measurements'}->{0};
         foreach($json as $key => $value){
             foreach($value as $vk => $vitem){
-                $device_number = $vitem->{'deviceDetails'}->{'device_number'};
+                $device_number = $vitem->{'device_number'};
                 $date = $vitem->{'time'};
-                $pm2_5 = $vitem->{'pm2_5'}->{'value'};
-                //$response[$vk] = array($device_number, $pm2_5, $date);
+                $pm2_5 = $vitem->{'average_pm2_5'}->{'calibratedValue'};
+                $response[$vk] = array($device_number, $pm2_5, $date);
 
                 if(!is_null($pm2_5) or !is_nan($pm2_5) or !empty($pm2_5)){
             
