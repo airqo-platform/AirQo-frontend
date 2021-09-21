@@ -1,15 +1,4 @@
 <style>
-/* .grid-post[data-v-5e6923b3] {
-    position: relative;
-	border-radius: var(--card-curve);
-	transition: 0.3s ease-in;
-	border: 1px solid #eee;
-	padding: 2rem;
-	box-shadow: var(--card-box-shadow);
-	display: block;
-	height: 100%;
-	margin-right: 1.5em;
-} */
 #rtb .col-sm-4 {
 	position: relative;
 	border-radius: var(--card-curve);
@@ -50,31 +39,6 @@
 				data-readmore="Read more" 
 				data-buttonclass="btn btn-primary" 
 				>&#160;</div>
-			</div>
-			<!-- End of know your air header -->
-			<div class="col-md-4 col-lg-4 col-sm-4 col-xs-12">
-				<!-- App screenshots -->
-				<!-- <div class="image-section">
-					<div class="buzen-card-section">
-						<img src="<?php echo base_url(); ?>assets/images/app_shots.png" width="100%">
-					</div>
-				</div> -->
-				<!-- End of app screenshots -->
-				<!-- Download buttons -->
-				<!-- <div class="appstore">
-					<div class="col-md-6 col-lg-6 col-sm-6 col-xs-6">
-						<a href=<?= APPLE_APP_LINK; ?> target="_blank">
-							<img class="left" src="<?= base_url(); ?>assets/images/appstore.png">
-						</a>
-					</div>
-					<div class="col-md-6 col-lg-6 col-sm-6 col-xs-6">
-						<a href=<?= ANDROID_APP_LINK; ?> target="_blank">
-							<img class="right" src="<?= base_url(); ?>assets/images/playstore.png">
-						</a>
-					</div>
-				</div> -->
-				<!-- End of download buttons -->
-
 			</div>
 
 		</div>

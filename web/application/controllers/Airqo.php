@@ -57,30 +57,6 @@ class Airqo extends CI_Controller
 		$this->load->view('lib/footer',$data);
 	}
 
-	// public function blog($category = null)
-	// {
-	// 	if($category == null) {
-	// 		$data['title'] = 'Blog';
-	// 		$this->logVisitedPage($data['title']);
-	// 		$data['posts'] = $this->AirqoModel->get_post();
-	// 		$data['suggestions'] = $this->AirqoModel->get_home_random();
-	// 		$data['categories'] = $this->AirqoModel->get_categories();
-
-	// 		$this->load->view('lib/header',$data);
-	// 		$this->load->view('airqo-blog-new',$data);
-	// 		$this->load->view('lib/footer',$data);
-	// 	} else{
-	// 		$data['title'] = 'Blog';
-	// 		$this->logVisitedPage($data['title']);
-	// 		$data['posts'] = $this->AirqoModel->get_post_categories($category);
-	// 		$data['suggestions'] = $this->AirqoModel->get_home_random();
-	// 		$data['categories'] = $this->AirqoModel->get_categories();
-
-	// 		$this->load->view('lib/header',$data);
-	// 		$this->load->view('airqo-blog-new',$data);
-	// 		$this->load->view('lib/footer',$data);
-	// 	}
-	// }
 	// medium blog
 	public function blog()
 	{
