@@ -17,6 +17,7 @@ import 'constants/app_constants.dart';
 import 'languages/CustomLocalizations.dart';
 import 'languages/lg_intl.dart';
 import 'on_boarding/onBoarding_page.dart';
+import 'on_boarding/spash_screen.dart';
 import 'providers/ThemeProvider.dart';
 import 'themes/dark_theme.dart';
 import 'themes/light_theme.dart';
@@ -131,7 +132,7 @@ class AirQoApp extends StatelessWidget {
                 locale: provider.locale,
                 title: '${AppConfig.name}',
                 theme: _buildCurrentTheme(),
-                home: SplashScreen(),
+                home: LogoScreen(),
               );
             },
           ),
@@ -301,7 +302,7 @@ class SplashScreenState extends State<SplashScreen> {
     var prefs = await SharedPreferences.getInstance();
     var isFirstUse = prefs.getBool(PrefConstant.firstUse) ?? true;
 
-    if (isFirstUse) {
+    if (true) {
       await Navigator.pushReplacement(context,
           MaterialPageRoute(builder: (context) {
         return OnBoardingPage();

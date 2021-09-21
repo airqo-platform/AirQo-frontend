@@ -97,6 +97,7 @@ flutter:
     - assets/images/jogging.png
     - assets/images/old.png
     - assets/images/pregnant-woman.png
+    - assets/images/splash-image.png
 
    # icons
     - assets/icon/airqo_logo.png
