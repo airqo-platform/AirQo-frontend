@@ -16,10 +16,12 @@ import PropTypes from "prop-types";
 import clsx from "clsx";
 import TextField from "@material-ui/core/TextField";
 import { isEmpty } from "underscore";
+import moment from "moment";
 import { useDashboardSitesData } from "redux/Dashboard/selectors";
 import { loadSites } from "redux/Dashboard/operations";
 import { downloadDataApi } from "views/apis/analytics";
 import { roundToStartOfDay, roundToEndOfDay } from "utils/dateTime";
+import { updateMainAlert } from "redux/MainAlert/operations";
 
 const { Parser } = require("json2csv");
 
@@ -49,6 +51,8 @@ const getValues = (options) => {
 const Download = (props) => {
   const { className, staticContext, ...rest } = props;
   const classes = useStyles();
+
+  const MAX_ALLOWED_DATE_DIFF_IN_DAYS = 93;
 
   const dispatch = useDispatch();
   const sites = useDashboardSitesData();
@@ -115,6 +119,20 @@ const Download = (props) => {
       pollutants: getValues(pollutants),
       fileType: fileType.value,
     };
+
+    const dateDiff = moment(data.endDate).diff(moment(data.startDate), "days");
+
+    if (dateDiff > MAX_ALLOWED_DATE_DIFF_IN_DAYS) {
+      setLoading(false);
+      dispatch(
+        updateMainAlert({
+          show: "true",
+          message: "The download of data of more than 3 months is prohibited",
+          severity: "error",
+        })
+      );
+      return;
+    }
 
     await downloadDataApi("json", data)
       .then((response) => response.data)
