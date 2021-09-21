@@ -9,6 +9,7 @@ import {
   CardHeader,
   CardActions,
   Divider,
+  CircularProgress,
 } from "@material-ui/core";
 import Select from "react-select";
 import PropTypes from "prop-types";
@@ -52,6 +53,7 @@ const Download = (props) => {
   const dispatch = useDispatch();
   const sites = useDashboardSitesData();
   const [siteOptions, setSiteOptions] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
@@ -86,20 +88,24 @@ const Download = (props) => {
   }, [sites]);
 
   const disableDownloadBtn = () => {
-    return !(
-      startDate &&
-      endDate &&
-      !isEmpty(selectedSites) &&
-      !isEmpty(pollutants) &&
-      fileType &&
-      fileType.value &&
-      frequency &&
-      frequency.value
+    return (
+      !(
+        startDate &&
+        endDate &&
+        !isEmpty(selectedSites) &&
+        !isEmpty(pollutants) &&
+        fileType &&
+        fileType.value &&
+        frequency &&
+        frequency.value
+      ) || loading
     );
   };
 
-  let handleSubmit = (e) => {
+  let handleSubmit = async (e) => {
     e.preventDefault();
+
+    setLoading(true);
 
     let data = {
       sites: getValues(selectedSites),
@@ -110,7 +116,7 @@ const Download = (props) => {
       fileType: fileType.value,
     };
 
-    downloadDataApi("json", data)
+    await downloadDataApi("json", data)
       .then((response) => response.data)
       .then((resData) => {
         if (fileType.value === "json") {
@@ -153,6 +159,7 @@ const Download = (props) => {
         }
       })
       .catch((err) => console.log(err && err.response && err.response.data));
+    setLoading(false);
   };
   return (
     <div className={classes.root}>
@@ -264,15 +271,29 @@ const Download = (props) => {
 
               <Divider />
               <CardActions>
-                <Button
-                  color="primary"
-                  variant="outlined"
-                  type="submit"
-                  disabled={disableDownloadBtn()}
-                >
-                  {" "}
-                  Download Data
-                </Button>
+                <span style={{ position: "relative" }}>
+                  <Button
+                    color="primary"
+                    variant="outlined"
+                    type="submit"
+                    disabled={disableDownloadBtn()}
+                  >
+                    {" "}
+                    Download Data
+                  </Button>
+                  {loading && (
+                    <CircularProgress
+                      size={24}
+                      style={{
+                        position: "absolute",
+                        top: "50%",
+                        left: "50%",
+                        marginTop: "-12px",
+                        marginLeft: "-12px",
+                      }}
+                    />
+                  )}
+                </span>
               </CardActions>
             </form>
           </Card>
