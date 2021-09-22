@@ -40,141 +40,46 @@ class _HomePageV2State extends State<HomePageV2> {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
-        // title: Text(title,
-        //     style: const TextStyle(
-        //       color: Colors.white,
-        //       fontWeight: FontWeight.bold,
-        //     )),
-        // backgroundColor: ColorConstants.appBarBgColor,
+        titleSpacing: 16,
+        backgroundColor: ColorConstants.appBarBgColor,
         elevation: 0,
-        title: Text(
-          title,
-          style: TextStyle(
-            color: ColorConstants.appBarTitleColor,
-            fontWeight: FontWeight.bold,
-          ),
+        title: Image.asset(
+          'assets/icon/airqo_logo.png',
+          height: 58,
+          width: 58,
         ),
         actions: [
-          IconButton(
-            icon: Icon(
-              Icons.search,
-              color: ColorConstants.appBarTitleColor,
+          Padding(padding: EdgeInsets.fromLTRB(0, 0, 16, 0),
+            child: AspectRatio(
+                aspectRatio: 1.0,
+                child: Container(
+                  padding: EdgeInsets.all(2.0),
+                  decoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.rectangle,
+                      borderRadius: BorderRadius.all(Radius.circular(10.0))
+                  ),
+                  child: IconButton(
+                    iconSize: 30,
+                    icon: Icon(
+                      Icons.search,
+                      color: ColorConstants.appBarTitleColor,
+                    ),
+                    onPressed: () async {
+                      await showSearch(
+                        context: context,
+                        delegate: LocationSearch(),
+                      ).then((_) {
+                        setState(() {});
+                      });
+                    },
+                  ),
+                )
             ),
-            onPressed: () async {
-              await showSearch(
-                context: context,
-                delegate: LocationSearch(),
-              ).then((_) {
-                setState(() {});
-              });
-            },
           ),
-          PopupMenuButton<dynamic>(
-            icon: Icon(
-              Icons.menu,
-              color: ColorConstants.appBarTitleColor,
-            ),
-            onSelected: (value) => {navigateToMenuItem(value)},
-            itemBuilder: (context) => <PopupMenuEntry<String>>[
-              // PopupMenuItem<String>(
-              //   value: 'MyPlaces',
-              //   child: ListTile(
-              //     leading: Icon(
-              //       Icons.favorite_outlined,
-              //       color: ColorConstants.appColor,
-              //     ),
-              //     title: Text('MyPlaces',
-              //         style: TextStyle(
-              //           color: ColorConstants.appColor,
-              //         )),
-              //   ),
-              // ),
-              PopupMenuItem<String>(
-                textStyle: TextStyle(
-                  color: ColorConstants.appColor,
-                ),
-                value: 'AQI Index',
-                child: ListTile(
-                  leading: Icon(
-                    Icons.info_outline_rounded,
-                    color: ColorConstants.appColor,
-                  ),
-                  title: Text('Guides',
-                      style: TextStyle(
-                        color: ColorConstants.appColor,
-                      )),
-                ),
-              ),
-              // PopupMenuItem<String>(
-              //   value: 'Faqs',
-              //   child: ListTile(
-              //     leading: Icon(
-              //       Icons.help_outline_outlined,
-              //       color: ColorConstants.appColor,
-              //     ),
-              //     title: Text('Faqs',
-              //         style: TextStyle(
-              //           color: ColorConstants.appColor,
-              //         )),
-              //   ),
-              // ),
-              // PopupMenuItem<String>(
-              //   value: 'Feedback',
-              //   child: ListTile(
-              //     leading: Icon(
-              //       Icons.feedback_outlined,
-              //       color: ColorConstants.appColor,
-              //     ),
-              //     title: Text('Feedback',
-              //         style: TextStyle(
-              //           color: ColorConstants.appColor,
-              //         )),
-              //   ),
-              // ),
-              PopupMenuItem<String>(
-                value: 'camera',
-                child: ListTile(
-                  leading: Icon(
-                    Icons.camera_alt_outlined,
-                    color: ColorConstants.appColor,
-                  ),
-                  title: Text('AQI Camera',
-                      style: TextStyle(
-                        color: ColorConstants.appColor,
-                      )),
-                ),
-              ),
-              // PopupMenuItem<String>(
-              //   value: 'Settings',
-              //   child: ListTile(
-              //     leading: Icon(
-              //
-              //       Icons.settings,
-              //       color: ColorConstants.appColor,
-              //     ),
-              //     title: const Text(
-              //       'Settings',
-              //     ),
-              //   ),
-              // ),
-              const PopupMenuDivider(),
-              PopupMenuItem<String>(
-                value: 'Share',
-                child: ListTile(
-                  leading: Icon(
-                    Icons.share_outlined,
-                    color: ColorConstants.appColor,
-                  ),
-                  title: Text('Share',
-                      style: TextStyle(
-                        color: ColorConstants.appColor,
-                      )
-                      // style: Theme.of(context).textTheme.headline1,
-                      ),
-                ),
-              ),
-            ],
-          )
+
+
+
         ],
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,

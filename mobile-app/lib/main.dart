@@ -23,14 +23,14 @@ import 'themes/dark_theme.dart';
 import 'themes/light_theme.dart';
 
 Future<void> main() async {
-  SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-    systemNavigationBarColor: ColorConstants.appColor,
-    statusBarColor: Colors.white,
-    statusBarBrightness: Brightness.dark,
-    statusBarIconBrightness: Brightness.dark,
-    systemNavigationBarDividerColor: ColorConstants.appColor,
-    // systemNavigationBarIconBrightness: Brightness.dark,
-  ));
+  // SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+  //   systemNavigationBarColor: ColorConstants.appBodyColor,
+  //   statusBarColor: ColorConstants.appBodyColor,
+  //   statusBarBrightness: Brightness.dark,
+  //   statusBarIconBrightness: Brightness.dark,
+  //   systemNavigationBarDividerColor: ColorConstants.appBodyColor,
+  //   // systemNavigationBarIconBrightness: Brightness.dark,
+  // ));
 
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -132,7 +132,7 @@ class AirQoApp extends StatelessWidget {
                 locale: provider.locale,
                 title: '${AppConfig.name}',
                 theme: _buildCurrentTheme(),
-                home: LogoScreen(),
+                home: SplashScreen(),
               );
             },
           ),
@@ -302,7 +302,7 @@ class SplashScreenState extends State<SplashScreen> {
     var prefs = await SharedPreferences.getInstance();
     var isFirstUse = prefs.getBool(PrefConstant.firstUse) ?? true;
 
-    if (true) {
+    if (false) {
       await Navigator.pushReplacement(context,
           MaterialPageRoute(builder: (context) {
         return OnBoardingPage();
