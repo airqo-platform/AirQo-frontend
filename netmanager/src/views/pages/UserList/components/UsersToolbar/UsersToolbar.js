@@ -310,19 +310,6 @@ const UsersToolbar = (props) => {
                   fullWidth
                 />
 
-                {/*<TextField*/}
-                {/*  margin="dense"*/}
-                {/*  id="userName"*/}
-                {/*  name="userName"*/}
-                {/*  label="user name"*/}
-                {/*  type="text"*/}
-                {/*  helperText={errors.userName}*/}
-                {/*  error={!!errors.userName}*/}
-                {/*  onChange={onChange}*/}
-                {/*  value={form.userName}*/}
-                {/*  variant="outlined"*/}
-                {/*  fullWidth*/}
-                {/*/>*/}
                 <TextField
                   id="privilege"
                   select
