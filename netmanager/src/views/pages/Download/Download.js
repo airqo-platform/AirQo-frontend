@@ -22,6 +22,7 @@ import { loadSites } from "redux/Dashboard/operations";
 import { downloadDataApi } from "views/apis/analytics";
 import { roundToStartOfDay, roundToEndOfDay } from "utils/dateTime";
 import { updateMainAlert } from "redux/MainAlert/operations";
+import { useInitScrollTop } from "utils/customHooks";
 
 const { Parser } = require("json2csv");
 
@@ -49,6 +50,7 @@ const getValues = (options) => {
 };
 
 const Download = (props) => {
+  useInitScrollTop();
   const { className, staticContext, ...rest } = props;
   const classes = useStyles();
 

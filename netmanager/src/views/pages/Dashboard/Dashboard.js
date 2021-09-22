@@ -35,6 +35,7 @@ import { useEventsMapData } from "redux/MapData/selectors";
 import { PM_25_CATEGORY } from "utils/categories";
 import { isEmpty, unzip, zip } from "underscore";
 import { roundToStartOfDay, roundToEndOfDay } from "utils/dateTime";
+import { useInitScrollTop } from "utils/customHooks";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -58,6 +59,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const Dashboard = (props) => {
+  useInitScrollTop();
   const classes = useStyles();
   const {
     className,
