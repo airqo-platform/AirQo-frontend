@@ -17,7 +17,6 @@ import {
 } from "@material-ui/core";
 import { MoreHoriz } from "@material-ui/icons";
 import axios from "axios";
-import Select from "react-select";
 import palette from "theme/palette";
 import { EXCEEDANCES_URI } from "config/urls/analytics";
 import Menu from "@material-ui/core/Menu";
