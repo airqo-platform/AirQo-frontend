@@ -2,9 +2,10 @@ import React, { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { useHistory } from "react-router-dom";
 import LoadingOverlay from "react-loading-overlay";
-import { isEmpty } from "underscore";
+import { isEmpty, omit, map } from "underscore";
 import Tooltip from "@material-ui/core/Tooltip";
 import DeleteIcon from "@material-ui/icons/DeleteOutlineOutlined";
+import { Parser } from "json2csv";
 import { loadSitesData } from "redux/SiteRegistry/operations";
 import { useSitesArrayData } from "redux/SiteRegistry/selectors";
 import CustomMaterialTable from "../Table/CustomMaterialTable";
@@ -151,6 +152,32 @@ const SitesTable = () => {
               fontFamily: "Open Sans",
               fontSize: 16,
               fontWeight: 600,
+            },
+            exportCsv: (columns, data) => {
+              const siteData = map(data, (obj) =>
+                omit(obj, [
+                  "_id",
+                  "geometry",
+                  "nearest_tahmo_station",
+                  "devices",
+                  "tableData",
+                  "site_tags",
+                ])
+              );
+              const json2csvParser = new Parser();
+              const csv = json2csvParser.parse(siteData);
+              let filename = `site-registry.csv`;
+              const link = document.createElement("a");
+              link.setAttribute(
+                "href",
+                "data:text/csv;charset=utf-8,%EF%BB%BF" +
+                  encodeURIComponent(csv)
+              );
+              link.setAttribute("download", filename);
+              link.style.visibility = "hidden";
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
             },
           }}
         />
