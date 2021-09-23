@@ -14,13 +14,13 @@ class Site {
   @JsonKey(required: true)
   final double longitude;
 
-  @JsonKey(required: true)
+  @JsonKey(required: true, defaultValue: '')
   final String district;
 
-  @JsonKey(required: true)
+  @JsonKey(required: true, defaultValue: '')
   final String country;
 
-  @JsonKey(required: true)
+  @JsonKey(required: true, defaultValue: '')
   final String name;
 
   @JsonKey(required: false, defaultValue: '')
