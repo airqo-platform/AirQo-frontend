@@ -46,16 +46,16 @@ class Measurement {
 
   double getPm10Value() {
     if (pm10.calibratedValue == -0.1) {
-      return pm10.value;
+      return double.parse(pm10.value.toStringAsFixed(2));
     }
-    return pm10.calibratedValue;
+    return double.parse(pm10.calibratedValue.toStringAsFixed(2));
   }
 
   double getPm2_5Value() {
     if (pm2_5.calibratedValue == -0.1) {
-      return pm2_5.value;
+      return double.parse(pm2_5.value.toStringAsFixed(2));
     }
-    return pm2_5.calibratedValue;
+    return double.parse(pm2_5.calibratedValue.toStringAsFixed(2));
   }
 
   Map<String, dynamic> toJson() => _$MeasurementToJson(this);

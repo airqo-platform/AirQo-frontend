@@ -217,7 +217,8 @@ class DBHelper {
                                 AppConfig.maxSearchRadius.toDouble())
                               {
                                 // print('$distanceInMeters : '
-                                //     '${AppConfig.maxSearchRadius.toDouble()} : '
+                                //     '${AppConfig
+                                //     .maxSearchRadius.toDouble()} : '
                                 //     '${measurement.site.getName()}'),
                                 measurement.site.distance = distanceInMeters,
                                 nearestMeasurements.add(measurement)
@@ -484,6 +485,8 @@ class DBHelper {
               conflictAlgorithm: ConflictAlgorithm.replace,
             );
           } catch (e) {
+            await db.execute(Story.dropTableStmt());
+            await db.execute(Story.createTableStmt());
             print('Inserting latest stories into db');
             print(e);
           }

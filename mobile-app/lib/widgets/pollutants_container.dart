@@ -38,10 +38,14 @@ class PollutantsSection extends StatelessWidget {
                   PollutantCard('PM 10', measurement.getPm10Value(),
                       '${PollutantConstant.pm10}', ''),
                 if (measurement.humidity.value != 0.1)
-                  PollutantCard('Humidity', measurement.humidity.value,
+                  PollutantCard('Humidity',
+                      double.parse(measurement.humidity
+                          .value.toStringAsFixed(2)),
                       '${PollutantConstant.humidity}', 'Tahmo'),
                 if (measurement.temperature.value != 0.1)
-                  PollutantCard('Temperature', measurement.temperature.value,
+                  PollutantCard('Temperature',
+                      double.parse(measurement.temperature
+                          .value.toStringAsFixed(2)),
                       '${PollutantConstant.temperature}', 'Tahmo'),
               ],
             ),
