@@ -18,7 +18,12 @@ const DeviceUptimeChart = ({ deviceUptimeData }) => {
   return (
     <ApexChart
       title={"device uptime"}
-      options={timeSeriesChartOptions}
+      options={timeSeriesChartOptions({
+        yaxis: {
+          min: 0,
+          max: 100,
+        },
+      })}
       series={deviceUptimeSeries}
       lastUpdated={deviceUptime.created_at}
       type="area"

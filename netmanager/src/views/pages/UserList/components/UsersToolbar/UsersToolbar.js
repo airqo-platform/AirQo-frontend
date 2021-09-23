@@ -96,16 +96,15 @@ const UsersToolbar = (props) => {
  const orgData = useOrgData();
 
   const initialState = {
-    userName: "",
     firstName: "",
     lastName: "",
     organization: orgData.name,
+    long_organization: orgData.name,
     email: "",
     privilege: roles[0].value,
     errors: {},
   };
   const initialStateErrors = {
-    userName: "",
     firstName: "",
     lastName: "",
     organization: "",
@@ -311,19 +310,6 @@ const UsersToolbar = (props) => {
                   fullWidth
                 />
 
-                <TextField
-                  margin="dense"
-                  id="userName"
-                  name="userName"
-                  label="user name"
-                  type="text"
-                  helperText={errors.userName}
-                  error={!!errors.userName}
-                  onChange={onChange}
-                  value={form.userName}
-                  variant="outlined"
-                  fullWidth
-                />
                 <TextField
                   id="privilege"
                   select

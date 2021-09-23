@@ -422,7 +422,12 @@ export default function DeviceManagement() {
         }}
       >
         <ApexChart
-          options={timeSeriesChartOptions}
+          options={timeSeriesChartOptions({
+            yaxis: {
+              min: 0,
+              max: 100,
+            },
+          })}
           title={"Network uptime"}
           series={series}
           lastUpdated={
@@ -433,7 +438,7 @@ export default function DeviceManagement() {
         />
         <ApexChart
           options={createPieChartOptions(
-            ["#BCBD22", "#17BECF"],
+            ["#FF2E2E", "#00A300"],
             ["Offline", "Online"]
           )}
           series={pieChartStatusValues}

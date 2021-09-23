@@ -1,4 +1,4 @@
-export const timeSeriesChartOptions = {
+export const timeSeriesChartOptions = (extraOptions) => ({
   chart: {
     zoom: {
       autoScaleYaxis: true,
@@ -19,7 +19,8 @@ export const timeSeriesChartOptions = {
       format: "dd MMM yyyy hh:mm:ss",
     },
   },
-};
+  ...extraOptions,
+});
 
 export const createPieChartOptions = (colors, labels) => {
   return {
