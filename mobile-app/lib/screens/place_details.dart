@@ -197,18 +197,18 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                       children: <Widget>[
                         Center(
                           child: Container(
-                              width: 100,
-                              height: 100,
+                              width: 70,
+                              height: 70,
                               child: CircularProgressIndicator(
                                 valueColor: AlwaysStoppedAnimation<Color>(
                                     ColorConstants.appColor),
                               )),
                         ),
-                        Center(
-                            child: Text(
-                          'Loading',
-                          style: TextStyle(color: ColorConstants.appColor),
-                        )),
+                        // Center(
+                        //     child: Text(
+                        //   'Loading',
+                        //   style: TextStyle(color: ColorConstants.appColor),
+                        // )),
                       ],
                     ),
                   )),
@@ -407,8 +407,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                 if (mounted)
                   {
                     setState(() {
-                      forecastResponse = 'Forecast data is currently'
-                          ' not available.';
+                      forecastResponse = 'Sorry, we could retrieve the forecast';
                     })
                   }
               }
@@ -416,7 +415,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          forecastResponse = 'Forecast data is currently not available.';
+          forecastResponse = 'Sorry, we could retrieve the forecast';
         });
       }
     }
@@ -444,7 +443,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                       {
                         setState(() {
                           historicalResponse =
-                              'Historical data is currently not available.';
+                              'Sorry, we could retrieve historical readings.';
                         })
                       }
                   }
@@ -452,7 +451,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          historicalResponse = 'Historical data is currently not available.';
+          historicalResponse = 'Sorry, we could retrieve historical readings';
         });
       }
     }
@@ -472,7 +471,8 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                 if (measurementData != null) {checkFavourite()}
               });
     } catch (e) {
-      var message = 'Sorry, air quality data currently is not available';
+      var message = 'Sorry, air quality data could not be retrieved.'
+          '\nTry again later';
 
       if (mounted) {
         setState(() {

@@ -124,9 +124,8 @@ class Site {
       }
     }
 
-    sites.sort((siteA, siteB) {
-      return siteA.getName().compareTo(siteB.getName().toLowerCase());
-    });
+    sites.sort((siteA, siteB) => siteA.getName().toLowerCase()
+        .compareTo(siteB.getName().toLowerCase()));
 
     return sites;
   }

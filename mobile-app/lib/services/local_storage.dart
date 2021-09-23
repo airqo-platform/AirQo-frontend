@@ -347,9 +347,8 @@ class DBHelper {
               return Site.fromJson(Site.fromDbMap(res[i]));
             })
           : <Site>[]
-        ..sort((siteA, siteB) {
-          return siteA.getName().compareTo(siteB.getName().toLowerCase());
-        });
+        ..sort((siteA, siteB) => siteA.getName().toLowerCase()
+            .compareTo(siteB.getName().toLowerCase()));
 
       return sites;
     } catch (e) {
