@@ -1,8 +1,13 @@
-import React, { useEffect, useState} from "react";
+import React, { useEffect, useState } from "react";
 import {
+  Button,
   Card,
   CardContent,
   CardHeader,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   Divider,
   Grid,
   IconButton,
@@ -20,6 +25,7 @@ import { DAILY_MEAN_AVERAGES_URI } from "config/urls/analytics";
 import { roundToEndOfDay, roundToStartOfDay } from "utils/dateTime";
 import { unzip, zip } from "underscore";
 import moment from "moment";
+import OutlinedSelect from "../../../components/CustomSelects/OutlinedSelect";
 
 function appendLeadingZeroes(n) {
   if (n <= 9) {
@@ -36,6 +42,30 @@ const AveragesChart = ({ classes }) => {
   const startDate = moment(endDate).subtract(28, "days").toISOString();
 
   const [anchorEl, setAnchorEl] = useState(null);
+
+  const [open, setOpen] = React.useState(false);
+
+  const pollutantOptions = [
+    { value: "pm2_5", label: "PM 2.5" },
+    { value: "pm10", label: "PM 10" },
+    { value: "no2", label: "NO2" },
+  ];
+
+  const [pollutant, setPollutant] = useState({
+    value: "pm2_5",
+    label: "PM 2.5",
+  });
+  const [tempPollutant, setTempPollutant] = useState(pollutant);
+
+  const handlePollutantChange = (pollutant) => {
+    setTempPollutant(pollutant);
+  };
+
+  const handleModalClose = () => {
+    setAnchorEl(null);
+    setOpen(false);
+    setTempPollutant(pollutant);
+  };
 
   const [averages, setAverages] = useState({
     labels: [],
@@ -57,7 +87,7 @@ const AveragesChart = ({ classes }) => {
     setAnchorEl(event.currentTarget);
   };
 
-  const open = Boolean(anchorEl);
+  const openMenu = Boolean(anchorEl);
 
   const handleClose = () => {
     setAnchorEl(null);
@@ -128,7 +158,12 @@ const AveragesChart = ({ classes }) => {
     }
   };
 
+  const handleClickOpen = () => {
+    setOpen(true);
+  };
+
   const options = [
+    { key: "Customise", action: handleClickOpen, text: "Customise Chart" },
     { key: "Print", action: print, text: "Print" },
     { key: "JPEG", action: exportToJpeg, text: "Save as JPEG" },
     { key: "PNG", action: exportToPng, text: "Save as PNG" },
@@ -245,12 +280,12 @@ const AveragesChart = ({ classes }) => {
     },
   };
 
-  useEffect(() => {
+  const fetchAndSetAverages = (pollutant) => {
     axios
       .post(DAILY_MEAN_AVERAGES_URI, {
         startDate: roundToStartOfDay(startDate).toISOString(),
         endDate: roundToEndOfDay(endDate).toISOString(),
-        pollutant: "pm2_5",
+        pollutant: pollutant.value,
       })
       .then((response) => response.data)
       .then((responseData) => {
@@ -271,6 +306,23 @@ const AveragesChart = ({ classes }) => {
         setAverages({ labels, average_values, background_colors });
       })
       .catch((e) => console.log(e));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    // let filter = {
+    //   pollutant: tempPollutant.value,
+    //   startDate,
+    //   endDate,
+    // };
+    setPollutant(tempPollutant);
+    handleModalClose();
+    fetchAndSetAverages(tempPollutant);
+  };
+
+  useEffect(() => {
+    fetchAndSetAverages(pollutant);
   }, []);
 
   return (
@@ -292,7 +344,7 @@ const AveragesChart = ({ classes }) => {
               </IconButton>
               <Menu
                 anchorEl={anchorEl}
-                open={open}
+                open={openMenu}
                 onClose={handleClose}
                 PaperProps={paperProps}
               >
@@ -312,6 +364,47 @@ const AveragesChart = ({ classes }) => {
           </div>
         </CardContent>
       </Card>
+      <Dialog
+        // classes={{ paper: classes.dialogPaper }}
+        open={open}
+        onClose={handleModalClose}
+        aria-labelledby="form-dialog-title"
+      >
+        <DialogTitle id="form-dialog-title" onClose={handleClose}>
+          Customise Chart by Selecting the Various Options
+        </DialogTitle>
+        <Divider />
+        <DialogContent>
+          <form onSubmit={handleSubmit} id="customisable-form">
+            <Grid container spacing={2} style={{ marginTop: "5px" }}>
+              <Grid item md={12} xs={12}>
+                <OutlinedSelect
+                  fullWidth
+                  className="reactSelect"
+                  label="Pollutant"
+                  value={tempPollutant}
+                  options={pollutantOptions}
+                  onChange={handlePollutantChange}
+                />
+              </Grid>
+            </Grid>
+          </form>
+        </DialogContent>
+        <Divider />
+        <DialogActions>
+          <Button onClick={handleModalClose} color="primary" variant="outlined">
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            color="primary"
+            type="submit"
+            form="customisable-form"
+          >
+            Customise
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Grid>
   );
 };
