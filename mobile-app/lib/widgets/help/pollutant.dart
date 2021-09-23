@@ -15,7 +15,7 @@ class PollutantDialog extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
         child: ListView(
-          children: [whatIs(), source(), effects(), howToReduce()],
+          children: [whatIs(), source()],
         ),
       ),
     );
@@ -133,7 +133,7 @@ class PollutantDialog extends StatelessWidget {
             child: Text('Sources of ${pollutant.pollutant}',
                 softWrap: true,
                 style: TextStyle(
-                    fontSize: 17,
+                    fontSize: 20,
                     fontWeight: FontWeight.bold,
                     height: 1.2,
                     color: ColorConstants.appColor
@@ -147,7 +147,7 @@ class PollutantDialog extends StatelessWidget {
                 style: TextStyle(
                   height: 1.2,
                   color: ColorConstants.appColor,
-                  fontSize: 15,
+                  fontSize: 17,
                   fontWeight: FontWeight.w500,
                   // letterSpacing: 1.0
                 )),
@@ -171,7 +171,7 @@ class PollutantDialog extends StatelessWidget {
                 'and how does it get into the air?',
                 softWrap: true,
                 style: TextStyle(
-                    fontSize: 17,
+                    fontSize: 20,
                     fontWeight: FontWeight.bold,
                     height: 1.2,
                     color: ColorConstants.appColor
@@ -185,7 +185,7 @@ class PollutantDialog extends StatelessWidget {
                 style: TextStyle(
                   height: 1.2,
                   color: ColorConstants.appColor,
-                  fontSize: 15,
+                  fontSize: 17,
                   fontWeight: FontWeight.w500,
                   // letterSpacing: 1.0
                 )),

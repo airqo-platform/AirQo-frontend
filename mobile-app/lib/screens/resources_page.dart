@@ -28,61 +28,60 @@ class _ResourcesPageState extends State<ResourcesPage> {
       );
     } else {
       return Container(
-        color: Colors.white,
-        child: RefreshIndicator(
-          onRefresh: refresh,
-          child: ListView.builder(
-            itemBuilder: (context, index) => GestureDetector(
-              onTap: () {
-                viewStory(stories[index]);
-              },
-              child: ListTile(
-                trailing: ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: CachedNetworkImage(
-                    width: 100,
-                    height: 100,
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) => const SizedBox(
-                      height: 20.0,
-                      width: 20.0,
-                      child: Center(
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
+          color: Colors.white,
+          child: RefreshIndicator(
+            onRefresh: refresh,
+            child: ListView.builder(
+              itemBuilder: (context, index) => GestureDetector(
+                onTap: () {
+                  viewStory(stories[index]);
+                },
+                child: ListTile(
+                  trailing: ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: CachedNetworkImage(
+                      width: 100,
+                      height: 100,
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) => const SizedBox(
+                        height: 20.0,
+                        width: 20.0,
+                        child: Center(
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                          ),
                         ),
                       ),
-                    ),
-                    imageUrl: stories[index].thumbnail,
-                    errorWidget: (context, url, error) => Icon(
-                      Icons.error_outline,
-                      color: ColorConstants.red,
+                      imageUrl: stories[index].thumbnail,
+                      errorWidget: (context, url, error) => Icon(
+                        Icons.error_outline,
+                        color: ColorConstants.red,
+                      ),
                     ),
                   ),
-                ),
 
-                title: Text('${stories[index].title}',
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 3,
-                    style: TextStyle(
-                      fontSize: 15,
-                      color: ColorConstants.appColor,
-                      fontWeight: FontWeight.bold,
-                    )),
-                subtitle: Text('${stories[index].getPubDate()}',
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: ColorConstants.appColor,
-                    )),
-                // trailing: const Icon(
-                //   Icons.arrow_forward_ios
-                // ),
+                  title: Text('${stories[index].title}',
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 3,
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: ColorConstants.appColor,
+                        fontWeight: FontWeight.bold,
+                      )),
+                  subtitle: Text('${stories[index].getPubDate()}',
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: ColorConstants.appColor,
+                      )),
+                  // trailing: const Icon(
+                  //   Icons.arrow_forward_ios
+                  // ),
+                ),
               ),
+              itemCount: stories.length,
             ),
-            itemCount: stories.length,
-          ),
-        )
-      );
+          ));
     }
   }
 
@@ -107,23 +106,22 @@ class _ResourcesPageState extends State<ResourcesPage> {
         });
   }
 
-  Future<void> refresh() async {
-    await AirqoApiClient(context).fetchLatestStories().then((value) => {
-      if (mounted)
-        {
-          setState(() {
-            stories = value;
-          })
-        },
-      DBHelper().insertLatestStories(value),
-    });
-  }
-
-
   @override
   void initState() {
     initialize();
     super.initState();
+  }
+
+  Future<void> refresh() async {
+    await AirqoApiClient(context).fetchLatestStories().then((value) => {
+          if (mounted)
+            {
+              setState(() {
+                stories = value;
+              })
+            },
+          DBHelper().insertLatestStories(value),
+        });
   }
 
   Future<void> viewStory(Story story) async {

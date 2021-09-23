@@ -160,8 +160,8 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                               children: [
                                 Text(
                                   'Sorry, air quality readings for'
-                                      ' "$query" are not available.'
-                                      '\n What do you prefer ??',
+                                  ' "$query" are not available.'
+                                  '\n What do you prefer ??',
                                   textAlign: TextAlign.center,
                                   style:
                                       TextStyle(color: ColorConstants.appColor),
@@ -239,7 +239,9 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                               valueColor: AlwaysStoppedAnimation<Color>(
                                   ColorConstants.appColor),
                             ),
-                            const SizedBox(height: 15,),
+                            const SizedBox(
+                              height: 15,
+                            ),
                             Text(
                               'Crunching location readings, hang tight...',
                               textAlign: TextAlign.center,
@@ -262,7 +264,9 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                       valueColor: AlwaysStoppedAnimation<Color>(
                           ColorConstants.appColor),
                     ),
-                    const SizedBox(height: 15,),
+                    const SizedBox(
+                      height: 15,
+                    ),
                     Text(
                       'Crunching location readings, hang tight...',
                       style: TextStyle(color: ColorConstants.appColor),
@@ -283,7 +287,6 @@ class LocationSearch extends SearchDelegate<Suggestion> {
             future: DBHelper().getSites(),
             builder: (context, snapshot) {
               if (snapshot.hasData) {
-
                 var sites = snapshot.data as List<Site>;
 
                 if (sites.isEmpty) {
@@ -307,10 +310,10 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                           var site = sites[index];
                           Navigator.push(context,
                               MaterialPageRoute(builder: (context) {
-                                return PlaceDetailsPage(
-                                  site: site,
-                                );
-                              }));
+                            return PlaceDetailsPage(
+                              site: site,
+                            );
+                          }));
                         },
                         child: ListTile(
                           title: Text('${sites[index].getName()}',
@@ -502,7 +505,9 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                       valueColor: AlwaysStoppedAnimation<Color>(
                           ColorConstants.appColor),
                     ),
-                    const SizedBox(height: 15,),
+                    const SizedBox(
+                      height: 15,
+                    ),
                     Text(
                       'Crunching location readings, hang tight...',
                       style: TextStyle(color: ColorConstants.appColor),
@@ -573,7 +578,9 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                         valueColor: AlwaysStoppedAnimation<Color>(
                             ColorConstants.appColor),
                       ),
-                      const SizedBox(height: 15,),
+                      const SizedBox(
+                        height: 15,
+                      ),
                       Text(
                         'Crunching location readings, hang tight...',
                         textAlign: TextAlign.center,

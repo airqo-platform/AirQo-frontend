@@ -81,9 +81,7 @@ class _HealthRecommendationSectionState
                   color: ColorConstants.appColor,
                   fontWeight: FontWeight.bold),
             ),
-          const SizedBox(
-              height: 5.0
-          ),
+          const SizedBox(height: 5.0),
           SizedBox(
             height: 100.0,
             child: ListView.builder(

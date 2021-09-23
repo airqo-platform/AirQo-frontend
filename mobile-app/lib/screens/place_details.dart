@@ -118,7 +118,9 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                   // Pollutants
                   PollutantsSection(measurementData),
 
-                  const SizedBox(height: 10,),
+                  const SizedBox(
+                    height: 10,
+                  ),
 
                   // Recommendations
                   HealthRecommendationSection(
@@ -409,7 +411,8 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                 if (mounted)
                   {
                     setState(() {
-                      forecastResponse = 'Sorry, we could retrieve the forecast';
+                      forecastResponse =
+                          'Sorry, we could retrieve the forecast';
                     })
                   }
               }
@@ -789,6 +792,8 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                     ListTile(
                       title: Text('${site.getName()}',
                           textAlign: TextAlign.center,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                             fontSize: 20,
                             color: ColorConstants.appColor,
@@ -852,7 +857,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                         },
                       ),
                       title: Text(
-                        'Set as dashboard default',
+                        'Set as default for dashboard',
                         style: TextStyle(
                             color: ColorConstants.appColor,
                             fontWeight: FontWeight.w600),

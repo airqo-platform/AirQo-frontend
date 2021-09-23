@@ -26,6 +26,20 @@ class DBHelper {
     return _database;
   }
 
+  Future<bool> addFavouritePlaces(Site site) async {
+    var prefs = await SharedPreferences.getInstance();
+    var favouritePlaces =
+        prefs.getStringList(PrefConstant.favouritePlaces) ?? [];
+
+    var name = site.id.trim().toLowerCase();
+    if (!favouritePlaces.contains(name)) {
+      favouritePlaces.add(name);
+    }
+
+    await prefs.setStringList(PrefConstant.favouritePlaces, favouritePlaces);
+    return favouritePlaces.contains(name);
+  }
+
   Future<void> createDefaultTables(Database db) async {
     var prefs = await SharedPreferences.getInstance();
     var initialLoading = prefs.getBool(PrefConstant.initialDbLoad) ?? true;
@@ -348,7 +362,9 @@ class DBHelper {
               return Site.fromJson(Site.fromDbMap(res[i]));
             })
           : <Site>[]
-        ..sort((siteA, siteB) => siteA.getName().toLowerCase()
+        ..sort((siteA, siteB) => siteA
+            .getName()
+            .toLowerCase()
             .compareTo(siteB.getName().toLowerCase()));
 
       return sites;
@@ -586,20 +602,6 @@ class DBHelper {
       }
       favouritePlaces = updatedList;
     } else {
-      favouritePlaces.add(name);
-    }
-
-    await prefs.setStringList(PrefConstant.favouritePlaces, favouritePlaces);
-    return favouritePlaces.contains(name);
-  }
-
-  Future<bool> addFavouritePlaces(Site site) async {
-    var prefs = await SharedPreferences.getInstance();
-    var favouritePlaces =
-        prefs.getStringList(PrefConstant.favouritePlaces) ?? [];
-
-    var name = site.id.trim().toLowerCase();
-    if (!favouritePlaces.contains(name)) {
       favouritePlaces.add(name);
     }
 

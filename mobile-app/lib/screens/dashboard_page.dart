@@ -35,7 +35,7 @@ class _DashboardPageState extends State<DashboardPage> {
       return Container(
           color: ColorConstants.appBodyColor,
           child: RefreshIndicator(
-              onRefresh: initialize,
+              onRefresh: _getLatestMeasurements,
               color: ColorConstants.appColor,
               child: Padding(
                 padding: EdgeInsets.all(10.0),
@@ -195,6 +195,7 @@ class _DashboardPageState extends State<DashboardPage> {
 
   Future<void> initialize() async {
     await getLocationMeasurements();
+    await _getLatestMeasurements();
   }
 
   @override
@@ -250,5 +251,16 @@ class _DashboardPageState extends State<DashboardPage> {
     } catch (e) {
       print('error getting data');
     }
+  }
+
+  Future<void> _getLatestMeasurements() async {
+    await AirqoApiClient(context).fetchLatestMeasurements().then((value) => {
+          if (value.isNotEmpty)
+            {
+              DBHelper()
+                  .insertLatestMeasurements(value)
+                  .then((value) => {getLocationMeasurements()})
+            }
+        });
   }
 }

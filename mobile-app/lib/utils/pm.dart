@@ -12,33 +12,39 @@ List<Recommendation> getHealthRecommendations(double pm2_5) {
   if (pm2_5 <= 12.09) {
     //good
     recommendations
-      ..add(Recommendation('The elderly and children '
-          'are the groups most at risk.',
-          'assets/images/baby.png', ColorConstants.green.withOpacity(0.2)))
+      ..add(Recommendation(
+          'The elderly and children '
+              'are the groups most at risk.',
+          'assets/images/baby.png',
+          ColorConstants.green.withOpacity(0.2)))
       ..add(Recommendation('Everyone else can do outdoor activities.',
           'assets/images/jogging.png', ColorConstants.green.withOpacity(0.2)));
-    var re = 'People with respiratory or heart disease, the elderly and children are the groups most at risk.';
   } else if (pm2_5 >= 12.1 && pm2_5 <= 35.49) {
     //moderate
     recommendations
-
-      ..add(Recommendation('Unusually sensitive people should'
-          ' consider reducing prolonged or heavy exertion.',
-          'assets/images/pregnant-woman.png', ColorConstants.green.withOpacity(0.2)))
-      ..add(Recommendation('The elderly and children '
-          'are the groups most at risk.',
-          'assets/images/old.png', ColorConstants.green.withOpacity(0.2)))
-      ..add(Recommendation('Everyone else should take more breaks '
-          'and engage in less intense activities.',
-          'assets/images/cycling.png', ColorConstants.green.withOpacity(0.2)));
-    var re = 'People with respiratory or heart disease, the elderly and children are the groups most at risk.';
-    re = 'Unusually sensitive people should consider reducing prolonged or heavy exertion.';
+      ..add(Recommendation(
+          'Unusually sensitive people should'
+              ' consider reducing prolonged or heavy exertion.',
+          'assets/images/pregnant-woman.png',
+          ColorConstants.green.withOpacity(0.2)))
+      ..add(Recommendation(
+          'The elderly and children '
+              'are the groups most at risk.',
+          'assets/images/old.png',
+          ColorConstants.green.withOpacity(0.2)))
+      ..add(Recommendation(
+          'Everyone else should take more breaks '
+              'and engage in less intense activities.',
+          'assets/images/cycling.png',
+          ColorConstants.green.withOpacity(0.2)));
   } else if (pm2_5 >= 35.5 && pm2_5 <= 55.49) {
     //sensitive
     recommendations
-      ..add(Recommendation('The elderly and children '
-          'should limit prolonged exertion.',
-          'assets/images/baby.png', ColorConstants.green.withOpacity(0.2)))
+      ..add(Recommendation(
+          'The elderly and children '
+              'should limit prolonged exertion.',
+          'assets/images/baby.png',
+          ColorConstants.green.withOpacity(0.2)))
       ..add(Recommendation(
           'Sensitive people should reduce prolonged or heavy exertion.',
           'assets/images/pregnant-woman.png',
@@ -48,8 +54,6 @@ List<Recommendation> getHealthRecommendations(double pm2_5) {
               ' plans and keep quick relief medicine handy.',
           'assets/images/jogging.png',
           ColorConstants.green.withOpacity(0.2)));
-    var re = 'Increasing likelihood of respiratory symptoms in sensitive individuals, aggravation of heart or lung disease and premature mortality in persons with cardiopulmonary disease and the elderly.';
-    re = 'People with respiratory or heart disease, the elderly and children should limit prolonged exertion.';
   } else if (pm2_5 >= 55.5 && pm2_5 <= 150.49) {
     // unhealthy
     recommendations
@@ -58,12 +62,8 @@ List<Recommendation> getHealthRecommendations(double pm2_5) {
               ' the elderly and children should avoid prolonged exertion;',
           'assets/images/old.png',
           ColorConstants.green.withOpacity(0.2)))
-      ..add(Recommendation(
-          'Everyone else should limit prolonged exertion.',
-          'assets/images/cycling.png',
-          ColorConstants.green.withOpacity(0.2)));
-    var re = 'Increased aggravation of heart or lung disease and premature mortality in persons with cardiopulmonary disease and the elderly; increased respiratory effects in general population.';
-    re = 'People with respiratory or heart disease, the elderly and children should avoid prolonged exertion; everyone else should limit prolonged exertion.';
+      ..add(Recommendation('Everyone else should limit prolonged exertion.',
+          'assets/images/cycling.png', ColorConstants.green.withOpacity(0.2)));
   } else if (pm2_5 >= 150.5 && pm2_5 <= 250.49) {
     // very unhealthy
     recommendations
@@ -72,12 +72,8 @@ List<Recommendation> getHealthRecommendations(double pm2_5) {
               'the elderly and children should avoid any outdoor activity',
           'assets/images/baby.png',
           ColorConstants.green.withOpacity(0.2)))
-      ..add(Recommendation(
-          'Everyone else should limit prolonged exertion.',
-          'assets/images/jogging.png',
-          ColorConstants.green.withOpacity(0.2)));
-    var re = 'Significant aggravation of heart or lung disease and premature mortality in persons with cardiopulmonary disease and the elderly; significant increase in respiratory effects in general population.';
-    re = 'People with respiratory or heart disease, the elderly and children should avoid any outdoor activity; everyone else should avoid prolonged exertion.';
+      ..add(Recommendation('Everyone else should limit prolonged exertion.',
+          'assets/images/jogging.png', ColorConstants.green.withOpacity(0.2)));
   } else if (pm2_5 >= 250.5) {
     // hazardous
     recommendations.add(Recommendation(
@@ -86,11 +82,43 @@ List<Recommendation> getHealthRecommendations(double pm2_5) {
             ' the elderly and children should remain indoors.',
         'assets/images/face-mask.png',
         ColorConstants.purple));
-    var re = 'Serious aggravation of heart or lung disease and premature mortality in persons with cardiopulmonary disease and the elderly; serious risk of respiratory effects in general population.';
-    re = 'Everyone should avoid any outdoor exertion; people with respiratory or heart disease, the elderly and children should remain indoors.';
   } else {}
 
   return recommendations;
+}
+
+Widget mapSection(Measurement measurement) {
+  final _markers = <String, Marker>{};
+
+  final marker = Marker(
+    markerId: MarkerId(measurement.site.toString()),
+    icon: pmToMarkerPoint(measurement.getPm2_5Value()),
+    position: LatLng((measurement.site.latitude), measurement.site.longitude),
+  );
+  _markers[measurement.site.toString()] = marker;
+
+  return Padding(
+      padding: const EdgeInsets.fromLTRB(0.0, 2.0, 0.0, 2.0),
+      child: Card(
+          elevation: 20,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: GoogleMap(
+            compassEnabled: false,
+            mapType: MapType.normal,
+            myLocationButtonEnabled: false,
+            myLocationEnabled: false,
+            rotateGesturesEnabled: false,
+            tiltGesturesEnabled: false,
+            mapToolbarEnabled: false,
+            initialCameraPosition: CameraPosition(
+              target:
+                  LatLng(measurement.site.latitude, measurement.site.longitude),
+              zoom: 13,
+            ),
+            markers: _markers.values.toSet(),
+          )));
 }
 
 Color pmTextColor(double pm2_5) {
@@ -339,39 +367,4 @@ class Recommendation {
   Color imageColor = ColorConstants.green.withOpacity(0.2);
 
   Recommendation(this.recommendation, this.imageUrl, this.imageColor);
-}
-
-
-Widget mapSection(Measurement measurement) {
-  final _markers = <String, Marker>{};
-
-  final marker = Marker(
-    markerId: MarkerId(measurement.site.toString()),
-    icon: pmToMarkerPoint(measurement.getPm2_5Value()),
-    position: LatLng((measurement.site.latitude), measurement.site.longitude),
-  );
-  _markers[measurement.site.toString()] = marker;
-
-  return Padding(
-      padding: const EdgeInsets.fromLTRB(0.0, 2.0, 0.0, 2.0),
-      child: Card(
-          elevation: 20,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: GoogleMap(
-            compassEnabled: false,
-            mapType: MapType.normal,
-            myLocationButtonEnabled: false,
-            myLocationEnabled: false,
-            rotateGesturesEnabled: false,
-            tiltGesturesEnabled: false,
-            mapToolbarEnabled: false,
-            initialCameraPosition: CameraPosition(
-              target: LatLng(
-                  measurement.site.latitude, measurement.site.longitude),
-              zoom: 13,
-            ),
-            markers: _markers.values.toSet(),
-          )));
 }
