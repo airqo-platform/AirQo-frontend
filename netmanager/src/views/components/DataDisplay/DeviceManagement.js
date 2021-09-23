@@ -35,7 +35,10 @@ import {
 import { roundToStartOfDay, roundToEndOfDay } from "utils/dateTime";
 
 import { SortAscendingIcon, SortDescendingIcon } from "assets/img";
-import { useDeviceUptimeLeaderboard } from "utils/customHooks";
+import {
+  useDeviceUptimeLeaderboard,
+  useInitScrollTop,
+} from "utils/customHooks";
 
 // css style
 import "chartjs-plugin-annotation";
@@ -121,6 +124,7 @@ const OverviewCard = ({ label, icon, value, filterActive, onClick }) => {
 };
 
 export default function DeviceManagement() {
+  useInitScrollTop();
   const history = useHistory();
   const location = useLocation();
   const devicesStatusData = useDevicesStatusData();
