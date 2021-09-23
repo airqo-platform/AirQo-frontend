@@ -57,6 +57,10 @@ const AveragesChart = ({ classes }) => {
   });
   const [tempPollutant, setTempPollutant] = useState(pollutant);
 
+  const [customChartTitle, setCustomChartTitle] = useState(
+    `Mean Daily ${pollutant.label} Over the Past 28 Days`
+  );
+
   const handlePollutantChange = (pollutant) => {
     setTempPollutant(pollutant);
   };
@@ -100,6 +104,35 @@ const AveragesChart = ({ classes }) => {
       width: 150,
     },
   };
+
+  const labelMapper = {
+    pm2_5: "PM2.5 (µg/m3)",
+    pm10: "PM10 (µg/m3)",
+    no2: "NO2 (µg/m3)",
+  };
+
+  const annotationMapper = {
+    pm2_5: {
+      value: 25,
+      label_content: "WHO AQG",
+    },
+    pm10: {
+      value: 50,
+      label_content: "WHO AQG",
+    },
+    no2: {
+      value: 40,
+      label_content: "WHO AQG",
+    },
+  };
+
+  const [customisedLabel, setCustomisedLabel] = useState(
+    labelMapper[pollutant.value]
+  );
+
+  const [customisedAnnotation, setCustomAnnotations] = useState(
+    annotationMapper[pollutant.value]
+  );
 
   const print = async (chart) => {
     try {
@@ -180,7 +213,7 @@ const AveragesChart = ({ classes }) => {
     labels: averages.labels,
     datasets: [
       {
-        label: "PM2.5(µg/m3)",
+        label: customisedLabel,
         data: averages.average_values,
         fill: false, // Don't fill area under the line
         borderColor: palette.primary.main, // Line color
@@ -196,12 +229,12 @@ const AveragesChart = ({ classes }) => {
           type: "line",
           mode: "horizontal",
           scaleID: "y-axis-0",
-          value: 25,
+          value: customisedAnnotation.value,
           borderColor: palette.text.secondary,
           borderWidth: 2,
           label: {
             enabled: true,
-            content: "WHO AQG",
+            content: customisedAnnotation.label_content,
             //backgroundColor: palette.white,
             titleFontColor: palette.text.primary,
             bodyFontColor: palette.text.primary,
@@ -273,7 +306,7 @@ const AveragesChart = ({ classes }) => {
           },
           scaleLabel: {
             display: true,
-            labelString: "PM2.5(µg/m3)",
+            labelString: customisedLabel,
           },
         },
       ],
@@ -310,13 +343,12 @@ const AveragesChart = ({ classes }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // let filter = {
-    //   pollutant: tempPollutant.value,
-    //   startDate,
-    //   endDate,
-    // };
     setPollutant(tempPollutant);
+    setCustomChartTitle(
+      `Mean Daily ${tempPollutant.label} Over the Past 28 Days`
+    );
+    setCustomisedLabel(labelMapper[tempPollutant.value]);
+    setCustomAnnotations(annotationMapper[tempPollutant.value]);
     handleModalClose();
     fetchAndSetAverages(tempPollutant);
   };
@@ -329,7 +361,7 @@ const AveragesChart = ({ classes }) => {
     <Grid item lg={6} md={6} sm={12} xl={6} xs={12}>
       <Card className={clsx(classes.chartCard)} id={rootContainerId}>
         <CardHeader
-          title={`Mean Daily PM2.5 for Past 28 Days`}
+          title={customChartTitle}
           subheader={`from ${dateValue}`}
           action={
             <Grid>
