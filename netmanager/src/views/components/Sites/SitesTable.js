@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { useHistory } from "react-router-dom";
 import LoadingOverlay from "react-loading-overlay";
-import { isEmpty, omit, map } from "underscore";
+import { isEmpty } from "underscore";
 import Tooltip from "@material-ui/core/Tooltip";
 import DeleteIcon from "@material-ui/icons/DeleteOutlineOutlined";
 import { Parser } from "json2csv";
@@ -154,18 +154,37 @@ const SitesTable = () => {
               fontWeight: 600,
             },
             exportCsv: (columns, data) => {
-              const siteData = map(data, (obj) =>
-                omit(obj, [
-                  "_id",
-                  "geometry",
-                  "nearest_tahmo_station",
-                  "devices",
-                  "tableData",
-                  "site_tags",
-                ])
-              );
-              const json2csvParser = new Parser();
-              const csv = json2csvParser.parse(siteData);
+              const fields = [
+                "name",
+                "description",
+                "generated_name",
+                "latitude",
+                "longitude",
+                "country",
+                "region",
+                "district",
+                "city",
+                "county",
+                "sub_county",
+                "parish",
+                "street",
+                "formatted_name",
+                "altitude",
+                "greenness",
+                "landform_90",
+                "landform_270",
+                "aspect",
+                "distance_to_nearest_road",
+                "distance_to_nearest_primary_road",
+                "distance_to_nearest_tertiary_road",
+                "distance_to_nearest_unclassified_road",
+                "distance_to_nearest_residential_road",
+                "distance_to_nearest_secondary_road",
+                "distance_to_kampala_center",
+                "bearing_to_kampala_center",
+              ];
+              const json2csvParser = new Parser({ fields });
+              const csv = json2csvParser.parse(data);
               let filename = `site-registry.csv`;
               const link = document.createElement("a");
               link.setAttribute(
