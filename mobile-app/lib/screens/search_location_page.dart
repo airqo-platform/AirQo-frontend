@@ -59,19 +59,19 @@ class LocationSearch extends SearchDelegate<Suggestion> {
           query = '';
         },
       ),
-      IconButton(
-        tooltip: 'Map',
-        icon: Image.asset(
-          'assets/images/world-map.png',
-          height: 50,
-          width: 50,
-        ),
-        onPressed: () {
-          Navigator.push(context, MaterialPageRoute(builder: (context) {
-            return MapPage();
-          }));
-        },
-      )
+      // IconButton(
+      //   tooltip: 'Map',
+      //   icon: Image.asset(
+      //     'assets/images/world-map.png',
+      //     height: 50,
+      //     width: 50,
+      //   ),
+      //   onPressed: () {
+      //     Navigator.push(context, MaterialPageRoute(builder: (context) {
+      //       return MapPage();
+      //     }));
+      //   },
+      // )
     ];
   }
 
@@ -113,9 +113,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
           child: Container(
             padding: const EdgeInsets.all(16.0),
             child: Text(
-              'Failed to locate $query, search again and tap on any of the '
-              'available suggestions or use the map '
-              'on the top right corner',
+              'Failed to locate $query, consider using a different search term',
               textAlign: TextAlign.center,
               style: TextStyle(color: ColorConstants.appColor),
             ),
@@ -155,13 +153,15 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                       return Align(
                           alignment: Alignment.center,
                           child: Padding(
-                            padding: const EdgeInsets.all(8),
+                            padding: const EdgeInsets.all(20),
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
                                 Text(
-                                  'Could not find stations near $query',
+                                  'Sorry, air quality readings for'
+                                      ' "$query" are not available.'
+                                      '\n What do you prefer ??',
                                   textAlign: TextAlign.center,
                                   style:
                                       TextStyle(color: ColorConstants.appColor),
@@ -240,7 +240,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                                   ColorConstants.appColor),
                             ),
                             Text(
-                              'Searching for nearby stations. Please wait...',
+                              'Crunching location readings, hang tight...',
                               textAlign: TextAlign.center,
                               style: TextStyle(color: ColorConstants.appColor),
                             )
@@ -262,7 +262,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                           ColorConstants.appColor),
                     ),
                     Text(
-                      'Getting place details...',
+                      'Crunching location readings, hang tight...',
                       style: TextStyle(color: ColorConstants.appColor),
                     )
                   ],
@@ -347,7 +347,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
           return Container(
             padding: const EdgeInsets.all(16.0),
             child: Text(
-              'Could not load suggestions. Try again later or use the map',
+              'Could not load suggestions. Try again later',
               style: TextStyle(color: ColorConstants.appColor),
             ),
           );
@@ -385,10 +385,6 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                       valueColor: AlwaysStoppedAnimation<Color>(
                           ColorConstants.appColor),
                     ),
-                    Text(
-                      'Loading...',
-                      style: TextStyle(color: ColorConstants.appColor),
-                    )
                   ],
                 )),
           );
@@ -473,7 +469,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                           ColorConstants.appColor),
                     ),
                     Text(
-                      'Searching for stations. Please wait...',
+                      'Crunching location readings, hang tight...',
                       style: TextStyle(color: ColorConstants.appColor),
                     )
                   ],
@@ -546,8 +542,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                             ColorConstants.appColor),
                       ),
                       Text(
-                        'Getting air quality stations. '
-                        'Please wait...',
+                        'Crunching location readings, hang tight...',
                         textAlign: TextAlign.center,
                         style: TextStyle(color: ColorConstants.appColor),
                       )
@@ -611,7 +606,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
       child: const Padding(
         padding: EdgeInsets.all(10.0),
         child: Text(
-          'Show available air quality stations',
+          'Show me all your air quality stations',
           style: TextStyle(color: Colors.white),
         ),
       ),
@@ -636,7 +631,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
       child: const Padding(
         padding: EdgeInsets.all(10.0),
         child: Text(
-          'Go to the Map',
+          'Take me to the map',
           style: TextStyle(color: Colors.white),
         ),
       ),
