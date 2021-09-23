@@ -118,6 +118,8 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                   // Pollutants
                   PollutantsSection(measurementData),
 
+                  const SizedBox(height: 10,),
+
                   // Recommendations
                   HealthRecommendationSection(
                     measurement: measurementData,

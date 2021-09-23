@@ -18,30 +18,32 @@ class HelpPage extends StatelessWidget {
         appBar: AppBar(
           leading: BackButton(color: ColorConstants.appColor),
           elevation: 0,
-          bottom: const TabBar(
+
+          bottom: TabBar(
             isScrollable: true,
+            indicatorColor: ColorConstants.appColor,
             tabs: [
-              Tab(
+              const Tab(
                   child: Text(
                 'AQI',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
               )),
-              Tab(
+              const Tab(
                   child: Text(
                 'PM 2.5',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
               )),
-              Tab(
+              const Tab(
                   child: Text(
                 'PM 10',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
               )),
-              Tab(
+              const Tab(
                   child: Text(
                 'Humidity',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
               )),
-              Tab(
+              const Tab(
                   child: Text(
                 'Temperature',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),

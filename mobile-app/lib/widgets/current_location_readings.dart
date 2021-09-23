@@ -10,9 +10,11 @@ import 'package:app/utils/data_formatter.dart';
 import 'package:app/utils/date.dart';
 import 'package:app/utils/pm.dart';
 import 'package:app/utils/share.dart';
+import 'package:app/widgets/pollutants_container.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import 'dashboard_measurements_chart.dart';
 import 'health_recommendation.dart';
@@ -47,9 +49,13 @@ class CurrentLocationCard extends StatelessWidget {
               child: titleSection(context),
             ),
           ),
+          const SizedBox(height: 20,),
+          PollutantsSection(measurementData),
+          const SizedBox(height: 10,),
           HealthRecommendationSection(
             measurement: measurementData,
           ),
+          const SizedBox(height: 10,),
           if (historicalData.isNotEmpty)
             Card(
               shape: RoundedRectangleBorder(
@@ -69,6 +75,10 @@ class CurrentLocationCard extends StatelessWidget {
               ),
               child: forecastSection(),
             ),
+          SizedBox(
+            height: 300.0,
+            child: mapSection(measurementData),
+          )
         ],
       ),
     );

@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:app/constants/app_constants.dart';
+import 'package:app/models/measurement.dart';
 import 'package:app/models/pollutant.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
@@ -338,4 +339,39 @@ class Recommendation {
   Color imageColor = ColorConstants.green.withOpacity(0.2);
 
   Recommendation(this.recommendation, this.imageUrl, this.imageColor);
+}
+
+
+Widget mapSection(Measurement measurement) {
+  final _markers = <String, Marker>{};
+
+  final marker = Marker(
+    markerId: MarkerId(measurement.site.toString()),
+    icon: pmToMarkerPoint(measurement.getPm2_5Value()),
+    position: LatLng((measurement.site.latitude), measurement.site.longitude),
+  );
+  _markers[measurement.site.toString()] = marker;
+
+  return Padding(
+      padding: const EdgeInsets.fromLTRB(0.0, 2.0, 0.0, 2.0),
+      child: Card(
+          elevation: 20,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: GoogleMap(
+            compassEnabled: false,
+            mapType: MapType.normal,
+            myLocationButtonEnabled: false,
+            myLocationEnabled: false,
+            rotateGesturesEnabled: false,
+            tiltGesturesEnabled: false,
+            mapToolbarEnabled: false,
+            initialCameraPosition: CameraPosition(
+              target: LatLng(
+                  measurement.site.latitude, measurement.site.longitude),
+              zoom: 13,
+            ),
+            markers: _markers.values.toSet(),
+          )));
 }

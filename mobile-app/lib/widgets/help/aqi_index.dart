@@ -88,6 +88,7 @@ class AqiDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      color: ColorConstants.appBodyColor,
       padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
       child: ListView(
         children: [

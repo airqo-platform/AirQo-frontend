@@ -11,48 +11,48 @@ class PollutantsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-        child: Padding(
-      padding: const EdgeInsets.all(5.0),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          Text(
-            'Location Readings',
-            softWrap: true,
-            style: TextStyle(
-                fontSize: 20,
-                color: ColorConstants.appColor,
-                fontWeight: FontWeight.bold),
-          ),
-          SizedBox(
-            height: 120.0,
-            child: ListView(
-              physics: const ClampingScrollPhysics(),
-              shrinkWrap: true,
-              scrollDirection: Axis.horizontal,
-              children: [
-                if (measurement.getPm2_5Value() != 0.1)
-                  PollutantCard('PM 2.5', measurement.getPm2_5Value(),
-                      '${PollutantConstant.pm2_5}', ''),
-                if (measurement.getPm10Value() != 0.1)
-                  PollutantCard('PM 10', measurement.getPm10Value(),
-                      '${PollutantConstant.pm10}', ''),
-                if (measurement.humidity.value != 0.1)
-                  PollutantCard('Humidity',
-                      double.parse(measurement.humidity
-                          .value.toStringAsFixed(2)),
-                      '${PollutantConstant.humidity}', 'Tahmo'),
-                if (measurement.temperature.value != 0.1)
-                  PollutantCard('Temperature',
-                      double.parse(measurement.temperature
-                          .value.toStringAsFixed(2)),
-                      '${PollutantConstant.temperature}', 'Tahmo'),
-              ],
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            Text(
+              'Location Readings',
+              softWrap: true,
+              style: TextStyle(
+                  fontSize: 20,
+                  color: ColorConstants.appColor,
+                  fontWeight: FontWeight.bold),
             ),
-          ),
-        ],
-      ),
-    ));
+            const SizedBox(
+              height: 10.0
+            ),
+            SizedBox(
+              height: 120.0,
+              child: ListView(
+                physics: const ClampingScrollPhysics(),
+                shrinkWrap: true,
+                scrollDirection: Axis.horizontal,
+                children: [
+                  if (measurement.getPm2_5Value() != 0.1)
+                    PollutantCard('PM 2.5', measurement.getPm2_5Value(),
+                        '${PollutantConstant.pm2_5}', ''),
+                  if (measurement.getPm10Value() != 0.1)
+                    PollutantCard('PM 10', measurement.getPm10Value(),
+                        '${PollutantConstant.pm10}', ''),
+                  if (measurement.humidity.value != 0.1)
+                    PollutantCard('Humidity',
+                        double.parse(measurement.humidity
+                            .value.toStringAsFixed(2)),
+                        '${PollutantConstant.humidity}', 'Tahmo'),
+                  if (measurement.temperature.value != 0.1)
+                    PollutantCard('Temperature',
+                        double.parse(measurement.temperature
+                            .value.toStringAsFixed(2)),
+                        '${PollutantConstant.temperature}', 'Tahmo'),
+                ],
+              ),
+            ),
+          ],
+        ));
   }
 
   Widget builds(BuildContext context) {
