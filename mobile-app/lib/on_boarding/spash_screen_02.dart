@@ -12,7 +12,7 @@ class WelcomeScreenState extends State<WelcomeScreen> {
 
   @override
   void initState() {
-    initialize();
+    // initialize();
     super.initState();
 
   }
@@ -35,6 +35,7 @@ class WelcomeScreenState extends State<WelcomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    SizedBox(height: 45,),
                     const Text('Welcome to',
                       style: TextStyle(
                           fontWeight: FontWeight.bold,
@@ -45,7 +46,7 @@ class WelcomeScreenState extends State<WelcomeScreen> {
                       style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 32,
-                          color: ColorConstants.appColor
+                          color: ColorConstants.appColorBlue
                       ),),
                     Padding(
                       padding: EdgeInsets.fromLTRB(0, 45, 51, 0),

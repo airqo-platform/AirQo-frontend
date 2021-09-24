@@ -5,69 +5,27 @@ import 'package:app/utils/pm.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 
-class MeasurementsBarChart extends StatefulWidget {
+class DashboardBarChart extends StatefulWidget {
   final List<charts.Series<TimeSeriesData, DateTime>> seriesList;
-
   final String header;
 
-  MeasurementsBarChart(this.seriesList, this.header);
+  DashboardBarChart(this.seriesList, this.header);
 
   @override
-  _MeasurementsBarChartState createState() => _MeasurementsBarChartState();
+  _DashboardBarChartState createState() => _DashboardBarChartState();
 }
 
-
-class _MeasurementsBarChartState extends State<MeasurementsBarChart> {
+class _DashboardBarChartState extends State<DashboardBarChart> {
   var display = null;
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 20,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(5),
-      ),
+    return Container(
       child: Column(
         children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.fromLTRB(0, 5, 0, 0),
-            child: Center(
-              child: Text(
-                widget.header,
-                softWrap: true,
-                style: TextStyle(
-                    fontSize: 19,
-                    color: ColorConstants.appColor,
-                    fontWeight: FontWeight.bold),
-              ),
-            ),
-          ),
           // if (display != null)
           //   Column(
           //     children: [
-          //       Row(
-          //         children: [
-          //           const Spacer(
-          //             flex: 1,
-          //           ),
-          //           Text(
-          //             chartDateToString(display['time']),
-          //             softWrap: true,
-          //             style: TextStyle(color: ColorConstants.appColor),
-          //           ),
-          //           const Spacer(
-          //             flex: 1,
-          //           ),
-          //           Text(
-          //             display['value'].toString(),
-          //             softWrap: true,
-          //             style: TextStyle(color: ColorConstants.appColor),
-          //           ),
-          //           const Spacer(
-          //             flex: 1,
-          //           ),
-          //         ],
-          //       ),
           //       Text(
           //         pmToString(display['value']).replaceAll('\n', ' '),
           //         style: TextStyle(
@@ -75,51 +33,39 @@ class _MeasurementsBarChartState extends State<MeasurementsBarChart> {
           //             fontWeight: FontWeight.w600,
           //             color: ColorConstants.appColor),
           //       ),
+          //       Padding(
+          //         padding: const EdgeInsets.only(left: 10.0, right: 10.0),
+          //         child: Row(
+          //           children: [
+          //             // const Spacer(
+          //             //   flex: 1,
+          //             // ),
+          //             Text(
+          //               chartDateToString(display['time']),
+          //               softWrap: true,
+          //               style: TextStyle(color: ColorConstants.appColor),
+          //             ),
+          //             const Spacer(
+          //               flex: 1,
+          //             ),
+          //             Text(
+          //               display['value'].toString(),
+          //               softWrap: true,
+          //               style: TextStyle(color: ColorConstants.appColor),
+          //             ),
+          //             // const Spacer(
+          //             //   flex: 1,
+          //             // ),
+          //           ],
+          //         ),
+          //       ),
           //     ],
           //   ),
-          if (display != null)
-            Column(
-              children: [
-                Text(
-                  pmToString(display['value']).replaceAll('\n', ' '),
-                  style: TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w600,
-                      color: ColorConstants.appColor),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(10.0, 0.0, 10.0, 0.0),
-                  child: Row(
-                    children: [
-                      // const Spacer(
-                      //   flex: 1,
-                      // ),
-                      Text(
-                        chartDateToString(display['time']),
-                        softWrap: true,
-                        style: TextStyle(color: ColorConstants.appColor),
-                      ),
-                      const Spacer(
-                        flex: 1,
-                      ),
-                      Text(
-                        display['value'].toString(),
-                        softWrap: true,
-                        style: TextStyle(color: ColorConstants.appColor),
-                      ),
-                      // const Spacer(
-                      //   flex: 1,
-                      // ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
           Container(
-            decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.all(Radius.circular(20.0))),
-            height: 200,
+            // decoration: const BoxDecoration(
+            //     color: Colors.white,
+            //     borderRadius: BorderRadius.all(Radius.circular(20.0))),
+            height: 150,
             padding: const EdgeInsets.fromLTRB(5, 10, 5, 10),
             child: charts.TimeSeriesChart(
               widget.seriesList,
@@ -180,5 +126,3 @@ class _MeasurementsBarChartState extends State<MeasurementsBarChart> {
     );
   }
 }
-
-

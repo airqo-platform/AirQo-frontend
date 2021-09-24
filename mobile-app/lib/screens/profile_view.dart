@@ -3,6 +3,8 @@ import 'package:app/utils/date.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
+import 'maps_view.dart';
+
 class ProfileView extends StatefulWidget {
   const ProfileView({Key? key}) : super(key: key);
 
@@ -49,6 +51,10 @@ class _ProfileViewState extends State<ProfileView> {
                           const EdgeInsets.fromLTRB(0.0, 16.0, 0.0, 0.0),
                           child: signupSection(),
                         ),
+
+                        SizedBox(height: 16,),
+                        settingsSection(),
+
                       ],
                     ),
                   ),
@@ -186,6 +192,30 @@ class _ProfileViewState extends State<ProfileView> {
 
   }
 
+
+
+  Widget settingsSection() {
+    return Container(
+      decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.all(Radius.circular(10.0))
+      ),
+
+      child: ListTile(
+        leading: CustomUserAvatar(),
+        title: const Text(
+          'Settings',
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+              fontSize: 16
+          ),
+        ),
+      ),
+    );
+
+  }
+
+
   Widget signupSection() {
     return Container(
       decoration: const BoxDecoration(
@@ -198,7 +228,7 @@ class _ProfileViewState extends State<ProfileView> {
         children: [
           Padding(
               padding: EdgeInsets.fromLTRB(48.0, 38.0, 48.0, 0.0),
-            child: Text('Personalise your experience',
+            child: Text('Personalise your \nexperience',
                 maxLines: 3,
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,
@@ -209,7 +239,7 @@ class _ProfileViewState extends State<ProfileView> {
             ),
           ),
           Padding(
-            padding: EdgeInsets.fromLTRB(48.0, 0.0, 48.0, 48.0),
+            padding: EdgeInsets.only(left: 48.0, right: 48.0),
             child: Text('Create your account today and enjoy air quality'
                 ' updates and recommendations.',
                 maxLines: 6,
@@ -220,72 +250,28 @@ class _ProfileViewState extends State<ProfileView> {
                 )
             ),
           ),
-
-        ],
-      ),
-    );
-
-  }
-
-  Widget tipsSection() {
-    return Container(
-      padding: EdgeInsets.all(8.0),
-      decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.all(Radius.circular(5.0))
-      ),
-
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Expanded(child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-
-              Text('Your Inflated tires could lead air pollution lead air pollution lead air pollution',
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                  )
+          SizedBox(height: 16,),
+          Padding(
+            padding: EdgeInsets.only(left: 24, right: 24, bottom: 38),
+            child:           Container(
+              constraints:
+              const BoxConstraints(minWidth: double.infinity),
+              decoration: BoxDecoration(
+                  color: ColorConstants.appColorBlue,
+                  borderRadius: BorderRadius.all(Radius.circular(10.0))
               ),
-              GestureDetector(
-                onTap: (){
-                },
-                child: Text('Read full story',
+              child: Tab(
+                  child: Text(
+                    'Sign up',
                     style: TextStyle(
-                      color: ColorConstants.appColorBlue,
-                      fontSize: 8,
-                    )
-                ),
-              ),
-
-            ],
-          ),),
-          SizedBox(width: 17,),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(5.0),
-            child: CachedNetworkImage(
-              width: 104,
-              height: 56,
-              fit: BoxFit.cover,
-              placeholder: (context, url) => const SizedBox(
-                height: 20.0,
-                width: 20.0,
-                child: Center(
-                  child: CircularProgressIndicator(
-                    strokeWidth: 4,
-                  ),
-                ),
-              ),
-              imageUrl: 'https://miro.medium.com/max/1400/1*Q3eBVHmv1uW4397gjwa_Fg.jpeg',
-              errorWidget: (context, url, error) => Icon(
-                Icons.error_outline,
-                color: ColorConstants.red,
+                      color: Colors.white,
+                    ),
+                  )
               ),
             ),
           ),
+
+
 
         ],
       ),

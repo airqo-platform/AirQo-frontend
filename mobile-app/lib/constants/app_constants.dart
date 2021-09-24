@@ -30,11 +30,11 @@ class AppConfig {
 }
 
 class ColorConstants {
-  static Color get appBarBgColor => const Color(0xffEBEBEB);
+  static Color get appBarBgColor => const Color(0xffF2F1F6);
 
   static Color get appBarTitleColor => appColor;
 
-  static Color get appBodyColor => const Color(0xffEBEBEB);
+  static Color get appBodyColor => const Color(0xffF2F1F6);
 
   static Color get appPicColor => const Color(0xffFF79C1);
 
@@ -43,6 +43,8 @@ class ColorConstants {
   static Color get appColor => Colors.black;
 
   static Color get appColorBlue => const Color(0xff3067e2);
+
+  static Color get appTipColor => const Color(0xffD5FFD4);
 
   static Color get appBgColor => const Color(0xffEBEBEB);
 

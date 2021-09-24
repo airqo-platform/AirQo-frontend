@@ -1,9 +1,13 @@
 import 'dart:math';
 
 import 'package:app/constants/app_constants.dart';
+import 'package:app/models/chartData.dart';
 import 'package:app/utils/pm.dart';
 import 'package:flutter/material.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+
+import 'dashboard_measurements.dart';
 
 class ReadingsCard extends StatefulWidget {
   const ReadingsCard({Key? key}) : super(key: key);
@@ -14,7 +18,9 @@ class ReadingsCard extends StatefulWidget {
 
 class _ReadingsCardState extends State<ReadingsCard> {
 
-  final List<charts.Series> seriesList = _createSampleData();
+  final List<charts.Series> gaugeSeriesList = _createSampleData();
+  final List<charts.Series<TimeSeriesData, DateTime>> graphSeriesList =
+  createData();
 
   static List<charts.Series<GaugeSegment, String>> _createSampleData() {
     final data = [
@@ -50,59 +56,17 @@ class _ReadingsCardState extends State<ReadingsCard> {
       child: Column(
         children: [
           titleSection(),
+          graphSection(),
           footerSection()
         ],
       ),
     );
   }
-  Widget graphSection() {
-    return Padding(padding: EdgeInsets.all(8.0),
-      child:  Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          Text(
-              'Local Time',
-              style: TextStyle(
-                color: ColorConstants.appColor,
-                fontSize: 12,
-              )),
-          const Spacer(),
-          IconButton(onPressed: null, icon: Image.asset(
-            'assets/images/heart.png',
-          )),
 
-          OutlinedButton(onPressed: (){},
-            style: OutlinedButton.styleFrom(
-                backgroundColor: ColorConstants.appColorBlue
-            ),
-            child: Text('SHARE',
-                style: TextStyle(fontSize: 13, color: Colors.white)
-            ),),
-          // TextButton(
-          //   // style: ButtonStyle(
-          //   //   foregroundColor: MaterialStateProperty.all<Color>(Colors.blue),
-          //   // ),
-          //   onPressed: () {},
-          //   child: Card(
-          //       elevation: 5,
-          //       shape: RoundedRectangleBorder(
-          //         borderRadius: BorderRadius.circular(5),
-          //       ),
-          //       color: ColorConstants.appColor,
-          //       child: const Padding(
-          //         padding: EdgeInsets.all(8),
-          //         child: Text('SHARE',
-          //             style: TextStyle(fontSize: 13, color: Colors.white)
-          //         ),
-          //       )),
-          // )
-        ],
-      ),
-    );
+  Widget graphSection() {
+    return DashboardBarChart(graphSeriesList, 'Forecast');
 
   }
-
 
   Widget titleSection() {
     return Row(
@@ -162,7 +126,7 @@ class _ReadingsCardState extends State<ReadingsCard> {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           Text(
-              'Local Time',
+              'SEP 08, 01:20, local time',
               style: TextStyle(
                 color: ColorConstants.appColor,
                 fontSize: 12,
@@ -171,32 +135,15 @@ class _ReadingsCardState extends State<ReadingsCard> {
           IconButton(onPressed: null, icon: Image.asset(
             'assets/images/heart.png',
           )),
-
-          OutlinedButton(onPressed: (){},
-            style: OutlinedButton.styleFrom(
-                backgroundColor: ColorConstants.appColorBlue
+          Container(
+            padding: EdgeInsets.all(5.0),
+            decoration: BoxDecoration(
+                color: ColorConstants.appColorBlue,
+                borderRadius: BorderRadius.all(Radius.circular(4.0))
             ),
-            child: Text('SHARE',
-                style: TextStyle(fontSize: 13, color: Colors.white)
-            ),),
-          // TextButton(
-          //   // style: ButtonStyle(
-          //   //   foregroundColor: MaterialStateProperty.all<Color>(Colors.blue),
-          //   // ),
-          //   onPressed: () {},
-          //   child: Card(
-          //       elevation: 5,
-          //       shape: RoundedRectangleBorder(
-          //         borderRadius: BorderRadius.circular(5),
-          //       ),
-          //       color: ColorConstants.appColor,
-          //       child: const Padding(
-          //         padding: EdgeInsets.all(8),
-          //         child: Text('SHARE',
-          //             style: TextStyle(fontSize: 13, color: Colors.white)
-          //         ),
-          //       )),
-          // )
+        child: Text('SHARE',
+            style: TextStyle(fontSize: 8, color: Colors.white)
+        )),
         ],
       ),
     );
@@ -205,21 +152,42 @@ class _ReadingsCardState extends State<ReadingsCard> {
 
   Widget gaugeChart() {
     return Container(
-      height: 100.0,
-      width: 100.0,
-      child: charts.PieChart(
-        seriesList,
-        animate: false,
-        defaultRenderer: charts.ArcRendererConfig(
-          arcWidth: 3,
-          startAngle: 4 / 5 * pi,
-          arcLength: 7 / 5 * pi,
-          strokeWidthPx: 0,
-          // arcRendererDecorators: [new charts.ArcLabelDecorator(
-          //   showLeaderLines: false,
-          //   labelPosition: charts.ArcLabelPosition.inside,
-          // )],
-        ),
+      height: 110.0,
+      width: 110.0,
+      child: Stack(
+        alignment: AlignmentDirectional.center,
+        children: [
+          charts.PieChart(
+            gaugeSeriesList,
+            animate: true,
+            defaultRenderer: charts.ArcRendererConfig(
+              arcWidth: 3,
+              startAngle: 4 / 5 * pi,
+              arcLength: 7 / 5 * pi,
+              strokeWidthPx: 0,
+              // arcRendererDecorators: [new charts.ArcLabelDecorator(
+              //   showLeaderLines: false,
+              //   labelPosition: charts.ArcLabelPosition.inside,
+              // )],
+            ),
+          ),
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text('98',
+              style: TextStyle(
+                fontSize: 19,
+                fontWeight: FontWeight.bold
+              ),),
+              Text('PM2.5',
+                  style: TextStyle(
+                      fontSize: 10,
+                      color: ColorConstants.inactiveColor,
+                  ))
+            ],
+          )
+        ],
       ),
     );
   }

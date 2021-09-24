@@ -34,12 +34,12 @@ Future<void> main() async {
 
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Firebase.initializeApp().then((value) => {
-        // FirebaseMessaging.onBackgroundMessage(backgroundMessageHandler),
-
-        FirebaseMessaging.onMessage
-            .listen(FbNotifications().foregroundMessageHandler)
-      });
+  // await Firebase.initializeApp().then((value) => {
+  //       // FirebaseMessaging.onBackgroundMessage(backgroundMessageHandler),
+  //
+  //       FirebaseMessaging.onMessage
+  //           .listen(FbNotifications().foregroundMessageHandler)
+  //     });
 
   final prefs = await SharedPreferences.getInstance();
   final themeController = ThemeController(prefs);
@@ -197,11 +197,11 @@ class SplashScreenState extends State<SplashScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Image.asset(
-                'assets/icon/airqo_logo_tagline_transparent.png',
-                height: 150,
-                width: 150,
-              ),
+              // Image.asset(
+              //   'assets/icon/airqo_logo_tagline_transparent.png',
+              //   height: 150,
+              //   width: 150,
+              // ),
               // Center(
               //   child: CircularProgressIndicator(
               //     valueColor:
@@ -310,7 +310,7 @@ class SplashScreenState extends State<SplashScreen> {
     } else {
       await Navigator.pushAndRemoveUntil(context,
           MaterialPageRoute(builder: (context) {
-        return HomePage();
+        return LogoScreen();
       }), (r) => false);
     }
   }

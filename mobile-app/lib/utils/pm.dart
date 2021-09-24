@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:app/constants/app_constants.dart';
+import 'package:app/models/chartData.dart';
 import 'package:app/models/pollutant.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
@@ -319,4 +320,42 @@ class Recommendation {
   Color imageColor = ColorConstants.green.withOpacity(0.2);
 
   Recommendation(this.recommendation, this.imageUrl, this.imageColor);
+}
+
+
+List<charts.Series<TimeSeriesData, DateTime>> createData() {
+  var today = DateTime.now();
+
+  final data = [
+    new TimeSeriesData(today.add(Duration(hours: 1)), 5),
+    new TimeSeriesData(today.add(Duration(hours: 2)), 5),
+    new TimeSeriesData(today.add(Duration(hours: 3)), 25),
+    new TimeSeriesData(today.add(Duration(hours: 4)), 100),
+    new TimeSeriesData(today.add(Duration(hours: 5)), 75),
+    new TimeSeriesData(today.add(Duration(hours: 6)), 88),
+    new TimeSeriesData(today.add(Duration(hours: 7)), 65),
+    new TimeSeriesData(today.add(Duration(hours: 8)), 91),
+    new TimeSeriesData(today.add(Duration(hours: 9)), 100),
+    new TimeSeriesData(today.add(Duration(hours: 10)), 111),
+    new TimeSeriesData(today.add(Duration(hours: 11)), 90),
+    new TimeSeriesData(today.add(Duration(hours: 12)), 50),
+    new TimeSeriesData(today.add(Duration(hours: 13)), 40),
+    new TimeSeriesData(today.add(Duration(hours: 14)), 30),
+    new TimeSeriesData(today.add(Duration(hours: 15)), 40),
+    new TimeSeriesData(today.add(Duration(hours: 16)), 50),
+    new TimeSeriesData(today.add(Duration(hours: 17)), 30),
+    new TimeSeriesData(today.add(Duration(hours: 18)), 35),
+    new TimeSeriesData(today.add(Duration(hours: 19)), 40),
+    new TimeSeriesData(today.add(Duration(hours: 20)), 32),
+  ];
+
+  return [
+    new charts.Series<TimeSeriesData, DateTime>(
+      id: 'Sales',
+      colorFn: (_, __) => charts.MaterialPalette.blue.shadeDefault,
+      domainFn: (TimeSeriesData sales, _) => sales.time,
+      measureFn: (TimeSeriesData sales, _) => sales.value,
+      data: data,
+    )
+  ];
 }

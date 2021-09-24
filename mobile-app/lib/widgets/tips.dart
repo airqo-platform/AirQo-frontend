@@ -32,7 +32,7 @@ class _TipCardState extends State<TipCard> {
           Container(
             padding: const EdgeInsets.all(2.0),
             decoration: BoxDecoration(
-                color:ColorConstants.appColorBlue,
+                color:ColorConstants.appTipColor,
                 shape: BoxShape.rectangle,
                 borderRadius: const BorderRadius.all(Radius.circular(10.0))
             ),
@@ -40,7 +40,7 @@ class _TipCardState extends State<TipCard> {
               iconSize: 30,
               icon: Icon(
                 Icons.bookmark_outline,
-                color: ColorConstants.appColorBlue,
+                color: ColorConstants.appTipColor,
               ),
               onPressed: () async {
               },

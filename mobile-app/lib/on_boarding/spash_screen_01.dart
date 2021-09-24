@@ -1,4 +1,5 @@
 import 'package:app/on_boarding/spash_screen_02.dart';
+import 'package:app/screens/home_page.dart';
 import 'package:flutter/material.dart';
 
 class TagLineScreen extends StatefulWidget {
@@ -47,7 +48,7 @@ class TagLineScreenState extends State<TagLineScreen> {
     Future.delayed(const Duration(seconds: 4), () async {
       await Navigator.pushReplacement(context,
           MaterialPageRoute(builder: (context) {
-            return WelcomeScreen();
+            return HomePage();
           }));
     });
   }

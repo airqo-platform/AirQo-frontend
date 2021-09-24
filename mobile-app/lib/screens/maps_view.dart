@@ -1,5 +1,6 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/widgets/map.dart';
+import 'package:app/widgets/readings_card.dart';
 import 'package:flutter/material.dart';
 
 class MapView extends StatefulWidget {
@@ -11,13 +12,14 @@ class MapView extends StatefulWidget {
 
 class _MapViewState extends State<MapView> {
   @override
+  bool showLocationDetails = false;
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
         children: <Widget>[
           MapWidget(),
           DraggableScrollableSheet(
-            initialChildSize: 0.18,
+            initialChildSize: 0.45,
             minChildSize: 0.18,
             builder: (BuildContext context, ScrollController scrollController) {
               return SingleChildScrollView(
@@ -30,6 +32,169 @@ class _MapViewState extends State<MapView> {
       ),
     );
   }
+
+  Widget ScrollViewContent(){
+    return Padding(padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+
+      child: Card(
+        elevation: 12.0,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        margin: const EdgeInsets.all(0),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: showLocationDetails ? locationContent() : defaultContent(),
+        ),
+      ),);
+  }
+
+  Widget defaultContent(){
+    return Padding(padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: <Widget>[
+            const SizedBox(height: 8),
+            DraggingHandle(),
+            const SizedBox(height: 16),
+            SearchContainer(),
+            RegionsList(),
+
+          ],
+        ));
+  }
+
+  Widget locationContent(){
+    return Padding(padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: <Widget>[
+            const SizedBox(height: 8),
+            DraggingHandle(),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Spacer(),
+                GestureDetector(onTap: showLocation,
+                  child: closeDetails(),
+                ),
+
+              ],
+            ),
+
+            ReadingsCard(),
+
+          ],
+        ));
+  }
+
+  Widget RegionsList(){
+    return ListView(
+      shrinkWrap: true,
+      children: <Widget>[
+        ListTile(
+          leading: CustomUserAvatar(),
+          onTap: showLocation,
+          title: const Text(
+            'Central Region',
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16
+            ),
+          ),
+          subtitle: const Text(
+            'Uganda',
+            style: TextStyle(
+                fontSize: 8
+            ),
+          ),
+        ),
+        const Divider(
+        ),
+        ListTile(
+          onTap: showLocation,
+          leading: CustomUserAvatar(),
+          title: const Text(
+            'Western Region',
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16
+            ),
+          ),
+          subtitle: const Text(
+            'Uganda',
+
+            style: TextStyle(
+                fontSize: 8
+            ),
+          ),
+        ),
+        const Divider(
+        ),
+        ListTile(
+          onTap: showLocation,
+          leading: CustomUserAvatar(),
+          title: const Text(
+            'Eastern Region',
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16
+            ),
+          ),
+          subtitle: const Text(
+            'Uganda',
+
+            style: TextStyle(
+                fontSize: 8
+            ),
+          ),
+        ),
+        const Divider(
+        ),
+        ListTile(
+          onTap: showLocation,
+          leading: CustomUserAvatar(),
+          title: const Text(
+            'Northern Region',
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16
+            ),
+          ),
+          subtitle: const Text(
+            'Uganda',
+
+            style: TextStyle(
+                fontSize: 8
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void showLocation(){
+    setState(() {
+      showLocationDetails = !showLocationDetails;
+    });
+  }
+
+  Widget closeDetails(){
+    return Container(
+      height: 30,
+      width: 30,
+      decoration: BoxDecoration(color: ColorConstants.appBodyColor,
+          borderRadius: BorderRadius.circular(8)),
+      child: Icon(Icons.clear, size: 20,),
+    );
+  }
+
 }
 
 
@@ -94,42 +259,6 @@ class CustomTextField extends StatelessWidget {
   }
 }
 
-class ScrollViewContent extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Padding(padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-    child: Card(
-      elevation: 12.0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      margin: const EdgeInsets.all(0),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: InnerContent(),
-      ),
-    ),);
-  }
-}
-
-class InnerContent extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Padding(padding: const EdgeInsets.all(16.0),
-    child: Column(
-      children: <Widget>[
-        const SizedBox(height: 8),
-        DraggingHandle(),
-        const SizedBox(height: 16),
-        SearchContainer(),
-        const SizedBox(height: 16),
-        RegionsList(),
-
-      ],
-    ));
-  }
-}
-
 class DraggingHandle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -157,94 +286,3 @@ class CustomUserAvatar extends StatelessWidget {
   }
 }
 
-class RegionsList extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return ListView(
-      shrinkWrap: true,
-      children: <Widget>[
-        ListTile(
-          leading: CustomUserAvatar(),
-          title: const Text(
-            'Central Region',
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16
-            ),
-          ),
-          subtitle: const Text(
-            'Uganda',
-            style: TextStyle(
-                fontSize: 8
-            ),
-          ),
-        ),
-        const Divider(
-        ),
-        ListTile(
-          leading: CustomUserAvatar(),
-          title: const Text(
-            'Western Region',
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16
-            ),
-          ),
-          subtitle: const Text(
-            'Uganda',
-
-            style: TextStyle(
-                fontSize: 8
-            ),
-          ),
-        ),
-        const Divider(
-        ),
-        ListTile(
-          leading: CustomUserAvatar(),
-          title: const Text(
-            'Eastern Region',
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16
-            ),
-          ),
-          subtitle: const Text(
-            'Uganda',
-
-            style: TextStyle(
-                fontSize: 8
-            ),
-          ),
-        ),
-        const Divider(
-        ),
-        ListTile(
-          leading: CustomUserAvatar(),
-          title: const Text(
-            'Northern Region',
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16
-            ),
-          ),
-          subtitle: const Text(
-            'Uganda',
-
-            style: TextStyle(
-                fontSize: 8
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}

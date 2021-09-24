@@ -74,32 +74,32 @@ class MapWidgetState extends State<MapWidget> {
             });
           },
         ),
-        if (isLoading)
-          Positioned.fill(
-            child: Align(
-                alignment: Alignment.center,
-                child: SizedBox(
-                  height: 200.0,
-                  child: Stack(
-                    children: <Widget>[
-                      Center(
-                        child: Container(
-                            width: 100,
-                            height: 100,
-                            child: CircularProgressIndicator(
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                  ColorConstants.appColor),
-                            )),
-                      ),
-                      Center(
-                          child: Text(
-                            'Loading',
-                            style: TextStyle(color: ColorConstants.appColor),
-                          )),
-                    ],
-                  ),
-                )),
-          ),
+        // if (isLoading)
+        //   Positioned.fill(
+        //     child: Align(
+        //         alignment: Alignment.center,
+        //         child: SizedBox(
+        //           height: 200.0,
+        //           child: Stack(
+        //             children: <Widget>[
+        //               Center(
+        //                 child: Container(
+        //                     width: 100,
+        //                     height: 100,
+        //                     child: CircularProgressIndicator(
+        //                       valueColor: AlwaysStoppedAnimation<Color>(
+        //                           ColorConstants.appColor),
+        //                     )),
+        //               ),
+        //               Center(
+        //                   child: Text(
+        //                     'Loading',
+        //                     style: TextStyle(color: ColorConstants.appColor),
+        //                   )),
+        //             ],
+        //           ),
+        //         )),
+        //   ),
 
       ],
     );
