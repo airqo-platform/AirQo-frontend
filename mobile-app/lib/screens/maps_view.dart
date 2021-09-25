@@ -19,7 +19,7 @@ class _MapViewState extends State<MapView> {
         children: <Widget>[
           MapWidget(),
           DraggableScrollableSheet(
-            initialChildSize: 0.45,
+            initialChildSize: 0.20,
             minChildSize: 0.18,
             builder: (BuildContext context, ScrollController scrollController) {
               return SingleChildScrollView(

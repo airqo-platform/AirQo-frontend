@@ -1,7 +1,9 @@
 import 'package:app/constants/app_constants.dart';
+import 'package:app/screens/signup_page.dart';
 import 'package:app/utils/date.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'maps_view.dart';
 
@@ -13,6 +15,8 @@ class ProfileView extends StatefulWidget {
 }
 
 class _ProfileViewState extends State<ProfileView> {
+
+  bool isSignup = true;
 
   @override
   Widget build(BuildContext context) {
@@ -27,24 +31,61 @@ class _ProfileViewState extends State<ProfileView> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-
+                  isSignup ?
                   Expanded(
                     child: ListView(
                       shrinkWrap: true,
                       children: <Widget>[
-                        Padding(
-                          padding:
-                          const EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
-                          child: topBar(),
+                        topBar(),
+                        SizedBox(height: 10.0,),
+                        Text(
+                          'Nagawa Greta',
+                          style: const TextStyle(
+                              fontSize: 24, fontWeight: FontWeight.bold),
+                        ),
+                        GestureDetector(
+                          onTap: (){
+                            Navigator.push(context, MaterialPageRoute(builder: (context) {
+                              return SignUpPage();
+                            }));
+                          },
+                          child: Text(
+                            'Edit profile',
+                            style: TextStyle(
+                                fontSize: 16, color: ColorConstants.appColorBlue),
+                          ),
                         ),
                         Padding(
                           padding:
-                          const EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 0.0),
-                          child: Text(
-                            'Guest',
-                            style: const TextStyle(
-                                fontSize: 24, fontWeight: FontWeight.bold),
-                          ),
+                          const EdgeInsets.fromLTRB(0.0, 16.0, 0.0, 0.0),
+                          child: profileSection(),
+                        ),
+
+                        SizedBox(height: 16,),
+                        settingsSection('Settings'),
+
+                        SizedBox(height: 16,),
+                        settingsSection('Logout'),
+
+                      ],
+                    ),
+                  )
+                      :
+                  Expanded(
+                    child: ListView(
+                      shrinkWrap: true,
+                      children: <Widget>[
+                        topBar(),
+                        SizedBox(height: 10.0,),
+                        Text(
+                          'Guest',
+                          style: const TextStyle(
+                              fontSize: 24, fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          'Edit profile',
+                          style: TextStyle(
+                              fontSize: 16, color: ColorConstants.inactiveColor),
                         ),
                         Padding(
                           padding:
@@ -53,7 +94,7 @@ class _ProfileViewState extends State<ProfileView> {
                         ),
 
                         SizedBox(height: 16,),
-                        settingsSection(),
+                        settingsSection('Settings'),
 
                       ],
                     ),
@@ -66,61 +107,8 @@ class _ProfileViewState extends State<ProfileView> {
 
   @override
   void initState() {
-    // initialize();
+    initialize();
     super.initState();
-  }
-
-  Widget topTabs() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        OutlinedButton(
-            onPressed: (){},
-            child: Text('Favourite')),
-        SizedBox(width: 16,),
-        OutlinedButton(
-            onPressed: (){},
-            child: Text('Favourite')),
-
-      ],
-    );
-
-  }
-
-  Widget tabs() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        Container(
-          padding: EdgeInsets.all(8.0),
-          decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.all(Radius.circular(5.0))
-          ),
-
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Your Inflated tires could lead air pollution lead air pollution lead air pollution',
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                  )
-              )
-
-            ],
-          ),
-        ),
-        SizedBox(width: 16,),
-        OutlinedButton(
-            onPressed: (){},
-            child: Text('Favourite')),
-
-      ],
-    );
-
   }
 
   Widget topBar() {
@@ -193,8 +181,7 @@ class _ProfileViewState extends State<ProfileView> {
   }
 
 
-
-  Widget settingsSection() {
+  Widget settingsSection(text) {
     return Container(
       decoration: const BoxDecoration(
           color: Colors.white,
@@ -203,8 +190,8 @@ class _ProfileViewState extends State<ProfileView> {
 
       child: ListTile(
         leading: CustomUserAvatar(),
-        title: const Text(
-          'Settings',
+        title: Text(
+          '$text',
           overflow: TextOverflow.ellipsis,
           style: TextStyle(
               fontSize: 16
@@ -251,25 +238,33 @@ class _ProfileViewState extends State<ProfileView> {
             ),
           ),
           SizedBox(height: 16,),
-          Padding(
-            padding: EdgeInsets.only(left: 24, right: 24, bottom: 38),
-            child:           Container(
-              constraints:
-              const BoxConstraints(minWidth: double.infinity),
-              decoration: BoxDecoration(
-                  color: ColorConstants.appColorBlue,
-                  borderRadius: BorderRadius.all(Radius.circular(10.0))
-              ),
-              child: Tab(
-                  child: Text(
-                    'Sign up',
-                    style: TextStyle(
-                      color: Colors.white,
-                    ),
-                  )
+          GestureDetector(
+            onTap: (){
+              Navigator.push(context, MaterialPageRoute(builder: (context) {
+                return SignUpPage();
+              })).then((value) => initialize);
+            },
+            child: Padding(
+              padding: EdgeInsets.only(left: 24, right: 24, bottom: 38),
+              child:           Container(
+                constraints:
+                const BoxConstraints(minWidth: double.infinity),
+                decoration: BoxDecoration(
+                    color: ColorConstants.appColorBlue,
+                    borderRadius: BorderRadius.all(Radius.circular(10.0))
+                ),
+                child: Tab(
+                    child: Text(
+                      'Sign up',
+                      style: TextStyle(
+                        color: Colors.white,
+                      ),
+                    )
+                ),
               ),
             ),
           ),
+
 
 
 
@@ -279,5 +274,59 @@ class _ProfileViewState extends State<ProfileView> {
 
   }
 
-  Future<void> initialize() async {}
+  Widget profileSection() {
+    return Container(
+      padding: EdgeInsets.only(top: 10, bottom: 10),
+      decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.all(Radius.circular(10.0))
+      ),
+
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+
+          GestureDetector(
+            onTap: (){
+              Navigator.push(context, MaterialPageRoute(builder: (context) {
+                return SignUpPage();
+              }));
+            },
+            child: settingsSection('Profile'),
+          ),
+          Divider(
+            color: ColorConstants.appBodyColor,
+          ),
+          settingsSection('Favorite'),
+          Divider(
+            color: ColorConstants.appBodyColor,
+          ),
+          settingsSection('For you'),
+          Divider(
+            color: ColorConstants.appBodyColor,
+          ),
+          settingsSection('App Tips & Tricks'),
+        ],
+      ),
+    );
+
+  }
+
+
+  Future<void> initialize() async {
+
+    var prefs = await SharedPreferences.getInstance();
+    var isSignedUp = prefs.getBool(PrefConstant.isSignedUp) ?? false;
+
+    if (isSignedUp) {
+      setState(() {
+        isSignup = true;
+      });
+    } else {
+      setState(() {
+        isSignup = false;
+      });
+    }
+
+  }
 }

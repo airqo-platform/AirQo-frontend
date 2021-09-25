@@ -397,8 +397,10 @@ class MapWidgetState extends State<MapWidget> {
 
     await AirqoApiClient(context).fetchLatestMeasurements().then((value) => {
 
-      if (value.isNotEmpty) {
+      if(mounted && value.isNotEmpty){
         setMeasurements(value),
+      },
+      if (value.isNotEmpty) {
         dbHelper.insertLatestMeasurements(value),
       }
     });

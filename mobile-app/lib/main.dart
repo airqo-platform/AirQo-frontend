@@ -132,7 +132,7 @@ class AirQoApp extends StatelessWidget {
                 locale: provider.locale,
                 title: '${AppConfig.name}',
                 theme: _buildCurrentTheme(),
-                home: SplashScreen(),
+                home: LogoScreen(),
               );
             },
           ),
@@ -248,11 +248,11 @@ class SplashScreenState extends State<SplashScreen> {
     Future.delayed(const Duration(seconds: 4), _checkFirstUse);
   }
 
-  @override
-  void initState() {
-    initialize();
-    super.initState();
-  }
+  // @override
+  // void initState() {
+  //   initialize();
+  //   super.initState();
+  // }
 
   void reload() {
     setState(() {
