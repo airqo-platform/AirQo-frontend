@@ -1,96 +1,196 @@
+import 'package:app/constants/app_constants.dart';
+import 'package:app/widgets/custom_widgets.dart';
 import 'package:flutter/material.dart';
 
-import 'news_and_stats_page.dart';
-
 class SearchPage extends StatefulWidget {
+  const SearchPage({Key? key}) : super(key: key);
+
   @override
   _SearchPageState createState() => _SearchPageState();
 }
 
-class _SearchPageState extends State<SearchPage>
-    with SingleTickerProviderStateMixin, RestorationMixin {
-  TabController? _tabController;
-  final searchController = TextEditingController();
-  final List<Map<String, Widget>> tabs = [
-    {'All': NewsAndStatsPage()},
-    {'Places': NewsAndStatsPage()},
-    {'News': NewsAndStatsPage()},
-    {'Resources': NewsAndStatsPage()}
-  ];
-
-  final RestorableInt tabIndex = RestorableInt(0);
-
-  @override
-  String get restorationId => 'search_page';
-
+class _SearchPageState extends State<SearchPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: TextFormField(
-          controller: searchController,
-          cursorColor: Colors.white,
-          style: const TextStyle(
-            color: Colors.white,
-          ),
-          // autofocus: true,
-          decoration: InputDecoration(
-            hintText: 'Search',
-            // labelText: 'Search',
-            suffixIcon: IconButton(
-              onPressed: search,
-              icon: const Icon(Icons.search),
+      body: Container(
+        padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 40),
+        color: ColorConstants.appBodyColor,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: <Widget>[
+
+                Padding(padding: const EdgeInsets.only(right: 16.0),
+                  child:  backButton(context),
+                ),
+                Expanded(child: customSearchField(context,
+                    'Search your village air quality'),)
+
+
+              ],
             ),
-          ),
-        ),
-        bottom: TabBar(
-          controller: _tabController,
-          isScrollable: true,
-          tabs: [
-            for (final tab in tabs) Tab(text: tab.keys.first),
+
+            const SizedBox(height: 30,),
+            Expanded(child: ListView(
+              shrinkWrap: true,
+              children: [
+                RequestLocationAccess(),
+                nearByLocations(),
+              ],
+            ),),
+
+
+            
           ],
         ),
       ),
-      body: TabBarView(
-        controller: _tabController,
+    );
+  }
+
+  Widget nearByLocations(){
+    return Container(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          for (final tab in tabs)
-            Center(
-              child: tab[tab.keys.first],
+          Text('Locations near me',
+            textAlign: TextAlign.start,
+            style: TextStyle(
+                color: ColorConstants.inactiveColor,
+                fontSize: 12
             ),
+          ),
+          const SizedBox(height: 8,),
+          Container(
+            padding: EdgeInsets.all(8),
+            decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.rectangle,
+                borderRadius: BorderRadius.all(Radius.circular(10.0))
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                locationTile(context),
+                Divider(
+                  color: ColorConstants.appBodyColor,
+                ),
+                locationTile(context),
+                Divider(
+                  color: ColorConstants.appBodyColor,
+                ),
+                locationTile(context),
+                Divider(
+                  color: ColorConstants.appBodyColor,
+                ),
+                locationTile(context),
+                Divider(
+                  color: ColorConstants.appBodyColor,
+                ),
+                locationTile(context)
+              ],
+            ),
+          )
         ],
       ),
     );
   }
 
-  @override
-  void dispose() {
-    _tabController!.dispose();
-    searchController.dispose();
-    tabIndex.dispose();
-    super.dispose();
-  }
+  Widget RequestLocationAccess(){
+    return Container(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Locations near me',
+            textAlign: TextAlign.start,
+            style: TextStyle(
+              color: ColorConstants.inactiveColor,
+              fontSize: 12
+            ),
+          ),
+          const SizedBox(height: 8,),
+          Container(
+            padding: EdgeInsets.all(40.0),
+            decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.rectangle,
+                borderRadius: BorderRadius.all(Radius.circular(10.0))
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                SizedBox(height: 84,),
+                Stack(
+                  children: [
+                    Image.asset(
+                      'assets/images/world-map.png',
+                      height: 130,
+                      width: 130,
+                    ),
+                    Container(
+                      decoration: BoxDecoration(
+                          color: ColorConstants.appColorBlue,
+                          shape: BoxShape.circle,
+                      ),
+                      child: const Padding(
+                        padding: EdgeInsets.all(12.0),
+                        child: Icon(
+                          Icons.map_outlined, size: 30,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
 
-  @override
-  void initState() {
-    _tabController = TabController(
-      initialIndex: 0,
-      length: tabs.length,
-      vsync: this,
+                const SizedBox(height: 52,),
+                const Text('Enable locations',
+                  textAlign: TextAlign.start,
+                  style: TextStyle(
+                      fontSize: 20,
+                    fontWeight: FontWeight.bold
+                  ),
+                ),
+                const SizedBox(height: 8,),
+                const Text('Allow AirQo to show you location air '
+                    'quality update near you.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                      fontSize: 12
+                  ),
+                ),
+                const SizedBox(height: 24,),
+                Container(
+                  constraints:
+                  const BoxConstraints(minWidth: double.infinity),
+                  decoration: BoxDecoration(
+                      color: ColorConstants.appColorBlue,
+                      borderRadius: BorderRadius.all(Radius.circular(10.0))
+                  ),
+                  child: Padding(
+                    padding: EdgeInsets.only(top: 19, bottom: 19),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Allow locaton',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Colors.white,
+                          ),
+                        )
+                      ],
+                    ),
+                  )
+                ),
+                SizedBox(height: 40,),
+              ],
+            ),
+          )
+        ],
+      ),
     );
-    _tabController!.addListener(() {
-      setState(() {
-        tabIndex.value = _tabController!.index;
-      });
-    });
-    super.initState();
   }
-
-  @override
-  void restoreState(RestorationBucket? oldBucket, bool initialRestore) {
-    registerForRestoration(tabIndex, 'tab_index');
-    _tabController!.index = tabIndex.value;
-  }
-
-  void search() {}
 }

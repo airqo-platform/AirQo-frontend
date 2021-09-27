@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import 'home_page_v2.dart';
+import '../old_interfaces/home_page_v2.dart';
 
 RawMaterialButton customOkayButton(context, success) {
   return RawMaterialButton(

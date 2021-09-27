@@ -6,6 +6,7 @@ import 'package:app/models/predict.dart';
 import 'package:app/models/site.dart';
 import 'package:app/screens/place_view.dart';
 import 'package:app/screens/search_location_page.dart';
+import 'package:app/screens/search_page.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/services/native_api.dart';
 import 'package:app/services/rest_api.dart';
@@ -348,12 +349,16 @@ class _DashboardPageState extends State<DashboardPage> {
                 color: ColorConstants.appBarTitleColor,
               ),
               onPressed: () async {
-                await showSearch(
-                  context: context,
-                  delegate: LocationSearch(),
-                ).then((_) {
-                  setState(() {});
-                });
+
+                await Navigator.push(context, MaterialPageRoute(
+                    builder: (context){return const SearchPage();
+                }));
+                // await showSearch(
+                //   context: context,
+                //   delegate: LocationSearch(),
+                // ).then((_) {
+                //   setState(() {});
+                // });
               },
             ),
           )

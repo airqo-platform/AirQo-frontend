@@ -1,6 +1,6 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/utils/date.dart';
-import 'package:app/widgets/custom_back_button.dart';
+import 'package:app/widgets/custom_widgets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';

@@ -21,7 +21,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
-import 'help_page.dart';
+import '../screens/help_page.dart';
 
 class MapViewV1 extends StatefulWidget {
   @override

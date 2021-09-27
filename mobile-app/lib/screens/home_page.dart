@@ -1,7 +1,6 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/on_boarding/onBoarding_page.dart';
 import 'package:app/screens/map_page.dart';
-import 'package:app/screens/map_view_v2.dart';
 import 'package:app/screens/profile_view.dart';
 import 'package:app/screens/resources_page.dart';
 import 'package:app/screens/search_location_page.dart';

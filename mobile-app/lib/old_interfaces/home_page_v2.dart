@@ -18,8 +18,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'dashboard_page_v2.dart';
-import 'help_page.dart';
-import 'my_places_view.dart';
+import '../screens/help_page.dart';
+import '../screens/my_places_view.dart';
 
 class HomePageV2 extends StatefulWidget {
   final String title = 'AirQo';
