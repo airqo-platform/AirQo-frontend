@@ -1,5 +1,5 @@
 import 'package:app/constants/app_constants.dart';
-import 'package:app/screens/home_page_v2.dart';
+import 'package:app/screens/home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -33,7 +33,7 @@ class OnBoardingButtons extends StatelessWidget {
                           updateFirstUse();
                           Navigator.pushAndRemoveUntil(context,
                               MaterialPageRoute(builder: (context) {
-                            return HomePageV2();
+                            return HomePage();
                           }), (r) => false);
                         },
                         color: Colors.white,
@@ -48,7 +48,7 @@ class OnBoardingButtons extends StatelessWidget {
                           'Get started',
                           style: TextStyle(
                               fontSize: 18,
-                              color: ColorConstants().appColor,
+                              color: ColorConstants.appColor,
                               fontWeight: FontWeight.w700),
                         )))),
               )
@@ -60,7 +60,7 @@ class OnBoardingButtons extends StatelessWidget {
 
                   Navigator.pushAndRemoveUntil(context,
                       MaterialPageRoute(builder: (context) {
-                    return HomePageV2();
+                    return HomePage();
                   }), (r) => false);
                 },
                 child: const Text(
@@ -91,6 +91,6 @@ class OnBoardingButtons extends StatelessWidget {
 
   Future<void> updateFirstUse() async {
     var prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(PrefConstants().firstUse, false);
+    await prefs.setBool(PrefConstant.firstUse, false);
   }
 }

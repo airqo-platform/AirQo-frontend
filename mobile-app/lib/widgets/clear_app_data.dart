@@ -16,7 +16,7 @@ class ClearAppDialogState extends State<ClearAppDialog> {
             padding: const EdgeInsets.fromLTRB(0, 0, 5, 0),
             child: Icon(
               Icons.warning_rounded,
-              color: ColorConstants().appColor,
+              color: ColorConstants.appColor,
             ),
           ),
           Expanded(
@@ -24,7 +24,7 @@ class ClearAppDialogState extends State<ClearAppDialog> {
             'This procedure is irreversible, do you wish to proceed?',
             style: TextStyle(
                 fontSize: 15,
-                color: ColorConstants().appColor,
+                color: ColorConstants.appColor,
                 fontWeight: FontWeight.normal),
           ))
         ],

@@ -63,8 +63,8 @@ class _ComparePageState extends State<ComparePage> {
             children: [
               IconButton(
                   icon: Icon(Icons.compare_arrows,
-                      color: ColorConstants().appColor),
-                  splashColor: ColorConstants().appColor,
+                      color: ColorConstants.appColor),
+                  splashColor: ColorConstants.appColor,
                   onPressed: () {
                     // setShareIcon(true);
                   }),
@@ -72,9 +72,9 @@ class _ComparePageState extends State<ComparePage> {
               IconButton(
                   icon: Icon(
                     Icons.share_outlined,
-                    color: ColorConstants().appColor,
+                    color: ColorConstants.appColor,
                   ),
-                  splashColor: ColorConstants().appColor,
+                  splashColor: ColorConstants.appColor,
                   onPressed: () {})
               //     :
               // const Placeholder(),

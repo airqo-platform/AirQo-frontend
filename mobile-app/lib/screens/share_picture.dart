@@ -61,13 +61,13 @@ class TakePictureState extends State<TakePicture> {
             return Center(
                 child: CircularProgressIndicator(
               valueColor:
-                  AlwaysStoppedAnimation<Color>(ColorConstants().appColor),
+                  AlwaysStoppedAnimation<Color>(ColorConstants.appColor),
             ));
           }
         },
       ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: ColorConstants().appColor,
+        backgroundColor: ColorConstants.appColor,
         onPressed: () async {
           try {
             await _initializeControllerFuture;
@@ -162,7 +162,7 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
                     child: IconButton(
                       iconSize: 30.0,
                       icon: Icon(Icons.send_outlined,
-                          color: ColorConstants().appColor),
+                          color: ColorConstants.appColor),
                       onPressed: sendPicture,
                     ),
                   ),
@@ -177,7 +177,7 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
                     alignment: Alignment.center,
                     child: CircularProgressIndicator(
                       valueColor: AlwaysStoppedAnimation<Color>(
-                          ColorConstants().appColor),
+                          ColorConstants.appColor),
                     )),
               ),
             ),
@@ -210,11 +210,12 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
     Navigator.pop(context);
   }
 
-  uploadFailureHandler(var error) async {
+  FutureOr<String> uploadFailureHandler(var error) async {
     setState(() {
       isUploading = false;
     });
     await showSnackBar(context, 'Upload failed, try again');
+    return '';
   }
 
   Future<void> uploadSuccessHandler(var value) async {

@@ -28,6 +28,8 @@ class _MyPlacesState extends State<MyPlaces> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: BackButton(color: ColorConstants.appColor),
+        elevation: 0.0,
         title: isSearching
             ? TextField(
                 autofocus: true,
@@ -35,19 +37,22 @@ class _MyPlacesState extends State<MyPlaces> {
                 onSubmitted: doSearch,
                 onChanged: doSearch,
                 onTap: () {},
-                style: const TextStyle(fontSize: 18, color: Colors.white),
-                decoration: const InputDecoration(
-                  hintStyle: TextStyle(fontSize: 18, color: Colors.white),
+                style: TextStyle(fontSize: 18, color: ColorConstants.appColor),
+                decoration: InputDecoration(
+                  hintStyle:
+                      TextStyle(fontSize: 18, color: ColorConstants.appColor),
                   hintText: 'Search in MyPlaces',
                   border: InputBorder.none,
                   contentPadding: EdgeInsets.all(15),
                 ),
               )
-            : const Text('MyPlaces',
+            : Text(
+                'MyPlaces',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: ColorConstants.appBarTitleColor,
                   fontWeight: FontWeight.bold,
-                )),
+                ),
+              ),
         actions: [
           IconButton(
             icon: const Icon(
@@ -65,18 +70,17 @@ class _MyPlacesState extends State<MyPlaces> {
         ],
       ),
       body: Container(
+          color: Colors.white,
           child: Padding(
               padding: const EdgeInsets.fromLTRB(6, 6, 6, 6),
               child: isSearching
                   ? RefreshIndicator(
-                      color: ColorConstants().appColor,
+                      color: ColorConstants.appColor,
                       onRefresh: exitSearch,
                       child: ListView.builder(
                         itemBuilder: (context, index) => GestureDetector(
                           onTap: () {
-                            if (searchResults[index] != null) {
-                              viewDetails(searchResults[index].site);
-                            }
+                            viewDetails(searchResults[index].site);
                           },
                           child: Slidable(
                             actionPane: const SlidableDrawerActionPane(),
@@ -84,7 +88,8 @@ class _MyPlacesState extends State<MyPlaces> {
                             actions: <Widget>[
                               IconSlideAction(
                                 caption: 'Share',
-                                color: ColorConstants().appColor,
+                                color: Colors.transparent,
+                                foregroundColor: ColorConstants.appColor,
                                 icon: Icons.share_outlined,
                                 onTap: () =>
                                     shareLocation(searchResults[index].site),
@@ -93,7 +98,8 @@ class _MyPlacesState extends State<MyPlaces> {
                             secondaryActions: <Widget>[
                               IconSlideAction(
                                 caption: 'Remove',
-                                color: ColorConstants().red,
+                                color: Colors.red,
+                                foregroundColor: ColorConstants.appColor,
                                 icon: Icons.delete_outlined,
                                 onTap: () {
                                   removeFromFavourites(
@@ -127,7 +133,7 @@ class _MyPlacesState extends State<MyPlaces> {
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
                                       fontSize: 17,
-                                      color: ColorConstants().appColor,
+                                      color: ColorConstants.appColor,
                                       fontWeight: FontWeight.bold,
                                     )),
                                 subtitle: Text(
@@ -135,7 +141,7 @@ class _MyPlacesState extends State<MyPlaces> {
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
                                       fontSize: 14,
-                                      color: ColorConstants().appColor,
+                                      color: ColorConstants.appColor,
                                     )),
                               ),
                             ),
@@ -158,30 +164,47 @@ class _MyPlacesState extends State<MyPlaces> {
                             return Center(
                               child: Container(
                                 padding: const EdgeInsets.all(16.0),
-                                child: Text(
-                                  'You haven\'t added any locations you'
-                                  ' care about '
-                                  'to MyPlaces yet, use the add icon at '
-                                  'the top to add them to your list',
-                                  softWrap: true,
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    color: ColorConstants().appColor,
+                                child: OutlinedButton(
+                                  onPressed: () async {
+                                    await showSearch(
+                                      context: context,
+                                      delegate: LocationSearch(),
+                                    ).then((_) {
+                                      setState(() {});
+                                    });
+                                  },
+                                  style: OutlinedButton.styleFrom(
+                                    shape: const CircleBorder(),
+                                    padding: const EdgeInsets.all(24),
+                                  ),
+                                  child: Text(
+                                    'Add',
+                                    style: TextStyle(
+                                        color: ColorConstants.appColor),
                                   ),
                                 ),
+                                // child: Text(
+                                //   'You haven\'t added any locations you'
+                                //   ' care about '
+                                //   'to MyPlaces yet, use the add icon at '
+                                //   'the top to add them to your list',
+                                //   softWrap: true,
+                                //   textAlign: TextAlign.center,
+                                //   style: TextStyle(
+                                //     color: ColorConstants.appColor,
+                                //   ),
+                                // ),
                               ),
                             );
                           }
 
                           return RefreshIndicator(
-                            color: ColorConstants().appColor,
+                            color: ColorConstants.appColor,
                             onRefresh: refreshData,
                             child: ListView.builder(
                               itemBuilder: (context, index) => GestureDetector(
                                 onTap: () {
-                                  if (results[index] != null) {
-                                    viewDetails(results[index].site);
-                                  }
+                                  viewDetails(results[index].site);
                                 },
                                 child: Slidable(
                                   actionPane: const SlidableDrawerActionPane(),
@@ -189,7 +212,8 @@ class _MyPlacesState extends State<MyPlaces> {
                                   actions: <Widget>[
                                     IconSlideAction(
                                       caption: 'Share',
-                                      color: ColorConstants().appColor,
+                                      color: Colors.transparent,
+                                      foregroundColor: ColorConstants.appColor,
                                       icon: Icons.share_outlined,
                                       onTap: () =>
                                           shareLocation(results[index].site),
@@ -198,7 +222,8 @@ class _MyPlacesState extends State<MyPlaces> {
                                   secondaryActions: <Widget>[
                                     IconSlideAction(
                                       caption: 'Remove',
-                                      color: Colors.red,
+                                      color: Colors.transparent,
+                                      foregroundColor: Colors.red,
                                       icon: Icons.delete_outlined,
                                       onTap: () {
                                         removeFromFavourites(
@@ -227,7 +252,7 @@ class _MyPlacesState extends State<MyPlaces> {
                                           overflow: TextOverflow.ellipsis,
                                           style: TextStyle(
                                             fontSize: 17,
-                                            color: ColorConstants().appColor,
+                                            color: ColorConstants.appColor,
                                             fontWeight: FontWeight.bold,
                                           )),
                                       subtitle: Text(
@@ -235,7 +260,7 @@ class _MyPlacesState extends State<MyPlaces> {
                                           overflow: TextOverflow.ellipsis,
                                           style: TextStyle(
                                             fontSize: 14,
-                                            color: ColorConstants().appColor,
+                                            color: ColorConstants.appColor,
                                           )),
                                     ),
                                   ),
@@ -248,35 +273,35 @@ class _MyPlacesState extends State<MyPlaces> {
                           return Center(
                             child: CircularProgressIndicator(
                               valueColor: AlwaysStoppedAnimation<Color>(
-                                  ColorConstants().appColor),
+                                  ColorConstants.appColor),
                             ),
                           );
                         }
                       }))),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-      floatingActionButton: FloatingActionButton(
-        // isExtended: true,
-        backgroundColor: ColorConstants().appColor,
-        onPressed: () {
-          setState(() {
-            if (isSearching) {
-              setState(() {
-                isSearching = false;
-                searchController.clear();
-                searchResults.clear();
-              });
-            } else {
-              setState(() {
-                isSearching = true;
-                searchController.clear();
-                searchResults.clear();
-              });
-            }
-          });
-        },
-        // isExtended: true,
-        child: const Icon(Icons.search_outlined),
-      ),
+      // floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      // floatingActionButton: FloatingActionButton(
+      //   // isExtended: true,
+      //   backgroundColor: ColorConstants.appColor,
+      //   onPressed: () {
+      //     setState(() {
+      //       if (isSearching) {
+      //         setState(() {
+      //           isSearching = false;
+      //           searchController.clear();
+      //           searchResults.clear();
+      //         });
+      //       } else {
+      //         setState(() {
+      //           isSearching = true;
+      //           searchController.clear();
+      //           searchResults.clear();
+      //         });
+      //       }
+      //     });
+      //   },
+      //   // isExtended: true,
+      //   child: const Icon(Icons.search_outlined),
+      // ),
     );
   }
 
@@ -337,8 +362,7 @@ class _MyPlacesState extends State<MyPlaces> {
 
   Future<void> removeFromFavourites(Site site) async {
     await DBHelper().updateFavouritePlaces(site).then((value) => {
-          showSnackBar2(
-              context, '${site.getName()} is removed from your places')
+          showSnackBar(context, '${site.getName()} is removed from your places')
         });
 
     if (mounted) {

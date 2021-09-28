@@ -8,7 +8,7 @@ class ThemeController extends ChangeNotifier {
   String _currentTheme = 'light';
 
   ThemeController(this._prefs) {
-    _currentTheme = _prefs.getString(PrefConstants().appTheme) ?? 'light';
+    _currentTheme = _prefs.getString(PrefConstant.appTheme) ?? 'light';
   }
 
   String get currentTheme => _currentTheme;
@@ -17,7 +17,7 @@ class ThemeController extends ChangeNotifier {
     _currentTheme = theme;
     notifyListeners();
 
-    _prefs.setString(PrefConstants().appTheme, theme);
+    _prefs.setString(PrefConstant.appTheme, theme);
   }
 
   static ThemeController of(BuildContext context) {
@@ -36,6 +36,6 @@ class ThemeControllerProvider extends InheritedWidget {
       : super(key: key, child: child);
 
   @override
-  bool updateShouldNotify(ThemeControllerProvider old) =>
-      controller != old.controller;
+  bool updateShouldNotify(ThemeControllerProvider oldWidget) =>
+      controller != oldWidget.controller;
 }

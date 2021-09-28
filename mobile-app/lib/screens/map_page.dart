@@ -90,7 +90,7 @@ class MapPageState extends State<MapPage> {
                       children: [
                         IconButton(
                           icon: Icon(Icons.arrow_back_outlined,
-                              color: ColorConstants().appColor),
+                              color: ColorConstants.appColor),
                           onPressed: () {
                             Navigator.pop(context);
                           },
@@ -98,7 +98,7 @@ class MapPageState extends State<MapPage> {
                         Expanded(
                           child: Container(
                             decoration: BoxDecoration(
-                              color: Colors.white70,
+                              color: Colors.white,
                               borderRadius: BorderRadius.circular(32),
                             ),
                             child: TextField(
@@ -112,7 +112,7 @@ class MapPageState extends State<MapPage> {
                                 hintStyle: const TextStyle(fontSize: 13),
                                 hintText: 'Search',
                                 suffixIcon: Icon(Icons.search,
-                                    color: ColorConstants().appColor),
+                                    color: ColorConstants.appColor),
                                 // border: InputBorder.none,
                                 border: const OutlineInputBorder(
                                     borderRadius: BorderRadius.all(
@@ -139,7 +139,7 @@ class MapPageState extends State<MapPage> {
                         IconButton(
                           iconSize: 30.0,
                           icon: Icon(Icons.refresh_outlined,
-                              color: ColorConstants().appColor),
+                              color: ColorConstants.appColor),
                           onPressed: _refreshMeasurements,
                         ),
                       ],
@@ -172,7 +172,7 @@ class MapPageState extends State<MapPage> {
                           //             ),
                           //             leading: const Icon(
                           //               Icons.history,
-                          //               color: ColorConstants().appColor,
+                          //               color: ColorConstants.appColor,
                           //             ),
                           //             trailing: GestureDetector(
                           //               onTap: () {
@@ -207,7 +207,7 @@ class MapPageState extends State<MapPage> {
                                 'Unable to search on map.\nTry again later',
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
-                                    color: ColorConstants().appColor,
+                                    color: ColorConstants.appColor,
                                     fontSize: 16,
                                     fontWeight: FontWeight.w700,
                                     backgroundColor: Colors.white),
@@ -233,7 +233,7 @@ class MapPageState extends State<MapPage> {
                                         title: Text(
                                           (results[index]).description,
                                           style: TextStyle(
-                                              color: ColorConstants().appColor),
+                                              color: ColorConstants.appColor),
                                         ),
                                         onTap: () {
                                           query = (results[index]).description;
@@ -262,13 +262,14 @@ class MapPageState extends State<MapPage> {
                                       child: CircularProgressIndicator(
                                         valueColor:
                                             AlwaysStoppedAnimation<Color>(
-                                                ColorConstants().appColor),
+                                                ColorConstants.appColor),
                                       ),
                                     ),
 
                                     // const Text(
                                     //   'Loading...',
-                                    //   style: TextStyle(color: ColorConstants().appColor),
+                                    //   style: TextStyle(color:
+                                    //   ColorConstants.appColor),
                                     // )
                                   ],
                                 ));
@@ -278,14 +279,15 @@ class MapPageState extends State<MapPage> {
                     Visibility(
                       visible: _showInfoWindow,
                       child: windowProperties != null
-                          ? infoWindowV2()
+                          ? infoWindow()
                           : Card(
                               child: Padding(
                               padding: const EdgeInsets.all(8.0),
                               child: Column(
                                 children: [
-                                  const Center(
-                                    child: Text(appName, softWrap: true),
+                                  Center(
+                                    child: Text('${AppConfig.name}',
+                                        softWrap: true),
                                   ),
                                 ],
                               ),
@@ -305,18 +307,18 @@ class MapPageState extends State<MapPage> {
                         children: <Widget>[
                           Center(
                             child: Container(
-                                width: 100,
-                                height: 100,
+                                width: 70,
+                                height: 70,
                                 child: CircularProgressIndicator(
                                   valueColor: AlwaysStoppedAnimation<Color>(
-                                      ColorConstants().appColor),
+                                      ColorConstants.appColor),
                                 )),
                           ),
-                          Center(
-                              child: Text(
-                            'Loading',
-                            style: TextStyle(color: ColorConstants().appColor),
-                          )),
+                          // Center(
+                          //     child: Text(
+                          //   'Loading',
+                          //   style: TextStyle(color: ColorConstants.appColor),
+                          // )),
                         ],
                       ),
                     )),
@@ -332,13 +334,13 @@ class MapPageState extends State<MapPage> {
             //         IconButton(
             //           iconSize: 30.0,
             //           icon: const Icon(Icons.refresh_outlined,
-            //           color: ColorConstants().appColor),
+            //           color: ColorConstants.appColor),
             //           onPressed: _refreshMeasurements,
             //         ),
             //         IconButton(
             //           iconSize: 30.0,
             //           icon: const Icon(Icons.help_outline_outlined,
-            //               color: ColorConstants().appColor),
+            //               color: ColorConstants.appColor),
             //           onPressed: () {
             //             Navigator.push(
             //               context,
@@ -362,8 +364,8 @@ class MapPageState extends State<MapPage> {
           borderRadius: BorderRadius.circular(10.0),
           side: const BorderSide(color: Colors.white, width: 1)),
       fillColor: Colors.white,
-      elevation: 20,
-      highlightElevation: 20,
+      elevation: 10,
+      highlightElevation: 10,
       splashColor: Colors.black12,
       highlightColor: Colors.white.withOpacity(0.4),
       onPressed: () async {
@@ -373,23 +375,11 @@ class MapPageState extends State<MapPage> {
         padding: const EdgeInsets.all(10),
         child: Text(
           'More Details',
-          style: TextStyle(color: ColorConstants().appColor),
+          style: TextStyle(color: ColorConstants.appColor),
         ),
       ),
     );
   }
-
-  // @override
-  // void dispose() {
-  //   if (mounted) {
-  //     setState(() {
-  //       _showInfoWindow = false;
-  //       _markers = {};
-  //       isLoading = false;
-  //     });
-  //   }
-  //   super.dispose();
-  // }
 
   Future<void> displaySearchResults(Suggestion selection) async {
     setState(() {
@@ -431,133 +421,13 @@ class MapPageState extends State<MapPage> {
     var prefs = await SharedPreferences.getInstance();
 
     setState(() {
-      favourites = prefs.getStringList(PrefConstants().favouritePlaces) ?? [];
+      favourites = prefs.getStringList(PrefConstant.favouritePlaces) ?? [];
     });
   }
 
   Widget infoWindow() {
     return Card(
-        child: Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Column(
-        children: [
-          Text(
-            windowProperties.site.getName(),
-            softWrap: true,
-            style: TextStyle(color: ColorConstants().appColor),
-            overflow: TextOverflow.ellipsis,
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(0, 5, 0, 0),
-            child: Container(
-                padding: const EdgeInsets.all(5.0),
-                decoration: BoxDecoration(
-                    color: pmToColor(windowProperties.getPm2_5Value()),
-                    border: Border.all(
-                      color: pmToColor(windowProperties.getPm2_5Value()),
-                    ),
-                    borderRadius: const BorderRadius.all(Radius.circular(10))),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(5, 0, 0, 0),
-                      child: Text(
-                        windowProperties.getPm2_5Value().toStringAsFixed(2),
-                        style: TextStyle(
-                            color:
-                                pmTextColor(windowProperties.getPm2_5Value())),
-                      ),
-                    ),
-                    // Expanded(child: Text(
-                    //   pmToString(windowProperties.getPm2_5Value()
-                    //   .toStringAsFixed(2)),
-                    //   maxLines: 4,
-                    //   softWrap: true,
-                    //   textAlign: TextAlign.center,
-                    // ),
-                    // ),
-                    Text(
-                      pmToString(windowProperties.getPm2_5Value()),
-                      maxLines: 4,
-                      softWrap: true,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                          color: pmTextColor(windowProperties.getPm2_5Value())),
-                    ),
-
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(0, 0, 5, 0),
-                      child: Text(
-                        dateToString(windowProperties.time, true),
-                        style: TextStyle(
-                            color:
-                                pmTextColor(windowProperties.getPm2_5Value())),
-                      ),
-                    ),
-                  ],
-                )),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              IconButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute<void>(
-                      builder: (BuildContext context) => const HelpPage(
-                        initialIndex: 0,
-                      ),
-                      fullscreenDialog: true,
-                    ),
-                  );
-                },
-                icon:
-                    Icon(Icons.info_outline, color: ColorConstants().appColor),
-              ),
-              IconButton(
-                onPressed: () {
-                  shareMeasurement(windowProperties);
-                },
-                icon: Icon(Icons.share_outlined,
-                    color: ColorConstants().appColor),
-              ),
-              IconButton(
-                  onPressed: () {
-                    updateFavouritePlace(windowProperties.site);
-                  },
-                  icon: favourites.contains(
-                          windowProperties.site.id.trim().toLowerCase())
-                      ? Icon(
-                          Icons.favorite,
-                          color: ColorConstants().red,
-                        )
-                      : Icon(
-                          Icons.favorite_border_outlined,
-                          color: ColorConstants().red,
-                        )),
-              GestureDetector(
-                onTap: () {
-                  showDetails(windowProperties.site);
-                },
-                child: Text('More Details',
-                    softWrap: true,
-                    style: TextStyle(
-                        color: ColorConstants().appColor,
-                        fontWeight: FontWeight.bold)),
-              )
-            ],
-          ),
-        ],
-      ),
-    ));
-  }
-
-  Widget infoWindowV2() {
-    return Card(
-        color: ColorConstants().appColor,
-        elevation: 20,
+        elevation: 10,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
         ),
@@ -569,45 +439,42 @@ class MapPageState extends State<MapPage> {
                 windowProperties.site.getName(),
                 softWrap: true,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
+                style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: ColorConstants.appColor,
                     fontSize: 20),
                 overflow: TextOverflow.ellipsis,
               ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
-                child: Container(
-                    padding: const EdgeInsets.all(5.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        Text(
-                          windowProperties.getPm2_5Value().toStringAsFixed(2),
-                          style: const TextStyle(
-                              fontSize: 17, color: Colors.white),
-                        ),
-                        Text(
-                          pmToString(windowProperties.getPm2_5Value()),
-                          maxLines: 4,
-                          softWrap: true,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                              fontWeight: FontWeight.bold, color: Colors.white),
-                        ),
-                        Text(
-                          dateToString(windowProperties.time, true),
-                          style: const TextStyle(
-                              fontSize: 17, color: Colors.white),
-                        ),
-                      ],
-                    )),
+                padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
+                child: Row(
+                  children: [
+                    Text(
+                      windowProperties.getPm2_5Value().toStringAsFixed(2),
+                      style: TextStyle(
+                        fontSize: 17,
+                        color: ColorConstants.appColor,
+                      ),
+                    ),
+                    const Spacer(),
+                    Text(
+                      pmToString(windowProperties.getPm2_5Value()),
+                      maxLines: 4,
+                      softWrap: true,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: ColorConstants.appColor,
+                      ),
+                    ),
+                  ],
+                ),
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   Card(
-                      elevation: 20,
+                      elevation: 10,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(150),
                       ),
@@ -624,10 +491,10 @@ class MapPageState extends State<MapPage> {
                           );
                         },
                         icon: Icon(Icons.info_outline,
-                            color: ColorConstants().appColor),
+                            color: ColorConstants.appColor),
                       )),
                   Card(
-                    elevation: 20,
+                    elevation: 10,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(150),
                     ),
@@ -636,11 +503,11 @@ class MapPageState extends State<MapPage> {
                         shareMeasurement(windowProperties);
                       },
                       icon: Icon(Icons.share_outlined,
-                          color: ColorConstants().appColor),
+                          color: ColorConstants.appColor),
                     ),
                   ),
                   Card(
-                    elevation: 20,
+                    elevation: 10,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(150),
                     ),
@@ -652,15 +519,25 @@ class MapPageState extends State<MapPage> {
                                 windowProperties.site.id.trim().toLowerCase())
                             ? Icon(
                                 Icons.favorite,
-                                color: ColorConstants().red,
+                                color: ColorConstants.red,
                               )
                             : Icon(
                                 Icons.favorite_border_outlined,
-                                color: ColorConstants().red,
+                                color: ColorConstants.red,
                               )),
                   ),
                   detailsButton(windowProperties.site),
                 ],
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
+                child: Text(
+                  dateToString(windowProperties.time, true),
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: ColorConstants.appColor,
+                  ),
+                ),
               ),
             ],
           ),
@@ -677,7 +554,7 @@ class MapPageState extends State<MapPage> {
 
   Future<void> loadTheme() async {
     var prefs = await SharedPreferences.getInstance();
-    var theme = prefs.getString(PrefConstants().appTheme);
+    var theme = prefs.getString(PrefConstant.appTheme);
 
     if (theme != null) {
       switch (theme) {
@@ -754,7 +631,7 @@ class MapPageState extends State<MapPage> {
         await showSnackBarGoToMyPlaces(
             context, '${site.getName()} is added to your places');
       } else {
-        await showSnackBar2(
+        await showSnackBar(
             context, '${site.getName()} is removed from your places');
       }
     }
@@ -822,9 +699,9 @@ class MapPageState extends State<MapPage> {
       ..add(Circle(
           circleId: CircleId(circleIdVal),
           center: point,
-          radius: kmIntToMetersDouble(defaultSearchRadius),
-          fillColor: ColorConstants().appColor.withOpacity(0.5),
+          radius: kmIntToMetersDouble(AppConfig.searchRadius),
+          fillColor: ColorConstants.appColor.withOpacity(0.5),
           strokeWidth: 2,
-          strokeColor: ColorConstants().appColor));
+          strokeColor: ColorConstants.appColor));
   }
 }

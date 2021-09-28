@@ -3,7 +3,6 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:app/config/env.dart';
 import 'package:app/constants/api.dart';
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/feedback.dart';
@@ -12,6 +11,7 @@ import 'package:app/models/measurement.dart';
 import 'package:app/models/place.dart';
 import 'package:app/models/predict.dart';
 import 'package:app/models/site.dart';
+import 'package:app/models/story.dart';
 import 'package:app/models/suggestion.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:flutter/foundation.dart';
@@ -24,13 +24,14 @@ class AirqoApiClient {
 
   AirqoApiClient(this.context);
 
-  Future<List<Predict>> fetchForecast(
-      String latitude, String longitude, String dateTime) async {
+  Future<List<Predict>> fetchForecast(Site site) async {
     try {
+      var dateTime =
+          DateFormat('yyyy-MM-dd HH:mm').format(DateTime.now().toUtc());
       var body = {
         'selected_datetime': dateTime,
-        'latitude': latitude,
-        'longitude': longitude
+        'latitude': site.latitude,
+        'longitude': site.longitude
       };
 
       final response = await http.post(Uri.parse('${AirQoUrls().forecast}'),
@@ -43,18 +44,18 @@ class AirqoApiClient {
 
         return compute(Predict.parsePredictions, jsonBody);
       } else {
-        print('Unexpected status code ${response.statusCode}:'
-            ' ${response.reasonPhrase}');
+        // print('Unexpected status code ${response.statusCode}:'
+        //     ' ${response.reasonPhrase}');
         // print('Body ${response.body}:');
         // print('uri: ${AirQoUrls().forecast}');
         return <Predict>[];
       }
     } on SocketException {
-      await showSnackBar(context, ErrorMessages().socketException);
+      await showSnackBar(context, ErrorMessages.socketException);
     } on TimeoutException {
-      await showSnackBar(context, ErrorMessages().timeoutException);
-    } on Error catch (e) {
-      print('Get Forecast error: $e');
+      await showSnackBar(context, ErrorMessages.timeoutException);
+    } on Error {
+      print('Not Forecast information');
     }
 
     return <Predict>[];
@@ -73,7 +74,7 @@ class AirqoApiClient {
 
       var queryParams = <String, dynamic>{}
         ..putIfAbsent('startTime', () => startTime)
-        ..putIfAbsent('frequency', () => 'raw')
+        ..putIfAbsent('frequency', () => 'hourly')
         ..putIfAbsent('recent', () => 'no')
         ..putIfAbsent('metadata', () => 'site_id')
         ..putIfAbsent('tenant', () => 'airqo');
@@ -99,7 +100,7 @@ class AirqoApiClient {
       var queryParams = <String, dynamic>{}
         ..putIfAbsent('recent', () => 'yes')
         ..putIfAbsent('metadata', () => 'site_id')
-        ..putIfAbsent('frequency', () => 'raw')
+        ..putIfAbsent('frequency', () => 'hourly')
         ..putIfAbsent('tenant', () => 'airqo');
 
       final responseBody =
@@ -108,7 +109,7 @@ class AirqoApiClient {
       if (responseBody != null) {
         return compute(Measurement.parseMeasurements, responseBody);
       } else {
-        print('Measurements are null');
+        // print('Measurements are null');
         return <Measurement>[];
       }
     } on Error catch (e) {
@@ -136,7 +137,7 @@ class AirqoApiClient {
         ..putIfAbsent('site_id', () => sitesStr)
         ..putIfAbsent('recent', () => 'yes')
         ..putIfAbsent('metadata', () => 'site_id')
-        ..putIfAbsent('frequency', () => 'raw')
+        ..putIfAbsent('frequency', () => 'hourly')
         ..putIfAbsent('tenant', () => 'airqo');
 
       final responseBody =
@@ -145,14 +146,30 @@ class AirqoApiClient {
       if (responseBody != null) {
         return compute(Measurement.parseMeasurements, responseBody);
       } else {
-        print('Latest sites Measurements are null');
+        // print('Latest sites Measurements are null');
         return <Measurement>[];
       }
-    } on Error catch (e) {
-      print('Get Latest measurements for specific sites error: $e');
+    } on Error {
+      // print('Get Latest measurements for specific sites error: $e');
     }
 
     return <Measurement>[];
+  }
+
+  Future<List<Story>> fetchLatestStories() async {
+    try {
+      final responseBody = await _performGetRequest({}, AirQoUrls().stories);
+
+      if (responseBody != null) {
+        return compute(Story.parseStories, responseBody);
+      } else {
+        return <Story>[];
+      }
+    } on Error catch (e) {
+      print('Get Latest stories error: $e');
+    }
+
+    return <Story>[];
   }
 
   Future<List<HistoricalMeasurement>> fetchSiteHistoricalMeasurements(
@@ -174,7 +191,7 @@ class AirqoApiClient {
       var queryParams = <String, dynamic>{}
         ..putIfAbsent('site_id', () => site.id)
         ..putIfAbsent('startTime', () => startTime)
-        ..putIfAbsent('frequency', () => 'raw')
+        ..putIfAbsent('frequency', () => 'hourly')
         ..putIfAbsent('metadata', () => 'site_id')
         ..putIfAbsent('recent', () => 'no')
         ..putIfAbsent('tenant', () => 'airqo');
@@ -185,11 +202,51 @@ class AirqoApiClient {
       if (responseBody != null) {
         return compute(HistoricalMeasurement.parseMeasurements, responseBody);
       } else {
-        print('Measurements are null');
+        // print('Measurements are null');
         return <HistoricalMeasurement>[];
       }
-    } on Error catch (e) {
-      print('Get site historical measurements error: $e');
+    } on Error {
+      // print('Get site historical measurements error: $e');
+    }
+
+    return <HistoricalMeasurement>[];
+  }
+
+  Future<List<HistoricalMeasurement>> fetchSiteHistoricalMeasurementsById(
+      String id) async {
+    try {
+      var nowUtc = DateTime.now().toUtc();
+      var startTimeUtc = nowUtc.subtract(const Duration(hours: 48));
+
+      var time = '${startTimeUtc.hour}';
+      if ('$time'.length == 1) {
+        time = '0$time';
+      }
+
+      var date = DateFormat('yyyy-MM-dd').format(startTimeUtc);
+      var startTime = '${date}T$time:00:00Z';
+      // var endTime = '${DateFormat('yyyy-MM-dd')
+      // .format(nowUtc)}T$time:00:00Z';
+
+      var queryParams = <String, dynamic>{}
+        ..putIfAbsent('site_id', () => id)
+        ..putIfAbsent('startTime', () => startTime)
+        ..putIfAbsent('frequency', () => 'hourly')
+        ..putIfAbsent('metadata', () => 'site_id')
+        ..putIfAbsent('recent', () => 'no')
+        ..putIfAbsent('tenant', () => 'airqo');
+
+      final responseBody =
+          await _performGetRequest(queryParams, AirQoUrls().measurements);
+
+      if (responseBody != null) {
+        return compute(HistoricalMeasurement.parseMeasurements, responseBody);
+      } else {
+        // print('Measurements are null');
+        return <HistoricalMeasurement>[];
+      }
+    } on Error {
+      // print('Get site historical measurements error: $e');
     }
 
     return <HistoricalMeasurement>[];
@@ -200,7 +257,7 @@ class AirqoApiClient {
       var queryParams = <String, dynamic>{}
         ..putIfAbsent('recent', () => 'yes')
         ..putIfAbsent('site_id', () => site.id)
-        ..putIfAbsent('frequency', () => 'raw')
+        ..putIfAbsent('frequency', () => 'hourly')
         ..putIfAbsent('metadata', () => 'site_id')
         ..putIfAbsent('tenant', () => 'airqo');
 
@@ -210,11 +267,35 @@ class AirqoApiClient {
       if (responseBody != null) {
         return compute(Measurement.parseMeasurement, responseBody);
       } else {
-        print('Site latest measurements are null');
+        // print('Site latest measurements are null');
         throw Exception('site does not exist');
       }
-    } on Error catch (e) {
-      print('Get site latest measurements error: $e');
+    } on Error {
+      // print('Get site latest measurements error: $e');
+      throw Exception('site does not exist');
+    }
+  }
+
+  Future<Measurement> fetchSiteMeasurementsById(String id) async {
+    try {
+      var queryParams = <String, dynamic>{}
+        ..putIfAbsent('recent', () => 'yes')
+        ..putIfAbsent('site_id', () => id)
+        ..putIfAbsent('frequency', () => 'hourly')
+        ..putIfAbsent('metadata', () => 'site_id')
+        ..putIfAbsent('tenant', () => 'airqo');
+
+      final responseBody =
+          await _performGetRequest(queryParams, AirQoUrls().measurements);
+
+      if (responseBody != null) {
+        return compute(Measurement.parseMeasurement, responseBody);
+      } else {
+        // print('Site latest measurements are null');
+        throw Exception('site does not exist');
+      }
+    } on Error {
+      // print('Get site latest measurements error: $e');
       throw Exception('site does not exist');
     }
   }
@@ -245,7 +326,7 @@ class AirqoApiClient {
       double latitude, double longitude) async {
     try {
       var queryParams = <String, dynamic>{}
-        ..putIfAbsent('radius', () => '$defaultSearchRadius')
+        ..putIfAbsent('radius', () => '${AppConfig.searchRadius}')
         ..putIfAbsent('tenant', () => 'airqo')
         ..putIfAbsent('longitude', () => longitude.toStringAsFixed(8))
         ..putIfAbsent('latitude', () => latitude.toStringAsFixed(8));
@@ -289,10 +370,10 @@ class AirqoApiClient {
         throw Exception('Error');
       }
     } on SocketException {
-      await showSnackBar(context, ErrorMessages().socketException);
+      await showSnackBar(context, ErrorMessages.socketException);
       throw Exception('Error');
     } on TimeoutException {
-      await showSnackBar(context, ErrorMessages().timeoutException);
+      await showSnackBar(context, ErrorMessages.timeoutException);
       throw Exception('Error');
     } on Error catch (e) {
       print('Image upload error: $e');
@@ -341,7 +422,7 @@ class AirqoApiClient {
       }
 
       Map<String, String> headers = HashMap()
-        ..putIfAbsent('Authorization', () => 'JWT $airQoApiKey');
+        ..putIfAbsent('Authorization', () => 'JWT ${AppConfig.airQoApiKey}');
 
       final response = await http.get(Uri.parse(url), headers: headers);
 
@@ -356,11 +437,11 @@ class AirqoApiClient {
         return null;
       }
     } on SocketException {
-      await showSnackBar(context, ErrorMessages().socketException);
+      await showSnackBar(context, ErrorMessages.socketException);
     } on TimeoutException {
-      await showSnackBar(context, ErrorMessages().timeoutException);
-    } on Error catch (e) {
-      await showSnackBar(context, ErrorMessages().appException);
+      await showSnackBar(context, ErrorMessages.timeoutException);
+    } on Error {
+      await showSnackBar(context, ErrorMessages.appException);
     }
 
     return null;
@@ -395,24 +476,21 @@ class AirqoApiClient {
         return false;
       }
     } on SocketException {
-      await showSnackBar(context, ErrorMessages().socketException);
+      await showSnackBar(context, ErrorMessages.socketException);
       return false;
     } on TimeoutException {
-      await showSnackBar(context, ErrorMessages().timeoutException);
+      await showSnackBar(context, ErrorMessages.timeoutException);
       return false;
-    } on Error catch (e) {
-      await showSnackBar(context, ErrorMessages().appException);
+    } on Error {
+      await showSnackBar(context, ErrorMessages.appException);
       return false;
     }
   }
 }
 
 class SearchApi {
-  static final String androidKey = googleApiKey;
-
-  static final String iosKey = iosApiKey;
   final sessionToken;
-  final apiKey = Platform.isAndroid ? androidKey : iosKey;
+  final apiKey = AppConfig.googleApiKey;
 
   SearchApi(this.sessionToken);
 
@@ -436,10 +514,10 @@ class SearchApi {
 
       throw Exception(responseBody['error_message']);
     } on SocketException {
-      throw Exception(ErrorMessages().socketException);
+      throw Exception(ErrorMessages.socketException);
     } on TimeoutException {
-      throw Exception(ErrorMessages().timeoutException);
-    } on Error catch (e) {
+      throw Exception(ErrorMessages.timeoutException);
+    } on Error {
       throw Exception('Cannot get suggestions, please try again later');
     }
   }
@@ -491,10 +569,10 @@ class SearchApi {
         return null;
       }
     } on SocketException {
-      throw Exception(ErrorMessages().timeoutException);
+      throw Exception(ErrorMessages.timeoutException);
     } on TimeoutException {
-      throw Exception(ErrorMessages().timeoutException);
-    } on Error catch (e) {
+      throw Exception(ErrorMessages.timeoutException);
+    } on Error {
       throw Exception('Cannot get details, please try again later');
     }
   }

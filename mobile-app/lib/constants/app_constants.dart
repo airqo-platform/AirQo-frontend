@@ -1,174 +1,184 @@
+import 'dart:io';
+
+import 'package:app/config/env.dart';
+import 'package:app/models/site.dart';
 import 'package:flutter/material.dart';
 
-const appColor = Color(0xff3067e2);
-const appName = 'AirQo';
-const appVersion = 'v1.21.7';
-const defaultSearchRadius = 2;
+class AppConfig {
+  static final String _androidApiKey = googleKey;
 
-const persistentNotificationId = 1294732;
-const progressNotificationId = 482842;
-const pushNotificationId = 9239203;
-const smartNotificationId = 4877231;
+  static final String _iOSApiKey = iosKey;
 
-class ColorConstants {
-  final Color _green = const Color(0xff3FFF33);
-  final Color _yellow = const Color(0xffFFF933);
-  final Color _orange = const Color(0xffFF9633);
-  final Color _red = const Color(0xffF62E2E);
-  final Color _purple = const Color(0xFF7B1FA2);
-  final Color _maroon = const Color(0xff570B0B);
+  static final String googleApiKey =
+      Platform.isAndroid ? _androidApiKey : _iOSApiKey;
 
-  final Color _facebookColor = const Color(0xff4267B2);
-  final Color _linkedInColor = const Color(0xff2867B2);
-  final Color _twitterColor = const Color(0xff1DA1F2);
-  final Color _youtubeColor = const Color(0xffFF0000);
+  static final String airQoApiKey = airqoApiKey;
 
-  final Color _appColor = const Color(0xff3067e2);
+  static String get dbName => databaseName;
 
-  Color get appColor => _appColor;
+  static double get defaultLatitude => defaultLatitudeValue;
 
-  Color get facebookColor => _facebookColor;
+  static double get defaultLongitude => defaultLongitudeValue;
 
-  Color get green => _green;
+  static int get maxSearchRadius => searchRadius * 2;
 
-  Color get linkedInColor => _linkedInColor;
+  static String get name => applicationName;
 
-  Color get maroon => _maroon;
+  static int get searchRadius => defaultSearchRadius;
 
-  Color get orange => _orange;
-
-  Color get purple => _purple;
-
-  Color get red => _red;
-
-  Color get twitterColor => _twitterColor;
-
-  Color get yellow => _yellow;
-
-  Color get youtubeColor => _youtubeColor;
+  static String get version => applicationVersion;
 }
 
-class DbConstants {
-  final String _dbName = 'airqo_db.db';
+class ColorConstants {
+  static Color get appBarBgColor => Colors.white;
 
-  String get dbName => _dbName;
+  static Color get appBarTitleColor => appColor;
+
+  static Color get appBodyColor => Colors.white;
+
+  static Color get appColor => const Color(0xff3067e2);
+
+  static Color get facebookColor => const Color(0xff4267B2);
+
+  static Color get green => const Color(0xff3FFF33);
+
+  static Color get inactiveColor => appColor.withOpacity(0.5);
+
+  static Color get linkedInColor => const Color(0xff2867B2);
+
+  static Color get maroon => const Color(0xff570B0B);
+
+  static Color get orange => const Color(0xffFF9633);
+
+  static Color get purple => const Color(0xFF7B1FA2);
+
+  static Color get red => const Color(0xffF62E2E);
+
+  static Color get snackBarBgColor => appColor.withOpacity(0.8);
+
+  static Color get twitterColor => const Color(0xff1DA1F2);
+
+  static Color get yellow => const Color(0xffFFF933);
+
+  static Color get youtubeColor => const Color(0xffFF0000);
 }
 
 class ErrorMessages {
-  final String _socketException = 'Connection timeout';
-  final String _timeoutException = 'Connection timeout';
-  final String _appException = 'App exception';
+  static String get appException => 'App exception';
 
-  String get appException => _appException;
+  static String get socketException => 'Connection timeout';
 
-  String get socketException => _socketException;
-
-  String get timeoutException => _timeoutException;
+  static String get timeoutException => 'Connection timeout';
 }
 
-enum Languages { English, Luganda }
+enum Languages { english, luganda }
 
 class Links {
-  final String _airqoReference = 'https://www.airqo.net/about';
-  final String _about = 'https://www.airqo.net/about';
-  final String _iOSLink =
-      'https://apps.apple.com/ug/app/airqo-monitoring-air-quality/id1337573091';
-  final String _playStoreLink =
-      'https://play.google.com/store/apps/details?id=com.airqo.app';
-  final String _airqoWebsite = 'https://www.airqo.net';
-  final String _contactUs = 'https://www.airqo.net/contact-us';
-  final String _faqs = 'https://www.airqo.net/faqs';
-  final String _linkedin = 'https://www.linkedin.com/company/airqo/';
-  final String _facebook = 'https://web.facebook.com/AirQo/';
-  final String _terms =
-      'https://docs.airqo.net/airqo-application-documentations/';
-  final String _youtube =
-      'https://www.youtube.com/channel/UCx7YtV55TcqKGeKsDdT5_XQ/';
-  final String _twitter = 'https://twitter.com/AirQoProject';
-  final String _feedbackEmail = 'info@airqo.net';
-  final String _airqoBlog = 'https://www.airqo.net/blog';
+  static String get aboutUsUrl => about;
 
-  String get about => _about;
+  static String get airqoFeedbackEmail => feedbackEmail;
 
-  String get airqoBlog => _airqoBlog;
+  static String get blogUrl => airqoBlog;
 
-  String get airqoReference => _airqoReference;
+  static String get contactUsUrl => contactUs;
 
-  String get airqoWebsite => _airqoWebsite;
+  static String get facebookUrl => facebook;
 
-  String get contactUs => _contactUs;
+  static String get faqsUrl => faqs;
 
-  String get facebook => _facebook;
+  static String get iOSUrl => iOSLink;
 
-  String get faqs => _faqs;
+  static String get linkedinUrl => linkedin;
 
-  String get feedbackEmail => _feedbackEmail;
+  static String get playStoreUrl => playStoreLink;
 
-  String get iOSLink => _iOSLink;
+  static String get referenceUrl => airqoReference;
 
-  String get linkedin => _linkedin;
+  static String get termsUrl => terms;
 
-  String get playStoreLink => _playStoreLink;
+  static String get twitterUrl => twitter;
 
-  String get terms => _terms;
+  static String get websiteUrl => airqoWebsite;
 
-  String get twitter => _twitter;
-
-  String get youtube => _youtube;
+  static String get youtubeUrl => youtube;
 }
 
-class PollutantConstants {
-  static final String _pm2_5 = 'pm2_5';
-  static final String _pm10 = 'pm10';
-  static final String _s2_pm2_5 = 's2_pm2_5';
-  static final String _s2_pm10 = 's2_pm10';
+class NotificationConfig {
+  static const int persistentNotificationId = 1294732;
+  static const int progressNotificationId = 482842;
+  static const int pushNotificationId = 9239203;
+  static const int smartNotificationId = 4877231;
+}
 
-  static String get pm10 => _pm10;
+class PollutantConstant {
+  static String get humidity => 'humidity';
 
-  static String get pm2_5 => _pm2_5;
+  static String get pm10 => 'pm10';
 
-  static String get s2_pm10 => _s2_pm10;
+  static String get pm2_5 => 'pm2_5';
 
-  static String get s2_pm2_5 => _s2_pm2_5;
+  static String get temperature => 'temperature';
 }
 
 class PollutantDescription {
-  static final String _pm2_5 = 'PM stands for particulate matter '
-      '(also called particle pollution): the term for a mixture of solid'
-      ' particles and liquid droplets found in the air. Some particles, '
-      'such as dust, dirt, soot, or smoke, are large or dark enough to be '
-      'seen with the naked eye. Others are so small they can only be detected '
-      'using an electron microscope.';
+  static String get humidity => 'Relative humidity is the amount of water '
+      'vapor actually in the air, expressed as a percentage of the maximum '
+      'amount of water vapor the air can hold at the same temperature. '
+      '\n\nThink of the air at a chilly -10 degrees Celsius '
+      '(14 degrees Fahrenheit). At that temperature, the air can hold,'
+      ' at most, 2.2 grams of water per cubic meter. So if there are 2.2'
+      ' grams of water per cubic meter when its -10 degrees Celsius outside, '
+      'we are at an uncomfortable 100 percent relative humidity. If there was'
+      ' 1.1 grams of water in the air at -10 degrees Celsius, '
+      'we are at 50 percent relative humidity.';
 
-  static final String _pm10 = 'PM stands for particulate matter '
-      '(also called particle pollution): the term for a mixture of solid'
-      ' particles and liquid droplets found in the air. Some particles, '
-      'such as dust, dirt, soot, or smoke, are large or dark enough to be '
-      'seen with the naked eye. Others are so small they can only be detected '
-      'using an electron microscope.';
+  static String get pm10 => 'PM10 refers to the quantity of particulate'
+      ' matter smaller than 10 micrometers present in the air including'
+      ' PM2.5. This is about 5–7 times smaller than the '
+      'thickness of a human hair\n\n'
+      'To measure the amount of PM10 we use the unit 𝜇g/m3 meaning'
+      ' micrograms per cubic metre of air. So if we say current'
+      ' PM10 level is 60𝜇g/m3 (a reasonable day in Kampala) we mean '
+      'that each cubic metre of air contains 60 micrograms of particulate'
+      ' matter that has a diameter less than 10 micrometres'
+      '\n\n'
+      'These are bigger and are often more visible than PM 2.5. '
+      'These particles can certainly be damaging and include dust '
+      'and thick smoke, many can be processed by the lungs and can be'
+      ' coughed out but others especially if toxic can contribute to'
+      ' respiratory illness and more. Small particles are also implicated'
+      ' in contributing to the spread of COVID-19. They are measured but'
+      ' not always reported worldwide';
 
-  static final String _s2_pm2_5 = 's2_pm2_5';
-  static final String _s2_pm10 = 's2_pm10';
+  static String get pm2_5 => 'PM 2.5 refers to the quantity of '
+      'particulate matter smaller than 2.5 micrometers'
+      ' present in the air. To give an idea of what that '
+      'means, 2.5 micrometers is about 20–30 times '
+      'smaller than the thickness of a human hair. \n\n'
+      'To measure the amount of PM2.5 we use the unit 𝜇g/m3 meaning '
+      'micrograms per cubic metre of air. So if we say current PM2.5 level '
+      'is 40𝜇g/m3 (a reasonable day in Kampala), we mean that each '
+      'cubic metre of air contains 40 micrograms of particulate matter'
+      ' that has a diameter less than 2.5 micrometres.\n\n'
+      'PM2.5 is the pollutant we are currently most concerned about'
+      ' and is the most common measure of air quality around the world.'
+      ' As well as respiratory illnesses such as asthma and Chronic '
+      'obstructive pulmonary disease (COPD), individual particles are '
+      'small enough to enter the bloodstream and contribute to cancers, '
+      'cardiovascular problems, affect brain function and as well as '
+      'developmental issues for growing children. Small particles have '
+      'also increasingly been implicated in contributing to the spread '
+      'of COVID-19';
 
-  static String get pm10 => _pm10;
-
-  static String get pm2_5 => _pm2_5;
-
-  static String get s2_pm10 => _s2_pm10;
-
-  static String get s2_pm2_5 => _s2_pm2_5;
+  static String get temperature => 'Temperature is the degree of hotness or'
+      ' coldness of an object. When we talk about something feeling hot '
+      '(like the soup we drink when were sick) or cold (like the snow, '
+      'especially if youre not wearing gloves), '
+      'were talking about temperature.';
 }
 
-class PollutantEffects {
-  static final String _pm2_5 = 'Particulate matter contains microscopic '
-      'solids or liquid droplets that are so small that they '
-      'can be inhaled and cause serious health problems. '
-      'Some particles less than 10 micrometers in diameter can get deep '
-      'into your lungs and some may even get into your bloodstream. '
-      'Of these, particles less than 2.5 micrometers in diameter, also known '
-      'as fine particles or PM2.5, pose the greatest risk to health.';
-
-  static final String _pm10 = 'Particulate matter contains microscopic '
+class PollutantEffect {
+  static String get pm10 => 'Particulate matter contains microscopic '
       'solids or liquid droplets that are so small that they '
       'can be inhaled and cause serious health problems. '
       'Some particles less than 10 micrometers in diameter can get deep '
@@ -176,28 +186,26 @@ class PollutantEffects {
       'Of these, particles less than 10 micrometers in diameter, also known '
       'as fine particles or PM10, pose the greatest risk to health.';
 
-  static final String _s2_pm2_5 = 's2_pm2_5';
-  static final String _s2_pm10 = 's2_pm10';
+  static String get pm2_5 => 'Particulate matter contains microscopic '
+      'solids or liquid droplets that are so small that they '
+      'can be inhaled and cause serious health problems. '
+      'Some particles less than 10 micrometers in diameter can get deep '
+      'into your lungs and some may even get into your bloodstream. '
+      'Of these, particles less than 2.5 micrometers in diameter, also known '
+      'as fine particles or PM2.5, pose the greatest risk to health.';
+}
 
-  static String get pm10 => _pm10;
-
-  static String get pm2_5 => _pm2_5;
-
-  static String get s2_pm10 => _s2_pm10;
-
-  static String get s2_pm2_5 => _s2_pm2_5;
+enum PollutantLevel {
+  good,
+  moderate,
+  sensitive,
+  unhealthy,
+  veryUnhealthy,
+  hazardous
 }
 
 class PollutantReduction {
-  static final String _pm2_5 = 'Particulate matter contains microscopic '
-      'solids or liquid droplets that are so small that they '
-      'can be inhaled and cause serious health problems. '
-      'Some particles less than 10 micrometers in diameter can get deep '
-      'into your lungs and some may even get into your bloodstream. '
-      'Of these, particles less than 2.5 micrometers in diameter, also known '
-      'as fine particles or PM2.5, pose the greatest risk to health.';
-
-  static final String _pm10 = 'Particulate matter contains microscopic '
+  static String get pm10 => 'Particulate matter contains microscopic '
       'solids or liquid droplets that are so small that they '
       'can be inhaled and cause serious health problems. '
       'Some particles less than 10 micrometers in diameter can get deep '
@@ -205,29 +213,17 @@ class PollutantReduction {
       'Of these, particles less than 10 micrometers in diameter, also known '
       'as fine particles or PM10, pose the greatest risk to health.';
 
-  static final String _s2_pm2_5 = 's2_pm2_5';
-  static final String _s2_pm10 = 's2_pm10';
-
-  static String get pm10 => _pm10;
-
-  static String get pm2_5 => _pm2_5;
-
-  static String get s2_pm10 => _s2_pm10;
-
-  static String get s2_pm2_5 => _s2_pm2_5;
+  static String get pm2_5 => 'Particulate matter contains microscopic '
+      'solids or liquid droplets that are so small that they '
+      'can be inhaled and cause serious health problems. '
+      'Some particles less than 10 micrometers in diameter can get deep '
+      'into your lungs and some may even get into your bloodstream. '
+      'Of these, particles less than 2.5 micrometers in diameter, also known '
+      'as fine particles or PM2.5, pose the greatest risk to health.';
 }
 
 class PollutantSource {
-  static final String _pm2_5 = 'These particles come in many sizes and shapes'
-      ' and can be made up of hundreds of different chemicals. '
-      '\n\nSome are emitted directly from a source, such as construction '
-      'sites, unpaved roads, fields, smokestacks or fires. '
-      '\n\nMost particles form in the atmosphere as a result of complex '
-      'reactions of chemicals such as sulfur dioxide and nitrogen oxides, '
-      'which are pollutants emitted from power plants, '
-      'industries and automobiles.';
-
-  static final String _pm10 = 'These particles come in many sizes and shapes'
+  static String get pm10 => 'These particles come in many sizes and shapes'
       ' and can be made up of hundreds of different chemicals.'
       '\n\nSome are emitted directly from a source, such as construction '
       'sites, unpaved roads, fields, smokestacks or fires.'
@@ -235,31 +231,69 @@ class PollutantSource {
       'reactions of chemicals such as sulfur dioxide and nitrogen oxides, '
       'which are pollutants emitted from power plants, '
       'industries and automobiles.';
-  static final String _s2_pm2_5 = 's2_pm2_5';
-  static final String _s2_pm10 = 's2_pm10';
 
-  static String get pm10 => _pm10;
-
-  static String get pm2_5 => _pm2_5;
-
-  static String get s2_pm10 => _s2_pm10;
-
-  static String get s2_pm2_5 => _s2_pm2_5;
+  static String get pm2_5 => 'These particles come in many sizes and shapes'
+      ' and can be made up of hundreds of different chemicals. '
+      '\n\nSome are emitted directly from a source, such as construction '
+      'sites, unpaved roads, fields, smokestacks or fires. '
+      '\n\nMost particles form in the atmosphere as a result of complex '
+      'reactions of chemicals such as sulfur dioxide and nitrogen oxides, '
+      'which are pollutants emitted from power plants, '
+      'industries and automobiles.';
 }
 
-class PrefConstants {
-  final String _favouritePlaces = 'favouriteSites';
-  final String _firstUse = 'firstUse';
-  final String _initialDbLoad = 'initialDbLoad';
-  final String _appTheme = 'appTheme';
+class PrefConstant {
+  static String get appTheme => 'appTheme';
 
-  String get appTheme => _appTheme;
+  static String get dashboardSite => 'dashboardSite';
 
-  String get favouritePlaces => _favouritePlaces;
+  static String get favouritePlaces => 'favouriteSites';
 
-  String get firstUse => _firstUse;
+  static String get firstUse => 'firstUse';
 
-  String get initialDbLoad => _initialDbLoad;
+  static String get initialDbLoad => 'initialDbLoad';
+
+  static String get lastKnownLocation => 'lastKnownLocation';
+
+  static String get siteAlerts => 'siteAlerts';
 }
+
+enum Status { none, running, stopped, paused }
 
 enum Themes { lightTheme, darkTheme }
+
+extension ParsePollutantLevel on PollutantLevel {
+  String getString() {
+    return toString().split('.').last;
+  }
+
+  String getTopic(Site site, PollutantLevel pollutantLevel) {
+    if (pollutantLevel == PollutantLevel.good) {
+      return '${site.id}-good';
+    } else if (pollutantLevel == PollutantLevel.moderate) {
+      return '${site.id}-moderate';
+    } else if (pollutantLevel == PollutantLevel.sensitive) {
+      return '${site.id}-sensitive';
+    } else if (pollutantLevel == PollutantLevel.unhealthy) {
+      return '${site.id}-unhealthy';
+    } else if (pollutantLevel == PollutantLevel.veryUnhealthy) {
+      return '${site.id}-very-unhealthy';
+    } else if (pollutantLevel == PollutantLevel.hazardous) {
+      return '${site.id}-hazardous';
+    }
+    return '';
+  }
+
+  List<PollutantLevel> getPollutantLevels() {
+    var pollutants = <PollutantLevel>[
+      PollutantLevel.good,
+      PollutantLevel.moderate,
+      PollutantLevel.sensitive,
+      PollutantLevel.unhealthy,
+      PollutantLevel.veryUnhealthy,
+      PollutantLevel.hazardous
+    ];
+
+    return pollutants;
+  }
+}

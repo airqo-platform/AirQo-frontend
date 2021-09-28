@@ -30,8 +30,8 @@ Map<String, dynamic> _$LocationToJson(Location instance) => <String, dynamic>{
 
 Place _$PlaceFromJson(Map<String, dynamic> json) {
   return Place(
-    geometry: Geometry.fromJson(json['geometry'] as Map<String, dynamic>),
-    name: json['name'] as String,
+    Geometry.fromJson(json['geometry'] as Map<String, dynamic>),
+    json['name'] as String,
   );
 }
 

@@ -1,6 +1,12 @@
+import 'dart:io';
+
 import 'package:app/providers/LocalProvider.dart';
-import 'package:app/screens/home_page_v2.dart';
+import 'package:app/screens/home_page.dart';
+import 'package:app/services/fb_notifications.dart';
 import 'package:app/services/local_storage.dart';
+import 'package:app/services/rest_api.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -16,18 +22,23 @@ import 'themes/dark_theme.dart';
 import 'themes/light_theme.dart';
 
 Future<void> main() async {
-  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-    systemNavigationBarColor: appColor,
-    statusBarColor: Colors.transparent,
-    // statusBarBrightness: Brightness.light,
-    // statusBarIconBrightness:Brightness.light ,
-    // systemNavigationBarDividerColor: ColorConstants().appColor,
-    systemNavigationBarIconBrightness: Brightness.light,
+  SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+    systemNavigationBarColor: ColorConstants.appColor,
+    statusBarColor: Colors.white,
+    statusBarBrightness: Brightness.dark,
+    statusBarIconBrightness: Brightness.dark,
+    systemNavigationBarDividerColor: ColorConstants.appColor,
+    // systemNavigationBarIconBrightness: Brightness.dark,
   ));
 
   WidgetsFlutterBinding.ensureInitialized();
 
-  // runApp(AirQoApp());
+  await Firebase.initializeApp().then((value) => {
+        // FirebaseMessaging.onBackgroundMessage(backgroundMessageHandler),
+
+        FirebaseMessaging.onMessage
+            .listen(FbNotifications().foregroundMessageHandler)
+      });
 
   final prefs = await SharedPreferences.getInstance();
   final themeController = ThemeController(prefs);
@@ -98,6 +109,7 @@ class AirQoApp extends StatelessWidget {
               final provider = Provider.of<LocaleProvider>(context);
 
               return MaterialApp(
+                debugShowCheckedModeBanner: false,
                 localizationsDelegates: [
                   CustomLocalizations.delegate,
                   GlobalMaterialLocalizations.delegate,
@@ -117,7 +129,7 @@ class AirQoApp extends StatelessWidget {
                 // },
                 supportedLocales: [const Locale('en'), const Locale('lg')],
                 locale: provider.locale,
-                title: appName,
+                title: '${AppConfig.name}',
                 theme: _buildCurrentTheme(),
                 home: SplashScreen(),
               );
@@ -170,31 +182,110 @@ class SplashScreen extends StatefulWidget {
 }
 
 class SplashScreenState extends State<SplashScreen> {
+  bool sitesReady = false;
+  bool measurementsReady = false;
+  String error = '';
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Container(
-            color: ColorConstants().appColor,
-            child: const Center(
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+    if (error == '') {
+      return Scaffold(
+          body: Container(
+        color: Colors.white,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Image.asset(
+                'assets/icon/airqo_logo_tagline_transparent.png',
+                height: 150,
+                width: 150,
               ),
-            )),
-      ),
-    );
+              // Center(
+              //   child: CircularProgressIndicator(
+              //     valueColor:
+              //         AlwaysStoppedAnimation<Color>(ColorConstants.appColor),
+              //   ),
+              // )
+            ],
+          ),
+        ),
+      ));
+    } else {
+      return Scaffold(
+        body: Center(
+          child: Container(
+              padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(error,
+                      maxLines: 2,
+                      textAlign: TextAlign.center,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: ColorConstants.red,
+                      )),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                        primary: ColorConstants.appColor),
+                    onPressed: reload,
+                    child:
+                        const Text('Try Again', style: TextStyle(fontSize: 15)),
+                  )
+                ],
+              )),
+        ),
+      );
+    }
   }
 
-  Future checkFirstUse() async {
+  Future<void> initialize() async {
+    _getLatestMeasurements();
+    _getSites();
+    Future.delayed(const Duration(seconds: 4), _checkFirstUse);
+  }
+
+  @override
+  void initState() {
+    initialize();
+    super.initState();
+  }
+
+  void reload() {
+    setState(() {
+      error = '';
+    });
+    _initDB().then((value) => {_checkFirstUse()});
+  }
+
+  Future _checkDB() async {
     try {
-      var db = await DBHelper().initDB();
-      await DBHelper().createDefaultTables(db);
+      await DBHelper().getLatestMeasurements().then((value) => {
+            if (value.isNotEmpty && mounted)
+              {
+                setState(() {
+                  measurementsReady = true;
+                })
+              },
+            DBHelper().getSites().then((value) => {
+                  if (value.isNotEmpty && mounted)
+                    {
+                      setState(() {
+                        sitesReady = true;
+                      })
+                    }
+                }),
+          });
     } catch (e) {
       print(e);
     }
+  }
 
+  Future _checkFirstUse() async {
     var prefs = await SharedPreferences.getInstance();
-    var isFirstUse = prefs.getBool(PrefConstants().firstUse) ?? true;
+    var isFirstUse = prefs.getBool(PrefConstant.firstUse) ?? true;
 
     if (isFirstUse) {
       await Navigator.pushReplacement(context,
@@ -204,14 +295,97 @@ class SplashScreenState extends State<SplashScreen> {
     } else {
       await Navigator.pushAndRemoveUntil(context,
           MaterialPageRoute(builder: (context) {
-        return HomePageV2();
+        return HomePage();
       }), (r) => false);
     }
   }
 
-  @override
-  void initState() {
-    super.initState();
-    checkFirstUse();
+  Route _createRoute() {
+    return PageRouteBuilder(
+      pageBuilder: (context, animation, secondaryAnimation) => HomePage(),
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        return FadeTransition(
+          opacity: animation,
+          child: child,
+        );
+      },
+    );
+  }
+
+  void _getLatestMeasurements() async {
+    await AirqoApiClient(context).fetchLatestMeasurements().then((value) => {
+          if (value.isNotEmpty)
+            {
+              DBHelper().insertLatestMeasurements(value).then((value) => {
+                    if (mounted)
+                      {
+                        setState(() {
+                          measurementsReady = true;
+                        })
+                      }
+                  })
+            }
+        });
+  }
+
+  void _getSites() async {
+    await AirqoApiClient(context).fetchSites().then((value) => {
+          if (value.isNotEmpty)
+            {
+              DBHelper().insertSites(value).then((value) => {
+                    if (mounted)
+                      {
+                        setState(() {
+                          sitesReady = true;
+                        })
+                      }
+                  })
+            }
+        });
+  }
+
+  Future _initDB() async {
+    try {
+      await DBHelper().getLatestMeasurements().then((value) => {
+            if (value.isNotEmpty && mounted)
+              {
+                setState(() {
+                  measurementsReady = true;
+                })
+              },
+            DBHelper().getSites().then((value) => {
+                  if (value.isNotEmpty && mounted)
+                    {
+                      setState(() {
+                        sitesReady = true;
+                      })
+                    }
+                }),
+            if (!sitesReady)
+              {
+                _getSites(),
+              },
+            if (!measurementsReady)
+              {
+                _getLatestMeasurements(),
+              },
+          });
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  Future _initializeApp() async {
+    if (!measurementsReady || !sitesReady) {
+      await _checkDB();
+      sleep(const Duration(seconds: 5));
+      if (!measurementsReady || !sitesReady && mounted) {
+        setState(() {
+          error = 'Your request cannot be processed right now. '
+              'Please try again';
+        });
+        return;
+      }
+    }
   }
 }
