@@ -1,88 +1,39 @@
-## Overview
-This is the source code for the mobile application (Android and iOS). The mobile application is hybrid and was built using the [Ionic Framework](https://ionicframework.com/docs/v3/).
+# AirQo mobile application
 
-## Installation
-You will need to have Ionic & Cordova installed : 
+## Get Started
 
-```
-npm install -g cordova ionic
-```
-Once you have successfully installed both Ionic and Cordova, kindly confirm with the commands below : 
-```
-ionic -v
-cordova -v
-```
+### Install flutter on your computer
 
-## Getting Started
+[Installing Flutter on Windows](https://flutter.dev/docs/get-started/install/windows)
 
-To begin using this repository, choose one of the following options to get started:
-* [Download the latest release here](https://github.com/airqo-platform/AirQo-frontend/archive/master.zip)
-* Clone the repo: `git clone https://github.com/airqo-platform/AirQo-frontend-app.git`
-* Fork the repo
+[Installing Flutter on macOS](https://flutter.dev/docs/get-started/install/macos)
 
-## Project Structure
-
-```
-.
- ├── resources                    # Build files on the specific platforms (iOS, Android) and app icon + splashscreen
- ├── src                          # This is where the app lives - *the main folder*
- ├── .editorconfig                # A helper file to define and maintain coding styles across environments
- ├── .gitignore                   # Specifies intentionally untracked files to ignore when using Git
- ├── config.xml                   # Ionic config file
- ├── ionic.config.json            # Global configuration for your Ionic app
- ├── package.json                 # Dependencies and build scripts
- ├── readme.md                    # Project description
- ├── tsconfig.json                # TypeScript configurations
- └── tslint.json                  # TypeScript linting options
+```bash
+cd AirQo-frontend/mobile-app
 ```
 
-### src directory
-```
-.
-   ├── ...
-   ├── src                       
-   │   ├── app                    # This folder contains global modules and styling
-   │   ├── assets                 # This folder contains images and the *data.json*
-   |   ├── pages                  # Contains all the individual pages (home, tabs, category, list, single-item)
-   |   ├── providers              # Contains functions that are globally accessed across all `pages`
-   |   ├── theme                  # The global SCSS variables to use throughout the app
-   |   ├── index.html             # The root index app file - This launches the app
-   |   ├── manifest.json          # Metadata for the app
-   │   └── service-worker.js      # Cache configurations
-   └── ...
-```
+### Set the secret keys
 
-## Start the project
-The project is started with the regular ionic commands.
+Add [secret.dart](https://drive.google.com/file/d/1ZAjdw_phpsxBFWpz6e02tDFF4xx411V1/view?usp=sharing) to `lib/config` folder
 
-1. Run `npm install` to install all dependencies.
-2. Run `ionic serve` to start the development environment.
+### Set Google maps Key
 
-To run the app on a device :
+For android, add [app.properties](https://drive.google.com/file/d/1Bktg3ckv-yO4X8Hu5QqVN7qp9LVqzWJG/view?usp=sharing) file to `AirQo-frontend/mobile-app/android` directory
 
-```
-$ ionic cordova platform add android
-$ ionic cordova run android
+For IOS, add the [GOOGLE MAPS API Key](https://docs.google.com/document/d/1QawFn5Sfp3eOUODb38dLFsIVrU-erFpJeC7OEbWS_9Q/edit?usp=sharing),  in  `ios/Runner/AppDelegate.swift`
+`GMSServices.provideAPIKey("<INSERT KEY HERE>")`
+
+### Run the application
+
+```bash
+flutter run --no-sound-null-safety
 ```
 
+### Some useful commands
+```bash
+flutter pub run build_runner build [--delete-conflicting-outputs]
 ```
-$ ionic cordova platform add ios
-$ ionic cordova run ios
+
+```bash
+flutter build appbundle --analyze-size
 ```
-
-In order to build an iOS app, you need to be running the commands on MacOS.
-
-
-## Bugs and Issues
-
-Have a bug or an issue with this codebase? [Open a new issue](https://github.com/airqo-platform/AirQo-frontend/issues) here on Github.
-
-## References:
-[Ionic Website](https://ionicframework.com/docs/v3/)
-
-For more information about this project check the [AirQo Website](https://airqo.net/)
-
-
-<!---
-This `README.md` (this file) is specifically designed for the source code of the mobile application
---->
