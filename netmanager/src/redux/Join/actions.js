@@ -304,8 +304,22 @@ export const deleteUser = userToDelete => {
     return axios
         .delete(GET_USERS_URI, { params: { id }})
         .then(response => response.data)
-        .then(data => dispatch(deleteUserSuccess(data.user, data.message)))
-        .catch(err => dispatch(deleteUserFailed(err.response.data)))
+        .then(data => {
+          dispatch(deleteUserSuccess(data.user, data.message));
+          dispatch(updateMainAlert({
+            show: true,
+            message: data.message,
+            severity: "success",
+          }));
+        })
+        .catch(err => {
+          dispatch(deleteUserFailed(err.response.data));
+          dispatch(updateMainAlert({
+            show: true,
+            message: (err.response && err.response.data && err.response.data.message) || "Could not delete user",
+            severity: "error",
+          }))
+        })
   };
 };
 

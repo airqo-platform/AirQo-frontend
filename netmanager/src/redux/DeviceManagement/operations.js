@@ -7,12 +7,34 @@ import {
   LOAD_NETWORK_UPTIME_FAILURE,
   LOAD_ALL_DEVICES_UPTIME_SUCCESS,
   LOAD_ALL_DEVICES_UPTIME_FAILURE,
+  LOAD_UPTIME_LEADERBOARD_SUCCESS,
+  LOAD_UPTIME_LEADERBOARD_FAILURE,
+  LOAD_SINGLE_UPTIME_SUCCESS,
+  LOAD_SINGLE_UPTIME_FAILURE,
 } from "./actions";
 import {
   getDevicesStatusApi,
   getNetworkUptimeApi,
   getAllDevicesUptimeApi,
+  getUptimeLeaderboardApi,
 } from "views/apis/deviceMonitoring";
+
+export const loadUptimeLeaderboardData = (params) => async (dispatch) => {
+  return await getUptimeLeaderboardApi(params)
+    .then((responseData) => {
+      if (isEmpty(responseData.data)) return;
+      dispatch({
+        type: LOAD_UPTIME_LEADERBOARD_SUCCESS,
+        payload: responseData.data,
+      });
+    })
+    .catch((err) => {
+      dispatch({
+        type: LOAD_UPTIME_LEADERBOARD_FAILURE,
+        payload: err,
+      });
+    });
+};
 
 export const loadDevicesStatusData = (params) => async (dispatch) => {
   return await getDevicesStatusApi(params)
@@ -71,6 +93,24 @@ export const loadDevicesUptimeData = (params) => async (dispatch) => {
     .catch((err) => {
       dispatch({
         type: LOAD_ALL_DEVICES_UPTIME_FAILURE,
+        payload: err,
+      });
+    });
+};
+
+export const loadSingleDeviceUptime = (params) => async (dispatch) => {
+  return await getAllDevicesUptimeApi(params)
+    .then((responseData) => {
+      if (isEmpty(responseData.data)) return;
+      const { _id, values } = (responseData.data && responseData.data[0]) || {};
+      dispatch({
+        type: LOAD_SINGLE_UPTIME_SUCCESS,
+        payload: { [_id]: values },
+      });
+    })
+    .catch((err) => {
+      dispatch({
+        type: LOAD_SINGLE_UPTIME_FAILURE,
         payload: err,
       });
     });

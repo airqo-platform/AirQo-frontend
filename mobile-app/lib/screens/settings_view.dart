@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:app/constants/app_constants.dart';
 import 'package:app/services/local_notifications.dart';
-import 'package:app/widgets/clear_app_data.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -171,7 +170,7 @@ class _SettingsViewState extends State<SettingsView> {
   Future<void> loadPreferences() async {
     var prefs = await SharedPreferences.getInstance();
     var theme = prefs.getString(PrefConstant.appTheme);
-    print(theme);
+
     if (theme != null) {
       switch (theme) {
         case 'light':

@@ -16,12 +16,12 @@ Site _$SiteFromJson(Map<String, dynamic> json) {
     'name'
   ]);
   return Site(
-    json['name'] as String,
+    json['name'] as String? ?? '',
     id: json['_id'] as String,
     latitude: (json['latitude'] as num).toDouble(),
     longitude: (json['longitude'] as num).toDouble(),
-    district: json['district'] as String,
-    country: json['country'] as String,
+    district: json['district'] as String? ?? '',
+    country: json['country'] as String? ?? '',
     description: json['description'] as String? ?? '',
     distance: (json['distance'] as num?)?.toDouble() ?? 0.0,
   )..userLocation = json['userLocation'] as String? ?? '';

@@ -45,6 +45,10 @@ class Suggestion {
         print(e);
       }
     }
+
+    suggestions.sort((sgA, sgB) =>
+        sgA.description.toLowerCase().compareTo(sgB.description.toLowerCase()));
+
     return suggestions;
   }
 }

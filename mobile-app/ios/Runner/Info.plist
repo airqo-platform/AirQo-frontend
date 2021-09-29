@@ -65,11 +65,13 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+	<key>NSLocationUsageDescription</key>
+	 <string>Turning on location services allows us to show you the air quality of your surroundings</string>
     <key>NSLocationWhenInUseUsageDescription</key>
-    <string>Can I please use get location?</string>
+    <string>Turning on location services allows us to show you the air quality of your surroundings</string>
     <key>NSLocationAlwaysUsageDescription</key>
-    <string>Can I please use get location while running in the background?</string>
+    <string>Turning on location services allows us to show you the air quality of your surroundings while running in the background</string>
     <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-    <string>Can I please use get location while open and running in the background?</string>
+    <string>Turning on location services allows us to show you the air quality of your surroundings while open and running in the background?</string>
 </dict>
 </plist>

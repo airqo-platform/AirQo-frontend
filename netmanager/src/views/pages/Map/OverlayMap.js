@@ -3,7 +3,7 @@ import { useDispatch } from "react-redux";
 import mapboxgl from "mapbox-gl";
 import { isEmpty } from "underscore";
 import { heatMapPaint } from "./paints";
-import { formatDateString, getFirstDuration } from "utils/dateTime";
+import { getFirstDuration } from "utils/dateTime";
 import Filter from "../Dashboard/components/Map/Filter";
 import Divider from "@material-ui/core/Divider";
 import {
@@ -15,6 +15,7 @@ import SettingsIcon from "@material-ui/icons/Settings";
 import RichTooltip from "../../containers/RichToolTip";
 import { MenuItem } from "@material-ui/core";
 import Checkbox from "@material-ui/core/Checkbox";
+import { useInitScrollTop } from "utils/customHooks";
 
 // css
 import "assets/css/overlay-map.css";
@@ -100,6 +101,7 @@ const MapControllerPosition = ({ className, children, position }) => {
 };
 
 const PollutantSelector = ({ className, onChange }) => {
+  useInitScrollTop();
   const [open, setOpen] = useState(false);
   const [pollutant, setPollutant] = useState("pm2_5");
   const pollutantMapper = {

@@ -6,3 +6,4 @@ export { default as PollutantCategory } from "./PollutantCategory";
 export { default as TotalProfit } from "./TotalProfit";
 export { default as ExceedancesChart } from "./ExceedancesChart";
 export { default as AddChart } from "./AddChart";
+export { default as AveragesChart } from "./AveragesChart";

@@ -284,20 +284,6 @@ class SplashScreenState extends State<SplashScreen> {
     }
   }
 
-  Future _initializeApp() async {
-    if (!measurementsReady || !sitesReady) {
-      await _checkDB();
-      sleep(const Duration(seconds: 5));
-      if (!measurementsReady || !sitesReady && mounted) {
-        setState(() {
-          error = 'Your request cannot be processed right now. '
-              'Please try again';
-        });
-        return;
-      }
-    }
-  }
-
   Future _checkFirstUse() async {
     var prefs = await SharedPreferences.getInstance();
     var isFirstUse = prefs.getBool(PrefConstant.firstUse) ?? true;
@@ -387,6 +373,20 @@ class SplashScreenState extends State<SplashScreen> {
           });
     } catch (e) {
       print(e);
+    }
+  }
+
+  Future _initializeApp() async {
+    if (!measurementsReady || !sitesReady) {
+      await _checkDB();
+      sleep(const Duration(seconds: 5));
+      if (!measurementsReady || !sitesReady && mounted) {
+        setState(() {
+          error = 'Your request cannot be processed right now. '
+              'Please try again';
+        });
+        return;
+      }
     }
   }
 }

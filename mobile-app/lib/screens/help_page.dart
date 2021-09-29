@@ -13,39 +13,40 @@ class HelpPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return DefaultTabController(
       initialIndex: getInitialIndex(),
-      length: 5,
+      length: 3,
       child: Scaffold(
         appBar: AppBar(
           leading: BackButton(color: ColorConstants.appColor),
           elevation: 0,
-          bottom: const TabBar(
-            isScrollable: true,
+          bottom: TabBar(
+            isScrollable: false,
+            indicatorColor: ColorConstants.appColor,
             tabs: [
-              Tab(
+              const Tab(
                   child: Text(
                 'AQI',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
               )),
-              Tab(
+              const Tab(
                   child: Text(
                 'PM 2.5',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
               )),
-              Tab(
+              const Tab(
                   child: Text(
                 'PM 10',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
               )),
-              Tab(
-                  child: Text(
-                'Humidity',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
-              )),
-              Tab(
-                  child: Text(
-                'Temperature',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
-              )),
+              // const Tab(
+              //     child: Text(
+              //   'Humidity',
+              //   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
+              // )),
+              // const Tab(
+              //     child: Text(
+              //   'Temperature',
+              //   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
+              // )),
             ],
           ),
           title: const Text(
@@ -58,8 +59,8 @@ class HelpPage extends StatelessWidget {
             AqiDialog(),
             PollutantDialog(pollutantDetails(PollutantConstant.pm2_5)),
             PollutantDialog(pollutantDetails(PollutantConstant.pm10)),
-            PollutantDialogV2(pollutantDetails(PollutantConstant.humidity)),
-            PollutantDialogV2(pollutantDetails(PollutantConstant.temperature)),
+            // PollutantDialogV2(pollutantDetails(PollutantConstant.humidity)),
+            // PollutantDialogV2(pollutantDetails(PollutantConstant.temperature)),
           ],
         ),
       ),
@@ -67,7 +68,7 @@ class HelpPage extends StatelessWidget {
   }
 
   int getInitialIndex() {
-    if (initialIndex > 4 || initialIndex < 0) {
+    if (initialIndex > 2 || initialIndex < 0) {
       return 0;
     }
     return initialIndex;

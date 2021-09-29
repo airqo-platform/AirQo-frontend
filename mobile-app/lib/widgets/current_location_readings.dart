@@ -10,9 +10,11 @@ import 'package:app/utils/data_formatter.dart';
 import 'package:app/utils/date.dart';
 import 'package:app/utils/pm.dart';
 import 'package:app/utils/share.dart';
+import 'package:app/widgets/pollutants_container.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import 'dashboard_measurements_chart.dart';
 import 'health_recommendation.dart';
@@ -47,8 +49,18 @@ class CurrentLocationCard extends StatelessWidget {
               child: titleSection(context),
             ),
           ),
+          const SizedBox(
+            height: 20,
+          ),
+          PollutantsSection(measurementData),
+          const SizedBox(
+            height: 10,
+          ),
           HealthRecommendationSection(
             measurement: measurementData,
+          ),
+          const SizedBox(
+            height: 10,
           ),
           if (historicalData.isNotEmpty)
             Card(
@@ -69,23 +81,34 @@ class CurrentLocationCard extends StatelessWidget {
               ),
               child: forecastSection(),
             ),
+          SizedBox(
+            height: 300.0,
+            child: mapSection(measurementData),
+          )
         ],
       ),
     );
   }
 
-  Widget footerSection() {
+  Widget footerSection(context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(5, 0.0, 0.0, 0.0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          Text('${dateToString(measurementData.time, true)}, Local Time',
-              style: TextStyle(
-                color: ColorConstants.appColor,
-                fontSize: 12,
-              )),
+          GestureDetector(
+            onTap: () {
+              viewDetails(context, measurementData.site);
+            },
+            child: Text(
+                '${dateToString(measurementData.time, true)}'
+                ', Local Time',
+                style: TextStyle(
+                  color: ColorConstants.appColor,
+                  fontSize: 12,
+                )),
+          ),
           const Spacer(),
           // IconButton(
           //     onPressed: null,
@@ -203,39 +226,6 @@ class CurrentLocationCard extends StatelessWidget {
   Widget titleSection(context) {
     return Column(
       children: [
-        // Card(
-        //     elevation: 0,
-        //     shape: RoundedRectangleBorder(
-        //       borderRadius: BorderRadius.circular(10),
-        //     ),
-        //     color: pmToColor(measurementData.getPm2_5Value()),
-        //     child: Padding(
-        //       padding: const EdgeInsets.all(8),
-        //       child: Column(
-        //         children: [
-        //           Text('${measurementData.site.getUserLocation()}',
-        //               softWrap: true,
-        //               maxLines: 2,
-        //               textAlign: TextAlign.center,
-        //               overflow: TextOverflow.ellipsis,
-        //               style: TextStyle(
-        //                   color: pmTextColor(
-        //                   measurementData.getPm2_5Value()),
-        //                   fontWeight: FontWeight.bold)),
-        //           if (measurementData.site.getUserLocation() !=
-        //               measurementData.site.getName())
-        //             Text('${measurementData.site.getName()}',
-        //                 softWrap: true,
-        //                 maxLines: 2,
-        //                 textAlign: TextAlign.center,
-        //                 overflow: TextOverflow.ellipsis,
-        //                 style: TextStyle(
-        //                     color: pmTextColor(
-        //                     measurementData.getPm2_5Value()),
-        //                     fontWeight: FontWeight.bold)),
-        //         ],
-        //       ),
-        //     )),
         GestureDetector(
           onTap: () {
             viewDetails(context, measurementData.site);
@@ -324,8 +314,7 @@ class CurrentLocationCard extends StatelessWidget {
             ],
           ),
         ),
-
-        footerSection()
+        footerSection(context)
       ],
     );
   }

@@ -59,19 +59,19 @@ class LocationSearch extends SearchDelegate<Suggestion> {
           query = '';
         },
       ),
-      IconButton(
-        tooltip: 'Map',
-        icon: Image.asset(
-          'assets/images/world-map.png',
-          height: 50,
-          width: 50,
-        ),
-        onPressed: () {
-          Navigator.push(context, MaterialPageRoute(builder: (context) {
-            return MapPage();
-          }));
-        },
-      )
+      // IconButton(
+      //   tooltip: 'Map',
+      //   icon: Image.asset(
+      //     'assets/images/world-map.png',
+      //     height: 50,
+      //     width: 50,
+      //   ),
+      //   onPressed: () {
+      //     Navigator.push(context, MaterialPageRoute(builder: (context) {
+      //       return MapPage();
+      //     }));
+      //   },
+      // )
     ];
   }
 
@@ -113,9 +113,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
           child: Container(
             padding: const EdgeInsets.all(16.0),
             child: Text(
-              'Failed to locate $query, search again and tap on any of the '
-              'available suggestions or use the map '
-              'on the top right corner',
+              'Failed to locate $query, consider using a different search term',
               textAlign: TextAlign.center,
               style: TextStyle(color: ColorConstants.appColor),
             ),
@@ -155,13 +153,15 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                       return Align(
                           alignment: Alignment.center,
                           child: Padding(
-                            padding: const EdgeInsets.all(8),
+                            padding: const EdgeInsets.all(20),
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
                                 Text(
-                                  'Could not find stations near $query',
+                                  'Sorry, air quality readings for'
+                                  ' "$query" are not available.'
+                                  '\n What do you prefer ??',
                                   textAlign: TextAlign.center,
                                   style:
                                       TextStyle(color: ColorConstants.appColor),
@@ -239,8 +239,11 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                               valueColor: AlwaysStoppedAnimation<Color>(
                                   ColorConstants.appColor),
                             ),
+                            const SizedBox(
+                              height: 15,
+                            ),
                             Text(
-                              'Searching for nearby stations. Please wait...',
+                              'Crunching location readings, hang tight...',
                               textAlign: TextAlign.center,
                               style: TextStyle(color: ColorConstants.appColor),
                             )
@@ -261,8 +264,11 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                       valueColor: AlwaysStoppedAnimation<Color>(
                           ColorConstants.appColor),
                     ),
+                    const SizedBox(
+                      height: 15,
+                    ),
                     Text(
-                      'Getting place details...',
+                      'Crunching location readings, hang tight...',
                       style: TextStyle(color: ColorConstants.appColor),
                     )
                   ],
@@ -278,12 +284,12 @@ class LocationSearch extends SearchDelegate<Suggestion> {
       builder: (context, snapshot) {
         if (query == '') {
           return FutureBuilder(
-            future: DBHelper().getSearchHistory(),
+            future: DBHelper().getSites(),
             builder: (context, snapshot) {
               if (snapshot.hasData) {
-                var results = snapshot.data as List<Suggestion>;
+                var sites = snapshot.data as List<Site>;
 
-                if (results.isEmpty) {
+                if (sites.isEmpty) {
                   return Align(
                       alignment: Alignment.topCenter,
                       child: Container(
@@ -296,38 +302,72 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                 }
 
                 return ListView.builder(
-                  itemBuilder: (context, index) => ListTile(
-                    title: Text(
-                      (results[index]).description,
-                      style: TextStyle(
-                          fontSize: 12, color: ColorConstants.appColor),
-                    ),
-                    leading: Icon(
-                      Icons.history,
-                      color: ColorConstants.appColor,
-                    ),
-                    trailing: GestureDetector(
-                      onTap: () {
-                        DBHelper()
-                            .deleteSearchHistory(results[index])
-                            .then((value) => {query = ''});
-                      },
-                      child: Icon(
-                        Icons.delete_outlined,
-                        color: ColorConstants.red,
-                      ),
-                    ),
-                    onTap: () {
-                      query = (results[index]).description;
-                      showAllSites = false;
-                      searchPlaceId = (results[index]).placeId;
-                      showResults(context);
-                      // navigateToPlace(context, results[index]);
-                      // close(context, results[index]);
-                    },
-                  ),
-                  itemCount: results.length,
+                  shrinkWrap: true,
+                  itemCount: sites.length,
+                  itemBuilder: (context, index) {
+                    return InkWell(
+                        onTap: () {
+                          var site = sites[index];
+                          Navigator.push(context,
+                              MaterialPageRoute(builder: (context) {
+                            return PlaceDetailsPage(
+                              site: site,
+                            );
+                          }));
+                        },
+                        child: ListTile(
+                          title: Text('${sites[index].getName()}',
+                              style: TextStyle(
+                                fontSize: 17,
+                                color: ColorConstants.appColor,
+                                fontWeight: FontWeight.bold,
+                              )),
+                          subtitle: Text('${sites[index].getLocation()}',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: ColorConstants.appColor,
+                              )),
+                          leading: Icon(
+                            Icons.location_pin,
+                            color: ColorConstants.appColor,
+                          ),
+                        ));
+                  },
                 );
+
+                // return ListView.builder(
+                //   itemBuilder: (context, index) => ListTile(
+                //     title: Text(
+                //       (results[index]).description,
+                //       style: TextStyle(
+                //           fontSize: 12, color: ColorConstants.appColor),
+                //     ),
+                //     leading: Icon(
+                //       Icons.history,
+                //       color: ColorConstants.appColor,
+                //     ),
+                //     trailing: GestureDetector(
+                //       onTap: () {
+                //         DBHelper()
+                //             .deleteSearchHistory(results[index])
+                //             .then((value) => {query = ''});
+                //       },
+                //       child: Icon(
+                //         Icons.delete_outlined,
+                //         color: ColorConstants.red,
+                //       ),
+                //     ),
+                //     onTap: () {
+                //       query = (results[index]).description;
+                //       showAllSites = false;
+                //       searchPlaceId = (results[index]).placeId;
+                //       showResults(context);
+                //       // navigateToPlace(context, results[index]);
+                //       // close(context, results[index]);
+                //     },
+                //   ),
+                //   itemCount: results.length,
+                // );
               }
 
               return Align(
@@ -347,7 +387,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
           return Container(
             padding: const EdgeInsets.all(16.0),
             child: Text(
-              'Could not load suggestions. Try again later or use the map',
+              'Could not load suggestions. Try again later',
               style: TextStyle(color: ColorConstants.appColor),
             ),
           );
@@ -385,10 +425,6 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                       valueColor: AlwaysStoppedAnimation<Color>(
                           ColorConstants.appColor),
                     ),
-                    Text(
-                      'Loading...',
-                      style: TextStyle(color: ColorConstants.appColor),
-                    )
                   ],
                 )),
           );
@@ -409,10 +445,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                   'try again later'),
             );
           } else if (snapshot.hasData) {
-            var sites = snapshot.data as List<Site>
-              ..sort((siteA, siteB) {
-                return siteA.getName().compareTo(siteB.getName().toLowerCase());
-              });
+            var sites = snapshot.data as List<Site>;
 
             if (sites.isEmpty) {
               return Align(
@@ -472,8 +505,11 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                       valueColor: AlwaysStoppedAnimation<Color>(
                           ColorConstants.appColor),
                     ),
+                    const SizedBox(
+                      height: 15,
+                    ),
                     Text(
-                      'Searching for stations. Please wait...',
+                      'Crunching location readings, hang tight...',
                       style: TextStyle(color: ColorConstants.appColor),
                     )
                   ],
@@ -490,10 +526,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
             print(snapshot.error);
             return loadApiSites(context);
           } else if (snapshot.hasData) {
-            var sites = snapshot.data as List<Site>
-              ..sort((siteA, siteB) {
-                return siteA.getName().compareTo(siteB.getName().toLowerCase());
-              });
+            var sites = snapshot.data as List<Site>;
 
             if (sites.isEmpty) {
               return loadApiSites(context);
@@ -545,9 +578,11 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                         valueColor: AlwaysStoppedAnimation<Color>(
                             ColorConstants.appColor),
                       ),
+                      const SizedBox(
+                        height: 15,
+                      ),
                       Text(
-                        'Getting air quality stations. '
-                        'Please wait...',
+                        'Crunching location readings, hang tight...',
                         textAlign: TextAlign.center,
                         style: TextStyle(color: ColorConstants.appColor),
                       )
@@ -611,7 +646,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
       child: const Padding(
         padding: EdgeInsets.all(10.0),
         child: Text(
-          'Show available air quality stations',
+          'Show me all your air quality stations',
           style: TextStyle(color: Colors.white),
         ),
       ),
@@ -636,7 +671,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
       child: const Padding(
         padding: EdgeInsets.all(10.0),
         child: Text(
-          'Go to the Map',
+          'Take me to the map',
           style: TextStyle(color: Colors.white),
         ),
       ),

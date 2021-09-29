@@ -4,6 +4,7 @@ import 'package:app/models/site.dart';
 import 'package:app/screens/place_details.dart';
 import 'package:app/screens/search_location_page.dart';
 import 'package:app/services/local_storage.dart';
+import 'package:app/services/rest_api.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/share.dart';
 import 'package:app/widgets/air_quality_nav.dart';
@@ -70,7 +71,7 @@ class _MyPlacesViewState extends State<MyPlacesView> {
 
                     return RefreshIndicator(
                       color: ColorConstants.appColor,
-                      onRefresh: refreshData,
+                      onRefresh: _getLatestMeasurements,
                       child: ListView.builder(
                         itemBuilder: (context, index) => GestureDetector(
                           onTap: () {
@@ -118,7 +119,14 @@ class _MyPlacesViewState extends State<MyPlacesView> {
                 })));
   }
 
-  Future<void> refreshData() async {
+  @override
+  void initState() {
+    _getLatestMeasurements();
+    _getSites();
+    super.initState();
+  }
+
+  Future<void> reloadData() async {
     await DBHelper().getFavouritePlaces().then((value) => {
           if (mounted)
             {
@@ -145,5 +153,20 @@ class _MyPlacesViewState extends State<MyPlacesView> {
     })).then((value) {
       setState(() {});
     });
+  }
+
+  Future<void> _getLatestMeasurements() async {
+    await AirqoApiClient(context).fetchLatestMeasurements().then((value) => {
+          if (value.isNotEmpty)
+            {
+              DBHelper()
+                  .insertLatestMeasurements(value)
+                  .then((value) => {reloadData()})
+            }
+        });
+  }
+
+  void _getSites() async {
+    await AirqoApiClient(context).fetchSites();
   }
 }

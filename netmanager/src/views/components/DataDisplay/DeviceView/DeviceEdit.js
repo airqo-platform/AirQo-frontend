@@ -30,6 +30,7 @@ const EDIT_OMITTED_KEYS = [
   "height",
   "deployment_date",
   "nextMaintenance",
+  "pictures",
 ];
 
 const EditDeviceForm = ({ deviceData, siteOptions }) => {

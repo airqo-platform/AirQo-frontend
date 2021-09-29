@@ -127,7 +127,7 @@ const createDeviceColumns = (history, setDelState) => [
   },
   {
     title: "Site",
-    field: "site",
+    field: "site.description",
     render: (data) => (
       <Cell
         fieldValue={

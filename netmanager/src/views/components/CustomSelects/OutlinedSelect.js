@@ -33,14 +33,16 @@ export default function OutlinedSelect({ label, components, ...props }) {
   const modifiedLabel =
     (props.required && <span>{label.trimEnd()} &#42;</span>) || label;
   return (
-    <div style={{width: "100%"}}>
+    <div style={{ width: "100%" }}>
       <Select
+        menuPortalTarget={document.body}
         components={{
           ...components,
           ValueContainer: CustomValueContainer,
         }}
         {...{ ...props, placeholder: modifiedLabel }}
         styles={{
+          menuPortal: (base) => ({ ...base, zIndex: 9999 }),
           container: (provided, state) => ({
             ...provided,
             // marginTop: 20,

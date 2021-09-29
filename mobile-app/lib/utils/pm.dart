@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/chartData.dart';
+import 'package:app/models/measurement.dart';
 import 'package:app/models/pollutant.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
@@ -9,24 +10,42 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 List<Recommendation> getHealthRecommendations(double pm2_5) {
   var recommendations = <Recommendation>[];
-
   if (pm2_5 <= 12.09) {
     //good
     recommendations
-      ..add(Recommendation('Consider taking young ones out to play.',
-          'assets/images/baby.png', ColorConstants.green.withOpacity(0.2)))
-      ..add(Recommendation('Take some time and do outdoor activities.',
+      ..add(Recommendation(
+          'The elderly and children '
+              'are the groups most at risk.',
+          'assets/images/baby.png',
+          ColorConstants.green.withOpacity(0.2)))
+      ..add(Recommendation('Everyone else can do outdoor activities.',
           'assets/images/jogging.png', ColorConstants.green.withOpacity(0.2)));
   } else if (pm2_5 >= 12.1 && pm2_5 <= 35.49) {
     //moderate
     recommendations
-      ..add(Recommendation('Do less out door activities.',
-          'assets/images/cycling.png', ColorConstants.green.withOpacity(0.2)))
-      ..add(Recommendation('Take more breaks and do less intense activities.',
-          'assets/images/jogging.png', ColorConstants.green.withOpacity(0.2)));
+      ..add(Recommendation(
+          'Unusually sensitive people should'
+              ' consider reducing prolonged or heavy exertion.',
+          'assets/images/pregnant-woman.png',
+          ColorConstants.green.withOpacity(0.2)))
+      ..add(Recommendation(
+          'The elderly and children '
+              'are the groups most at risk.',
+          'assets/images/old.png',
+          ColorConstants.green.withOpacity(0.2)))
+      ..add(Recommendation(
+          'Everyone else should take more breaks '
+              'and engage in less intense activities.',
+          'assets/images/cycling.png',
+          ColorConstants.green.withOpacity(0.2)));
   } else if (pm2_5 >= 35.5 && pm2_5 <= 55.49) {
     //sensitive
     recommendations
+      ..add(Recommendation(
+          'The elderly and children '
+              'should limit prolonged exertion.',
+          'assets/images/baby.png',
+          ColorConstants.green.withOpacity(0.2)))
       ..add(Recommendation(
           'Sensitive people should reduce prolonged or heavy exertion.',
           'assets/images/pregnant-woman.png',
@@ -34,44 +53,73 @@ List<Recommendation> getHealthRecommendations(double pm2_5) {
       ..add(Recommendation(
           'People with asthma should follow their asthma action'
               ' plans and keep quick relief medicine handy.',
-          'assets/images/old.png',
+          'assets/images/jogging.png',
           ColorConstants.green.withOpacity(0.2)));
   } else if (pm2_5 >= 55.5 && pm2_5 <= 150.49) {
     // unhealthy
     recommendations
       ..add(Recommendation(
-          'Sensitive people should avoid prolonged or heavy exertion.',
+          'People with respiratory or heart disease,'
+              ' the elderly and children should avoid prolonged exertion;',
           'assets/images/old.png',
           ColorConstants.green.withOpacity(0.2)))
-      ..add(Recommendation(
-          'Consider moving activities indoors or rescheduling.',
-          'assets/images/pregnant-woman.png',
-          ColorConstants.green.withOpacity(0.2)))
-      ..add(Recommendation(
-          ' Everyone should avoid all physical activity outdoors.',
-          'assets/images/cycling.png',
-          ColorConstants.green.withOpacity(0.2)));
+      ..add(Recommendation('Everyone else should limit prolonged exertion.',
+          'assets/images/cycling.png', ColorConstants.green.withOpacity(0.2)));
   } else if (pm2_5 >= 150.5 && pm2_5 <= 250.49) {
     // very unhealthy
     recommendations
       ..add(Recommendation(
-          'Sensitive people should avoid all physical activity outdoors.',
-          'assets/images/pregnant-woman.png',
+          'People with respiratory or heart disease, '
+              'the elderly and children should avoid any outdoor activity',
+          'assets/images/baby.png',
           ColorConstants.green.withOpacity(0.2)))
-      ..add(Recommendation(
-          'Move activities indoors or reschedule to a '
-              'time when air quality is better.',
-          'assets/images/cycling.png',
-          ColorConstants.green.withOpacity(0.2)));
+      ..add(Recommendation('Everyone else should limit prolonged exertion.',
+          'assets/images/jogging.png', ColorConstants.green.withOpacity(0.2)));
   } else if (pm2_5 >= 250.5) {
     // hazardous
     recommendations.add(Recommendation(
-        'Everyone should avoid all physical activity outdoors.',
+        'Everyone should avoid any outdoor exertion. '
+            'People with respiratory or heart disease,'
+            ' the elderly and children should remain indoors.',
         'assets/images/face-mask.png',
         ColorConstants.purple));
   } else {}
 
   return recommendations;
+}
+
+Widget mapSection(Measurement measurement) {
+  final _markers = <String, Marker>{};
+
+  final marker = Marker(
+    markerId: MarkerId(measurement.site.toString()),
+    icon: pmToMarkerPoint(measurement.getPm2_5Value()),
+    position: LatLng((measurement.site.latitude), measurement.site.longitude),
+  );
+  _markers[measurement.site.toString()] = marker;
+
+  return Padding(
+      padding: const EdgeInsets.fromLTRB(0.0, 2.0, 0.0, 2.0),
+      child: Card(
+          elevation: 20,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: GoogleMap(
+            compassEnabled: false,
+            mapType: MapType.normal,
+            myLocationButtonEnabled: false,
+            myLocationEnabled: false,
+            rotateGesturesEnabled: false,
+            tiltGesturesEnabled: false,
+            mapToolbarEnabled: false,
+            initialCameraPosition: CameraPosition(
+              target:
+                  LatLng(measurement.site.latitude, measurement.site.longitude),
+              zoom: 13,
+            ),
+            markers: _markers.values.toSet(),
+          )));
 }
 
 Color pmTextColor(double pm2_5) {

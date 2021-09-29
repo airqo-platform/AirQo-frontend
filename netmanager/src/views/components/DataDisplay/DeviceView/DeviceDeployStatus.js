@@ -30,6 +30,7 @@ import OutlinedSelect from "../../CustomSelects/OutlinedSelect";
 import { loadDevicesData } from "redux/DeviceRegistry/operations";
 import { capitalize } from "utils/string";
 import { filterSite } from "utils/sites";
+import { loadSitesData } from "redux/SiteRegistry/operations";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -409,6 +410,7 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
     await deployDeviceApi(deviceData.name, deployData)
       .then((responseData) => {
         dispatch(loadDevicesData());
+        dispatch(loadSitesData());
         dispatch(
           updateMainAlert({
             message: responseData.message,
@@ -438,6 +440,7 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
     await recallDeviceApi(deviceData.name)
       .then((responseData) => {
         dispatch(loadDevicesData());
+        dispatch(loadSitesData());
         dispatch(
           updateMainAlert({
             message: responseData.message,
@@ -731,7 +734,7 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
                       color="primary"
                     />
                   }
-                  label="I wish to make this my primary device in this location"
+                  label="Primary device in this site"
                   style={{ margin: "10px 0 0 5px", width: "100%" }}
                 />
                 <FormControlLabel
@@ -746,7 +749,7 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
                       color="primary"
                     />
                   }
-                  label="This deployment is a formal collocation"
+                  label="Formal collocation in this site"
                   style={{ marginLeft: "5px" }}
                 />
               </Grid>{" "}

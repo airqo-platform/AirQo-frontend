@@ -307,18 +307,18 @@ class MapPageState extends State<MapPage> {
                         children: <Widget>[
                           Center(
                             child: Container(
-                                width: 100,
-                                height: 100,
+                                width: 70,
+                                height: 70,
                                 child: CircularProgressIndicator(
                                   valueColor: AlwaysStoppedAnimation<Color>(
                                       ColorConstants.appColor),
                                 )),
                           ),
-                          Center(
-                              child: Text(
-                            'Loading',
-                            style: TextStyle(color: ColorConstants.appColor),
-                          )),
+                          // Center(
+                          //     child: Text(
+                          //   'Loading',
+                          //   style: TextStyle(color: ColorConstants.appColor),
+                          // )),
                         ],
                       ),
                     )),
