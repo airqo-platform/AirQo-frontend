@@ -11,6 +11,53 @@ class PollutantsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+        child: Column(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        Text(
+          'Location Readings',
+          softWrap: true,
+          style: TextStyle(
+              fontSize: 20,
+              color: ColorConstants.appColor,
+              fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 10.0),
+        SizedBox(
+          height: 120.0,
+          child: ListView(
+            physics: const ClampingScrollPhysics(),
+            shrinkWrap: true,
+            scrollDirection: Axis.horizontal,
+            children: [
+              if (measurement.getPm2_5Value() != -0.10)
+                PollutantCard('PM 2.5', measurement.getPm2_5Value(),
+                    '${PollutantConstant.pm2_5}', ''),
+              if (measurement.getPm10Value() != -0.10)
+                PollutantCard('PM 10', measurement.getPm10Value(),
+                    '${PollutantConstant.pm10}', ''),
+              if (measurement.humidity.value != -0.10)
+                PollutantCard(
+                    'Humidity',
+                    double.parse(measurement.humidity.value.toStringAsFixed(2)),
+                    '${PollutantConstant.humidity}',
+                    'Tahmo'),
+              if (measurement.temperature.value != -0.10)
+                PollutantCard(
+                    'Temperature',
+                    double.parse(
+                        measurement.temperature.value.toStringAsFixed(2)),
+                    '${PollutantConstant.temperature}',
+                    'Tahmo'),
+            ],
+          ),
+        ),
+      ],
+    ));
+  }
+
+  Widget builds(BuildContext context) {
+    return Container(
         child: Padding(
       padding: const EdgeInsets.all(5.0),
       child: Column(
@@ -22,7 +69,7 @@ class PollutantsSection extends StatelessWidget {
             softWrap: true,
             style: TextStyle(
                 fontSize: 20,
-                color: ColorConstants().appColor,
+                color: ColorConstants.appColor,
                 fontWeight: FontWeight.bold),
           ),
           Padding(
@@ -33,15 +80,38 @@ class PollutantsSection extends StatelessWidget {
                 const Spacer(
                   flex: 1,
                 ),
-                if (measurement.getPm2_5Value() != null)
+                if (measurement.getPm2_5Value() != 0.1)
                   PollutantCard('PM 2.5', measurement.getPm2_5Value(),
-                      '${PollutantConstants.pm2_5}'),
+                      '${PollutantConstant.pm2_5}', ''),
                 const Spacer(
                   flex: 1,
                 ),
-                if (measurement.getPm10Value() != null)
+                if (measurement.getPm10Value() != 0.1)
                   PollutantCard('PM 10', measurement.getPm10Value(),
-                      '${PollutantConstants.pm10}'),
+                      '${PollutantConstant.pm10}', ''),
+                const Spacer(
+                  flex: 1,
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(5.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Spacer(
+                  flex: 1,
+                ),
+                if (measurement.humidity.value != 0.1)
+                  PollutantCard('Humidity', measurement.humidity.value,
+                      '${PollutantConstant.humidity}', 'Tahmo'),
+                const Spacer(
+                  flex: 1,
+                ),
+                if (measurement.temperature.value != 0.1)
+                  PollutantCard('Temperature', measurement.temperature.value,
+                      '${PollutantConstant.temperature}', 'Tahmo'),
                 const Spacer(
                   flex: 1,
                 ),

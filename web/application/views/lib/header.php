@@ -101,12 +101,12 @@ $author = "Buzen Technologies";
 							<li class="nav-item">
 								<a class="nav-link" href="<?= site_url('products'); ?>">Products &amp; Services</a>
 							</li>
-							<!-- <li class="nav-item">
+							<li class="nav-item"><!-- medium-->
 								<a class="nav-link" href="<?= site_url('blog'); ?>">Blog</a>
-							</li> -->
-							<li class="nav-item"> <!-- medium-->
-								<a class="nav-link" href="<?= site_url('airqo-blog'); ?>">Blog</a>
 							</li>
+							<!-- <li class="nav-item"> 
+								<a class="nav-link" href="<?= site_url('airqo-blog'); ?>">Blog</a>
+							</li> -->
 							<li class="nav-item">
 								<a class="nav-link" href="<?= REQUEST_DATA_ACCESS; ?>" target="_blank">Request Data Access</a>
 							</li>

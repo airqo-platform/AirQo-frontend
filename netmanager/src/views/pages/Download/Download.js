@@ -9,16 +9,20 @@ import {
   CardHeader,
   CardActions,
   Divider,
+  CircularProgress,
 } from "@material-ui/core";
 import Select from "react-select";
 import PropTypes from "prop-types";
 import clsx from "clsx";
 import TextField from "@material-ui/core/TextField";
 import { isEmpty } from "underscore";
+import moment from "moment";
 import { useDashboardSitesData } from "redux/Dashboard/selectors";
 import { loadSites } from "redux/Dashboard/operations";
 import { downloadDataApi } from "views/apis/analytics";
 import { roundToStartOfDay, roundToEndOfDay } from "utils/dateTime";
+import { updateMainAlert } from "redux/MainAlert/operations";
+import { useInitScrollTop } from "utils/customHooks";
 
 const { Parser } = require("json2csv");
 
@@ -46,12 +50,16 @@ const getValues = (options) => {
 };
 
 const Download = (props) => {
+  useInitScrollTop();
   const { className, staticContext, ...rest } = props;
   const classes = useStyles();
+
+  const MAX_ALLOWED_DATE_DIFF_IN_DAYS = 93;
 
   const dispatch = useDispatch();
   const sites = useDashboardSitesData();
   const [siteOptions, setSiteOptions] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
@@ -86,20 +94,24 @@ const Download = (props) => {
   }, [sites]);
 
   const disableDownloadBtn = () => {
-    return !(
-      startDate &&
-      endDate &&
-      !isEmpty(selectedSites) &&
-      !isEmpty(pollutants) &&
-      fileType &&
-      fileType.value &&
-      frequency &&
-      frequency.value
+    return (
+      !(
+        startDate &&
+        endDate &&
+        !isEmpty(selectedSites) &&
+        !isEmpty(pollutants) &&
+        fileType &&
+        fileType.value &&
+        frequency &&
+        frequency.value
+      ) || loading
     );
   };
 
-  let handleSubmit = (e) => {
+  let handleSubmit = async (e) => {
     e.preventDefault();
+
+    setLoading(true);
 
     let data = {
       sites: getValues(selectedSites),
@@ -110,7 +122,21 @@ const Download = (props) => {
       fileType: fileType.value,
     };
 
-    downloadDataApi("json", data)
+    const dateDiff = moment(data.endDate).diff(moment(data.startDate), "days");
+
+    if (dateDiff > MAX_ALLOWED_DATE_DIFF_IN_DAYS) {
+      setLoading(false);
+      dispatch(
+        updateMainAlert({
+          show: "true",
+          message: "The download of data of more than 3 months is prohibited",
+          severity: "error",
+        })
+      );
+      return;
+    }
+
+    await downloadDataApi("json", data)
       .then((response) => response.data)
       .then((resData) => {
         if (fileType.value === "json") {
@@ -153,6 +179,7 @@ const Download = (props) => {
         }
       })
       .catch((err) => console.log(err && err.response && err.response.data));
+    setLoading(false);
   };
   return (
     <div className={classes.root}>
@@ -264,15 +291,29 @@ const Download = (props) => {
 
               <Divider />
               <CardActions>
-                <Button
-                  color="primary"
-                  variant="outlined"
-                  type="submit"
-                  disabled={disableDownloadBtn()}
-                >
-                  {" "}
-                  Download Data
-                </Button>
+                <span style={{ position: "relative" }}>
+                  <Button
+                    color="primary"
+                    variant="outlined"
+                    type="submit"
+                    disabled={disableDownloadBtn()}
+                  >
+                    {" "}
+                    Download Data
+                  </Button>
+                  {loading && (
+                    <CircularProgress
+                      size={24}
+                      style={{
+                        position: "absolute",
+                        top: "50%",
+                        left: "50%",
+                        marginTop: "-12px",
+                        marginLeft: "-12px",
+                      }}
+                    />
+                  )}
+                </span>
               </CardActions>
             </form>
           </Card>

@@ -1,3 +1,4 @@
+import 'package:app/constants/app_constants.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'site.g.dart';
@@ -13,20 +14,23 @@ class Site {
   @JsonKey(required: true)
   final double longitude;
 
-  @JsonKey(required: true)
+  @JsonKey(required: true, defaultValue: '')
   final String district;
 
-  @JsonKey(required: true)
+  @JsonKey(required: true, defaultValue: '')
   final String country;
 
-  @JsonKey(required: true)
+  @JsonKey(required: true, defaultValue: '')
   final String name;
 
   @JsonKey(required: false, defaultValue: '')
   final String description;
 
   @JsonKey(required: false, defaultValue: 0.0)
-  final double distance;
+  double distance;
+
+  @JsonKey(required: false, defaultValue: '')
+  String userLocation = '';
 
   Site(this.name,
       {required this.id,
@@ -47,6 +51,20 @@ class Site {
   }
 
   String getName() {
+    if (description == '') {
+      return name;
+    }
+    return description;
+  }
+
+  String getUserLocation() {
+    if (userLocation != '') {
+      return userLocation;
+    }
+    return getName();
+  }
+
+  String getUserLocationName() {
     if (description == '') {
       return name;
     }
@@ -106,9 +124,8 @@ class Site {
       }
     }
 
-    sites.sort((siteA, siteB) {
-      return siteA.getName().compareTo(siteB.getName().toLowerCase());
-    });
+    sites.sort((siteA, siteB) =>
+        siteA.getName().toLowerCase().compareTo(siteB.getName().toLowerCase()));
 
     return sites;
   }
@@ -137,4 +154,23 @@ class Sites {
   factory Sites.fromJson(Map<String, dynamic> json) => _$SitesFromJson(json);
 
   Map<String, dynamic> toJson() => _$SitesToJson(this);
+}
+
+extension ParseSite on Site {
+  String getTopic(PollutantLevel pollutantLevel) {
+    if (pollutantLevel == PollutantLevel.good) {
+      return '$id-good'.trim().toLowerCase();
+    } else if (pollutantLevel == PollutantLevel.moderate) {
+      return '$id-moderate'.trim().toLowerCase();
+    } else if (pollutantLevel == PollutantLevel.sensitive) {
+      return '$id-sensitive'.trim().toLowerCase();
+    } else if (pollutantLevel == PollutantLevel.unhealthy) {
+      return '$id-unhealthy'.trim().toLowerCase();
+    } else if (pollutantLevel == PollutantLevel.veryUnhealthy) {
+      return '$id-very-unhealthy'.trim().toLowerCase();
+    } else if (pollutantLevel == PollutantLevel.hazardous) {
+      return '$id-hazardous'.trim().toLowerCase();
+    }
+    return '';
+  }
 }

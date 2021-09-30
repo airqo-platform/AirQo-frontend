@@ -1,7 +1,7 @@
 import React from "react";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
-import { logoutUser } from "../../../redux/Join/actions";
+import { logoutUser } from "redux/Join/actions";
 import NavPills from "../NavPills/NavPills.js";
 import { makeStyles } from "@material-ui/core/styles";
 import DevicesIcon from "@material-ui/icons/Devices";
@@ -10,6 +10,7 @@ import PaymentIcon from "@material-ui/icons/Payment";
 import CompassCalibrationIcon from "@material-ui/icons/CompassCalibration";
 import AddLocationIcon from "@material-ui/icons/AddLocation";
 import Schedule from "@material-ui/icons/Schedule";
+import { useInitScrollTop } from "utils/customHooks";
 import styles from "assets/jss/material-kit-react/views/componentsSections/pillsStyle.js";
 
 const useStyles = makeStyles(styles);
@@ -22,6 +23,7 @@ function withMyHook(Component) {
 }
 
 function Overview(props) {
+  useInitScrollTop();
   return (
     <div
       style={{

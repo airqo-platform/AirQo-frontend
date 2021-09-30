@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:app/constants/app_constants.dart';
-import 'package:app/services/notifications.dart';
+import 'package:app/services/local_notifications.dart';
 import 'package:app/widgets/change_language.dart';
 import 'package:app/widgets/change_theme.dart';
 import 'package:app/widgets/clear_app_data.dart';
@@ -18,8 +18,7 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  Languages _language = Languages.English;
-  bool _persistentNotification = false;
+  Languages _language = Languages.english;
   bool _smartNotification = false;
   bool _pushNotification = false;
   bool _dailyReports = false;
@@ -28,7 +27,7 @@ class _SettingsPageState extends State<SettingsPage> {
   bool _morningForecast = false;
   bool _eveningForecast = false;
   Themes _theme = Themes.lightTheme;
-  final Notifications _notifications = Notifications();
+  final LocalNotifications _notifications = LocalNotifications();
 
   @override
   Widget build(BuildContext context) {
@@ -49,19 +48,19 @@ class _SettingsPageState extends State<SettingsPage> {
                 Divider(
                   indent: 30,
                   endIndent: 30,
-                  color: ColorConstants().appColor,
+                  color: ColorConstants.appColor,
                 ),
                 notifications(),
                 Divider(
                   indent: 30,
                   endIndent: 30,
-                  color: ColorConstants().appColor,
+                  color: ColorConstants.appColor,
                 ),
                 reports(),
                 Divider(
                   indent: 30,
                   endIndent: 30,
-                  color: ColorConstants().appColor,
+                  color: ColorConstants.appColor,
                 ),
                 support(),
                 footer()
@@ -91,7 +90,7 @@ class _SettingsPageState extends State<SettingsPage> {
               end: Alignment.bottomCenter,
               colors: [
             Colors.white.withOpacity(0.5),
-            ColorConstants().appColor,
+            ColorConstants.appColor,
           ])),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -112,7 +111,7 @@ class _SettingsPageState extends State<SettingsPage> {
               IconButton(
                   icon: FaIcon(
                     FontAwesomeIcons.facebook,
-                    color: ColorConstants().facebookColor,
+                    color: ColorConstants.facebookColor,
                   ),
                   onPressed: () {
                     _launchURL('facebook');
@@ -120,7 +119,7 @@ class _SettingsPageState extends State<SettingsPage> {
               IconButton(
                   icon: FaIcon(
                     FontAwesomeIcons.twitter,
-                    color: ColorConstants().twitterColor,
+                    color: ColorConstants.twitterColor,
                   ),
                   onPressed: () {
                     _launchURL('twitter');
@@ -128,7 +127,7 @@ class _SettingsPageState extends State<SettingsPage> {
               IconButton(
                   icon: FaIcon(
                     FontAwesomeIcons.youtube,
-                    color: ColorConstants().youtubeColor,
+                    color: ColorConstants.youtubeColor,
                   ),
                   onPressed: () {
                     _launchURL('youtube');
@@ -136,7 +135,7 @@ class _SettingsPageState extends State<SettingsPage> {
               IconButton(
                   icon: FaIcon(
                     FontAwesomeIcons.linkedin,
-                    color: ColorConstants().linkedInColor,
+                    color: ColorConstants.linkedInColor,
                   ),
                   onPressed: () {
                     _launchURL('linkedin');
@@ -168,7 +167,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Future<void> loadPreferences() async {
     var prefs = await SharedPreferences.getInstance();
-    var theme = prefs.getString(PrefConstants().appTheme);
+    var theme = prefs.getString(PrefConstant.appTheme);
     print(theme);
     if (theme != null) {
       switch (theme) {
@@ -184,7 +183,7 @@ class _SettingsPageState extends State<SettingsPage> {
       }
     }
 
-    _language = Languages.English;
+    _language = Languages.english;
   }
 
   Widget notifications() {
@@ -203,8 +202,8 @@ class _SettingsPageState extends State<SettingsPage> {
           //       'in the notification tray'),
           //   trailing: Switch(
           //     value: _persistentNotification,
-          //     activeColor: ColorConstants().appColor,
-          //     activeTrackColor: ColorConstants().appColor.withOpacity(0.6),
+          //     activeColor: ColorConstants.appColor,
+          //     activeTrackColor: ColorConstants.appColor.withOpacity(0.6),
           //     inactiveThumbColor: Colors.white,
           //     inactiveTrackColor: Colors.black12,
           //     onChanged: (bool value) {
@@ -226,15 +225,15 @@ class _SettingsPageState extends State<SettingsPage> {
                 'recommendations for your saved places'),
             trailing: Switch(
               value: _smartNotification,
-              activeColor: ColorConstants().appColor,
-              activeTrackColor: ColorConstants().appColor.withOpacity(0.6),
+              activeColor: ColorConstants.appColor,
+              activeTrackColor: ColorConstants.appColor.withOpacity(0.6),
               inactiveThumbColor: Colors.white,
               inactiveTrackColor: Colors.black12,
               onChanged: (bool value) {
                 if (value) {
-                  showNotification(smartNotificationId);
+                  showNotification(NotificationConfig.smartNotificationId);
                 } else {
-                  cancelNotification(smartNotificationId);
+                  cancelNotification(NotificationConfig.smartNotificationId);
                 }
 
                 setState(() {
@@ -249,15 +248,15 @@ class _SettingsPageState extends State<SettingsPage> {
                 'blog posts from the AirQo team'),
             trailing: Switch(
               value: _pushNotification,
-              activeColor: ColorConstants().appColor,
-              activeTrackColor: ColorConstants().appColor.withOpacity(0.6),
+              activeColor: ColorConstants.appColor,
+              activeTrackColor: ColorConstants.appColor.withOpacity(0.6),
               inactiveThumbColor: Colors.white,
               inactiveTrackColor: Colors.black12,
               onChanged: (bool value) {
                 if (value) {
-                  showNotification(pushNotificationId);
+                  showNotification(NotificationConfig.pushNotificationId);
                 } else {
-                  cancelNotification(pushNotificationId);
+                  cancelNotification(NotificationConfig.pushNotificationId);
                 }
 
                 setState(() {
@@ -289,8 +288,8 @@ class _SettingsPageState extends State<SettingsPage> {
             title: const Text('Daily'),
             trailing: Switch(
               value: _dailyReports,
-              activeColor: ColorConstants().appColor,
-              activeTrackColor: ColorConstants().appColor.withOpacity(0.6),
+              activeColor: ColorConstants.appColor,
+              activeTrackColor: ColorConstants.appColor.withOpacity(0.6),
               inactiveThumbColor: Colors.white,
               inactiveTrackColor: Colors.black12,
               onChanged: (bool value) {
@@ -304,8 +303,8 @@ class _SettingsPageState extends State<SettingsPage> {
             title: const Text('Weekly'),
             trailing: Switch(
               value: _weeklyReports,
-              activeColor: ColorConstants().appColor,
-              activeTrackColor: ColorConstants().appColor.withOpacity(0.6),
+              activeColor: ColorConstants.appColor,
+              activeTrackColor: ColorConstants.appColor.withOpacity(0.6),
               inactiveThumbColor: Colors.white,
               inactiveTrackColor: Colors.black12,
               onChanged: (bool value) {
@@ -319,8 +318,8 @@ class _SettingsPageState extends State<SettingsPage> {
             title: const Text('Monthly'),
             trailing: Switch(
               value: _monthlyReports,
-              activeColor: ColorConstants().appColor,
-              activeTrackColor: ColorConstants().appColor.withOpacity(0.6),
+              activeColor: ColorConstants.appColor,
+              activeTrackColor: ColorConstants.appColor.withOpacity(0.6),
               inactiveThumbColor: Colors.white,
               inactiveTrackColor: Colors.black12,
               onChanged: (bool value) {
@@ -335,8 +334,8 @@ class _SettingsPageState extends State<SettingsPage> {
             subtitle: const Text('The day\'s forecast received at 6AM'),
             trailing: Switch(
               value: _morningForecast,
-              activeColor: ColorConstants().appColor,
-              activeTrackColor: ColorConstants().appColor.withOpacity(0.6),
+              activeColor: ColorConstants.appColor,
+              activeTrackColor: ColorConstants.appColor.withOpacity(0.6),
               inactiveThumbColor: Colors.white,
               inactiveTrackColor: Colors.black12,
               onChanged: (bool value) {
@@ -351,8 +350,8 @@ class _SettingsPageState extends State<SettingsPage> {
             subtitle: const Text('Tomorrow\'s forecast received at 8PM'),
             trailing: Switch(
               value: _eveningForecast,
-              activeColor: ColorConstants().appColor,
-              activeTrackColor: ColorConstants().appColor.withOpacity(0.6),
+              activeColor: ColorConstants.appColor,
+              activeTrackColor: ColorConstants.appColor.withOpacity(0.6),
               inactiveThumbColor: Colors.white,
               inactiveTrackColor: Colors.black12,
               onChanged: (bool value) {
@@ -369,16 +368,16 @@ class _SettingsPageState extends State<SettingsPage> {
 
   void showNotification(int id) {
     switch (id) {
-      case persistentNotificationId:
+      case NotificationConfig.persistentNotificationId:
         _notifications.showOngoingNotification();
         return;
-      case progressNotificationId:
+      case NotificationConfig.progressNotificationId:
         _notifications.showProgressNotification();
         return;
-      case smartNotificationId:
+      case NotificationConfig.smartNotificationId:
         _notifications.showSmartNotification();
         return;
-      case pushNotificationId:
+      case NotificationConfig.pushNotificationId:
         _notifications.showPushNotification();
         return;
       default:
@@ -404,7 +403,7 @@ class _SettingsPageState extends State<SettingsPage> {
               title: const Text('FAQs'),
               leading: Icon(
                 Icons.help_outline_outlined,
-                color: ColorConstants().appColor,
+                color: ColorConstants.appColor,
               ),
             ),
           ),
@@ -416,7 +415,7 @@ class _SettingsPageState extends State<SettingsPage> {
               title: const Text('Contact Us'),
               leading: Icon(
                 Icons.contact_support_outlined,
-                color: ColorConstants().appColor,
+                color: ColorConstants.appColor,
               ),
             ),
           ),
@@ -428,7 +427,7 @@ class _SettingsPageState extends State<SettingsPage> {
               title: const Text('Terms of Use & Privacy Policy'),
               leading: Icon(
                 Icons.description,
-                color: ColorConstants().appColor,
+                color: ColorConstants.appColor,
               ),
             ),
           ),
@@ -440,7 +439,7 @@ class _SettingsPageState extends State<SettingsPage> {
               title: const Text('About AirQo'),
               leading: Icon(
                 Icons.info_outline_rounded,
-                color: ColorConstants().appColor,
+                color: ColorConstants.appColor,
               ),
             ),
           ),
@@ -452,7 +451,7 @@ class _SettingsPageState extends State<SettingsPage> {
               title: const Text('Rate App'),
               leading: Icon(
                 Icons.rate_review_outlined,
-                color: ColorConstants().appColor,
+                color: ColorConstants.appColor,
               ),
             ),
           ),
@@ -464,7 +463,7 @@ class _SettingsPageState extends State<SettingsPage> {
               title: const Text('Feedback'),
               leading: Icon(
                 Icons.feedback_outlined,
-                color: ColorConstants().appColor,
+                color: ColorConstants.appColor,
               ),
               subtitle: const Text('Tell us which functionality is most '
                   'important to you and what you would like '
@@ -496,11 +495,11 @@ class _SettingsPageState extends State<SettingsPage> {
               title: const Text('Manage MyPlaces'),
               leading: Icon(
                 Icons.favorite_outlined,
-                color: ColorConstants().appColor,
+                color: ColorConstants.appColor,
               ),
               trailing: Icon(
                 Icons.arrow_forward_ios_rounded,
-                color: ColorConstants().appColor,
+                color: ColorConstants.appColor,
               ),
             ),
           ),
@@ -519,11 +518,11 @@ class _SettingsPageState extends State<SettingsPage> {
               title: const Text('Appearance'),
               leading: FaIcon(
                 FontAwesomeIcons.paintRoller,
-                color: ColorConstants().appColor,
+                color: ColorConstants.appColor,
               ),
               trailing: Icon(
                 Icons.arrow_forward_ios_rounded,
-                color: ColorConstants().appColor,
+                color: ColorConstants.appColor,
               ),
             ),
           ),
@@ -542,11 +541,11 @@ class _SettingsPageState extends State<SettingsPage> {
               title: const Text('Language'),
               leading: FaIcon(
                 FontAwesomeIcons.language,
-                color: ColorConstants().appColor,
+                color: ColorConstants.appColor,
               ),
               trailing: Icon(
                 Icons.arrow_forward_ios_rounded,
-                color: ColorConstants().appColor,
+                color: ColorConstants.appColor,
               ),
             ),
           ),
@@ -565,7 +564,7 @@ class _SettingsPageState extends State<SettingsPage> {
               title: const Text('Clear All Data'),
               leading: Icon(
                 Icons.delete,
-                color: ColorConstants().appColor,
+                color: ColorConstants.appColor,
               ),
               subtitle: const Text('Clear all saved data including saved '
                   'places and preferences'),
@@ -583,13 +582,18 @@ class _SettingsPageState extends State<SettingsPage> {
       case 'feedback':
         final _emailFeedbackUri = Uri(
                 scheme: 'mailto',
-                path: '${Links().feedbackEmail}',
+                path: '${Links.airqoFeedbackEmail}',
                 queryParameters: {'subject': 'Mobile\bApplication\bFeedback!'})
             .toString();
 
-        await canLaunch(_emailFeedbackUri)
-            ? await launch(_emailFeedbackUri)
-            : throw 'Could not launch faqs, try opening $_emailFeedbackUri';
+        try {
+          await canLaunch(_emailFeedbackUri)
+              ? await launch(_emailFeedbackUri)
+              : throw Exception(
+                  'Could not launch faqs, try opening $_emailFeedbackUri');
+        } catch (e) {
+          print(e);
+        }
         return;
       default:
         return;
@@ -602,71 +606,82 @@ class _SettingsPageState extends State<SettingsPage> {
     try {
       switch (page) {
         case 'faqs':
-          await canLaunch(Links().faqs)
-              ? await launch(Links().faqs)
-              : throw 'Could not launch faqs, try opening ${Links().faqs}';
+          await canLaunch(Links.faqsUrl)
+              ? await launch(Links.faqsUrl)
+              : throw Exception(
+                  'Could not launch faqs, try opening ${Links.faqsUrl}');
           return;
         case 'about':
-          await canLaunch(Links().about)
-              ? await launch(Links().about)
-              : throw 'Could not launch about, try opening ${Links().about}';
+          await canLaunch(Links.aboutUsUrl)
+              ? await launch(Links.aboutUsUrl)
+              : throw Exception(
+                  'Could not launch about, try opening ${Links.aboutUsUrl}');
           return;
         case 'contact us':
-          await canLaunch(Links().contactUs)
-              ? await launch(Links().contactUs)
-              : throw 'Could not launch contact us, try opening ${Links().contactUs}';
+          await canLaunch(Links.contactUsUrl)
+              ? await launch(Links.contactUsUrl)
+              : throw Exception(
+                  'Could not launch contact us, try opening ${Links.contactUsUrl}');
           return;
         case 'terms':
-          await canLaunch(Links().terms)
-              ? await launch(Links().terms)
-              : throw 'Could not launch terms, try opening ${Links().terms}';
+          await canLaunch(Links.termsUrl)
+              ? await launch(Links.termsUrl)
+              : throw Exception(
+                  'Could not launch terms, try opening ${Links.termsUrl}');
           return;
         case 'rate':
           if (Platform.isAndroid) {
-            await canLaunch(Links().playStoreLink)
-                ? await launch(Links().playStoreLink)
-                : throw 'Could not launch rate us, try opening'
-                    ' ${Links().playStoreLink}';
+            await canLaunch(Links.playStoreUrl)
+                ? await launch(Links.playStoreUrl)
+                : throw Exception('Could not launch rate us, try opening'
+                    ' ${Links.playStoreUrl}');
           } else if (Platform.isIOS) {
-            await canLaunch(Links().iOSLink)
-                ? await launch(Links().iOSLink)
-                : throw 'Could not launch rate us, try opening ${Links().iOSLink}';
+            await canLaunch(Links.iOSUrl)
+                ? await launch(Links.iOSUrl)
+                : throw Exception(
+                    'Could not launch rate us, try opening ${Links.iOSUrl}');
           } else {
-            await canLaunch(Links().playStoreLink)
-                ? await launch(Links().playStoreLink)
-                : throw 'Could not launch rate us, try opening'
-                    ' ${Links().playStoreLink}';
+            await canLaunch(Links.playStoreUrl)
+                ? await launch(Links.playStoreUrl)
+                : throw Exception('Could not launch rate us, try opening'
+                    ' ${Links.playStoreUrl}');
           }
           return;
         case 'facebook':
-          await canLaunch(Links().facebook)
-              ? await launch(Links().facebook)
-              : throw 'Could not launch facebook, try opening ${Links().facebook}';
+          await canLaunch(Links.facebookUrl)
+              ? await launch(Links.facebookUrl)
+              : throw Exception(
+                  'Could not launch facebook, try opening ${Links.facebookUrl}');
           return;
         case 'twitter':
-          await canLaunch(Links().twitter)
-              ? await launch(Links().twitter)
-              : throw 'Could not launch twitter, try opening ${Links().twitter}';
+          await canLaunch(Links.twitterUrl)
+              ? await launch(Links.twitterUrl)
+              : throw Exception(
+                  'Could not launch twitter, try opening ${Links.twitterUrl}');
           return;
         case 'linkedin':
-          await canLaunch(Links().linkedin)
-              ? await launch(Links().linkedin)
-              : throw 'Could not launch linkedin, try opening ${Links().linkedin}';
+          await canLaunch(Links.linkedinUrl)
+              ? await launch(Links.linkedinUrl)
+              : throw Exception(
+                  'Could not launch linkedin, try opening ${Links.linkedinUrl}');
           return;
         case 'youtube':
-          await canLaunch(Links().youtube)
-              ? await launch(Links().youtube)
-              : throw 'Could not launch youtube, try opening ${Links().youtube}';
+          await canLaunch(Links.youtubeUrl)
+              ? await launch(Links.youtubeUrl)
+              : throw Exception(
+                  'Could not launch youtube, try opening ${Links.youtubeUrl}');
           return;
         case 'airqo':
-          await canLaunch(Links().airqoWebsite)
-              ? await launch(Links().airqoWebsite)
-              : throw 'Could not launch airqo, try opening ${Links().airqoWebsite}';
+          await canLaunch(Links.websiteUrl)
+              ? await launch(Links.websiteUrl)
+              : throw Exception(
+                  'Could not launch airqo, try opening ${Links.websiteUrl}');
           return;
         default:
-          await canLaunch(Links().airqoWebsite)
-              ? await launch(Links().airqoWebsite)
-              : throw 'Could not launch airqo, try opening ${Links().airqoWebsite}';
+          await canLaunch(Links.websiteUrl)
+              ? await launch(Links.websiteUrl)
+              : throw Exception(
+                  'Could not launch airqo, try opening ${Links.websiteUrl}');
           return;
       }
     } catch (e) {
@@ -697,9 +712,9 @@ class _SettingsPageState extends State<SettingsPage> {
     var prefs = await SharedPreferences.getInstance();
 
     if (value == Themes.lightTheme) {
-      await prefs.setString(PrefConstants().appTheme, 'light');
+      await prefs.setString(PrefConstant.appTheme, 'light');
     } else {
-      await prefs.setString(PrefConstants().appTheme, 'dark');
+      await prefs.setString(PrefConstant.appTheme, 'dark');
     }
   }
 }

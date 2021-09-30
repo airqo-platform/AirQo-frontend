@@ -734,7 +734,7 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
                       color="primary"
                     />
                   }
-                  label="I wish to make this my primary device in this location"
+                  label="Primary device in this site"
                   style={{ margin: "10px 0 0 5px", width: "100%" }}
                 />
                 <FormControlLabel
@@ -749,7 +749,7 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
                       color="primary"
                     />
                   }
-                  label="This deployment is a formal collocation"
+                  label="Formal collocation in this site"
                   style={{ marginLeft: "5px" }}
                 />
               </Grid>{" "}

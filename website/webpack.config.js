@@ -29,7 +29,7 @@ function postCSSLoader() {
   };
 }
 
-const config = function () {
+const config = () => {
   const NODE_ENV = process.env.NODE_ENV || 'local';
 
   const STATIC_DIR = 'frontend/static/frontend';
@@ -57,7 +57,9 @@ const config = function () {
       headers: { 'Access-Control-Allow-Origin': '*' },
       compress: true,
       hot: true,
-      static: './static',
+      static: {
+        directory: './static',
+      },
     },
 
     resolve: {

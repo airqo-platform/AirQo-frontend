@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 import os
 from pathlib import Path
+import cloudinary
 from decouple import config
 import dj_database_url
 
@@ -40,7 +41,15 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    #my apps
+    # Third-party apps
+    'cloudinary',
+    'rest_framework',
+    'drf_yasg',
+
+    # My apps
+    'backend.career.apps.CareerConfig',
+    'backend.FAQ.apps.FaqConfig',
+    'backend.team.apps.TeamConfig',
     'frontend.apps.FrontendConfig',
 ]
 
@@ -138,3 +147,10 @@ if DEBUG:
 
 STATIC_URL = STATIC_HOST + '/static/'
 
+# Configure cloudinary
+cloudinary.config(
+  cloud_name=config('CLOUDINARY_NAME'),
+  api_key=config('CLOUDINARY_KEY'),
+  api_secret=config('CLOUDINARY_SECRET'),
+  secure=True
+)

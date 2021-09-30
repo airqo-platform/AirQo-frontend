@@ -80,7 +80,7 @@ class ForgotPassword extends Component {
         .then(responseData => {
           this.props.updateMainAlert({
             show: true,
-            message: responseData.message,
+            message: "Operation successful. Please check your email for the password reset link.",
             severity: "success"
           })
           this.setState({
@@ -89,10 +89,10 @@ class ForgotPassword extends Component {
           })
         })
         .catch(err => {
-          this.setAlert({
+          this.props.updateMainAlert({
             show: true,
             message: err.response && err.response.data.message || err.request && "Please check your internet connectivity",
-            type: "error"
+            severity: "error"
           })
         });
   };
@@ -175,7 +175,6 @@ class ForgotPassword extends Component {
                       <div className="col s12" style={{ paddingLeft: "11.250px" }}>
                         <button
                           style={{
-                            width: "150px",
                             borderRadius: "3px",
                             letterSpacing: "1.5px",
                             marginTop: "1rem",
@@ -183,7 +182,7 @@ class ForgotPassword extends Component {
                           type="submit"
                           className="btn btn-large waves-effect waves-light hoverable blue accent-3"
                         >
-                          Submit
+                          email me a link
                         </button>
                       </div>
                     </form>

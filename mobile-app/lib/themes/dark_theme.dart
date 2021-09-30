@@ -131,13 +131,14 @@ ThemeData darkTheme() {
   final base = ThemeData.dark();
 
   return base.copyWith(
-      primaryColor: ColorConstants().appColor,
-      accentColor: ColorConstants().appColor,
+      primaryColor: ColorConstants.appColor,
+      accentColor: ColorConstants.appColor,
       visualDensity: VisualDensity.adaptivePlatformDensity,
       textTheme: ThemeData.light().textTheme.apply(fontFamily: 'OpenSans'),
+      canvasColor: Colors.transparent,
       primaryTextTheme: ThemeData.light().textTheme.apply(
             fontFamily: 'OpenSans',
-            bodyColor: ColorConstants().appColor,
+            bodyColor: ColorConstants.appColor,
             displayColor: Colors.white,
           ),
       accentTextTheme:

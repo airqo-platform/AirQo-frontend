@@ -582,7 +582,8 @@ class _LgMaterialLocalizationsDelegate
   @override
   bool isSupported(Locale locale) => locale.languageCode == 'lg';
 
-  // bool isSupported(Locale locale) => ['en', 'lg'].contains(locale.languageCode);
+  // bool isSupported(Locale locale) => ['en', 'lg']
+  // .contains(locale.languageCode);
 
   @override
   Future<MaterialLocalizations> load(Locale locale) async {

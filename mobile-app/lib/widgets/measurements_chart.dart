@@ -6,11 +6,11 @@ import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 
 class MeasurementsBarChart extends StatefulWidget {
-  MeasurementsBarChart(this.seriesList, this.header);
-
   final List<charts.Series<TimeSeriesData, DateTime>> seriesList;
 
   final String header;
+
+  MeasurementsBarChart(this.seriesList, this.header);
 
   @override
   _MeasurementsBarChartState createState() => _MeasurementsBarChartState();
@@ -29,61 +29,102 @@ class _MeasurementsBarChartState extends State<MeasurementsBarChart> {
       child: Column(
         children: <Widget>[
           Padding(
-            padding: const EdgeInsets.fromLTRB(5, 10, 5, 10),
+            padding: const EdgeInsets.fromLTRB(0, 5, 0, 0),
             child: Center(
               child: Text(
                 widget.header,
                 softWrap: true,
                 style: TextStyle(
                     fontSize: 19,
-                    color: ColorConstants().appColor,
+                    color: ColorConstants.appColor,
                     fontWeight: FontWeight.bold),
               ),
             ),
           ),
+          // if (display != null)
+          //   Column(
+          //     children: [
+          //       Row(
+          //         children: [
+          //           const Spacer(
+          //             flex: 1,
+          //           ),
+          //           Text(
+          //             chartDateToString(display['time']),
+          //             softWrap: true,
+          //             style: TextStyle(color: ColorConstants.appColor),
+          //           ),
+          //           const Spacer(
+          //             flex: 1,
+          //           ),
+          //           Text(
+          //             display['value'].toString(),
+          //             softWrap: true,
+          //             style: TextStyle(color: ColorConstants.appColor),
+          //           ),
+          //           const Spacer(
+          //             flex: 1,
+          //           ),
+          //         ],
+          //       ),
+          //       Text(
+          //         pmToString(display['value']).replaceAll('\n', ' '),
+          //         style: TextStyle(
+          //             fontSize: 17,
+          //             fontWeight: FontWeight.w600,
+          //             color: ColorConstants.appColor),
+          //       ),
+          //     ],
+          //   ),
           if (display != null)
             Column(
               children: [
-                Row(
-                  children: [
-                    const Spacer(
-                      flex: 1,
-                    ),
-                    Text(
-                      chartDateToString(display['time']),
-                      softWrap: true,
-                      style: TextStyle(color: ColorConstants().appColor),
-                    ),
-                    const Spacer(
-                      flex: 1,
-                    ),
-                    Text(
-                      display['value'].toString(),
-                      softWrap: true,
-                      style: TextStyle(color: ColorConstants().appColor),
-                    ),
-                    const Spacer(
-                      flex: 1,
-                    ),
-                  ],
-                ),
                 Text(
                   pmToString(display['value']).replaceAll('\n', ' '),
                   style: TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.w600,
-                      color: ColorConstants().appColor),
+                      color: ColorConstants.appColor),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(10.0, 0.0, 10.0, 0.0),
+                  child: Row(
+                    children: [
+                      // const Spacer(
+                      //   flex: 1,
+                      // ),
+                      Text(
+                        chartDateToString(display['time']),
+                        softWrap: true,
+                        style: TextStyle(color: ColorConstants.appColor),
+                      ),
+                      const Spacer(
+                        flex: 1,
+                      ),
+                      Text(
+                        display['value'].toString(),
+                        softWrap: true,
+                        style: TextStyle(color: ColorConstants.appColor),
+                      ),
+                      // const Spacer(
+                      //   flex: 1,
+                      // ),
+                    ],
+                  ),
                 ),
               ],
             ),
           Container(
-            color: Colors.white,
-            height: 300,
+            decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.all(Radius.circular(20.0))),
+            height: 200,
             padding: const EdgeInsets.fromLTRB(5, 10, 5, 10),
             child: charts.TimeSeriesChart(
               widget.seriesList,
               animate: true,
-              defaultRenderer: charts.BarRendererConfig<DateTime>(),
+              defaultRenderer: charts.BarRendererConfig<DateTime>(
+                  strokeWidthPx: 0, stackedBarPaddingPx: 0),
               defaultInteractions: true,
               domainAxis: const charts.DateTimeAxisSpec(
                   tickProviderSpec: charts.DayTickProviderSpec(increments: [1]),
@@ -130,7 +171,7 @@ class _MeasurementsBarChartState extends State<MeasurementsBarChart> {
               ],
               primaryMeasureAxis: const charts.NumericAxisSpec(
                   tickProviderSpec:
-                      charts.BasicNumericTickProviderSpec(desiredTickCount: 7)),
+                      charts.BasicNumericTickProviderSpec(desiredTickCount: 5)),
             ),
           )
         ],
