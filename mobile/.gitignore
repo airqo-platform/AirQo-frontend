@@ -44,3 +44,10 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+*env*
+key.properties
+app.properties
+local.properties
+env.dart
+google-services.json
