@@ -17,29 +17,28 @@ import 'constants/app_constants.dart';
 import 'languages/CustomLocalizations.dart';
 import 'languages/lg_intl.dart';
 import 'on_boarding/onBoarding_page.dart';
-import 'on_boarding/spash_screen.dart';
 import 'providers/ThemeProvider.dart';
 import 'themes/dark_theme.dart';
 import 'themes/light_theme.dart';
 
 Future<void> main() async {
-  // SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-  //   systemNavigationBarColor: ColorConstants.appBodyColor,
-  //   statusBarColor: ColorConstants.appBodyColor,
-  //   statusBarBrightness: Brightness.dark,
-  //   statusBarIconBrightness: Brightness.dark,
-  //   systemNavigationBarDividerColor: ColorConstants.appBodyColor,
-  //   // systemNavigationBarIconBrightness: Brightness.dark,
-  // ));
+  SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+    systemNavigationBarColor: ColorConstants.appColor,
+    statusBarColor: Colors.white,
+    statusBarBrightness: Brightness.dark,
+    statusBarIconBrightness: Brightness.dark,
+    systemNavigationBarDividerColor: ColorConstants.appColor,
+    // systemNavigationBarIconBrightness: Brightness.dark,
+  ));
 
   WidgetsFlutterBinding.ensureInitialized();
 
-  // await Firebase.initializeApp().then((value) => {
-  //       // FirebaseMessaging.onBackgroundMessage(backgroundMessageHandler),
-  //
-  //       FirebaseMessaging.onMessage
-  //           .listen(FbNotifications().foregroundMessageHandler)
-  //     });
+  await Firebase.initializeApp().then((value) => {
+        // FirebaseMessaging.onBackgroundMessage(backgroundMessageHandler),
+
+        FirebaseMessaging.onMessage
+            .listen(FbNotifications().foregroundMessageHandler)
+      });
 
   final prefs = await SharedPreferences.getInstance();
   final themeController = ThemeController(prefs);
@@ -132,7 +131,7 @@ class AirQoApp extends StatelessWidget {
                 locale: provider.locale,
                 title: '${AppConfig.name}',
                 theme: _buildCurrentTheme(),
-                home: LogoScreen(),
+                home: SplashScreen(),
               );
             },
           ),
@@ -197,11 +196,11 @@ class SplashScreenState extends State<SplashScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Image.asset(
-              //   'assets/icon/airqo_logo_tagline_transparent.png',
-              //   height: 150,
-              //   width: 150,
-              // ),
+              Image.asset(
+                'assets/icon/airqo_logo_tagline_transparent.png',
+                height: 150,
+                width: 150,
+              ),
               // Center(
               //   child: CircularProgressIndicator(
               //     valueColor:
@@ -248,11 +247,11 @@ class SplashScreenState extends State<SplashScreen> {
     Future.delayed(const Duration(seconds: 4), _checkFirstUse);
   }
 
-  // @override
-  // void initState() {
-  //   initialize();
-  //   super.initState();
-  // }
+  @override
+  void initState() {
+    initialize();
+    super.initState();
+  }
 
   void reload() {
     setState(() {
@@ -288,7 +287,7 @@ class SplashScreenState extends State<SplashScreen> {
     var prefs = await SharedPreferences.getInstance();
     var isFirstUse = prefs.getBool(PrefConstant.firstUse) ?? true;
 
-    if (false) {
+    if (isFirstUse) {
       await Navigator.pushReplacement(context,
           MaterialPageRoute(builder: (context) {
         return OnBoardingPage();
@@ -296,7 +295,7 @@ class SplashScreenState extends State<SplashScreen> {
     } else {
       await Navigator.pushAndRemoveUntil(context,
           MaterialPageRoute(builder: (context) {
-        return LogoScreen();
+        return HomePage();
       }), (r) => false);
     }
   }

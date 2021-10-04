@@ -7,6 +7,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'alerts_page.dart';
 import 'my_places.dart';
 
 class SettingsView extends StatefulWidget {
@@ -44,7 +45,6 @@ class _SettingsViewState extends State<SettingsView> {
                     endIndent: 30,
                     color: ColorConstants.appColor,
                   ),
-                  // notifications(),
                   // Divider(
                   //   indent: 30,
                   //   endIndent: 30,
@@ -393,10 +393,10 @@ class _SettingsViewState extends State<SettingsView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Text(
-            'Support',
-            style: headerStyle(),
-          ),
+          // Text(
+          //   'Support',
+          //   style: headerStyle(),
+          // ),
           InkWell(
             onTap: () {
               _launchURL('faqs');
@@ -483,10 +483,10 @@ class _SettingsViewState extends State<SettingsView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Text(
-            'Preferences',
-            style: headerStyle(),
-          ),
+          // Text(
+          //   'Preferences',
+          //   style: headerStyle(),
+          // ),
           InkWell(
             onTap: () {
               Navigator.push(context, MaterialPageRoute(builder: (context) {
@@ -494,9 +494,27 @@ class _SettingsViewState extends State<SettingsView> {
               }));
             },
             child: ListTile(
-              title: const Text('Manage MyPlaces'),
-              leading: Icon(
-                Icons.favorite_outlined,
+              title: const Text('MyPlaces'),
+              leading: FaIcon(
+                FontAwesomeIcons.solidHeart,
+                color: ColorConstants.red,
+              ),
+              trailing: Icon(
+                Icons.arrow_forward_ios_rounded,
+                color: ColorConstants.appColor,
+              ),
+            ),
+          ),
+          InkWell(
+            onTap: () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) {
+                return const AlertPage();
+              }));
+            },
+            child: ListTile(
+              title: const Text('Alerts'),
+              leading: FaIcon(
+                FontAwesomeIcons.bell,
                 color: ColorConstants.appColor,
               ),
               trailing: Icon(

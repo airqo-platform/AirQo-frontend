@@ -166,6 +166,12 @@ class Measurement {
         print(e);
       }
     }
+
+    measurements.sort((siteA, siteB) => siteA.site
+        .getName()
+        .toLowerCase()
+        .compareTo(siteB.site.getName().toLowerCase()));
+
     return measurements;
   }
 }

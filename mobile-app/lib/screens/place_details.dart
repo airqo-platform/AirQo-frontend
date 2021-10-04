@@ -128,54 +128,63 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                   ),
 
                   // historicalData
-                  historicalData.isNotEmpty
-                      ? historicalDataSection(historicalData)
-                      : historicalResponse != ''
-                          ? Card(
-                              elevation: 20,
-                              child: Padding(
-                                padding: const EdgeInsets.all(5.0),
-                                child: Center(
-                                  child: Text(
-                                    historicalResponse,
-                                    style: TextStyle(
-                                        color: ColorConstants.appColor),
-                                  ),
-                                ),
-                              ),
-                            )
-                          : Center(
-                              child: Container(
-                              padding: const EdgeInsets.all(16.0),
-                              child: CircularProgressIndicator(
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                    ColorConstants.appColor),
-                              ),
-                            )),
+                  if (historicalData.isNotEmpty)
+                    historicalDataSection(historicalData),
+
+                  // historicalData.isNotEmpty
+                  //     ? historicalDataSection(historicalData)
+                  //     : historicalResponse != ''
+                  //         ? Card(
+                  //             elevation: 20,
+                  //             child: Padding(
+                  //               padding: const EdgeInsets.all(5.0),
+                  //               child: Center(
+                  //                 child: Text(
+                  //                   historicalResponse,
+                  //                   style: TextStyle(
+                  //                       color: ColorConstants.appColor),
+                  //                 ),
+                  //               ),
+                  //             ),
+                  //           )
+                  //         : Center(
+                  //             child: Container(
+                  //             padding: const EdgeInsets.all(16.0),
+                  //             child: CircularProgressIndicator(
+                  //               valueColor: AlwaysStoppedAnimation<Color>(
+                  //                   ColorConstants.appColor),
+                  //             ),
+                  //           )),
 
                   // Forecast Data
-                  forecastData.isNotEmpty
-                      ? forecastDataSection(forecastData)
-                      : forecastResponse != ''
-                          ? Card(
-                              elevation: 20,
-                              child: Padding(
-                                padding: const EdgeInsets.all(5.0),
-                                child: Center(
-                                  child: Text(forecastResponse,
-                                      style: TextStyle(
-                                          color: ColorConstants.appColor)),
-                                ),
-                              ),
-                            )
-                          : Center(
-                              child: Container(
-                              padding: const EdgeInsets.all(16.0),
-                              child: CircularProgressIndicator(
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                    ColorConstants.appColor),
-                              ),
-                            )),
+
+                  if (forecastData.isNotEmpty)
+                    forecastDataSection(forecastData),
+
+                  // forecastData.isNotEmpty
+                  //     ? forecastDataSection(forecastData)
+                  //     : forecastResponse != ''
+                  //         ? Card(
+                  //             elevation: 20,
+                  //             child: Padding(
+                  //               padding: const EdgeInsets.all(5.0),
+                  //               child: Center(
+                  //                 child: Text(forecastResponse,
+                  //                     style: TextStyle(
+                  //                         color: ColorConstants.appColor)),
+                  //               ),
+                  //             ),
+                  //           )
+                  //         : Center(
+                  //             child: Container(
+                  //             padding: const EdgeInsets.all(16.0),
+                  //             child: CircularProgressIndicator(
+                  //               valueColor: AlwaysStoppedAnimation<Color>(
+                  //                   ColorConstants.appColor),
+                  //             ),
+                  //           )),
+                  //
+
                   Container(
                       padding: const EdgeInsets.fromLTRB(0, 0, 0, 50),
                       constraints: const BoxConstraints.expand(height: 300.0),
@@ -412,7 +421,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                   {
                     setState(() {
                       forecastResponse =
-                          'Sorry, we could retrieve the forecast';
+                          'Sorry, we could\nt retrieve the forecast';
                     })
                   }
               }
@@ -420,7 +429,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          forecastResponse = 'Sorry, we could retrieve the forecast';
+          forecastResponse = 'Sorry, we could\nt retrieve the forecast';
         });
       }
     }
@@ -448,7 +457,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                       {
                         setState(() {
                           historicalResponse =
-                              'Sorry, we could retrieve historical readings.';
+                              'Sorry, we could\nt retrieve historical readings.';
                         })
                       }
                   }
@@ -456,7 +465,8 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          historicalResponse = 'Sorry, we could retrieve historical readings';
+          historicalResponse =
+              'Sorry, we could\nt retrieve historical readings';
         });
       }
     }

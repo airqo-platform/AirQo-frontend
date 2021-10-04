@@ -7,41 +7,38 @@ class LogoScreen extends StatefulWidget {
 }
 
 class LogoScreenState extends State<LogoScreen> {
-
-  @override
-  void initState() {
-    initialize();
-    super.initState();
-
-  }
-
   @override
   Widget build(BuildContext context) {
-      return Scaffold(
+    return Scaffold(
         backgroundColor: Colors.white,
-          body: Container(
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Image.asset(
-                    'assets/icon/airqo_logo.png',
-                    height: 150,
-                    width: 150,
-                  ),
-                ],
-              ),
+        body: Container(
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Image.asset(
+                  'assets/icon/airqo_logo.png',
+                  height: 150,
+                  width: 150,
+                ),
+              ],
             ),
-          ));
-    }
+          ),
+        ));
+  }
 
   void initialize() {
     Future.delayed(const Duration(seconds: 4), () async {
       await Navigator.pushReplacement(context,
           MaterialPageRoute(builder: (context) {
-            return TagLineScreen();
-          }));
+        return TagLineScreen();
+      }));
     });
   }
-  }
 
+  @override
+  void initState() {
+    initialize();
+    super.initState();
+  }
+}

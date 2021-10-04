@@ -30,23 +30,13 @@ class AppConfig {
 }
 
 class ColorConstants {
-  static Color get appBarBgColor => const Color(0xffF2F1F6);
+  static Color get appBarBgColor => Colors.white;
 
   static Color get appBarTitleColor => appColor;
 
-  static Color get appBodyColor => const Color(0xffF2F1F6);
+  static Color get appBodyColor => Colors.white;
 
-  static Color get appPicColor => const Color(0xffFF79C1);
-
-  // static Color get appColor => const Color(0xff3067e2);
-
-  static Color get appColor => Colors.black;
-
-  static Color get appColorBlue => const Color(0xff3067e2);
-
-  static Color get appTipColor => const Color(0xffD5FFD4);
-
-  static Color get appBgColor => const Color(0xffEBEBEB);
+  static Color get appColor => const Color(0xff3067e2);
 
   static Color get facebookColor => const Color(0xff4267B2);
 
@@ -74,11 +64,11 @@ class ColorConstants {
 }
 
 class ErrorMessages {
-  static String get appException => 'App exception';
+  static String get appException => 'Failed to your request. Try again later';
 
-  static String get socketException => 'Connection timeout';
+  static String get socketException => 'No internet connection available';
 
-  static String get timeoutException => 'Connection timeout';
+  static String get timeoutException => 'No internet connection available';
 }
 
 enum Languages { english, luganda }
@@ -118,6 +108,43 @@ class NotificationConfig {
   static const int progressNotificationId = 482842;
   static const int pushNotificationId = 9239203;
   static const int smartNotificationId = 4877231;
+}
+
+class PollutantBio {
+  static String get humidity => 'Relative humidity is the amount of water '
+      'vapor actually in the air, expressed as a percentage of the maximum '
+      'amount of water vapor the air can hold at the same temperature. '
+      '\n\nThink of the air at a chilly -10 degrees Celsius '
+      '(14 degrees Fahrenheit). At that temperature, the air can hold,'
+      ' at most, 2.2 grams of water per cubic meter. So if there are 2.2'
+      ' grams of water per cubic meter when its -10 degrees Celsius outside, '
+      'we are at an uncomfortable 100 percent relative humidity. If there was'
+      ' 1.1 grams of water in the air at -10 degrees Celsius, '
+      'we are at 50 percent relative humidity.';
+
+  static String get pm10 => 'PM10 are pollutants about 10 micrometers in '
+      'size (5–7 times smaller than the '
+      'thickness of a human hair.\n'
+      'These particles can certainly be damaging and include dust '
+      'and thick smoke, many can be processed by the lungs and can be'
+      ' coughed out but others especially if toxic can contribute to'
+      ' respiratory illness and more. They are measured but'
+      ' not always reported worldwide';
+
+  static String get pm2_5 => 'PM 2.5 are pollutants'
+      ' smaller than 2.5 micrometers (20–30 times '
+      'smaller than the thickness of a human hair.\n'
+      'Once in the bloodstream, they can contribute to cancers, '
+      'cardiovascular problems, affect brain function and as well as '
+      'developmental issues for growing children. They have '
+      'also increasingly been implicated in contributing to the spread '
+      'of COVID-19';
+
+  static String get temperature => 'Temperature is the degree of hotness or'
+      ' coldness of an object. When we talk about something feeling hot '
+      '(like the soup we drink when were sick) or cold (like the snow, '
+      'especially if youre not wearing gloves), '
+      'were talking about temperature.';
 }
 
 class PollutantConstant {
@@ -260,8 +287,6 @@ class PrefConstant {
   static String get favouritePlaces => 'favouriteSites';
 
   static String get firstUse => 'firstUse';
-
-  static String get isSignedUp => 'isSignedUp';
 
   static String get initialDbLoad => 'initialDbLoad';
 

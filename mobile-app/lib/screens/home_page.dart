@@ -1,7 +1,6 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/on_boarding/onBoarding_page.dart';
 import 'package:app/screens/map_page.dart';
-import 'package:app/screens/profile_view.dart';
 import 'package:app/screens/resources_page.dart';
 import 'package:app/screens/search_location_page.dart';
 import 'package:app/screens/settings_page.dart';
@@ -16,7 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'dashboard_view.dart';
+import 'dashboard_page.dart';
 import 'help_page.dart';
 import 'maps_view.dart';
 import 'my_places_view.dart';
@@ -29,74 +28,158 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  static const TextStyle optionStyle =
+      TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
   final PageController _pageCtrl = PageController(initialPage: 0);
   String title = '${AppConfig.name}';
   bool showAddPlace = true;
   DateTime? exitTime;
+
   double selectedPage = 0;
-
   int _selectedIndex = 0;
-  static const TextStyle optionStyle =
-  TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
-  final List<Widget> _widgetOptions = <Widget>[
-    DashboardPage(),
-    const MapView(),
-    const ProfileView(),
-  ];
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: ColorConstants.appBodyColor,
-      body: Center(
-        child: _widgetOptions.elementAt(_selectedIndex),
-      ),
-      bottomNavigationBar: Theme(
-        data: Theme.of(context).copyWith(
-            canvasColor: ColorConstants.appBodyColor,
-            primaryColor: Colors.black,
-            textTheme: Theme
-                .of(context)
-                .textTheme
-                .copyWith(caption: const TextStyle(color: Colors.black))),
-        child: BottomNavigationBar(
-          items: const <BottomNavigationBarItem>[
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home),
-              label: 'Home',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.map),
-              label: 'Map',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.account_circle_outlined),
-              label: 'Profile',
-            ),
-          ],
-          currentIndex: _selectedIndex,
-          selectedItemColor: ColorConstants.appColorBlue,
-          unselectedItemColor: ColorConstants.inactiveColor,
-          elevation: 0.0,
-          backgroundColor: ColorConstants.appBodyColor,
-          onTap: _onItemTapped,
-          showSelectedLabels: true,
-          showUnselectedLabels: true,
-        ),
-      ),
-    );
-  }
-
-  Widget builds(BuildContext context) {
-    return Scaffold(
       resizeToAvoidBottomInset: false,
-
+      appBar: AppBar(
+        // title: Text(title,
+        //     style: const TextStyle(
+        //       color: Colors.white,
+        //       fontWeight: FontWeight.bold,
+        //     )),
+        backgroundColor: ColorConstants.appBarBgColor,
+        elevation: 0,
+        title: Text(
+          title,
+          style: TextStyle(
+            color: ColorConstants.appBarTitleColor,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        actions: [
+          IconButton(
+            icon: Icon(
+              Icons.search,
+              color: ColorConstants.appBarTitleColor,
+            ),
+            onPressed: () async {
+              await showSearch(
+                context: context,
+                delegate: LocationSearch(),
+              ).then((_) {
+                setState(() {});
+              });
+            },
+          ),
+          PopupMenuButton<dynamic>(
+            icon: Icon(
+              Icons.menu,
+              color: ColorConstants.appBarTitleColor,
+            ),
+            onSelected: (value) => {navigateToMenuItem(value)},
+            itemBuilder: (context) => <PopupMenuEntry<String>>[
+              // PopupMenuItem<String>(
+              //   value: 'MyPlaces',
+              //   child: ListTile(
+              //     leading: Icon(
+              //       Icons.favorite_outlined,
+              //       color: ColorConstants.appColor,
+              //     ),
+              //     title: Text('MyPlaces',
+              //         style: TextStyle(
+              //           color: ColorConstants.appColor,
+              //         )),
+              //   ),
+              // ),
+              PopupMenuItem<String>(
+                textStyle: TextStyle(
+                  color: ColorConstants.appColor,
+                ),
+                value: 'AQI Index',
+                child: ListTile(
+                  leading: Icon(
+                    Icons.info_outline_rounded,
+                    color: ColorConstants.appColor,
+                  ),
+                  title: Text('Guides',
+                      style: TextStyle(
+                        color: ColorConstants.appColor,
+                      )),
+                ),
+              ),
+              // PopupMenuItem<String>(
+              //   value: 'Faqs',
+              //   child: ListTile(
+              //     leading: Icon(
+              //       Icons.help_outline_outlined,
+              //       color: ColorConstants.appColor,
+              //     ),
+              //     title: Text('Faqs',
+              //         style: TextStyle(
+              //           color: ColorConstants.appColor,
+              //         )),
+              //   ),
+              // ),
+              // PopupMenuItem<String>(
+              //   value: 'Feedback',
+              //   child: ListTile(
+              //     leading: Icon(
+              //       Icons.feedback_outlined,
+              //       color: ColorConstants.appColor,
+              //     ),
+              //     title: Text('Feedback',
+              //         style: TextStyle(
+              //           color: ColorConstants.appColor,
+              //         )),
+              //   ),
+              // ),
+              PopupMenuItem<String>(
+                value: 'camera',
+                child: ListTile(
+                  leading: Icon(
+                    Icons.camera_alt_outlined,
+                    color: ColorConstants.appColor,
+                  ),
+                  title: Text('AQI Camera',
+                      style: TextStyle(
+                        color: ColorConstants.appColor,
+                      )),
+                ),
+              ),
+              // PopupMenuItem<String>(
+              //   value: 'Settings',
+              //   child: ListTile(
+              //     leading: Icon(
+              //
+              //       Icons.settings,
+              //       color: ColorConstants.appColor,
+              //     ),
+              //     title: const Text(
+              //       'Settings',
+              //     ),
+              //   ),
+              // ),
+              const PopupMenuDivider(),
+              PopupMenuItem<String>(
+                value: 'Share',
+                child: ListTile(
+                  leading: Icon(
+                    Icons.share_outlined,
+                    color: ColorConstants.appColor,
+                  ),
+                  title: Text('Share',
+                      style: TextStyle(
+                        color: ColorConstants.appColor,
+                      )
+                      // style: Theme.of(context).textTheme.headline1,
+                      ),
+                ),
+              ),
+            ],
+          )
+        ],
+      ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: BottomAppBar(
         shape: const CircularNotchedRectangle(),
@@ -264,6 +347,13 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<bool> onWillPop() {
+    var currentPage = _pageCtrl.page ?? 0;
+
+    if (currentPage != 0) {
+      _pageCtrl.jumpToPage(0);
+      return Future.value(false);
+    }
+
     var now = DateTime.now();
 
     if (exitTime == null ||
@@ -365,5 +455,11 @@ class _HomePageState extends State<HomePage> {
     await AirqoApiClient(context).fetchSites().then((value) => {
           if (value.isNotEmpty) {DBHelper().insertSites(value)}
         });
+  }
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
   }
 }

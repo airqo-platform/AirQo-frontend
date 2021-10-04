@@ -1,12 +1,13 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/screens/help_page.dart';
+import 'package:app/utils/dialogs.dart';
 import 'package:flutter/material.dart';
 
 class PollutantCard extends StatelessWidget {
   final String name;
   final double value;
   final String type;
-  String source = '';
+  final String source;
 
   PollutantCard(this.name, this.value, this.type, this.source);
 
@@ -14,13 +15,14 @@ class PollutantCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute<void>(
-            builder: (BuildContext context) => getHelpTab(),
-            fullscreenDialog: true,
-          ),
-        );
+        openDialog(context);
+        // Navigator.push(
+        //   context,
+        //   MaterialPageRoute<void>(
+        //     builder: (BuildContext context) => getHelpTab(),
+        //     fullscreenDialog: true,
+        //   ),
+        // );
       },
       child: Card(
           color: Colors.white,
@@ -81,6 +83,16 @@ class PollutantCard extends StatelessWidget {
     // }
     else {
       return const HelpPage(initialIndex: 0);
+    }
+  }
+
+  void openDialog(context) {
+    if (type == PollutantConstant.pm2_5) {
+      infoDialog(context, PollutantBio.pm2_5);
+    } else if (type == PollutantConstant.pm10) {
+      infoDialog(context, PollutantBio.pm10);
+    } else {
+      infoDialog(context, PollutantBio.pm2_5);
     }
   }
 }

@@ -16,7 +16,6 @@ class MeasurementsBarChart extends StatefulWidget {
   _MeasurementsBarChartState createState() => _MeasurementsBarChartState();
 }
 
-
 class _MeasurementsBarChartState extends State<MeasurementsBarChart> {
   var display = null;
 
@@ -152,27 +151,27 @@ class _MeasurementsBarChartState extends State<MeasurementsBarChart> {
               selectionModels: [
                 charts.SelectionModelConfig(
                     changedListener: (charts.SelectionModel model) {
-                      if (model.hasDatumSelection) {
-                        try {
-                          setState(() {
-                            display = {
-                              'time': (model.selectedSeries[0]
+                  if (model.hasDatumSelection) {
+                    try {
+                      setState(() {
+                        display = {
+                          'time': (model.selectedSeries[0]
                                   .domainFn(model.selectedDatum[0].index))
-                                  .toString(),
-                              'value': double.parse((model.selectedSeries[0]
+                              .toString(),
+                          'value': double.parse((model.selectedSeries[0]
                                   .measureFn(model.selectedDatum[0].index))
-                                  .toString())
-                            };
-                          });
-                        } on Error catch (e) {
-                          print(e);
-                        }
-                      }
-                    })
+                              .toString())
+                        };
+                      });
+                    } on Error catch (e) {
+                      print(e);
+                    }
+                  }
+                })
               ],
               primaryMeasureAxis: const charts.NumericAxisSpec(
                   tickProviderSpec:
-                  charts.BasicNumericTickProviderSpec(desiredTickCount: 5)),
+                      charts.BasicNumericTickProviderSpec(desiredTickCount: 5)),
             ),
           )
         ],
@@ -180,5 +179,3 @@ class _MeasurementsBarChartState extends State<MeasurementsBarChart> {
     );
   }
 }
-
-

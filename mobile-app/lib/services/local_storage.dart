@@ -163,7 +163,11 @@ class DBHelper {
           ? List.generate(res.length, (i) {
               return Measurement.fromJson(Measurement.mapFromDb(res[i]));
             })
-          : <Measurement>[];
+          : <Measurement>[]
+        ..sort((siteA, siteB) => siteA.site
+            .getName()
+            .toLowerCase()
+            .compareTo(siteB.site.getName().toLowerCase()));
     } catch (e) {
       print(e);
       return <Measurement>[];
@@ -464,7 +468,7 @@ class DBHelper {
       final db = await database;
 
       if (measurements.isNotEmpty) {
-        await db.delete(Measurement.latestMeasurementsDb());
+        // await db.delete(Measurement.latestMeasurementsDb());
 
         for (var measurement in measurements) {
           try {
@@ -490,7 +494,7 @@ class DBHelper {
       final db = await database;
 
       if (stories.isNotEmpty) {
-        await db.delete(Story.storyDbName());
+        // await db.delete(Story.storyDbName());
 
         for (var story in stories) {
           try {

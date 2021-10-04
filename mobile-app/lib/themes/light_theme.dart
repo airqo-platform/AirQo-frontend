@@ -7,10 +7,9 @@ ThemeData lightTheme() {
   final base = ThemeData.light();
 
   return base.copyWith(
-    // primaryColor: Colors.white,
     primaryColor: Colors.white,
-    // accentColor: ColorConstants.appColor,
-    // backgroundColor: Colors.white,
+    accentColor: ColorConstants.appColor,
+    backgroundColor: Colors.white,
     visualDensity: VisualDensity.adaptivePlatformDensity,
     textTheme: ThemeData.light().textTheme.apply(
           fontFamily: 'OpenSans',

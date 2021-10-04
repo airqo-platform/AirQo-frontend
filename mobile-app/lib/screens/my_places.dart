@@ -163,37 +163,49 @@ class _MyPlacesState extends State<MyPlaces> {
                           if (results.isEmpty) {
                             return Center(
                               child: Container(
-                                padding: const EdgeInsets.all(16.0),
-                                child: OutlinedButton(
-                                  onPressed: () async {
-                                    await showSearch(
-                                      context: context,
-                                      delegate: LocationSearch(),
-                                    ).then((_) {
-                                      setState(() {});
-                                    });
-                                  },
-                                  style: OutlinedButton.styleFrom(
-                                    shape: const CircleBorder(),
-                                    padding: const EdgeInsets.all(24),
-                                  ),
-                                  child: Text(
-                                    'Add',
-                                    style: TextStyle(
-                                        color: ColorConstants.appColor),
-                                  ),
+                                padding: const EdgeInsets.all(40.0),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Text(
+                                      'Empty in MyPlaces',
+                                      softWrap: true,
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(fontSize: 20),
+                                    ),
+                                    const SizedBox(
+                                      height: 10,
+                                    ),
+                                    const Text(
+                                      'Add places of interest using the AirQo map '
+                                      'or search',
+                                      softWrap: true,
+                                      textAlign: TextAlign.center,
+                                    ),
+                                    const SizedBox(
+                                      height: 10,
+                                    ),
+                                    OutlinedButton(
+                                      onPressed: () async {
+                                        await showSearch(
+                                          context: context,
+                                          delegate: LocationSearch(),
+                                        ).then((_) {
+                                          setState(() {});
+                                        });
+                                      },
+                                      style: OutlinedButton.styleFrom(
+                                        shape: const CircleBorder(),
+                                        padding: const EdgeInsets.all(24),
+                                      ),
+                                      child: Text(
+                                        'Add',
+                                        style: TextStyle(
+                                            color: ColorConstants.appColor),
+                                      ),
+                                    )
+                                  ],
                                 ),
-                                // child: Text(
-                                //   'You haven\'t added any locations you'
-                                //   ' care about '
-                                //   'to MyPlaces yet, use the add icon at '
-                                //   'the top to add them to your list',
-                                //   softWrap: true,
-                                //   textAlign: TextAlign.center,
-                                //   style: TextStyle(
-                                //     color: ColorConstants.appColor,
-                                //   ),
-                                // ),
                               ),
                             );
                           }

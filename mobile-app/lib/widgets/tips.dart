@@ -10,21 +10,15 @@ class TipCard extends StatefulWidget {
 }
 
 class _TipCardState extends State<TipCard> {
-
-
   @override
   Widget build(BuildContext context) {
-
-
     double screenWidth = MediaQuery.of(context).size.width;
 
     return Container(
-
       decoration: BoxDecoration(
           color: Colors.white,
           shape: BoxShape.rectangle,
-          borderRadius: const BorderRadius.all(Radius.circular(10.0))
-      ),
+          borderRadius: const BorderRadius.all(Radius.circular(10.0))),
       padding: const EdgeInsets.all(8.0),
       child: Row(
         // crossAxisAlignment: CrossAxisAlignment.start,
@@ -32,50 +26,44 @@ class _TipCardState extends State<TipCard> {
           Container(
             padding: const EdgeInsets.all(2.0),
             decoration: BoxDecoration(
-                color:ColorConstants.appTipColor,
+                color: ColorConstants.green,
                 shape: BoxShape.rectangle,
-                borderRadius: const BorderRadius.all(Radius.circular(10.0))
-            ),
+                borderRadius: const BorderRadius.all(Radius.circular(10.0))),
             child: IconButton(
               iconSize: 30,
               icon: Icon(
                 Icons.bookmark_outline,
-                color: ColorConstants.appTipColor,
+                color: ColorConstants.green,
               ),
-              onPressed: () async {
-              },
+              onPressed: () async {},
             ),
           ),
           SizedBox(
-            width: screenWidth * 0.70,
-            child: Padding(padding: EdgeInsets.all(8.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Outdoor activities',
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 2,
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14
+              width: screenWidth * 0.70,
+              child: Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Outdoor activities',
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 2,
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                     ),
-                  ),
-                  Text('A run is still ok, 30 minutes is good!',
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 2,
-                    style: TextStyle(
-                        fontSize: 12
+                    Text(
+                      'A run is still ok, 30 minutes is good!',
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 2,
+                      style: TextStyle(fontSize: 12),
                     ),
-                  ),
-                ],
-              ),
-            )
-          ),
-
+                  ],
+                ),
+              )),
         ],
       ),
-      
     );
   }
 }
