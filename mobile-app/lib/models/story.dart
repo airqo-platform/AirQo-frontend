@@ -76,18 +76,13 @@ class Story {
         print('Error parsing stories : $e');
       }
     }
-
-    // stories.sort((storyA, storyB) {
-    //   return storyA.getName().compareTo(storyB.getName().toLowerCase());
-    // });
-
     return stories;
   }
 
   static String storyDbName() => 'stories_table';
 }
 
-extension ParseSite on Story {
+extension ParseStory on Story {
   String getPubDate() {
     try {
       var date = pubDate.split(' ').first;

@@ -1,12 +1,17 @@
 import 'package:app/constants/app_constants.dart';
+import 'package:app/models/alert.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/site.dart';
+import 'package:app/services/fb_notifications.dart';
 import 'package:app/services/local_storage.dart';
+import 'package:app/services/rest_api.dart';
 import 'package:app/utils/date.dart';
+import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/distance.dart';
 import 'package:app/utils/pm.dart';
 import 'package:app/widgets/help/aqi_index.dart';
 import 'package:app/widgets/help/pollutant.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
@@ -17,23 +22,14 @@ class AddAlertPage extends StatefulWidget {
   _AddAlertPageState createState() => _AddAlertPageState();
 }
 
-enum AirQuality {
-  moderate,
-  unhealthy,
-  veryUnhealthy,
-  ufsg,
-  hazardous,
-}
-enum AlertType { fixedDaily, custom }
-
 class _AddAlertPageState extends State<AddAlertPage> {
   int _currentStep = 0;
   var sites = <Measurement>[];
   var selectedSite;
   var _alertType = AlertType.fixedDaily;
-  var _airQuality = AirQuality.moderate;
-  TimeOfDay _selectedTime = TimeOfDay(hour: 8, minute: 00);
-  double _currentSliderValue = 20;
+  var _airQuality = AirQuality.good;
+  final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
+  TimeOfDay _selectedTime = const TimeOfDay(hour: 8, minute: 00);
 
   @override
   Widget build(BuildContext context) {
@@ -107,10 +103,10 @@ class _AddAlertPageState extends State<AddAlertPage> {
                                           fontSize: 15,
                                           color: ColorConstants.appColor,
                                         )),
-                                leading: FaIcon(
-                                  FontAwesomeIcons.mapMarkerAlt,
-                                  color: ColorConstants.appColor,
-                                ),
+                                // leading: FaIcon(
+                                //   FontAwesomeIcons.mapMarkerAlt,
+                                //   color: ColorConstants.appColor,
+                                // ),
                               ) //your content here
                               );
                         },
@@ -144,9 +140,6 @@ class _AddAlertPageState extends State<AddAlertPage> {
                             style: const TextStyle(
                                 fontWeight: FontWeight.bold, fontSize: 20),
                           ),
-                        const SizedBox(
-                          height: 5,
-                        ),
                         ListTile(
                           title: Row(
                             children: [
@@ -189,9 +182,6 @@ class _AddAlertPageState extends State<AddAlertPage> {
                             ),
                           ),
                         ),
-                        SizedBox(
-                          height: 10,
-                        ),
                         ListTile(
                           title: Row(
                             children: [
@@ -204,7 +194,7 @@ class _AddAlertPageState extends State<AddAlertPage> {
                                   });
                                 },
                               ),
-                              Text('When air quality is ;',
+                              const Text('When air quality is ;',
                                   softWrap: true,
                                   maxLines: 2,
                                   style: TextStyle(
@@ -228,7 +218,31 @@ class _AddAlertPageState extends State<AddAlertPage> {
                             children: [
                               Row(
                                 children: [
-                                  SizedBox(
+                                  const SizedBox(
+                                    width: 50,
+                                  ),
+                                  const Text(
+                                    'Good',
+                                    softWrap: true,
+                                    maxLines: 2,
+                                  ),
+                                  Spacer(),
+                                  Radio(
+                                    value: AirQuality.good,
+                                    groupValue: _airQuality,
+                                    onChanged: (value) {
+                                      if (_alertType == AlertType.custom) {
+                                        setState(() {
+                                          _airQuality = value as AirQuality;
+                                        });
+                                      }
+                                    },
+                                  ),
+                                ],
+                              ),
+                              Row(
+                                children: [
+                                  const SizedBox(
                                     width: 50,
                                   ),
                                   const Text(
@@ -252,10 +266,10 @@ class _AddAlertPageState extends State<AddAlertPage> {
                               ),
                               Row(
                                 children: [
-                                  SizedBox(
+                                  const SizedBox(
                                     width: 50,
                                   ),
-                                  Text(
+                                  const Text(
                                     'Unhealthy for sensitive \ngroups',
                                     softWrap: true,
                                     maxLines: 2,
@@ -276,10 +290,10 @@ class _AddAlertPageState extends State<AddAlertPage> {
                               ),
                               Row(
                                 children: [
-                                  SizedBox(
+                                  const SizedBox(
                                     width: 50,
                                   ),
-                                  Text(
+                                  const Text(
                                     'Unhealthy',
                                     softWrap: true,
                                     maxLines: 2,
@@ -300,15 +314,15 @@ class _AddAlertPageState extends State<AddAlertPage> {
                               ),
                               Row(
                                 children: [
-                                  SizedBox(
+                                  const SizedBox(
                                     width: 50,
                                   ),
-                                  Text(
+                                  const Text(
                                     'Very Unhealthy',
                                     softWrap: true,
                                     maxLines: 2,
                                   ),
-                                  Spacer(),
+                                  const Spacer(),
                                   Radio(
                                     value: AirQuality.veryUnhealthy,
                                     groupValue: _airQuality,
@@ -324,10 +338,10 @@ class _AddAlertPageState extends State<AddAlertPage> {
                               ),
                               Row(
                                 children: [
-                                  SizedBox(
+                                  const SizedBox(
                                     width: 50,
                                   ),
-                                  Text(
+                                  const Text(
                                     'Hazardous',
                                     softWrap: true,
                                     maxLines: 2,
@@ -349,25 +363,34 @@ class _AddAlertPageState extends State<AddAlertPage> {
                             ],
                           ),
                         ),
-                        SizedBox(
-                          height: 10,
-                        ),
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
                             OutlinedButton(
-                              onPressed: () {},
-                              child: Text(
-                                'Save',
-                                style: TextStyle(
+                              onPressed: saveAlert,
+                              child: Row(
+                                children: [
+
+                                  Text(
+                                    'Save',
+                                    style: TextStyle(
+                                        color: ColorConstants.appColor,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                  const SizedBox(width: 10,),
+                                  FaIcon(
+                                    FontAwesomeIcons.bell,
                                     color: ColorConstants.appColor,
-                                    fontWeight: FontWeight.bold),
+                                    size: 20,
+                                  ),
+
+                                ],
                               ),
                             )
                           ],
                         ),
-                        SizedBox(
+                        const SizedBox(
                           height: 20,
                         ),
                       ],
@@ -386,11 +409,38 @@ class _AddAlertPageState extends State<AddAlertPage> {
     );
   }
 
-  cancel() {
+  Future<void> saveAlert() async {
+    final pushNotificationService = PushNotificationService(_firebaseMessaging);
+    Alert alert;
+    await pushNotificationService.getToken().then((token) => {
+      if(token != null){
+        alert = Alert(token, selectedSite.site.id, _alertType.getString(),
+            _selectedTime.hour, _airQuality.getString(),
+            selectedSite.site.getName()),
+        AirqoApiClient(context).saveAlert(alert).then((value) => {
+          if(value){
+            showSnackBar(context, 'Alert for ${selectedSite.site.getName()} '
+                'has been set'),
+            DBHelper().addAlert(alert),
+            Navigator.pop(context, true),
+          }
+          else{
+            showSnackBar(context, 'Sorry, we couldn\'t save your alert setting.'
+                ' Try again later'),
+            DBHelper().addAlert(alert),
+            Navigator.pop(context, true),
+          }
+        })
+      }
+    });
+
+  }
+
+  void cancel() {
     _currentStep > 0 ? setState(() => _currentStep -= 1) : null;
   }
 
-  continued() {
+  void continued() {
     _currentStep < 1 ? setState(() => _currentStep += 1) : null;
   }
 
@@ -413,7 +463,7 @@ class _AddAlertPageState extends State<AddAlertPage> {
     super.initState();
   }
 
-  tapped(int step) {
+  void tapped(int step) {
     setState(() => _currentStep = step);
   }
 

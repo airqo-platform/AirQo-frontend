@@ -1,4 +1,5 @@
 import 'package:app/constants/app_constants.dart';
+import 'package:app/models/alert.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/site.dart';
 import 'package:app/screens/place_details.dart';
@@ -20,7 +21,13 @@ class AlertPage extends StatefulWidget {
 }
 
 class _AlertPageState extends State<AlertPage> {
-  var alerts = <Measurement>[];
+  var alerts = <Alert>[];
+
+  @override
+  void initState() {
+    refreshData();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -78,48 +85,41 @@ class _AlertPageState extends State<AlertPage> {
                         child: ListView.builder(
                           itemBuilder: (context, index) => GestureDetector(
                             onTap: () {
-                              viewAlert(alerts[index].site);
+                              viewAlert(alerts[index]);
                             },
                             child: Slidable(
                               actionPane: const SlidableDrawerActionPane(),
                               actionExtentRatio: 0.25,
-                              actions: <Widget>[
-                                IconSlideAction(
-                                  caption: 'Share',
-                                  color: Colors.transparent,
-                                  foregroundColor: ColorConstants.appColor,
-                                  icon: Icons.share_outlined,
-                                  onTap: () =>
-                                      shareLocation(alerts[index].site),
-                                ),
-                              ],
+                              // actions: [
+                              //   IconSlideAction(
+                              //     caption: 'Turn off',
+                              //     color: Colors.transparent,
+                              //     foregroundColor: Colors.red,
+                              //     icon: Icons.notifications_off_outlined,
+                              //     onTap: () {
+                              //       removeFromAlerts(alerts[index]);
+                              //     },
+                              //   ),
+                              // ],
                               secondaryActions: <Widget>[
                                 IconSlideAction(
-                                  caption: 'Remove',
+                                  caption: 'Delete',
                                   color: Colors.transparent,
                                   foregroundColor: Colors.red,
                                   icon: Icons.delete_outlined,
                                   onTap: () {
-                                    removeFromAlerts(alerts[index].site);
+                                    removeFromAlerts(alerts[index]);
                                   },
                                 ),
                               ],
                               child: Container(
                                 child: ListTile(
-                                  leading: CircleAvatar(
-                                    backgroundColor: pmToColor(
-                                        alerts[index].getPm2_5Value()),
-                                    foregroundColor: pmTextColor(
-                                        alerts[index].getPm2_5Value()),
-                                    child: Center(
-                                      child: Text(
-                                        '${alerts[index].getPm2_5Value().toStringAsFixed(2)}',
-                                        textAlign: TextAlign.center,
-                                        style: const TextStyle(fontSize: 10.0),
-                                      ),
-                                    ),
+                                  leading: FaIcon(
+                                    FontAwesomeIcons.bell,
+                                    color: ColorConstants.appColor,
+                                    size: 20,
                                   ),
-                                  title: Text('${alerts[index].site.getName()}',
+                                  title: Text('${alerts[index].siteName}',
                                       overflow: TextOverflow.ellipsis,
                                       style: TextStyle(
                                         fontSize: 17,
@@ -127,8 +127,9 @@ class _AlertPageState extends State<AlertPage> {
                                         fontWeight: FontWeight.bold,
                                       )),
                                   subtitle: Text(
-                                      '${alerts[index].site.getLocation()}',
+                                      '${alerts[index].getAlertString()}',
                                       overflow: TextOverflow.ellipsis,
+                                      maxLines: 2,
                                       style: TextStyle(
                                         fontSize: 14,
                                         color: ColorConstants.appColor,
@@ -144,14 +145,17 @@ class _AlertPageState extends State<AlertPage> {
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: FloatingActionButton(
         backgroundColor: ColorConstants.appColor,
-        onPressed: () {
-          Navigator.push(
+        onPressed: () async {
+          final result = await Navigator.push(
             context,
-            MaterialPageRoute<void>(
+            MaterialPageRoute(
               builder: (BuildContext context) => AddAlertPage(),
               fullscreenDialog: true,
             ),
           );
+          if(result != null){
+            await refreshData();
+          }
         },
         child: const FaIcon(
           FontAwesomeIcons.plus,
@@ -162,7 +166,7 @@ class _AlertPageState extends State<AlertPage> {
   }
 
   Future<void> refreshData() async {
-    await DBHelper().getFavouritePlaces().then((value) => {
+    await DBHelper().getAlerts().then((value) => {
           if (mounted)
             {
               setState(() {
@@ -172,21 +176,22 @@ class _AlertPageState extends State<AlertPage> {
         });
   }
 
-  Future<void> removeFromAlerts(Site site) async {
-    await DBHelper().updateFavouritePlaces(site).then((value) => {
-          showSnackBar(context, '${site.getName()} is removed from your places')
+  Future<void> removeFromAlerts(Alert alert) async {
+    await DBHelper().deleteAlert(alert).then((value) => {
+          showSnackBar(context, 'Alerts for ${alert.siteName}'
+              ' have been removed.')
         });
 
     if (mounted) {
-      setState(() {});
+      await refreshData();
     }
   }
 
-  Future<void> viewAlert(Site site) async {
-    await Navigator.push(context, MaterialPageRoute(builder: (context) {
-      return PlaceDetailsPage(site: site);
-    })).then((value) {
-      setState(() {});
-    });
+  Future<void> viewAlert(Alert alert) async {
+    // await Navigator.push(context, MaterialPageRoute(builder: (context) {
+    //   return PlaceDetailsPage(site: site);
+    // })).then((value) {
+    //   setState(() {});
+    // });
   }
 }

@@ -156,7 +156,6 @@ class _SettingsViewState extends State<SettingsView> {
   TextStyle headerStyle() {
     return const TextStyle(
       fontWeight: FontWeight.bold,
-      fontSize: 16,
     );
   }
 

@@ -12,6 +12,8 @@ class AirQoUrls {
 
   String get measurements => '${_baseUrl}devices/events';
 
+  String get alerts => '${_baseUrl}notifications';
+
   String get placeSearchDetails => '${_searchBaseUrl}details/json';
 
   String get searchSuggestions => '${_searchBaseUrl}autocomplete/json';

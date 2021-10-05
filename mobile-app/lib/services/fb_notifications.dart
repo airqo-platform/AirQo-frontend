@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/site.dart';
 import 'package:app/models/topicData.dart';
@@ -93,5 +95,16 @@ class FbNotifications {
         await unSubscribeFromSite(site, pollutantLevel);
       }
     }
+  }
+}
+
+class PushNotificationService {
+  final FirebaseMessaging _fcm;
+
+  PushNotificationService(this._fcm);
+
+  Future<String?> getToken() async {
+    var token = await _fcm.getToken();
+    return token;
   }
 }

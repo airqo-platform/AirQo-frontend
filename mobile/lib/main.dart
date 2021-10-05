@@ -132,7 +132,7 @@ class AirQoApp extends StatelessWidget {
                 locale: provider.locale,
                 title: '${AppConfig.name}',
                 theme: _buildCurrentTheme(),
-                home: LogoScreen(),
+                home: SplashScreen(),
               );
             },
           ),
@@ -248,11 +248,11 @@ class SplashScreenState extends State<SplashScreen> {
     Future.delayed(const Duration(seconds: 4), _checkFirstUse);
   }
 
-  // @override
-  // void initState() {
-  //   initialize();
-  //   super.initState();
-  // }
+  @override
+  void initState() {
+    initialize();
+    super.initState();
+  }
 
   void reload() {
     setState(() {
@@ -302,7 +302,7 @@ class SplashScreenState extends State<SplashScreen> {
     var prefs = await SharedPreferences.getInstance();
     var isFirstUse = prefs.getBool(PrefConstant.firstUse) ?? true;
 
-    if (false) {
+    if (isFirstUse) {
       await Navigator.pushReplacement(context,
           MaterialPageRoute(builder: (context) {
         return OnBoardingPage();
@@ -310,7 +310,7 @@ class SplashScreenState extends State<SplashScreen> {
     } else {
       await Navigator.pushAndRemoveUntil(context,
           MaterialPageRoute(builder: (context) {
-        return LogoScreen();
+        return HomePage();
       }), (r) => false);
     }
   }

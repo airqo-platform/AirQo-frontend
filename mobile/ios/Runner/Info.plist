@@ -5,23 +5,15 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-<<<<<<< Updated upstream:mobile/ios/Runner/Info.plist
 	<string>AirQo</string>
-=======
-	<string>${PRODUCT_NAME}</string>
->>>>>>> Stashed changes:mobile/ios/Pods/GoogleMaps/Example/GoogleMapsDemos/Info.plist
 	<key>CFBundleExecutable</key>
-	<string>${EXECUTABLE_NAME}</string>
+	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.example.GoogleMapsDemos</string>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-<<<<<<< Updated upstream:mobile/ios/Runner/Info.plist
 	<string>app</string>
-=======
-	<string>${PRODUCT_NAME}</string>
->>>>>>> Stashed changes:mobile/ios/Pods/GoogleMaps/Example/GoogleMapsDemos/Info.plist
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -29,7 +21,6 @@
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-<<<<<<< Updated upstream:mobile/ios/Runner/Info.plist
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
@@ -59,21 +50,6 @@
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
-=======
-	<string>1.0</string>
-	<key>LSRequiresIPhoneOS</key>
-	<true/>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Show your location on the map</string>
-	<key>UILaunchStoryboardName</key>
-	<string>LaunchScreen</string>
-	<key>UIRequiredDeviceCapabilities</key>
-	<array>
-		<string>armv7</string>
-	</array>
-	<key>UIStatusBarHidden</key>
-	<false/>
->>>>>>> Stashed changes:mobile/ios/Pods/GoogleMaps/Example/GoogleMapsDemos/Info.plist
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
@@ -87,16 +63,15 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-<<<<<<< Updated upstream:mobile/ios/Runner/Info.plist
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+	<key>NSLocationUsageDescription</key>
+	 <string>Turning on location services allows us to show you the air quality of your surroundings</string>
     <key>NSLocationWhenInUseUsageDescription</key>
-    <string>Can I please use get location?</string>
+    <string>Turning on location services allows us to show you the air quality of your surroundings</string>
     <key>NSLocationAlwaysUsageDescription</key>
-    <string>Can I please use get location while running in the background?</string>
+    <string>Turning on location services allows us to show you the air quality of your surroundings while running in the background</string>
     <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-    <string>Can I please use get location while open and running in the background?</string>
-=======
->>>>>>> Stashed changes:mobile/ios/Pods/GoogleMaps/Example/GoogleMapsDemos/Info.plist
+    <string>Turning on location services allows us to show you the air quality of your surroundings while open and running in the background?</string>
 </dict>
 </plist>

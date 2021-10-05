@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:app/constants/app_constants.dart';
+import 'package:app/models/alert.dart';
 import 'package:app/models/historicalMeasurement.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/predict.dart';
@@ -52,6 +53,7 @@ class DBHelper {
       await db.execute(Predict.dropTableStmt());
       await db.execute(Site.dropTableStmt());
       await db.execute(Story.dropTableStmt());
+      await db.execute(Alert.dropTableStmt());
       await prefs.setBool(PrefConstant.initialDbLoad, false);
     }
 
@@ -61,6 +63,8 @@ class DBHelper {
     await db.execute(Predict.createTableStmt());
     await db.execute(Site.createTableStmt());
     await db.execute(Story.createTableStmt());
+    // await db.execute(Alert.dropTableStmt());
+    await db.execute(Alert.createTableStmt());
   }
 
   Future<void> deleteSearchHistory(Suggestion suggestion) async {
@@ -395,6 +399,23 @@ class DBHelper {
     }
   }
 
+  Future<List<Alert>> getAlerts() async {
+    try {
+      final db = await database;
+
+      var res = await db.query(Alert.alertDbName());
+
+      return res.isNotEmpty
+          ? List.generate(res.length, (i) {
+        return Alert.fromJson(res[i]);
+      })
+          : <Alert>[];
+    } catch (e) {
+      print(e);
+      return <Alert>[];
+    }
+  }
+
   Future<Database> initDB() async {
     return await openDatabase(
       join(await getDatabasesPath(), AppConfig.dbName),
@@ -515,6 +536,50 @@ class DBHelper {
     } catch (e) {
       print(e);
     }
+  }
+
+  Future<bool> addAlert(Alert alert) async {
+    try {
+      final db = await database;
+
+      try {
+        var jsonData = alert.toJson();
+        await db.insert(
+          '${Alert.alertDbName()}',
+          jsonData,
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+        return true;
+      } catch (e) {
+        print(e);
+      }
+    } catch (e) {
+      print(e);
+    }
+
+    return false;
+  }
+
+  Future<bool> deleteAlert(Alert alert) async {
+
+    try {
+      final db = await database;
+
+      try {
+            await db.delete(
+                '${Alert.alertDbName()}',
+                where: '${Alert.dbSiteId()} = ?', whereArgs: [alert.siteId]
+            );
+            return true;
+          } catch (e) {
+            print(e);
+            print('Inserting alert into db');
+          }
+    } catch (e) {
+      print(e);
+    }
+
+    return false;
   }
 
   Future<void> insertSearchHistory(Suggestion suggestion) async {

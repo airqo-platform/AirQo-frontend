@@ -141,6 +141,14 @@ class Site {
         '${dbLatitude()}': site.latitude,
         '${dbLongitude()}': site.longitude
       };
+
+  @override
+  String toString() {
+    return 'Site{id: $id, latitude: $latitude, longitude: $longitude, '
+        'district: $district, country: $country, name: $name, '
+        'description: $description, distance: $distance, '
+        'userLocation: $userLocation}';
+  }
 }
 
 @JsonSerializable()

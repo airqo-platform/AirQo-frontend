@@ -283,7 +283,7 @@ class _HomePageState extends State<HomePage> {
         // width: 60.0,
         child: FittedBox(
           child: FloatingActionButton(
-              mini: false,
+              mini: true,
               backgroundColor: Colors.white,
               onPressed: () {
                 Navigator.push(context, MaterialPageRoute(builder: (context) {

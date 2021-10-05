@@ -63,7 +63,7 @@ class _DashboardPageState extends State<DashboardPage> {
                               getGreetings(),
                               textAlign: TextAlign.start,
                               style: const TextStyle(
-                                  fontSize: 30, fontWeight: FontWeight.bold),
+                                  fontSize: 25, fontWeight: FontWeight.bold),
                             ),
                           ),
                           CurrentLocationCard(
