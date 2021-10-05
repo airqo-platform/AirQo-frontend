@@ -87,7 +87,7 @@ void shareRanking(List<Measurement> measurements) {
     }
   }
 
-  messages = '$messages \n\n\n'
+  messages = '$messages ... \n\n'
       'Get the ${AppConfig.name} app from Play Store '
       ' ${Links.playStoreUrl} '
       'or App Store ${Links.iOSUrl}';

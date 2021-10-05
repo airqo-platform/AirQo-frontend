@@ -8,6 +8,15 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'local_notifications.dart';
 
 class CloudStore {
+  bool deleteAlert(Alert alert) {
+    FirebaseFirestore.instance
+        .collection(CloudStorage.alertsCollection)
+        .doc(alert.getAlertDbId())
+        .delete();
+
+    return true;
+  }
+
   bool saveAlert(Alert alert) {
     FirebaseFirestore.instance
         .collection(CloudStorage.alertsCollection)

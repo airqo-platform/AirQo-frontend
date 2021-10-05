@@ -1,5 +1,6 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/alert.dart';
+import 'package:app/services/fb_notifications.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:flutter/material.dart';
@@ -172,6 +173,8 @@ class _AlertPageState extends State<AlertPage> {
   }
 
   Future<void> removeFromAlerts(Alert alert) async {
+    CloudStore().deleteAlert(alert);
+
     await DBHelper().deleteAlert(alert).then((value) => {
           showSnackBar(
               context,

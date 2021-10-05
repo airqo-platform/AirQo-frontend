@@ -388,7 +388,7 @@ class _ResourcesPageState extends State<ResourcesPage> {
           color: Colors.white,
           child: RefreshIndicator(
             onRefresh: refresh,
-            child: ListView.builder(
+            child: ListView.separated(
               itemBuilder: (context, index) => GestureDetector(
                 onTap: () {
                   viewStory(stories[index]);
@@ -437,6 +437,13 @@ class _ResourcesPageState extends State<ResourcesPage> {
                 ),
               ),
               itemCount: stories.length,
+              separatorBuilder: (BuildContext context, int index) {
+                return Divider(
+                  indent: 20,
+                  endIndent: 20,
+                  color: ColorConstants.appColor,
+                );
+              },
             ),
           ));
     }

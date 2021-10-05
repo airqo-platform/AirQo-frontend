@@ -20,6 +20,7 @@ class _AddAlertPageState extends State<AddAlertPage> {
   var sites = <Measurement>[];
   var selectedSite;
   var _alertType = AlertType.fixedDaily;
+  var _isSaving = false;
   var _airQuality = AirQuality.good;
   TimeOfDay _selectedTime = const TimeOfDay(hour: 8, minute: 00);
 
@@ -69,42 +70,52 @@ class _AddAlertPageState extends State<AddAlertPage> {
                         color: ColorConstants.appColor,
                       ),
                     ),
-                    content: Padding(
-                      padding: EdgeInsets.only(bottom: 20),
-                      child: ListView.builder(
-                        shrinkWrap: true,
-                        controller: ScrollController(),
-                        itemBuilder: (BuildContext context, int index) {
-                          return InkWell(
-                              onTap: () {
-                                setState(() {
-                                  selectedSite = sites[index];
-                                });
-                                continued();
+                    content: sites.isEmpty
+                        ? Container(
+                            color: Colors.white,
+                            child: Center(
+                              child: CircularProgressIndicator(
+                                color: ColorConstants.appColor,
+                              ),
+                            ),
+                          )
+                        : Padding(
+                            padding: EdgeInsets.only(bottom: 20),
+                            child: ListView.builder(
+                              shrinkWrap: true,
+                              controller: ScrollController(),
+                              itemBuilder: (BuildContext context, int index) {
+                                return InkWell(
+                                    onTap: () {
+                                      setState(() {
+                                        selectedSite = sites[index];
+                                      });
+                                      continued();
+                                    },
+                                    child: ListTile(
+                                      title:
+                                          Text('${sites[index].site.getName()}',
+                                              style: TextStyle(
+                                                fontSize: 17,
+                                                color: ColorConstants.appColor,
+                                                fontWeight: FontWeight.bold,
+                                              )),
+                                      subtitle: Text(
+                                          '${sites[index].site.getLocation()}',
+                                          style: TextStyle(
+                                            fontSize: 15,
+                                            color: ColorConstants.appColor,
+                                          )),
+                                      // leading: FaIcon(
+                                      //   FontAwesomeIcons.mapMarkerAlt,
+                                      //   color: ColorConstants.appColor,
+                                      // ),
+                                    ) //your content here
+                                    );
                               },
-                              child: ListTile(
-                                title: Text('${sites[index].site.getName()}',
-                                    style: TextStyle(
-                                      fontSize: 17,
-                                      color: ColorConstants.appColor,
-                                      fontWeight: FontWeight.bold,
-                                    )),
-                                subtitle:
-                                    Text('${sites[index].site.getLocation()}',
-                                        style: TextStyle(
-                                          fontSize: 15,
-                                          color: ColorConstants.appColor,
-                                        )),
-                                // leading: FaIcon(
-                                //   FontAwesomeIcons.mapMarkerAlt,
-                                //   color: ColorConstants.appColor,
-                                // ),
-                              ) //your content here
-                              );
-                        },
-                        itemCount: sites.length,
-                      ),
-                    ),
+                              itemCount: sites.length,
+                            ),
+                          ),
                     isActive: _currentStep >= 0,
                     state: _currentStep >= 0
                         ? StepState.complete
@@ -359,27 +370,32 @@ class _AddAlertPageState extends State<AddAlertPage> {
                           crossAxisAlignment: CrossAxisAlignment.end,
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
-                            OutlinedButton(
-                              onPressed: saveAlert,
-                              child: Row(
-                                children: [
-                                  Text(
-                                    'Save',
-                                    style: TextStyle(
-                                        color: ColorConstants.appColor,
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                  const SizedBox(
-                                    width: 10,
-                                  ),
-                                  FaIcon(
-                                    FontAwesomeIcons.bell,
+                            _isSaving
+                                ? CircularProgressIndicator(
                                     color: ColorConstants.appColor,
-                                    size: 20,
-                                  ),
-                                ],
-                              ),
-                            )
+                                    strokeWidth: 2,
+                                  )
+                                : OutlinedButton(
+                                    onPressed: saveAlert,
+                                    child: Row(
+                                      children: [
+                                        Text(
+                                          'Save',
+                                          style: TextStyle(
+                                              color: ColorConstants.appColor,
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                        const SizedBox(
+                                          width: 10,
+                                        ),
+                                        FaIcon(
+                                          FontAwesomeIcons.bell,
+                                          color: ColorConstants.appColor,
+                                          size: 20,
+                                        ),
+                                      ],
+                                    ),
+                                  )
                           ],
                         ),
                         const SizedBox(
@@ -424,16 +440,20 @@ class _AddAlertPageState extends State<AddAlertPage> {
 
   @override
   void initState() {
-    getSites();
     super.initState();
+    getSites();
+    _isSaving = false;
   }
 
   Future<void> saveAlert() async {
     Alert alert;
 
+    setState(() {
+      _isSaving = true;
+    });
+
     var token = await NotificationService().getToken();
     if (token != null) {
-      print(DateTime.now().timeZoneOffset.inHours);
       alert = Alert(
           token,
           selectedSite.site.id,
@@ -448,6 +468,11 @@ class _AddAlertPageState extends State<AddAlertPage> {
             context,
             'Alerts for ${selectedSite.site.getName()} '
             'have been set');
+
+        setState(() {
+          _isSaving = false;
+        });
+
         await DBHelper().addAlert(alert);
         Navigator.pop(context, true);
       } else {
@@ -462,6 +487,10 @@ class _AddAlertPageState extends State<AddAlertPage> {
           'Sorry, we couldn\'t save your alert.'
           ' Try again later');
     }
+
+    setState(() {
+      _isSaving = false;
+    });
   }
 
   void tapped(int step) {
