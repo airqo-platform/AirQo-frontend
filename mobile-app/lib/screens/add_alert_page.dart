@@ -1,17 +1,10 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/alert.dart';
 import 'package:app/models/measurement.dart';
-import 'package:app/models/site.dart';
 import 'package:app/services/fb_notifications.dart';
 import 'package:app/services/local_storage.dart';
-import 'package:app/services/rest_api.dart';
 import 'package:app/utils/date.dart';
 import 'package:app/utils/dialogs.dart';
-import 'package:app/utils/distance.dart';
-import 'package:app/utils/pm.dart';
-import 'package:app/widgets/help/aqi_index.dart';
-import 'package:app/widgets/help/pollutant.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
@@ -28,7 +21,6 @@ class _AddAlertPageState extends State<AddAlertPage> {
   var selectedSite;
   var _alertType = AlertType.fixedDaily;
   var _airQuality = AirQuality.good;
-  final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
   TimeOfDay _selectedTime = const TimeOfDay(hour: 8, minute: 00);
 
   @override
@@ -437,16 +429,16 @@ class _AddAlertPageState extends State<AddAlertPage> {
   }
 
   Future<void> saveAlert() async {
-    // final pushNotificationService = PushNotificationService(_firebaseMessaging);
     Alert alert;
 
     var token = await NotificationService().getToken();
     if (token != null) {
+      print(DateTime.now().timeZoneOffset.inHours);
       alert = Alert(
           token,
           selectedSite.site.id,
           _alertType.getString(),
-          _selectedTime.hour,
+          _selectedTime.hour - DateTime.now().timeZoneOffset.inHours,
           _airQuality.getString(),
           selectedSite.site.getName());
       var saved = CloudStore().saveAlert(alert);
@@ -463,8 +455,6 @@ class _AddAlertPageState extends State<AddAlertPage> {
             context,
             'Sorry, we couldn\'t save your alert.'
             ' Try again later');
-        // DBHelper().addAlert(alert),
-        // Navigator.pop(context, true),
       }
     } else {
       await showSnackBar(

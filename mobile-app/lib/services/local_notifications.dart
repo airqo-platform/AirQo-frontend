@@ -57,7 +57,7 @@ class LocalNotifications {
 
     var androidPlatformChannelSpecifics = AndroidNotificationDetails(
       'push_messages: 0',
-      'push_messages: push_messages',
+      'push_messages: airqo_push_messages',
       'push_messages: AirQo',
       styleInformation: bigTextStyleInformation,
       importance: Importance.max,

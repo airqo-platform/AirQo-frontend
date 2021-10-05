@@ -1,12 +1,7 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/alert.dart';
-import 'package:app/models/measurement.dart';
-import 'package:app/models/site.dart';
-import 'package:app/screens/place_details.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/utils/dialogs.dart';
-import 'package:app/utils/pm.dart';
-import 'package:app/utils/share.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';

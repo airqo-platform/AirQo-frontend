@@ -89,7 +89,7 @@ extension ParseAirQuality on AirQuality {
 extension ParseAlert on Alert {
   String getAlertString() {
     if (type.toString().toLowerCase() == 'fixeddaily') {
-      return 'Daily at ${getTime(hour)}';
+      return 'Daily at ${getTime(hour + DateTime.now().timeZoneOffset.inHours)}';
     } else {
       return 'When air quality is ${getAirQuality(airQuality)}';
     }

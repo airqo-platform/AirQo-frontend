@@ -320,7 +320,6 @@ class _HomePageState extends State<HomePage> {
     // _displayOnBoarding();
     super.initState();
     initialize();
-    // setupInteractedMessage();
   }
 
   void navigateToMenuItem(dynamic position) {

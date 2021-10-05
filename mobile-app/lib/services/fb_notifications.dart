@@ -1,4 +1,3 @@
-
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/alert.dart';
 import 'package:app/models/site.dart';
@@ -37,8 +36,6 @@ class NotificationService {
       provisional: false,
       sound: true,
     );
-
-    print('User granted permission: ${settings.authorizationStatus}');
   }
 
   Future<void> subscribeToNewsFeed(
