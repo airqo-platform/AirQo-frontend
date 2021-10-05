@@ -4,6 +4,8 @@ class AirQoUrls {
   final String _baseUrl = baseUrl;
   final String _searchBaseUrl = placesSearchUrl;
 
+  String get alerts => '${_baseUrl}notifications';
+
   String get feedbackUrl => feedbackWebhook;
 
   String get forecast => '${_baseUrl}predict/';
@@ -11,8 +13,6 @@ class AirQoUrls {
   String get imageUploadUrl => airqoImageUploadUrl;
 
   String get measurements => '${_baseUrl}devices/events';
-
-  String get alerts => '${_baseUrl}notifications';
 
   String get placeSearchDetails => '${_searchBaseUrl}details/json';
 

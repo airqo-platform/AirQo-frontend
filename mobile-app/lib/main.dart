@@ -33,12 +33,13 @@ Future<void> main() async {
 
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Firebase.initializeApp().then((value) => {
-        // FirebaseMessaging.onBackgroundMessage(backgroundMessageHandler),
-
-        FirebaseMessaging.onMessage
-            .listen(FbNotifications().foregroundMessageHandler)
-      });
+  await Firebase.initializeApp();
+  FirebaseMessaging.onBackgroundMessage(
+      NotificationService.backgroundMessageHandler);
+  FirebaseMessaging.onMessage
+      .listen(NotificationService.foregroundMessageHandler);
+  FirebaseMessaging.onMessageOpenedApp
+      .listen(NotificationService.foregroundMessageHandler);
 
   final prefs = await SharedPreferences.getInstance();
   final themeController = ThemeController(prefs);

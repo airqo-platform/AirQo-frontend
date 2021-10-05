@@ -44,6 +44,8 @@ class LocalNotifications {
   }
 
   Future<void> showAlertNotification(AppNotification notification) async {
+    initNotifications();
+
     var bigTextStyleInformation = BigTextStyleInformation(
       notification.body,
       htmlFormatBigText: true,

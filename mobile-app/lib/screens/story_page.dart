@@ -1,5 +1,6 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/story.dart';
+import 'package:app/utils/dialogs.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
@@ -95,6 +96,10 @@ class _StoryPageState extends State<StoryPage> {
         onImageTap: (src, _, __, ___) {
           _displayImage(src!);
         },
+        onImageError: (error, _) async {
+          await showSnackBar(context, ErrorMessages.timeoutException);
+        },
+        onCssParseError: (_, __) {},
       ),
     );
   }

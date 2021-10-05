@@ -60,6 +60,7 @@ dependencies:
   location: ^4.3.0
   geocoder: ^0.2.1
   flutter_html: ^2.1.2
+  cloud_firestore: ^2.5.3
 
 flutter_icons:
   android: "launcher_icon"

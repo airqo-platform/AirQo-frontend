@@ -27,6 +27,29 @@ class DBHelper {
     return _database;
   }
 
+  Future<bool> addAlert(Alert alert) async {
+    try {
+      final db = await database;
+
+      try {
+        await NotificationService().requestPermission();
+        var jsonData = alert.toJson();
+        await db.insert(
+          '${Alert.alertDbName()}',
+          jsonData,
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+        return true;
+      } catch (e) {
+        print(e);
+      }
+    } catch (e) {
+      print(e);
+    }
+
+    return false;
+  }
+
   Future<bool> addFavouritePlaces(Site site) async {
     var prefs = await SharedPreferences.getInstance();
     var favouritePlaces =
@@ -67,6 +90,25 @@ class DBHelper {
     await db.execute(Alert.createTableStmt());
   }
 
+  Future<bool> deleteAlert(Alert alert) async {
+    try {
+      final db = await database;
+
+      try {
+        await db.delete('${Alert.alertDbName()}',
+            where: '${Alert.dbSiteId()} = ?', whereArgs: [alert.siteId]);
+        return true;
+      } catch (e) {
+        print(e);
+        print('Inserting alert into db');
+      }
+    } catch (e) {
+      print(e);
+    }
+
+    return false;
+  }
+
   Future<void> deleteSearchHistory(Suggestion suggestion) async {
     try {
       final db = await database;
@@ -80,6 +122,23 @@ class DBHelper {
       }
     } catch (e) {
       print(e);
+    }
+  }
+
+  Future<List<Alert>> getAlerts() async {
+    try {
+      final db = await database;
+
+      var res = await db.query(Alert.alertDbName());
+
+      return res.isNotEmpty
+          ? List.generate(res.length, (i) {
+              return Alert.fromJson(res[i]);
+            })
+          : <Alert>[];
+    } catch (e) {
+      print(e);
+      return <Alert>[];
     }
   }
 
@@ -399,23 +458,6 @@ class DBHelper {
     }
   }
 
-  Future<List<Alert>> getAlerts() async {
-    try {
-      final db = await database;
-
-      var res = await db.query(Alert.alertDbName());
-
-      return res.isNotEmpty
-          ? List.generate(res.length, (i) {
-        return Alert.fromJson(res[i]);
-      })
-          : <Alert>[];
-    } catch (e) {
-      print(e);
-      return <Alert>[];
-    }
-  }
-
   Future<Database> initDB() async {
     return await openDatabase(
       join(await getDatabasesPath(), AppConfig.dbName),
@@ -538,50 +580,6 @@ class DBHelper {
     }
   }
 
-  Future<bool> addAlert(Alert alert) async {
-    try {
-      final db = await database;
-
-      try {
-        var jsonData = alert.toJson();
-        await db.insert(
-          '${Alert.alertDbName()}',
-          jsonData,
-          conflictAlgorithm: ConflictAlgorithm.replace,
-        );
-        return true;
-      } catch (e) {
-        print(e);
-      }
-    } catch (e) {
-      print(e);
-    }
-
-    return false;
-  }
-
-  Future<bool> deleteAlert(Alert alert) async {
-
-    try {
-      final db = await database;
-
-      try {
-            await db.delete(
-                '${Alert.alertDbName()}',
-                where: '${Alert.dbSiteId()} = ?', whereArgs: [alert.siteId]
-            );
-            return true;
-          } catch (e) {
-            print(e);
-            print('Inserting alert into db');
-          }
-    } catch (e) {
-      print(e);
-    }
-
-    return false;
-  }
-
   Future<void> insertSearchHistory(Suggestion suggestion) async {
     try {
       final db = await database;
@@ -686,13 +684,13 @@ class DBHelper {
     var topicName = site.getTopic(pollutantLevel);
 
     if (preferredAlerts.contains(topicName)) {
-      await FbNotifications().init();
-      await FbNotifications().unSubscribeFromSite(site, pollutantLevel);
+      await NotificationService().requestPermission();
+      await NotificationService().unSubscribeFromSite(site, pollutantLevel);
       while (preferredAlerts.contains(topicName)) {
         preferredAlerts.remove(topicName.trim().toLowerCase());
       }
     } else {
-      await FbNotifications().subscribeToSite(site, pollutantLevel);
+      await NotificationService().subscribeToSite(site, pollutantLevel);
       preferredAlerts.add(topicName.trim().toLowerCase());
     }
 

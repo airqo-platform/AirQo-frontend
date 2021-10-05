@@ -211,7 +211,7 @@ class _ResourcesPageState extends State<ResourcesPage> {
                                     ? pmToColor(
                                         measurements[index].getPm2_5Value())
                                     : ColorConstants.inactiveColor
-                                        .withOpacity(0.2),
+                                        .withOpacity(0.1),
                                 padding: const EdgeInsets.all(5),
                                 child: Center(
                                   child: pollutant == 'pm2.5'

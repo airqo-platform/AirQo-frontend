@@ -29,6 +29,10 @@ class AppConfig {
   static String get version => applicationVersion;
 }
 
+class CloudStorage {
+  static String get alertsCollection => alertsDb;
+}
+
 class ColorConstants {
   static Color get appBarBgColor => Colors.white;
 

@@ -382,6 +382,18 @@ class AirqoApiClient {
     }
   }
 
+  Future<bool> saveAlert(Alert alert) async {
+    try {
+      var body = alert.toJson();
+      final response = await _performPostRequest(
+          <String, dynamic>{}, AirQoUrls().alerts, jsonEncode(body));
+      return response;
+    } on Error catch (e) {
+      print('Save alert error: $e');
+      return false;
+    }
+  }
+
   Future<bool> sendFeedback(UserFeedback feedback) async {
     try {
       var body = {
@@ -404,18 +416,6 @@ class AirqoApiClient {
       return response;
     } on Error catch (e) {
       print('Send Feedback: $e');
-      return false;
-    }
-  }
-
-  Future<bool> saveAlert(Alert alert) async {
-    try {
-      var body = alert.toJson();
-      final response = await _performPostRequest(
-          <String, dynamic>{}, AirQoUrls().alerts, jsonEncode(body));
-      return response;
-    } on Error catch (e) {
-      print('Save alert error: $e');
       return false;
     }
   }

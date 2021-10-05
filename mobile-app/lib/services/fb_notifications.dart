@@ -1,60 +1,33 @@
-import 'dart:io';
 
 import 'package:app/constants/app_constants.dart';
+import 'package:app/models/alert.dart';
 import 'package:app/models/site.dart';
 import 'package:app/models/topicData.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
 import 'local_notifications.dart';
 
-Future<void> backgroundMessageHandler(RemoteMessage message) async {
-  var notificationMessage = AppNotification().composeNotification(message);
+class CloudStore {
+  bool saveAlert(Alert alert) {
+    FirebaseFirestore.instance
+        .collection(CloudStorage.alertsCollection)
+        .doc(alert.getAlertDbId())
+        .set(alert.toJson());
 
-  print(message.data);
-
-  if (!notificationMessage.isEmpty()) {
-    var notificationHandler = LocalNotifications()..initNotifications();
-    await notificationHandler.showAlertNotification(notificationMessage);
+    return true;
   }
 }
 
-Future<void> foregroundMessageHandler(RemoteMessage message) async {
-  var notificationMessage = AppNotification().composeNotification(message);
-
-  print(message.data);
-
-  if (!notificationMessage.isEmpty()) {
-    var notificationHandler = LocalNotifications()..initNotifications();
-    await notificationHandler.showAlertNotification(notificationMessage);
-  }
-}
-
-class FbNotifications {
+class NotificationService {
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
 
-  Future<void> backgroundMessageHandler(RemoteMessage message) async {
-    var notificationMessage = AppNotification().composeNotification(message);
-
-    print(message.data);
-
-    if (!notificationMessage.isEmpty()) {
-      var notificationHandler = LocalNotifications()..initNotifications();
-      await notificationHandler.showAlertNotification(notificationMessage);
-    }
+  Future<String?> getToken() async {
+    var token = await _firebaseMessaging.getToken();
+    return token;
   }
 
-  Future<void> foregroundMessageHandler(RemoteMessage message) async {
-    var notificationMessage = AppNotification().composeNotification(message);
-
-    print(message.data);
-
-    if (!notificationMessage.isEmpty()) {
-      var notificationHandler = LocalNotifications()..initNotifications();
-      await notificationHandler.showAlertNotification(notificationMessage);
-    }
-  }
-
-  Future<void> init() async {
+  Future<void> requestPermission() async {
     var settings = await _firebaseMessaging.requestPermission(
       alert: true,
       announcement: false,
@@ -96,15 +69,26 @@ class FbNotifications {
       }
     }
   }
-}
 
-class PushNotificationService {
-  final FirebaseMessaging _fcm;
+  static Future<void> backgroundMessageHandler(RemoteMessage message) async {
+    try {
+      var notificationMessage = AppNotification().composeNotification(message);
+      if (!notificationMessage.isEmpty()) {
+        await LocalNotifications().showAlertNotification(notificationMessage);
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
 
-  PushNotificationService(this._fcm);
-
-  Future<String?> getToken() async {
-    var token = await _fcm.getToken();
-    return token;
+  static Future<void> foregroundMessageHandler(RemoteMessage message) async {
+    try {
+      var notificationMessage = AppNotification().composeNotification(message);
+      if (!notificationMessage.isEmpty()) {
+        await LocalNotifications().showAlertNotification(notificationMessage);
+      }
+    } catch (e) {
+      print(e);
+    }
   }
 }

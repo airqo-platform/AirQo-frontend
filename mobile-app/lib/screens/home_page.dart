@@ -11,6 +11,7 @@ import 'package:app/services/rest_api.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/share.dart';
 import 'package:camera/camera.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -317,8 +318,9 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     // _displayOnBoarding();
-    initialize();
     super.initState();
+    initialize();
+    // setupInteractedMessage();
   }
 
   void navigateToMenuItem(dynamic position) {
@@ -363,6 +365,22 @@ class _HomePageState extends State<HomePage> {
       return Future.value(false);
     }
     return Future.value(true);
+  }
+
+  Future<void> setupInteractedMessage() async {
+    // Get any messages which caused the application to open from
+    // a terminated state.
+    var initialMessage = await FirebaseMessaging.instance.getInitialMessage();
+
+    // If the message also contains a data property with a "type" of "chat",
+    // navigate to a chat screen
+    if (initialMessage != null) {
+      _handleMessage(initialMessage);
+    }
+
+    // Also handle any interaction when the app is in the background via a
+    // Stream listener
+    FirebaseMessaging.onMessageOpenedApp.listen(_handleMessage);
   }
 
   void switchTitle(tile) {
@@ -454,6 +472,15 @@ class _HomePageState extends State<HomePage> {
     await AirqoApiClient(context).fetchSites().then((value) => {
           if (value.isNotEmpty) {DBHelper().insertSites(value)}
         });
+  }
+
+  void _handleMessage(RemoteMessage message) {
+    print(message.data);
+    // if (message.data['type'] == 'chat') {
+    //   Navigator.pushNamed(context, '/chat',
+    //     arguments: ChatArguments(message),
+    //   );
+    // }
   }
 
   void _onItemTapped(int index) {

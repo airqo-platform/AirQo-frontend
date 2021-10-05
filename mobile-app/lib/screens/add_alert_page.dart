@@ -371,20 +371,20 @@ class _AddAlertPageState extends State<AddAlertPage> {
                               onPressed: saveAlert,
                               child: Row(
                                 children: [
-
                                   Text(
                                     'Save',
                                     style: TextStyle(
                                         color: ColorConstants.appColor,
                                         fontWeight: FontWeight.bold),
                                   ),
-                                  const SizedBox(width: 10,),
+                                  const SizedBox(
+                                    width: 10,
+                                  ),
                                   FaIcon(
                                     FontAwesomeIcons.bell,
                                     color: ColorConstants.appColor,
                                     size: 20,
                                   ),
-
                                 ],
                               ),
                             )
@@ -407,33 +407,6 @@ class _AddAlertPageState extends State<AddAlertPage> {
         ),
       ),
     );
-  }
-
-  Future<void> saveAlert() async {
-    final pushNotificationService = PushNotificationService(_firebaseMessaging);
-    Alert alert;
-    await pushNotificationService.getToken().then((token) => {
-      if(token != null){
-        alert = Alert(token, selectedSite.site.id, _alertType.getString(),
-            _selectedTime.hour, _airQuality.getString(),
-            selectedSite.site.getName()),
-        AirqoApiClient(context).saveAlert(alert).then((value) => {
-          if(value){
-            showSnackBar(context, 'Alert for ${selectedSite.site.getName()} '
-                'has been set'),
-            DBHelper().addAlert(alert),
-            Navigator.pop(context, true),
-          }
-          else{
-            showSnackBar(context, 'Sorry, we couldn\'t save your alert setting.'
-                ' Try again later'),
-            DBHelper().addAlert(alert),
-            Navigator.pop(context, true),
-          }
-        })
-      }
-    });
-
   }
 
   void cancel() {
@@ -461,6 +434,44 @@ class _AddAlertPageState extends State<AddAlertPage> {
   void initState() {
     getSites();
     super.initState();
+  }
+
+  Future<void> saveAlert() async {
+    // final pushNotificationService = PushNotificationService(_firebaseMessaging);
+    Alert alert;
+
+    var token = await NotificationService().getToken();
+    if (token != null) {
+      alert = Alert(
+          token,
+          selectedSite.site.id,
+          _alertType.getString(),
+          _selectedTime.hour,
+          _airQuality.getString(),
+          selectedSite.site.getName());
+      var saved = CloudStore().saveAlert(alert);
+
+      if (saved) {
+        await showSnackBar(
+            context,
+            'Alerts for ${selectedSite.site.getName()} '
+            'have been set');
+        await DBHelper().addAlert(alert);
+        Navigator.pop(context, true);
+      } else {
+        await showSnackBar(
+            context,
+            'Sorry, we couldn\'t save your alert.'
+            ' Try again later');
+        // DBHelper().addAlert(alert),
+        // Navigator.pop(context, true),
+      }
+    } else {
+      await showSnackBar(
+          context,
+          'Sorry, we couldn\'t save your alert.'
+          ' Try again later');
+    }
   }
 
   void tapped(int step) {

@@ -24,12 +24,6 @@ class _AlertPageState extends State<AlertPage> {
   var alerts = <Alert>[];
 
   @override
-  void initState() {
-    refreshData();
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -126,14 +120,14 @@ class _AlertPageState extends State<AlertPage> {
                                         color: ColorConstants.appColor,
                                         fontWeight: FontWeight.bold,
                                       )),
-                                  subtitle: Text(
-                                      '${alerts[index].getAlertString()}',
-                                      overflow: TextOverflow.ellipsis,
-                                      maxLines: 2,
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: ColorConstants.appColor,
-                                      )),
+                                  subtitle:
+                                      Text('${alerts[index].getAlertString()}',
+                                          overflow: TextOverflow.ellipsis,
+                                          maxLines: 2,
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color: ColorConstants.appColor,
+                                          )),
                                 ),
                               ),
                             ),
@@ -153,7 +147,7 @@ class _AlertPageState extends State<AlertPage> {
               fullscreenDialog: true,
             ),
           );
-          if(result != null){
+          if (result != null) {
             await refreshData();
           }
         },
@@ -163,6 +157,12 @@ class _AlertPageState extends State<AlertPage> {
         ),
       ),
     );
+  }
+
+  @override
+  void initState() {
+    refreshData();
+    super.initState();
   }
 
   Future<void> refreshData() async {
@@ -178,7 +178,9 @@ class _AlertPageState extends State<AlertPage> {
 
   Future<void> removeFromAlerts(Alert alert) async {
     await DBHelper().deleteAlert(alert).then((value) => {
-          showSnackBar(context, 'Alerts for ${alert.siteName}'
+          showSnackBar(
+              context,
+              'Alerts for ${alert.siteName}'
               ' have been removed.')
         });
 
