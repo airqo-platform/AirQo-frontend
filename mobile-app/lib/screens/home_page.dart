@@ -17,7 +17,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'dashboard_page.dart';
 import 'help_page.dart';
-import 'maps_view.dart';
 import 'my_places_view.dart';
 
 class HomePage extends StatefulWidget {
@@ -384,7 +383,7 @@ class _HomePageState extends State<HomePage> {
         break;
       case 2:
         setState(() {
-          title = 'News Feed';
+          title = 'AirQo';
           showAddPlace = false;
           selectedPage = 2;
         });
