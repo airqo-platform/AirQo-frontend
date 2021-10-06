@@ -64,7 +64,7 @@ class AirqoApiClient {
 
   Future<List<HistoricalMeasurement>> fetchHistoricalMeasurements() async {
     try {
-      var startTimeUtc = DateTime.now().toUtc().add(const Duration(hours: -48));
+      var startTimeUtc = DateTime.now().toUtc().add(const Duration(hours: -24));
       var date = DateFormat('yyyy-MM-dd').format(startTimeUtc);
       var time = '${startTimeUtc.hour}';
 
