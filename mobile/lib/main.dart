@@ -2,13 +2,9 @@ import 'dart:io';
 
 import 'package:app/providers/LocalProvider.dart';
 import 'package:app/screens/home_page.dart';
-import 'package:app/services/fb_notifications.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/services/rest_api.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -16,7 +12,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'constants/app_constants.dart';
 import 'languages/CustomLocalizations.dart';
 import 'languages/lg_intl.dart';
-import 'on_boarding/onBoarding_page.dart';
 import 'on_boarding/spash_screen.dart';
 import 'providers/ThemeProvider.dart';
 import 'themes/dark_theme.dart';
@@ -284,35 +279,26 @@ class SplashScreenState extends State<SplashScreen> {
     }
   }
 
-  Future _initializeApp() async {
-    if (!measurementsReady || !sitesReady) {
-      await _checkDB();
-      sleep(const Duration(seconds: 5));
-      if (!measurementsReady || !sitesReady && mounted) {
-        setState(() {
-          error = 'Your request cannot be processed right now. '
-              'Please try again';
-        });
-        return;
-      }
-    }
-  }
-
   Future _checkFirstUse() async {
-    var prefs = await SharedPreferences.getInstance();
-    var isFirstUse = prefs.getBool(PrefConstant.firstUse) ?? true;
+    // var prefs = await SharedPreferences.getInstance();
+    // var isFirstUse = prefs.getBool(PrefConstant.firstUse) ?? true;
+    //
+    // if (isFirstUse) {
+    //   await Navigator.pushReplacement(context,
+    //       MaterialPageRoute(builder: (context) {
+    //     return LogoScreen();
+    //   }));
+    // } else {
+    //   await Navigator.pushAndRemoveUntil(context,
+    //       MaterialPageRoute(builder: (context) {
+    //     return HomePage();
+    //   }), (r) => false);
+    // }
 
-    if (isFirstUse) {
-      await Navigator.pushReplacement(context,
-          MaterialPageRoute(builder: (context) {
-        return OnBoardingPage();
-      }));
-    } else {
-      await Navigator.pushAndRemoveUntil(context,
-          MaterialPageRoute(builder: (context) {
-        return HomePage();
-      }), (r) => false);
-    }
+    await Navigator.pushReplacement(context,
+        MaterialPageRoute(builder: (context) {
+      return LogoScreen();
+    }));
   }
 
   Route _createRoute() {
@@ -387,6 +373,20 @@ class SplashScreenState extends State<SplashScreen> {
           });
     } catch (e) {
       print(e);
+    }
+  }
+
+  Future _initializeApp() async {
+    if (!measurementsReady || !sitesReady) {
+      await _checkDB();
+      sleep(const Duration(seconds: 5));
+      if (!measurementsReady || !sitesReady && mounted) {
+        setState(() {
+          error = 'Your request cannot be processed right now. '
+              'Please try again';
+        });
+        return;
+      }
     }
   }
 }

@@ -1,7 +1,4 @@
-import 'package:app/constants/app_constants.dart';
 import 'package:app/models/chartData.dart';
-import 'package:app/utils/date.dart';
-import 'package:app/utils/pm.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 
@@ -98,27 +95,27 @@ class _DashboardBarChartState extends State<DashboardBarChart> {
               selectionModels: [
                 charts.SelectionModelConfig(
                     changedListener: (charts.SelectionModel model) {
-                      if (model.hasDatumSelection) {
-                        try {
-                          setState(() {
-                            display = {
-                              'time': (model.selectedSeries[0]
+                  if (model.hasDatumSelection) {
+                    try {
+                      setState(() {
+                        display = {
+                          'time': (model.selectedSeries[0]
                                   .domainFn(model.selectedDatum[0].index))
-                                  .toString(),
-                              'value': double.parse((model.selectedSeries[0]
+                              .toString(),
+                          'value': double.parse((model.selectedSeries[0]
                                   .measureFn(model.selectedDatum[0].index))
-                                  .toString())
-                            };
-                          });
-                        } on Error catch (e) {
-                          print(e);
-                        }
-                      }
-                    })
+                              .toString())
+                        };
+                      });
+                    } on Error catch (e) {
+                      print(e);
+                    }
+                  }
+                })
               ],
               primaryMeasureAxis: const charts.NumericAxisSpec(
                   tickProviderSpec:
-                  charts.BasicNumericTickProviderSpec(desiredTickCount: 5)),
+                      charts.BasicNumericTickProviderSpec(desiredTickCount: 5)),
             ),
           )
         ],

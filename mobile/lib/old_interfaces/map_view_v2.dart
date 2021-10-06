@@ -55,306 +55,303 @@ class MapViewV1State extends State<MapViewV1> {
   Widget build(BuildContext context) {
     return Scaffold(
         body: Stack(
-          children: [
-            GoogleMap(
-              compassEnabled: false,
-              onMapCreated: _onMapCreated,
-              mapType: MapType.normal,
-              myLocationButtonEnabled: false,
-              myLocationEnabled: false,
-              rotateGesturesEnabled: false,
-              tiltGesturesEnabled: false,
-              mapToolbarEnabled: false,
-              zoomControlsEnabled: true,
-              initialCameraPosition: defaultCameraPosition,
-              markers: _markers.values.toSet(),
-              circles: _circles,
-              onTap: (_) {
-                setState(() {
-                  _showInfoWindow = false;
-                  _isSearching = false;
-                });
-              },
-            ),
-            Positioned(
-              top: 50,
-              left: 0,
-              right: 0,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(8, 0, 8, 0),
-                child: Column(
+      children: [
+        GoogleMap(
+          compassEnabled: false,
+          onMapCreated: _onMapCreated,
+          mapType: MapType.normal,
+          myLocationButtonEnabled: false,
+          myLocationEnabled: false,
+          rotateGesturesEnabled: false,
+          tiltGesturesEnabled: false,
+          mapToolbarEnabled: false,
+          zoomControlsEnabled: true,
+          initialCameraPosition: defaultCameraPosition,
+          markers: _markers.values.toSet(),
+          circles: _circles,
+          onTap: (_) {
+            setState(() {
+              _showInfoWindow = false;
+              _isSearching = false;
+            });
+          },
+        ),
+        Positioned(
+          top: 50,
+          left: 0,
+          right: 0,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(8, 0, 8, 0),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        IconButton(
-                          icon: Icon(Icons.arrow_back_outlined,
-                              color: ColorConstants.appColor),
-                          onPressed: () {
-                            Navigator.pop(context);
+                    IconButton(
+                      icon: Icon(Icons.arrow_back_outlined,
+                          color: ColorConstants.appColor),
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                    ),
+                    Expanded(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(32),
+                        ),
+                        child: TextField(
+                          controller: _searchController,
+                          onTap: () async {
+                            setState(() {
+                              _showInfoWindow = false;
+                            });
+                          },
+                          decoration: InputDecoration(
+                            hintStyle: const TextStyle(fontSize: 13),
+                            hintText: 'Search',
+                            suffixIcon: Icon(Icons.search,
+                                color: ColorConstants.appColor),
+                            // border: InputBorder.none,
+                            border: const OutlineInputBorder(
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(25.0))),
+                            contentPadding: const EdgeInsets.all(15),
+                          ),
+                          onChanged: (value) {
+                            setState(() {
+                              query = value;
+                              _showInfoWindow = false;
+                              _isSearching = true;
+                            });
+                          },
+                          onSubmitted: (value) {
+                            setState(() {
+                              query = value;
+                              _showInfoWindow = false;
+                              _isSearching = true;
+                            });
                           },
                         ),
-                        Expanded(
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(32),
-                            ),
-                            child: TextField(
-                              controller: _searchController,
-                              onTap: () async {
-                                setState(() {
-                                  _showInfoWindow = false;
-                                });
-                              },
-                              decoration: InputDecoration(
-                                hintStyle: const TextStyle(fontSize: 13),
-                                hintText: 'Search',
-                                suffixIcon: Icon(Icons.search,
-                                    color: ColorConstants.appColor),
-                                // border: InputBorder.none,
-                                border: const OutlineInputBorder(
-                                    borderRadius: BorderRadius.all(
-                                        Radius.circular(25.0))),
-                                contentPadding: const EdgeInsets.all(15),
-                              ),
-                              onChanged: (value) {
-                                setState(() {
-                                  query = value;
-                                  _showInfoWindow = false;
-                                  _isSearching = true;
-                                });
-                              },
-                              onSubmitted: (value) {
-                                setState(() {
-                                  query = value;
-                                  _showInfoWindow = false;
-                                  _isSearching = true;
-                                });
-                              },
-                            ),
-                          ),
-                        ),
-                        IconButton(
-                          iconSize: 30.0,
-                          icon: Icon(Icons.refresh_outlined,
-                              color: ColorConstants.appColor),
-                          onPressed: _refreshMeasurements,
-                        ),
-                      ],
-                    ),
-                    if (query != '' && _isSearching)
-                      FutureBuilder(
-                        future: searchApiClient.fetchSuggestions(query),
-                        builder: (context, snapshot) {
-                          // if (query == '') {
-                          //   return FutureBuilder(
-                          //     future: DBHelper().getSearchHistory(),
-                          //     builder: (context, snapshot) {
-                          //       if (snapshot.hasData) {
-                          //         var results = snapshot.data
-                          //         as List<Suggestion>;
-                          //
-                          //         if (results.isEmpty) {
-                          //           return const Text('No data');
-                          //         }
-                          //
-                          //         return ListView.builder(
-                          //           itemBuilder: (context, index) =>
-                          //           ListTile(
-                          //             title: Text(
-                          //               (results[index]).description,
-                          //               style:
-                          //               const TextStyle
-                          //               (fontSize: 12, color:
-                          //               Colors.black54),
-                          //             ),
-                          //             leading: const Icon(
-                          //               Icons.history,
-                          //               color: ColorConstants.appColor,
-                          //             ),
-                          //             trailing: GestureDetector(
-                          //               onTap: () {
-                          //                 DBHelper()
-                          //                 .deleteSearchHistory(
-                          //                 results[index]);
-                          //                 query = '';
-                          //               },
-                          //               child: const Icon(
-                          //                 Icons.delete_outlined,
-                          //                 color: Colors.red,
-                          //               ),
-                          //             ),
-                          //             onTap: () {
-                          //               query = (results[index]).description;
-                          //               // close(context, results[index]);
-                          //             },
-                          //           ),
-                          //           itemCount: results.length,
-                          //         );
-                          //       }
-                          //
-                          //       return const Text('No data');
-                          //     },
-                          //   );
-                          // }
-
-                          if (snapshot.hasError) {
-                            return Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child: Text(
-                                'Unable to search on map.\nTry again later',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                    color: ColorConstants.appColor,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w700,
-                                    backgroundColor: Colors.white),
-                              ),
-                            );
-                          } else if (snapshot.hasData) {
-                            var results = snapshot.data as List<Suggestion>;
-
-                            return Padding(
-                                padding: const EdgeInsets.fromLTRB(5, 5, 5, 0),
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  height:
-                                      MediaQuery.of(context).size.height * 0.5,
-                                  child: Padding(
-                                    padding:
-                                        const EdgeInsets.fromLTRB(0, 5, 0, 5),
-                                    child: ListView.builder(
-                                      itemBuilder: (context, index) => ListTile(
-                                        title: Text(
-                                          (results[index]).description,
-                                          style: TextStyle(
-                                              color: ColorConstants.appColor),
-                                        ),
-                                        onTap: () {
-                                          query = (results[index]).description;
-                                          // DBHelper()
-                                          // .insertSearchHistory
-                                          // (results[index]);
-                                          displaySearchResults(results[index]);
-
-                                          // close(context, results[index]);
-                                        },
-                                      ),
-                                      itemCount: results.length,
-                                    ),
-                                  ),
-                                ));
-                          } else {
-                            return Align(
-                                alignment: Alignment.topCenter,
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    Padding(
-                                      padding:
-                                          const EdgeInsets.fromLTRB(0, 5, 0, 0),
-                                      child: CircularProgressIndicator(
-                                        valueColor:
-                                            AlwaysStoppedAnimation<Color>(
-                                                ColorConstants.appColor),
-                                      ),
-                                    ),
-
-                                    // const Text(
-                                    //   'Loading...',
-                                    //   style: TextStyle(color:
-                                    //   ColorConstants.appColor),
-                                    // )
-                                  ],
-                                ));
-                          }
-                        },
                       ),
-                    Visibility(
-                      visible: _showInfoWindow,
-                      child: windowProperties != null
-                          ? infoWindow()
-                          : Card(
-                              child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Column(
-                                children: [
-                                  Center(
-                                    child: Text('${AppConfig.name}',
-                                        softWrap: true),
-                                  ),
-                                ],
-                              ),
-                            )),
+                    ),
+                    IconButton(
+                      iconSize: 30.0,
+                      icon: Icon(Icons.refresh_outlined,
+                          color: ColorConstants.appColor),
+                      onPressed: _refreshMeasurements,
                     ),
                   ],
                 ),
-              ),
-            ),
-            if (isLoading)
-              Positioned.fill(
-                child: Align(
-                    alignment: Alignment.center,
-                    child: SizedBox(
-                      height: 200.0,
-                      child: Stack(
-                        children: <Widget>[
-                          Center(
-                            child: Container(
-                                width: 100,
-                                height: 100,
-                                child: CircularProgressIndicator(
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                      ColorConstants.appColor),
-                                )),
+                if (query != '' && _isSearching)
+                  FutureBuilder(
+                    future: searchApiClient.fetchSuggestions(query),
+                    builder: (context, snapshot) {
+                      // if (query == '') {
+                      //   return FutureBuilder(
+                      //     future: DBHelper().getSearchHistory(),
+                      //     builder: (context, snapshot) {
+                      //       if (snapshot.hasData) {
+                      //         var results = snapshot.data
+                      //         as List<Suggestion>;
+                      //
+                      //         if (results.isEmpty) {
+                      //           return const Text('No data');
+                      //         }
+                      //
+                      //         return ListView.builder(
+                      //           itemBuilder: (context, index) =>
+                      //           ListTile(
+                      //             title: Text(
+                      //               (results[index]).description,
+                      //               style:
+                      //               const TextStyle
+                      //               (fontSize: 12, color:
+                      //               Colors.black54),
+                      //             ),
+                      //             leading: const Icon(
+                      //               Icons.history,
+                      //               color: ColorConstants.appColor,
+                      //             ),
+                      //             trailing: GestureDetector(
+                      //               onTap: () {
+                      //                 DBHelper()
+                      //                 .deleteSearchHistory(
+                      //                 results[index]);
+                      //                 query = '';
+                      //               },
+                      //               child: const Icon(
+                      //                 Icons.delete_outlined,
+                      //                 color: Colors.red,
+                      //               ),
+                      //             ),
+                      //             onTap: () {
+                      //               query = (results[index]).description;
+                      //               // close(context, results[index]);
+                      //             },
+                      //           ),
+                      //           itemCount: results.length,
+                      //         );
+                      //       }
+                      //
+                      //       return const Text('No data');
+                      //     },
+                      //   );
+                      // }
+
+                      if (snapshot.hasError) {
+                        return Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Text(
+                            'Unable to search on map.\nTry again later',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                                color: ColorConstants.appColor,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                                backgroundColor: Colors.white),
                           ),
-                          Center(
-                              child: Text(
-                            'Loading',
-                            style: TextStyle(color: ColorConstants.appColor),
-                          )),
-                        ],
+                        );
+                      } else if (snapshot.hasData) {
+                        var results = snapshot.data as List<Suggestion>;
+
+                        return Padding(
+                            padding: const EdgeInsets.fromLTRB(5, 5, 5, 0),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              height: MediaQuery.of(context).size.height * 0.5,
+                              child: Padding(
+                                padding: const EdgeInsets.fromLTRB(0, 5, 0, 5),
+                                child: ListView.builder(
+                                  itemBuilder: (context, index) => ListTile(
+                                    title: Text(
+                                      (results[index]).description,
+                                      style: TextStyle(
+                                          color: ColorConstants.appColor),
+                                    ),
+                                    onTap: () {
+                                      query = (results[index]).description;
+                                      // DBHelper()
+                                      // .insertSearchHistory
+                                      // (results[index]);
+                                      displaySearchResults(results[index]);
+
+                                      // close(context, results[index]);
+                                    },
+                                  ),
+                                  itemCount: results.length,
+                                ),
+                              ),
+                            ));
+                      } else {
+                        return Align(
+                            alignment: Alignment.topCenter,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Padding(
+                                  padding:
+                                      const EdgeInsets.fromLTRB(0, 5, 0, 0),
+                                  child: CircularProgressIndicator(
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                        ColorConstants.appColor),
+                                  ),
+                                ),
+
+                                // const Text(
+                                //   'Loading...',
+                                //   style: TextStyle(color:
+                                //   ColorConstants.appColor),
+                                // )
+                              ],
+                            ));
+                      }
+                    },
+                  ),
+                Visibility(
+                  visible: _showInfoWindow,
+                  child: windowProperties != null
+                      ? infoWindow()
+                      : Card(
+                          child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Column(
+                            children: [
+                              Center(
+                                child:
+                                    Text('${AppConfig.name}', softWrap: true),
+                              ),
+                            ],
+                          ),
+                        )),
+                ),
+              ],
+            ),
+          ),
+        ),
+        if (isLoading)
+          Positioned.fill(
+            child: Align(
+                alignment: Alignment.center,
+                child: SizedBox(
+                  height: 200.0,
+                  child: Stack(
+                    children: <Widget>[
+                      Center(
+                        child: Container(
+                            width: 100,
+                            height: 100,
+                            child: CircularProgressIndicator(
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                  ColorConstants.appColor),
+                            )),
                       ),
-                    )),
-              ),
-            // Positioned(
-            //     bottom: 0,
-            //     left: 0,
-            //     right: 0,
-            //     child: Row(
-            //       mainAxisAlignment: MainAxisAlignment.center,
-            //       crossAxisAlignment: CrossAxisAlignment.center,
-            //       children: [
-            //         IconButton(
-            //           iconSize: 30.0,
-            //           icon: const Icon(Icons.refresh_outlined,
-            //           color: ColorConstants.appColor),
-            //           onPressed: _refreshMeasurements,
-            //         ),
-            //         IconButton(
-            //           iconSize: 30.0,
-            //           icon: const Icon(Icons.help_outline_outlined,
-            //               color: ColorConstants.appColor),
-            //           onPressed: () {
-            //             Navigator.push(
-            //               context,
-            //               MaterialPageRoute<void>(
-            //                 builder: (BuildContext context)
-            //                 => getHelpPage(''),
-            //                 fullscreenDialog: true,
-            //               ),
-            //             );
-            //           },
-            //         ),
-            //       ],
-            //     )),
-          ],
-        ));
+                      Center(
+                          child: Text(
+                        'Loading',
+                        style: TextStyle(color: ColorConstants.appColor),
+                      )),
+                    ],
+                  ),
+                )),
+          ),
+        // Positioned(
+        //     bottom: 0,
+        //     left: 0,
+        //     right: 0,
+        //     child: Row(
+        //       mainAxisAlignment: MainAxisAlignment.center,
+        //       crossAxisAlignment: CrossAxisAlignment.center,
+        //       children: [
+        //         IconButton(
+        //           iconSize: 30.0,
+        //           icon: const Icon(Icons.refresh_outlined,
+        //           color: ColorConstants.appColor),
+        //           onPressed: _refreshMeasurements,
+        //         ),
+        //         IconButton(
+        //           iconSize: 30.0,
+        //           icon: const Icon(Icons.help_outline_outlined,
+        //               color: ColorConstants.appColor),
+        //           onPressed: () {
+        //             Navigator.push(
+        //               context,
+        //               MaterialPageRoute<void>(
+        //                 builder: (BuildContext context)
+        //                 => getHelpPage(''),
+        //                 fullscreenDialog: true,
+        //               ),
+        //             );
+        //           },
+        //         ),
+        //       ],
+        //     )),
+      ],
+    ));
   }
 
   RawMaterialButton detailsButton(Site site) {

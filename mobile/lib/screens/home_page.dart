@@ -3,7 +3,6 @@ import 'package:app/on_boarding/onBoarding_page.dart';
 import 'package:app/screens/map_page.dart';
 import 'package:app/screens/profile_view.dart';
 import 'package:app/screens/resources_page.dart';
-import 'package:app/screens/search_location_page.dart';
 import 'package:app/screens/settings_page.dart';
 import 'package:app/screens/settings_view.dart';
 import 'package:app/screens/share_picture.dart';
@@ -29,26 +28,20 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  static const TextStyle optionStyle =
+      TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
   final PageController _pageCtrl = PageController(initialPage: 0);
   String title = '${AppConfig.name}';
   bool showAddPlace = true;
   DateTime? exitTime;
-  double selectedPage = 0;
 
+  double selectedPage = 0;
   int _selectedIndex = 0;
-  static const TextStyle optionStyle =
-  TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
   final List<Widget> _widgetOptions = <Widget>[
     DashboardPage(),
     const MapView(),
     const ProfileView(),
   ];
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -61,8 +54,7 @@ class _HomePageState extends State<HomePage> {
         data: Theme.of(context).copyWith(
             canvasColor: ColorConstants.appBodyColor,
             primaryColor: Colors.black,
-            textTheme: Theme
-                .of(context)
+            textTheme: Theme.of(context)
                 .textTheme
                 .copyWith(caption: const TextStyle(color: Colors.black))),
         child: BottomNavigationBar(
@@ -96,7 +88,6 @@ class _HomePageState extends State<HomePage> {
   Widget builds(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: false,
-
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: BottomAppBar(
         shape: const CircularNotchedRectangle(),
@@ -365,5 +356,11 @@ class _HomePageState extends State<HomePage> {
     await AirqoApiClient(context).fetchSites().then((value) => {
           if (value.isNotEmpty) {DBHelper().insertSites(value)}
         });
+  }
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
   }
 }

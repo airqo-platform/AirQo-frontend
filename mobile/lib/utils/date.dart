@@ -73,6 +73,13 @@ String dateToString(String formattedString, bool addOffset) {
   }
 }
 
+String getDateTime() {
+  var now = DateTime.now();
+  var weekday = now.weekday;
+  return '${getWeekday()} ${DateFormat('d').format(now)} ${DateFormat('MMMM').format(now)}'
+      .toUpperCase();
+}
+
 String getGreetings() {
   var hour = DateTime.now().hour;
   if (8 <= hour && hour < 12) {
@@ -90,29 +97,23 @@ String getGreetings() {
   return 'Hello!';
 }
 
-String getDateTime() {
-  var now = DateTime.now();
-  var weekday = now.weekday;
-  return '${getWeekday()} ${DateFormat('d').format(now)} ${DateFormat('MMMM').format(now)}'
-      .toUpperCase();
-}
 String getWeekday() {
   var weekday = DateTime.now().weekday;
-  if(weekday == 1) {
+  if (weekday == 1) {
     return 'monday';
   } else if (weekday == 2) {
     return 'tuesday';
   } else if (weekday == 3) {
     return 'wednesday';
-  }else if (weekday == 4) {
+  } else if (weekday == 4) {
     return 'thursday';
-  }else if (weekday == 5) {
+  } else if (weekday == 5) {
     return 'friday';
-  }else if (weekday == 6) {
+  } else if (weekday == 6) {
     return 'saturday';
-  }else if (weekday == 7) {
+  } else if (weekday == 7) {
     return 'sunday';
-  }else{
+  } else {
     return '';
   }
 }

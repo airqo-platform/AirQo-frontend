@@ -34,9 +34,9 @@ class ColorConstants {
 
   static Color get appBarTitleColor => appColor;
 
-  static Color get appBodyColor => const Color(0xffF2F1F6);
+  static Color get appBgColor => const Color(0xffEBEBEB);
 
-  static Color get appPicColor => const Color(0xffFF79C1);
+  static Color get appBodyColor => const Color(0xffF2F1F6);
 
   // static Color get appColor => const Color(0xff3067e2);
 
@@ -44,9 +44,9 @@ class ColorConstants {
 
   static Color get appColorBlue => const Color(0xff3067e2);
 
-  static Color get appTipColor => const Color(0xffD5FFD4);
+  static Color get appPicColor => const Color(0xffFF79C1);
 
-  static Color get appBgColor => const Color(0xffEBEBEB);
+  static Color get appTipColor => const Color(0xffD5FFD4);
 
   static Color get facebookColor => const Color(0xff4267B2);
 
@@ -237,9 +237,9 @@ class PrefConstant {
 
   static String get firstUse => 'firstUse';
 
-  static String get isSignedUp => 'isSignedUp';
-
   static String get initialDbLoad => 'initialDbLoad';
+
+  static String get isSignedUp => 'isSignedUp';
 
   static String get lastKnownLocation => 'lastKnownLocation';
 

@@ -21,54 +21,53 @@ class _SearchPageState extends State<SearchPage> {
           children: [
             Row(
               children: <Widget>[
-
-                Padding(padding: const EdgeInsets.only(right: 16.0),
-                  child:  backButton(context),
+                Padding(
+                  padding: const EdgeInsets.only(right: 16.0),
+                  child: backButton(context),
                 ),
-                Expanded(child: customSearchField(context,
-                    'Search your village air quality'),)
-
-
+                Expanded(
+                  child: customSearchField(
+                      context, 'Search your village air quality'),
+                )
               ],
             ),
-
-            const SizedBox(height: 30,),
-            Expanded(child: ListView(
-              shrinkWrap: true,
-              children: [
-                RequestLocationAccess(),
-                nearByLocations(),
-              ],
-            ),),
-
-
-            
+            const SizedBox(
+              height: 30,
+            ),
+            Expanded(
+              child: ListView(
+                shrinkWrap: true,
+                children: [
+                  RequestLocationAccess(),
+                  nearByLocations(),
+                ],
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget nearByLocations(){
+  Widget nearByLocations() {
     return Container(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Locations near me',
+          Text(
+            'Locations near me',
             textAlign: TextAlign.start,
-            style: TextStyle(
-                color: ColorConstants.inactiveColor,
-                fontSize: 12
-            ),
+            style: TextStyle(color: ColorConstants.inactiveColor, fontSize: 12),
           ),
-          const SizedBox(height: 8,),
+          const SizedBox(
+            height: 8,
+          ),
           Container(
             padding: EdgeInsets.all(8),
             decoration: BoxDecoration(
                 color: Colors.white,
                 shape: BoxShape.rectangle,
-                borderRadius: BorderRadius.all(Radius.circular(10.0))
-            ),
+                borderRadius: BorderRadius.all(Radius.circular(10.0))),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
@@ -97,30 +96,31 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 
-  Widget RequestLocationAccess(){
+  Widget RequestLocationAccess() {
     return Container(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Locations near me',
+          Text(
+            'Locations near me',
             textAlign: TextAlign.start,
-            style: TextStyle(
-              color: ColorConstants.inactiveColor,
-              fontSize: 12
-            ),
+            style: TextStyle(color: ColorConstants.inactiveColor, fontSize: 12),
           ),
-          const SizedBox(height: 8,),
+          const SizedBox(
+            height: 8,
+          ),
           Container(
             padding: EdgeInsets.all(40.0),
             decoration: BoxDecoration(
                 color: Colors.white,
                 shape: BoxShape.rectangle,
-                borderRadius: BorderRadius.all(Radius.circular(10.0))
-            ),
+                borderRadius: BorderRadius.all(Radius.circular(10.0))),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                SizedBox(height: 84,),
+                SizedBox(
+                  height: 84,
+                ),
                 Stack(
                   children: [
                     Image.asset(
@@ -130,62 +130,65 @@ class _SearchPageState extends State<SearchPage> {
                     ),
                     Container(
                       decoration: BoxDecoration(
-                          color: ColorConstants.appColorBlue,
-                          shape: BoxShape.circle,
+                        color: ColorConstants.appColorBlue,
+                        shape: BoxShape.circle,
                       ),
                       child: const Padding(
                         padding: EdgeInsets.all(12.0),
                         child: Icon(
-                          Icons.map_outlined, size: 30,
+                          Icons.map_outlined,
+                          size: 30,
                           color: Colors.white,
                         ),
                       ),
                     ),
                   ],
                 ),
-
-                const SizedBox(height: 52,),
-                const Text('Enable locations',
+                const SizedBox(
+                  height: 52,
+                ),
+                const Text(
+                  'Enable locations',
                   textAlign: TextAlign.start,
-                  style: TextStyle(
-                      fontSize: 20,
-                    fontWeight: FontWeight.bold
-                  ),
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
-                const SizedBox(height: 8,),
-                const Text('Allow AirQo to show you location air '
-                    'quality update near you.',
+                const SizedBox(
+                  height: 8,
+                ),
+                const Text(
+                  'Allow AirQo to show you location air '
+                  'quality update near you.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(
-                      fontSize: 12
-                  ),
+                  style: TextStyle(fontSize: 12),
                 ),
-                const SizedBox(height: 24,),
+                const SizedBox(
+                  height: 24,
+                ),
                 Container(
-                  constraints:
-                  const BoxConstraints(minWidth: double.infinity),
-                  decoration: BoxDecoration(
-                      color: ColorConstants.appColorBlue,
-                      borderRadius: BorderRadius.all(Radius.circular(10.0))
-                  ),
-                  child: Padding(
-                    padding: EdgeInsets.only(top: 19, bottom: 19),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'Allow locaton',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: Colors.white,
-                          ),
-                        )
-                      ],
-                    ),
-                  )
+                    constraints:
+                        const BoxConstraints(minWidth: double.infinity),
+                    decoration: BoxDecoration(
+                        color: ColorConstants.appColorBlue,
+                        borderRadius: BorderRadius.all(Radius.circular(10.0))),
+                    child: Padding(
+                      padding: EdgeInsets.only(top: 19, bottom: 19),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Allow locaton',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Colors.white,
+                            ),
+                          )
+                        ],
+                      ),
+                    )),
+                SizedBox(
+                  height: 40,
                 ),
-                SizedBox(height: 40,),
               ],
             ),
           )

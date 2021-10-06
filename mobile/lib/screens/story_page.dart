@@ -1,13 +1,10 @@
-import 'dart:convert';
 
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/story.dart';
-import 'package:app/utils/dialogs.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:webview_flutter/webview_flutter.dart';
 
 class StoryPage extends StatefulWidget {
   Story story;
@@ -49,6 +46,26 @@ class _StoryPageState extends State<StoryPage> {
     );
   }
 
+  Widget _buildImage() {
+    return AspectRatio(
+      aspectRatio: 16 / 9,
+      child: Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: ColorConstants.appColor.withOpacity(0.3),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: Image.network(
+            widget.story.thumbnail,
+            fit: BoxFit.cover,
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildSubTitle() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -68,19 +85,6 @@ class _StoryPageState extends State<StoryPage> {
     );
   }
 
-  Widget _buildTitle() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-      child: Text(
-        widget.story.title,
-        maxLines: 6,
-        textAlign: TextAlign.center,
-        overflow: TextOverflow.ellipsis,
-        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-      ),
-    );
-  }
-
   Widget _buildText() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -96,14 +100,17 @@ class _StoryPageState extends State<StoryPage> {
     );
   }
 
-  Future<void> _launchURL(String url) async {
-    try {
-      await canLaunch(url)
-          ? await launch(url)
-          : throw Exception('Could not launch $url, try opening $url');
-    } catch (e) {
-      print(e);
-    }
+  Widget _buildTitle() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      child: Text(
+        widget.story.title,
+        maxLines: 6,
+        textAlign: TextAlign.center,
+        overflow: TextOverflow.ellipsis,
+        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+      ),
+    );
   }
 
   void _displayImage(String src) {
@@ -166,23 +173,13 @@ class _StoryPageState extends State<StoryPage> {
     );
   }
 
-  Widget _buildImage() {
-    return AspectRatio(
-      aspectRatio: 16 / 9,
-      child: Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: ColorConstants.appColor.withOpacity(0.3),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(16),
-          child: Image.network(
-            widget.story.thumbnail,
-            fit: BoxFit.cover,
-          ),
-        ),
-      ),
-    );
+  Future<void> _launchURL(String url) async {
+    try {
+      await canLaunch(url)
+          ? await launch(url)
+          : throw Exception('Could not launch $url, try opening $url');
+    } catch (e) {
+      print(e);
+    }
   }
 }

@@ -42,7 +42,7 @@ class MapWidgetState extends State<MapWidget> {
   var defaultLatLng = const LatLng(1.6183002, 32.504365);
   var defaultZoom = 6.6;
   var defaultCameraPosition =
-  const CameraPosition(target: LatLng(1.6183002, 32.504365), zoom: 6.6);
+      const CameraPosition(target: LatLng(1.6183002, 32.504365), zoom: 6.6);
   final TextEditingController _searchController = TextEditingController();
 
   late GoogleMapController _mapController;
@@ -100,7 +100,6 @@ class MapWidgetState extends State<MapWidget> {
         //           ),
         //         )),
         //   ),
-
       ],
     );
   }
@@ -140,7 +139,7 @@ class MapWidgetState extends State<MapWidget> {
         .getPlaceDetails(selection.placeId)
         .then((value) async {
       var latLng =
-      LatLng(value.geometry.location.lat, value.geometry.location.lng);
+          LatLng(value.geometry.location.lat, value.geometry.location.lng);
 
       var _cameraPosition = CameraPosition(target: latLng, zoom: 14);
 
@@ -263,15 +262,15 @@ class MapWidgetState extends State<MapWidget> {
                           updateFavouritePlace(windowProperties.site);
                         },
                         icon: favourites.contains(
-                            windowProperties.site.id.trim().toLowerCase())
+                                windowProperties.site.id.trim().toLowerCase())
                             ? Icon(
-                          Icons.favorite,
-                          color: ColorConstants.red,
-                        )
+                                Icons.favorite,
+                                color: ColorConstants.red,
+                              )
                             : Icon(
-                          Icons.favorite_border_outlined,
-                          color: ColorConstants.red,
-                        )),
+                                Icons.favorite_border_outlined,
+                                color: ColorConstants.red,
+                              )),
                   ),
                   detailsButton(windowProperties.site),
                 ],
@@ -336,7 +335,7 @@ class MapWidgetState extends State<MapWidget> {
         markerId: MarkerId(measurement.site.id),
         icon: bitmapDescriptor,
         position:
-        LatLng((measurement.site.latitude), measurement.site.longitude),
+            LatLng((measurement.site.latitude), measurement.site.longitude),
         infoWindow: InfoWindow(
           title: measurement.getPm2_5Value().toStringAsFixed(2),
           // snippet: node.location,
@@ -396,15 +395,15 @@ class MapWidgetState extends State<MapWidget> {
     await localFetch();
 
     await AirqoApiClient(context).fetchLatestMeasurements().then((value) => {
-
-      if(mounted && value.isNotEmpty){
-        setMeasurements(value),
-      },
-      if (value.isNotEmpty) {
-        dbHelper.insertLatestMeasurements(value),
-      }
-    });
-
+          if (mounted && value.isNotEmpty)
+            {
+              setMeasurements(value),
+            },
+          if (value.isNotEmpty)
+            {
+              dbHelper.insertLatestMeasurements(value),
+            }
+        });
 
     if (mounted) {
       setState(() {
@@ -414,13 +413,12 @@ class MapWidgetState extends State<MapWidget> {
   }
 
   Future<void> _onMapCreated(GoogleMapController controller) async {
-    if(mounted){
+    if (mounted) {
       _mapController = controller;
       await loadTheme();
 
       await _getMeasurements();
     }
-
   }
 
   Future<void> _refreshMeasurements() async {

@@ -5,7 +5,6 @@ import 'package:app/services/local_storage.dart';
 import 'package:app/services/rest_api.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class ResourcesPage extends StatefulWidget {
   @override

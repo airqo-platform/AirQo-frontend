@@ -17,9 +17,9 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import 'dashboard_page_v2.dart';
 import '../screens/help_page.dart';
 import '../screens/my_places_view.dart';
+import 'dashboard_page_v2.dart';
 
 class HomePageV2 extends StatefulWidget {
   final String title = 'AirQo';
@@ -49,7 +49,8 @@ class _HomePageV2State extends State<HomePageV2> {
           width: 58,
         ),
         actions: [
-          Padding(padding: EdgeInsets.fromLTRB(0, 0, 16, 0),
+          Padding(
+            padding: EdgeInsets.fromLTRB(0, 0, 16, 0),
             child: AspectRatio(
                 aspectRatio: 1.0,
                 child: Container(
@@ -57,8 +58,7 @@ class _HomePageV2State extends State<HomePageV2> {
                   decoration: BoxDecoration(
                       color: Colors.white,
                       shape: BoxShape.rectangle,
-                      borderRadius: BorderRadius.all(Radius.circular(10.0))
-                  ),
+                      borderRadius: BorderRadius.all(Radius.circular(10.0))),
                   child: IconButton(
                     iconSize: 30,
                     icon: Icon(
@@ -74,12 +74,8 @@ class _HomePageV2State extends State<HomePageV2> {
                       });
                     },
                   ),
-                )
-            ),
+                )),
           ),
-
-
-
         ],
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
