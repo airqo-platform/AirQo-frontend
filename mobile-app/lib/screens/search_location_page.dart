@@ -144,8 +144,10 @@ class LocationSearch extends SearchDelegate<Suggestion> {
             var place = snapshot.data as Place;
 
             return FutureBuilder(
-                future: LocationApi().getNearestSites(
-                    place.geometry.location.lat, place.geometry.location.lng),
+                future: LocationApi().searchNearestSites(
+                    place.geometry.location.lat,
+                    place.geometry.location.lng,
+                    place.name),
                 builder: (context, snapshot) {
                   if (snapshot.hasError) {
                     print('${snapshot.error.toString()}');
@@ -157,7 +159,8 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                       ),
                     );
                   } else if (snapshot.hasData) {
-                    var measurements = snapshot.data as List<Measurement>;
+                    var measurements =
+                        sortPlaces(snapshot.data as List<Measurement>);
 
                     if (measurements.isEmpty) {
                       return Align(
@@ -622,6 +625,12 @@ class LocationSearch extends SearchDelegate<Suggestion> {
         });
   }
 
+  void showAllLocations(var context) {
+    showAllSites = true;
+    query = '';
+    showResults(context);
+  }
+
   // Future<void> navigateToPlace(context, Suggestion suggestion) async {
   //   try {
   //     if (query == '' || searchPlaceId == '') {
@@ -652,12 +661,6 @@ class LocationSearch extends SearchDelegate<Suggestion> {
   //     showResults(context);
   //   }
   // }
-
-  void showAllLocations(var context) {
-    showAllSites = true;
-    query = '';
-    showResults(context);
-  }
 
   RawMaterialButton showAllLocationsCustomButton(context) {
     return RawMaterialButton(
@@ -705,5 +708,12 @@ class LocationSearch extends SearchDelegate<Suggestion> {
         ),
       ),
     );
+  }
+
+  List<Measurement> sortPlaces(List<Measurement> values) {
+    values.sort((valueA, valueB) =>
+        valueA.site.distance.compareTo(valueB.site.distance));
+
+    return values;
   }
 }

@@ -10,6 +10,18 @@ import 'package:location/location.dart';
 class LocationApi {
   Location location = Location();
 
+  bool containsWord(String body, String term) {
+    var words = body.toLowerCase().split(' ');
+    var terms = term.toLowerCase().split(' ');
+    for (var word in words) {
+      if (terms.first.trim() == word.trim()) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   Future<Address> getAddress(double lat, double lng) async {
     var addresses = await getAddressGoogle(lat, lng);
     if (addresses.isEmpty) {
@@ -147,6 +159,33 @@ class LocationApi {
       if (distanceInMeters < AppConfig.maxSearchRadius.toDouble()) {
         measurement.site.distance = distanceInMeters;
         nearestSites.add(measurement);
+      }
+    }
+
+    return nearestSites;
+  }
+
+  Future<List<Measurement>> searchNearestSites(
+      double latitude, double longitude, String term) async {
+    var nearestSites = <Measurement>[];
+    double distanceInMeters;
+
+    var latestMeasurements = await DBHelper().getLatestMeasurements();
+
+    for (var measurement in latestMeasurements) {
+      distanceInMeters = metersToKmDouble(Geolocator.distanceBetween(
+          measurement.site.latitude,
+          measurement.site.longitude,
+          latitude,
+          longitude));
+      if (containsWord(measurement.site.getName(), term)) {
+        measurement.site.distance = distanceInMeters;
+        nearestSites.add(measurement);
+      } else {
+        if (distanceInMeters < AppConfig.maxSearchRadius.toDouble()) {
+          measurement.site.distance = distanceInMeters;
+          nearestSites.add(measurement);
+        }
       }
     }
 
