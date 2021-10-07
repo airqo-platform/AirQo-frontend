@@ -161,9 +161,8 @@ class _MyPlacesViewState extends State<MyPlacesView> {
 
   @override
   void initState() {
-    _getLatestMeasurements();
-    _getSites();
     super.initState();
+    _getLatestMeasurements();
   }
 
   Future<void> reloadData() async {
@@ -216,9 +215,5 @@ class _MyPlacesViewState extends State<MyPlacesView> {
                   .then((value) => {reloadData()})
             }
         });
-  }
-
-  void _getSites() async {
-    await AirqoApiClient(context).fetchSites();
   }
 }

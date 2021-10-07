@@ -58,7 +58,9 @@ class _DashboardBarChartState extends State<DashboardBarChart> {
                       //   flex: 1,
                       // ),
                       Text(
-                        chartDateToString(display['time']),
+                        widget.header.trim().toLowerCase() == 'forecast'
+                            ? chartDateToString(display['time'], false)
+                            : chartDateToString(display['time'], true),
                         softWrap: true,
                         style: TextStyle(color: ColorConstants.appColor),
                       ),

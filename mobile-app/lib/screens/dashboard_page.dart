@@ -129,7 +129,7 @@ class _DashboardPageState extends State<DashboardPage> {
     } finally {
       try {
         await AirqoApiClient(context)
-            .fetchSiteHistoricalMeasurementsById(site.id)
+            .fetchSiteHistoricalMeasurements(site)
             .then((value) => {
                   if (value.isNotEmpty)
                     {
@@ -150,7 +150,7 @@ class _DashboardPageState extends State<DashboardPage> {
 
     try {
       await AirqoApiClient(context)
-          .fetchSiteHistoricalMeasurementsById(site.id)
+          .fetchSiteHistoricalMeasurements(site)
           .then((value) => {
                 if (value.isNotEmpty)
                   {

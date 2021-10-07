@@ -1,10 +1,13 @@
 import 'package:intl/intl.dart';
 
-String chartDateToString(String formattedString) {
+String chartDateToString(String formattedString, bool format) {
   try {
     var now = DateTime.now();
     // var formattedDate = DateTime.parse(formattedString);
-    var offSet = now.timeZoneOffset.inHours;
+    var offSet = 0;
+    if (format) {
+      offSet = now.timeZoneOffset.inHours;
+    }
     var formattedDate =
         DateTime.parse(formattedString).add(Duration(hours: offSet));
 

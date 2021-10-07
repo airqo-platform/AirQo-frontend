@@ -5,63 +5,49 @@ const googleMapsLightTheme = [
   {
     "elementType": "labels.icon",
     "stylers": [
-      {
-        "visibility": "off"
-      }
+      {"visibility": "off"}
     ]
   },
   {
     "featureType": "administrative",
     "elementType": "labels.icon",
     "stylers": [
-      {
-        "visibility": "off"
-      }
+      {"visibility": "off"}
     ]
   },
   {
     "featureType": "landscape",
     "elementType": "labels.icon",
     "stylers": [
-      {
-        "visibility": "off"
-      }
+      {"visibility": "off"}
     ]
   },
   {
     "featureType": "poi",
     "elementType": "labels.icon",
     "stylers": [
-      {
-        "visibility": "off"
-      }
+      {"visibility": "off"}
     ]
   },
   {
     "featureType": "road",
     "elementType": "labels.icon",
     "stylers": [
-      {
-        "visibility": "off"
-      }
+      {"visibility": "off"}
     ]
   },
   {
     "featureType": "transit",
     "elementType": "labels.icon",
     "stylers": [
-      {
-        "visibility": "off"
-      }
+      {"visibility": "off"}
     ]
   },
   {
     "featureType": "water",
     "elementType": "labels.icon",
     "stylers": [
-      {
-        "visibility": "off"
-      }
+      {"visibility": "off"}
     ]
   }
 ];

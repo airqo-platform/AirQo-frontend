@@ -280,28 +280,6 @@ Future<BitmapDescriptor> pmToMarker(double pm2_5) async {
   return BitmapDescriptor.fromBytes(data!.buffer.asUint8List());
 }
 
-Future<BitmapDescriptor> pmToMarkerV2(double pm2_5) async {
-  var width = 40;
-  var bgColor = pmToColor(pm2_5);
-
-  final pictureRecorder = PictureRecorder();
-  final canvas = Canvas(pictureRecorder);
-  final paint = Paint()..color = bgColor;
-  final radius = width / 2;
-  canvas.drawCircle(
-    Offset(radius, radius),
-    radius,
-    paint,
-  );
-
-  final image = await pictureRecorder.endRecording().toImage(
-    radius.toInt() * 2,
-    radius.toInt() * 2,
-  );
-  final data = await image.toByteData(format: ImageByteFormat.png);
-  return BitmapDescriptor.fromBytes(data!.buffer.asUint8List());
-}
-
 BitmapDescriptor pmToMarkerPoint(double pm2_5) {
   if (pm2_5 <= 12.09) {
     //good
@@ -330,6 +308,28 @@ BitmapDescriptor pmToMarkerPoint(double pm2_5) {
   } else {
     return BitmapDescriptor.defaultMarker;
   }
+}
+
+Future<BitmapDescriptor> pmToMarkerV2(double pm2_5) async {
+  var width = 40;
+  var bgColor = pmToColor(pm2_5);
+
+  final pictureRecorder = PictureRecorder();
+  final canvas = Canvas(pictureRecorder);
+  final paint = Paint()..color = bgColor;
+  final radius = width / 2;
+  canvas.drawCircle(
+    Offset(radius, radius),
+    radius,
+    paint,
+  );
+
+  final image = await pictureRecorder.endRecording().toImage(
+        radius.toInt() * 2,
+        radius.toInt() * 2,
+      );
+  final data = await image.toByteData(format: ImageByteFormat.png);
+  return BitmapDescriptor.fromBytes(data!.buffer.asUint8List());
 }
 
 String pmToString(double pm2_5) {

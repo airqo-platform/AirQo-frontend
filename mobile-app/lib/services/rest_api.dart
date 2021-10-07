@@ -106,43 +106,6 @@ class AirqoApiClient {
     return <Measurement>[];
   }
 
-  Future<List<Measurement>> fetchLatestSitesMeasurements(
-      List<String> sitesIds) async {
-    try {
-      if (sitesIds.isEmpty) {
-        return <Measurement>[];
-      }
-
-      var sitesStr = '';
-      for (var site in sitesIds) {
-        sitesStr = '$sitesStr,$site';
-      }
-
-      sitesStr = sitesStr.substring(1, sitesStr.length);
-
-      var queryParams = <String, dynamic>{}
-        ..putIfAbsent('site_id', () => sitesStr)
-        ..putIfAbsent('recent', () => 'yes')
-        ..putIfAbsent('metadata', () => 'site_id')
-        ..putIfAbsent('frequency', () => 'hourly')
-        ..putIfAbsent('tenant', () => 'airqo');
-
-      final responseBody =
-          await _performGetRequest(queryParams, AirQoUrls().measurements);
-
-      if (responseBody != null) {
-        return compute(Measurement.parseMeasurements, responseBody);
-      } else {
-        // print('Latest sites Measurements are null');
-        return <Measurement>[];
-      }
-    } on Error {
-      // print('Get Latest measurements for specific sites error: $e');
-    }
-
-    return <Measurement>[];
-  }
-
   Future<List<Story>> fetchLatestStories() async {
     try {
       final responseBody = await _performGetRequest({}, AirQoUrls().stories);
@@ -199,75 +162,11 @@ class AirqoApiClient {
     return <HistoricalMeasurement>[];
   }
 
-  Future<List<HistoricalMeasurement>> fetchSiteHistoricalMeasurementsById(
-      String id) async {
-    try {
-      var nowUtc = DateTime.now().toUtc();
-      var startTimeUtc = nowUtc.subtract(const Duration(hours: 48));
-
-      var time = '${startTimeUtc.hour}';
-      if ('$time'.length == 1) {
-        time = '0$time';
-      }
-
-      var date = DateFormat('yyyy-MM-dd').format(startTimeUtc);
-      var startTime = '${date}T$time:00:00Z';
-      // var endTime = '${DateFormat('yyyy-MM-dd')
-      // .format(nowUtc)}T$time:00:00Z';
-
-      var queryParams = <String, dynamic>{}
-        ..putIfAbsent('site_id', () => id)
-        ..putIfAbsent('startTime', () => startTime)
-        ..putIfAbsent('frequency', () => 'hourly')
-        ..putIfAbsent('metadata', () => 'site_id')
-        ..putIfAbsent('recent', () => 'no')
-        ..putIfAbsent('tenant', () => 'airqo');
-
-      final responseBody =
-          await _performGetRequest(queryParams, AirQoUrls().measurements);
-
-      if (responseBody != null) {
-        return compute(HistoricalMeasurement.parseMeasurements, responseBody);
-      } else {
-        // print('Measurements are null');
-        return <HistoricalMeasurement>[];
-      }
-    } on Error {
-      // print('Get site historical measurements error: $e');
-    }
-
-    return <HistoricalMeasurement>[];
-  }
-
   Future<Measurement> fetchSiteMeasurements(Site site) async {
     try {
       var queryParams = <String, dynamic>{}
         ..putIfAbsent('recent', () => 'yes')
         ..putIfAbsent('site_id', () => site.id)
-        ..putIfAbsent('frequency', () => 'hourly')
-        ..putIfAbsent('metadata', () => 'site_id')
-        ..putIfAbsent('tenant', () => 'airqo');
-
-      final responseBody =
-          await _performGetRequest(queryParams, AirQoUrls().measurements);
-
-      if (responseBody != null) {
-        return compute(Measurement.parseMeasurement, responseBody);
-      } else {
-        // print('Site latest measurements are null');
-        throw Exception('site does not exist');
-      }
-    } on Error {
-      // print('Get site latest measurements error: $e');
-      throw Exception('site does not exist');
-    }
-  }
-
-  Future<Measurement> fetchSiteMeasurementsById(String id) async {
-    try {
-      var queryParams = <String, dynamic>{}
-        ..putIfAbsent('recent', () => 'yes')
-        ..putIfAbsent('site_id', () => id)
         ..putIfAbsent('frequency', () => 'hourly')
         ..putIfAbsent('metadata', () => 'site_id')
         ..putIfAbsent('tenant', () => 'airqo');

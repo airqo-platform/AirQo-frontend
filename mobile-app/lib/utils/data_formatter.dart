@@ -12,8 +12,9 @@ List<charts.Series<TimeSeriesData, DateTime>> forecastChartData(
   for (var prediction in predictions) {
     try {
       final formatter = DateFormat('EEE, d MMM yyyy HH:mm:ss');
-      final dateTime =
-          DateTime.parse(formatter.parse(prediction.time).toString());
+      final timeZoneOffset = DateTime.now().timeZoneOffset;
+      final dateTime = DateTime.parse(
+          formatter.parse(prediction.time).add(timeZoneOffset).toString());
       data.add(TimeSeriesData(dateTime, prediction.value.ceil()));
     } catch (e) {
       print(e);

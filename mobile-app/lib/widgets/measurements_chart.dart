@@ -94,7 +94,9 @@ class _MeasurementsBarChartState extends State<MeasurementsBarChart> {
                       //   flex: 1,
                       // ),
                       Text(
-                        chartDateToString(display['time']),
+                        widget.header.trim().toLowerCase() == 'forecast'
+                            ? chartDateToString(display['time'], false)
+                            : chartDateToString(display['time'], true),
                         softWrap: true,
                         style: TextStyle(color: ColorConstants.appColor),
                       ),
