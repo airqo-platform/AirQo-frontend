@@ -9,16 +9,11 @@ List<charts.Series<TimeSeriesData, DateTime>> forecastChartData(
     List<Predict> predictions) {
   var data = <TimeSeriesData>[];
 
-  var offSet = DateTime.now().timeZoneOffset.inHours;
-
   for (var prediction in predictions) {
     try {
       final formatter = DateFormat('EEE, d MMM yyyy HH:mm:ss');
-
       final dateTime =
-          DateTime.parse(formatter.parse(prediction.time).toString())
-              .add(Duration(hours: offSet));
-
+          DateTime.parse(formatter.parse(prediction.time).toString());
       data.add(TimeSeriesData(dateTime, prediction.value.ceil()));
     } catch (e) {
       print(e);
@@ -44,12 +39,9 @@ List<charts.Series<TimeSeriesData, DateTime>> historicalChartData(
     List<HistoricalMeasurement> measurements) {
   var data = <TimeSeriesData>[];
 
-  var offSet = DateTime.now().timeZoneOffset.inHours;
-
   for (var measurement in measurements) {
     try {
-      final dateTime =
-          DateTime.parse(measurement.time).add(Duration(hours: offSet));
+      final dateTime = DateTime.parse(measurement.time);
       data.add(TimeSeriesData(dateTime, measurement.getPm2_5Value().ceil()));
     } catch (e) {
       print(e);

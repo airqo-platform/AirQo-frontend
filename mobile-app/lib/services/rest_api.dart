@@ -25,48 +25,11 @@ class AirqoApiClient {
 
   AirqoApiClient(this.context);
 
-  Future<List<Predict>> fetchForecast(Site site) async {
+  Future<List<Predict>> fetchForecast(int channelId) async {
     try {
-      var dateTime =
-          DateFormat('yyyy-MM-dd HH:mm').format(DateTime.now().toUtc());
-      var body = {
-        'selected_datetime': dateTime,
-        'latitude': site.latitude,
-        'longitude': site.longitude
-      };
-      // DateTime.now().millisecondsSinceEpoch
-      // DateTime.now().toUtc().millisecondsSinceEpoch
-
-      final response = await http.post(Uri.parse('${AirQoUrls().forecast}'),
-          headers: {'Content-Type': 'application/json'},
-          body: json.encode(body));
-
-      if (response.statusCode == 200) {
-        var jsonBody =
-            json.decode(response.body)['formatted_results']['predictions'];
-
-        return compute(Predict.parsePredictions, jsonBody);
-      } else {
-        // print('Unexpected status code ${response.statusCode}:'
-        //     ' ${response.reasonPhrase}');
-        // print('Body ${response.body}:');
-        // print('uri: ${AirQoUrls().forecast}');
-        return <Predict>[];
-      }
-    } on SocketException {
-      await showSnackBar(context, ErrorMessages.socketException);
-    } on TimeoutException {
-      await showSnackBar(context, ErrorMessages.timeoutException);
-    } on Error {
-      print('Not Forecast information');
-    }
-
-    return <Predict>[];
-  }
-
-  Future<List<Predict>> fetchForecastV2(int channelId) async {
-    try {
-      var startTime = DateTime.now().millisecondsSinceEpoch / 1000;
+      var startTime =
+          DateTime.now().add(const Duration(hours: 1)).millisecondsSinceEpoch /
+              1000;
 
       var url = '${AirQoUrls().forecastV2}$channelId/${startTime.round()}';
 

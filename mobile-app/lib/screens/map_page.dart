@@ -628,11 +628,11 @@ class MapPageState extends State<MapPage> {
 
     if (mounted) {
       if (favourite) {
-        await showSnackBarGoToMyPlaces(
-            context, '${site.getName()} is added to your places');
+        await showSnackBar(
+            context, '${site.getName()} has been added to your places');
       } else {
         await showSnackBar(
-            context, '${site.getName()} is removed from your places');
+            context, '${site.getName()} has been removed from your places');
       }
     }
   }

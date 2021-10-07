@@ -406,7 +406,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
   void getForecastMeasurements() async {
     try {
       await AirqoApiClient(context)
-          .fetchForecastV2(measurement.deviceNumber)
+          .fetchForecast(measurement.deviceNumber)
           .then((value) => {
                 if (value.isNotEmpty)
                   {
