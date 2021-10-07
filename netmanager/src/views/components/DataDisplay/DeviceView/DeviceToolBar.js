@@ -41,6 +41,9 @@ const useStyles = makeStyles((theme) => ({
   margin: {
     width: "100%",
   },
+  marginToolbarContainer: {
+    width: "99%",
+  },
   appBar: {
     position: "relative",
     zIndex: 20,
@@ -234,5 +237,5 @@ export const DeviceToolBar = ({ deviceName }) => {
 
 export const DeviceToolBarContainer = ({ children }) => {
   const classes = useStyles();
-  return <div className={classes.margin}>{children}</div>;
+  return <div className={classes.marginToolbarContainer}>{children}</div>;
 };
