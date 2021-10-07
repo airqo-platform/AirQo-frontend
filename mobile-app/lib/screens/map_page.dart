@@ -554,20 +554,18 @@ class MapPageState extends State<MapPage> {
 
   Future<void> loadTheme() async {
     var prefs = await SharedPreferences.getInstance();
-    var theme = prefs.getString(PrefConstant.appTheme);
+    var theme = prefs.getString(PrefConstant.appTheme) ?? 'light';
 
-    if (theme != null) {
-      switch (theme) {
-        case 'light':
-          await _mapController.setMapStyle(jsonEncode(googleMapsLightTheme));
-          break;
-        case 'dark':
-          await _mapController.setMapStyle(jsonEncode(googleMapsDarkTheme));
-          break;
-        default:
-          await _mapController.setMapStyle(jsonEncode([]));
-          break;
-      }
+    switch (theme) {
+      case 'light':
+        await _mapController.setMapStyle(jsonEncode(googleMapsLightTheme));
+        break;
+      case 'dark':
+        await _mapController.setMapStyle(jsonEncode(googleMapsDarkTheme));
+        break;
+      default:
+        await _mapController.setMapStyle(jsonEncode(googleMapsLightTheme));
+        break;
     }
   }
 
@@ -583,7 +581,7 @@ class MapPageState extends State<MapPage> {
     _showInfoWindow = false;
     var markers = <String, Marker>{};
     for (final measurement in measurements) {
-      var bitmapDescriptor = await pmToMarker(measurement.getPm2_5Value());
+      var bitmapDescriptor = await pmToMarkerV2(measurement.getPm2_5Value());
 
       final marker = Marker(
         markerId: MarkerId(measurement.site.id),
