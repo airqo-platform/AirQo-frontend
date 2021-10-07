@@ -33,7 +33,7 @@ const useStyles = makeStyles((theme) => ({
     backgroundColor: theme.palette.background.paper,
     position: "sticky",
     top: "64px",
-    zIndex: 10000,
+    zIndex: 1001,
   },
   wrapper: {
     flexDirection: "row",
