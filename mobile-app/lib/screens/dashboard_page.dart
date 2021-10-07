@@ -1,5 +1,6 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/historicalMeasurement.dart';
+import 'package:app/models/measurement.dart';
 import 'package:app/models/predict.dart';
 import 'package:app/models/site.dart';
 import 'package:app/services/local_storage.dart';
@@ -70,35 +71,40 @@ class _DashboardPageState extends State<DashboardPage> {
     }
   }
 
-  void getLocationForecastMeasurements(Site site) async {
+  void getLocationForecastMeasurements(Measurement measurement) async {
     try {
-      await DBHelper().getForecastMeasurements(site.id).then((value) => {
-            if (value.isNotEmpty)
-              {
-                if (mounted)
+      await DBHelper()
+          .getForecastMeasurements(measurement.site.id)
+          .then((value) => {
+                if (value.isNotEmpty)
                   {
-                    setState(() {
-                      forecastData = value;
-                    })
+                    if (mounted)
+                      {
+                        setState(() {
+                          forecastData = value;
+                        })
+                      }
                   }
-              }
-          });
+              });
     } on Error catch (e) {
       print('Getting forecast data locally error: $e');
     } finally {
       try {
-        await AirqoApiClient(context).fetchForecast(site).then((value) => {
-              if (value.isNotEmpty)
-                {
-                  if (mounted)
+        await AirqoApiClient(context)
+            .fetchForecastV2(measurement.deviceNumber)
+            .then((value) => {
+                  if (value.isNotEmpty)
                     {
-                      setState(() {
-                        forecastData = value;
-                      }),
+                      if (mounted)
+                        {
+                          setState(() {
+                            forecastData = value;
+                          }),
+                        },
+                      DBHelper().insertForecastMeasurements(
+                          value, measurement.site.id)
                     },
-                  DBHelper().insertForecastMeasurements(value, site.id)
-                },
-            });
+                });
       } catch (e) {
         print('Getting forecast data from api error: $e');
       }
@@ -172,7 +178,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       measurementData = value;
                     }),
                     getLocationHistoricalMeasurements(value.site),
-                    getLocationForecastMeasurements(value.site),
+                    getLocationForecastMeasurements(value),
                     updateCurrentLocation()
                   },
               }
@@ -212,7 +218,7 @@ class _DashboardPageState extends State<DashboardPage> {
                         measurementData = value;
                       }),
                       getLocationHistoricalMeasurements(value.site),
-                      getLocationForecastMeasurements(value.site),
+                      getLocationForecastMeasurements(value),
                     }
                 },
             });
@@ -235,7 +241,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       measurementData = value;
                     }),
                     getLocationHistoricalMeasurements(value.site),
-                    getLocationForecastMeasurements(value.site),
+                    getLocationForecastMeasurements(value),
                   },
               }
           });

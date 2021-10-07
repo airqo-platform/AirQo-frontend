@@ -31,15 +31,11 @@ class Measurement {
   @JsonKey(required: true, name: 'siteDetails')
   final Site site;
 
-  Measurement(
-      {required this.time,
-      required this.pm2_5,
-      required this.pm10,
-      required this.altitude,
-      required this.speed,
-      required this.temperature,
-      required this.humidity,
-      required this.site});
+  @JsonKey(required: true, name: 'device_number')
+  final int deviceNumber;
+
+  Measurement(this.time, this.pm2_5, this.pm10, this.altitude, this.speed,
+      this.temperature, this.humidity, this.site, this.deviceNumber);
 
   factory Measurement.fromJson(Map<String, dynamic> json) =>
       _$MeasurementFromJson(json);
@@ -60,17 +56,24 @@ class Measurement {
 
   Map<String, dynamic> toJson() => _$MeasurementToJson(this);
 
+  @override
+  String toString() {
+    return 'Measurement{pm10: $pm10, deviceNumber: $deviceNumber}';
+  }
+
   static String createTableStmt() =>
       'CREATE TABLE IF NOT EXISTS ${latestMeasurementsDb()}('
       '${Site.dbId()} TEXT PRIMARY KEY, ${Site.dbLatitude()} REAL, '
       '${Site.dbSiteName()} TEXT, ${Site.dbLongitude()} REAL, '
       '${dbTime()} TEXT, ${dbPm25()} REAL, ${Site.dbCountry()} TEXT, '
-      '${dbPm10()} REAL, ${dbAltitude()} REAL, '
+      '${dbPm10()} REAL, ${dbDeviceNumber()} REAL, ${dbAltitude()} REAL, '
       '${dbSpeed()} REAL, ${dbTemperature()} REAL, '
       '${dbHumidity()} REAL, ${Site.dbDistrict()} TEXT, '
       '${Site.dbDescription()} TEXT )';
 
   static String dbAltitude() => 'altitude';
+
+  static String dbDeviceNumber() => 'deviceNumber';
 
   static String dbHumidity() => 'humidity';
 
@@ -109,6 +112,7 @@ class Measurement {
       'externalHumidity': {'value': json['${dbHumidity()}'] as double},
       'speed': {'value': json['${dbSpeed()}'] as double},
       'altitude': {'value': json['${dbAltitude()}'] as double},
+      'device_number': (json['${dbDeviceNumber()}'] as double).round(),
     };
   }
 
@@ -123,6 +127,7 @@ class Measurement {
       '${dbSpeed()}': measurement.speed.value,
       '${dbTemperature()}': measurement.temperature.value,
       '${dbHumidity()}': measurement.humidity.value,
+      '${dbDeviceNumber()}': measurement.deviceNumber,
       '${Site.dbSiteName()}': site.name,
       '${Site.dbDescription()}': site.description,
       '${Site.dbId()}': site.id,

@@ -204,7 +204,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                                   Navigator.push(context,
                                       MaterialPageRoute(builder: (context) {
                                     return PlaceDetailsPage(
-                                      site: measurement.site,
+                                      measurement: measurement,
                                     );
                                   }));
                                 },
@@ -212,7 +212,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                                   title: Text(
                                       '${measurements[index].site.getName()}',
                                       style: TextStyle(
-                                        fontSize: 17,
+                                        fontSize: 15,
                                         color: ColorConstants.appColor,
                                         fontWeight: FontWeight.bold,
                                       )),
@@ -337,21 +337,21 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                           Navigator.push(context,
                               MaterialPageRoute(builder: (context) {
                             return PlaceDetailsPage(
-                              site: measurement.site,
+                              measurement: measurement,
                             );
                           }));
                         },
                         child: ListTile(
                           title: Text('${measurements[index].site.getName()}',
                               style: TextStyle(
-                                fontSize: 17,
+                                fontSize: 15,
                                 color: ColorConstants.appColor,
                                 fontWeight: FontWeight.bold,
                               )),
                           subtitle:
                               Text('${measurements[index].site.getLocation()}',
                                   style: TextStyle(
-                                    fontSize: 14,
+                                    fontSize: 12,
                                     color: ColorConstants.appColor,
                                   )),
                           leading: Icon(
@@ -497,21 +497,21 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                       Navigator.push(context,
                           MaterialPageRoute(builder: (context) {
                         return PlaceDetailsPage(
-                          site: measurement.site,
+                          measurement: measurement,
                         );
                       }));
                     },
                     child: ListTile(
                       title: Text('${measurements[index].site.getName()}',
                           style: TextStyle(
-                            fontSize: 17,
+                            fontSize: 15,
                             color: ColorConstants.appColor,
                             fontWeight: FontWeight.bold,
                           )),
                       subtitle:
                           Text('${measurements[index].site.getLocation()}',
                               style: TextStyle(
-                                fontSize: 14,
+                                fontSize: 12,
                                 color: ColorConstants.appColor,
                               )),
                       leading: Icon(
@@ -554,38 +554,39 @@ class LocationSearch extends SearchDelegate<Suggestion> {
             print(snapshot.error);
             return loadApiSites(context);
           } else if (snapshot.hasData) {
-            var sites = snapshot.data as List<Measurement>;
+            var measurements = snapshot.data as List<Measurement>;
 
-            if (sites.isEmpty) {
+            if (measurements.isEmpty) {
               return loadApiSites(context);
             }
 
             return ListView.builder(
               shrinkWrap: true,
-              itemCount: sites.length,
+              itemCount: measurements.length,
               itemBuilder: (context, index) {
                 return InkWell(
                     onTap: () {
-                      var site = sites[index];
+                      var measurement = measurements[index];
                       Navigator.push(context,
                           MaterialPageRoute(builder: (context) {
                         return PlaceDetailsPage(
-                          site: site.site,
+                          measurement: measurement,
                         );
                       }));
                     },
                     child: ListTile(
-                      title: Text('${sites[index].site.getName()}',
+                      title: Text('${measurements[index].site.getName()}',
                           style: TextStyle(
-                            fontSize: 17,
+                            fontSize: 15,
                             color: ColorConstants.appColor,
                             fontWeight: FontWeight.bold,
                           )),
-                      subtitle: Text('${sites[index].site.getLocation()}',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: ColorConstants.appColor,
-                          )),
+                      subtitle:
+                          Text('${measurements[index].site.getLocation()}',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: ColorConstants.appColor,
+                              )),
                       leading: Icon(
                         Icons.location_pin,
                         color: ColorConstants.appColor,
@@ -621,36 +622,36 @@ class LocationSearch extends SearchDelegate<Suggestion> {
         });
   }
 
-  Future<void> navigateToPlace(context, Suggestion suggestion) async {
-    try {
-      if (query == '' || searchPlaceId == '') {
-        showResults(context);
-      }
-
-      await searchApiClient.getPlaceDetails(searchPlaceId).then((place) => {
-            LocationApi()
-                .getNearestSite(
-                    place.geometry.location.lat, place.geometry.location.lng)
-                .then((nearestSite) => {
-                      if (nearestSite != null)
-                        {
-                          nearestSite.userLocation = place.name,
-                          Navigator.push(context,
-                              MaterialPageRoute(builder: (context) {
-                            return PlaceDetailsPage(
-                              site: nearestSite,
-                            );
-                          }))
-                        }
-                      else
-                        {showResults(context)}
-                    }),
-          });
-    } catch (e) {
-      print(e);
-      showResults(context);
-    }
-  }
+  // Future<void> navigateToPlace(context, Suggestion suggestion) async {
+  //   try {
+  //     if (query == '' || searchPlaceId == '') {
+  //       showResults(context);
+  //     }
+  //
+  //     await searchApiClient.getPlaceDetails(searchPlaceId).then((place) => {
+  //           LocationApi()
+  //               .getNearestSite(
+  //                   place.geometry.location.lat, place.geometry.location.lng)
+  //               .then((nearestSite) => {
+  //                     if (nearestSite != null)
+  //                       {
+  //                         nearestSite.userLocation = place.name,
+  //                         Navigator.push(context,
+  //                             MaterialPageRoute(builder: (context) {
+  //                           return PlaceDetailsPage(
+  //                             measurement: nearestSite,
+  //                           );
+  //                         }))
+  //                       }
+  //                     else
+  //                       {showResults(context)}
+  //                   }),
+  //         });
+  //   } catch (e) {
+  //     print(e);
+  //     showResults(context);
+  //   }
+  // }
 
   void showAllLocations(var context) {
     showAllSites = true;

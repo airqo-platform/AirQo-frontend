@@ -82,7 +82,7 @@ class _MyPlacesState extends State<MyPlaces> {
                       child: ListView.builder(
                         itemBuilder: (context, index) => GestureDetector(
                           onTap: () {
-                            viewDetails(searchResults[index].site);
+                            viewDetails(searchResults[index]);
                           },
                           child: Slidable(
                             actionPane: const SlidableDrawerActionPane(),
@@ -218,7 +218,7 @@ class _MyPlacesState extends State<MyPlaces> {
                             child: ListView.builder(
                               itemBuilder: (context, index) => GestureDetector(
                                 onTap: () {
-                                  viewDetails(results[index].site);
+                                  viewDetails(results[index]);
                                 },
                                 child: Slidable(
                                   actionPane: const SlidableDrawerActionPane(),
@@ -384,9 +384,9 @@ class _MyPlacesState extends State<MyPlaces> {
     }
   }
 
-  Future<void> viewDetails(Site site) async {
+  Future<void> viewDetails(Measurement measurement) async {
     await Navigator.push(context, MaterialPageRoute(builder: (context) {
-      return PlaceDetailsPage(site: site);
+      return PlaceDetailsPage(measurement: measurement);
     })).then((value) {
       setState(() {});
     });

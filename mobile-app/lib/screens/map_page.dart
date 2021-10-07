@@ -358,7 +358,7 @@ class MapPageState extends State<MapPage> {
         ));
   }
 
-  RawMaterialButton detailsButton(Site site) {
+  RawMaterialButton detailsButton(Measurement measurement) {
     return RawMaterialButton(
       shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10.0),
@@ -369,7 +369,7 @@ class MapPageState extends State<MapPage> {
       splashColor: Colors.black12,
       highlightColor: Colors.white.withOpacity(0.4),
       onPressed: () async {
-        showDetails(site);
+        showDetails(measurement);
       },
       child: Padding(
         padding: const EdgeInsets.all(10),
@@ -526,7 +526,7 @@ class MapPageState extends State<MapPage> {
                                 color: ColorConstants.red,
                               )),
                   ),
-                  detailsButton(windowProperties.site),
+                  detailsButton(windowProperties),
                 ],
               ),
               Padding(
@@ -613,9 +613,9 @@ class MapPageState extends State<MapPage> {
     }
   }
 
-  void showDetails(Site site) async {
+  void showDetails(Measurement measurement) async {
     await Navigator.push(context, MaterialPageRoute(builder: (context) {
-      return PlaceDetailsPage(site: site);
+      return PlaceDetailsPage(measurement: measurement);
     })).then((value) => _getMeasurements());
   }
 

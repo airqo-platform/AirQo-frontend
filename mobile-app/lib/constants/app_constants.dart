@@ -296,6 +296,8 @@ class PrefConstant {
 
   static String get lastKnownLocation => 'lastKnownLocation';
 
+  static String get reLoadDb => 'reloadDb';
+
   static String get siteAlerts => 'siteAlerts';
 }
 

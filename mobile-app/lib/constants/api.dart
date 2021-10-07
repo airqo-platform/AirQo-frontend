@@ -2,6 +2,7 @@ import 'package:app/config/env.dart';
 
 class AirQoUrls {
   final String _baseUrl = baseUrl;
+  final String _baseUrlV2 = baseUrlV2;
   final String _searchBaseUrl = placesSearchUrl;
 
   String get alerts => '${_baseUrl}notifications';
@@ -9,6 +10,7 @@ class AirQoUrls {
   String get feedbackUrl => feedbackWebhook;
 
   String get forecast => '${_baseUrl}predict/';
+  String get forecastV2 => '${_baseUrlV2}predict/';
 
   String get imageUploadUrl => airqoImageUploadUrl;
 

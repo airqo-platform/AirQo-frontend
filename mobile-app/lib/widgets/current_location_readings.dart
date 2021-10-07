@@ -4,7 +4,6 @@ import 'package:app/constants/app_constants.dart';
 import 'package:app/models/historicalMeasurement.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/predict.dart';
-import 'package:app/models/site.dart';
 import 'package:app/screens/place_details.dart';
 import 'package:app/utils/data_formatter.dart';
 import 'package:app/utils/date.dart';
@@ -113,7 +112,7 @@ class CurrentLocationCard extends StatelessWidget {
         children: [
           GestureDetector(
             onTap: () {
-              viewDetails(context, measurementData.site);
+              viewDetails(context, measurementData);
             },
             child: Text(
                 '${dateToString(measurementData.time, true)}'
@@ -242,7 +241,7 @@ class CurrentLocationCard extends StatelessWidget {
       children: [
         GestureDetector(
           onTap: () {
-            viewDetails(context, measurementData.site);
+            viewDetails(context, measurementData);
           },
           child: Row(
             children: [
@@ -333,9 +332,9 @@ class CurrentLocationCard extends StatelessWidget {
     );
   }
 
-  Future<void> viewDetails(context, Site site) async {
+  Future<void> viewDetails(context, Measurement measurement) async {
     await Navigator.push(context, MaterialPageRoute(builder: (context) {
-      return PlaceDetailsPage(site: site);
+      return PlaceDetailsPage(measurement: measurement);
     }));
   }
 

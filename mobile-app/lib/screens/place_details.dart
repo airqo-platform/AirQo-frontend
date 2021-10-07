@@ -24,12 +24,13 @@ import 'add_place_alert_page.dart';
 import 'help_page.dart';
 
 class PlaceDetailsPage extends StatefulWidget {
-  final Site site;
+  // final Site site;
+  final Measurement measurement;
 
-  PlaceDetailsPage({Key? key, required this.site}) : super(key: key);
+  PlaceDetailsPage({Key? key, required this.measurement}) : super(key: key);
 
   @override
-  _PlaceDetailsPageState createState() => _PlaceDetailsPageState(site);
+  _PlaceDetailsPageState createState() => _PlaceDetailsPageState(measurement);
 }
 
 class PlaceMenuSwitch extends StatefulWidget {
@@ -55,7 +56,6 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
   bool veryUnhealthyAlerts = false;
   bool sensitiveAlerts = false;
 
-  var measurementData;
   var historicalData = <HistoricalMeasurement>[];
   var forecastData = <Predict>[];
 
@@ -69,9 +69,9 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
 
   String titleText = '';
 
-  Site site;
+  Measurement measurement;
 
-  _PlaceDetailsPageState(this.site);
+  _PlaceDetailsPageState(this.measurement);
 
   Widget bottomSheetMenu() {
     return FloatingActionButton(
@@ -108,7 +108,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
           // ),
         ],
       ),
-      body: measurementData != null
+      body: measurement != null
           ? Container(
               color: ColorConstants.appBodyColor,
               child: ListView(
@@ -116,10 +116,10 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                 padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
                 children: <Widget>[
                   // card section
-                  cardSection(measurementData),
+                  cardSection(measurement),
 
                   // Pollutants
-                  PollutantsSection(measurementData),
+                  PollutantsSection(measurement),
 
                   const SizedBox(
                     height: 10,
@@ -127,7 +127,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
 
                   // Recommendations
                   HealthRecommendationSection(
-                    measurement: measurementData,
+                    measurement: measurement,
                   ),
 
                   // historicalData
@@ -191,7 +191,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                   Container(
                       padding: const EdgeInsets.fromLTRB(0, 0, 0, 50),
                       constraints: const BoxConstraints.expand(height: 300.0),
-                      child: mapSection(measurementData)),
+                      child: mapSection(measurement)),
 
                   // LocationBarChart(),
                 ],
@@ -230,7 +230,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                     ),
                   )),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-      floatingActionButton: measurementData != null
+      floatingActionButton: measurement != null
           ? _showMenuButton
               ? bottomSheetMenu()
               : null
@@ -253,7 +253,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                   Padding(
                       padding: const EdgeInsets.all(1.0),
                       child: Text(
-                        '${site.getUserLocation()}',
+                        '${measurement.site.getUserLocation()}',
                         style: TextStyle(
                           fontSize: 20,
                           color: ColorConstants.appColor,
@@ -261,22 +261,24 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                         ),
                         textAlign: TextAlign.center,
                       )),
-                  if (site.getUserLocation() != site.getName())
+                  if (measurement.site.getUserLocation() !=
+                      measurement.site.getName())
                     Padding(
                         padding: const EdgeInsets.all(1.0),
                         child: Text(
-                          '${site.getName()}',
+                          '${measurement.site.getName()}',
                           style: TextStyle(
                             fontSize: 16,
                             color: ColorConstants.appColor,
                           ),
                           textAlign: TextAlign.center,
                         )),
-                  if (site.getUserLocation() == site.getName())
+                  if (measurement.site.getUserLocation() ==
+                      measurement.site.getName())
                     Padding(
                       padding: const EdgeInsets.all(1.0),
                       child: Text(
-                        '${site.getLocation()}',
+                        '${measurement.site.getLocation()}',
                         style: TextStyle(
                           fontSize: 16,
                           color: ColorConstants.appColor,
@@ -315,7 +317,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
   void checkDashboardView() async {
     var prefs = await SharedPreferences.getInstance();
     var dashboardSite = prefs.getString(PrefConstant.dashboardSite) ?? '';
-    if (dashboardSite == widget.site.id) {
+    if (dashboardSite == measurement.site.id) {
       setState(() {
         _isDashboardView = true;
       });
@@ -323,24 +325,22 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
   }
 
   Future<void> checkFavourite() async {
-    if (measurementData != null) {
+    if (measurement != null) {
       var prefs = await SharedPreferences.getInstance();
       var favourites = prefs.getStringList(PrefConstant.favouritePlaces) ?? [];
 
-      if (!favourites.contains(measurementData.site.id)) {
-        await DBHelper()
-            .addFavouritePlaces(measurementData.site)
-            .then((value) => {
-                  showSnackBar(
-                      context,
-                      '${measurementData.site.getUserLocation()}'
-                      ' has been added to your places')
-                });
+      if (!favourites.contains(measurement.site.id)) {
+        await DBHelper().addFavouritePlaces(measurement.site).then((value) => {
+              showSnackBar(
+                  context,
+                  '${measurement.site.getUserLocation()}'
+                  ' has been added to your places')
+            });
       }
 
       if (mounted) {
         setState(() {
-          isFavourite = favourites.contains(measurementData.site.id);
+          isFavourite = favourites.contains(measurement.site.id);
         });
       }
     }
@@ -379,7 +379,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
         ),
         ActionButton(
           onPressed: () {
-            shareMeasurement(measurementData);
+            shareMeasurement(measurement);
           },
           icon: const Icon(Icons.share_outlined),
         ),
@@ -408,28 +408,33 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
 
   void getForecastMeasurements() async {
     try {
-      await AirqoApiClient(context).fetchForecast(site).then((value) => {
-            if (value.isNotEmpty)
-              {
-                if (mounted)
-                  {
-                    setState(() {
-                      forecastData = value;
-                    })
-                  },
-                dbHelper.insertForecastMeasurements(value, site.id)
-              }
-            else
-              {
-                if (mounted)
-                  {
-                    setState(() {
-                      forecastResponse =
-                          'Sorry, we could\nt retrieve the forecast';
-                    })
-                  }
-              }
-          });
+      if (measurement != null) {
+        await AirqoApiClient(context)
+            .fetchForecastV2(measurement.deviceNumber)
+            .then((value) => {
+                  if (value.isNotEmpty)
+                    {
+                      if (mounted)
+                        {
+                          setState(() {
+                            forecastData = value;
+                          })
+                        },
+                      dbHelper.insertForecastMeasurements(
+                          value, measurement.site.id)
+                    }
+                  else
+                    {
+                      if (mounted)
+                        {
+                          setState(() {
+                            forecastResponse =
+                                'Sorry, we could\nt retrieve the forecast';
+                          })
+                        }
+                    }
+                });
+      }
     } catch (e) {
       if (mounted) {
         setState(() {
@@ -442,7 +447,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
   void getHistoricalMeasurements() async {
     try {
       await AirqoApiClient(context)
-          .fetchSiteHistoricalMeasurements(site)
+          .fetchSiteHistoricalMeasurements(measurement.site)
           .then((value) => {
                 if (value.isNotEmpty)
                   {
@@ -452,7 +457,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                           historicalData = value;
                         }),
                         dbHelper.insertSiteHistoricalMeasurements(
-                            value, site.id)
+                            value, measurement.site.id)
                       },
                   }
                 else
@@ -479,15 +484,16 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
   void getMeasurements() async {
     try {
       await AirqoApiClient(context)
-          .fetchSiteMeasurements(site)
+          .fetchSiteMeasurements(measurement.site)
           .then((value) => {
                 if (mounted)
                   {
                     setState(() {
-                      measurementData = value;
+                      measurement = value;
                     })
                   },
-                if (measurementData != null) {checkFavourite()}
+                if (measurement != null)
+                  {getForecastMeasurements(), checkFavourite()}
               });
     } catch (e) {
       var message = 'Sorry, air quality data could not be retrieved.'
@@ -562,7 +568,6 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
     await dbFetch();
     getMeasurements();
     getHistoricalMeasurements();
-    getForecastMeasurements();
   }
 
   void initializeNotifications() async {
@@ -571,14 +576,14 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
             {
               setState(() {
                 siteAlerts = value.getStringList(PrefConstant.siteAlerts) ?? [];
-                hazardousAlerts = siteAlerts
-                    .contains(site.getTopic(PollutantLevel.hazardous));
-                sensitiveAlerts = siteAlerts
-                    .contains(site.getTopic(PollutantLevel.sensitive));
-                unhealthyAlerts = siteAlerts
-                    .contains(site.getTopic(PollutantLevel.unhealthy));
-                veryUnhealthyAlerts = siteAlerts
-                    .contains(site.getTopic(PollutantLevel.veryUnhealthy));
+                hazardousAlerts = siteAlerts.contains(
+                    measurement.site.getTopic(PollutantLevel.hazardous));
+                sensitiveAlerts = siteAlerts.contains(
+                    measurement.site.getTopic(PollutantLevel.sensitive));
+                unhealthyAlerts = siteAlerts.contains(
+                    measurement.site.getTopic(PollutantLevel.unhealthy));
+                veryUnhealthyAlerts = siteAlerts.contains(
+                    measurement.site.getTopic(PollutantLevel.veryUnhealthy));
               })
             }
         });
@@ -592,7 +597,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
   }
 
   bool isChecked(PollutantLevel pollutantLevel) {
-    if (siteAlerts.contains(site.getTopic(pollutantLevel))) {
+    if (siteAlerts.contains(measurement.site.getTopic(pollutantLevel))) {
       return true;
     }
     return false;
@@ -600,17 +605,17 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
 
   void localFetch() async {
     try {
-      await dbHelper.getMeasurement(site.id).then((value) => {
+      await dbHelper.getMeasurement(measurement.site.id).then((value) => {
             if (value != null)
               {
                 if (mounted)
                   {
                     setState(() {
-                      measurementData = value;
+                      measurement = value;
                     })
                   }
               },
-            if (measurementData != null) {checkFavourite()}
+            if (measurement != null) {checkFavourite()}
           });
     } on Error catch (e) {
       print('Getting site events locally error: $e');
@@ -619,17 +624,19 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
 
   void localFetchForecastData() async {
     try {
-      await dbHelper.getForecastMeasurements(site.id).then((value) => {
-            if (value.isNotEmpty)
-              {
-                if (mounted)
+      await dbHelper
+          .getForecastMeasurements(measurement.site.id)
+          .then((value) => {
+                if (value.isNotEmpty)
                   {
-                    setState(() {
-                      forecastData = value;
-                    })
+                    if (mounted)
+                      {
+                        setState(() {
+                          forecastData = value;
+                        })
+                      }
                   }
-              }
-          });
+              });
     } on Error catch (e) {
       print('Getting forecast data locally error: $e');
     }
@@ -637,17 +644,19 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
 
   void localFetchHistoricalData() async {
     try {
-      await dbHelper.getHistoricalMeasurements(site.id).then((measurements) => {
-            if (measurements.isNotEmpty)
-              {
-                if (mounted)
+      await dbHelper
+          .getHistoricalMeasurements(measurement.site.id)
+          .then((measurements) => {
+                if (measurements.isNotEmpty)
                   {
-                    setState(() {
-                      historicalData = measurements;
-                    })
+                    if (mounted)
+                      {
+                        setState(() {
+                          historicalData = measurements;
+                        })
+                      }
                   }
-              }
-          });
+              });
     } on Error catch (e) {
       print('Getting historical data locally error: $e');
     }
@@ -696,15 +705,17 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
   }
 
   void updateAlerts(dynamic pollutantLevel) async {
-    await DBHelper().updateSiteAlerts(site, pollutantLevel).then((_) => {
-          initializeNotifications(),
-        });
+    await DBHelper()
+        .updateSiteAlerts(measurement.site, pollutantLevel)
+        .then((_) => {
+              initializeNotifications(),
+            });
   }
 
   Future<void> updateDashboardView(bool value) async {
     await SharedPreferences.getInstance().then((prefs) => {
           if (value)
-            {prefs.setString(PrefConstant.dashboardSite, widget.site.id)}
+            {prefs.setString(PrefConstant.dashboardSite, measurement.site.id)}
           else
             {prefs.setString(PrefConstant.dashboardSite, '')}
         });
@@ -717,7 +728,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
   }
 
   Future<void> updateFavouritePlace() async {
-    var fav = await dbHelper.updateFavouritePlaces(measurementData.site);
+    var fav = await dbHelper.updateFavouritePlaces(measurement.site);
 
     if (mounted) {
       setState(() {
@@ -728,12 +739,12 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
     if (fav) {
       await showSnackBarGoToMyPlaces(
           context,
-          '${measurementData.site.getName()} '
+          '${measurement.site.getName()} '
           'is added to your places');
     } else {
       await showSnackBar(
           context,
-          '${measurementData.site.getName()} '
+          '${measurement.site.getName()} '
           'is removed from your places');
     }
   }
@@ -804,7 +815,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
                     ListTile(
-                      title: Text('${site.getName()}',
+                      title: Text('${measurement.site.getName()}',
                           textAlign: TextAlign.center,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
@@ -944,7 +955,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                         IconButton(
                           onPressed: () {
                             Navigator.pop(context);
-                            reportPlace(site, context);
+                            reportPlace(measurement.site, context);
                           },
                           icon: Icon(Icons.report_problem_outlined,
                               color: ColorConstants.appColor),
@@ -969,7 +980,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                         IconButton(
                           onPressed: () {
                             Navigator.pop(context);
-                            shareMeasurement(measurementData);
+                            shareMeasurement(measurement);
                           },
                           icon: Icon(Icons.share_outlined,
                               color: ColorConstants.appColor),
@@ -979,7 +990,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                             Navigator.pop(context);
                             Navigator.push(context,
                                 MaterialPageRoute(builder: (context) {
-                              return AddPlaceAlertPage(site: widget.site);
+                              return AddPlaceAlertPage(site: measurement.site);
                             }));
                           },
                           icon: Icon(Icons.notifications_none_outlined,

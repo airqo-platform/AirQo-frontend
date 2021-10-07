@@ -200,7 +200,7 @@ class _ResourcesPageState extends State<ResourcesPage> {
                               Navigator.push(context,
                                   MaterialPageRoute(builder: (context) {
                                 return PlaceDetailsPage(
-                                    site: measurements[index].site);
+                                    measurement: measurements[index]);
                               }));
                             },
                             child: ListTile(

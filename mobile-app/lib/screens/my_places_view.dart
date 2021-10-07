@@ -110,7 +110,7 @@ class _MyPlacesViewState extends State<MyPlacesView> {
                                 itemBuilder: (context, index) =>
                                     GestureDetector(
                                   onTap: () {
-                                    viewDetails(results[index].site);
+                                    viewDetails(results[index]);
                                   },
                                   child: Slidable(
                                       actionPane:
@@ -199,9 +199,9 @@ class _MyPlacesViewState extends State<MyPlacesView> {
     return values;
   }
 
-  Future<void> viewDetails(Site site) async {
+  Future<void> viewDetails(Measurement measurement) async {
     await Navigator.push(context, MaterialPageRoute(builder: (context) {
-      return PlaceDetailsPage(site: site);
+      return PlaceDetailsPage(measurement: measurement);
     })).then((value) {
       setState(() {});
     });

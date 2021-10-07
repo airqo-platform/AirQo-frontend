@@ -64,43 +64,21 @@ class AirqoApiClient {
     return <Predict>[];
   }
 
-  Future<List<Predict>> fetchForecastV2(Site site) async {
+  Future<List<Predict>> fetchForecastV2(int channelId) async {
     try {
-      var dateTime =
-          DateFormat('yyyy-MM-dd HH:mm').format(DateTime.now().toUtc());
-      var body = {
-        'selected_datetime': dateTime,
-        'latitude': site.latitude,
-        'longitude': site.longitude
-      };
-      // DateTime.now().millisecondsSinceEpoch
-      // DateTime.now().toUtc().millisecondsSinceEpoch
-
       var url =
-          '${AirQoUrls().forecast}/${DateTime.now().millisecondsSinceEpoch}';
+          '${AirQoUrls().forecastV2}/$channelId/${DateTime.now().toUtc().millisecondsSinceEpoch}';
 
-      final response = await http.post(Uri.parse('${AirQoUrls().forecast}'),
-          headers: {'Content-Type': 'application/json'},
-          body: json.encode(body));
+      final responseBody = await _performGetRequest(<String, dynamic>{}, url);
 
-      if (response.statusCode == 200) {
-        var jsonBody =
-            json.decode(response.body)['formatted_results']['predictions'];
-
-        return compute(Predict.parsePredictions, jsonBody);
+      if (responseBody != null) {
+        return compute(Predict.parsePredictions, responseBody['predictions']);
       } else {
-        // print('Unexpected status code ${response.statusCode}:'
-        //     ' ${response.reasonPhrase}');
-        // print('Body ${response.body}:');
-        // print('uri: ${AirQoUrls().forecast}');
+        print('Predictions are null');
         return <Predict>[];
       }
-    } on SocketException {
-      await showSnackBar(context, ErrorMessages.socketException);
-    } on TimeoutException {
-      await showSnackBar(context, ErrorMessages.timeoutException);
-    } on Error {
-      print('Not Forecast information');
+    } on Error catch (e) {
+      print('Predictions error: $e');
     }
 
     return <Predict>[];
