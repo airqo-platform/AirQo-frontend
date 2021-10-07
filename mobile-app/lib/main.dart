@@ -248,8 +248,8 @@ class SplashScreenState extends State<SplashScreen> {
 
   @override
   void initState() {
-    initialize();
     super.initState();
+    initialize();
   }
 
   void reload() {

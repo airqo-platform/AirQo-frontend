@@ -586,9 +586,9 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
 
   @override
   void initState() {
+    super.initState();
     initialize();
     handleScroll();
-    super.initState();
   }
 
   bool isChecked(PollutantLevel pollutantLevel) {

@@ -32,28 +32,23 @@ class Site {
   @JsonKey(required: false, defaultValue: '')
   String userLocation = '';
 
-  Site(this.name,
-      {required this.id,
-      required this.latitude,
-      required this.longitude,
-      required this.district,
-      required this.country,
-      required this.description,
-      required this.distance});
+  Site(this.id, this.latitude, this.longitude, this.district, this.country,
+      this.name, this.description, this.distance, this.userLocation);
 
   factory Site.fromJson(Map<String, dynamic> json) => _$SiteFromJson(json);
 
   String getLocation() {
-    if (description == '') {
-      return name;
-    }
     return '$district $country';
   }
 
   String getName() {
-    if (description == '') {
-      if (name == '') {
-        return '$district $country';
+    if (description == '' ||
+        description.trim().toLowerCase() == 'null' ||
+        description.trim().toLowerCase().contains('null')) {
+      if (name == '' ||
+          name.trim().toLowerCase() == 'null' ||
+          name.trim().toLowerCase().contains('null')) {
+        return getLocation();
       }
       return name;
     }
@@ -61,17 +56,12 @@ class Site {
   }
 
   String getUserLocation() {
-    if (userLocation != '') {
-      return userLocation;
+    if (userLocation == '' ||
+        userLocation.trim().toLowerCase() == 'null' ||
+        userLocation.trim().toLowerCase().contains('null')) {
+      return getName();
     }
-    return getName();
-  }
-
-  String getUserLocationName() {
-    if (description == '') {
-      return name;
-    }
-    return description;
+    return userLocation;
   }
 
   Map<String, dynamic> toJson() => _$SiteToJson(this);

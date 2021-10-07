@@ -546,10 +546,10 @@ class MapPageState extends State<MapPage> {
 
   @override
   void initState() {
+    super.initState();
     _showInfoWindow = false;
     isLoading = true;
     getFavouritePlaces();
-    super.initState();
   }
 
   Future<void> loadTheme() async {

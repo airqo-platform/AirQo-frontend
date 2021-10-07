@@ -197,8 +197,8 @@ class _DashboardPageState extends State<DashboardPage> {
 
   @override
   void initState() {
-    initialize();
     super.initState();
+    initialize();
   }
 
   void updateCurrentLocation() async {

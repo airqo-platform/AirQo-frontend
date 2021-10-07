@@ -38,7 +38,7 @@ class LogoScreenState extends State<LogoScreen> {
 
   @override
   void initState() {
-    initialize();
     super.initState();
+    initialize();
   }
 }

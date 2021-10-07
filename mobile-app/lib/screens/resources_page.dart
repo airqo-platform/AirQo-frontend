@@ -98,8 +98,8 @@ class _ResourcesPageState extends State<ResourcesPage> {
 
   @override
   void initState() {
-    initialize();
     super.initState();
+    initialize();
   }
 
   Widget rankingWidget() {

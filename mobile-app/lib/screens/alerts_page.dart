@@ -157,8 +157,8 @@ class _AlertPageState extends State<AlertPage> {
 
   @override
   void initState() {
-    refreshData();
     super.initState();
+    refreshData();
   }
 
   Future<void> refreshData() async {

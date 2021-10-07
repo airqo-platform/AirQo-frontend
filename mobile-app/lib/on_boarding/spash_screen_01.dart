@@ -42,7 +42,7 @@ class TagLineScreenState extends State<TagLineScreen> {
 
   @override
   void initState() {
-    initialize();
     super.initState();
+    initialize();
   }
 }
