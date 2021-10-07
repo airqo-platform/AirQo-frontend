@@ -24,7 +24,6 @@ import 'add_place_alert_page.dart';
 import 'help_page.dart';
 
 class PlaceDetailsPage extends StatefulWidget {
-  // final Site site;
   final Measurement measurement;
 
   PlaceDetailsPage({Key? key, required this.measurement}) : super(key: key);
@@ -325,24 +324,22 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
   }
 
   Future<void> checkFavourite() async {
-    if (measurement != null) {
-      var prefs = await SharedPreferences.getInstance();
-      var favourites = prefs.getStringList(PrefConstant.favouritePlaces) ?? [];
+    var prefs = await SharedPreferences.getInstance();
+    var favourites = prefs.getStringList(PrefConstant.favouritePlaces) ?? [];
 
-      if (!favourites.contains(measurement.site.id)) {
-        await DBHelper().addFavouritePlaces(measurement.site).then((value) => {
-              showSnackBar(
-                  context,
-                  '${measurement.site.getUserLocation()}'
-                  ' has been added to your places')
-            });
-      }
+    if (!favourites.contains(measurement.site.id)) {
+      await DBHelper().addFavouritePlaces(measurement.site).then((value) => {
+            showSnackBar(
+                context,
+                '${measurement.site.getUserLocation()}'
+                ' has been added to your places')
+          });
+    }
 
-      if (mounted) {
-        setState(() {
-          isFavourite = favourites.contains(measurement.site.id);
-        });
-      }
+    if (mounted) {
+      setState(() {
+        isFavourite = favourites.contains(measurement.site.id);
+      });
     }
   }
 
@@ -408,33 +405,31 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
 
   void getForecastMeasurements() async {
     try {
-      if (measurement != null) {
-        await AirqoApiClient(context)
-            .fetchForecastV2(measurement.deviceNumber)
-            .then((value) => {
-                  if (value.isNotEmpty)
-                    {
-                      if (mounted)
-                        {
-                          setState(() {
-                            forecastData = value;
-                          })
-                        },
-                      dbHelper.insertForecastMeasurements(
-                          value, measurement.site.id)
-                    }
-                  else
-                    {
-                      if (mounted)
-                        {
-                          setState(() {
-                            forecastResponse =
-                                'Sorry, we could\nt retrieve the forecast';
-                          })
-                        }
-                    }
-                });
-      }
+      await AirqoApiClient(context)
+          .fetchForecastV2(measurement.deviceNumber)
+          .then((value) => {
+                if (value.isNotEmpty)
+                  {
+                    if (mounted)
+                      {
+                        setState(() {
+                          forecastData = value;
+                        })
+                      },
+                    dbHelper.insertForecastMeasurements(
+                        value, measurement.site.id)
+                  }
+                else
+                  {
+                    if (mounted)
+                      {
+                        setState(() {
+                          forecastResponse =
+                              'Sorry, we could\nt retrieve the forecast';
+                        })
+                      }
+                  }
+              });
     } catch (e) {
       if (mounted) {
         setState(() {
@@ -465,8 +460,8 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                     if (mounted)
                       {
                         setState(() {
-                          historicalResponse =
-                              'Sorry, we could\nt retrieve historical readings.';
+                          historicalResponse = 'Sorry, we could\nt '
+                              'retrieve historical readings.';
                         })
                       }
                   }
@@ -490,10 +485,9 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                   {
                     setState(() {
                       measurement = value;
-                    })
+                    }),
+                    checkFavourite()
                   },
-                if (measurement != null)
-                  {getForecastMeasurements(), checkFavourite()}
               });
     } catch (e) {
       var message = 'Sorry, air quality data could not be retrieved.'
@@ -567,6 +561,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
     // initializeNotifications();
     await dbFetch();
     getMeasurements();
+    getForecastMeasurements();
     getHistoricalMeasurements();
   }
 
@@ -613,9 +608,9 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                     setState(() {
                       measurement = value;
                     })
-                  }
+                  },
+                checkFavourite()
               },
-            if (measurement != null) {checkFavourite()}
           });
     } on Error catch (e) {
       print('Getting site events locally error: $e');
@@ -888,62 +883,6 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                             fontWeight: FontWeight.w600),
                       ),
                     ),
-
-                    // ListTile(
-                    //   leading: Icon(Icons.notification_important_outlined,
-                    //       color: ColorConstants.appColor),
-                    //   title: Text(
-                    //     'Notify me when air quality is ;',
-                    //     style: TextStyle(
-                    //         color: ColorConstants.appColor,
-                    //         fontWeight: FontWeight.w600),
-                    //   ),
-                    // ),
-                    // ListTile(
-                    //   leading: const Icon(Icons.notification_important_outlined,
-                    //       color: Colors.transparent),
-                    //   title: Text('unhealthy for sensitive groups',
-                    //       style: TextStyle(color: ColorConstants.appColor)),
-                    //   trailing: PlaceMenuSwitch(
-                    //     switchValue: sensitiveAlerts,
-                    //     valueChanged: updateAlerts,
-                    //     pollutantLevel: PollutantLevel.sensitive,
-                    //   ),
-                    // ),
-                    // ListTile(
-                    //   leading: const Icon(Icons.notification_important_outlined,
-                    //       color: Colors.transparent),
-                    //   title: Text('unhealthy',
-                    //       style: TextStyle(color: ColorConstants.appColor)),
-                    //   trailing: PlaceMenuSwitch(
-                    //     switchValue: unhealthyAlerts,
-                    //     valueChanged: updateAlerts,
-                    //     pollutantLevel: PollutantLevel.unhealthy,
-                    //   ),
-                    // ),
-                    // ListTile(
-                    //   leading: const Icon(Icons.notification_important_outlined,
-                    //       color: Colors.transparent),
-                    //   title: Text('very unhealthy',
-                    //       style: TextStyle(color: ColorConstants.appColor)),
-                    //   trailing: PlaceMenuSwitch(
-                    //     switchValue: veryUnhealthyAlerts,
-                    //     valueChanged: updateAlerts,
-                    //     pollutantLevel: PollutantLevel.veryUnhealthy,
-                    //   ),
-                    // ),
-                    // ListTile(
-                    //   leading: const Icon(Icons.notification_important_outlined,
-                    //       color: Colors.transparent),
-                    //   title: Text('hazardous',
-                    //       style: TextStyle(color: ColorConstants.appColor)),
-                    //   trailing: PlaceMenuSwitch(
-                    //     switchValue: hazardousAlerts,
-                    //     valueChanged: updateAlerts,
-                    //     pollutantLevel: PollutantLevel.hazardous,
-                    //   ),
-                    // ),
-
                     Divider(
                       indent: 30,
                       endIndent: 30,

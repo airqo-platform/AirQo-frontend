@@ -66,10 +66,11 @@ class AirqoApiClient {
 
   Future<List<Predict>> fetchForecastV2(int channelId) async {
     try {
-      var url =
-          '${AirQoUrls().forecastV2}/$channelId/${DateTime.now().toUtc().millisecondsSinceEpoch}';
+      var startTime = DateTime.now().millisecondsSinceEpoch / 1000;
 
-      final responseBody = await _performGetRequest(<String, dynamic>{}, url);
+      var url = '${AirQoUrls().forecastV2}$channelId/${startTime.round()}';
+
+      final responseBody = await _performGetRequestV2(<String, dynamic>{}, url);
 
       if (responseBody != null) {
         return compute(Predict.parsePredictions, responseBody['predictions']);
@@ -199,7 +200,7 @@ class AirqoApiClient {
       Site site) async {
     try {
       var nowUtc = DateTime.now().toUtc();
-      var startTimeUtc = nowUtc.subtract(const Duration(hours: 48));
+      var startTimeUtc = nowUtc.subtract(const Duration(hours: 24));
 
       var time = '${startTimeUtc.hour}';
       if ('$time'.length == 1) {
@@ -471,6 +472,47 @@ class AirqoApiClient {
         // print('uri: $url');
         return null;
       }
+    } on SocketException {
+      await showSnackBar(context, ErrorMessages.socketException);
+    } on TimeoutException {
+      await showSnackBar(context, ErrorMessages.timeoutException);
+    } on Error {
+      await showSnackBar(context, ErrorMessages.appException);
+    }
+
+    return null;
+  }
+
+  Future<dynamic> _performGetRequestV2(
+      Map<String, dynamic> queryParams, String url) async {
+    try {
+      if (queryParams.isNotEmpty) {
+        url = '$url?';
+        queryParams.forEach((key, value) {
+          if (queryParams.keys.elementAt(0).compareTo(key) == 0) {
+            url = '$url$key=$value';
+          } else {
+            url = '$url&$key=$value';
+          }
+        });
+      }
+
+      Map<String, String> headers = HashMap()
+        ..putIfAbsent('Authorization', () => 'JWT ${AppConfig.airQoApiKey}');
+
+      final response = await http.get(Uri.parse(url), headers: headers);
+      return json.decode(response.body);
+
+      // if (response.statusCode == 200) {
+      //   return json.decode(response.body);
+      // } else {
+      //   print(response.statusCode);
+      //   print('Unexpected status code ${response.statusCode}:'
+      //       ' ${response.reasonPhrase}');
+      //   // print('Body ${response.body}:');
+      //   // print('uri: $url');
+      //   return null;
+      // }
     } on SocketException {
       await showSnackBar(context, ErrorMessages.socketException);
     } on TimeoutException {

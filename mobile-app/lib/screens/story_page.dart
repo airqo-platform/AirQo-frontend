@@ -27,9 +27,8 @@ class _StoryPageState extends State<StoryPage> {
         leading: BackButton(color: ColorConstants.appColor),
         title: Text(
           '${AppConfig.name}',
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(
+              fontWeight: FontWeight.bold, color: ColorConstants.appColor),
         ),
         actions: [],
       ),
