@@ -1,8 +1,6 @@
 import React, { useEffect } from "react";
 import { useHistory, useRouteMatch, useLocation } from "react-router-dom";
 import { makeStyles } from "@material-ui/styles";
-import AppBar from "@material-ui/core/AppBar";
-import Toolbar from "@material-ui/core/Toolbar";
 import Typography from "@material-ui/core/Typography";
 import Tabs from "@material-ui/core/Tabs";
 import Tab from "@material-ui/core/Tab";
@@ -33,13 +31,15 @@ const a11yProps = (index) => {
 const useStyles = makeStyles((theme) => ({
   root: {
     backgroundColor: theme.palette.background.paper,
+    position: "sticky",
+    top: "64px",
+    zIndex: 10000,
   },
   wrapper: {
     flexDirection: "row",
   },
   margin: {
-    width: "96%",
-    margin: "2vh 0",
+    width: "100%",
   },
   appBar: {
     position: "relative",
@@ -51,7 +51,9 @@ const useStyles = makeStyles((theme) => ({
   },
   tab: {
     width: "220px",
-    fontSize: "14px",
+    fontSize: "12px",
+    minHeight: "50px",
+    height: "50px",
   },
   title: {
     color: "#3f51b5",
@@ -175,13 +177,19 @@ export const DeviceToolBar = ({ deviceName }) => {
         </div>
       </Hidden>
       <Hidden mdDown>
-        <AppBar className={classes.appBar} color="default">
-          <Toolbar>
+        <div>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              border: "1px solid #eeeeee",
+            }}
+          >
             <ArrowBackIosRounded
               style={{ color: "#3f51b5", cursor: "pointer" }}
               onClick={() => history.push(goBackUrl)}
             />
-            <Typography variant="h2" className={classes.title}>
+            <Typography variant="h3" className={classes.title}>
               {deviceName}
             </Typography>
             <Tabs
@@ -217,8 +225,8 @@ export const DeviceToolBar = ({ deviceName }) => {
                 {...a11yProps(5)}
               />
             </Tabs>
-          </Toolbar>
-        </AppBar>
+          </div>
+        </div>
       </Hidden>
     </div>
   );
