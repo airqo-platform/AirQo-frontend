@@ -42,14 +42,14 @@ class ParallaxImage extends StatelessWidget {
     return Container(
       child: Center(
         child: SizedBox(
-          width: size * ((scale * 0.8) + 0.8),
-          height: size * ((scale * 0.2) + 0.2),
+          width: size * ((scale * 0.6) + 0.6),
+          height: size * ((scale * 0.1) + 0.1),
           child: ClipRRect(
             borderRadius: const BorderRadius.all(Radius.circular(20)),
             child: Image.asset(
               recommendation.imageUrl,
               height: size * ((scale * 0.2) + 0.1),
-              width: size * ((scale * 0.8) + 0.4),
+              width: size * ((scale * 0.6) + 0.2),
               alignment: Alignment(horizontalSlide, 1),
             ),
           ),
@@ -98,7 +98,7 @@ class _HealthRecommendationSectionState
                 ),
                 elevation: 0.0,
                 child: Padding(
-                  padding: const EdgeInsets.all(8.0),
+                  padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
                   child: GestureDetector(
                     onTap: () {
                       openRecommendation(recommendations[index]);
@@ -113,13 +113,16 @@ class _HealthRecommendationSectionState
               ),
             ),
           ),
-          Text(
-            '$recommendation',
-            softWrap: true,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 15,
-              color: ColorConstants.appColor,
+          Padding(
+            padding: const EdgeInsets.only(left: 8.0, right: 8.0),
+            child: Text(
+              '$recommendation',
+              softWrap: true,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 15,
+                color: ColorConstants.appColor,
+              ),
             ),
           ),
         ],
@@ -183,7 +186,7 @@ class _HealthRecommendationSliderState
                 children: [
                   SizedBox(
                     child: Padding(
-                      padding: const EdgeInsets.all(16.0),
+                      padding: const EdgeInsets.all(8.0),
                       child: ParallaxImage(
                         recommendation: recommendations[index],
                         horizontalSlide: (index - page).clamp(-1, 1).toDouble(),

@@ -52,6 +52,9 @@ class Site {
 
   String getName() {
     if (description == '') {
+      if (name == '') {
+        return '$district $country';
+      }
       return name;
     }
     return description;

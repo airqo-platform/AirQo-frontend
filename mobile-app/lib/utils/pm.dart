@@ -97,7 +97,7 @@ List<Recommendation> getHealthRecommendations(double pm2_5) {
     recommendations
       ..add(Recommendation(
           'People with respiratory or heart disease,'
-              ' the elderly and children should avoid prolonged exertion;',
+              ' the elderly and children should avoid prolonged exertion.',
           'assets/images/old.png',
           ColorConstants.green.withOpacity(0.2)))
       ..add(Recommendation('Everyone else should limit prolonged exertion.',

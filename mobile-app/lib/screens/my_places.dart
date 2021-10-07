@@ -28,6 +28,7 @@ class _MyPlacesState extends State<MyPlaces> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: ColorConstants.appBarBgColor,
         leading: BackButton(color: ColorConstants.appColor),
         elevation: 0.0,
         title: isSearching
@@ -55,8 +56,9 @@ class _MyPlacesState extends State<MyPlaces> {
               ),
         actions: [
           IconButton(
-            icon: const Icon(
+            icon: Icon(
               Icons.add_circle_outline_outlined,
+              color: ColorConstants.appColor,
             ),
             onPressed: () async {
               await showSearch(

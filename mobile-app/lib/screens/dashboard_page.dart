@@ -38,32 +38,23 @@ class _DashboardPageState extends State<DashboardPage> {
               onRefresh: _getLatestMeasurements,
               color: ColorConstants.appColor,
               child: Padding(
-                padding: EdgeInsets.all(10.0),
+                padding: const EdgeInsets.all(0.0),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    // Padding(padding: const EdgeInsets.fromLTRB(5.0, 5.0, 0, 5.0),
-                    //   child: Text(getGreetings(),
-                    //     textAlign: TextAlign.start,
-                    //     style: const TextStyle(
-                    //         fontSize: 30,
-                    //         fontWeight: FontWeight.bold
-                    //     ),),
-                    // ),
-
                     Expanded(
                       child: ListView(
                         shrinkWrap: true,
                         children: <Widget>[
                           Padding(
                             padding:
-                                const EdgeInsets.fromLTRB(5.0, 0.0, 0.0, 0.0),
+                                const EdgeInsets.fromLTRB(15.0, 0.0, 0.0, 0.0),
                             child: Text(
                               getGreetings(),
                               textAlign: TextAlign.start,
                               style: const TextStyle(
-                                  fontSize: 25, fontWeight: FontWeight.bold),
+                                  fontSize: 20, fontWeight: FontWeight.bold),
                             ),
                           ),
                           CurrentLocationCard(

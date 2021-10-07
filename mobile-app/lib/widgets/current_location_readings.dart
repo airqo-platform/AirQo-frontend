@@ -38,20 +38,26 @@ class CurrentLocationCard extends StatelessWidget {
       padding: const EdgeInsets.all(0),
       child: Column(
         children: [
-          Card(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-            ),
-            elevation: 10,
-            child: Padding(
-              padding: const EdgeInsets.all(5.0),
-              child: titleSection(context),
+          Padding(
+            padding: EdgeInsets.only(left: 10, right: 10),
+            child: Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              elevation: 10,
+              child: Padding(
+                padding: const EdgeInsets.all(5.0),
+                child: titleSection(context),
+              ),
             ),
           ),
           const SizedBox(
             height: 20,
           ),
-          PollutantsSection(measurementData),
+          Padding(
+            padding: EdgeInsets.only(left: 10, right: 10),
+            child: PollutantsSection(measurementData),
+          ),
           const SizedBox(
             height: 10,
           ),
@@ -62,28 +68,37 @@ class CurrentLocationCard extends StatelessWidget {
             height: 10,
           ),
           if (historicalData.isNotEmpty)
-            Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-              elevation: 10,
-              child: Padding(
-                padding: const EdgeInsets.all(5.0),
-                child: historySection(),
+            Padding(
+              padding: EdgeInsets.only(left: 10, right: 10),
+              child: Card(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                elevation: 10,
+                child: Padding(
+                  padding: const EdgeInsets.all(5.0),
+                  child: historySection(),
+                ),
               ),
             ),
           if (forecastData.isNotEmpty)
-            Card(
-              elevation: 10,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
+            Padding(
+              padding: EdgeInsets.only(left: 10, right: 10),
+              child: Card(
+                elevation: 10,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: forecastSection(),
               ),
-              child: forecastSection(),
             ),
           SizedBox(
             height: 300.0,
-            child: mapSection(measurementData),
-          )
+            child: Padding(
+              padding: EdgeInsets.only(left: 10, right: 10),
+              child: mapSection(measurementData),
+            ),
+          ),
         ],
       ),
     );

@@ -92,7 +92,7 @@ class PollutantCard extends StatelessWidget {
     } else if (type == PollutantConstant.pm10) {
       infoDialog(context, PollutantBio.pm10);
     } else {
-      infoDialog(context, PollutantBio.pm2_5);
+      return;
     }
   }
 }

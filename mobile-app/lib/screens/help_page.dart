@@ -16,6 +16,7 @@ class HelpPage extends StatelessWidget {
       length: 3,
       child: Scaffold(
         appBar: AppBar(
+          backgroundColor: ColorConstants.appBarBgColor,
           leading: BackButton(color: ColorConstants.appColor),
           elevation: 0,
           bottom: TabBar(
@@ -49,9 +50,11 @@ class HelpPage extends StatelessWidget {
               // )),
             ],
           ),
-          title: const Text(
+          title: Text(
             'Help Guides',
-            style: TextStyle(fontWeight: FontWeight.bold),
+            style: TextStyle(
+                color: ColorConstants.appBarTitleColor,
+                fontWeight: FontWeight.bold),
           ),
         ),
         body: TabBarView(

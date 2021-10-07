@@ -130,4 +130,26 @@ class LocationApi {
       return null;
     }
   }
+
+  Future<List<Measurement>> getNearestSites(
+      double latitude, double longitude) async {
+    var nearestSites = <Measurement>[];
+    double distanceInMeters;
+
+    var latestMeasurements = await DBHelper().getLatestMeasurements();
+
+    for (var measurement in latestMeasurements) {
+      distanceInMeters = metersToKmDouble(Geolocator.distanceBetween(
+          measurement.site.latitude,
+          measurement.site.longitude,
+          latitude,
+          longitude));
+      if (distanceInMeters < AppConfig.maxSearchRadius.toDouble()) {
+        measurement.site.distance = distanceInMeters;
+        nearestSites.add(measurement);
+      }
+    }
+
+    return nearestSites;
+  }
 }

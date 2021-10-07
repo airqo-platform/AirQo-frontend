@@ -20,6 +20,7 @@ import 'package:flutter/rendering.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'add_place_alert_page.dart';
 import 'help_page.dart';
 
 class PlaceDetailsPage extends StatefulWidget {
@@ -86,11 +87,13 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
+        backgroundColor: ColorConstants.appBarBgColor,
         leading: BackButton(color: ColorConstants.appColor),
         title: Text(
           '${AppConfig.name}',
-          style: const TextStyle(
+          style: TextStyle(
             fontWeight: FontWeight.bold,
+            color: ColorConstants.appBarTitleColor,
           ),
         ),
         actions: [
@@ -200,6 +203,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                   child: Center(
                     child: Text(
                       response,
+                      textAlign: TextAlign.center,
                       style: TextStyle(color: ColorConstants.appColor),
                     ),
                   ))
@@ -554,7 +558,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
 
   Future<void> initialize() async {
     checkDashboardView();
-    initializeNotifications();
+    // initializeNotifications();
     await dbFetch();
     getMeasurements();
     getHistoricalMeasurements();
@@ -968,6 +972,17 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                             shareMeasurement(measurementData);
                           },
                           icon: Icon(Icons.share_outlined,
+                              color: ColorConstants.appColor),
+                        ),
+                        IconButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            Navigator.push(context,
+                                MaterialPageRoute(builder: (context) {
+                              return AddPlaceAlertPage(site: widget.site);
+                            }));
+                          },
+                          icon: Icon(Icons.notifications_none_outlined,
                               color: ColorConstants.appColor),
                         ),
                       ],

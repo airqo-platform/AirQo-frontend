@@ -11,6 +11,9 @@ ThemeData lightTheme() {
     accentColor: ColorConstants.appColor,
     backgroundColor: Colors.white,
     visualDensity: VisualDensity.adaptivePlatformDensity,
+    scaffoldBackgroundColor: Colors.white,
+    appBarTheme: base.appBarTheme
+        .copyWith(backgroundColor: Colors.white, elevation: 0.0),
     textTheme: ThemeData.light().textTheme.apply(
           fontFamily: 'OpenSans',
           bodyColor: ColorConstants.appColor,
@@ -30,6 +33,5 @@ ThemeData lightTheme() {
     iconTheme: IconThemeData(
       color: ColorConstants.appColor,
     ),
-    appBarTheme: const AppBarTheme(elevation: 0.0),
   );
 }

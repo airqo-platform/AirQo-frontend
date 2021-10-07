@@ -134,19 +134,19 @@ class _HomePageState extends State<HomePage> {
               //         )),
               //   ),
               // ),
-              PopupMenuItem<String>(
-                value: 'camera',
-                child: ListTile(
-                  leading: Icon(
-                    Icons.camera_alt_outlined,
-                    color: ColorConstants.appColor,
-                  ),
-                  title: Text('AQI Camera',
-                      style: TextStyle(
-                        color: ColorConstants.appColor,
-                      )),
-                ),
-              ),
+              // PopupMenuItem<String>(
+              //   value: 'camera',
+              //   child: ListTile(
+              //     leading: Icon(
+              //       Icons.camera_alt_outlined,
+              //       color: ColorConstants.appColor,
+              //     ),
+              //     title: Text('AQI Camera',
+              //         style: TextStyle(
+              //           color: ColorConstants.appColor,
+              //         )),
+              //   ),
+              // ),
               // PopupMenuItem<String>(
               //   value: 'Settings',
               //   child: ListTile(
@@ -160,7 +160,7 @@ class _HomePageState extends State<HomePage> {
               //     ),
               //   ),
               // ),
-              const PopupMenuDivider(),
+              // const PopupMenuDivider(),
               PopupMenuItem<String>(
                 value: 'Share',
                 child: ListTile(
@@ -283,7 +283,7 @@ class _HomePageState extends State<HomePage> {
         // width: 60.0,
         child: FittedBox(
           child: FloatingActionButton(
-              mini: true,
+              mini: false,
               backgroundColor: Colors.white,
               onPressed: () {
                 Navigator.push(context, MaterialPageRoute(builder: (context) {
