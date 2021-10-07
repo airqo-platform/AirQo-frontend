@@ -50,9 +50,9 @@ class AqiDialog extends StatelessWidget {
           'pollutants including PM2.5, PM10, NO2 and Ozone.',
           softWrap: true,
           style: TextStyle(
-              fontSize: 17,
+              // fontSize: 17,
               fontWeight: FontWeight.w500,
-              height: 1.2,
+              height: 1.7,
               color: ColorConstants.appColor
               // letterSpacing: 1.0
               )));
@@ -84,9 +84,8 @@ class AqiDialog extends StatelessWidget {
                       softWrap: true,
                       textAlign: TextAlign.start,
                       style: TextStyle(
-                        height: 1.2,
+                        height: 1.7,
                         color: ColorConstants.appColor,
-                        fontSize: 17,
                         fontWeight: FontWeight.bold,
                         // letterSpacing: 1.0
                       )),
@@ -94,9 +93,8 @@ class AqiDialog extends StatelessWidget {
                       softWrap: true,
                       textAlign: TextAlign.start,
                       style: TextStyle(
-                        height: 1.2,
+                        height: 1.7,
                         color: ColorConstants.appColor,
-                        fontSize: 17,
                         fontWeight: FontWeight.w500,
                         // letterSpacing: 1.0
                       ))

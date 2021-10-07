@@ -197,9 +197,9 @@ class _ResourcesPageState extends State<ResourcesPage> {
                         onTap: () {
                           Navigator.push(context,
                               MaterialPageRoute(builder: (context) {
-                                return PlaceDetailsPage(
-                                    measurement: measurements[index]);
-                              }));
+                            return PlaceDetailsPage(
+                                measurement: measurements[index]);
+                          }));
                         },
                         child: ListTile(
                           trailing: ClipRRect(
@@ -209,31 +209,29 @@ class _ResourcesPageState extends State<ResourcesPage> {
                                 height: 40,
                                 color: pollutant == 'pm2.5'
                                     ? pmToColor(
-                                    measurements[index].getPm2_5Value())
+                                        measurements[index].getPm2_5Value())
                                     : ColorConstants.inactiveColor
-                                    .withOpacity(0.1),
+                                        .withOpacity(0.1),
                                 padding: const EdgeInsets.all(5),
                                 child: Center(
                                   child: pollutant == 'pm2.5'
                                       ? Text(
-                                    '${measurements[index].getPm2_5Value()}',
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                        color: pmTextColor(
-                                            measurements[index]
-                                                .getPm2_5Value())),
-                                  )
+                                          '${measurements[index].getPm2_5Value()}',
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                              color: pmTextColor(
+                                                  measurements[index]
+                                                      .getPm2_5Value())),
+                                        )
                                       : Text(
-                                    '${measurements[index].getPm10Value()}',
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                        color:
-                                        ColorConstants.appColor),
-                                  ),
+                                          '${measurements[index].getPm10Value()}',
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                              color: ColorConstants.appColor),
+                                        ),
                                 )),
                           ),
-                          title:
-                          Text('${measurements[index].site.getName()}',
+                          title: Text('${measurements[index].site.getName()}',
                               overflow: TextOverflow.ellipsis,
                               maxLines: 3,
                               style: TextStyle(
@@ -241,13 +239,13 @@ class _ResourcesPageState extends State<ResourcesPage> {
                                 color: ColorConstants.appColor,
                                 fontWeight: FontWeight.bold,
                               )),
-                          subtitle: Text(
-                              '${measurements[index].site.getLocation()}',
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: ColorConstants.appColor,
-                              )),
+                          subtitle:
+                              Text('${measurements[index].site.getLocation()}',
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: ColorConstants.appColor,
+                                  )),
                         ),
                       ),
                       itemCount: measurements.length,

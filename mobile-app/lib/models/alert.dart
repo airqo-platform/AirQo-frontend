@@ -4,9 +4,9 @@ import 'package:json_annotation/json_annotation.dart';
 part 'alert.g.dart';
 
 String getAirQuality(String quality) {
-  if (quality == 'veryUnhealthy') {
+  if (quality.trim().toLowerCase() == 'veryunhealthy') {
     return 'very unhealthy';
-  } else if (quality == 'ufsg') {
+  } else if (quality.trim().toLowerCase() == 'ufsg') {
     return 'unhealthy for sensitive groups';
   } else {
     return quality;
@@ -89,8 +89,7 @@ extension ParseAirQuality on AirQuality {
 extension ParseAlert on Alert {
   String getAlertString() {
     if (type.toString().toLowerCase() == 'fixeddaily') {
-      return 'Daily at around ${getTime(hour +
-          DateTime.now().timeZoneOffset.inHours)}';
+      return 'Daily at around ${getTime(hour + DateTime.now().timeZoneOffset.inHours)}';
     } else {
       return 'When air quality is ${getAirQuality(airQuality)}';
     }

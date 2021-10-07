@@ -136,11 +136,11 @@ class PollutantBio {
       ' not always reported worldwide';
 
   static String get pm2_5 => 'PM 2.5 are pollutants'
-      ' smaller than 2.5 micrometers (20–30 times '
-      'smaller than the thickness of a human hair.\n'
+      ' about 2.5 micrometers (20–30 times '
+      'smaller than the thickness of a human hair.)\n'
       'Once in the bloodstream, they can contribute to cancers, '
       'cardiovascular problems, affect brain function and as well as '
-      'developmental issues for growing children. They have '
+      'cause developmental issues for growing children.\nThey have '
       'also increasingly been implicated in contributing to the spread '
       'of COVID-19';
 
