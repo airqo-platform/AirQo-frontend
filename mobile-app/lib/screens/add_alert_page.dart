@@ -506,7 +506,6 @@ class _AddAlertPageState extends State<AddAlertPage> {
       setState(() {
         _selectedTime = newTime;
       });
-      print(_selectedTime.hour);
     }
   }
 }
