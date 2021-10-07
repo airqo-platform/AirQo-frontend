@@ -461,7 +461,7 @@ class _AddAlertPageState extends State<AddAlertPage> {
           _selectedTime.hour - DateTime.now().timeZoneOffset.inHours,
           _airQuality.getString(),
           selectedSite.site.getName());
-      var saved = CloudStore().saveAlert(alert);
+      var saved = await CloudStore().saveAlert(alert);
 
       if (saved) {
         await showSnackBar(
@@ -479,7 +479,7 @@ class _AddAlertPageState extends State<AddAlertPage> {
         await showSnackBar(
             context,
             'Sorry, we couldn\'t save your alert.'
-            ' Try again later');
+            ' Check your internet connection and try again.');
       }
     } else {
       await showSnackBar(

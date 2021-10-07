@@ -173,17 +173,22 @@ class _AlertPageState extends State<AlertPage> {
   }
 
   Future<void> removeFromAlerts(Alert alert) async {
-    CloudStore().deleteAlert(alert);
-
-    await DBHelper().deleteAlert(alert).then((value) => {
-          showSnackBar(
-              context,
-              'Alerts for ${alert.siteName}'
-              ' have been removed.')
-        });
-
-    if (mounted) {
-      await refreshData();
+    var isDeleted = await CloudStore().deleteAlert(alert);
+    if (isDeleted) {
+      await DBHelper().deleteAlert(alert).then((value) => {
+            showSnackBar(
+                context,
+                'Alerts for ${alert.siteName}'
+                ' have been removed.')
+          });
+      if (mounted) {
+        await refreshData();
+      }
+    } else {
+      await showSnackBar(
+          context,
+          'Sorry, we couldn\'t save your alert.'
+          ' Check your internet connection and try again.');
     }
   }
 

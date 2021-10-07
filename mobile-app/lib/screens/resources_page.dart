@@ -192,64 +192,68 @@ class _ResourcesPageState extends State<ResourcesPage> {
                     color: ColorConstants.appColor,
                   ),
                   Expanded(
-                    child: ListView.builder(
-                      itemBuilder: (context, index) => GestureDetector(
-                        onTap: () {
-                          Navigator.push(context,
-                              MaterialPageRoute(builder: (context) {
-                            return PlaceDetailsPage(
-                                site: measurements[index].site);
-                          }));
-                        },
-                        child: ListTile(
-                          trailing: ClipRRect(
-                            borderRadius: BorderRadius.circular(10),
-                            child: Container(
-                                width: 70,
-                                height: 40,
-                                color: pollutant == 'pm2.5'
-                                    ? pmToColor(
-                                        measurements[index].getPm2_5Value())
-                                    : ColorConstants.inactiveColor
-                                        .withOpacity(0.1),
-                                padding: const EdgeInsets.all(5),
-                                child: Center(
-                                  child: pollutant == 'pm2.5'
-                                      ? Text(
-                                          '${measurements[index].getPm2_5Value()}',
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(
-                                              color: pmTextColor(
-                                                  measurements[index]
-                                                      .getPm2_5Value())),
-                                        )
-                                      : Text(
-                                          '${measurements[index].getPm10Value()}',
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(
-                                              color: ColorConstants.appColor),
-                                        ),
-                                )),
-                          ),
-                          title: Text('${measurements[index].site.getName()}',
-                              overflow: TextOverflow.ellipsis,
-                              maxLines: 3,
-                              style: TextStyle(
-                                fontSize: 15,
-                                color: ColorConstants.appColor,
-                                fontWeight: FontWeight.bold,
-                              )),
-                          subtitle:
-                              Text('${measurements[index].site.getLocation()}',
+                    child: RefreshIndicator(
+                        onRefresh: refresh,
+                        child: ListView.builder(
+                          itemBuilder: (context, index) => GestureDetector(
+                            onTap: () {
+                              Navigator.push(context,
+                                  MaterialPageRoute(builder: (context) {
+                                return PlaceDetailsPage(
+                                    site: measurements[index].site);
+                              }));
+                            },
+                            child: ListTile(
+                              trailing: ClipRRect(
+                                borderRadius: BorderRadius.circular(10),
+                                child: Container(
+                                    width: 70,
+                                    height: 40,
+                                    color: pollutant == 'pm2.5'
+                                        ? pmToColor(
+                                            measurements[index].getPm2_5Value())
+                                        : ColorConstants.inactiveColor
+                                            .withOpacity(0.1),
+                                    padding: const EdgeInsets.all(5),
+                                    child: Center(
+                                      child: pollutant == 'pm2.5'
+                                          ? Text(
+                                              '${measurements[index].getPm2_5Value()}',
+                                              textAlign: TextAlign.center,
+                                              style: TextStyle(
+                                                  color: pmTextColor(
+                                                      measurements[index]
+                                                          .getPm2_5Value())),
+                                            )
+                                          : Text(
+                                              '${measurements[index].getPm10Value()}',
+                                              textAlign: TextAlign.center,
+                                              style: TextStyle(
+                                                  color:
+                                                      ColorConstants.appColor),
+                                            ),
+                                    )),
+                              ),
+                              title:
+                                  Text('${measurements[index].site.getName()}',
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 3,
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        color: ColorConstants.appColor,
+                                        fontWeight: FontWeight.bold,
+                                      )),
+                              subtitle: Text(
+                                  '${measurements[index].site.getLocation()}',
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: ColorConstants.appColor,
                                   )),
-                        ),
-                      ),
-                      itemCount: measurements.length,
-                    ),
+                            ),
+                          ),
+                          itemCount: measurements.length,
+                        )),
                   ),
                 ],
               )));

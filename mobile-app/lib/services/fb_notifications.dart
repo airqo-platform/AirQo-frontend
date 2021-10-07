@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/alert.dart';
 import 'package:app/models/site.dart';
@@ -8,22 +10,60 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'local_notifications.dart';
 
 class CloudStore {
-  bool deleteAlert(Alert alert) {
-    FirebaseFirestore.instance
-        .collection(CloudStorage.alertsCollection)
-        .doc(alert.getAlertDbId())
-        .delete();
+  Future<bool> deleteAlert(Alert alert) async {
+    var hasConnection = await isConnected();
+    if (hasConnection) {
+      await FirebaseFirestore.instance
+          .collection(CloudStorage.alertsCollection)
+          .doc(alert.getAlertDbId())
+          .delete();
 
-    return true;
+      return true;
+    } else {
+      return false;
+    }
   }
 
-  bool saveAlert(Alert alert) {
-    FirebaseFirestore.instance
-        .collection(CloudStorage.alertsCollection)
-        .doc(alert.getAlertDbId())
-        .set(alert.toJson());
+  Future<bool> isConnected() async {
+    try {
+      final result = await InternetAddress.lookup('firebase.google.com');
+      if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+        return true;
+      }
+      return false;
+    } on SocketException catch (_) {
+      return false;
+    }
+  }
 
-    return true;
+  Future<bool> saveAlert(Alert alert) async {
+    var hasConnection = await isConnected();
+    if (hasConnection) {
+      var alertJson = alert.toJson();
+      alertJson['platform'] = Platform.isIOS ? 'ios' : 'android';
+      await FirebaseFirestore.instance
+          .collection(CloudStorage.alertsCollection)
+          .doc(alert.getAlertDbId())
+          .set(alertJson);
+      return true;
+    } else {
+      return false;
+    }
+    // try {
+    //   final result = await InternetAddress.lookup('firebase.google.com');
+    //   if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+    //     var alertJson = alert.toJson();
+    //     alertJson['platform'] = Platform.isIOS ? 'ios' : 'android';
+    //     await FirebaseFirestore.instance
+    //         .collection(CloudStorage.alertsCollection)
+    //         .doc(alert.getAlertDbId())
+    //         .set(alertJson);
+    //     return true;
+    //   }
+    //   return false;
+    // } on SocketException catch (_) {
+    //   return false;
+    // }
   }
 }
 

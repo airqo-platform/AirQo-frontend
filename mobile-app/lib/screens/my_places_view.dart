@@ -20,6 +20,7 @@ class MyPlacesView extends StatefulWidget {
 
 class _MyPlacesViewState extends State<MyPlacesView> {
   var results = <Measurement>[];
+  var order = -1;
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +32,7 @@ class _MyPlacesViewState extends State<MyPlacesView> {
                 future: DBHelper().getFavouritePlaces(),
                 builder: (context, snapshot) {
                   if (snapshot.hasData) {
-                    results = snapshot.data as List<Measurement>;
+                    results = sortPlaces(snapshot.data as List<Measurement>);
                     if (results.isEmpty) {
                       return Center(
                         child: Container(
@@ -83,44 +84,70 @@ class _MyPlacesViewState extends State<MyPlacesView> {
                     }
 
                     return RefreshIndicator(
-                      color: ColorConstants.appColor,
-                      onRefresh: _getLatestMeasurements,
-                      child: ListView.builder(
-                        itemBuilder: (context, index) => GestureDetector(
-                          onTap: () {
-                            viewDetails(results[index].site);
-                          },
-                          child: Slidable(
-                              actionPane: const SlidableDrawerActionPane(),
-                              actionExtentRatio: 0.25,
-                              actions: <Widget>[
-                                IconSlideAction(
-                                  caption: 'Share',
-                                  color: Colors.transparent,
-                                  foregroundColor: ColorConstants.appColor,
-                                  icon: Icons.share_outlined,
-                                  onTap: () =>
-                                      shareLocation(results[index].site),
-                                ),
-                              ],
-                              secondaryActions: <Widget>[
-                                IconSlideAction(
-                                  caption: 'Remove',
-                                  foregroundColor: Colors.red,
-                                  color: Colors.transparent,
-                                  icon: Icons.delete_outlined,
+                        color: ColorConstants.appColor,
+                        onRefresh: _getLatestMeasurements,
+                        child: Column(
+                          children: [
+                            Row(
+                              children: [
+                                const Spacer(),
+                                GestureDetector(
+                                  child: const Icon(Icons.sort),
                                   onTap: () {
-                                    removeFromFavourites(results[index].site);
+                                    setState(() {
+                                      order = -order;
+                                    });
+                                    reloadData();
                                   },
                                 ),
                               ],
-                              child: AirQualityCard(
-                                data: results[index],
-                              )),
-                        ),
-                        itemCount: results.length,
-                      ),
-                    );
+                            ),
+                            const SizedBox(
+                              height: 10,
+                            ),
+                            Expanded(
+                              child: ListView.builder(
+                                itemBuilder: (context, index) =>
+                                    GestureDetector(
+                                  onTap: () {
+                                    viewDetails(results[index].site);
+                                  },
+                                  child: Slidable(
+                                      actionPane:
+                                          const SlidableDrawerActionPane(),
+                                      actionExtentRatio: 0.25,
+                                      actions: <Widget>[
+                                        IconSlideAction(
+                                          caption: 'Share',
+                                          color: Colors.transparent,
+                                          foregroundColor:
+                                              ColorConstants.appColor,
+                                          icon: Icons.share_outlined,
+                                          onTap: () => shareLocation(
+                                              results[index].site),
+                                        ),
+                                      ],
+                                      secondaryActions: <Widget>[
+                                        IconSlideAction(
+                                          caption: 'Remove',
+                                          foregroundColor: Colors.red,
+                                          color: Colors.transparent,
+                                          icon: Icons.delete_outlined,
+                                          onTap: () {
+                                            removeFromFavourites(
+                                                results[index].site);
+                                          },
+                                        ),
+                                      ],
+                                      child: AirQualityCard(
+                                        data: results[index],
+                                      )),
+                                ),
+                                itemCount: results.length,
+                              ),
+                            ),
+                          ],
+                        ));
                   } else {
                     return Center(
                       child: CircularProgressIndicator(
@@ -144,7 +171,7 @@ class _MyPlacesViewState extends State<MyPlacesView> {
           if (mounted)
             {
               setState(() {
-                results = value;
+                results = sortPlaces(value);
               })
             }
         });
@@ -158,6 +185,18 @@ class _MyPlacesViewState extends State<MyPlacesView> {
     if (mounted) {
       setState(() {});
     }
+  }
+
+  List<Measurement> sortPlaces(List<Measurement> values) {
+    if (order == -1) {
+      values.sort((valueA, valueB) =>
+          -(valueA.getPm2_5Value().compareTo(valueB.getPm2_5Value())));
+    } else {
+      values.sort((valueA, valueB) =>
+          valueA.getPm2_5Value().compareTo(valueB.getPm2_5Value()));
+    }
+
+    return values;
   }
 
   Future<void> viewDetails(Site site) async {
