@@ -163,7 +163,14 @@ const Download = (props) => {
             document.body.removeChild(a);
           }
         } else {
-          const json2csvParser = new Parser();
+          const fields = [
+            "time",
+            ...getValues(pollutants),
+            "frequency",
+            "site_id",
+            "site_description",
+          ];
+          const json2csvParser = new Parser({ fields });
           const csv = json2csvParser.parse(resData);
           let filename = `airquality-${frequency.value}-data.csv`;
           var link = document.createElement("a");

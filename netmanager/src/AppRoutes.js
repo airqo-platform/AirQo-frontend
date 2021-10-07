@@ -1,7 +1,7 @@
 import React, { Suspense, lazy } from "react";
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 import PrivateRoute from "./views/components/PrivateRoute/PrivateRoute";
-import { useJiraHelpDesk } from "utils/customHooks";
+import { useInternetConnectivityCheck, useJiraHelpDesk } from "utils/customHooks";
 
 // core imports. imported on initial page load
 import Overview from "./views/components/Dashboard/Overview";
@@ -31,6 +31,7 @@ const SiteView = lazy(() => import("./views/components/Sites/SiteView"));
 
 const AppRoutes = () => {
   useJiraHelpDesk();
+  useInternetConnectivityCheck();
   return (
     <Router>
       <div className="App">
