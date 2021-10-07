@@ -69,7 +69,6 @@ class DBHelper {
     var initialLoading = prefs.getBool(PrefConstant.reLoadDb) ?? true;
 
     if (initialLoading) {
-      print('creating tables');
       await db.execute(Measurement.dropTableStmt());
       await db.execute(Suggestion.dropTableStmt());
       await db.execute(HistoricalMeasurement.dropTableStmt());
@@ -86,7 +85,6 @@ class DBHelper {
     await db.execute(Predict.createTableStmt());
     await db.execute(Site.createTableStmt());
     await db.execute(Story.createTableStmt());
-    // await db.execute(Alert.dropTableStmt());
     await db.execute(Alert.createTableStmt());
   }
 
