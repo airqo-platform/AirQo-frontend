@@ -56,6 +56,9 @@ class Site {
   }
 
   String getUserLocation() {
+    if(userLocation == null){
+      return getName();
+    }
     if (userLocation == '' ||
         userLocation.trim().toLowerCase() == 'null' ||
         userLocation.trim().toLowerCase().contains('null')) {
