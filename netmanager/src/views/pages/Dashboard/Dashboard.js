@@ -60,7 +60,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     if (isEmpty(recentEventsData.features))
-      dispatch(loadMapEventsData({ recent: "yes" }));
+      dispatch(loadMapEventsData({ recent: "yes", external: "no" }));
   }, []);
 
   useEffect(() => {

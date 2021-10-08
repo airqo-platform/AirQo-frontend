@@ -483,7 +483,7 @@ const MapContainer = () => {
     }
 
     if (isEmpty(monitoringSiteData.features)) {
-      dispatch(loadMapEventsData({ recent: "yes" }));
+      dispatch(loadMapEventsData({ recent: "yes", external: "no" }));
     }
   }, []);
 
