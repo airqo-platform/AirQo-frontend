@@ -1008,7 +1008,7 @@ class Apis extends CI_Controller
             foreach($value as $vk => $vitem){
                 $device_number = $vitem->{'device_number'};
                 $date = $vitem->{'time'};
-                $pm2_5 = $vitem->{'average_pm2_5'}->{'calibratedValue'};
+                $pm2_5 = $vitem->{'pm2_5'}->{'calibratedValue'};
                 $response[$vk] = array($device_number, $pm2_5, $date);
 
                 if(!is_null($pm2_5) or !is_nan($pm2_5) or !empty($pm2_5)){
