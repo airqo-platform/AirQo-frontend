@@ -8,11 +8,14 @@ part of 'historicalMeasurement.dart';
 
 HistoricalMeasurement _$HistoricalMeasurementFromJson(
     Map<String, dynamic> json) {
-  $checkKeys(json, requiredKeys: const ['time', 'pm2_5', 'pm10', 'site_id']);
+  $checkKeys(json,
+      requiredKeys: const ['time', 'average_pm2_5', 'average_pm10', 'site_id']);
   return HistoricalMeasurement(
     time: json['time'] as String,
-    pm2_5: MeasurementValue.fromJson(json['pm2_5'] as Map<String, dynamic>),
-    pm10: MeasurementValue.fromJson(json['pm10'] as Map<String, dynamic>),
+    pm2_5: MeasurementValue.fromJson(
+        json['average_pm2_5'] as Map<String, dynamic>),
+    pm10:
+        MeasurementValue.fromJson(json['average_pm10'] as Map<String, dynamic>),
     altitude:
         MeasurementValue.fromJson(json['altitude'] as Map<String, dynamic>),
     speed: MeasurementValue.fromJson(json['speed'] as Map<String, dynamic>),
@@ -28,8 +31,8 @@ Map<String, dynamic> _$HistoricalMeasurementToJson(
         HistoricalMeasurement instance) =>
     <String, dynamic>{
       'time': instance.time,
-      'pm2_5': instance.pm2_5,
-      'pm10': instance.pm10,
+      'average_pm2_5': instance.pm2_5,
+      'average_pm10': instance.pm10,
       'altitude': instance.altitude,
       'speed': instance.speed,
       'externalTemperature': instance.temperature,

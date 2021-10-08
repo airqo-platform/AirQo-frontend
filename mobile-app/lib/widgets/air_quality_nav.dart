@@ -48,21 +48,21 @@ class TitleSection extends StatelessWidget {
                   style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 17,
-                      color: ColorConstants().appColor),
+                      color: ColorConstants.appColor),
                 ),
                 Text(
                   '${data.getPm2_5Value().toStringAsFixed(2)}',
                   maxLines: 4,
                   softWrap: true,
                   style:
-                      TextStyle(fontSize: 15, color: ColorConstants().appColor),
+                      TextStyle(fontSize: 15, color: ColorConstants.appColor),
                 ),
                 Text(
                   pmToString(data.getPm2_5Value()).replaceAll('\n', ' '),
                   maxLines: 4,
                   softWrap: true,
                   style:
-                      TextStyle(fontSize: 15, color: ColorConstants().appColor),
+                      TextStyle(fontSize: 15, color: ColorConstants.appColor),
                 ),
               ],
             ),
@@ -92,8 +92,7 @@ class _AirQualityCardState extends State<AirQualityCard> {
                 Text('${dateToString(widget.data.time, true)}',
                     style: TextStyle(
                       fontSize: 13,
-                      color: ColorConstants().appColor,
-                      fontStyle: FontStyle.italic,
+                      color: ColorConstants.appColor,
                     )),
               ],
             ),

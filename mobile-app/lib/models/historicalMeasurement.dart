@@ -10,10 +10,10 @@ class HistoricalMeasurement {
   @JsonKey(required: true)
   final String time;
 
-  @JsonKey(required: true, name: 'pm2_5')
+  @JsonKey(required: true, name: 'average_pm2_5')
   final MeasurementValue pm2_5;
 
-  @JsonKey(required: true, name: 'pm10')
+  @JsonKey(required: true, name: 'average_pm10')
   final MeasurementValue pm10;
 
   @JsonKey(required: false)
@@ -46,16 +46,16 @@ class HistoricalMeasurement {
 
   double getPm10Value() {
     if (pm10.calibratedValue == -0.1) {
-      return pm10.value;
+      return double.parse(pm10.value.toStringAsFixed(2));
     }
-    return pm10.calibratedValue;
+    return double.parse(pm10.calibratedValue.toStringAsFixed(2));
   }
 
   double getPm2_5Value() {
     if (pm2_5.calibratedValue == -0.1) {
-      return pm2_5.value;
+      return double.parse(pm2_5.value.toStringAsFixed(2));
     }
-    return pm2_5.calibratedValue;
+    return double.parse(pm2_5.calibratedValue.toStringAsFixed(2));
   }
 
   Map<String, dynamic> toJson() => _$HistoricalMeasurementToJson(this);
@@ -91,8 +91,8 @@ class HistoricalMeasurement {
     return {
       'site_id': json['${Site.dbId()}'] as String,
       'time': json['${dbTime()}'] as String,
-      'pm2_5': {'value': json['${dbPm25()}'] as double},
-      'pm10': {'value': json['${dbPm10()}'] as double},
+      'average_pm2_5': {'value': json['${dbPm25()}'] as double},
+      'average_pm10': {'value': json['${dbPm10()}'] as double},
       'externalTemperature': {'value': json['${dbTemperature()}'] as double},
       'externalHumidity': {'value': json['${dbHumidity()}'] as double},
       'speed': {'value': json['${dbSpeed()}'] as double},

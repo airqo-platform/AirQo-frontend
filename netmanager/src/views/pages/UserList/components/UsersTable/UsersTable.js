@@ -21,6 +21,7 @@ import { Alert, AlertTitle } from "@material-ui/lab";
 import { getInitials } from "utils/users";
 import CustomMaterialTable from "views/components/Table/CustomMaterialTable";
 import usersStateConnector from "views/stateConnectors/usersStateConnector";
+import ConfirmDialog from "views/containers/ConfirmDialog";
 
 
 const roles = [
@@ -78,6 +79,7 @@ const UsersTable = (props) => {
    */
 
   const { className, mappeduserState, ...rest } = props;
+  const [userDelState, setUserDelState] = useState({open: false, user: {}})
 
   console.log("the mapped user state for UsersTable is here:");
   console.dir(mappeduserState);
@@ -116,16 +118,17 @@ const UsersTable = (props) => {
     }
   };
 
-  const showDeleteDialog = (userToDelete) => {
-    props.mappedShowDeleteDialog(userToDelete);
+  const showDeleteDialog = (user) => {
+    setUserDelState({open: true, user})
   };
 
   const hideDeleteDialog = () => {
-    props.mappedHideDeleteDialog();
+    setUserDelState({open: false, user: {}})
   };
 
-  const cofirmDeleteUser = () => {
-    props.mappedConfirmDeleteUser(mappeduserState.userToDelete);
+  const deleteUser = () => {
+    props.mappedConfirmDeleteUser(userDelState.user);
+    setUserDelState({open: false, user: {}})
   };
 
   const classes = useStyles();
@@ -183,7 +186,7 @@ const UsersTable = (props) => {
                         Update
                       </Button>
                       |
-                      <Button onClick={() => showDeleteDialog(user)}>
+                      <Button  style={{color: "red"}} onClick={() => showDeleteDialog(user)}>
                         Delete
                       </Button>
                       </div>
@@ -302,66 +305,19 @@ const UsersTable = (props) => {
       </Dialog>
       }
       {/***************************************** deleting a user ***********************************/}
-
-      <Dialog
-        open={props.mappeduserState.showDeleteDialog}
-        onClose={hideDeleteDialog}
-        aria-labelledby="form-dialog-title"
-      >
-        <DialogContent>
-          <DialogContentText>Delete User</DialogContentText>
-
-          {props.mappeduserState.userToDelete &&
-            !userToDelete.error &&
-            !userToDelete.isFetching && (
-              <Alert severity="warning">
-                <AlertTitle>Warning</AlertTitle>
-                Are you sure you want to delete this user —{" "}
-                <strong>{props.mappeduserState.userToDelete.firstName}</strong>?
-                <strong> {mappeduserState.error} </strong>
-              </Alert>
-            )}
-
-          {mappeduserState.userToDelete && mappeduserState.error && (
-            <Alert severity="error">
-              <AlertTitle>Failed</AlertTitle>
-              <strong> {mappeduserState.error} </strong>
-            </Alert>
-          )}
-
-          {mappeduserState.userToDelete &&
-            !mappeduserState.error &&
-            mappeduserState.isFetching && (
-              <Alert severity="success">
-                <strong> Deleting.... </strong>
-              </Alert>
-            )}
-
-          {!mappeduserState.userToDelete &&
-            !mappeduserState.error &&
-            !mappeduserState.isFetching && (
-              <Alert severity="success">
-                <AlertTitle>Success</AlertTitle>
-                User <strong> {mappeduserState.successMsg}</strong>
-              </Alert>
-            )}
-        </DialogContent>
-        <DialogActions>
-          {!mappeduserState.successMsg && !mappeduserState.isFetching && (
-            <div>
-              <Button onClick={cofirmDeleteUser} color="primary">
-                Yes
-              </Button>
-              <Button onClick={hideDeleteDialog} color="primary">
-                No
-              </Button>
-            </div>
-          )}
-          {mappeduserState.successMsg && !mappeduserState.isFetching && (
-            <Button onClick={hideDeleteDialog}>Close</Button>
-          )}
-        </DialogActions>
-      </Dialog>
+      <ConfirmDialog
+          title={"Delete User"}
+          open={userDelState.open}
+          message={
+            <span>
+              Are you sure you want to delete this user —
+              <strong>{userDelState.user.firstName}</strong>?
+            </span>
+          }
+          confirm={deleteUser}
+          close={hideDeleteDialog}
+          error
+      />
     </Card>
   );
 };

@@ -5,24 +5,44 @@ import 'package:app/models/historicalMeasurement.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/predict.dart';
 import 'package:app/models/site.dart';
+import 'package:app/models/story.dart';
 import 'package:app/models/suggestion.dart';
+import 'package:app/utils/distance.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:path/path.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 
+import 'fb_notifications.dart';
+import 'native_api.dart';
+
 class DBHelper {
   var _database;
-  var constants = DbConstants();
 
   Future<Database> get database async {
     if (_database != null) return _database;
     _database = await initDB();
+    await createDefaultTables(_database);
     return _database;
+  }
+
+  Future<bool> addFavouritePlaces(Site site) async {
+    var prefs = await SharedPreferences.getInstance();
+    var favouritePlaces =
+        prefs.getStringList(PrefConstant.favouritePlaces) ?? [];
+
+    var name = site.id.trim().toLowerCase();
+    if (!favouritePlaces.contains(name)) {
+      favouritePlaces.add(name);
+    }
+
+    await prefs.setStringList(PrefConstant.favouritePlaces, favouritePlaces);
+    return favouritePlaces.contains(name);
   }
 
   Future<void> createDefaultTables(Database db) async {
     var prefs = await SharedPreferences.getInstance();
-    var initialLoading = prefs.getBool(PrefConstants().initialDbLoad) ?? true;
+    var initialLoading = prefs.getBool(PrefConstant.initialDbLoad) ?? true;
 
     if (initialLoading) {
       print('creating tables');
@@ -31,7 +51,8 @@ class DBHelper {
       await db.execute(HistoricalMeasurement.dropTableStmt());
       await db.execute(Predict.dropTableStmt());
       await db.execute(Site.dropTableStmt());
-      await prefs.setBool(PrefConstants().initialDbLoad, false);
+      await db.execute(Story.dropTableStmt());
+      await prefs.setBool(PrefConstant.initialDbLoad, false);
     }
 
     await db.execute(Measurement.createTableStmt());
@@ -39,6 +60,7 @@ class DBHelper {
     await db.execute(HistoricalMeasurement.createTableStmt());
     await db.execute(Predict.createTableStmt());
     await db.execute(Site.createTableStmt());
+    await db.execute(Story.createTableStmt());
   }
 
   Future<void> deleteSearchHistory(Suggestion suggestion) async {
@@ -63,7 +85,7 @@ class DBHelper {
 
       var prefs = await SharedPreferences.getInstance();
       var favouritePlaces =
-          prefs.getStringList(PrefConstants().favouritePlaces) ?? [];
+          prefs.getStringList(PrefConstant.favouritePlaces) ?? [];
 
       if (favouritePlaces.isEmpty) {
         return [];
@@ -100,8 +122,6 @@ class DBHelper {
       var res = await db.query(Predict.forecastDb(),
           where: '${Site.dbId()} = ?', whereArgs: [siteId]);
 
-      print('Got ${res.length} predict measurements from db');
-
       return res.isNotEmpty
           ? List.generate(res.length, (i) {
               return Predict.fromJson(Predict.mapFromDb(res[i]));
@@ -121,8 +141,6 @@ class DBHelper {
       var res = await db.query(HistoricalMeasurement.historicalMeasurementsDb(),
           where: '${Site.dbId()} = ?', whereArgs: [siteId]);
 
-      print('Got ${res.length} historical measurements from db');
-
       return res.isNotEmpty
           ? List.generate(res.length, (i) {
               return HistoricalMeasurement.fromJson(
@@ -137,13 +155,9 @@ class DBHelper {
 
   Future<List<Measurement>> getLatestMeasurements() async {
     try {
-      print('Getting measurements from local db');
-
       final db = await database;
 
       var res = await db.query(Measurement.latestMeasurementsDb());
-
-      print('Got ${res.length} measurements from local db');
 
       return res.isNotEmpty
           ? List.generate(res.length, (i) {
@@ -153,6 +167,96 @@ class DBHelper {
     } catch (e) {
       print(e);
       return <Measurement>[];
+    }
+  }
+
+  Future<Measurement?> getLocationMeasurement() async {
+    try {
+      var nearestMeasurement;
+      var nearestMeasurements = <Measurement>[];
+
+      double distanceInMeters;
+
+      var location = await LocationApi().getLocation();
+      if (location.longitude != null && location.latitude != null) {
+        var latitude = location.latitude;
+        var longitude = location.longitude;
+        var addresses =
+            await LocationApi().getAddressGoogle(latitude!, longitude!);
+        var userAddress = addresses.first;
+
+        await getLatestMeasurements().then((measurements) => {
+              for (var measurement in measurements)
+                {
+                  distanceInMeters = metersToKmDouble(
+                      Geolocator.distanceBetween(
+                          measurement.site.latitude,
+                          measurement.site.longitude,
+                          location.latitude!,
+                          location.longitude!)),
+                  if (distanceInMeters < AppConfig.maxSearchRadius.toDouble())
+                    {
+                      // print('$distanceInMeters : '
+                      //     '${AppConfig.maxSearchRadius.toDouble()} : '
+                      //     '${measurement.site.getName()}'),
+                      measurement.site.distance = distanceInMeters,
+                      measurement.site.userLocation = userAddress.thoroughfare,
+                      nearestMeasurements.add(measurement)
+                    }
+                },
+              if (nearestMeasurements.isNotEmpty)
+                {
+                  nearestMeasurement = nearestMeasurements.first,
+                  for (var m in nearestMeasurements)
+                    {
+                      if (nearestMeasurement.site.distance > m.site.distance)
+                        {nearestMeasurement = m}
+                    }
+                }
+            });
+
+        await LocationApi().getLocation().then((value) => {
+              getLatestMeasurements().then((measurements) => {
+                    if (location.longitude != null && location.latitude != null)
+                      {
+                        for (var measurement in measurements)
+                          {
+                            distanceInMeters = metersToKmDouble(
+                                Geolocator.distanceBetween(
+                                    measurement.site.latitude,
+                                    measurement.site.longitude,
+                                    location.latitude!,
+                                    location.longitude!)),
+                            if (distanceInMeters <
+                                AppConfig.maxSearchRadius.toDouble())
+                              {
+                                // print('$distanceInMeters : '
+                                //     '${AppConfig
+                                //     .maxSearchRadius.toDouble()} : '
+                                //     '${measurement.site.getName()}'),
+                                measurement.site.distance = distanceInMeters,
+                                nearestMeasurements.add(measurement)
+                              }
+                          },
+                        if (nearestMeasurements.isNotEmpty)
+                          {
+                            nearestMeasurement = nearestMeasurements.first,
+                            for (var m in nearestMeasurements)
+                              {
+                                if (nearestMeasurement.site.distance >
+                                    m.site.distance)
+                                  {nearestMeasurement = m}
+                              }
+                          }
+                      }
+                  })
+            });
+      }
+
+      return nearestMeasurement;
+    } catch (e) {
+      print('error $e');
+      return null;
     }
   }
 
@@ -173,13 +277,54 @@ class DBHelper {
     }
   }
 
+  Future<Measurement?> getNearestMeasurement(
+      double latitude, double longitude) async {
+    try {
+      var nearestMeasurement;
+      var nearestMeasurements = <Measurement>[];
+
+      double distanceInMeters;
+
+      await getLatestMeasurements().then((measurements) => {
+            for (var measurement in measurements)
+              {
+                distanceInMeters = metersToKmDouble(Geolocator.distanceBetween(
+                    measurement.site.latitude,
+                    measurement.site.longitude,
+                    latitude,
+                    longitude)),
+                if (distanceInMeters < AppConfig.maxSearchRadius.toDouble())
+                  {
+                    // print('$distanceInMeters : '
+                    //     '${AppConfig.maxSearchRadius.toDouble()} : '
+                    //     '${measurement.site.getName()}'),
+                    measurement.site.distance = distanceInMeters,
+                    nearestMeasurements.add(measurement)
+                  }
+              },
+            if (nearestMeasurements.isNotEmpty)
+              {
+                nearestMeasurement = nearestMeasurements.first,
+                for (var m in nearestMeasurements)
+                  {
+                    if (nearestMeasurement.site.distance > m.site.distance)
+                      {nearestMeasurement = m}
+                  },
+              }
+          });
+
+      return nearestMeasurement;
+    } catch (e) {
+      print('error $e');
+      return null;
+    }
+  }
+
   Future<List<Suggestion>> getSearchHistory() async {
     try {
       final db = await database;
 
       var res = await db.query(Suggestion.dbName());
-
-      print('Got ${res.length} search history from local db');
 
       var history = res.isNotEmpty
           ? List.generate(res.length, (i) {
@@ -194,21 +339,33 @@ class DBHelper {
     }
   }
 
+  Future<Site?> getSite(String siteId) async {
+    try {
+      final db = await database;
+      var res = await db.query(Site.sitesDbName(),
+          where: '${Site.dbId()} = ?', whereArgs: [siteId]);
+
+      return Site.fromJson(Site.fromDbMap(res.first));
+    } catch (e) {
+      print(e);
+      return null;
+    }
+  }
+
   Future<List<Site>> getSites() async {
     try {
       final db = await database;
       var res = await db.query(Site.sitesDbName());
-
-      print('Got ${res.length} sites from local db');
 
       var sites = res.isNotEmpty
           ? List.generate(res.length, (i) {
               return Site.fromJson(Site.fromDbMap(res[i]));
             })
           : <Site>[]
-        ..sort((siteA, siteB) {
-          return siteA.getName().compareTo(siteB.getName().toLowerCase());
-        });
+        ..sort((siteA, siteB) => siteA
+            .getName()
+            .toLowerCase()
+            .compareTo(siteB.getName().toLowerCase()));
 
       return sites;
     } catch (e) {
@@ -217,15 +374,32 @@ class DBHelper {
     }
   }
 
+  Future<List<Story>> getStories() async {
+    try {
+      final db = await database;
+
+      var res = await db.query(Story.storyDbName());
+
+      return res.isNotEmpty
+          ? List.generate(res.length, (i) {
+              return Story.fromJson(res[i]);
+            })
+          : <Story>[];
+    } catch (e) {
+      print(e);
+      return <Story>[];
+    }
+  }
+
   Future<Database> initDB() async {
     return await openDatabase(
-      join(await getDatabasesPath(), constants.dbName),
+      join(await getDatabasesPath(), AppConfig.dbName),
       version: 1,
       onCreate: (db, version) {
         createDefaultTables(db);
       },
       // onUpgrade: (db, oldVersion, newVersion){
-      //
+      //   createDefaultTables(db);
       // },
     );
   }
@@ -311,6 +485,34 @@ class DBHelper {
     }
   }
 
+  Future<void> insertLatestStories(List<Story> stories) async {
+    try {
+      final db = await database;
+
+      if (stories.isNotEmpty) {
+        await db.delete(Story.storyDbName());
+
+        for (var story in stories) {
+          try {
+            var jsonData = story.toJson();
+            await db.insert(
+              '${Story.storyDbName()}',
+              jsonData,
+              conflictAlgorithm: ConflictAlgorithm.replace,
+            );
+          } catch (e) {
+            await db.execute(Story.dropTableStmt());
+            await db.execute(Story.createTableStmt());
+            print('Inserting latest stories into db');
+            print(e);
+          }
+        }
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
+
   Future<void> insertSearchHistory(Suggestion suggestion) async {
     try {
       final db = await database;
@@ -335,7 +537,6 @@ class DBHelper {
       List<HistoricalMeasurement> measurements, String siteId) async {
     try {
       final db = await database;
-      print('inserting historical data');
 
       if (measurements.isNotEmpty) {
         await db.delete(HistoricalMeasurement.historicalMeasurementsDb(),
@@ -388,7 +589,7 @@ class DBHelper {
   Future<bool> updateFavouritePlaces(Site site) async {
     var prefs = await SharedPreferences.getInstance();
     var favouritePlaces =
-        prefs.getStringList(PrefConstants().favouritePlaces) ?? [];
+        prefs.getStringList(PrefConstant.favouritePlaces) ?? [];
 
     var name = site.id.trim().toLowerCase();
     if (favouritePlaces.contains(name)) {
@@ -404,7 +605,30 @@ class DBHelper {
       favouritePlaces.add(name);
     }
 
-    await prefs.setStringList(PrefConstants().favouritePlaces, favouritePlaces);
+    await prefs.setStringList(PrefConstant.favouritePlaces, favouritePlaces);
     return favouritePlaces.contains(name);
+  }
+
+  Future<bool> updateSiteAlerts(
+      Site site, PollutantLevel pollutantLevel) async {
+    var prefs = await SharedPreferences.getInstance();
+    var preferredAlerts = prefs.getStringList(PrefConstant.siteAlerts) ?? [];
+
+    var topicName = site.getTopic(pollutantLevel);
+
+    if (preferredAlerts.contains(topicName)) {
+      await FbNotifications().init();
+      await FbNotifications().unSubscribeFromSite(site, pollutantLevel);
+      while (preferredAlerts.contains(topicName)) {
+        preferredAlerts.remove(topicName.trim().toLowerCase());
+      }
+    } else {
+      await FbNotifications().subscribeToSite(site, pollutantLevel);
+      preferredAlerts.add(topicName.trim().toLowerCase());
+    }
+
+    await prefs.setStringList(PrefConstant.siteAlerts, preferredAlerts);
+
+    return preferredAlerts.contains(topicName);
   }
 }

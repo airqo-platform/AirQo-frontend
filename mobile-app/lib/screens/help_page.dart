@@ -16,44 +16,51 @@ class HelpPage extends StatelessWidget {
       length: 3,
       child: Scaffold(
         appBar: AppBar(
-          bottom: const TabBar(
+          leading: BackButton(color: ColorConstants.appColor),
+          elevation: 0,
+          bottom: TabBar(
+            isScrollable: false,
+            indicatorColor: ColorConstants.appColor,
             tabs: [
-              Tab(
+              const Tab(
                   child: Text(
                 'AQI',
-                style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 17),
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
               )),
-              Tab(
+              const Tab(
                   child: Text(
                 'PM 2.5',
-                style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 17),
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
               )),
-              Tab(
+              const Tab(
                   child: Text(
                 'PM 10',
-                style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 17),
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
               )),
+              // const Tab(
+              //     child: Text(
+              //   'Humidity',
+              //   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
+              // )),
+              // const Tab(
+              //     child: Text(
+              //   'Temperature',
+              //   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
+              // )),
             ],
           ),
           title: const Text(
             'Help Guides',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            style: TextStyle(fontWeight: FontWeight.bold),
           ),
         ),
         body: TabBarView(
           children: [
             AqiDialog(),
-            PollutantDialog(pollutantDetails(PollutantConstants.pm2_5)),
-            PollutantDialog(pollutantDetails(PollutantConstants.pm10)),
+            PollutantDialog(pollutantDetails(PollutantConstant.pm2_5)),
+            PollutantDialog(pollutantDetails(PollutantConstant.pm10)),
+            // PollutantDialogV2(pollutantDetails(PollutantConstant.humidity)),
+            // PollutantDialogV2(pollutantDetails(PollutantConstant.temperature)),
           ],
         ),
       ),

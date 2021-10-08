@@ -17,7 +17,6 @@ import {
 } from "@material-ui/core";
 import { MoreHoriz } from "@material-ui/icons";
 import axios from "axios";
-import Select from "react-select";
 import palette from "theme/palette";
 import { EXCEEDANCES_URI } from "config/urls/analytics";
 import Menu from "@material-ui/core/Menu";
@@ -26,6 +25,7 @@ import domtoimage from "dom-to-image";
 import moment from "moment";
 import JsPDF from "jspdf";
 import { roundToStartOfDay, roundToEndOfDay } from "utils/dateTime";
+import OutlinedSelect from "views/components/CustomSelects/OutlinedSelect";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -39,7 +39,7 @@ const useStyles = makeStyles((theme) => ({
   },
 
   dialogPaper: {
-    minHeight: "50vh",
+    minHeight: "20vh",
     maxHeight: "50vh",
   },
 }));
@@ -456,42 +456,31 @@ const ExceedancesChart = (props) => {
             onClose={handleClose}
             aria-labelledby="form-dialog-title"
           >
-            <DialogTitle id="form-dialog-title">
+            <DialogTitle id="form-dialog-title" onClose={handleClose}>
               Customise Chart by Selecting the Various Options
             </DialogTitle>
             <Divider />
             <DialogContent>
               <form onSubmit={handleSubmit} id="customisable-form">
-                <Grid container spacing={2}>
-                  <Grid item md={6} xs={12}>
-                    <Select
+                <Grid container spacing={2} style={{ marginTop: "5px" }}>
+                  <Grid item md={12} xs={12}>
+                    <OutlinedSelect
                       fullWidth
+                      className="reactSelect"
                       label="Pollutant"
-                      className=""
-                      name="pollutant"
-                      placeholder="Pollutant"
                       value={tempPollutant}
                       options={pollutantOptions}
                       onChange={handlePollutantChange}
-                      variant="outlined"
-                      margin="dense"
-                      required
                     />
                   </Grid>
-
-                  <Grid item md={6} xs={12}>
-                    <Select
+                  <Grid item md={12} xs={12}>
+                    <OutlinedSelect
                       fullWidth
+                      className="reactSelect"
                       label="Standard"
-                      className=""
-                      name="standard"
-                      placeholder="Standard"
                       value={tempStandard}
                       options={standardOptions}
                       onChange={handleStandardChange}
-                      variant="outlined"
-                      margin="dense"
-                      required
                     />
                   </Grid>
                 </Grid>
@@ -503,7 +492,7 @@ const ExceedancesChart = (props) => {
                 Cancel
               </Button>
               <Button
-                variant="outlined"
+                variant="contained"
                 color="primary"
                 type="submit"
                 form="customisable-form"

@@ -11,13 +11,13 @@ import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/pm.dart';
 import 'package:app/utils/share.dart';
 import 'package:app/widgets/expanding_action_button.dart';
+import 'package:app/widgets/health_recommendation.dart';
 import 'package:app/widgets/measurements_chart.dart';
 import 'package:app/widgets/pollutants_container.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'help_page.dart';
@@ -31,20 +31,40 @@ class PlaceDetailsPage extends StatefulWidget {
   _PlaceDetailsPageState createState() => _PlaceDetailsPageState(site);
 }
 
+class PlaceMenuSwitch extends StatefulWidget {
+  final bool switchValue;
+
+  final ValueChanged valueChanged;
+  final PollutantLevel pollutantLevel;
+
+  PlaceMenuSwitch(
+      {required this.switchValue,
+      required this.valueChanged,
+      required this.pollutantLevel});
+
+  @override
+  _PlaceMenuSwitch createState() => _PlaceMenuSwitch();
+}
+
 class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
+  var siteAlerts = <String>[];
   bool isFavourite = false;
+  bool hazardousAlerts = false;
+  bool unhealthyAlerts = false;
+  bool veryUnhealthyAlerts = false;
+  bool sensitiveAlerts = false;
 
   var measurementData;
   var historicalData = <HistoricalMeasurement>[];
   var forecastData = <Predict>[];
+
   var response = '';
   bool _showMenuButton = true;
+  bool _isDashboardView = false;
   final ScrollController _scrollCtrl = ScrollController();
   var historicalResponse = '';
   var forecastResponse = '';
   var dbHelper = DBHelper();
-  var forecastDate =
-      DateFormat('yyyy-MM-dd HH:mm').format(DateTime.now().toUtc());
 
   String titleText = '';
 
@@ -52,14 +72,24 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
 
   _PlaceDetailsPageState(this.site);
 
+  Widget bottomSheetMenu() {
+    return FloatingActionButton(
+      backgroundColor: ColorConstants.appColor,
+      onPressed: _placeMenu,
+      // isExtended: true,
+      child: const Icon(Icons.menu),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          appName,
-          style: TextStyle(
-            color: Colors.white,
+        elevation: 0,
+        leading: BackButton(color: ColorConstants.appColor),
+        title: Text(
+          '${AppConfig.name}',
+          style: const TextStyle(
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -77,21 +107,28 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
       ),
       body: measurementData != null
           ? Container(
+              color: ColorConstants.appBodyColor,
               child: ListView(
                 controller: _scrollCtrl,
-                padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
+                padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
                 children: <Widget>[
                   // card section
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
-                    child: cardSection(measurementData),
-                  ),
+                  cardSection(measurementData),
 
                   // Pollutants
                   PollutantsSection(measurementData),
 
+                  const SizedBox(
+                    height: 10,
+                  ),
+
+                  // Recommendations
+                  HealthRecommendationSection(
+                    measurement: measurementData,
+                  ),
+
                   // historicalData
-                  historicalData != null && historicalData.isNotEmpty
+                  historicalData.isNotEmpty
                       ? historicalDataSection(historicalData)
                       : historicalResponse != ''
                           ? Card(
@@ -102,7 +139,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                                   child: Text(
                                     historicalResponse,
                                     style: TextStyle(
-                                        color: ColorConstants().appColor),
+                                        color: ColorConstants.appColor),
                                   ),
                                 ),
                               ),
@@ -112,12 +149,12 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                               padding: const EdgeInsets.all(16.0),
                               child: CircularProgressIndicator(
                                 valueColor: AlwaysStoppedAnimation<Color>(
-                                    ColorConstants().appColor),
+                                    ColorConstants.appColor),
                               ),
                             )),
 
                   // Forecast Data
-                  forecastData != null && forecastData.isNotEmpty
+                  forecastData.isNotEmpty
                       ? forecastDataSection(forecastData)
                       : forecastResponse != ''
                           ? Card(
@@ -127,7 +164,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                                 child: Center(
                                   child: Text(forecastResponse,
                                       style: TextStyle(
-                                          color: ColorConstants().appColor)),
+                                          color: ColorConstants.appColor)),
                                 ),
                               ),
                             )
@@ -136,7 +173,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                               padding: const EdgeInsets.all(16.0),
                               child: CircularProgressIndicator(
                                 valueColor: AlwaysStoppedAnimation<Color>(
-                                    ColorConstants().appColor),
+                                    ColorConstants.appColor),
                               ),
                             )),
                   Container(
@@ -149,70 +186,40 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
               ),
             )
           : response != ''
-              ? Center(
-                  child: Text(
-                    response,
-                    style: TextStyle(color: ColorConstants().appColor),
-                  ),
-                )
-              : Center(
-                  child: Stack(
-                    children: <Widget>[
-                      Center(
-                        child: Container(
-                            width: 100,
-                            height: 100,
-                            child: CircularProgressIndicator(
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                  ColorConstants().appColor),
-                            )),
-                      ),
-                      Center(
-                          child: Text(
-                        'Loading',
-                        style: TextStyle(color: ColorConstants().appColor),
-                      )),
-                    ],
-                  ),
-                ),
+              ? Container(
+                  color: ColorConstants.appBodyColor,
+                  child: Center(
+                    child: Text(
+                      response,
+                      style: TextStyle(color: ColorConstants.appColor),
+                    ),
+                  ))
+              : Container(
+                  color: ColorConstants.appBodyColor,
+                  child: Center(
+                    child: Stack(
+                      children: <Widget>[
+                        Center(
+                          child: Container(
+                              width: 70,
+                              height: 70,
+                              child: CircularProgressIndicator(
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                    ColorConstants.appColor),
+                              )),
+                        ),
+                        // Center(
+                        //     child: Text(
+                        //   'Loading',
+                        //   style: TextStyle(color: ColorConstants.appColor),
+                        // )),
+                      ],
+                    ),
+                  )),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: measurementData != null
           ? _showMenuButton
-              ? ExpandableFab(
-                  distance: 112.0,
-                  children: [
-                    ActionButton(
-                      onPressed: updateFavouritePlace,
-                      icon: isFavourite
-                          ? const Icon(
-                              Icons.favorite,
-                              color: Colors.red,
-                            )
-                          : const Icon(
-                              Icons.favorite_border_outlined,
-                            ),
-                    ),
-                    ActionButton(
-                      onPressed: () {
-                        shareMeasurement(measurementData);
-                      },
-                      icon: const Icon(Icons.share_outlined),
-                    ),
-                    ActionButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute<void>(
-                            builder: (BuildContext context) => const HelpPage(
-                              initialIndex: 0,
-                            ),
-                            fullscreenDialog: true,
-                          ),
-                        );
-                      },
-                      icon: const Icon(Icons.info_outline_rounded),
-                    ),
-                  ],
-                )
+              ? bottomSheetMenu()
               : null
           : null,
     );
@@ -222,8 +229,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
     return Padding(
         padding: const EdgeInsets.all(8.0),
         child: Card(
-            color: ColorConstants().appColor,
-            elevation: 20,
+            elevation: 10,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(20),
             ),
@@ -234,20 +240,45 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                   Padding(
                       padding: const EdgeInsets.all(1.0),
                       child: Text(
-                        '${site.getName()}',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          color: Colors.white,
+                        '${site.getUserLocation()}',
+                        style: TextStyle(
+                          fontSize: 20,
+                          color: ColorConstants.appColor,
+                          fontWeight: FontWeight.bold,
                         ),
                         textAlign: TextAlign.center,
                       )),
+                  if (site.getUserLocation() != site.getName())
+                    Padding(
+                        padding: const EdgeInsets.all(1.0),
+                        child: Text(
+                          '${site.getName()}',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: ColorConstants.appColor,
+                          ),
+                          textAlign: TextAlign.center,
+                        )),
+                  if (site.getUserLocation() == site.getName())
+                    Padding(
+                      padding: const EdgeInsets.all(1.0),
+                      child: Text(
+                        '${site.getLocation()}',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: ColorConstants.appColor,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(1.0, 3.0, 1.0, 3.0),
+                    padding: const EdgeInsets.all(1.0),
                     child: Text(
-                      '${site.district} ${site.country}',
-                      style: const TextStyle(
-                        fontSize: 20,
-                        color: Colors.white,
+                      'Air Quality '
+                      '${pmToString(measurement.getPm2_5Value())}',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: ColorConstants.appColor,
                         fontWeight: FontWeight.bold,
                       ),
                       textAlign: TextAlign.center,
@@ -256,25 +287,11 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                   Padding(
                     padding: const EdgeInsets.all(1.0),
                     child: Text(
-                      'Air Quality '
-                      '${pmToString(measurement.getPm2_5Value())}',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        color: Colors.white,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(1.0),
-                    child: Text(
-                        ''
-                        '${dateToString(measurement.time, true)}',
-                        style: const TextStyle(
+                        '${dateToString(measurement.time, true)} (Local time)',
+                        style: TextStyle(
                           fontSize: 13,
-                          color: Colors.white,
-                          fontWeight: FontWeight.w300,
-                          fontStyle: FontStyle.italic,
+                          color: ColorConstants.appColor,
+                          fontWeight: FontWeight.w500,
                         )),
                   ),
                 ],
@@ -282,11 +299,31 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
             )));
   }
 
+  void checkDashboardView() async {
+    var prefs = await SharedPreferences.getInstance();
+    var dashboardSite = prefs.getString(PrefConstant.dashboardSite) ?? '';
+    if (dashboardSite == widget.site.id) {
+      setState(() {
+        _isDashboardView = true;
+      });
+    }
+  }
+
   Future<void> checkFavourite() async {
     if (measurementData != null) {
       var prefs = await SharedPreferences.getInstance();
-      var favourites =
-          prefs.getStringList(PrefConstants().favouritePlaces) ?? [];
+      var favourites = prefs.getStringList(PrefConstant.favouritePlaces) ?? [];
+
+      if (!favourites.contains(measurementData.site.id)) {
+        await DBHelper()
+            .addFavouritePlaces(measurementData.site)
+            .then((value) => {
+                  showSnackBar(
+                      context,
+                      '${measurementData.site.getUserLocation()}'
+                      ' has been added to your places')
+                });
+      }
 
       if (mounted) {
         setState(() {
@@ -298,9 +335,9 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
 
   Future<void> dbFetch() async {
     try {
-      await localFetch();
-      await localFetchHistoricalData();
-      await localFetchForecastData();
+      localFetch();
+      localFetchHistoricalData();
+      localFetchForecastData();
     } on Error catch (e) {
       print('Getting data locally: $e');
     }
@@ -312,50 +349,84 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
     super.dispose();
   }
 
-  Widget forecastDataSection(List<Predict> measurements) {
-    var forecastData = predictChartData(measurements);
-    return MeasurementsBarChart(forecastData, '24 hour Forecast');
+  Widget expandableMenu() {
+    return ExpandableFab(
+      distance: 112.0,
+      children: [
+        ActionButton(
+          onPressed: updateFavouritePlace,
+          icon: isFavourite
+              ? const Icon(
+                  Icons.favorite,
+                  color: Colors.red,
+                )
+              : const Icon(
+                  Icons.favorite_border_outlined,
+                ),
+        ),
+        ActionButton(
+          onPressed: () {
+            shareMeasurement(measurementData);
+          },
+          icon: const Icon(Icons.share_outlined),
+        ),
+        ActionButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute<void>(
+                builder: (BuildContext context) => const HelpPage(
+                  initialIndex: 0,
+                ),
+                fullscreenDialog: true,
+              ),
+            );
+          },
+          icon: const Icon(Icons.info_outline_rounded),
+        ),
+      ],
+    );
   }
 
-  Future<void> getForecastMeasurements() async {
+  Widget forecastDataSection(List<Predict> measurements) {
+    var forecastData = forecastChartData(measurements);
+    return MeasurementsBarChart(forecastData, 'Forecast');
+  }
+
+  void getForecastMeasurements() async {
     try {
-      await AirqoApiClient(context)
-          .fetchForecast(
-              site.latitude.toString(), site.longitude.toString(), forecastDate)
-          .then((value) => {
-                if (value.isNotEmpty)
+      await AirqoApiClient(context).fetchForecast(site).then((value) => {
+            if (value.isNotEmpty)
+              {
+                if (mounted)
                   {
-                    if (mounted)
-                      {
-                        setState(() {
-                          forecastData = value;
-                        })
-                      },
-                    dbHelper.insertForecastMeasurements(value, site.id)
-                  }
-                else
+                    setState(() {
+                      forecastData = value;
+                    })
+                  },
+                dbHelper.insertForecastMeasurements(value, site.id)
+              }
+            else
+              {
+                if (mounted)
                   {
-                    if (mounted)
-                      {
-                        setState(() {
-                          forecastResponse = 'Forecast data is currently'
-                              ' not available.';
-                        })
-                      }
+                    setState(() {
+                      forecastResponse =
+                          'Sorry, we could retrieve the forecast';
+                    })
                   }
-              });
+              }
+          });
     } catch (e) {
       if (mounted) {
         setState(() {
-          forecastResponse = 'Forecast data is currently not available.';
+          forecastResponse = 'Sorry, we could retrieve the forecast';
         });
       }
-
-      print('Getting Forecast events error: $e');
     }
   }
 
-  Future<void> getHistoricalMeasurements() async {
+  void getHistoricalMeasurements() async {
     try {
       await AirqoApiClient(context)
           .fetchSiteHistoricalMeasurements(site)
@@ -377,7 +448,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                       {
                         setState(() {
                           historicalResponse =
-                              'Historical data is currently not available.';
+                              'Sorry, we could retrieve historical readings.';
                         })
                       }
                   }
@@ -385,14 +456,13 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          historicalResponse = 'Historical data is currently not available.';
+          historicalResponse = 'Sorry, we could retrieve historical readings';
         });
       }
-      print('Getting site historical events error: $e');
     }
   }
 
-  Future<void> getMeasurements() async {
+  void getMeasurements() async {
     try {
       await AirqoApiClient(context)
           .fetchSiteMeasurements(site)
@@ -406,9 +476,8 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                 if (measurementData != null) {checkFavourite()}
               });
     } catch (e) {
-      print('Getting site latest events error: $e');
-
-      var message = 'Sorry, air quality data currently is not available';
+      var message = 'Sorry, air quality data could not be retrieved.'
+          '\nTry again later';
 
       if (mounted) {
         setState(() {
@@ -470,14 +539,35 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
 
   Widget historicalDataSection(List<HistoricalMeasurement> measurements) {
     var formattedData = historicalChartData(measurements);
-    return MeasurementsBarChart(formattedData, '48 hour History');
+    return MeasurementsBarChart(formattedData, 'History');
   }
 
   Future<void> initialize() async {
+    checkDashboardView();
+    initializeNotifications();
     await dbFetch();
-    await getMeasurements();
-    await getHistoricalMeasurements();
-    await getForecastMeasurements();
+    getMeasurements();
+    getHistoricalMeasurements();
+    getForecastMeasurements();
+  }
+
+  void initializeNotifications() async {
+    await SharedPreferences.getInstance().then((value) => {
+          if (mounted)
+            {
+              setState(() {
+                siteAlerts = value.getStringList(PrefConstant.siteAlerts) ?? [];
+                hazardousAlerts = siteAlerts
+                    .contains(site.getTopic(PollutantLevel.hazardous));
+                sensitiveAlerts = siteAlerts
+                    .contains(site.getTopic(PollutantLevel.sensitive));
+                unhealthyAlerts = siteAlerts
+                    .contains(site.getTopic(PollutantLevel.unhealthy));
+                veryUnhealthyAlerts = siteAlerts
+                    .contains(site.getTopic(PollutantLevel.veryUnhealthy));
+              })
+            }
+        });
   }
 
   @override
@@ -487,7 +577,14 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
     super.initState();
   }
 
-  Future<void> localFetch() async {
+  bool isChecked(PollutantLevel pollutantLevel) {
+    if (siteAlerts.contains(site.getTopic(pollutantLevel))) {
+      return true;
+    }
+    return false;
+  }
+
+  void localFetch() async {
     try {
       await dbHelper.getMeasurement(site.id).then((value) => {
             if (value != null)
@@ -506,7 +603,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
     }
   }
 
-  Future<void> localFetchForecastData() async {
+  void localFetchForecastData() async {
     try {
       await dbHelper.getForecastMeasurements(site.id).then((value) => {
             if (value.isNotEmpty)
@@ -524,7 +621,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
     }
   }
 
-  Future<void> localFetchHistoricalData() async {
+  void localFetchHistoricalData() async {
     try {
       await dbHelper.getHistoricalMeasurements(site.id).then((measurements) => {
             if (measurements.isNotEmpty)
@@ -584,6 +681,27 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
     }
   }
 
+  void updateAlerts(dynamic pollutantLevel) async {
+    await DBHelper().updateSiteAlerts(site, pollutantLevel).then((_) => {
+          initializeNotifications(),
+        });
+  }
+
+  Future<void> updateDashboardView(bool value) async {
+    await SharedPreferences.getInstance().then((prefs) => {
+          if (value)
+            {prefs.setString(PrefConstant.dashboardSite, widget.site.id)}
+          else
+            {prefs.setString(PrefConstant.dashboardSite, '')}
+        });
+
+    if (mounted) {
+      setState(() {
+        _isDashboardView = value;
+      });
+    }
+  }
+
   Future<void> updateFavouritePlace() async {
     var fav = await dbHelper.updateFavouritePlaces(measurementData.site);
 
@@ -599,7 +717,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
           '${measurementData.site.getName()} '
           'is added to your places');
     } else {
-      await showSnackBar2(
+      await showSnackBar(
           context,
           '${measurementData.site.getName()} '
           'is removed from your places');
@@ -649,5 +767,231 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
             ],
           );
         });
+  }
+
+  void _placeMenu() {
+    showModalBottomSheet(
+        backgroundColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20.0),
+        ),
+        context: context,
+        builder: (context) {
+          return Container(
+              decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(20.0),
+                      topRight: Radius.circular(20.0))),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 30.0),
+                child: SingleChildScrollView(
+                    child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    ListTile(
+                      title: Text('${site.getName()}',
+                          textAlign: TextAlign.center,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 20,
+                            color: ColorConstants.appColor,
+                            fontWeight: FontWeight.bold,
+                          )),
+                      trailing: Icon(
+                        Icons.close,
+                        color: ColorConstants.appColor,
+                      ),
+                      onTap: () {
+                        Navigator.pop(context);
+                      },
+                    ),
+                    ListTile(
+                      // leading: isFavourite
+                      //     ? const Icon(
+                      //         Icons.favorite,
+                      //         color: Colors.red,
+                      //       )
+                      //     : Icon(Icons.favorite_border_outlined,
+                      //         color: ColorConstants.appColor),
+                      trailing: isFavourite
+                          ? const Icon(
+                              Icons.favorite,
+                              color: Colors.red,
+                            )
+                          : Icon(Icons.favorite_border_outlined,
+                              color: ColorConstants.appColor),
+                      title: isFavourite
+                          ? Text(
+                              'Remove from MyPlaces',
+                              style: TextStyle(
+                                  color: ColorConstants.appColor,
+                                  fontWeight: FontWeight.w600),
+                            )
+                          : Text(
+                              'Add to MyPlaces',
+                              style: TextStyle(
+                                  color: ColorConstants.appColor,
+                                  fontWeight: FontWeight.w600),
+                            ),
+                      onTap: () {
+                        Navigator.pop(context);
+                        updateFavouritePlace();
+                      },
+                    ),
+                    ListTile(
+                      trailing: Switch(
+                        value: _isDashboardView,
+                        activeColor: ColorConstants.appColor,
+                        activeTrackColor:
+                            ColorConstants.appColor.withOpacity(0.6),
+                        inactiveThumbColor: Colors.white,
+                        inactiveTrackColor: Colors.black12,
+                        onChanged: (bool value) {
+                          setState(() {
+                            _isDashboardView = value;
+                            Navigator.pop(context);
+                            updateDashboardView(value);
+                          });
+                        },
+                      ),
+                      title: Text(
+                        'Set as default for dashboard',
+                        style: TextStyle(
+                            color: ColorConstants.appColor,
+                            fontWeight: FontWeight.w600),
+                      ),
+                    ),
+
+                    // ListTile(
+                    //   leading: Icon(Icons.notification_important_outlined,
+                    //       color: ColorConstants.appColor),
+                    //   title: Text(
+                    //     'Notify me when air quality is ;',
+                    //     style: TextStyle(
+                    //         color: ColorConstants.appColor,
+                    //         fontWeight: FontWeight.w600),
+                    //   ),
+                    // ),
+                    // ListTile(
+                    //   leading: const Icon(Icons.notification_important_outlined,
+                    //       color: Colors.transparent),
+                    //   title: Text('unhealthy for sensitive groups',
+                    //       style: TextStyle(color: ColorConstants.appColor)),
+                    //   trailing: PlaceMenuSwitch(
+                    //     switchValue: sensitiveAlerts,
+                    //     valueChanged: updateAlerts,
+                    //     pollutantLevel: PollutantLevel.sensitive,
+                    //   ),
+                    // ),
+                    // ListTile(
+                    //   leading: const Icon(Icons.notification_important_outlined,
+                    //       color: Colors.transparent),
+                    //   title: Text('unhealthy',
+                    //       style: TextStyle(color: ColorConstants.appColor)),
+                    //   trailing: PlaceMenuSwitch(
+                    //     switchValue: unhealthyAlerts,
+                    //     valueChanged: updateAlerts,
+                    //     pollutantLevel: PollutantLevel.unhealthy,
+                    //   ),
+                    // ),
+                    // ListTile(
+                    //   leading: const Icon(Icons.notification_important_outlined,
+                    //       color: Colors.transparent),
+                    //   title: Text('very unhealthy',
+                    //       style: TextStyle(color: ColorConstants.appColor)),
+                    //   trailing: PlaceMenuSwitch(
+                    //     switchValue: veryUnhealthyAlerts,
+                    //     valueChanged: updateAlerts,
+                    //     pollutantLevel: PollutantLevel.veryUnhealthy,
+                    //   ),
+                    // ),
+                    // ListTile(
+                    //   leading: const Icon(Icons.notification_important_outlined,
+                    //       color: Colors.transparent),
+                    //   title: Text('hazardous',
+                    //       style: TextStyle(color: ColorConstants.appColor)),
+                    //   trailing: PlaceMenuSwitch(
+                    //     switchValue: hazardousAlerts,
+                    //     valueChanged: updateAlerts,
+                    //     pollutantLevel: PollutantLevel.hazardous,
+                    //   ),
+                    // ),
+
+                    Divider(
+                      indent: 30,
+                      endIndent: 30,
+                      color: ColorConstants.appColor,
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        IconButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            reportPlace(site, context);
+                          },
+                          icon: Icon(Icons.report_problem_outlined,
+                              color: ColorConstants.appColor),
+                        ),
+                        IconButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute<void>(
+                                builder: (BuildContext context) =>
+                                    const HelpPage(
+                                  initialIndex: 0,
+                                ),
+                                fullscreenDialog: true,
+                              ),
+                            );
+                          },
+                          icon: Icon(Icons.info_outline,
+                              color: ColorConstants.appColor),
+                        ),
+                        IconButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            shareMeasurement(measurementData);
+                          },
+                          icon: Icon(Icons.share_outlined,
+                              color: ColorConstants.appColor),
+                        ),
+                      ],
+                    ),
+                  ],
+                )),
+              ));
+        });
+  }
+}
+
+class _PlaceMenuSwitch extends State<PlaceMenuSwitch> {
+  bool _switchValue = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Switch(
+      value: _switchValue,
+      activeColor: ColorConstants.appColor,
+      activeTrackColor: ColorConstants.appColor.withOpacity(0.6),
+      inactiveThumbColor: Colors.white,
+      inactiveTrackColor: Colors.black12,
+      onChanged: (bool value) {
+        setState(() {
+          _switchValue = value;
+          widget.valueChanged(widget.pollutantLevel);
+        });
+      },
+    );
+  }
+
+  @override
+  void initState() {
+    _switchValue = widget.switchValue;
+    super.initState();
   }
 }

@@ -8,13 +8,13 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
-
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
    <application
-        android:label="AirQo"
-        android:icon="@mipmap/launcher_icon"
-       android:usesCleartextTraffic="true">
-       android:networkSecurityConfig="@xml/network_security_config"
+       android:label="AirQo"
+       android:icon="@mipmap/launcher_icon">
+
 
        <meta-data android:name="com.google.android.geo.API_KEY"
            android:value="${googleMapsKey}"/>
