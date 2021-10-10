@@ -1,26 +1,23 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/chartData.dart';
-import 'package:app/models/historicalMeasurement.dart';
-import 'package:app/utils/data_formatter.dart';
 import 'package:app/utils/date.dart';
 import 'package:app/utils/pm.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 
-class MeasurementsBarChart extends StatefulWidget {
-  final List<HistoricalMeasurement> measurements;
+class ForecastBarChart extends StatefulWidget {
+  final List<charts.Series<TimeSeriesData, DateTime>> seriesList;
 
   final String header;
 
-  MeasurementsBarChart(this.measurements, this.header);
+  ForecastBarChart(this.seriesList, this.header);
 
   @override
-  _MeasurementsBarChartState createState() => _MeasurementsBarChartState();
+  _ForecastBarChartState createState() => _ForecastBarChartState();
 }
 
-class _MeasurementsBarChartState extends State<MeasurementsBarChart> {
-  var display;
-  List<charts.Series<TimeSeriesData, DateTime>> seriesList = [];
+class _ForecastBarChartState extends State<ForecastBarChart> {
+  var display = null;
 
   @override
   Widget build(BuildContext context) {
@@ -102,7 +99,7 @@ class _MeasurementsBarChartState extends State<MeasurementsBarChart> {
             height: 200,
             padding: const EdgeInsets.fromLTRB(5, 10, 5, 10),
             child: charts.TimeSeriesChart(
-              seriesList,
+              widget.seriesList,
               animate: true,
               defaultRenderer: charts.BarRendererConfig<DateTime>(
                   strokeWidthPx: 0, stackedBarPaddingPx: 0),
@@ -158,11 +155,5 @@ class _MeasurementsBarChartState extends State<MeasurementsBarChart> {
         ],
       ),
     );
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    seriesList = historicalChartData(widget.measurements);
   }
 }

@@ -389,9 +389,9 @@ String pollutantToString(String pollutantConstant) {
   pollutantConstant = pollutantConstant.trim();
 
   if (pollutantConstant == PollutantConstant.pm2_5) {
-    return 'PM 2.5';
+    return 'PM2.5';
   } else if (pollutantConstant == PollutantConstant.pm10) {
-    return 'PM 10';
+    return 'PM10';
   } else if (pollutantConstant == PollutantConstant.humidity) {
     return 'Humidity';
   } else if (pollutantConstant == PollutantConstant.temperature) {

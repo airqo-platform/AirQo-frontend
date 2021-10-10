@@ -63,6 +63,7 @@ class AirqoApiClient {
         ..putIfAbsent('startTime', () => startTime)
         ..putIfAbsent('frequency', () => 'hourly')
         ..putIfAbsent('recent', () => 'no')
+        ..putIfAbsent('external', () => 'no')
         ..putIfAbsent('metadata', () => 'site_id')
         ..putIfAbsent('tenant', () => 'airqo');
 
@@ -87,12 +88,12 @@ class AirqoApiClient {
       var queryParams = <String, dynamic>{}
         ..putIfAbsent('recent', () => 'yes')
         ..putIfAbsent('metadata', () => 'site_id')
+        ..putIfAbsent('external', () => 'no')
         ..putIfAbsent('frequency', () => 'hourly')
         ..putIfAbsent('tenant', () => 'airqo');
 
       final responseBody =
           await _performGetRequest(queryParams, AirQoUrls().measurements);
-
       if (responseBody != null) {
         return compute(Measurement.parseMeasurements, responseBody);
       } else {
@@ -143,6 +144,7 @@ class AirqoApiClient {
         ..putIfAbsent('startTime', () => startTime)
         ..putIfAbsent('frequency', () => 'hourly')
         ..putIfAbsent('metadata', () => 'site_id')
+        ..putIfAbsent('external', () => 'no')
         ..putIfAbsent('recent', () => 'no')
         ..putIfAbsent('tenant', () => 'airqo');
 
@@ -168,6 +170,7 @@ class AirqoApiClient {
         ..putIfAbsent('recent', () => 'yes')
         ..putIfAbsent('site_id', () => site.id)
         ..putIfAbsent('frequency', () => 'hourly')
+        ..putIfAbsent('external', () => 'no')
         ..putIfAbsent('metadata', () => 'site_id')
         ..putIfAbsent('tenant', () => 'airqo');
 

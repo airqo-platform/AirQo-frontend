@@ -15,7 +15,7 @@ List<charts.Series<TimeSeriesData, DateTime>> forecastChartData(
       final timeZoneOffset = DateTime.now().timeZoneOffset;
       final dateTime = DateTime.parse(
           formatter.parse(prediction.time).add(timeZoneOffset).toString());
-      data.add(TimeSeriesData(dateTime, prediction.value.ceil()));
+      data.add(TimeSeriesData(dateTime, prediction.getValue()));
     } catch (e) {
       print(e);
     }
@@ -43,7 +43,35 @@ List<charts.Series<TimeSeriesData, DateTime>> historicalChartData(
   for (var measurement in measurements) {
     try {
       final dateTime = DateTime.parse(measurement.time);
-      data.add(TimeSeriesData(dateTime, measurement.getPm2_5Value().ceil()));
+      data.add(TimeSeriesData(dateTime, measurement.getPm2_5Value()));
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  return [
+    charts.Series<TimeSeriesData, DateTime>(
+      id: 'Historical',
+      colorFn: (TimeSeriesData series, _) =>
+          pmToChartColor(series.value.toDouble()),
+      domainFn: (TimeSeriesData data, _) => data.time,
+      measureFn: (TimeSeriesData data, _) => data.value,
+      // measureLowerBoundFn: (TimeSeriesData data, _) => data.value - 5,
+      // measureUpperBoundFn: (TimeSeriesData data, _) => data.value + 5,
+      data: data,
+      // displayName: 'Forecast',
+    )
+  ];
+}
+
+List<charts.Series<TimeSeriesData, DateTime>> historicalChartDataV2(
+    List<HistoricalMeasurement> measurements) {
+  var data = <TimeSeriesData>[];
+
+  for (var measurement in measurements) {
+    try {
+      final dateTime = DateTime.parse(measurement.time);
+      data.add(TimeSeriesData(dateTime, measurement.getPm2_5Value()));
     } catch (e) {
       print(e);
     }

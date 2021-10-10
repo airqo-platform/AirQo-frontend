@@ -135,7 +135,7 @@ class PollutantBio {
       ' respiratory illness and more. They are measured but'
       ' not always reported worldwide';
 
-  static String get pm2_5 => 'PM 2.5 are pollutants'
+  static String get pm2_5 => 'PM2.5 are pollutants'
       ' about 2.5 micrometers (20–30 times '
       'smaller than the thickness of a human hair.)\n'
       'Once in the bloodstream, they can contribute to cancers, '
@@ -183,7 +183,7 @@ class PollutantDescription {
       'that each cubic metre of air contains 60 micrograms of particulate'
       ' matter that has a diameter less than 10 micrometres'
       '\n\n'
-      'These are bigger and are often more visible than PM 2.5. '
+      'These are bigger and are often more visible than PM2.5. '
       'These particles can certainly be damaging and include dust '
       'and thick smoke, many can be processed by the lungs and can be'
       ' coughed out but others especially if toxic can contribute to'
@@ -191,7 +191,7 @@ class PollutantDescription {
       ' in contributing to the spread of COVID-19. They are measured but'
       ' not always reported worldwide';
 
-  static String get pm2_5 => 'PM 2.5 refers to the quantity of '
+  static String get pm2_5 => 'PM2.5 refers to the quantity of '
       'particulate matter smaller than 2.5 micrometers'
       ' present in the air. To give an idea of what that '
       'means, 2.5 micrometers is about 20–30 times '

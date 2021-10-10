@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/historicalMeasurement.dart';
 import 'package:app/models/measurement.dart';
@@ -10,6 +8,7 @@ import 'package:app/utils/date.dart';
 import 'package:app/utils/pm.dart';
 import 'package:app/utils/share.dart';
 import 'package:app/widgets/pollutants_container.dart';
+import 'package:app/widgets/weather_container.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -22,7 +21,6 @@ class CurrentLocationCard extends StatelessWidget {
 
   final List<HistoricalMeasurement> historicalData;
   final List<Predict> forecastData;
-  final List<charts.Series> seriesList = _createSampleData();
 
   CurrentLocationCard(
       {Key? key,
@@ -38,7 +36,7 @@ class CurrentLocationCard extends StatelessWidget {
       child: Column(
         children: [
           Padding(
-            padding: EdgeInsets.only(left: 10, right: 10),
+            padding: const EdgeInsets.only(left: 10, right: 10),
             child: Card(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
@@ -54,7 +52,7 @@ class CurrentLocationCard extends StatelessWidget {
             height: 20,
           ),
           Padding(
-            padding: EdgeInsets.only(left: 10, right: 10),
+            padding: const EdgeInsets.only(left: 10, right: 10),
             child: PollutantsSection(measurementData),
           ),
           const SizedBox(
@@ -63,6 +61,16 @@ class CurrentLocationCard extends StatelessWidget {
           HealthRecommendationSection(
             measurement: measurementData,
           ),
+          const SizedBox(
+            height: 10,
+          ),
+          if (measurementData.hasWeatherData())
+            Padding(
+              padding: const EdgeInsets.only(left: 10, right: 10),
+              child: WeatherSection(
+                measurementData,
+              ),
+            ),
           const SizedBox(
             height: 10,
           ),
@@ -115,8 +123,7 @@ class CurrentLocationCard extends StatelessWidget {
               viewDetails(context, measurementData);
             },
             child: Text(
-                '${dateToString(measurementData.time, true)}'
-                ', Local Time',
+                'Last updated : ${dateToString(measurementData.time, true)}',
                 style: TextStyle(
                   color: ColorConstants.appColor,
                   fontSize: 12,
@@ -210,27 +217,6 @@ class CurrentLocationCard extends StatelessWidget {
     return DashboardBarChart(data, 'Forecast');
   }
 
-  Widget gaugeChart() {
-    return Container(
-      height: 140.0,
-      width: 140.0,
-      child: charts.PieChart(
-        seriesList,
-        animate: false,
-        defaultRenderer: charts.ArcRendererConfig(
-          arcWidth: 3,
-          startAngle: 4 / 5 * pi,
-          arcLength: 7 / 5 * pi,
-          strokeWidthPx: 0,
-          // arcRendererDecorators: [new charts.ArcLabelDecorator(
-          //   showLeaderLines: false,
-          //   labelPosition: charts.ArcLabelPosition.inside,
-          // )],
-        ),
-      ),
-    );
-  }
-
   Widget historySection() {
     var formattedData = historicalChartData(historicalData);
     return DashboardBarChart(formattedData, 'History');
@@ -315,7 +301,7 @@ class CurrentLocationCard extends StatelessWidget {
                           fontWeight: FontWeight.bold),
                     ),
                     const Text(
-                      'PM 2.5',
+                      'PM2.5',
                       style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.bold,

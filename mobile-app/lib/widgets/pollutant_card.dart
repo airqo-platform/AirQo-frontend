@@ -45,25 +45,29 @@ class PollutantCard extends StatelessWidget {
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.all(1.0),
-                  child: Text(
-                    '${value.toStringAsFixed(2)}',
-                    style: TextStyle(
-                      fontSize: 17,
-                      color: ColorConstants.appColor,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                if (source != '')
-                  Text(
-                    'Source: Tahmo',
-                    style: TextStyle(
-                      fontSize: 8,
-                      color: ColorConstants.appColor,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                    padding: const EdgeInsets.all(1.0),
+                    child: RichText(
+                      text: TextSpan(
+                        style: DefaultTextStyle.of(context).style,
+                        children: <TextSpan>[
+                          TextSpan(
+                            text: '${value.toStringAsFixed(2)}',
+                            style: TextStyle(
+                              fontSize: 17,
+                              color: ColorConstants.appColor,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          TextSpan(
+                            text: ' µg/m\u00B3',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: ColorConstants.appColor,
+                            ),
+                          )
+                        ],
+                      ),
+                    )),
               ],
             ),
           )),
@@ -76,11 +80,6 @@ class PollutantCard extends StatelessWidget {
     } else if (type == PollutantConstant.pm10) {
       return const HelpPage(initialIndex: 2);
     }
-    // else if (type == PollutantConstant.humidity) {
-    //   return const HelpPage(initialIndex: 3);
-    // } else if (type == PollutantConstant.temperature) {
-    //   return const HelpPage(initialIndex: 4);
-    // }
     else {
       return const HelpPage(initialIndex: 0);
     }

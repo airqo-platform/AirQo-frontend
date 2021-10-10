@@ -15,7 +15,7 @@ class PollutantsSection extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
         Text(
-          'Location Readings',
+          'Pollutants',
           softWrap: true,
           style: TextStyle(
               fontSize: 20,
@@ -23,34 +23,16 @@ class PollutantsSection extends StatelessWidget {
               fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 10.0),
-        SizedBox(
-          height: 120.0,
-          child: ListView(
-            physics: const ClampingScrollPhysics(),
-            shrinkWrap: true,
-            scrollDirection: Axis.horizontal,
-            children: [
-              if (measurement.getPm2_5Value() != -0.10)
-                PollutantCard('PM 2.5', measurement.getPm2_5Value(),
-                    '${PollutantConstant.pm2_5}', ''),
-              if (measurement.getPm10Value() != -0.10)
-                PollutantCard('PM 10', measurement.getPm10Value(),
-                    '${PollutantConstant.pm10}', ''),
-              if (measurement.humidity.value != -0.10)
-                PollutantCard(
-                    'Humidity',
-                    double.parse(measurement.humidity.value.toStringAsFixed(2)),
-                    '${PollutantConstant.humidity}',
-                    'Tahmo'),
-              if (measurement.temperature.value != -0.10)
-                PollutantCard(
-                    'Temperature',
-                    double.parse(
-                        measurement.temperature.value.toStringAsFixed(2)),
-                    '${PollutantConstant.temperature}',
-                    'Tahmo'),
-            ],
-          ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            if (measurement.getPm2_5Value() != -0.10)
+              PollutantCard('PM2.5', measurement.getPm2_5Value(),
+                  '${PollutantConstant.pm2_5}', ''),
+            if (measurement.getPm10Value() != -0.10)
+              PollutantCard('PM10', measurement.getPm10Value(),
+                  '${PollutantConstant.pm10}', ''),
+          ],
         ),
       ],
     ));
@@ -64,7 +46,7 @@ class PollutantsSection extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           Text(
-            'Location Readings',
+            'Pollutants',
             // CustomLocalizations.of(context)!.title,
             softWrap: true,
             style: TextStyle(
@@ -81,13 +63,13 @@ class PollutantsSection extends StatelessWidget {
                   flex: 1,
                 ),
                 if (measurement.getPm2_5Value() != 0.1)
-                  PollutantCard('PM 2.5', measurement.getPm2_5Value(),
+                  PollutantCard('PM2.5', measurement.getPm2_5Value(),
                       '${PollutantConstant.pm2_5}', ''),
                 const Spacer(
                   flex: 1,
                 ),
                 if (measurement.getPm10Value() != 0.1)
-                  PollutantCard('PM 10', measurement.getPm10Value(),
+                  PollutantCard('PM10', measurement.getPm10Value(),
                       '${PollutantConstant.pm10}', ''),
                 const Spacer(
                   flex: 1,

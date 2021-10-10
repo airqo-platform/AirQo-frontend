@@ -30,12 +30,12 @@ class HelpPage extends StatelessWidget {
               )),
               const Tab(
                   child: Text(
-                'PM 2.5',
+                'PM2.5',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
               )),
               const Tab(
                   child: Text(
-                'PM 10',
+                'PM10',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
               )),
               // const Tab(

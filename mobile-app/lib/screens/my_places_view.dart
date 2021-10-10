@@ -20,7 +20,7 @@ class MyPlacesView extends StatefulWidget {
 
 class _MyPlacesViewState extends State<MyPlacesView> {
   var results = <Measurement>[];
-  var order = -1;
+  var order = 1;
 
   @override
   Widget build(BuildContext context) {

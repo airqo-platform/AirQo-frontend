@@ -40,6 +40,14 @@ class Measurement {
   factory Measurement.fromJson(Map<String, dynamic> json) =>
       _$MeasurementFromJson(json);
 
+  String getHumidityValue() {
+    var humidityValue = humidity.value.round();
+    if (humidity.value <= 0.99) {
+      humidityValue = (humidity.value * 100).round();
+    }
+    return '$humidityValue%';
+  }
+
   double getPm10Value() {
     if (pm10.calibratedValue == -0.1) {
       return double.parse(pm10.value.toStringAsFixed(2));
@@ -193,4 +201,13 @@ class Measurements {
       _$MeasurementsFromJson(json);
 
   Map<String, dynamic> toJson() => _$MeasurementsToJson(this);
+}
+
+extension ParseMeasurement on Measurement {
+  bool hasWeatherData() {
+    if (humidity.value != -0.1 || temperature.value != -0.1) {
+      return true;
+    }
+    return false;
+  }
 }

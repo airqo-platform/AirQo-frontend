@@ -11,9 +11,11 @@ import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/pm.dart';
 import 'package:app/utils/share.dart';
 import 'package:app/widgets/expanding_action_button.dart';
+import 'package:app/widgets/forecast_chart.dart';
 import 'package:app/widgets/health_recommendation.dart';
 import 'package:app/widgets/measurements_chart.dart';
 import 'package:app/widgets/pollutants_container.dart';
+import 'package:app/widgets/weather_container.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -107,133 +109,103 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
           // ),
         ],
       ),
-      body: measurement != null
-          ? Container(
-              color: ColorConstants.appBodyColor,
-              child: ListView(
-                controller: _scrollCtrl,
-                padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
-                children: <Widget>[
-                  // card section
-                  cardSection(measurement),
+      body: Container(
+        color: ColorConstants.appBodyColor,
+        child: ListView(
+          controller: _scrollCtrl,
+          padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
+          children: <Widget>[
+            // card section
+            cardSection(measurement),
 
-                  // Pollutants
-                  PollutantsSection(measurement),
+            // Pollutants
+            PollutantsSection(measurement),
 
-                  const SizedBox(
-                    height: 10,
-                  ),
+            const SizedBox(
+              height: 10,
+            ),
 
-                  // Recommendations
-                  HealthRecommendationSection(
-                    measurement: measurement,
-                  ),
+            // Recommendations
+            HealthRecommendationSection(
+              measurement: measurement,
+            ),
 
-                  // historicalData
-                  if (historicalData.isNotEmpty)
-                    historicalDataSection(historicalData),
-
-                  // historicalData.isNotEmpty
-                  //     ? historicalDataSection(historicalData)
-                  //     : historicalResponse != ''
-                  //         ? Card(
-                  //             elevation: 20,
-                  //             child: Padding(
-                  //               padding: const EdgeInsets.all(5.0),
-                  //               child: Center(
-                  //                 child: Text(
-                  //                   historicalResponse,
-                  //                   style: TextStyle(
-                  //                       color: ColorConstants.appColor),
-                  //                 ),
-                  //               ),
-                  //             ),
-                  //           )
-                  //         : Center(
-                  //             child: Container(
-                  //             padding: const EdgeInsets.all(16.0),
-                  //             child: CircularProgressIndicator(
-                  //               valueColor: AlwaysStoppedAnimation<Color>(
-                  //                   ColorConstants.appColor),
-                  //             ),
-                  //           )),
-
-                  // Forecast Data
-
-                  if (forecastData.isNotEmpty)
-                    forecastDataSection(forecastData),
-
-                  // forecastData.isNotEmpty
-                  //     ? forecastDataSection(forecastData)
-                  //     : forecastResponse != ''
-                  //         ? Card(
-                  //             elevation: 20,
-                  //             child: Padding(
-                  //               padding: const EdgeInsets.all(5.0),
-                  //               child: Center(
-                  //                 child: Text(forecastResponse,
-                  //                     style: TextStyle(
-                  //                         color: ColorConstants.appColor)),
-                  //               ),
-                  //             ),
-                  //           )
-                  //         : Center(
-                  //             child: Container(
-                  //             padding: const EdgeInsets.all(16.0),
-                  //             child: CircularProgressIndicator(
-                  //               valueColor: AlwaysStoppedAnimation<Color>(
-                  //                   ColorConstants.appColor),
-                  //             ),
-                  //           )),
-                  //
-
-                  Container(
-                      padding: const EdgeInsets.fromLTRB(0, 0, 0, 50),
-                      constraints: const BoxConstraints.expand(height: 300.0),
-                      child: mapSection(measurement)),
-
-                  // LocationBarChart(),
-                ],
+            if (measurement.hasWeatherData())
+              Padding(
+                padding: const EdgeInsets.only(left: 10, right: 10),
+                child: WeatherSection(
+                  measurement,
+                ),
               ),
-            )
-          : response != ''
-              ? Container(
-                  color: ColorConstants.appBodyColor,
-                  child: Center(
-                    child: Text(
-                      response,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: ColorConstants.appColor),
-                    ),
-                  ))
-              : Container(
-                  color: ColorConstants.appBodyColor,
-                  child: Center(
-                    child: Stack(
-                      children: <Widget>[
-                        Center(
-                          child: Container(
-                              width: 70,
-                              height: 70,
-                              child: CircularProgressIndicator(
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                    ColorConstants.appColor),
-                              )),
-                        ),
-                        // Center(
-                        //     child: Text(
-                        //   'Loading',
-                        //   style: TextStyle(color: ColorConstants.appColor),
-                        // )),
-                      ],
-                    ),
-                  )),
+
+            // historicalData
+            if (historicalData.isNotEmpty)
+              historicalDataSection(historicalData),
+
+            // historicalData.isNotEmpty
+            //     ? historicalDataSection(historicalData)
+            //     : historicalResponse != ''
+            //         ? Card(
+            //             elevation: 20,
+            //             child: Padding(
+            //               padding: const EdgeInsets.all(5.0),
+            //               child: Center(
+            //                 child: Text(
+            //                   historicalResponse,
+            //                   style: TextStyle(
+            //                       color: ColorConstants.appColor),
+            //                 ),
+            //               ),
+            //             ),
+            //           )
+            //         : Center(
+            //             child: Container(
+            //             padding: const EdgeInsets.all(16.0),
+            //             child: CircularProgressIndicator(
+            //               valueColor: AlwaysStoppedAnimation<Color>(
+            //                   ColorConstants.appColor),
+            //             ),
+            //           )),
+
+            // Forecast Data
+
+            if (forecastData.isNotEmpty) forecastDataSection(forecastData),
+
+            // forecastData.isNotEmpty
+            //     ? forecastDataSection(forecastData)
+            //     : forecastResponse != ''
+            //         ? Card(
+            //             elevation: 20,
+            //             child: Padding(
+            //               padding: const EdgeInsets.all(5.0),
+            //               child: Center(
+            //                 child: Text(forecastResponse,
+            //                     style: TextStyle(
+            //                         color: ColorConstants.appColor)),
+            //               ),
+            //             ),
+            //           )
+            //         : Center(
+            //             child: Container(
+            //             padding: const EdgeInsets.all(16.0),
+            //             child: CircularProgressIndicator(
+            //               valueColor: AlwaysStoppedAnimation<Color>(
+            //                   ColorConstants.appColor),
+            //             ),
+            //           )),
+            //
+
+            Container(
+                padding: const EdgeInsets.fromLTRB(0, 0, 0, 50),
+                constraints: const BoxConstraints.expand(height: 300.0),
+                child: mapSection(measurement)),
+
+            // LocationBarChart(),
+          ],
+        ),
+      ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-      floatingActionButton: measurement != null
-          ? _showMenuButton
-              ? bottomSheetMenu()
-              : null
-          : null,
+      floatingActionButton: bottomSheetMenu(),
     );
   }
 
@@ -301,7 +273,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                   Padding(
                     padding: const EdgeInsets.all(1.0),
                     child: Text(
-                        '${dateToString(measurement.time, true)} (Local time)',
+                        'Last updated : ${dateToString(measurement.time, true)}',
                         style: TextStyle(
                           fontSize: 13,
                           color: ColorConstants.appColor,
@@ -400,7 +372,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
 
   Widget forecastDataSection(List<Predict> measurements) {
     var forecastData = forecastChartData(measurements);
-    return MeasurementsBarChart(forecastData, 'Forecast');
+    return ForecastBarChart(forecastData, 'Forecast');
   }
 
   void getForecastMeasurements() async {
@@ -552,8 +524,8 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
   }
 
   Widget historicalDataSection(List<HistoricalMeasurement> measurements) {
-    var formattedData = historicalChartData(measurements);
-    return MeasurementsBarChart(formattedData, 'History');
+    // var formattedData = historicalChartData(measurements);
+    return MeasurementsBarChart(measurements, 'History');
   }
 
   Future<void> initialize() async {

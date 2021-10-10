@@ -10,6 +10,7 @@ class AirQoUrls {
   String get feedbackUrl => feedbackWebhook;
 
   String get forecast => '${_baseUrl}predict/';
+
   String get forecastV2 => '${_baseUrlV2}predict/';
 
   String get imageUploadUrl => airqoImageUploadUrl;

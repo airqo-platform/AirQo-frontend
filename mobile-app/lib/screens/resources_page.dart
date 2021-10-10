@@ -18,7 +18,7 @@ class ResourcesPage extends StatefulWidget {
 class _ResourcesPageState extends State<ResourcesPage> {
   var stories = <Story>[];
   var measurements = <Measurement>[];
-  var order = -1;
+  var order = 1;
   var pollutant = 'pm2.5';
 
   @override
@@ -161,6 +161,18 @@ class _ResourcesPageState extends State<ResourcesPage> {
                     ),
                     const Spacer(),
                     GestureDetector(
+                      child: const Icon(Icons.sort),
+                      onTap: () {
+                        setState(() {
+                          order = -order;
+                        });
+                        setRankings(measurements);
+                      },
+                    ),
+                    const SizedBox(
+                      width: 10,
+                    ),
+                    GestureDetector(
                       child: const Icon(Icons.share_outlined),
                       onTap: () {
                         setState(() {
@@ -171,15 +183,6 @@ class _ResourcesPageState extends State<ResourcesPage> {
                     ),
                     const SizedBox(
                       width: 10,
-                    ),
-                    GestureDetector(
-                      child: const Icon(Icons.sort),
-                      onTap: () {
-                        setState(() {
-                          order = -order;
-                        });
-                        setRankings(measurements);
-                      },
                     ),
                   ],
                 ),
