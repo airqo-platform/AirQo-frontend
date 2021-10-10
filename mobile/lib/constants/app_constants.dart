@@ -34,6 +34,8 @@ class ColorConstants {
 
   static Color get appBarTitleColor => appColor;
 
+  static Color get greyColor => const Color(0xff8D8D8D);
+
   static Color get appBgColor => const Color(0xffEBEBEB);
 
   static Color get appBodyColor => const Color(0xffF2F1F6);

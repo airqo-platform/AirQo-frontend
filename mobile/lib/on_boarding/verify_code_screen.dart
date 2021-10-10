@@ -13,6 +13,7 @@ class VerifyCodeScreenState extends State<VerifyCodeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        resizeToAvoidBottomInset: false,
         body: Container(
       padding: const EdgeInsets.only(left: 24, right: 24),
       child: Center(
@@ -51,12 +52,22 @@ class VerifyCodeScreenState extends State<VerifyCodeScreen> {
               ],
             ),
           ),
+          const SizedBox(
+            height: 24,
+          ),
+          Text(
+            'The code should arrive with in 5 sec.',
+            textAlign: TextAlign.center,
+            style:
+            TextStyle(fontSize: 12, color: Colors.black.withOpacity(0.5)),
+          ),
           const Spacer(),
           GestureDetector(
             onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) {
-                return ProfileSetupScreen();
-              }));
+              Navigator.pushAndRemoveUntil(context,
+                  MaterialPageRoute(builder: (context) {
+                    return ProfileSetupScreen();
+                  }), (r) => false);
             },
             child: nextButton('Next'),
           ),

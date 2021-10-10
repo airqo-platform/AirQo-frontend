@@ -29,10 +29,10 @@ class LogoScreenState extends State<LogoScreen> {
 
   void initialize() {
     Future.delayed(const Duration(seconds: 10), () async {
-      await Navigator.pushReplacement(context,
+      await Navigator.pushAndRemoveUntil(context,
           MaterialPageRoute(builder: (context) {
         return TagLineScreen();
-      }));
+      }), (r) => false);
     });
   }
 

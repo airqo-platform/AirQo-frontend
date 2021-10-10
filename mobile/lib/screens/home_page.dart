@@ -38,7 +38,7 @@ class _HomePageState extends State<HomePage> {
   double selectedPage = 0;
   int _selectedIndex = 0;
   final List<Widget> _widgetOptions = <Widget>[
-    DashboardPage(),
+    DashboardView(),
     const MapView(),
     const ProfileView(),
   ];
@@ -179,7 +179,7 @@ class _HomePageState extends State<HomePage> {
           onPageChanged: switchTitle,
           physics: const NeverScrollableScrollPhysics(),
           children: <Widget>[
-            DashboardPage(),
+            DashboardView(),
             MyPlacesView(),
             ResourcesPage(),
             SettingsView(),

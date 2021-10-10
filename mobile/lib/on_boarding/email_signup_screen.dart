@@ -14,6 +14,7 @@ class EmailSignupScreenState extends State<EmailSignupScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        resizeToAvoidBottomInset: false,
         body: Container(
       padding: EdgeInsets.only(left: 24, right: 24),
       child: Center(
@@ -39,7 +40,7 @@ class EmailSignupScreenState extends State<EmailSignupScreen> {
           const SizedBox(
             height: 32,
           ),
-          inputField('Enter your email'),
+          emailInputField('Enter your email'),
           const SizedBox(
             height: 34,
           ),

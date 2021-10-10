@@ -43,9 +43,10 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
           Spacer(),
           GestureDetector(
             onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) {
-                return SetUpCompleteScreen();
-              }));
+              Navigator.pushAndRemoveUntil(context,
+                  MaterialPageRoute(builder: (context) {
+                    return SetUpCompleteScreen();
+                  }), (r) => false);
             },
             child: nextButton('Allow location'),
           ),

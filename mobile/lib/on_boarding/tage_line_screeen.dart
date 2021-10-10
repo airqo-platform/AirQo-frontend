@@ -33,10 +33,10 @@ class TagLineScreenState extends State<TagLineScreen> {
 
   void initialize() {
     Future.delayed(const Duration(seconds: 4), () async {
-      await Navigator.pushReplacement(context,
+      await Navigator.pushAndRemoveUntil(context,
           MaterialPageRoute(builder: (context) {
-        return WelcomeScreen();
-      }));
+            return WelcomeScreen();
+          }), (r) => false);
     });
   }
 

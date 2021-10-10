@@ -49,9 +49,10 @@ class WelcomeScreenState extends State<WelcomeScreen> {
             padding: const EdgeInsets.only(bottom: 96.0),
             child: GestureDetector(
               onTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) {
-                  return PhoneSignupScreen();
-                }));
+                Navigator.pushAndRemoveUntil(context,
+                    MaterialPageRoute(builder: (context) {
+                      return PhoneSignupScreen();
+                    }), (r) => false);
               },
               child: nextButton('Let’s go'),
             ),

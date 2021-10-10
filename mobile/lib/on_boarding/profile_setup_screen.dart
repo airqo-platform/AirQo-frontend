@@ -14,6 +14,7 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        resizeToAvoidBottomInset: false,
         body: Container(
       padding: const EdgeInsets.only(left: 24, right: 24),
       child: Center(
@@ -30,13 +31,23 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
           const SizedBox(
             height: 42,
           ),
-          inputField('Enter your name  '),
+          Row(
+            children: <Widget>[
+              titleDropdown(),
+              const SizedBox(width: 16,),
+              Flexible(
+                child: inputField('Enter your name  '),
+              ),
+            ],
+          ),
+
           const Spacer(),
           GestureDetector(
             onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) {
-                return NotificationsSetupScreen();
-              }));
+              Navigator.pushAndRemoveUntil(context,
+                MaterialPageRoute(builder: (context) {
+                  return NotificationsSetupScreen();
+                }), (r) => false);
             },
             child: nextButton('Let’s go'),
           ),

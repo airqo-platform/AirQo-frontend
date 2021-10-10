@@ -15,8 +15,9 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        resizeToAvoidBottomInset: false,
         body: Container(
-      padding: EdgeInsets.only(left: 24, right: 24),
+      padding: const EdgeInsets.only(left: 24, right: 24),
       child: Center(
         child: Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
           const SizedBox(
@@ -64,7 +65,7 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
           //     ),
           //   ],
           // ),
-          inputField('+256(0) 701000000'),
+          phoneInputField('701000000'),
           const SizedBox(
             height: 36,
           ),
@@ -83,7 +84,7 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
                 return VerifyCodeScreen();
               }));
             },
-            child: nextButton('Let’s go'),
+            child: nextButton('Next'),
           ),
           const SizedBox(
             height: 20,

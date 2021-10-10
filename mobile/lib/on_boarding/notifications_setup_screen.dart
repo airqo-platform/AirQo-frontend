@@ -20,6 +20,10 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
       child: Center(
         child: Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
           const SizedBox(
+            height: 140,
+          ),
+          notificationIcon(100.0, 100.0),
+          const SizedBox(
             height: 52,
           ),
           const Text(
@@ -37,7 +41,7 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 12, color: Colors.black),
           ),
-          Spacer(),
+          const Spacer(),
           GestureDetector(
             onTap: () {
               Navigator.push(context, MaterialPageRoute(builder: (context) {

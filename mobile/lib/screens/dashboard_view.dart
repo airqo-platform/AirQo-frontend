@@ -50,9 +50,9 @@ class CircularBorder extends StatelessWidget {
   }
 }
 
-class DashboardPage extends StatefulWidget {
+class DashboardView extends StatefulWidget {
   @override
-  _DashboardPageState createState() => _DashboardPageState();
+  _DashboardViewState createState() => _DashboardViewState();
 }
 
 class MyPainter extends CustomPainter {
@@ -93,7 +93,7 @@ class MyPainter extends CustomPainter {
   }
 }
 
-class _DashboardPageState extends State<DashboardPage> {
+class _DashboardViewState extends State<DashboardView> {
   var measurementData;
   var historicalData = <HistoricalMeasurement>[];
   var forecastData = <Predict>[];
@@ -446,7 +446,9 @@ class _DashboardPageState extends State<DashboardPage> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                CircularBorder(),
+                Container(
+
+                ),
                 SizedBox(
                   width: 8,
                 ),
