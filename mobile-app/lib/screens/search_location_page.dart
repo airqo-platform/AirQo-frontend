@@ -118,16 +118,132 @@ class LocationSearch extends SearchDelegate<Suggestion> {
     }
 
     if (searchPlaceId == '') {
-      return Align(
-          alignment: Alignment.topCenter,
-          child: Container(
-            padding: const EdgeInsets.all(16.0),
-            child: Text(
-              'Failed to locate $query, consider using a different search term',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: ColorConstants.appColor),
-            ),
-          ));
+      return FutureBuilder(
+          future: LocationApi().textSearchNearestSites(query),
+          builder: (context, snapshot) {
+            if (snapshot.hasError) {
+              print('${snapshot.error.toString()}');
+              return Container(
+                padding: const EdgeInsets.all(16.0),
+                child: Text(
+                  'Cannot full fill your request now',
+                  style: TextStyle(color: ColorConstants.appColor),
+                ),
+              );
+            } else if (snapshot.hasData) {
+              var measurements = sortPlaces(snapshot.data as List<Measurement>);
+
+              if (measurements.isEmpty) {
+                return Align(
+                    alignment: Alignment.center,
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Sorry, air quality readings for'
+                            ' "$query" are not available.'
+                            '\n What do you prefer ??',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: ColorConstants.appColor),
+                          ),
+                          showAllLocationsCustomButton(context),
+                          showMapCustomButton(context)
+                        ],
+                      ),
+                    ));
+              }
+
+              return Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(
+                      'Here are the locations we recommend',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: ColorConstants.appColor),
+                    ),
+                  ),
+                  Expanded(
+                      child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: measurements.length,
+                    itemBuilder: (context, index) {
+                      return InkWell(
+                          onTap: () {
+                            var measurement = measurements[index];
+                            Navigator.push(context,
+                                MaterialPageRoute(builder: (context) {
+                              return PlaceDetailsPage(
+                                measurement: measurement,
+                              );
+                            }));
+                          },
+                          child: ListTile(
+                            title: Text('${measurements[index].site.getName()}',
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  color: ColorConstants.appColor,
+                                  fontWeight: FontWeight.bold,
+                                )),
+                            subtitle: Text(
+                                '${measurements[index].site.getLocation()}',
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  color: ColorConstants.appColor,
+                                )),
+                            leading: CircleAvatar(
+                              backgroundColor: pmToColor(
+                                  measurements[index].pm2_5.calibratedValue),
+                              foregroundColor: Colors.black54,
+                              child: Center(
+                                child: Text(
+                                  '${measurements[index].getPm2_5Value().toStringAsFixed(2)}',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                      fontSize: 10.0,
+                                      color: pmTextColor(measurements[index]
+                                          .pm2_5
+                                          .calibratedValue)),
+                                ),
+                              ),
+                            ),
+                          ) //your content here
+                          );
+                    },
+                  ))
+                ],
+              );
+            } else {
+              return Align(
+                alignment: Alignment.center,
+                child: Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                            ColorConstants.appColor),
+                      ),
+                      const SizedBox(
+                        height: 15,
+                      ),
+                      Text(
+                        'Crunching location readings, hang tight...',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: ColorConstants.appColor),
+                      )
+                    ],
+                  ),
+                ),
+              );
+            }
+          });
+      ;
     }
 
     return FutureBuilder(

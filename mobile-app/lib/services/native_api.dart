@@ -18,7 +18,6 @@ class LocationApi {
         return true;
       }
     }
-
     return false;
   }
 
@@ -189,6 +188,28 @@ class LocationApi {
       }
     }
 
+    return nearestSites;
+  }
+
+  Future<List<Measurement>> textSearchNearestSites(String term) async {
+    var nearestSites = <Measurement>[];
+
+    var latestMeasurements = await DBHelper().getLatestMeasurements();
+
+    for (var measurement in latestMeasurements) {
+      if (measurement.site
+              .getName()
+              .trim()
+              .toLowerCase()
+              .contains(term.trim().toLowerCase()) ||
+          measurement.site
+              .getLocation()
+              .trim()
+              .toLowerCase()
+              .contains(term.trim().toLowerCase())) {
+        nearestSites.add(measurement);
+      }
+    }
     return nearestSites;
   }
 }

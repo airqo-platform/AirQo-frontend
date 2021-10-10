@@ -524,7 +524,6 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
   }
 
   Widget historicalDataSection(List<HistoricalMeasurement> measurements) {
-    // var formattedData = historicalChartData(measurements);
     return MeasurementsBarChart(measurements, 'History');
   }
 

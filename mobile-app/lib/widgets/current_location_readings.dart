@@ -218,7 +218,7 @@ class CurrentLocationCard extends StatelessWidget {
   }
 
   Widget historySection() {
-    var formattedData = historicalChartData(historicalData);
+    var formattedData = historicalChartData(historicalData, 'pm2.5');
     return DashboardBarChart(formattedData, 'History');
   }
 

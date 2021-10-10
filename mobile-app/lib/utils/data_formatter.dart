@@ -37,13 +37,17 @@ List<charts.Series<TimeSeriesData, DateTime>> forecastChartData(
 }
 
 List<charts.Series<TimeSeriesData, DateTime>> historicalChartData(
-    List<HistoricalMeasurement> measurements) {
+    List<HistoricalMeasurement> measurements, String pollutant) {
   var data = <TimeSeriesData>[];
 
   for (var measurement in measurements) {
     try {
       final dateTime = DateTime.parse(measurement.time);
-      data.add(TimeSeriesData(dateTime, measurement.getPm2_5Value()));
+      if (pollutant.trim().toLowerCase() == 'pm2.5') {
+        data.add(TimeSeriesData(dateTime, measurement.getPm2_5Value()));
+      } else {
+        data.add(TimeSeriesData(dateTime, measurement.getPm10Value()));
+      }
     } catch (e) {
       print(e);
     }

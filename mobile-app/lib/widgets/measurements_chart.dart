@@ -21,6 +21,7 @@ class MeasurementsBarChart extends StatefulWidget {
 class _MeasurementsBarChartState extends State<MeasurementsBarChart> {
   var display;
   List<charts.Series<TimeSeriesData, DateTime>> seriesList = [];
+  var pollutant = 'pm2.5';
 
   @override
   Widget build(BuildContext context) {
@@ -44,9 +45,57 @@ class _MeasurementsBarChartState extends State<MeasurementsBarChart> {
               ),
             ),
           ),
+          Padding(
+            padding: const EdgeInsets.only(left: 10, right: 10),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                OutlinedButton(
+                  onPressed: () {
+                    setPollutant('pm2.5');
+                  },
+                  style: OutlinedButton.styleFrom(
+                    backgroundColor: pollutant == 'pm2.5'
+                        ? ColorConstants.appColor
+                        : Colors.white,
+                  ),
+                  child: Text(
+                    'PM2.5',
+                    style: TextStyle(
+                        color: pollutant == 'pm2.5'
+                            ? Colors.white
+                            : ColorConstants.appColor),
+                  ),
+                ),
+                const SizedBox(
+                  width: 10,
+                ),
+                OutlinedButton(
+                  onPressed: () {
+                    setPollutant('pm10');
+                  },
+                  style: OutlinedButton.styleFrom(
+                    backgroundColor: pollutant == 'pm10'
+                        ? ColorConstants.appColor
+                        : Colors.white,
+                  ),
+                  child: Text(
+                    'PM10',
+                    style: TextStyle(
+                        color: pollutant == 'pm10'
+                            ? Colors.white
+                            : ColorConstants.appColor),
+                  ),
+                ),
+                const SizedBox(
+                  width: 10,
+                ),
+              ],
+            ),
+          ),
           if (display != null)
             Padding(
-              padding: EdgeInsets.only(left: 10, right: 10),
+              padding: const EdgeInsets.only(left: 10, right: 10),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -163,6 +212,13 @@ class _MeasurementsBarChartState extends State<MeasurementsBarChart> {
   @override
   void initState() {
     super.initState();
-    seriesList = historicalChartData(widget.measurements);
+    seriesList = historicalChartData(widget.measurements, pollutant);
+  }
+
+  void setPollutant(String value) {
+    setState(() {
+      pollutant = value;
+      seriesList = historicalChartData(widget.measurements, value);
+    });
   }
 }

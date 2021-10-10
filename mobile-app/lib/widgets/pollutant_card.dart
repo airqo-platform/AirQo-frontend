@@ -79,8 +79,7 @@ class PollutantCard extends StatelessWidget {
       return const HelpPage(initialIndex: 1);
     } else if (type == PollutantConstant.pm10) {
       return const HelpPage(initialIndex: 2);
-    }
-    else {
+    } else {
       return const HelpPage(initialIndex: 0);
     }
   }

@@ -175,9 +175,6 @@ class _ResourcesPageState extends State<ResourcesPage> {
                     GestureDetector(
                       child: const Icon(Icons.share_outlined),
                       onTap: () {
-                        setState(() {
-                          order = -order;
-                        });
                         shareRanking(measurements);
                       },
                     ),
