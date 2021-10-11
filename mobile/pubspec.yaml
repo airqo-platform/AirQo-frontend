@@ -108,6 +108,7 @@ flutter:
     - assets/icon/airqo_logo_tagline.jpg
     - assets/icon/airqo_logo_tagline_transparent.png
     - assets/icon/airqo_logo.png
+    - assets/icon/transparent_logo.png
 
     # Language Translation files
     - assets/i18n/en.json

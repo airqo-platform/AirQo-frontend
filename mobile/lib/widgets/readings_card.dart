@@ -65,29 +65,63 @@ class _ReadingsCardState extends State<ReadingsCard> {
 
   Widget footerSection() {
     return Padding(
-      padding: EdgeInsets.all(8.0),
+      padding: const EdgeInsets.all(8.0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          Text('SEP 08, 01:20, local time',
-              style: TextStyle(
-                color: ColorConstants.appColor,
-                fontSize: 12,
-              )),
-          const Spacer(),
-          IconButton(
-              onPressed: null,
-              icon: Image.asset(
-                'assets/images/heart.png',
-              )),
           Container(
-              padding: EdgeInsets.all(5.0),
-              decoration: BoxDecoration(
-                  color: ColorConstants.appColorBlue,
-                  borderRadius: BorderRadius.all(Radius.circular(4.0))),
-              child: Text('SHARE',
-                  style: TextStyle(fontSize: 8, color: Colors.white))),
+            height: 36,
+            width: 36,
+            decoration: BoxDecoration(
+                color: ColorConstants.appColorBlue.withOpacity(0.2),
+                borderRadius: const BorderRadius.all(Radius.circular(5.0)),
+            ),
+            child: Icon(
+              Icons.more_horiz_rounded,
+              color: ColorConstants.appColorBlue,
+            ),
+          ),
+          const SizedBox(width: 8,),
+          Container(
+            height: 36,
+            padding: const EdgeInsets.only(left: 16, right: 16),
+            decoration: BoxDecoration(
+              color: ColorConstants.appColorBlue.withOpacity(0.2),
+              borderRadius: const BorderRadius.all(Radius.circular(5.0)),
+            ),
+            child: Center(
+              child: Text('Share',
+                  style: TextStyle(
+                    color: ColorConstants.appColorBlue,
+                    fontSize: 14,
+                  )),
+            ),
+          ),
+
+          const Spacer(),
+          Container(
+            height: 36,
+            padding: const EdgeInsets.only(left: 16, right: 16),
+            decoration: BoxDecoration(
+              color: ColorConstants.appColorBlue.withOpacity(0.2),
+              borderRadius: const BorderRadius.all(Radius.circular(5.0)),
+            ),
+            child: Center(
+              child: Row(
+                children: [
+                  Image.asset(
+                    'assets/images/heart.png'),
+                  const SizedBox(width: 8,),
+                  Text('Favorite ',
+                      style: TextStyle(
+                        color: ColorConstants.appColorBlue,
+                        fontSize: 14,
+                      )),
+                ],
+              )
+            ),
+          ),
         ],
       ),
     );
@@ -144,35 +178,58 @@ class _ReadingsCardState extends State<ReadingsCard> {
         Expanded(
             child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-                decoration: const BoxDecoration(
-                    color: Colors.red,
-                    borderRadius: BorderRadius.all(Radius.circular(15.0))),
+                decoration: BoxDecoration(
+                    color: Colors.red.withOpacity(0.1),
+                    borderRadius: const BorderRadius.all(Radius.circular(15.0))),
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(8.0, 4.0, 8.0, 4.0),
                   child: Row(
                     children: [
-                      Icon(
-                        Icons.location_on,
-                        size: 15,
+                      // Icon(
+                      //   Icons.location_on,
+                      //   size: 15,
+                      // ),
+                      Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Container(
+                            height: 10,
+                            width: 10,
+                            decoration: BoxDecoration(
+                                color: Colors.red.withOpacity(0.5),
+                                shape: BoxShape.circle
+                            ),
+                          ),
+
+                          Container(
+                            height: 6,
+                            width: 6,
+                            decoration: const BoxDecoration(
+                                color: Colors.red,
+                                shape: BoxShape.circle
+                            ),
+                          ),
+                        ],
                       ),
-                      Expanded(
-                        child: Text('Kawempe',
+                      const SizedBox(width: 2,),
+                      const Expanded(
+                        child: Text('KAWEMPE',
                             softWrap: true,
                             maxLines: 1,
                             textAlign: TextAlign.start,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
                                 fontSize: 12,
-                                color: Colors.white,
+                                color: Colors.red,
                                 fontWeight: FontWeight.bold)),
                       ),
                     ],
                   ),
                 )),
-            Text('High',
+            const Text('High',
                 softWrap: true,
                 maxLines: 1,
                 textAlign: TextAlign.start,
@@ -180,7 +237,7 @@ class _ReadingsCardState extends State<ReadingsCard> {
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold))
           ],
         )),
-        Expanded(
+        const Expanded(
           child: Text(''),
         ),
         gaugeChart(),

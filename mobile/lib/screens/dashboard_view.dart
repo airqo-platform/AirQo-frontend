@@ -42,7 +42,7 @@ class CircularBorder extends StatelessWidget {
           CustomPaint(
             size: Size(size, size),
             foregroundPainter:
-                new MyPainter(completeColor: color, width: width),
+                MyPainter(completeColor: color, width: width),
           ),
         ],
       ),
@@ -64,25 +64,22 @@ class MyPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    Paint complete = new Paint()
+    var complete = Paint()
       ..color = completeColor
       ..strokeCap = StrokeCap.round
       ..style = PaintingStyle.stroke
       ..strokeWidth = width;
 
-    Offset center = new Offset(size.width / 2, size.height / 2);
-    double radius = min(size.width / 2, size.height / 2);
+    var center = Offset(size.width / 2, size.height / 2);
+    var radius = min(size.width / 2, size.height / 2);
     var percent = (size.width * 0.001) / 2;
 
-    double arcAngle = 2 * pi * percent;
-    print("$radius - radius");
-    print("$arcAngle - arcAngle");
-    print("${radius / arcAngle} - divider");
+    var arcAngle = 2 * pi * percent;
 
     for (var i = 0; i < 8; i++) {
       var init = (-pi / 2) * (i / 2);
 
-      canvas.drawArc(new Rect.fromCircle(center: center, radius: radius), init,
+      canvas.drawArc(Rect.fromCircle(center: center, radius: radius), init,
           arcAngle, false, complete);
     }
   }
@@ -106,7 +103,7 @@ class _DashboardViewState extends State<DashboardView> {
             onRefresh: initialize,
             color: ColorConstants.appColor,
             child: Padding(
-              padding: EdgeInsets.fromLTRB(16.0, 37, 16.0, 16.0),
+              padding: const EdgeInsets.fromLTRB(16.0, 37, 16.0, 16.0),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -135,8 +132,8 @@ class _DashboardViewState extends State<DashboardView> {
                         Text(
                           getDateTime(),
                           style: TextStyle(
-                            color: Colors.black.withOpacity(0.4),
-                            fontSize: 10,
+                            color: Colors.black.withOpacity(0.6),
+                            fontSize: 14,
                           ),
                         ),
                         const Text(
@@ -144,7 +141,7 @@ class _DashboardViewState extends State<DashboardView> {
                           style: TextStyle(
                             color: Colors.black,
                             fontWeight: FontWeight.bold,
-                            fontSize: 20,
+                            fontSize: 32,
                           ),
                         ),
                         const SizedBox(
@@ -153,11 +150,11 @@ class _DashboardViewState extends State<DashboardView> {
                         GestureDetector(
                           onTap: () {
                             Navigator.push(context,
-                                new MaterialPageRoute(builder: (context) {
+                                MaterialPageRoute(builder: (context) {
                               return PlaceView();
                             }));
                           },
-                          child: ReadingsCard(),
+                          child: const ReadingsCard(),
                         ),
                         const SizedBox(
                           height: 16,
@@ -312,33 +309,44 @@ class _DashboardViewState extends State<DashboardView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                    'Your Inflated tires could lead air pollution lead air pollution lead air pollution',
+                const Text(
+                    'Improve air quality around you.',
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: 18,
                       fontWeight: FontWeight.bold,
                     )),
+                const SizedBox(height: 20,),
                 GestureDetector(
                   onTap: () {},
-                  child: Text('Read full story',
-                      style: TextStyle(
-                        color: ColorConstants.appColorBlue,
-                        fontSize: 8,
-                      )),
+                  child: Container(
+                    height: 24,
+                    width: 60,
+                    decoration: BoxDecoration(
+                      color: ColorConstants.appColorBlue.withOpacity(0.2),
+                      borderRadius: const BorderRadius.all(Radius.circular(5.0)),
+                    ),
+                    child: Center(
+                      child: Text('Read',
+                          style: TextStyle(
+                            color: ColorConstants.appColorBlue,
+                            fontSize: 12,
+                          )),
+                    ),
+                  ),
                 ),
               ],
             ),
           ),
-          SizedBox(
-            width: 17,
+          const SizedBox(
+            width: 16,
           ),
           ClipRRect(
             borderRadius: BorderRadius.circular(5.0),
             child: CachedNetworkImage(
               width: 104,
-              height: 56,
+              height: 104,
               fit: BoxFit.cover,
               placeholder: (context, url) => const SizedBox(
                 height: 20.0,
@@ -369,17 +377,17 @@ class _DashboardViewState extends State<DashboardView> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Image.asset(
-            'assets/icon/airqo_logo.png',
+            'assets/icon/transparent_logo.png',
             height: 58,
             width: 58,
           ),
-          Spacer(),
+          const Spacer(),
           Container(
-            padding: EdgeInsets.all(2.0),
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
                 color: Colors.white,
                 shape: BoxShape.rectangle,
-                borderRadius: BorderRadius.all(Radius.circular(10.0))),
+                borderRadius: BorderRadius.all(Radius.circular(10.0))
+            ),
             child: IconButton(
               iconSize: 30,
               icon: Icon(
@@ -391,41 +399,9 @@ class _DashboardViewState extends State<DashboardView> {
                     MaterialPageRoute(builder: (context) {
                   return const SearchPage();
                 }));
-                // await showSearch(
-                //   context: context,
-                //   delegate: LocationSearch(),
-                // ).then((_) {
-                //   setState(() {});
-                // });
               },
             ),
           )
-          // AspectRatio(
-          //     aspectRatio: 1.0,
-          //     child: Container(
-          //       padding: EdgeInsets.all(2.0),
-          //       decoration: BoxDecoration(
-          //           color: Colors.white,
-          //           shape: BoxShape.rectangle,
-          //           borderRadius: BorderRadius.all(Radius.circular(10.0))
-          //       ),
-          //       child: IconButton(
-          //         iconSize: 30,
-          //         icon: Icon(
-          //           Icons.search,
-          //           color: ColorConstants.appBarTitleColor,
-          //         ),
-          //         onPressed: () async {
-          //           await showSearch(
-          //             context: context,
-          //             delegate: LocationSearch(),
-          //           ).then((_) {
-          //             setState(() {});
-          //           });
-          //         },
-          //       ),
-          //     )
-          // )
         ],
       ),
     );
@@ -437,8 +413,8 @@ class _DashboardViewState extends State<DashboardView> {
       children: [
         Expanded(
             child: Container(
-          padding: EdgeInsets.all(15.0),
-          decoration: BoxDecoration(
+          padding: const EdgeInsets.all(15.0),
+          decoration: const BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.all(Radius.circular(5.0))),
           child: GestureDetector(
@@ -447,23 +423,34 @@ class _DashboardViewState extends State<DashboardView> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
-
+                  height: 32,
+                  width: 32,
+                  decoration: BoxDecoration(
+                      color: ColorConstants.appColorBlue.withOpacity(0.2),
+                      shape: BoxShape.circle
+                  ),
+                  child: Icon(Icons.add,
+                    color: ColorConstants.appColorBlue,
+                    size: 17,),
                 ),
-                SizedBox(
+                const SizedBox(
                   width: 8,
                 ),
-                const Text('Favorite')
+                Text('Favorite',
+                style: TextStyle(
+                  color: ColorConstants.appColorBlue,
+                ),)
               ],
             ),
           ),
         )),
-        SizedBox(
+        const SizedBox(
           width: 16,
         ),
         Expanded(
             child: Container(
-          padding: EdgeInsets.all(15.0),
-          decoration: BoxDecoration(
+          padding: const EdgeInsets.all(15.0),
+          decoration: const BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.all(Radius.circular(5.0))),
           child: GestureDetector(
@@ -471,11 +458,24 @@ class _DashboardViewState extends State<DashboardView> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                CircularBorder(),
-                SizedBox(
+                Container(
+                  height: 32,
+                  width: 32,
+                  decoration: BoxDecoration(
+                      color: ColorConstants.appColorBlue.withOpacity(0.2),
+                      shape: BoxShape.circle
+                  ),
+                  child: Icon(Icons.add,
+                    color: ColorConstants.appColorBlue,
+                    size: 17,),
+                ),
+                const SizedBox(
                   width: 8,
                 ),
-                const Text('For you')
+                Text('For you',
+                  style: TextStyle(
+                    color: ColorConstants.appColorBlue,
+                  ),)
               ],
             ),
           ),

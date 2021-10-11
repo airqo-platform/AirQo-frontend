@@ -64,11 +64,11 @@ class _HomePageState extends State<HomePage> {
               label: 'Home',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.map),
+              icon: Icon(Icons.location_on),
               label: 'Map',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.account_circle_outlined),
+              icon: Icon(Icons.account_circle_sharp),
               label: 'Profile',
             ),
           ],
@@ -80,139 +80,6 @@ class _HomePageState extends State<HomePage> {
           onTap: _onItemTapped,
           showSelectedLabels: true,
           showUnselectedLabels: true,
-        ),
-      ),
-    );
-  }
-
-  Widget builds(BuildContext context) {
-    return Scaffold(
-      resizeToAvoidBottomInset: false,
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      bottomNavigationBar: BottomAppBar(
-        shape: const CircularNotchedRectangle(),
-        child: Container(
-          // height: 50,
-          child: Row(
-            mainAxisSize: MainAxisSize.max,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: <Widget>[
-              const Spacer(
-                flex: 1,
-              ),
-              IconButton(
-                // iconSize: 30.0,
-                // padding: const EdgeInsets.only(left: 28.0),
-                icon: Icon(Icons.home_outlined,
-                    color: selectedPage == 0
-                        ? ColorConstants.appColor
-                        : ColorConstants.inactiveColor),
-                splashColor: ColorConstants.appColor,
-                onPressed: () {
-                  setState(() {
-                    _pageCtrl.jumpToPage(0);
-                  });
-                },
-              ),
-              const Spacer(
-                flex: 1,
-              ),
-              IconButton(
-                // iconSize: 30.0,
-                // padding: const EdgeInsets.only(left: 28.0),
-                icon: Icon(Icons.favorite,
-                    color: selectedPage == 1
-                        ? ColorConstants.appColor
-                        : ColorConstants.inactiveColor),
-                splashColor: ColorConstants.appColor,
-                onPressed: () {
-                  setState(() {
-                    _pageCtrl.jumpToPage(1);
-                  });
-                },
-              ),
-              const Spacer(
-                flex: 3,
-              ),
-              IconButton(
-                // iconSize: 30.0,
-                // padding: const EdgeInsets.only(right: 28.0),
-                icon: Icon(Icons.library_books_outlined,
-                    color: selectedPage == 2
-                        ? ColorConstants.appColor
-                        : ColorConstants.inactiveColor),
-                splashColor: ColorConstants.appColor,
-                onPressed: () {
-                  setState(() {
-                    _pageCtrl.jumpToPage(2);
-                  });
-                },
-              ),
-              const Spacer(
-                flex: 1,
-              ),
-              IconButton(
-                // iconSize: 30.0,
-                // padding: const EdgeInsets.only(right: 28.0),
-                icon: Icon(Icons.settings,
-                    color: selectedPage == 3
-                        ? ColorConstants.appColor
-                        : ColorConstants.inactiveColor),
-                splashColor: ColorConstants.appColor,
-                onPressed: () {
-                  setState(() {
-                    _pageCtrl.jumpToPage(3);
-                  });
-                },
-              ),
-              const Spacer(
-                flex: 1,
-              ),
-            ],
-          ),
-        ),
-      ),
-      body: WillPopScope(
-        onWillPop: onWillPop,
-        child: PageView(
-          controller: _pageCtrl,
-          onPageChanged: switchTitle,
-          physics: const NeverScrollableScrollPhysics(),
-          children: <Widget>[
-            DashboardView(),
-            MyPlacesView(),
-            ResourcesPage(),
-            SettingsView(),
-          ],
-        ),
-      ),
-      floatingActionButton: Container(
-        // height: 60.0,
-        // width: 60.0,
-        child: FittedBox(
-          child: FloatingActionButton(
-              mini: false,
-              backgroundColor: Colors.white,
-              onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) {
-                  return MapPage();
-                }));
-              },
-              child: FaIcon(
-                FontAwesomeIcons.map,
-                color: ColorConstants.appColor,
-              )
-              // child: Image.asset(
-              //   'assets/images/world-map.png',
-              //   // height: 10,
-              //   // width: 10,
-              // ),
-              // child: const Icon(
-              //   Icons.public_sharp,
-              //   color: Colors.white,
-              // ),
-              // elevation: 5.0,
-              ),
         ),
       ),
     );

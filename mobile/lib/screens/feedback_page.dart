@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../old_interfaces/home_page_v2.dart';
+import 'home_page.dart';
 
 RawMaterialButton customOkayButton(context, success) {
   return RawMaterialButton(
@@ -24,7 +24,7 @@ RawMaterialButton customOkayButton(context, success) {
       if (success) {
         await Navigator.pushAndRemoveUntil(context,
             MaterialPageRoute(builder: (context) {
-          return HomePageV2();
+          return HomePage();
         }), (r) => false);
       } else {
         Navigator.of(context).pop();

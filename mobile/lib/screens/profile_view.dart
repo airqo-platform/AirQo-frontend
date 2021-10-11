@@ -1,5 +1,6 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/screens/signup_page.dart';
+import 'package:app/widgets/text_fields.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -23,7 +24,7 @@ class _ProfileViewState extends State<ProfileView> {
             onRefresh: initialize,
             color: ColorConstants.appColor,
             child: Padding(
-              padding: EdgeInsets.fromLTRB(16.0, 37, 16.0, 16.0),
+              padding: const EdgeInsets.fromLTRB(16.0, 37, 16.0, 16.0),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -34,12 +35,12 @@ class _ProfileViewState extends State<ProfileView> {
                             shrinkWrap: true,
                             children: <Widget>[
                               topBar(),
-                              SizedBox(
+                              const SizedBox(
                                 height: 10.0,
                               ),
-                              Text(
+                              const Text(
                                 'Nagawa Greta',
-                                style: const TextStyle(
+                                style: TextStyle(
                                     fontSize: 24, fontWeight: FontWeight.bold),
                               ),
                               GestureDetector(
@@ -61,11 +62,11 @@ class _ProfileViewState extends State<ProfileView> {
                                     0.0, 16.0, 0.0, 0.0),
                                 child: profileSection(),
                               ),
-                              SizedBox(
+                              const SizedBox(
                                 height: 16,
                               ),
                               settingsSection('Settings'),
-                              SizedBox(
+                              const SizedBox(
                                 height: 16,
                               ),
                               settingsSection('Logout'),
@@ -187,7 +188,7 @@ class _ProfileViewState extends State<ProfileView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Padding(
+          const Padding(
             padding: EdgeInsets.fromLTRB(48.0, 38.0, 48.0, 0.0),
             child: Text('Personalise your \nexperience',
                 maxLines: 3,
@@ -198,7 +199,7 @@ class _ProfileViewState extends State<ProfileView> {
                   fontWeight: FontWeight.bold,
                 )),
           ),
-          Padding(
+          const Padding(
             padding: EdgeInsets.only(left: 48.0, right: 48.0),
             child: Text(
                 'Create your account today and enjoy air quality'
@@ -210,7 +211,7 @@ class _ProfileViewState extends State<ProfileView> {
                   fontSize: 15,
                 )),
           ),
-          SizedBox(
+          const SizedBox(
             height: 16,
           ),
           GestureDetector(
@@ -247,52 +248,37 @@ class _ProfileViewState extends State<ProfileView> {
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Stack(
-            alignment: AlignmentDirectional.center,
-            children: [
-              RotationTransition(
-                turns: AlwaysStoppedAnimation(-5 / 360),
-                child: Container(
-                  padding: EdgeInsets.all(2.0),
-                  decoration: BoxDecoration(
-                      color: ColorConstants.appPicColor,
-                      shape: BoxShape.rectangle,
-                      borderRadius: BorderRadius.all(Radius.circular(20.0))),
-                  child: IconButton(
-                    iconSize: 30,
-                    icon: Icon(
-                      Icons.search,
-                      color: Colors.transparent,
-                    ),
-                    onPressed: () async {},
-                  ),
-                ),
-              ),
-              Text(
-                'NG',
-                style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    fontSize: 15),
-              )
-              // Positioned(
-              //     child: Text('hi'))
-            ],
-          ),
+          profilePic(40, 40, 10, 12, 17.0),
           Spacer(),
           Container(
-            padding: EdgeInsets.all(2.0),
-            decoration: BoxDecoration(
+            padding: const EdgeInsets.all(0.0),
+            decoration: const BoxDecoration(
                 color: Colors.white,
                 shape: BoxShape.rectangle,
                 borderRadius: BorderRadius.all(Radius.circular(10.0))),
-            child: IconButton(
-              iconSize: 30,
-              icon: Icon(
-                Icons.notifications_rounded,
-                color: ColorConstants.appBarTitleColor,
-              ),
-              onPressed: () async {},
+            child: Stack(
+              alignment: AlignmentDirectional.center,
+              children: [
+                IconButton(
+                  iconSize: 30,
+                  icon: Icon(
+                    Icons.notifications_rounded,
+                    color: ColorConstants.appBarTitleColor,
+                  ),
+                  onPressed: () async {},
+                ),
+                Positioned(
+                    top: 10,
+                    right: 14,
+                    child: Container(
+                      height: 10,
+                      width: 10,
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.white),
+                        color: ColorConstants.greyColor,
+                        shape: BoxShape.circle,),
+                    ))
+              ],
             ),
           )
         ],
@@ -300,3 +286,5 @@ class _ProfileViewState extends State<ProfileView> {
     );
   }
 }
+
+

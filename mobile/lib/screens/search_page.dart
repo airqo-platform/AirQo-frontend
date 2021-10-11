@@ -54,8 +54,11 @@ class _SearchPageState extends State<SearchPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          const SizedBox(
+            height: 32,
+          ),
           Text(
-            'Locations near me',
+            'Our suggestions',
             textAlign: TextAlign.start,
             style: TextStyle(color: ColorConstants.inactiveColor, fontSize: 12),
           ),

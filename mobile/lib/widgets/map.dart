@@ -300,20 +300,18 @@ class MapWidgetState extends State<MapWidget> {
 
   Future<void> loadTheme() async {
     var prefs = await SharedPreferences.getInstance();
-    var theme = prefs.getString(PrefConstant.appTheme);
+    var theme = prefs.getString(PrefConstant.appTheme) ?? 'light';
 
-    if (theme != null) {
-      switch (theme) {
-        case 'light':
-          await _mapController.setMapStyle(jsonEncode(googleMapsLightTheme));
-          break;
-        case 'dark':
-          await _mapController.setMapStyle(jsonEncode(googleMapsDarkTheme));
-          break;
-        default:
-          await _mapController.setMapStyle(jsonEncode([]));
-          break;
-      }
+    switch (theme) {
+      case 'light':
+        await _mapController.setMapStyle(jsonEncode(googleMapsLightTheme));
+        break;
+      case 'dark':
+        await _mapController.setMapStyle(jsonEncode(googleMapsDarkTheme));
+        break;
+      default:
+        await _mapController.setMapStyle(jsonEncode([]));
+        break;
     }
   }
 
@@ -417,7 +415,7 @@ class MapWidgetState extends State<MapWidget> {
       _mapController = controller;
       await loadTheme();
 
-      await _getMeasurements();
+      // await _getMeasurements();
     }
   }
 

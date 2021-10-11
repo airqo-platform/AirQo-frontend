@@ -1,5 +1,6 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/widgets/custom_widgets.dart';
+import 'package:app/widgets/text_fields.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -40,7 +41,7 @@ class _SignUpPageState extends State<SignUpPage> {
                     )
                   ],
                 ),
-                profilePic(),
+                profilePicRow(),
                 SizedBox(
                   height: 40,
                 ),
@@ -52,8 +53,8 @@ class _SignUpPageState extends State<SignUpPage> {
                 SizedBox(
                   height: 4,
                 ),
-                customInputField(context, 'nagawa.greta@gmail.com'),
-
+                // customInputField(context, 'nagawa.greta@gmail.com'),
+                signupInputField('-'),
                 SizedBox(
                   height: 16,
                 ),
@@ -65,7 +66,8 @@ class _SignUpPageState extends State<SignUpPage> {
                 SizedBox(
                   height: 4,
                 ),
-                customInputField(context, '-'),
+                // customInputField(context, '-'),
+                signupInputField('-'),
 
                 SizedBox(
                   height: 16,
@@ -78,8 +80,8 @@ class _SignUpPageState extends State<SignUpPage> {
                 SizedBox(
                   height: 4,
                 ),
-                customInputField(context, 'Greta'),
-
+                // customInputField(context, 'Greta'),
+                signupInputField('-'),
                 SizedBox(
                   height: 16,
                 ),
@@ -91,8 +93,8 @@ class _SignUpPageState extends State<SignUpPage> {
                 SizedBox(
                   height: 4,
                 ),
-                customInputField(context, 'Nagawa'),
-
+                // customInputField(context, 'Nagawa'),
+                signupInputField('-'),
                 // SizedBox(height: 16,),
                 // settingsSection(),
               ],
@@ -109,47 +111,6 @@ class _SignUpPageState extends State<SignUpPage> {
   void initState() {
     // initialize();
     super.initState();
-  }
-
-  Widget profilePic() {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Stack(
-          alignment: AlignmentDirectional.center,
-          children: [
-            RotationTransition(
-              turns: AlwaysStoppedAnimation(-5 / 360),
-              child: Container(
-                padding: EdgeInsets.all(2.0),
-                decoration: BoxDecoration(
-                    color: ColorConstants.appPicColor,
-                    shape: BoxShape.rectangle,
-                    borderRadius: BorderRadius.all(Radius.circular(20.0))),
-                child: IconButton(
-                  iconSize: 35,
-                  icon: Icon(
-                    Icons.search,
-                    color: Colors.transparent,
-                  ),
-                  onPressed: () async {},
-                ),
-              ),
-            ),
-            Text(
-              'NG',
-              style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                  fontSize: 20),
-            )
-            // Positioned(
-            //     child: Text('hi'))
-          ],
-        ),
-      ],
-    );
   }
 
   Widget settingsSection() {
