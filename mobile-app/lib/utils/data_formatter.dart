@@ -25,7 +25,7 @@ List<charts.Series<TimeSeriesData, DateTime>> forecastChartData(
     charts.Series<TimeSeriesData, DateTime>(
       id: 'Forecast',
       colorFn: (TimeSeriesData series, _) =>
-          pmToChartColor(series.value.toDouble()),
+          pmToChartColor(series.value.toDouble(), 'pm2.5'),
       domainFn: (TimeSeriesData data, _) => data.time,
       measureFn: (TimeSeriesData data, _) => data.value,
       // measureLowerBoundFn: (TimeSeriesData data, _) => data.value - 5,
@@ -56,8 +56,13 @@ List<charts.Series<TimeSeriesData, DateTime>> historicalChartData(
   return [
     charts.Series<TimeSeriesData, DateTime>(
       id: 'Historical',
-      colorFn: (TimeSeriesData series, _) =>
-          pmToChartColor(series.value.toDouble()),
+      colorFn: (TimeSeriesData series, _) {
+        if (pollutant.trim().toLowerCase() == 'pm2.5') {
+          return pmToChartColor(series.value.toDouble(), 'pm2.5');
+        } else {
+          return pmToChartColor(series.value.toDouble(), 'pm10');
+        }
+      },
       domainFn: (TimeSeriesData data, _) => data.time,
       measureFn: (TimeSeriesData data, _) => data.value,
       // measureLowerBoundFn: (TimeSeriesData data, _) => data.value - 5,
@@ -85,7 +90,7 @@ List<charts.Series<TimeSeriesData, DateTime>> historicalChartDataV2(
     charts.Series<TimeSeriesData, DateTime>(
       id: 'Historical',
       colorFn: (TimeSeriesData series, _) =>
-          pmToChartColor(series.value.toDouble()),
+          pmToChartColor(series.value.toDouble(), 'pm2.5'),
       domainFn: (TimeSeriesData data, _) => data.time,
       measureFn: (TimeSeriesData data, _) => data.value,
       // measureLowerBoundFn: (TimeSeriesData data, _) => data.value - 5,

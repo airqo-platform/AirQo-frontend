@@ -85,7 +85,7 @@ Future<void> showSnackBar(context, String message) async {
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(10),
     ),
-    elevation: 10,
+    elevation: 0,
     behavior: SnackBarBehavior.floating,
     content: Text(
       message,
@@ -105,7 +105,7 @@ Future<void> showSnackBar2(context, String message) async {
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(10),
     ),
-    elevation: 20,
+    elevation: 0,
     content: Text(
       message,
       softWrap: true,
@@ -124,7 +124,7 @@ Future<void> showSnackBarGoToMyPlaces(context, String message) async {
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(10),
     ),
-    elevation: 20,
+    elevation: 0,
     behavior: SnackBarBehavior.floating,
     content: Text(
       message,

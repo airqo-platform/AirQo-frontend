@@ -123,7 +123,7 @@ class CurrentLocationCard extends StatelessWidget {
               viewDetails(context, measurementData);
             },
             child: Text(
-                'Last updated : ${dateToString(measurementData.time, true)}',
+                'Last updated: ${dateToString(measurementData.time, true)}',
                 style: TextStyle(
                   color: ColorConstants.appColor,
                   fontSize: 12,
@@ -242,7 +242,7 @@ class CurrentLocationCard extends StatelessWidget {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20),
                         ),
-                        color: pmToColor(measurementData.getPm2_5Value()),
+                        color: pm2_5ToColor(measurementData.getPm2_5Value()),
                         child: Padding(
                           padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
                           child: Row(
@@ -261,7 +261,7 @@ class CurrentLocationCard extends StatelessWidget {
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: TextStyle(
-                                          color: pmTextColor(
+                                          color: pm2_5TextColor(
                                               measurementData.getPm2_5Value()),
                                           fontWeight: FontWeight.bold))),
                             ],
@@ -271,7 +271,7 @@ class CurrentLocationCard extends StatelessWidget {
                       padding: const EdgeInsets.fromLTRB(5, 0.0, 0.0, 0.0),
                       child: Text(pmToString(measurementData.getPm2_5Value()),
                           style: TextStyle(
-                              fontSize: 20,
+                              fontSize: 15,
                               color: ColorConstants.appColor,
                               fontWeight: FontWeight.bold)),
                     ),
@@ -338,7 +338,7 @@ class CurrentLocationCard extends StatelessWidget {
       charts.Series<GaugeSegment, String>(
         id: 'Segments',
         colorFn: (GaugeSegment series, _) =>
-            pmToChartColor(series.colorValue.toDouble()),
+            pmToChartColor(series.colorValue.toDouble(), 'pm2.5'),
         domainFn: (GaugeSegment segment, _) => segment.segment,
         measureFn: (GaugeSegment segment, _) => segment.size,
         data: data,
@@ -368,7 +368,7 @@ class GaugeSegment {
       charts.Series<GaugeSegment, String>(
         id: 'Segments',
         colorFn: (GaugeSegment series, _) =>
-            pmToChartColor(series.colorValue.toDouble()),
+            pmToChartColor(series.colorValue.toDouble(), 'pm2.5'),
         domainFn: (GaugeSegment segment, _) => segment.segment,
         measureFn: (GaugeSegment segment, _) => segment.size,
         data: data,

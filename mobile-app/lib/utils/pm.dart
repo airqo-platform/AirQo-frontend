@@ -140,7 +140,55 @@ Widget mapSection(Measurement measurement) {
           )));
 }
 
-Color pmTextColor(double pm2_5) {
+Color pm10TextColor(double pm10) {
+  if (pm10 <= 50.99) {
+    //good
+    return Colors.black;
+  } else if (pm10 >= 51.00 && pm10 <= 100.99) {
+    //moderate
+    return Colors.black;
+  } else if (pm10 >= 101.00 && pm10 <= 250.99) {
+    //sensitive
+    return Colors.black;
+  } else if (pm10 >= 251.00 && pm10 <= 350.99) {
+    // unhealthy
+    return Colors.white;
+  } else if (pm10 >= 351.00 && pm10 <= 430.99) {
+    // very unhealthy
+    return Colors.white;
+  } else if (pm10 >= 431.00) {
+    // hazardous
+    return Colors.white;
+  } else {
+    return ColorConstants.appColor;
+  }
+}
+
+Color pm10ToColor(double pm10) {
+  if (pm10 <= 50.99) {
+    //good
+    return ColorConstants.green;
+  } else if (pm10 >= 51.00 && pm10 <= 100.99) {
+    //moderate
+    return ColorConstants.yellow;
+  } else if (pm10 >= 101.00 && pm10 <= 250.99) {
+    //sensitive
+    return ColorConstants.orange;
+  } else if (pm10 >= 251.00 && pm10 <= 350.99) {
+    // unhealthy
+    return ColorConstants.red;
+  } else if (pm10 >= 351.00 && pm10 <= 430.99) {
+    // very unhealthy
+    return ColorConstants.purple;
+  } else if (pm10 >= 431.00) {
+    // hazardous
+    return ColorConstants.maroon;
+  } else {
+    return ColorConstants.appColor;
+  }
+}
+
+Color pm2_5TextColor(double pm2_5) {
   if (pm2_5 <= 12.09) {
     //good
     return Colors.black;
@@ -164,31 +212,7 @@ Color pmTextColor(double pm2_5) {
   }
 }
 
-charts.Color pmToChartColor(double pm2_5) {
-  if (pm2_5 <= 12.09) {
-    //good
-    return charts.ColorUtil.fromDartColor(ColorConstants.green);
-  } else if (pm2_5 >= 12.1 && pm2_5 <= 35.49) {
-    //moderate
-    return charts.ColorUtil.fromDartColor(ColorConstants.yellow);
-  } else if (pm2_5 >= 35.5 && pm2_5 <= 55.49) {
-    //sensitive
-    return charts.ColorUtil.fromDartColor(ColorConstants.orange);
-  } else if (pm2_5 >= 55.5 && pm2_5 <= 150.49) {
-    // unhealthy
-    return charts.ColorUtil.fromDartColor(ColorConstants.red);
-  } else if (pm2_5 >= 150.5 && pm2_5 <= 250.49) {
-    // very unhealthy
-    return charts.ColorUtil.fromDartColor(ColorConstants.purple);
-  } else if (pm2_5 >= 250.5) {
-    // hazardous
-    return charts.ColorUtil.fromDartColor(ColorConstants.maroon);
-  } else {
-    return charts.ColorUtil.fromDartColor(ColorConstants.appColor);
-  }
-}
-
-Color pmToColor(double pm2_5) {
+Color pm2_5ToColor(double pm2_5) {
   if (pm2_5 <= 12.09) {
     //good
     return ColorConstants.green;
@@ -209,6 +233,54 @@ Color pmToColor(double pm2_5) {
     return ColorConstants.maroon;
   } else {
     return ColorConstants.appColor;
+  }
+}
+
+charts.Color pmToChartColor(double value, String pollutant) {
+  if (pollutant.trim().toLowerCase() == 'pm2.5') {
+    if (value <= 12.09) {
+      //good
+      return charts.ColorUtil.fromDartColor(ColorConstants.green);
+    } else if (value >= 12.1 && value <= 35.49) {
+      //moderate
+      return charts.ColorUtil.fromDartColor(ColorConstants.yellow);
+    } else if (value >= 35.5 && value <= 55.49) {
+      //sensitive
+      return charts.ColorUtil.fromDartColor(ColorConstants.orange);
+    } else if (value >= 55.5 && value <= 150.49) {
+      // unhealthy
+      return charts.ColorUtil.fromDartColor(ColorConstants.red);
+    } else if (value >= 150.5 && value <= 250.49) {
+      // very unhealthy
+      return charts.ColorUtil.fromDartColor(ColorConstants.purple);
+    } else if (value >= 250.5) {
+      // hazardous
+      return charts.ColorUtil.fromDartColor(ColorConstants.maroon);
+    } else {
+      return charts.ColorUtil.fromDartColor(ColorConstants.appColor);
+    }
+  } else {
+    if (value <= 50.99) {
+      //good
+      return charts.ColorUtil.fromDartColor(ColorConstants.green);
+    } else if (value >= 51.00 && value <= 100.99) {
+      //moderate
+      return charts.ColorUtil.fromDartColor(ColorConstants.yellow);
+    } else if (value >= 101.00 && value <= 250.99) {
+      //sensitive
+      return charts.ColorUtil.fromDartColor(ColorConstants.orange);
+    } else if (value >= 251.00 && value <= 350.99) {
+      // unhealthy
+      return charts.ColorUtil.fromDartColor(ColorConstants.red);
+    } else if (value >= 351.00 && value <= 430.99) {
+      // very unhealthy
+      return charts.ColorUtil.fromDartColor(ColorConstants.purple);
+    } else if (value >= 431.00) {
+      // hazardous
+      return charts.ColorUtil.fromDartColor(ColorConstants.maroon);
+    } else {
+      return charts.ColorUtil.fromDartColor(ColorConstants.appColor);
+    }
   }
 }
 
@@ -239,8 +311,8 @@ String pmToEmoji(double pm2_5) {
 Future<BitmapDescriptor> pmToMarker(double pm2_5) async {
   var width = 55;
   var value = pm2_5;
-  var bgColor = pmToColor(pm2_5);
-  var textColor = pmTextColor(pm2_5);
+  var bgColor = pm2_5ToColor(pm2_5);
+  var textColor = pm2_5TextColor(pm2_5);
 
   final pictureRecorder = PictureRecorder();
   final canvas = Canvas(pictureRecorder);
@@ -312,7 +384,7 @@ BitmapDescriptor pmToMarkerPoint(double pm2_5) {
 
 Future<BitmapDescriptor> pmToMarkerV2(double pm2_5) async {
   var width = 40;
-  var bgColor = pmToColor(pm2_5);
+  var bgColor = pm2_5ToColor(pm2_5);
 
   final pictureRecorder = PictureRecorder();
   final canvas = Canvas(pictureRecorder);

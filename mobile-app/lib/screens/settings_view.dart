@@ -159,12 +159,12 @@ class _SettingsViewState extends State<SettingsView> {
     );
   }
 
-  @override
-  void initState() {
-    loadPreferences();
-    _notifications.initNotifications();
-    super.initState();
-  }
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   loadPreferences();
+  //   _notifications.initNotifications();
+  // }
 
   Future<void> loadPreferences() async {
     var prefs = await SharedPreferences.getInstance();

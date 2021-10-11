@@ -449,11 +449,26 @@ class MapPageState extends State<MapPage> {
                 padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
                 child: Row(
                   children: [
-                    Text(
-                      windowProperties.getPm2_5Value().toStringAsFixed(2),
-                      style: TextStyle(
-                        fontSize: 17,
-                        color: ColorConstants.appColor,
+                    RichText(
+                      text: TextSpan(
+                        children: <TextSpan>[
+                          TextSpan(
+                            text:
+                                '${windowProperties.getPm2_5Value().toStringAsFixed(2)}',
+                            style: TextStyle(
+                              fontSize: 17,
+                              color: ColorConstants.appColor,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          TextSpan(
+                            text: ' µg/m\u00B3',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: ColorConstants.appColor,
+                            ),
+                          )
+                        ],
                       ),
                     ),
                     const Spacer(),
@@ -532,7 +547,7 @@ class MapPageState extends State<MapPage> {
               Padding(
                 padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
                 child: Text(
-                  dateToString(windowProperties.time, true),
+                  'Last updated: ${dateToString(windowProperties.time, true)}',
                   style: TextStyle(
                     fontSize: 13,
                     color: ColorConstants.appColor,

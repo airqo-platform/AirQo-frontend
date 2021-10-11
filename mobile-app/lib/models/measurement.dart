@@ -210,4 +210,10 @@ extension ParseMeasurement on Measurement {
     }
     return false;
   }
+
+  String getTempValue() {
+    var tempValue = temperature.value.toStringAsFixed(2);
+
+    return '$tempValue\u2103';
+  }
 }

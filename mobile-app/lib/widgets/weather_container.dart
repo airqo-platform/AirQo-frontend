@@ -41,7 +41,7 @@ class WeatherSection extends StatelessWidget {
                         ),
                         const Text('TEMPERATURE'),
                         Text(
-                          '${measurement.temperature.value}\u2103',
+                          '${measurement.getTempValue()}',
                           style: const TextStyle(fontWeight: FontWeight.bold),
                         )
                       ],

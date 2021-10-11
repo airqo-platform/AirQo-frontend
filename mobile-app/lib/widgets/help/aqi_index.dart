@@ -115,29 +115,37 @@ class AqiDialog extends StatelessWidget {
       child: ListView(
         children: [
           whatIsAQI,
-          aqiGuide('assets/images/good-face.png', good, pmToColor(0),
-              pmTextColor(0), 'Good (0 - 12)'),
+          aqiGuide('assets/images/good-face.png', good, pm2_5ToColor(0),
+              pm2_5TextColor(0), 'Good (0 - 12)'),
           Divider(
             indent: 30,
             endIndent: 30,
             color: ColorConstants.appColor,
           ),
-          aqiGuide('assets/images/moderate-face.png', moderate, pmToColor(20),
-              pmTextColor(20), 'Moderate (12.1 - 35.4)'),
+          aqiGuide('assets/images/moderate-face.png', moderate,
+              pm2_5ToColor(20), pm2_5TextColor(20), 'Moderate (12.1 - 35.4)'),
           Divider(
             indent: 30,
             endIndent: 30,
             color: ColorConstants.appColor,
           ),
-          aqiGuide('assets/images/sensitive-face.png', sensitive, pmToColor(40),
-              pmTextColor(40), 'Unhealthy for sensitive groups (35.6 - 55.4)'),
+          aqiGuide(
+              'assets/images/sensitive-face.png',
+              sensitive,
+              pm2_5ToColor(40),
+              pm2_5TextColor(40),
+              'Unhealthy for sensitive groups (35.6 - 55.4)'),
           Divider(
             indent: 30,
             endIndent: 30,
             color: ColorConstants.appColor,
           ),
-          aqiGuide('assets/images/unhealthy-face.png', unHealthy,
-              pmToColor(100), pmTextColor(100), 'Unhealthy (55.5 - 150.4)'),
+          aqiGuide(
+              'assets/images/unhealthy-face.png',
+              unHealthy,
+              pm2_5ToColor(100),
+              pm2_5TextColor(100),
+              'Unhealthy (55.5 - 150.4)'),
           Divider(
             indent: 30,
             endIndent: 30,
@@ -146,16 +154,20 @@ class AqiDialog extends StatelessWidget {
           aqiGuide(
               'assets/images/very-unhealthy-face.png',
               veryUnhealthy,
-              pmToColor(200),
-              pmTextColor(200),
+              pm2_5ToColor(200),
+              pm2_5TextColor(200),
               'Very unhealthy (150.5 - 250.4)'),
           Divider(
             indent: 30,
             endIndent: 30,
             color: ColorConstants.appColor,
           ),
-          aqiGuide('assets/images/hazardous-face.png', hazardous,
-              pmToColor(500), pmTextColor(500), 'Hazardous (250.5 - 500.4)'),
+          aqiGuide(
+              'assets/images/hazardous-face.png',
+              hazardous,
+              pm2_5ToColor(500),
+              pm2_5TextColor(500),
+              'Hazardous (250.5 - 500.4)'),
         ],
       ),
     );

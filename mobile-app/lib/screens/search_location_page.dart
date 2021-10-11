@@ -195,7 +195,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                                   color: ColorConstants.appColor,
                                 )),
                             leading: CircleAvatar(
-                              backgroundColor: pmToColor(
+                              backgroundColor: pm2_5ToColor(
                                   measurements[index].pm2_5.calibratedValue),
                               foregroundColor: Colors.black54,
                               child: Center(
@@ -204,7 +204,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                       fontSize: 10.0,
-                                      color: pmTextColor(measurements[index]
+                                      color: pm2_5TextColor(measurements[index]
                                           .pm2_5
                                           .calibratedValue)),
                                 ),
@@ -342,7 +342,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                                         color: ColorConstants.appColor,
                                       )),
                                   leading: CircleAvatar(
-                                    backgroundColor: pmToColor(
+                                    backgroundColor: pm2_5ToColor(
                                         measurements[index]
                                             .pm2_5
                                             .calibratedValue),
@@ -353,7 +353,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                                         textAlign: TextAlign.center,
                                         style: TextStyle(
                                             fontSize: 10.0,
-                                            color: pmTextColor(
+                                            color: pm2_5TextColor(
                                                 measurements[index]
                                                     .pm2_5
                                                     .calibratedValue)),

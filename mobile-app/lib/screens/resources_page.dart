@@ -118,7 +118,7 @@ class _ResourcesPageState extends State<ResourcesPage> {
           child: Column(
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
+                padding: const EdgeInsets.fromLTRB(10, 5, 10, 0),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
@@ -160,26 +160,33 @@ class _ResourcesPageState extends State<ResourcesPage> {
                       ),
                     ),
                     const Spacer(),
-                    GestureDetector(
-                      child: const Icon(Icons.sort),
-                      onTap: () {
-                        setState(() {
-                          order = -order;
-                        });
-                        setRankings(measurements);
-                      },
+                    Card(
+                      elevation: 2,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(150),
+                      ),
+                      child: IconButton(
+                        onPressed: () {
+                          shareRanking(measurements);
+                        },
+                        icon: Icon(Icons.share_outlined,
+                            color: ColorConstants.appColor),
+                      ),
                     ),
-                    const SizedBox(
-                      width: 10,
-                    ),
-                    GestureDetector(
-                      child: const Icon(Icons.share_outlined),
-                      onTap: () {
-                        shareRanking(measurements);
-                      },
-                    ),
-                    const SizedBox(
-                      width: 10,
+                    Card(
+                      elevation: 2,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(150),
+                      ),
+                      child: IconButton(
+                        onPressed: () {
+                          setState(() {
+                            order = -order;
+                          });
+                          setRankings(measurements);
+                        },
+                        icon: Icon(Icons.sort, color: ColorConstants.appColor),
+                      ),
                     ),
                   ],
                 ),
@@ -208,10 +215,10 @@ class _ResourcesPageState extends State<ResourcesPage> {
                                 width: 70,
                                 height: 40,
                                 color: pollutant == 'pm2.5'
-                                    ? pmToColor(
+                                    ? pm2_5ToColor(
                                         measurements[index].getPm2_5Value())
-                                    : ColorConstants.inactiveColor
-                                        .withOpacity(0.1),
+                                    : pm10ToColor(
+                                        measurements[index].getPm10Value()),
                                 padding: const EdgeInsets.all(5),
                                 child: Center(
                                   child: pollutant == 'pm2.5'
@@ -219,7 +226,7 @@ class _ResourcesPageState extends State<ResourcesPage> {
                                           '${measurements[index].getPm2_5Value()}',
                                           textAlign: TextAlign.center,
                                           style: TextStyle(
-                                              color: pmTextColor(
+                                              color: pm2_5TextColor(
                                                   measurements[index]
                                                       .getPm2_5Value())),
                                         )
@@ -227,7 +234,9 @@ class _ResourcesPageState extends State<ResourcesPage> {
                                           '${measurements[index].getPm10Value()}',
                                           textAlign: TextAlign.center,
                                           style: TextStyle(
-                                              color: ColorConstants.appColor),
+                                              color: pm10TextColor(
+                                                  measurements[index]
+                                                      .getPm10Value())),
                                         ),
                                 )),
                           ),
