@@ -1,7 +1,6 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/site.dart';
-import 'package:app/screens/place_details.dart';
 import 'package:app/screens/search_location_page.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/utils/dialogs.dart';
@@ -140,10 +139,10 @@ class _MyPlacesViewState extends State<MyPlacesView> {
   }
 
   Future<void> viewDetails(Site site) async {
-    await Navigator.push(context, MaterialPageRoute(builder: (context) {
-      return PlaceDetailsPage(site: site);
-    })).then((value) {
-      setState(() {});
-    });
+    // await Navigator.push(context, MaterialPageRoute(builder: (context) {
+    //   return PlaceDetailsPage(site: site);
+    // })).then((value) {
+    //   setState(() {});
+    // });
   }
 }

@@ -94,7 +94,7 @@ class _MeasurementsBarChartState extends State<MeasurementsBarChart> {
                       //   flex: 1,
                       // ),
                       Text(
-                        chartDateToString(display['time']),
+                        chartDateToString(display['time'], false),
                         softWrap: true,
                         style: TextStyle(color: ColorConstants.appColor),
                       ),

@@ -31,46 +31,57 @@ class Measurement {
   @JsonKey(required: true, name: 'siteDetails')
   final Site site;
 
-  Measurement(
-      {required this.time,
-      required this.pm2_5,
-      required this.pm10,
-      required this.altitude,
-      required this.speed,
-      required this.temperature,
-      required this.humidity,
-      required this.site});
+  @JsonKey(required: true, name: 'device_number')
+  final int deviceNumber;
+
+  Measurement(this.time, this.pm2_5, this.pm10, this.altitude, this.speed,
+      this.temperature, this.humidity, this.site, this.deviceNumber);
 
   factory Measurement.fromJson(Map<String, dynamic> json) =>
       _$MeasurementFromJson(json);
 
+  String getHumidityValue() {
+    var humidityValue = humidity.value.round();
+    if (humidity.value <= 0.99) {
+      humidityValue = (humidity.value * 100).round();
+    }
+    return '$humidityValue%';
+  }
+
   double getPm10Value() {
     if (pm10.calibratedValue == -0.1) {
-      return pm10.value;
+      return double.parse(pm10.value.toStringAsFixed(2));
     }
-    return pm10.calibratedValue;
+    return double.parse(pm10.calibratedValue.toStringAsFixed(2));
   }
 
   double getPm2_5Value() {
     if (pm2_5.calibratedValue == -0.1) {
-      return pm2_5.value;
+      return double.parse(pm2_5.value.toStringAsFixed(2));
     }
-    return pm2_5.calibratedValue;
+    return double.parse(pm2_5.calibratedValue.toStringAsFixed(2));
   }
 
   Map<String, dynamic> toJson() => _$MeasurementToJson(this);
+
+  @override
+  String toString() {
+    return 'Measurement{pm10: $pm10, deviceNumber: $deviceNumber}';
+  }
 
   static String createTableStmt() =>
       'CREATE TABLE IF NOT EXISTS ${latestMeasurementsDb()}('
       '${Site.dbId()} TEXT PRIMARY KEY, ${Site.dbLatitude()} REAL, '
       '${Site.dbSiteName()} TEXT, ${Site.dbLongitude()} REAL, '
       '${dbTime()} TEXT, ${dbPm25()} REAL, ${Site.dbCountry()} TEXT, '
-      '${dbPm10()} REAL, ${dbAltitude()} REAL, '
+      '${dbPm10()} REAL, ${dbDeviceNumber()} REAL, ${dbAltitude()} REAL, '
       '${dbSpeed()} REAL, ${dbTemperature()} REAL, '
       '${dbHumidity()} REAL, ${Site.dbDistrict()} TEXT, '
-      '${Site.dbDescription()} TEXT )';
+      '${Site.dbDescription()} TEXT, ${Site.dbRegion()} TEXT )';
 
   static String dbAltitude() => 'altitude';
+
+  static String dbDeviceNumber() => 'deviceNumber';
 
   static String dbHumidity() => 'humidity';
 
@@ -90,15 +101,7 @@ class Measurement {
   static String latestMeasurementsDb() => 'latest_measurements';
 
   static Map<String, dynamic> mapFromDb(Map<String, dynamic> json) {
-    var siteDetails = {
-      '_id': json['${Site.dbId()}'] as String,
-      'country': json['${Site.dbCountry()}'] as String,
-      'district': json['${Site.dbDistrict()}'] as String,
-      'description': json['${Site.dbDescription()}'] as String,
-      'name': json['${Site.dbSiteName()}'] as String,
-      'latitude': json['${Site.dbLatitude()}'] as double,
-      'longitude': json['${Site.dbLongitude()}'] as double,
-    };
+    var siteDetails = Site.fromDbMap(json);
 
     return {
       'siteDetails': siteDetails,
@@ -109,28 +112,24 @@ class Measurement {
       'externalHumidity': {'value': json['${dbHumidity()}'] as double},
       'speed': {'value': json['${dbSpeed()}'] as double},
       'altitude': {'value': json['${dbAltitude()}'] as double},
+      'device_number': (json['${dbDeviceNumber()}'] as double).round(),
     };
   }
 
   static Map<String, dynamic> mapToDb(Measurement measurement) {
-    var site = measurement.site;
+    var measurementMap = Site.toDbMap(measurement.site)
+      ..addAll({
+        '${dbTime()}': measurement.time,
+        '${dbPm25()}': measurement.getPm2_5Value(),
+        '${dbPm10()}': measurement.getPm10Value(),
+        '${dbAltitude()}': measurement.altitude.value,
+        '${dbSpeed()}': measurement.speed.value,
+        '${dbTemperature()}': measurement.temperature.value,
+        '${dbHumidity()}': measurement.humidity.value,
+        '${dbDeviceNumber()}': measurement.deviceNumber,
+      });
 
-    return {
-      '${dbTime()}': measurement.time,
-      '${dbPm25()}': measurement.getPm2_5Value(),
-      '${dbPm10()}': measurement.getPm10Value(),
-      '${dbAltitude()}': measurement.altitude.value,
-      '${dbSpeed()}': measurement.speed.value,
-      '${dbTemperature()}': measurement.temperature.value,
-      '${dbHumidity()}': measurement.humidity.value,
-      '${Site.dbSiteName()}': site.name,
-      '${Site.dbDescription()}': site.description,
-      '${Site.dbId()}': site.id,
-      '${Site.dbCountry()}': site.country,
-      '${Site.dbDistrict()}': site.district,
-      '${Site.dbLongitude()}': site.longitude,
-      '${Site.dbLatitude()}': site.latitude,
-    };
+    return measurementMap;
   }
 
   static Measurement parseMeasurement(dynamic jsonBody) {
@@ -166,6 +165,12 @@ class Measurement {
         print(e);
       }
     }
+
+    measurements.sort((siteA, siteB) => siteA.site
+        .getName()
+        .toLowerCase()
+        .compareTo(siteB.site.getName().toLowerCase()));
+
     return measurements;
   }
 }
@@ -182,4 +187,22 @@ class Measurements {
       _$MeasurementsFromJson(json);
 
   Map<String, dynamic> toJson() => _$MeasurementsToJson(this);
+}
+
+extension ParseMeasurement on Measurement {
+  bool hasWeatherData() {
+    if (humidity.value != -0.1 &&
+        temperature.value != -0.1 &&
+        humidity.value != 0.0 &&
+        temperature.value != 0.0) {
+      return true;
+    }
+    return false;
+  }
+
+  String getTempValue() {
+    var tempValue = temperature.value.toStringAsFixed(2);
+
+    return '$tempValue\u2103';
+  }
 }

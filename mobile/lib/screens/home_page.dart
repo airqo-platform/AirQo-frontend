@@ -1,10 +1,7 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/on_boarding/onBoarding_page.dart';
-import 'package:app/screens/map_page.dart';
 import 'package:app/screens/profile_view.dart';
-import 'package:app/screens/resources_page.dart';
 import 'package:app/screens/settings_page.dart';
-import 'package:app/screens/settings_view.dart';
 import 'package:app/screens/share_picture.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/services/rest_api.dart';
@@ -12,13 +9,11 @@ import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/share.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'dashboard_view.dart';
 import 'help_page.dart';
 import 'maps_view.dart';
-import 'my_places_view.dart';
 
 class HomePage extends StatefulWidget {
   final String title = 'AirQo';
@@ -39,7 +34,7 @@ class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
   final List<Widget> _widgetOptions = <Widget>[
     DashboardView(),
-    const MapView(),
+    MapView(),
     const ProfileView(),
   ];
 
@@ -87,14 +82,12 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> initialize() async {
     _getLatestMeasurements();
-    _getSites();
   }
 
   @override
   void initState() {
-    // _displayOnBoarding();
-    initialize();
     super.initState();
+    initialize();
   }
 
   void navigateToMenuItem(dynamic position) {
@@ -204,24 +197,9 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Future<void> _getHistoricalMeasurements() async {
-    await AirqoApiClient(context)
-        .fetchHistoricalMeasurements()
-        .then((value) => {
-              if (value.isNotEmpty)
-                {DBHelper().insertHistoricalMeasurements(value)}
-            });
-  }
-
   void _getLatestMeasurements() async {
     await AirqoApiClient(context).fetchLatestMeasurements().then((value) => {
           if (value.isNotEmpty) {DBHelper().insertLatestMeasurements(value)}
-        });
-  }
-
-  void _getSites() async {
-    await AirqoApiClient(context).fetchSites().then((value) => {
-          if (value.isNotEmpty) {DBHelper().insertSites(value)}
         });
   }
 

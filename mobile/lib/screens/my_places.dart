@@ -1,7 +1,6 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/site.dart';
-import 'package:app/screens/place_details.dart';
 import 'package:app/screens/search_location_page.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/utils/dialogs.dart';
@@ -110,7 +109,7 @@ class _MyPlacesState extends State<MyPlaces> {
                             child: Container(
                               child: ListTile(
                                 leading: CircleAvatar(
-                                  backgroundColor: pmToColor(
+                                  backgroundColor: pm2_5ToColor(
                                       searchResults[index]
                                           .pm2_5
                                           .calibratedValue),
@@ -121,7 +120,7 @@ class _MyPlacesState extends State<MyPlaces> {
                                       textAlign: TextAlign.center,
                                       style: TextStyle(
                                           fontSize: 10.0,
-                                          color: pmTextColor(
+                                          color: pm2_5TextColor(
                                               searchResults[index]
                                                   .pm2_5
                                                   .calibratedValue)),
@@ -234,9 +233,9 @@ class _MyPlacesState extends State<MyPlaces> {
                                   child: Container(
                                     child: ListTile(
                                       leading: CircleAvatar(
-                                        backgroundColor: pmToColor(
+                                        backgroundColor: pm2_5ToColor(
                                             results[index].getPm2_5Value()),
-                                        foregroundColor: pmTextColor(
+                                        foregroundColor: pm2_5TextColor(
                                             results[index].getPm2_5Value()),
                                         child: Center(
                                           child: Text(
@@ -371,10 +370,10 @@ class _MyPlacesState extends State<MyPlaces> {
   }
 
   Future<void> viewDetails(Site site) async {
-    await Navigator.push(context, MaterialPageRoute(builder: (context) {
-      return PlaceDetailsPage(site: site);
-    })).then((value) {
-      setState(() {});
-    });
+    // await Navigator.push(context, MaterialPageRoute(builder: (context) {
+    //   return PlaceDetailsPage(site: site);
+    // })).then((value) {
+    //   setState(() {});
+    // });
   }
 }

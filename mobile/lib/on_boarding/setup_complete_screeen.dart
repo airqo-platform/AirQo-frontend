@@ -12,7 +12,7 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
         body: Container(
-          child: Center(
+      child: Center(
         child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,

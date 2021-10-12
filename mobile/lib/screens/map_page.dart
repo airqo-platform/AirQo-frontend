@@ -6,7 +6,6 @@ import 'package:app/constants/app_constants.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/site.dart';
 import 'package:app/models/suggestion.dart';
-import 'package:app/screens/place_details.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/services/rest_api.dart';
 import 'package:app/themes/dark_theme.dart';
@@ -614,9 +613,9 @@ class MapPageState extends State<MapPage> {
   }
 
   void showDetails(Site site) async {
-    await Navigator.push(context, MaterialPageRoute(builder: (context) {
-      return PlaceDetailsPage(site: site);
-    })).then((value) => _getMeasurements());
+    // await Navigator.push(context, MaterialPageRoute(builder: (context) {
+    //   return PlaceDetailsPage(site: site);
+    // })).then((value) => _getMeasurements());
   }
 
   Future<void> updateFavouritePlace(Site site) async {

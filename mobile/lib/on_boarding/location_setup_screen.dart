@@ -45,8 +45,8 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
             onTap: () {
               Navigator.pushAndRemoveUntil(context,
                   MaterialPageRoute(builder: (context) {
-                    return SetUpCompleteScreen();
-                  }), (r) => false);
+                return SetUpCompleteScreen();
+              }), (r) => false);
             },
             child: nextButton('Allow location'),
           ),

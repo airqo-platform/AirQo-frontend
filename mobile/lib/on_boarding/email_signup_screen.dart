@@ -16,61 +16,67 @@ class EmailSignupScreenState extends State<EmailSignupScreen> {
     return Scaffold(
         resizeToAvoidBottomInset: false,
         body: Container(
-      padding: EdgeInsets.only(left: 24, right: 24),
-      child: Center(
-        child: Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
-          const SizedBox(
-            height: 42,
+          padding: EdgeInsets.only(left: 24, right: 24),
+          child: Center(
+            child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const SizedBox(
+                    height: 42,
+                  ),
+                  const Text(
+                    'Ok! What’s your email?',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 24,
+                        color: Colors.black),
+                  ),
+                  const SizedBox(
+                    height: 16,
+                  ),
+                  Text(
+                    'We’ll send you a verification code',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        fontSize: 14, color: Colors.black.withOpacity(0.6)),
+                  ),
+                  const SizedBox(
+                    height: 32,
+                  ),
+                  emailInputField('Enter your email'),
+                  const SizedBox(
+                    height: 34,
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(context,
+                          MaterialPageRoute(builder: (context) {
+                        return PhoneSignupScreen();
+                      }));
+                    },
+                    child: signButton('Sign up with a mobile number instead'),
+                  ),
+                  const Spacer(),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(context,
+                          MaterialPageRoute(builder: (context) {
+                        return VerifyCodeScreen();
+                      }));
+                    },
+                    child: nextButton('Let’s go'),
+                  ),
+                  const SizedBox(
+                    height: 20,
+                  ),
+                  signUpOptions(context),
+                  const SizedBox(
+                    height: 36,
+                  ),
+                ]),
           ),
-          const Text(
-            'Ok! What’s your email?',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-                fontWeight: FontWeight.bold, fontSize: 24, color: Colors.black),
-          ),
-          const SizedBox(
-            height: 16,
-          ),
-          Text(
-            'We’ll send you a verification code',
-            textAlign: TextAlign.center,
-            style:
-                TextStyle(fontSize: 14, color: Colors.black.withOpacity(0.6)),
-          ),
-          const SizedBox(
-            height: 32,
-          ),
-          emailInputField('Enter your email'),
-          const SizedBox(
-            height: 34,
-          ),
-          GestureDetector(
-            onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) {
-                return PhoneSignupScreen();
-              }));
-            },
-            child: signButton('Sign up with a mobile number instead'),
-          ),
-          const Spacer(),
-          GestureDetector(
-            onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) {
-                return VerifyCodeScreen();
-              }));
-            },
-            child: nextButton('Let’s go'),
-          ),
-          const SizedBox(
-            height: 20,
-          ),
-          signUpOptions(context),
-          const SizedBox(
-            height: 36,
-          ),
-        ]),
-      ),
-    ));
+        ));
   }
 
   void initialize() {

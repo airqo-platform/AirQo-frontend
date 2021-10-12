@@ -1,12 +1,13 @@
 import 'package:app/constants/app_constants.dart';
+import 'package:app/models/measurement.dart';
 import 'package:app/models/place.dart';
-import 'package:app/models/site.dart';
 import 'package:app/models/suggestion.dart';
 import 'package:app/screens/place_details.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/services/native_api.dart';
 import 'package:app/services/rest_api.dart';
 import 'package:app/utils/distance.dart';
+import 'package:app/utils/pm.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
@@ -43,6 +44,15 @@ class LocationSearch extends SearchDelegate<Suggestion> {
     final theme = Theme.of(context);
     return theme.copyWith(
       primaryColor: Colors.grey[50],
+      backgroundColor: Colors.black,
+      scaffoldBackgroundColor: Colors.white,
+      bottomAppBarColor: Colors.white,
+      appBarTheme: theme.appBarTheme.copyWith(
+        backgroundColor: Colors.white,
+      ),
+      textSelectionTheme: TextSelectionThemeData(
+        cursorColor: ColorConstants.appColor,
+      ),
     );
   }
 
@@ -59,19 +69,19 @@ class LocationSearch extends SearchDelegate<Suggestion> {
           query = '';
         },
       ),
-      IconButton(
-        tooltip: 'Map',
-        icon: Image.asset(
-          'assets/images/world-map.png',
-          height: 50,
-          width: 50,
-        ),
-        onPressed: () {
-          Navigator.push(context, MaterialPageRoute(builder: (context) {
-            return MapPage();
-          }));
-        },
-      )
+      // IconButton(
+      //   tooltip: 'Map',
+      //   icon: Image.asset(
+      //     'assets/images/world-map.png',
+      //     height: 50,
+      //     width: 50,
+      //   ),
+      //   onPressed: () {
+      //     Navigator.push(context, MaterialPageRoute(builder: (context) {
+      //       return MapPage();
+      //     }));
+      //   },
+      // )
     ];
   }
 
@@ -108,18 +118,132 @@ class LocationSearch extends SearchDelegate<Suggestion> {
     }
 
     if (searchPlaceId == '') {
-      return Align(
-          alignment: Alignment.topCenter,
-          child: Container(
-            padding: const EdgeInsets.all(16.0),
-            child: Text(
-              'Failed to locate $query, search again and tap on any of the '
-              'available suggestions or use the map '
-              'on the top right corner',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: ColorConstants.appColor),
-            ),
-          ));
+      return FutureBuilder(
+          future: LocationApi().textSearchNearestSites(query),
+          builder: (context, snapshot) {
+            if (snapshot.hasError) {
+              print('${snapshot.error.toString()}');
+              return Container(
+                padding: const EdgeInsets.all(16.0),
+                child: Text(
+                  'Cannot full fill your request now',
+                  style: TextStyle(color: ColorConstants.appColor),
+                ),
+              );
+            } else if (snapshot.hasData) {
+              var measurements = sortPlaces(snapshot.data as List<Measurement>);
+
+              if (measurements.isEmpty) {
+                return Align(
+                    alignment: Alignment.center,
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Sorry, air quality readings for'
+                            ' "$query" are not available.'
+                            '\n What do you prefer ??',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: ColorConstants.appColor),
+                          ),
+                          showAllLocationsCustomButton(context),
+                          showMapCustomButton(context)
+                        ],
+                      ),
+                    ));
+              }
+
+              return Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(
+                      'Here are the locations we recommend',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: ColorConstants.appColor),
+                    ),
+                  ),
+                  Expanded(
+                      child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: measurements.length,
+                    itemBuilder: (context, index) {
+                      return InkWell(
+                          onTap: () {
+                            var measurement = measurements[index];
+                            Navigator.push(context,
+                                MaterialPageRoute(builder: (context) {
+                              return PlaceDetailsPage(
+                                measurement: measurement,
+                              );
+                            }));
+                          },
+                          child: ListTile(
+                            title: Text('${measurements[index].site.getName()}',
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  color: ColorConstants.appColor,
+                                  fontWeight: FontWeight.bold,
+                                )),
+                            subtitle: Text(
+                                '${measurements[index].site.getLocation()}',
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  color: ColorConstants.appColor,
+                                )),
+                            leading: CircleAvatar(
+                              backgroundColor: pm2_5ToColor(
+                                  measurements[index].pm2_5.calibratedValue),
+                              foregroundColor: Colors.black54,
+                              child: Center(
+                                child: Text(
+                                  '${measurements[index].getPm2_5Value().toStringAsFixed(2)}',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                      fontSize: 10.0,
+                                      color: pm2_5TextColor(measurements[index]
+                                          .pm2_5
+                                          .calibratedValue)),
+                                ),
+                              ),
+                            ),
+                          ) //your content here
+                          );
+                    },
+                  ))
+                ],
+              );
+            } else {
+              return Align(
+                alignment: Alignment.center,
+                child: Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                            ColorConstants.appColor),
+                      ),
+                      const SizedBox(
+                        height: 15,
+                      ),
+                      Text(
+                        'Crunching location readings, hang tight...',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: ColorConstants.appColor),
+                      )
+                    ],
+                  ),
+                ),
+              );
+            }
+          });
+      ;
     }
 
     return FutureBuilder(
@@ -136,8 +260,10 @@ class LocationSearch extends SearchDelegate<Suggestion> {
             var place = snapshot.data as Place;
 
             return FutureBuilder(
-                future: AirqoApiClient(context).getSitesByCoordinates(
-                    place.geometry.location.lat, place.geometry.location.lng),
+                future: LocationApi().searchNearestSites(
+                    place.geometry.location.lat,
+                    place.geometry.location.lng,
+                    place.name),
                 builder: (context, snapshot) {
                   if (snapshot.hasError) {
                     print('${snapshot.error.toString()}');
@@ -149,19 +275,22 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                       ),
                     );
                   } else if (snapshot.hasData) {
-                    var sites = snapshot.data as List<Site>;
+                    var measurements =
+                        sortPlaces(snapshot.data as List<Measurement>);
 
-                    if (sites.isEmpty) {
+                    if (measurements.isEmpty) {
                       return Align(
                           alignment: Alignment.center,
                           child: Padding(
-                            padding: const EdgeInsets.all(8),
+                            padding: const EdgeInsets.all(20),
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
                                 Text(
-                                  'Could not find stations near $query',
+                                  'Sorry, air quality readings for'
+                                  ' "$query" are not available.'
+                                  '\n What do you prefer ??',
                                   textAlign: TextAlign.center,
                                   style:
                                       TextStyle(color: ColorConstants.appColor),
@@ -186,37 +315,53 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                         Expanded(
                             child: ListView.builder(
                           shrinkWrap: true,
-                          itemCount: sites.length,
+                          itemCount: measurements.length,
                           itemBuilder: (context, index) {
                             return InkWell(
                                 onTap: () {
-                                  var site = sites[index];
+                                  var measurement = measurements[index];
                                   Navigator.push(context,
                                       MaterialPageRoute(builder: (context) {
                                     return PlaceDetailsPage(
-                                      site: site,
+                                      measurement: measurement,
                                     );
                                   }));
                                 },
                                 child: ListTile(
-                                  title: Text('${sites[index].getName()}',
+                                  title: Text(
+                                      '${measurements[index].site.getName()}',
                                       style: TextStyle(
-                                        fontSize: 17,
+                                        fontSize: 15,
                                         color: ColorConstants.appColor,
                                         fontWeight: FontWeight.bold,
                                       )),
-                                  subtitle:
-                                      Text('${sites[index].getLocation()}',
-                                          style: TextStyle(
-                                            fontSize: 15,
-                                            color: ColorConstants.appColor,
-                                          )),
-                                  // leading: const Icon(
-                                  //   Icons.location_pin,
-                                  //   color: ColorConstants.appColor,
-                                  // ),
+                                  subtitle: Text(
+                                      '${measurements[index].site.getLocation()}',
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        color: ColorConstants.appColor,
+                                      )),
+                                  leading: CircleAvatar(
+                                    backgroundColor: pm2_5ToColor(
+                                        measurements[index]
+                                            .pm2_5
+                                            .calibratedValue),
+                                    foregroundColor: Colors.black54,
+                                    child: Center(
+                                      child: Text(
+                                        '${measurements[index].getPm2_5Value().toStringAsFixed(2)}',
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                            fontSize: 10.0,
+                                            color: pm2_5TextColor(
+                                                measurements[index]
+                                                    .pm2_5
+                                                    .calibratedValue)),
+                                      ),
+                                    ),
+                                  ),
                                   trailing: Text(
-                                    '${toDistance(sites[index].distance)}',
+                                    '${toDistance(measurements[index].site.distance)}',
                                     style: TextStyle(
                                         color: ColorConstants.appColor),
                                   ),
@@ -239,8 +384,11 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                               valueColor: AlwaysStoppedAnimation<Color>(
                                   ColorConstants.appColor),
                             ),
+                            const SizedBox(
+                              height: 15,
+                            ),
                             Text(
-                              'Searching for nearby stations. Please wait...',
+                              'Crunching location readings, hang tight...',
                               textAlign: TextAlign.center,
                               style: TextStyle(color: ColorConstants.appColor),
                             )
@@ -261,8 +409,11 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                       valueColor: AlwaysStoppedAnimation<Color>(
                           ColorConstants.appColor),
                     ),
+                    const SizedBox(
+                      height: 15,
+                    ),
                     Text(
-                      'Getting place details...',
+                      'Crunching location readings, hang tight...',
                       style: TextStyle(color: ColorConstants.appColor),
                     )
                   ],
@@ -278,12 +429,12 @@ class LocationSearch extends SearchDelegate<Suggestion> {
       builder: (context, snapshot) {
         if (query == '') {
           return FutureBuilder(
-            future: DBHelper().getSearchHistory(),
+            future: DBHelper().getLatestMeasurements(),
             builder: (context, snapshot) {
               if (snapshot.hasData) {
-                var results = snapshot.data as List<Suggestion>;
+                var measurements = snapshot.data as List<Measurement>;
 
-                if (results.isEmpty) {
+                if (measurements.isEmpty) {
                   return Align(
                       alignment: Alignment.topCenter,
                       child: Container(
@@ -296,38 +447,73 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                 }
 
                 return ListView.builder(
-                  itemBuilder: (context, index) => ListTile(
-                    title: Text(
-                      (results[index]).description,
-                      style: TextStyle(
-                          fontSize: 12, color: ColorConstants.appColor),
-                    ),
-                    leading: Icon(
-                      Icons.history,
-                      color: ColorConstants.appColor,
-                    ),
-                    trailing: GestureDetector(
-                      onTap: () {
-                        DBHelper()
-                            .deleteSearchHistory(results[index])
-                            .then((value) => {query = ''});
-                      },
-                      child: Icon(
-                        Icons.delete_outlined,
-                        color: ColorConstants.red,
-                      ),
-                    ),
-                    onTap: () {
-                      query = (results[index]).description;
-                      showAllSites = false;
-                      searchPlaceId = (results[index]).placeId;
-                      showResults(context);
-                      // navigateToPlace(context, results[index]);
-                      // close(context, results[index]);
-                    },
-                  ),
-                  itemCount: results.length,
+                  shrinkWrap: true,
+                  itemCount: measurements.length,
+                  itemBuilder: (context, index) {
+                    return InkWell(
+                        onTap: () {
+                          var measurement = measurements[index];
+                          Navigator.push(context,
+                              MaterialPageRoute(builder: (context) {
+                            return PlaceDetailsPage(
+                              measurement: measurement,
+                            );
+                          }));
+                        },
+                        child: ListTile(
+                          title: Text('${measurements[index].site.getName()}',
+                              style: TextStyle(
+                                fontSize: 15,
+                                color: ColorConstants.appColor,
+                                fontWeight: FontWeight.bold,
+                              )),
+                          subtitle:
+                              Text('${measurements[index].site.getLocation()}',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: ColorConstants.appColor,
+                                  )),
+                          leading: Icon(
+                            Icons.location_pin,
+                            color: ColorConstants.appColor,
+                          ),
+                        ));
+                  },
                 );
+
+                // return ListView.builder(
+                //   itemBuilder: (context, index) => ListTile(
+                //     title: Text(
+                //       (results[index]).description,
+                //       style: TextStyle(
+                //           fontSize: 12, color: ColorConstants.appColor),
+                //     ),
+                //     leading: Icon(
+                //       Icons.history,
+                //       color: ColorConstants.appColor,
+                //     ),
+                //     trailing: GestureDetector(
+                //       onTap: () {
+                //         DBHelper()
+                //             .deleteSearchHistory(results[index])
+                //             .then((value) => {query = ''});
+                //       },
+                //       child: Icon(
+                //         Icons.delete_outlined,
+                //         color: ColorConstants.red,
+                //       ),
+                //     ),
+                //     onTap: () {
+                //       query = (results[index]).description;
+                //       showAllSites = false;
+                //       searchPlaceId = (results[index]).placeId;
+                //       showResults(context);
+                //       // navigateToPlace(context, results[index]);
+                //       // close(context, results[index]);
+                //     },
+                //   ),
+                //   itemCount: results.length,
+                // );
               }
 
               return Align(
@@ -347,7 +533,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
           return Container(
             padding: const EdgeInsets.all(16.0),
             child: Text(
-              'Could not load suggestions. Try again later or use the map',
+              'Could not load suggestions. Try again later',
               style: TextStyle(color: ColorConstants.appColor),
             ),
           );
@@ -385,10 +571,6 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                       valueColor: AlwaysStoppedAnimation<Color>(
                           ColorConstants.appColor),
                     ),
-                    Text(
-                      'Loading...',
-                      style: TextStyle(color: ColorConstants.appColor),
-                    )
                   ],
                 )),
           );
@@ -399,7 +581,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
 
   Widget loadApiSites(context) {
     return FutureBuilder(
-        future: AirqoApiClient(context).fetchSites(),
+        future: AirqoApiClient(context).fetchLatestMeasurements(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             print('${snapshot.error.toString()}');
@@ -409,12 +591,9 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                   'try again later'),
             );
           } else if (snapshot.hasData) {
-            var sites = snapshot.data as List<Site>
-              ..sort((siteA, siteB) {
-                return siteA.getName().compareTo(siteB.getName().toLowerCase());
-              });
+            var measurements = snapshot.data as List<Measurement>;
 
-            if (sites.isEmpty) {
+            if (measurements.isEmpty) {
               return Align(
                   alignment: Alignment.center,
                   child: Column(
@@ -429,30 +608,31 @@ class LocationSearch extends SearchDelegate<Suggestion> {
 
             return ListView.builder(
               shrinkWrap: true,
-              itemCount: sites.length,
+              itemCount: measurements.length,
               itemBuilder: (context, index) {
                 return InkWell(
                     onTap: () {
-                      var site = sites[index];
+                      var measurement = measurements[index];
                       Navigator.push(context,
                           MaterialPageRoute(builder: (context) {
                         return PlaceDetailsPage(
-                          site: site,
+                          measurement: measurement,
                         );
                       }));
                     },
                     child: ListTile(
-                      title: Text('${sites[index].getName()}',
+                      title: Text('${measurements[index].site.getName()}',
                           style: TextStyle(
-                            fontSize: 17,
+                            fontSize: 15,
                             color: ColorConstants.appColor,
                             fontWeight: FontWeight.bold,
                           )),
-                      subtitle: Text('${sites[index].getLocation()}',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: ColorConstants.appColor,
-                          )),
+                      subtitle:
+                          Text('${measurements[index].site.getLocation()}',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: ColorConstants.appColor,
+                              )),
                       leading: Icon(
                         Icons.location_pin,
                         color: ColorConstants.appColor,
@@ -472,8 +652,11 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                       valueColor: AlwaysStoppedAnimation<Color>(
                           ColorConstants.appColor),
                     ),
+                    const SizedBox(
+                      height: 15,
+                    ),
                     Text(
-                      'Searching for stations. Please wait...',
+                      'Crunching location readings, hang tight...',
                       style: TextStyle(color: ColorConstants.appColor),
                     )
                   ],
@@ -484,47 +667,45 @@ class LocationSearch extends SearchDelegate<Suggestion> {
 
   Widget loadLocalSites(context) {
     return FutureBuilder(
-        future: DBHelper().getSites(),
+        future: DBHelper().getLatestMeasurements(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             print(snapshot.error);
             return loadApiSites(context);
           } else if (snapshot.hasData) {
-            var sites = snapshot.data as List<Site>
-              ..sort((siteA, siteB) {
-                return siteA.getName().compareTo(siteB.getName().toLowerCase());
-              });
+            var measurements = snapshot.data as List<Measurement>;
 
-            if (sites.isEmpty) {
+            if (measurements.isEmpty) {
               return loadApiSites(context);
             }
 
             return ListView.builder(
               shrinkWrap: true,
-              itemCount: sites.length,
+              itemCount: measurements.length,
               itemBuilder: (context, index) {
                 return InkWell(
                     onTap: () {
-                      var site = sites[index];
+                      var measurement = measurements[index];
                       Navigator.push(context,
                           MaterialPageRoute(builder: (context) {
                         return PlaceDetailsPage(
-                          site: site,
+                          measurement: measurement,
                         );
                       }));
                     },
                     child: ListTile(
-                      title: Text('${sites[index].getName()}',
+                      title: Text('${measurements[index].site.getName()}',
                           style: TextStyle(
-                            fontSize: 17,
+                            fontSize: 15,
                             color: ColorConstants.appColor,
                             fontWeight: FontWeight.bold,
                           )),
-                      subtitle: Text('${sites[index].getLocation()}',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: ColorConstants.appColor,
-                          )),
+                      subtitle:
+                          Text('${measurements[index].site.getLocation()}',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: ColorConstants.appColor,
+                              )),
                       leading: Icon(
                         Icons.location_pin,
                         color: ColorConstants.appColor,
@@ -545,9 +726,11 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                         valueColor: AlwaysStoppedAnimation<Color>(
                             ColorConstants.appColor),
                       ),
+                      const SizedBox(
+                        height: 15,
+                      ),
                       Text(
-                        'Getting air quality stations. '
-                        'Please wait...',
+                        'Crunching location readings, hang tight...',
                         textAlign: TextAlign.center,
                         style: TextStyle(color: ColorConstants.appColor),
                       )
@@ -558,42 +741,42 @@ class LocationSearch extends SearchDelegate<Suggestion> {
         });
   }
 
-  Future<void> navigateToPlace(context, Suggestion suggestion) async {
-    try {
-      if (query == '' || searchPlaceId == '') {
-        showResults(context);
-      }
-
-      await searchApiClient.getPlaceDetails(searchPlaceId).then((place) => {
-            LocationApi()
-                .getNearestSite(
-                    place.geometry.location.lat, place.geometry.location.lng)
-                .then((nearestSite) => {
-                      if (nearestSite != null)
-                        {
-                          nearestSite.userLocation = place.name,
-                          Navigator.push(context,
-                              MaterialPageRoute(builder: (context) {
-                            return PlaceDetailsPage(
-                              site: nearestSite,
-                            );
-                          }))
-                        }
-                      else
-                        {showResults(context)}
-                    }),
-          });
-    } catch (e) {
-      print(e);
-      showResults(context);
-    }
-  }
-
   void showAllLocations(var context) {
     showAllSites = true;
     query = '';
     showResults(context);
   }
+
+  // Future<void> navigateToPlace(context, Suggestion suggestion) async {
+  //   try {
+  //     if (query == '' || searchPlaceId == '') {
+  //       showResults(context);
+  //     }
+  //
+  //     await searchApiClient.getPlaceDetails(searchPlaceId).then((place) => {
+  //           LocationApi()
+  //               .getNearestSite(
+  //                   place.geometry.location.lat, place.geometry.location.lng)
+  //               .then((nearestSite) => {
+  //                     if (nearestSite != null)
+  //                       {
+  //                         nearestSite.userLocation = place.name,
+  //                         Navigator.push(context,
+  //                             MaterialPageRoute(builder: (context) {
+  //                           return PlaceDetailsPage(
+  //                             measurement: nearestSite,
+  //                           );
+  //                         }))
+  //                       }
+  //                     else
+  //                       {showResults(context)}
+  //                   }),
+  //         });
+  //   } catch (e) {
+  //     print(e);
+  //     showResults(context);
+  //   }
+  // }
 
   RawMaterialButton showAllLocationsCustomButton(context) {
     return RawMaterialButton(
@@ -611,7 +794,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
       child: const Padding(
         padding: EdgeInsets.all(10.0),
         child: Text(
-          'Show available air quality stations',
+          'Show me all your air quality stations',
           style: TextStyle(color: Colors.white),
         ),
       ),
@@ -636,10 +819,17 @@ class LocationSearch extends SearchDelegate<Suggestion> {
       child: const Padding(
         padding: EdgeInsets.all(10.0),
         child: Text(
-          'Go to the Map',
+          'Take me to the map',
           style: TextStyle(color: Colors.white),
         ),
       ),
     );
+  }
+
+  List<Measurement> sortPlaces(List<Measurement> values) {
+    values.sort((valueA, valueB) =>
+        valueA.site.distance.compareTo(valueB.site.distance));
+
+    return values;
   }
 }

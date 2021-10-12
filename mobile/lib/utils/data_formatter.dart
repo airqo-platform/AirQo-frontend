@@ -19,7 +19,7 @@ List<charts.Series<TimeSeriesData, DateTime>> forecastChartData(
           DateTime.parse(formatter.parse(prediction.time).toString())
               .add(Duration(hours: offSet));
 
-      data.add(TimeSeriesData(dateTime, prediction.value.ceil()));
+      data.add(TimeSeriesData(dateTime, prediction.value));
     } catch (e) {
       print(e);
     }
@@ -29,7 +29,7 @@ List<charts.Series<TimeSeriesData, DateTime>> forecastChartData(
     charts.Series<TimeSeriesData, DateTime>(
       id: 'Forecast',
       colorFn: (TimeSeriesData series, _) =>
-          pmToChartColor(series.value.toDouble()),
+          pm2_5ToChartColor(series.value.toDouble(), 'pm2.5'),
       domainFn: (TimeSeriesData data, _) => data.time,
       measureFn: (TimeSeriesData data, _) => data.value,
       // measureLowerBoundFn: (TimeSeriesData data, _) => data.value - 5,
@@ -50,7 +50,7 @@ List<charts.Series<TimeSeriesData, DateTime>> historicalChartData(
     try {
       final dateTime =
           DateTime.parse(measurement.time).add(Duration(hours: offSet));
-      data.add(TimeSeriesData(dateTime, measurement.getPm2_5Value().ceil()));
+      data.add(TimeSeriesData(dateTime, measurement.getPm2_5Value()));
     } catch (e) {
       print(e);
     }
@@ -60,7 +60,7 @@ List<charts.Series<TimeSeriesData, DateTime>> historicalChartData(
     charts.Series<TimeSeriesData, DateTime>(
       id: 'Historical',
       colorFn: (TimeSeriesData series, _) =>
-          pmToChartColor(series.value.toDouble()),
+          pm2_5ToChartColor(series.value.toDouble(), 'pm2.5'),
       domainFn: (TimeSeriesData data, _) => data.time,
       measureFn: (TimeSeriesData data, _) => data.value,
       // measureLowerBoundFn: (TimeSeriesData data, _) => data.value - 5,

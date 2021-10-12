@@ -26,20 +26,26 @@ class Site {
   @JsonKey(required: false, defaultValue: '')
   final String description;
 
+  @JsonKey(required: true, defaultValue: '')
+  final String region;
+
   @JsonKey(required: false, defaultValue: 0.0)
   double distance;
 
   @JsonKey(required: false, defaultValue: '')
   String userLocation = '';
 
-  Site(this.name,
-      {required this.id,
-      required this.latitude,
-      required this.longitude,
-      required this.district,
-      required this.country,
-      required this.description,
-      required this.distance});
+  Site(
+      this.id,
+      this.latitude,
+      this.longitude,
+      this.district,
+      this.country,
+      this.name,
+      this.description,
+      this.region,
+      this.distance,
+      this.userLocation);
 
   factory Site.fromJson(Map<String, dynamic> json) => _$SiteFromJson(json);
 
@@ -97,6 +103,8 @@ class Site {
 
   static String dbLongitude() => 'longitude';
 
+  static String dbRegion() => 'region';
+
   static String dbSiteName() => 'site_name';
 
   static String dropTableStmt() => 'DROP TABLE IF EXISTS ${sitesDbName()}';
@@ -104,6 +112,7 @@ class Site {
   static Map<String, dynamic> fromDbMap(Map<String, dynamic> json) => {
         'name': json['${dbSiteName()}'] as String,
         'description': json['${dbDescription()}'] as String,
+        'region': json['${dbRegion()}'] as String,
         '_id': json['${dbId()}'] as String,
         'country': json['${dbCountry()}'] as String,
         'district': json['${dbDistrict()}'] as String,
@@ -136,6 +145,7 @@ class Site {
   static Map<String, dynamic> toDbMap(Site site) => {
         '${dbSiteName()}': site.name,
         '${dbDescription()}': site.description,
+        '${dbRegion()}': site.region,
         '${dbId()}': site.id,
         '${dbCountry()}': site.country,
         '${dbDistrict()}': site.district,

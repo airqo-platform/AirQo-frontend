@@ -29,20 +29,22 @@ class AppConfig {
   static String get version => applicationVersion;
 }
 
+class CloudStorage {
+  static String get alertsCollection => alertsDb;
+}
+
 class ColorConstants {
   static Color get appBarBgColor => const Color(0xffF2F1F6);
 
   static Color get appBarTitleColor => appColor;
 
-  static Color get greyColor => const Color(0xff8D8D8D);
-
   static Color get appBgColor => const Color(0xffEBEBEB);
 
   static Color get appBodyColor => const Color(0xffF2F1F6);
 
-  // static Color get appColor => const Color(0xff3067e2);
-
   static Color get appColor => Colors.black;
+
+  // static Color get appColor => const Color(0xff3067e2);
 
   static Color get appColorBlue => const Color(0xff3067e2);
 
@@ -53,6 +55,8 @@ class ColorConstants {
   static Color get facebookColor => const Color(0xff4267B2);
 
   static Color get green => const Color(0xff3FFF33);
+
+  static Color get greyColor => const Color(0xff8D8D8D);
 
   static Color get inactiveColor => appColor.withOpacity(0.5);
 
@@ -76,11 +80,11 @@ class ColorConstants {
 }
 
 class ErrorMessages {
-  static String get appException => 'App exception';
+  static String get appException => 'Failed to your request. Try again later';
 
-  static String get socketException => 'Connection timeout';
+  static String get socketException => 'No internet connection available';
 
-  static String get timeoutException => 'Connection timeout';
+  static String get timeoutException => 'No internet connection available';
 }
 
 enum Languages { english, luganda }
@@ -244,6 +248,8 @@ class PrefConstant {
   static String get isSignedUp => 'isSignedUp';
 
   static String get lastKnownLocation => 'lastKnownLocation';
+
+  static String get reLoadDb => 'reloadDb';
 
   static String get siteAlerts => 'siteAlerts';
 }

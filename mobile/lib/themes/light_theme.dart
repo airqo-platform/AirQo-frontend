@@ -5,66 +5,48 @@ const googleMapsLightTheme = [
   {
     "elementType": "geometry.fill",
     "stylers": [
-      {
-        "color": "#d7e4fe"
-      },
-      {
-        "visibility": "on"
-      }
+      {"color": "#d7e4fe"},
+      {"visibility": "on"}
     ]
   },
   {
     "elementType": "geometry.stroke",
     "stylers": [
-      {
-        "color": "#ffffff"
-      }
+      {"color": "#ffffff"}
     ]
   },
   {
     "elementType": "labels.icon",
     "stylers": [
-      {
-        "visibility": "off"
-      }
+      {"visibility": "off"}
     ]
   },
   {
     "elementType": "labels.text.fill",
     "stylers": [
-      {
-        "color": "#1d62f7"
-      }
+      {"color": "#1d62f7"}
     ]
   },
   {
     "featureType": "landscape.man_made",
     "elementType": "geometry.stroke",
     "stylers": [
-      {
-        "color": "#5c8df8"
-      },
-      {
-        "visibility": "on"
-      }
+      {"color": "#5c8df8"},
+      {"visibility": "on"}
     ]
   },
   {
     "featureType": "road",
     "elementType": "geometry.fill",
     "stylers": [
-      {
-        "color": "#ffffff"
-      }
+      {"color": "#ffffff"}
     ]
   },
   {
     "featureType": "water",
     "elementType": "geometry.fill",
     "stylers": [
-      {
-        "color": "#aac3f7"
-      }
+      {"color": "#aac3f7"}
     ]
   }
 ];

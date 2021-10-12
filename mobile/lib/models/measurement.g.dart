@@ -11,22 +11,20 @@ Measurement _$MeasurementFromJson(Map<String, dynamic> json) {
     'time',
     'average_pm2_5',
     'average_pm10',
-    'siteDetails'
+    'siteDetails',
+    'device_number'
   ]);
   return Measurement(
-    time: json['time'] as String,
-    pm2_5: MeasurementValue.fromJson(
-        json['average_pm2_5'] as Map<String, dynamic>),
-    pm10:
-        MeasurementValue.fromJson(json['average_pm10'] as Map<String, dynamic>),
-    altitude:
-        MeasurementValue.fromJson(json['altitude'] as Map<String, dynamic>),
-    speed: MeasurementValue.fromJson(json['speed'] as Map<String, dynamic>),
-    temperature: MeasurementValue.fromJson(
+    json['time'] as String,
+    MeasurementValue.fromJson(json['average_pm2_5'] as Map<String, dynamic>),
+    MeasurementValue.fromJson(json['average_pm10'] as Map<String, dynamic>),
+    MeasurementValue.fromJson(json['altitude'] as Map<String, dynamic>),
+    MeasurementValue.fromJson(json['speed'] as Map<String, dynamic>),
+    MeasurementValue.fromJson(
         json['externalTemperature'] as Map<String, dynamic>),
-    humidity: MeasurementValue.fromJson(
-        json['externalHumidity'] as Map<String, dynamic>),
-    site: Site.fromJson(json['siteDetails'] as Map<String, dynamic>),
+    MeasurementValue.fromJson(json['externalHumidity'] as Map<String, dynamic>),
+    Site.fromJson(json['siteDetails'] as Map<String, dynamic>),
+    json['device_number'] as int,
   );
 }
 
@@ -53,4 +51,5 @@ Map<String, dynamic> _$MeasurementToJson(Measurement instance) =>
       'externalTemperature': instance.temperature,
       'externalHumidity': instance.humidity,
       'siteDetails': instance.site,
+      'device_number': instance.deviceNumber,
     };

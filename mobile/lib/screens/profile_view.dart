@@ -276,7 +276,8 @@ class _ProfileViewState extends State<ProfileView> {
                       decoration: BoxDecoration(
                         border: Border.all(color: Colors.white),
                         color: ColorConstants.greyColor,
-                        shape: BoxShape.circle,),
+                        shape: BoxShape.circle,
+                      ),
                     ))
               ],
             ),
@@ -286,5 +287,3 @@ class _ProfileViewState extends State<ProfileView> {
     );
   }
 }
-
-

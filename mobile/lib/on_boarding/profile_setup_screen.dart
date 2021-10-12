@@ -16,51 +16,56 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
     return Scaffold(
         resizeToAvoidBottomInset: false,
         body: Container(
-      padding: const EdgeInsets.only(left: 24, right: 24),
-      child: Center(
-        child: Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
-          const SizedBox(
-            height: 42,
+          padding: const EdgeInsets.only(left: 24, right: 24),
+          child: Center(
+            child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const SizedBox(
+                    height: 42,
+                  ),
+                  const Text(
+                    'Great! What’s your name?',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 24,
+                        color: Colors.black),
+                  ),
+                  const SizedBox(
+                    height: 42,
+                  ),
+                  Row(
+                    children: <Widget>[
+                      titleDropdown(),
+                      const SizedBox(
+                        width: 16,
+                      ),
+                      Flexible(
+                        child: inputField('Enter your name  '),
+                      ),
+                    ],
+                  ),
+                  const Spacer(),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.pushAndRemoveUntil(context,
+                          MaterialPageRoute(builder: (context) {
+                        return NotificationsSetupScreen();
+                      }), (r) => false);
+                    },
+                    child: nextButton('Let’s go'),
+                  ),
+                  const SizedBox(
+                    height: 20,
+                  ),
+                  signUpOptions(context),
+                  const SizedBox(
+                    height: 36,
+                  ),
+                ]),
           ),
-          const Text(
-            'Great! What’s your name?',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-                fontWeight: FontWeight.bold, fontSize: 24, color: Colors.black),
-          ),
-          const SizedBox(
-            height: 42,
-          ),
-          Row(
-            children: <Widget>[
-              titleDropdown(),
-              const SizedBox(width: 16,),
-              Flexible(
-                child: inputField('Enter your name  '),
-              ),
-            ],
-          ),
-
-          const Spacer(),
-          GestureDetector(
-            onTap: () {
-              Navigator.pushAndRemoveUntil(context,
-                MaterialPageRoute(builder: (context) {
-                  return NotificationsSetupScreen();
-                }), (r) => false);
-            },
-            child: nextButton('Let’s go'),
-          ),
-          const SizedBox(
-            height: 20,
-          ),
-          signUpOptions(context),
-          const SizedBox(
-            height: 36,
-          ),
-        ]),
-      ),
-    ));
+        ));
   }
 
   void initialize() {

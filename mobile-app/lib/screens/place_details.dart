@@ -14,6 +14,7 @@ import 'package:app/widgets/forecast_chart.dart';
 import 'package:app/widgets/health_recommendation.dart';
 import 'package:app/widgets/measurements_chart.dart';
 import 'package:app/widgets/pollutants_container.dart';
+import 'package:app/widgets/weather_container.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -128,70 +129,21 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
               measurement: measurement,
             ),
 
-            // if (measurement.hasWeatherData())
-            //   Padding(
-            //     padding: const EdgeInsets.only(left: 10, right: 10),
-            //     child: WeatherSection(
-            //       measurement,
-            //     ),
-            //   ),
+            if (measurement.hasWeatherData())
+              Padding(
+                padding: const EdgeInsets.only(left: 10, right: 10),
+                child: WeatherSection(
+                  measurement,
+                ),
+              ),
 
             // historicalData
             if (historicalData.isNotEmpty)
               historicalDataSection(historicalData),
 
-            // historicalData.isNotEmpty
-            //     ? historicalDataSection(historicalData)
-            //     : historicalResponse != ''
-            //         ? Card(
-            //             elevation: 20,
-            //             child: Padding(
-            //               padding: const EdgeInsets.all(5.0),
-            //               child: Center(
-            //                 child: Text(
-            //                   historicalResponse,
-            //                   style: TextStyle(
-            //                       color: ColorConstants.appColor),
-            //                 ),
-            //               ),
-            //             ),
-            //           )
-            //         : Center(
-            //             child: Container(
-            //             padding: const EdgeInsets.all(16.0),
-            //             child: CircularProgressIndicator(
-            //               valueColor: AlwaysStoppedAnimation<Color>(
-            //                   ColorConstants.appColor),
-            //             ),
-            //           )),
-
             // Forecast Data
 
             if (forecastData.isNotEmpty) forecastDataSection(forecastData),
-
-            // forecastData.isNotEmpty
-            //     ? forecastDataSection(forecastData)
-            //     : forecastResponse != ''
-            //         ? Card(
-            //             elevation: 20,
-            //             child: Padding(
-            //               padding: const EdgeInsets.all(5.0),
-            //               child: Center(
-            //                 child: Text(forecastResponse,
-            //                     style: TextStyle(
-            //                         color: ColorConstants.appColor)),
-            //               ),
-            //             ),
-            //           )
-            //         : Center(
-            //             child: Container(
-            //             padding: const EdgeInsets.all(16.0),
-            //             child: CircularProgressIndicator(
-            //               valueColor: AlwaysStoppedAnimation<Color>(
-            //                   ColorConstants.appColor),
-            //             ),
-            //           )),
-            //
 
             Container(
                 padding: const EdgeInsets.fromLTRB(0, 0, 0, 50),

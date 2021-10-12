@@ -1,4 +1,3 @@
-import 'dart:io';
 
 import 'package:app/providers/LocalProvider.dart';
 import 'package:app/screens/home_page.dart';
@@ -178,7 +177,6 @@ class SplashScreen extends StatefulWidget {
 }
 
 class SplashScreenState extends State<SplashScreen> {
-  bool sitesReady = false;
   bool measurementsReady = false;
   String error = '';
 
@@ -239,7 +237,6 @@ class SplashScreenState extends State<SplashScreen> {
 
   Future<void> initialize() async {
     _getLatestMeasurements();
-    _getSites();
     Future.delayed(const Duration(seconds: 4), _checkFirstUse);
   }
 
@@ -265,14 +262,6 @@ class SplashScreenState extends State<SplashScreen> {
                   measurementsReady = true;
                 })
               },
-            DBHelper().getSites().then((value) => {
-                  if (value.isNotEmpty && mounted)
-                    {
-                      setState(() {
-                        sitesReady = true;
-                      })
-                    }
-                }),
           });
     } catch (e) {
       print(e);
@@ -329,22 +318,6 @@ class SplashScreenState extends State<SplashScreen> {
         });
   }
 
-  void _getSites() async {
-    await AirqoApiClient(context).fetchSites().then((value) => {
-          if (value.isNotEmpty)
-            {
-              DBHelper().insertSites(value).then((value) => {
-                    if (mounted)
-                      {
-                        setState(() {
-                          sitesReady = true;
-                        })
-                      }
-                  })
-            }
-        });
-  }
-
   Future _initDB() async {
     try {
       await DBHelper().getLatestMeasurements().then((value) => {
@@ -354,18 +327,6 @@ class SplashScreenState extends State<SplashScreen> {
                   measurementsReady = true;
                 })
               },
-            DBHelper().getSites().then((value) => {
-                  if (value.isNotEmpty && mounted)
-                    {
-                      setState(() {
-                        sitesReady = true;
-                      })
-                    }
-                }),
-            if (!sitesReady)
-              {
-                _getSites(),
-              },
             if (!measurementsReady)
               {
                 _getLatestMeasurements(),
@@ -373,20 +334,6 @@ class SplashScreenState extends State<SplashScreen> {
           });
     } catch (e) {
       print(e);
-    }
-  }
-
-  Future _initializeApp() async {
-    if (!measurementsReady || !sitesReady) {
-      await _checkDB();
-      sleep(const Duration(seconds: 5));
-      if (!measurementsReady || !sitesReady && mounted) {
-        setState(() {
-          error = 'Your request cannot be processed right now. '
-              'Please try again';
-        });
-        return;
-      }
     }
   }
 }

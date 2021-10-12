@@ -2,8 +2,10 @@ import 'dart:math';
 
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/historicalMeasurement.dart';
+import 'package:app/models/measurement.dart';
 import 'package:app/models/predict.dart';
 import 'package:app/models/site.dart';
+import 'package:app/models/story.dart';
 import 'package:app/screens/place_view.dart';
 import 'package:app/screens/search_page.dart';
 import 'package:app/services/local_storage.dart';
@@ -41,8 +43,7 @@ class CircularBorder extends StatelessWidget {
           ),
           CustomPaint(
             size: Size(size, size),
-            foregroundPainter:
-                MyPainter(completeColor: color, width: width),
+            foregroundPainter: MyPainter(completeColor: color, width: width),
           ),
         ],
       ),
@@ -94,113 +95,126 @@ class _DashboardViewState extends State<DashboardView> {
   var measurementData;
   var historicalData = <HistoricalMeasurement>[];
   var forecastData = <Predict>[];
+  var stories = <Story>[];
+  var storyIsSet = false;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-        color: ColorConstants.appBodyColor,
-        child: RefreshIndicator(
-            onRefresh: initialize,
-            color: ColorConstants.appColor,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16.0, 37, 16.0, 16.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Expanded(
-                    child: ListView(
-                      shrinkWrap: true,
-                      children: <Widget>[
-                        topBar(),
-                        const SizedBox(
-                          height: 10,
-                        ),
-                        Text(
-                          getGreetings(),
-                          style: const TextStyle(
-                              fontSize: 24, fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(
-                          height: 16,
-                        ),
-                        topTabs(),
-
-                        const SizedBox(
-                          height: 24,
-                        ),
-                        Text(
-                          getDateTime(),
-                          style: TextStyle(
-                            color: Colors.black.withOpacity(0.6),
-                            fontSize: 14,
+    if (measurementData == null) {
+      return Container(
+          color: ColorConstants.appBodyColor,
+          child: Center(
+            child: CircularProgressIndicator(
+              color: ColorConstants.appColor,
+            ),
+          ));
+    } else {
+      return Container(
+          color: ColorConstants.appBodyColor,
+          child: RefreshIndicator(
+              onRefresh: initialize,
+              color: ColorConstants.appColor,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16.0, 37, 16.0, 16.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Expanded(
+                      child: ListView(
+                        shrinkWrap: true,
+                        children: <Widget>[
+                          topBar(),
+                          const SizedBox(
+                            height: 10,
                           ),
-                        ),
-                        const Text(
-                          'Daily Forecast',
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 32,
+                          Text(
+                            getGreetings(),
+                            style: const TextStyle(
+                                fontSize: 24, fontWeight: FontWeight.bold),
                           ),
-                        ),
-                        const SizedBox(
-                          height: 12,
-                        ),
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.push(context,
-                                MaterialPageRoute(builder: (context) {
-                              return PlaceView();
-                            }));
-                          },
-                          child: const ReadingsCard(),
-                        ),
-                        const SizedBox(
-                          height: 16,
-                        ),
-                        tipsSection(),
-                        // CurrentLocationCard(
-                        //     measurementData: measurementData,
-                        //     historicalData: historicalData,
-                        //     forecastData: forecastData),
-                      ],
+                          const SizedBox(
+                            height: 16,
+                          ),
+                          topTabs(),
+                          const SizedBox(
+                            height: 24,
+                          ),
+                          Text(
+                            getDateTime(),
+                            style: TextStyle(
+                              color: Colors.black.withOpacity(0.6),
+                              fontSize: 14,
+                            ),
+                          ),
+                          const Text(
+                            'Daily Forecast',
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 32,
+                            ),
+                          ),
+                          const SizedBox(
+                            height: 12,
+                          ),
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.push(context,
+                                  MaterialPageRoute(builder: (context) {
+                                return PlaceView(measurementData.site);
+                              }));
+                            },
+                            child: ReadingsCard(measurementData),
+                          ),
+                          const SizedBox(
+                            height: 16,
+                          ),
+                          if (stories.isNotEmpty)
+                            tipsSection(stories[pickStory(stories.length)]),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            )));
+                  ],
+                ),
+              )));
+    }
   }
 
-  void getLocationForecastMeasurements(Site site) async {
+  void getLocationForecastMeasurements(Measurement measurement) async {
     try {
-      await DBHelper().getForecastMeasurements(site.id).then((value) => {
-            if (value.isNotEmpty)
-              {
-                if (mounted)
+      await DBHelper()
+          .getForecastMeasurements(measurement.site.id)
+          .then((value) => {
+                if (value.isNotEmpty)
                   {
-                    setState(() {
-                      forecastData = value;
-                    })
+                    if (mounted)
+                      {
+                        setState(() {
+                          forecastData = value;
+                        })
+                      }
                   }
-              }
-          });
+              });
     } on Error catch (e) {
       print('Getting forecast data locally error: $e');
     } finally {
       try {
-        await AirqoApiClient(context).fetchForecast(site).then((value) => {
-              if (value.isNotEmpty)
-                {
-                  if (mounted)
+        await AirqoApiClient(context)
+            .fetchForecast(measurement.deviceNumber)
+            .then((value) => {
+                  if (value.isNotEmpty)
                     {
-                      setState(() {
-                        forecastData = value;
-                      }),
+                      if (mounted)
+                        {
+                          setState(() {
+                            forecastData = value;
+                          }),
+                        },
+                      DBHelper().insertForecastMeasurements(
+                          value, measurement.site.id)
                     },
-                  DBHelper().insertForecastMeasurements(value, site.id)
-                },
-            });
+                });
       } catch (e) {
         print('Getting forecast data from api error: $e');
       }
@@ -225,7 +239,7 @@ class _DashboardViewState extends State<DashboardView> {
     } finally {
       try {
         await AirqoApiClient(context)
-            .fetchSiteHistoricalMeasurementsById(site.id)
+            .fetchSiteHistoricalMeasurements(site)
             .then((value) => {
                   if (value.isNotEmpty)
                     {
@@ -246,7 +260,7 @@ class _DashboardViewState extends State<DashboardView> {
 
     try {
       await AirqoApiClient(context)
-          .fetchSiteHistoricalMeasurementsById(site.id)
+          .fetchSiteHistoricalMeasurements(site)
           .then((value) => {
                 if (value.isNotEmpty)
                   {
@@ -274,7 +288,7 @@ class _DashboardViewState extends State<DashboardView> {
                       measurementData = value;
                     }),
                     getLocationHistoricalMeasurements(value.site),
-                    getLocationForecastMeasurements(value.site),
+                    // getLocationForecastMeasurements(value.site),
                     updateCurrentLocation()
                   },
               }
@@ -286,17 +300,44 @@ class _DashboardViewState extends State<DashboardView> {
     }
   }
 
+  void getStories() {
+    DBHelper().getStories().then((value) => {
+          if (mounted)
+            {
+              setState(() {
+                stories = value;
+              })
+            }
+        });
+
+    AirqoApiClient(context).fetchLatestStories().then((value) => {
+          if (mounted && stories.isEmpty)
+            {
+              setState(() {
+                stories = value;
+              })
+            },
+          DBHelper().insertLatestStories(value)
+        });
+  }
+
   Future<void> initialize() async {
+    getStories();
     await getLocationMeasurements();
   }
 
   @override
   void initState() {
-    // initialize();
     super.initState();
+    initialize();
   }
 
-  Widget tipsSection() {
+  int pickStory(int size) {
+    var random = Random();
+    return 0 + random.nextInt(size - 0);
+  }
+
+  Widget tipsSection(Story story) {
     return Container(
       padding: const EdgeInsets.fromLTRB(10.0, 8.0, 8.0, 8.0),
       decoration: const BoxDecoration(
@@ -309,15 +350,16 @@ class _DashboardViewState extends State<DashboardView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                    'Improve air quality around you.',
+                Text('${story.title}',
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     )),
-                const SizedBox(height: 20,),
+                const SizedBox(
+                  height: 20,
+                ),
                 GestureDetector(
                   onTap: () {},
                   child: Container(
@@ -325,7 +367,8 @@ class _DashboardViewState extends State<DashboardView> {
                     width: 60,
                     decoration: BoxDecoration(
                       color: ColorConstants.appColorBlue.withOpacity(0.2),
-                      borderRadius: const BorderRadius.all(Radius.circular(5.0)),
+                      borderRadius:
+                          const BorderRadius.all(Radius.circular(5.0)),
                     ),
                     child: Center(
                       child: Text('Read',
@@ -357,8 +400,7 @@ class _DashboardViewState extends State<DashboardView> {
                   ),
                 ),
               ),
-              imageUrl:
-                  'https://miro.medium.com/max/1400/1*Q3eBVHmv1uW4397gjwa_Fg.jpeg',
+              imageUrl: '${story.thumbnail}',
               errorWidget: (context, url, error) => Icon(
                 Icons.error_outline,
                 color: ColorConstants.red,
@@ -386,8 +428,7 @@ class _DashboardViewState extends State<DashboardView> {
             decoration: const BoxDecoration(
                 color: Colors.white,
                 shape: BoxShape.rectangle,
-                borderRadius: BorderRadius.all(Radius.circular(10.0))
-            ),
+                borderRadius: BorderRadius.all(Radius.circular(10.0))),
             child: IconButton(
               iconSize: 30,
               icon: Icon(
@@ -427,19 +468,22 @@ class _DashboardViewState extends State<DashboardView> {
                   width: 32,
                   decoration: BoxDecoration(
                       color: ColorConstants.appColorBlue.withOpacity(0.2),
-                      shape: BoxShape.circle
-                  ),
-                  child: Icon(Icons.add,
+                      shape: BoxShape.circle),
+                  child: Icon(
+                    Icons.add,
                     color: ColorConstants.appColorBlue,
-                    size: 17,),
+                    size: 17,
+                  ),
                 ),
                 const SizedBox(
                   width: 8,
                 ),
-                Text('Favorite',
-                style: TextStyle(
-                  color: ColorConstants.appColorBlue,
-                ),)
+                Text(
+                  'Favorite',
+                  style: TextStyle(
+                    color: ColorConstants.appColorBlue,
+                  ),
+                )
               ],
             ),
           ),
@@ -463,19 +507,22 @@ class _DashboardViewState extends State<DashboardView> {
                   width: 32,
                   decoration: BoxDecoration(
                       color: ColorConstants.appColorBlue.withOpacity(0.2),
-                      shape: BoxShape.circle
-                  ),
-                  child: Icon(Icons.add,
+                      shape: BoxShape.circle),
+                  child: Icon(
+                    Icons.add,
                     color: ColorConstants.appColorBlue,
-                    size: 17,),
+                    size: 17,
+                  ),
                 ),
                 const SizedBox(
                   width: 8,
                 ),
-                Text('For you',
+                Text(
+                  'For you',
                   style: TextStyle(
                     color: ColorConstants.appColorBlue,
-                  ),)
+                  ),
+                )
               ],
             ),
           ),
@@ -501,7 +548,7 @@ class _DashboardViewState extends State<DashboardView> {
                         measurementData = value;
                       }),
                       getLocationHistoricalMeasurements(value.site),
-                      getLocationForecastMeasurements(value.site),
+                      // getLocationForecastMeasurements(value.site),
                     }
                 },
             });
@@ -524,7 +571,7 @@ class _DashboardViewState extends State<DashboardView> {
                       measurementData = value;
                     }),
                     getLocationHistoricalMeasurements(value.site),
-                    getLocationForecastMeasurements(value.site),
+                    // getLocationForecastMeasurements(value.site),
                   },
               }
           });

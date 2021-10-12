@@ -58,7 +58,7 @@ class _DashboardBarChartState extends State<DashboardBarChart> {
                       //   flex: 1,
                       // ),
                       Text(
-                        chartDateToString(display['time']),
+                        chartDateToString(display['time'], true),
                         softWrap: true,
                         style: TextStyle(color: ColorConstants.appColor),
                       ),

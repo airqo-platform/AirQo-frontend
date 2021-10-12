@@ -9,8 +9,7 @@ Widget countryDropDown(String text) {
     constraints: const BoxConstraints(minWidth: 20),
     decoration: BoxDecoration(
         color: const Color(0xff8D8D8D).withOpacity(0.1),
-        borderRadius: const BorderRadius.all(Radius.circular(10.0))
-    ),
+        borderRadius: const BorderRadius.all(Radius.circular(10.0))),
     child: Text(
       text,
       textAlign: TextAlign.center,
@@ -45,108 +44,6 @@ Widget locationIcon(height, width) {
   );
 }
 
-Widget notificationIcon(height, width) {
-  return Stack(
-    alignment: Alignment.center,
-    children: [
-      Padding(padding: const EdgeInsets.all(20),
-      child: Container(
-        height: 145,
-        width: 145,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: ColorConstants.appColorBlue.withOpacity(0.3),
-        ),
-      ),),
-      Positioned(
-        right: 0,
-        child: Container(
-          height: 37,
-          width: 127,
-        padding: const EdgeInsets.only(left: 10, right: 10),
-        decoration: BoxDecoration(
-          color: ColorConstants.appColorBlue,
-            borderRadius: const BorderRadius.all(Radius.circular(20.0))
-        ),
-        child: Row(
-          children: [
-            const Icon(
-              Icons.notifications,
-              size: 20,
-              color: Colors.white,
-            ),
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(children: [
-                  Container(
-                    height: 6,
-                    width: 23,
-                    decoration: const BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.all(Radius.circular(20.0))
-                    ),
-                  ),
-                  const SizedBox(width: 2,),
-                  Container(
-                    height: 6,
-                    width: 12,
-                    decoration: const BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.all(Radius.circular(20.0))
-                    ),
-                  ),
-                  const SizedBox(width: 2,),
-                  Container(
-                    height: 6,
-                    width: 38,
-                    decoration: const BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.all(Radius.circular(20.0))
-                    ),
-                  )
-                ],),
-                const SizedBox(height: 2,),
-                Row(children: [
-                  Container(
-                    height: 6,
-                    width: 12,
-                    decoration: const BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.all(Radius.circular(20.0))
-                    ),
-                  ),
-                  const SizedBox(width: 2,),
-                  Container(
-                    height: 6,
-                    width: 6,
-                    decoration: const BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.all(Radius.circular(20.0))
-                    ),
-                  ),
-                  const SizedBox(width: 2,),
-                  Container(
-                    height: 6,
-                    width: 19,
-                    decoration: const BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.all(Radius.circular(20.0))
-                    ),
-                  )
-                ],)
-              ],
-            )
-          ],
-        ),
-      ),),
-
-    ],
-  );
-}
-
-
 Widget nextButton(String text) {
   return Container(
     padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
@@ -169,6 +66,122 @@ Widget nextButton(String text) {
         )
       ],
     ),
+  );
+}
+
+Widget notificationIcon(height, width) {
+  return Stack(
+    alignment: Alignment.center,
+    children: [
+      Padding(
+        padding: const EdgeInsets.all(20),
+        child: Container(
+          height: 145,
+          width: 145,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: ColorConstants.appColorBlue.withOpacity(0.3),
+          ),
+        ),
+      ),
+      Positioned(
+        right: 0,
+        child: Container(
+          height: 37,
+          width: 127,
+          padding: const EdgeInsets.only(left: 10, right: 10),
+          decoration: BoxDecoration(
+              color: ColorConstants.appColorBlue,
+              borderRadius: const BorderRadius.all(Radius.circular(20.0))),
+          child: Row(
+            children: [
+              const Icon(
+                Icons.notifications,
+                size: 20,
+                color: Colors.white,
+              ),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        height: 6,
+                        width: 23,
+                        decoration: const BoxDecoration(
+                            color: Colors.white,
+                            borderRadius:
+                                BorderRadius.all(Radius.circular(20.0))),
+                      ),
+                      const SizedBox(
+                        width: 2,
+                      ),
+                      Container(
+                        height: 6,
+                        width: 12,
+                        decoration: const BoxDecoration(
+                            color: Colors.white,
+                            borderRadius:
+                                BorderRadius.all(Radius.circular(20.0))),
+                      ),
+                      const SizedBox(
+                        width: 2,
+                      ),
+                      Container(
+                        height: 6,
+                        width: 38,
+                        decoration: const BoxDecoration(
+                            color: Colors.white,
+                            borderRadius:
+                                BorderRadius.all(Radius.circular(20.0))),
+                      )
+                    ],
+                  ),
+                  const SizedBox(
+                    height: 2,
+                  ),
+                  Row(
+                    children: [
+                      Container(
+                        height: 6,
+                        width: 12,
+                        decoration: const BoxDecoration(
+                            color: Colors.white,
+                            borderRadius:
+                                BorderRadius.all(Radius.circular(20.0))),
+                      ),
+                      const SizedBox(
+                        width: 2,
+                      ),
+                      Container(
+                        height: 6,
+                        width: 6,
+                        decoration: const BoxDecoration(
+                            color: Colors.white,
+                            borderRadius:
+                                BorderRadius.all(Radius.circular(20.0))),
+                      ),
+                      const SizedBox(
+                        width: 2,
+                      ),
+                      Container(
+                        height: 6,
+                        width: 19,
+                        decoration: const BoxDecoration(
+                            color: Colors.white,
+                            borderRadius:
+                                BorderRadius.all(Radius.circular(20.0))),
+                      )
+                    ],
+                  )
+                ],
+              )
+            ],
+          ),
+        ),
+      ),
+    ],
   );
 }
 

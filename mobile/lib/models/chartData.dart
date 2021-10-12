@@ -1,6 +1,6 @@
 class TimeSeriesData {
   final DateTime time;
-  final int value;
+  final double value;
 
   TimeSeriesData(this.time, this.value);
 }

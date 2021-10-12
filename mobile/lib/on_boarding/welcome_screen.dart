@@ -51,8 +51,8 @@ class WelcomeScreenState extends State<WelcomeScreen> {
               onTap: () {
                 Navigator.pushAndRemoveUntil(context,
                     MaterialPageRoute(builder: (context) {
-                      return PhoneSignupScreen();
-                    }), (r) => false);
+                  return PhoneSignupScreen();
+                }), (r) => false);
               },
               child: nextButton('Let’s go'),
             ),

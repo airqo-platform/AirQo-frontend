@@ -1,9 +1,14 @@
 import 'package:intl/intl.dart';
 
-String chartDateToString(String formattedString) {
+String chartDateToString(String formattedString, bool format) {
   try {
     var now = DateTime.now();
-    var formattedDate = DateTime.parse(formattedString);
+    var offSet = 0;
+    if (format) {
+      offSet = now.timeZoneOffset.inHours;
+    }
+    var formattedDate =
+        DateTime.parse(formattedString).add(Duration(hours: offSet));
 
     if (now.day == formattedDate.day) {
       return '${DateFormat('hh:mm a').format(formattedDate)}';
@@ -83,18 +88,52 @@ String getDateTime() {
 String getGreetings() {
   var hour = DateTime.now().hour;
   if (8 <= hour && hour < 12) {
-    return 'Good morning Greta!';
+    return 'Good morning!';
   }
 
   if (12 <= hour && hour < 16) {
-    return 'Good afternoon Greta!';
+    return 'Good afternoon!';
   }
 
   if (18 <= hour && hour < 21) {
-    return 'Good evening Greta!';
+    return 'Good evening!';
   }
 
   return 'Hello!';
+}
+
+String getTime(int hour) {
+  if (hour > 0 && hour < 12) {
+    return '$hour AM';
+  } else if (hour == 0 || hour == 24) {
+    return 'Midnight';
+  } else if (hour == 12) {
+    return 'noon';
+  } else if (hour == 13) {
+    return '1 PM';
+  } else if (hour == 14) {
+    return '2 PM';
+  } else if (hour == 15) {
+    return '3 PM';
+  } else if (hour == 16) {
+    return '4 PM';
+  } else if (hour == 17) {
+    return '5 PM';
+  } else if (hour == 18) {
+    return '6 PM';
+  } else if (hour == 19) {
+    return '7 PM';
+  } else if (hour == 20) {
+    return '8 PM';
+  } else if (hour == 21) {
+    return '9 PM';
+  } else if (hour == 22) {
+    return '10 PM';
+  } else if (hour == 23) {
+    return '11 PM';
+  } else {
+    return '';
+  }
 }
 
 String getWeekday() {
@@ -115,5 +154,38 @@ String getWeekday() {
     return 'sunday';
   } else {
     return '';
+  }
+}
+
+extension DateTimeExtension on DateTime {
+  String getMonthString() {
+    switch (month) {
+      case 1:
+        return 'JAN';
+      case 2:
+        return 'FEB';
+      case 3:
+        return 'MAR';
+      case 4:
+        return 'APR';
+      case 5:
+        return 'MAY';
+      case 6:
+        return 'JUN';
+      case 7:
+        return 'JUL';
+      case 8:
+        return 'AUG';
+      case 9:
+        return 'SEPT';
+      case 10:
+        return 'OCT';
+      case 11:
+        return 'NOV';
+      case 12:
+        return 'DEC';
+      default:
+        return 'ERR';
+    }
   }
 }

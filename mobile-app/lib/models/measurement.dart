@@ -101,15 +101,8 @@ class Measurement {
   static String latestMeasurementsDb() => 'latest_measurements';
 
   static Map<String, dynamic> mapFromDb(Map<String, dynamic> json) {
-    var siteDetails = {
-      '_id': json['${Site.dbId()}'] as String,
-      'country': json['${Site.dbCountry()}'] as String,
-      'district': json['${Site.dbDistrict()}'] as String,
-      'description': json['${Site.dbDescription()}'] as String,
-      'name': json['${Site.dbSiteName()}'] as String,
-      'latitude': json['${Site.dbLatitude()}'] as double,
-      'longitude': json['${Site.dbLongitude()}'] as double,
-    };
+
+    var siteDetails =  Site.fromDbMap(json);
 
     return {
       'siteDetails': siteDetails,
@@ -125,25 +118,21 @@ class Measurement {
   }
 
   static Map<String, dynamic> mapToDb(Measurement measurement) {
-    var site = measurement.site;
 
-    return {
-      '${dbTime()}': measurement.time,
-      '${dbPm25()}': measurement.getPm2_5Value(),
-      '${dbPm10()}': measurement.getPm10Value(),
-      '${dbAltitude()}': measurement.altitude.value,
-      '${dbSpeed()}': measurement.speed.value,
-      '${dbTemperature()}': measurement.temperature.value,
-      '${dbHumidity()}': measurement.humidity.value,
-      '${dbDeviceNumber()}': measurement.deviceNumber,
-      '${Site.dbSiteName()}': site.name,
-      '${Site.dbDescription()}': site.description,
-      '${Site.dbId()}': site.id,
-      '${Site.dbCountry()}': site.country,
-      '${Site.dbDistrict()}': site.district,
-      '${Site.dbLongitude()}': site.longitude,
-      '${Site.dbLatitude()}': site.latitude,
-    };
+    var measurementMap = Site.toDbMap(measurement.site)
+      ..addAll({
+        '${dbTime()}': measurement.time,
+        '${dbPm25()}': measurement.getPm2_5Value(),
+        '${dbPm10()}': measurement.getPm10Value(),
+        '${dbAltitude()}': measurement.altitude.value,
+        '${dbSpeed()}': measurement.speed.value,
+        '${dbTemperature()}': measurement.temperature.value,
+        '${dbHumidity()}': measurement.humidity.value,
+        '${dbDeviceNumber()}': measurement.deviceNumber,
+      });
+
+    return measurementMap;
+
   }
 
   static Measurement parseMeasurement(dynamic jsonBody) {

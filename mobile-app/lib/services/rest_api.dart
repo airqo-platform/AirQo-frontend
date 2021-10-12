@@ -319,16 +319,6 @@ class AirqoApiClient {
       final response = await http.get(Uri.parse(url), headers: headers);
       return json.decode(response.body);
 
-      // if (response.statusCode == 200) {
-      //   return json.decode(response.body);
-      // } else {
-      //   print(response.statusCode);
-      //   print('Unexpected status code ${response.statusCode}:'
-      //       ' ${response.reasonPhrase}');
-      //   // print('Body ${response.body}:');
-      //   // print('uri: $url');
-      //   return null;
-      // }
     } on SocketException {
       await showSnackBar(context, ErrorMessages.socketException);
     } on TimeoutException {

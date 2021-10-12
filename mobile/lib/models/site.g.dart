@@ -13,18 +13,21 @@ Site _$SiteFromJson(Map<String, dynamic> json) {
     'longitude',
     'district',
     'country',
-    'name'
+    'name',
+    'region'
   ]);
   return Site(
+    json['_id'] as String,
+    (json['latitude'] as num).toDouble(),
+    (json['longitude'] as num).toDouble(),
+    json['district'] as String,
+    json['country'] as String,
     json['name'] as String,
-    id: json['_id'] as String,
-    latitude: (json['latitude'] as num).toDouble(),
-    longitude: (json['longitude'] as num).toDouble(),
-    district: json['district'] as String,
-    country: json['country'] as String,
-    description: json['description'] as String? ?? '',
-    distance: (json['distance'] as num?)?.toDouble() ?? 0.0,
-  )..userLocation = json['userLocation'] as String? ?? '';
+    json['description'] as String? ?? '',
+    json['region'] as String? ?? '',
+    (json['distance'] as num?)?.toDouble() ?? 0.0,
+    json['userLocation'] as String? ?? '',
+  );
 }
 
 Sites _$SitesFromJson(Map<String, dynamic> json) {
@@ -47,6 +50,7 @@ Map<String, dynamic> _$SiteToJson(Site instance) => <String, dynamic>{
       'country': instance.country,
       'name': instance.name,
       'description': instance.description,
+      'region': instance.region,
       'distance': instance.distance,
       'userLocation': instance.userLocation,
     };

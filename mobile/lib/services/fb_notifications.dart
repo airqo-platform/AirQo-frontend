@@ -1,59 +1,67 @@
+import 'dart:io';
+
 import 'package:app/constants/app_constants.dart';
+import 'package:app/models/alert.dart';
 import 'package:app/models/site.dart';
 import 'package:app/models/topicData.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
 import 'local_notifications.dart';
 
-Future<void> backgroundMessageHandler(RemoteMessage message) async {
-  var notificationMessage = AppNotification().composeNotification(message);
+class CloudStore {
+  Future<bool> deleteAlert(Alert alert) async {
+    var hasConnection = await isConnected();
+    if (hasConnection) {
+      await FirebaseFirestore.instance
+          .collection(CloudStorage.alertsCollection)
+          .doc(alert.getAlertDbId())
+          .delete();
 
-  print(message.data);
+      return true;
+    } else {
+      return false;
+    }
+  }
 
-  if (!notificationMessage.isEmpty()) {
-    var notificationHandler = LocalNotifications()..initNotifications();
-    await notificationHandler.showAlertNotification(notificationMessage);
+  Future<bool> isConnected() async {
+    try {
+      final result = await InternetAddress.lookup('firebase.google.com');
+      if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+        return true;
+      }
+      return false;
+    } on SocketException catch (_) {
+      return false;
+    }
+  }
+
+  Future<bool> saveAlert(Alert alert) async {
+    var hasConnection = await isConnected();
+    if (hasConnection) {
+      var alertJson = alert.toJson();
+      alertJson['platform'] = Platform.isIOS ? 'ios' : 'android';
+      await FirebaseFirestore.instance
+          .collection(CloudStorage.alertsCollection)
+          .doc(alert.getAlertDbId())
+          .set(alertJson);
+      return true;
+    } else {
+      return false;
+    }
   }
 }
 
-Future<void> foregroundMessageHandler(RemoteMessage message) async {
-  var notificationMessage = AppNotification().composeNotification(message);
-
-  print(message.data);
-
-  if (!notificationMessage.isEmpty()) {
-    var notificationHandler = LocalNotifications()..initNotifications();
-    await notificationHandler.showAlertNotification(notificationMessage);
-  }
-}
-
-class FbNotifications {
+class NotificationService {
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
 
-  Future<void> backgroundMessageHandler(RemoteMessage message) async {
-    var notificationMessage = AppNotification().composeNotification(message);
-
-    print(message.data);
-
-    if (!notificationMessage.isEmpty()) {
-      var notificationHandler = LocalNotifications()..initNotifications();
-      await notificationHandler.showAlertNotification(notificationMessage);
-    }
+  Future<String?> getToken() async {
+    var token = await _firebaseMessaging.getToken();
+    return token;
   }
 
-  Future<void> foregroundMessageHandler(RemoteMessage message) async {
-    var notificationMessage = AppNotification().composeNotification(message);
-
-    print(message.data);
-
-    if (!notificationMessage.isEmpty()) {
-      var notificationHandler = LocalNotifications()..initNotifications();
-      await notificationHandler.showAlertNotification(notificationMessage);
-    }
-  }
-
-  Future<void> init() async {
-    var settings = await _firebaseMessaging.requestPermission(
+  Future<void> requestPermission() async {
+    await _firebaseMessaging.requestPermission(
       alert: true,
       announcement: false,
       badge: true,
@@ -62,8 +70,6 @@ class FbNotifications {
       provisional: false,
       sound: true,
     );
-
-    print('User granted permission: ${settings.authorizationStatus}');
   }
 
   Future<void> subscribeToNewsFeed(
@@ -92,6 +98,28 @@ class FbNotifications {
       for (var pollutantLevel in pollutantLevels) {
         await unSubscribeFromSite(site, pollutantLevel);
       }
+    }
+  }
+
+  static Future<void> backgroundMessageHandler(RemoteMessage message) async {
+    try {
+      var notificationMessage = AppNotification().composeNotification(message);
+      if (!notificationMessage.isEmpty()) {
+        await LocalNotifications().showAlertNotification(notificationMessage);
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  static Future<void> foregroundMessageHandler(RemoteMessage message) async {
+    try {
+      var notificationMessage = AppNotification().composeNotification(message);
+      if (!notificationMessage.isEmpty()) {
+        await LocalNotifications().showAlertNotification(notificationMessage);
+      }
+    } catch (e) {
+      print(e);
     }
   }
 }

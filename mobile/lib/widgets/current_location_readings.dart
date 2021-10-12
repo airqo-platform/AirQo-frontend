@@ -208,7 +208,7 @@ class CurrentLocationCard extends StatelessWidget {
         //     shape: RoundedRectangleBorder(
         //       borderRadius: BorderRadius.circular(10),
         //     ),
-        //     color: pmToColor(measurementData.getPm2_5Value()),
+        //     color: pm2_5ToColor(measurementData.getPm2_5Value()),
         //     child: Padding(
         //       padding: const EdgeInsets.all(8),
         //       child: Column(
@@ -219,7 +219,7 @@ class CurrentLocationCard extends StatelessWidget {
         //               textAlign: TextAlign.center,
         //               overflow: TextOverflow.ellipsis,
         //               style: TextStyle(
-        //                   color: pmTextColor(
+        //                   color: pm2_5TextColor(
         //                   measurementData.getPm2_5Value()),
         //                   fontWeight: FontWeight.bold)),
         //           if (measurementData.site.getUserLocation() !=
@@ -230,7 +230,7 @@ class CurrentLocationCard extends StatelessWidget {
         //                 textAlign: TextAlign.center,
         //                 overflow: TextOverflow.ellipsis,
         //                 style: TextStyle(
-        //                     color: pmTextColor(
+        //                     color: pm2_5TextColor(
         //                     measurementData.getPm2_5Value()),
         //                     fontWeight: FontWeight.bold)),
         //         ],
@@ -253,7 +253,7 @@ class CurrentLocationCard extends StatelessWidget {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20),
                         ),
-                        color: pmToColor(measurementData.getPm2_5Value()),
+                        color: pm2_5ToColor(measurementData.getPm2_5Value()),
                         child: Padding(
                           padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
                           child: Row(
@@ -261,7 +261,7 @@ class CurrentLocationCard extends StatelessWidget {
                               // Icon(
                               //   Icons.location_on,
                               //   color:
-                              //       pmTextColor(measurementData.getPm2_5Value()),
+                              //       pm2_5TextColor(measurementData.getPm2_5Value()),
                               // ),
                               Container(
                                   constraints:
@@ -272,7 +272,7 @@ class CurrentLocationCard extends StatelessWidget {
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: TextStyle(
-                                          color: pmTextColor(
+                                          color: pm2_5TextColor(
                                               measurementData.getPm2_5Value()),
                                           fontWeight: FontWeight.bold))),
                             ],
@@ -331,9 +331,9 @@ class CurrentLocationCard extends StatelessWidget {
   }
 
   Future<void> viewDetails(context, Site site) async {
-    await Navigator.push(context, MaterialPageRoute(builder: (context) {
-      return PlaceDetailsPage(site: site);
-    }));
+    // await Navigator.push(context, MaterialPageRoute(builder: (context) {
+    //   return PlaceDetailsPage(site: site);
+    // }));
   }
 
   static List<charts.Series<GaugeSegment, String>> _createSampleData() {
@@ -350,7 +350,7 @@ class CurrentLocationCard extends StatelessWidget {
       charts.Series<GaugeSegment, String>(
         id: 'Segments',
         colorFn: (GaugeSegment series, _) =>
-            pmToChartColor(series.colorValue.toDouble()),
+            pm2_5ToChartColor(series.colorValue.toDouble(), 'pm2.5'),
         domainFn: (GaugeSegment segment, _) => segment.segment,
         measureFn: (GaugeSegment segment, _) => segment.size,
         data: data,
@@ -380,7 +380,7 @@ class GaugeSegment {
       charts.Series<GaugeSegment, String>(
         id: 'Segments',
         colorFn: (GaugeSegment series, _) =>
-            pmToChartColor(series.colorValue.toDouble()),
+            pm2_5ToChartColor(series.colorValue.toDouble(), 'pm2.5'),
         domainFn: (GaugeSegment segment, _) => segment.segment,
         measureFn: (GaugeSegment segment, _) => segment.size,
         data: data,
