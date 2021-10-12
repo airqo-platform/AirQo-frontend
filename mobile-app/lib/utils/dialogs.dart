@@ -50,12 +50,6 @@ void infoDialog(context, String message) {
               'OK',
               style: TextStyle(color: ColorConstants.appColor),
             ),
-            // style: ButtonStyle(
-            //   textStyle: MaterialStateProperty.all<TextStyle>(
-            //     TextStyle(color: Colors.green)
-            //   ),
-            //   foregroundColor: MaterialStateProperty.all<Color>(Colors.blue),
-            // ),
           ),
         ],
       );

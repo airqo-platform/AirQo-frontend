@@ -9,12 +9,12 @@ import 'package:app/utils/pm.dart';
 import 'package:app/utils/share.dart';
 import 'package:app/widgets/pollutants_container.dart';
 import 'package:app/widgets/weather_container.dart';
-import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-import 'dashboard_measurements_chart.dart';
+import 'forecast_chart.dart';
 import 'health_recommendation.dart';
+import 'measurements_chart.dart';
 
 class CurrentLocationCard extends StatelessWidget {
   final Measurement measurementData;
@@ -74,35 +74,12 @@ class CurrentLocationCard extends StatelessWidget {
           const SizedBox(
             height: 10,
           ),
-          if (historicalData.isNotEmpty)
-            Padding(
-              padding: EdgeInsets.only(left: 10, right: 10),
-              child: Card(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                elevation: 10,
-                child: Padding(
-                  padding: const EdgeInsets.all(5.0),
-                  child: historySection(),
-                ),
-              ),
-            ),
-          if (forecastData.isNotEmpty)
-            Padding(
-              padding: EdgeInsets.only(left: 10, right: 10),
-              child: Card(
-                elevation: 10,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: forecastSection(),
-              ),
-            ),
+          if (historicalData.isNotEmpty) historySection(),
+          if (forecastData.isNotEmpty) forecastSection(),
           SizedBox(
             height: 300.0,
             child: Padding(
-              padding: EdgeInsets.only(left: 10, right: 10),
+              padding: const EdgeInsets.only(left: 10, right: 10),
               child: mapSection(measurementData),
             ),
           ),
@@ -130,33 +107,7 @@ class CurrentLocationCard extends StatelessWidget {
                 )),
           ),
           const Spacer(),
-          // IconButton(
-          //     onPressed: null,
-          //     icon: Image.asset(
-          //       'assets/images/heart.png',
-          //     )),
-          // TextButton(
-          //   // style: ButtonStyle(
-          //   //   foregroundColor: MaterialStateProperty.all<Color>(Colors.blue),
-          //   // ),
-          //   onPressed: () {},
-          //   child: Card(
-          //       elevation: 5,
-          //       shape: RoundedRectangleBorder(
-          //         borderRadius: BorderRadius.circular(5),
-          //       ),
-          //       color: Colors.white,
-          //       child: Padding(
-          //           padding: EdgeInsets.all(4),
-          //           child: Icon(
-          //             Icons.favorite,
-          //             color: ColorConstants.red,
-          //           ))),
-          // ),
           TextButton(
-            // style: ButtonStyle(
-            //   foregroundColor: MaterialStateProperty.all<Color>(Colors.blue),
-            // ),
             onPressed: () {
               shareMeasurement(measurementData);
             },
@@ -176,50 +127,15 @@ class CurrentLocationCard extends StatelessWidget {
         ],
       ),
     );
-    // return Row(
-    //   crossAxisAlignment: CrossAxisAlignment.center,
-    //   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-    //   children: [
-    //     Text(
-    //         '${dateToString(measurementData.time, true)}, Local Time',
-    //         style: TextStyle(
-    //           color: ColorConstants.appColor,
-    //           fontSize: 12,
-    //         )),
-    //     const Spacer(),
-    //     IconButton(onPressed: null, icon: Image.asset(
-    //       'assets/images/heart.png',
-    //     )),
-    //
-    //     TextButton(
-    //       // style: ButtonStyle(
-    //       //   foregroundColor: MaterialStateProperty.all<Color>(Colors.blue),
-    //       // ),
-    //       onPressed: () {},
-    //       child: Card(
-    //           elevation: 5,
-    //           shape: RoundedRectangleBorder(
-    //             borderRadius: BorderRadius.circular(5),
-    //           ),
-    //           color: ColorConstants.appColor,
-    //           child: const Padding(
-    //             padding: EdgeInsets.all(8),
-    //             child: Text('SHARE',
-    //                 style: TextStyle(fontSize: 13, color: Colors.white)),
-    //           )),
-    //     )
-    //   ],
-    // );
   }
 
   Widget forecastSection() {
     var data = forecastChartData(forecastData);
-    return DashboardBarChart(data, 'Forecast');
+    return ForecastBarChart(data, 'Forecast');
   }
 
   Widget historySection() {
-    var formattedData = historicalChartData(historicalData, 'pm2.5');
-    return DashboardBarChart(formattedData, 'History');
+    return MeasurementsBarChart(historicalData, 'History');
   }
 
   Widget titleSection(context) {
@@ -247,11 +163,6 @@ class CurrentLocationCard extends StatelessWidget {
                           padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
                           child: Row(
                             children: [
-                              // Icon(
-                              //   Icons.location_on,
-                              //   color:
-                              //       pmTextColor(measurementData.getPm2_5Value()),
-                              // ),
                               Container(
                                   constraints:
                                       const BoxConstraints(maxWidth: 200),
@@ -275,16 +186,6 @@ class CurrentLocationCard extends StatelessWidget {
                               color: ColorConstants.appColor,
                               fontWeight: FontWeight.bold)),
                     ),
-                    // Padding(
-                    //   padding: const EdgeInsets.fromLTRB(5, 0.0, 0.0, 0.0),
-                    //   child: Text(
-                    //       '${dateToString(
-                    //       measurementData.time, true)}, Local Time',
-                    //       style: TextStyle(
-                    //         color: ColorConstants.appColor,
-                    //         fontSize: 12,
-                    //       )),
-                    // )
                   ],
                 ),
               ),
@@ -322,57 +223,5 @@ class CurrentLocationCard extends StatelessWidget {
     await Navigator.push(context, MaterialPageRoute(builder: (context) {
       return PlaceDetailsPage(measurement: measurement);
     }));
-  }
-
-  static List<charts.Series<GaugeSegment, String>> _createSampleData() {
-    final data = [
-      GaugeSegment('Good', 1, 6),
-      GaugeSegment('Moderate', 1, 25),
-      GaugeSegment('Sensitive', 1, 40),
-      GaugeSegment('Unhealthy', 1, 100),
-      GaugeSegment('Very Unhealthy', 1, 200),
-      GaugeSegment('Hazardous', 1, 400),
-    ];
-
-    return [
-      charts.Series<GaugeSegment, String>(
-        id: 'Segments',
-        colorFn: (GaugeSegment series, _) =>
-            pmToChartColor(series.colorValue.toDouble(), 'pm2.5'),
-        domainFn: (GaugeSegment segment, _) => segment.segment,
-        measureFn: (GaugeSegment segment, _) => segment.size,
-        data: data,
-      )
-    ];
-  }
-}
-
-class GaugeSegment {
-  final String segment;
-  final int size;
-  final int colorValue;
-
-  GaugeSegment(this.segment, this.size, this.colorValue);
-
-  static List<charts.Series<GaugeSegment, String>> createSampleData() {
-    final data = [
-      GaugeSegment('Good', 1, 6),
-      GaugeSegment('Moderate', 1, 25),
-      GaugeSegment('Sensitive', 1, 40),
-      GaugeSegment('Unhealthy', 1, 100),
-      GaugeSegment('Very Unhealthy', 1, 200),
-      GaugeSegment('Hazardous', 1, 400),
-    ];
-
-    return [
-      charts.Series<GaugeSegment, String>(
-        id: 'Segments',
-        colorFn: (GaugeSegment series, _) =>
-            pmToChartColor(series.colorValue.toDouble(), 'pm2.5'),
-        domainFn: (GaugeSegment segment, _) => segment.segment,
-        measureFn: (GaugeSegment segment, _) => segment.size,
-        data: data,
-      )
-    ];
   }
 }

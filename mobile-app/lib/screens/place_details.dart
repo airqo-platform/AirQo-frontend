@@ -10,12 +10,10 @@ import 'package:app/utils/date.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/pm.dart';
 import 'package:app/utils/share.dart';
-import 'package:app/widgets/expanding_action_button.dart';
 import 'package:app/widgets/forecast_chart.dart';
 import 'package:app/widgets/health_recommendation.dart';
 import 'package:app/widgets/measurements_chart.dart';
 import 'package:app/widgets/pollutants_container.dart';
-import 'package:app/widgets/weather_container.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -130,13 +128,13 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
               measurement: measurement,
             ),
 
-            if (measurement.hasWeatherData())
-              Padding(
-                padding: const EdgeInsets.only(left: 10, right: 10),
-                child: WeatherSection(
-                  measurement,
-                ),
-              ),
+            // if (measurement.hasWeatherData())
+            //   Padding(
+            //     padding: const EdgeInsets.only(left: 10, right: 10),
+            //     child: WeatherSection(
+            //       measurement,
+            //     ),
+            //   ),
 
             // historicalData
             if (historicalData.isNotEmpty)
@@ -329,45 +327,6 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
   void dispose() {
     _scrollCtrl.removeListener(() {});
     super.dispose();
-  }
-
-  Widget expandableMenu() {
-    return ExpandableFab(
-      distance: 112.0,
-      children: [
-        ActionButton(
-          onPressed: updateFavouritePlace,
-          icon: isFavourite
-              ? const Icon(
-                  Icons.favorite,
-                  color: Colors.red,
-                )
-              : const Icon(
-                  Icons.favorite_border_outlined,
-                ),
-        ),
-        ActionButton(
-          onPressed: () {
-            shareMeasurement(measurement);
-          },
-          icon: const Icon(Icons.share_outlined),
-        ),
-        ActionButton(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute<void>(
-                builder: (BuildContext context) => const HelpPage(
-                  initialIndex: 0,
-                ),
-                fullscreenDialog: true,
-              ),
-            );
-          },
-          icon: const Icon(Icons.info_outline_rounded),
-        ),
-      ],
-    );
   }
 
   Widget forecastDataSection(List<Predict> measurements) {

@@ -49,21 +49,6 @@ class CloudStore {
     } else {
       return false;
     }
-    // try {
-    //   final result = await InternetAddress.lookup('firebase.google.com');
-    //   if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
-    //     var alertJson = alert.toJson();
-    //     alertJson['platform'] = Platform.isIOS ? 'ios' : 'android';
-    //     await FirebaseFirestore.instance
-    //         .collection(CloudStorage.alertsCollection)
-    //         .doc(alert.getAlertDbId())
-    //         .set(alertJson);
-    //     return true;
-    //   }
-    //   return false;
-    // } on SocketException catch (_) {
-    //   return false;
-    // }
   }
 }
 
@@ -76,7 +61,7 @@ class NotificationService {
   }
 
   Future<void> requestPermission() async {
-    var settings = await _firebaseMessaging.requestPermission(
+    await _firebaseMessaging.requestPermission(
       alert: true,
       announcement: false,
       badge: true,

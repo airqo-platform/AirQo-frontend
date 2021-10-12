@@ -136,9 +136,6 @@ class _MeasurementsBarChartState extends State<MeasurementsBarChart> {
                           ],
                         ),
                       )
-                      // const Spacer(
-                      //   flex: 1,
-                      // ),
                     ],
                   ),
                 ],

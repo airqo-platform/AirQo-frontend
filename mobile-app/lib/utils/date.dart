@@ -3,7 +3,6 @@ import 'package:intl/intl.dart';
 String chartDateToString(String formattedString, bool format) {
   try {
     var now = DateTime.now();
-    // var formattedDate = DateTime.parse(formattedString);
     var offSet = 0;
     if (format) {
       offSet = now.timeZoneOffset.inHours;

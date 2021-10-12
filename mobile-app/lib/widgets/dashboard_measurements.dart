@@ -20,48 +20,7 @@ class _DashboardBarChartState extends State<DashboardBarChart> {
     return Container(
       child: Column(
         children: <Widget>[
-          // if (display != null)
-          //   Column(
-          //     children: [
-          //       Text(
-          //         pmToString(display['value']).replaceAll('\n', ' '),
-          //         style: TextStyle(
-          //             fontSize: 17,
-          //             fontWeight: FontWeight.w600,
-          //             color: ColorConstants.appColor),
-          //       ),
-          //       Padding(
-          //         padding: const EdgeInsets.only(left: 10.0, right: 10.0),
-          //         child: Row(
-          //           children: [
-          //             // const Spacer(
-          //             //   flex: 1,
-          //             // ),
-          //             Text(
-          //               chartDateToString(display['time']),
-          //               softWrap: true,
-          //               style: TextStyle(color: ColorConstants.appColor),
-          //             ),
-          //             const Spacer(
-          //               flex: 1,
-          //             ),
-          //             Text(
-          //               display['value'].toString(),
-          //               softWrap: true,
-          //               style: TextStyle(color: ColorConstants.appColor),
-          //             ),
-          //             // const Spacer(
-          //             //   flex: 1,
-          //             // ),
-          //           ],
-          //         ),
-          //       ),
-          //     ],
-          //   ),
           Container(
-            // decoration: const BoxDecoration(
-            //     color: Colors.white,
-            //     borderRadius: BorderRadius.all(Radius.circular(20.0))),
             height: 150,
             padding: const EdgeInsets.fromLTRB(5, 10, 5, 10),
             child: charts.TimeSeriesChart(

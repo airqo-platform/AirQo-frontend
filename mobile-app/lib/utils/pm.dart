@@ -30,14 +30,11 @@ List<Recommendation> getHealthRecommendations(double pm2_5) {
   var recommendations = <Recommendation>[];
   if (pm2_5 <= 12.09) {
     //good
-    recommendations
-      ..add(Recommendation(
-          'The elderly and children '
-              'are the groups most at risk.',
-          'assets/images/baby.png',
-          ColorConstants.green.withOpacity(0.2)))
-      ..add(Recommendation('Everyone else can do outdoor activities.',
-          'assets/images/jogging.png', ColorConstants.green.withOpacity(0.2)));
+    recommendations.add(Recommendation(
+        'Air quality is satisfactory, and air pollution'
+            ' poses little or no risk.',
+        'assets/images/community.png',
+        ColorConstants.green.withOpacity(0.2)));
   } else if (pm2_5 >= 12.1 && pm2_5 <= 35.49) {
     //moderate
     recommendations
@@ -50,11 +47,6 @@ List<Recommendation> getHealthRecommendations(double pm2_5) {
           'The elderly and children '
               'are the groups most at risk.',
           'assets/images/old.png',
-          ColorConstants.green.withOpacity(0.2)))
-      ..add(Recommendation(
-          'Everyone else should take more breaks '
-              'and engage in less intense activities.',
-          'assets/images/cycling.png',
           ColorConstants.green.withOpacity(0.2)));
   } else if (pm2_5 >= 35.5 && pm2_5 <= 55.49) {
     //sensitive
@@ -67,11 +59,6 @@ List<Recommendation> getHealthRecommendations(double pm2_5) {
       ..add(Recommendation(
           'Sensitive people should reduce prolonged or heavy exertion.',
           'assets/images/pregnant-woman.png',
-          ColorConstants.green.withOpacity(0.2)))
-      ..add(Recommendation(
-          'People with asthma should follow their asthma action'
-              ' plans and keep quick relief medicine handy.',
-          'assets/images/jogging.png',
           ColorConstants.green.withOpacity(0.2)));
   } else if (pm2_5 >= 55.5 && pm2_5 <= 150.49) {
     // unhealthy

@@ -136,8 +136,6 @@ class AirqoApiClient {
 
       var date = DateFormat('yyyy-MM-dd').format(startTimeUtc);
       var startTime = '${date}T$time:00:00Z';
-      // var endTime = '${DateFormat('yyyy-MM-dd')
-      // .format(nowUtc)}T$time:00:00Z';
 
       var queryParams = <String, dynamic>{}
         ..putIfAbsent('site_id', () => site.id)
@@ -187,53 +185,6 @@ class AirqoApiClient {
       // print('Get site latest measurements error: $e');
       throw Exception('site does not exist');
     }
-  }
-
-  Future<List<Site>> fetchSites() async {
-    try {
-      var queryParams = <String, dynamic>{}
-        ..putIfAbsent('active', () => 'yes')
-        ..putIfAbsent('tenant', () => 'airqo');
-
-      final responseBody =
-          await _performGetRequest(queryParams, AirQoUrls().sites);
-
-      if (responseBody != null) {
-        return compute(Site.parseSites, responseBody);
-      } else {
-        print('sites are null');
-        return <Site>[];
-      }
-    } on Error catch (e) {
-      print('Get sites error: $e');
-    }
-
-    return <Site>[];
-  }
-
-  Future<List<Site>> getSitesByCoordinates(
-      double latitude, double longitude) async {
-    try {
-      var queryParams = <String, dynamic>{}
-        ..putIfAbsent('radius', () => '${AppConfig.searchRadius}')
-        ..putIfAbsent('tenant', () => 'airqo')
-        ..putIfAbsent('longitude', () => longitude.toStringAsFixed(8))
-        ..putIfAbsent('latitude', () => latitude.toStringAsFixed(8));
-
-      final responseBody = await _performGetRequest(
-          queryParams, AirQoUrls().sitesByGeoCoordinates);
-
-      if (responseBody != null) {
-        return compute(Site.parseSites, responseBody);
-      } else {
-        print('Sites are null');
-        return <Site>[];
-      }
-    } on Error catch (e) {
-      print('Get sites by coordinates error: $e');
-    }
-
-    return <Site>[];
   }
 
   Future<String> imageUpload(String file, String? type) async {

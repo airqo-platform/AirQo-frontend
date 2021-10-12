@@ -43,7 +43,7 @@ class _ForecastBarChartState extends State<ForecastBarChart> {
           ),
           if (display != null)
             Padding(
-              padding: EdgeInsets.only(left: 10, right: 10),
+              padding: const EdgeInsets.only(left: 10, right: 10),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

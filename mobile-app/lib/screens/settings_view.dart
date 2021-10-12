@@ -639,8 +639,8 @@ class _SettingsViewState extends State<SettingsView> {
         case 'contact us':
           await canLaunch(Links.contactUsUrl)
               ? await launch(Links.contactUsUrl)
-              : throw Exception(
-                  'Could not launch contact us, try opening ${Links.contactUsUrl}');
+              : throw Exception('Could not launch contact us, try opening'
+                  ' ${Links.contactUsUrl}');
           return;
         case 'terms':
           await canLaunch(Links.termsUrl)
@@ -669,20 +669,20 @@ class _SettingsViewState extends State<SettingsView> {
         case 'facebook':
           await canLaunch(Links.facebookUrl)
               ? await launch(Links.facebookUrl)
-              : throw Exception(
-                  'Could not launch facebook, try opening ${Links.facebookUrl}');
+              : throw Exception('Could not launch facebook, try opening'
+                  ' ${Links.facebookUrl}');
           return;
         case 'twitter':
           await canLaunch(Links.twitterUrl)
               ? await launch(Links.twitterUrl)
-              : throw Exception(
-                  'Could not launch twitter, try opening ${Links.twitterUrl}');
+              : throw Exception('Could not launch twitter, try opening'
+                  ' ${Links.twitterUrl}');
           return;
         case 'linkedin':
           await canLaunch(Links.linkedinUrl)
               ? await launch(Links.linkedinUrl)
-              : throw Exception(
-                  'Could not launch linkedin, try opening ${Links.linkedinUrl}');
+              : throw Exception('Could not launch linkedin, try opening'
+                  ' ${Links.linkedinUrl}');
           return;
         case 'youtube':
           await canLaunch(Links.youtubeUrl)

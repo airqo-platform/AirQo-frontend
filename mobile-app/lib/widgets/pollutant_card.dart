@@ -16,13 +16,6 @@ class PollutantCard extends StatelessWidget {
     return GestureDetector(
       onTap: () {
         openDialog(context);
-        // Navigator.push(
-        //   context,
-        //   MaterialPageRoute<void>(
-        //     builder: (BuildContext context) => getHelpTab(),
-        //     fullscreenDialog: true,
-        //   ),
-        // );
       },
       child: Card(
           color: Colors.white,

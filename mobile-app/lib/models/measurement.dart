@@ -205,7 +205,10 @@ class Measurements {
 
 extension ParseMeasurement on Measurement {
   bool hasWeatherData() {
-    if (humidity.value != -0.1 || temperature.value != -0.1) {
+    if (humidity.value != -0.1 &&
+        temperature.value != -0.1 &&
+        humidity.value != 0.0 &&
+        temperature.value != 0.0) {
       return true;
     }
     return false;

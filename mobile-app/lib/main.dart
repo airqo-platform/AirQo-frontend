@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:app/providers/LocalProvider.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/services/fb_notifications.dart';
@@ -28,7 +26,6 @@ Future<void> main() async {
     statusBarBrightness: Brightness.dark,
     statusBarIconBrightness: Brightness.dark,
     systemNavigationBarDividerColor: ColorConstants.appColor,
-    // systemNavigationBarIconBrightness: Brightness.dark,
   ));
 
   WidgetsFlutterBinding.ensureInitialized();
@@ -48,49 +45,6 @@ Future<void> main() async {
 }
 
 class AirQoApp extends StatelessWidget {
-  // @override
-  // Widget build(BuildContext context) {
-  //
-  //   return MultiProvider(
-  //     providers: [
-  //       ChangeNotifierProvider(create: (_) => LocaleProvider()),
-  //       ChangeNotifierProvider(create: (_) => ThemeProvider()),
-  //     ],
-  //     builder: (context, child) {
-  //       final provider = Provider.of<LocaleProvider>(context);
-  //       final themeProvider = Provider.of<ThemeProvider>(context);
-  //       // themeProvider.loadActiveThemeData(context);
-  //       // Provider.of<ThemeProvider>(context)
-  //       //     .loadActiveThemeData(context);
-  //       return MaterialApp(
-  //         localizationsDelegates: [
-  //           CustomLocalizations.delegate,
-  //           GlobalMaterialLocalizations.delegate,
-  //           GlobalWidgetsLocalizations.delegate,
-  //           GlobalCupertinoLocalizations.delegate,
-  //           LgMaterialLocalizations.delegate,
-  //         ],
-  //         // supportedLocales: L10n.all,
-  //         // localeResolutionCallback: (locale, supportedLocales) {
-  //         //   for (var supportedLocale in supportedLocales) {
-  //         //     if (supportedLocale.languageCode.toLowerCase().trim() ==
-  //         //         locale!.languageCode.toLowerCase().trim()) {
-  //         //       return supportedLocale;
-  //         //     }
-  //         //   }
-  //         //   return supportedLocales.first;
-  //         // },
-  //         supportedLocales: [const Locale('en'), const Locale('lg')],
-  //         locale: provider.locale,
-  //         title: appName,
-  //         // theme: lightTheme(),
-  //         theme: themeProvider.getTheme(),
-  //         home: SplashScreen(),
-  //       );
-  //     },
-  //   );
-  // }
-
   final ThemeController themeController;
 
   const AirQoApp({Key? key, required this.themeController}) : super(key: key);
@@ -118,16 +72,6 @@ class AirQoApp extends StatelessWidget {
                   GlobalCupertinoLocalizations.delegate,
                   LgMaterialLocalizations.delegate,
                 ],
-                // supportedLocales: L10n.all,
-                // localeResolutionCallback: (locale, supportedLocales) {
-                //   for (var supportedLocale in supportedLocales) {
-                //     if (supportedLocale.languageCode.toLowerCase().trim() ==
-                //         locale!.languageCode.toLowerCase().trim()) {
-                //       return supportedLocale;
-                //     }
-                //   }
-                //   return supportedLocales.first;
-                // },
                 supportedLocales: [const Locale('en'), const Locale('lg')],
                 locale: provider.locale,
                 title: '${AppConfig.name}',
@@ -136,30 +80,6 @@ class AirQoApp extends StatelessWidget {
               );
             },
           ),
-          // child: MaterialApp(
-          //   localizationsDelegates: [
-          //     CustomLocalizations.delegate,
-          //     GlobalMaterialLocalizations.delegate,
-          //     GlobalWidgetsLocalizations.delegate,
-          //     GlobalCupertinoLocalizations.delegate,
-          //     LgMaterialLocalizations.delegate,
-          //   ],
-          //   // supportedLocales: L10n.all,
-          //   // localeResolutionCallback: (locale, supportedLocales) {
-          //   //   for (var supportedLocale in supportedLocales) {
-          //   //     if (supportedLocale.languageCode.toLowerCase().trim() ==
-          //   //         locale!.languageCode.toLowerCase().trim()) {
-          //   //       return supportedLocale;
-          //   //     }
-          //   //   }
-          //   //   return supportedLocales.first;
-          //   // },
-          //   supportedLocales: [const Locale('en'), const Locale('lg')],
-          //   locale: Provider.of<LocaleProvider>(context).locale,
-          //   title: appName,
-          //   theme: _buildCurrentTheme(),
-          //   home: SplashScreen(),
-          // ),
         );
       },
     );
@@ -201,12 +121,6 @@ class SplashScreenState extends State<SplashScreen> {
                 height: 150,
                 width: 150,
               ),
-              // Center(
-              //   child: CircularProgressIndicator(
-              //     valueColor:
-              //         AlwaysStoppedAnimation<Color>(ColorConstants.appColor),
-              //   ),
-              // )
             ],
           ),
         ),
@@ -259,21 +173,6 @@ class SplashScreenState extends State<SplashScreen> {
     _initDB().then((value) => {_checkFirstUse()});
   }
 
-  Future _checkDB() async {
-    try {
-      await DBHelper().getLatestMeasurements().then((value) => {
-            if (value.isNotEmpty && mounted)
-              {
-                setState(() {
-                  measurementsReady = true;
-                })
-              },
-          });
-    } catch (e) {
-      print(e);
-    }
-  }
-
   Future _checkFirstUse() async {
     var prefs = await SharedPreferences.getInstance();
     var isFirstUse = prefs.getBool(PrefConstant.firstUse) ?? true;
@@ -289,18 +188,6 @@ class SplashScreenState extends State<SplashScreen> {
         return HomePage();
       }), (r) => false);
     }
-  }
-
-  Route _createRoute() {
-    return PageRouteBuilder(
-      pageBuilder: (context, animation, secondaryAnimation) => HomePage(),
-      transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        return FadeTransition(
-          opacity: animation,
-          child: child,
-        );
-      },
-    );
   }
 
   void _getLatestMeasurements() async {
@@ -335,20 +222,6 @@ class SplashScreenState extends State<SplashScreen> {
           });
     } catch (e) {
       print(e);
-    }
-  }
-
-  Future _initializeApp() async {
-    if (!measurementsReady) {
-      await _checkDB();
-      sleep(const Duration(seconds: 5));
-      if (!measurementsReady && mounted) {
-        setState(() {
-          error = 'Your request cannot be processed right now. '
-              'Please try again';
-        });
-        return;
-      }
     }
   }
 }

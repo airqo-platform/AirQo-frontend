@@ -33,11 +33,6 @@ class ChangeLanguageDialogState extends State<ChangeLanguageDialog> {
                 setState(() {
                   _language = value;
                 });
-
-                // if(value != null){
-                //   LocaleProvider().setLocale(const Locale('en'));
-                //   widget.onValueChange(value);
-                // }
               },
             ),
             RadioListTile<Languages>(
@@ -49,11 +44,6 @@ class ChangeLanguageDialogState extends State<ChangeLanguageDialog> {
                 setState(() {
                   _language = value;
                 });
-
-                // if(value != null){
-                //   LocaleProvider().setLocale(const Locale('lg'));
-                //   widget.onValueChange(value);
-                // }
               },
             ),
           ],

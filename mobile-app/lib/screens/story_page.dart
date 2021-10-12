@@ -45,26 +45,6 @@ class _StoryPageState extends State<StoryPage> {
     );
   }
 
-  Widget _buildImage() {
-    return AspectRatio(
-      aspectRatio: 16 / 9,
-      child: Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: ColorConstants.appColor.withOpacity(0.3),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(16),
-          child: Image.network(
-            widget.story.thumbnail,
-            fit: BoxFit.cover,
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildSubTitle() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
