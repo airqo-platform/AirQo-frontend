@@ -85,6 +85,15 @@ const config = () => {
           test: /\.css$/,
           use: compact([{ loader: 'style-loader' }, { loader: 'css-loader' }, postCSSLoader()]),
         },
+        {
+          test: /\.s[ac]ss$/i,
+          use: compact([
+            { loader: 'style-loader' },
+            { loader: 'css-loader' },
+            postCSSLoader(),
+            { loader: 'sass-loader' },
+          ]),
+        },
 
         // Images
         {
