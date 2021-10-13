@@ -4,6 +4,7 @@ import 'package:app/services/local_storage.dart';
 import 'package:app/services/rest_api.dart';
 // import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -17,14 +18,14 @@ import 'themes/dark_theme.dart';
 import 'themes/light_theme.dart';
 
 Future<void> main() async {
-  // SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-  //   systemNavigationBarColor: ColorConstants.appBodyColor,
-  //   statusBarColor: ColorConstants.appBodyColor,
-  //   statusBarBrightness: Brightness.dark,
-  //   statusBarIconBrightness: Brightness.dark,
-  //   systemNavigationBarDividerColor: ColorConstants.appBodyColor,
-  //   // systemNavigationBarIconBrightness: Brightness.dark,
-  // ));
+  SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+    systemNavigationBarColor: ColorConstants.appBodyColor,
+    statusBarColor: ColorConstants.appBodyColor,
+    statusBarBrightness: Brightness.dark,
+    statusBarIconBrightness: Brightness.dark,
+    systemNavigationBarDividerColor: ColorConstants.appBodyColor,
+    // systemNavigationBarIconBrightness: Brightness.dark,
+  ));
 
   WidgetsFlutterBinding.ensureInitialized();
 
