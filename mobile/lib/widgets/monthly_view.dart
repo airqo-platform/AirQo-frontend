@@ -37,6 +37,7 @@ class _MonthlyViewState extends State<MonthlyView>
               indicatorColor: Colors.transparent,
               labelColor: ColorConstants.appColorBlue,
               unselectedLabelColor: Colors.black54,
+              labelPadding: const EdgeInsets.symmetric(horizontal: 8.0),
               onTap: (index) {
                 setState(() {
                   currentIndex = index;

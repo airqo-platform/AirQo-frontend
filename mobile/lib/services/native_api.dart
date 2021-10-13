@@ -92,7 +92,7 @@ class LocationApi {
     if (!_serviceEnabled) {
       _serviceEnabled = await location.requestService();
       if (!_serviceEnabled) {
-        throw Exception('Location not enabled');
+        throw Exception('Please enable location');
       }
     }
 
@@ -100,7 +100,8 @@ class LocationApi {
     if (_permissionGranted == PermissionStatus.denied) {
       _permissionGranted = await location.requestPermission();
       if (_permissionGranted != PermissionStatus.granted) {
-        throw Exception('Location denied');
+        throw Exception('Please enable'
+            ' permission to access your location');
       }
     }
 
@@ -164,6 +165,10 @@ class LocationApi {
     return nearestSites;
   }
 
+  Future<void> requestLocationAccess() async {
+    await location.requestPermission();
+  }
+
   Future<List<Measurement>> searchNearestSites(
       double latitude, double longitude, String term) async {
     var nearestSites = <Measurement>[];
@@ -191,7 +196,28 @@ class LocationApi {
     return nearestSites;
   }
 
-  Future<List<Measurement>> textSearchNearestSites(String term) async {
+  List<Measurement> textSearchNearestSites(
+      String term, List<Measurement> measurements) {
+    var nearestSites = <Measurement>[];
+
+    for (var measurement in measurements) {
+      if (measurement.site
+              .getName()
+              .trim()
+              .toLowerCase()
+              .contains(term.trim().toLowerCase()) ||
+          measurement.site
+              .getLocation()
+              .trim()
+              .toLowerCase()
+              .contains(term.trim().toLowerCase())) {
+        nearestSites.add(measurement);
+      }
+    }
+    return nearestSites;
+  }
+
+  Future<List<Measurement>> textSearchNearestSitesV1(String term) async {
     var nearestSites = <Measurement>[];
 
     var latestMeasurements = await DBHelper().getLatestMeasurements();

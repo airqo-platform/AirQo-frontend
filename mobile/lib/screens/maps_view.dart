@@ -360,7 +360,7 @@ class _MapViewState extends State<MapView> {
         onTap: () {
           showLocationContent(regionSites[index]);
         },
-        child: locationTileV2(regionSites[index]),
+        child: locationTile(regionSites[index]),
       ),
       itemCount: regionSites.length,
       separatorBuilder: (BuildContext context, int index) {

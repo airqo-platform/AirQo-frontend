@@ -78,6 +78,7 @@ class _WeeklyViewState extends State<WeeklyView> with TickerProviderStateMixin {
               indicatorColor: Colors.transparent,
               labelColor: ColorConstants.appColorBlue,
               unselectedLabelColor: Colors.black54,
+              labelPadding: const EdgeInsets.symmetric(horizontal: 8.0),
               onTap: (index) {
                 setState(() {
                   currentIndex = index;
@@ -85,16 +86,19 @@ class _WeeklyViewState extends State<WeeklyView> with TickerProviderStateMixin {
               },
               isScrollable: true,
               tabs: <Widget>[
-                Tab(
-                    child: tabLayout(
-                        'SUN',
-                        '${getDate(0).day}',
-                        currentIndex == 0
-                            ? ColorConstants.appColorBlue
-                            : Colors.transparent,
-                        currentIndex == 0
-                            ? Colors.white
-                            : ColorConstants.inactiveColor)),
+                Container(
+                  width: 50.0,
+                  child: Tab(
+                      child: tabLayout(
+                          'SUN',
+                          '${getDate(0).day}',
+                          currentIndex == 0
+                              ? ColorConstants.appColorBlue
+                              : Colors.transparent,
+                          currentIndex == 0
+                              ? Colors.white
+                              : ColorConstants.inactiveColor)),
+                ),
                 Tab(
                     child: tabLayout(
                         'MON',
@@ -188,7 +192,25 @@ class _WeeklyViewState extends State<WeeklyView> with TickerProviderStateMixin {
     return nextDate;
   }
 
-  void getMeasurements() async {
+  void getMeasurements(int today) async {
+    await AirqoApiClient(context)
+        .fetchSiteDayMeasurements(site, getDate(today))
+        .then((measurements) => {
+              if (measurements.isEmpty && mounted)
+                {
+                  setState(() {
+                    placeHolders[today] = const Center(
+                      child: Text(
+                        'Not Available',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                        ),
+                      ),
+                    );
+                  }),
+                }
+            });
     for (var dateIndex = 0; dateIndex <= 6; dateIndex++) {
       var measurements = await AirqoApiClient(context)
           .fetchSiteDayMeasurements(site, getDate(dateIndex));
@@ -251,7 +273,7 @@ class _WeeklyViewState extends State<WeeklyView> with TickerProviderStateMixin {
     _weeklyTabController =
         TabController(length: 7, vsync: this, initialIndex: today);
     currentIndex = today;
-    getMeasurements();
+    getMeasurements(currentIndex);
   }
 
   @override

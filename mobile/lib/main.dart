@@ -1,8 +1,8 @@
-
 import 'package:app/providers/LocalProvider.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/services/rest_api.dart';
+// import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
@@ -34,6 +34,8 @@ Future<void> main() async {
   //       FirebaseMessaging.onMessage
   //           .listen(FbNotifications().foregroundMessageHandler)
   //     });
+
+  // await FirebaseAuth.instance.useAuthEmulator('localhost', 9099);
 
   final prefs = await SharedPreferences.getInstance();
   final themeController = ThemeController(prefs);

@@ -35,5 +35,9 @@ flutter pub run build_runner build [--delete-conflicting-outputs]
 ```
 
 ```bash
-flutter build appbundle --analyze-size
+flutter build appbundle --no-sound-null-safety [--analyze-size]
+```
+
+```bash
+flutter build ipa --no-sound-null-safety
 ```

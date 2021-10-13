@@ -104,25 +104,27 @@ flutter:
     - assets/images/pregnant-woman.png
     - assets/images/splash-image.png
 
-    # icons
+   # icons
     - assets/icon/airqo_logo.png
     - assets/icon/airqo_logo.jpg
     - assets/icon/airqo_logo_tagline.jpg
     - assets/icon/airqo_logo_tagline_transparent.png
     - assets/icon/airqo_logo.png
+    - assets/icon/transparent_logo.png
+    - assets/icon/android_logo.png
 
     # Language Translation files
     - assets/i18n/en.json
 
   fonts:
-    - family: OpenSans
-      fonts:
-        - asset: assets/fonts/OpenSans-Bold.ttf
-        - asset: assets/fonts/OpenSans-BoldItalic.ttf
-        - asset: assets/fonts/OpenSans-ExtraBold.ttf
-        - asset: assets/fonts/OpenSans-Light.ttf
-        - asset: assets/fonts/OpenSans-Regular.ttf
-        - asset: assets/fonts/OpenSans-Semibold.ttf
+   - family: OpenSans
+     fonts:
+       - asset: assets/fonts/OpenSans-Bold.ttf
+       - asset: assets/fonts/OpenSans-BoldItalic.ttf
+       - asset: assets/fonts/OpenSans-ExtraBold.ttf
+       - asset: assets/fonts/OpenSans-Light.ttf
+       - asset: assets/fonts/OpenSans-Regular.ttf
+       - asset: assets/fonts/OpenSans-Semibold.ttf
 
 # An image asset can refer to one or more resolution-specific "variants", see
 # https://flutter.dev/assets-and-images/#resolution-aware.

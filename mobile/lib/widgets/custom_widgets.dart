@@ -4,13 +4,13 @@ import 'package:flutter/material.dart';
 
 Widget backButton(context) {
   return Container(
-    padding: EdgeInsets.all(0.0),
-    decoration: BoxDecoration(
+    padding: const EdgeInsets.all(0.0),
+    decoration: const BoxDecoration(
         color: Colors.white,
         shape: BoxShape.rectangle,
         borderRadius: BorderRadius.all(Radius.circular(10.0))),
     child: IconButton(
-      icon: Icon(
+      icon: const Icon(
         Icons.arrow_back,
         color: Colors.black,
       ),
@@ -73,112 +73,7 @@ Widget customSearchField(context, text) {
   );
 }
 
-Widget locationTile(context) {
-  return ListTile(
-    title: const Text(
-      'Kisenyi',
-      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-    ),
-    subtitle: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Kawempe, Kampala, Uganda',
-            style:
-                TextStyle(color: ColorConstants.inactiveColor, fontSize: 12)),
-        const SizedBox(
-          height: 4,
-        ),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            Container(
-              width: 37,
-              height: 12,
-              // padding: const EdgeInsets.all(1.0),
-              decoration: BoxDecoration(
-                color: ColorConstants.green.withOpacity(0.2),
-                borderRadius: const BorderRadius.all(Radius.circular(10.0)),
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    width: 8,
-                    height: 8,
-                    padding: const EdgeInsets.all(1.0),
-                    decoration: BoxDecoration(
-                      color: ColorConstants.green,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  SizedBox(
-                    width: 2,
-                  ),
-                  Text('Good', style: TextStyle(fontSize: 6)),
-                ],
-              ),
-            ),
-            const SizedBox(
-              width: 8,
-            ),
-            Container(
-              width: 30,
-              height: 12,
-              // padding: const EdgeInsets.all(1.0),
-              decoration: BoxDecoration(
-                color: ColorConstants.green.withOpacity(0.2),
-                borderRadius: const BorderRadius.all(Radius.circular(10.0)),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    width: 8,
-                    height: 8,
-                    padding: const EdgeInsets.all(1.0),
-                    decoration: BoxDecoration(
-                      color: ColorConstants.green,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  const SizedBox(
-                    width: 2,
-                  ),
-                  const Text('40', style: TextStyle(fontSize: 6)),
-                ],
-              ),
-            ),
-            Spacer()
-          ],
-        )
-      ],
-    ),
-    trailing: Padding(
-      padding: EdgeInsets.all(10),
-      child: Container(
-        width: 40,
-        height: 80,
-        decoration: BoxDecoration(
-            color: ColorConstants.appBodyColor,
-            borderRadius: BorderRadius.all(Radius.circular(10.0))),
-        child: IconButton(
-          icon: Icon(
-            Icons.arrow_forward_ios_rounded,
-            color: Colors.black,
-            size: 15,
-          ),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
-      ),
-    ),
-  );
-}
-
-Widget locationTileV2(Measurement measurement) {
+Widget locationTile(Measurement measurement) {
   return ListTile(
     title: Text(
       '${measurement.site.getName()}',
@@ -277,3 +172,4 @@ Widget locationTileV2(Measurement measurement) {
     ),
   );
 }
+
