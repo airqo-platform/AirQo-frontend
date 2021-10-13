@@ -1,9 +1,14 @@
 import 'package:intl/intl.dart';
 
-String chartDateToString(String formattedString) {
+String chartDateToString(String formattedString, bool format) {
   try {
     var now = DateTime.now();
-    var formattedDate = DateTime.parse(formattedString);
+    var offSet = 0;
+    if (format) {
+      offSet = now.timeZoneOffset.inHours;
+    }
+    var formattedDate =
+        DateTime.parse(formattedString).add(Duration(hours: offSet));
 
     if (now.day == formattedDate.day) {
       return '${DateFormat('hh:mm a').format(formattedDate)}';
@@ -73,6 +78,13 @@ String dateToString(String formattedString, bool addOffset) {
   }
 }
 
+String getDateTime() {
+  var now = DateTime.now();
+  var weekday = now.weekday;
+  return '${getWeekday()} ${DateFormat('d').format(now)} ${DateFormat('MMMM').format(now)}'
+      .toUpperCase();
+}
+
 String getGreetings() {
   var hour = DateTime.now().hour;
   if (8 <= hour && hour < 12) {
@@ -88,4 +100,59 @@ String getGreetings() {
   }
 
   return 'Hello!';
+}
+
+String getTime(int hour) {
+  if (hour > 0 && hour < 12) {
+    return '$hour AM';
+  } else if (hour == 0 || hour == 24) {
+    return 'Midnight';
+  } else if (hour == 12) {
+    return 'noon';
+  } else if (hour == 13) {
+    return '1 PM';
+  } else if (hour == 14) {
+    return '2 PM';
+  } else if (hour == 15) {
+    return '3 PM';
+  } else if (hour == 16) {
+    return '4 PM';
+  } else if (hour == 17) {
+    return '5 PM';
+  } else if (hour == 18) {
+    return '6 PM';
+  } else if (hour == 19) {
+    return '7 PM';
+  } else if (hour == 20) {
+    return '8 PM';
+  } else if (hour == 21) {
+    return '9 PM';
+  } else if (hour == 22) {
+    return '10 PM';
+  } else if (hour == 23) {
+    return '11 PM';
+  } else {
+    return '';
+  }
+}
+
+String getWeekday() {
+  var weekday = DateTime.now().weekday;
+  if (weekday == 1) {
+    return 'monday';
+  } else if (weekday == 2) {
+    return 'tuesday';
+  } else if (weekday == 3) {
+    return 'wednesday';
+  } else if (weekday == 4) {
+    return 'thursday';
+  } else if (weekday == 5) {
+    return 'friday';
+  } else if (weekday == 6) {
+    return 'saturday';
+  } else if (weekday == 7) {
+    return 'sunday';
+  } else {
+    return '';
+  }
 }

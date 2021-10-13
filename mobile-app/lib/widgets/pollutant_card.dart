@@ -1,12 +1,13 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/screens/help_page.dart';
+import 'package:app/utils/dialogs.dart';
 import 'package:flutter/material.dart';
 
 class PollutantCard extends StatelessWidget {
   final String name;
   final double value;
   final String type;
-  String source = '';
+  final String source;
 
   PollutantCard(this.name, this.value, this.type, this.source);
 
@@ -14,13 +15,7 @@ class PollutantCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute<void>(
-            builder: (BuildContext context) => getHelpTab(),
-            fullscreenDialog: true,
-          ),
-        );
+        openDialog(context);
       },
       child: Card(
           color: Colors.white,
@@ -43,25 +38,29 @@ class PollutantCard extends StatelessWidget {
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.all(1.0),
-                  child: Text(
-                    '${value.toStringAsFixed(2)}',
-                    style: TextStyle(
-                      fontSize: 17,
-                      color: ColorConstants.appColor,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                if (source != '')
-                  Text(
-                    'Source: Tahmo',
-                    style: TextStyle(
-                      fontSize: 8,
-                      color: ColorConstants.appColor,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                    padding: const EdgeInsets.all(1.0),
+                    child: RichText(
+                      text: TextSpan(
+                        style: DefaultTextStyle.of(context).style,
+                        children: <TextSpan>[
+                          TextSpan(
+                            text: '${value.toStringAsFixed(2)}',
+                            style: TextStyle(
+                              fontSize: 17,
+                              color: ColorConstants.appColor,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          TextSpan(
+                            text: ' µg/m\u00B3',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: ColorConstants.appColor,
+                            ),
+                          )
+                        ],
+                      ),
+                    )),
               ],
             ),
           )),
@@ -73,14 +72,18 @@ class PollutantCard extends StatelessWidget {
       return const HelpPage(initialIndex: 1);
     } else if (type == PollutantConstant.pm10) {
       return const HelpPage(initialIndex: 2);
-    }
-    // else if (type == PollutantConstant.humidity) {
-    //   return const HelpPage(initialIndex: 3);
-    // } else if (type == PollutantConstant.temperature) {
-    //   return const HelpPage(initialIndex: 4);
-    // }
-    else {
+    } else {
       return const HelpPage(initialIndex: 0);
+    }
+  }
+
+  void openDialog(context) {
+    if (type == PollutantConstant.pm2_5) {
+      infoDialog(context, PollutantBio.pm2_5);
+    } else if (type == PollutantConstant.pm10) {
+      infoDialog(context, PollutantBio.pm10);
+    } else {
+      return;
     }
   }
 }

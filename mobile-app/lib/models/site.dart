@@ -32,46 +32,50 @@ class Site {
   @JsonKey(required: false, defaultValue: '')
   String userLocation = '';
 
-  Site(this.name,
-      {required this.id,
-      required this.latitude,
-      required this.longitude,
-      required this.district,
-      required this.country,
-      required this.description,
-      required this.distance});
+  Site(this.id, this.latitude, this.longitude, this.district, this.country,
+      this.name, this.description, this.distance, this.userLocation);
 
   factory Site.fromJson(Map<String, dynamic> json) => _$SiteFromJson(json);
 
   String getLocation() {
-    if (description == '') {
-      return name;
-    }
     return '$district $country';
   }
 
   String getName() {
-    if (description == '') {
+    if (description == '' ||
+        description.trim().toLowerCase() == 'null' ||
+        description.trim().toLowerCase().contains('null')) {
+      if (name == '' ||
+          name.trim().toLowerCase() == 'null' ||
+          name.trim().toLowerCase().contains('null')) {
+        return getLocation();
+      }
       return name;
     }
     return description;
   }
 
   String getUserLocation() {
-    if (userLocation != '') {
-      return userLocation;
+    if (userLocation == null) {
+      return getName();
     }
-    return getName();
-  }
-
-  String getUserLocationName() {
-    if (description == '') {
-      return name;
+    if (userLocation == '' ||
+        userLocation.trim().toLowerCase() == 'null' ||
+        userLocation.trim().toLowerCase().contains('null')) {
+      return getName();
     }
-    return description;
+    return userLocation;
   }
 
   Map<String, dynamic> toJson() => _$SiteToJson(this);
+
+  @override
+  String toString() {
+    return 'Site{id: $id, latitude: $latitude, longitude: $longitude, '
+        'district: $district, country: $country, name: $name, '
+        'description: $description, distance: $distance, '
+        'userLocation: $userLocation}';
+  }
 
   static String createTableStmt() =>
       'CREATE TABLE IF NOT EXISTS ${sitesDbName()}('

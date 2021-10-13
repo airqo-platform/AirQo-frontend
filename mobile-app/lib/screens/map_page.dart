@@ -358,7 +358,7 @@ class MapPageState extends State<MapPage> {
         ));
   }
 
-  RawMaterialButton detailsButton(Site site) {
+  RawMaterialButton detailsButton(Measurement measurement) {
     return RawMaterialButton(
       shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10.0),
@@ -369,7 +369,7 @@ class MapPageState extends State<MapPage> {
       splashColor: Colors.black12,
       highlightColor: Colors.white.withOpacity(0.4),
       onPressed: () async {
-        showDetails(site);
+        showDetails(measurement);
       },
       child: Padding(
         padding: const EdgeInsets.all(10),
@@ -449,11 +449,26 @@ class MapPageState extends State<MapPage> {
                 padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
                 child: Row(
                   children: [
-                    Text(
-                      windowProperties.getPm2_5Value().toStringAsFixed(2),
-                      style: TextStyle(
-                        fontSize: 17,
-                        color: ColorConstants.appColor,
+                    RichText(
+                      text: TextSpan(
+                        children: <TextSpan>[
+                          TextSpan(
+                            text:
+                                '${windowProperties.getPm2_5Value().toStringAsFixed(2)}',
+                            style: TextStyle(
+                              fontSize: 17,
+                              color: ColorConstants.appColor,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          TextSpan(
+                            text: ' µg/m\u00B3',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: ColorConstants.appColor,
+                            ),
+                          )
+                        ],
                       ),
                     ),
                     const Spacer(),
@@ -526,13 +541,13 @@ class MapPageState extends State<MapPage> {
                                 color: ColorConstants.red,
                               )),
                   ),
-                  detailsButton(windowProperties.site),
+                  detailsButton(windowProperties),
                 ],
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
                 child: Text(
-                  dateToString(windowProperties.time, true),
+                  'Last updated: ${dateToString(windowProperties.time, true)}',
                   style: TextStyle(
                     fontSize: 13,
                     color: ColorConstants.appColor,
@@ -546,28 +561,26 @@ class MapPageState extends State<MapPage> {
 
   @override
   void initState() {
+    super.initState();
     _showInfoWindow = false;
     isLoading = true;
     getFavouritePlaces();
-    super.initState();
   }
 
   Future<void> loadTheme() async {
     var prefs = await SharedPreferences.getInstance();
-    var theme = prefs.getString(PrefConstant.appTheme);
+    var theme = prefs.getString(PrefConstant.appTheme) ?? 'light';
 
-    if (theme != null) {
-      switch (theme) {
-        case 'light':
-          await _mapController.setMapStyle(jsonEncode(googleMapsLightTheme));
-          break;
-        case 'dark':
-          await _mapController.setMapStyle(jsonEncode(googleMapsDarkTheme));
-          break;
-        default:
-          await _mapController.setMapStyle(jsonEncode([]));
-          break;
-      }
+    switch (theme) {
+      case 'light':
+        await _mapController.setMapStyle(jsonEncode(googleMapsLightTheme));
+        break;
+      case 'dark':
+        await _mapController.setMapStyle(jsonEncode(googleMapsDarkTheme));
+        break;
+      default:
+        await _mapController.setMapStyle(jsonEncode(googleMapsLightTheme));
+        break;
     }
   }
 
@@ -583,7 +596,7 @@ class MapPageState extends State<MapPage> {
     _showInfoWindow = false;
     var markers = <String, Marker>{};
     for (final measurement in measurements) {
-      var bitmapDescriptor = await pmToMarker(measurement.getPm2_5Value());
+      var bitmapDescriptor = await pmToMarkerV2(measurement.getPm2_5Value());
 
       final marker = Marker(
         markerId: MarkerId(measurement.site.id),
@@ -613,9 +626,9 @@ class MapPageState extends State<MapPage> {
     }
   }
 
-  void showDetails(Site site) async {
+  void showDetails(Measurement measurement) async {
     await Navigator.push(context, MaterialPageRoute(builder: (context) {
-      return PlaceDetailsPage(site: site);
+      return PlaceDetailsPage(measurement: measurement);
     })).then((value) => _getMeasurements());
   }
 
@@ -628,11 +641,11 @@ class MapPageState extends State<MapPage> {
 
     if (mounted) {
       if (favourite) {
-        await showSnackBarGoToMyPlaces(
-            context, '${site.getName()} is added to your places');
+        await showSnackBar(
+            context, '${site.getName()} has been added to your places');
       } else {
         await showSnackBar(
-            context, '${site.getName()} is removed from your places');
+            context, '${site.getName()} has been removed from your places');
       }
     }
   }

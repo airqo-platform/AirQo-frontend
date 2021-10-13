@@ -1,23 +1,27 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/chartData.dart';
+import 'package:app/models/historicalMeasurement.dart';
+import 'package:app/utils/data_formatter.dart';
 import 'package:app/utils/date.dart';
 import 'package:app/utils/pm.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 
 class MeasurementsBarChart extends StatefulWidget {
-  final List<charts.Series<TimeSeriesData, DateTime>> seriesList;
+  final List<HistoricalMeasurement> measurements;
 
   final String header;
 
-  MeasurementsBarChart(this.seriesList, this.header);
+  MeasurementsBarChart(this.measurements, this.header);
 
   @override
   _MeasurementsBarChartState createState() => _MeasurementsBarChartState();
 }
 
 class _MeasurementsBarChartState extends State<MeasurementsBarChart> {
-  var display = null;
+  var display;
+  List<charts.Series<TimeSeriesData, DateTime>> seriesList = [];
+  var pollutant = 'pm2.5';
 
   @override
   Widget build(BuildContext context) {
@@ -41,78 +45,101 @@ class _MeasurementsBarChartState extends State<MeasurementsBarChart> {
               ),
             ),
           ),
-          // if (display != null)
-          //   Column(
-          //     children: [
-          //       Row(
-          //         children: [
-          //           const Spacer(
-          //             flex: 1,
-          //           ),
-          //           Text(
-          //             chartDateToString(display['time']),
-          //             softWrap: true,
-          //             style: TextStyle(color: ColorConstants.appColor),
-          //           ),
-          //           const Spacer(
-          //             flex: 1,
-          //           ),
-          //           Text(
-          //             display['value'].toString(),
-          //             softWrap: true,
-          //             style: TextStyle(color: ColorConstants.appColor),
-          //           ),
-          //           const Spacer(
-          //             flex: 1,
-          //           ),
-          //         ],
-          //       ),
-          //       Text(
-          //         pmToString(display['value']).replaceAll('\n', ' '),
-          //         style: TextStyle(
-          //             fontSize: 17,
-          //             fontWeight: FontWeight.w600,
-          //             color: ColorConstants.appColor),
-          //       ),
-          //     ],
-          //   ),
-          if (display != null)
-            Column(
+          Padding(
+            padding: const EdgeInsets.only(left: 10, right: 10),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Text(
-                  pmToString(display['value']).replaceAll('\n', ' '),
-                  style: TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w600,
-                      color: ColorConstants.appColor),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(10.0, 0.0, 10.0, 0.0),
-                  child: Row(
-                    children: [
-                      // const Spacer(
-                      //   flex: 1,
-                      // ),
-                      Text(
-                        chartDateToString(display['time']),
-                        softWrap: true,
-                        style: TextStyle(color: ColorConstants.appColor),
-                      ),
-                      const Spacer(
-                        flex: 1,
-                      ),
-                      Text(
-                        display['value'].toString(),
-                        softWrap: true,
-                        style: TextStyle(color: ColorConstants.appColor),
-                      ),
-                      // const Spacer(
-                      //   flex: 1,
-                      // ),
-                    ],
+                OutlinedButton(
+                  onPressed: () {
+                    setPollutant('pm2.5');
+                  },
+                  style: OutlinedButton.styleFrom(
+                    backgroundColor: pollutant == 'pm2.5'
+                        ? ColorConstants.appColor
+                        : Colors.white,
+                  ),
+                  child: Text(
+                    'PM2.5',
+                    style: TextStyle(
+                        color: pollutant == 'pm2.5'
+                            ? Colors.white
+                            : ColorConstants.appColor),
                   ),
                 ),
+                const SizedBox(
+                  width: 10,
+                ),
+                OutlinedButton(
+                  onPressed: () {
+                    setPollutant('pm10');
+                  },
+                  style: OutlinedButton.styleFrom(
+                    backgroundColor: pollutant == 'pm10'
+                        ? ColorConstants.appColor
+                        : Colors.white,
+                  ),
+                  child: Text(
+                    'PM10',
+                    style: TextStyle(
+                        color: pollutant == 'pm10'
+                            ? Colors.white
+                            : ColorConstants.appColor),
+                  ),
+                ),
+                const SizedBox(
+                  width: 10,
+                ),
               ],
+            ),
+          ),
+          if (display != null)
+            Padding(
+              padding: const EdgeInsets.only(left: 10, right: 10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    pmToString(display['value']).replaceAll('\n', ' '),
+                    style: TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w600,
+                        color: ColorConstants.appColor),
+                  ),
+                  Row(
+                    children: [
+                      Text(
+                        widget.header.trim().toLowerCase() == 'forecast'
+                            ? chartDateToString(display['time'], false)
+                            : chartDateToString(display['time'], true),
+                        softWrap: true,
+                        style: TextStyle(color: ColorConstants.appColor),
+                      ),
+                      const Spacer(),
+                      RichText(
+                        text: TextSpan(
+                          style: DefaultTextStyle.of(context).style,
+                          children: <TextSpan>[
+                            TextSpan(
+                              text: '${display['value'].toString()}',
+                              style: TextStyle(
+                                  color: ColorConstants.appColor,
+                                  fontWeight: FontWeight.bold),
+                            ),
+                            TextSpan(
+                              text: ' µg/m\u00B3',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: ColorConstants.appColor,
+                              ),
+                            )
+                          ],
+                        ),
+                      )
+                    ],
+                  ),
+                ],
+              ),
             ),
           Container(
             decoration: const BoxDecoration(
@@ -121,7 +148,7 @@ class _MeasurementsBarChartState extends State<MeasurementsBarChart> {
             height: 200,
             padding: const EdgeInsets.fromLTRB(5, 10, 5, 10),
             child: charts.TimeSeriesChart(
-              widget.seriesList,
+              seriesList,
               animate: true,
               defaultRenderer: charts.BarRendererConfig<DateTime>(
                   strokeWidthPx: 0, stackedBarPaddingPx: 0),
@@ -177,5 +204,18 @@ class _MeasurementsBarChartState extends State<MeasurementsBarChart> {
         ],
       ),
     );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    seriesList = historicalChartData(widget.measurements, pollutant);
+  }
+
+  void setPollutant(String value) {
+    setState(() {
+      pollutant = value;
+      seriesList = historicalChartData(widget.measurements, value);
+    });
   }
 }

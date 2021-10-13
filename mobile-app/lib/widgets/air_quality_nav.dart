@@ -50,12 +50,27 @@ class TitleSection extends StatelessWidget {
                       fontSize: 17,
                       color: ColorConstants.appColor),
                 ),
-                Text(
-                  '${data.getPm2_5Value().toStringAsFixed(2)}',
-                  maxLines: 4,
-                  softWrap: true,
-                  style:
-                      TextStyle(fontSize: 15, color: ColorConstants.appColor),
+                RichText(
+                  text: TextSpan(
+                    // style: DefaultTextStyle.of(context).style,
+                    children: <TextSpan>[
+                      TextSpan(
+                        text: '${data.getPm2_5Value().toStringAsFixed(2)}',
+                        style: TextStyle(
+                          fontSize: 17,
+                          color: ColorConstants.appColor,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      TextSpan(
+                        text: ' µg/m\u00B3',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: ColorConstants.appColor,
+                        ),
+                      )
+                    ],
+                  ),
                 ),
                 Text(
                   pmToString(data.getPm2_5Value()).replaceAll('\n', ' '),
@@ -89,7 +104,7 @@ class _AirQualityCardState extends State<AirQualityCard> {
                 TitleSection(
                   data: widget.data,
                 ),
-                Text('${dateToString(widget.data.time, true)}',
+                Text('Last updated: ${dateToString(widget.data.time, true)}',
                     style: TextStyle(
                       fontSize: 13,
                       color: ColorConstants.appColor,
