@@ -51,3 +51,5 @@ app.properties
 local.properties
 env.dart
 google-services.json
+
+*.zip
