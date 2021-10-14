@@ -1,5 +1,5 @@
 import React from 'react';
-import Cancel from '../icons/nav/Cancel';
+import Cancel from 'icons/nav/Cancel';
 
 const NotificationBanner = () => (
         <div className="NotificationBanner">
