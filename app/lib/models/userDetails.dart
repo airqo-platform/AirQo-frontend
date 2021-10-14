@@ -1,4 +1,3 @@
-import 'package:app/models/site.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'userDetails.g.dart';
@@ -11,34 +10,43 @@ class UserDetails {
   String emailAddress;
   String phoneNumber;
   String device;
-  String password;
   String photoUrl;
 
   UserDetails(this.firstName, this.id, this.lastName, this.emailAddress,
-      this.phoneNumber, this.device, this.password, this.photoUrl);
+      this.phoneNumber, this.device, this.photoUrl);
 
-  @JsonKey(ignore: true)
+  // @JsonKey(ignore: true)
   // String password = '';
 
   factory UserDetails.fromJson(Map<String, dynamic> json) =>
       _$UserDetailsFromJson(json);
 
+  String getFullName() {
+    return '$firstName $lastName';
+  }
+
   Map<String, dynamic> toJson() => _$UserDetailsToJson(this);
 
-  static String createTableStmt() => 'CREATE TABLE IF NOT EXISTS ${userDb()}('
-      'id INTEGER PRIMARY KEY, ${dbEmailAddress()} TEXT,'
-      '${dbLastName()} TEXT, '
+  static String createTableStmt() => 'CREATE TABLE IF NOT EXISTS ${dbName()}('
+      '${dbId()} TEXT PRIMARY KEY, ${dbEmailAddress()} TEXT,'
+      '${dbLastName()} TEXT, ${dbDevice()} TEXT, ${dbPhotoUrl()} TEXT, '
       '${dbPhoneNumber()} TEXT, ${dbFirstName()} TEXT)';
 
-  static String dbEmailAddress() => 'upper';
+  static String dbDevice() => 'device';
 
-  static String dbFirstName() => 'lower';
+  static String dbEmailAddress() => 'emailAddress';
 
-  static String dbLastName() => 'time';
+  static String dbFirstName() => 'firstName';
 
-  static String dbPhoneNumber() => 'value';
+  static String dbId() => 'id';
 
-  static String dropTableStmt() => 'DROP TABLE IF EXISTS ${userDb()}';
+  static String dbLastName() => 'lastName';
 
-  static String userDb() => 'user_db';
+  static String dbName() => 'user_db';
+
+  static String dbPhoneNumber() => 'phoneNumber';
+
+  static String dbPhotoUrl() => 'photoUrl';
+
+  static String dropTableStmt() => 'DROP TABLE IF EXISTS ${dbName()}';
 }

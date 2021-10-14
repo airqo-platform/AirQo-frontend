@@ -1,5 +1,7 @@
 import 'package:app/constants/app_constants.dart';
+import 'package:app/models/userDetails.dart';
 import 'package:app/screens/signup_page.dart';
+import 'package:app/services/local_storage.dart';
 import 'package:app/widgets/text_fields.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -15,17 +17,10 @@ class ProfileView extends StatefulWidget {
 
 class _ProfileViewState extends State<ProfileView> {
   bool isSignup = true;
+  var userProfile;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-        color: ColorConstants.appBodyColor,
-        child: const Center(
-          child: Text('Coming Soon!'),
-        ));
-  }
-
-  Widget builds(BuildContext context) {
     return Container(
         color: ColorConstants.appBodyColor,
         child: RefreshIndicator(
@@ -37,7 +32,7 @@ class _ProfileViewState extends State<ProfileView> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  isSignup
+                  userProfile != null
                       ? Expanded(
                           child: ListView(
                             shrinkWrap: true,
@@ -46,17 +41,20 @@ class _ProfileViewState extends State<ProfileView> {
                               const SizedBox(
                                 height: 10.0,
                               ),
-                              const Text(
-                                'Nagawa Greta',
-                                style: TextStyle(
+                              Text(
+                                '${userProfile.getFullName()}',
+                                style: const TextStyle(
                                     fontSize: 24, fontWeight: FontWeight.bold),
                               ),
                               GestureDetector(
-                                onTap: () {
-                                  Navigator.push(context,
+                                onTap: () async {
+                                  var saved = await Navigator.push(context,
                                       MaterialPageRoute(builder: (context) {
-                                    return SignUpPage();
+                                    return SignUpPage(userProfile);
                                   }));
+                                  if (saved != null && saved) {
+                                    await initialize();
+                                  }
                                 },
                                 child: Text(
                                   'Edit profile',
@@ -117,19 +115,36 @@ class _ProfileViewState extends State<ProfileView> {
             )));
   }
 
-  Future<void> initialize() async {
-    var prefs = await SharedPreferences.getInstance();
-    var isSignedUp = prefs.getBool(PrefConstant.isSignedUp) ?? false;
+  Widget builds(BuildContext context) {
+    return Container(
+        color: ColorConstants.appBodyColor,
+        child: const Center(
+          child: Text('Coming Soon!'),
+        ));
+  }
 
-    if (isSignedUp) {
-      setState(() {
-        isSignup = true;
-      });
-    } else {
-      setState(() {
-        isSignup = false;
-      });
-    }
+  Future<void> initialize() async {
+    await DBHelper().getUserData().then((value) => {
+          if (value != null)
+            {
+              setState(() {
+                userProfile = value;
+              })
+            }
+        });
+
+    // var prefs = await SharedPreferences.getInstance();
+    // var isSignedUp = prefs.getBool(PrefConstant.isSignedUp) ?? false;
+    //
+    // if (isSignedUp) {
+    //   setState(() {
+    //     isSignup = true;
+    //   });
+    // } else {
+    //   setState(() {
+    //     isSignup = false;
+    //   });
+    // }
   }
 
   @override
@@ -140,7 +155,7 @@ class _ProfileViewState extends State<ProfileView> {
 
   Widget profileSection() {
     return Container(
-      padding: EdgeInsets.only(top: 10, bottom: 10),
+      padding: const EdgeInsets.only(top: 10, bottom: 10),
       decoration: const BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.all(Radius.circular(10.0))),
@@ -148,10 +163,14 @@ class _ProfileViewState extends State<ProfileView> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           GestureDetector(
-            onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) {
-                return SignUpPage();
+            onTap: () async {
+              var saved = await Navigator.push(context,
+                  MaterialPageRoute(builder: (context) {
+                return SignUpPage(userProfile);
               }));
+              if (saved != null && saved) {
+                await initialize();
+              }
             },
             child: settingsSection('Profile'),
           ),
@@ -223,10 +242,14 @@ class _ProfileViewState extends State<ProfileView> {
             height: 16,
           ),
           GestureDetector(
-            onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) {
-                return SignUpPage();
-              })).then((value) => initialize);
+            onTap: () async {
+              var saved = await Navigator.push(context,
+                  MaterialPageRoute(builder: (context) {
+                return SignUpPage(UserDetails('', '', '', '', '', '', ''));
+              }));
+              if (saved != null && saved) {
+                await initialize();
+              }
             },
             child: Padding(
               padding: EdgeInsets.only(left: 24, right: 24, bottom: 38),
@@ -257,7 +280,7 @@ class _ProfileViewState extends State<ProfileView> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           profilePic(40, 40, 10, 12, 17.0),
-          Spacer(),
+          const Spacer(),
           Container(
             padding: const EdgeInsets.all(0.0),
             decoration: const BoxDecoration(

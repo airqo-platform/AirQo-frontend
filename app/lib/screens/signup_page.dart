@@ -1,5 +1,6 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/userDetails.dart';
+import 'package:app/services/local_storage.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:app/widgets/text_fields.dart';
@@ -9,15 +10,19 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'maps_view.dart';
 
 class SignUpPage extends StatefulWidget {
-  const SignUpPage({Key? key}) : super(key: key);
+  UserDetails userDetails;
+
+  SignUpPage(this.userDetails, {Key? key}) : super(key: key);
 
   @override
-  _SignUpPageState createState() => _SignUpPageState();
+  _SignUpPageState createState() => _SignUpPageState(this.userDetails);
 }
 
 class _SignUpPageState extends State<SignUpPage> {
   final _formKey = GlobalKey<FormState>();
-  UserDetails userDetails = UserDetails('', '', '', '', '', '', '', '');
+  UserDetails userDetails;
+
+  _SignUpPageState(this.userDetails);
 
   @override
   Widget build(BuildContext context) {
@@ -62,6 +67,7 @@ class _SignUpPageState extends State<SignUpPage> {
                   height: 4,
                 ),
                 TextFormField(
+                  initialValue: userDetails.emailAddress,
                   autofocus: true,
                   enableSuggestions: false,
                   cursorWidth: 1,
@@ -70,6 +76,7 @@ class _SignUpPageState extends State<SignUpPage> {
                   decoration: formFieldsDecoration(),
                   onChanged: (text) {
                     userDetails.emailAddress = text;
+                    userDetails.id = text;
                   },
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -94,6 +101,7 @@ class _SignUpPageState extends State<SignUpPage> {
                   height: 4,
                 ),
                 TextFormField(
+                  initialValue: userDetails.phoneNumber,
                   autofocus: true,
                   enableSuggestions: false,
                   cursorWidth: 1,
@@ -123,6 +131,7 @@ class _SignUpPageState extends State<SignUpPage> {
                   height: 4,
                 ),
                 TextFormField(
+                  initialValue: userDetails.firstName,
                   autofocus: true,
                   enableSuggestions: false,
                   cursorWidth: 1,
@@ -152,6 +161,7 @@ class _SignUpPageState extends State<SignUpPage> {
                   height: 4,
                 ),
                 TextFormField(
+                  initialValue: userDetails.lastName,
                   autofocus: true,
                   enableSuggestions: false,
                   cursorWidth: 1,
@@ -162,6 +172,9 @@ class _SignUpPageState extends State<SignUpPage> {
                     userDetails.lastName = text;
                   },
                   validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your last name';
+                    }
                     return null;
                   },
                 ),
@@ -196,11 +209,24 @@ class _SignUpPageState extends State<SignUpPage> {
     );
   }
 
-  Future<void> initialize() async {}
+  Future<void> getProfile() async {
+    await DBHelper().getUserData().then((value) => {
+          if (value != null)
+            {
+              setState(() {
+                userDetails = value;
+              })
+            }
+        });
+  }
+
+  Future<void> initialize() async {
+    await getProfile();
+  }
 
   @override
   void initState() {
-    // initialize();
+    initialize();
     super.initState();
   }
 
@@ -222,7 +248,18 @@ class _SignUpPageState extends State<SignUpPage> {
 
   Future<void> signUp() async {
     if (_formKey.currentState!.validate()) {
-      await showSnackBar(context, 'Saving...');
+      await DBHelper().saveUserData(userDetails).then((value) => {
+            if (value)
+              {
+                showSnackBar(context, 'Profile updated')
+                    .then((value) => {Navigator.pop(context, true)})
+              }
+            else
+              {
+                showSnackBar(
+                    context, 'Failed to save profile, Try again later...')
+              }
+          });
       // var prefs = await SharedPreferences.getInstance();
       // await prefs.setBool(PrefConstant.isSignedUp, false);
       // Navigator.pop(context);

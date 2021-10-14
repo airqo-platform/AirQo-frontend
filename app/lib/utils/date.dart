@@ -1,3 +1,4 @@
+import 'package:app/services/local_storage.dart';
 import 'package:intl/intl.dart';
 
 String chartDateToString(String formattedString, bool format) {
@@ -85,21 +86,26 @@ String getDateTime() {
       .toUpperCase();
 }
 
-String getGreetings() {
+Future<String> getGreetings() async {
+  var user = await DBHelper().getUserData();
+  var name = '!';
+  if (user != null) {
+    name = ' ${user.firstName}';
+  }
   var hour = DateTime.now().hour;
   if (8 <= hour && hour < 12) {
-    return 'Good morning!';
+    return 'Good morning$name';
   }
 
   if (12 <= hour && hour < 16) {
-    return 'Good afternoon!';
+    return 'Good afternoon$name';
   }
 
   if (18 <= hour && hour < 21) {
-    return 'Good evening!';
+    return 'Good evening$name';
   }
 
-  return 'Hello!';
+  return 'Hello$name';
 }
 
 String getTime(int hour) {

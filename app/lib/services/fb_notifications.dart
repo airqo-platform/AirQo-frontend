@@ -61,11 +61,10 @@ class CloudStore {
         var createdUser = await FirebaseAuth.instance
             .createUserWithEmailAndPassword(
                 email: userDetails.emailAddress,
-                password: userDetails.password);
+                password: userDetails.emailAddress);
 
         if (createdUser.user != null) {
           await createdUser.user!.updatePhotoURL(userDetails.photoUrl);
-          savedUser.password = '';
           savedUser.emailAddress = createdUser.user!.email ?? '';
           savedUser.lastName = userDetails.lastName;
           savedUser.firstName = userDetails.firstName;

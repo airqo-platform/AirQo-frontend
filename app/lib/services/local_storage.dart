@@ -8,6 +8,7 @@ import 'package:app/models/predict.dart';
 import 'package:app/models/site.dart';
 import 'package:app/models/story.dart';
 import 'package:app/models/suggestion.dart';
+import 'package:app/models/userDetails.dart';
 import 'package:app/utils/distance.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:path/path.dart';
@@ -76,6 +77,7 @@ class DBHelper {
       await db.execute(Site.dropTableStmt());
       await db.execute(Story.dropTableStmt());
       await db.execute(Alert.dropTableStmt());
+      await db.execute(UserDetails.dropTableStmt());
       await prefs.setBool(PrefConstant.reLoadDb, false);
     }
 
@@ -86,6 +88,7 @@ class DBHelper {
     await db.execute(Site.createTableStmt());
     await db.execute(Story.createTableStmt());
     await db.execute(Alert.createTableStmt());
+    await db.execute(UserDetails.createTableStmt());
   }
 
   Future<bool> deleteAlert(Alert alert) async {
@@ -475,6 +478,18 @@ class DBHelper {
     }
   }
 
+  Future<UserDetails?> getUserData() async {
+    try {
+      final db = await database;
+      var res = await db.query(UserDetails.dbName());
+
+      return UserDetails.fromJson(res.first);
+    } catch (e) {
+      print(e);
+      return null;
+    }
+  }
+
   Future<Database> initDB() async {
     return await openDatabase(
       join(await getDatabasesPath(), AppConfig.dbName),
@@ -668,6 +683,32 @@ class DBHelper {
     } catch (e) {
       print(e);
     }
+  }
+
+  Future<bool> saveUserData(UserDetails userDetails) async {
+    try {
+      final db = await database;
+
+      try {
+        var jsonData = userDetails.toJson();
+        await db.insert(
+          '${UserDetails.dbName()}',
+          jsonData,
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+        return true;
+      } catch (e) {
+        await db.execute(UserDetails.dropTableStmt());
+        await db.execute(UserDetails.createTableStmt());
+        print('Saving user in db');
+        print(e);
+        return false;
+      }
+    } catch (e) {
+      print(e);
+      return false;
+    }
+    return true;
   }
 
   Future<bool> updateFavouritePlaces(Site site) async {

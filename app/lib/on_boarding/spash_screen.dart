@@ -1,5 +1,3 @@
-import 'package:app/on_boarding/tage_line_screeen.dart';
-import 'package:app/on_boarding/welcome_screen.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:flutter/material.dart';
 

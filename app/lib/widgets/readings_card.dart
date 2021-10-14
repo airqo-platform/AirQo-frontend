@@ -5,10 +5,13 @@ import 'package:app/models/chartData.dart';
 import 'package:app/models/historicalMeasurement.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/site.dart';
+import 'package:app/screens/place_view.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/services/rest_api.dart';
 import 'package:app/utils/data_formatter.dart';
+import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/pm.dart';
+import 'package:app/utils/share.dart';
 import 'package:app/widgets/readings_dashboard.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
@@ -91,7 +94,18 @@ class _ReadingsCardState extends State<ReadingsCard> {
           color: Colors.white,
           borderRadius: BorderRadius.all(Radius.circular(5.0))),
       child: Column(
-        children: [titleSection(), graphSection(), footerSection()],
+        children: [
+          GestureDetector(
+            onTap: () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) {
+                return PlaceView(measurementData.site);
+              }));
+            },
+            child: titleSection(),
+          ),
+          graphSection(),
+          footerSection()
+        ],
       ),
     );
   }
@@ -125,36 +139,63 @@ class _ReadingsCardState extends State<ReadingsCard> {
               color: ColorConstants.appColorBlue.withOpacity(0.2),
               borderRadius: const BorderRadius.all(Radius.circular(5.0)),
             ),
-            child: Center(
-              child: Text('Share',
-                  style: TextStyle(
-                    color: ColorConstants.appColorBlue,
-                    fontSize: 14,
-                  )),
-            ),
-          ),
-          const Spacer(),
-          Container(
-            height: 36,
-            padding: const EdgeInsets.only(left: 16, right: 16),
-            decoration: BoxDecoration(
-              color: ColorConstants.appColorBlue.withOpacity(0.2),
-              borderRadius: const BorderRadius.all(Radius.circular(5.0)),
-            ),
-            child: Center(
-                child: Row(
-              children: [
-                Image.asset('assets/images/heart.png'),
-                const SizedBox(
-                  width: 8,
-                ),
-                Text('Favorite ',
+            child: GestureDetector(
+              onTap: () {
+                shareMeasurement(measurementData);
+              },
+              child: Center(
+                child: Text('Share',
                     style: TextStyle(
                       color: ColorConstants.appColorBlue,
                       fontSize: 14,
                     )),
-              ],
-            )),
+              ),
+            ),
+          ),
+          const Spacer(),
+          GestureDetector(
+            onTap: () async {
+              await DBHelper()
+                  .updateFavouritePlaces(measurementData.site)
+                  .then((value) => {
+                        if (value)
+                          {
+                            showSnackBar(
+                                context,
+                                '${measurementData.site.getName()}'
+                                ' has been added to your favourite places')
+                          }
+                        else
+                          {
+                            showSnackBar(
+                                context,
+                                '${measurementData.site.getName()}'
+                                ' has been removed from your favourite places')
+                          }
+                      });
+            },
+            child: Container(
+              height: 36,
+              padding: const EdgeInsets.only(left: 16, right: 16),
+              decoration: BoxDecoration(
+                color: ColorConstants.appColorBlue.withOpacity(0.2),
+                borderRadius: const BorderRadius.all(Radius.circular(5.0)),
+              ),
+              child: Center(
+                  child: Row(
+                children: [
+                  Image.asset('assets/images/heart.png'),
+                  const SizedBox(
+                    width: 8,
+                  ),
+                  Text('Favorite ',
+                      style: TextStyle(
+                        color: ColorConstants.appColorBlue,
+                        fontSize: 14,
+                      )),
+                ],
+              )),
+            ),
           ),
         ],
       ),
@@ -405,36 +446,61 @@ class _ReadingsCardStateV2 extends State<ReadingsCardV2> {
               color: ColorConstants.appColorBlue.withOpacity(0.2),
               borderRadius: const BorderRadius.all(Radius.circular(5.0)),
             ),
-            child: Center(
-              child: Text('Share',
-                  style: TextStyle(
-                    color: ColorConstants.appColorBlue,
-                    fontSize: 14,
-                  )),
-            ),
-          ),
-          const Spacer(),
-          Container(
-            height: 36,
-            padding: const EdgeInsets.only(left: 16, right: 16),
-            decoration: BoxDecoration(
-              color: ColorConstants.appColorBlue.withOpacity(0.2),
-              borderRadius: const BorderRadius.all(Radius.circular(5.0)),
-            ),
-            child: Center(
-                child: Row(
-              children: [
-                Image.asset('assets/images/heart.png'),
-                const SizedBox(
-                  width: 8,
-                ),
-                Text('Favorite ',
+            child: GestureDetector(
+              onTap: () {
+                shareLocation(site);
+              },
+              child: Center(
+                child: Text('Share',
                     style: TextStyle(
                       color: ColorConstants.appColorBlue,
                       fontSize: 14,
                     )),
-              ],
-            )),
+              ),
+            ),
+          ),
+          const Spacer(),
+          GestureDetector(
+            onTap: () async {
+              await DBHelper().updateFavouritePlaces(site).then((value) => {
+                    if (value)
+                      {
+                        showSnackBar(
+                            context,
+                            '${site.getName()}'
+                            ' has been added to your favourite places')
+                      }
+                    else
+                      {
+                        showSnackBar(
+                            context,
+                            '${site.getName()}'
+                            ' has been removed from your favourite places')
+                      }
+                  });
+            },
+            child: Container(
+              height: 36,
+              padding: const EdgeInsets.only(left: 16, right: 16),
+              decoration: BoxDecoration(
+                color: ColorConstants.appColorBlue.withOpacity(0.2),
+                borderRadius: const BorderRadius.all(Radius.circular(5.0)),
+              ),
+              child: Center(
+                  child: Row(
+                children: [
+                  Image.asset('assets/images/heart.png'),
+                  const SizedBox(
+                    width: 8,
+                  ),
+                  Text('Favorite ',
+                      style: TextStyle(
+                        color: ColorConstants.appColorBlue,
+                        fontSize: 14,
+                      )),
+                ],
+              )),
+            ),
           ),
         ],
       ),
@@ -503,9 +569,9 @@ class _ReadingsCardStateV2 extends State<ReadingsCardV2> {
     try {
       var value = double.parse(pmValue.toString());
       setState(() {
-            pmColor = pm2_5ToColor(value);
-            gaugeValue = value;
-          });
+        pmColor = pm2_5ToColor(value);
+        gaugeValue = value;
+      });
     } catch (e) {
       gaugeValue = 0.0;
       pmColor = pm2_5ToColor(0.0);

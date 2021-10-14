@@ -12,11 +12,13 @@ import 'package:app/services/local_storage.dart';
 import 'package:app/services/native_api.dart';
 import 'package:app/services/rest_api.dart';
 import 'package:app/utils/date.dart';
+import 'package:app/utils/pm.dart';
 import 'package:app/utils/settings.dart';
 import 'package:app/widgets/readings_card.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class CircularBorder extends StatelessWidget {
   final Color color = ColorConstants.inactiveColor;
@@ -94,10 +96,12 @@ class MyPainter extends CustomPainter {
 class _DashboardViewState extends State<DashboardView> {
   var measurementData;
   var historicalData = <HistoricalMeasurement>[];
+  var favouritePlaces = <Measurement>[];
   var forecastData = <Predict>[];
   var stories = <Story>[];
   var featuredStory;
   var storyIsSet = false;
+  var greetings = '';
 
   @override
   Widget build(BuildContext context) {
@@ -133,7 +137,7 @@ class _DashboardViewState extends State<DashboardView> {
                             height: 10,
                           ),
                           Text(
-                            getGreetings(),
+                            greetings,
                             style: const TextStyle(
                                 fontSize: 24, fontWeight: FontWeight.bold),
                           ),
@@ -162,15 +166,16 @@ class _DashboardViewState extends State<DashboardView> {
                           const SizedBox(
                             height: 12,
                           ),
-                          GestureDetector(
-                            onTap: () {
-                              Navigator.push(context,
-                                  MaterialPageRoute(builder: (context) {
-                                return PlaceView(measurementData.site);
-                              }));
-                            },
-                            child: ReadingsCard(measurementData),
-                          ),
+                          // GestureDetector(
+                          //   onTap: () {
+                          //     Navigator.push(context,
+                          //         MaterialPageRoute(builder: (context) {
+                          //       return PlaceView(measurementData.site);
+                          //     }));
+                          //   },
+                          //   child: ReadingsCard(measurementData),
+                          // ),
+                          ReadingsCard(measurementData),
                           const SizedBox(
                             height: 16,
                           ),
@@ -183,6 +188,17 @@ class _DashboardViewState extends State<DashboardView> {
                 ),
               )));
     }
+  }
+
+  void getFavouritePlaces() {
+    DBHelper().getFavouritePlaces().then((value) => {
+          if (mounted)
+            {
+              setState(() {
+                favouritePlaces = value;
+              })
+            }
+        });
   }
 
   void getLocationForecastMeasurements(Measurement measurement) async {
@@ -326,8 +342,11 @@ class _DashboardViewState extends State<DashboardView> {
   }
 
   Future<void> initialize() async {
+    setGreetings();
     getStories();
+    _getLatestMeasurements();
     await getLocationMeasurements();
+    getFavouritePlaces();
   }
 
   @override
@@ -347,6 +366,42 @@ class _DashboardViewState extends State<DashboardView> {
       return featuredStory;
     }
     return index;
+  }
+
+  void setGreetings() {
+    getGreetings().then((value) => {
+          setState(() {
+            greetings = value;
+          })
+        });
+  }
+
+  List<Widget> showFavourites() {
+    var widgets = <Widget>[];
+    for (var index = 2; index >= 0; index--) {
+      var padding = 0.0;
+      if (index == 1) {
+        padding = 7;
+      }
+      if (index == 2) {
+        padding = 14;
+      }
+      try {
+        widgets.add(Positioned(
+            left: padding,
+            child: Container(
+              height: 32.0,
+              width: 32.0,
+              padding: const EdgeInsets.all(2.0),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.white, width: 2),
+                color: pm2_5ToColor(favouritePlaces[index].getPm2_5Value()),
+                shape: BoxShape.circle,
+              ),
+            )));
+      } catch (e) {}
+    }
+    return widgets;
   }
 
   Widget tipsSection(Story story) {
@@ -373,7 +428,9 @@ class _DashboardViewState extends State<DashboardView> {
                   height: 20,
                 ),
                 GestureDetector(
-                  onTap: () {},
+                  onTap: () {
+                    _launchURL(story.link);
+                  },
                   child: Container(
                     height: 24,
                     width: 60,
@@ -475,18 +532,27 @@ class _DashboardViewState extends State<DashboardView> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Container(
-                  height: 32,
-                  width: 32,
-                  decoration: BoxDecoration(
-                      color: ColorConstants.appColorBlue.withOpacity(0.2),
-                      shape: BoxShape.circle),
-                  child: Icon(
-                    Icons.add,
-                    color: ColorConstants.appColorBlue,
-                    size: 17,
+                if (favouritePlaces.isEmpty)
+                  Container(
+                    height: 32,
+                    width: 32,
+                    decoration: BoxDecoration(
+                        color: ColorConstants.appColorBlue.withOpacity(0.2),
+                        shape: BoxShape.circle),
+                    child: Icon(
+                      Icons.add,
+                      color: ColorConstants.appColorBlue,
+                      size: 17,
+                    ),
                   ),
-                ),
+                if (favouritePlaces.isNotEmpty)
+                  Container(
+                    height: 32,
+                    width: 44,
+                    child: Stack(
+                      children: showFavourites(),
+                    ),
+                  ),
                 const SizedBox(
                   width: 8,
                 ),
@@ -589,6 +655,22 @@ class _DashboardViewState extends State<DashboardView> {
           });
     } catch (e) {
       print('error getting data');
+    }
+  }
+
+  void _getLatestMeasurements() async {
+    await AirqoApiClient(context).fetchLatestMeasurements().then((value) => {
+          if (value.isNotEmpty) {DBHelper().insertLatestMeasurements(value)}
+        });
+  }
+
+  Future<void> _launchURL(String url) async {
+    try {
+      await canLaunch(url)
+          ? await launch(url)
+          : throw Exception('Could not launch $url, try opening $url');
+    } catch (e) {
+      print(e);
     }
   }
 }
