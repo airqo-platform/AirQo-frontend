@@ -63,7 +63,7 @@ const config = () => {
     },
 
     resolve: {
-      modules: [ROOT, 'node_modules'],
+      modules: [ROOT, 'frontend/src', 'node_modules'],
       extensions: ['.js', '.jsx', '.ts', '.tsx'],
     },
 
