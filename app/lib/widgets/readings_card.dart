@@ -9,6 +9,7 @@ import 'package:app/services/local_storage.dart';
 import 'package:app/services/rest_api.dart';
 import 'package:app/utils/data_formatter.dart';
 import 'package:app/utils/pm.dart';
+import 'package:app/widgets/readings_dashboard.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 
@@ -265,7 +266,8 @@ class _ReadingsCardState extends State<ReadingsCard> {
           children: [
             Container(
                 decoration: BoxDecoration(
-                    color: Colors.red.withOpacity(0.1),
+                    color: pm2_5ToColor(measurementData.getPm2_5Value())
+                        .withOpacity(0.1),
                     borderRadius:
                         const BorderRadius.all(Radius.circular(15.0))),
                 child: Padding(
@@ -279,14 +281,18 @@ class _ReadingsCardState extends State<ReadingsCard> {
                             height: 10,
                             width: 10,
                             decoration: BoxDecoration(
-                                color: Colors.red.withOpacity(0.5),
+                                color: pm2_5ToColor(
+                                        measurementData.getPm2_5Value())
+                                    .withOpacity(0.5),
                                 shape: BoxShape.circle),
                           ),
                           Container(
                             height: 6,
                             width: 6,
-                            decoration: const BoxDecoration(
-                                color: Colors.red, shape: BoxShape.circle),
+                            decoration: BoxDecoration(
+                                color: pm2_5ToColor(
+                                    measurementData.getPm2_5Value()),
+                                shape: BoxShape.circle),
                           ),
                         ],
                       ),
@@ -352,6 +358,8 @@ class _ReadingsCardStateV2 extends State<ReadingsCardV2> {
 
   final Site site;
   List<HistoricalMeasurement> historicalData = [];
+  Color pmColor = ColorConstants.appColorBlue;
+  var gaugeValue;
 
   _ReadingsCardStateV2(this.site, this.historicalData);
 
@@ -433,7 +441,7 @@ class _ReadingsCardStateV2 extends State<ReadingsCardV2> {
     );
   }
 
-  Widget gaugeChart(HistoricalMeasurement measurement) {
+  Widget gaugeChart() {
     return Container(
       height: 110.0,
       width: 110.0,
@@ -459,7 +467,7 @@ class _ReadingsCardStateV2 extends State<ReadingsCardV2> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Text(
-                '${measurement.getPm2_5Value()}',
+                '$gaugeValue',
                 style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold),
               ),
               Text('PM2.5',
@@ -476,12 +484,33 @@ class _ReadingsCardStateV2 extends State<ReadingsCardV2> {
 
   Widget graphSection() {
     var graphSeriesList = historicalChartData(historicalData);
-    return DashboardBarChart(graphSeriesList, 'Forecast');
+    return ReadingsBarChart(graphSeriesList, 'History', setHeader);
   }
 
   @override
   void initState() {
+    if (historicalData.isNotEmpty) {
+      var measurement = historicalData[historicalData.length - 1];
+      gaugeValue = measurement.getPm2_5Value();
+      pmColor = pm2_5ToColor(measurement.getPm2_5Value());
+    } else {
+      gaugeValue = '';
+    }
     super.initState();
+  }
+
+  void setHeader(var pmValue) {
+    try {
+      var value = double.parse(pmValue.toString());
+      setState(() {
+            pmColor = pm2_5ToColor(value);
+            gaugeValue = value;
+          });
+    } catch (e) {
+      gaugeValue = 0.0;
+      pmColor = pm2_5ToColor(0.0);
+      print(e);
+    }
   }
 
   Widget titleSection() {
@@ -494,7 +523,7 @@ class _ReadingsCardStateV2 extends State<ReadingsCardV2> {
           children: [
             Container(
                 decoration: BoxDecoration(
-                    color: Colors.red.withOpacity(0.1),
+                    color: pmColor.withOpacity(0.1),
                     borderRadius:
                         const BorderRadius.all(Radius.circular(15.0))),
                 child: Padding(
@@ -508,14 +537,14 @@ class _ReadingsCardStateV2 extends State<ReadingsCardV2> {
                             height: 10,
                             width: 10,
                             decoration: BoxDecoration(
-                                color: Colors.red.withOpacity(0.5),
+                                color: pmColor.withOpacity(0.5),
                                 shape: BoxShape.circle),
                           ),
                           Container(
                             height: 6,
                             width: 6,
-                            decoration: const BoxDecoration(
-                                color: Colors.red, shape: BoxShape.circle),
+                            decoration: BoxDecoration(
+                                color: pmColor, shape: BoxShape.circle),
                           ),
                         ],
                       ),
@@ -537,7 +566,7 @@ class _ReadingsCardStateV2 extends State<ReadingsCardV2> {
                     ],
                   ),
                 )),
-            Text(pmToString(historicalData[0].getPm2_5Value()),
+            Text(pmToString(gaugeValue),
                 softWrap: true,
                 maxLines: 2,
                 textAlign: TextAlign.start,
@@ -546,7 +575,7 @@ class _ReadingsCardStateV2 extends State<ReadingsCardV2> {
                     const TextStyle(fontSize: 24, fontWeight: FontWeight.bold))
           ],
         )),
-        gaugeChart(historicalData[0]),
+        gaugeChart(),
       ],
     );
   }

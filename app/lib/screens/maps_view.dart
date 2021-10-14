@@ -46,7 +46,6 @@ class MapView extends StatefulWidget {
 }
 
 class _MapViewState extends State<MapView> {
-
   bool showLocationDetails = false;
   double scrollSheetHeight = 0.20;
   bool isSearching = false;
@@ -59,33 +58,6 @@ class _MapViewState extends State<MapView> {
       const CameraPosition(target: LatLng(1.6183002, 32.504365), zoom: 6.6);
   late GoogleMapController _mapController;
   Map<String, Marker> _markers = {};
-
-  Future<void> getSites() async {
-
-    await DBHelper().getLatestMeasurements().then((value) => {
-      if (mounted)
-        {
-          setState(() {
-            allSites = value;
-          })
-        }
-    });
-
-    var measurements = await AirqoApiClient(context).fetchLatestMeasurements();
-
-    if (measurements.isNotEmpty) {
-      setState(() {
-        allSites = measurements;
-      });
-      await DBHelper().insertLatestMeasurements(measurements);
-    }
-  }
-
-  @override
-  void initState() {
-    getSites();
-    super.initState();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -122,38 +94,6 @@ class _MapViewState extends State<MapView> {
     );
   }
 
-  Widget searchField() {
-    return Expanded(
-      child: TextFormField(
-        controller: _searchController,
-        onTap: () {
-          setState(() {
-            scrollSheetHeight = 0.7;
-          });
-        },
-        onChanged: (text){
-          if (text.isEmpty) {
-            setState(() {
-              isSearching = false;
-            });
-          } else {
-            setState(() {
-              isSearching = true;
-              searchSites = LocationApi().textSearchNearestSites(text, allSites);
-            });
-          }
-        },
-        maxLines: 1,
-        autofocus: false,
-        decoration: const InputDecoration(
-          contentPadding: EdgeInsets.all(8),
-          hintText: '',
-          border: InputBorder.none,
-        ),
-      ),
-    );
-  }
-
   Widget defaultContent() {
     return Padding(
         padding: const EdgeInsets.all(16.0),
@@ -163,12 +103,37 @@ class _MapViewState extends State<MapView> {
             DraggingHandle(),
             const SizedBox(height: 16),
             searchContainer(),
-
             if (regionSites.isEmpty && !isSearching) regionsList(),
             if (regionSites.isNotEmpty && !isSearching) sitesList(),
             if (isSearching) searchResultsList(),
           ],
         ));
+  }
+
+  Future<void> getSites() async {
+    await DBHelper().getLatestMeasurements().then((value) => {
+          if (mounted)
+            {
+              setState(() {
+                allSites = value;
+              })
+            }
+        });
+
+    var measurements = await AirqoApiClient(context).fetchLatestMeasurements();
+
+    if (measurements.isNotEmpty) {
+      setState(() {
+        allSites = measurements;
+      });
+      await DBHelper().insertLatestMeasurements(measurements);
+    }
+  }
+
+  @override
+  void initState() {
+    getSites();
+    super.initState();
   }
 
   Widget locationContent() {
@@ -284,10 +249,7 @@ class _MapViewState extends State<MapView> {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
           ),
-          child:
-          showLocationDetails
-              ?
-          locationContent() : defaultContent(),
+          child: showLocationDetails ? locationContent() : defaultContent(),
         ),
       ),
     );
@@ -313,26 +275,80 @@ class _MapViewState extends State<MapView> {
             ),
           ),
         ),
-        if(isSearching)
-        const SizedBox(
-          width: 8.0,
-        ),
-        if(isSearching)
-        Container(
-          padding: const EdgeInsets.all(2.0),
-          decoration: BoxDecoration(
-              color: ColorConstants.appBodyColor,
-              borderRadius: const BorderRadius.all(Radius.circular(10.0))),
-          child: IconButton(
-            iconSize: 30,
-            icon: Icon(
-              Icons.clear,
-              color: ColorConstants.appBarTitleColor,
-            ),
-            onPressed: showRegions,
+        if (isSearching)
+          const SizedBox(
+            width: 8.0,
           ),
-        )
+        if (isSearching)
+          Container(
+            padding: const EdgeInsets.all(2.0),
+            decoration: BoxDecoration(
+                color: ColorConstants.appBodyColor,
+                borderRadius: const BorderRadius.all(Radius.circular(10.0))),
+            child: IconButton(
+              iconSize: 30,
+              icon: Icon(
+                Icons.clear,
+                color: ColorConstants.appBarTitleColor,
+              ),
+              onPressed: showRegions,
+            ),
+          )
       ],
+    );
+  }
+
+  Widget searchField() {
+    return Expanded(
+      child: TextFormField(
+        controller: _searchController,
+        onTap: () {
+          setState(() {
+            scrollSheetHeight = 0.7;
+          });
+        },
+        onChanged: (text) {
+          if (text.isEmpty) {
+            setState(() {
+              isSearching = false;
+            });
+          } else {
+            setState(() {
+              isSearching = true;
+              searchSites =
+                  LocationApi().textSearchNearestSites(text, allSites);
+            });
+          }
+        },
+        maxLines: 1,
+        autofocus: false,
+        decoration: const InputDecoration(
+          contentPadding: EdgeInsets.all(8),
+          hintText: '',
+          border: InputBorder.none,
+        ),
+      ),
+    );
+  }
+
+  Widget searchResultsList() {
+    return ListView.separated(
+      shrinkWrap: true,
+      controller: ScrollController(),
+      itemBuilder: (context, index) => GestureDetector(
+        onTap: () {
+          showLocationContent(searchSites[index]);
+        },
+        child: locationTile(searchSites[index]),
+      ),
+      itemCount: searchSites.length,
+      separatorBuilder: (BuildContext context, int index) {
+        return Divider(
+          indent: 20,
+          endIndent: 20,
+          color: ColorConstants.appColor,
+        );
+      },
     );
   }
 
@@ -387,7 +403,6 @@ class _MapViewState extends State<MapView> {
   }
 
   void showRegions() {
-
     setState(() {
       _searchController.text = '';
       isSearching = false;
@@ -420,27 +435,6 @@ class _MapViewState extends State<MapView> {
         child: locationTile(regionSites[index]),
       ),
       itemCount: regionSites.length,
-      separatorBuilder: (BuildContext context, int index) {
-        return Divider(
-          indent: 20,
-          endIndent: 20,
-          color: ColorConstants.appColor,
-        );
-      },
-    );
-  }
-
-  Widget searchResultsList() {
-    return ListView.separated(
-      shrinkWrap: true,
-      controller: ScrollController(),
-      itemBuilder: (context, index) => GestureDetector(
-        onTap: () {
-          showLocationContent(searchSites[index]);
-        },
-        child: locationTile(searchSites[index]),
-      ),
-      itemCount: searchSites.length,
       separatorBuilder: (BuildContext context, int index) {
         return Divider(
           indent: 20,

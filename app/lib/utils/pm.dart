@@ -187,7 +187,7 @@ Color pm2_5TextColor(double pm2_5) {
     return Colors.black;
   } else if (pm2_5 >= 55.5 && pm2_5 <= 150.49) {
     // unhealthy
-    return Colors.white;
+    return Colors.black;
   } else if (pm2_5 >= 150.5 && pm2_5 <= 250.49) {
     // very unhealthy
     return Colors.white;

@@ -96,6 +96,7 @@ class _DashboardViewState extends State<DashboardView> {
   var historicalData = <HistoricalMeasurement>[];
   var forecastData = <Predict>[];
   var stories = <Story>[];
+  var featuredStory;
   var storyIsSet = false;
 
   @override
@@ -115,16 +116,19 @@ class _DashboardViewState extends State<DashboardView> {
               onRefresh: initialize,
               color: ColorConstants.appColor,
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(16.0, 37, 16.0, 16.0),
+                padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 0.0),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
+                    const SizedBox(
+                      height: 10,
+                    ),
+                    topBar(),
                     Expanded(
                       child: ListView(
                         shrinkWrap: true,
                         children: <Widget>[
-                          topBar(),
                           const SizedBox(
                             height: 10,
                           ),
@@ -307,7 +311,7 @@ class _DashboardViewState extends State<DashboardView> {
               setState(() {
                 stories = value;
               })
-            }
+            },
         });
 
     AirqoApiClient(context).fetchLatestStories().then((value) => {
@@ -334,7 +338,15 @@ class _DashboardViewState extends State<DashboardView> {
 
   int pickStory(int size) {
     var random = Random();
-    return 0 + random.nextInt(size - 0);
+    var index = 0 + random.nextInt(size - 0);
+    if (featuredStory == null) {
+      setState(() {
+        featuredStory = index;
+      });
+    } else {
+      return featuredStory;
+    }
+    return index;
   }
 
   Widget tipsSection(Story story) {

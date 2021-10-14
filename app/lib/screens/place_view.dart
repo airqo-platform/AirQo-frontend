@@ -55,7 +55,7 @@ class _PlaceViewState extends State<PlaceView>
         elevation: 0,
         backgroundColor: ColorConstants.appBodyColor,
         leading: Padding(
-          padding: const EdgeInsets.only(top: 7, bottom: 7, left: 16),
+          padding: const EdgeInsets.only(top: 6.5, bottom: 6.5, left: 16),
           child: backButton(),
         ),
         title: Padding(
@@ -68,7 +68,7 @@ class _PlaceViewState extends State<PlaceView>
                 indicatorColor: Colors.transparent,
                 labelColor: Colors.transparent,
                 unselectedLabelColor: Colors.transparent,
-                labelPadding: const EdgeInsets.all(4.0),
+                labelPadding: const EdgeInsets.all(3.0),
                 onTap: (value) {
                   if (value == 0) {
                     setState(() {
@@ -89,7 +89,7 @@ class _PlaceViewState extends State<PlaceView>
                             ? ColorConstants.appColorBlue
                             : Colors.white,
                         borderRadius:
-                            BorderRadius.all(const Radius.circular(7.0))),
+                            const BorderRadius.all(Radius.circular(5.0))),
                     child: Tab(
                         child: Text(
                       'Week',
@@ -105,7 +105,8 @@ class _PlaceViewState extends State<PlaceView>
                         color: isWeekly
                             ? Colors.white
                             : ColorConstants.appColorBlue,
-                        borderRadius: BorderRadius.all(Radius.circular(5.0))),
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(5.0))),
                     child: Tab(
                         child: Text(
                       'Month',

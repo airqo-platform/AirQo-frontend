@@ -9,20 +9,49 @@ class LogoScreen extends StatefulWidget {
 }
 
 class LogoScreenState extends State<LogoScreen> {
-
   int _widgetId = 1;
 
-  Widget _renderWidget() {
-    return _widgetId == 1 ? logoWidget() : taglineWidget();
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: AnimatedSwitcher(
+        duration: const Duration(seconds: 5),
+        transitionBuilder: (Widget child, Animation<double> animation) {
+          return ScaleTransition(scale: animation, child: child);
+        },
+        child: _renderWidget(),
+      ),
+    );
   }
 
-  void _updateWidget() {
-    setState(() {
-      _widgetId = _widgetId == 1 ? 2 : 1;
+  void initialize() {
+    Future.delayed(const Duration(seconds: 2), () async {
+      _updateWidget();
+    });
+
+    // Future.delayed(const Duration(seconds: 5), () async {
+    //   await Navigator.pushAndRemoveUntil(context,
+    //       MaterialPageRoute(builder: (context) {
+    //         return WelcomeScreen();
+    //       }), (r) => false);
+    // });
+
+    Future.delayed(const Duration(seconds: 5), () async {
+      await Navigator.pushAndRemoveUntil(context,
+          MaterialPageRoute(builder: (context) {
+        return HomePage();
+      }), (r) => false);
     });
   }
 
-  Widget logoWidget(){
+  @override
+  void initState() {
+    initialize();
+    super.initState();
+  }
+
+  Widget logoWidget() {
     return Container(
       child: Center(
         child: Column(
@@ -39,7 +68,7 @@ class LogoScreenState extends State<LogoScreen> {
     );
   }
 
-  Widget taglineWidget(){
+  Widget taglineWidget() {
     return Container(
       child: Center(
         child: Stack(alignment: AlignmentDirectional.center, children: [
@@ -58,20 +87,6 @@ class LogoScreenState extends State<LogoScreen> {
           ),
         ]),
       ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-        backgroundColor: Colors.white,
-        body: AnimatedSwitcher(
-          duration: const Duration(seconds: 5),
-          transitionBuilder: (Widget child, Animation<double> animation) {
-            return ScaleTransition(scale: animation, child: child);
-          },
-          child: _renderWidget(),
-        ),
     );
   }
 
@@ -95,30 +110,13 @@ class LogoScreenState extends State<LogoScreen> {
   //       ));
   // }
 
-  void initialize() {
-
-    Future.delayed(const Duration(seconds: 2), () async {
-      _updateWidget();
-    });
-
-    // Future.delayed(const Duration(seconds: 5), () async {
-    //   await Navigator.pushAndRemoveUntil(context,
-    //       MaterialPageRoute(builder: (context) {
-    //         return WelcomeScreen();
-    //       }), (r) => false);
-    // });
-
-    Future.delayed(const Duration(seconds: 5), () async {
-      await Navigator.pushAndRemoveUntil(context,
-          MaterialPageRoute(builder: (context) {
-            return HomePage();
-          }), (r) => false);
-    });
+  Widget _renderWidget() {
+    return _widgetId == 1 ? logoWidget() : taglineWidget();
   }
 
-  @override
-  void initState() {
-    initialize();
-    super.initState();
+  void _updateWidget() {
+    setState(() {
+      _widgetId = _widgetId == 1 ? 2 : 1;
+    });
   }
 }

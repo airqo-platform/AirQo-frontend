@@ -16,7 +16,6 @@ class SignUpPage extends StatefulWidget {
 }
 
 class _SignUpPageState extends State<SignUpPage> {
-
   final _formKey = GlobalKey<FormState>();
   UserDetails userDetails = UserDetails('', '', '', '', '', '', '', '');
 
@@ -31,155 +30,152 @@ class _SignUpPageState extends State<SignUpPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Expanded(
-            child: Form(
-              key: _formKey,
-              child: ListView(
-                shrinkWrap: true,
-                children: <Widget>[
+              child: Form(
+            key: _formKey,
+            child: ListView(
+              shrinkWrap: true,
+              children: <Widget>[
+                Row(
+                  children: [
+                    backButton(context),
+                    const Spacer(),
+                    GestureDetector(
+                      onTap: signUp,
+                      child: Text(
+                        'Save',
+                        style: TextStyle(color: ColorConstants.inactiveColor),
+                      ),
+                    )
+                  ],
+                ),
+                profilePicRow(),
+                const SizedBox(
+                  height: 40,
+                ),
 
-                  Row(
-                    children: [
-                      backButton(context),
-                      const Spacer(),
-                      GestureDetector(
-                        onTap: signUp,
-                        child: Text(
-                          'Save',
-                          style: TextStyle(color: ColorConstants.inactiveColor),
-                        ),
-                      )
-                    ],
-                  ),
-                  profilePicRow(),
-                  const SizedBox(
-                    height: 40,
-                  ),
+                Text(
+                  'Email',
+                  style: TextStyle(
+                      fontSize: 12, color: ColorConstants.inactiveColor),
+                ),
+                const SizedBox(
+                  height: 4,
+                ),
+                TextFormField(
+                  autofocus: true,
+                  enableSuggestions: false,
+                  cursorWidth: 1,
+                  cursorColor: ColorConstants.appColorBlue,
+                  keyboardType: TextInputType.emailAddress,
+                  decoration: formFieldsDecoration(),
+                  onChanged: (text) {
+                    userDetails.emailAddress = text;
+                  },
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your email address';
+                    }
+                    return value.isValidEmail()
+                        ? null
+                        : 'Please enter a'
+                            ' valid email address';
+                  },
+                ),
+                const SizedBox(
+                  height: 16,
+                ),
 
-                  Text(
-                    'Email',
-                    style: TextStyle(
-                        fontSize: 12, color: ColorConstants.inactiveColor),
-                  ),
-                  const SizedBox(
-                    height: 4,
-                  ),
-                  TextFormField(
-                    autofocus: true,
-                    enableSuggestions: false,
-                    cursorWidth: 1,
-                    cursorColor: ColorConstants.appColorBlue,
-                    keyboardType: TextInputType.emailAddress,
-                    decoration: formFieldsDecoration(),
-                    onChanged: (text){
-                      userDetails.emailAddress = text;
-                    },
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your email address';
-                      }
-                      return value.isValidEmail() ? null : 'Please enter a'
-                          ' valid email address';
-                    },
-                  ),
-                  const SizedBox(
-                    height: 16,
-                  ),
+                Text(
+                  'Phone Number',
+                  style: TextStyle(
+                      fontSize: 12, color: ColorConstants.inactiveColor),
+                ),
+                const SizedBox(
+                  height: 4,
+                ),
+                TextFormField(
+                  autofocus: true,
+                  enableSuggestions: false,
+                  cursorWidth: 1,
+                  cursorColor: ColorConstants.appColorBlue,
+                  keyboardType: TextInputType.phone,
+                  decoration: formFieldsDecoration(),
+                  onChanged: (text) {
+                    userDetails.phoneNumber = text;
+                  },
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your phone Number';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(
+                  height: 16,
+                ),
 
-                  Text(
-                    'Phone Number',
-                    style: TextStyle(
-                        fontSize: 12, color: ColorConstants.inactiveColor),
-                  ),
-                  const SizedBox(
-                    height: 4,
-                  ),
-                  TextFormField(
-                    autofocus: true,
-                    enableSuggestions: false,
-                    cursorWidth: 1,
-                    cursorColor: ColorConstants.appColorBlue,
-                    keyboardType: TextInputType.phone,
-                    decoration: formFieldsDecoration(),
-                    onChanged: (text){
-                      userDetails.phoneNumber = text;
-                    },
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your phone Number';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(
-                    height: 16,
-                  ),
+                Text(
+                  'First Name',
+                  style: TextStyle(
+                      fontSize: 12, color: ColorConstants.inactiveColor),
+                ),
+                const SizedBox(
+                  height: 4,
+                ),
+                TextFormField(
+                  autofocus: true,
+                  enableSuggestions: false,
+                  cursorWidth: 1,
+                  cursorColor: ColorConstants.appColorBlue,
+                  keyboardType: TextInputType.name,
+                  decoration: formFieldsDecoration(),
+                  onChanged: (text) {
+                    userDetails.firstName = text;
+                  },
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your first name';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(
+                  height: 16,
+                ),
 
-                  Text(
-                    'First Name',
-                    style: TextStyle(
-                        fontSize: 12, color: ColorConstants.inactiveColor),
-                  ),
-                  const SizedBox(
-                    height: 4,
-                  ),
-                  TextFormField(
-                    autofocus: true,
-                    enableSuggestions: false,
-                    cursorWidth: 1,
-                    cursorColor: ColorConstants.appColorBlue,
-                    keyboardType: TextInputType.name,
-                    decoration: formFieldsDecoration(),
-                    onChanged: (text){
-                      userDetails.firstName = text;
-                    },
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your first name';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(
-                    height: 16,
-                  ),
-
-                  Text(
-                    'Last Name',
-                    style: TextStyle(
-                        fontSize: 12, color: ColorConstants.inactiveColor),
-                  ),
-                  const SizedBox(
-                    height: 4,
-                  ),
-                  TextFormField(
-                    autofocus: true,
-                    enableSuggestions: false,
-                    cursorWidth: 1,
-                    cursorColor: ColorConstants.appColorBlue,
-                    keyboardType: TextInputType.name,
-                    decoration: formFieldsDecoration(),
-                    onChanged: (text){
-                      userDetails.lastName = text;
-                    },
-                    validator: (value) {
-                      return null;
-                    },
-                  ),
-                  // SizedBox(height: 16,),
-                  // settingsSection(),
-                ],
-              ),
-            )
-          ),
+                Text(
+                  'Last Name',
+                  style: TextStyle(
+                      fontSize: 12, color: ColorConstants.inactiveColor),
+                ),
+                const SizedBox(
+                  height: 4,
+                ),
+                TextFormField(
+                  autofocus: true,
+                  enableSuggestions: false,
+                  cursorWidth: 1,
+                  cursorColor: ColorConstants.appColorBlue,
+                  keyboardType: TextInputType.name,
+                  decoration: formFieldsDecoration(),
+                  onChanged: (text) {
+                    userDetails.lastName = text;
+                  },
+                  validator: (value) {
+                    return null;
+                  },
+                ),
+                // SizedBox(height: 16,),
+                // settingsSection(),
+              ],
+            ),
+          )),
         ],
       ),
     ));
   }
 
-  Future<void> initialize() async {}
-
-
-  InputDecoration formFieldsDecoration(){
+  InputDecoration formFieldsDecoration() {
     return InputDecoration(
       filled: true,
       fillColor: Colors.white,
@@ -199,6 +195,8 @@ class _SignUpPageState extends State<SignUpPage> {
       ),
     );
   }
+
+  Future<void> initialize() async {}
 
   @override
   void initState() {
@@ -334,7 +332,7 @@ class _SignUpPageState extends State<SignUpPage> {
 extension EmailValidator on String {
   bool isValidEmail() {
     return RegExp(
-        r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$')
+            r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$')
         .hasMatch(this);
   }
 }

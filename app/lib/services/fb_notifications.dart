@@ -59,24 +59,25 @@ class CloudStore {
       try {
         var savedUser = userDetails;
         var createdUser = await FirebaseAuth.instance
-                  .createUserWithEmailAndPassword(email: userDetails.emailAddress,
-                  password: userDetails.password);
+            .createUserWithEmailAndPassword(
+                email: userDetails.emailAddress,
+                password: userDetails.password);
 
-        if(createdUser.user != null){
-                await createdUser.user!.updatePhotoURL(userDetails.photoUrl);
-                savedUser.password   = '';
-                savedUser.emailAddress = createdUser.user!.email ?? '';
-                savedUser.lastName   = userDetails.lastName;
-                savedUser.firstName   = userDetails.firstName;
-                savedUser.phoneNumber   = createdUser.user!.phoneNumber ?? '';
-                savedUser.emailAddress = createdUser.user!.email ?? '';
-                savedUser.photoUrl = createdUser.user!.photoURL ?? '';
-                // savedUser.id = createdUser.user!.uid ?? '';
-            }
+        if (createdUser.user != null) {
+          await createdUser.user!.updatePhotoURL(userDetails.photoUrl);
+          savedUser.password = '';
+          savedUser.emailAddress = createdUser.user!.email ?? '';
+          savedUser.lastName = userDetails.lastName;
+          savedUser.firstName = userDetails.firstName;
+          savedUser.phoneNumber = createdUser.user!.phoneNumber ?? '';
+          savedUser.emailAddress = createdUser.user!.email ?? '';
+          savedUser.photoUrl = createdUser.user!.photoURL ?? '';
+          // savedUser.id = createdUser.user!.uid ?? '';
+        }
         await FirebaseFirestore.instance
-                  .collection(CloudStorage.alertsCollection)
-                  .doc(savedUser.id)
-                  .set(savedUser.toJson());
+            .collection(CloudStorage.alertsCollection)
+            .doc(savedUser.id)
+            .set(savedUser.toJson());
         return true;
       } catch (e) {
         print(e);

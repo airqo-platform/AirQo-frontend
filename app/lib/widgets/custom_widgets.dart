@@ -1,5 +1,6 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/measurement.dart';
+import 'package:app/utils/pm.dart';
 import 'package:flutter/material.dart';
 
 Widget backButton(context) {
@@ -93,11 +94,11 @@ Widget locationTile(Measurement measurement) {
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             Container(
-              width: 37,
               height: 12,
-              // padding: const EdgeInsets.all(1.0),
+              padding: const EdgeInsets.only(left: 3.0, right: 3.0),
               decoration: BoxDecoration(
-                color: ColorConstants.green.withOpacity(0.2),
+                color:
+                    pm2_5ToColor(measurement.getPm2_5Value()).withOpacity(0.2),
                 borderRadius: const BorderRadius.all(Radius.circular(10.0)),
               ),
               child: Row(
@@ -107,16 +108,20 @@ Widget locationTile(Measurement measurement) {
                   Container(
                     width: 8,
                     height: 8,
-                    padding: const EdgeInsets.all(1.0),
+                    padding: const EdgeInsets.only(right: 1.0),
                     decoration: BoxDecoration(
-                      color: ColorConstants.green,
+                      color: pm2_5ToColor(measurement.getPm2_5Value()),
                       shape: BoxShape.circle,
                     ),
                   ),
-                  SizedBox(
+                  const SizedBox(
                     width: 2,
                   ),
-                  Text('Good', style: TextStyle(fontSize: 6)),
+                  Text(
+                      '${pmToString(measurement.getPm2_5Value()).replaceAll('\n', ' ')}',
+                      style: TextStyle(
+                          fontSize: 6,
+                          color: pm2_5TextColor(measurement.getPm2_5Value()))),
                 ],
               ),
             ),
@@ -124,11 +129,11 @@ Widget locationTile(Measurement measurement) {
               width: 8,
             ),
             Container(
-              width: 30,
               height: 12,
-              // padding: const EdgeInsets.all(1.0),
+              padding: const EdgeInsets.only(left: 3.0, right: 3.0),
               decoration: BoxDecoration(
-                color: ColorConstants.green.withOpacity(0.2),
+                color:
+                    pm2_5ToColor(measurement.getPm2_5Value()).withOpacity(0.2),
                 borderRadius: const BorderRadius.all(Radius.circular(10.0)),
               ),
               child: Row(
@@ -139,24 +144,27 @@ Widget locationTile(Measurement measurement) {
                     height: 8,
                     padding: const EdgeInsets.all(1.0),
                     decoration: BoxDecoration(
-                      color: ColorConstants.green,
+                      color: pm2_5ToColor(measurement.getPm2_5Value()),
                       shape: BoxShape.circle,
                     ),
                   ),
                   const SizedBox(
                     width: 2,
                   ),
-                  const Text('40', style: TextStyle(fontSize: 6)),
+                  Text('${measurement.getPm2_5Value()}',
+                      style: TextStyle(
+                          fontSize: 6,
+                          color: pm2_5TextColor(measurement.getPm2_5Value()))),
                 ],
               ),
             ),
-            Spacer()
+            const Spacer()
           ],
         )
       ],
     ),
     trailing: Padding(
-      padding: EdgeInsets.all(10),
+      padding: const EdgeInsets.all(10),
       child: Container(
         width: 40,
         height: 80,
@@ -172,4 +180,3 @@ Widget locationTile(Measurement measurement) {
     ),
   );
 }
-

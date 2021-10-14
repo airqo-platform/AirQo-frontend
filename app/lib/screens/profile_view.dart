@@ -25,7 +25,6 @@ class _ProfileViewState extends State<ProfileView> {
         ));
   }
 
-
   Widget builds(BuildContext context) {
     return Container(
         color: ColorConstants.appBodyColor,
@@ -40,79 +39,79 @@ class _ProfileViewState extends State<ProfileView> {
                 children: <Widget>[
                   isSignup
                       ? Expanded(
-                    child: ListView(
-                      shrinkWrap: true,
-                      children: <Widget>[
-                        topBar(),
-                        const SizedBox(
-                          height: 10.0,
-                        ),
-                        const Text(
-                          'Nagawa Greta',
-                          style: TextStyle(
-                              fontSize: 24, fontWeight: FontWeight.bold),
-                        ),
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.push(context,
-                                MaterialPageRoute(builder: (context) {
-                                  return SignUpPage();
-                                }));
-                          },
-                          child: Text(
-                            'Edit profile',
-                            style: TextStyle(
-                                fontSize: 16,
-                                color: ColorConstants.appColorBlue),
+                          child: ListView(
+                            shrinkWrap: true,
+                            children: <Widget>[
+                              topBar(),
+                              const SizedBox(
+                                height: 10.0,
+                              ),
+                              const Text(
+                                'Nagawa Greta',
+                                style: TextStyle(
+                                    fontSize: 24, fontWeight: FontWeight.bold),
+                              ),
+                              GestureDetector(
+                                onTap: () {
+                                  Navigator.push(context,
+                                      MaterialPageRoute(builder: (context) {
+                                    return SignUpPage();
+                                  }));
+                                },
+                                child: Text(
+                                  'Edit profile',
+                                  style: TextStyle(
+                                      fontSize: 16,
+                                      color: ColorConstants.appColorBlue),
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(
+                                    0.0, 16.0, 0.0, 0.0),
+                                child: profileSection(),
+                              ),
+                              const SizedBox(
+                                height: 16,
+                              ),
+                              settingsSection('Settings'),
+                              const SizedBox(
+                                height: 16,
+                              ),
+                              settingsSection('Logout'),
+                            ],
+                          ),
+                        )
+                      : Expanded(
+                          child: ListView(
+                            shrinkWrap: true,
+                            children: <Widget>[
+                              topBar(),
+                              const SizedBox(
+                                height: 10.0,
+                              ),
+                              const Text(
+                                'Guest',
+                                style: TextStyle(
+                                    fontSize: 24, fontWeight: FontWeight.bold),
+                              ),
+                              Text(
+                                'Edit profile',
+                                style: TextStyle(
+                                    fontSize: 16,
+                                    color: ColorConstants.inactiveColor),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(
+                                    0.0, 16.0, 0.0, 0.0),
+                                child: signupSection(),
+                              ),
+                              const SizedBox(
+                                height: 16,
+                              ),
+                              settingsSection('Settings'),
+                            ],
                           ),
                         ),
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(
-                              0.0, 16.0, 0.0, 0.0),
-                          child: profileSection(),
-                        ),
-                        const SizedBox(
-                          height: 16,
-                        ),
-                        settingsSection('Settings'),
-                        const SizedBox(
-                          height: 16,
-                        ),
-                        settingsSection('Logout'),
-                      ],
-                    ),
-                  )
-                      : Expanded(
-                    child: ListView(
-                      shrinkWrap: true,
-                      children: <Widget>[
-                        topBar(),
-                        const SizedBox(
-                          height: 10.0,
-                        ),
-                        const Text(
-                          'Guest',
-                          style: TextStyle(
-                              fontSize: 24, fontWeight: FontWeight.bold),
-                        ),
-                        Text(
-                          'Edit profile',
-                          style: TextStyle(
-                              fontSize: 16,
-                              color: ColorConstants.inactiveColor),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(
-                              0.0, 16.0, 0.0, 0.0),
-                          child: signupSection(),
-                        ),
-                        const SizedBox(
-                          height: 16,
-                        ),
-                        settingsSection('Settings'),
-                      ],
-                    ),
-                  ),
                 ],
               ),
             )));
