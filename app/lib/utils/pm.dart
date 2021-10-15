@@ -93,6 +93,62 @@ List<Recommendation> getHealthRecommendations(double pm2_5) {
   return recommendations;
 }
 
+List<Tip> getTips(double pm2_5) {
+  var recommendations = <Tip>[];
+  if (pm2_5 <= 12.09) {
+    //good
+    recommendations.add(Tip(
+        'Everyone',
+        'Air quality is satisfactory, and air pollution'
+            ' poses little or no risk.'));
+  } else if (pm2_5 >= 12.1 && pm2_5 <= 35.49) {
+    //moderate
+    recommendations
+      ..add(Tip(
+        'sensitive people',
+          'Consider reducing prolonged or heavy exertion.',))
+      ..add(Tip(
+          'Elderly and children ',
+              'You the groups most at risk.'));
+  } else if (pm2_5 >= 35.5 && pm2_5 <= 55.49) {
+    //sensitive
+    recommendations
+      ..add(Tip(
+          'The elderly and children ',
+              'Limit prolonged exertion.'))
+      ..add(Tip(
+          'Sensitive people ',
+              'Reduce prolonged or heavy exertion.'));
+  } else if (pm2_5 >= 55.5 && pm2_5 <= 150.49) {
+    // unhealthy
+    recommendations
+      ..add(Tip(
+          'People with respiratory or heart disease,'
+              ' the elderly and children should',
+              'Avoid prolonged exertion.',))
+      ..add(Tip('Everyone else',
+          'limit prolonged exertion.',));
+  } else if (pm2_5 >= 150.5 && pm2_5 <= 250.49) {
+    // very unhealthy
+    recommendations
+      ..add(Tip(
+          'People with respiratory or heart disease',
+              'Avoid any outdoor activity',))
+      ..add(Tip('Everyone else ',
+          'Limit prolonged exertion.'));
+  } else if (pm2_5 >= 250.5) {
+    // hazardous
+    recommendations.add(Tip(
+        'Everyone ',
+            'Avoid any outdoor exertion. '
+            'People with respiratory or heart disease,'
+            ' the elderly and children should remain indoors.'));
+  } else {}
+
+  return recommendations;
+}
+
+
 Widget mapSection(Measurement measurement) {
   final _markers = <String, Marker>{};
 
@@ -467,4 +523,12 @@ class Recommendation {
   Color imageColor = ColorConstants.green.withOpacity(0.2);
 
   Recommendation(this.recommendation, this.imageUrl, this.imageColor);
+}
+
+class Tip {
+  String header = '';
+  String body = '';
+  Color imageColor = ColorConstants.appTipColor;
+
+  Tip(this.header, this.body);
 }

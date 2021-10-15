@@ -13,6 +13,7 @@ import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/pm.dart';
 import 'package:app/utils/share.dart';
 import 'package:app/widgets/readings_dashboard.dart';
+import 'package:app/widgets/tips.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 
@@ -48,49 +49,67 @@ class GaugeSegment {
   }
 }
 
-class ReadingsCard extends StatefulWidget {
-  final Measurement measurementData;
+class PlaceReadingsCard extends StatefulWidget {
+  final Site site;
 
-  ReadingsCard(
-    this.measurementData, {
+  final List<HistoricalMeasurement> historicalData;
+
+  PlaceReadingsCard(
+    this.site,
+    this.historicalData, {
     Key? key,
   }) : super(key: key);
 
   @override
-  _ReadingsCardState createState() => _ReadingsCardState(measurementData);
+  _PlaceReadingsCardState createState() =>
+      _PlaceReadingsCardState(site, historicalData);
 }
 
-class _ReadingsCardState extends State<ReadingsCard> {
+class _PlaceReadingsCardState extends State<PlaceReadingsCard> {
   final List<charts.Series> gaugeSeriesList = _createSampleData();
   final List<charts.Series<TimeSeriesData, DateTime>> graphSeriesList =
       createData();
 
-  final Measurement measurementData;
+  final Site site;
   List<HistoricalMeasurement> historicalData = [];
+  Color pmColor = ColorConstants.appColorBlue;
+  var gaugeValue;
+  List<Widget> tips = [];
 
-  _ReadingsCardState(this.measurementData);
+  _PlaceReadingsCardState(this.site, this.historicalData);
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(10.0, 0.0, 8.0, 8.0),
-      decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.all(Radius.circular(5.0))),
-      child: Column(
-        children: [
-          GestureDetector(
-            onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) {
-                return PlaceView(measurementData.site);
-              }));
-            },
-            child: titleSection(),
+    return ListView(
+      shrinkWrap: true,
+      children: [
+        Container(
+          padding: const EdgeInsets.fromLTRB(10.0, 0.0, 8.0, 8.0),
+          decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.all(Radius.circular(5.0))),
+          child: Column(
+            children: [titleSection(), graphSection(), footerSection()],
           ),
-          graphSection(),
-          footerSection()
-        ],
-      ),
+        ),
+        const SizedBox(
+          height: 16,
+        ),
+        const Text(
+          'Wellness & Health tips',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+          ),
+        ),
+        const SizedBox(
+          height: 4,
+        ),
+        ListView(
+          shrinkWrap: true,
+          children: tips,
+        )
+      ],
     );
   }
 
@@ -125,7 +144,7 @@ class _ReadingsCardState extends State<ReadingsCard> {
             ),
             child: GestureDetector(
               onTap: () {
-                shareMeasurement(measurementData);
+                shareLocation(site);
               },
               child: Center(
                 child: Text('Share',
@@ -139,24 +158,22 @@ class _ReadingsCardState extends State<ReadingsCard> {
           const Spacer(),
           GestureDetector(
             onTap: () async {
-              await DBHelper()
-                  .updateFavouritePlaces(measurementData.site)
-                  .then((value) => {
-                        if (value)
-                          {
-                            showSnackBar(
-                                context,
-                                '${measurementData.site.getName()}'
-                                ' has been added to your favourite places')
-                          }
-                        else
-                          {
-                            showSnackBar(
-                                context,
-                                '${measurementData.site.getName()}'
-                                ' has been removed from your favourite places')
-                          }
-                      });
+              await DBHelper().updateFavouritePlaces(site).then((value) => {
+                    if (value)
+                      {
+                        showSnackBar(
+                            context,
+                            '${site.getName()}'
+                            ' has been added to your favourite places')
+                      }
+                    else
+                      {
+                        showSnackBar(
+                            context,
+                            '${site.getName()}'
+                            ' has been removed from your favourite places')
+                      }
+                  });
             },
             child: Container(
               height: 36,
@@ -186,7 +203,7 @@ class _ReadingsCardState extends State<ReadingsCard> {
     );
   }
 
-  Widget gaugeChart(Measurement measurement) {
+  Widget gaugeChart() {
     return Container(
       height: 110.0,
       width: 110.0,
@@ -212,7 +229,7 @@ class _ReadingsCardState extends State<ReadingsCard> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Text(
-                '${measurement.getPm2_5Value()}',
+                '$gaugeValue',
                 style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold),
               ),
               Text('PM2.5',
@@ -227,57 +244,36 @@ class _ReadingsCardState extends State<ReadingsCard> {
     );
   }
 
-  void getHistoricalMeasurements() async {
-    try {
-      await AirqoApiClient(context)
-          .fetchSiteHistoricalMeasurements(measurementData.site)
-          .then((value) => {
-                if (value.isNotEmpty)
-                  {
-                    if (mounted)
-                      {
-                        setState(() {
-                          historicalData = value;
-                        }),
-                        DBHelper().insertSiteHistoricalMeasurements(
-                            value, measurementData.site.id)
-                      },
-                  }
-              });
-    } catch (e) {
-      print(e);
-    }
-  }
-
   Widget graphSection() {
     var graphSeriesList = historicalChartData(historicalData);
-    return DashboardBarChart(graphSeriesList, 'Forecast');
+    return ReadingsBarChart(graphSeriesList, 'History', setHeader);
   }
 
   @override
   void initState() {
+    if (historicalData.isNotEmpty) {
+      var measurement = historicalData[historicalData.length - 1];
+      tips = createTips(measurement.getPm2_5Value());
+      gaugeValue = measurement.getPm2_5Value();
+      pmColor = pm2_5ToColor(measurement.getPm2_5Value());
+    } else {
+      gaugeValue = '';
+    }
     super.initState();
-    localFetchHistoricalData();
-    getHistoricalMeasurements();
   }
 
-  void localFetchHistoricalData() async {
+  void setHeader(var pmValue) {
     try {
-      await DBHelper()
-          .getHistoricalMeasurements(measurementData.site.id)
-          .then((measurements) => {
-                if (measurements.isNotEmpty)
-                  {
-                    if (mounted)
-                      {
-                        setState(() {
-                          historicalData = measurements;
-                        })
-                      }
-                  }
-              });
-    } on Error catch (e) {
-      print('Getting historical data locally error: $e');
+      var value = double.parse(pmValue.toString());
+      setState(() {
+        pmColor = pm2_5ToColor(value);
+        gaugeValue = value;
+        tips = createTips(value);
+      });
+    } catch (e) {
+      gaugeValue = 0.0;
+      pmColor = pm2_5ToColor(0.0);
+      print(e);
     }
   }
 
@@ -291,8 +287,7 @@ class _ReadingsCardState extends State<ReadingsCard> {
           children: [
             Container(
                 decoration: BoxDecoration(
-                    color: pm2_5ToColor(measurementData.getPm2_5Value())
-                        .withOpacity(0.1),
+                    color: pmColor.withOpacity(0.1),
                     borderRadius:
                         const BorderRadius.all(Radius.circular(15.0))),
                 child: Padding(
@@ -306,18 +301,14 @@ class _ReadingsCardState extends State<ReadingsCard> {
                             height: 10,
                             width: 10,
                             decoration: BoxDecoration(
-                                color: pm2_5ToColor(
-                                        measurementData.getPm2_5Value())
-                                    .withOpacity(0.5),
+                                color: pmColor.withOpacity(0.5),
                                 shape: BoxShape.circle),
                           ),
                           Container(
                             height: 6,
                             width: 6,
                             decoration: BoxDecoration(
-                                color: pm2_5ToColor(
-                                    measurementData.getPm2_5Value()),
-                                shape: BoxShape.circle),
+                                color: pmColor, shape: BoxShape.circle),
                           ),
                         ],
                       ),
@@ -325,7 +316,7 @@ class _ReadingsCardState extends State<ReadingsCard> {
                         width: 2,
                       ),
                       Expanded(
-                        child: Text('${measurementData.site.getName()}',
+                        child: Text('${site.getName()}',
                             softWrap: true,
                             maxLines: 1,
                             textAlign: TextAlign.start,
@@ -333,13 +324,13 @@ class _ReadingsCardState extends State<ReadingsCard> {
                             style: TextStyle(
                                 fontSize: 12,
                                 color: pm2_5TextColor(
-                                    measurementData.getPm2_5Value()),
+                                    historicalData[0].getPm2_5Value()),
                                 fontWeight: FontWeight.bold)),
                       ),
                     ],
                   ),
                 )),
-            Text(pmToString(measurementData.getPm2_5Value()),
+            Text(pmToString(gaugeValue),
                 softWrap: true,
                 maxLines: 2,
                 textAlign: TextAlign.start,
@@ -348,7 +339,7 @@ class _ReadingsCardState extends State<ReadingsCard> {
                     const TextStyle(fontSize: 24, fontWeight: FontWeight.bold))
           ],
         )),
-        gaugeChart(measurementData),
+        gaugeChart(),
       ],
     );
   }
@@ -375,4 +366,3 @@ class _ReadingsCardState extends State<ReadingsCard> {
     ];
   }
 }
-

@@ -88,6 +88,85 @@ class CloudStore {
   }
 }
 
+class CustomAuth {
+  Future<bool> isConnected() async {
+    try {
+      final result = await InternetAddress.lookup('firebase.google.com');
+      if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+        return true;
+      }
+      return false;
+    } on SocketException catch (_) {
+      return false;
+    }
+  }
+
+  Future<bool> saveAlert(Alert alert) async {
+    var hasConnection = await isConnected();
+    if (hasConnection) {
+      var alertJson = alert.toJson();
+      alertJson['platform'] = Platform.isIOS ? 'ios' : 'android';
+      await FirebaseFirestore.instance
+          .collection(CloudStorage.alertsCollection)
+          .doc(alert.getAlertDbId())
+          .set(alertJson);
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  Future<bool> signUpProfile(UserDetails userDetails) async {
+    var hasConnection = await isConnected();
+    if (hasConnection) {
+      try {
+        var savedUser = userDetails;
+        var createdUser = await FirebaseAuth.instance
+            .createUserWithEmailAndPassword(
+            email: userDetails.emailAddress,
+            password: userDetails.emailAddress);
+
+        if (createdUser.user != null) {
+          await createdUser.user!.updatePhotoURL(userDetails.photoUrl);
+          savedUser.emailAddress = createdUser.user!.email ?? '';
+          savedUser.lastName = userDetails.lastName;
+          savedUser.firstName = userDetails.firstName;
+          savedUser.phoneNumber = createdUser.user!.phoneNumber ?? '';
+          savedUser.emailAddress = createdUser.user!.email ?? '';
+          savedUser.photoUrl = createdUser.user!.photoURL ?? '';
+          // savedUser.id = createdUser.user!.uid ?? '';
+        }
+        await FirebaseFirestore.instance
+            .collection(CloudStorage.alertsCollection)
+            .doc(savedUser.id)
+            .set(savedUser.toJson());
+        return true;
+      } catch (e) {
+        print(e);
+        return false;
+      }
+    } else {
+      return false;
+    }
+  }
+
+  Future<bool> signUpWithPhoneNumber(String phoneNumber) async {
+
+
+
+    var confirmation = await FirebaseAuth.
+    instance.signInWithPhoneNumber(phoneNumber);
+
+    if(confirmation.verificationId.isEmpty){
+      return false;
+    }
+    else{
+      return true;
+    }
+
+  }
+}
+
 class NotificationService {
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
 

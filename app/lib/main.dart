@@ -2,6 +2,8 @@ import 'package:app/providers/LocalProvider.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/services/rest_api.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 // import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -24,10 +26,12 @@ Future<void> main() async {
     statusBarBrightness: Brightness.dark,
     statusBarIconBrightness: Brightness.dark,
     systemNavigationBarDividerColor: ColorConstants.appBodyColor,
-    systemNavigationBarIconBrightness: Brightness.dark,
+    // systemNavigationBarIconBrightness: Brightness.dark,
   ));
 
   WidgetsFlutterBinding.ensureInitialized();
+
+  await Firebase.initializeApp();
 
   // await Firebase.initializeApp().then((value) => {
   //       // FirebaseMessaging.onBackgroundMessage(backgroundMessageHandler),

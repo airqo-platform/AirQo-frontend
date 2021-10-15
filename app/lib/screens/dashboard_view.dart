@@ -126,7 +126,7 @@ class _DashboardViewState extends State<DashboardView> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     const SizedBox(
-                      height: 10,
+                      height: 20,
                     ),
                     topBar(),
                     Expanded(

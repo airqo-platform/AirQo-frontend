@@ -1,6 +1,7 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/site.dart';
 import 'package:app/services/rest_api.dart';
+import 'package:app/widgets/place_readings_card.dart';
 import 'package:app/widgets/readings_card.dart';
 import 'package:app/widgets/text_fields.dart';
 import 'package:app/widgets/tips.dart';
@@ -226,44 +227,11 @@ class _WeeklyViewState extends State<WeeklyView> with TickerProviderStateMixin {
           ),
         );
       } else {
-        data = ListView(
-          shrinkWrap: true,
-          children: [
-            ReadingsCardV2(site, measurements),
-            SizedBox(
-              height: 16,
-            ),
-            Text(
-              'Wellness & Health tips',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-              ),
-            ),
-            SizedBox(
-              height: 4,
-            ),
-            TipCard(),
-            SizedBox(
-              height: 8,
-            ),
-            TipCard(),
-            SizedBox(
-              height: 8,
-            ),
-            TipCard(),
-            SizedBox(
-              height: 8,
-            ),
-            TipCard(),
-          ],
-        );
-      }
-
-      if (mounted) {
-        setState(() {
-          placeHolders[dateIndex] = data;
-        });
+        if (mounted) {
+          setState(() {
+            placeHolders[dateIndex] = PlaceReadingsCard(site, measurements);
+          });
+        }
       }
     }
   }

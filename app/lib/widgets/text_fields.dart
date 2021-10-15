@@ -49,23 +49,24 @@ Widget inputField(String placeholder) {
   );
 }
 
-Widget optField(first, last, context) {
+Widget optField(position, context, callbackFn) {
   return Container(
-      height: 64,
-      width: 64,
+      height: 50,
+      width: 50,
       alignment: Alignment.center,
       decoration: BoxDecoration(
           color: const Color(0xff8D8D8D).withOpacity(0.1),
           borderRadius: const BorderRadius.all(Radius.circular(10.0))),
       child: Center(
-        child: TextField(
+        child: TextFormField(
           autofocus: true,
           textAlignVertical: TextAlignVertical.center,
           onChanged: (value) {
-            if (value.length == 1 && last == false) {
+            callbackFn(value, position);
+            if (value.length == 1 && position != 5) {
               FocusScope.of(context).nextFocus();
             }
-            if (value.isEmpty && first == false) {
+            if (value.isEmpty && position != 0) {
               FocusScope.of(context).previousFocus();
             }
           },
@@ -73,7 +74,7 @@ Widget optField(first, last, context) {
           readOnly: false,
           textAlign: TextAlign.center,
           style: const TextStyle(
-            fontSize: 24,
+            fontSize: 20,
           ),
           keyboardType: TextInputType.number,
           maxLength: 1,
@@ -98,13 +99,22 @@ Widget optField(first, last, context) {
       ));
 }
 
-Widget phoneInputField(String placeholder) {
-  return TextField(
+Widget phoneInputField(String placeholder, valueChange) {
+  return TextFormField(
     autofocus: true,
     enableSuggestions: false,
     cursorWidth: 1,
     cursorColor: ColorConstants.appColorBlue,
     keyboardType: TextInputType.number,
+    onChanged: (text){
+      valueChange(text);
+    },
+    validator: (value) {
+      if (value == null || value.isEmpty) {
+        return 'Please enter your phone number';
+      }
+      return null;
+    },
     decoration: InputDecoration(
       prefixText: '+256(0) ',
       focusedBorder: OutlineInputBorder(
