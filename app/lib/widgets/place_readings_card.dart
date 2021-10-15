@@ -3,11 +3,8 @@ import 'dart:math';
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/chartData.dart';
 import 'package:app/models/historicalMeasurement.dart';
-import 'package:app/models/measurement.dart';
 import 'package:app/models/site.dart';
-import 'package:app/screens/place_view.dart';
 import 'package:app/services/local_storage.dart';
-import 'package:app/services/rest_api.dart';
 import 'package:app/utils/data_formatter.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/pm.dart';
@@ -16,8 +13,6 @@ import 'package:app/widgets/readings_dashboard.dart';
 import 'package:app/widgets/tips.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
-
-import 'dashboard_measurements.dart';
 
 class GaugeSegment {
   final String segment;

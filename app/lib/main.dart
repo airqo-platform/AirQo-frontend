@@ -2,7 +2,6 @@ import 'package:app/providers/LocalProvider.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/services/rest_api.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 // import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';

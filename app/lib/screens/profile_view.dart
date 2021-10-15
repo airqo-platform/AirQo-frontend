@@ -4,7 +4,6 @@ import 'package:app/screens/signup_page.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/widgets/text_fields.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import 'maps_view.dart';
 

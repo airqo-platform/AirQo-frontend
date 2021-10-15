@@ -6,7 +6,6 @@ import 'package:app/models/measurement.dart';
 import 'package:app/models/predict.dart';
 import 'package:app/models/site.dart';
 import 'package:app/models/story.dart';
-import 'package:app/screens/place_view.dart';
 import 'package:app/screens/search_page.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/services/native_api.dart';

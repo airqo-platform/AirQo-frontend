@@ -2,10 +2,10 @@ import 'package:app/constants/app_constants.dart';
 import 'package:app/models/site.dart';
 import 'package:app/services/rest_api.dart';
 import 'package:app/widgets/place_readings_card.dart';
-import 'package:app/widgets/readings_card.dart';
 import 'package:app/widgets/text_fields.dart';
-import 'package:app/widgets/tips.dart';
 import 'package:flutter/material.dart';
+
+import 'loading.dart';
 
 class WeeklyView extends StatefulWidget {
   Site site;
@@ -21,48 +21,13 @@ class _WeeklyViewState extends State<WeeklyView> with TickerProviderStateMixin {
   Site site;
   int currentIndex = 0;
   List<Widget> placeHolders = [
-    Center(
-        child: Container(
-      height: 50,
-      width: 50,
-      child: const CircularProgressIndicator(),
-    )),
-    Center(
-        child: Container(
-      height: 50,
-      width: 50,
-      child: const CircularProgressIndicator(),
-    )),
-    Center(
-        child: Container(
-      height: 50,
-      width: 50,
-      child: const CircularProgressIndicator(),
-    )),
-    Center(
-        child: Container(
-      height: 50,
-      width: 50,
-      child: const CircularProgressIndicator(),
-    )),
-    Center(
-        child: Container(
-      height: 50,
-      width: 50,
-      child: const CircularProgressIndicator(),
-    )),
-    Center(
-        child: Container(
-      height: 50,
-      width: 50,
-      child: const CircularProgressIndicator(),
-    )),
-    Center(
-        child: Container(
-      height: 50,
-      width: 50,
-      child: const CircularProgressIndicator(),
-    ))
+    const LoadingAnimation(),
+    const LoadingAnimation(),
+    const LoadingAnimation(),
+    const LoadingAnimation(),
+    const LoadingAnimation(),
+    const LoadingAnimation(),
+    const LoadingAnimation(),
   ];
 
   _WeeklyViewState(this.site);

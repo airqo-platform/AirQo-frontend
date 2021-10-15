@@ -95,19 +95,17 @@ class CodeVerificationScreenState extends State<CodeVerificationScreen> {
       }));
     });
   }
+
   @override
   void initState() {
     // initialize();
     super.initState();
   }
 
-  void setCode(value, position){
-    switch(position){
+  void setCode(value, position) {
+    switch (position) {
       case 0:
-        setState(() {
-
-        });
+        setState(() {});
     }
-
   }
 }

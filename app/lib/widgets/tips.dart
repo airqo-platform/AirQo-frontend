@@ -1,19 +1,18 @@
 import 'package:app/constants/app_constants.dart';
-import 'package:app/models/historicalMeasurement.dart';
-import 'package:app/models/measurement.dart';
 import 'package:app/utils/pm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
-
-List<Widget> createTips(double value){
+List<Widget> createTips(double value) {
   var tips = getTips(value);
 
   var tipsWidgets = <Widget>[];
 
-  for(var tip in tips){
+  for (var tip in tips) {
     tipsWidgets
-      ..add(TipCard(tip.header, tip.body),)
+      ..add(
+        TipCard(tip.header, tip.body),
+      )
       ..add(const SizedBox(
         height: 8,
       ));
@@ -67,7 +66,7 @@ class TipCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       maxLines: 2,
                       style:
-                      TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                     ),
                     Text(
                       body,

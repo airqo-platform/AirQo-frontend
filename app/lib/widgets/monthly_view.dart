@@ -2,11 +2,11 @@ import 'package:app/constants/app_constants.dart';
 import 'package:app/models/site.dart';
 import 'package:app/services/rest_api.dart';
 import 'package:app/widgets/place_readings_card.dart';
-import 'package:app/widgets/readings_card.dart';
 import 'package:app/widgets/text_fields.dart';
-import 'package:app/widgets/tips.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+
+import 'loading.dart';
 
 class MonthlyView extends StatefulWidget {
   Site site;
@@ -122,12 +122,13 @@ class _MonthlyViewState extends State<MonthlyView>
                   }
                 else
                   {
-                    if(mounted){
-                      setState(() {
-                        placeHolders[dateIndex] =
-                            PlaceReadingsCard(site, measurements);
-                      }),
-                    }
+                    if (mounted)
+                      {
+                        setState(() {
+                          placeHolders[dateIndex] =
+                              PlaceReadingsCard(site, measurements);
+                        }),
+                      }
                   }
               });
     }
@@ -138,12 +139,9 @@ class _MonthlyViewState extends State<MonthlyView>
     var now = DateTime.now();
     var lastDayOfMonth = DateTime(now.year, now.month + 1, 0);
     for (var dateIndex = 0; dateIndex <= lastDayOfMonth.day; dateIndex++) {
-      days.add(Center(
-          child: Container(
-        height: 50,
-        width: 50,
-        child: const CircularProgressIndicator(),
-      )));
+      days.add(
+        const LoadingAnimation(),
+      );
     }
     return days;
   }

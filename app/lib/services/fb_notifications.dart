@@ -123,8 +123,8 @@ class CustomAuth {
         var savedUser = userDetails;
         var createdUser = await FirebaseAuth.instance
             .createUserWithEmailAndPassword(
-            email: userDetails.emailAddress,
-            password: userDetails.emailAddress);
+                email: userDetails.emailAddress,
+                password: userDetails.emailAddress);
 
         if (createdUser.user != null) {
           await createdUser.user!.updatePhotoURL(userDetails.photoUrl);
@@ -151,19 +151,14 @@ class CustomAuth {
   }
 
   Future<bool> signUpWithPhoneNumber(String phoneNumber) async {
+    var confirmation =
+        await FirebaseAuth.instance.signInWithPhoneNumber(phoneNumber);
 
-
-
-    var confirmation = await FirebaseAuth.
-    instance.signInWithPhoneNumber(phoneNumber);
-
-    if(confirmation.verificationId.isEmpty){
+    if (confirmation.verificationId.isEmpty) {
       return false;
-    }
-    else{
+    } else {
       return true;
     }
-
   }
 }
 

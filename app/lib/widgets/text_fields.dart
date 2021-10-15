@@ -106,7 +106,7 @@ Widget phoneInputField(String placeholder, valueChange) {
     cursorWidth: 1,
     cursorColor: ColorConstants.appColorBlue,
     keyboardType: TextInputType.number,
-    onChanged: (text){
+    onChanged: (text) {
       valueChange(text);
     },
     validator: (value) {

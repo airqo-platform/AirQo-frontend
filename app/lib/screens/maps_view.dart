@@ -106,7 +106,6 @@ class _MapViewState extends State<MapView> {
             if (regionSites.isEmpty && !isSearching) regionsList(),
             if (regionSites.isNotEmpty && !isSearching) sitesList(),
             if (isSearching) searchResultsList(),
-
           ],
         ));
   }
