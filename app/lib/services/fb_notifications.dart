@@ -5,13 +5,19 @@ import 'package:app/models/alert.dart';
 import 'package:app/models/site.dart';
 import 'package:app/models/topicData.dart';
 import 'package:app/models/userDetails.dart';
+import 'package:app/utils/dialogs.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'local_notifications.dart';
 
 class CloudStore {
+  FirebaseFirestore _firestore;
+
+  CloudStore(this._firestore);
+
   Future<bool> deleteAlert(Alert alert) async {
     var hasConnection = await isConnected();
     if (hasConnection) {
@@ -43,7 +49,7 @@ class CloudStore {
     if (hasConnection) {
       var alertJson = alert.toJson();
       alertJson['platform'] = Platform.isIOS ? 'ios' : 'android';
-      await FirebaseFirestore.instance
+      await _firestore
           .collection(CloudStorage.alertsCollection)
           .doc(alert.getAlertDbId())
           .set(alertJson);
@@ -75,7 +81,7 @@ class CloudStore {
         }
         await FirebaseFirestore.instance
             .collection(CloudStorage.alertsCollection)
-            .doc(savedUser.id)
+            .doc(savedUser.userId)
             .set(savedUser.toJson());
         return true;
       } catch (e) {
@@ -89,6 +95,38 @@ class CloudStore {
 }
 
 class CustomAuth {
+  final FirebaseAuth _firebaseAuth;
+
+  CustomAuth(this._firebaseAuth);
+
+  String getDisplayName() {
+    if (_firebaseAuth.currentUser == null) {
+      return 'Guest';
+    }
+    return _firebaseAuth.currentUser!.displayName ?? 'Guest';
+  }
+
+  String getId() {
+    if (!isLoggedIn()) {
+      throw Exception('Not logged in');
+    }
+    return _firebaseAuth.currentUser!.uid;
+  }
+
+  Future<UserDetails> getProfile() async {
+    var _preferences = await SharedPreferences.getInstance();
+
+    var userDetails = UserDetails.initialize()
+      ..userId = _preferences.getString('userId') ?? ''
+      ..firstName = _preferences.getString('firstName') ?? ''
+      ..lastName = _preferences.getString('lastName') ?? ''
+      ..phoneNumber = _preferences.getString('phoneNumber') ?? ''
+      ..emailAddress = _preferences.getString('emailAddress') ?? ''
+      ..photoUrl = _preferences.getString('photoUrl') ?? '';
+
+    return userDetails;
+  }
+
   Future<bool> isConnected() async {
     try {
       final result = await InternetAddress.lookup('firebase.google.com');
@@ -99,6 +137,27 @@ class CustomAuth {
     } on SocketException catch (_) {
       return false;
     }
+  }
+
+  bool isLoggedIn() {
+    return _firebaseAuth.currentUser == null ? false : true;
+  }
+
+  Future<void> logIn(AuthCredential authCredential) async {
+    await _firebaseAuth.signInWithCredential(authCredential);
+  }
+
+  Future<void> logOut() async {
+    var _preferences = await SharedPreferences.getInstance();
+
+    await _firebaseAuth.signOut().then((value) => {
+          _preferences.remove('firstName'),
+          _preferences.remove('lastName'),
+          _preferences.remove('phoneNumber'),
+          _preferences.remove('emailAddress'),
+          _preferences.remove('photoUrl'),
+          _preferences.remove('userId'),
+        });
   }
 
   Future<bool> saveAlert(Alert alert) async {
@@ -138,7 +197,7 @@ class CustomAuth {
         }
         await FirebaseFirestore.instance
             .collection(CloudStorage.alertsCollection)
-            .doc(savedUser.id)
+            .doc(savedUser.userId)
             .set(savedUser.toJson());
         return true;
       } catch (e) {
@@ -159,6 +218,62 @@ class CustomAuth {
     } else {
       return true;
     }
+  }
+
+  Future<void> updateProfile(UserDetails userDetails) async {
+    var hasConnection = await isConnected();
+    if (hasConnection) {
+      var firebaseUser = _firebaseAuth.currentUser;
+      if (firebaseUser == null) {
+        throw Exception('You are not signed in');
+      }
+      await firebaseUser.updateDisplayName(userDetails.firstName);
+      await firebaseUser.updatePhotoURL(userDetails.photoUrl);
+      // await firebaseUser.updateEmail(userDetails.emailAddress);
+
+      var _preferences = await SharedPreferences.getInstance();
+      await _preferences.setString('firstName', userDetails.firstName);
+      await _preferences.setString('lastName', userDetails.lastName);
+      await _preferences.setString('phoneNumber', userDetails.phoneNumber);
+      await _preferences.setString('emailAddress', userDetails.emailAddress);
+      await _preferences.setString('photoUrl', userDetails.photoUrl);
+      await _preferences.setString('userId', firebaseUser.uid);
+
+      userDetails.userId = firebaseUser.uid;
+
+      var _userJson = userDetails.toJson();
+      await FirebaseFirestore.instance
+          .collection(CloudStorage.usersCollection)
+          .doc(firebaseUser.uid)
+          .set(_userJson);
+    } else {
+      throw Exception(ErrorMessages.timeoutException);
+    }
+  }
+
+  Future<void> verifyPhone(phoneNumber, context, callBackFn) async {
+    await _firebaseAuth.verifyPhoneNumber(
+      phoneNumber: '+256$phoneNumber',
+      verificationCompleted: (PhoneAuthCredential credential) {},
+      verificationFailed: (FirebaseAuthException e) async {
+        if (e.code == 'invalid-phone-number') {
+          print('The provided'
+              ' phone number is not valid.');
+          await showSnackBar(
+              context,
+              'The provided phone '
+              'number is not valid.');
+        } else {
+          await showSnackBar(context, '${e.toString()}');
+        }
+      },
+      codeSent: (String verificationId, int? resendToken) async {
+        callBackFn(verificationId);
+      },
+      codeAutoRetrievalTimeout: (String verificationId) async {
+        await showSnackBar(context, 'codeAutoRetrievalTimeout');
+      },
+    );
   }
 }
 

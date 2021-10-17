@@ -23,6 +23,7 @@ List<Widget> createTips(double value) {
 class TipCard extends StatelessWidget {
   final String header;
   final String body;
+
   const TipCard(this.header, this.body, {Key? key}) : super(key: key);
 
   @override

@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 class AppConfig {
   static final String _androidApiKey = googleKey;
 
+  static final String imageUploadApiKey = imageApiKey;
+
   static final String _iOSApiKey = iosKey;
 
   static final String googleApiKey =
@@ -31,6 +33,8 @@ class AppConfig {
 
 class CloudStorage {
   static String get alertsCollection => alertsDb;
+
+  static String get usersCollection => usersDb;
 }
 
 class ColorConstants {

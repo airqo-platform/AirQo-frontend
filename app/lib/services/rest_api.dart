@@ -226,7 +226,11 @@ class AirqoApiClient {
 
     var uploadStr = 'data:image/$type;base64,$file';
     try {
-      var body = {'file': uploadStr, 'upload_preset': 'mobile_uploads'};
+      var body = {
+        'file': uploadStr,
+        'upload_preset': 'mobile_uploads',
+        'api_key': AppConfig.imageUploadApiKey
+      };
 
       final response = await http.post(
           Uri.parse('${AirQoUrls().imageUploadUrl}'),

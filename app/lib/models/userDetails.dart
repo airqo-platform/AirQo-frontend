@@ -5,14 +5,14 @@ part 'userDetails.g.dart';
 @JsonSerializable()
 class UserDetails {
   String firstName;
-  String id;
+  String userId;
   String lastName;
   String emailAddress;
   String phoneNumber;
   String device;
   String photoUrl;
 
-  UserDetails(this.firstName, this.id, this.lastName, this.emailAddress,
+  UserDetails(this.firstName, this.userId, this.lastName, this.emailAddress,
       this.phoneNumber, this.device, this.photoUrl);
 
   // @JsonKey(ignore: true)
@@ -49,4 +49,20 @@ class UserDetails {
   static String dbPhotoUrl() => 'photoUrl';
 
   static String dropTableStmt() => 'DROP TABLE IF EXISTS ${dbName()}';
+
+  static List<String> getNames(String fullName) {
+    var namesArray = fullName.split(' ');
+    if (namesArray.isEmpty) {
+      return ['', ''];
+    }
+    if (namesArray.length >= 2) {
+      return [namesArray.first, namesArray[1]];
+    } else {
+      return [namesArray.first, ''];
+    }
+  }
+
+  static UserDetails initialize() {
+    return UserDetails('', '', '', '', '', '', '');
+  }
 }

@@ -1,27 +1,28 @@
+import 'dart:io';
+
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/userDetails.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/widgets/custom_widgets.dart';
-import 'package:app/widgets/text_fields.dart';
+import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 import 'maps_view.dart';
 
 class SignUpPage extends StatefulWidget {
-  UserDetails userDetails;
-
-  SignUpPage(this.userDetails, {Key? key}) : super(key: key);
+  SignUpPage({Key? key}) : super(key: key);
 
   @override
-  _SignUpPageState createState() => _SignUpPageState(this.userDetails);
+  _SignUpPageState createState() => _SignUpPageState();
 }
 
 class _SignUpPageState extends State<SignUpPage> {
   final _formKey = GlobalKey<FormState>();
-  UserDetails userDetails;
+  UserDetails userDetails = UserDetails.initialize();
 
-  _SignUpPageState(this.userDetails);
+  _SignUpPageState();
 
   @override
   Widget build(BuildContext context) {
@@ -52,44 +53,44 @@ class _SignUpPageState extends State<SignUpPage> {
                     )
                   ],
                 ),
-                profilePicRow(),
+                profilePicSection(),
                 const SizedBox(
                   height: 40,
                 ),
 
-                Text(
-                  'Email',
-                  style: TextStyle(
-                      fontSize: 12, color: ColorConstants.inactiveColor),
-                ),
-                const SizedBox(
-                  height: 4,
-                ),
-                TextFormField(
-                  initialValue: userDetails.emailAddress,
-                  autofocus: true,
-                  enableSuggestions: false,
-                  cursorWidth: 1,
-                  cursorColor: ColorConstants.appColorBlue,
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: formFieldsDecoration(),
-                  onChanged: (text) {
-                    userDetails.emailAddress = text;
-                    userDetails.id = text;
-                  },
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your email address';
-                    }
-                    return value.isValidEmail()
-                        ? null
-                        : 'Please enter a'
-                            ' valid email address';
-                  },
-                ),
-                const SizedBox(
-                  height: 16,
-                ),
+                // Text(
+                //   'Email',
+                //   style: TextStyle(
+                //       fontSize: 12, color: ColorConstants.inactiveColor),
+                // ),
+                // const SizedBox(
+                //   height: 4,
+                // ),
+                // TextFormField(
+                //   initialValue: userDetails.emailAddress,
+                //   autofocus: true,
+                //   enableSuggestions: false,
+                //   cursorWidth: 1,
+                //   cursorColor: ColorConstants.appColorBlue,
+                //   keyboardType: TextInputType.emailAddress,
+                //   decoration: formFieldsDecoration(),
+                //   onChanged: (text) {
+                //     userDetails.emailAddress = text;
+                //     userDetails.userId = text;
+                //   },
+                //   validator: (value) {
+                //     if (value == null || value.isEmpty) {
+                //       return 'Please enter your email address';
+                //     }
+                //     return value.isValidEmail()
+                //         ? null
+                //         : 'Please enter a'
+                //             ' valid email address';
+                //   },
+                // ),
+                // const SizedBox(
+                //   height: 16,
+                // ),
 
                 Text(
                   'Phone Number',
@@ -225,8 +226,77 @@ class _SignUpPageState extends State<SignUpPage> {
 
   @override
   void initState() {
-    initialize();
     super.initState();
+    initialize();
+  }
+
+  Widget profilePicSection() {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Stack(
+          alignment: AlignmentDirectional.center,
+          children: [
+            userDetails.photoUrl == ''
+                ? RotationTransition(
+                    turns: const AlwaysStoppedAnimation(-5 / 360),
+                    child: Container(
+                      padding: const EdgeInsets.all(2.0),
+                      decoration: BoxDecoration(
+                          color: ColorConstants.appPicColor,
+                          shape: BoxShape.rectangle,
+                          borderRadius:
+                              const BorderRadius.all(Radius.circular(35.0))),
+                      child: Container(
+                        height: 88,
+                        width: 88,
+                        color: Colors.transparent,
+                      ),
+                    ),
+                  )
+                : CircleAvatar(
+                    radius: 44,
+                    backgroundColor: ColorConstants.appPicColor,
+                    foregroundColor: ColorConstants.appPicColor,
+                    backgroundImage: FileImage(File(userDetails.photoUrl)),
+                  ),
+            if (userDetails.photoUrl == '')
+              const Text(
+                'A',
+                style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    fontSize: 30),
+              ),
+            Positioned(
+                bottom: 0,
+                right: 0,
+                child: GestureDetector(
+                  onTap: _getFromGallery,
+                  child: Container(
+                    padding: const EdgeInsets.all(2.0),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.white),
+                      color: ColorConstants.appColorBlue,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.add,
+                      size: 22,
+                      color: Colors.white,
+                    ),
+                    // child: const FaIcon(
+                    //   FontAwesomeIcons.plus,
+                    //   size: 18,
+                    //   color: Colors.white,
+                    // ),
+                  ),
+                )),
+          ],
+        ),
+      ],
+    );
   }
 
   Widget settingsSection() {
@@ -351,6 +421,36 @@ class _SignUpPageState extends State<SignUpPage> {
     );
   }
 
+  Future<void> takePhoto() async {
+    // Obtain a list of the available cameras on the phone.
+    final cameras = await availableCameras();
+
+    // Get a specific camera from the list of available cameras.
+    if (cameras.isEmpty) {
+      await showSnackBar(context, 'Could not open camera');
+      return;
+    }
+
+    var camera = cameras.first;
+    var _controller = CameraController(
+      camera,
+      ResolutionPreset.high,
+    );
+
+    try {
+      await _controller.initialize();
+
+      final image = await _controller.takePicture();
+
+      setState(() {
+        userDetails.photoUrl = image.path;
+      });
+      print(image.path);
+    } catch (e) {
+      print(e);
+    }
+  }
+
   Widget topTabs() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -362,6 +462,33 @@ class _SignUpPageState extends State<SignUpPage> {
         OutlinedButton(onPressed: () {}, child: Text('Favourite')),
       ],
     );
+  }
+
+  /// Get from Camera
+  void _getFromCamera() async {
+    var pickedFile = await ImagePicker().getImage(
+      source: ImageSource.camera,
+      maxWidth: 1800,
+      maxHeight: 1800,
+    );
+    if (pickedFile != null) {
+      setState(() {
+        userDetails.photoUrl = pickedFile.path;
+      });
+    }
+  }
+
+  void _getFromGallery() async {
+    var pickedFile = await ImagePicker().getImage(
+      source: ImageSource.gallery,
+      maxWidth: 1800,
+      maxHeight: 1800,
+    );
+    if (pickedFile != null) {
+      setState(() {
+        userDetails.photoUrl = pickedFile.path;
+      });
+    }
   }
 }
 

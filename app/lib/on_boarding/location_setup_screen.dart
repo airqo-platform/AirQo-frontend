@@ -1,5 +1,6 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/on_boarding/setup_complete_screeen.dart';
+import 'package:app/services/native_api.dart';
 import 'package:app/widgets/buttons.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -19,7 +20,7 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
       child: Center(
         child: Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
           const SizedBox(
-            height: 104,
+            height: 140,
           ),
           locationIcon(143.0, 143.0),
           const SizedBox(
@@ -40,7 +41,7 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 12, color: Colors.black),
           ),
-          Spacer(),
+          const Spacer(),
           GestureDetector(
             onTap: () {
               Navigator.pushAndRemoveUntil(context,
@@ -55,12 +56,18 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
           ),
           GestureDetector(
             onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) {
-                return SetUpCompleteScreen();
-              }));
+              LocationService().getLocation().then((value) => {
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (context) {
+                      return SetUpCompleteScreen();
+                    }))
+                  });
+              // Navigator.push(context, MaterialPageRoute(builder: (context) {
+              //   return SetUpCompleteScreen();
+              // }));
             },
             child: Text(
-              'Remind me later',
+              'No, thanks',
               textAlign: TextAlign.center,
               style: TextStyle(
                   fontSize: 14,

@@ -25,13 +25,27 @@ Widget emailInputField(String placeholder) {
   );
 }
 
-Widget inputField(String placeholder) {
-  return TextField(
+Widget nameInputField(String placeholder, maxLength, callbackFn) {
+  var controller = TextEditingController();
+  return TextFormField(
     autofocus: true,
     enableSuggestions: false,
     cursorWidth: 1,
     cursorColor: ColorConstants.appColorBlue,
     keyboardType: TextInputType.name,
+    onChanged: (value) {
+      callbackFn(value);
+    },
+    validator: (value) {
+      if (value == null || value.isEmpty) {
+        return 'Please enter your name';
+      }
+
+      if (value.length > maxLength) {
+        return 'Maximum number of characters is 15';
+      }
+      return null;
+    },
     decoration: InputDecoration(
       focusedBorder: OutlineInputBorder(
           borderSide:
@@ -44,15 +58,20 @@ Widget inputField(String placeholder) {
           borderRadius: BorderRadius.circular(10.0),
           gapPadding: 2.0),
       hintText: placeholder,
-      suffixIcon: textInputCloseButton(),
+      suffixIcon: GestureDetector(
+        onTap: () {
+          controller.text = '';
+        },
+        child: textInputCloseButton(),
+      ),
     ),
   );
 }
 
 Widget optField(position, context, callbackFn) {
   return Container(
-      height: 50,
-      width: 50,
+      height: 45,
+      width: 45,
       alignment: Alignment.center,
       decoration: BoxDecoration(
           color: const Color(0xff8D8D8D).withOpacity(0.1),
@@ -74,7 +93,7 @@ Widget optField(position, context, callbackFn) {
           readOnly: false,
           textAlign: TextAlign.center,
           style: const TextStyle(
-            fontSize: 20,
+            fontSize: 17,
           ),
           keyboardType: TextInputType.number,
           maxLength: 1,
@@ -192,13 +211,13 @@ Widget profilePicRow() {
         alignment: AlignmentDirectional.center,
         children: [
           RotationTransition(
-            turns: AlwaysStoppedAnimation(-5 / 360),
+            turns: const AlwaysStoppedAnimation(-5 / 360),
             child: Container(
-              padding: EdgeInsets.all(2.0),
+              padding: const EdgeInsets.all(2.0),
               decoration: BoxDecoration(
                   color: ColorConstants.appPicColor,
                   shape: BoxShape.rectangle,
-                  borderRadius: BorderRadius.all(Radius.circular(35.0))),
+                  borderRadius: const BorderRadius.all(Radius.circular(35.0))),
               child: Container(
                 height: 88,
                 width: 88,
@@ -207,7 +226,7 @@ Widget profilePicRow() {
             ),
           ),
           const Text(
-            'NG',
+            '',
             style: TextStyle(
                 fontWeight: FontWeight.bold, color: Colors.white, fontSize: 30),
           ),
@@ -311,7 +330,7 @@ Widget tabLayout(String day, date, Color background, Color foreground) {
 
 Widget textInputCloseButton() {
   return Padding(
-    padding: EdgeInsets.all(10),
+    padding: const EdgeInsets.all(10),
     child: Container(
       decoration: BoxDecoration(
           color: ColorConstants.greyColor.withOpacity(0.7),

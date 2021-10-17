@@ -498,8 +498,9 @@ class MapWidgetState extends State<MapWidget> {
                         onPressed: () {
                           updateFavouritePlace(windowProperties.site);
                         },
-                        icon: favourites.contains(
-                                windowProperties.site.id.trim().toLowerCase())
+                        icon: favourites.contains(windowProperties.site.userId
+                                .trim()
+                                .toLowerCase())
                             ? Icon(
                                 Icons.favorite,
                                 color: ColorConstants.red,

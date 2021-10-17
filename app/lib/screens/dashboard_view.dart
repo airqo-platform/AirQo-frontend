@@ -7,6 +7,7 @@ import 'package:app/models/predict.dart';
 import 'package:app/models/site.dart';
 import 'package:app/models/story.dart';
 import 'package:app/screens/search_page.dart';
+import 'package:app/services/fb_notifications.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/services/native_api.dart';
 import 'package:app/services/rest_api.dart';
@@ -15,6 +16,7 @@ import 'package:app/utils/pm.dart';
 import 'package:app/utils/settings.dart';
 import 'package:app/widgets/readings_card.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -102,6 +104,8 @@ class _DashboardViewState extends State<DashboardView> {
   var storyIsSet = false;
   var greetings = '';
 
+  final CustomAuth _customAuth = CustomAuth(FirebaseAuth.instance);
+
   @override
   Widget build(BuildContext context) {
     if (measurementData == null) {
@@ -119,69 +123,15 @@ class _DashboardViewState extends State<DashboardView> {
               onRefresh: initialize,
               color: ColorConstants.appColor,
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 0.0),
+                padding:
+                    const EdgeInsets.only(left: 16.0, right: 16.0, top: 46),
                 child: Column(
-                  mainAxisSize: MainAxisSize.min,
+                  // mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    const SizedBox(
-                      height: 20,
-                    ),
                     topBar(),
                     Expanded(
-                      child: ListView(
-                        shrinkWrap: true,
-                        children: <Widget>[
-                          const SizedBox(
-                            height: 10,
-                          ),
-                          Text(
-                            greetings,
-                            style: const TextStyle(
-                                fontSize: 24, fontWeight: FontWeight.bold),
-                          ),
-                          const SizedBox(
-                            height: 16,
-                          ),
-                          topTabs(),
-                          const SizedBox(
-                            height: 24,
-                          ),
-                          Text(
-                            getDateTime(),
-                            style: TextStyle(
-                              color: Colors.black.withOpacity(0.6),
-                              fontSize: 14,
-                            ),
-                          ),
-                          const Text(
-                            'Daily Forecast',
-                            style: TextStyle(
-                              color: Colors.black,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 32,
-                            ),
-                          ),
-                          const SizedBox(
-                            height: 12,
-                          ),
-                          // GestureDetector(
-                          //   onTap: () {
-                          //     Navigator.push(context,
-                          //         MaterialPageRoute(builder: (context) {
-                          //       return PlaceView(measurementData.site);
-                          //     }));
-                          //   },
-                          //   child: ReadingsCard(measurementData),
-                          // ),
-                          ReadingsCard(measurementData),
-                          const SizedBox(
-                            height: 16,
-                          ),
-                          if (stories.isNotEmpty)
-                            tipsSection(stories[pickStory(stories.length)]),
-                        ],
-                      ),
+                      child: _dashboardItems(),
                     ),
                   ],
                 ),
@@ -368,11 +318,9 @@ class _DashboardViewState extends State<DashboardView> {
   }
 
   void setGreetings() {
-    getGreetings().then((value) => {
-          setState(() {
-            greetings = value;
-          })
-        });
+    setState(() {
+      greetings = getGreetings(_customAuth.getDisplayName());
+    });
   }
 
   List<Widget> showFavourites() {
@@ -483,22 +431,22 @@ class _DashboardViewState extends State<DashboardView> {
   Widget topBar() {
     return Container(
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Image.asset(
             'assets/icon/transparent_logo.png',
-            height: 58,
+            height: 40,
             width: 58,
           ),
           const Spacer(),
           Container(
+            height: 40,
+            width: 40,
             decoration: const BoxDecoration(
                 color: Colors.white,
                 shape: BoxShape.rectangle,
                 borderRadius: BorderRadius.all(Radius.circular(10.0))),
             child: IconButton(
-              iconSize: 30,
+              iconSize: 24,
               icon: Icon(
                 Icons.search,
                 color: ColorConstants.appBarTitleColor,
@@ -595,7 +543,7 @@ class _DashboardViewState extends State<DashboardView> {
                   width: 8,
                 ),
                 Text(
-                  'For you',
+                  'For You',
                   style: TextStyle(
                     color: ColorConstants.appColorBlue,
                   ),
@@ -614,7 +562,7 @@ class _DashboardViewState extends State<DashboardView> {
       var dashboardSite = prefs.getString(PrefConstant.dashboardSite) ?? '';
 
       if (dashboardSite == '') {
-        await LocationApi().getCurrentLocationReadings().then((value) => {
+        await LocationService().getCurrentLocationReadings().then((value) => {
               if (value != null)
                 {
                   prefs.setStringList(PrefConstant.lastKnownLocation,
@@ -655,6 +603,59 @@ class _DashboardViewState extends State<DashboardView> {
     } catch (e) {
       print('error getting data');
     }
+  }
+
+  Widget _dashboardItems() {
+    return MediaQuery.removePadding(
+        context: context,
+        removeTop: true,
+        child: ListView(
+          controller: ScrollController(),
+          shrinkWrap: true,
+          children: <Widget>[
+            const SizedBox(
+              height: 20,
+            ),
+            Text(
+              greetings,
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(
+              height: 16,
+            ),
+            topTabs(),
+            const SizedBox(
+              height: 24,
+            ),
+            Text(
+              getDateTime(),
+              style: TextStyle(
+                color: Colors.black.withOpacity(0.6),
+                fontSize: 12,
+              ),
+            ),
+            const Text(
+              'Current air quality',
+              style: TextStyle(
+                color: Colors.black,
+                fontWeight: FontWeight.bold,
+                fontSize: 24,
+              ),
+            ),
+            const SizedBox(
+              height: 12,
+            ),
+            ReadingsCard(measurementData),
+            const SizedBox(
+              height: 16,
+            ),
+            if (stories.isNotEmpty)
+              tipsSection(stories[pickStory(stories.length)]),
+            const SizedBox(
+              height: 12,
+            ),
+          ],
+        ));
   }
 
   void _getLatestMeasurements() async {

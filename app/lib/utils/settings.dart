@@ -49,7 +49,7 @@ class Settings {
   }
 
   Future<Measurement?> _defaultLocation() async {
-    var address = await LocationApi()
+    var address = await LocationService()
         .getAddress(AppConfig.defaultLatitude, AppConfig.defaultLongitude);
 
     var measurement = await db.getNearestMeasurement(

@@ -119,7 +119,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
 
     if (searchPlaceId == '') {
       return FutureBuilder(
-          future: LocationApi().textSearchNearestSitesV1(query),
+          future: LocationService().textSearchNearestSitesV1(query),
           builder: (context, snapshot) {
             if (snapshot.hasError) {
               print('${snapshot.error.toString()}');
@@ -260,7 +260,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
             var place = snapshot.data as Place;
 
             return FutureBuilder(
-                future: LocationApi().searchNearestSites(
+                future: LocationService().searchNearestSites(
                     place.geometry.location.lat,
                     place.geometry.location.lng,
                     place.name),

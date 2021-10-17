@@ -88,8 +88,8 @@ Widget notificationIcon(height, width) {
         right: 0,
         child: Container(
           height: 37,
-          width: 127,
-          padding: const EdgeInsets.only(left: 10, right: 10),
+          width: 120,
+          padding: const EdgeInsets.only(left: 10),
           decoration: BoxDecoration(
               color: ColorConstants.appColorBlue,
               borderRadius: const BorderRadius.all(Radius.circular(20.0))),
@@ -130,7 +130,7 @@ Widget notificationIcon(height, width) {
                       ),
                       Container(
                         height: 6,
-                        width: 38,
+                        width: 39,
                         decoration: const BoxDecoration(
                             color: Colors.white,
                             borderRadius:
@@ -145,7 +145,7 @@ Widget notificationIcon(height, width) {
                     children: [
                       Container(
                         height: 6,
-                        width: 12,
+                        width: 14,
                         decoration: const BoxDecoration(
                             color: Colors.white,
                             borderRadius:
@@ -156,7 +156,7 @@ Widget notificationIcon(height, width) {
                       ),
                       Container(
                         height: 6,
-                        width: 6,
+                        width: 8,
                         decoration: const BoxDecoration(
                             color: Colors.white,
                             borderRadius:
@@ -167,7 +167,7 @@ Widget notificationIcon(height, width) {
                       ),
                       Container(
                         height: 6,
-                        width: 19,
+                        width: 24,
                         decoration: const BoxDecoration(
                             color: Colors.white,
                             borderRadius:

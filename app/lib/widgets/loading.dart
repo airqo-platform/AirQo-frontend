@@ -105,6 +105,7 @@ class Shimmer extends StatefulWidget {
     required this.linearGradient,
     this.child,
   }) : super(key: key);
+
   @override
   ShimmerState createState() => ShimmerState();
 
@@ -117,6 +118,7 @@ class ShimmerLoading extends StatefulWidget {
   final bool isLoading;
 
   final Widget child;
+
   const ShimmerLoading({
     Key? key,
     required this.isLoading,

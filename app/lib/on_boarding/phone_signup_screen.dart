@@ -1,3 +1,6 @@
+import 'package:app/constants/app_constants.dart';
+import 'package:app/on_boarding/profile_setup_screen.dart';
+import 'package:app/services/fb_notifications.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/widgets/buttons.dart';
 import 'package:app/widgets/text_fields.dart';
@@ -17,6 +20,8 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
   var phoneNumber = '';
   var requestCode = false;
   var verifyId = '';
+  var showRequestCode = false;
+  final CustomAuth _customAuth = CustomAuth(FirebaseAuth.instance);
 
   var smsCode = <String>['', '', '', '', '', ''];
 
@@ -80,21 +85,57 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
                                 fontSize: 12,
                                 color: Colors.black.withOpacity(0.5)),
                           ),
+                          GestureDetector(
+                            onTap: () async {
+                              if (showRequestCode) {
+                                await _customAuth.verifyPhone(
+                                    phoneNumber, context, verifyPhoneFn);
+                              }
+                            },
+                            child: Text(
+                              'Resend code',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  color: showRequestCode
+                                      ? ColorConstants.appColorBlue
+                                      : Colors.black.withOpacity(0.5)),
+                            ),
+                          ),
                           const Spacer(),
                           GestureDetector(
                             onTap: () async {
-                              // Create a PhoneAuthCredential with the code
                               var credential = PhoneAuthProvider.credential(
                                   verificationId: verifyId,
                                   smsCode: smsCode.join(''));
-
-                              // Sign the user in (or link) with the credential
-                              // await auth.signInWithCredential(credential);
-
-                              // Navigator.pushAndRemoveUntil(context,
-                              //     MaterialPageRoute(builder: (context) {
-                              //       return ProfileSetupScreen();
-                              //     }), (r) => false);
+                              try {
+                                await _customAuth
+                                    .logIn(credential)
+                                    .then((value) => {
+                                          Navigator.pushReplacement(context,
+                                              MaterialPageRoute(
+                                                  builder: (context) {
+                                            return ProfileSetupScreen();
+                                          }))
+                                        });
+                              } on FirebaseAuthException catch (e) {
+                                if (e.code == 'invalid-verification-code') {
+                                  await showSnackBar(context, 'Invalid Code');
+                                }
+                                if (e.code == 'session-expired') {
+                                  await _customAuth.verifyPhone(
+                                      phoneNumber, context, verifyPhoneFn);
+                                  await showSnackBar(
+                                      context,
+                                      ''
+                                      'Your verification '
+                                      'has timed out. we have sent your'
+                                      ' another verification code');
+                                }
+                              } catch (e) {
+                                await showSnackBar(context, 'Try again later');
+                                print(e);
+                              }
                             },
                             child: nextButton('Next'),
                           ),
@@ -133,32 +174,6 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
                           const SizedBox(
                             height: 32,
                           ),
-                          // Row(
-                          //   children: <Widget>[
-                          //
-                          //     countryDropDown('Sign'),
-                          //     const SizedBox(width: 16,),
-                          //     Flexible(
-                          //       child: TextField(
-                          //         decoration: InputDecoration(
-                          //           focusedBorder: OutlineInputBorder(
-                          //             borderSide: BorderSide(
-                          //                 color: ColorConstants.appColorBlue,
-                          //                 width: 1.0),
-                          //             borderRadius: BorderRadius.circular(10.0),
-                          //           ),
-                          //           enabledBorder: OutlineInputBorder(
-                          //             borderSide: BorderSide(
-                          //                 color: ColorConstants.appColorBlue,
-                          //                 width: 1.0),
-                          //             borderRadius: BorderRadius.circular(10.0),
-                          //           ),
-                          //           hintText: '+256(0) 701000000',
-                          //         ),
-                          //       ),
-                          //     ),
-                          //   ],
-                          // ),
                           Form(
                             key: _formKey,
                             child: phoneInputField('701000000', valueChange),
@@ -178,73 +193,10 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
                           const Spacer(),
                           GestureDetector(
                             onTap: () async {
-                              setState(() {
-                                requestCode = true;
-                              });
                               if (_formKey.currentState!.validate()) {
-                                await FirebaseAuth.instance.verifyPhoneNumber(
-                                  phoneNumber: '+256$phoneNumber',
-                                  verificationCompleted:
-                                      (PhoneAuthCredential credential) async {
-                                    print('verification completed '
-                                        '${credential.smsCode}');
-                                    print(credential);
-                                    // await auth.signInWithCredential(credential);
-                                  },
-                                  verificationFailed:
-                                      (FirebaseAuthException e) async {
-                                    if (e.code == 'invalid-phone-number') {
-                                      print(
-                                          'The provided phone number is not valid.');
-                                      await showSnackBar(
-                                          context,
-                                          'The provided phone '
-                                          'number is not valid.');
-                                    } else {
-                                      await showSnackBar(
-                                          context, '${e.toString()}');
-                                    }
-                                  },
-                                  codeSent: (String verificationId,
-                                      int? resendToken) async {
-                                    // Update the UI - wait for the user to enter
-                                    // the SMS code
-                                    await showSnackBar(
-                                        context,
-                                        'We have sent a'
-                                        ' verification code to your phone number');
-                                    setState(() {
-                                      requestCode = true;
-                                      verifyId = verificationId;
-                                    });
-                                    // Create a PhoneAuthCredential with the code
-                                    var credential =
-                                        PhoneAuthProvider.credential(
-                                            verificationId: verificationId,
-                                            smsCode: smsCode.join(''));
-
-                                    // Sign the user in (or link) with the credential
-                                    // await auth.signInWithCredential(credential);
-                                  },
-                                  codeAutoRetrievalTimeout:
-                                      (String verificationId) async {
-                                    await showSnackBar(
-                                        context, 'codeAutoRetrievalTimeout');
-                                  },
-                                );
-
-                                // CustomAuth().signUpWithPhoneNumber('0$phoneNumber');
-                                // Navigator.push(context,
-                                //     MaterialPageRoute(builder: (context) {
-                                //       return VerifyCodeScreen();
-                                //     }));
+                                await _customAuth.verifyPhone(
+                                    phoneNumber, context, verifyPhoneFn);
                               }
-                              // if(_formKey.currentState!.validate()){
-                              //   Navigator.push(context,
-                              //       MaterialPageRoute(builder: (context) {
-                              //         return VerifyCodeScreen();
-                              //       }));
-                              // }
                             },
                             child: nextButton('Next'),
                           ),
@@ -259,18 +211,11 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
         ));
   }
 
-  void initialize() {
-    Future.delayed(const Duration(seconds: 8), () async {
-      await Navigator.pushReplacement(context,
-          MaterialPageRoute(builder: (context) {
-        return PhoneSignupScreen();
-      }));
-    });
-  }
+  void initialize() {}
 
   @override
   void initState() {
-    // initialize();
+    initialize();
     super.initState();
   }
 
@@ -281,6 +226,48 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
   void valueChange(text) {
     setState(() {
       phoneNumber = text;
+    });
+  }
+
+  @deprecated
+  Future<void> verifyPhone() async {
+    await FirebaseAuth.instance.verifyPhoneNumber(
+      phoneNumber: '+256$phoneNumber',
+      verificationCompleted: (PhoneAuthCredential credential) {},
+      verificationFailed: (FirebaseAuthException e) async {
+        if (e.code == 'invalid-phone-number') {
+          print('The provided'
+              ' phone number is not valid.');
+          await showSnackBar(
+              context,
+              'The provided phone '
+              'number is not valid.');
+        } else {
+          await showSnackBar(context, '${e.toString()}');
+        }
+      },
+      codeSent: (String verificationId, int? resendToken) async {
+        setState(() {
+          requestCode = true;
+          verifyId = verificationId;
+        });
+      },
+      codeAutoRetrievalTimeout: (String verificationId) async {
+        await showSnackBar(context, 'codeAutoRetrievalTimeout');
+      },
+    );
+  }
+
+  void verifyPhoneFn(verificationId) {
+    setState(() {
+      requestCode = true;
+      verifyId = verificationId;
+    });
+
+    Future.delayed(const Duration(seconds: 5), () async {
+      setState(() {
+        showRequestCode = true;
+      });
     });
   }
 }

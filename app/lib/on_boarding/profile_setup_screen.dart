@@ -1,5 +1,9 @@
+import 'package:app/models/userDetails.dart';
+import 'package:app/services/fb_notifications.dart';
+import 'package:app/utils/dialogs.dart';
 import 'package:app/widgets/buttons.dart';
 import 'package:app/widgets/text_fields.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
@@ -11,6 +15,10 @@ class ProfileSetupScreen extends StatefulWidget {
 }
 
 class ProfileSetupScreenState extends State<ProfileSetupScreen> {
+  var fullName = '';
+  final _formKey = GlobalKey<FormState>();
+  final CustomAuth _customAuth = CustomAuth(FirebaseAuth.instance);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -41,18 +49,21 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
                       const SizedBox(
                         width: 16,
                       ),
-                      Flexible(
-                        child: inputField('Enter your name  '),
+                      Form(
+                        key: _formKey,
+                        child: Flexible(
+                          child: nameInputField(
+                              'Enter your name', 15, valueChange),
+                        ),
                       ),
                     ],
                   ),
                   const Spacer(),
                   GestureDetector(
-                    onTap: () {
-                      Navigator.pushAndRemoveUntil(context,
-                          MaterialPageRoute(builder: (context) {
-                        return NotificationsSetupScreen();
-                      }), (r) => false);
+                    onTap: () async {
+                      if (_formKey.currentState!.validate()) {
+                        await saveName();
+                      }
                     },
                     child: nextButton('Let’s go'),
                   ),
@@ -68,18 +79,27 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
         ));
   }
 
-  void initialize() {
-    Future.delayed(const Duration(seconds: 8), () async {
-      await Navigator.pushReplacement(context,
-          MaterialPageRoute(builder: (context) {
-        return ProfileSetupScreen();
-      }));
-    });
+  Future<void> saveName() async {
+    try {
+      var userDetails = UserDetails.initialize()
+        ..firstName = UserDetails.getNames(fullName).first
+        ..lastName = UserDetails.getNames(fullName).last;
+
+      await _customAuth.updateProfile(userDetails).then((value) => {
+            Navigator.pushReplacement(context,
+                MaterialPageRoute(builder: (context) {
+              return NotificationsSetupScreen();
+            }))
+          });
+    } on FirebaseAuthException catch (e) {
+      await showSnackBar(context, 'Failed to update profile. Try again later');
+      print(e);
+    }
   }
 
-  @override
-  void initState() {
-    // initialize();
-    super.initState();
+  void valueChange(text) {
+    setState(() {
+      fullName = text;
+    });
   }
 }

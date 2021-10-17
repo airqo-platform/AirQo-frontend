@@ -316,7 +316,7 @@ class _MapViewState extends State<MapView> {
             setState(() {
               isSearching = true;
               searchSites =
-                  LocationApi().textSearchNearestSites(text, allSites);
+                  LocationService().textSearchNearestSites(text, allSites);
             });
           }
         },

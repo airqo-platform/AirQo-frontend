@@ -91,11 +91,11 @@ class _SearchPageState extends State<SearchPage> {
 
   Future<void> getUserLocation() async {
     try {
-      var location = await LocationApi().getLocation();
+      var location = await LocationService().getLocation();
       var latitude = location.latitude;
       var longitude = location.longitude;
       if (longitude != null && latitude != null) {
-        await LocationApi()
+        await LocationService()
             .getNearestSites(latitude, longitude)
             .then((value) => {
                   if (mounted)
@@ -300,7 +300,7 @@ class _SearchPageState extends State<SearchPage> {
                 ),
                 GestureDetector(
                   onTap: () {
-                    LocationApi()
+                    LocationService()
                         .requestLocationAccess()
                         .then((value) => {getUserLocation()});
                   },
@@ -347,7 +347,7 @@ class _SearchPageState extends State<SearchPage> {
     } else {
       setState(() {
         isSearching = true;
-        searchSites = LocationApi().textSearchNearestSites(text, allSites);
+        searchSites = LocationService().textSearchNearestSites(text, allSites);
       });
     }
   }

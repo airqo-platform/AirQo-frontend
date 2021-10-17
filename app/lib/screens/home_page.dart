@@ -35,7 +35,7 @@ class _HomePageState extends State<HomePage> {
   final List<Widget> _widgetOptions = <Widget>[
     DashboardView(),
     MapView(),
-    const ProfileView(),
+    ProfileView(),
   ];
 
   @override

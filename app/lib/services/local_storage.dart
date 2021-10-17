@@ -246,12 +246,12 @@ class DBHelper {
 
       double distanceInMeters;
 
-      var location = await LocationApi().getLocation();
+      var location = await LocationService().getLocation();
       if (location.longitude != null && location.latitude != null) {
         var latitude = location.latitude;
         var longitude = location.longitude;
         var addresses =
-            await LocationApi().getAddressGoogle(latitude!, longitude!);
+            await LocationService().getAddressGoogle(latitude!, longitude!);
         var userAddress = addresses.first;
 
         await getLatestMeasurements().then((measurements) => {
@@ -284,7 +284,7 @@ class DBHelper {
                 }
             });
 
-        await LocationApi().getLocation().then((value) => {
+        await LocationService().getLocation().then((value) => {
               getLatestMeasurements().then((measurements) => {
                     if (location.longitude != null && location.latitude != null)
                       {
@@ -563,7 +563,7 @@ class DBHelper {
       final db = await database;
 
       if (measurements.isNotEmpty) {
-        // await db.delete(Measurement.latestMeasurementsDb());
+        await db.delete(Measurement.latestMeasurementsDb());
 
         for (var measurement in measurements) {
           try {

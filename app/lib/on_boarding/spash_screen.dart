@@ -1,18 +1,24 @@
 import 'package:app/on_boarding/welcome_screen.dart';
+import 'package:app/screens/home_page.dart';
+import 'package:app/services/fb_notifications.dart';
+import 'package:app/services/local_storage.dart';
+import 'package:app/services/rest_api.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-class LogoScreen extends StatefulWidget {
+class SplashScreen extends StatefulWidget {
   @override
-  LogoScreenState createState() => LogoScreenState();
+  SplashScreenState createState() => SplashScreenState();
 }
 
-class LogoScreenState extends State<LogoScreen> {
-  int _widgetId = 1;
+class SplashScreenState extends State<SplashScreen> {
+  int _widgetId = 0;
+  final CustomAuth _customAuth = CustomAuth(FirebaseAuth.instance);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      // backgroundColor: Colors.white,
       body: AnimatedSwitcher(
         duration: const Duration(seconds: 5),
         transitionBuilder: (Widget child, Animation<double> animation) {
@@ -24,21 +30,20 @@ class LogoScreenState extends State<LogoScreen> {
   }
 
   void initialize() {
-    Future.delayed(const Duration(seconds: 2), () async {
+    _getLatestMeasurements();
+    _getStories();
+    Future.delayed(const Duration(seconds: 10), () async {
       _updateWidget();
     });
 
-    // Future.delayed(const Duration(seconds: 5), () async {
-    //   await Navigator.pushAndRemoveUntil(context,
-    //       MaterialPageRoute(builder: (context) {
-    //         return WelcomeScreen();
-    //       }), (r) => false);
-    // });
-
-    Future.delayed(const Duration(seconds: 5), () async {
+    Future.delayed(const Duration(seconds: 20), () async {
       await Navigator.pushAndRemoveUntil(context,
           MaterialPageRoute(builder: (context) {
-        return WelcomeScreen();
+        if (_customAuth.isLoggedIn()) {
+          return HomePage();
+        } else {
+          return WelcomeScreen();
+        }
       }), (r) => false);
     });
   }
@@ -51,6 +56,7 @@ class LogoScreenState extends State<LogoScreen> {
 
   Widget logoWidget() {
     return Container(
+      color: Colors.white,
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -88,33 +94,25 @@ class LogoScreenState extends State<LogoScreen> {
     );
   }
 
-  // @override
-  // Widget build(BuildContext context) {
-  //   return Scaffold(
-  //       backgroundColor: Colors.white,
-  //       body: Container(
-  //         child: Center(
-  //           child: Column(
-  //             mainAxisAlignment: MainAxisAlignment.center,
-  //             children: [
-  //               Image.asset(
-  //                 'assets/icon/airqo_logo.png',
-  //                 height: 150,
-  //                 width: 150,
-  //               ),
-  //             ],
-  //           ),
-  //         ),
-  //       ));
-  // }
+  void _getLatestMeasurements() async {
+    await AirqoApiClient(context).fetchLatestMeasurements().then((value) => {
+          if (value.isNotEmpty) {DBHelper().insertLatestMeasurements(value)}
+        });
+  }
+
+  void _getStories() {
+    AirqoApiClient(context).fetchLatestStories().then((value) => {
+          if (value.isNotEmpty) {DBHelper().insertLatestStories(value)}
+        });
+  }
 
   Widget _renderWidget() {
-    return _widgetId == 1 ? logoWidget() : taglineWidget();
+    return _widgetId == 0 ? logoWidget() : taglineWidget();
   }
 
   void _updateWidget() {
     setState(() {
-      _widgetId = _widgetId == 1 ? 2 : 1;
+      _widgetId = _widgetId == 0 ? 1 : 0;
     });
   }
 }

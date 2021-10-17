@@ -7,7 +7,7 @@ import 'package:geocoder/geocoder.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:location/location.dart';
 
-class LocationApi {
+class LocationService {
   Location location = Location();
 
   bool containsWord(String body, String term) {
@@ -42,7 +42,7 @@ class LocationApi {
       var nearestMeasurements = <Measurement>[];
       double distanceInMeters;
 
-      var location = await LocationApi().getLocation();
+      var location = await LocationService().getLocation();
       if (location.longitude != null && location.latitude != null) {
         var address = await getAddress(location.latitude!, location.longitude!);
         var nearestMeasurement;

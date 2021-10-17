@@ -1,22 +1,25 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/userDetails.dart';
 import 'package:app/screens/signup_page.dart';
-import 'package:app/services/local_storage.dart';
+import 'package:app/screens/view_profile_page.dart';
+import 'package:app/services/fb_notifications.dart';
 import 'package:app/widgets/text_fields.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import 'maps_view.dart';
 
 class ProfileView extends StatefulWidget {
-  const ProfileView({Key? key}) : super(key: key);
+  ProfileView({Key? key}) : super(key: key);
 
   @override
   _ProfileViewState createState() => _ProfileViewState();
 }
 
 class _ProfileViewState extends State<ProfileView> {
-  bool isSignup = true;
-  var userProfile;
+  var userProfile = UserDetails.initialize();
+  final CustomAuth _customAuth = CustomAuth(FirebaseAuth.instance);
+  bool isLoggedIn = false;
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +34,7 @@ class _ProfileViewState extends State<ProfileView> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  userProfile != null
+                  isLoggedIn
                       ? Expanded(
                           child: ListView(
                             shrinkWrap: true,
@@ -47,13 +50,14 @@ class _ProfileViewState extends State<ProfileView> {
                               ),
                               GestureDetector(
                                 onTap: () async {
-                                  var saved = await Navigator.push(context,
-                                      MaterialPageRoute(builder: (context) {
-                                    return SignUpPage(userProfile);
-                                  }));
-                                  if (saved != null && saved) {
-                                    await initialize();
-                                  }
+                                  // var saved = await Navigator.push(context,
+                                  //     MaterialPageRoute(builder: (context) {
+                                  //   return SignUpPage(userProfile);
+                                  // }));
+                                  // if (saved != null && saved) {
+                                  //   await initialize();
+                                  // }
+                                  await viewProfile();
                                 },
                                 child: Text(
                                   'Edit profile',
@@ -70,11 +74,11 @@ class _ProfileViewState extends State<ProfileView> {
                               const SizedBox(
                                 height: 16,
                               ),
-                              settingsSection('Settings'),
+                              cardSection('Settings', dummyFn),
                               const SizedBox(
                                 height: 16,
                               ),
-                              settingsSection('Logout'),
+                              cardSection('Logout', logOut),
                             ],
                           ),
                         )
@@ -105,7 +109,7 @@ class _ProfileViewState extends State<ProfileView> {
                               const SizedBox(
                                 height: 16,
                               ),
-                              settingsSection('Settings'),
+                              cardSection('Settings', dummyFn),
                             ],
                           ),
                         ),
@@ -114,42 +118,46 @@ class _ProfileViewState extends State<ProfileView> {
             )));
   }
 
-  Widget builds(BuildContext context) {
-    return Container(
-        color: ColorConstants.appBodyColor,
-        child: const Center(
-          child: Text('Coming Soon!'),
-        ));
+  Widget cardSection(text, callBackFn) {
+    return GestureDetector(
+      onTap: callBackFn,
+      child: Container(
+        decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.all(Radius.circular(10.0))),
+        child: ListTile(
+          leading: CustomUserAvatar(),
+          title: Text(
+            '$text',
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontSize: 16),
+          ),
+        ),
+      ),
+    );
   }
 
-  Future<void> initialize() async {
-    await DBHelper().getUserData().then((value) => {
-          if (value != null)
-            {
-              setState(() {
-                userProfile = value;
-              })
-            }
-        });
+  void dummyFn() {}
 
-    // var prefs = await SharedPreferences.getInstance();
-    // var isSignedUp = prefs.getBool(PrefConstant.isSignedUp) ?? false;
-    //
-    // if (isSignedUp) {
-    //   setState(() {
-    //     isSignup = true;
-    //   });
-    // } else {
-    //   setState(() {
-    //     isSignup = false;
-    //   });
-    // }
+  Future<void> initialize() async {
+    setState(() {
+      isLoggedIn = _customAuth.isLoggedIn();
+    });
+    await _customAuth.getProfile().then((value) => {
+          setState(() {
+            userProfile = value;
+          })
+        });
   }
 
   @override
   void initState() {
     initialize();
     super.initState();
+  }
+
+  void logOut() {
+    _customAuth.logOut().then((value) => {initialize()});
   }
 
   Widget profileSection() {
@@ -161,47 +169,20 @@ class _ProfileViewState extends State<ProfileView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          GestureDetector(
-            onTap: () async {
-              var saved = await Navigator.push(context,
-                  MaterialPageRoute(builder: (context) {
-                return SignUpPage(userProfile);
-              }));
-              if (saved != null && saved) {
-                await initialize();
-              }
-            },
-            child: settingsSection('Profile'),
-          ),
+          cardSection('Profile', viewProfile),
           Divider(
             color: ColorConstants.appBodyColor,
           ),
-          settingsSection('Favorite'),
+          cardSection('Favorite', dummyFn),
           Divider(
             color: ColorConstants.appBodyColor,
           ),
-          settingsSection('For you'),
+          cardSection('For you', dummyFn),
           Divider(
             color: ColorConstants.appBodyColor,
           ),
-          settingsSection('App Tips & Tricks'),
+          cardSection('App Tips & Tricks', dummyFn),
         ],
-      ),
-    );
-  }
-
-  Widget settingsSection(text) {
-    return Container(
-      decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.all(Radius.circular(10.0))),
-      child: ListTile(
-        leading: CustomUserAvatar(),
-        title: Text(
-          '$text',
-          overflow: TextOverflow.ellipsis,
-          style: TextStyle(fontSize: 16),
-        ),
       ),
     );
   }
@@ -244,20 +225,21 @@ class _ProfileViewState extends State<ProfileView> {
             onTap: () async {
               var saved = await Navigator.push(context,
                   MaterialPageRoute(builder: (context) {
-                return SignUpPage(UserDetails('', '', '', '', '', '', ''));
+                return SignUpPage();
               }));
               if (saved != null && saved) {
                 await initialize();
               }
             },
             child: Padding(
-              padding: EdgeInsets.only(left: 24, right: 24, bottom: 38),
+              padding: const EdgeInsets.only(left: 24, right: 24, bottom: 38),
               child: Container(
                 constraints: const BoxConstraints(minWidth: double.infinity),
                 decoration: BoxDecoration(
                     color: ColorConstants.appColorBlue,
-                    borderRadius: BorderRadius.all(Radius.circular(10.0))),
-                child: Tab(
+                    borderRadius:
+                        BorderRadius.all(const Radius.circular(10.0))),
+                child: const Tab(
                     child: Text(
                   'Sign up',
                   style: TextStyle(
@@ -315,5 +297,15 @@ class _ProfileViewState extends State<ProfileView> {
         ],
       ),
     );
+  }
+
+  Future<void> viewProfile() async {
+    var saved =
+        await Navigator.push(context, MaterialPageRoute(builder: (context) {
+      return ViewProfilePage(userProfile);
+    }));
+    if (saved != null && saved) {
+      await initialize();
+    }
   }
 }

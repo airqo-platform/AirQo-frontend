@@ -1,4 +1,5 @@
 import 'package:app/constants/app_constants.dart';
+import 'package:app/services/fb_notifications.dart';
 import 'package:app/widgets/buttons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -27,7 +28,7 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
             height: 52,
           ),
           const Text(
-            'Keep me posted',
+            'Know your air in real time',
             textAlign: TextAlign.center,
             style: TextStyle(
                 fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
@@ -36,17 +37,23 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
             height: 8,
           ),
           const Text(
-            'Allow AirQo push notifications to'
-            ' receive real-time air quality updates.',
+            'Allow AirQo push notifications to receive'
+            '\nair quality updates.',
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 12, color: Colors.black),
           ),
           const Spacer(),
           GestureDetector(
             onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) {
-                return LocationSetupScreen();
-              }));
+              NotificationService().requestPermission().then((value) => {
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (context) {
+                      return LocationSetupScreen();
+                    }))
+                  });
+              // Navigator.push(context, MaterialPageRoute(builder: (context) {
+              //   return LocationSetupScreen();
+              // }));
             },
             child: nextButton('Allow notifications'),
           ),
@@ -60,7 +67,7 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
               }));
             },
             child: Text(
-              'Remind me later',
+              'No, thanks',
               textAlign: TextAlign.center,
               style: TextStyle(
                   fontSize: 14,
@@ -74,20 +81,5 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
         ]),
       ),
     ));
-  }
-
-  void initialize() {
-    Future.delayed(const Duration(seconds: 8), () async {
-      await Navigator.pushReplacement(context,
-          MaterialPageRoute(builder: (context) {
-        return NotificationsSetupScreen();
-      }));
-    });
-  }
-
-  @override
-  void initState() {
-    // initialize();
-    super.initState();
   }
 }
