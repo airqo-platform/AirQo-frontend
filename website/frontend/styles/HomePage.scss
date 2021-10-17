@@ -1,0 +1,57 @@
+@import "lib/colors";
+
+$home-padding: 80px;
+.HomePage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1440px - 2*$home-padding;
+  height: 720px - 2*$home-padding;
+  padding: $home-padding;
+  background: $aq-blue-1;
+
+  .container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 1088px;
+    height: 520px;
+
+    .text-container {
+      width: 520px;
+
+      .text-primary {
+        display: flex;
+        align-items: center;
+        width: 520px;
+        height: 144px;
+
+        font-style: normal;
+        font-weight: bold;
+        font-size: 64px;
+        line-height: 72px;
+        color: $aq-black-1;
+      }
+
+      .text-secondary {
+        display: flex;
+        align-items: center;
+        width: 439px;
+        height: 84px;
+
+        font-style: normal;
+        font-weight: normal;
+        font-size: 20px;
+        line-height: 28px;
+        color: $aq-black-1;
+
+        margin-top: 16px;
+      }
+
+      .btn-container {
+        display: flex;
+        margin-top: 40px;
+      }
+    }
+  }
+}
