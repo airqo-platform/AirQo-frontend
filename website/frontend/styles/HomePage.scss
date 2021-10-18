@@ -2,20 +2,25 @@
 
 $home-padding: 80px;
 .HomePage {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 1440px - 2*$home-padding;
-  height: 720px - 2*$home-padding;
-  padding: $home-padding;
-  background: $aq-blue-1;
+  .intro-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    width: 1440px - 2*$home-padding;
+    height: 720px - 2*$home-padding;
+    padding: $home-padding;
+    background: $aq-blue-1;
+  }
+
 
   .container {
     display: flex;
     align-items: center;
     justify-content: space-between;
     width: 1088px;
-    height: 520px;
+    //height: 520px;
+    height: 720px - 2*$home-padding;
 
     .text-container {
       width: 520px;
@@ -54,4 +59,89 @@ $home-padding: 80px;
       }
     }
   }
+
+  .subscribe-container {
+    width: 1440px - 2*$home-padding;
+    height: 400px - 2*$home-padding;
+    padding: $home-padding;
+    background: $aq-blue-1;
+
+    .text-primary {
+      display: flex;
+      align-items: center;
+      text-align: center;
+      width: 456px;
+      height: 48px;
+
+      font-style: normal;
+      font-weight: bold;
+      font-size: 40px;
+      line-height: 48px;
+      color: $aq-blue-0;
+
+      margin: 0 auto;
+    }
+
+    .text-secondary {
+      display: flex;
+      align-items: center;
+      text-align: center;
+      width: 425px;
+      height: 52px;
+
+      font-style: normal;
+      font-weight: normal;
+      font-size: 18px;
+      line-height: 26px;
+      color: $aq-blue-0;
+
+      margin: 16px auto 40px auto;
+    }
+
+    .btn-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .input {
+      display: flex;
+      align-items: center;
+      width: 415px - 2*16px; // padding space
+      height: 53.76px - 2*16px;
+      background: $aq-white-0;
+      border-radius: 8px;
+      padding: 16px;
+
+      .text {
+        display: flex;
+        align-items: center;
+        width: 74px;
+        height: 17.92px;
+
+        font-style: normal;
+        font-weight: normal;
+        font-size: 14px;
+        line-height: 16px;
+        color: $aq-black-1;
+      }
+    }
+
+    .button {
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+      width: 168px - 2*16px;
+      height: 56px - 2*16px;
+      color: $aq-white-0;
+
+      background: $aq-blue-0;
+      border-radius: 4px;
+
+      margin-left: 16px;
+    }
+  }
+
 }
