@@ -9,6 +9,8 @@ class AppConfig {
 
   static final String imageUploadApiKey = imageApiKey;
 
+  static final String imageUploadPreset = uploadPreset;
+
   static final String _iOSApiKey = iosKey;
 
   static final String googleApiKey =

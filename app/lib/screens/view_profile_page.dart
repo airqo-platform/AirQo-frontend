@@ -1,14 +1,19 @@
+import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/userDetails.dart';
 import 'package:app/services/fb_notifications.dart';
+import 'package:app/services/rest_api.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/widgets/custom_widgets.dart';
+import 'package:app/widgets/text_fields.dart';
 import 'package:camera/camera.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:mime/mime.dart';
 
 class ViewProfilePage extends StatefulWidget {
   UserDetails userDetails;
@@ -24,6 +29,8 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
   UserDetails userDetails;
   bool updating = false;
   final CustomAuth _customAuth = CustomAuth(FirebaseAuth.instance);
+  String profilePic = '';
+  bool changeImage = false;
 
   _ViewProfilePageState(this.userDetails);
 
@@ -212,6 +219,13 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
     );
   }
 
+  @override
+  void initState() {
+    profilePic = userDetails.photoUrl;
+    super.initState();
+  }
+
+  @Deprecated('No longer used')
   Widget profilePicSection() {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -220,7 +234,7 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
         Stack(
           alignment: AlignmentDirectional.center,
           children: [
-            userDetails.photoUrl == ''
+            profilePic == ''
                 ? RotationTransition(
                     turns: const AlwaysStoppedAnimation(-5 / 360),
                     child: Container(
@@ -243,7 +257,7 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
                     foregroundColor: ColorConstants.appPicColor,
                     backgroundImage: FileImage(File(userDetails.photoUrl)),
                   ),
-            if (userDetails.photoUrl == '')
+            if (profilePic == '')
               const Text(
                 'A',
                 style: TextStyle(
@@ -314,11 +328,76 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
   Future<void> updateProfile() async {
     if (_formKey.currentState!.validate() && !updating) {
       await showSnackBar(context, 'Updating profile');
+      setState(() {
+        updating = true;
+      });
       await _customAuth.updateProfile(userDetails).then((value) => {
-            showSnackBar(context, 'Profile updated'),
-            Navigator.pop(context, true)
+            uploadPicture().then((_) => {
+                  updating = false,
+                  showSnackBar(context, 'Profile updated'),
+                  // Navigator.pop(context, true)
+                })
           });
     }
+  }
+
+  Future<void> uploadCompeteHandler(value) async {
+    setState(() {
+      updating = false;
+    });
+
+    await showSnackBar(context, 'complete');
+  }
+
+  FutureOr<String> uploadFailureHandler(var error) async {
+    setState(() {
+      updating = false;
+    });
+    await showSnackBar(context, 'Profile Picture update failed, try again');
+    await showSnackBar(context, 'failed');
+    return '';
+  }
+
+  Future<void> uploadPicture() async {
+    if (userDetails.photoUrl.isEmpty || userDetails.photoUrl == '') {
+      return;
+    }
+    var mimeType = lookupMimeType(userDetails.photoUrl);
+
+    mimeType ??= 'jpeg';
+
+    var imageBytes = await File(userDetails.photoUrl).readAsBytes();
+
+    var imageUrl = await AirqoApiClient(context)
+        .imageUpload(base64Encode(imageBytes), mimeType, userDetails.userId);
+
+    userDetails.photoUrl = imageUrl;
+    await _customAuth.updateProfile(userDetails);
+
+    print(imageUrl);
+
+    // await File(userDetails.photoUrl).readAsBytes().then((value) => {
+    //   AirqoApiClient(context)
+    //       .imageUpload(base64Encode(value), mimeType).then((value) => {
+    //         print(value)
+    //   })
+    //       // .whenComplete((value?) => {uploadCompeteHandler(value)})
+    //       .catchError(uploadFailureHandler)
+    //       // .then((value) => uploadSuccessHandler)
+    // });
+
+    // await showSnackBar(context, 'upload complete');
+  }
+
+  Future<void> uploadSuccessHandler(var value) async {
+    setState(() {
+      updating = false;
+    });
+
+    print(value);
+    userDetails.photoUrl = value;
+    await _customAuth.updateProfile(userDetails);
+    await showSnackBar(context, 'success');
   }
 
   void _getFromCamera() async {
@@ -342,7 +421,8 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
     );
     if (pickedFile != null) {
       setState(() {
-        userDetails.photoUrl = pickedFile.path;
+        profilePic = pickedFile.path;
+        changeImage = true;
       });
     }
   }

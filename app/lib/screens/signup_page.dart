@@ -1,13 +1,17 @@
+import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/userDetails.dart';
 import 'package:app/services/local_storage.dart';
+import 'package:app/services/rest_api.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:mime/mime.dart';
 
 import 'maps_view.dart';
 
@@ -21,6 +25,7 @@ class SignUpPage extends StatefulWidget {
 class _SignUpPageState extends State<SignUpPage> {
   final _formKey = GlobalKey<FormState>();
   UserDetails userDetails = UserDetails.initialize();
+  bool isUploading = false;
 
   _SignUpPageState();
 
@@ -343,7 +348,7 @@ class _SignUpPageState extends State<SignUpPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Padding(
+          const Padding(
             padding: EdgeInsets.fromLTRB(48.0, 38.0, 48.0, 0.0),
             child: Text('Personalise your \nexperience',
                 maxLines: 3,
@@ -354,7 +359,7 @@ class _SignUpPageState extends State<SignUpPage> {
                   fontWeight: FontWeight.bold,
                 )),
           ),
-          Padding(
+          const Padding(
             padding: EdgeInsets.only(left: 48.0, right: 48.0),
             child: Text(
                 'Create your account today and enjoy air quality'
@@ -366,17 +371,17 @@ class _SignUpPageState extends State<SignUpPage> {
                   fontSize: 15,
                 )),
           ),
-          SizedBox(
+          const SizedBox(
             height: 16,
           ),
           Padding(
-            padding: EdgeInsets.only(left: 24, right: 24, bottom: 38),
+            padding: const EdgeInsets.only(left: 24, right: 24, bottom: 38),
             child: Container(
               constraints: const BoxConstraints(minWidth: double.infinity),
               decoration: BoxDecoration(
                   color: ColorConstants.appColorBlue,
-                  borderRadius: BorderRadius.all(Radius.circular(10.0))),
-              child: Tab(
+                  borderRadius: const BorderRadius.all(Radius.circular(10.0))),
+              child: const Tab(
                   child: Text(
                 'Sign up',
                 style: TextStyle(
@@ -387,37 +392,6 @@ class _SignUpPageState extends State<SignUpPage> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget tabs() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        Container(
-          padding: EdgeInsets.all(8.0),
-          decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.all(Radius.circular(5.0))),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                  'Your Inflated tires could lead air pollution lead air pollution lead air pollution',
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                  ))
-            ],
-          ),
-        ),
-        SizedBox(
-          width: 16,
-        ),
-        OutlinedButton(onPressed: () {}, child: Text('Favourite')),
-      ],
     );
   }
 
@@ -451,17 +425,51 @@ class _SignUpPageState extends State<SignUpPage> {
     }
   }
 
-  Widget topTabs() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        OutlinedButton(onPressed: () {}, child: Text('Favourite')),
-        SizedBox(
-          width: 16,
-        ),
-        OutlinedButton(onPressed: () {}, child: Text('Favourite')),
-      ],
-    );
+  Future<void> uploadCompeteHandler() async {
+    setState(() {
+      isUploading = false;
+    });
+    await showSnackBar(context, 'Upload complete, thank you for sharing');
+
+    Navigator.pop(context);
+  }
+
+  FutureOr<String> uploadFailureHandler(var error) async {
+    setState(() {
+      isUploading = false;
+    });
+    await showSnackBar(context, 'Upload failed, try again');
+    return '';
+  }
+
+  Future<void> uploadPicture() async {
+    setState(() {
+      isUploading = true;
+    });
+
+    if (userDetails.photoUrl == '') {
+      return;
+    }
+    var mimeType = lookupMimeType(userDetails.photoUrl);
+
+    mimeType ??= 'jpeg';
+
+    await File(userDetails.photoUrl).readAsBytes().then((value) => {
+          AirqoApiClient(context)
+              .imageUpload(base64Encode(value), mimeType, '')
+              .whenComplete(() => {uploadCompeteHandler()})
+              .catchError(uploadFailureHandler)
+              .then((value) => uploadSuccessHandler)
+        });
+  }
+
+  Future<void> uploadSuccessHandler(var value) async {
+    setState(() {
+      isUploading = false;
+    });
+    await showSnackBar(context, 'Upload complete, thank you for sharing');
+
+    Navigator.pop(context);
   }
 
   /// Get from Camera

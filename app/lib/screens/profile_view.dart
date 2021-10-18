@@ -146,7 +146,7 @@ class _ProfileViewState extends State<ProfileView> {
     await _customAuth.getProfile().then((value) => {
           setState(() {
             userProfile = value;
-          })
+          }),
         });
   }
 
@@ -238,7 +238,7 @@ class _ProfileViewState extends State<ProfileView> {
                 decoration: BoxDecoration(
                     color: ColorConstants.appColorBlue,
                     borderRadius:
-                        BorderRadius.all(const Radius.circular(10.0))),
+                        const BorderRadius.all(Radius.circular(10.0))),
                 child: const Tab(
                     child: Text(
                   'Sign up',
@@ -260,7 +260,8 @@ class _ProfileViewState extends State<ProfileView> {
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          profilePic(40, 40, 10, 12, 17.0),
+          profilePicWidget(
+              40, 40, 10, 12, 17.0, userProfile.photoUrl, 27.0, false),
           const Spacer(),
           Container(
             padding: const EdgeInsets.all(0.0),

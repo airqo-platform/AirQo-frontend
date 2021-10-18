@@ -21,7 +21,7 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
   var requestCode = false;
   var verifyId = '';
   var showRequestCode = false;
-  var prefix = '+256(0)';
+  var prefix = '+256(0) ';
   var prefixValue = '+256';
   final CustomAuth _customAuth = CustomAuth(FirebaseAuth.instance);
   TextEditingController controller = TextEditingController();

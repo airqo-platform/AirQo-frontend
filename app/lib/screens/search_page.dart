@@ -42,26 +42,39 @@ class _SearchPageState extends State<SearchPage> {
               ],
             ),
             const SizedBox(
-              height: 10,
+              height: 32,
             ),
+            if (!isSearching && hasNearbyLocations && nearbySites.isNotEmpty)
+              Text(
+                'Locations near me',
+                textAlign: TextAlign.start,
+                style: TextStyle(
+                    color: ColorConstants.inactiveColor, fontSize: 12),
+              ),
             if (isSearching)
               Expanded(
-                child: ListView(
-                  shrinkWrap: true,
-                  children: [
-                    searchLocations(),
-                  ],
-                ),
+                child: MediaQuery.removePadding(
+                    context: context,
+                    removeTop: true,
+                    child: ListView(
+                      shrinkWrap: true,
+                      children: [
+                        searchLocations(),
+                      ],
+                    )),
               ),
             if (!isSearching && hasNearbyLocations)
               Expanded(
-                child: ListView(
-                  shrinkWrap: true,
-                  children: [
-                    if (nearbySites.isEmpty) requestLocationAccess(),
-                    if (nearbySites.isNotEmpty) nearByLocations(),
-                  ],
-                ),
+                child: MediaQuery.removePadding(
+                    context: context,
+                    removeTop: true,
+                    child: ListView(
+                      shrinkWrap: true,
+                      children: [
+                        if (nearbySites.isEmpty) requestLocationAccess(),
+                        if (nearbySites.isNotEmpty) nearByLocations(),
+                      ],
+                    )),
               ),
             if (!isSearching && !hasNearbyLocations)
               Expanded(
@@ -140,40 +153,37 @@ class _SearchPageState extends State<SearchPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(
-            height: 32,
-          ),
-          Text(
-            'Locations near me',
-            textAlign: TextAlign.start,
-            style: TextStyle(color: ColorConstants.inactiveColor, fontSize: 12),
-          ),
-          const SizedBox(
-            height: 8,
+            height: 8.0,
           ),
           Container(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.only(right: 8, bottom: 8, left: 8),
               decoration: const BoxDecoration(
                   color: Colors.white,
                   shape: BoxShape.rectangle,
                   borderRadius: BorderRadius.all(Radius.circular(10.0))),
-              child: ListView.separated(
-                  itemBuilder: (context, index) => GestureDetector(
-                        onTap: () {
-                          Navigator.push(context,
-                              MaterialPageRoute(builder: (context) {
-                            return PlaceView(nearbySites[index].site);
-                          }));
-                        },
-                        child: locationTile(nearbySites[index]),
-                      ),
-                  itemCount: nearbySites.length,
-                  separatorBuilder: (BuildContext context, int index) {
-                    return Divider(
-                      indent: 20,
-                      endIndent: 20,
-                      color: ColorConstants.appColor,
-                    );
-                  })),
+              child: MediaQuery.removePadding(
+                  context: context,
+                  removeTop: true,
+                  child: ListView.separated(
+                      controller: ScrollController(),
+                      shrinkWrap: true,
+                      itemBuilder: (context, index) => GestureDetector(
+                            onTap: () {
+                              Navigator.push(context,
+                                  MaterialPageRoute(builder: (context) {
+                                return PlaceView(nearbySites[index].site);
+                              }));
+                            },
+                            child: locationTile(nearbySites[index]),
+                          ),
+                      itemCount: nearbySites.length,
+                      separatorBuilder: (BuildContext context, int index) {
+                        return Divider(
+                          indent: 20,
+                          endIndent: 20,
+                          color: ColorConstants.appColor,
+                        );
+                      }))),
         ],
       ),
     );
@@ -223,7 +233,7 @@ class _SearchPageState extends State<SearchPage> {
                   height: 52,
                 ),
                 const Text(
-                  'Oops, we don\'t have nearby sites',
+                  'You don\'t have nearby air quality stations',
                   textAlign: TextAlign.start,
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
@@ -387,11 +397,8 @@ class _SearchPageState extends State<SearchPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(
-            height: 8,
-          ),
           Container(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
               decoration: const BoxDecoration(
                   color: Colors.white,
                   shape: BoxShape.rectangle,
@@ -443,26 +450,29 @@ class _SearchPageState extends State<SearchPage> {
                         ],
                       ),
                     )
-                  : ListView.separated(
-                      controller: ScrollController(),
-                      shrinkWrap: true,
-                      itemBuilder: (context, index) => GestureDetector(
-                            onTap: () {
-                              Navigator.push(context,
-                                  MaterialPageRoute(builder: (context) {
-                                return PlaceView(searchSites[index].site);
-                              }));
-                            },
-                            child: locationTile(searchSites[index]),
-                          ),
-                      itemCount: searchSites.length,
-                      separatorBuilder: (BuildContext context, int index) {
-                        return Divider(
-                          indent: 20,
-                          endIndent: 20,
-                          color: ColorConstants.appColor,
-                        );
-                      })),
+                  : MediaQuery.removePadding(
+                      context: context,
+                      removeTop: true,
+                      child: ListView.separated(
+                          controller: ScrollController(),
+                          shrinkWrap: true,
+                          itemBuilder: (context, index) => GestureDetector(
+                                onTap: () {
+                                  Navigator.push(context,
+                                      MaterialPageRoute(builder: (context) {
+                                    return PlaceView(searchSites[index].site);
+                                  }));
+                                },
+                                child: locationTile(searchSites[index]),
+                              ),
+                          itemCount: searchSites.length,
+                          separatorBuilder: (BuildContext context, int index) {
+                            return Divider(
+                              indent: 20,
+                              endIndent: 20,
+                              color: ColorConstants.appColor,
+                            );
+                          }))),
         ],
       ),
     );

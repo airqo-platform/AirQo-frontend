@@ -180,17 +180,20 @@ class _WeeklyViewState extends State<WeeklyView> with TickerProviderStateMixin {
     for (var dateIndex = 0; dateIndex <= 6; dateIndex++) {
       var measurements = await AirqoApiClient(context)
           .fetchSiteDayMeasurements(site, getDate(dateIndex));
-      Widget data;
       if (measurements.isEmpty) {
-        data = const Center(
-          child: Text(
-            'Not Available',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
-            ),
-          ),
-        );
+        if (mounted) {
+          setState(() {
+            placeHolders[dateIndex] = const Center(
+              child: Text(
+                'Not Available',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
+              ),
+            );
+          });
+        }
       } else {
         if (mounted) {
           setState(() {

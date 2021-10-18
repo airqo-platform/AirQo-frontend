@@ -15,9 +15,6 @@ class UserDetails {
   UserDetails(this.firstName, this.userId, this.lastName, this.emailAddress,
       this.phoneNumber, this.device, this.photoUrl);
 
-  // @JsonKey(ignore: true)
-  // String password = '';
-
   factory UserDetails.fromJson(Map<String, dynamic> json) =>
       _$UserDetailsFromJson(json);
 
@@ -26,6 +23,13 @@ class UserDetails {
   }
 
   Map<String, dynamic> toJson() => _$UserDetailsToJson(this);
+
+  @override
+  String toString() {
+    return 'UserDetails{firstName: $firstName, userId: $userId, '
+        'lastName: $lastName, emailAddress: $emailAddress, '
+        'phoneNumber: $phoneNumber, device: $device, photoUrl: $photoUrl}';
+  }
 
   static String createTableStmt() => 'CREATE TABLE IF NOT EXISTS ${dbName()}('
       '${dbId()} TEXT PRIMARY KEY, ${dbEmailAddress()} TEXT,'

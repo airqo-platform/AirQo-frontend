@@ -1,4 +1,5 @@
 import 'package:app/constants/app_constants.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:country_list_pick/country_list_pick.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -229,58 +230,6 @@ Widget phoneInputField(String placeholder, valueChangeCallBackFn, String prefix,
       )));
 }
 
-Widget profilePic(
-    double height, double width, double iconSize, double textSize, radius) {
-  return Stack(
-    alignment: AlignmentDirectional.center,
-    children: [
-      RotationTransition(
-        turns: AlwaysStoppedAnimation(-5 / 360),
-        child: Container(
-          padding: EdgeInsets.all(2.0),
-          decoration: BoxDecoration(
-              color: ColorConstants.appPicColor,
-              shape: BoxShape.rectangle,
-              borderRadius: BorderRadius.all(Radius.circular(radius))),
-          child: Container(
-            height: height,
-            width: width,
-            color: Colors.transparent,
-          ),
-        ),
-      ),
-      Text(
-        'NG',
-        style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-            fontSize: textSize),
-      ),
-      Positioned(
-          bottom: 0,
-          right: 0,
-          child: Container(
-            padding: const EdgeInsets.all(2.0),
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.white),
-              color: ColorConstants.appColorBlue,
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              Icons.add,
-              size: iconSize,
-              color: Colors.white,
-            ),
-            // child: const FaIcon(
-            //   FontAwesomeIcons.plus,
-            //   size: 18,
-            //   color: Colors.white,
-            // ),
-          ))
-    ],
-  );
-}
-
 Widget profilePicRow() {
   return Row(
     crossAxisAlignment: CrossAxisAlignment.center,
@@ -332,6 +281,72 @@ Widget profilePicRow() {
               ))
         ],
       ),
+    ],
+  );
+}
+
+Widget profilePicWidget(double height, double width, double iconSize,
+    double textSize, radius, photoUrl, imageRadius, showIcon) {
+  return Stack(
+    alignment: AlignmentDirectional.center,
+    children: [
+      if (photoUrl == '')
+        RotationTransition(
+          turns: const AlwaysStoppedAnimation(-5 / 360),
+          child: Container(
+            padding: const EdgeInsets.all(2.0),
+            decoration: BoxDecoration(
+                color: photoUrl == ''
+                    ? ColorConstants.appPicColor
+                    : Colors.transparent,
+                shape: BoxShape.rectangle,
+                borderRadius: BorderRadius.all(Radius.circular(radius))),
+            child: Container(
+              height: height,
+              width: width,
+              color: Colors.transparent,
+            ),
+          ),
+        ),
+      if (photoUrl == '')
+        Text(
+          'A',
+          style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+              fontSize: textSize),
+        ),
+      if (photoUrl != '')
+        CircleAvatar(
+          radius: imageRadius,
+          backgroundColor: Colors.transparent,
+          foregroundColor: Colors.transparent,
+          backgroundImage: CachedNetworkImageProvider(
+            photoUrl,
+          ),
+        ),
+      if (showIcon)
+        Positioned(
+            bottom: 0,
+            right: 0,
+            child: Container(
+              padding: const EdgeInsets.all(2.0),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.white),
+                color: ColorConstants.appColorBlue,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.add,
+                size: iconSize,
+                color: Colors.white,
+              ),
+              // child: const FaIcon(
+              //   FontAwesomeIcons.plus,
+              //   size: 18,
+              //   color: Colors.white,
+              // ),
+            ))
     ],
   );
 }
