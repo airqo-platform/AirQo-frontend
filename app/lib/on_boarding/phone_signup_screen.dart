@@ -21,7 +21,10 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
   var requestCode = false;
   var verifyId = '';
   var showRequestCode = false;
+  var prefix = '+256(0)';
+  var prefixValue = '+256';
   final CustomAuth _customAuth = CustomAuth(FirebaseAuth.instance);
+  TextEditingController controller = TextEditingController();
 
   var smsCode = <String>['', '', '', '', '', ''];
 
@@ -147,68 +150,104 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
                             height: 36,
                           ),
                         ])
-                  : Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                          const SizedBox(
-                            height: 42,
-                          ),
-                          const Text(
-                            'Ok! What’s your mobile\nnumber?',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 24,
-                                color: Colors.black),
-                          ),
-                          const SizedBox(
-                            height: 4,
-                          ),
-                          Text(
-                            'We’ll send you a verification code',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.black.withOpacity(0.6)),
-                          ),
-                          const SizedBox(
-                            height: 32,
-                          ),
-                          Form(
-                            key: _formKey,
-                            child: phoneInputField('701000000', valueChange),
-                          ),
-                          const SizedBox(
-                            height: 36,
-                          ),
-                          GestureDetector(
-                            onTap: () {
-                              Navigator.push(context,
-                                  MaterialPageRoute(builder: (context) {
-                                return EmailSignupScreen();
-                              }));
-                            },
-                            child: signButton('Sign up with email instead'),
-                          ),
-                          const Spacer(),
-                          GestureDetector(
-                            onTap: () async {
-                              if (_formKey.currentState!.validate()) {
-                                await _customAuth.verifyPhone(
-                                    phoneNumber, context, verifyPhoneFn);
-                              }
-                            },
-                            child: nextButton('Next'),
-                          ),
-                          const SizedBox(
-                            height: 20,
-                          ),
-                          signUpOptions(context),
-                          const SizedBox(
-                            height: 36,
-                          ),
-                        ])),
+                  : Form(
+                      key: _formKey,
+                      child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            const SizedBox(
+                              height: 42,
+                            ),
+                            const Text(
+                              'Ok! What’s your mobile\nnumber?',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 24,
+                                  color: Colors.black),
+                            ),
+                            const SizedBox(
+                              height: 4,
+                            ),
+                            Text(
+                              'We’ll send you a verification code',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.black.withOpacity(0.6)),
+                            ),
+                            const SizedBox(
+                              height: 32,
+                            ),
+                            Container(
+                              height: 48,
+                              child: Row(
+                                children: [
+                                  SizedBox(
+                                    width: 64,
+                                    child: countryPickerField(
+                                        '+256', codeValueChange),
+                                  ),
+                                  const SizedBox(
+                                    width: 16,
+                                  ),
+                                  Expanded(
+                                    child: phoneInputField(
+                                        '701000000',
+                                        phoneValueChange,
+                                        prefix,
+                                        clearPhoneCallBack,
+                                        controller),
+                                  )
+                                ],
+                              ),
+                            ),
+
+                            // const SizedBox(
+                            //   height: 36,
+                            // ),
+                            // GestureDetector(
+                            //   onTap: () {
+                            //     Navigator.push(context,
+                            //         MaterialPageRoute(builder: (context) {
+                            //           return EmailSignupScreen();
+                            //         }));
+                            //   },
+                            //   child: signButton('Sign up with email instead'),
+                            // ),
+                            const Spacer(),
+                            GestureDetector(
+                              onTap: () async {
+                                if (_formKey.currentState!.validate()) {
+                                  await _customAuth.verifyPhone(
+                                      phoneNumber, context, verifyPhoneFn);
+                                }
+                              },
+                              child: nextButton('Next'),
+                            ),
+                            const SizedBox(
+                              height: 20,
+                            ),
+                            signUpOptions(context),
+                            const SizedBox(
+                              height: 36,
+                            ),
+                          ]))),
         ));
+  }
+
+  void clearPhoneCallBack() {
+    setState(() {
+      phoneNumber = '';
+      controller.text = '';
+    });
+  }
+
+  void codeValueChange(text) {
+    setState(() {
+      prefixValue = text;
+      prefix = '$text(0) ';
+    });
   }
 
   void initialize() {}
@@ -219,43 +258,14 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
     super.initState();
   }
 
-  void setCode(value, position) {
-    smsCode[position] = value;
-  }
-
-  void valueChange(text) {
+  void phoneValueChange(text) {
     setState(() {
       phoneNumber = text;
     });
   }
 
-  @deprecated
-  Future<void> verifyPhone() async {
-    await FirebaseAuth.instance.verifyPhoneNumber(
-      phoneNumber: '+256$phoneNumber',
-      verificationCompleted: (PhoneAuthCredential credential) {},
-      verificationFailed: (FirebaseAuthException e) async {
-        if (e.code == 'invalid-phone-number') {
-          print('The provided'
-              ' phone number is not valid.');
-          await showSnackBar(
-              context,
-              'The provided phone '
-              'number is not valid.');
-        } else {
-          await showSnackBar(context, '${e.toString()}');
-        }
-      },
-      codeSent: (String verificationId, int? resendToken) async {
-        setState(() {
-          requestCode = true;
-          verifyId = verificationId;
-        });
-      },
-      codeAutoRetrievalTimeout: (String verificationId) async {
-        await showSnackBar(context, 'codeAutoRetrievalTimeout');
-      },
-    );
+  void setCode(value, position) {
+    smsCode[position] = value;
   }
 
   void verifyPhoneFn(verificationId) {

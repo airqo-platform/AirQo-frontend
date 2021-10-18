@@ -1,7 +1,80 @@
 import 'package:app/constants/app_constants.dart';
+import 'package:country_list_pick/country_list_pick.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
+Widget countryPickerField(String placeholder, valueChange) {
+  return Container(
+    // padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
+    constraints: const BoxConstraints(minWidth: double.infinity),
+    decoration: BoxDecoration(
+        color: const Color(0xff8D8D8D).withOpacity(0.1),
+        borderRadius: const BorderRadius.all(Radius.circular(10.0))),
+    child: CountryListPick(
+      theme: CountryTheme(
+        isShowFlag: true,
+        isShowTitle: false,
+        isShowCode: false,
+        isDownIcon: true,
+        showEnglishName: false,
+        labelColor: ColorConstants.appColorBlue,
+        alphabetSelectedBackgroundColor: ColorConstants.appColorBlue,
+        alphabetTextColor: ColorConstants.appColorBlue,
+        alphabetSelectedTextColor: ColorConstants.appColorBlue,
+      ), //show down icon on dropdown
+      initialSelection: placeholder,
+      onChanged: (CountryCode? code) {
+        if (code != null) {
+          valueChange(code.dialCode);
+        }
+      },
+    ),
+  );
+}
+
+// Widget nameInputField(String placeholder, maxLength, callbackFn) {
+//   var controller = TextEditingController();
+//   return TextFormField(
+//     autofocus: true,
+//     enableSuggestions: false,
+//     cursorWidth: 1,
+//     cursorColor: ColorConstants.appColorBlue,
+//     keyboardType: TextInputType.name,
+//     onChanged: (value) {
+//       callbackFn(value);
+//     },
+//     validator: (value) {
+//       if (value == null || value.isEmpty) {
+//         return 'Please enter your name';
+//       }
+//
+//       if (value.length > maxLength) {
+//         return 'Maximum number of characters is 15';
+//       }
+//       return null;
+//     },
+//     decoration: InputDecoration(
+//       focusedBorder: OutlineInputBorder(
+//           borderSide:
+//               BorderSide(color: ColorConstants.appColorBlue, width: 1.0),
+//           borderRadius: BorderRadius.circular(10.0),
+//           gapPadding: 2.0),
+//       enabledBorder: OutlineInputBorder(
+//           borderSide:
+//               BorderSide(color: ColorConstants.appColorBlue, width: 1.0),
+//           borderRadius: BorderRadius.circular(10.0),
+//           gapPadding: 2.0),
+//       hintText: placeholder,
+//       suffixIcon: GestureDetector(
+//         onTap: () {
+//           controller.text = '';
+//         },
+//         child: textInputCloseButton(),
+//       ),
+//     ),
+//   );
+// }
 
 Widget emailInputField(String placeholder) {
   return TextField(
@@ -25,47 +98,49 @@ Widget emailInputField(String placeholder) {
   );
 }
 
-Widget nameInputField(String placeholder, maxLength, callbackFn) {
-  var controller = TextEditingController();
-  return TextFormField(
-    autofocus: true,
-    enableSuggestions: false,
-    cursorWidth: 1,
-    cursorColor: ColorConstants.appColorBlue,
-    keyboardType: TextInputType.name,
-    onChanged: (value) {
-      callbackFn(value);
-    },
-    validator: (value) {
-      if (value == null || value.isEmpty) {
-        return 'Please enter your name';
-      }
-
-      if (value.length > maxLength) {
-        return 'Maximum number of characters is 15';
-      }
-      return null;
-    },
-    decoration: InputDecoration(
-      focusedBorder: OutlineInputBorder(
-          borderSide:
-              BorderSide(color: ColorConstants.appColorBlue, width: 1.0),
-          borderRadius: BorderRadius.circular(10.0),
-          gapPadding: 2.0),
-      enabledBorder: OutlineInputBorder(
-          borderSide:
-              BorderSide(color: ColorConstants.appColorBlue, width: 1.0),
-          borderRadius: BorderRadius.circular(10.0),
-          gapPadding: 2.0),
-      hintText: placeholder,
-      suffixIcon: GestureDetector(
-        onTap: () {
-          controller.text = '';
+Widget nameInputField(
+    String placeholder, maxLength, callbackFn, clearCallBackFn, controller) {
+  return Container(
+      alignment: Alignment.center,
+      padding: const EdgeInsets.only(left: 15),
+      decoration: BoxDecoration(
+          borderRadius: const BorderRadius.all(Radius.circular(10.0)),
+          border: Border.all(color: ColorConstants.appColorBlue)),
+      child: Center(
+          child: TextFormField(
+        controller: controller,
+        autofocus: true,
+        enableSuggestions: false,
+        cursorWidth: 1,
+        cursorColor: ColorConstants.appColorBlue,
+        keyboardType: TextInputType.name,
+        onChanged: (value) {
+          callbackFn(value);
         },
-        child: textInputCloseButton(),
-      ),
-    ),
-  );
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return 'Please enter your name';
+          }
+
+          if (value.length > maxLength) {
+            return 'Maximum number of characters is 15';
+          }
+          return null;
+        },
+        decoration: InputDecoration(
+          focusedBorder: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          hintText: placeholder,
+          suffixIcon: GestureDetector(
+              onTap: () {
+                controller.text = '';
+              },
+              child: GestureDetector(
+                onTap: clearCallBackFn,
+                child: textInputCloseButton(),
+              )),
+        ),
+      )));
 }
 
 Widget optField(position, context, callbackFn) {
@@ -103,51 +178,55 @@ Widget optField(position, context, callbackFn) {
             filled: false,
             focusedBorder: InputBorder.none,
             enabledBorder: InputBorder.none,
-            // focusedBorder: OutlineInputBorder(
-            //   borderSide:
-            //   BorderSide(color: ColorConstants.appColorBlue, width: 1.0),
-            //   borderRadius: BorderRadius.circular(10.0),
-            // ),
-            // enabledBorder: OutlineInputBorder(
-            //   borderSide:
-            //   BorderSide(color: ColorConstants.appColorBlue, width: 1.0),
-            //   borderRadius: BorderRadius.circular(10.0),
-            // ),
           ),
         ),
       ));
 }
 
-Widget phoneInputField(String placeholder, valueChange) {
-  return TextFormField(
-    autofocus: true,
-    enableSuggestions: false,
-    cursorWidth: 1,
-    cursorColor: ColorConstants.appColorBlue,
-    keyboardType: TextInputType.number,
-    onChanged: (text) {
-      valueChange(text);
-    },
-    validator: (value) {
-      if (value == null || value.isEmpty) {
-        return 'Please enter your phone number';
-      }
-      return null;
-    },
-    decoration: InputDecoration(
-      prefixText: '+256(0) ',
-      focusedBorder: OutlineInputBorder(
-        borderSide: BorderSide(color: ColorConstants.appColorBlue, width: 1.0),
-        borderRadius: BorderRadius.circular(10.0),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderSide: BorderSide(color: ColorConstants.appColorBlue, width: 1.0),
-        borderRadius: BorderRadius.circular(10.0),
-      ),
-      hintText: placeholder,
-      suffixIcon: textInputCloseButton(),
-    ),
-  );
+Widget phoneInputField(String placeholder, valueChangeCallBackFn, String prefix,
+    clearCallBackFn, controller) {
+  return Container(
+      alignment: Alignment.center,
+      padding: const EdgeInsets.only(left: 15),
+      decoration: BoxDecoration(
+          borderRadius: const BorderRadius.all(Radius.circular(10.0)),
+          border: Border.all(color: ColorConstants.appColorBlue)),
+      child: Center(
+          child: TextFormField(
+        controller: controller,
+        autofocus: true,
+        enableSuggestions: false,
+        cursorWidth: 1,
+        cursorColor: ColorConstants.appColorBlue,
+        keyboardType: TextInputType.number,
+        onChanged: (text) {
+          valueChangeCallBackFn(text);
+        },
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return 'Please enter your phone number';
+          }
+          return null;
+        },
+        decoration: InputDecoration(
+          prefixText: prefix,
+          focusedBorder: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          // focusedBorder: OutlineInputBorder(
+          //   borderSide: BorderSide(color: ColorConstants.appColorBlue, width: 1.0),
+          //   borderRadius: BorderRadius.circular(10.0),
+          // ),
+          // enabledBorder: OutlineInputBorder(
+          //   borderSide: BorderSide(color: ColorConstants.appColorBlue, width: 1.0),
+          //   borderRadius: BorderRadius.circular(10.0),
+          // ),
+          hintText: placeholder,
+          suffixIcon: GestureDetector(
+            onTap: clearCallBackFn,
+            child: textInputCloseButton(),
+          ),
+        ),
+      )));
 }
 
 Widget profilePic(
@@ -330,17 +409,17 @@ Widget tabLayout(String day, date, Color background, Color foreground) {
 
 Widget textInputCloseButton() {
   return Padding(
-    padding: const EdgeInsets.all(10),
+    padding: const EdgeInsets.all(15),
     child: Container(
       decoration: BoxDecoration(
           color: ColorConstants.greyColor.withOpacity(0.7),
           borderRadius: const BorderRadius.all(Radius.circular(5.0))),
-      height: 20,
-      width: 20,
+      height: 15,
+      width: 15,
       child: const Center(
         child: Icon(
           Icons.clear,
-          size: 15,
+          size: 12,
           color: Colors.white,
         ),
       ),

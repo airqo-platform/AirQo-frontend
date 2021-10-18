@@ -18,6 +18,7 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
   var fullName = '';
   final _formKey = GlobalKey<FormState>();
   final CustomAuth _customAuth = CustomAuth(FirebaseAuth.instance);
+  TextEditingController controller = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +34,7 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
                     height: 42,
                   ),
                   const Text(
-                    'Great! What’s your name?',
+                    'Great!\nWhat’s your name?',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                         fontWeight: FontWeight.bold,
@@ -43,20 +44,23 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
                   const SizedBox(
                     height: 42,
                   ),
-                  Row(
-                    children: <Widget>[
-                      titleDropdown(),
-                      const SizedBox(
-                        width: 16,
-                      ),
-                      Form(
-                        key: _formKey,
-                        child: Flexible(
-                          child: nameInputField(
-                              'Enter your name', 15, valueChange),
+                  Container(
+                    height: 48,
+                    child: Row(
+                      children: <Widget>[
+                        // titleDropdown(),
+                        // const SizedBox(
+                        //   width: 16,
+                        // ),
+                        Form(
+                          key: _formKey,
+                          child: Flexible(
+                            child: nameInputField('Enter your name', 15,
+                                valueChange, clearNameCallBack, controller),
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                   const Spacer(),
                   GestureDetector(
@@ -77,6 +81,13 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
                 ]),
           ),
         ));
+  }
+
+  void clearNameCallBack() {
+    setState(() {
+      fullName = '';
+      controller.text = '';
+    });
   }
 
   Future<void> saveName() async {

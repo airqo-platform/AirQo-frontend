@@ -269,6 +269,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "3.0.1"
+  country_list_pick:
+    dependency: "direct main"
+    description:
+      name: country_list_pick
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.1+5"
   cross_file:
     dependency: transitive
     description:
