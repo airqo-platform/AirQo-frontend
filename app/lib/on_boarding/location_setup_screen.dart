@@ -49,7 +49,7 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
                 return SetUpCompleteScreen();
               }), (r) => false);
             },
-            child: nextButton('Allow location'),
+            child: nextButton('Allow location', ColorConstants.appColorBlue),
           ),
           const SizedBox(
             height: 20,

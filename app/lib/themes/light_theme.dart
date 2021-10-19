@@ -61,18 +61,18 @@ ThemeData lightTheme() {
     // backgroundColor: Colors.white,
     visualDensity: VisualDensity.adaptivePlatformDensity,
     textTheme: ThemeData.light().textTheme.apply(
-          fontFamily: 'OpenSans',
+          fontFamily: 'Inter',
           bodyColor: ColorConstants.appColor,
           displayColor: ColorConstants.appColor,
         ),
     // canvasColor: Colors.transparent,
     primaryTextTheme: ThemeData.light().textTheme.apply(
-          fontFamily: 'OpenSans',
+          fontFamily: 'Inter',
           bodyColor: ColorConstants.appColor,
           displayColor: ColorConstants.appColor,
         ),
     accentTextTheme: ThemeData.light().textTheme.apply(
-          fontFamily: 'OpenSans',
+          fontFamily: 'Inter',
           bodyColor: ColorConstants.appColor,
           displayColor: ColorConstants.appColor,
         ),

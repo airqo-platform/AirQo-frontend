@@ -1,4 +1,5 @@
 import 'package:app/constants/app_constants.dart';
+import 'package:app/utils/dialogs.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:country_list_pick/country_list_pick.dart';
 import 'package:flutter/cupertino.dart';
@@ -185,7 +186,7 @@ Widget optField(position, context, callbackFn) {
 }
 
 Widget phoneInputField(String placeholder, valueChangeCallBackFn, String prefix,
-    clearCallBackFn, controller) {
+    clearCallBackFn, controller, context) {
   return Container(
       alignment: Alignment.center,
       padding: const EdgeInsets.only(left: 15),
@@ -205,7 +206,7 @@ Widget phoneInputField(String placeholder, valueChangeCallBackFn, String prefix,
         },
         validator: (value) {
           if (value == null || value.isEmpty) {
-            return 'Please enter your phone number';
+            showSnackBar(context, 'Please enter your phone number');
           }
           return null;
         },

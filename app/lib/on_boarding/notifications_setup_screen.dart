@@ -55,7 +55,8 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
               //   return LocationSetupScreen();
               // }));
             },
-            child: nextButton('Allow notifications'),
+            child:
+                nextButton('Allow notifications', ColorConstants.appColorBlue),
           ),
           const SizedBox(
             height: 20,

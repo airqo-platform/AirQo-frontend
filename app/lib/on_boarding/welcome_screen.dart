@@ -63,7 +63,7 @@ class WelcomeScreenState extends State<WelcomeScreen> {
                   return PhoneSignupScreen();
                 }), (r) => false);
               },
-              child: nextButton('Let’s go'),
+              child: nextButton('Let’s go', ColorConstants.appColorBlue),
             ),
           ),
         ]),

@@ -1,3 +1,4 @@
+import 'package:app/constants/app_constants.dart';
 import 'package:app/on_boarding/phone_signup_screen.dart';
 import 'package:app/on_boarding/verify_code_screen.dart';
 import 'package:app/widgets/buttons.dart';
@@ -25,7 +26,7 @@ class EmailSignupScreenState extends State<EmailSignupScreen> {
                     height: 42,
                   ),
                   const Text(
-                    'Ok! What’s your email?',
+                    'Sign up with your your\nemail',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                         fontWeight: FontWeight.bold,
@@ -65,7 +66,7 @@ class EmailSignupScreenState extends State<EmailSignupScreen> {
                         return VerifyCodeScreen();
                       }));
                     },
-                    child: nextButton('Let’s go'),
+                    child: nextButton('Let’s go', ColorConstants.appColorBlue),
                   ),
                   const SizedBox(
                     height: 20,

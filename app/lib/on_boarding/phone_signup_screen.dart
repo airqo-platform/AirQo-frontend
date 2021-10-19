@@ -14,13 +14,17 @@ class PhoneSignupScreen extends StatefulWidget {
 }
 
 class PhoneSignupScreenState extends State<PhoneSignupScreen> {
-  final _formKey = GlobalKey<FormState>();
+  final _phoneFormKey = GlobalKey<FormState>();
+  final _codeFormKey = GlobalKey<FormState>();
+  bool phoneFormValid = false;
+  bool codeFormValid = false;
   var phoneNumber = '';
   var requestCode = false;
   var verifyId = '';
-  var showRequestCode = false;
+  var rsendCode = false;
   var prefix = '+256(0) ';
   var prefixValue = '+256';
+  var nextBtnColor = ColorConstants.appColorPaleBlue;
   final CustomAuth _customAuth = CustomAuth(FirebaseAuth.instance);
   TextEditingController controller = TextEditingController();
 
@@ -41,7 +45,7 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
                             height: 42,
                           ),
                           const Text(
-                            'Now enter the code',
+                            'Verify your account!',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                                 fontWeight: FontWeight.bold,
@@ -88,9 +92,11 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
                           ),
                           GestureDetector(
                             onTap: () async {
-                              if (showRequestCode) {
+                              if (rsendCode) {
                                 await _customAuth.verifyPhone(
-                                    phoneNumber, context, verifyPhoneFn);
+                                    '$prefixValue$phoneNumber',
+                                    context,
+                                    verifyPhoneFn);
                               }
                             },
                             child: Text(
@@ -98,7 +104,7 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                   fontSize: 12,
-                                  color: showRequestCode
+                                  color: rsendCode
                                       ? ColorConstants.appColorBlue
                                       : Colors.black.withOpacity(0.5)),
                             ),
@@ -106,39 +112,57 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
                           const Spacer(),
                           GestureDetector(
                             onTap: () async {
-                              var credential = PhoneAuthProvider.credential(
-                                  verificationId: verifyId,
-                                  smsCode: smsCode.join(''));
-                              try {
-                                await _customAuth
-                                    .logIn(credential)
-                                    .then((value) => {
-                                          Navigator.pushReplacement(context,
-                                              MaterialPageRoute(
-                                                  builder: (context) {
-                                            return ProfileSetupScreen();
-                                          }))
-                                        });
-                              } on FirebaseAuthException catch (e) {
-                                if (e.code == 'invalid-verification-code') {
-                                  await showSnackBar(context, 'Invalid Code');
-                                }
-                                if (e.code == 'session-expired') {
-                                  await _customAuth.verifyPhone(
-                                      phoneNumber, context, verifyPhoneFn);
+                              var code = smsCode.join('');
+                              if (code.length == 6) {
+                                setState(() {
+                                  nextBtnColor = ColorConstants.appColorBlue;
+                                });
+
+                                var credential = PhoneAuthProvider.credential(
+                                    verificationId: verifyId,
+                                    smsCode: smsCode.join(''));
+                                try {
+                                  await showSnackBar(context, 'Verifying');
+
+                                  await _customAuth
+                                      .logIn(credential)
+                                      .then((value) => {
+                                            Navigator.pushReplacement(context,
+                                                MaterialPageRoute(
+                                                    builder: (context) {
+                                              return ProfileSetupScreen();
+                                            }))
+                                          });
+                                } on FirebaseAuthException catch (e) {
+                                  if (e.code == 'invalid-verification-code') {
+                                    await showSnackBar(context, 'Invalid Code');
+                                  }
+                                  if (e.code == 'session-expired') {
+                                    await _customAuth.verifyPhone(
+                                        '$prefixValue$phoneNumber',
+                                        context,
+                                        verifyPhoneFn);
+                                    await showSnackBar(
+                                        context,
+                                        'Your verification '
+                                        'has timed out. we have sent your'
+                                        ' another verification code');
+                                  }
+                                } catch (e) {
                                   await showSnackBar(
-                                      context,
-                                      ''
-                                      'Your verification '
-                                      'has timed out. we have sent your'
-                                      ' another verification code');
+                                      context, 'Try again later');
+                                  print(e);
                                 }
-                              } catch (e) {
-                                await showSnackBar(context, 'Try again later');
-                                print(e);
+                              } else {
+                                setState(() {
+                                  nextBtnColor =
+                                      ColorConstants.appColorPaleBlue;
+                                });
+                                await showSnackBar(
+                                    context, 'Enter all the code digits');
                               }
                             },
-                            child: nextButton('Next'),
+                            child: nextButton('Next', nextBtnColor),
                           ),
                           const SizedBox(
                             height: 20,
@@ -149,7 +173,7 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
                           ),
                         ])
                   : Form(
-                      key: _formKey,
+                      key: _phoneFormKey,
                       child: Column(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
@@ -157,7 +181,7 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
                               height: 42,
                             ),
                             const Text(
-                              'Ok! What’s your mobile\nnumber?',
+                              'Sign up with your mobile\nnumber',
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                   fontWeight: FontWeight.bold,
@@ -190,12 +214,7 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
                                     width: 16,
                                   ),
                                   Expanded(
-                                    child: phoneInputField(
-                                        '701000000',
-                                        phoneValueChange,
-                                        prefix,
-                                        clearPhoneCallBack,
-                                        controller),
+                                    child: phoneInputField(),
                                   )
                                 ],
                               ),
@@ -216,12 +235,19 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
                             const Spacer(),
                             GestureDetector(
                               onTap: () async {
-                                if (_formKey.currentState!.validate()) {
+                                _phoneFormKey.currentState!.validate();
+                                if (phoneFormValid) {
+                                  setState(() {
+                                    nextBtnColor =
+                                        ColorConstants.appColorPaleBlue;
+                                  });
                                   await _customAuth.verifyPhone(
-                                      phoneNumber, context, verifyPhoneFn);
+                                      '$prefixValue$phoneNumber',
+                                      context,
+                                      verifyPhoneFn);
                                 }
                               },
-                              child: nextButton('Next'),
+                              child: nextButton('Next', nextBtnColor),
                             ),
                             const SizedBox(
                               height: 20,
@@ -238,6 +264,7 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
     setState(() {
       phoneNumber = '';
       controller.text = '';
+      nextBtnColor = ColorConstants.appColorPaleBlue;
     });
   }
 
@@ -256,14 +283,86 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
     super.initState();
   }
 
+  Widget phoneInputField() {
+    return Container(
+        alignment: Alignment.center,
+        padding: const EdgeInsets.only(left: 15),
+        decoration: BoxDecoration(
+            borderRadius: const BorderRadius.all(Radius.circular(10.0)),
+            border: Border.all(color: ColorConstants.appColorBlue)),
+        child: Center(
+            child: TextFormField(
+          controller: controller,
+          autofocus: true,
+          enableSuggestions: false,
+          cursorWidth: 1,
+          cursorColor: ColorConstants.appColorBlue,
+          keyboardType: TextInputType.number,
+          onChanged: phoneValueChange,
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              showSnackBar(context, 'Please enter your phone number');
+              setState(() {
+                phoneFormValid = false;
+              });
+            } else {
+              setState(() {
+                phoneFormValid = true;
+              });
+            }
+            return null;
+          },
+          decoration: InputDecoration(
+            prefixText: prefix,
+            focusedBorder: InputBorder.none,
+            enabledBorder: InputBorder.none,
+            // focusedBorder: OutlineInputBorder(
+            //   borderSide: BorderSide(color: ColorConstants.appColorBlue, width: 1.0),
+            //   borderRadius: BorderRadius.circular(10.0),
+            // ),
+            // enabledBorder: OutlineInputBorder(
+            //   borderSide: BorderSide(color: ColorConstants.appColorBlue, width: 1.0),
+            //   borderRadius: BorderRadius.circular(10.0),
+            // ),
+            hintText: '701000000',
+            suffixIcon: GestureDetector(
+              onTap: clearPhoneCallBack,
+              child: textInputCloseButton(),
+            ),
+          ),
+        )));
+  }
+
   void phoneValueChange(text) {
+    if (text.toString().isEmpty) {
+      setState(() {
+        nextBtnColor = ColorConstants.appColorPaleBlue;
+      });
+    } else {
+      setState(() {
+        nextBtnColor = ColorConstants.appColorBlue;
+      });
+    }
+
     setState(() {
       phoneNumber = text;
     });
   }
 
   void setCode(value, position) {
-    smsCode[position] = value;
+    setState(() {
+      smsCode[position] = value;
+    });
+    var code = smsCode.join('');
+    if (code.length == 6) {
+      setState(() {
+        nextBtnColor = ColorConstants.appColorBlue;
+      });
+    } else {
+      setState(() {
+        nextBtnColor = ColorConstants.appColorPaleBlue;
+      });
+    }
   }
 
   void verifyPhoneFn(verificationId) {
@@ -274,7 +373,7 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
 
     Future.delayed(const Duration(seconds: 5), () async {
       setState(() {
-        showRequestCode = true;
+        rsendCode = true;
       });
     });
   }

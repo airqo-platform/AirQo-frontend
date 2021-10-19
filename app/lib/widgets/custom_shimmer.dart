@@ -7,8 +7,8 @@ Widget loadingAnimation(double height) {
   return SizedBox(
     height: height,
     child: Shimmer.fromColors(
-      baseColor: ColorConstants.appColorBlue.withOpacity(0.3),
-      highlightColor: ColorConstants.appColorBlue.withOpacity(0.1),
+      baseColor: ColorConstants.appColorBlue.withOpacity(0.1),
+      highlightColor: ColorConstants.appColorBlue.withOpacity(0.2),
       child: Container(
           decoration: BoxDecoration(
               color: ColorConstants.appColorBlue,

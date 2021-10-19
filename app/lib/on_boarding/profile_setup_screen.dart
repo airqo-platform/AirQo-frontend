@@ -1,3 +1,4 @@
+import 'package:app/constants/app_constants.dart';
 import 'package:app/models/userDetails.dart';
 import 'package:app/services/fb_notifications.dart';
 import 'package:app/utils/dialogs.dart';
@@ -69,7 +70,7 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
                         await saveName();
                       }
                     },
-                    child: nextButton('Let’s go'),
+                    child: nextButton('Let’s go', ColorConstants.appColorBlue),
                   ),
                   const SizedBox(
                     height: 20,

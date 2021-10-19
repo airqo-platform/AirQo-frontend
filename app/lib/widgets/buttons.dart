@@ -44,12 +44,12 @@ Widget locationIcon(height, width) {
   );
 }
 
-Widget nextButton(String text) {
+Widget nextButton(String text, Color buttonColor) {
   return Container(
     padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
     constraints: const BoxConstraints(minWidth: double.infinity),
     decoration: BoxDecoration(
-        color: ColorConstants.appColorBlue,
+        color: buttonColor,
         borderRadius: const BorderRadius.all(Radius.circular(10.0))),
     child: Row(
       children: [

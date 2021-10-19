@@ -361,6 +361,9 @@ PODS:
   - Firebase/Messaging (8.7.0):
     - Firebase/CoreOnly
     - FirebaseMessaging (~> 8.7.0)
+  - Firebase/Storage (8.7.0):
+    - Firebase/CoreOnly
+    - FirebaseStorage (~> 8.7.0)
   - firebase_auth (3.1.3):
     - Firebase/Auth (= 8.7.0)
     - firebase_core
@@ -370,6 +373,10 @@ PODS:
     - Flutter
   - firebase_messaging (10.0.6):
     - Firebase/Messaging (= 8.7.0)
+    - firebase_core
+    - Flutter
+  - firebase_storage (10.0.5):
+    - Firebase/Storage (= 8.7.0)
     - firebase_core
     - Flutter
   - FirebaseAuth (8.7.0):
@@ -413,6 +420,9 @@ PODS:
     - GoogleUtilities/Reachability (~> 7.4)
     - GoogleUtilities/UserDefaults (~> 7.4)
     - nanopb (~> 2.30908.0)
+  - FirebaseStorage (8.7.0):
+    - FirebaseCore (~> 8.0)
+    - GTMSessionFetcher/Core (~> 1.5)
   - Flutter (1.0.0)
   - flutter_local_notifications (0.0.1):
     - Flutter
@@ -512,6 +522,7 @@ DEPENDENCIES:
   - firebase_auth (from `.symlinks/plugins/firebase_auth/ios`)
   - firebase_core (from `.symlinks/plugins/firebase_core/ios`)
   - firebase_messaging (from `.symlinks/plugins/firebase_messaging/ios`)
+  - firebase_storage (from `.symlinks/plugins/firebase_storage/ios`)
   - Flutter (from `Flutter`)
   - flutter_local_notifications (from `.symlinks/plugins/flutter_local_notifications/ios`)
   - geocoder (from `.symlinks/plugins/geocoder/ios`)
@@ -539,6 +550,7 @@ SPEC REPOS:
     - FirebaseFirestore
     - FirebaseInstallations
     - FirebaseMessaging
+    - FirebaseStorage
     - FMDB
     - GoogleDataTransport
     - GoogleMaps
@@ -561,6 +573,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/firebase_core/ios"
   firebase_messaging:
     :path: ".symlinks/plugins/firebase_messaging/ios"
+  firebase_storage:
+    :path: ".symlinks/plugins/firebase_storage/ios"
   Flutter:
     :path: Flutter
   flutter_local_notifications:
@@ -601,12 +615,14 @@ SPEC CHECKSUMS:
   firebase_auth: 25f34550b0023cbc3824731240608cd0aa515ca2
   firebase_core: f5ac1f2726a2bd0468cea0161eddeea3d83d7e3e
   firebase_messaging: 03a25e7a4e68198c149a92dbfcffd86739d88f35
+  firebase_storage: d4ced699e5106374a16961d8f2028a0ed34b748d
   FirebaseAuth: 2e7d029977648c67a5d51a263d4cbab76d34cf12
   FirebaseCore: f4804c1d3f4bbbefc88904d15653038f2c99ddf7
   FirebaseCoreDiagnostics: fe77f42da6329d6d83d21fd9d621a6b704413bfc
   FirebaseFirestore: e722ba956610c45d368d9787689e2aa41b809e68
   FirebaseInstallations: 2563cb18a723ef9c6ef18318a49519b75dce613c
   FirebaseMessaging: 93227dd71d7888e200baef65043f81acb2b6596e
+  FirebaseStorage: 2e6e58fe31fb0061fdce3f156d0ebc964e9de6ba
   Flutter: 50d75fe2f02b26cc09d224853bb45737f8b3214a
   flutter_local_notifications: 0c0b1ae97e741e1521e4c1629a459d04b9aec743
   FMDB: 2ce00b547f966261cd18927a3ddb07cb6f3db82a
