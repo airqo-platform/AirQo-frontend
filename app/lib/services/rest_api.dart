@@ -229,8 +229,8 @@ class AirqoApiClient {
       var body = {
         'file': uploadStr,
         'upload_preset': AppConfig.imageUploadPreset,
-        'public_id': name,
       };
+      // 'public_id': name,
       // 'api_key': AppConfig.imageUploadApiKey
 
       final response = await http.post(

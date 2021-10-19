@@ -8,8 +8,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
-import 'email_signup_screen.dart';
-
 class PhoneSignupScreen extends StatefulWidget {
   @override
   PhoneSignupScreenState createState() => PhoneSignupScreenState();

@@ -15,7 +15,7 @@ class WelcomeScreenState extends State<WelcomeScreen> {
     return Scaffold(
         body: Container(
       child: Padding(
-        padding: EdgeInsets.fromLTRB(24, 48, 24.0, 0),
+        padding: const EdgeInsets.fromLTRB(24, 48, 24.0, 0),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           const SizedBox(
             height: 45,
@@ -35,15 +35,24 @@ class WelcomeScreenState extends State<WelcomeScreen> {
           const SizedBox(
             height: 21,
           ),
-          welcomeSection(const Color(0xffFBC110)),
+          welcomeSection(
+              'Introducing Favorites',
+              'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
+              const Color(0xffFBC110)),
           const SizedBox(
             height: 22,
           ),
-          welcomeSection(const Color(0xff9492B8)),
+          welcomeSection(
+              'Personalised analytics',
+              'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
+              const Color(0xff9492B8)),
           const SizedBox(
             height: 22,
           ),
-          welcomeSection(const Color(0xff55B7A1)),
+          welcomeSection(
+              'Learn about your air',
+              'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
+              const Color(0xff55B7A1)),
           const Spacer(),
           Padding(
             padding: const EdgeInsets.only(bottom: 96.0),
@@ -77,22 +86,21 @@ class WelcomeScreenState extends State<WelcomeScreen> {
     // initialize();
   }
 
-  Widget welcomeSection(Color color) {
+  Widget welcomeSection(String header, String body, Color color) {
     return ListTile(
       leading: CircleAvatar(
         backgroundColor: color,
       ),
       title: Text(
-        'Lorem ipsum dolor',
-        style: TextStyle(
+        header,
+        style: const TextStyle(
             fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black),
       ),
       subtitle: Text(
-        'Lorem ipsum dolor sit amet, '
-        'consectetur adipiscing elit. Consequat.',
+        body,
         maxLines: 4,
         softWrap: true,
-        style: TextStyle(fontSize: 12, color: Colors.black),
+        style: const TextStyle(fontSize: 12, color: Colors.black),
       ),
     );
   }

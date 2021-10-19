@@ -22,6 +22,7 @@ import 'package:uuid/uuid.dart';
 
 import 'help_page.dart';
 
+@Deprecated('No longer to be used in new design')
 class MapPage extends StatefulWidget {
   @override
   State<MapPage> createState() => MapPageState();

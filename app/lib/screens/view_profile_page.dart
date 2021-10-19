@@ -8,7 +8,7 @@ import 'package:app/services/fb_notifications.dart';
 import 'package:app/services/rest_api.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/widgets/custom_widgets.dart';
-import 'package:app/widgets/text_fields.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:camera/camera.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -56,9 +56,13 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
                     const Spacer(),
                     GestureDetector(
                       onTap: updateProfile,
-                      child: Text(
-                        'Save',
-                        style: TextStyle(color: ColorConstants.inactiveColor),
+                      child: Container(
+                        height: 40,
+                        width: 40,
+                        child: Text(
+                          'Save',
+                          style: TextStyle(color: ColorConstants.inactiveColor),
+                        ),
                       ),
                     )
                   ],
@@ -251,12 +255,21 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
                       ),
                     ),
                   )
-                : CircleAvatar(
-                    radius: 44,
-                    backgroundColor: ColorConstants.appPicColor,
-                    foregroundColor: ColorConstants.appPicColor,
-                    backgroundImage: FileImage(File(userDetails.photoUrl)),
-                  ),
+                : profilePic.startsWith('http')
+                    ? CircleAvatar(
+                        radius: 44,
+                        backgroundColor: ColorConstants.appPicColor,
+                        foregroundColor: ColorConstants.appPicColor,
+                        backgroundImage: CachedNetworkImageProvider(
+                          profilePic,
+                        ),
+                      )
+                    : CircleAvatar(
+                        radius: 44,
+                        backgroundColor: ColorConstants.appPicColor,
+                        foregroundColor: ColorConstants.appPicColor,
+                        backgroundImage: FileImage(File(profilePic)),
+                      ),
             if (profilePic == '')
               const Text(
                 'A',
@@ -359,34 +372,26 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
   }
 
   Future<void> uploadPicture() async {
-    if (userDetails.photoUrl.isEmpty || userDetails.photoUrl == '') {
+    if (!changeImage) {
       return;
     }
-    var mimeType = lookupMimeType(userDetails.photoUrl);
 
-    mimeType ??= 'jpeg';
+    try {
+      var mimeType = lookupMimeType(profilePic);
 
-    var imageBytes = await File(userDetails.photoUrl).readAsBytes();
+      mimeType ??= 'jpeg';
 
-    var imageUrl = await AirqoApiClient(context)
-        .imageUpload(base64Encode(imageBytes), mimeType, userDetails.userId);
+      var imageBytes = await File(profilePic).readAsBytes();
 
-    userDetails.photoUrl = imageUrl;
-    await _customAuth.updateProfile(userDetails);
+      var imageUrl = await AirqoApiClient(context)
+          .imageUpload(base64Encode(imageBytes), mimeType, userDetails.userId);
 
-    print(imageUrl);
+      userDetails.photoUrl = imageUrl;
 
-    // await File(userDetails.photoUrl).readAsBytes().then((value) => {
-    //   AirqoApiClient(context)
-    //       .imageUpload(base64Encode(value), mimeType).then((value) => {
-    //         print(value)
-    //   })
-    //       // .whenComplete((value?) => {uploadCompeteHandler(value)})
-    //       .catchError(uploadFailureHandler)
-    //       // .then((value) => uploadSuccessHandler)
-    // });
-
-    // await showSnackBar(context, 'upload complete');
+      await _customAuth.updateProfile(userDetails);
+    } catch (e) {
+      print(e);
+    }
   }
 
   Future<void> uploadSuccessHandler(var value) async {

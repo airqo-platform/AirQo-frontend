@@ -469,13 +469,21 @@ class _DashboardViewState extends State<DashboardView> {
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
         Expanded(
-            child: Container(
-          padding: const EdgeInsets.all(15.0),
-          decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.all(Radius.circular(5.0))),
-          child: GestureDetector(
-            onTap: () {},
+            child: Tooltip(
+          margin: const EdgeInsets.only(top: 10),
+          padding: const EdgeInsets.all(5.0),
+          decoration: BoxDecoration(
+              color: ColorConstants.appColorBlue,
+              borderRadius: BorderRadius.circular(4.0)),
+          message: 'You will find all locations added to\nfavorite here.'
+              ' Click to add favorite!',
+          textStyle: const TextStyle(fontSize: 6, color: Colors.white),
+          triggerMode: TooltipTriggerMode.tap,
+          child: Container(
+            padding: const EdgeInsets.all(15.0),
+            decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.all(Radius.circular(5.0))),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -517,13 +525,24 @@ class _DashboardViewState extends State<DashboardView> {
           width: 16,
         ),
         Expanded(
-            child: Container(
-          padding: const EdgeInsets.all(15.0),
-          decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.all(Radius.circular(5.0))),
-          child: GestureDetector(
-            onTap: () {},
+            child: Tooltip(
+          margin: const EdgeInsets.only(top: 10),
+          padding: const EdgeInsets.all(5.0),
+          decoration: BoxDecoration(
+              color: ColorConstants.appColorBlue,
+              borderRadius: BorderRadius.circular(4.0)),
+          message: 'You will find all location suggestions\n'
+              'and information here. ',
+          textStyle: const TextStyle(
+            fontSize: 6,
+            color: Colors.white,
+          ),
+          triggerMode: TooltipTriggerMode.tap,
+          child: Container(
+            padding: const EdgeInsets.all(15.0),
+            decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.all(Radius.circular(5.0))),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -625,7 +644,7 @@ class _DashboardViewState extends State<DashboardView> {
             ),
             topTabs(),
             const SizedBox(
-              height: 24,
+              height: 25,
             ),
             Text(
               getDateTime(),

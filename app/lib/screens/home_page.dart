@@ -1,5 +1,4 @@
 import 'package:app/constants/app_constants.dart';
-import 'package:app/on_boarding/onBoarding_page.dart';
 import 'package:app/screens/profile_view.dart';
 import 'package:app/screens/settings_page.dart';
 import 'package:app/screens/share_picture.dart';
@@ -9,7 +8,6 @@ import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/share.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import 'dashboard_view.dart';
 import 'help_page.dart';
@@ -183,18 +181,6 @@ class _HomePageState extends State<HomePage> {
         camera: firstCamera,
       );
     }));
-  }
-
-  Future<void> _displayOnBoarding() async {
-    var prefs = await SharedPreferences.getInstance();
-    var isFirstUse = prefs.getBool(PrefConstant.firstUse) ?? true;
-
-    if (isFirstUse) {
-      await Navigator.pushAndRemoveUntil(context,
-          MaterialPageRoute(builder: (context) {
-        return OnBoardingPage();
-      }), (r) => false);
-    }
   }
 
   void _getLatestMeasurements() async {
