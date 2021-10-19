@@ -8,6 +8,9 @@ import ESPRC from 'icons/homepage/partners/EPSRC.svg';
 import NRF from 'icons/homepage/partners/NRF.svg';
 import ColumbiaUniversity from 'icons/homepage/partners/columbia-university.svg';
 import ASAP from 'icons/homepage/partners/ASAP.svg';
+import Sensor from 'icons/homepage/sensor.svg';
+import Checked from 'icons/homepage/checked.svg';
+import UnChecked from 'icons/homepage/unchecked.svg';
 import NavTab from '../components/nav/NavTab';
 
 const Icon = ({ icon }) => (
@@ -27,6 +30,63 @@ const HomePage = () => (
                     </div>
                 </div>
                 <PlaceHolder />
+            </div>
+        </div>
+        <div className="air-quality-section">
+            <div className="text-primary">Air quality analytics for all</div>
+            <div className="text-secondary">We use low-cost technologies and Artificial intelligence to close the gaps in air quality data across the African continent. </div>
+            <div className="category">
+                <div>For African cities</div>
+                <div>For Individuals</div>
+            </div>
+            <div className="content">
+                <div className="content-container">
+                    <div className="detail-wrapper-selected">
+                        <div className="circle" />
+                        <div className="text-wrapper">
+                            <div>Realiable Air quality monitoring</div>
+                            <div>
+                                <Checked width={10} height={10} />
+                                <div>Low-cost air quality sensors</div>
+                            </div>
+                            <div>
+                                <Checked width={10} height={10} />
+                                <div>93% tested sensor uptime</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="detail-wrapper">
+                       <div className="circle" />
+                       <div className="text-wrapper">
+                            <div>Accurate Air quality analytics</div>
+                            <div>
+                                <UnChecked width={10} height={10} />
+                                <div>Low-cost air quality sensors</div>
+                            </div>
+                            <div>
+                                <UnChecked width={10} height={10} />
+                                <div>93% tested sensor uptime</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="detail-wrapper">
+                        <div className="circle" />
+                        <div className="text-wrapper">
+                            <div>Robust API intergration</div>
+                            <div>
+                                <UnChecked width={10} height={10} />
+                                <div>Low-cost air quality sensors</div>
+                            </div>
+                            <div>
+                                <UnChecked width={10} height={10} />
+                                <div>93% tested sensor uptime</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div className="image-container">
+                    <Sensor width={464} height={376} />
+                </div>
             </div>
         </div>
         <div className="partner-section">
