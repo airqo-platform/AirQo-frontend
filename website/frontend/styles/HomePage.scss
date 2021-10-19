@@ -60,6 +60,51 @@ $home-padding: 80px;
     }
   }
 
+  .partner-section {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    width: 1440px - 2*$home-padding;
+    height: 651px - 2*$home-padding;
+    padding: $home-padding;
+
+    .text {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      height: 20px;
+      font-style: normal;
+      font-weight: 500;
+      font-size: 14px;
+      line-height: 20px;
+
+      color: $aq-black-1;
+      opacity: 0.3;
+
+      margin-bottom: 24px;
+    }
+
+    .icon-wrapper {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      grid-gap: 32px 49px;
+    }
+
+    .icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 248px;
+      height: 124px;
+
+      background: $aq-white-0;
+      border: 1px solid rgba(20, 93, 255, 0.2);
+      box-sizing: border-box;
+      border-radius: 8px;
+    }
+  }
+
   .subscribe-container {
     width: 1440px - 2*$home-padding;
     height: 400px - 2*$home-padding;
