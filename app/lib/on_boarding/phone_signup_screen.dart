@@ -21,12 +21,13 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
   var phoneNumber = '';
   var requestCode = false;
   var verifyId = '';
-  var rsendCode = false;
+  var resendCode = false;
   var prefix = '+256(0) ';
   var prefixValue = '+256';
-  var nextBtnColor = ColorConstants.appColorPaleBlue;
+  var nextBtnColor = ColorConstants.appColorDisabled;
   final CustomAuth _customAuth = CustomAuth(FirebaseAuth.instance);
   TextEditingController controller = TextEditingController();
+  DateTime? exitTime;
 
   var smsCode = <String>['', '', '', '', '', ''];
 
@@ -34,154 +35,20 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
         resizeToAvoidBottomInset: false,
-        body: Container(
-          padding: const EdgeInsets.only(left: 24, right: 24),
-          child: Center(
-              child: requestCode
-                  ? Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                          const SizedBox(
-                            height: 42,
-                          ),
-                          const Text(
-                            'Verify your account!',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 24,
-                                color: Colors.black),
-                          ),
-                          const SizedBox(
-                            height: 8,
-                          ),
-                          Text(
-                            'Enter the 6 digit code sent via SMS, to '
-                            '\nverify your account',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.black.withOpacity(0.6)),
-                          ),
-                          const SizedBox(
-                            height: 8,
-                          ),
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                optField(0, context, setCode),
-                                optField(1, context, setCode),
-                                optField(2, context, setCode),
-                                optField(3, context, setCode),
-                                optField(4, context, setCode),
-                                optField(5, context, setCode)
-                              ],
-                            ),
-                          ),
-                          const SizedBox(
-                            height: 24,
-                          ),
-                          Text(
-                            'The code should arrive with in 5 sec.',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.black.withOpacity(0.5)),
-                          ),
-                          GestureDetector(
-                            onTap: () async {
-                              if (rsendCode) {
-                                await _customAuth.verifyPhone(
-                                    '$prefixValue$phoneNumber',
-                                    context,
-                                    verifyPhoneFn);
-                              }
-                            },
-                            child: Text(
-                              'Resend code',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                  fontSize: 12,
-                                  color: rsendCode
-                                      ? ColorConstants.appColorBlue
-                                      : Colors.black.withOpacity(0.5)),
-                            ),
-                          ),
-                          const Spacer(),
-                          GestureDetector(
-                            onTap: () async {
-                              var code = smsCode.join('');
-                              if (code.length == 6) {
-                                setState(() {
-                                  nextBtnColor = ColorConstants.appColorBlue;
-                                });
-
-                                var credential = PhoneAuthProvider.credential(
-                                    verificationId: verifyId,
-                                    smsCode: smsCode.join(''));
-                                try {
-                                  await showSnackBar(context, 'Verifying');
-
-                                  await _customAuth
-                                      .logIn(credential)
-                                      .then((value) => {
-                                            Navigator.pushReplacement(context,
-                                                MaterialPageRoute(
-                                                    builder: (context) {
-                                              return ProfileSetupScreen();
-                                            }))
-                                          });
-                                } on FirebaseAuthException catch (e) {
-                                  if (e.code == 'invalid-verification-code') {
-                                    await showSnackBar(context, 'Invalid Code');
-                                  }
-                                  if (e.code == 'session-expired') {
-                                    await _customAuth.verifyPhone(
-                                        '$prefixValue$phoneNumber',
-                                        context,
-                                        verifyPhoneFn);
-                                    await showSnackBar(
-                                        context,
-                                        'Your verification '
-                                        'has timed out. we have sent your'
-                                        ' another verification code');
-                                  }
-                                } catch (e) {
-                                  await showSnackBar(
-                                      context, 'Try again later');
-                                  print(e);
-                                }
-                              } else {
-                                setState(() {
-                                  nextBtnColor =
-                                      ColorConstants.appColorPaleBlue;
-                                });
-                                await showSnackBar(
-                                    context, 'Enter all the code digits');
-                              }
-                            },
-                            child: nextButton('Next', nextBtnColor),
-                          ),
-                          const SizedBox(
-                            height: 20,
-                          ),
-                          signUpOptions(context),
-                          const SizedBox(
-                            height: 36,
-                          ),
-                        ])
-                  : Form(
-                      key: _phoneFormKey,
-                      child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
+        body: WillPopScope(
+          onWillPop: onWillPop,
+          child: Container(
+            padding: const EdgeInsets.only(left: 24, right: 24),
+            child: Center(
+                child: requestCode
+                    ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
                             const SizedBox(
                               height: 42,
                             ),
                             const Text(
-                              'Sign up with your mobile\nnumber',
+                              'Verify your account!',
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                   fontWeight: FontWeight.bold,
@@ -189,62 +56,129 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
                                   color: Colors.black),
                             ),
                             const SizedBox(
-                              height: 4,
+                              height: 8,
                             ),
                             Text(
-                              'We’ll send you a verification code',
+                              'Enter the 6 digit code sent to\n'
+                              ' $prefixValue$phoneNumber\n'
+                              ' to verify your account',
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                   fontSize: 14,
                                   color: Colors.black.withOpacity(0.6)),
                             ),
                             const SizedBox(
-                              height: 32,
+                              height: 8,
                             ),
                             Container(
-                              height: 48,
+                              padding: const EdgeInsets.all(12),
                               child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
-                                  SizedBox(
-                                    width: 64,
-                                    child: countryPickerField(
-                                        '+256', codeValueChange),
-                                  ),
-                                  const SizedBox(
-                                    width: 16,
-                                  ),
-                                  Expanded(
-                                    child: phoneInputField(),
-                                  )
+                                  optField(0, context, setCode),
+                                  optField(1, context, setCode),
+                                  optField(2, context, setCode),
+                                  optField(3, context, setCode),
+                                  optField(4, context, setCode),
+                                  optField(5, context, setCode)
                                 ],
                               ),
                             ),
-
-                            // const SizedBox(
-                            //   height: 36,
-                            // ),
-                            // GestureDetector(
-                            //   onTap: () {
-                            //     Navigator.push(context,
-                            //         MaterialPageRoute(builder: (context) {
-                            //           return EmailSignupScreen();
-                            //         }));
-                            //   },
-                            //   child: signButton('Sign up with email instead'),
-                            // ),
-                            const Spacer(),
+                            const SizedBox(
+                              height: 24,
+                            ),
+                            Text(
+                              'The code should arrive with in 5 sec.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.black.withOpacity(0.5)),
+                            ),
                             GestureDetector(
                               onTap: () async {
-                                _phoneFormKey.currentState!.validate();
-                                if (phoneFormValid) {
-                                  setState(() {
-                                    nextBtnColor =
-                                        ColorConstants.appColorPaleBlue;
-                                  });
+                                if (resendCode) {
                                   await _customAuth.verifyPhone(
                                       '$prefixValue$phoneNumber',
                                       context,
                                       verifyPhoneFn);
+                                }
+                              },
+                              child: Text(
+                                'Resend code',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                    fontSize: 12,
+                                    color: resendCode
+                                        ? ColorConstants.appColorBlue
+                                        : Colors.black.withOpacity(0.5)),
+                              ),
+                            ),
+                            const SizedBox(
+                              height: 24,
+                            ),
+                            GestureDetector(
+                              onTap: initialize,
+                              child: Text(
+                                'Change Number',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                    fontSize: 12,
+                                    color: resendCode
+                                        ? ColorConstants.appColorBlue
+                                        : Colors.black.withOpacity(0.5)),
+                              ),
+                            ),
+                            const Spacer(),
+                            GestureDetector(
+                              onTap: () async {
+                                var code = smsCode.join('');
+                                if (code.length == 6) {
+                                  setState(() {
+                                    nextBtnColor = ColorConstants.appColorBlue;
+                                  });
+
+                                  var credential = PhoneAuthProvider.credential(
+                                      verificationId: verifyId,
+                                      smsCode: smsCode.join(''));
+                                  try {
+                                    await _customAuth
+                                        .logIn(credential)
+                                        .then((value) => {
+                                              Navigator.pushAndRemoveUntil(
+                                                  context, MaterialPageRoute(
+                                                      builder: (context) {
+                                                return ProfileSetupScreen();
+                                              }), (r) => false)
+                                            });
+                                  } on FirebaseAuthException catch (e) {
+                                    if (e.code == 'invalid-verification-code') {
+                                      await showSnackBar(
+                                          context, 'Invalid Code');
+                                    }
+                                    if (e.code == 'session-expired') {
+                                      await _customAuth.verifyPhone(
+                                          '$prefixValue$phoneNumber',
+                                          context,
+                                          verifyPhoneFn);
+                                      await showSnackBar(
+                                          context,
+                                          'Your verification '
+                                          'has timed out. we have sent your'
+                                          ' another verification code');
+                                    }
+                                  } catch (e) {
+                                    await showSnackBar(
+                                        context, 'Try again later');
+                                    print(e);
+                                  }
+                                } else {
+                                  setState(() {
+                                    nextBtnColor =
+                                        ColorConstants.appColorDisabled;
+                                  });
+                                  await showSnackBar(
+                                      context, 'Enter all the code digits');
                                 }
                               },
                               child: nextButton('Next', nextBtnColor),
@@ -256,7 +190,93 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
                             const SizedBox(
                               height: 36,
                             ),
-                          ]))),
+                          ])
+                    : Form(
+                        key: _phoneFormKey,
+                        child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              const SizedBox(
+                                height: 42,
+                              ),
+                              const Text(
+                                'Sign up with your mobile\nnumber',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 24,
+                                    color: Colors.black),
+                              ),
+                              const SizedBox(
+                                height: 4,
+                              ),
+                              Text(
+                                'We’ll send you a verification code',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.black.withOpacity(0.6)),
+                              ),
+                              const SizedBox(
+                                height: 32,
+                              ),
+                              Container(
+                                height: 48,
+                                child: Row(
+                                  children: [
+                                    SizedBox(
+                                      width: 64,
+                                      child: countryPickerField(
+                                          prefixValue, codeValueChange),
+                                    ),
+                                    const SizedBox(
+                                      width: 16,
+                                    ),
+                                    Expanded(
+                                      child: phoneInputField(),
+                                    )
+                                  ],
+                                ),
+                              ),
+
+                              // const SizedBox(
+                              //   height: 36,
+                              // ),
+                              // GestureDetector(
+                              //   onTap: () {
+                              //     Navigator.push(context,
+                              //         MaterialPageRoute(builder: (context) {
+                              //           return EmailSignupScreen();
+                              //         }));
+                              //   },
+                              //   child: signButton('Sign up with email instead'),
+                              // ),
+                              const Spacer(),
+                              GestureDetector(
+                                onTap: () async {
+                                  _phoneFormKey.currentState!.validate();
+                                  if (phoneFormValid) {
+                                    setState(() {
+                                      nextBtnColor =
+                                          ColorConstants.appColorDisabled;
+                                    });
+                                    await _customAuth.verifyPhone(
+                                        '$prefixValue$phoneNumber',
+                                        context,
+                                        verifyPhoneFn);
+                                  }
+                                },
+                                child: nextButton('Next', nextBtnColor),
+                              ),
+                              const SizedBox(
+                                height: 20,
+                              ),
+                              signUpOptions(context),
+                              const SizedBox(
+                                height: 36,
+                              ),
+                            ]))),
+          ),
         ));
   }
 
@@ -264,7 +284,7 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
     setState(() {
       phoneNumber = '';
       controller.text = '';
-      nextBtnColor = ColorConstants.appColorPaleBlue;
+      nextBtnColor = ColorConstants.appColorDisabled;
     });
   }
 
@@ -275,12 +295,27 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
     });
   }
 
-  void initialize() {}
+  void initialize() {
+    setState(() {
+      phoneFormValid = false;
+      codeFormValid = false;
+      requestCode = false;
+      resendCode = false;
+      nextBtnColor = ColorConstants.appColorDisabled;
+    });
+  }
 
-  @override
-  void initState() {
-    initialize();
-    super.initState();
+  Future<bool> onWillPop() {
+    var now = DateTime.now();
+
+    if (exitTime == null ||
+        now.difference(exitTime!) > const Duration(seconds: 2)) {
+      exitTime = now;
+
+      showSnackBar(context, 'Tap again to exit !');
+      return Future.value(false);
+    }
+    return Future.value(true);
   }
 
   Widget phoneInputField() {
@@ -336,7 +371,7 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
   void phoneValueChange(text) {
     if (text.toString().isEmpty) {
       setState(() {
-        nextBtnColor = ColorConstants.appColorPaleBlue;
+        nextBtnColor = ColorConstants.appColorDisabled;
       });
     } else {
       setState(() {
@@ -360,7 +395,7 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
       });
     } else {
       setState(() {
-        nextBtnColor = ColorConstants.appColorPaleBlue;
+        nextBtnColor = ColorConstants.appColorDisabled;
       });
     }
   }
@@ -373,7 +408,7 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
 
     Future.delayed(const Duration(seconds: 5), () async {
       setState(() {
-        rsendCode = true;
+        resendCode = true;
       });
     });
   }

@@ -14,15 +14,16 @@ class SplashScreen extends StatefulWidget {
 class SplashScreenState extends State<SplashScreen> {
   int _widgetId = 0;
   final CustomAuth _customAuth = CustomAuth(FirebaseAuth.instance);
+  bool _visible = false;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       // backgroundColor: Colors.white,
       body: AnimatedSwitcher(
-        duration: const Duration(seconds: 5),
+        duration: const Duration(seconds: 3),
         transitionBuilder: (Widget child, Animation<double> animation) {
-          return ScaleTransition(scale: animation, child: child);
+          return FadeTransition(opacity: animation, child: child);
         },
         child: _renderWidget(),
       ),
@@ -32,20 +33,23 @@ class SplashScreenState extends State<SplashScreen> {
   void initialize() {
     _getLatestMeasurements();
     _getStories();
-    Future.delayed(const Duration(seconds: 10), () async {
+    Future.delayed(const Duration(seconds: 4), () async {
       _updateWidget();
     });
 
-    Future.delayed(const Duration(seconds: 20), () async {
-      await Navigator.pushAndRemoveUntil(context,
-          MaterialPageRoute(builder: (context) {
-        if (_customAuth.isLoggedIn()) {
-          return HomePage();
-        } else {
-          return WelcomeScreen();
-        }
-      }), (r) => false);
-    });
+    _customAuth.isFirstUse().then((value) => {
+          Future.delayed(const Duration(seconds: 10), () async {
+            await Navigator.pushAndRemoveUntil(context,
+                MaterialPageRoute(builder: (context) {
+              if(value){
+                return WelcomeScreen();
+              }
+              else{
+                return HomePage();
+              }
+            }), (r) => false);
+          }),
+        });
   }
 
   @override
@@ -73,29 +77,36 @@ class SplashScreenState extends State<SplashScreen> {
   }
 
   Widget taglineWidget() {
-    return Container(
-      child: Center(
-        child: Stack(alignment: AlignmentDirectional.center, children: [
-          Image.asset(
-            'assets/images/splash-image.png',
-            fit: BoxFit.cover,
-            height: double.infinity,
-            width: double.infinity,
-            alignment: Alignment.center,
-          ),
-          const Text(
-            'Breathe\nClean.',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-                fontWeight: FontWeight.bold, fontSize: 48, color: Colors.white),
-          ),
-        ]),
+    return AnimatedOpacity(
+      opacity: _visible ? 1.0 : 0.0,
+      duration: const Duration(milliseconds: 500),
+      // The green box must be a child of the AnimatedOpacity widget.
+      child: Container(
+        child: Center(
+          child: Stack(alignment: AlignmentDirectional.center, children: [
+            Image.asset(
+              'assets/images/splash-image.png',
+              fit: BoxFit.cover,
+              height: double.infinity,
+              width: double.infinity,
+              alignment: Alignment.center,
+            ),
+            const Text(
+              'Breathe\nClean.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 48,
+                  color: Colors.white),
+            ),
+          ]),
+        ),
       ),
     );
   }
 
-  void _getLatestMeasurements() async {
-    await AirqoApiClient(context).fetchLatestMeasurements().then((value) => {
+  void _getLatestMeasurements() {
+    AirqoApiClient(context).fetchLatestMeasurements().then((value) => {
           if (value.isNotEmpty) {DBHelper().insertLatestMeasurements(value)}
         });
   }
@@ -112,6 +123,7 @@ class SplashScreenState extends State<SplashScreen> {
 
   void _updateWidget() {
     setState(() {
+      _visible = true;
       _widgetId = _widgetId == 0 ? 1 : 0;
     });
   }

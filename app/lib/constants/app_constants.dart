@@ -54,7 +54,9 @@ class ColorConstants {
 
   static Color get appColorBlue => const Color(0xff145DFF);
 
-  static Color get appColorPaleBlue => appColorBlue.withOpacity(0.5);
+  static Color get appColorDisabled => appColorBlue.withOpacity(0.5);
+
+  static Color get appColorPaleBlue => appColorBlue.withOpacity(0.1);
 
   static Color get appPicColor => const Color(0xffFF79C1);
 
@@ -249,7 +251,7 @@ class PrefConstant {
 
   static String get favouritePlaces => 'favouriteSites';
 
-  static String get firstUse => 'firstUse';
+  static String get firstUse => 'isFirstUse';
 
   static String get initialDbLoad => 'initialDbLoad';
 

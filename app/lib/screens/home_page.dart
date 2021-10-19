@@ -14,21 +14,15 @@ import 'help_page.dart';
 import 'maps_view.dart';
 
 class HomePage extends StatefulWidget {
-  final String title = 'AirQo';
-
   @override
   _HomePageState createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  static const TextStyle optionStyle =
-      TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
-  final PageController _pageCtrl = PageController(initialPage: 0);
   String title = '${AppConfig.name}';
   bool showAddPlace = true;
   DateTime? exitTime;
 
-  double selectedPage = 0;
   int _selectedIndex = 0;
   final List<Widget> _widgetOptions = <Widget>[
     DashboardView(),
@@ -40,8 +34,11 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: ColorConstants.appBodyColor,
-      body: Center(
-        child: _widgetOptions.elementAt(_selectedIndex),
+      body: WillPopScope(
+        onWillPop: onWillPop,
+        child: Center(
+          child: _widgetOptions.elementAt(_selectedIndex),
+        ),
       ),
       bottomNavigationBar: Theme(
         data: Theme.of(context).copyWith(
@@ -78,8 +75,9 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Future<void> initialize() async {
+  void initialize() {
     _getLatestMeasurements();
+    _getStories();
   }
 
   @override
@@ -113,6 +111,15 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<bool> onWillPop() {
+    var currentPage = _selectedIndex;
+
+    if (currentPage != 0) {
+      setState(() {
+        _selectedIndex = 0;
+      });
+      return Future.value(false);
+    }
+
     var now = DateTime.now();
 
     if (exitTime == null ||
@@ -131,35 +138,35 @@ class _HomePageState extends State<HomePage> {
         setState(() {
           title = '${AppConfig.name}';
           showAddPlace = true;
-          selectedPage = 0;
+          _selectedIndex = 0;
         });
         break;
       case 1:
         setState(() {
           title = 'MyPlaces';
           showAddPlace = false;
-          selectedPage = 1;
+          _selectedIndex = 1;
         });
         break;
       case 2:
         setState(() {
           title = 'News Feed';
           showAddPlace = false;
-          selectedPage = 2;
+          _selectedIndex = 2;
         });
         break;
       case 3:
         setState(() {
           title = 'Settings';
           showAddPlace = false;
-          selectedPage = 3;
+          _selectedIndex = 3;
         });
         break;
       default:
         setState(() {
           title = '${AppConfig.name}';
           showAddPlace = true;
-          selectedPage = 0;
+          _selectedIndex = 0;
         });
         break;
     }
@@ -183,9 +190,15 @@ class _HomePageState extends State<HomePage> {
     }));
   }
 
-  void _getLatestMeasurements() async {
-    await AirqoApiClient(context).fetchLatestMeasurements().then((value) => {
+  void _getLatestMeasurements() {
+    AirqoApiClient(context).fetchLatestMeasurements().then((value) => {
           if (value.isNotEmpty) {DBHelper().insertLatestMeasurements(value)}
+        });
+  }
+
+  void _getStories() {
+    AirqoApiClient(context).fetchLatestStories().then((value) => {
+          if (value.isNotEmpty) {DBHelper().insertLatestStories(value)}
         });
   }
 

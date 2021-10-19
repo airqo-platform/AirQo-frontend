@@ -139,6 +139,15 @@ class CustomAuth {
     }
   }
 
+  Future<bool> isFirstUse() async {
+    var _preferences = await SharedPreferences.getInstance();
+    var firstUse = _preferences.getBool(PrefConstant.firstUse) ?? true;
+    if (firstUse) {
+      await _preferences.setBool(PrefConstant.firstUse, false);
+    }
+    return firstUse;
+  }
+
   bool isLoggedIn() {
     return _firebaseAuth.currentUser == null ? false : true;
   }

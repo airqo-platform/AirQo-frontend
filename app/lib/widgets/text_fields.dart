@@ -100,51 +100,6 @@ Widget emailInputField(String placeholder) {
   );
 }
 
-Widget nameInputField(
-    String placeholder, maxLength, callbackFn, clearCallBackFn, controller) {
-  return Container(
-      alignment: Alignment.center,
-      padding: const EdgeInsets.only(left: 15),
-      decoration: BoxDecoration(
-          borderRadius: const BorderRadius.all(Radius.circular(10.0)),
-          border: Border.all(color: ColorConstants.appColorBlue)),
-      child: Center(
-          child: TextFormField(
-        controller: controller,
-        autofocus: true,
-        enableSuggestions: false,
-        cursorWidth: 1,
-        cursorColor: ColorConstants.appColorBlue,
-        keyboardType: TextInputType.name,
-        onChanged: (value) {
-          callbackFn(value);
-        },
-        validator: (value) {
-          if (value == null || value.isEmpty) {
-            return 'Please enter your name';
-          }
-
-          if (value.length > maxLength) {
-            return 'Maximum number of characters is 15';
-          }
-          return null;
-        },
-        decoration: InputDecoration(
-          focusedBorder: InputBorder.none,
-          enabledBorder: InputBorder.none,
-          hintText: placeholder,
-          suffixIcon: GestureDetector(
-              onTap: () {
-                controller.text = '';
-              },
-              child: GestureDetector(
-                onTap: clearCallBackFn,
-                child: textInputCloseButton(),
-              )),
-        ),
-      )));
-}
-
 Widget optField(position, context, callbackFn) {
   return Container(
       height: 45,

@@ -217,9 +217,10 @@ Widget signUpOptions(context) {
           ),
           GestureDetector(
             onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) {
+              Navigator.pushAndRemoveUntil(context,
+                  MaterialPageRoute(builder: (context) {
                 return HomePage();
-              }));
+              }), (r) => false);
             },
             child: Text(
               'Log in',
@@ -249,9 +250,10 @@ Widget signUpOptions(context) {
           ),
           GestureDetector(
             onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) {
+              Navigator.pushAndRemoveUntil(context,
+                  MaterialPageRoute(builder: (context) {
                 return HomePage();
-              }));
+              }), (r) => false);
             },
             child: Text(
               'Guest',
