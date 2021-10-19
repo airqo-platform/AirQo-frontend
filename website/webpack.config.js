@@ -95,9 +95,15 @@ const config = () => {
           ]),
         },
 
+        // SVGs
+        {
+          test: /\.svg$/,
+          use: ['@svgr/webpack'],
+        },
+
         // Images
         {
-          test: /\.(png|jpg|svg|ico)$/,
+          test: /\.(png|jpg|ico)$/,
           use: compact([
             {
               loader: 'file-loader',
