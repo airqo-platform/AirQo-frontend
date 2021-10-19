@@ -170,6 +170,8 @@ $home-padding: 80px;
 
       margin-top: 40px;
 
+      position: relative;
+
       .content-container, .image-container {
         display: grid;
         justify-content: center;
@@ -295,6 +297,19 @@ $home-padding: 80px;
         }
       }
 
+    }
+
+    .floating-image {
+      position: absolute;
+      width: 200px;
+      height: 200px;
+      right: -100px;
+      top: 100px;
+
+      background: #FFFFFF;
+      border: 0.5px solid rgba(20, 93, 255, 0.2);
+      box-sizing: border-box;
+      border-radius: 8px;
     }
   }
 

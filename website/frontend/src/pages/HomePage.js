@@ -87,6 +87,7 @@ const HomePage = () => (
                 <div className="image-container">
                     <Sensor width={464} height={376} />
                 </div>
+                <div className="floating-image" />
             </div>
         </div>
         <div className="partner-section">
