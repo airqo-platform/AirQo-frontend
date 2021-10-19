@@ -14,6 +14,7 @@ import 'package:app/services/rest_api.dart';
 import 'package:app/utils/date.dart';
 import 'package:app/utils/pm.dart';
 import 'package:app/utils/settings.dart';
+import 'package:app/widgets/custom_shimmer.dart';
 import 'package:app/widgets/readings_card.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -108,35 +109,24 @@ class _DashboardViewState extends State<DashboardView> {
 
   @override
   Widget build(BuildContext context) {
-    if (measurementData == null) {
-      return Container(
-          color: ColorConstants.appBodyColor,
-          child: Center(
-            child: CircularProgressIndicator(
-              color: ColorConstants.appColor,
-            ),
-          ));
-    } else {
-      return Container(
-          color: ColorConstants.appBodyColor,
-          child: RefreshIndicator(
-              onRefresh: initialize,
-              color: ColorConstants.appColor,
-              child: Padding(
-                padding:
-                    const EdgeInsets.only(left: 16.0, right: 16.0, top: 46),
-                child: Column(
-                  // mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    topBar(),
-                    Expanded(
-                      child: _dashboardItems(),
-                    ),
-                  ],
-                ),
-              )));
-    }
+    return Container(
+        color: ColorConstants.appBodyColor,
+        child: RefreshIndicator(
+            onRefresh: initialize,
+            color: ColorConstants.appColor,
+            child: Padding(
+              padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 46),
+              child: Column(
+                // mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  topBar(),
+                  Expanded(
+                    child: _dashboardItems(),
+                  ),
+                ],
+              ),
+            )));
   }
 
   void getFavouritePlaces() {
@@ -664,12 +654,14 @@ class _DashboardViewState extends State<DashboardView> {
             const SizedBox(
               height: 12,
             ),
-            ReadingsCard(measurementData),
+            if (measurementData != null) ReadingsCard(measurementData),
+            if (measurementData == null) loadingAnimation(200.0),
             const SizedBox(
               height: 16,
             ),
             if (stories.isNotEmpty)
               tipsSection(stories[pickStory(stories.length)]),
+            if (stories.isEmpty) loadingAnimation(100.0),
             const SizedBox(
               height: 12,
             ),
