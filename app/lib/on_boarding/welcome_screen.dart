@@ -68,7 +68,7 @@ class WelcomeScreenState extends State<WelcomeScreen> {
                 onTap: () {
                   Navigator.pushAndRemoveUntil(context,
                       MaterialPageRoute(builder: (context) {
-                    return PhoneSignupScreen();
+                    return PhoneSignupScreen(false);
                   }), (r) => false);
                 },
                 child: nextButton('Let’s go', ColorConstants.appColorBlue),
@@ -84,7 +84,7 @@ class WelcomeScreenState extends State<WelcomeScreen> {
     Future.delayed(const Duration(seconds: 4), () async {
       await Navigator.pushReplacement(context,
           MaterialPageRoute(builder: (context) {
-        return PhoneSignupScreen();
+        return PhoneSignupScreen(false);
       }));
     });
   }

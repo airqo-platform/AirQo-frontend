@@ -14,6 +14,7 @@ import 'package:app/services/rest_api.dart';
 import 'package:app/utils/date.dart';
 import 'package:app/utils/pm.dart';
 import 'package:app/utils/settings.dart';
+import 'package:app/widgets/analytics_card.dart';
 import 'package:app/widgets/custom_shimmer.dart';
 import 'package:app/widgets/readings_card.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -21,6 +22,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
+
+import 'insights_view.dart';
 
 class CircularBorder extends StatelessWidget {
   final Color color = ColorConstants.inactiveColor;
@@ -654,7 +657,15 @@ class _DashboardViewState extends State<DashboardView> {
             const SizedBox(
               height: 12,
             ),
-            if (measurementData != null) ReadingsCard(measurementData),
+            if (measurementData != null)
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) {
+                    return InsightsView(measurementData.site);
+                  }));
+                },
+                child: AnalyticsCard(measurementData),
+              ),
             if (measurementData == null) loadingAnimation(200.0),
             const SizedBox(
               height: 16,

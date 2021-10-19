@@ -90,6 +90,23 @@ Widget customSearchField(context, text) {
   );
 }
 
+Widget iconTextButton(Widget icon, text) {
+  return GestureDetector(
+      onTap: () {},
+      child: Row(
+        children: [
+          icon,
+          const SizedBox(
+            width: 10,
+          ),
+          Text(
+            text,
+            style: const TextStyle(fontSize: 14, color: Colors.black),
+          )
+        ],
+      ));
+}
+
 Widget locationTile(Measurement measurement) {
   return ListTile(
     title: Text(

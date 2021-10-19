@@ -9,11 +9,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
 class PhoneSignupScreen extends StatefulWidget {
+  final bool enableBackButton;
+  PhoneSignupScreen(this.enableBackButton);
+
   @override
-  PhoneSignupScreenState createState() => PhoneSignupScreenState();
+  PhoneSignupScreenState createState() =>
+      PhoneSignupScreenState(enableBackButton);
 }
 
 class PhoneSignupScreenState extends State<PhoneSignupScreen> {
+  final bool enableBackButton;
   final _phoneFormKey = GlobalKey<FormState>();
   final _codeFormKey = GlobalKey<FormState>();
   bool phoneFormValid = false;
@@ -30,6 +35,8 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
   DateTime? exitTime;
 
   var smsCode = <String>['', '', '', '', '', ''];
+
+  PhoneSignupScreenState(this.enableBackButton);
 
   @override
   Widget build(BuildContext context) {

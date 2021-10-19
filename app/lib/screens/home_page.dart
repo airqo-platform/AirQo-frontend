@@ -8,6 +8,7 @@ import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/share.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 
 import 'dashboard_view.dart';
 import 'help_page.dart';
@@ -48,16 +49,19 @@ class _HomePageState extends State<HomePage> {
                 .textTheme
                 .copyWith(caption: const TextStyle(color: Colors.black))),
         child: BottomNavigationBar(
-          items: const <BottomNavigationBarItem>[
+          items: <BottomNavigationBarItem>[
             BottomNavigationBarItem(
-              icon: Icon(Icons.home),
+              icon: SvgPicture.asset(
+                'assets/icon/home_icon.svg',
+                semanticsLabel: 'Home',
+              ),
               label: 'Home',
             ),
-            BottomNavigationBarItem(
+            const BottomNavigationBarItem(
               icon: Icon(Icons.location_on),
-              label: 'Map',
+              label: 'AirQo Map',
             ),
-            BottomNavigationBarItem(
+            const BottomNavigationBarItem(
               icon: Icon(Icons.account_circle_sharp),
               label: 'Profile',
             ),
@@ -84,6 +88,11 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     initialize();
+  }
+
+  Widget navIcon(name) {
+    return SvgPicture.asset('assets/icon/home_icon.svg',
+        semanticsLabel: 'Home');
   }
 
   void navigateToMenuItem(dynamic position) {

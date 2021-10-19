@@ -53,7 +53,7 @@ class EmailSignupScreenState extends State<EmailSignupScreen> {
                     onTap: () {
                       Navigator.push(context,
                           MaterialPageRoute(builder: (context) {
-                        return PhoneSignupScreen();
+                        return PhoneSignupScreen(false);
                       }));
                     },
                     child: signButton('Sign up with a mobile number instead'),

@@ -41,10 +41,9 @@ class SplashScreenState extends State<SplashScreen> {
           Future.delayed(const Duration(seconds: 10), () async {
             await Navigator.pushAndRemoveUntil(context,
                 MaterialPageRoute(builder: (context) {
-              if(value){
+              if (value) {
                 return WelcomeScreen();
-              }
-              else{
+              } else {
                 return HomePage();
               }
             }), (r) => false);
