@@ -260,7 +260,8 @@ class CustomAuth {
     }
   }
 
-  Future<void> verifyPhone(phoneNumber, context, callBackFn) async {
+  Future<void> verifyPhone(
+      phoneNumber, context, callBackFn, autoVerificationFn) async {
     var hasConnection = await isConnected();
     if (!hasConnection) {
       await showSnackBar(context, ErrorMessages.timeoutException);
@@ -268,27 +269,29 @@ class CustomAuth {
     }
 
     await _firebaseAuth.verifyPhoneNumber(
-      phoneNumber: phoneNumber,
-      verificationCompleted: (PhoneAuthCredential credential) {},
-      verificationFailed: (FirebaseAuthException e) async {
-        if (e.code == 'invalid-phone-number') {
-          await showSnackBar(context, 'Invalid phone number.');
-        } else {
-          await showSnackBar(
-              context,
-              'Cannot process your request.'
-              ' Try again later');
-          print(e);
-        }
-      },
-      codeSent: (String verificationId, int? resendToken) async {
-        callBackFn(verificationId);
-      },
-      codeAutoRetrievalTimeout: (String verificationId) async {
-        // TODO Implement auto code retrieval
-        // await showSnackBar(context, 'codeAutoRetrievalTimeout');
-      },
-    );
+        phoneNumber: phoneNumber,
+        verificationCompleted: (PhoneAuthCredential credential) {
+          autoVerificationFn(credential);
+        },
+        verificationFailed: (FirebaseAuthException e) async {
+          if (e.code == 'invalid-phone-number') {
+            await showSnackBar(context, 'Invalid phone number.');
+          } else {
+            await showSnackBar(
+                context,
+                'Cannot process your request.'
+                ' Try again later');
+            print(e);
+          }
+        },
+        codeSent: (String verificationId, int? resendToken) async {
+          callBackFn(verificationId);
+        },
+        codeAutoRetrievalTimeout: (String verificationId) async {
+          // TODO Implement auto code retrieval
+          // await showSnackBar(context, 'codeAutoRetrievalTimeout');
+        },
+        timeout: const Duration(minutes: 1));
   }
 }
 

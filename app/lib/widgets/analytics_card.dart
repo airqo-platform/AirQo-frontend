@@ -215,10 +215,17 @@ class AnalyticsCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 iconTextButton(
-                    SvgPicture.asset('assets/icon/share_icon.svg',
-                      semanticsLabel: 'Share',), 'Share'),
-                iconTextButton(SvgPicture.asset('assets/icon/fav_icon.svg',
-                  semanticsLabel: 'Favorite',), 'Favorite'),
+                    SvgPicture.asset(
+                      'assets/icon/share_icon.svg',
+                      semanticsLabel: 'Share',
+                    ),
+                    'Share'),
+                iconTextButton(
+                    SvgPicture.asset(
+                      'assets/icon/fav_icon.svg',
+                      semanticsLabel: 'Favorite',
+                    ),
+                    'Favorite'),
               ],
             )
           ],

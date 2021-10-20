@@ -83,12 +83,18 @@ class _DailyViewState extends State<DailyView> with TickerProviderStateMixin {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  iconTextButton(SvgPicture.asset(
-                    'assets/icon/share_icon.svg',
-                    semanticsLabel: 'Share',), 'Share'),
-                  iconTextButton(SvgPicture.asset(
-                      'assets/icon/fav_icon.svg',
-                      semanticsLabel: 'Share',), 'Favorite'),
+                  iconTextButton(
+                      SvgPicture.asset(
+                        'assets/icon/share_icon.svg',
+                        semanticsLabel: 'Share',
+                      ),
+                      'Share'),
+                  iconTextButton(
+                      SvgPicture.asset(
+                        'assets/icon/fav_icon.svg',
+                        semanticsLabel: 'Share',
+                      ),
+                      'Favorite'),
                 ],
               ),
             ),

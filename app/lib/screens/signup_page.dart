@@ -1,509 +1,737 @@
-import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
-
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/userDetails.dart';
-import 'package:app/services/local_storage.dart';
-import 'package:app/services/rest_api.dart';
+import 'package:app/on_boarding/profile_setup_screen.dart';
+import 'package:app/services/fb_notifications.dart';
+import 'package:app/services/native_api.dart';
 import 'package:app/utils/dialogs.dart';
-import 'package:app/widgets/custom_widgets.dart';
-import 'package:camera/camera.dart';
+import 'package:app/widgets/buttons.dart';
+import 'package:app/widgets/text_fields.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:mime/mime.dart';
+import 'package:flutter/rendering.dart';
 
-import 'maps_view.dart';
+import 'home_page.dart';
 
 class SignUpPage extends StatefulWidget {
-  SignUpPage({Key? key}) : super(key: key);
+  SignUpPage();
 
   @override
-  _SignUpPageState createState() => _SignUpPageState();
+  SignUpPageState createState() => SignUpPageState();
 }
 
-class _SignUpPageState extends State<SignUpPage> {
+class SignUpPageState extends State<SignUpPage> {
+  final _phoneFormKey = GlobalKey<FormState>();
+  final _codeFormKey = GlobalKey<FormState>();
+  bool phoneFormValid = false;
+  bool codeFormValid = false;
+  var phoneNumber = '';
   final _formKey = GlobalKey<FormState>();
-  UserDetails userDetails = UserDetails.initialize();
-  bool isUploading = false;
 
-  _SignUpPageState();
+  var verifyId = '';
+  var resendCode = false;
+  var prefix = '+256(0) ';
+  var prefixValue = '+256';
+  var nextBtnColor = ColorConstants.appColorDisabled;
+  final CustomAuth _customAuth = CustomAuth(FirebaseAuth.instance);
+  TextEditingController controller = TextEditingController();
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-        body: Container(
-      padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 40),
-      color: ColorConstants.appBodyColor,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Expanded(
-              child: Form(
-            key: _formKey,
-            child: ListView(
-              shrinkWrap: true,
-              children: <Widget>[
-                Row(
-                  children: [
-                    backButton(context),
-                    const Spacer(),
-                    GestureDetector(
-                      onTap: signUp,
-                      child: Text(
-                        'Save',
-                        style: TextStyle(color: ColorConstants.inactiveColor),
-                      ),
-                    )
-                  ],
-                ),
-                profilePicSection(),
-                const SizedBox(
-                  height: 40,
-                ),
+  var smsCode = <String>['', '', '', '', '', ''];
 
-                // Text(
-                //   'Email',
-                //   style: TextStyle(
-                //       fontSize: 12, color: ColorConstants.inactiveColor),
-                // ),
-                // const SizedBox(
-                //   height: 4,
-                // ),
-                // TextFormField(
-                //   initialValue: userDetails.emailAddress,
-                //   autofocus: true,
-                //   enableSuggestions: false,
-                //   cursorWidth: 1,
-                //   cursorColor: ColorConstants.appColorBlue,
-                //   keyboardType: TextInputType.emailAddress,
-                //   decoration: formFieldsDecoration(),
-                //   onChanged: (text) {
-                //     userDetails.emailAddress = text;
-                //     userDetails.userId = text;
-                //   },
-                //   validator: (value) {
-                //     if (value == null || value.isEmpty) {
-                //       return 'Please enter your email address';
-                //     }
-                //     return value.isValidEmail()
-                //         ? null
-                //         : 'Please enter a'
-                //             ' valid email address';
-                //   },
-                // ),
-                // const SizedBox(
-                //   height: 16,
-                // ),
+  String activeWidget = 'phone_signup_widget';
+  bool isLoading = false;
+  bool nameFormValid = false;
+  String fullName = '';
 
-                Text(
-                  'Phone Number',
-                  style: TextStyle(
-                      fontSize: 12, color: ColorConstants.inactiveColor),
-                ),
-                const SizedBox(
-                  height: 4,
-                ),
-                TextFormField(
-                  initialValue: userDetails.phoneNumber,
-                  autofocus: true,
-                  enableSuggestions: false,
-                  cursorWidth: 1,
-                  cursorColor: ColorConstants.appColorBlue,
-                  keyboardType: TextInputType.phone,
-                  decoration: formFieldsDecoration(),
-                  onChanged: (text) {
-                    userDetails.phoneNumber = text;
-                  },
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your phone Number';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(
-                  height: 16,
-                ),
+  DateTime? exitTime;
 
-                Text(
-                  'First Name',
-                  style: TextStyle(
-                      fontSize: 12, color: ColorConstants.inactiveColor),
-                ),
-                const SizedBox(
-                  height: 4,
-                ),
-                TextFormField(
-                  initialValue: userDetails.firstName,
-                  autofocus: true,
-                  enableSuggestions: false,
-                  cursorWidth: 1,
-                  cursorColor: ColorConstants.appColorBlue,
-                  keyboardType: TextInputType.name,
-                  decoration: formFieldsDecoration(),
-                  onChanged: (text) {
-                    userDetails.firstName = text;
-                  },
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your first name';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(
-                  height: 16,
-                ),
+  SignUpPageState();
 
-                Text(
-                  'Last Name',
-                  style: TextStyle(
-                      fontSize: 12, color: ColorConstants.inactiveColor),
-                ),
-                const SizedBox(
-                  height: 4,
-                ),
-                TextFormField(
-                  initialValue: userDetails.lastName,
-                  autofocus: true,
-                  enableSuggestions: false,
-                  cursorWidth: 1,
-                  cursorColor: ColorConstants.appColorBlue,
-                  keyboardType: TextInputType.name,
-                  decoration: formFieldsDecoration(),
-                  onChanged: (text) {
-                    userDetails.lastName = text;
-                  },
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your last name';
-                    }
-                    return null;
-                  },
-                ),
-                // SizedBox(height: 16,),
-                // settingsSection(),
-              ],
-            ),
-          )),
-        ],
-      ),
-    ));
+  Future<void> actionPhoneSignUp() async {
+    setState(() {
+      nextBtnColor = ColorConstants.appColorDisabled;
+      isLoading = true;
+    });
+
+    await _customAuth.verifyPhone(
+        '$prefixValue$phoneNumber', context, verifyPhoneFn, autoVerifyPhoneFn);
   }
 
-  InputDecoration formFieldsDecoration() {
-    return InputDecoration(
-      filled: true,
-      fillColor: Colors.white,
-      hintText: '-',
-      focusedBorder: OutlineInputBorder(
-        borderSide: const BorderSide(color: Colors.transparent, width: 1.0),
-        borderRadius: BorderRadius.circular(10.0),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderSide: const BorderSide(color: Colors.transparent, width: 1.0),
-        borderRadius: BorderRadius.circular(10.0),
-      ),
-      suffixIcon: Icon(
-        Icons.edit,
-        size: 20.0,
-        color: ColorConstants.appColorBlue,
-      ),
-    );
-  }
-
-  Future<void> getProfile() async {
-    await DBHelper().getUserData().then((value) => {
-          if (value != null)
-            {
-              setState(() {
-                userDetails = value;
-              })
-            }
-        });
-  }
-
-  Future<void> initialize() async {
-    await getProfile();
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    initialize();
-  }
-
-  Widget profilePicSection() {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Stack(
-          alignment: AlignmentDirectional.center,
-          children: [
-            userDetails.photoUrl == ''
-                ? RotationTransition(
-                    turns: const AlwaysStoppedAnimation(-5 / 360),
-                    child: Container(
-                      padding: const EdgeInsets.all(2.0),
-                      decoration: BoxDecoration(
-                          color: ColorConstants.appPicColor,
-                          shape: BoxShape.rectangle,
-                          borderRadius:
-                              const BorderRadius.all(Radius.circular(35.0))),
-                      child: Container(
-                        height: 88,
-                        width: 88,
-                        color: Colors.transparent,
-                      ),
-                    ),
-                  )
-                : CircleAvatar(
-                    radius: 44,
-                    backgroundColor: ColorConstants.appPicColor,
-                    foregroundColor: ColorConstants.appPicColor,
-                    backgroundImage: FileImage(File(userDetails.photoUrl)),
-                  ),
-            if (userDetails.photoUrl == '')
-              const Text(
-                'A',
-                style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    fontSize: 30),
-              ),
-            Positioned(
-                bottom: 0,
-                right: 0,
-                child: GestureDetector(
-                  onTap: _getFromGallery,
-                  child: Container(
-                    padding: const EdgeInsets.all(2.0),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.white),
-                      color: ColorConstants.appColorBlue,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.add,
-                      size: 22,
-                      color: Colors.white,
-                    ),
-                    // child: const FaIcon(
-                    //   FontAwesomeIcons.plus,
-                    //   size: 18,
-                    //   color: Colors.white,
-                    // ),
-                  ),
-                )),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget settingsSection() {
-    return Container(
-      decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.all(Radius.circular(10.0))),
-      child: ListTile(
-        leading: CustomUserAvatar(),
-        title: const Text(
-          'Settings',
-          overflow: TextOverflow.ellipsis,
-          style: TextStyle(fontSize: 16),
-        ),
-      ),
-    );
-  }
-
-  Future<void> signUp() async {
-    if (_formKey.currentState!.validate()) {
-      await DBHelper().saveUserData(userDetails).then((value) => {
-            if (value)
-              {
-                showSnackBar(context, 'Profile updated')
-                    .then((value) => {Navigator.pop(context, true)})
-              }
-            else
-              {
-                showSnackBar(
-                    context, 'Failed to save profile, Try again later...')
-              }
-          });
-      // var prefs = await SharedPreferences.getInstance();
-      // await prefs.setBool(PrefConstant.isSignedUp, false);
-      // Navigator.pop(context);
-    }
-  }
-
-  Widget signupSection() {
-    return Container(
-      decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.all(Radius.circular(10.0))),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          const Padding(
-            padding: EdgeInsets.fromLTRB(48.0, 38.0, 48.0, 0.0),
-            child: Text('Personalise your \nexperience',
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                )),
-          ),
-          const Padding(
-            padding: EdgeInsets.only(left: 48.0, right: 48.0),
-            child: Text(
-                'Create your account today and enjoy air quality'
-                ' updates and recommendations.',
-                maxLines: 6,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 15,
-                )),
-          ),
-          const SizedBox(
-            height: 16,
-          ),
-          Padding(
-            padding: const EdgeInsets.only(left: 24, right: 24, bottom: 38),
-            child: Container(
-              constraints: const BoxConstraints(minWidth: double.infinity),
-              decoration: BoxDecoration(
-                  color: ColorConstants.appColorBlue,
-                  borderRadius: const BorderRadius.all(Radius.circular(10.0))),
-              child: const Tab(
-                  child: Text(
-                'Sign up',
-                style: TextStyle(
-                  color: Colors.white,
-                ),
-              )),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> takePhoto() async {
-    // Obtain a list of the available cameras on the phone.
-    final cameras = await availableCameras();
-
-    // Get a specific camera from the list of available cameras.
-    if (cameras.isEmpty) {
-      await showSnackBar(context, 'Could not open camera');
-      return;
-    }
-
-    var camera = cameras.first;
-    var _controller = CameraController(
-      camera,
-      ResolutionPreset.high,
-    );
-
+  Future<void> actionSaveName() async {
     try {
-      await _controller.initialize();
+      if (nameFormValid && !isLoading) {
+        setState(() {
+          nextBtnColor = ColorConstants.appColorDisabled;
+          isLoading = true;
+        });
+        var userDetails = UserDetails.initialize()
+          ..firstName = UserDetails.getNames(fullName).first
+          ..lastName = UserDetails.getNames(fullName).last;
 
-      final image = await _controller.takePicture();
-
+        await _customAuth
+            .updateProfile(userDetails)
+            .then((value) => {switchWidget('location_widget', false)});
+      }
+    } on FirebaseAuthException catch (e) {
       setState(() {
-        userDetails.photoUrl = image.path;
+        nextBtnColor = ColorConstants.appColorBlue;
+        isLoading = false;
       });
-      print(image.path);
-    } catch (e) {
+      await showSnackBar(context, 'Failed to update profile. Try again later');
       print(e);
     }
   }
 
-  Future<void> uploadCompeteHandler() async {
-    setState(() {
-      isUploading = false;
-    });
-    await showSnackBar(context, 'Upload complete, thank you for sharing');
-
-    Navigator.pop(context);
-  }
-
-  FutureOr<String> uploadFailureHandler(var error) async {
-    setState(() {
-      isUploading = false;
-    });
-    await showSnackBar(context, 'Upload failed, try again');
-    return '';
-  }
-
-  Future<void> uploadPicture() async {
-    setState(() {
-      isUploading = true;
-    });
-
-    if (userDetails.photoUrl == '') {
-      return;
-    }
-    var mimeType = lookupMimeType(userDetails.photoUrl);
-
-    mimeType ??= 'jpeg';
-
-    await File(userDetails.photoUrl).readAsBytes().then((value) => {
-          AirqoApiClient(context)
-              .imageUpload(base64Encode(value), mimeType, '')
-              .whenComplete(() => {uploadCompeteHandler()})
-              .catchError(uploadFailureHandler)
-              .then((value) => uploadSuccessHandler)
-        });
-  }
-
-  Future<void> uploadSuccessHandler(var value) async {
-    setState(() {
-      isUploading = false;
-    });
-    await showSnackBar(context, 'Upload complete, thank you for sharing');
-
-    Navigator.pop(context);
-  }
-
-  /// Get from Camera
-  void _getFromCamera() async {
-    var pickedFile = await ImagePicker().getImage(
-      source: ImageSource.camera,
-      maxWidth: 1800,
-      maxHeight: 1800,
-    );
-    if (pickedFile != null) {
+  Future<void> actionVerifyCode() async {
+    var code = smsCode.join('');
+    if (code.length == 6) {
       setState(() {
-        userDetails.photoUrl = pickedFile.path;
+        nextBtnColor = ColorConstants.appColorBlue;
+        isLoading = true;
+      });
+
+      var credential = PhoneAuthProvider.credential(
+          verificationId: verifyId, smsCode: smsCode.join(''));
+      try {
+        await _customAuth
+            .logIn(credential)
+            .then((value) => {switchWidget('name_widget', true)});
+      } on FirebaseAuthException catch (e) {
+        if (e.code == 'invalid-verification-code') {
+          await showSnackBar(context, 'Invalid Code');
+        }
+        if (e.code == 'session-expired') {
+          await _customAuth.verifyPhone('$prefixValue$phoneNumber', context,
+              verifyPhoneFn, autoVerifyPhoneFn);
+          await showSnackBar(
+              context,
+              'Your verification '
+              'has timed out. we have sent your'
+              ' another verification code');
+        }
+      } catch (e) {
+        await showSnackBar(context, 'Try again later');
+        print(e);
+      }
+    } else {
+      setState(() {
+        nextBtnColor = ColorConstants.appColorDisabled;
+      });
+      await showSnackBar(context, 'Enter all the code digits');
+    }
+  }
+
+  void autoVerifyPhoneFn(PhoneAuthCredential credential) {
+    print('Auto verification');
+    _customAuth
+        .logIn(credential)
+        .then((value) => {switchWidget('name_widget', true)});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        resizeToAvoidBottomInset: false,
+        body: WillPopScope(
+          onWillPop: onWillPop,
+          child: Container(
+            padding: const EdgeInsets.only(left: 24, right: 24),
+            child: Center(
+              child: getWidget(),
+            ),
+          ),
+        ));
+  }
+
+  Widget cancelWidget() {
+    return GestureDetector(
+      onTap: () {
+        Navigator.pushAndRemoveUntil(context,
+            MaterialPageRoute(builder: (context) {
+          return HomePage();
+        }), (r) => false);
+      },
+      child: Text(
+        'Cancel',
+        textAlign: TextAlign.center,
+        style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: ColorConstants.appColorBlue),
+      ),
+    );
+  }
+
+  void clearPhoneCallBack() {
+    setState(() {
+      phoneNumber = '';
+      controller.text = '';
+      nextBtnColor = ColorConstants.appColorDisabled;
+    });
+  }
+
+  void codeValueChange(text) {
+    setState(() {
+      prefixValue = text;
+      prefix = '$text(0) ';
+    });
+  }
+
+  Widget finalWidget() {
+    return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const Text(
+            'All Set!',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+                fontWeight: FontWeight.bold, fontSize: 48, color: Colors.black),
+          ),
+          Text(
+            'Breathe',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 48,
+                color: ColorConstants.appColorBlue),
+          ),
+        ]);
+  }
+
+  Widget getWidget() {
+    switch (activeWidget) {
+      case 'phone_signup_widget':
+        return phoneSignUpWidget();
+      case 'request_code_widget':
+        return verificationCodeWidget();
+      case 'name_widget':
+        return nameWidget();
+      case 'location_widget':
+        return locationWidget();
+      case 'notification_widget':
+        return notificationWidget();
+      case 'final_widget':
+        return finalWidget();
+      default:
+        return phoneSignUpWidget();
+    }
+  }
+
+  void initialize() {
+    setState(() {
+      phoneFormValid = false;
+      codeFormValid = false;
+      resendCode = false;
+      nextBtnColor = ColorConstants.appColorDisabled;
+    });
+  }
+
+  Widget locationWidget() {
+    return Center(
+      child: Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
+        const SizedBox(
+          height: 140,
+        ),
+        locationIcon(143.0, 143.0),
+        const SizedBox(
+          height: 52,
+        ),
+        const Text(
+          'Enable locations',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+              fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
+        ),
+        const SizedBox(
+          height: 8,
+        ),
+        const Text(
+          'Allow AirQo to send you location air '
+          'quality\n update for your work place, home',
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 12, color: Colors.black),
+        ),
+        const Spacer(),
+        GestureDetector(
+          onTap: () {
+            LocationService()
+                .getLocation()
+                .then((value) => {switchWidget('notification_widget', false)});
+          },
+          child: nextButton('Allow location', ColorConstants.appColorBlue),
+        ),
+        const SizedBox(
+          height: 20,
+        ),
+        cancelWidget(),
+        const SizedBox(
+          height: 36,
+        ),
+      ]),
+    );
+  }
+
+  Widget nameInputField() {
+    return Container(
+        alignment: Alignment.center,
+        padding: const EdgeInsets.only(left: 15),
+        decoration: BoxDecoration(
+            borderRadius: const BorderRadius.all(Radius.circular(10.0)),
+            border: Border.all(color: ColorConstants.appColorBlue)),
+        child: Center(
+            child: TextFormField(
+          controller: controller,
+          autofocus: true,
+          enableSuggestions: false,
+          cursorWidth: 1,
+          cursorColor: ColorConstants.appColorBlue,
+          keyboardType: TextInputType.name,
+          onChanged: (text) {
+            if (text.toString().isEmpty || text.toString() == '') {
+              setState(() {
+                nextBtnColor = ColorConstants.appColorDisabled;
+              });
+            } else {
+              setState(() {
+                nextBtnColor = ColorConstants.appColorBlue;
+              });
+            }
+            setState(() {
+              fullName = text;
+            });
+          },
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              showSnackBar(context, 'Please enter your name');
+              setState(() {
+                nameFormValid = false;
+              });
+            } else if (value.length > 15) {
+              showSnackBar(context, 'Maximum number of characters is 15');
+              setState(() {
+                nameFormValid = false;
+              });
+            } else {
+              setState(() {
+                nameFormValid = true;
+              });
+            }
+
+            return null;
+          },
+          decoration: const InputDecoration(
+            focusedBorder: InputBorder.none,
+            enabledBorder: InputBorder.none,
+            hintText: 'Enter your name',
+          ),
+        )));
+  }
+
+  Widget nameWidget() {
+    return Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
+      const SizedBox(
+        height: 42,
+      ),
+      const Text(
+        'Great!\nWhat’s your name?',
+        textAlign: TextAlign.center,
+        style: TextStyle(
+            fontWeight: FontWeight.bold, fontSize: 24, color: Colors.black),
+      ),
+      const SizedBox(
+        height: 42,
+      ),
+      Container(
+        height: 48,
+        child: Row(
+          children: <Widget>[
+            // titleDropdown(),
+            // const SizedBox(
+            //   width: 16,
+            // ),
+            Form(
+              key: _formKey,
+              child: Flexible(
+                child: nameInputField(),
+              ),
+            ),
+          ],
+        ),
+      ),
+      const Spacer(),
+      GestureDetector(
+        onTap: () async {
+          if (_formKey.currentState!.validate()) {
+            await actionSaveName();
+          }
+        },
+        child: nextButton('Let’s go', nextBtnColor),
+      ),
+      const SizedBox(
+        height: 20,
+      ),
+      cancelWidget(),
+      const SizedBox(
+        height: 36,
+      ),
+    ]);
+  }
+
+  Widget notificationWidget() {
+    return Center(
+      child: Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
+        const SizedBox(
+          height: 140,
+        ),
+        notificationIcon(100.0, 100.0),
+        const SizedBox(
+          height: 52,
+        ),
+        const Text(
+          'Know your air in real time',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+              fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
+        ),
+        const SizedBox(
+          height: 8,
+        ),
+        const Text(
+          'Allow AirQo push notifications to receive'
+          '\nair quality updates.',
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 12, color: Colors.black),
+        ),
+        const Spacer(),
+        GestureDetector(
+          onTap: () {
+            NotificationService()
+                .requestPermission()
+                .then((value) => {switchWidget('final_widget', false)});
+          },
+          child: nextButton('Allow notifications', ColorConstants.appColorBlue),
+        ),
+        const SizedBox(
+          height: 20,
+        ),
+        cancelWidget(),
+        const SizedBox(
+          height: 36,
+        ),
+      ]),
+    );
+  }
+
+  Future<bool> onWillPop() {
+    var now = DateTime.now();
+
+    if (exitTime == null ||
+        now.difference(exitTime!) > const Duration(seconds: 2)) {
+      exitTime = now;
+
+      showSnackBar(context, 'Tap again to cancel!');
+      return Future.value(false);
+    }
+
+    Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) {
+      return HomePage();
+    }), (r) => false);
+
+    return Future.value(true);
+  }
+
+  Widget phoneInputField() {
+    return Container(
+        alignment: Alignment.center,
+        padding: const EdgeInsets.only(left: 15),
+        decoration: BoxDecoration(
+            borderRadius: const BorderRadius.all(Radius.circular(10.0)),
+            border: Border.all(color: ColorConstants.appColorBlue)),
+        child: Center(
+            child: TextFormField(
+          controller: controller,
+          autofocus: true,
+          enableSuggestions: false,
+          cursorWidth: 1,
+          cursorColor: ColorConstants.appColorBlue,
+          keyboardType: TextInputType.number,
+          onChanged: phoneValueChange,
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              showSnackBar(context, 'Please enter your phone number');
+              setState(() {
+                phoneFormValid = false;
+              });
+            } else {
+              setState(() {
+                phoneFormValid = true;
+              });
+            }
+            return null;
+          },
+          decoration: InputDecoration(
+            prefixText: prefix,
+            focusedBorder: InputBorder.none,
+            enabledBorder: InputBorder.none,
+            // focusedBorder: OutlineInputBorder(
+            //   borderSide: BorderSide(color: ColorConstants.appColorBlue, width: 1.0),
+            //   borderRadius: BorderRadius.circular(10.0),
+            // ),
+            // enabledBorder: OutlineInputBorder(
+            //   borderSide: BorderSide(color: ColorConstants.appColorBlue, width: 1.0),
+            //   borderRadius: BorderRadius.circular(10.0),
+            // ),
+            hintText: '701000000',
+            suffixIcon: GestureDetector(
+              onTap: clearPhoneCallBack,
+              child: textInputCloseButton(),
+            ),
+          ),
+        )));
+  }
+
+  // switch widgets
+  Widget phoneSignUpWidget() {
+    return Form(
+        key: _phoneFormKey,
+        child: Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
+          const SizedBox(
+            height: 42,
+          ),
+          const Text(
+            'Sign up with your mobile\nnumber',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+                fontWeight: FontWeight.bold, fontSize: 24, color: Colors.black),
+          ),
+          const SizedBox(
+            height: 4,
+          ),
+          Text(
+            'We’ll send you a verification code',
+            textAlign: TextAlign.center,
+            style:
+                TextStyle(fontSize: 14, color: Colors.black.withOpacity(0.6)),
+          ),
+          const SizedBox(
+            height: 32,
+          ),
+          Container(
+            height: 48,
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 64,
+                  child: countryPickerField(prefixValue, codeValueChange),
+                ),
+                const SizedBox(
+                  width: 16,
+                ),
+                Expanded(
+                  child: phoneInputField(),
+                )
+              ],
+            ),
+          ),
+
+          // const SizedBox(
+          //   height: 36,
+          // ),
+          // GestureDetector(
+          //   onTap: () {
+          //     Navigator.push(context,
+          //         MaterialPageRoute(builder: (context) {
+          //           return EmailSignupScreen();
+          //         }));
+          //   },
+          //   child: signButton('Sign up with email instead'),
+          // ),
+          const Spacer(),
+          GestureDetector(
+            onTap: () async {
+              _phoneFormKey.currentState!.validate();
+              if (phoneFormValid && !isLoading) {
+                await actionPhoneSignUp();
+              }
+            },
+            child: nextButton('Next', nextBtnColor),
+          ),
+          const SizedBox(
+            height: 20,
+          ),
+          cancelWidget(),
+          const SizedBox(
+            height: 36,
+          ),
+        ]));
+  }
+
+  void phoneValueChange(text) {
+    if (text.toString().isEmpty) {
+      setState(() {
+        nextBtnColor = ColorConstants.appColorDisabled;
+      });
+    } else {
+      setState(() {
+        nextBtnColor = ColorConstants.appColorBlue;
+      });
+    }
+
+    setState(() {
+      phoneNumber = text;
+    });
+  }
+
+  void setCode(value, position) {
+    setState(() {
+      smsCode[position] = value;
+    });
+    var code = smsCode.join('');
+    if (code.length == 6) {
+      setState(() {
+        nextBtnColor = ColorConstants.appColorBlue;
+      });
+    } else {
+      setState(() {
+        nextBtnColor = ColorConstants.appColorDisabled;
       });
     }
   }
 
-  void _getFromGallery() async {
-    var pickedFile = await ImagePicker().getImage(
-      source: ImageSource.gallery,
-      maxWidth: 1800,
-      maxHeight: 1800,
-    );
-    if (pickedFile != null) {
+  void switchWidget(name, bool disableButton) {
+    setState(() {
+      activeWidget = name;
+      isLoading = false;
+      controller.text = '';
+    });
+
+    if (disableButton) {
       setState(() {
-        userDetails.photoUrl = pickedFile.path;
+        nextBtnColor = ColorConstants.appColorDisabled;
+      });
+    } else {
+      setState(() {
+        nextBtnColor = ColorConstants.appColorBlue;
+      });
+    }
+
+    if (name == 'final_widget') {
+      Future.delayed(const Duration(seconds: 4), () async {
+        await Navigator.pushAndRemoveUntil(context,
+            MaterialPageRoute(builder: (context) {
+          return HomePage();
+        }), (r) => false);
       });
     }
   }
-}
 
-extension EmailValidator on String {
-  bool isValidEmail() {
-    return RegExp(
-            r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$')
-        .hasMatch(this);
+  Widget verificationCodeWidget() {
+    return Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
+      const SizedBox(
+        height: 42,
+      ),
+      const Text(
+        'Verify your account!',
+        textAlign: TextAlign.center,
+        style: TextStyle(
+            fontWeight: FontWeight.bold, fontSize: 24, color: Colors.black),
+      ),
+      const SizedBox(
+        height: 8,
+      ),
+      Text(
+        'Enter the 6 digit code sent to\n'
+        ' $prefixValue$phoneNumber\n'
+        ' to verify your account',
+        textAlign: TextAlign.center,
+        style: TextStyle(fontSize: 14, color: Colors.black.withOpacity(0.6)),
+      ),
+      const SizedBox(
+        height: 8,
+      ),
+      Container(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            optField(0, context, setCode),
+            optField(1, context, setCode),
+            optField(2, context, setCode),
+            optField(3, context, setCode),
+            optField(4, context, setCode),
+            optField(5, context, setCode)
+          ],
+        ),
+      ),
+      const SizedBox(
+        height: 24,
+      ),
+      Text(
+        'The code should arrive with in 5 sec.',
+        textAlign: TextAlign.center,
+        style: TextStyle(fontSize: 12, color: Colors.black.withOpacity(0.5)),
+      ),
+      GestureDetector(
+        onTap: () async {
+          if (resendCode) {
+            await _customAuth.verifyPhone('$prefixValue$phoneNumber', context,
+                verifyPhoneFn, autoVerifyPhoneFn);
+          }
+        },
+        child: Text(
+          'Resend code',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+              fontSize: 12,
+              color: resendCode
+                  ? ColorConstants.appColorBlue
+                  : Colors.black.withOpacity(0.5)),
+        ),
+      ),
+      const SizedBox(
+        height: 24,
+      ),
+      GestureDetector(
+        onTap: () {
+          switchWidget('phone_signup_widget', true);
+        },
+        child: Text(
+          'Change Number',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+              fontSize: 12,
+              color: resendCode
+                  ? ColorConstants.appColorBlue
+                  : Colors.black.withOpacity(0.5)),
+        ),
+      ),
+      const Spacer(),
+      GestureDetector(
+        onTap: () async {
+          await actionVerifyCode();
+        },
+        child: nextButton('Next', nextBtnColor),
+      ),
+      const SizedBox(
+        height: 20,
+      ),
+      cancelWidget(),
+      const SizedBox(
+        height: 36,
+      ),
+    ]);
+  }
+
+  void verifyPhoneFn(verificationId) {
+    setState(() {
+      verifyId = verificationId;
+      switchWidget('request_code_widget', true);
+    });
+
+    Future.delayed(const Duration(seconds: 5), () async {
+      setState(() {
+        resendCode = true;
+      });
+    });
   }
 }

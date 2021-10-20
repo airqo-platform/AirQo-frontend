@@ -666,7 +666,7 @@ class _DashboardViewState extends State<DashboardView> {
                 },
                 child: AnalyticsCard(measurementData),
               ),
-            if (measurementData == null) loadingAnimation(200.0),
+            if (measurementData == null) loadingAnimation(244.0),
             const SizedBox(
               height: 16,
             ),

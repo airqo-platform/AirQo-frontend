@@ -38,6 +38,15 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
 
   PhoneSignupScreenState(this.enableBackButton);
 
+  void autoVerifyPhoneFn(PhoneAuthCredential credential) {
+    _customAuth.logIn(credential).then((value) => {
+          Navigator.pushAndRemoveUntil(context,
+              MaterialPageRoute(builder: (context) {
+            return ProfileSetupScreen();
+          }), (r) => false)
+        });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -108,7 +117,8 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
                                   await _customAuth.verifyPhone(
                                       '$prefixValue$phoneNumber',
                                       context,
-                                      verifyPhoneFn);
+                                      verifyPhoneFn,
+                                      autoVerifyPhoneFn);
                                 }
                               },
                               child: Text(
@@ -167,7 +177,8 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
                                       await _customAuth.verifyPhone(
                                           '$prefixValue$phoneNumber',
                                           context,
-                                          verifyPhoneFn);
+                                          verifyPhoneFn,
+                                          autoVerifyPhoneFn);
                                       await showSnackBar(
                                           context,
                                           'Your verification '
@@ -256,7 +267,8 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
                               //           return EmailSignupScreen();
                               //         }));
                               //   },
-                              //   child: signButton('Sign up with email instead'),
+                              //   child: signButton('Sign up with
+                              //   email instead'),
                               // ),
                               const Spacer(),
                               GestureDetector(
@@ -270,7 +282,8 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
                                     await _customAuth.verifyPhone(
                                         '$prefixValue$phoneNumber',
                                         context,
-                                        verifyPhoneFn);
+                                        verifyPhoneFn,
+                                        autoVerifyPhoneFn);
                                   }
                                 },
                                 child: nextButton('Next', nextBtnColor),
