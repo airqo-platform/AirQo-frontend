@@ -38,7 +38,7 @@ const AppRoutes = () => {
         <Route exact path="/" component={Landing} />
 
         <Suspense fallback={<LargeCircularLoader loading={true} />}>
-          <Route exact path="/login" component={Login} />
+          <Route exact path="/login/:tenant?" component={Login} />
           <Route exact path="/forgot" component={ForgotPassword} />
           <Route exact path="/reset" component={ResetPassword} />
           <Route exact path="/request-access" component={Register} />

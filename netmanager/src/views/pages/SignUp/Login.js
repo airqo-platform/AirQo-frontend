@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { CardContent } from "@material-ui/core";
@@ -16,8 +16,9 @@ class Login extends Component {
   constructor(props) {
     super(props);
     this.query = new URLSearchParams(this.props.location.search);
+    this.tenant = this.props.match.params.tenant;
     this.state = {
-      organization: this.query.get("organization") || "",
+      organization: this.tenant || 'airqo',
       userName: "",
       password: "",
       errors: {},
@@ -159,24 +160,6 @@ class Login extends Component {
                         this.props.errors.data.message}
                     </Alert>
                   </CardContent>
-                  <div className="input-field col s12">
-                    <input
-                      onChange={this.onChange}
-                      value={this.state.organization}
-                      error={errors.organization}
-                      id="organization"
-                      type="text"
-                      className={classnames("", {
-                        invalid:
-                          errors.organization || errors.credentialsnotfound,
-                      })}
-                    />
-                    <label htmlFor="organization">Organization</label>
-                    <span className="red-text">
-                      {errors.organization}
-                      {errors.credentialsnotfound}
-                    </span>
-                  </div>
                   <div className="input-field col s12">
                     <input
                       onChange={this.onChange}
