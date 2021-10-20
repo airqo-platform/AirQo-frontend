@@ -2,7 +2,10 @@ import React, { useState } from "react";
 import { useDispatch } from "react-redux";
 import { Button, Card, Grid, TextField } from "@material-ui/core";
 import OutlinedSelect from "views/components/CustomSelects/OutlinedSelect";
-import { useDashboardSiteOptions } from "utils/customHooks/DashboardHooks";
+import {
+  useDashboardSiteOptions,
+  usePollutantsOptions,
+} from "utils/customHooks";
 import { updateUserDefaultGraphData } from "redux/Dashboard/operations";
 import { useAuthUser } from "redux/Join/selectors";
 import { createUserChartDefaultsApi } from "views/apis/authService";
@@ -57,11 +60,7 @@ const AddChart = ({ className }) => {
   const [defaultsData, setDefaultsData] = useState(initialDefaultsData);
   const [errors, setErrors] = useState({});
 
-  const pollutantOptions = [
-    { value: "pm2_5", label: "PM 2.5" },
-    { value: "pm10", label: "PM 10" },
-    { value: "no2", label: "NO2" },
-  ];
+  const pollutantOptions = usePollutantsOptions();
 
   const frequencyOptions = [
     { value: "hourly", label: "Hourly" },
