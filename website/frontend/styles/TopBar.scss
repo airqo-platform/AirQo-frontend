@@ -1,0 +1,18 @@
+@import "lib/colors";
+
+$topbar-padding: 80px;
+
+.TopBar {
+  display: flex;
+  align-items: center;
+  width: 1440px - 2*$topbar-padding;
+  height: 80px;
+  background: $aq-blue-1;
+  padding: 0 $topbar-padding;
+
+  .container {
+    display: flex;
+    margin-left: 24px;
+    width: 776.5px;
+  }
+}

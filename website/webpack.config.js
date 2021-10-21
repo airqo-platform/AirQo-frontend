@@ -63,7 +63,7 @@ const config = () => {
     },
 
     resolve: {
-      modules: [ROOT, 'node_modules'],
+      modules: [ROOT, 'frontend/src', 'node_modules'],
       extensions: ['.js', '.jsx', '.ts', '.tsx'],
     },
 
@@ -85,10 +85,25 @@ const config = () => {
           test: /\.css$/,
           use: compact([{ loader: 'style-loader' }, { loader: 'css-loader' }, postCSSLoader()]),
         },
+        {
+          test: /\.s[ac]ss$/i,
+          use: compact([
+            { loader: 'style-loader' },
+            { loader: 'css-loader' },
+            postCSSLoader(),
+            { loader: 'sass-loader' },
+          ]),
+        },
+
+        // SVGs
+        {
+          test: /\.svg$/,
+          use: ['@svgr/webpack'],
+        },
 
         // Images
         {
-          test: /\.(png|jpg|svg|ico)$/,
+          test: /\.(png|jpg|ico)$/,
           use: compact([
             {
               loader: 'file-loader',
