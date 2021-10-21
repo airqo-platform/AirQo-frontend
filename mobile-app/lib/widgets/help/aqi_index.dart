@@ -31,7 +31,8 @@ class AqiDialog extends StatelessWidget {
       '- Consider indoors activities or reschedule to a time when air '
       'quality is better.';
 
-  final String hazardous = 'Health alert: everyone may experience more serious health effect'
+  final String hazardous =
+      'Health alert: everyone may experience more serious health effect'
       '\n\n'
       '- Everyone should avoid all physical activities outdoor ';
 
@@ -136,12 +137,8 @@ class AqiDialog extends StatelessWidget {
             endIndent: 30,
             color: ColorConstants.appColor,
           ),
-          aqiGuide(
-              'assets/images/unhealthy-face.png',
-              unHealthy,
-              pm2_5ToColor(100),
-              pm2_5TextColor(100),
-              '151-200  Unhealthy'),
+          aqiGuide('assets/images/unhealthy-face.png', unHealthy,
+              pm2_5ToColor(100), pm2_5TextColor(100), '151-200  Unhealthy'),
           Divider(
             indent: 30,
             endIndent: 30,
@@ -158,16 +155,10 @@ class AqiDialog extends StatelessWidget {
             endIndent: 30,
             color: ColorConstants.appColor,
           ),
-          aqiGuide(
-              'assets/images/hazardous-face.png',
-              hazardous,
-              pm2_5ToColor(500),
-              pm2_5TextColor(500),
-              '300+  Hazardous'),
-
-
-          const Text('Source : U.S. Environmental Protection Agency  https://www.epa.gov/outdoor-air-quality-data/air-data-basic-information')
-
+          aqiGuide('assets/images/hazardous-face.png', hazardous,
+              pm2_5ToColor(500), pm2_5TextColor(500), '300+  Hazardous'),
+          const Text(
+              'Source : U.S. Environmental Protection Agency  https://www.epa.gov/outdoor-air-quality-data/air-data-basic-information')
         ],
       ),
     );

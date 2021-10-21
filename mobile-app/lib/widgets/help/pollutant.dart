@@ -13,17 +13,17 @@ class PollutantDialog extends StatelessWidget {
     return Container(
       color: ColorConstants.appBodyColor,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
-        child: Column(
-          children: [
-            Expanded(child: ListView(
-              children: [whatIs()],
-            ),),
-
-            reference()
-          ],
-        )
-      ),
+          padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
+          child: Column(
+            children: [
+              Expanded(
+                child: ListView(
+                  children: [whatIs()],
+                ),
+              ),
+              reference()
+            ],
+          )),
     );
   }
 

@@ -1,10 +1,9 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/on_boarding/onBoarding_page.dart';
 import 'package:app/screens/map_page.dart';
-import 'package:app/screens/resources_page.dart';
+import 'package:app/screens/ranking_page.dart';
 import 'package:app/screens/search_location_page.dart';
 import 'package:app/screens/settings_page.dart';
-import 'package:app/screens/settings_view.dart';
 import 'package:app/screens/share_picture.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/services/rest_api.dart';
@@ -16,6 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'blog_page.dart';
 import 'dashboard_page.dart';
 import 'help_page.dart';
 import 'my_places_view.dart';
@@ -147,20 +147,19 @@ class _HomePageState extends State<HomePage> {
               //         )),
               //   ),
               // ),
-              // PopupMenuItem<String>(
-              //   value: 'Settings',
-              //   child: ListTile(
-              //     leading: Icon(
-              //
-              //       Icons.settings,
-              //       color: ColorConstants.appColor,
-              //     ),
-              //     title: const Text(
-              //       'Settings',
-              //     ),
-              //   ),
-              // ),
-              // const PopupMenuDivider(),
+              PopupMenuItem<String>(
+                value: 'settings',
+                child: ListTile(
+                  leading: Icon(
+                    Icons.settings,
+                    color: ColorConstants.appColor,
+                  ),
+                  title: const Text(
+                    'Settings',
+                  ),
+                ),
+              ),
+              const PopupMenuDivider(),
               PopupMenuItem<String>(
                 value: 'Share',
                 child: ListTile(
@@ -229,7 +228,7 @@ class _HomePageState extends State<HomePage> {
               IconButton(
                 // iconSize: 30.0,
                 // padding: const EdgeInsets.only(right: 28.0),
-                icon: Icon(Icons.library_books_outlined,
+                icon: Icon(Icons.bar_chart_outlined,
                     color: selectedPage == 2
                         ? ColorConstants.appColor
                         : ColorConstants.inactiveColor),
@@ -246,7 +245,7 @@ class _HomePageState extends State<HomePage> {
               IconButton(
                 // iconSize: 30.0,
                 // padding: const EdgeInsets.only(right: 28.0),
-                icon: Icon(Icons.settings,
+                icon: Icon(Icons.library_books_outlined,
                     color: selectedPage == 3
                         ? ColorConstants.appColor
                         : ColorConstants.inactiveColor),
@@ -273,8 +272,9 @@ class _HomePageState extends State<HomePage> {
           children: <Widget>[
             DashboardPage(),
             MyPlacesView(),
-            ResourcesPage(),
-            SettingsView(),
+            RankingPage(),
+            BlogPage(),
+            // SettingsView(),
           ],
         ),
       ),
@@ -336,8 +336,10 @@ class _HomePageState extends State<HomePage> {
           fullscreenDialog: true,
         ),
       );
-    } else if (menuItem.trim().toLowerCase() == 'camera') {
-      takePhoto();
+    } else if (menuItem.trim().toLowerCase() == 'settings') {
+      Navigator.push(context, MaterialPageRoute(builder: (context) {
+        return SettingsPage();
+      }));
     } else {
       Navigator.push(context, MaterialPageRoute(builder: (context) {
         return SettingsPage();
@@ -399,14 +401,14 @@ class _HomePageState extends State<HomePage> {
         break;
       case 2:
         setState(() {
-          title = 'AirQo';
+          title = 'Air Quality Ranking';
           showAddPlace = false;
           selectedPage = 2;
         });
         break;
       case 3:
         setState(() {
-          title = 'Settings';
+          title = 'Blog';
           showAddPlace = false;
           selectedPage = 3;
         });
@@ -468,11 +470,6 @@ class _HomePageState extends State<HomePage> {
 
   void _handleMessage(RemoteMessage message) {
     print(message.data);
-    // if (message.data['type'] == 'chat') {
-    //   Navigator.pushNamed(context, '/chat',
-    //     arguments: ChatArguments(message),
-    //   );
-    // }
   }
 
   void _onItemTapped(int index) {

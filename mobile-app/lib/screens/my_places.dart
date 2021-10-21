@@ -122,7 +122,8 @@ class _MyPlacesState extends State<MyPlaces> {
                                       style: TextStyle(
                                           fontSize: 10.0,
                                           color: pm2_5TextColor(
-                                              searchResults[index].getPm2_5Value())),
+                                              searchResults[index]
+                                                  .getPm2_5Value())),
                                     ),
                                   ),
                                 ),

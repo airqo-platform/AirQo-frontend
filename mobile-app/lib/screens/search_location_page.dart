@@ -204,8 +204,8 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                       fontSize: 10.0,
-                                      color: pm2_5TextColor(measurements[index]
-                                          .getPm2_5Value())),
+                                      color: pm2_5TextColor(
+                                          measurements[index].getPm2_5Value())),
                                 ),
                               ),
                             ),
@@ -351,7 +351,8 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                                         style: TextStyle(
                                             fontSize: 10.0,
                                             color: pm2_5TextColor(
-                                                measurements[index].getPm2_5Value())),
+                                                measurements[index]
+                                                    .getPm2_5Value())),
                                       ),
                                     ),
                                   ),

@@ -245,8 +245,7 @@ charts.Color pmToChartColor(double value, String pollutant) {
     } else {
       return charts.ColorUtil.fromDartColor(ColorConstants.appColor);
     }
-  }
-  else {
+  } else {
     if (value <= 50.99) {
       //good
       return charts.ColorUtil.fromDartColor(ColorConstants.green);

@@ -10,6 +10,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'alerts_page.dart';
 import 'my_places.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -31,6 +32,55 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
+    return Scaffold(
+        appBar: AppBar(
+          leading: BackButton(color: ColorConstants.appColor),
+          title: Text(
+            'Settings',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: ColorConstants.appBarTitleColor,
+            ),
+          ),
+        ),
+        body: Container(
+            color: ColorConstants.appBodyColor,
+            child: Column(
+              children: [
+                Expanded(
+                  child: ListView(
+                    // physics:  const BouncingScrollPhysics(
+                    //     parent: AlwaysScrollableScrollPhysics()
+                    // ),
+                    children: <Widget>[
+                      userPreferences(),
+                      Divider(
+                        indent: 30,
+                        endIndent: 30,
+                        color: ColorConstants.appColor,
+                      ),
+                      // Divider(
+                      //   indent: 30,
+                      //   endIndent: 30,
+                      //   color: ColorConstants.appColor,
+                      // ),
+                      // reports(),
+                      // Divider(
+                      //   indent: 30,
+                      //   endIndent: 30,
+                      //   color: ColorConstants.appColor,
+                      // ),
+                      supportSection(),
+                      footerSection()
+                    ],
+                  ),
+                ),
+              ],
+            )));
+  }
+
+  @Deprecated('Old view')
+  Widget buildSettings(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Settings'),
@@ -151,6 +201,86 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
+  Widget footerSection() {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(0, 10, 0, 30),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          GestureDetector(
+            onTap: () {
+              _launchURL('airqo');
+            },
+            child: Image.asset(
+              'assets/icon/airqo_logo_tagline_transparent.png',
+              height: 100,
+              width: 100,
+            ),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              IconButton(
+                  icon: FaIcon(
+                    FontAwesomeIcons.facebook,
+                    size: 30,
+                    color: ColorConstants.facebookColor,
+                  ),
+                  onPressed: () {
+                    _launchURL('facebook');
+                  }),
+              IconButton(
+                  icon: FaIcon(
+                    FontAwesomeIcons.twitter,
+                    size: 30,
+                    color: ColorConstants.twitterColor,
+                  ),
+                  onPressed: () {
+                    _launchURL('twitter');
+                  }),
+              IconButton(
+                  icon: FaIcon(
+                    FontAwesomeIcons.youtube,
+                    size: 30,
+                    color: ColorConstants.youtubeColor,
+                  ),
+                  onPressed: () {
+                    _launchURL('youtube');
+                  }),
+              IconButton(
+                  icon: FaIcon(
+                    FontAwesomeIcons.linkedin,
+                    size: 30,
+                    color: ColorConstants.linkedInColor,
+                  ),
+                  onPressed: () {
+                    _launchURL('linkedin');
+                  }),
+            ],
+          ),
+          const SizedBox(
+            height: 5,
+          ),
+          Text(
+            '\u00a9 ${AppConfig.name} ${DateTime.now().year}',
+            style: TextStyle(color: ColorConstants.appColor),
+          ),
+          Text(
+            'Air Quality Initiative',
+            style: TextStyle(color: ColorConstants.appColor),
+          ),
+          const SizedBox(
+            height: 5,
+          ),
+          Text(
+            '${AppConfig.version}',
+            style: TextStyle(color: ColorConstants.appColor),
+          )
+        ],
+      ),
+    );
+  }
+
   TextStyle headerStyle() {
     return const TextStyle(
       fontWeight: FontWeight.bold,
@@ -263,6 +393,106 @@ class _SettingsPageState extends State<SettingsPage> {
                   _pushNotification = value;
                 });
               },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget preferencesWidget() {
+    return Container(
+      padding: containerPadding(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text(
+            'User Preferences',
+            style: headerStyle(),
+          ),
+          InkWell(
+            onTap: () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) {
+                return const MyPlaces();
+              }));
+            },
+            child: ListTile(
+              title: const Text('Manage My Places'),
+              leading: Icon(
+                Icons.favorite_outlined,
+                color: ColorConstants.appColor,
+              ),
+              trailing: Icon(
+                Icons.arrow_forward_ios_rounded,
+                color: ColorConstants.appColor,
+              ),
+            ),
+          ),
+          InkWell(
+            onTap: () {
+              showDialog(
+                  context: context,
+                  builder: (context) {
+                    return ChangeThemeDialog(
+                      onValueChange: _onThemeValueChange,
+                      initialValue: _theme,
+                    );
+                  });
+            },
+            child: ListTile(
+              title: const Text('Appearance'),
+              leading: FaIcon(
+                FontAwesomeIcons.paintRoller,
+                color: ColorConstants.appColor,
+              ),
+              trailing: Icon(
+                Icons.arrow_forward_ios_rounded,
+                color: ColorConstants.appColor,
+              ),
+            ),
+          ),
+          InkWell(
+            onTap: () {
+              showDialog(
+                  context: context,
+                  builder: (context) {
+                    return ChangeLanguageDialog(
+                      onValueChange: _onLanguageValueChange,
+                      initialValue: _language,
+                    );
+                  });
+            },
+            child: ListTile(
+              title: const Text('Language'),
+              leading: FaIcon(
+                FontAwesomeIcons.language,
+                color: ColorConstants.appColor,
+              ),
+              trailing: Icon(
+                Icons.arrow_forward_ios_rounded,
+                color: ColorConstants.appColor,
+              ),
+            ),
+          ),
+          // const ListTile(
+          //   title: Text('System Permissions'),
+          // ),
+          InkWell(
+            onTap: () {
+              showDialog(
+                  context: context,
+                  builder: (context) {
+                    return ClearAppDialog();
+                  });
+            },
+            child: ListTile(
+              title: const Text('Clear All Data'),
+              leading: Icon(
+                Icons.delete,
+                color: ColorConstants.appColor,
+              ),
+              subtitle: const Text('Clear all saved data including saved '
+                  'places and preferences'),
             ),
           ),
         ],
@@ -475,16 +705,106 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
+  Widget supportSection() {
+    return Container(
+      padding: containerPadding(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          // Text(
+          //   'Support',
+          //   style: headerStyle(),
+          // ),
+          InkWell(
+            onTap: () {
+              _launchURL('faqs');
+            },
+            child: ListTile(
+              title: Text(
+                'FAQs',
+                style: TextStyle(color: ColorConstants.appColor),
+              ),
+              leading: Icon(
+                Icons.help_outline_outlined,
+                color: ColorConstants.appColor,
+              ),
+            ),
+          ),
+          InkWell(
+            onTap: () {
+              _launchURL('Contact Us');
+            },
+            child: ListTile(
+              title: Text(
+                'Contact Us',
+                style: TextStyle(color: ColorConstants.appColor),
+              ),
+              leading: Icon(
+                Icons.contact_support_outlined,
+                color: ColorConstants.appColor,
+              ),
+            ),
+          ),
+          InkWell(
+            onTap: () {
+              _launchURL('terms');
+            },
+            child: ListTile(
+              title: Text(
+                'Terms of Use & Privacy Policy',
+                style: TextStyle(color: ColorConstants.appColor),
+              ),
+              leading: Icon(
+                Icons.description,
+                color: ColorConstants.appColor,
+              ),
+            ),
+          ),
+          InkWell(
+            onTap: () {
+              _launchURL('About');
+            },
+            child: ListTile(
+              title: Text(
+                'About ${AppConfig.name}',
+                style: TextStyle(color: ColorConstants.appColor),
+              ),
+              leading: Icon(
+                Icons.info_outline_rounded,
+                color: ColorConstants.appColor,
+              ),
+            ),
+          ),
+          // InkWell(
+          //   onTap: () {
+          //     _launchURL('rate');
+          //   },
+          //   child: ListTile(
+          //     title: Text(
+          //       'Rate App',
+          //       style: TextStyle(color: ColorConstants.appColor),
+          //     ),
+          //     leading: Icon(
+          //       Icons.rate_review_outlined,
+          //       color: ColorConstants.appColor,
+          //     ),
+          //   ),
+          // ),
+        ],
+      ),
+    );
+  }
+
   Widget userPreferences() {
     return Container(
       padding: containerPadding(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Text(
-            'User Preferences',
-            style: headerStyle(),
-          ),
+          // Text(
+          //   'Preferences',
+          //   style: headerStyle(),
+          // ),
           InkWell(
             onTap: () {
               Navigator.push(context, MaterialPageRoute(builder: (context) {
@@ -492,10 +812,10 @@ class _SettingsPageState extends State<SettingsPage> {
               }));
             },
             child: ListTile(
-              title: const Text('Manage My Places'),
-              leading: Icon(
-                Icons.favorite_outlined,
-                color: ColorConstants.appColor,
+              title: const Text('My Places'),
+              leading: FaIcon(
+                FontAwesomeIcons.solidHeart,
+                color: ColorConstants.red,
               ),
               trailing: Icon(
                 Icons.arrow_forward_ios_rounded,
@@ -505,19 +825,14 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
           InkWell(
             onTap: () {
-              showDialog(
-                  context: context,
-                  builder: (context) {
-                    return ChangeThemeDialog(
-                      onValueChange: _onThemeValueChange,
-                      initialValue: _theme,
-                    );
-                  });
+              Navigator.push(context, MaterialPageRoute(builder: (context) {
+                return const AlertPage();
+              }));
             },
             child: ListTile(
-              title: const Text('Appearance'),
+              title: const Text('Alerts'),
               leading: FaIcon(
-                FontAwesomeIcons.paintRoller,
+                FontAwesomeIcons.bell,
                 color: ColorConstants.appColor,
               ),
               trailing: Icon(
@@ -526,50 +841,73 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
             ),
           ),
-          InkWell(
-            onTap: () {
-              showDialog(
-                  context: context,
-                  builder: (context) {
-                    return ChangeLanguageDialog(
-                      onValueChange: _onLanguageValueChange,
-                      initialValue: _language,
-                    );
-                  });
-            },
-            child: ListTile(
-              title: const Text('Language'),
-              leading: FaIcon(
-                FontAwesomeIcons.language,
-                color: ColorConstants.appColor,
-              ),
-              trailing: Icon(
-                Icons.arrow_forward_ios_rounded,
-                color: ColorConstants.appColor,
-              ),
-            ),
-          ),
+          // InkWell(
+          //   onTap: () {
+          //     showDialog(
+          //         context: context,
+          //         builder: (context) {
+          //           return ChangeThemeDialog(
+          //             onValueChange: _onThemeValueChange,
+          //             initialValue: _theme,
+          //           );
+          //         });
+          //   },
+          //   child: ListTile(
+          //     title: const Text('Appearance'),
+          //     leading: FaIcon(
+          //       FontAwesomeIcons.paintRoller,
+          //       color: ColorConstants.appColor,
+          //     ),
+          //     trailing: Icon(
+          //       Icons.arrow_forward_ios_rounded,
+          //       color: ColorConstants.appColor,
+          //     ),
+          //   ),
+          // ),
+          // InkWell(
+          //   onTap: () {
+          //     showDialog(
+          //         context: context,
+          //         builder: (context) {
+          //           return ChangeLanguageDialog(
+          //             onValueChange: _onLanguageValueChange,
+          //             initialValue: _language,
+          //           );
+          //         });
+          //   },
+          //   child: ListTile(
+          //     title: const Text('Language'),
+          //     leading: FaIcon(
+          //       FontAwesomeIcons.language,
+          //       color: ColorConstants.appColor,
+          //     ),
+          //     trailing: Icon(
+          //       Icons.arrow_forward_ios_rounded,
+          //       color: ColorConstants.appColor,
+          //     ),
+          //   ),
+          // ),
           // const ListTile(
           //   title: Text('System Permissions'),
           // ),
-          InkWell(
-            onTap: () {
-              showDialog(
-                  context: context,
-                  builder: (context) {
-                    return ClearAppDialog();
-                  });
-            },
-            child: ListTile(
-              title: const Text('Clear All Data'),
-              leading: Icon(
-                Icons.delete,
-                color: ColorConstants.appColor,
-              ),
-              subtitle: const Text('Clear all saved data including saved '
-                  'places and preferences'),
-            ),
-          ),
+          // InkWell(
+          //   onTap: () {
+          //     showDialog(
+          //         context: context,
+          //         builder: (context) {
+          //           return ClearAppDialog();
+          //         });
+          //   },
+          //   child: ListTile(
+          //     title: const Text('Clear All Data'),
+          //     leading: Icon(
+          //       Icons.delete,
+          //       color: ColorConstants.appColor,
+          //     ),
+          //     subtitle: const Text('Clear all saved data including saved '
+          //         'places and preferences'),
+          //   ),
+          // ),
         ],
       ),
     );
