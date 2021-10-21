@@ -262,6 +262,8 @@ class PrefConstant {
   static String get reLoadDb => 'reloadDb';
 
   static String get siteAlerts => 'siteAlerts';
+
+  static String get tipsProgress => 'tipsProgress';
 }
 
 enum Status { none, running, stopped, paused }

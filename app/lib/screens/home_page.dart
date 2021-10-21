@@ -54,15 +54,31 @@ class _HomePageState extends State<HomePage> {
               icon: SvgPicture.asset(
                 'assets/icon/home_icon.svg',
                 semanticsLabel: 'Home',
+                color: _selectedIndex == 0
+                    ? ColorConstants.appColorBlue
+                    : ColorConstants.greyColor,
               ),
               label: 'Home',
             ),
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.location_on),
+            BottomNavigationBarItem(
+              icon: SvgPicture.asset(
+                'assets/icon/location.svg',
+                color: _selectedIndex == 1
+                    ? ColorConstants.appColorBlue
+                    : ColorConstants.greyColor,
+                semanticsLabel: 'AirQo Map',
+              ),
               label: 'AirQo Map',
             ),
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.account_circle_sharp),
+            BottomNavigationBarItem(
+              icon: SvgPicture.asset(
+                'assets/icon/profile.svg',
+                color: _selectedIndex == 2
+                    ? ColorConstants.appColorBlue
+                    : ColorConstants.greyColor,
+                semanticsLabel: 'Search',
+              ),
+              // Icon(Icons.account_circle_sharp),
               label: 'Profile',
             ),
           ],

@@ -1,32 +1,28 @@
 import 'package:app/constants/app_constants.dart';
-import 'package:app/models/site.dart';
 import 'package:app/widgets/custom_widgets.dart';
-import 'package:app/widgets/daily_view.dart';
-import 'package:app/widgets/monthly_view.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-class InsightsView extends StatefulWidget {
-  Site site;
+import 'analytics_view.dart';
+import 'know_your_air_view.dart';
 
-  InsightsView(this.site);
+class ForYouPage extends StatefulWidget {
+  ForYouPage();
 
   @override
-  _InsightsViewState createState() => _InsightsViewState(this.site);
+  _ForYouPageState createState() => _ForYouPageState();
 }
 
-class _InsightsViewState extends State<InsightsView>
+class _ForYouPageState extends State<ForYouPage>
     with SingleTickerProviderStateMixin {
   var _tabController;
   bool isWeekly = true;
-
-  Site site;
 
   int segmentedControlValue = 0;
 
   int currentSegment = 0;
 
-  _InsightsViewState(this.site);
+  _ForYouPageState();
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +35,7 @@ class _InsightsViewState extends State<InsightsView>
           child: backButton(context),
         ),
         title: const Text(
-          'More Insights',
+          'For You',
           style: TextStyle(color: Colors.black),
         ),
       ),
@@ -82,7 +78,7 @@ class _InsightsViewState extends State<InsightsView>
                                 const BorderRadius.all(Radius.circular(5.0))),
                         child: Tab(
                             child: Text(
-                          'Day',
+                          'Analytics',
                           style: TextStyle(
                             color: isWeekly ? Colors.white : Colors.black,
                           ),
@@ -99,7 +95,7 @@ class _InsightsViewState extends State<InsightsView>
                                 const BorderRadius.all(Radius.circular(5.0))),
                         child: Tab(
                             child: Text(
-                          'Week',
+                          'Know you Air',
                           style: TextStyle(
                             color: isWeekly ? Colors.black : Colors.white,
                           ),
@@ -112,8 +108,8 @@ class _InsightsViewState extends State<InsightsView>
                 child: TabBarView(
               controller: _tabController,
               children: <Widget>[
-                DailyView(site),
-                MonthlyView(site),
+                const AnalyticsView(),
+                const KnowYourAirView(),
               ],
             )),
           ],

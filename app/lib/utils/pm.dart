@@ -252,7 +252,31 @@ Color pm2_5TextColor(double pm2_5) {
   }
 }
 
-charts.Color pm2_5ToChartColor(double value, String pollutant) {
+Color pm2_5ToColor(double pm2_5) {
+  if (pm2_5 <= 12.09) {
+    //good
+    return ColorConstants.green;
+  } else if (pm2_5 >= 12.1 && pm2_5 <= 35.49) {
+    //moderate
+    return ColorConstants.yellow;
+  } else if (pm2_5 >= 35.5 && pm2_5 <= 55.49) {
+    //sensitive
+    return ColorConstants.orange;
+  } else if (pm2_5 >= 55.5 && pm2_5 <= 150.49) {
+    // unhealthy
+    return ColorConstants.red;
+  } else if (pm2_5 >= 150.5 && pm2_5 <= 250.49) {
+    // very unhealthy
+    return ColorConstants.purple;
+  } else if (pm2_5 >= 250.5) {
+    // hazardous
+    return ColorConstants.maroon;
+  } else {
+    return ColorConstants.appColor;
+  }
+}
+
+charts.Color pmToChartColor(double value, String pollutant) {
   if (pollutant.trim().toLowerCase() == 'pm2.5') {
     if (value <= 12.09) {
       //good
@@ -297,30 +321,6 @@ charts.Color pm2_5ToChartColor(double value, String pollutant) {
     } else {
       return charts.ColorUtil.fromDartColor(ColorConstants.appColor);
     }
-  }
-}
-
-Color pm2_5ToColor(double pm2_5) {
-  if (pm2_5 <= 12.09) {
-    //good
-    return ColorConstants.green;
-  } else if (pm2_5 >= 12.1 && pm2_5 <= 35.49) {
-    //moderate
-    return ColorConstants.yellow;
-  } else if (pm2_5 >= 35.5 && pm2_5 <= 55.49) {
-    //sensitive
-    return ColorConstants.orange;
-  } else if (pm2_5 >= 55.5 && pm2_5 <= 150.49) {
-    // unhealthy
-    return ColorConstants.red;
-  } else if (pm2_5 >= 150.5 && pm2_5 <= 250.49) {
-    // very unhealthy
-    return ColorConstants.purple;
-  } else if (pm2_5 >= 250.5) {
-    // hazardous
-    return ColorConstants.maroon;
-  } else {
-    return ColorConstants.appColor;
   }
 }
 

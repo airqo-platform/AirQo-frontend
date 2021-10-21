@@ -16,4 +16,9 @@ class MeasurementValue {
       _$MeasurementValueFromJson(json);
 
   Map<String, dynamic> toJson() => _$MeasurementValueToJson(this);
+
+  @override
+  String toString() {
+    return 'MeasurementValue{calibratedValue: $calibratedValue, value: $value}';
+  }
 }

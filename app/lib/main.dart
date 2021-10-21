@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:app/providers/LocalProvider.dart';
 import 'package:firebase_core/firebase_core.dart';
 // import 'package:firebase_auth/firebase_auth.dart';
@@ -16,6 +18,8 @@ import 'themes/dark_theme.dart';
 import 'themes/light_theme.dart';
 
 Future<void> main() async {
+  HttpOverrides.global = MyHttpOverrides();
+
   SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
     // statusBarBrightness: Brightness.light,
@@ -94,5 +98,14 @@ class AirQoApp extends StatelessWidget {
       default:
         return lightTheme();
     }
+  }
+}
+
+class MyHttpOverrides extends HttpOverrides {
+  @override
+  HttpClient createHttpClient(SecurityContext? context) {
+    return super.createHttpClient(context)
+      ..badCertificateCallback =
+          (X509Certificate cert, String host, int port) => true;
   }
 }

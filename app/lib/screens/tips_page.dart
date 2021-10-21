@@ -1,6 +1,5 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/widgets/custom_widgets.dart';
-import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -12,38 +11,35 @@ class TipsPage extends StatefulWidget {
 }
 
 class _TipsPageState extends State<TipsPage> {
-
-
   @override
   Widget build(BuildContext context) {
-    var width = MediaQuery.of(context).size.width*0.7;
+    var width = MediaQuery.of(context).size.width * 0.7;
 
-    return Material(
-      child: Container(
+    return Scaffold(
+      extendBodyBehindAppBar: true,
+      appBar: knowYourAirAppBar(context),
+      body: Container(
         child: Stack(children: [
           Container(
             color: ColorConstants.appBodyColor,
             height: double.infinity,
             width: double.infinity,
           ),
-
           FractionallySizedBox(
             alignment: Alignment.topCenter,
             widthFactor: 1.0,
-            heightFactor: 0.3,
-            child:Image.asset(
-              'assets/images/splash-image.png',
+            heightFactor: 0.4,
+            child: Image.asset(
+              'assets/images/tips-image.png',
               fit: BoxFit.cover,
             ),
           ),
-
           Positioned.fill(
             child: Align(
                 alignment: Alignment.bottomCenter,
                 child: Padding(
                   padding: const EdgeInsets.only(left: 20, right: 20),
-                  child:  Column(
-
+                  child: Column(
                     children: [
                       const Spacer(),
                       // CarouselSlider(
@@ -90,68 +86,76 @@ class _TipsPageState extends State<TipsPage> {
                       //   }).toList(),
                       // ),
                       Container(
-                        height: MediaQuery.of(context).size.height*0.7,
+                        height: MediaQuery.of(context).size.height * 0.7,
                         child: ListView(
                           scrollDirection: Axis.horizontal,
                           children: [
                             Container(
                               decoration: const BoxDecoration(
                                   color: Colors.white,
-                                  borderRadius: BorderRadius.all(Radius.circular(8.0))
-                              ),
-                              height: MediaQuery.of(context).size.height*0.7,
-                              width: MediaQuery.of(context).size.width*0.9,
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(8.0))),
+                              height: MediaQuery.of(context).size.height * 0.7,
+                              width: MediaQuery.of(context).size.width * 0.9,
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
-                                  const Text('Together, let\'s reduce '
-                                      'air pollution to breathe clean!',
+                                  const Text(
+                                    'Together, let\'s reduce '
+                                    'air pollution to breathe clean!',
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
                                         fontSize: 20,
-                                        fontWeight: FontWeight.bold
-                                    ),),
-                                  const SizedBox(height: 20,),
-                                  Text('Here are 9 ways you can get '
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                  const SizedBox(
+                                    height: 20,
+                                  ),
+                                  Text(
+                                      'Here are 9 ways you can get '
                                       'involved and reduce air pollutions',
                                       textAlign: TextAlign.center,
                                       style: TextStyle(
                                           fontSize: 20,
                                           fontWeight: FontWeight.bold,
-                                          color: ColorConstants.appColorBlue
-                                      )),
+                                          color: ColorConstants.appColorBlue)),
                                 ],
                               ),
                             ),
-                            const SizedBox(width: 10,),
+                            const SizedBox(
+                              width: 10,
+                            ),
                             Container(
                               decoration: const BoxDecoration(
                                   color: Colors.white,
-                                  borderRadius: BorderRadius.all(Radius.circular(8.0))
-                              ),
-                              height: MediaQuery.of(context).size.height*0.7,
-                              width: MediaQuery.of(context).size.width*0.85,
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(8.0))),
+                              height: MediaQuery.of(context).size.height * 0.7,
+                              width: MediaQuery.of(context).size.width * 0.85,
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
-                                  const Text('Together, let\'s reduce '
-                                      'air pollution to breathe clean!',
+                                  const Text(
+                                    'Together, let\'s reduce '
+                                    'air pollution to breathe clean!',
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
                                         fontSize: 20,
-                                        fontWeight: FontWeight.bold
-                                    ),),
-                                  const SizedBox(height: 20,),
-                                  Text('Here are 9 ways you can get '
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                  const SizedBox(
+                                    height: 20,
+                                  ),
+                                  Text(
+                                      'Here are 9 ways you can get '
                                       'involved and reduce air pollutions',
                                       textAlign: TextAlign.center,
                                       style: TextStyle(
                                           fontSize: 20,
                                           fontWeight: FontWeight.bold,
-                                          color: ColorConstants.appColorBlue
-                                      )),
+                                          color: ColorConstants.appColorBlue)),
                                 ],
                               ),
                             ),
@@ -159,14 +163,14 @@ class _TipsPageState extends State<TipsPage> {
                         ),
                       ),
 
-
-                      const SizedBox(height: 16,),
+                      const SizedBox(
+                        height: 16,
+                      ),
                       Container(
                           decoration: const BoxDecoration(
                               color: Colors.white,
-                              borderRadius: BorderRadius.all(Radius.circular(8.0)
-                              )
-                          ),
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(8.0))),
                           height: 60,
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -184,18 +188,17 @@ class _TipsPageState extends State<TipsPage> {
                                   ),
                                   'Next'),
                             ],
-                          )
-                      ),
+                          )),
 
-                      const SizedBox(height: 20,),
+                      const SizedBox(
+                        height: 20,
+                      ),
                     ],
                   ),
-                )
-            ),
+                )),
           ),
-
         ]),
-      )
+      ),
     );
   }
 }

@@ -10,6 +10,7 @@ import 'package:flutter/rendering.dart';
 
 class PhoneSignupScreen extends StatefulWidget {
   final bool enableBackButton;
+
   PhoneSignupScreen(this.enableBackButton);
 
   @override

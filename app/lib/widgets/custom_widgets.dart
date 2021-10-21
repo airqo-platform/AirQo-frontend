@@ -1,7 +1,11 @@
 import 'package:app/constants/app_constants.dart';
+import 'package:app/models/historicalMeasurement.dart';
 import 'package:app/models/measurement.dart';
+import 'package:app/screens/tip_page.dart';
 import 'package:app/utils/pm.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 const shimmerGradient = LinearGradient(
   colors: [
@@ -19,8 +23,47 @@ const shimmerGradient = LinearGradient(
   tileMode: TileMode.clamp,
 );
 
+Widget analyticsAvatar(context, Measurement measurement, double size) {
+  return Container(
+    height: size,
+    width: size,
+    decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: pm2_5ToColor(measurement.getPm2_5Value()),
+        border: Border.all(color: Colors.transparent)),
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        const Spacer(),
+        SvgPicture.asset(
+          'assets/icon/PM2.5.svg',
+          semanticsLabel: 'Pm2.5',
+          height: 9.7,
+          width: 32.45,
+        ),
+        Text(
+          '${measurement.getPm2_5Value().toStringAsFixed(0)}',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style:
+              GoogleFonts.robotoMono(fontStyle: FontStyle.normal, fontSize: 40),
+        ),
+        SvgPicture.asset(
+          'assets/icon/unit.svg',
+          semanticsLabel: 'UNit',
+          height: 12,
+          width: 32,
+        ),
+        const Spacer(),
+      ],
+    ),
+  );
+}
+
 Widget backButton(context) {
   return Container(
+    constraints: const BoxConstraints(maxHeight: 32),
     padding: const EdgeInsets.all(0.0),
     decoration: const BoxDecoration(
         color: Colors.white,
@@ -30,6 +73,7 @@ Widget backButton(context) {
       icon: const Icon(
         Icons.arrow_back,
         color: Colors.black,
+        size: 20,
       ),
       onPressed: () {
         Navigator.pop(context);
@@ -41,15 +85,15 @@ Widget backButton(context) {
 Widget customInputField(context, text) {
   return Container(
     constraints: const BoxConstraints(minWidth: double.infinity),
-    padding: EdgeInsets.only(left: 16.0, right: 8.0),
-    decoration: BoxDecoration(
+    padding: const EdgeInsets.only(left: 16.0, right: 8.0),
+    decoration: const BoxDecoration(
         color: Colors.white,
         shape: BoxShape.rectangle,
         borderRadius: BorderRadius.all(Radius.circular(10.0))),
     child: Row(
       children: [
         Text('$text'),
-        Spacer(),
+        const Spacer(),
         IconButton(
           icon: Icon(
             Icons.edit,
@@ -61,6 +105,25 @@ Widget customInputField(context, text) {
     ),
   );
 }
+
+// Widget backButton(context) {
+//   return Container(
+//     padding: const EdgeInsets.all(0.0),
+//     decoration: const BoxDecoration(
+//         color: Colors.white,
+//         shape: BoxShape.rectangle,
+//         borderRadius: BorderRadius.all(Radius.circular(10.0))),
+//     child: IconButton(
+//       icon: const Icon(
+//         Icons.arrow_back,
+//         color: Colors.black,
+//       ),
+//       onPressed: () {
+//         Navigator.pop(context);
+//       },
+//     ),
+//   );
+// }
 
 Widget customSearchField(context, text) {
   return Container(
@@ -90,6 +153,63 @@ Widget customSearchField(context, text) {
   );
 }
 
+Widget favPlaceAvatar(context, Measurement measurement, double size) {
+  return Container(
+    height: size,
+    width: size,
+    decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: pm2_5ToColor(measurement.getPm2_5Value()),
+        border: Border.all(color: Colors.transparent)),
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        const Spacer(),
+        RichText(
+            text: TextSpan(
+          style: DefaultTextStyle.of(context).style,
+          children: <TextSpan>[
+            TextSpan(
+              text: 'PM',
+              style: TextStyle(
+                fontSize: 6,
+                color: ColorConstants.appColor,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            TextSpan(
+              text: '2.5',
+              style: TextStyle(
+                fontSize: 3,
+                color: ColorConstants.appColor,
+              ),
+            )
+          ],
+        )),
+        Text(
+          '${measurement.getPm2_5Value().toStringAsFixed(0)}',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style:
+              GoogleFonts.robotoMono(fontStyle: FontStyle.normal, fontSize: 15),
+        ),
+        SvgPicture.asset(
+          'assets/icon/unit.svg',
+          semanticsLabel: 'UNit',
+          height: 12,
+          width: 32,
+        ),
+        // const Text(
+        //   'µg/m\u00B3',
+        //   style: TextStyle(fontSize: 6),
+        // ),
+        const Spacer(),
+      ],
+    ),
+  );
+}
+
 Widget iconTextButton(Widget icon, text) {
   return GestureDetector(
       onTap: () {},
@@ -105,6 +225,84 @@ Widget iconTextButton(Widget icon, text) {
           )
         ],
       ));
+}
+
+Widget insightsAvatar(
+    context, HistoricalMeasurement measurement, double size, String pollutant) {
+  return Container(
+    height: size,
+    width: size,
+    decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: pollutant == 'pm2.5'
+            ? pm2_5ToColor(measurement.getPm2_5Value())
+            : pm10ToColor(measurement.getPm10Value()),
+        border: Border.all(color: Colors.transparent)),
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        const Spacer(),
+        RichText(
+            text: TextSpan(
+          style: DefaultTextStyle.of(context).style,
+          children: <TextSpan>[
+            TextSpan(
+              text: 'PM',
+              style: TextStyle(
+                fontSize: 6,
+                color: ColorConstants.appColor,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            TextSpan(
+              text: pollutant == 'pm2.5' ? '2.5' : '10',
+              style: TextStyle(
+                fontSize: 4,
+                color: ColorConstants.appColor,
+              ),
+            )
+          ],
+        )),
+        Text(
+          pollutant == 'pm2.5'
+              ? '${measurement.getPm2_5Value().toStringAsFixed(0)}'
+              : '${measurement.getPm10Value().toStringAsFixed(0)}',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style:
+              GoogleFonts.robotoMono(fontStyle: FontStyle.normal, fontSize: 32),
+        ),
+        SvgPicture.asset(
+          'assets/icon/unit.svg',
+          semanticsLabel: 'UNit',
+          height: 12,
+          width: 32,
+        ),
+        // const Text(
+        //   'µg/m\u00B3',
+        //   style: TextStyle(fontSize: 6),
+        // ),
+        const Spacer(),
+      ],
+    ),
+  );
+}
+
+PreferredSizeWidget knowYourAirAppBar(context) {
+  return AppBar(
+    elevation: 0,
+    backgroundColor: Colors.transparent,
+    foregroundColor: Colors.transparent,
+    leading: Padding(
+      padding: const EdgeInsets.only(top: 6.5, bottom: 6.5, left: 16),
+      child: backButton(context),
+    ),
+    title: const Text(
+      'Know Your Air',
+      style: TextStyle(color: Colors.white),
+    ),
+  );
 }
 
 Widget locationTile(Measurement measurement) {
@@ -210,6 +408,83 @@ Widget locationTile(Measurement measurement) {
           size: 15,
         ),
       ),
+    ),
+  );
+}
+
+Widget tipWidget(context) {
+  return Container(
+    padding: const EdgeInsets.fromLTRB(8.0, 8.0, 8.0, 8.0),
+    decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.all(Radius.circular(8.0))),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Expanded(
+          child: Column(
+            // crossAxisAlignment: CrossAxisAlignment.start,
+            // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('The Tid Tips On Air Quality!',
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  )),
+              const SizedBox(
+                height: 28,
+              ),
+              GestureDetector(
+                onTap: () async {
+                  await Navigator.push(context,
+                      MaterialPageRoute(builder: (context) {
+                    return const TipPage();
+                  }));
+                },
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Text('Start learning',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: ColorConstants.appColorBlue,
+                        )),
+                    const SizedBox(
+                      width: 6,
+                    ),
+                    Icon(
+                      Icons.arrow_forward_ios_sharp,
+                      size: 10,
+                      color: ColorConstants.appColorBlue,
+                    )
+                  ],
+                ),
+              ),
+              const SizedBox(
+                height: 2,
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(
+          width: 16,
+        ),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(5.0),
+          child: Image.asset(
+            'assets/images/know-your-air.png',
+            height: 104,
+            width: 104,
+            fit: BoxFit.cover,
+          ),
+        ),
+      ],
     ),
   );
 }

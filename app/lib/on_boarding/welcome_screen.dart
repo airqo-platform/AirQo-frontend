@@ -44,22 +44,22 @@ class WelcomeScreenState extends State<WelcomeScreen> {
               height: 21,
             ),
             welcomeSection(
-                'Introducing Favorites',
-                'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
+                'Save your Favorite places',
+                'A new way to keep track of locations that interest to you',
                 const Color(0xffFBC110)),
             const SizedBox(
               height: 22,
             ),
             welcomeSection(
-                'Personalised analytics',
-                'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
+                'New experiences For You',
+                'Now you can access analytics and content curated for you',
                 const Color(0xff9492B8)),
             const SizedBox(
               height: 22,
             ),
             welcomeSection(
-                'Learn about your air',
-                'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
+                'Know your Air ',
+                'A new and easy way to learn about air pollution on the go ',
                 const Color(0xff55B7A1)),
             const Spacer(),
             Padding(

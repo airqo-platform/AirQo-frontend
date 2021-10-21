@@ -31,6 +31,9 @@ class HistoricalMeasurement {
   @JsonKey(required: true, name: 'site_id')
   final String siteId;
 
+  @JsonKey(required: false, ignore: true)
+  DateTime formattedTime = DateTime.now();
+
   HistoricalMeasurement(
       {required this.time,
       required this.pm2_5,
@@ -59,6 +62,11 @@ class HistoricalMeasurement {
   }
 
   Map<String, dynamic> toJson() => _$HistoricalMeasurementToJson(this);
+
+  @override
+  String toString() {
+    return 'HistoricalMeasurement{time: $time, pm2_5: $pm2_5}';
+  }
 
   static String createTableStmt() =>
       'CREATE TABLE IF NOT EXISTS ${historicalMeasurementsDb()}('

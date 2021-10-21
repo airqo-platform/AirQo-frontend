@@ -1,5 +1,34 @@
 import 'package:intl/intl.dart';
 
+String chartDateTimeToString(DateTime dateTime) {
+  try {
+    var now = DateTime.now();
+    dateTime = dateTime.add(Duration(hours: now.timeZoneOffset.inHours));
+    if (now.day == dateTime.day) {
+      return 'Today, ${DateFormat('hh:mm a').format(dateTime)}';
+    } else {
+      if (now.isAfter(dateTime)) {
+        var yesterday = now.subtract(const Duration(hours: 24));
+        if (dateTime.day == yesterday.day) {
+          return 'Yesterday, ${DateFormat('hh:mm a').format(dateTime)}';
+        } else {
+          return '${DateFormat('d MMM, hh:mm a').format(dateTime)}';
+        }
+      } else {
+        var tomorrow = now.add(const Duration(hours: 24));
+        if (tomorrow.day == dateTime.day) {
+          return 'Tomorrow, ${DateFormat('hh:mm a').format(dateTime)}';
+        } else {
+          return '${DateFormat('d MMM, hh:mm a').format(dateTime)}';
+        }
+      }
+    }
+  } on Error catch (e) {
+    print('Date Formatting error: $e');
+    return dateTime.toString();
+  }
+}
+
 String chartDateToString(String formattedString, bool format) {
   try {
     var now = DateTime.now();

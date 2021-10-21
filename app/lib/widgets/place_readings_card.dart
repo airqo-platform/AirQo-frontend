@@ -35,7 +35,7 @@ class GaugeSegment {
       charts.Series<GaugeSegment, String>(
         id: 'Segments',
         colorFn: (GaugeSegment series, _) =>
-            pm2_5ToChartColor(series.colorValue.toDouble(), 'pm2.5'),
+            pmToChartColor(series.colorValue.toDouble(), 'pm2.5'),
         domainFn: (GaugeSegment segment, _) => segment.segment,
         measureFn: (GaugeSegment segment, _) => segment.size,
         data: data,
@@ -353,7 +353,7 @@ class _PlaceReadingsCardState extends State<PlaceReadingsCard> {
       charts.Series<GaugeSegment, String>(
         id: 'Segments',
         colorFn: (GaugeSegment series, _) =>
-            pm2_5ToChartColor(series.colorValue.toDouble(), 'pm2.5'),
+            pmToChartColor(series.colorValue.toDouble(), 'pm2.5'),
         domainFn: (GaugeSegment segment, _) => segment.segment,
         measureFn: (GaugeSegment segment, _) => segment.size,
         data: data,

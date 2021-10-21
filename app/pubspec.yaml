@@ -68,6 +68,7 @@ dependencies:
   firebase_storage: ^10.0.5
   shimmer: ^2.0.0
   google_fonts: ^2.1.0
+  carousel_slider: ^4.0.0
 
 flutter_icons:
   android: "launcher_icon"
@@ -109,7 +110,9 @@ flutter:
     - assets/images/old.png
     - assets/images/community.png
     - assets/images/pregnant-woman.png
+    - assets/images/know-your-air.png
     - assets/images/splash-image.png
+    - assets/images/tips-image.png
 
    # icons
     - assets/icon/airqo_logo.png
@@ -125,7 +128,21 @@ flutter:
     - assets/icon/toggle_icon.svg
     - assets/icon/fav_icon.svg
     - assets/icon/share_icon.svg
-    -
+    - assets/icon/tips_image.svg
+    - assets/icon/search.svg
+    - assets/icon/profile.svg
+    - assets/icon/location.svg
+    - assets/icon/airqo_home.svg
+    - assets/icon/unit.svg
+    - assets/icon/PM2.5.svg
+    - assets/icon/info_icon.svg
+    - assets/icon/loader.svg
+    - assets/icon/chart.svg
+    - assets/icon/unit.svg
+    - assets/icon/tips_image.svg
+    - assets/icon/info_icon.svg
+    - assets/icon/home_icon.svg
+
     # Language Translation files
     - assets/i18n/en.json
 
