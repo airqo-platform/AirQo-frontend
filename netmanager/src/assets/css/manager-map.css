@@ -1,7 +1,8 @@
 .manager-map-container {
-    height: calc(100vh - 64px);
-    height: -moz-calc(100vh - 64px);
-    height: -webkit-calc(100vh - 64px);
+    margin-top: 10px;
+    height: calc(100vh - 64px - 10px);
+    height: -moz-calc(100vh - 64px - 10px);
+    height: -webkit-calc(100vh - 64px - 10px);
     position: relative;
 }
 

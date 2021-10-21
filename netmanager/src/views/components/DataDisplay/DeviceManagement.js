@@ -39,6 +39,7 @@ import {
   useDeviceUptimeLeaderboard,
   useInitScrollTop,
 } from "utils/customHooks";
+import MapBoxMap from "./Map/MapBoxMap";
 
 // css style
 import "chartjs-plugin-annotation";
@@ -380,7 +381,9 @@ export default function DeviceManagement() {
           flexWrap: "wrap",
           alignItems: "center",
           justifyContent: "space-between",
-          margin: "20px 0",
+          position: "absolute",
+          width: "100%",
+          zIndex: 20,
         }}
       >
         <Hidden mdDown>
@@ -412,7 +415,7 @@ export default function DeviceManagement() {
           })}
         </Hidden>
       </div>
-
+      <MapBoxMap devices={filteredDevices} />
       <div className={"map-container"}>
         <Map devices={filteredDevices} />
       </div>
