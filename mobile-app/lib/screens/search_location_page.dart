@@ -196,7 +196,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                                 )),
                             leading: CircleAvatar(
                               backgroundColor: pm2_5ToColor(
-                                  measurements[index].pm2_5.calibratedValue),
+                                  measurements[index].getPm2_5Value()),
                               foregroundColor: Colors.black54,
                               child: Center(
                                 child: Text(
@@ -205,8 +205,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                                   style: TextStyle(
                                       fontSize: 10.0,
                                       color: pm2_5TextColor(measurements[index]
-                                          .pm2_5
-                                          .calibratedValue)),
+                                          .getPm2_5Value())),
                                 ),
                               ),
                             ),
@@ -343,9 +342,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                                       )),
                                   leading: CircleAvatar(
                                     backgroundColor: pm2_5ToColor(
-                                        measurements[index]
-                                            .pm2_5
-                                            .calibratedValue),
+                                        measurements[index].getPm2_5Value()),
                                     foregroundColor: Colors.black54,
                                     child: Center(
                                       child: Text(
@@ -354,9 +351,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                                         style: TextStyle(
                                             fontSize: 10.0,
                                             color: pm2_5TextColor(
-                                                measurements[index]
-                                                    .pm2_5
-                                                    .calibratedValue)),
+                                                measurements[index].getPm2_5Value())),
                                       ),
                                     ),
                                   ),

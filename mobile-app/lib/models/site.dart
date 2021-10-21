@@ -1,6 +1,5 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/utils/string_extension.dart';
-import 'package:intl/intl.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'site.g.dart';

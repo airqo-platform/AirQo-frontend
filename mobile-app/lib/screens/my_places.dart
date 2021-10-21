@@ -113,9 +113,7 @@ class _MyPlacesState extends State<MyPlaces> {
                               child: ListTile(
                                 leading: CircleAvatar(
                                   backgroundColor: pm2_5ToColor(
-                                      searchResults[index]
-                                          .pm2_5
-                                          .calibratedValue),
+                                      searchResults[index].getPm2_5Value()),
                                   foregroundColor: Colors.black54,
                                   child: Center(
                                     child: Text(
@@ -124,9 +122,7 @@ class _MyPlacesState extends State<MyPlaces> {
                                       style: TextStyle(
                                           fontSize: 10.0,
                                           color: pm2_5TextColor(
-                                              searchResults[index]
-                                                  .pm2_5
-                                                  .calibratedValue)),
+                                              searchResults[index].getPm2_5Value())),
                                     ),
                                   ),
                                 ),

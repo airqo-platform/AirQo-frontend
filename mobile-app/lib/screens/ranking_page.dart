@@ -10,12 +10,12 @@ import 'package:app/utils/share.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
-class ResourcesPage extends StatefulWidget {
+class RankingPage extends StatefulWidget {
   @override
-  _ResourcesPageState createState() => _ResourcesPageState();
+  _RankingPageState createState() => _RankingPageState();
 }
 
-class _ResourcesPageState extends State<ResourcesPage> {
+class _RankingPageState extends State<RankingPage> {
   var stories = <Story>[];
   var measurements = <Measurement>[];
   var order = 1;

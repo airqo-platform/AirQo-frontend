@@ -28,26 +28,34 @@ class HelpPage extends StatelessWidget {
                 'AQI',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
               )),
-              const Tab(
+          Tab(
+                // child: Material(
+                //   type: MaterialType.transparency,
+                //   child: RichText(
+                //       text: TextSpan(
+                //         style: DefaultTextStyle.of(context).style,
+                //         children: <TextSpan>[
+                //           TextSpan(
+                //             text: 'PM',
+                //             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
+                //           ),
+                //           TextSpan(
+                //             text: '2.5',
+                //             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 10),
+                //           )
+                //         ],
+                //       )),
+                // )
                   child: Text(
                 'PM2.5',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
-              )),
+              )
+      ),
               const Tab(
                   child: Text(
                 'PM10',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
               )),
-              // const Tab(
-              //     child: Text(
-              //   'Humidity',
-              //   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
-              // )),
-              // const Tab(
-              //     child: Text(
-              //   'Temperature',
-              //   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
-              // )),
             ],
           ),
           title: Text(
@@ -62,8 +70,6 @@ class HelpPage extends StatelessWidget {
             AqiDialog(),
             PollutantDialog(pollutantDetails(PollutantConstant.pm2_5)),
             PollutantDialog(pollutantDetails(PollutantConstant.pm10)),
-            // PollutantDialogV2(pollutantDetails(PollutantConstant.humidity)),
-            // PollutantDialogV2(pollutantDetails(PollutantConstant.temperature)),
           ],
         ),
       ),

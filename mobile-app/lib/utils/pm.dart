@@ -31,8 +31,7 @@ List<Recommendation> getHealthRecommendations(double pm2_5) {
   if (pm2_5 <= 12.09) {
     //good
     recommendations.add(Recommendation(
-        'Air quality is satisfactory, and air pollution'
-            ' poses little or no risk.',
+        'Great air here today! Zero air pollution, Zero worries',
         'assets/images/community.png',
         ColorConstants.green.withOpacity(0.2)));
   } else if (pm2_5 >= 12.1 && pm2_5 <= 35.49) {
@@ -246,7 +245,8 @@ charts.Color pmToChartColor(double value, String pollutant) {
     } else {
       return charts.ColorUtil.fromDartColor(ColorConstants.appColor);
     }
-  } else {
+  }
+  else {
     if (value <= 50.99) {
       //good
       return charts.ColorUtil.fromDartColor(ColorConstants.green);

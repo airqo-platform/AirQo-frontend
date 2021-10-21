@@ -14,9 +14,15 @@ class PollutantDialog extends StatelessWidget {
       color: ColorConstants.appBodyColor,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
-        child: ListView(
-          children: [whatIs(), source()],
-        ),
+        child: Column(
+          children: [
+            Expanded(child: ListView(
+              children: [whatIs()],
+            ),),
+
+            reference()
+          ],
+        )
       ),
     );
   }
@@ -103,9 +109,9 @@ class PollutantDialog extends StatelessWidget {
           ElevatedButton(
               style: ElevatedButton.styleFrom(primary: ColorConstants.appColor),
               onPressed: _launchURL,
-              child: Text('Learn more about ${pollutant.pollutant}',
+              child: const Text('Source: WHO',
                   softWrap: true,
-                  style: const TextStyle(
+                  style: TextStyle(
                       height: 1.5,
                       color: Colors.white,
                       fontWeight: FontWeight.bold
@@ -160,8 +166,7 @@ class PollutantDialog extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.all(5),
             child: Text(
-                'What is ${pollutant.pollutant}, '
-                'and how does it get into the air?',
+                'What is ${pollutant.pollutant}, it’s sources and what are the effects',
                 softWrap: true,
                 style: TextStyle(
                     fontWeight: FontWeight.bold,
