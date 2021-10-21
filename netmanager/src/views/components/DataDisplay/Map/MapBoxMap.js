@@ -26,7 +26,7 @@ const MapBoxMap = ({ devices }) => {
   const [viewport, setViewport] = useState({
     latitude: 0.3341424,
     longitude: 32.5600613,
-    zoom: 7,
+    zoom: 6,
   });
 
   const [selectedDevice, setSelectedDevice] = useState(null);
