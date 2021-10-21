@@ -20,6 +20,47 @@ List<Widget> createTips(double value) {
   return tipsWidgets;
 }
 
+Widget tipContainer() {
+  return Container(
+    padding: const EdgeInsets.only(left: 12.0),
+    width: 300,
+    decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.all(Radius.circular(8.0))),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+            width: 200,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Go For A Jog',
+                  maxLines: 4,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                ),
+                const SizedBox(
+                  height: 10,
+                ),
+                const Text(
+                  'Air quality around kampala seems good, '
+                  'It\'s about time to hit the road'
+                  ' and get in tha work',
+                  maxLines: 4,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 15),
+                ),
+              ],
+            )),
+      ],
+    ),
+  );
+}
+
 class TipCard extends StatelessWidget {
   final String header;
   final String body;

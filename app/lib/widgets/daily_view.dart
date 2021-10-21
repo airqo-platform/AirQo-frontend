@@ -1,6 +1,7 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/historicalMeasurement.dart';
 import 'package:app/models/site.dart';
+import 'package:app/widgets/tips.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -117,9 +118,20 @@ class _DailyViewState extends State<DailyView> with TickerProviderStateMixin {
             const SizedBox(
               height: 11,
             ),
-            const SizedBox(
+            SizedBox(
               height: 128,
-            )
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemBuilder: (context, index) => Padding(
+                  padding: const EdgeInsets.all(5),
+                  child: tipContainer(),
+                ),
+                itemCount: 4,
+              ),
+            ),
+            const SizedBox(
+              height: 11,
+            ),
           ],
         ));
   }

@@ -113,6 +113,7 @@ flutter:
     - assets/images/know-your-air.png
     - assets/images/splash-image.png
     - assets/images/tips-image.png
+    - assets/images/skate.png
 
    # icons
     - assets/icon/airqo_logo.png
@@ -142,6 +143,7 @@ flutter:
     - assets/icon/tips_image.svg
     - assets/icon/info_icon.svg
     - assets/icon/home_icon.svg
+    - assets/icon/tips_graphics.svg
 
     # Language Translation files
     - assets/i18n/en.json

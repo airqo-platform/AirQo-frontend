@@ -1,6 +1,6 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/measurement.dart';
-import 'package:app/screens/insights_view.dart';
+import 'package:app/screens/insights_page.dart';
 import 'package:app/utils/date.dart';
 import 'package:app/utils/pm.dart';
 import 'package:flutter/material.dart';
@@ -35,18 +35,6 @@ class AnalyticsCard extends StatelessWidget {
                     height: 20,
                     width: 20,
                   ),
-                  // Container(
-                  //   height: 20,
-                  //   width: 20,
-                  //   decoration: BoxDecoration(
-                  //       shape: BoxShape.circle,
-                  //       color: ColorConstants.appColorPaleBlue,
-                  //       border: Border.all(color: Colors.transparent)),
-                  //   child: const Icon(
-                  //     Icons.info_outline,
-                  //     size: 15,
-                  //   ),
-                  // )
                 ],
               ),
             ),
@@ -54,7 +42,7 @@ class AnalyticsCard extends StatelessWidget {
             GestureDetector(
               onTap: () {
                 Navigator.push(context, MaterialPageRoute(builder: (context) {
-                  return InsightsView(measurement.site);
+                  return InsightsPage(measurement.site);
                 }));
               },
               child: Container(
@@ -64,7 +52,7 @@ class AnalyticsCard extends StatelessWidget {
                     // Details section
                     Row(
                       children: [
-                        analyticsAvatar(context, measurement, 104),
+                        analyticsAvatar(context, measurement, 104, 40, 12),
                         const SizedBox(width: 16),
                         Expanded(
                           child: Column(

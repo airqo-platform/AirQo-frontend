@@ -39,78 +39,76 @@ class _FavouritePlacesState extends State<FavouritePlaces> {
       ),
       body: Container(
           color: ColorConstants.appBodyColor,
-          child: Padding(
-              padding: const EdgeInsets.fromLTRB(6, 6, 6, 6),
-              child: FutureBuilder(
-                  future: DBHelper().getFavouritePlaces(),
-                  builder: (context, snapshot) {
-                    if (snapshot.hasData) {
-                      favouritePlaces = snapshot.data as List<Measurement>;
+          child: FutureBuilder(
+              future: DBHelper().getLatestMeasurements(),
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  favouritePlaces = snapshot.data as List<Measurement>;
 
-                      if (favouritePlaces.isNotEmpty) {
-                        searchList = favouritePlaces;
-                      }
+                  if (favouritePlaces.isNotEmpty) {
+                    searchList = favouritePlaces;
+                  }
 
-                      if (favouritePlaces.isEmpty) {
-                        return Center(
-                          child: Container(
-                            padding: const EdgeInsets.all(16.0),
-                            child: OutlinedButton(
-                              onPressed: () async {
-                                await showSearch(
-                                  context: context,
-                                  delegate: LocationSearch(),
-                                ).then((_) {
-                                  setState(() {});
-                                });
-                              },
-                              style: OutlinedButton.styleFrom(
-                                shape: const CircleBorder(),
-                                padding: const EdgeInsets.all(24),
-                              ),
-                              child: Text(
-                                'Add',
-                                style:
-                                    TextStyle(color: ColorConstants.appColor),
-                              ),
-                            ),
-                            // child: Text(
-                            //   'You haven\'t added any locations you'
-                            //   ' care about '
-                            //   'to MyPlaces yet, use the add icon at '
-                            //   'the top to add them to your list',
-                            //   softWrap: true,
-                            //   textAlign: TextAlign.center,
-                            //   style: TextStyle(
-                            //     color: ColorConstants.appColor,
-                            //   ),
-                            // ),
+                  if (favouritePlaces.isEmpty) {
+                    return Center(
+                      child: Container(
+                        padding:
+                            const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
+                        child: OutlinedButton(
+                          onPressed: () async {
+                            await showSearch(
+                              context: context,
+                              delegate: LocationSearch(),
+                            ).then((_) {
+                              setState(() {});
+                            });
+                          },
+                          style: OutlinedButton.styleFrom(
+                            shape: const CircleBorder(),
+                            padding: const EdgeInsets.all(24),
                           ),
-                        );
-                      }
-
-                      return RefreshIndicator(
-                        color: ColorConstants.appColor,
-                        onRefresh: refreshData,
-                        child: ListView.builder(
-                          itemBuilder: (context, index) => GestureDetector(
-                            onTap: () {
-                              viewDetails(favouritePlaces[index].site);
-                            },
-                            child: FavouritePlacesCard(favouritePlaces[index]),
+                          child: Text(
+                            'Add',
+                            style: TextStyle(color: ColorConstants.appColor),
                           ),
-                          itemCount: favouritePlaces.length,
                         ),
-                      );
-                    } else {
-                      return Center(
-                        child: CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                              ColorConstants.appColor),
-                        ),
-                      );
-                    }
-                  }))),
+                        // child: Text(
+                        //   'You haven\'t added any locations you'
+                        //   ' care about '
+                        //   'to MyPlaces yet, use the add icon at '
+                        //   'the top to add them to your list',
+                        //   softWrap: true,
+                        //   textAlign: TextAlign.center,
+                        //   style: TextStyle(
+                        //     color: ColorConstants.appColor,
+                        //   ),
+                        // ),
+                      ),
+                    );
+                  }
+
+                  return RefreshIndicator(
+                    color: ColorConstants.appColor,
+                    onRefresh: refreshData,
+                    child: ListView.builder(
+                      itemBuilder: (context, index) => GestureDetector(
+                        onTap: () {
+                          viewDetails(favouritePlaces[index].site);
+                        },
+                        child: FavouritePlacesCard(favouritePlaces[index]),
+                      ),
+                      itemCount: favouritePlaces.length,
+                    ),
+                  );
+                } else {
+                  return Center(
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                          ColorConstants.appColor),
+                    ),
+                  );
+                }
+              })),
     );
   }
 

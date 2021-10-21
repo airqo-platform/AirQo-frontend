@@ -23,7 +23,8 @@ const shimmerGradient = LinearGradient(
   tileMode: TileMode.clamp,
 );
 
-Widget analyticsAvatar(context, Measurement measurement, double size) {
+Widget analyticsAvatar(context, Measurement measurement, double size,
+    double fontSize, double iconHeight) {
   return Container(
     height: size,
     width: size,
@@ -32,27 +33,26 @@ Widget analyticsAvatar(context, Measurement measurement, double size) {
         color: pm2_5ToColor(measurement.getPm2_5Value()),
         border: Border.all(color: Colors.transparent)),
     child: Column(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         const Spacer(),
         SvgPicture.asset(
           'assets/icon/PM2.5.svg',
           semanticsLabel: 'Pm2.5',
-          height: 9.7,
+          height: iconHeight,
           width: 32.45,
         ),
         Text(
           '${measurement.getPm2_5Value().toStringAsFixed(0)}',
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style:
-              GoogleFonts.robotoMono(fontStyle: FontStyle.normal, fontSize: 40),
+          style: GoogleFonts.robotoMono(
+              fontStyle: FontStyle.normal, fontSize: fontSize),
         ),
         SvgPicture.asset(
           'assets/icon/unit.svg',
           semanticsLabel: 'UNit',
-          height: 12,
+          height: iconHeight,
           width: 32,
         ),
         const Spacer(),
@@ -153,63 +153,6 @@ Widget customSearchField(context, text) {
   );
 }
 
-Widget favPlaceAvatar(context, Measurement measurement, double size) {
-  return Container(
-    height: size,
-    width: size,
-    decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: pm2_5ToColor(measurement.getPm2_5Value()),
-        border: Border.all(color: Colors.transparent)),
-    child: Column(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        const Spacer(),
-        RichText(
-            text: TextSpan(
-          style: DefaultTextStyle.of(context).style,
-          children: <TextSpan>[
-            TextSpan(
-              text: 'PM',
-              style: TextStyle(
-                fontSize: 6,
-                color: ColorConstants.appColor,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            TextSpan(
-              text: '2.5',
-              style: TextStyle(
-                fontSize: 3,
-                color: ColorConstants.appColor,
-              ),
-            )
-          ],
-        )),
-        Text(
-          '${measurement.getPm2_5Value().toStringAsFixed(0)}',
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style:
-              GoogleFonts.robotoMono(fontStyle: FontStyle.normal, fontSize: 15),
-        ),
-        SvgPicture.asset(
-          'assets/icon/unit.svg',
-          semanticsLabel: 'UNit',
-          height: 12,
-          width: 32,
-        ),
-        // const Text(
-        //   'µg/m\u00B3',
-        //   style: TextStyle(fontSize: 6),
-        // ),
-        const Spacer(),
-      ],
-    ),
-  );
-}
-
 Widget iconTextButton(Widget icon, text) {
   return GestureDetector(
       onTap: () {},
@@ -239,35 +182,17 @@ Widget insightsAvatar(
             : pm10ToColor(measurement.getPm10Value()),
         border: Border.all(color: Colors.transparent)),
     child: Column(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         const Spacer(),
-        RichText(
-            text: TextSpan(
-          style: DefaultTextStyle.of(context).style,
-          children: <TextSpan>[
-            TextSpan(
-              text: 'PM',
-              style: TextStyle(
-                fontSize: 6,
-                color: ColorConstants.appColor,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            TextSpan(
-              text: pollutant == 'pm2.5' ? '2.5' : '10',
-              style: TextStyle(
-                fontSize: 4,
-                color: ColorConstants.appColor,
-              ),
-            )
-          ],
-        )),
+        SvgPicture.asset(
+          'assets/icon/PM2.5.svg',
+          semanticsLabel: 'Pm2.5',
+          height: 6,
+          width: 32.45,
+        ),
         Text(
-          pollutant == 'pm2.5'
-              ? '${measurement.getPm2_5Value().toStringAsFixed(0)}'
-              : '${measurement.getPm10Value().toStringAsFixed(0)}',
+          '${measurement.getPm2_5Value().toStringAsFixed(0)}',
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style:
@@ -276,17 +201,71 @@ Widget insightsAvatar(
         SvgPicture.asset(
           'assets/icon/unit.svg',
           semanticsLabel: 'UNit',
-          height: 12,
+          height: 6,
           width: 32,
         ),
-        // const Text(
-        //   'µg/m\u00B3',
-        //   style: TextStyle(fontSize: 6),
-        // ),
         const Spacer(),
       ],
     ),
   );
+  // return Container(
+  //   height: size,
+  //   width: size,
+  //   decoration: BoxDecoration(
+  //       shape: BoxShape.circle,
+  //       color: pollutant == 'pm2.5'
+  //           ? pm2_5ToColor(measurement.getPm2_5Value())
+  //           : pm10ToColor(measurement.getPm10Value()),
+  //       border: Border.all(color: Colors.transparent)),
+  //   child: Column(
+  //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //     crossAxisAlignment: CrossAxisAlignment.center,
+  //     children: [
+  //       const Spacer(),
+  //       RichText(
+  //           text: TextSpan(
+  //         style: DefaultTextStyle.of(context).style,
+  //         children: <TextSpan>[
+  //           TextSpan(
+  //             text: 'PM',
+  //             style: TextStyle(
+  //               fontSize: 6,
+  //               color: ColorConstants.appColor,
+  //               fontWeight: FontWeight.bold,
+  //             ),
+  //           ),
+  //           TextSpan(
+  //             text: pollutant == 'pm2.5' ? '2.5' : '10',
+  //             style: TextStyle(
+  //               fontSize: 4,
+  //               color: ColorConstants.appColor,
+  //             ),
+  //           )
+  //         ],
+  //       )),
+  //       Text(
+  //         pollutant == 'pm2.5'
+  //             ? '${measurement.getPm2_5Value().toStringAsFixed(0)}'
+  //             : '${measurement.getPm10Value().toStringAsFixed(0)}',
+  //         maxLines: 1,
+  //         overflow: TextOverflow.ellipsis,
+  //         style:
+  //             GoogleFonts.robotoMono(fontStyle: FontStyle.normal, fontSize: 32),
+  //       ),
+  //       SvgPicture.asset(
+  //         'assets/icon/unit.svg',
+  //         semanticsLabel: 'UNit',
+  //         height: 12,
+  //         width: 32,
+  //       ),
+  //       // const Text(
+  //       //   'µg/m\u00B3',
+  //       //   style: TextStyle(fontSize: 6),
+  //       // ),
+  //       const Spacer(),
+  //     ],
+  //   ),
+  // );
 }
 
 PreferredSizeWidget knowYourAirAppBar(context) {

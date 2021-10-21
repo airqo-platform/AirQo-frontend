@@ -1,6 +1,6 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/measurement.dart';
-import 'package:app/screens/insights_view.dart';
+import 'package:app/screens/insights_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -14,7 +14,7 @@ class FavouritePlacesCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(10),
+      padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
       child: Container(
           decoration: BoxDecoration(
               color: Colors.white,
@@ -29,7 +29,8 @@ class FavouritePlacesCard extends StatelessWidget {
                 padding: const EdgeInsets.only(left: 32, right: 32),
                 child: Row(
                   children: [
-                    favPlaceAvatar(context, measurement, 40),
+                    analyticsAvatar(context, measurement, 40, 15, 5),
+                    // favPlaceAvatar(context, measurement, 40),
                     const SizedBox(
                       width: 12,
                     ),
@@ -79,7 +80,7 @@ class FavouritePlacesCard extends StatelessWidget {
               GestureDetector(
                 onTap: () {
                   Navigator.push(context, MaterialPageRoute(builder: (context) {
-                    return InsightsView(measurement.site);
+                    return InsightsPage(measurement.site);
                   }));
                 },
                 child: Container(

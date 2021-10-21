@@ -6,16 +6,16 @@ import 'package:app/widgets/monthly_view.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-class InsightsView extends StatefulWidget {
+class InsightsPage extends StatefulWidget {
   Site site;
 
-  InsightsView(this.site);
+  InsightsPage(this.site);
 
   @override
-  _InsightsViewState createState() => _InsightsViewState(this.site);
+  _InsightsPageState createState() => _InsightsPageState(this.site);
 }
 
-class _InsightsViewState extends State<InsightsView>
+class _InsightsPageState extends State<InsightsPage>
     with SingleTickerProviderStateMixin {
   var _tabController;
   bool isWeekly = true;
@@ -26,7 +26,7 @@ class _InsightsViewState extends State<InsightsView>
 
   int currentSegment = 0;
 
-  _InsightsViewState(this.site);
+  _InsightsPageState(this.site);
 
   @override
   Widget build(BuildContext context) {
@@ -111,6 +111,7 @@ class _InsightsViewState extends State<InsightsView>
             Expanded(
                 child: TabBarView(
               controller: _tabController,
+              physics: const NeverScrollableScrollPhysics(),
               children: <Widget>[
                 DailyView(site),
                 MonthlyView(site),
