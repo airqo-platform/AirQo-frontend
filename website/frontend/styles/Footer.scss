@@ -1,0 +1,143 @@
+@import "lib/colors";
+
+$footer-padding: 80px;
+
+.Footer {
+  width: 1440px - 2*$footer-padding;
+  height: 600px - 2*$footer-padding;
+  padding: $footer-padding;
+  padding-bottom: $footer-padding/2;
+  background: $aq-white-0;
+  font-family: 'Inter', serif;
+
+  .body-section {
+    display: flex;
+    height: 400px;
+
+    .logo {
+      width: 44%;
+      height: 100%;
+
+      .social-links {
+        display: flex;
+        justify-content: space-between;
+        width: 211px;
+        height: 40px;
+        margin-top: 93px;
+      }
+    }
+
+    .content {
+      display: flex;
+      width: 56%;
+      height: 100%;
+
+      .section {
+        width: 33.3%;
+        div:first-child {
+          display: flex;
+          align-items: center;
+          flex: none;
+          order: 0;
+          flex-grow: 1;
+          margin-top: 0;
+          font-style: normal;
+          font-weight: 500;
+          font-size: 16px;
+          line-height: 18px;
+          color: $aq-black-0;
+        }
+        div {
+          display: flex;
+          align-items: center;
+          flex: none;
+          order: 0;
+          flex-grow: 1;
+          margin-top: 21px;
+          height: 18px;
+          font-style: normal;
+          font-weight: normal;
+          font-size: 14px;
+          line-height: 18px;
+          color: $aq-black-0;
+
+
+
+        }
+      }
+    }
+  }
+
+  .copyright-section {
+    display: flex;
+    height: 80px;
+  }
+
+  .copyright-container {
+    display: flex;
+    align-items: center;
+    width: 70%;
+  }
+
+  .project-container {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    width: 30%;
+  }
+
+  .text {
+    font-style: normal;
+    font-weight: normal;
+    font-size: 14px;
+    line-height: 18px;
+
+    display: flex;
+    align-items: center;
+
+    color: $aq-black-0;
+  }
+
+  .copyright-text {
+    margin-right: 64px;
+  }
+
+  .terms {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    width: 80px;
+    height: 32px;
+    margin-right: 24px;
+  }
+  .privacy {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    width: 80px;
+    height: 32px;
+  }
+
+  .project {
+    width: 237.04px;
+    height: 37.28px;
+  }
+
+  .project-text {
+    display: flex;
+    align-items: center;
+    text-transform: uppercase;
+    width: 72px;
+    height: 14px;
+
+    font-style: normal;
+    font-weight: 500;
+    font-size: 10px;
+    line-height: 14px;
+
+    color: $aq-black-1;
+    opacity: 0.4;
+
+    margin-bottom: 6px;
+  }
+}

@@ -25,6 +25,7 @@ import { DAILY_MEAN_AVERAGES_URI } from "config/urls/analytics";
 import { roundToEndOfDay, roundToStartOfDay } from "utils/dateTime";
 import { unzip, zip } from "underscore";
 import moment from "moment";
+import { usePollutantsOptions } from "utils/customHooks";
 import OutlinedSelect from "../../../components/CustomSelects/OutlinedSelect";
 
 function appendLeadingZeroes(n) {
@@ -45,11 +46,7 @@ const AveragesChart = ({ classes }) => {
 
   const [open, setOpen] = React.useState(false);
 
-  const pollutantOptions = [
-    { value: "pm2_5", label: "PM 2.5" },
-    { value: "pm10", label: "PM 10" },
-    { value: "no2", label: "NO2" },
-  ];
+  const pollutantOptions = usePollutantsOptions();
 
   const [pollutant, setPollutant] = useState({
     value: "pm2_5",

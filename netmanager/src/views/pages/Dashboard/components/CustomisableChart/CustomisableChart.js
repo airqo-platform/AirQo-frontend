@@ -39,7 +39,10 @@ import OutlinedSelect from "views/components/CustomSelects/OutlinedSelect";
 import { formatDateString } from "utils/dateTime";
 import { omit } from "underscore";
 import { roundToStartOfDay, roundToEndOfDay } from "utils/dateTime";
-import { useDashboardSiteOptions } from "utils/customHooks";
+import {
+  useDashboardSiteOptions,
+  usePollutantsOptions,
+} from "utils/customHooks";
 import {
   deleteUserChartDefaultsApi,
   updateUserChartDefaultsApi,
@@ -297,11 +300,7 @@ const CustomisableChart = (props) => {
     setTempState({ ...tempState, frequency: selectedFrequencyOption });
   };
 
-  const pollutantOptions = [
-    { value: "pm2_5", label: "PM 2.5" },
-    { value: "pm10", label: "PM 10" },
-    { value: "no2", label: "NO2" },
-  ];
+  const pollutantOptions = usePollutantsOptions();
 
   const labelMapper = {
     pm2_5: "PM2.5 (µg/m3)",

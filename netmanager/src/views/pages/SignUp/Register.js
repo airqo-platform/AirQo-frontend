@@ -26,6 +26,11 @@ const validEmailRegex = RegExp(
   /^(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i
 );
 
+const tenantMapper = {
+    'airqo': "AirQo",
+    'kcca': "KCCA"
+  }
+
 const validateForm = (errors) => {
   try {
     let valid = true;
@@ -179,6 +184,13 @@ class Register extends Component {
         this.props.registerCandidate(this.tenant, this.state, () => this.clearState());
     }
   };
+
+
+  tenantLabel = (tenant) => {
+    return tenantMapper[tenant.toLowerCase()];
+  }
+
+
   render() {
     const { errors } = this.state;
     const { classes } = this.props;
@@ -206,7 +218,7 @@ class Register extends Component {
               >
                 <div className="col s12" style={{ paddingLeft: "11.250px" }}>
                   <h4>
-                    <b>Request Access to <span style={{textTransform: "uppercase"}}>{this.tenant}</span></b>
+                    <b>{this.tenantLabel(this.tenant)} Access Request</b>
                   </h4>
                   <p className="grey-text text-darken-1">
                     Already have an account? <Link to="/login">Log in</Link>

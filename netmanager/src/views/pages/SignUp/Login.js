@@ -1,26 +1,28 @@
 import React, { Component } from "react";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { CardContent } from "@material-ui/core";
 import Alert from "@material-ui/lab/Alert";
 import { clearErrors, loginUser } from "redux/Join/actions";
 import Grid from "@material-ui/core/Grid";
-import classnames from "classnames";
 import { isEmpty, omit } from "underscore";
 import { isFormFullyFilled } from "./utils";
 import usersStateConnector from "views/stateConnectors/usersStateConnector";
 import AlertMinimal from "../../layouts/AlertsMininal";
+import TextField from "@material-ui/core/TextField";
 
 class Login extends Component {
   constructor(props) {
     super(props);
     this.query = new URLSearchParams(this.props.location.search);
+    this.tenant = this.props.match.params.tenant;
     this.state = {
-      organization: this.query.get("organization") || "",
+      organization: this.tenant || "airqo",
       userName: "",
       password: "",
       errors: {},
+      loading: false,
     };
   }
 
@@ -70,7 +72,7 @@ class Login extends Component {
       );
     }
 
-    errors[id] = value.length === 0 ? `${id.toLowerCase()} is required` : "";
+    errors[id] = value.length === 0 ? `This field is required` : "";
 
     this.setState(
       {
@@ -83,7 +85,7 @@ class Login extends Component {
     );
   };
 
-  onSubmit = (e) => {
+  onSubmit = async (e) => {
     e.preventDefault();
     const emptyFields = isFormFullyFilled(this.state);
     const userData = omit(this.state, "errors");
@@ -98,9 +100,10 @@ class Login extends Component {
       });
       return;
     }
+    this.setState({ ...this.state, loading: true });
     this.props.clearErrors();
-    this.props.loginUser(userData);
-    // since we handle the redirect within our component, we don't need to pass in this.props.history as a parameter
+    await this.props.loginUser(userData);
+    this.setState({ ...this.state, loading: false });
   };
   render() {
     const { errors } = this.state;
@@ -159,58 +162,31 @@ class Login extends Component {
                         this.props.errors.data.message}
                     </Alert>
                   </CardContent>
-                  <div className="input-field col s12">
-                    <input
-                      onChange={this.onChange}
-                      value={this.state.organization}
-                      error={errors.organization}
-                      id="organization"
-                      type="text"
-                      className={classnames("", {
-                        invalid:
-                          errors.organization || errors.credentialsnotfound,
-                      })}
-                    />
-                    <label htmlFor="organization">Organization</label>
-                    <span className="red-text">
-                      {errors.organization}
-                      {errors.credentialsnotfound}
-                    </span>
-                  </div>
-                  <div className="input-field col s12">
-                    <input
-                      onChange={this.onChange}
-                      value={this.state.userName}
-                      error={errors.userName}
-                      id="userName"
-                      type="text"
-                      className={classnames("", {
-                        invalid: errors.userName || errors.credentialsnotfound,
-                      })}
-                    />
-                    <label htmlFor="userName">Username or Email</label>
-                    <span className="red-text">
-                      {errors.userName}
-                      {errors.credentialsnotfound}
-                    </span>
-                  </div>
-                  <div className="input-field col s12">
-                    <input
-                      onChange={this.onChange}
-                      value={this.state.password}
-                      error={errors.password}
-                      id="password"
-                      type="password"
-                      className={classnames("", {
-                        invalid: errors.password || errors.passwordincorrect,
-                      })}
-                    />
-                    <label htmlFor="password">Password</label>
-                    <span className="red-text">
-                      {errors.password}
-                      {errors.passwordincorrect}
-                    </span>
-                  </div>
+                  <TextField
+                    onChange={this.onChange}
+                    value={this.state.userName}
+                    error={!!errors.userName}
+                    id="userName"
+                    label="Username or email"
+                    fullWidth
+                    margin="normal"
+                    variant="outlined"
+                    helperText={errors.userName}
+                  />
+
+                  <TextField
+                    onChange={this.onChange}
+                    value={this.state.password}
+                    error={!!errors.password || !!errors.passwordincorrect}
+                    id="password"
+                    type="password"
+                    label="Password"
+                    fullWidth
+                    margin="normal"
+                    variant="outlined"
+                    helperText={errors.password || errors.passwordincorrect}
+                  />
+
                   <div className="col s12" style={{ paddingLeft: "11.250px" }}>
                     <button
                       style={{
@@ -221,12 +197,12 @@ class Login extends Component {
                       }}
                       type="submit"
                       className="btn btn-large waves-effect waves-light hoverable blue accent-3"
+                      disabled={this.state.loading}
                     >
                       Login
                     </button>
                   </div>
                 </form>
-                {/*<div></div>*/}
                 <div className="col s12" style={{ paddingTop: "20px" }}>
                   <Link to="/forgot"> Forgotten Password?</Link>
                 </div>

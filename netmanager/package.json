@@ -55,6 +55,7 @@
         "react-leaflet-fullscreen": "^1.0.1",
         "react-loader-spinner": "^3.1.14",
         "react-loading-overlay": "^1.0.1",
+        "react-map-gl": "^6.1.17",
         "react-perfect-scrollbar": "^1.5.8",
         "react-redux": "^7.2.0",
         "react-router-dom": "^5.1.2",
