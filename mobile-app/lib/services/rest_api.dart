@@ -318,7 +318,6 @@ class AirqoApiClient {
 
       final response = await http.get(Uri.parse(url), headers: headers);
       return json.decode(response.body);
-
     } on SocketException {
       await showSnackBar(context, ErrorMessages.socketException);
     } on TimeoutException {

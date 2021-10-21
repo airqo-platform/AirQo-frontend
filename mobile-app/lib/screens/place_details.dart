@@ -96,17 +96,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
             color: ColorConstants.appBarTitleColor,
           ),
         ),
-        actions: [
-          // if (isFavourite)
-          // IconButton(
-          //   icon: const Icon(
-          //     Icons.edit_outlined,
-          //   ),
-          //   onPressed: () {
-          //     updateTitleDialog(site);
-          //   },
-          // ),
-        ],
+        actions: [],
       ),
       body: Container(
         color: ColorConstants.appBodyColor,
@@ -118,7 +108,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
             cardSection(measurement),
 
             // Pollutants
-            PollutantsSection(measurement),
+            PollutantsSection(measurement, 'Current Air Quality'),
 
             const SizedBox(
               height: 10,
@@ -164,6 +154,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
         padding: const EdgeInsets.all(8.0),
         child: Card(
             elevation: 10,
+            color: pm2_5ToColor(measurement.getPm2_5Value()),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(20),
             ),
@@ -177,7 +168,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                         '${measurement.site.getUserLocation()}',
                         style: TextStyle(
                           fontSize: 20,
-                          color: ColorConstants.appColor,
+                          color: pm2_5TextColor(measurement.getPm2_5Value()),
                           fontWeight: FontWeight.bold,
                         ),
                         textAlign: TextAlign.center,
@@ -190,7 +181,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                           '${measurement.site.getName()}',
                           style: TextStyle(
                             fontSize: 16,
-                            color: ColorConstants.appColor,
+                            color: pm2_5TextColor(measurement.getPm2_5Value()),
                           ),
                           textAlign: TextAlign.center,
                         )),
@@ -202,7 +193,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                         '${measurement.site.getLocation()}',
                         style: TextStyle(
                           fontSize: 16,
-                          color: ColorConstants.appColor,
+                          color: pm2_5TextColor(measurement.getPm2_5Value()),
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -214,7 +205,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                       '${pmToString(measurement.getPm2_5Value())}',
                       style: TextStyle(
                         fontSize: 16,
-                        color: ColorConstants.appColor,
+                        color: pm2_5TextColor(measurement.getPm2_5Value()),
                         fontWeight: FontWeight.bold,
                       ),
                       textAlign: TextAlign.center,
@@ -226,7 +217,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                         'Last updated: ${dateToString(measurement.time, true)}',
                         style: TextStyle(
                           fontSize: 13,
-                          color: ColorConstants.appColor,
+                          color: pm2_5TextColor(measurement.getPm2_5Value()),
                           fontWeight: FontWeight.w500,
                         )),
                   ),
@@ -726,13 +717,13 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                               color: ColorConstants.appColor),
                       title: isFavourite
                           ? Text(
-                              'Remove from MyPlaces',
+                              'Remove from My Places',
                               style: TextStyle(
                                   color: ColorConstants.appColor,
                                   fontWeight: FontWeight.w600),
                             )
                           : Text(
-                              'Add to MyPlaces',
+                              'Add to My Places',
                               style: TextStyle(
                                   color: ColorConstants.appColor,
                                   fontWeight: FontWeight.w600),

@@ -31,26 +31,26 @@ class PollutantCard extends StatelessWidget {
               children: [
                 RichText(
                     text: TextSpan(
-                      style: DefaultTextStyle.of(context).style,
-                      children: <TextSpan>[
-                        TextSpan(
-                          text: 'PM',
-                          style: TextStyle(
-                            fontSize: 20,
-                            color: ColorConstants.appColor,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        TextSpan(
-                          text: name,
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: ColorConstants.appColor,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        )
-                      ],
-                    )),
+                  style: DefaultTextStyle.of(context).style,
+                  children: <TextSpan>[
+                    TextSpan(
+                      text: 'PM',
+                      style: TextStyle(
+                        fontSize: 20,
+                        color: ColorConstants.appColor,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    TextSpan(
+                      text: name,
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: ColorConstants.appColor,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    )
+                  ],
+                )),
                 Padding(
                     padding: const EdgeInsets.all(1.0),
                     child: RichText(

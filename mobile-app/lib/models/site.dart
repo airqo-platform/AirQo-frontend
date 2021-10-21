@@ -1,4 +1,6 @@
 import 'package:app/constants/app_constants.dart';
+import 'package:app/utils/string_extension.dart';
+import 'package:intl/intl.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'site.g.dart';
@@ -38,7 +40,7 @@ class Site {
   factory Site.fromJson(Map<String, dynamic> json) => _$SiteFromJson(json);
 
   String getLocation() {
-    return '$district $country';
+    return '$district $country'.toTitleCase();
   }
 
   String getName() {
@@ -50,9 +52,9 @@ class Site {
           name.trim().toLowerCase().contains('null')) {
         return getLocation();
       }
-      return name;
+      return name.toTitleCase();
     }
-    return description;
+    return description.toTitleCase();
   }
 
   String getUserLocation() {
@@ -64,7 +66,7 @@ class Site {
         userLocation.trim().toLowerCase().contains('null')) {
       return getName();
     }
-    return userLocation;
+    return userLocation.toTitleCase();
   }
 
   Map<String, dynamic> toJson() => _$SiteToJson(this);

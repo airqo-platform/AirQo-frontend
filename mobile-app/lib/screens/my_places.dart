@@ -42,13 +42,13 @@ class _MyPlacesState extends State<MyPlaces> {
                 decoration: InputDecoration(
                   hintStyle:
                       TextStyle(fontSize: 18, color: ColorConstants.appColor),
-                  hintText: 'Search in MyPlaces',
+                  hintText: 'Search in My Places',
                   border: InputBorder.none,
                   contentPadding: EdgeInsets.all(15),
                 ),
               )
             : Text(
-                'MyPlaces',
+                'My Places',
                 style: TextStyle(
                   color: ColorConstants.appBarTitleColor,
                   fontWeight: FontWeight.bold,
@@ -170,7 +170,7 @@ class _MyPlacesState extends State<MyPlaces> {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     const Text(
-                                      'Empty in MyPlaces',
+                                      'Empty in My Places',
                                       softWrap: true,
                                       textAlign: TextAlign.center,
                                       style: TextStyle(fontSize: 20),

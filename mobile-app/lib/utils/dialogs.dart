@@ -131,7 +131,7 @@ Future<void> showSnackBarGoToMyPlaces(context, String message) async {
     backgroundColor: ColorConstants.snackBarBgColor,
     action: SnackBarAction(
       textColor: Colors.white,
-      label: 'View MyPlaces',
+      label: 'View My Places',
       onPressed: () async {
         await Navigator.push(context, MaterialPageRoute(builder: (context) {
           return const MyPlaces();

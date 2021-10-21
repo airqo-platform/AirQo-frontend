@@ -493,7 +493,7 @@ class _SettingsViewState extends State<SettingsView> {
               }));
             },
             child: ListTile(
-              title: const Text('MyPlaces'),
+              title: const Text('My Places'),
               leading: FaIcon(
                 FontAwesomeIcons.solidHeart,
                 color: ColorConstants.red,

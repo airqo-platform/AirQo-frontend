@@ -80,13 +80,13 @@ class _HomePageState extends State<HomePage> {
             onSelected: (value) => {navigateToMenuItem(value)},
             itemBuilder: (context) => <PopupMenuEntry<String>>[
               // PopupMenuItem<String>(
-              //   value: 'MyPlaces',
+              //   value: 'My Places',
               //   child: ListTile(
               //     leading: Icon(
               //       Icons.favorite_outlined,
               //       color: ColorConstants.appColor,
               //     ),
-              //     title: Text('MyPlaces',
+              //     title: Text('My Places',
               //         style: TextStyle(
               //           color: ColorConstants.appColor,
               //         )),
@@ -392,7 +392,7 @@ class _HomePageState extends State<HomePage> {
         break;
       case 1:
         setState(() {
-          title = 'MyPlaces';
+          title = 'My Places';
           showAddPlace = false;
           selectedPage = 1;
         });

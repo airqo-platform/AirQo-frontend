@@ -492,7 +492,7 @@ class _SettingsPageState extends State<SettingsPage> {
               }));
             },
             child: ListTile(
-              title: const Text('Manage MyPlaces'),
+              title: const Text('Manage My Places'),
               leading: Icon(
                 Icons.favorite_outlined,
                 color: ColorConstants.appColor,

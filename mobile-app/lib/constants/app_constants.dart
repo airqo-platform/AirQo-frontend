@@ -126,23 +126,21 @@ class PollutantBio {
       ' 1.1 grams of water in the air at -10 degrees Celsius, '
       'we are at 50 percent relative humidity.';
 
-  static String get pm10 => 'PM10 are pollutants about 10 micrometers in '
-      'size (5–7 times smaller than the '
-      'thickness of a human hair.\n'
-      'These particles can certainly be damaging and include dust '
-      'and thick smoke, many can be processed by the lungs and can be'
-      ' coughed out but others especially if toxic can contribute to'
-      ' respiratory illness and more. They are measured but'
-      ' not always reported worldwide';
+  static String get pm10 => 'PM10 are pollutants that have a diameter of '
+      '10 micrometers (0.01 mm) or smaller; they can be found '
+      'in dust and smoke and can penetrate and lodge deep inside the'
+      ' lungs. They are even more health-damaging particles than'
+      ' the PM2.5  pollutants. ';
 
-  static String get pm2_5 => 'PM2.5 are pollutants'
-      ' about 2.5 micrometers (20–30 times '
-      'smaller than the thickness of a human hair.)\n'
-      'Once in the bloodstream, they can contribute to cancers, '
-      'cardiovascular problems, affect brain function and as well as '
-      'cause developmental issues for growing children.\nThey have '
-      'also increasingly been implicated in contributing to the spread '
-      'of COVID-19';
+  static String get pm2_5 => 'PM2.5 are pollutants that have a diameter '
+      'of 2.5 micrometers (20-30 times smaller than the thickness of'
+      ' human hair). They are very small particles usually '
+      'found in smoke. PM2.5 '
+      'particles are small enough for you to breathe and '
+      'can penetrate the lung barrier and enter the blood system.'
+      ' Prolonged exposure to particles contributes to the risk of '
+      'developing cardiovascular and respiratory diseases, '
+      'as well as lung cancer.\nSource WHO ';
 
   static String get temperature => 'Temperature is the degree of hotness or'
       ' coldness of an object. When we talk about something feeling hot '

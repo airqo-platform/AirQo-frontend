@@ -61,26 +61,25 @@ class _MeasurementsBarChartState extends State<MeasurementsBarChart> {
                   ),
                   child: RichText(
                       text: TextSpan(
-                        style: DefaultTextStyle.of(context).style,
-                        children: <TextSpan>[
-                          TextSpan(
-                            text: 'PM',
-                            style: TextStyle(
-                                color: pollutant == 'pm2.5'
-                                    ? Colors.white
-                                    : ColorConstants.appColor),
-                          ),
-                          TextSpan(
-                            text: '2.5',
-                            style: TextStyle(
-                              fontSize: 10,
-                                color: pollutant == 'pm2.5'
-                                    ? Colors.white
-                                    : ColorConstants.appColor
-                            ),
-                          )
-                        ],
-                      )),
+                    style: DefaultTextStyle.of(context).style,
+                    children: <TextSpan>[
+                      TextSpan(
+                        text: 'PM',
+                        style: TextStyle(
+                            color: pollutant == 'pm2.5'
+                                ? Colors.white
+                                : ColorConstants.appColor),
+                      ),
+                      TextSpan(
+                        text: '2.5',
+                        style: TextStyle(
+                            fontSize: 10,
+                            color: pollutant == 'pm2.5'
+                                ? Colors.white
+                                : ColorConstants.appColor),
+                      )
+                    ],
+                  )),
                 ),
                 const SizedBox(
                   width: 10,
@@ -96,26 +95,25 @@ class _MeasurementsBarChartState extends State<MeasurementsBarChart> {
                   ),
                   child: RichText(
                       text: TextSpan(
-                        style: DefaultTextStyle.of(context).style,
-                        children: <TextSpan>[
-                          TextSpan(
-                            text: 'PM',
-                            style: TextStyle(
-                                color: pollutant == 'pm10'
-                                    ? Colors.white
-                                    : ColorConstants.appColor),
-                          ),
-                          TextSpan(
-                            text: '10',
-                            style: TextStyle(
-                                fontSize: 10,
-                                color: pollutant == 'pm10'
-                                    ? Colors.white
-                                    : ColorConstants.appColor
-                            ),
-                          )
-                        ],
-                      )),
+                    style: DefaultTextStyle.of(context).style,
+                    children: <TextSpan>[
+                      TextSpan(
+                        text: 'PM',
+                        style: TextStyle(
+                            color: pollutant == 'pm10'
+                                ? Colors.white
+                                : ColorConstants.appColor),
+                      ),
+                      TextSpan(
+                        text: '10',
+                        style: TextStyle(
+                            fontSize: 10,
+                            color: pollutant == 'pm10'
+                                ? Colors.white
+                                : ColorConstants.appColor),
+                      )
+                    ],
+                  )),
                 ),
                 const SizedBox(
                   width: 10,

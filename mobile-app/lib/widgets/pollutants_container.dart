@@ -5,8 +5,9 @@ import 'package:flutter/material.dart';
 
 class PollutantsSection extends StatelessWidget {
   final Measurement measurement;
+  final String heading;
 
-  PollutantsSection(this.measurement);
+  PollutantsSection(this.measurement, this.heading);
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +16,7 @@ class PollutantsSection extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
         Text(
-          'Pollutants',
+          heading,
           softWrap: true,
           style: TextStyle(
               fontSize: 20,
