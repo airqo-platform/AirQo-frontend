@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import ReactMapGL, { Marker, Popup } from "react-map-gl";
 import { useHistory } from "react-router-dom";
+import { MapKey } from "./MapKey";
 
 import "assets/css/manager-map.css";
 
@@ -104,6 +105,7 @@ const MapBoxMap = ({ devices }) => {
             </div>
           </Popup>
         )}
+        <MapKey />
       </ReactMapGL>
     </div>
   );

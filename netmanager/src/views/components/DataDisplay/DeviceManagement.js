@@ -12,7 +12,6 @@ import Tooltip from "@material-ui/core/Tooltip";
 import Card from "../Card/Card.js";
 import moment from "moment";
 import { isEmpty, mapObject, omit, values } from "underscore";
-import Map from "./Map/Map";
 import {
   useDevicesStatusData,
   useNetworkUptimeData,
@@ -416,9 +415,6 @@ export default function DeviceManagement() {
         </Hidden>
       </div>
       <MapBoxMap devices={filteredDevices} />
-      <div className={"map-container"}>
-        <Map devices={filteredDevices} />
-      </div>
 
       <div
         style={{
