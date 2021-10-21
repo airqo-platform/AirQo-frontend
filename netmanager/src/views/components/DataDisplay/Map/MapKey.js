@@ -4,6 +4,8 @@ import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import ExpandLessIcon from "@material-ui/icons/ExpandLess";
 import Hidden from "@material-ui/core/Hidden";
 
+import "assets/scss/device-management-map.sass";
+
 const MobileLabel = ({ label }) => {
   return (
     <Hidden smUp>

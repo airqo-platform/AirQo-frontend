@@ -420,10 +420,11 @@ export const loginUser = userData => dispatch => {
     })
     .catch(err => {
       if (err.response) {
-        dispatch({
-          type: GET_ERRORS,
-          payload: err.response || null
-        })
+        dispatch(updateMainAlert({
+          show: true,
+          message: err.response.data.message,
+          severity: "error"
+        }))
       }
       else if (err.request) {
         dispatch({
