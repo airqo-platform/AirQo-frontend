@@ -1,4 +1,5 @@
 import 'package:app/constants/app_constants.dart';
+import 'package:app/utils/string_extension.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'site.g.dart';
@@ -50,31 +51,33 @@ class Site {
   factory Site.fromJson(Map<String, dynamic> json) => _$SiteFromJson(json);
 
   String getLocation() {
-    if (description == '') {
-      return name;
-    }
-    return '$district $country';
+    return '$district $country'.toTitleCase();
   }
 
   String getName() {
-    if (description == '') {
-      return name;
+    if (description == '' ||
+        description.trim().toLowerCase() == 'null' ||
+        description.trim().toLowerCase().contains('null')) {
+      if (name == '' ||
+          name.trim().toLowerCase() == 'null' ||
+          name.trim().toLowerCase().contains('null')) {
+        return getLocation();
+      }
+      return name.toTitleCase();
     }
-    return description;
+    return description.toTitleCase();
   }
 
   String getUserLocation() {
-    if (userLocation != '') {
-      return userLocation;
+    if (userLocation == null) {
+      return getName();
     }
-    return getName();
-  }
-
-  String getUserLocationName() {
-    if (description == '') {
-      return name;
+    if (userLocation == '' ||
+        userLocation.trim().toLowerCase() == 'null' ||
+        userLocation.trim().toLowerCase().contains('null')) {
+      return getName();
     }
-    return description;
+    return userLocation.toTitleCase();
   }
 
   Map<String, dynamic> toJson() => _$SiteToJson(this);

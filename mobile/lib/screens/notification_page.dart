@@ -60,7 +60,7 @@ class _NotificationPageState extends State<NotificationPage> {
                         padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
                         child: notificationCard(),
                       ),
-                      itemCount: 5,
+                      itemCount: 7,
                     ),
                   );
                 } else {

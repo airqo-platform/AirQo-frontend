@@ -367,16 +367,28 @@ class _DashboardViewState extends State<DashboardView> {
         children: [
           Expanded(
             child: Column(
-              // crossAxisAlignment: CrossAxisAlignment.start,
-              // mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('The Tid Tips On Air Quality!',
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    )),
+                GestureDetector(
+                  onTap: () async {
+                    var response = await Navigator.push(context,
+                        MaterialPageRoute(builder: (context) {
+                          return const TipsPage();
+                        }));
+                    if (response == null) {
+                      await initialize();
+                    } else {
+                      await initialize();
+                    }
+                  },
+                  child: const Text('The Tid Tips On Air Quality!',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      )),
+                ),
+
                 const SizedBox(
                   height: 28,
                 ),
@@ -457,15 +469,29 @@ class _DashboardViewState extends State<DashboardView> {
           const SizedBox(
             width: 16,
           ),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(10.0),
-            child: Image.asset(
-              'assets/images/know-your-air.png',
-              width: 104,
-              height: 104,
-              fit: BoxFit.cover,
+          GestureDetector(
+            onTap: () async {
+              var response = await Navigator.push(context,
+                  MaterialPageRoute(builder: (context) {
+                    return const TipsPage();
+                  }));
+              if (response == null) {
+                await initialize();
+              } else {
+                await initialize();
+              }
+            },
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(10.0),
+              child: Image.asset(
+                'assets/images/know-your-air.png',
+                width: 104,
+                height: 104,
+                fit: BoxFit.cover,
+              ),
             ),
           ),
+
         ],
       ),
     );
@@ -492,10 +518,16 @@ class _DashboardViewState extends State<DashboardView> {
                 borderRadius: BorderRadius.all(Radius.circular(10.0))),
             child: GestureDetector(
               onTap: () async {
-                await Navigator.push(context,
+                var response = await Navigator.push(context,
                     MaterialPageRoute(builder: (context) {
-                  return const SearchPage();
-                }));
+                      return const SearchPage();
+                    }));
+                if (response == null) {
+                  await initialize();
+                } else {
+                  await initialize();
+                }
+
               },
               child: SvgPicture.asset(
                 'assets/icon/search.svg',
@@ -525,14 +557,19 @@ class _DashboardViewState extends State<DashboardView> {
                 triggerMode: TooltipTriggerMode.longPress,
                 child: GestureDetector(
                   onTap: () async {
-                    await Navigator.push(context,
+                    var response = await Navigator.push(context,
                         MaterialPageRoute(builder: (context) {
-                      if (favouritePlaces.isEmpty) {
-                        return const SearchPage();
-                      } else {
-                        return const FavouritePlaces();
-                      }
-                    }));
+                          if (favouritePlaces.isEmpty) {
+                            return const SearchPage();
+                          } else {
+                            return const FavouritePlaces();
+                          }
+                        }));
+                    if (response == null) {
+                      await initialize();
+                    } else {
+                      await initialize();
+                    }
                   },
                   child: Container(
                     padding: const EdgeInsets.all(15.0),

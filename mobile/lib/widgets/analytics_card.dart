@@ -63,14 +63,14 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                 }));
               },
               child: Container(
-                padding: const EdgeInsets.only(left: 24, right: 24),
+                padding: const EdgeInsets.only(left: 20, right: 20),
                 child: Column(
                   children: [
                     // Details section
                     Row(
                       children: [
                         analyticsAvatar(measurement, 104, 40, 12),
-                        const SizedBox(width: 16),
+                        const SizedBox(width: 8.0),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,

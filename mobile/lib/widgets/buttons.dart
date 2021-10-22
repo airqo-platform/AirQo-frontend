@@ -19,7 +19,7 @@ Widget countryDropDown(String text) {
   );
 }
 
-Widget locationIcon(height, width) {
+Widget locationIconV1(height, width) {
   return SvgPicture.asset(
     'assets/icon/location_icon.svg',
     semanticsLabel: 'location',
@@ -28,7 +28,7 @@ Widget locationIcon(height, width) {
   );
 }
 
-Widget locationIconV1(height, width) {
+Widget locationIcon(height, width) {
   return Stack(
     children: [
       Image.asset(

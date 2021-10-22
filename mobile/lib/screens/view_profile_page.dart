@@ -348,7 +348,7 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
             uploadPicture().then((_) => {
                   updating = false,
                   showSnackBar(context, 'Profile updated'),
-                  // Navigator.pop(context, true)
+                  Navigator.pop(context, true)
                 })
           });
     }
