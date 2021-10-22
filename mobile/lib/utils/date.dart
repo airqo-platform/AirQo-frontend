@@ -1,5 +1,34 @@
 import 'package:intl/intl.dart';
 
+String chartDateTimeToString(DateTime dateTime) {
+  try {
+    var now = DateTime.now();
+    dateTime = dateTime.add(Duration(hours: now.timeZoneOffset.inHours));
+    if (now.day == dateTime.day) {
+      return 'Today, ${DateFormat('hh:mm a').format(dateTime)}';
+    } else {
+      if (now.isAfter(dateTime)) {
+        var yesterday = now.subtract(const Duration(hours: 24));
+        if (dateTime.day == yesterday.day) {
+          return 'Yesterday, ${DateFormat('hh:mm a').format(dateTime)}';
+        } else {
+          return '${DateFormat('d MMM, hh:mm a').format(dateTime)}';
+        }
+      } else {
+        var tomorrow = now.add(const Duration(hours: 24));
+        if (tomorrow.day == dateTime.day) {
+          return 'Tomorrow, ${DateFormat('hh:mm a').format(dateTime)}';
+        } else {
+          return '${DateFormat('d MMM, hh:mm a').format(dateTime)}';
+        }
+      }
+    }
+  } on Error catch (e) {
+    print('Date Formatting error: $e');
+    return dateTime.toString();
+  }
+}
+
 String chartDateToString(String formattedString, bool format) {
   try {
     var now = DateTime.now();
@@ -50,18 +79,18 @@ String dateToString(String formattedString, bool addOffset) {
     }
 
     if (now.day == formattedDate.day) {
-      return '${DateFormat('hh:mm a').format(formattedDate)}';
+      return 'Updated today at ${DateFormat('hh:mm a').format(formattedDate)}';
     } else {
       if (now.isAfter(formattedDate)) {
         var yesterday = now.subtract(const Duration(hours: 24));
         if (formattedDate.day == yesterday.day) {
-          return 'Yesterday, ${DateFormat('hh:mm a').format(formattedDate)}';
+          return 'Updated yesterday at ${DateFormat('hh:mm a').format(formattedDate)}';
         } else {
           var daysAgo = now.difference(formattedDate).inDays;
           if (daysAgo == 1) {
-            return '$daysAgo day ago';
+            return 'Updated $daysAgo day ago';
           }
-          return '$daysAgo days ago';
+          return 'Updated $daysAgo days ago';
         }
       } else {
         var tomorrow = now.add(const Duration(hours: 24));
@@ -85,21 +114,21 @@ String getDateTime() {
       .toUpperCase();
 }
 
-String getGreetings() {
+String getGreetings(name) {
   var hour = DateTime.now().hour;
   if (8 <= hour && hour < 12) {
-    return 'Good morning!';
+    return 'Good morning $name';
   }
 
   if (12 <= hour && hour < 16) {
-    return 'Good afternoon!';
+    return 'Good afternoon $name';
   }
 
   if (18 <= hour && hour < 21) {
-    return 'Good evening!';
+    return 'Good evening $name';
   }
 
-  return 'Hello!';
+  return 'Hello $name';
 }
 
 String getTime(int hour) {

@@ -221,12 +221,17 @@ class AirqoApiClient {
     }
   }
 
-  Future<String> imageUpload(String file, String? type) async {
+  Future<String> imageUpload(String file, String? type, String name) async {
     type ??= 'jpeg';
 
     var uploadStr = 'data:image/$type;base64,$file';
     try {
-      var body = {'file': uploadStr, 'upload_preset': 'mobile_uploads'};
+      var body = {
+        'file': uploadStr,
+        'upload_preset': AppConfig.imageUploadPreset,
+      };
+      // 'public_id': name,
+      // 'api_key': AppConfig.imageUploadApiKey
 
       final response = await http.post(
           Uri.parse('${AirQoUrls().imageUploadUrl}'),
@@ -235,7 +240,8 @@ class AirqoApiClient {
 
       print(response.statusCode);
       if (response.statusCode == 200) {
-        return response.body.toString();
+        var body = json.decode(response.body);
+        return body['url'];
       } else {
         print('Unexpected status code ${response.statusCode}:'
             ' ${response.reasonPhrase}');

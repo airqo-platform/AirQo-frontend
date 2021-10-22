@@ -93,6 +93,59 @@ List<Recommendation> getHealthRecommendations(double pm2_5) {
   return recommendations;
 }
 
+List<Tip> getTips(double pm2_5) {
+  var recommendations = <Tip>[];
+  if (pm2_5 <= 12.09) {
+    //good
+    recommendations.add(Tip(
+        'Everyone',
+        'Air quality is satisfactory, and air pollution'
+            ' poses little or no risk.'));
+  } else if (pm2_5 >= 12.1 && pm2_5 <= 35.49) {
+    //moderate
+    recommendations
+      ..add(Tip(
+        'sensitive people',
+        'Consider reducing prolonged or heavy exertion.',
+      ))
+      ..add(Tip('Elderly and children ', 'You the groups most at risk.'));
+  } else if (pm2_5 >= 35.5 && pm2_5 <= 55.49) {
+    //sensitive
+    recommendations
+      ..add(Tip('The elderly and children ', 'Limit prolonged exertion.'))
+      ..add(Tip('Sensitive people ', 'Reduce prolonged or heavy exertion.'));
+  } else if (pm2_5 >= 55.5 && pm2_5 <= 150.49) {
+    // unhealthy
+    recommendations
+      ..add(Tip(
+        'People with respiratory or heart disease,'
+            ' the elderly and children should',
+        'Avoid prolonged exertion.',
+      ))
+      ..add(Tip(
+        'Everyone else',
+        'limit prolonged exertion.',
+      ));
+  } else if (pm2_5 >= 150.5 && pm2_5 <= 250.49) {
+    // very unhealthy
+    recommendations
+      ..add(Tip(
+        'People with respiratory or heart disease',
+        'Avoid any outdoor activity',
+      ))
+      ..add(Tip('Everyone else ', 'Limit prolonged exertion.'));
+  } else if (pm2_5 >= 250.5) {
+    // hazardous
+    recommendations.add(Tip(
+        'Everyone ',
+        'Avoid any outdoor exertion. '
+            'People with respiratory or heart disease,'
+            ' the elderly and children should remain indoors.'));
+  } else {}
+
+  return recommendations;
+}
+
 Widget mapSection(Measurement measurement) {
   final _markers = <String, Marker>{};
 
@@ -130,22 +183,22 @@ Widget mapSection(Measurement measurement) {
 Color pm10TextColor(double pm10) {
   if (pm10 <= 50.99) {
     //good
-    return Colors.black;
+    return const Color(0xff03B600);
   } else if (pm10 >= 51.00 && pm10 <= 100.99) {
     //moderate
-    return Colors.black;
+    return const Color(0xffA8A800);
   } else if (pm10 >= 101.00 && pm10 <= 250.99) {
     //sensitive
-    return Colors.black;
+    return const Color(0xffB86000);
   } else if (pm10 >= 251.00 && pm10 <= 350.99) {
     // unhealthy
-    return Colors.white;
+    return const Color(0xffB80B00);
   } else if (pm10 >= 351.00 && pm10 <= 430.99) {
     // very unhealthy
-    return Colors.white;
+    return const Color(0xff8E00AC);
   } else if (pm10 >= 431.00) {
     // hazardous
-    return Colors.white;
+    return const Color(0xffA51F3F);
   } else {
     return ColorConstants.appColor;
   }
@@ -178,28 +231,52 @@ Color pm10ToColor(double pm10) {
 Color pm2_5TextColor(double pm2_5) {
   if (pm2_5 <= 12.09) {
     //good
-    return Colors.black;
+    return const Color(0xff03B600);
   } else if (pm2_5 >= 12.1 && pm2_5 <= 35.49) {
     //moderate
-    return Colors.black;
+    return const Color(0xffA8A800);
   } else if (pm2_5 >= 35.5 && pm2_5 <= 55.49) {
     //sensitive
-    return Colors.black;
+    return const Color(0xffB86000);
   } else if (pm2_5 >= 55.5 && pm2_5 <= 150.49) {
     // unhealthy
-    return Colors.white;
+    return const Color(0xffB80B00);
   } else if (pm2_5 >= 150.5 && pm2_5 <= 250.49) {
     // very unhealthy
-    return Colors.white;
+    return const Color(0xff8E00AC);
   } else if (pm2_5 >= 250.5) {
     // hazardous
-    return Colors.white;
+    return const Color(0xffA51F3F);
   } else {
     return ColorConstants.appColor;
   }
 }
 
-charts.Color pm2_5ToChartColor(double value, String pollutant) {
+Color pm2_5ToColor(double pm2_5) {
+  if (pm2_5 <= 12.09) {
+    //good
+    return ColorConstants.green;
+  } else if (pm2_5 >= 12.1 && pm2_5 <= 35.49) {
+    //moderate
+    return ColorConstants.yellow;
+  } else if (pm2_5 >= 35.5 && pm2_5 <= 55.49) {
+    //sensitive
+    return ColorConstants.orange;
+  } else if (pm2_5 >= 55.5 && pm2_5 <= 150.49) {
+    // unhealthy
+    return ColorConstants.red;
+  } else if (pm2_5 >= 150.5 && pm2_5 <= 250.49) {
+    // very unhealthy
+    return ColorConstants.purple;
+  } else if (pm2_5 >= 250.5) {
+    // hazardous
+    return ColorConstants.maroon;
+  } else {
+    return ColorConstants.appColor;
+  }
+}
+
+charts.Color pmToChartColor(double value, String pollutant) {
   if (pollutant.trim().toLowerCase() == 'pm2.5') {
     if (value <= 12.09) {
       //good
@@ -244,30 +321,6 @@ charts.Color pm2_5ToChartColor(double value, String pollutant) {
     } else {
       return charts.ColorUtil.fromDartColor(ColorConstants.appColor);
     }
-  }
-}
-
-Color pm2_5ToColor(double pm2_5) {
-  if (pm2_5 <= 12.09) {
-    //good
-    return ColorConstants.green;
-  } else if (pm2_5 >= 12.1 && pm2_5 <= 35.49) {
-    //moderate
-    return ColorConstants.yellow;
-  } else if (pm2_5 >= 35.5 && pm2_5 <= 55.49) {
-    //sensitive
-    return ColorConstants.orange;
-  } else if (pm2_5 >= 55.5 && pm2_5 <= 150.49) {
-    // unhealthy
-    return ColorConstants.red;
-  } else if (pm2_5 >= 150.5 && pm2_5 <= 250.49) {
-    // very unhealthy
-    return ColorConstants.purple;
-  } else if (pm2_5 >= 250.5) {
-    // hazardous
-    return ColorConstants.maroon;
-  } else {
-    return ColorConstants.appColor;
   }
 }
 
@@ -400,7 +453,7 @@ String pmToString(double pm2_5) {
     return 'Moderate';
   } else if (pm2_5 >= 35.5 && pm2_5 <= 55.49) {
     //sensitive
-    return 'Unhealthy for\nsensitive people';
+    return 'Unhealthy FSGs';
   } else if (pm2_5 >= 55.5 && pm2_5 <= 150.49) {
     // unhealthy
     return 'Unhealthy';
@@ -467,4 +520,12 @@ class Recommendation {
   Color imageColor = ColorConstants.green.withOpacity(0.2);
 
   Recommendation(this.recommendation, this.imageUrl, this.imageColor);
+}
+
+class Tip {
+  String header = '';
+  String body = '';
+  Color imageColor = ColorConstants.appTipColor;
+
+  Tip(this.header, this.body);
 }

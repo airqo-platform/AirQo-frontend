@@ -37,7 +37,11 @@
 		<true/>
 	</dict>
 	<key>NSCameraUsageDescription</key>
-	<string>Can I use the camera please?</string>
+	<string>Accessing your camera enables us take a picture for your profile</string>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>Upload images for screen background</string>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>Post videos to profile</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>Turning on location services allows us to show you the air quality of your surroundings while open and running in the background?</string>
 	<key>NSLocationAlwaysUsageDescription</key>

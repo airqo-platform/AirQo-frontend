@@ -6,7 +6,6 @@ import 'package:app/models/site.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/services/rest_api.dart';
 import 'package:app/utils/date.dart';
-import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/pm.dart';
 import 'package:app/utils/share.dart';
 import 'package:app/widgets/health_recommendation.dart';
@@ -245,12 +244,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
     var favourites = prefs.getStringList(PrefConstant.favouritePlaces) ?? [];
 
     if (!favourites.contains(measurement.site.id)) {
-      await DBHelper().addFavouritePlaces(measurement.site).then((value) => {
-            showSnackBar(
-                context,
-                '${measurement.site.getUserLocation()}'
-                ' has been added to your places')
-          });
+      await DBHelper().updateFavouritePlaces(measurement.site, context);
     }
 
     if (mounted) {
@@ -600,24 +594,12 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
   }
 
   Future<void> updateFavouritePlace() async {
-    var fav = await dbHelper.updateFavouritePlaces(measurement.site);
+    var fav = await dbHelper.updateFavouritePlaces(measurement.site, context);
 
     if (mounted) {
       setState(() {
         isFavourite = fav;
       });
-    }
-
-    if (fav) {
-      await showSnackBarGoToMyPlaces(
-          context,
-          '${measurement.site.getName()} '
-          'is added to your places');
-    } else {
-      await showSnackBar(
-          context,
-          '${measurement.site.getName()} '
-          'is removed from your places');
     }
   }
 

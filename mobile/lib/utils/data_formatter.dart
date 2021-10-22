@@ -29,7 +29,7 @@ List<charts.Series<TimeSeriesData, DateTime>> forecastChartData(
     charts.Series<TimeSeriesData, DateTime>(
       id: 'Forecast',
       colorFn: (TimeSeriesData series, _) =>
-          pm2_5ToChartColor(series.value.toDouble(), 'pm2.5'),
+          pmToChartColor(series.value.toDouble(), 'pm2.5'),
       domainFn: (TimeSeriesData data, _) => data.time,
       measureFn: (TimeSeriesData data, _) => data.value,
       // measureLowerBoundFn: (TimeSeriesData data, _) => data.value - 5,
@@ -60,13 +60,59 @@ List<charts.Series<TimeSeriesData, DateTime>> historicalChartData(
     charts.Series<TimeSeriesData, DateTime>(
       id: 'Historical',
       colorFn: (TimeSeriesData series, _) =>
-          pm2_5ToChartColor(series.value.toDouble(), 'pm2.5'),
+          pmToChartColor(series.value.toDouble(), 'pm2.5'),
       domainFn: (TimeSeriesData data, _) => data.time,
       measureFn: (TimeSeriesData data, _) => data.value,
       // measureLowerBoundFn: (TimeSeriesData data, _) => data.value - 5,
       // measureUpperBoundFn: (TimeSeriesData data, _) => data.value + 5,
       data: data,
       // displayName: 'Forecast',
+    )
+  ];
+}
+
+List<charts.Series<HistoricalMeasurement, DateTime>> insightsChartData(
+    List<HistoricalMeasurement> measurements, String pollutant) {
+  var data = <HistoricalMeasurement>[];
+
+  for (var measurement in measurements) {
+    try {
+      var updatedValue = measurement;
+      final dateTime = DateTime.parse(measurement.time);
+      updatedValue.formattedTime = dateTime;
+      data.add(updatedValue);
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  if (pollutant == 'pm2.5') {
+    return [
+      charts.Series<HistoricalMeasurement, DateTime>(
+        id: 'Historical',
+        colorFn: (HistoricalMeasurement series, _) =>
+            pmToChartColor(series.getPm2_5Value(), 'pm2.5'),
+        domainFn: (HistoricalMeasurement data, _) => data.formattedTime,
+        measureFn: (HistoricalMeasurement data, _) => data.getPm2_5Value(),
+        // measureLowerBoundFn: (TimeSeriesData data, _) => data.value - 5,
+        // measureUpperBoundFn: (TimeSeriesData data, _) => data.value + 5,
+        data: data,
+        // displayName: 'Historical',
+      )
+    ];
+  }
+
+  return [
+    charts.Series<HistoricalMeasurement, DateTime>(
+      id: 'Historical',
+      colorFn: (HistoricalMeasurement series, _) =>
+          pmToChartColor(series.getPm10Value(), 'pm10'),
+      domainFn: (HistoricalMeasurement data, _) => data.formattedTime,
+      measureFn: (HistoricalMeasurement data, _) => data.getPm10Value(),
+      // measureLowerBoundFn: (TimeSeriesData data, _) => data.value - 5,
+      // measureUpperBoundFn: (TimeSeriesData data, _) => data.value + 5,
+      data: data,
+      // displayName: 'Historical',
     )
   ];
 }

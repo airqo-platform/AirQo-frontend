@@ -3,7 +3,6 @@ import 'package:app/models/measurement.dart';
 import 'package:app/models/site.dart';
 import 'package:app/screens/search_location_page.dart';
 import 'package:app/services/local_storage.dart';
-import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/pm.dart';
 import 'package:app/utils/share.dart';
 import 'package:flutter/material.dart';
@@ -360,9 +359,7 @@ class _MyPlacesState extends State<MyPlaces> {
   }
 
   Future<void> removeFromFavourites(Site site) async {
-    await DBHelper().updateFavouritePlaces(site).then((value) => {
-          showSnackBar(context, '${site.getName()} is removed from your places')
-        });
+    await DBHelper().updateFavouritePlaces(site, context);
 
     if (mounted) {
       setState(() {});

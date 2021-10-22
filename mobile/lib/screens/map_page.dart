@@ -22,6 +22,7 @@ import 'package:uuid/uuid.dart';
 
 import 'help_page.dart';
 
+@Deprecated('No longer to be used in new design')
 class MapPage extends StatefulWidget {
   @override
   State<MapPage> createState() => MapPageState();
@@ -514,8 +515,9 @@ class MapPageState extends State<MapPage> {
                         onPressed: () {
                           updateFavouritePlace(windowProperties.site);
                         },
-                        icon: favourites.contains(
-                                windowProperties.site.id.trim().toLowerCase())
+                        icon: favourites.contains(windowProperties.site.userId
+                                .trim()
+                                .toLowerCase())
                             ? Icon(
                                 Icons.favorite,
                                 color: ColorConstants.red,
@@ -619,21 +621,9 @@ class MapPageState extends State<MapPage> {
   }
 
   Future<void> updateFavouritePlace(Site site) async {
-    bool favourite;
-
-    favourite = await DBHelper().updateFavouritePlaces(site);
+    await DBHelper().updateFavouritePlaces(site, context);
 
     await getFavouritePlaces();
-
-    if (mounted) {
-      if (favourite) {
-        await showSnackBarGoToMyPlaces(
-            context, '${site.getName()} is added to your places');
-      } else {
-        await showSnackBar(
-            context, '${site.getName()} is removed from your places');
-      }
-    }
   }
 
   void updateInfoWindow(Measurement measurement) {

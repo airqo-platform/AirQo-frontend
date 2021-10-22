@@ -1,5 +1,4 @@
 import 'package:app/constants/app_constants.dart';
-import 'package:app/on_boarding/onBoarding_page.dart';
 import 'package:app/screens/profile_view.dart';
 import 'package:app/screens/settings_page.dart';
 import 'package:app/screens/share_picture.dart';
@@ -9,41 +8,38 @@ import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/share.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_svg/svg.dart';
 
 import 'dashboard_view.dart';
 import 'help_page.dart';
 import 'maps_view.dart';
 
 class HomePage extends StatefulWidget {
-  final String title = 'AirQo';
-
   @override
   _HomePageState createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  static const TextStyle optionStyle =
-      TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
-  final PageController _pageCtrl = PageController(initialPage: 0);
   String title = '${AppConfig.name}';
   bool showAddPlace = true;
   DateTime? exitTime;
 
-  double selectedPage = 0;
   int _selectedIndex = 0;
   final List<Widget> _widgetOptions = <Widget>[
     DashboardView(),
     MapView(),
-    const ProfileView(),
+    ProfileView(),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: ColorConstants.appBodyColor,
-      body: Center(
-        child: _widgetOptions.elementAt(_selectedIndex),
+      body: WillPopScope(
+        onWillPop: onWillPop,
+        child: Center(
+          child: _widgetOptions.elementAt(_selectedIndex),
+        ),
       ),
       bottomNavigationBar: Theme(
         data: Theme.of(context).copyWith(
@@ -53,17 +49,36 @@ class _HomePageState extends State<HomePage> {
                 .textTheme
                 .copyWith(caption: const TextStyle(color: Colors.black))),
         child: BottomNavigationBar(
-          items: const <BottomNavigationBarItem>[
+          items: <BottomNavigationBarItem>[
             BottomNavigationBarItem(
-              icon: Icon(Icons.home),
+              icon: SvgPicture.asset(
+                'assets/icon/home_icon.svg',
+                semanticsLabel: 'Home',
+                color: _selectedIndex == 0
+                    ? ColorConstants.appColorBlue
+                    : ColorConstants.greyColor,
+              ),
               label: 'Home',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.location_on),
-              label: 'Map',
+              icon: SvgPicture.asset(
+                'assets/icon/location.svg',
+                color: _selectedIndex == 1
+                    ? ColorConstants.appColorBlue
+                    : ColorConstants.greyColor,
+                semanticsLabel: 'AirQo Map',
+              ),
+              label: 'AirQo Map',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.account_circle_sharp),
+              icon: SvgPicture.asset(
+                'assets/icon/profile.svg',
+                color: _selectedIndex == 2
+                    ? ColorConstants.appColorBlue
+                    : ColorConstants.greyColor,
+                semanticsLabel: 'Search',
+              ),
+              // Icon(Icons.account_circle_sharp),
               label: 'Profile',
             ),
           ],
@@ -80,14 +95,20 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Future<void> initialize() async {
+  void initialize() {
     _getLatestMeasurements();
+    _getStories();
   }
 
   @override
   void initState() {
     super.initState();
     initialize();
+  }
+
+  Widget navIcon(name) {
+    return SvgPicture.asset('assets/icon/home_icon.svg',
+        semanticsLabel: 'Home');
   }
 
   void navigateToMenuItem(dynamic position) {
@@ -115,6 +136,15 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<bool> onWillPop() {
+    var currentPage = _selectedIndex;
+
+    if (currentPage != 0) {
+      setState(() {
+        _selectedIndex = 0;
+      });
+      return Future.value(false);
+    }
+
     var now = DateTime.now();
 
     if (exitTime == null ||
@@ -133,35 +163,35 @@ class _HomePageState extends State<HomePage> {
         setState(() {
           title = '${AppConfig.name}';
           showAddPlace = true;
-          selectedPage = 0;
+          _selectedIndex = 0;
         });
         break;
       case 1:
         setState(() {
           title = 'MyPlaces';
           showAddPlace = false;
-          selectedPage = 1;
+          _selectedIndex = 1;
         });
         break;
       case 2:
         setState(() {
           title = 'News Feed';
           showAddPlace = false;
-          selectedPage = 2;
+          _selectedIndex = 2;
         });
         break;
       case 3:
         setState(() {
           title = 'Settings';
           showAddPlace = false;
-          selectedPage = 3;
+          _selectedIndex = 3;
         });
         break;
       default:
         setState(() {
           title = '${AppConfig.name}';
           showAddPlace = true;
-          selectedPage = 0;
+          _selectedIndex = 0;
         });
         break;
     }
@@ -185,21 +215,15 @@ class _HomePageState extends State<HomePage> {
     }));
   }
 
-  Future<void> _displayOnBoarding() async {
-    var prefs = await SharedPreferences.getInstance();
-    var isFirstUse = prefs.getBool(PrefConstant.firstUse) ?? true;
-
-    if (isFirstUse) {
-      await Navigator.pushAndRemoveUntil(context,
-          MaterialPageRoute(builder: (context) {
-        return OnBoardingPage();
-      }), (r) => false);
-    }
+  void _getLatestMeasurements() {
+    AirqoApiClient(context).fetchLatestMeasurements().then((value) => {
+          if (value.isNotEmpty) {DBHelper().insertLatestMeasurements(value)}
+        });
   }
 
-  void _getLatestMeasurements() async {
-    await AirqoApiClient(context).fetchLatestMeasurements().then((value) => {
-          if (value.isNotEmpty) {DBHelper().insertLatestMeasurements(value)}
+  void _getStories() {
+    AirqoApiClient(context).fetchLatestStories().then((value) => {
+          if (value.isNotEmpty) {DBHelper().insertLatestStories(value)}
         });
   }
 

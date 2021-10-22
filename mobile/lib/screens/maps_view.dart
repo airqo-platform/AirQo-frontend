@@ -3,11 +3,13 @@ import 'dart:convert';
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/services/local_storage.dart';
+import 'package:app/services/native_api.dart';
+import 'package:app/services/rest_api.dart';
 import 'package:app/themes/dark_theme.dart';
 import 'package:app/themes/light_theme.dart';
 import 'package:app/utils/pm.dart';
+import 'package:app/widgets/analytics_card.dart';
 import 'package:app/widgets/custom_widgets.dart';
-import 'package:app/widgets/readings_card.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -44,10 +46,13 @@ class MapView extends StatefulWidget {
 }
 
 class _MapViewState extends State<MapView> {
-  @override
   bool showLocationDetails = false;
   double scrollSheetHeight = 0.20;
+  bool isSearching = false;
   List<Measurement> regionSites = [];
+  List<Measurement> searchSites = [];
+  List<Measurement> allSites = [];
+  final TextEditingController _searchController = TextEditingController();
   late Measurement locationMeasurement;
   var defaultCameraPosition =
       const CameraPosition(target: LatLng(1.6183002, 32.504365), zoom: 6.6);
@@ -82,28 +87,9 @@ class _MapViewState extends State<MapView> {
       decoration: BoxDecoration(
           color: ColorConstants.appBodyColor,
           borderRadius: BorderRadius.circular(8)),
-      child: Icon(
+      child: const Icon(
         Icons.clear,
         size: 20,
-      ),
-    );
-  }
-
-  Widget customTextField() {
-    return Expanded(
-      child: TextFormField(
-        onTap: () {
-          setState(() {
-            scrollSheetHeight = 0.7;
-          });
-        },
-        maxLines: 1,
-        autofocus: true,
-        decoration: const InputDecoration(
-          contentPadding: EdgeInsets.all(8),
-          hintText: '',
-          border: InputBorder.none,
-        ),
       ),
     );
   }
@@ -117,13 +103,60 @@ class _MapViewState extends State<MapView> {
             DraggingHandle(),
             const SizedBox(height: 16),
             searchContainer(),
-            if (regionSites.isEmpty) regionsList(),
-            if (regionSites.isNotEmpty) sitesList(),
+            if (regionSites.isEmpty && !isSearching) regionsList(),
+            if (regionSites.isNotEmpty && !isSearching) sitesList(),
+            if (isSearching) searchResultsList(),
           ],
         ));
   }
 
+  Future<void> getSites() async {
+    await DBHelper().getLatestMeasurements().then((value) => {
+          if (mounted)
+            {
+              setState(() {
+                allSites = value;
+              })
+            }
+        });
+
+    var measurements = await AirqoApiClient(context).fetchLatestMeasurements();
+
+    if (measurements.isNotEmpty) {
+      setState(() {
+        allSites = measurements;
+      });
+      await DBHelper().insertLatestMeasurements(measurements);
+    }
+  }
+
+  @override
+  void initState() {
+    getSites();
+    super.initState();
+  }
+
   Widget locationContent() {
+    return Container(
+        // color: ColorConstants.appBodyColor,
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: <Widget>[
+            const SizedBox(height: 8),
+            DraggingHandle(),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                const Spacer(),
+                GestureDetector(
+                  onTap: showLocation,
+                  child: closeDetails(),
+                ),
+              ],
+            ),
+            AnalyticsCard(locationMeasurement),
+          ],
+        ));
     return Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -140,7 +173,7 @@ class _MapViewState extends State<MapView> {
                 ),
               ],
             ),
-            ReadingsCard(locationMeasurement),
+            AnalyticsCard(locationMeasurement),
           ],
         ));
   }
@@ -257,29 +290,85 @@ class _MapViewState extends State<MapView> {
                   padding: EdgeInsets.fromLTRB(10.0, 0, 0, 0),
                   child: Icon(Icons.search),
                 ),
-                customTextField(),
+                searchField(),
               ],
             ),
           ),
         ),
-        const SizedBox(
-          width: 8.0,
-        ),
-        Container(
-          padding: const EdgeInsets.all(2.0),
-          decoration: BoxDecoration(
-              color: ColorConstants.appBodyColor,
-              borderRadius: const BorderRadius.all(Radius.circular(10.0))),
-          child: IconButton(
-            iconSize: 30,
-            icon: Icon(
-              Icons.clear,
-              color: ColorConstants.appBarTitleColor,
-            ),
-            onPressed: showRegions,
+        if (isSearching)
+          const SizedBox(
+            width: 8.0,
           ),
-        )
+        if (isSearching)
+          Container(
+            padding: const EdgeInsets.all(2.0),
+            decoration: BoxDecoration(
+                color: ColorConstants.appBodyColor,
+                borderRadius: const BorderRadius.all(Radius.circular(10.0))),
+            child: IconButton(
+              iconSize: 30,
+              icon: Icon(
+                Icons.clear,
+                color: ColorConstants.appBarTitleColor,
+              ),
+              onPressed: showRegions,
+            ),
+          )
       ],
+    );
+  }
+
+  Widget searchField() {
+    return Expanded(
+      child: TextFormField(
+        controller: _searchController,
+        onTap: () {
+          setState(() {
+            scrollSheetHeight = 0.7;
+          });
+        },
+        onChanged: (text) {
+          if (text.isEmpty) {
+            setState(() {
+              isSearching = false;
+            });
+          } else {
+            setState(() {
+              isSearching = true;
+              searchSites =
+                  LocationService().textSearchNearestSites(text, allSites);
+            });
+          }
+        },
+        maxLines: 1,
+        autofocus: false,
+        decoration: const InputDecoration(
+          contentPadding: EdgeInsets.all(8),
+          hintText: '',
+          border: InputBorder.none,
+        ),
+      ),
+    );
+  }
+
+  Widget searchResultsList() {
+    return ListView.separated(
+      shrinkWrap: true,
+      controller: ScrollController(),
+      itemBuilder: (context, index) => GestureDetector(
+        onTap: () {
+          showLocationContent(searchSites[index]);
+        },
+        child: locationTile(searchSites[index]),
+      ),
+      itemCount: searchSites.length,
+      separatorBuilder: (BuildContext context, int index) {
+        return Divider(
+          indent: 20,
+          endIndent: 20,
+          color: ColorConstants.appColor,
+        );
+      },
     );
   }
 
@@ -335,6 +424,9 @@ class _MapViewState extends State<MapView> {
 
   void showRegions() {
     setState(() {
+      _searchController.text = '';
+      isSearching = false;
+      searchSites = [];
       regionSites = [];
       showLocationDetails = false;
     });

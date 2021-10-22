@@ -1,3 +1,4 @@
+import 'package:app/constants/app_constants.dart';
 import 'package:app/on_boarding/profile_setup_screen.dart';
 import 'package:app/widgets/buttons.dart';
 import 'package:app/widgets/text_fields.dart';
@@ -73,7 +74,7 @@ class VerifyCodeScreenState extends State<VerifyCodeScreen> {
                         return ProfileSetupScreen();
                       }), (r) => false);
                     },
-                    child: nextButton('Next'),
+                    child: nextButton('Next', ColorConstants.appColorBlue),
                   ),
                   const SizedBox(
                     height: 20,

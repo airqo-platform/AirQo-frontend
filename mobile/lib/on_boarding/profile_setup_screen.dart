@@ -1,5 +1,10 @@
+import 'package:app/constants/app_constants.dart';
+import 'package:app/models/userDetails.dart';
+import 'package:app/services/fb_notifications.dart';
+import 'package:app/utils/dialogs.dart';
 import 'package:app/widgets/buttons.dart';
 import 'package:app/widgets/text_fields.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
@@ -11,75 +16,206 @@ class ProfileSetupScreen extends StatefulWidget {
 }
 
 class ProfileSetupScreenState extends State<ProfileSetupScreen> {
+  var fullName = '';
+  final _formKey = GlobalKey<FormState>();
+  final CustomAuth _customAuth = CustomAuth(FirebaseAuth.instance);
+  TextEditingController controller = TextEditingController();
+  DateTime? exitTime;
+  Color nextBtnColor = ColorConstants.appColorDisabled;
+  bool isSaving = false;
+  bool nameFormValid = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         resizeToAvoidBottomInset: false,
-        body: Container(
-          padding: const EdgeInsets.only(left: 24, right: 24),
-          child: Center(
-            child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  const SizedBox(
-                    height: 42,
-                  ),
-                  const Text(
-                    'Great! What’s your name?',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 24,
-                        color: Colors.black),
-                  ),
-                  const SizedBox(
-                    height: 42,
-                  ),
-                  Row(
-                    children: <Widget>[
-                      titleDropdown(),
-                      const SizedBox(
-                        width: 16,
+        body: WillPopScope(
+          onWillPop: onWillPop,
+          child: Container(
+            padding: const EdgeInsets.only(left: 24, right: 24),
+            child: Center(
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const SizedBox(
+                      height: 42,
+                    ),
+                    const Text(
+                      'Great!\nWhat’s your name?',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 24,
+                          color: Colors.black),
+                    ),
+                    const SizedBox(
+                      height: 42,
+                    ),
+                    Container(
+                      height: 48,
+                      child: Row(
+                        children: <Widget>[
+                          // titleDropdown(),
+                          // const SizedBox(
+                          //   width: 16,
+                          // ),
+                          Form(
+                            key: _formKey,
+                            child: Flexible(
+                              child: nameInputField(),
+                            ),
+                          ),
+                        ],
                       ),
-                      Flexible(
-                        child: inputField('Enter your name  '),
+                    ),
+                    const Spacer(),
+                    GestureDetector(
+                      onTap: () async {
+                        if (_formKey.currentState!.validate()) {
+                          await saveName();
+                        }
+                      },
+                      child: nextButton('Let’s go', nextBtnColor),
+                    ),
+                    const SizedBox(
+                      height: 20,
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.pushAndRemoveUntil(context,
+                            MaterialPageRoute(builder: (context) {
+                          return NotificationsSetupScreen();
+                        }), (r) => false);
+                      },
+                      child: Text(
+                        'Remind me later',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: ColorConstants.appColorBlue),
                       ),
-                    ],
-                  ),
-                  const Spacer(),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.pushAndRemoveUntil(context,
-                          MaterialPageRoute(builder: (context) {
-                        return NotificationsSetupScreen();
-                      }), (r) => false);
-                    },
-                    child: nextButton('Let’s go'),
-                  ),
-                  const SizedBox(
-                    height: 20,
-                  ),
-                  signUpOptions(context),
-                  const SizedBox(
-                    height: 36,
-                  ),
-                ]),
+                    ),
+                    const SizedBox(
+                      height: 36,
+                    ),
+                  ]),
+            ),
           ),
         ));
   }
 
-  void initialize() {
-    Future.delayed(const Duration(seconds: 8), () async {
-      await Navigator.pushReplacement(context,
-          MaterialPageRoute(builder: (context) {
-        return ProfileSetupScreen();
-      }));
+  void clearNameCallBack() {
+    setState(() {
+      fullName = '';
+      controller.text = '';
     });
   }
 
-  @override
-  void initState() {
-    // initialize();
-    super.initState();
+  Widget nameInputField() {
+    return Container(
+        alignment: Alignment.center,
+        padding: const EdgeInsets.only(left: 15),
+        decoration: BoxDecoration(
+            borderRadius: const BorderRadius.all(Radius.circular(10.0)),
+            border: Border.all(color: ColorConstants.appColorBlue)),
+        child: Center(
+            child: TextFormField(
+          controller: controller,
+          autofocus: true,
+          enableSuggestions: false,
+          cursorWidth: 1,
+          cursorColor: ColorConstants.appColorBlue,
+          keyboardType: TextInputType.name,
+          onChanged: valueChange,
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              showSnackBar(context, 'Please enter your name');
+              setState(() {
+                nameFormValid = false;
+              });
+            } else if (value.length > 15) {
+              showSnackBar(context, 'Maximum number of characters is 15');
+              setState(() {
+                nameFormValid = false;
+              });
+            } else {
+              setState(() {
+                nameFormValid = true;
+              });
+            }
+
+            return null;
+          },
+          decoration: InputDecoration(
+            focusedBorder: InputBorder.none,
+            enabledBorder: InputBorder.none,
+            hintText: 'Enter your name',
+            suffixIcon: GestureDetector(
+                onTap: () {
+                  controller.text = '';
+                },
+                child: GestureDetector(
+                  onTap: clearNameCallBack,
+                  child: textInputCloseButton(),
+                )),
+          ),
+        )));
+  }
+
+  Future<bool> onWillPop() {
+    var now = DateTime.now();
+
+    if (exitTime == null ||
+        now.difference(exitTime!) > const Duration(seconds: 2)) {
+      exitTime = now;
+
+      showSnackBar(context, 'Tap again to exit !');
+      return Future.value(false);
+    }
+    return Future.value(true);
+  }
+
+  Future<void> saveName() async {
+    try {
+      if (nameFormValid && !isSaving) {
+        setState(() {
+          nextBtnColor = ColorConstants.appColorDisabled;
+          isSaving = true;
+        });
+        var userDetails = UserDetails.initialize()
+          ..firstName = UserDetails.getNames(fullName).first
+          ..lastName = UserDetails.getNames(fullName).last;
+
+        await _customAuth.updateProfile(userDetails).then((value) => {
+              Navigator.pushAndRemoveUntil(context,
+                  MaterialPageRoute(builder: (context) {
+                return NotificationsSetupScreen();
+              }), (r) => false)
+            });
+      }
+    } on FirebaseAuthException catch (e) {
+      setState(() {
+        nextBtnColor = ColorConstants.appColorBlue;
+        isSaving = false;
+      });
+      await showSnackBar(context, 'Failed to update profile. Try again later');
+      print(e);
+    }
+  }
+
+  void valueChange(text) {
+    if (text.toString().isEmpty || text.toString() == '') {
+      setState(() {
+        nextBtnColor = ColorConstants.appColorDisabled;
+      });
+    } else {
+      setState(() {
+        nextBtnColor = ColorConstants.appColorBlue;
+      });
+    }
+    setState(() {
+      fullName = text;
+    });
   }
 }

@@ -6,6 +6,9 @@ import 'package:app/services/native_api.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
+
+import 'insights_page.dart';
 
 class SearchPage extends StatefulWidget {
   const SearchPage({Key? key}) : super(key: key);
@@ -42,26 +45,39 @@ class _SearchPageState extends State<SearchPage> {
               ],
             ),
             const SizedBox(
-              height: 10,
+              height: 32,
             ),
+            if (!isSearching && hasNearbyLocations && nearbySites.isNotEmpty)
+              Text(
+                'Locations near me',
+                textAlign: TextAlign.start,
+                style: TextStyle(
+                    color: ColorConstants.inactiveColor, fontSize: 12),
+              ),
             if (isSearching)
               Expanded(
-                child: ListView(
-                  shrinkWrap: true,
-                  children: [
-                    searchLocations(),
-                  ],
-                ),
+                child: MediaQuery.removePadding(
+                    context: context,
+                    removeTop: true,
+                    child: ListView(
+                      shrinkWrap: true,
+                      children: [
+                        searchLocations(),
+                      ],
+                    )),
               ),
             if (!isSearching && hasNearbyLocations)
               Expanded(
-                child: ListView(
-                  shrinkWrap: true,
-                  children: [
-                    if (nearbySites.isEmpty) requestLocationAccess(),
-                    if (nearbySites.isNotEmpty) nearByLocations(),
-                  ],
-                ),
+                child: MediaQuery.removePadding(
+                    context: context,
+                    removeTop: true,
+                    child: ListView(
+                      shrinkWrap: true,
+                      children: [
+                        if (nearbySites.isEmpty) requestLocationAccess(),
+                        if (nearbySites.isNotEmpty) nearByLocations(),
+                      ],
+                    )),
               ),
             if (!isSearching && !hasNearbyLocations)
               Expanded(
@@ -91,11 +107,11 @@ class _SearchPageState extends State<SearchPage> {
 
   Future<void> getUserLocation() async {
     try {
-      var location = await LocationApi().getLocation();
+      var location = await LocationService().getLocation();
       var latitude = location.latitude;
       var longitude = location.longitude;
       if (longitude != null && latitude != null) {
-        await LocationApi()
+        await LocationService()
             .getNearestSites(latitude, longitude)
             .then((value) => {
                   if (mounted)
@@ -140,40 +156,40 @@ class _SearchPageState extends State<SearchPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(
-            height: 32,
-          ),
-          Text(
-            'Locations near me',
-            textAlign: TextAlign.start,
-            style: TextStyle(color: ColorConstants.inactiveColor, fontSize: 12),
-          ),
-          const SizedBox(
-            height: 8,
+            height: 8.0,
           ),
           Container(
-              padding: const EdgeInsets.all(8),
-              decoration: const BoxDecoration(
-                  color: Colors.white,
+              padding: const EdgeInsets.only(right: 8, bottom: 8, left: 8),
+              decoration: BoxDecoration(
+                  color: ColorConstants.appBodyColor,
                   shape: BoxShape.rectangle,
-                  borderRadius: BorderRadius.all(Radius.circular(10.0))),
-              child: ListView.separated(
-                  itemBuilder: (context, index) => GestureDetector(
+                  borderRadius: const BorderRadius.all(Radius.circular(10.0))),
+              child: MediaQuery.removePadding(
+                  context: context,
+                  removeTop: true,
+                  child: ListView.builder(
+                    controller: ScrollController(),
+                    shrinkWrap: true,
+                    itemBuilder: (context, index) => GestureDetector(
                         onTap: () {
                           Navigator.push(context,
                               MaterialPageRoute(builder: (context) {
-                            return PlaceView(nearbySites[index].site);
+                            return InsightsPage(nearbySites[index].site);
                           }));
                         },
-                        child: locationTile(nearbySites[index]),
-                      ),
-                  itemCount: nearbySites.length,
-                  separatorBuilder: (BuildContext context, int index) {
-                    return Divider(
-                      indent: 20,
-                      endIndent: 20,
-                      color: ColorConstants.appColor,
-                    );
-                  })),
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 10),
+                          child: locationTile(nearbySites[index]),
+                        )),
+                    itemCount: nearbySites.length,
+                    // separatorBuilder: (BuildContext context, int index) {
+                    //   return Divider(
+                    //     indent: 20,
+                    //     endIndent: 20,
+                    //     color: ColorConstants.appColor,
+                    //   );
+                    // }
+                  ))),
         ],
       ),
     );
@@ -223,7 +239,7 @@ class _SearchPageState extends State<SearchPage> {
                   height: 52,
                 ),
                 const Text(
-                  'Oops, we don\'t have nearby sites',
+                  'You don\'t have nearby air quality stations',
                   textAlign: TextAlign.start,
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
@@ -300,7 +316,7 @@ class _SearchPageState extends State<SearchPage> {
                 ),
                 GestureDetector(
                   onTap: () {
-                    LocationApi()
+                    LocationService()
                         .requestLocationAccess()
                         .then((value) => {getUserLocation()});
                   },
@@ -310,9 +326,9 @@ class _SearchPageState extends State<SearchPage> {
                       decoration: BoxDecoration(
                           color: ColorConstants.appColorBlue,
                           borderRadius:
-                              BorderRadius.all(Radius.circular(10.0))),
+                              const BorderRadius.all(Radius.circular(10.0))),
                       child: Padding(
-                        padding: EdgeInsets.only(top: 19, bottom: 19),
+                        padding: const EdgeInsets.only(top: 19, bottom: 19),
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -347,13 +363,14 @@ class _SearchPageState extends State<SearchPage> {
     } else {
       setState(() {
         isSearching = true;
-        searchSites = LocationApi().textSearchNearestSites(text, allSites);
+        searchSites = LocationService().textSearchNearestSites(text, allSites);
       });
     }
   }
 
   Widget searchField() {
     return Container(
+      height: 40,
       constraints: const BoxConstraints(minWidth: double.maxFinite),
       decoration: const BoxDecoration(
           color: Colors.white,
@@ -361,9 +378,17 @@ class _SearchPageState extends State<SearchPage> {
           borderRadius: BorderRadius.all(Radius.circular(10.0))),
       child: Row(
         children: [
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () {},
+          const SizedBox(
+            width: 10,
+          ),
+          SvgPicture.asset(
+            'assets/icon/search.svg',
+            height: 17,
+            width: 17,
+            semanticsLabel: 'Search',
+          ),
+          const SizedBox(
+            width: 11,
           ),
           Expanded(
             child: TextFormField(
@@ -377,6 +402,9 @@ class _SearchPageState extends State<SearchPage> {
               ),
             ),
           ),
+          const SizedBox(
+            width: 10,
+          ),
         ],
       ),
     );
@@ -387,15 +415,13 @@ class _SearchPageState extends State<SearchPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(
-            height: 8,
-          ),
           Container(
-              padding: const EdgeInsets.all(8),
-              decoration: const BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.rectangle,
-                  borderRadius: BorderRadius.all(Radius.circular(10.0))),
+              padding: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
+              // decoration: const BoxDecoration(
+              //     color: Colors.white,
+              //     shape: BoxShape.rectangle,
+              //     borderRadius: BorderRadius.all(Radius.circular(10.0))
+              // ),
               child: searchSites.isEmpty
                   ? Center(
                       child: Column(
@@ -443,78 +469,34 @@ class _SearchPageState extends State<SearchPage> {
                         ],
                       ),
                     )
-                  : ListView.separated(
-                      controller: ScrollController(),
-                      shrinkWrap: true,
-                      itemBuilder: (context, index) => GestureDetector(
+                  : MediaQuery.removePadding(
+                      context: context,
+                      removeTop: true,
+                      child: ListView.builder(
+                        controller: ScrollController(),
+                        shrinkWrap: true,
+                        itemBuilder: (context, index) => GestureDetector(
                             onTap: () {
                               Navigator.push(context,
                                   MaterialPageRoute(builder: (context) {
-                                return PlaceView(searchSites[index].site);
+                                return InsightsPage(searchSites[index].site);
                               }));
                             },
-                            child: locationTile(searchSites[index]),
-                          ),
-                      itemCount: searchSites.length,
-                      separatorBuilder: (BuildContext context, int index) {
-                        return Divider(
-                          indent: 20,
-                          endIndent: 20,
-                          color: ColorConstants.appColor,
-                        );
-                      })),
+                            child: Padding(
+                              padding: const EdgeInsets.only(bottom: 10),
+                              child: locationTile(searchSites[index]),
+                            )),
+                        itemCount: searchSites.length,
+                        // separatorBuilder: (BuildContext context, int index) {
+                        //   return Divider(
+                        //     indent: 20,
+                        //     endIndent: 20,
+                        //     color: ColorConstants.appColor,
+                        //   );
+                        // }
+                      ))),
         ],
       ),
     );
   }
 }
-
-// Widget nearByLocationsv1() {
-//   return Container(
-//     child: Column(
-//       crossAxisAlignment: CrossAxisAlignment.start,
-//       children: [
-//         const SizedBox(
-//           height: 32,
-//         ),
-//         Text(
-//           'Our suggestions',
-//           textAlign: TextAlign.start,
-//           style: TextStyle(color: ColorConstants.inactiveColor, fontSize: 12),
-//         ),
-//         const SizedBox(
-//           height: 8,
-//         ),
-//         Container(
-//           padding: EdgeInsets.all(8),
-//           decoration: BoxDecoration(
-//               color: Colors.white,
-//               shape: BoxShape.rectangle,
-//               borderRadius: BorderRadius.all(Radius.circular(10.0))),
-//           child: Column(
-//             crossAxisAlignment: CrossAxisAlignment.center,
-//             children: [
-//               locationTile(context),
-//               Divider(
-//                 color: ColorConstants.appBodyColor,
-//               ),
-//               locationTile(context),
-//               Divider(
-//                 color: ColorConstants.appBodyColor,
-//               ),
-//               locationTile(context),
-//               Divider(
-//                 color: ColorConstants.appBodyColor,
-//               ),
-//               locationTile(context),
-//               Divider(
-//                 color: ColorConstants.appBodyColor,
-//               ),
-//               locationTile(context)
-//             ],
-//           ),
-//         )
-//       ],
-//     ),
-//   );
-// }

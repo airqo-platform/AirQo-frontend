@@ -1,10 +1,11 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/site.dart';
 import 'package:app/services/rest_api.dart';
-import 'package:app/widgets/readings_card.dart';
+import 'package:app/widgets/place_readings_card.dart';
 import 'package:app/widgets/text_fields.dart';
-import 'package:app/widgets/tips.dart';
 import 'package:flutter/material.dart';
+
+import 'loading.dart';
 
 class WeeklyView extends StatefulWidget {
   Site site;
@@ -20,48 +21,13 @@ class _WeeklyViewState extends State<WeeklyView> with TickerProviderStateMixin {
   Site site;
   int currentIndex = 0;
   List<Widget> placeHolders = [
-    Center(
-        child: Container(
-      height: 50,
-      width: 50,
-      child: const CircularProgressIndicator(),
-    )),
-    Center(
-        child: Container(
-      height: 50,
-      width: 50,
-      child: const CircularProgressIndicator(),
-    )),
-    Center(
-        child: Container(
-      height: 50,
-      width: 50,
-      child: const CircularProgressIndicator(),
-    )),
-    Center(
-        child: Container(
-      height: 50,
-      width: 50,
-      child: const CircularProgressIndicator(),
-    )),
-    Center(
-        child: Container(
-      height: 50,
-      width: 50,
-      child: const CircularProgressIndicator(),
-    )),
-    Center(
-        child: Container(
-      height: 50,
-      width: 50,
-      child: const CircularProgressIndicator(),
-    )),
-    Center(
-        child: Container(
-      height: 50,
-      width: 50,
-      child: const CircularProgressIndicator(),
-    ))
+    const LoadingAnimation(),
+    const LoadingAnimation(),
+    const LoadingAnimation(),
+    const LoadingAnimation(),
+    const LoadingAnimation(),
+    const LoadingAnimation(),
+    const LoadingAnimation(),
   ];
 
   _WeeklyViewState(this.site);
@@ -214,56 +180,26 @@ class _WeeklyViewState extends State<WeeklyView> with TickerProviderStateMixin {
     for (var dateIndex = 0; dateIndex <= 6; dateIndex++) {
       var measurements = await AirqoApiClient(context)
           .fetchSiteDayMeasurements(site, getDate(dateIndex));
-      Widget data;
       if (measurements.isEmpty) {
-        data = const Center(
-          child: Text(
-            'Not Available',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
-            ),
-          ),
-        );
-      } else {
-        data = ListView(
-          shrinkWrap: true,
-          children: [
-            ReadingsCardV2(site, measurements),
-            SizedBox(
-              height: 16,
-            ),
-            Text(
-              'Wellness & Health tips',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
+        if (mounted) {
+          setState(() {
+            placeHolders[dateIndex] = const Center(
+              child: Text(
+                'Not Available',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
               ),
-            ),
-            SizedBox(
-              height: 4,
-            ),
-            TipCard(),
-            SizedBox(
-              height: 8,
-            ),
-            TipCard(),
-            SizedBox(
-              height: 8,
-            ),
-            TipCard(),
-            SizedBox(
-              height: 8,
-            ),
-            TipCard(),
-          ],
-        );
-      }
-
-      if (mounted) {
-        setState(() {
-          placeHolders[dateIndex] = data;
-        });
+            );
+          });
+        }
+      } else {
+        if (mounted) {
+          setState(() {
+            placeHolders[dateIndex] = PlaceReadingsCard(site, measurements);
+          });
+        }
       }
     }
   }

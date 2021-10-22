@@ -137,7 +137,7 @@ ThemeData darkTheme() {
       textTheme: ThemeData.light().textTheme.apply(fontFamily: 'OpenSans'),
       canvasColor: Colors.transparent,
       primaryTextTheme: ThemeData.light().textTheme.apply(
-            fontFamily: 'OpenSans',
+            fontFamily: 'Inter',
             bodyColor: ColorConstants.appColor,
             displayColor: Colors.white,
           ),

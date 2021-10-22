@@ -25,6 +25,38 @@ RawMaterialButton customOkayButton(context) {
   );
 }
 
+void infoDialog(context, String message) {
+  showGeneralDialog(
+    context: context,
+    barrierDismissible: false,
+    transitionDuration: const Duration(milliseconds: 250),
+    transitionBuilder: (context, animation, secondaryAnimation, child) {
+      return FadeTransition(
+        opacity: animation,
+        child: ScaleTransition(
+          scale: animation,
+          child: child,
+        ),
+      );
+    },
+    pageBuilder: (context, animation, secondaryAnimation) {
+      return AlertDialog(
+        title: const Text('AirQopedia'),
+        content: Text(message),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.pop(context, 'OK'),
+            child: Text(
+              'OK',
+              style: TextStyle(color: ColorConstants.appColor),
+            ),
+          ),
+        ],
+      );
+    },
+  );
+}
+
 void showInfoDialog(BuildContext context, String text) {
   showDialog<void>(
     context: context,

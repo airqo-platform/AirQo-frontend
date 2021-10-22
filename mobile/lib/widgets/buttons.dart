@@ -2,6 +2,7 @@ import 'package:app/constants/app_constants.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 
 Widget countryDropDown(String text) {
   return Container(
@@ -19,6 +20,15 @@ Widget countryDropDown(String text) {
 }
 
 Widget locationIcon(height, width) {
+  return SvgPicture.asset(
+    'assets/icon/location_icon.svg',
+    semanticsLabel: 'location',
+    height: height,
+    width: width,
+  );
+}
+
+Widget locationIconV1(height, width) {
   return Stack(
     children: [
       Image.asset(
@@ -44,12 +54,12 @@ Widget locationIcon(height, width) {
   );
 }
 
-Widget nextButton(String text) {
+Widget nextButton(String text, Color buttonColor) {
   return Container(
     padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
     constraints: const BoxConstraints(minWidth: double.infinity),
     decoration: BoxDecoration(
-        color: ColorConstants.appColorBlue,
+        color: buttonColor,
         borderRadius: const BorderRadius.all(Radius.circular(10.0))),
     child: Row(
       children: [
@@ -70,6 +80,15 @@ Widget nextButton(String text) {
 }
 
 Widget notificationIcon(height, width) {
+  return SvgPicture.asset(
+    'assets/icon/notification_icon.svg',
+    semanticsLabel: 'notification',
+    height: height,
+    width: width,
+  );
+}
+
+Widget notificationIconV1(height, width) {
   return Stack(
     alignment: Alignment.center,
     children: [
@@ -88,8 +107,8 @@ Widget notificationIcon(height, width) {
         right: 0,
         child: Container(
           height: 37,
-          width: 127,
-          padding: const EdgeInsets.only(left: 10, right: 10),
+          width: 120,
+          padding: const EdgeInsets.only(left: 10),
           decoration: BoxDecoration(
               color: ColorConstants.appColorBlue,
               borderRadius: const BorderRadius.all(Radius.circular(20.0))),
@@ -130,7 +149,7 @@ Widget notificationIcon(height, width) {
                       ),
                       Container(
                         height: 6,
-                        width: 38,
+                        width: 39,
                         decoration: const BoxDecoration(
                             color: Colors.white,
                             borderRadius:
@@ -145,7 +164,7 @@ Widget notificationIcon(height, width) {
                     children: [
                       Container(
                         height: 6,
-                        width: 12,
+                        width: 14,
                         decoration: const BoxDecoration(
                             color: Colors.white,
                             borderRadius:
@@ -156,7 +175,7 @@ Widget notificationIcon(height, width) {
                       ),
                       Container(
                         height: 6,
-                        width: 6,
+                        width: 8,
                         decoration: const BoxDecoration(
                             color: Colors.white,
                             borderRadius:
@@ -167,7 +186,7 @@ Widget notificationIcon(height, width) {
                       ),
                       Container(
                         height: 6,
-                        width: 19,
+                        width: 24,
                         decoration: const BoxDecoration(
                             color: Colors.white,
                             borderRadius:
@@ -217,9 +236,10 @@ Widget signUpOptions(context) {
           ),
           GestureDetector(
             onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) {
+              Navigator.pushAndRemoveUntil(context,
+                  MaterialPageRoute(builder: (context) {
                 return HomePage();
-              }));
+              }), (r) => false);
             },
             child: Text(
               'Log in',
@@ -249,9 +269,10 @@ Widget signUpOptions(context) {
           ),
           GestureDetector(
             onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) {
+              Navigator.pushAndRemoveUntil(context,
+                  MaterialPageRoute(builder: (context) {
                 return HomePage();
-              }));
+              }), (r) => false);
             },
             child: Text(
               'Guest',
