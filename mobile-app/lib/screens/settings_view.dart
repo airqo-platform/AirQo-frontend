@@ -7,6 +7,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'alerts_page.dart';
 import 'my_places.dart';
 
 class SettingsView extends StatefulWidget {
@@ -44,7 +45,6 @@ class _SettingsViewState extends State<SettingsView> {
                     endIndent: 30,
                     color: ColorConstants.appColor,
                   ),
-                  // notifications(),
                   // Divider(
                   //   indent: 30,
                   //   endIndent: 30,
@@ -156,16 +156,15 @@ class _SettingsViewState extends State<SettingsView> {
   TextStyle headerStyle() {
     return const TextStyle(
       fontWeight: FontWeight.bold,
-      fontSize: 16,
     );
   }
 
-  @override
-  void initState() {
-    loadPreferences();
-    _notifications.initNotifications();
-    super.initState();
-  }
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   loadPreferences();
+  //   _notifications.initNotifications();
+  // }
 
   Future<void> loadPreferences() async {
     var prefs = await SharedPreferences.getInstance();
@@ -393,10 +392,10 @@ class _SettingsViewState extends State<SettingsView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Text(
-            'Support',
-            style: headerStyle(),
-          ),
+          // Text(
+          //   'Support',
+          //   style: headerStyle(),
+          // ),
           InkWell(
             onTap: () {
               _launchURL('faqs');
@@ -483,10 +482,10 @@ class _SettingsViewState extends State<SettingsView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Text(
-            'Preferences',
-            style: headerStyle(),
-          ),
+          // Text(
+          //   'Preferences',
+          //   style: headerStyle(),
+          // ),
           InkWell(
             onTap: () {
               Navigator.push(context, MaterialPageRoute(builder: (context) {
@@ -494,9 +493,27 @@ class _SettingsViewState extends State<SettingsView> {
               }));
             },
             child: ListTile(
-              title: const Text('Manage MyPlaces'),
-              leading: Icon(
-                Icons.favorite_outlined,
+              title: const Text('MyPlaces'),
+              leading: FaIcon(
+                FontAwesomeIcons.solidHeart,
+                color: ColorConstants.red,
+              ),
+              trailing: Icon(
+                Icons.arrow_forward_ios_rounded,
+                color: ColorConstants.appColor,
+              ),
+            ),
+          ),
+          InkWell(
+            onTap: () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) {
+                return const AlertPage();
+              }));
+            },
+            child: ListTile(
+              title: const Text('Alerts'),
+              leading: FaIcon(
+                FontAwesomeIcons.bell,
                 color: ColorConstants.appColor,
               ),
               trailing: Icon(
@@ -622,8 +639,8 @@ class _SettingsViewState extends State<SettingsView> {
         case 'contact us':
           await canLaunch(Links.contactUsUrl)
               ? await launch(Links.contactUsUrl)
-              : throw Exception(
-                  'Could not launch contact us, try opening ${Links.contactUsUrl}');
+              : throw Exception('Could not launch contact us, try opening'
+                  ' ${Links.contactUsUrl}');
           return;
         case 'terms':
           await canLaunch(Links.termsUrl)
@@ -652,20 +669,20 @@ class _SettingsViewState extends State<SettingsView> {
         case 'facebook':
           await canLaunch(Links.facebookUrl)
               ? await launch(Links.facebookUrl)
-              : throw Exception(
-                  'Could not launch facebook, try opening ${Links.facebookUrl}');
+              : throw Exception('Could not launch facebook, try opening'
+                  ' ${Links.facebookUrl}');
           return;
         case 'twitter':
           await canLaunch(Links.twitterUrl)
               ? await launch(Links.twitterUrl)
-              : throw Exception(
-                  'Could not launch twitter, try opening ${Links.twitterUrl}');
+              : throw Exception('Could not launch twitter, try opening'
+                  ' ${Links.twitterUrl}');
           return;
         case 'linkedin':
           await canLaunch(Links.linkedinUrl)
               ? await launch(Links.linkedinUrl)
-              : throw Exception(
-                  'Could not launch linkedin, try opening ${Links.linkedinUrl}');
+              : throw Exception('Could not launch linkedin, try opening'
+                  ' ${Links.linkedinUrl}');
           return;
         case 'youtube':
           await canLaunch(Links.youtubeUrl)

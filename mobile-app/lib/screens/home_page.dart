@@ -11,6 +11,7 @@ import 'package:app/services/rest_api.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/share.dart';
 import 'package:camera/camera.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -27,11 +28,15 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  static const TextStyle optionStyle =
+      TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
   final PageController _pageCtrl = PageController(initialPage: 0);
   String title = '${AppConfig.name}';
   bool showAddPlace = true;
   DateTime? exitTime;
+
   double selectedPage = 0;
+  int _selectedIndex = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +48,7 @@ class _HomePageState extends State<HomePage> {
         //       color: Colors.white,
         //       fontWeight: FontWeight.bold,
         //     )),
-        // backgroundColor: ColorConstants.appBarBgColor,
+        backgroundColor: ColorConstants.appBarBgColor,
         elevation: 0,
         title: Text(
           title,
@@ -104,6 +109,32 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               // PopupMenuItem<String>(
+              //   value: 'Faqs',
+              //   child: ListTile(
+              //     leading: Icon(
+              //       Icons.help_outline_outlined,
+              //       color: ColorConstants.appColor,
+              //     ),
+              //     title: Text('Faqs',
+              //         style: TextStyle(
+              //           color: ColorConstants.appColor,
+              //         )),
+              //   ),
+              // ),
+              // PopupMenuItem<String>(
+              //   value: 'Feedback',
+              //   child: ListTile(
+              //     leading: Icon(
+              //       Icons.feedback_outlined,
+              //       color: ColorConstants.appColor,
+              //     ),
+              //     title: Text('Feedback',
+              //         style: TextStyle(
+              //           color: ColorConstants.appColor,
+              //         )),
+              //   ),
+              // ),
+              // PopupMenuItem<String>(
               //   value: 'camera',
               //   child: ListTile(
               //     leading: Icon(
@@ -114,6 +145,19 @@ class _HomePageState extends State<HomePage> {
               //         style: TextStyle(
               //           color: ColorConstants.appColor,
               //         )),
+              //   ),
+              // ),
+              // PopupMenuItem<String>(
+              //   value: 'Settings',
+              //   child: ListTile(
+              //     leading: Icon(
+              //
+              //       Icons.settings,
+              //       color: ColorConstants.appColor,
+              //     ),
+              //     title: const Text(
+              //       'Settings',
+              //     ),
               //   ),
               // ),
               // const PopupMenuDivider(),
@@ -268,14 +312,13 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> initialize() async {
     _getLatestMeasurements();
-    _getSites();
   }
 
   @override
   void initState() {
-    _displayOnBoarding();
-    initialize();
+    // _displayOnBoarding();
     super.initState();
+    initialize();
   }
 
   void navigateToMenuItem(dynamic position) {
@@ -303,6 +346,13 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<bool> onWillPop() {
+    var currentPage = _pageCtrl.page ?? 0;
+
+    if (currentPage != 0) {
+      _pageCtrl.jumpToPage(0);
+      return Future.value(false);
+    }
+
     var now = DateTime.now();
 
     if (exitTime == null ||
@@ -313,6 +363,22 @@ class _HomePageState extends State<HomePage> {
       return Future.value(false);
     }
     return Future.value(true);
+  }
+
+  Future<void> setupInteractedMessage() async {
+    // Get any messages which caused the application to open from
+    // a terminated state.
+    var initialMessage = await FirebaseMessaging.instance.getInitialMessage();
+
+    // If the message also contains a data property with a "type" of "chat",
+    // navigate to a chat screen
+    if (initialMessage != null) {
+      _handleMessage(initialMessage);
+    }
+
+    // Also handle any interaction when the app is in the background via a
+    // Stream listener
+    FirebaseMessaging.onMessageOpenedApp.listen(_handleMessage);
   }
 
   void switchTitle(tile) {
@@ -333,7 +399,7 @@ class _HomePageState extends State<HomePage> {
         break;
       case 2:
         setState(() {
-          title = 'News Feed';
+          title = 'AirQo';
           showAddPlace = false;
           selectedPage = 2;
         });
@@ -400,9 +466,18 @@ class _HomePageState extends State<HomePage> {
         });
   }
 
-  void _getSites() async {
-    await AirqoApiClient(context).fetchSites().then((value) => {
-          if (value.isNotEmpty) {DBHelper().insertSites(value)}
-        });
+  void _handleMessage(RemoteMessage message) {
+    print(message.data);
+    // if (message.data['type'] == 'chat') {
+    //   Navigator.pushNamed(context, '/chat',
+    //     arguments: ChatArguments(message),
+    //   );
+    // }
+  }
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
   }
 }

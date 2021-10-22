@@ -375,9 +375,9 @@ export default function DeviceEdit({ deviceData }) {
     if (isEmpty(siteOptions)) dispatch(loadSitesData());
   }, []);
   return (
-    <>
+    <div style={{ marginTop: "20px" }}>
       <EditDeviceForm deviceData={deviceData} siteOptions={siteOptions} />
       <DeviceDeployStatus deviceData={deviceData} siteOptions={siteOptions} />
-    </>
+    </div>
   );
 }

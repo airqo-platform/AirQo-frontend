@@ -1,0 +1,45 @@
+@import "lib/colors";
+
+$banner-padding: 16px;
+
+.NotificationBanner {
+  display: flex;
+  align-items: center;
+  width: 1440px - 2*$banner-padding;
+  height: 40px;
+  background: $aq-blue-0;
+  padding: 0 $banner-padding;
+
+  .wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1440px - 3*$banner-padding;
+  }
+
+  .first {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    font-family: 'Inter', serif;
+    font-style: normal;
+    font-weight: normal;
+    font-size: 14px;
+    line-height: 17px;
+    /* identical to box height */
+    color: $aq-white-0;
+    margin-right: 42px;
+  }
+
+  .second {
+    display: flex;
+    align-items: center;
+    font-family: 'Inter', serif;
+    font-style: normal;
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 17px;
+    /* identical to box height */
+    color: $aq-white-0;
+  }
+}

@@ -1,6 +1,6 @@
-
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/story.dart';
+import 'package:app/utils/dialogs.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
@@ -27,9 +27,8 @@ class _StoryPageState extends State<StoryPage> {
         leading: BackButton(color: ColorConstants.appColor),
         title: Text(
           '${AppConfig.name}',
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(
+              fontWeight: FontWeight.bold, color: ColorConstants.appColor),
         ),
         actions: [],
       ),
@@ -42,26 +41,6 @@ class _StoryPageState extends State<StoryPage> {
           _buildSubTitle(),
           _buildText()
         ]),
-      ),
-    );
-  }
-
-  Widget _buildImage() {
-    return AspectRatio(
-      aspectRatio: 16 / 9,
-      child: Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: ColorConstants.appColor.withOpacity(0.3),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(16),
-          child: Image.network(
-            widget.story.thumbnail,
-            fit: BoxFit.cover,
-          ),
-        ),
       ),
     );
   }
@@ -96,6 +75,10 @@ class _StoryPageState extends State<StoryPage> {
         onImageTap: (src, _, __, ___) {
           _displayImage(src!);
         },
+        onImageError: (error, _) async {
+          await showSnackBar(context, ErrorMessages.timeoutException);
+        },
+        onCssParseError: (_, __) {},
       ),
     );
   }

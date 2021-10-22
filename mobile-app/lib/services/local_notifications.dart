@@ -36,14 +36,11 @@ class LocalNotifications {
     if (payload != null) {
       debugPrint('notification payload: $payload');
     }
-
-    // await Navigator.push(
-    //   context,
-    //   MaterialPageRoute<void>(builder: (context) => MapPage()),
-    // );
   }
 
   Future<void> showAlertNotification(AppNotification notification) async {
+    initNotifications();
+
     var bigTextStyleInformation = BigTextStyleInformation(
       notification.body,
       htmlFormatBigText: true,
@@ -55,7 +52,7 @@ class LocalNotifications {
 
     var androidPlatformChannelSpecifics = AndroidNotificationDetails(
       'push_messages: 0',
-      'push_messages: push_messages',
+      'push_messages: airqo_push_messages',
       'push_messages: AirQo',
       styleInformation: bigTextStyleInformation,
       importance: Importance.max,

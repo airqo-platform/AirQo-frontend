@@ -67,7 +67,31 @@ void shareLocation(Site site) {
 void shareMeasurement(Measurement measurement) {
   Share.share(
       '${measurement.site.getName()} air quality readings \n'
-      'PM 2.5 : ${measurement.getPm2_5Value().toStringAsFixed(2)} µg/m\u00B3 (${pmToString(measurement.getPm2_5Value())}) \n'
-      'PM 10 : ${measurement.getPm10Value().toStringAsFixed(2)} µg/m\u00B3 ',
+      'PM2.5 : ${measurement.getPm2_5Value().toStringAsFixed(2)} µg/m\u00B3 (${pmToString(measurement.getPm2_5Value())}) \n'
+      'PM10 : ${measurement.getPm10Value().toStringAsFixed(2)} µg/m\u00B3 \n'
+      'See more on the AiQo app',
       subject: '${AppConfig.name}, ${measurement.site.getName()}!');
+}
+
+void shareRanking(List<Measurement> measurements) {
+  var messages = '';
+  var size = 0;
+  for (var measurement in measurements) {
+    size = size + 1;
+    var message = '${measurement.site.getName()} ('
+        'PM2.5 : ${measurement.getPm2_5Value().toStringAsFixed(2)} µg/m\u00B3 (${pmToString(measurement.getPm2_5Value())}) , '
+        'PM10 : ${measurement.getPm10Value().toStringAsFixed(2)} µg/m\u00B3 )\n\n';
+
+    messages = '$messages $message';
+    if (size == 5) {
+      break;
+    }
+  }
+
+  messages = '$messages ... \n\n'
+      'Get the ${AppConfig.name} app from Play Store '
+      ' ${Links.playStoreUrl} '
+      'or App Store ${Links.iOSUrl}';
+
+  Share.share(messages, subject: '${AppConfig.name}, places\' ranking');
 }

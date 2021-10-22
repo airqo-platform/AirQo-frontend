@@ -160,9 +160,9 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   void initState() {
+    super.initState();
     loadPreferences();
     _notifications.initNotifications();
-    super.initState();
   }
 
   Future<void> loadPreferences() async {

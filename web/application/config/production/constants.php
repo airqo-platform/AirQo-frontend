@@ -90,7 +90,7 @@ define('FORECAST_LINK_OLD', 'https://forecast-dot-airqo-250220.appspot.com/api/v
 define('HOURLY_FEEDS', 'https://data-manager-dot-airqo-250220.appspot.com/api/v1/data/feeds/hourly/');
 define('RECENT_FEEDS','https://data-manager-dot-airqo-250220.uc.r.appspot.com/api/v1/data/feeds/recent/');
 define('DEVICES_DATA', 'https://platform.airqo.net/api/v1/devices?tenant=airqo');
-define('EVENTS_DATA', 'https://platform.airqo.net/api/v1/devices/events?tenant=airqo&recent=yes');
+define('EVENTS_DATA', 'https://platform.airqo.net/api/v1/devices/events?tenant=airqo&recent=yes&external=no');
 
 define('API_KEY', getenv('API_KEY'));
 define('ANDROID_APP_LINK', 'https://play.google.com/store/apps/details?id=com.airqo.app');

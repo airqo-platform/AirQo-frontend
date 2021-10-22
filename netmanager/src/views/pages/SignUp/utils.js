@@ -15,7 +15,7 @@ export const isFormFullyFilled = (state, msg) => {
 
   Object.keys(testState).forEach((key) => {
     if (testState[key] === "") {
-      errors[key] = msg || `${key} is required`;
+      errors[key] = msg || `This field is required`;
     }
   });
   return errors;

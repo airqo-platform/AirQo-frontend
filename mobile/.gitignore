@@ -1,76 +1,55 @@
-node_modules
-.tmp
-.sass-cache
-**/bower_components or sometimes it is lib/**
-platforms
-plugins
-*.swp
-*.swo
+# Miscellaneous
+*.class
 *.log
-*.DS_Store
-.idea/
-
-*~
-*.sw[mnpcod]
-*.lock
-*.tmp
-*.tmp.*
-log.txt
-*.sublime-project
-*.sublime-workspace
-
-.vscode/
-.sass-cache/
-.versions/
-coverage/
-collection/
-dist/
-dist-transpiled/
-node_modules/
-tmp/
-temp/
-core/theme-builder/
-core/test-components/
-core/css/
-angular/css/
-$RECYCLE.BIN/
-
+*.pyc
+*.swp
 .DS_Store
-Thumbs.db
-UserInterfaceState.xcuserstate
-.env
+.atom/
+.buildlog/
+.history
+.svn/
 
-.package.tmp.json
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
+.DS_Store/
+# The .vscode folder contains launch configuration and tasks you configure in
+# VS Code which you may wish to be included in version control, so this line
+# is commented out by default.
+#.vscode/
 
-src/themes/version.scss
-scripts/e2e/webpackEntryPoints.json
-scripts/build/e2e-generated-tsconfig.json
-*.css.ts
+# Flutter/Dart/Pub related
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+/build/
 
-stats.json
+# Web related
+lib/generated_plugin_registrant.dart
 
-# demo stuff
-demos/node_modules
-demos/polyfills
-demos/css
-demos/fonts
-demos/src/**/*.js
-demos/src/**/*.map
-demos/src/**/*.ngfactory.ts
-demos/src/**/*.d.ts
-demos/src/**/*.metadata.json
-demos/src/**/*.css.shim.ts
-prerender.html
-prerender-domino.html
-prerender-hydrated.html
-prerender-static.html
+# Symbolication related
+app.*.symbols
 
-# stencil
-packages/react/css/
-packages/vue/css/
-core/components/
-core/hydrate/
-core/loader/
-core/www/
-.stencil/
-angular/build/
+# Obfuscation related
+app.*.map.json
+
+# Android Studio will place build artifacts here
+/android/app/debug
+/android/app/profile
+/android/app/release
+
+*env*
+key.properties
+app.properties
+local.properties
+env.dart
+google-services.json
+
+*.zip

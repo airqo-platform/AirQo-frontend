@@ -81,3 +81,9 @@ class Predict {
     return predictions;
   }
 }
+
+extension ParsePredict on Predict {
+  double getValue() {
+    return double.parse(value.toStringAsFixed(2));
+  }
+}

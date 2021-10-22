@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:app/constants/app_constants.dart';
+import 'package:app/models/alert.dart';
 import 'package:app/models/historicalMeasurement.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/predict.dart';
@@ -26,6 +27,29 @@ class DBHelper {
     return _database;
   }
 
+  Future<bool> addAlert(Alert alert) async {
+    try {
+      final db = await database;
+
+      try {
+        await NotificationService().requestPermission();
+        var jsonData = alert.toJson();
+        await db.insert(
+          '${Alert.alertDbName()}',
+          jsonData,
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+        return true;
+      } catch (e) {
+        print(e);
+      }
+    } catch (e) {
+      print(e);
+    }
+
+    return false;
+  }
+
   Future<bool> addFavouritePlaces(Site site) async {
     var prefs = await SharedPreferences.getInstance();
     var favouritePlaces =
@@ -42,17 +66,17 @@ class DBHelper {
 
   Future<void> createDefaultTables(Database db) async {
     var prefs = await SharedPreferences.getInstance();
-    var initialLoading = prefs.getBool(PrefConstant.initialDbLoad) ?? true;
+    var initialLoading = prefs.getBool(PrefConstant.reLoadDb) ?? true;
 
     if (initialLoading) {
-      print('creating tables');
       await db.execute(Measurement.dropTableStmt());
       await db.execute(Suggestion.dropTableStmt());
       await db.execute(HistoricalMeasurement.dropTableStmt());
       await db.execute(Predict.dropTableStmt());
       await db.execute(Site.dropTableStmt());
       await db.execute(Story.dropTableStmt());
-      await prefs.setBool(PrefConstant.initialDbLoad, false);
+      await db.execute(Alert.dropTableStmt());
+      await prefs.setBool(PrefConstant.reLoadDb, false);
     }
 
     await db.execute(Measurement.createTableStmt());
@@ -61,6 +85,26 @@ class DBHelper {
     await db.execute(Predict.createTableStmt());
     await db.execute(Site.createTableStmt());
     await db.execute(Story.createTableStmt());
+    await db.execute(Alert.createTableStmt());
+  }
+
+  Future<bool> deleteAlert(Alert alert) async {
+    try {
+      final db = await database;
+
+      try {
+        await db.delete('${Alert.alertDbName()}',
+            where: '${Alert.dbSiteId()} = ?', whereArgs: [alert.siteId]);
+        return true;
+      } catch (e) {
+        print(e);
+        print('Inserting alert into db');
+      }
+    } catch (e) {
+      print(e);
+    }
+
+    return false;
   }
 
   Future<void> deleteSearchHistory(Suggestion suggestion) async {
@@ -76,6 +120,23 @@ class DBHelper {
       }
     } catch (e) {
       print(e);
+    }
+  }
+
+  Future<List<Alert>> getAlerts() async {
+    try {
+      final db = await database;
+
+      var res = await db.query(Alert.alertDbName());
+
+      return res.isNotEmpty
+          ? List.generate(res.length, (i) {
+              return Alert.fromJson(res[i]);
+            })
+          : <Alert>[];
+    } catch (e) {
+      print(e);
+      return <Alert>[];
     }
   }
 
@@ -109,6 +170,7 @@ class DBHelper {
             })
           : <Measurement>[];
     } catch (e) {
+      print('am here');
       print(e);
 
       return <Measurement>[];
@@ -163,7 +225,11 @@ class DBHelper {
           ? List.generate(res.length, (i) {
               return Measurement.fromJson(Measurement.mapFromDb(res[i]));
             })
-          : <Measurement>[];
+          : <Measurement>[]
+        ..sort((siteA, siteB) => siteA.site
+            .getName()
+            .toLowerCase()
+            .compareTo(siteB.site.getName().toLowerCase()));
     } catch (e) {
       print(e);
       return <Measurement>[];
@@ -464,7 +530,7 @@ class DBHelper {
       final db = await database;
 
       if (measurements.isNotEmpty) {
-        await db.delete(Measurement.latestMeasurementsDb());
+        // await db.delete(Measurement.latestMeasurementsDb());
 
         for (var measurement in measurements) {
           try {
@@ -490,7 +556,7 @@ class DBHelper {
       final db = await database;
 
       if (stories.isNotEmpty) {
-        await db.delete(Story.storyDbName());
+        // await db.delete(Story.storyDbName());
 
         for (var story in stories) {
           try {
@@ -617,13 +683,13 @@ class DBHelper {
     var topicName = site.getTopic(pollutantLevel);
 
     if (preferredAlerts.contains(topicName)) {
-      await FbNotifications().init();
-      await FbNotifications().unSubscribeFromSite(site, pollutantLevel);
+      await NotificationService().requestPermission();
+      await NotificationService().unSubscribeFromSite(site, pollutantLevel);
       while (preferredAlerts.contains(topicName)) {
         preferredAlerts.remove(topicName.trim().toLowerCase());
       }
     } else {
-      await FbNotifications().subscribeToSite(site, pollutantLevel);
+      await NotificationService().subscribeToSite(site, pollutantLevel);
       preferredAlerts.add(topicName.trim().toLowerCase());
     }
 

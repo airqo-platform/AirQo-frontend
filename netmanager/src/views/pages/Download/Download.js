@@ -22,7 +22,7 @@ import { loadSites } from "redux/Dashboard/operations";
 import { downloadDataApi } from "views/apis/analytics";
 import { roundToStartOfDay, roundToEndOfDay } from "utils/dateTime";
 import { updateMainAlert } from "redux/MainAlert/operations";
-import { useInitScrollTop } from "utils/customHooks";
+import { useInitScrollTop, usePollutantsOptions } from "utils/customHooks";
 
 const { Parser } = require("json2csv");
 
@@ -74,11 +74,7 @@ const Download = (props) => {
     { value: "monthly", label: "Monthly" },
   ];
 
-  const pollutantOptions = [
-    { value: "pm2_5", label: "PM 2.5" },
-    { value: "pm10", label: "PM 10" },
-    { value: "no2", label: "NO2" },
-  ];
+  const pollutantOptions = usePollutantsOptions();
 
   const typeOptions = [
     { value: "json", label: "JSON" },
@@ -163,7 +159,14 @@ const Download = (props) => {
             document.body.removeChild(a);
           }
         } else {
-          const json2csvParser = new Parser();
+          const fields = [
+            "time",
+            ...getValues(pollutants),
+            "frequency",
+            "site_id",
+            "site_description",
+          ];
+          const json2csvParser = new Parser({ fields });
           const csv = json2csvParser.parse(resData);
           let filename = `airquality-${frequency.value}-data.csv`;
           var link = document.createElement("a");

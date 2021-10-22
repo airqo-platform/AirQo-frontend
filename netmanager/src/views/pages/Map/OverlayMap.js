@@ -1,6 +1,5 @@
 import React, { useRef, useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
-import mapboxgl from "mapbox-gl";
 import { isEmpty } from "underscore";
 import { heatMapPaint } from "./paints";
 import { getFirstDuration } from "utils/dateTime";
@@ -19,6 +18,12 @@ import { useInitScrollTop } from "utils/customHooks";
 
 // css
 import "assets/css/overlay-map.css";
+
+import 'mapbox-gl/dist/mapbox-gl.css';
+import mapboxgl from 'mapbox-gl';
+
+// eslint-disable-next-line import/no-webpack-loader-syntax
+mapboxgl.workerClass = require('worker-loader!mapbox-gl/dist/mapbox-gl-csp-worker').default;
 
 const markerDetailsPM2_5 = {
   0.0: ["marker-good", "Good"],
@@ -256,7 +261,7 @@ export const OverlayMap = ({
   const [map, setMap] = useState(null);
   const [showSensors, setShowSensors] = useState(true);
   const [showHeatMap, setShowHeatMap] = useState(false);
-  const [showCalibratedValues, setShowCalibratedValues] = useState(false);
+  const [showCalibratedValues, setShowCalibratedValues] = useState(true);
   const [showPollutant, setShowPollutant] = useState({
     pm2_5: true,
     no2: false,
@@ -414,7 +419,7 @@ export const OverlayMap = ({
                 feature.properties.no2 &&
                 feature.properties.no2.calibratedValue &&
                 feature.properties.no2.calibratedValue) ||
-              pollutantValue;
+              null;
           }
           let markerKey = "";
           for (const property in showPollutant) {
@@ -483,7 +488,7 @@ const MapContainer = () => {
     }
 
     if (isEmpty(monitoringSiteData.features)) {
-      dispatch(loadMapEventsData({ recent: "yes" }));
+      dispatch(loadMapEventsData({ recent: "yes", external: "no" }));
     }
   }, []);
 

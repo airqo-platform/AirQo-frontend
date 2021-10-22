@@ -25,6 +25,38 @@ RawMaterialButton customOkayButton(context) {
   );
 }
 
+void infoDialog(context, String message) {
+  showGeneralDialog(
+    context: context,
+    barrierDismissible: false,
+    transitionDuration: const Duration(milliseconds: 250),
+    transitionBuilder: (context, animation, secondaryAnimation, child) {
+      return FadeTransition(
+        opacity: animation,
+        child: ScaleTransition(
+          scale: animation,
+          child: child,
+        ),
+      );
+    },
+    pageBuilder: (context, animation, secondaryAnimation) {
+      return AlertDialog(
+        title: const Text('AirQopedia'),
+        content: Text(message),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.pop(context, 'OK'),
+            child: Text(
+              'OK',
+              style: TextStyle(color: ColorConstants.appColor),
+            ),
+          ),
+        ],
+      );
+    },
+  );
+}
+
 void showInfoDialog(BuildContext context, String text) {
   showDialog<void>(
     context: context,
@@ -47,7 +79,7 @@ Future<void> showSnackBar(context, String message) async {
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(10),
     ),
-    elevation: 10,
+    elevation: 0,
     behavior: SnackBarBehavior.floating,
     content: Text(
       message,
@@ -67,7 +99,7 @@ Future<void> showSnackBar2(context, String message) async {
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(10),
     ),
-    elevation: 20,
+    elevation: 0,
     content: Text(
       message,
       softWrap: true,
@@ -86,7 +118,7 @@ Future<void> showSnackBarGoToMyPlaces(context, String message) async {
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(10),
     ),
-    elevation: 20,
+    elevation: 0,
     behavior: SnackBarBehavior.floating,
     content: Text(
       message,

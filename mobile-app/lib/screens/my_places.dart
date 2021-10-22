@@ -28,6 +28,7 @@ class _MyPlacesState extends State<MyPlaces> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: ColorConstants.appBarBgColor,
         leading: BackButton(color: ColorConstants.appColor),
         elevation: 0.0,
         title: isSearching
@@ -55,8 +56,9 @@ class _MyPlacesState extends State<MyPlaces> {
               ),
         actions: [
           IconButton(
-            icon: const Icon(
+            icon: Icon(
               Icons.add_circle_outline_outlined,
+              color: ColorConstants.appColor,
             ),
             onPressed: () async {
               await showSearch(
@@ -80,7 +82,7 @@ class _MyPlacesState extends State<MyPlaces> {
                       child: ListView.builder(
                         itemBuilder: (context, index) => GestureDetector(
                           onTap: () {
-                            viewDetails(searchResults[index].site);
+                            viewDetails(searchResults[index]);
                           },
                           child: Slidable(
                             actionPane: const SlidableDrawerActionPane(),
@@ -110,7 +112,7 @@ class _MyPlacesState extends State<MyPlaces> {
                             child: Container(
                               child: ListTile(
                                 leading: CircleAvatar(
-                                  backgroundColor: pmToColor(
+                                  backgroundColor: pm2_5ToColor(
                                       searchResults[index]
                                           .pm2_5
                                           .calibratedValue),
@@ -121,7 +123,7 @@ class _MyPlacesState extends State<MyPlaces> {
                                       textAlign: TextAlign.center,
                                       style: TextStyle(
                                           fontSize: 10.0,
-                                          color: pmTextColor(
+                                          color: pm2_5TextColor(
                                               searchResults[index]
                                                   .pm2_5
                                                   .calibratedValue)),
@@ -163,37 +165,49 @@ class _MyPlacesState extends State<MyPlaces> {
                           if (results.isEmpty) {
                             return Center(
                               child: Container(
-                                padding: const EdgeInsets.all(16.0),
-                                child: OutlinedButton(
-                                  onPressed: () async {
-                                    await showSearch(
-                                      context: context,
-                                      delegate: LocationSearch(),
-                                    ).then((_) {
-                                      setState(() {});
-                                    });
-                                  },
-                                  style: OutlinedButton.styleFrom(
-                                    shape: const CircleBorder(),
-                                    padding: const EdgeInsets.all(24),
-                                  ),
-                                  child: Text(
-                                    'Add',
-                                    style: TextStyle(
-                                        color: ColorConstants.appColor),
-                                  ),
+                                padding: const EdgeInsets.all(40.0),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Text(
+                                      'Empty in MyPlaces',
+                                      softWrap: true,
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(fontSize: 20),
+                                    ),
+                                    const SizedBox(
+                                      height: 10,
+                                    ),
+                                    const Text(
+                                      'Add places of interest using the AirQo map '
+                                      'or search',
+                                      softWrap: true,
+                                      textAlign: TextAlign.center,
+                                    ),
+                                    const SizedBox(
+                                      height: 10,
+                                    ),
+                                    OutlinedButton(
+                                      onPressed: () async {
+                                        await showSearch(
+                                          context: context,
+                                          delegate: LocationSearch(),
+                                        ).then((_) {
+                                          setState(() {});
+                                        });
+                                      },
+                                      style: OutlinedButton.styleFrom(
+                                        shape: const CircleBorder(),
+                                        padding: const EdgeInsets.all(24),
+                                      ),
+                                      child: Text(
+                                        'Add',
+                                        style: TextStyle(
+                                            color: ColorConstants.appColor),
+                                      ),
+                                    )
+                                  ],
                                 ),
-                                // child: Text(
-                                //   'You haven\'t added any locations you'
-                                //   ' care about '
-                                //   'to MyPlaces yet, use the add icon at '
-                                //   'the top to add them to your list',
-                                //   softWrap: true,
-                                //   textAlign: TextAlign.center,
-                                //   style: TextStyle(
-                                //     color: ColorConstants.appColor,
-                                //   ),
-                                // ),
                               ),
                             );
                           }
@@ -204,7 +218,7 @@ class _MyPlacesState extends State<MyPlaces> {
                             child: ListView.builder(
                               itemBuilder: (context, index) => GestureDetector(
                                 onTap: () {
-                                  viewDetails(results[index].site);
+                                  viewDetails(results[index]);
                                 },
                                 child: Slidable(
                                   actionPane: const SlidableDrawerActionPane(),
@@ -234,9 +248,9 @@ class _MyPlacesState extends State<MyPlaces> {
                                   child: Container(
                                     child: ListTile(
                                       leading: CircleAvatar(
-                                        backgroundColor: pmToColor(
+                                        backgroundColor: pm2_5ToColor(
                                             results[index].getPm2_5Value()),
-                                        foregroundColor: pmTextColor(
+                                        foregroundColor: pm2_5TextColor(
                                             results[index].getPm2_5Value()),
                                         child: Center(
                                           child: Text(
@@ -370,9 +384,9 @@ class _MyPlacesState extends State<MyPlaces> {
     }
   }
 
-  Future<void> viewDetails(Site site) async {
+  Future<void> viewDetails(Measurement measurement) async {
     await Navigator.push(context, MaterialPageRoute(builder: (context) {
-      return PlaceDetailsPage(site: site);
+      return PlaceDetailsPage(measurement: measurement);
     })).then((value) {
       setState(() {});
     });
