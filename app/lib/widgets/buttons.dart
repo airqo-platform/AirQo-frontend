@@ -2,6 +2,7 @@ import 'package:app/constants/app_constants.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 
 Widget countryDropDown(String text) {
   return Container(
@@ -19,6 +20,15 @@ Widget countryDropDown(String text) {
 }
 
 Widget locationIcon(height, width) {
+  return SvgPicture.asset(
+    'assets/icon/location_icon.svg',
+    semanticsLabel: 'location',
+    height: height,
+    width: width,
+  );
+}
+
+Widget locationIconV1(height, width) {
   return Stack(
     children: [
       Image.asset(
@@ -70,6 +80,15 @@ Widget nextButton(String text, Color buttonColor) {
 }
 
 Widget notificationIcon(height, width) {
+  return SvgPicture.asset(
+    'assets/icon/notification_icon.svg',
+    semanticsLabel: 'notification',
+    height: height,
+    width: width,
+  );
+}
+
+Widget notificationIconV1(height, width) {
   return Stack(
     alignment: Alignment.center,
     children: [

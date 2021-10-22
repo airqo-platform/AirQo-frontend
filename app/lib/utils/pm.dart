@@ -183,22 +183,22 @@ Widget mapSection(Measurement measurement) {
 Color pm10TextColor(double pm10) {
   if (pm10 <= 50.99) {
     //good
-    return Colors.black;
+    return const Color(0xff03B600);
   } else if (pm10 >= 51.00 && pm10 <= 100.99) {
     //moderate
-    return Colors.black;
+    return const Color(0xffA8A800);
   } else if (pm10 >= 101.00 && pm10 <= 250.99) {
     //sensitive
-    return Colors.black;
+    return const Color(0xffB86000);
   } else if (pm10 >= 251.00 && pm10 <= 350.99) {
     // unhealthy
-    return Colors.white;
+    return const Color(0xffB80B00);
   } else if (pm10 >= 351.00 && pm10 <= 430.99) {
     // very unhealthy
-    return Colors.white;
+    return const Color(0xff8E00AC);
   } else if (pm10 >= 431.00) {
     // hazardous
-    return Colors.white;
+    return const Color(0xffA51F3F);
   } else {
     return ColorConstants.appColor;
   }
@@ -231,22 +231,22 @@ Color pm10ToColor(double pm10) {
 Color pm2_5TextColor(double pm2_5) {
   if (pm2_5 <= 12.09) {
     //good
-    return Colors.black;
+    return const Color(0xff03B600);
   } else if (pm2_5 >= 12.1 && pm2_5 <= 35.49) {
     //moderate
-    return Colors.black;
+    return const Color(0xffA8A800);
   } else if (pm2_5 >= 35.5 && pm2_5 <= 55.49) {
     //sensitive
-    return Colors.black;
+    return const Color(0xffB86000);
   } else if (pm2_5 >= 55.5 && pm2_5 <= 150.49) {
     // unhealthy
-    return Colors.black;
+    return const Color(0xffB80B00);
   } else if (pm2_5 >= 150.5 && pm2_5 <= 250.49) {
     // very unhealthy
-    return Colors.white;
+    return const Color(0xff8E00AC);
   } else if (pm2_5 >= 250.5) {
     // hazardous
-    return Colors.white;
+    return const Color(0xffA51F3F);
   } else {
     return ColorConstants.appColor;
   }

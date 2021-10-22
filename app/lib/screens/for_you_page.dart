@@ -28,6 +28,7 @@ class _ForYouPageState extends State<ForYouPage>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        centerTitle: true,
         elevation: 0,
         backgroundColor: ColorConstants.appBodyColor,
         leading: Padding(
@@ -55,6 +56,7 @@ class _ForYouPageState extends State<ForYouPage>
                     labelColor: Colors.transparent,
                     unselectedLabelColor: Colors.transparent,
                     labelPadding: const EdgeInsets.all(3.0),
+                    physics: const NeverScrollableScrollPhysics(),
                     onTap: (value) {
                       if (value == 0) {
                         setState(() {
@@ -107,6 +109,7 @@ class _ForYouPageState extends State<ForYouPage>
             Expanded(
                 child: TabBarView(
               controller: _tabController,
+              physics: const NeverScrollableScrollPhysics(),
               children: <Widget>[
                 const AnalyticsView(),
                 const KnowYourAirView(),

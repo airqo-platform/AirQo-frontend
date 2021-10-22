@@ -144,6 +144,11 @@ flutter:
     - assets/icon/info_icon.svg
     - assets/icon/home_icon.svg
     - assets/icon/tips_graphics.svg
+    - assets/icon/onboarding_fav.svg
+    - assets/icon/more_arrow.svg
+    - assets/icon/back_button.svg
+    - assets/icon/location_icon.svg
+    - assets/icon/notification_icon.svg
 
     # Language Translation files
     - assets/i18n/en.json

@@ -79,18 +79,18 @@ String dateToString(String formattedString, bool addOffset) {
     }
 
     if (now.day == formattedDate.day) {
-      return '${DateFormat('hh:mm a').format(formattedDate)}';
+      return 'Updated today at ${DateFormat('hh:mm a').format(formattedDate)}';
     } else {
       if (now.isAfter(formattedDate)) {
         var yesterday = now.subtract(const Duration(hours: 24));
         if (formattedDate.day == yesterday.day) {
-          return 'Yesterday, ${DateFormat('hh:mm a').format(formattedDate)}';
+          return 'Updated yesterday at ${DateFormat('hh:mm a').format(formattedDate)}';
         } else {
           var daysAgo = now.difference(formattedDate).inDays;
           if (daysAgo == 1) {
-            return '$daysAgo day ago';
+            return 'Updated $daysAgo day ago';
           }
-          return '$daysAgo days ago';
+          return 'Updated $daysAgo days ago';
         }
       } else {
         var tomorrow = now.add(const Duration(hours: 24));

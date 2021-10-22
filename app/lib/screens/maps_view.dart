@@ -8,8 +8,8 @@ import 'package:app/services/rest_api.dart';
 import 'package:app/themes/dark_theme.dart';
 import 'package:app/themes/light_theme.dart';
 import 'package:app/utils/pm.dart';
+import 'package:app/widgets/analytics_card.dart';
 import 'package:app/widgets/custom_widgets.dart';
-import 'package:app/widgets/readings_card.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -87,7 +87,7 @@ class _MapViewState extends State<MapView> {
       decoration: BoxDecoration(
           color: ColorConstants.appBodyColor,
           borderRadius: BorderRadius.circular(8)),
-      child: Icon(
+      child: const Icon(
         Icons.clear,
         size: 20,
       ),
@@ -137,6 +137,26 @@ class _MapViewState extends State<MapView> {
   }
 
   Widget locationContent() {
+    return Container(
+        // color: ColorConstants.appBodyColor,
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: <Widget>[
+            const SizedBox(height: 8),
+            DraggingHandle(),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                const Spacer(),
+                GestureDetector(
+                  onTap: showLocation,
+                  child: closeDetails(),
+                ),
+              ],
+            ),
+            AnalyticsCard(locationMeasurement),
+          ],
+        ));
     return Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -153,7 +173,7 @@ class _MapViewState extends State<MapView> {
                 ),
               ],
             ),
-            ReadingsCard(locationMeasurement),
+            AnalyticsCard(locationMeasurement),
           ],
         ));
   }

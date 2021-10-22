@@ -1,6 +1,8 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/historicalMeasurement.dart';
 import 'package:app/models/site.dart';
+import 'package:app/services/local_storage.dart';
+import 'package:app/utils/share.dart';
 import 'package:app/widgets/tips.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -88,18 +90,28 @@ class _DailyViewState extends State<DailyView> with TickerProviderStateMixin {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  iconTextButton(
-                      SvgPicture.asset(
-                        'assets/icon/share_icon.svg',
-                        semanticsLabel: 'Share',
-                      ),
-                      'Share'),
-                  iconTextButton(
-                      SvgPicture.asset(
-                        'assets/icon/fav_icon.svg',
-                        semanticsLabel: 'Share',
-                      ),
-                      'Favorite'),
+                  GestureDetector(
+                    onTap: () {
+                      shareLocation(site);
+                    },
+                    child: iconTextButton(
+                        SvgPicture.asset(
+                          'assets/icon/share_icon.svg',
+                          semanticsLabel: 'Share',
+                        ),
+                        'Share'),
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      DBHelper().updateFavouritePlaces(site, context);
+                    },
+                    child: iconTextButton(
+                        SvgPicture.asset(
+                          'assets/icon/fav_icon.svg',
+                          semanticsLabel: 'Favorite',
+                        ),
+                        'Favorite'),
+                  ),
                 ],
               ),
             ),

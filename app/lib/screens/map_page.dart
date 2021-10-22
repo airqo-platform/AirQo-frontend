@@ -621,21 +621,9 @@ class MapPageState extends State<MapPage> {
   }
 
   Future<void> updateFavouritePlace(Site site) async {
-    bool favourite;
-
-    favourite = await DBHelper().updateFavouritePlaces(site);
+    await DBHelper().updateFavouritePlaces(site, context);
 
     await getFavouritePlaces();
-
-    if (mounted) {
-      if (favourite) {
-        await showSnackBarGoToMyPlaces(
-            context, '${site.getName()} is added to your places');
-      } else {
-        await showSnackBar(
-            context, '${site.getName()} is removed from your places');
-      }
-    }
   }
 
   void updateInfoWindow(Measurement measurement) {

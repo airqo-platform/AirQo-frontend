@@ -6,6 +6,9 @@ import 'package:app/services/native_api.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
+
+import 'insights_page.dart';
 
 class SearchPage extends StatefulWidget {
   const SearchPage({Key? key}) : super(key: key);
@@ -157,33 +160,36 @@ class _SearchPageState extends State<SearchPage> {
           ),
           Container(
               padding: const EdgeInsets.only(right: 8, bottom: 8, left: 8),
-              decoration: const BoxDecoration(
-                  color: Colors.white,
+              decoration: BoxDecoration(
+                  color: ColorConstants.appBodyColor,
                   shape: BoxShape.rectangle,
-                  borderRadius: BorderRadius.all(Radius.circular(10.0))),
+                  borderRadius: const BorderRadius.all(Radius.circular(10.0))),
               child: MediaQuery.removePadding(
                   context: context,
                   removeTop: true,
-                  child: ListView.separated(
-                      controller: ScrollController(),
-                      shrinkWrap: true,
-                      itemBuilder: (context, index) => GestureDetector(
-                            onTap: () {
-                              Navigator.push(context,
-                                  MaterialPageRoute(builder: (context) {
-                                return PlaceView(nearbySites[index].site);
-                              }));
-                            },
-                            child: locationTile(nearbySites[index]),
-                          ),
-                      itemCount: nearbySites.length,
-                      separatorBuilder: (BuildContext context, int index) {
-                        return Divider(
-                          indent: 20,
-                          endIndent: 20,
-                          color: ColorConstants.appColor,
-                        );
-                      }))),
+                  child: ListView.builder(
+                    controller: ScrollController(),
+                    shrinkWrap: true,
+                    itemBuilder: (context, index) => GestureDetector(
+                        onTap: () {
+                          Navigator.push(context,
+                              MaterialPageRoute(builder: (context) {
+                            return InsightsPage(nearbySites[index].site);
+                          }));
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 10),
+                          child: locationTile(nearbySites[index]),
+                        )),
+                    itemCount: nearbySites.length,
+                    // separatorBuilder: (BuildContext context, int index) {
+                    //   return Divider(
+                    //     indent: 20,
+                    //     endIndent: 20,
+                    //     color: ColorConstants.appColor,
+                    //   );
+                    // }
+                  ))),
         ],
       ),
     );
@@ -320,9 +326,9 @@ class _SearchPageState extends State<SearchPage> {
                       decoration: BoxDecoration(
                           color: ColorConstants.appColorBlue,
                           borderRadius:
-                              BorderRadius.all(Radius.circular(10.0))),
+                              const BorderRadius.all(Radius.circular(10.0))),
                       child: Padding(
-                        padding: EdgeInsets.only(top: 19, bottom: 19),
+                        padding: const EdgeInsets.only(top: 19, bottom: 19),
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -364,6 +370,7 @@ class _SearchPageState extends State<SearchPage> {
 
   Widget searchField() {
     return Container(
+      height: 40,
       constraints: const BoxConstraints(minWidth: double.maxFinite),
       decoration: const BoxDecoration(
           color: Colors.white,
@@ -371,9 +378,17 @@ class _SearchPageState extends State<SearchPage> {
           borderRadius: BorderRadius.all(Radius.circular(10.0))),
       child: Row(
         children: [
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () {},
+          const SizedBox(
+            width: 10,
+          ),
+          SvgPicture.asset(
+            'assets/icon/search.svg',
+            height: 17,
+            width: 17,
+            semanticsLabel: 'Search',
+          ),
+          const SizedBox(
+            width: 11,
           ),
           Expanded(
             child: TextFormField(
@@ -387,6 +402,9 @@ class _SearchPageState extends State<SearchPage> {
               ),
             ),
           ),
+          const SizedBox(
+            width: 10,
+          ),
         ],
       ),
     );
@@ -399,10 +417,11 @@ class _SearchPageState extends State<SearchPage> {
         children: [
           Container(
               padding: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
-              decoration: const BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.rectangle,
-                  borderRadius: BorderRadius.all(Radius.circular(10.0))),
+              // decoration: const BoxDecoration(
+              //     color: Colors.white,
+              //     shape: BoxShape.rectangle,
+              //     borderRadius: BorderRadius.all(Radius.circular(10.0))
+              // ),
               child: searchSites.isEmpty
                   ? Center(
                       child: Column(
@@ -453,78 +472,31 @@ class _SearchPageState extends State<SearchPage> {
                   : MediaQuery.removePadding(
                       context: context,
                       removeTop: true,
-                      child: ListView.separated(
-                          controller: ScrollController(),
-                          shrinkWrap: true,
-                          itemBuilder: (context, index) => GestureDetector(
-                                onTap: () {
-                                  Navigator.push(context,
-                                      MaterialPageRoute(builder: (context) {
-                                    return PlaceView(searchSites[index].site);
-                                  }));
-                                },
-                                child: locationTile(searchSites[index]),
-                              ),
-                          itemCount: searchSites.length,
-                          separatorBuilder: (BuildContext context, int index) {
-                            return Divider(
-                              indent: 20,
-                              endIndent: 20,
-                              color: ColorConstants.appColor,
-                            );
-                          }))),
+                      child: ListView.builder(
+                        controller: ScrollController(),
+                        shrinkWrap: true,
+                        itemBuilder: (context, index) => GestureDetector(
+                            onTap: () {
+                              Navigator.push(context,
+                                  MaterialPageRoute(builder: (context) {
+                                return InsightsPage(searchSites[index].site);
+                              }));
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.only(bottom: 10),
+                              child: locationTile(searchSites[index]),
+                            )),
+                        itemCount: searchSites.length,
+                        // separatorBuilder: (BuildContext context, int index) {
+                        //   return Divider(
+                        //     indent: 20,
+                        //     endIndent: 20,
+                        //     color: ColorConstants.appColor,
+                        //   );
+                        // }
+                      ))),
         ],
       ),
     );
   }
 }
-
-// Widget nearByLocationsv1() {
-//   return Container(
-//     child: Column(
-//       crossAxisAlignment: CrossAxisAlignment.start,
-//       children: [
-//         const SizedBox(
-//           height: 32,
-//         ),
-//         Text(
-//           'Our suggestions',
-//           textAlign: TextAlign.start,
-//           style: TextStyle(color: ColorConstants.inactiveColor, fontSize: 12),
-//         ),
-//         const SizedBox(
-//           height: 8,
-//         ),
-//         Container(
-//           padding: EdgeInsets.all(8),
-//           decoration: BoxDecoration(
-//               color: Colors.white,
-//               shape: BoxShape.rectangle,
-//               borderRadius: BorderRadius.all(Radius.circular(10.0))),
-//           child: Column(
-//             crossAxisAlignment: CrossAxisAlignment.center,
-//             children: [
-//               locationTile(context),
-//               Divider(
-//                 color: ColorConstants.appBodyColor,
-//               ),
-//               locationTile(context),
-//               Divider(
-//                 color: ColorConstants.appBodyColor,
-//               ),
-//               locationTile(context),
-//               Divider(
-//                 color: ColorConstants.appBodyColor,
-//               ),
-//               locationTile(context),
-//               Divider(
-//                 color: ColorConstants.appBodyColor,
-//               ),
-//               locationTile(context)
-//             ],
-//           ),
-//         )
-//       ],
-//     ),
-//   );
-// }

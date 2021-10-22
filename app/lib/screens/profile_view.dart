@@ -1,13 +1,17 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/userDetails.dart';
 import 'package:app/screens/signup_page.dart';
+import 'package:app/screens/tips_page.dart';
 import 'package:app/screens/view_profile_page.dart';
 import 'package:app/services/fb_notifications.dart';
 import 'package:app/widgets/text_fields.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import 'favourite_places.dart';
+import 'for_you_page.dart';
 import 'maps_view.dart';
+import 'notification_page.dart';
 
 class ProfileView extends StatefulWidget {
   ProfileView({Key? key}) : super(key: key);
@@ -139,6 +143,18 @@ class _ProfileViewState extends State<ProfileView> {
 
   void dummyFn() {}
 
+  Future<void> favPlaces() async {
+    await Navigator.push(context, MaterialPageRoute(builder: (context) {
+      return const FavouritePlaces();
+    }));
+  }
+
+  Future<void> forYou() async {
+    await Navigator.push(context, MaterialPageRoute(builder: (context) {
+      return ForYouPage();
+    }));
+  }
+
   Future<void> initialize() async {
     setState(() {
       isLoggedIn = _customAuth.isLoggedIn();
@@ -160,6 +176,12 @@ class _ProfileViewState extends State<ProfileView> {
     _customAuth.logOut().then((value) => {initialize()});
   }
 
+  Future<void> notifications() async {
+    await Navigator.push(context, MaterialPageRoute(builder: (context) {
+      return const NotificationPage();
+    }));
+  }
+
   Widget profileSection() {
     return Container(
       padding: const EdgeInsets.only(top: 10, bottom: 10),
@@ -173,15 +195,15 @@ class _ProfileViewState extends State<ProfileView> {
           Divider(
             color: ColorConstants.appBodyColor,
           ),
-          cardSection('Favorite', dummyFn),
+          cardSection('Favorite', favPlaces),
           Divider(
             color: ColorConstants.appBodyColor,
           ),
-          cardSection('For you', dummyFn),
+          cardSection('For you', forYou),
           Divider(
             color: ColorConstants.appBodyColor,
           ),
-          cardSection('App Tips & Tricks', dummyFn),
+          cardSection('App Tips & Tricks', tips),
         ],
       ),
     );
@@ -254,6 +276,12 @@ class _ProfileViewState extends State<ProfileView> {
     );
   }
 
+  Future<void> tips() async {
+    await Navigator.push(context, MaterialPageRoute(builder: (context) {
+      return const TipsPage();
+    }));
+  }
+
   Widget topBar() {
     return Container(
       child: Row(
@@ -278,7 +306,7 @@ class _ProfileViewState extends State<ProfileView> {
                     Icons.notifications_rounded,
                     color: ColorConstants.appBarTitleColor,
                   ),
-                  onPressed: () async {},
+                  onPressed: notifications,
                 ),
                 Positioned(
                     top: 10,
@@ -294,7 +322,7 @@ class _ProfileViewState extends State<ProfileView> {
                     ))
               ],
             ),
-          )
+          ),
         ],
       ),
     );

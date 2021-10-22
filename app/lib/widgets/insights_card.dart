@@ -130,8 +130,12 @@ class _InsightsCardState extends State<InsightsCard> {
                     decoration: BoxDecoration(
                         borderRadius:
                             const BorderRadius.all(Radius.circular(40.0)),
-                        color: pm2_5ToColor(selectedMeasurement.getPm2_5Value())
-                            .withOpacity(0.3),
+                        color: pollutant == 'pm2.5'
+                            ? pm2_5TextColor(
+                                    selectedMeasurement.getPm2_5Value())
+                                .withOpacity(0.4)
+                            : pm10TextColor(selectedMeasurement.getPm10Value())
+                                .withOpacity(0.4),
                         border: Border.all(color: Colors.transparent)),
                     child: Text(
                       pmToString(selectedMeasurement.getPm2_5Value()),
@@ -140,12 +144,10 @@ class _InsightsCardState extends State<InsightsCard> {
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontSize: 14,
-                        color: pmToString(selectedMeasurement.getPm2_5Value())
-                                    .trim()
-                                    .toLowerCase() ==
-                                'moderate'
-                            ? Colors.black.withOpacity(0.5)
-                            : pm2_5ToColor(selectedMeasurement.getPm2_5Value()),
+                        color: pollutant == 'pm2.5'
+                            ? pm2_5TextColor(
+                                selectedMeasurement.getPm2_5Value())
+                            : pm10TextColor(selectedMeasurement.getPm10Value()),
                       ),
                     ),
                   ),

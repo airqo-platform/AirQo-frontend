@@ -32,7 +32,7 @@ Widget tipContainer() {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SizedBox(
-            width: 200,
+            width: 280,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,

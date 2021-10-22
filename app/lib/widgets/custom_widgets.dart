@@ -23,8 +23,8 @@ const shimmerGradient = LinearGradient(
   tileMode: TileMode.clamp,
 );
 
-Widget analyticsAvatar(context, Measurement measurement, double size,
-    double fontSize, double iconHeight) {
+Widget analyticsAvatar(
+    Measurement measurement, double size, double fontSize, double iconHeight) {
   return Container(
     height: size,
     width: size,
@@ -41,19 +41,23 @@ Widget analyticsAvatar(context, Measurement measurement, double size,
           semanticsLabel: 'Pm2.5',
           height: iconHeight,
           width: 32.45,
+          color: pm2_5TextColor(measurement.getPm2_5Value()),
         ),
         Text(
           '${measurement.getPm2_5Value().toStringAsFixed(0)}',
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: GoogleFonts.robotoMono(
-              fontStyle: FontStyle.normal, fontSize: fontSize),
+              color: pm2_5TextColor(measurement.getPm2_5Value()),
+              fontStyle: FontStyle.normal,
+              fontSize: fontSize),
         ),
         SvgPicture.asset(
           'assets/icon/unit.svg',
           semanticsLabel: 'UNit',
           height: iconHeight,
           width: 32,
+          color: pm2_5TextColor(measurement.getPm2_5Value()),
         ),
         const Spacer(),
       ],
@@ -62,6 +66,20 @@ Widget analyticsAvatar(context, Measurement measurement, double size,
 }
 
 Widget backButton(context) {
+  return GestureDetector(
+    onTap: () {
+      Navigator.pop(context);
+    },
+    child: SvgPicture.asset(
+      'assets/icon/back_button.svg',
+      semanticsLabel: 'more',
+      height: 40,
+      width: 40,
+    ),
+  );
+}
+
+Widget backButtonV1(context) {
   return Container(
     constraints: const BoxConstraints(maxHeight: 32),
     padding: const EdgeInsets.all(0.0),
@@ -154,20 +172,18 @@ Widget customSearchField(context, text) {
 }
 
 Widget iconTextButton(Widget icon, text) {
-  return GestureDetector(
-      onTap: () {},
-      child: Row(
-        children: [
-          icon,
-          const SizedBox(
-            width: 10,
-          ),
-          Text(
-            text,
-            style: const TextStyle(fontSize: 14, color: Colors.black),
-          )
-        ],
-      ));
+  return Row(
+    children: [
+      icon,
+      const SizedBox(
+        width: 10,
+      ),
+      Text(
+        text,
+        style: const TextStyle(fontSize: 14, color: Colors.black),
+      )
+    ],
+  );
 }
 
 Widget insightsAvatar(
@@ -190,19 +206,30 @@ Widget insightsAvatar(
           semanticsLabel: 'Pm2.5',
           height: 6,
           width: 32.45,
+          color: pollutant == 'pm2.5'
+              ? pm2_5TextColor(measurement.getPm2_5Value())
+              : pm10TextColor(measurement.getPm10Value()),
         ),
         Text(
           '${measurement.getPm2_5Value().toStringAsFixed(0)}',
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style:
-              GoogleFonts.robotoMono(fontStyle: FontStyle.normal, fontSize: 32),
+          style: GoogleFonts.robotoMono(
+            fontStyle: FontStyle.normal,
+            fontSize: 32,
+            color: pollutant == 'pm2.5'
+                ? pm2_5TextColor(measurement.getPm2_5Value())
+                : pm10TextColor(measurement.getPm10Value()),
+          ),
         ),
         SvgPicture.asset(
           'assets/icon/unit.svg',
           semanticsLabel: 'UNit',
           height: 6,
           width: 32,
+          color: pollutant == 'pm2.5'
+              ? pm2_5TextColor(measurement.getPm2_5Value())
+              : pm10TextColor(measurement.getPm10Value()),
         ),
         const Spacer(),
       ],
@@ -270,6 +297,7 @@ Widget insightsAvatar(
 
 PreferredSizeWidget knowYourAirAppBar(context) {
   return AppBar(
+    centerTitle: true,
     elevation: 0,
     backgroundColor: Colors.transparent,
     foregroundColor: Colors.transparent,
@@ -285,6 +313,37 @@ PreferredSizeWidget knowYourAirAppBar(context) {
 }
 
 Widget locationTile(Measurement measurement) {
+  return Container(
+    padding: const EdgeInsets.all(8.0),
+    decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: const BorderRadius.all(Radius.circular(16.0)),
+        border: Border.all(color: Colors.transparent)),
+    child: ListTile(
+      title: Text(
+        '${measurement.site.getName()}',
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+      ),
+      subtitle: Text(
+        '${measurement.site.getLocation()}',
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(color: Colors.black.withOpacity(0.3), fontSize: 14),
+      ),
+      trailing: SvgPicture.asset(
+        'assets/icon/more_arrow.svg',
+        semanticsLabel: 'more',
+        height: 16,
+        width: 16,
+      ),
+      leading: analyticsAvatar(measurement, 40, 15, 5),
+    ),
+  );
+}
+
+Widget locationTileV1(Measurement measurement) {
   return ListTile(
     title: Text(
       '${measurement.site.getName()}',

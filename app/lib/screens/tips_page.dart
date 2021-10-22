@@ -101,6 +101,9 @@ class _TipsPageState extends State<TipsPage> {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
+                                  Image.asset(
+                                    'assets/images/skate.png',
+                                  ),
                                   const Text(
                                     'Together, let\'s reduce '
                                     'air pollution to breathe clean!',

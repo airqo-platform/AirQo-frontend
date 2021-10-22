@@ -603,18 +603,18 @@ class MapWidgetState extends State<MapWidget> {
   Future<void> updateFavouritePlace(Site site) async {
     bool favourite;
 
-    favourite = await DBHelper().updateFavouritePlaces(site);
+    favourite = await DBHelper().updateFavouritePlaces(site, context);
 
     await getFavouritePlaces();
 
     if (mounted) {
-      if (favourite) {
-        await showSnackBar(
-            context, '${site.getName()} has been added to your places');
-      } else {
-        await showSnackBar(
-            context, '${site.getName()} has been removed from your places');
-      }
+      // if (favourite) {
+      //   await showSnackBar(
+      //       context, '${site.getName()} has been added to your places');
+      // } else {
+      //   await showSnackBar(
+      //       context, '${site.getName()} has been removed from your places');
+      // }
     }
   }
 

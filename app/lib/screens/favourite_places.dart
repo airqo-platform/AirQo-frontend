@@ -1,9 +1,10 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/site.dart';
-import 'package:app/screens/search_location_page.dart';
+import 'package:app/screens/search_page.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/utils/dialogs.dart';
+import 'package:app/widgets/custom_shimmer.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:app/widgets/favourite_place_card.dart';
 import 'package:flutter/material.dart';
@@ -26,6 +27,7 @@ class _FavouritePlacesState extends State<FavouritePlaces> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        centerTitle: true,
         elevation: 0,
         backgroundColor: ColorConstants.appBodyColor,
         leading: Padding(
@@ -40,7 +42,7 @@ class _FavouritePlacesState extends State<FavouritePlaces> {
       body: Container(
           color: ColorConstants.appBodyColor,
           child: FutureBuilder(
-              future: DBHelper().getLatestMeasurements(),
+              future: DBHelper().getFavouritePlaces(),
               builder: (context, snapshot) {
                 if (snapshot.hasData) {
                   favouritePlaces = snapshot.data as List<Measurement>;
@@ -56,12 +58,10 @@ class _FavouritePlacesState extends State<FavouritePlaces> {
                             const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
                         child: OutlinedButton(
                           onPressed: () async {
-                            await showSearch(
-                              context: context,
-                              delegate: LocationSearch(),
-                            ).then((_) {
-                              setState(() {});
-                            });
+                            await Navigator.push(context,
+                                MaterialPageRoute(builder: (context) {
+                              return const SearchPage();
+                            }));
                           },
                           style: OutlinedButton.styleFrom(
                             shape: const CircleBorder(),
@@ -91,21 +91,50 @@ class _FavouritePlacesState extends State<FavouritePlaces> {
                     color: ColorConstants.appColor,
                     onRefresh: refreshData,
                     child: ListView.builder(
-                      itemBuilder: (context, index) => GestureDetector(
-                        onTap: () {
-                          viewDetails(favouritePlaces[index].site);
-                        },
-                        child: FavouritePlacesCard(favouritePlaces[index]),
-                      ),
+                      itemBuilder: (context, index) =>
+                          FavouritePlacesCard(favouritePlaces[index]),
                       itemCount: favouritePlaces.length,
                     ),
                   );
                 } else {
-                  return Center(
-                    child: CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                          ColorConstants.appColor),
-                    ),
+                  return ListView(
+                    children: [
+                      Padding(
+                        padding:
+                            const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
+                        child: loadingAnimation(115.0),
+                      ),
+                      Padding(
+                        padding:
+                            const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
+                        child: loadingAnimation(115.0),
+                      ),
+                      Padding(
+                        padding:
+                            const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
+                        child: loadingAnimation(115.0),
+                      ),
+                      Padding(
+                        padding:
+                            const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
+                        child: loadingAnimation(115.0),
+                      ),
+                      Padding(
+                        padding:
+                            const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
+                        child: loadingAnimation(115.0),
+                      ),
+                      Padding(
+                        padding:
+                            const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
+                        child: loadingAnimation(115.0),
+                      ),
+                      Padding(
+                        padding:
+                            const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
+                        child: loadingAnimation(115.0),
+                      ),
+                    ],
                   );
                 }
               })),
@@ -168,7 +197,7 @@ class _FavouritePlacesState extends State<FavouritePlaces> {
   }
 
   Future<void> removeFromFavourites(Site site) async {
-    await DBHelper().updateFavouritePlaces(site).then((value) => {
+    await DBHelper().updateFavouritePlaces(site, context).then((value) => {
           showSnackBar(context, '${site.getName()} is removed from your places')
         });
 

@@ -4,6 +4,7 @@ import 'package:app/utils/dialogs.dart';
 import 'package:app/widgets/buttons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_svg/svg.dart';
 
 class WelcomeScreen extends StatefulWidget {
   @override
@@ -46,21 +47,24 @@ class WelcomeScreenState extends State<WelcomeScreen> {
             welcomeSection(
                 'Save your Favorite places',
                 'A new way to keep track of locations that interest to you',
-                const Color(0xffFBC110)),
+                const Color(0xffFBC110),
+                'assets/icon/onboarding_fav.svg'),
             const SizedBox(
               height: 22,
             ),
             welcomeSection(
                 'New experiences For You',
                 'Now you can access analytics and content curated for you',
-                const Color(0xff9492B8)),
+                const Color(0xff9492B8),
+                ''),
             const SizedBox(
               height: 22,
             ),
             welcomeSection(
                 'Know your Air ',
                 'A new and easy way to learn about air pollution on the go ',
-                const Color(0xff55B7A1)),
+                const Color(0xff55B7A1),
+                ''),
             const Spacer(),
             Padding(
               padding: const EdgeInsets.only(bottom: 96.0),
@@ -108,11 +112,23 @@ class WelcomeScreenState extends State<WelcomeScreen> {
     return Future.value(true);
   }
 
-  Widget welcomeSection(String header, String body, Color color) {
+  Widget welcomeSection(
+    String header,
+    String body,
+    Color color,
+    String svg,
+  ) {
     return ListTile(
-      leading: CircleAvatar(
-        backgroundColor: color,
-      ),
+      leading: svg == ''
+          ? CircleAvatar(
+              backgroundColor: color,
+            )
+          : SvgPicture.asset(
+              svg,
+              semanticsLabel: 'Share',
+              height: 40,
+              width: 40,
+            ),
       title: Text(
         header,
         style: const TextStyle(

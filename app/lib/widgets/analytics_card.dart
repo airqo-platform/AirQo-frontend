@@ -1,17 +1,29 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/screens/insights_page.dart';
+import 'package:app/services/local_storage.dart';
 import 'package:app/utils/date.dart';
+import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/pm.dart';
+import 'package:app/utils/share.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
 import 'custom_widgets.dart';
 
-class AnalyticsCard extends StatelessWidget {
+class AnalyticsCard extends StatefulWidget {
   final Measurement measurement;
 
   const AnalyticsCard(this.measurement, {Key? key}) : super(key: key);
+
+  @override
+  _AnalyticsCardState createState() => _AnalyticsCardState(measurement);
+}
+
+class _AnalyticsCardState extends State<AnalyticsCard> {
+  final Measurement measurement;
+
+  _AnalyticsCardState(this.measurement);
 
   @override
   Widget build(BuildContext context) {
@@ -23,19 +35,24 @@ class AnalyticsCard extends StatelessWidget {
             border: Border.all(color: Colors.transparent)),
         child: Column(
           children: [
-            Container(
-              padding: const EdgeInsets.only(right: 12),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  SvgPicture.asset(
-                    'assets/icon/info_icon.svg',
-                    semanticsLabel: 'Pm2.5',
-                    height: 20,
-                    width: 20,
-                  ),
-                ],
+            GestureDetector(
+              onTap: () {
+                infoDialog(context, PollutantBio.pm2_5);
+              },
+              child: Container(
+                padding: const EdgeInsets.only(right: 12),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    SvgPicture.asset(
+                      'assets/icon/info_icon.svg',
+                      semanticsLabel: 'Pm2.5',
+                      height: 20,
+                      width: 20,
+                    ),
+                  ],
+                ),
               ),
             ),
 
@@ -52,7 +69,7 @@ class AnalyticsCard extends StatelessWidget {
                     // Details section
                     Row(
                       children: [
-                        analyticsAvatar(context, measurement, 104, 40, 12),
+                        analyticsAvatar(measurement, 104, 40, 12),
                         const SizedBox(width: 16),
                         Expanded(
                           child: Column(
@@ -82,9 +99,9 @@ class AnalyticsCard extends StatelessWidget {
                                 decoration: BoxDecoration(
                                     borderRadius: const BorderRadius.all(
                                         Radius.circular(40.0)),
-                                    color: pm2_5ToColor(
+                                    color: pm2_5TextColor(
                                             measurement.getPm2_5Value())
-                                        .withOpacity(0.3),
+                                        .withOpacity(0.4),
                                     border:
                                         Border.all(color: Colors.transparent)),
                                 child: Text(
@@ -94,43 +111,47 @@ class AnalyticsCard extends StatelessWidget {
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
                                     fontSize: 14,
-                                    color:
-                                        pmToString(measurement.getPm2_5Value())
-                                                    .trim()
-                                                    .toLowerCase() ==
-                                                'moderate'
-                                            ? Colors.black.withOpacity(0.5)
-                                            : pm2_5ToColor(
-                                                measurement.getPm2_5Value()),
+                                    color: pm2_5TextColor(
+                                        measurement.getPm2_5Value()),
                                   ),
                                 ),
                               ),
                               const SizedBox(
                                 height: 8,
                               ),
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Updated today at '
-                                    '${dateToString(measurement.time, true)}',
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                        fontSize: 8,
-                                        color: Colors.black.withOpacity(0.3)),
-                                  ),
-                                  const SizedBox(
-                                    width: 8.0,
-                                  ),
-                                  SvgPicture.asset(
-                                    'assets/icon/loader.svg',
-                                    semanticsLabel: 'loader',
-                                    height: 8,
-                                    width: 8,
-                                  ),
-                                ],
+                              Text(
+                                '${dateToString(measurement.time, true)}',
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                    fontSize: 8,
+                                    color: Colors.black.withOpacity(0.3)),
                               ),
+                              // SizedBox(
+                              //   width: 6,
+                              //   child:  Row(
+                              //     crossAxisAlignment: CrossAxisAlignment.start,
+                              //     children: [
+                              //       Text(
+                              //         '${dateToString(measurement.time, true)}',
+                              //         maxLines: 1,
+                              //         overflow: TextOverflow.ellipsis,
+                              //         style: TextStyle(
+                              //             fontSize: 8,
+                              //             color: Colors.black.withOpacity(0.3)),
+                              //       ),
+                              //       const SizedBox(
+                              //         width: 8.0,
+                              //       ),
+                              //       SvgPicture.asset(
+                              //         'assets/icon/loader.svg',
+                              //         semanticsLabel: 'loader',
+                              //         height: 8,
+                              //         width: 8,
+                              //       ),
+                              //     ],
+                              //   ),
+                              // ),
                             ],
                           ),
                         )
@@ -147,20 +168,6 @@ class AnalyticsCard extends StatelessWidget {
                           height: 16,
                           width: 16,
                         ),
-                        // Container(
-                        //   height: 16,
-                        //   width: 16,
-                        //   decoration: BoxDecoration(
-                        //       color: ColorConstants.appColorBlue,
-                        //       borderRadius:
-                        //       const BorderRadius.all(Radius.circular(3.0)),
-                        //       border: Border.all(color: Colors.transparent)),
-                        //   child: const Icon(
-                        //     Icons.bar_chart,
-                        //     size: 14,
-                        //     color: Colors.white,
-                        //   ),
-                        // ),
                         const SizedBox(width: 8.0),
                         Text(
                           'View More Insights',
@@ -168,19 +175,11 @@ class AnalyticsCard extends StatelessWidget {
                               fontSize: 12, color: ColorConstants.appColorBlue),
                         ),
                         const Spacer(),
-                        Container(
+                        SvgPicture.asset(
+                          'assets/icon/more_arrow.svg',
+                          semanticsLabel: 'more',
                           height: 16,
                           width: 16,
-                          decoration: BoxDecoration(
-                              color: ColorConstants.appColorPaleBlue,
-                              borderRadius:
-                                  const BorderRadius.all(Radius.circular(3.0)),
-                              border: Border.all(color: Colors.transparent)),
-                          child: Icon(
-                            Icons.arrow_forward_ios,
-                            size: 12,
-                            color: ColorConstants.appColorBlue,
-                          ),
                         ),
                       ],
                     ),
@@ -201,18 +200,28 @@ class AnalyticsCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                iconTextButton(
-                    SvgPicture.asset(
-                      'assets/icon/share_icon.svg',
-                      semanticsLabel: 'Share',
-                    ),
-                    'Share'),
-                iconTextButton(
-                    SvgPicture.asset(
-                      'assets/icon/fav_icon.svg',
-                      semanticsLabel: 'Favorite',
-                    ),
-                    'Favorite'),
+                GestureDetector(
+                  onTap: () {
+                    shareMeasurement(measurement);
+                  },
+                  child: iconTextButton(
+                      SvgPicture.asset(
+                        'assets/icon/share_icon.svg',
+                        semanticsLabel: 'Share',
+                      ),
+                      'Share'),
+                ),
+                GestureDetector(
+                  onTap: () {
+                    DBHelper().updateFavouritePlaces(measurement.site, context);
+                  },
+                  child: iconTextButton(
+                      SvgPicture.asset(
+                        'assets/icon/fav_icon.svg',
+                        semanticsLabel: 'Favorite',
+                      ),
+                      'Favorite'),
+                ),
               ],
             ),
             const SizedBox(

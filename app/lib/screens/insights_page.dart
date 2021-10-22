@@ -32,6 +32,7 @@ class _InsightsPageState extends State<InsightsPage>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        centerTitle: true,
         elevation: 0,
         backgroundColor: ColorConstants.appBodyColor,
         leading: Padding(
@@ -114,7 +115,8 @@ class _InsightsPageState extends State<InsightsPage>
               physics: const NeverScrollableScrollPhysics(),
               children: <Widget>[
                 DailyView(site),
-                MonthlyView(site),
+                DailyView(site),
+                // MonthlyView(site),
               ],
             )),
           ],

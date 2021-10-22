@@ -4,11 +4,10 @@ import 'package:app/constants/app_constants.dart';
 import 'package:app/models/chartData.dart';
 import 'package:app/models/historicalMeasurement.dart';
 import 'package:app/models/measurement.dart';
-import 'package:app/screens/place_view.dart';
+import 'package:app/screens/insights_page.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/services/rest_api.dart';
 import 'package:app/utils/data_formatter.dart';
-import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/pm.dart';
 import 'package:app/utils/share.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
@@ -80,7 +79,7 @@ class _ReadingsCardState extends State<ReadingsCard> {
           GestureDetector(
             onTap: () {
               Navigator.push(context, MaterialPageRoute(builder: (context) {
-                return PlaceView(measurementData.site);
+                return InsightsPage(measurementData.site);
               }));
             },
             child: titleSection(),
@@ -138,23 +137,7 @@ class _ReadingsCardState extends State<ReadingsCard> {
           GestureDetector(
             onTap: () async {
               await DBHelper()
-                  .updateFavouritePlaces(measurementData.site)
-                  .then((value) => {
-                        if (value)
-                          {
-                            showSnackBar(
-                                context,
-                                '${measurementData.site.getName()}'
-                                ' has been added to your favourite places')
-                          }
-                        else
-                          {
-                            showSnackBar(
-                                context,
-                                '${measurementData.site.getName()}'
-                                ' has been removed from your favourite places')
-                          }
-                      });
+                  .updateFavouritePlaces(measurementData.site, context);
             },
             child: Container(
               height: 36,

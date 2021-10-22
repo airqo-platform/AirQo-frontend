@@ -153,22 +153,7 @@ class _PlaceReadingsCardState extends State<PlaceReadingsCard> {
           const Spacer(),
           GestureDetector(
             onTap: () async {
-              await DBHelper().updateFavouritePlaces(site).then((value) => {
-                    if (value)
-                      {
-                        showSnackBar(
-                            context,
-                            '${site.getName()}'
-                            ' has been added to your favourite places')
-                      }
-                    else
-                      {
-                        showSnackBar(
-                            context,
-                            '${site.getName()}'
-                            ' has been removed from your favourite places')
-                      }
-                  });
+              await DBHelper().updateFavouritePlaces(site, context);
             },
             child: Container(
               height: 36,

@@ -3,6 +3,7 @@ import 'package:app/models/measurement.dart';
 import 'package:app/screens/search_location_page.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/widgets/analytics_card.dart';
+import 'package:app/widgets/custom_shimmer.dart';
 import 'package:flutter/material.dart';
 
 class AnalyticsView extends StatefulWidget {
@@ -76,11 +77,22 @@ class _AnalyticsViewState extends State<AnalyticsView> {
                       ),
                     );
                   } else {
-                    return Center(
-                      child: CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                            ColorConstants.appColor),
-                      ),
+                    return ListView(
+                      children: [
+                        loadingAnimation(253.0),
+                        const SizedBox(
+                          height: 10,
+                        ),
+                        loadingAnimation(253.0),
+                        const SizedBox(
+                          height: 10,
+                        ),
+                        loadingAnimation(253.0),
+                        const SizedBox(
+                          height: 10,
+                        ),
+                        loadingAnimation(253.0),
+                      ],
                     );
                   }
                 })));

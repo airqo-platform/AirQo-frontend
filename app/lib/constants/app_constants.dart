@@ -64,7 +64,7 @@ class ColorConstants {
 
   static Color get facebookColor => const Color(0xff4267B2);
 
-  static Color get green => const Color(0xff3FFF33);
+  static Color get green => const Color(0xff3AFF38);
 
   static Color get greyColor => const Color(0xff8D8D8D);
 
@@ -72,19 +72,19 @@ class ColorConstants {
 
   static Color get linkedInColor => const Color(0xff2867B2);
 
-  static Color get maroon => const Color(0xff570B0B);
+  static Color get maroon => const Color(0xffA51F3F);
 
-  static Color get orange => const Color(0xffFF9633);
+  static Color get orange => const Color(0xffFE9E35);
 
-  static Color get purple => const Color(0xFF7B1FA2);
+  static Color get purple => const Color(0xFFDD38FF);
 
-  static Color get red => const Color(0xffF62E2E);
+  static Color get red => const Color(0xffFF4034);
 
   static Color get snackBarBgColor => appColor.withOpacity(0.8);
 
   static Color get twitterColor => const Color(0xff1DA1F2);
 
-  static Color get yellow => const Color(0xffFFF933);
+  static Color get yellow => const Color(0xffFFFF35);
 
   static Color get youtubeColor => const Color(0xffFF0000);
 }
@@ -134,6 +134,41 @@ class NotificationConfig {
   static const int progressNotificationId = 482842;
   static const int pushNotificationId = 9239203;
   static const int smartNotificationId = 4877231;
+}
+
+class PollutantBio {
+  static String get humidity => 'Relative humidity is the amount of water '
+      'vapor actually in the air, expressed as a percentage of the maximum '
+      'amount of water vapor the air can hold at the same temperature. '
+      '\n\nThink of the air at a chilly -10 degrees Celsius '
+      '(14 degrees Fahrenheit). At that temperature, the air can hold,'
+      ' at most, 2.2 grams of water per cubic meter. So if there are 2.2'
+      ' grams of water per cubic meter when its -10 degrees Celsius outside, '
+      'we are at an uncomfortable 100 percent relative humidity. If there was'
+      ' 1.1 grams of water in the air at -10 degrees Celsius, '
+      'we are at 50 percent relative humidity.';
+
+  static String get pm10 => 'PM10 are pollutants that have a diameter of '
+      '10 micrometers (0.01 mm) or smaller; they can be found '
+      'in dust and smoke and can penetrate and lodge deep inside the'
+      ' lungs. They are even more health-damaging particles than'
+      ' the PM2.5  pollutants. ';
+
+  static String get pm2_5 => 'PM2.5 are pollutants that have a diameter '
+      'of 2.5 micrometers (20-30 times smaller than the thickness of'
+      ' human hair). They are very small particles usually '
+      'found in smoke. PM2.5 '
+      'particles are small enough for you to breathe and '
+      'can penetrate the lung barrier and enter the blood system.'
+      ' Prolonged exposure to particles contributes to the risk of '
+      'developing cardiovascular and respiratory diseases, '
+      'as well as lung cancer.\nSource WHO ';
+
+  static String get temperature => 'Temperature is the degree of hotness or'
+      ' coldness of an object. When we talk about something feeling hot '
+      '(like the soup we drink when were sick) or cold (like the snow, '
+      'especially if youre not wearing gloves), '
+      'were talking about temperature.';
 }
 
 class PollutantConstant {

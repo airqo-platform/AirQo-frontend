@@ -30,8 +30,6 @@ class CircularBorder extends StatelessWidget {
   final double size = 25;
   final double width = 1.0;
 
-  // final Widget icon;
-
   CircularBorder({Key? key}) : super(key: key);
 
   @override
@@ -343,6 +341,15 @@ class _DashboardViewState extends State<DashboardView> {
                 color: pm2_5ToColor(favouritePlaces[index].getPm2_5Value()),
                 shape: BoxShape.circle,
               ),
+              child: Center(
+                child: Text(
+                  '${favouritePlaces[index].getPm2_5Value()}',
+                  style: TextStyle(
+                      fontSize: 7,
+                      color: pm2_5TextColor(
+                          favouritePlaces[index].getPm2_5Value())),
+                ),
+              ),
             )));
       } catch (e) {}
     }
@@ -458,45 +465,7 @@ class _DashboardViewState extends State<DashboardView> {
               height: 104,
               fit: BoxFit.cover,
             ),
-            // CachedNetworkImage(
-            //   width: 104,
-            //   height: 104,
-            //   fit: BoxFit.cover,
-            //   placeholder: (context, url) => const SizedBox(
-            //     height: 20.0,
-            //     width: 20.0,
-            //   ),
-            //   imageUrl: 'assets/images/know-your-air.png',
-            //   errorWidget: (context, url, error) => Icon(
-            //     Icons.error_outline,
-            //     color: ColorConstants.red,
-            //   ),
-            // ),
           ),
-          // SizedBox(
-          //   width: 104,
-          //   height: 104,
-          //   child:  ClipRRect(
-          //     borderRadius: BorderRadius.circular(10.0),
-          //     child: Image.asset(
-          //       'assets/images/know-your-air.png',
-          //     ),
-          //     // CachedNetworkImage(
-          //     //   width: 104,
-          //     //   height: 104,
-          //     //   fit: BoxFit.cover,
-          //     //   placeholder: (context, url) => const SizedBox(
-          //     //     height: 20.0,
-          //     //     width: 20.0,
-          //     //   ),
-          //     //   imageUrl: 'assets/images/know-your-air.png',
-          //     //   errorWidget: (context, url, error) => Icon(
-          //     //     Icons.error_outline,
-          //     //     color: ColorConstants.red,
-          //     //   ),
-          //     // ),
-          //   ),
-          // ),
         ],
       ),
     );
@@ -512,12 +481,6 @@ class _DashboardViewState extends State<DashboardView> {
             width: 58,
             semanticsLabel: 'Search',
           ),
-
-          // Image.asset(
-          //   'assets/icon/transparent_logo.png',
-          //   height: 40,
-          //   width: 58,
-          // ),
           const Spacer(),
           Container(
             height: 40,
@@ -564,7 +527,11 @@ class _DashboardViewState extends State<DashboardView> {
                   onTap: () async {
                     await Navigator.push(context,
                         MaterialPageRoute(builder: (context) {
-                      return const FavouritePlaces();
+                      if (favouritePlaces.isEmpty) {
+                        return const SearchPage();
+                      } else {
+                        return const FavouritePlaces();
+                      }
                     }));
                   },
                   child: Container(

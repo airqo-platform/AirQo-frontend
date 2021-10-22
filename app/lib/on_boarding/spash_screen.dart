@@ -1,10 +1,10 @@
 import 'package:app/on_boarding/welcome_screen.dart';
-import 'package:app/screens/home_page.dart';
 import 'package:app/services/fb_notifications.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/services/rest_api.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 
 class SplashScreen extends StatefulWidget {
   @override
@@ -19,7 +19,6 @@ class SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // backgroundColor: Colors.white,
       body: AnimatedSwitcher(
         duration: const Duration(seconds: 3),
         transitionBuilder: (Widget child, Animation<double> animation) {
@@ -41,11 +40,12 @@ class SplashScreenState extends State<SplashScreen> {
           Future.delayed(const Duration(seconds: 10), () async {
             await Navigator.pushAndRemoveUntil(context,
                 MaterialPageRoute(builder: (context) {
-              if (value) {
-                return WelcomeScreen();
-              } else {
-                return HomePage();
-              }
+              return WelcomeScreen();
+              // if (value) {
+              //   return WelcomeScreen();
+              // } else {
+              //   return HomePage();
+              // }
             }), (r) => false);
           }),
         });
@@ -64,10 +64,11 @@ class SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset(
-              'assets/icon/airqo_logo.png',
-              height: 150,
-              width: 150,
+            SvgPicture.asset(
+              'assets/icon/airqo_home.svg',
+              semanticsLabel: 'Share',
+              height: 118,
+              width: 81,
             ),
           ],
         ),

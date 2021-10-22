@@ -17,14 +17,12 @@ class _KnowYourAirViewState extends State<KnowYourAirView> {
   Widget build(BuildContext context) {
     return Container(
         color: ColorConstants.appBodyColor,
-        child: Padding(
-            padding: const EdgeInsets.fromLTRB(6, 6, 6, 6),
-            child: ListView.builder(
-              itemBuilder: (context, index) => Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: tipWidget(context),
-              ),
-              itemCount: 5,
-            )));
+        child: ListView.builder(
+          itemBuilder: (context, index) => Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: tipWidget(context),
+          ),
+          itemCount: 5,
+        ));
   }
 }
