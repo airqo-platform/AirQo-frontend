@@ -1,6 +1,5 @@
 import React, { useRef, useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
-import mapboxgl from "mapbox-gl";
 import { isEmpty } from "underscore";
 import { heatMapPaint } from "./paints";
 import { getFirstDuration } from "utils/dateTime";
@@ -19,6 +18,12 @@ import { useInitScrollTop } from "utils/customHooks";
 
 // css
 import "assets/css/overlay-map.css";
+
+import 'mapbox-gl/dist/mapbox-gl.css';
+import mapboxgl from 'mapbox-gl';
+
+// eslint-disable-next-line import/no-webpack-loader-syntax
+mapboxgl.workerClass = require('worker-loader!mapbox-gl/dist/mapbox-gl-csp-worker').default;
 
 const markerDetailsPM2_5 = {
   0.0: ["marker-good", "Good"],

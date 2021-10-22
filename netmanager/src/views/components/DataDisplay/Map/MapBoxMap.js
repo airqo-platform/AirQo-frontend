@@ -3,7 +3,18 @@ import ReactMapGL, { Marker, Popup } from "react-map-gl";
 import { useHistory } from "react-router-dom";
 import { MapKey } from "./MapKey";
 
+// import mapboxgl from 'mapbox-gl';
+
 import "assets/css/manager-map.css";
+
+
+import 'mapbox-gl/dist/mapbox-gl.css';
+import mapboxgl from 'mapbox-gl';
+
+// eslint-disable-next-line import/no-webpack-loader-syntax
+mapboxgl.workerClass = require('worker-loader!mapbox-gl/dist/mapbox-gl-csp-worker').default;
+
+
 
 const onlineClassGenerator = (online) =>
   (online && "manager-online") || "manager-offline";
