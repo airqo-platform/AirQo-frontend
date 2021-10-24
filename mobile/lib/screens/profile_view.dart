@@ -27,99 +27,92 @@ class _ProfileViewState extends State<ProfileView> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-        color: ColorConstants.appBodyColor,
-        child: RefreshIndicator(
-            onRefresh: initialize,
-            color: ColorConstants.appColor,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16.0, 37, 16.0, 16.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  isLoggedIn
-                      ? Expanded(
-                          child: ListView(
-                            shrinkWrap: true,
-                            children: <Widget>[
-                              topBar(),
-                              const SizedBox(
-                                height: 10.0,
-                              ),
-                              Text(
-                                '${userProfile.getFullName()}',
-                                style: const TextStyle(
-                                    fontSize: 24, fontWeight: FontWeight.bold),
-                              ),
-                              GestureDetector(
-                                onTap: () async {
-                                  // var saved = await Navigator.push(context,
-                                  //     MaterialPageRoute(builder: (context) {
-                                  //   return SignUpPage(userProfile);
-                                  // }));
-                                  // if (saved != null && saved) {
-                                  //   await initialize();
-                                  // }
-                                  await viewProfile();
-                                },
-                                child: Text(
-                                  'Edit profile',
-                                  style: TextStyle(
-                                      fontSize: 16,
-                                      color: ColorConstants.appColorBlue),
-                                ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.fromLTRB(
-                                    0.0, 16.0, 0.0, 0.0),
-                                child: profileSection(),
-                              ),
-                              const SizedBox(
-                                height: 16,
-                              ),
-                              cardSection('Settings', dummyFn),
-                              const SizedBox(
-                                height: 16,
-                              ),
-                              cardSection('Logout', logOut),
-                            ],
+    return Scaffold(
+      appBar: AppBar(
+        title: topBar(),
+        elevation: 0,
+        toolbarHeight: 50,
+        backgroundColor: ColorConstants.appBodyColor,
+      ),
+      body: Container(
+          color: ColorConstants.appBodyColor,
+          child: RefreshIndicator(
+              onRefresh: initialize,
+              color: ColorConstants.appColor,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    isLoggedIn
+                        ? Expanded(
+                      child: ListView(
+                        shrinkWrap: true,
+                        children: <Widget>[
+                          Text(
+                            '${userProfile.getFullName()}',
+                            style: const TextStyle(
+                                fontSize: 24, fontWeight: FontWeight.bold),
                           ),
-                        )
-                      : Expanded(
-                          child: ListView(
-                            shrinkWrap: true,
-                            children: <Widget>[
-                              topBar(),
-                              const SizedBox(
-                                height: 10.0,
-                              ),
-                              const Text(
-                                'Guest',
-                                style: TextStyle(
-                                    fontSize: 24, fontWeight: FontWeight.bold),
-                              ),
-                              Text(
-                                'Edit profile',
-                                style: TextStyle(
-                                    fontSize: 16,
-                                    color: ColorConstants.inactiveColor),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.fromLTRB(
-                                    0.0, 16.0, 0.0, 0.0),
-                                child: signupSection(),
-                              ),
-                              const SizedBox(
-                                height: 16,
-                              ),
-                              cardSection('Settings', dummyFn),
-                            ],
+                          GestureDetector(
+                            onTap: () async {
+                              await viewProfile();
+                            },
+                            child: Text(
+                              'Edit profile',
+                              style: TextStyle(
+                                  fontSize: 16,
+                                  color: ColorConstants.appColorBlue),
+                            ),
                           ),
-                        ),
-                ],
-              ),
-            )));
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(
+                                0.0, 16.0, 0.0, 0.0),
+                            child: profileSection(),
+                          ),
+                          const SizedBox(
+                            height: 16,
+                          ),
+                          cardSection('Settings', dummyFn),
+                          const SizedBox(
+                            height: 16,
+                          ),
+                          cardSection('Logout', logOut),
+                        ],
+                      ),
+                    )
+                        : Expanded(
+                      child: ListView(
+                        shrinkWrap: true,
+                        children: <Widget>[
+                          const Text(
+                            'Guest',
+                            style: TextStyle(
+                                fontSize: 24, fontWeight: FontWeight.bold),
+                          ),
+                          Text(
+                            'Edit profile',
+                            style: TextStyle(
+                                fontSize: 16,
+                                color: ColorConstants.inactiveColor),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(
+                                0.0, 16.0, 0.0, 0.0),
+                            child: signupSection(),
+                          ),
+                          const SizedBox(
+                            height: 16,
+                          ),
+                          cardSection('Settings', dummyFn),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              )))
+    );
   }
 
   Widget cardSection(text, callBackFn) {
@@ -291,26 +284,27 @@ class _ProfileViewState extends State<ProfileView> {
           profilePicWidget(
               40, 40, 10, 12, 17.0, userProfile.photoUrl, 27.0, false),
           const Spacer(),
-          Container(
-            padding: const EdgeInsets.all(0.0),
-            decoration: const BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.rectangle,
-                borderRadius: BorderRadius.all(Radius.circular(10.0))),
+          GestureDetector(
+            onTap: notifications,
             child: Stack(
               alignment: AlignmentDirectional.center,
               children: [
-                IconButton(
-                  iconSize: 30,
-                  icon: Icon(
-                    Icons.notifications_rounded,
-                    color: ColorConstants.appBarTitleColor,
-                  ),
-                  onPressed: notifications,
+                Container(
+                  height: 40,
+                  width: 40,
+                  decoration: const BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.all(Radius.circular(10.0))),
                 ),
+
                 Positioned(
-                    top: 10,
-                    right: 14,
+                    child: Icon(Icons.notifications_rounded,
+                        size: 30,
+                        color: ColorConstants.appBarTitleColor)),
+
+                Positioned(
+                    top: 5,
+                    right: 9,
                     child: Container(
                       height: 10,
                       width: 10,

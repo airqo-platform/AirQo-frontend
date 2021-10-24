@@ -111,24 +111,30 @@ class _DashboardViewState extends State<DashboardView> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-        color: ColorConstants.appBodyColor,
-        child: RefreshIndicator(
-            onRefresh: initialize,
-            color: ColorConstants.appColor,
-            child: Padding(
-              padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 46),
-              child: Column(
-                // mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  topBar(),
-                  Expanded(
-                    child: _dashboardItems(),
-                  ),
-                ],
-              ),
-            )));
+    return Scaffold(
+      appBar: AppBar(
+        title: topBar(),
+        elevation: 0,
+        toolbarHeight: 40,
+        backgroundColor: ColorConstants.appBodyColor,
+      ),
+      body: Container(
+          color: ColorConstants.appBodyColor,
+          child: RefreshIndicator(
+              onRefresh: initialize,
+              color: ColorConstants.appColor,
+              child: Padding(
+                padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Expanded(
+                      child: _dashboardItems(),
+                    ),
+                  ],
+                ),
+              ))),
+    );
   }
 
   void getFavouritePlaces() {
@@ -733,9 +739,6 @@ class _DashboardViewState extends State<DashboardView> {
           controller: ScrollController(),
           shrinkWrap: true,
           children: <Widget>[
-            const SizedBox(
-              height: 20,
-            ),
             Text(
               greetings,
               style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
