@@ -93,9 +93,9 @@ class PollutantCard extends StatelessWidget {
 
   void openDialog(context) {
     if (type == PollutantConstant.pm2_5) {
-      infoDialog(context, PollutantBio.pm2_5);
+      pollutantDialog(context, PollutantBio.pm2_5);
     } else if (type == PollutantConstant.pm10) {
-      infoDialog(context, PollutantBio.pm10);
+      pollutantDialog(context, PollutantBio.pm10);
     } else {
       return;
     }

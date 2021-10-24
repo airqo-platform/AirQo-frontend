@@ -16,7 +16,6 @@ class SettingsView extends StatefulWidget {
 }
 
 class _SettingsViewState extends State<SettingsView> {
-  Languages _language = Languages.english;
   bool _smartNotification = false;
   bool _pushNotification = false;
   bool _dailyReports = false;
@@ -24,7 +23,6 @@ class _SettingsViewState extends State<SettingsView> {
   bool _monthlyReports = false;
   bool _morningForecast = false;
   bool _eveningForecast = false;
-  Themes _theme = Themes.lightTheme;
   final LocalNotifications _notifications = LocalNotifications();
 
   @override
@@ -35,9 +33,6 @@ class _SettingsViewState extends State<SettingsView> {
           children: [
             Expanded(
               child: ListView(
-                // physics:  const BouncingScrollPhysics(
-                //     parent: AlwaysScrollableScrollPhysics()
-                // ),
                 children: <Widget>[
                   userPreferences(),
                   Divider(
@@ -45,17 +40,6 @@ class _SettingsViewState extends State<SettingsView> {
                     endIndent: 30,
                     color: ColorConstants.appColor,
                   ),
-                  // Divider(
-                  //   indent: 30,
-                  //   endIndent: 30,
-                  //   color: ColorConstants.appColor,
-                  // ),
-                  // reports(),
-                  // Divider(
-                  //   indent: 30,
-                  //   endIndent: 30,
-                  //   color: ColorConstants.appColor,
-                  // ),
                   supportSection(),
                   footerSection()
                 ],
@@ -166,18 +150,13 @@ class _SettingsViewState extends State<SettingsView> {
     if (theme != null) {
       switch (theme) {
         case 'light':
-          _theme = Themes.lightTheme;
           break;
         case 'dark':
-          _theme = Themes.darkTheme;
           break;
         default:
-          _theme = Themes.lightTheme;
           break;
       }
     }
-
-    _language = Languages.english;
   }
 
   Widget notifications() {
@@ -478,31 +457,6 @@ class _SettingsViewState extends State<SettingsView> {
     );
   }
 
-  Future<void> _launchEmail(String action) async {
-    action = action.trim().toLowerCase();
-
-    switch (action) {
-      case 'feedback':
-        final _emailFeedbackUri = Uri(
-                scheme: 'mailto',
-                path: '${Links.airqoFeedbackEmail}',
-                queryParameters: {'subject': 'Mobile\bApplication\bFeedback!'})
-            .toString();
-
-        try {
-          await canLaunch(_emailFeedbackUri)
-              ? await launch(_emailFeedbackUri)
-              : throw Exception(
-                  'Could not launch faqs, try opening $_emailFeedbackUri');
-        } catch (e) {
-          print(e);
-        }
-        return;
-      default:
-        return;
-    }
-  }
-
   Future<void> _launchURL(String page) async {
     page = page.trim().toLowerCase();
 
@@ -589,26 +543,6 @@ class _SettingsViewState extends State<SettingsView> {
       }
     } catch (e) {
       print(e);
-    }
-  }
-
-  Future<void> _onLanguageValueChange(Languages value) async {
-    setState(() {
-      _language = value;
-    });
-  }
-
-  Future<void> _onThemeValueChange(Themes value) async {
-    setState(() {
-      _theme = value;
-    });
-
-    var prefs = await SharedPreferences.getInstance();
-
-    if (value == Themes.lightTheme) {
-      await prefs.setString(PrefConstant.appTheme, 'light');
-    } else {
-      await prefs.setString(PrefConstant.appTheme, 'dark');
     }
   }
 }
