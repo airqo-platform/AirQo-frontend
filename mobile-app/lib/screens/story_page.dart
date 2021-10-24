@@ -23,6 +23,7 @@ class _StoryPageState extends State<StoryPage> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
+        centerTitle: true,
         elevation: 0,
         leading: BackButton(color: ColorConstants.appColor),
         title: Text(

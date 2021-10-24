@@ -116,7 +116,6 @@ class _BlogPageState extends State<BlogPage> {
                       ),
                     ),
                   ),
-
                   title: Text('${stories[index].title}',
                       overflow: TextOverflow.ellipsis,
                       maxLines: 3,
@@ -131,9 +130,6 @@ class _BlogPageState extends State<BlogPage> {
                         fontSize: 12,
                         color: ColorConstants.appColor,
                       )),
-                  // trailing: const Icon(
-                  //   Icons.arrow_forward_ios
-                  // ),
                 ),
               ),
               itemCount: stories.length,
@@ -185,7 +181,6 @@ class _BlogPageState extends State<BlogPage> {
                       ),
                     ),
                   ),
-
                   title: Text('${stories[index].title}',
                       overflow: TextOverflow.ellipsis,
                       maxLines: 3,
@@ -200,9 +195,6 @@ class _BlogPageState extends State<BlogPage> {
                         fontSize: 12,
                         color: ColorConstants.appColor,
                       )),
-                  // trailing: const Icon(
-                  //   Icons.arrow_forward_ios
-                  // ),
                 ),
               ),
               itemCount: stories.length,

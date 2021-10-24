@@ -20,6 +20,17 @@
 	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.702081712633-t3gq0rinig9v0ds4ilnp79r42m9nbb28</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSApplicationQueriesSchemes</key>
@@ -38,10 +49,6 @@
 	</dict>
 	<key>NSCameraUsageDescription</key>
 	<string>Accessing your camera enables us take a picture for your profile</string>
-    <key>NSPhotoLibraryUsageDescription</key>
-    <string>Upload images for screen background</string>
-    <key>NSMicrophoneUsageDescription</key>
-    <string>Post videos to profile</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>Turning on location services allows us to show you the air quality of your surroundings while open and running in the background?</string>
 	<key>NSLocationAlwaysUsageDescription</key>
@@ -52,6 +59,8 @@
 	<string>Turning on location services allows us to show you the air quality of your surroundings</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Can I use the mic please?</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Upload images for screen background</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>

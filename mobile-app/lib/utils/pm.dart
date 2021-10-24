@@ -33,20 +33,21 @@ List<Recommendation> getHealthRecommendations(double pm2_5) {
     recommendations.add(Recommendation(
         'Great air here today! Zero air pollution, Zero worries',
         'assets/images/community.png',
-        ColorConstants.green.withOpacity(0.2)));
+        ColorConstants.green));
   } else if (pm2_5 >= 12.1 && pm2_5 <= 35.49) {
     //moderate
     recommendations
       ..add(Recommendation(
           'Unusually sensitive people should'
-              ' consider reducing prolonged or heavy exertion.',
+              ' consider reducing prolonged or '
+              'intense outdoor activities.',
           'assets/images/pregnant-woman.png',
-          ColorConstants.green.withOpacity(0.2)))
+          ColorConstants.yellow))
       ..add(Recommendation(
           'The elderly and children '
               'are the groups most at risk.',
           'assets/images/old.png',
-          ColorConstants.green.withOpacity(0.2)));
+          ColorConstants.yellow));
   } else if (pm2_5 >= 35.5 && pm2_5 <= 55.49) {
     //sensitive
     recommendations
@@ -54,11 +55,12 @@ List<Recommendation> getHealthRecommendations(double pm2_5) {
           'The elderly and children '
               'should limit prolonged exertion.',
           'assets/images/baby.png',
-          ColorConstants.green.withOpacity(0.2)))
+          ColorConstants.orange))
       ..add(Recommendation(
-          'Sensitive people should reduce prolonged or heavy exertion.',
+          'Sensitive people should reduce prolonged or '
+              'intense outdoor activities.',
           'assets/images/pregnant-woman.png',
-          ColorConstants.green.withOpacity(0.2)));
+          ColorConstants.orange));
   } else if (pm2_5 >= 55.5 && pm2_5 <= 150.49) {
     // unhealthy
     recommendations
@@ -66,9 +68,9 @@ List<Recommendation> getHealthRecommendations(double pm2_5) {
           'People with respiratory or heart disease,'
               ' the elderly and children should avoid prolonged exertion.',
           'assets/images/old.png',
-          ColorConstants.green.withOpacity(0.2)))
+          ColorConstants.red))
       ..add(Recommendation('Everyone else should limit prolonged exertion.',
-          'assets/images/cycling.png', ColorConstants.green.withOpacity(0.2)));
+          'assets/images/cycling.png', ColorConstants.red));
   } else if (pm2_5 >= 150.5 && pm2_5 <= 250.49) {
     // very unhealthy
     recommendations
@@ -76,9 +78,9 @@ List<Recommendation> getHealthRecommendations(double pm2_5) {
           'People with respiratory or heart disease, '
               'the elderly and children should avoid any outdoor activity',
           'assets/images/baby.png',
-          ColorConstants.green.withOpacity(0.2)))
+          ColorConstants.purple))
       ..add(Recommendation('Everyone else should limit prolonged exertion.',
-          'assets/images/jogging.png', ColorConstants.green.withOpacity(0.2)));
+          'assets/images/jogging.png', ColorConstants.purple));
   } else if (pm2_5 >= 250.5) {
     // hazardous
     recommendations.add(Recommendation(
@@ -86,7 +88,7 @@ List<Recommendation> getHealthRecommendations(double pm2_5) {
             'People with respiratory or heart disease,'
             ' the elderly and children should remain indoors.',
         'assets/images/face-mask.png',
-        ColorConstants.purple));
+        ColorConstants.maroon));
   } else {}
 
   return recommendations;

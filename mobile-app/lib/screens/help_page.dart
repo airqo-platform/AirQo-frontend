@@ -28,24 +28,7 @@ class HelpPage extends StatelessWidget {
                 'AQI',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
               )),
-              Tab(
-                  // child: Material(
-                  //   type: MaterialType.transparency,
-                  //   child: RichText(
-                  //       text: TextSpan(
-                  //         style: DefaultTextStyle.of(context).style,
-                  //         children: <TextSpan>[
-                  //           TextSpan(
-                  //             text: 'PM',
-                  //             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
-                  //           ),
-                  //           TextSpan(
-                  //             text: '2.5',
-                  //             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 10),
-                  //           )
-                  //         ],
-                  //       )),
-                  // )
+              const Tab(
                   child: Text(
                 'PM2.5',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),

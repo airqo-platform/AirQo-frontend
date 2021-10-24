@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:app/providers/LocalProvider.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/services/fb_notifications.dart';
@@ -20,6 +22,8 @@ import 'themes/dark_theme.dart';
 import 'themes/light_theme.dart';
 
 Future<void> main() async {
+  HttpOverrides.global = MyHttpOverrides();
+
   SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
     systemNavigationBarColor: ColorConstants.appColor,
     statusBarColor: Colors.white,
@@ -94,6 +98,15 @@ class AirQoApp extends StatelessWidget {
       default:
         return lightTheme();
     }
+  }
+}
+
+class MyHttpOverrides extends HttpOverrides {
+  @override
+  HttpClient createHttpClient(SecurityContext? context) {
+    return super.createHttpClient(context)
+      ..badCertificateCallback =
+          (X509Certificate cert, String host, int port) => true;
   }
 }
 

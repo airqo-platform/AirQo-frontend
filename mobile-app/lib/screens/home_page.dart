@@ -1,5 +1,4 @@
 import 'package:app/constants/app_constants.dart';
-import 'package:app/on_boarding/onBoarding_page.dart';
 import 'package:app/screens/map_page.dart';
 import 'package:app/screens/ranking_page.dart';
 import 'package:app/screens/search_location_page.dart';
@@ -13,7 +12,6 @@ import 'package:camera/camera.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import 'blog_page.dart';
 import 'dashboard_page.dart';
@@ -28,26 +26,18 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  static const TextStyle optionStyle =
-      TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
   final PageController _pageCtrl = PageController(initialPage: 0);
   String title = '${AppConfig.name}';
   bool showAddPlace = true;
   DateTime? exitTime;
 
   double selectedPage = 0;
-  int _selectedIndex = 0;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
-        // title: Text(title,
-        //     style: const TextStyle(
-        //       color: Colors.white,
-        //       fontWeight: FontWeight.bold,
-        //     )),
         backgroundColor: ColorConstants.appBarBgColor,
         elevation: 0,
         title: Text(
@@ -79,19 +69,6 @@ class _HomePageState extends State<HomePage> {
             ),
             onSelected: (value) => {navigateToMenuItem(value)},
             itemBuilder: (context) => <PopupMenuEntry<String>>[
-              // PopupMenuItem<String>(
-              //   value: 'My Places',
-              //   child: ListTile(
-              //     leading: Icon(
-              //       Icons.favorite_outlined,
-              //       color: ColorConstants.appColor,
-              //     ),
-              //     title: Text('My Places',
-              //         style: TextStyle(
-              //           color: ColorConstants.appColor,
-              //         )),
-              //   ),
-              // ),
               PopupMenuItem<String>(
                 textStyle: TextStyle(
                   color: ColorConstants.appColor,
@@ -108,45 +85,6 @@ class _HomePageState extends State<HomePage> {
                       )),
                 ),
               ),
-              // PopupMenuItem<String>(
-              //   value: 'Faqs',
-              //   child: ListTile(
-              //     leading: Icon(
-              //       Icons.help_outline_outlined,
-              //       color: ColorConstants.appColor,
-              //     ),
-              //     title: Text('Faqs',
-              //         style: TextStyle(
-              //           color: ColorConstants.appColor,
-              //         )),
-              //   ),
-              // ),
-              // PopupMenuItem<String>(
-              //   value: 'Feedback',
-              //   child: ListTile(
-              //     leading: Icon(
-              //       Icons.feedback_outlined,
-              //       color: ColorConstants.appColor,
-              //     ),
-              //     title: Text('Feedback',
-              //         style: TextStyle(
-              //           color: ColorConstants.appColor,
-              //         )),
-              //   ),
-              // ),
-              // PopupMenuItem<String>(
-              //   value: 'camera',
-              //   child: ListTile(
-              //     leading: Icon(
-              //       Icons.camera_alt_outlined,
-              //       color: ColorConstants.appColor,
-              //     ),
-              //     title: Text('AQI Camera',
-              //         style: TextStyle(
-              //           color: ColorConstants.appColor,
-              //         )),
-              //   ),
-              // ),
               PopupMenuItem<String>(
                 value: 'settings',
                 child: ListTile(
@@ -192,8 +130,6 @@ class _HomePageState extends State<HomePage> {
                 flex: 1,
               ),
               IconButton(
-                // iconSize: 30.0,
-                // padding: const EdgeInsets.only(left: 28.0),
                 icon: Icon(Icons.home_outlined,
                     color: selectedPage == 0
                         ? ColorConstants.appColor
@@ -293,18 +229,7 @@ class _HomePageState extends State<HomePage> {
               child: FaIcon(
                 FontAwesomeIcons.map,
                 color: ColorConstants.appColor,
-              )
-              // child: Image.asset(
-              //   'assets/images/world-map.png',
-              //   // height: 10,
-              //   // width: 10,
-              // ),
-              // child: const Icon(
-              //   Icons.public_sharp,
-              //   color: Colors.white,
-              // ),
-              // elevation: 5.0,
-              ),
+              )),
         ),
       ),
     );
@@ -441,27 +366,6 @@ class _HomePageState extends State<HomePage> {
     }));
   }
 
-  Future<void> _displayOnBoarding() async {
-    var prefs = await SharedPreferences.getInstance();
-    var isFirstUse = prefs.getBool(PrefConstant.firstUse) ?? true;
-
-    if (isFirstUse) {
-      await Navigator.pushAndRemoveUntil(context,
-          MaterialPageRoute(builder: (context) {
-        return OnBoardingPage();
-      }), (r) => false);
-    }
-  }
-
-  Future<void> _getHistoricalMeasurements() async {
-    await AirqoApiClient(context)
-        .fetchHistoricalMeasurements()
-        .then((value) => {
-              if (value.isNotEmpty)
-                {DBHelper().insertHistoricalMeasurements(value)}
-            });
-  }
-
   void _getLatestMeasurements() async {
     await AirqoApiClient(context).fetchLatestMeasurements().then((value) => {
           if (value.isNotEmpty) {DBHelper().insertLatestMeasurements(value)}
@@ -470,11 +374,5 @@ class _HomePageState extends State<HomePage> {
 
   void _handleMessage(RemoteMessage message) {
     print(message.data);
-  }
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
   }
 }

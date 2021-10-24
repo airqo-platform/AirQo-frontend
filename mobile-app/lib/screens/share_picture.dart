@@ -49,14 +49,6 @@ class TakePictureState extends State<TakePicture> {
             return Center(
               child: CameraPreview(_controller),
             );
-            // return Center(
-            //   child:Transform.scale(
-            //     scale: _controller.value.aspectRatio/phoneRatio,
-            //     child: AspectRatio(
-            //       aspectRatio: _controller.value.aspectRatio,
-            //       child: CameraPreview(_controller),
-            //     ),
-            //   ),);
           } else {
             return Center(
                 child: CircularProgressIndicator(

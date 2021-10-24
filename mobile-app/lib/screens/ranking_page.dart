@@ -6,7 +6,6 @@ import 'package:app/services/local_storage.dart';
 import 'package:app/services/rest_api.dart';
 import 'package:app/utils/pm.dart';
 import 'package:app/utils/share.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 class RankingPage extends StatefulWidget {
@@ -19,6 +18,7 @@ class _RankingPageState extends State<RankingPage> {
   var measurements = <Measurement>[];
   var order = 1;
   var pollutant = 'pm2.5';
+  String dropdownValue = 'Best';
 
   @override
   Widget build(BuildContext context) {
@@ -149,20 +149,46 @@ class _RankingPageState extends State<RankingPage> {
                       ),
                     ),
                     Card(
-                      elevation: 2,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(150),
-                      ),
-                      child: IconButton(
-                        onPressed: () {
-                          setState(() {
-                            order = -order;
-                          });
-                          setRankings(measurements);
-                        },
-                        icon: Icon(Icons.sort, color: ColorConstants.appColor),
-                      ),
-                    ),
+                        elevation: 2,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.only(left: 5, right: 5),
+                          child: DropdownButton<String>(
+                            value: dropdownValue,
+                            icon: Icon(Icons.arrow_drop_down,
+                                color: dropdownValue == 'Best'
+                                    ? ColorConstants.green
+                                    : ColorConstants.red),
+                            iconSize: 24,
+                            elevation: 16,
+                            style: TextStyle(color: ColorConstants.appColor),
+                            underline: Container(
+                                height: 2,
+                                color: dropdownValue == 'Best'
+                                    ? ColorConstants.green
+                                    : ColorConstants.red),
+                            onChanged: (String? newValue) {
+                              setState(() {
+                                dropdownValue = newValue!;
+                                setState(() {
+                                  order = -order;
+                                });
+                                setRankings(measurements);
+                              });
+                            },
+                            items: <String>['Best', 'Worst']
+                                .map<DropdownMenuItem<String>>((String value) {
+                              return DropdownMenuItem<String>(
+                                  value: value,
+                                  child: Padding(
+                                    padding: EdgeInsets.all(2),
+                                    child: Text(value),
+                                  ));
+                            }).toList(),
+                          ),
+                        )),
                   ],
                 ),
               ),

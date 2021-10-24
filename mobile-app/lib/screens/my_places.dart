@@ -28,6 +28,7 @@ class _MyPlacesState extends State<MyPlaces> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        centerTitle: true,
         backgroundColor: ColorConstants.appBarBgColor,
         leading: BackButton(color: ColorConstants.appColor),
         elevation: 0.0,
@@ -289,30 +290,6 @@ class _MyPlacesState extends State<MyPlaces> {
                           );
                         }
                       }))),
-      // floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-      // floatingActionButton: FloatingActionButton(
-      //   // isExtended: true,
-      //   backgroundColor: ColorConstants.appColor,
-      //   onPressed: () {
-      //     setState(() {
-      //       if (isSearching) {
-      //         setState(() {
-      //           isSearching = false;
-      //           searchController.clear();
-      //           searchResults.clear();
-      //         });
-      //       } else {
-      //         setState(() {
-      //           isSearching = true;
-      //           searchController.clear();
-      //           searchResults.clear();
-      //         });
-      //       }
-      //     });
-      //   },
-      //   // isExtended: true,
-      //   child: const Icon(Icons.search_outlined),
-      // ),
     );
   }
 

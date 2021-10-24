@@ -59,17 +59,6 @@ class _SettingsPageState extends State<SettingsPage> {
                         endIndent: 30,
                         color: ColorConstants.appColor,
                       ),
-                      // Divider(
-                      //   indent: 30,
-                      //   endIndent: 30,
-                      //   color: ColorConstants.appColor,
-                      // ),
-                      // reports(),
-                      // Divider(
-                      //   indent: 30,
-                      //   endIndent: 30,
-                      //   color: ColorConstants.appColor,
-                      // ),
                       supportSection(),
                       footerSection()
                     ],
@@ -326,29 +315,6 @@ class _SettingsPageState extends State<SettingsPage> {
             'Notifications',
             style: headerStyle(),
           ),
-          // ListTile(
-          //   title: const Text('Persistent Notifications'),
-          //   subtitle: const Text('Display persistent notifications '
-          //       'in the notification tray'),
-          //   trailing: Switch(
-          //     value: _persistentNotification,
-          //     activeColor: ColorConstants.appColor,
-          //     activeTrackColor: ColorConstants.appColor.withOpacity(0.6),
-          //     inactiveThumbColor: Colors.white,
-          //     inactiveTrackColor: Colors.black12,
-          //     onChanged: (bool value) {
-          //       if(value){
-          //         showNotification(persistentNotificationId);
-          //       }
-          //       else{
-          //         cancelNotification(persistentNotificationId);
-          //       }
-          //       setState(() {
-          //         _persistentNotification = value;
-          //       });
-          //     },
-          //   ),
-          // ),
           ListTile(
             title: const Text('Smart Notifications'),
             subtitle: const Text('Receive air pollution alerts and '
@@ -841,73 +807,6 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
             ),
           ),
-          // InkWell(
-          //   onTap: () {
-          //     showDialog(
-          //         context: context,
-          //         builder: (context) {
-          //           return ChangeThemeDialog(
-          //             onValueChange: _onThemeValueChange,
-          //             initialValue: _theme,
-          //           );
-          //         });
-          //   },
-          //   child: ListTile(
-          //     title: const Text('Appearance'),
-          //     leading: FaIcon(
-          //       FontAwesomeIcons.paintRoller,
-          //       color: ColorConstants.appColor,
-          //     ),
-          //     trailing: Icon(
-          //       Icons.arrow_forward_ios_rounded,
-          //       color: ColorConstants.appColor,
-          //     ),
-          //   ),
-          // ),
-          // InkWell(
-          //   onTap: () {
-          //     showDialog(
-          //         context: context,
-          //         builder: (context) {
-          //           return ChangeLanguageDialog(
-          //             onValueChange: _onLanguageValueChange,
-          //             initialValue: _language,
-          //           );
-          //         });
-          //   },
-          //   child: ListTile(
-          //     title: const Text('Language'),
-          //     leading: FaIcon(
-          //       FontAwesomeIcons.language,
-          //       color: ColorConstants.appColor,
-          //     ),
-          //     trailing: Icon(
-          //       Icons.arrow_forward_ios_rounded,
-          //       color: ColorConstants.appColor,
-          //     ),
-          //   ),
-          // ),
-          // const ListTile(
-          //   title: Text('System Permissions'),
-          // ),
-          // InkWell(
-          //   onTap: () {
-          //     showDialog(
-          //         context: context,
-          //         builder: (context) {
-          //           return ClearAppDialog();
-          //         });
-          //   },
-          //   child: ListTile(
-          //     title: const Text('Clear All Data'),
-          //     leading: Icon(
-          //       Icons.delete,
-          //       color: ColorConstants.appColor,
-          //     ),
-          //     subtitle: const Text('Clear all saved data including saved '
-          //         'places and preferences'),
-          //   ),
-          // ),
         ],
       ),
     );
@@ -1031,15 +930,6 @@ class _SettingsPageState extends State<SettingsPage> {
     setState(() {
       _language = value;
     });
-
-    // var prefs = await SharedPreferences.getInstance();
-    //
-    // if(value == Themes.lightTheme){
-    //   await prefs.setString(appTheme, 'light');
-    // }
-    // else{
-    //   await prefs.setString(appTheme, 'dark');
-    // }
   }
 
   Future<void> _onThemeValueChange(Themes value) async {
