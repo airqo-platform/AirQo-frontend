@@ -187,7 +187,14 @@ class Login extends Component {
                     helperText={errors.password || errors.passwordincorrect}
                   />
 
-                  <div className="col s12" style={{ paddingLeft: "11.250px" }}>
+                  <div
+                    className="col s12"
+                    style={{
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                    }}
+                  >
                     <button
                       style={{
                         width: "150px",
@@ -196,14 +203,22 @@ class Login extends Component {
                         marginTop: "1rem",
                       }}
                       type="submit"
-                      className="btn btn-large waves-effect waves-light hoverable blue accent-3"
+                      className="btn waves-effect waves-light hoverable blue accent-3"
                       disabled={this.state.loading}
                     >
                       Login
                     </button>
                   </div>
                 </form>
-                <div className="col s12" style={{ paddingTop: "20px" }}>
+                <div
+                  className="col s12"
+                  style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    marginTop: "5px",
+                  }}
+                >
                   <Link to="/forgot"> Forgotten Password?</Link>
                 </div>
               </div>
