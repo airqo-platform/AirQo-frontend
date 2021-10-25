@@ -124,7 +124,8 @@ class _DashboardViewState extends State<DashboardView> {
               onRefresh: initialize,
               color: ColorConstants.appColor,
               child: Padding(
-                padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 24),
+                padding:
+                    const EdgeInsets.only(left: 16.0, right: 16.0, top: 24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
@@ -378,8 +379,8 @@ class _DashboardViewState extends State<DashboardView> {
                   onTap: () async {
                     var response = await Navigator.push(context,
                         MaterialPageRoute(builder: (context) {
-                          return const TipsPage();
-                        }));
+                      return const TipsPage();
+                    }));
                     if (response == null) {
                       await initialize();
                     } else {
@@ -394,7 +395,6 @@ class _DashboardViewState extends State<DashboardView> {
                         fontWeight: FontWeight.bold,
                       )),
                 ),
-
                 const SizedBox(
                   height: 28,
                 ),
@@ -479,8 +479,8 @@ class _DashboardViewState extends State<DashboardView> {
             onTap: () async {
               var response = await Navigator.push(context,
                   MaterialPageRoute(builder: (context) {
-                    return const TipsPage();
-                  }));
+                return const TipsPage();
+              }));
               if (response == null) {
                 await initialize();
               } else {
@@ -497,7 +497,6 @@ class _DashboardViewState extends State<DashboardView> {
               ),
             ),
           ),
-
         ],
       ),
     );
@@ -526,14 +525,13 @@ class _DashboardViewState extends State<DashboardView> {
               onTap: () async {
                 var response = await Navigator.push(context,
                     MaterialPageRoute(builder: (context) {
-                      return const SearchPage();
-                    }));
+                  return const SearchPage();
+                }));
                 if (response == null) {
                   await initialize();
                 } else {
                   await initialize();
                 }
-
               },
               child: SvgPicture.asset(
                 'assets/icon/search.svg',
@@ -565,12 +563,12 @@ class _DashboardViewState extends State<DashboardView> {
                   onTap: () async {
                     var response = await Navigator.push(context,
                         MaterialPageRoute(builder: (context) {
-                          if (favouritePlaces.isEmpty) {
-                            return const SearchPage();
-                          } else {
-                            return const FavouritePlaces();
-                          }
-                        }));
+                      if (favouritePlaces.isEmpty) {
+                        return const SearchPage();
+                      } else {
+                        return const FavouritePlaces();
+                      }
+                    }));
                     if (response == null) {
                       await initialize();
                     } else {

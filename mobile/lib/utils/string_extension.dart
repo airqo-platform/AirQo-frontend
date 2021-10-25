@@ -7,6 +7,19 @@ extension StringCasingExtension on String {
     }
   }
 
+  bool isNull() {
+    if (this == null ||
+        isEmpty ||
+        length == 0 ||
+        this == '' ||
+        toLowerCase() == 'null' ||
+        toLowerCase().contains('null')) {
+      return true;
+    }
+
+    return false;
+  }
+
   String toTitleCase() =>
       split(' ').map((str) => str.toCapitalized()).join(' ');
 }

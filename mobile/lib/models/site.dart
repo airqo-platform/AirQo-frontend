@@ -55,26 +55,17 @@ class Site {
   }
 
   String getName() {
-    if (description == '' ||
-        description.trim().toLowerCase() == 'null' ||
-        description.trim().toLowerCase().contains('null')) {
-      if (name == '' ||
-          name.trim().toLowerCase() == 'null' ||
-          name.trim().toLowerCase().contains('null')) {
+    if (name.isNull()) {
+      if (description.isNull()) {
         return getLocation();
       }
-      return name.toTitleCase();
+      return description.toTitleCase();
     }
-    return description.toTitleCase();
+    return name.toTitleCase();
   }
 
   String getUserLocation() {
-    if (userLocation == null) {
-      return getName();
-    }
-    if (userLocation == '' ||
-        userLocation.trim().toLowerCase() == 'null' ||
-        userLocation.trim().toLowerCase().contains('null')) {
+    if (userLocation.isNull()) {
       return getName();
     }
     return userLocation.toTitleCase();

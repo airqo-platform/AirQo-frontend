@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/historicalMeasurement.dart';
 import 'package:app/models/site.dart';
@@ -7,6 +9,7 @@ import 'package:app/utils/date.dart';
 import 'package:app/utils/pm.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 
 import 'custom_shimmer.dart';
 import 'custom_widgets.dart';
@@ -33,6 +36,10 @@ class _InsightsCardState extends State<InsightsCard> {
   final ScrollController _scrollController = ScrollController();
   String viewDay = 'today';
   final callBackFn;
+
+  // num _sliderDomainValue;
+  // String _sliderDragState;
+  // Point<int> _sliderPosition;
 
   _InsightsCardState(this.site, this.callBackFn, this.pollutant);
 
@@ -213,6 +220,10 @@ class _InsightsCardState extends State<InsightsCard> {
               //   desiredMaxRows: 2,
               //   cellPadding: const EdgeInsets.only(right: 4.0, bottom: 4.0),
               // ),
+
+              charts.Slider(
+                  initialDomainValue: chartData.first.data[0].formattedTime,
+                  onChangeCallback: _onSliderChange),
               charts.DomainHighlighter(),
               charts.SelectNearest(
                   eventTrigger: charts.SelectionTrigger.tapAndDrag),
@@ -281,5 +292,23 @@ class _InsightsCardState extends State<InsightsCard> {
         viewDay = 'tomorrow';
       });
     }
+  }
+
+  _onSliderChange(Point<int> point, dynamic domain, String roleId,
+      charts.SliderListenerDragState dragState) {
+    print(point);
+    print(domain);
+    print(roleId);
+    print(dragState.toString());
+
+    // void rebuild(_) {
+    //   setState(() {
+    //     _sliderDomainValue = (domain * 10).round() / 10;
+    //     _sliderDragState = dragState.toString();
+    //     _sliderPosition = point;
+    //   });
+    // }
+    //
+    // SchedulerBinding.instance!.addPostFrameCallback(rebuild);
   }
 }

@@ -129,16 +129,16 @@ class SignUpPageState extends State<SignUpPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        resizeToAvoidBottomInset: false,
+        // resizeToAvoidBottomInset: false,
         body: WillPopScope(
-          onWillPop: onWillPop,
-          child: Container(
-            padding: const EdgeInsets.only(left: 24, right: 24),
-            child: Center(
-              child: getWidget(),
-            ),
-          ),
-        ));
+      onWillPop: onWillPop,
+      child: Container(
+        padding: const EdgeInsets.only(left: 24, right: 24),
+        child: Center(
+          child: getWidget(),
+        ),
+      ),
+    ));
   }
 
   Widget cancelWidget() {
@@ -493,7 +493,7 @@ class SignUpPageState extends State<SignUpPage> {
   Widget phoneSignUpWidget() {
     return Form(
         key: _phoneFormKey,
-        child: Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
+        child: ListView(children: [
           const SizedBox(
             height: 42,
           ),
@@ -545,7 +545,9 @@ class SignUpPageState extends State<SignUpPage> {
           //   },
           //   child: signButton('Sign up with email instead'),
           // ),
-          const Spacer(),
+          const SizedBox(
+            height: 212,
+          ),
           GestureDetector(
             onTap: () async {
               _phoneFormKey.currentState!.validate();
