@@ -32,7 +32,8 @@ class AqiDialog extends StatelessWidget {
       ' members of sensitive groups may experience more serious health effect'
       '\n\n'
       '- Everyone should avoid all physical activity outdoors. \n\n'
-      '- Sensitive people should avoid prolonged or heavy exertion.\n\n'
+      '- Sensitive people should avoid prolonged or intense outdoor activities '
+      'activities .\n\n'
       '- Consider moving activities indoors or rescheduling.';
 
   final String veryUnhealthy = 'Health warnings of emergency conditions. '
@@ -45,7 +46,7 @@ class AqiDialog extends StatelessWidget {
   final String hazardous =
       'Health alert: everyone may experience more serious health effect'
       '\n\n'
-      '- Everyone should avoid all physical activities outdoor ';
+      '- Everyone should avoid all physical outdoor activities';
 
   final Widget whatIsAQI = Container(
       color: ColorConstants.appBodyColor,

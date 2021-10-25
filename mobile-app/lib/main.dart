@@ -22,7 +22,7 @@ import 'themes/dark_theme.dart';
 import 'themes/light_theme.dart';
 
 Future<void> main() async {
-  HttpOverrides.global = MyHttpOverrides();
+  HttpOverrides.global = AppHttpOverrides();
 
   SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
     systemNavigationBarColor: ColorConstants.appColor,
@@ -101,7 +101,7 @@ class AirQoApp extends StatelessWidget {
   }
 }
 
-class MyHttpOverrides extends HttpOverrides {
+class AppHttpOverrides extends HttpOverrides {
   @override
   HttpClient createHttpClient(SecurityContext? context) {
     return super.createHttpClient(context)

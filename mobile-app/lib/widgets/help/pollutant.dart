@@ -13,7 +13,7 @@ class PollutantDialog extends StatelessWidget {
     return Container(
       color: ColorConstants.appBodyColor,
       child: Padding(
-          padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
+          padding: const EdgeInsets.fromLTRB(10, 0, 10, 35),
           child: Column(
             children: [
               Expanded(
@@ -21,7 +21,7 @@ class PollutantDialog extends StatelessWidget {
                   children: [whatIs()],
                 ),
               ),
-              reference()
+              reference(),
             ],
           )),
     );

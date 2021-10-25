@@ -91,7 +91,7 @@ List<Recommendation> getHealthRecommendations(double pm2_5) {
   } else if (pm2_5 >= 250.5) {
     // hazardous
     recommendations.add(Recommendation(
-        'Everyone should avoid any outdoor exertion. '
+        'Everyone should avoid any intense outdoor activities . '
             'People with respiratory or heart disease,'
             ' the elderly and children should remain indoors.',
         'assets/images/face-mask.png',
