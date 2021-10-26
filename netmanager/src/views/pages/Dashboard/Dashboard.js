@@ -74,7 +74,10 @@ const Dashboard = () => {
     };
     recentEventsData.features &&
       recentEventsData.features.map((feature) => {
-        const pm2_5 = feature.properties.pm2_5.value;
+        const pm2_5 =
+          feature.properties &&
+          feature.properties.pm2_5 &&
+          feature.properties.pm2_5.value;
         Object.keys(PM_25_CATEGORY).map((key) => {
           const valid = PM_25_CATEGORY[key];
           if (pm2_5 > valid[0] && pm2_5 <= valid[1]) {
