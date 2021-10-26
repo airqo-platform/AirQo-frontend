@@ -12,15 +12,16 @@ import { CardContent } from "@material-ui/core";
 import Grid from "@material-ui/core/Grid";
 import AlertMinimal from "../../layouts/AlertsMininal";
 import { updateMainAlert } from "redux/MainAlert/operations";
+import TextField from "@material-ui/core/TextField";
 
 const title = {
   pageTitle: "Forgot Password Screen",
 };
 
 class ForgotPassword extends Component {
-  constructor() {
-    super();
-
+  constructor(props) {
+    super(props);
+    this.tenant = this.props.match.params.tenant || "airqo";
     this.state = {
       email: "",
       organisation: "",
@@ -73,7 +74,7 @@ class ForgotPassword extends Component {
     const { email, organisation } = this.state;
     const userData = {
       email,
-      organisation,
+      organisation: this.tenant,
     };
 
     await forgotPasswordResetApi(userData)
@@ -138,41 +139,26 @@ class ForgotPassword extends Component {
                           {this.state.alert.message}
                         </Alert>
                       </CardContent>
-                      <div className="input-field col s12">
-                        <input
-                          onChange={this.onChange}
-                          value={this.state.organisation}
-                          error={errors.organisation}
-                          id="organisation"
-                          type="text"
-                          className={classnames("", {
-                            invalid: errors.organisation,
-                          })}
-                        />
-                        <label htmlFor="organisation">Organisation</label>
-                        <span className="red-text">
-                          {errors.email}
-                          {errors.emailnotfound}
-                        </span>
+                      <div style={{padding: "5px"}}>
+                        <TextField
+                        onChange={this.onChange}
+                        value={this.state.email}
+                        error={!!errors.email}
+                        id="email"
+                        type="email"
+                        label="Email"
+                        fullWidth
+                        margin="normal"
+                        variant="outlined"
+                        helperText={errors.email}
+                      />
                       </div>
-                      <div className="input-field col s12">
-                        <input
-                          onChange={this.onChange}
-                          value={this.state.email}
-                          error={errors.email}
-                          id="email"
-                          type="email"
-                          className={classnames("", {
-                            invalid: errors.email || errors.emailnotfound,
-                          })}
-                        />
-                        <label htmlFor="email">Email</label>
-                        <span className="red-text">
-                          {errors.email}
-                          {errors.emailnotfound}
-                        </span>
-                      </div>
-                      <div className="col s12" style={{ paddingLeft: "11.250px" }}>
+
+                      <div className="col s12" style={{
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center", }}
+                      >
                         <button
                           style={{
                             borderRadius: "3px",
@@ -180,13 +166,19 @@ class ForgotPassword extends Component {
                             marginTop: "1rem",
                           }}
                           type="submit"
-                          className="btn btn-large waves-effect waves-light hoverable blue accent-3"
+                          className="btn waves-effect waves-light hoverable blue accent-3"
                         >
                           email me a link
                         </button>
                       </div>
                     </form>
-                    <div className="col s12" style={{ paddingTop: "20px" }}>
+                    <div className="col s12" style={{
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        marginTop: "5px",
+                      }}
+                    >
                       <Link to="/login"> Login?</Link>
                     </div>
                   </div>
