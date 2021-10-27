@@ -11,6 +11,8 @@ import ASAP from 'icons/homepage/partners/ASAP.svg';
 import Sensor from 'icons/homepage/sensor.svg';
 import Checked from 'icons/homepage/checked.svg';
 import UnChecked from 'icons/homepage/unchecked.svg';
+import PlaceHolderLong from 'icons/homepage/placeholder_long.svg';
+import ArrowRight from 'icons/homepage/arrow-right.svg';
 import NavTab from '../components/nav/NavTab';
 
 const Icon = ({ icon }) => (
@@ -123,10 +125,39 @@ const Newsletter = () => (
         </div>
 );
 
+const AirQoAPI = () => (
+        <div className="api-section">
+            <div className="content-api">
+                <div className="api-title">AirQo API</div>
+                <div className="api-text-main">Access air quality data through our API</div>
+                <div className="api-text-secondary">We use low-cost technologies and Artificial intelligence to close the gaps in air quality data across the African continent. </div>
+                <div className="api-demo">Request a Demo <ArrowRight width={15} height={10} style={{ marginLeft: '8px' }} /></div>
+                <div className="api-details-wrapper">
+                    <div className="api-details">
+                        <div className="api-circle-wrapper">
+                            <div className="api-circle" />
+                        </div>
+                        <div className="api-details-text-primary">We use low-cost technologies </div>
+                        <div className="api-details-text-secondary">We use low-cost technologies and Artificial intelligence to close the gaps in air quality data across the African continent. </div>
+                    </div>
+                    <div className="api-details">
+                        <div className="api-circle-wrapper">
+                            <div className="api-circle" />
+                        </div>
+                        <div className="api-details-text-primary">We use low-cost technologies </div>
+                        <div className="api-details-text-secondary">We use low-cost technologies and Artificial intelligence to close the gaps in air quality data across the African continent. </div>
+                    </div>
+                </div>
+            </div>
+            <PlaceHolderLong height={668} width={520} />
+        </div>
+);
+
 const HomePage = () => (
     <div className="HomePage">
         <Intro />
         <AirQuality />
+        <AirQoAPI />
         <Partners />
         <Newsletter />
     </div>
