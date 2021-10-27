@@ -394,7 +394,8 @@ class _SearchPageState extends State<SearchPage> {
             child: TextFormField(
               // controller: _textEditingController,
               onChanged: searchChanged,
-              maxLines: 1,
+              cursorWidth: 1,
+              cursorColor: ColorConstants.appColorBlue,
               autofocus: true,
               decoration: const InputDecoration(
                 hintText: 'Search your village air quality',

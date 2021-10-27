@@ -68,7 +68,6 @@ class _TipsPageState extends State<TipsPage> {
                               currentPage = num;
                             });
                           },
-
                           itemBuilder: (BuildContext context, int index) {
                             return slides[index] == slides[0]
                                 ? slideHeadCard()
@@ -80,77 +79,77 @@ class _TipsPageState extends State<TipsPage> {
                       const SizedBox(
                         height: 16,
                       ),
-                      Padding(padding: const EdgeInsets.only(left: 15, right: 15),
-                      child: Container(
-                          decoration: const BoxDecoration(
-                              color: Colors.white,
-                              borderRadius:
-                              BorderRadius.all(Radius.circular(8.0))),
-                          height: 60,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              TextButton(
-                                onPressed: () async {
-                                  if (currentPage != 0) {
-                                    await controller.animateToPage(
-                                        currentPage - 1,
-                                        duration:
-                                        const Duration(milliseconds: 200),
-                                        curve: Curves.bounceOut);
-                                  } else {
-                                    controller.jumpToPage(0);
-
-                                  }
-                                },
-                                style: ButtonStyle(
-                                    foregroundColor: currentPage == 0
-                                        ? MaterialStateProperty.all<Color>(
-                                        ColorConstants.greyColor)
-                                        : MaterialStateProperty.all<Color>(
-                                        ColorConstants.appColorBlue),
-                                    elevation: MaterialStateProperty.all(0)),
-                                child: const Text(
-                                  'Back',
-                                  style: TextStyle(fontSize: 14),
-                                ),
-                              ),
-                              TextButton(
-                                onPressed: () async {
-                                  if (currentPage != slides.length - 1) {
-                                    await controller.animateToPage(
-                                        currentPage + 1,
-                                        duration:
-                                        const Duration(milliseconds: 200),
-                                        curve: Curves.bounceIn);
-                                    if (controller.page != null) {
-                                      await SharedPreferences.getInstance()
-                                          .then((preferences) => {
-                                        preferences.setDouble(
-                                            PrefConstant.tipsProgress,
-                                            controller.page! / 10)
-                                      });
+                      Padding(
+                        padding: const EdgeInsets.only(left: 15, right: 15),
+                        child: Container(
+                            decoration: const BoxDecoration(
+                                color: Colors.white,
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(8.0))),
+                            height: 60,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                TextButton(
+                                  onPressed: () async {
+                                    if (currentPage != 0) {
+                                      await controller.animateToPage(
+                                          currentPage - 1,
+                                          duration:
+                                              const Duration(milliseconds: 200),
+                                          curve: Curves.bounceOut);
+                                    } else {
+                                      controller.jumpToPage(0);
                                     }
-                                  } else {
-                                    controller.jumpToPage(slides.length - 1);
-                                  }
-                                },
-                                style: ButtonStyle(
-                                    foregroundColor:
-                                    currentPage == slides.length - 1
-                                        ? MaterialStateProperty.all<Color>(
-                                        ColorConstants.greyColor)
-                                        : MaterialStateProperty.all<Color>(
-                                        ColorConstants.appColorBlue),
-                                    elevation: MaterialStateProperty.all(0)),
-                                child: const Text(
-                                  'Next',
-                                  style: TextStyle(fontSize: 14),
+                                  },
+                                  style: ButtonStyle(
+                                      foregroundColor: currentPage == 0
+                                          ? MaterialStateProperty.all<Color>(
+                                              ColorConstants.greyColor)
+                                          : MaterialStateProperty.all<Color>(
+                                              ColorConstants.appColorBlue),
+                                      elevation: MaterialStateProperty.all(0)),
+                                  child: const Text(
+                                    'Back',
+                                    style: TextStyle(fontSize: 14),
+                                  ),
                                 ),
-                              ),
-                            ],
-                          )),),
-
+                                TextButton(
+                                  onPressed: () async {
+                                    if (currentPage != slides.length - 1) {
+                                      await controller.animateToPage(
+                                          currentPage + 1,
+                                          duration:
+                                              const Duration(milliseconds: 200),
+                                          curve: Curves.bounceIn);
+                                      if (controller.page != null) {
+                                        await SharedPreferences.getInstance()
+                                            .then((preferences) => {
+                                                  preferences.setDouble(
+                                                      PrefConstant.tipsProgress,
+                                                      controller.page! / 10)
+                                                });
+                                      }
+                                    } else {
+                                      controller.jumpToPage(slides.length - 1);
+                                    }
+                                  },
+                                  style: ButtonStyle(
+                                      foregroundColor: currentPage ==
+                                              slides.length - 1
+                                          ? MaterialStateProperty.all<Color>(
+                                              ColorConstants.greyColor)
+                                          : MaterialStateProperty.all<Color>(
+                                              ColorConstants.appColorBlue),
+                                      elevation: MaterialStateProperty.all(0)),
+                                  child: const Text(
+                                    'Next',
+                                    style: TextStyle(fontSize: 14),
+                                  ),
+                                ),
+                              ],
+                            )),
+                      ),
                       const SizedBox(
                         height: 20,
                       ),

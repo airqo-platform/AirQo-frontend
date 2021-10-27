@@ -124,23 +124,28 @@ class WelcomeScreenState extends State<WelcomeScreen> {
     String svg,
   ) {
     return ListTile(
-      contentPadding: const EdgeInsets.only(left: 0.0, right: 40),
-      leading: svg == ''
-          ? CircleAvatar( backgroundColor: color,)
-          : SvgPicture.asset(svg, height: 40, width: 40,),
-      title: Text( header,
-        style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 16, color: Colors.black),
-      ),
-      subtitle: Padding(
-        padding: const EdgeInsets.only(top: 4.0),
-        child: Text( body,
-          style: TextStyle(
-              fontSize: 14,
-              color: Colors.black.withOpacity(0.5)),
+        contentPadding: const EdgeInsets.only(left: 0.0, right: 40),
+        leading: svg == ''
+            ? CircleAvatar(
+                backgroundColor: color,
+              )
+            : SvgPicture.asset(
+                svg,
+                height: 40,
+                width: 40,
+              ),
+        title: Text(
+          header,
+          style: const TextStyle(
+              fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black),
         ),
-      )
-    );
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: 4.0),
+          child: Text(
+            body,
+            style:
+                TextStyle(fontSize: 14, color: Colors.black.withOpacity(0.5)),
+          ),
+        ));
   }
 }

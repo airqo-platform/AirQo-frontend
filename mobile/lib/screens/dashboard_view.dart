@@ -109,13 +109,162 @@ class _DashboardViewState extends State<DashboardView> {
 
   final CustomAuth _customAuth = CustomAuth(FirebaseAuth.instance);
 
+  Widget actionsSection() {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16.0, 8.0, 8.0, 8.0),
+      decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.all(Radius.circular(16.0))),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            child: Column(
+              children: [
+                GestureDetector(
+                  onTap: () async {
+                    var response = await Navigator.push(context,
+                        MaterialPageRoute(builder: (context) {
+                      return const TipsPage();
+                    }));
+                    if (response == null) {
+                      await initialize();
+                    } else {
+                      await initialize();
+                    }
+                  },
+                  child: const Text(
+                      'Actions You Can Take to Reduce '
+                      'Air Pollution',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      )),
+                ),
+                const SizedBox(
+                  height: 28,
+                ),
+                GestureDetector(
+                  onTap: () async {
+                    var response = await Navigator.push(context,
+                        MaterialPageRoute(builder: (context) {
+                      return const TipsPage();
+                    }));
+                    if (response == null) {
+                      await initialize();
+                    } else {
+                      await initialize();
+                    }
+                  },
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Text('Start reading',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: ColorConstants.appColorBlue,
+                          )),
+                      const SizedBox(
+                        width: 6,
+                      ),
+                      Icon(
+                        Icons.arrow_forward_ios_sharp,
+                        size: 10,
+                        color: ColorConstants.appColorBlue,
+                      )
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(
+            width: 16,
+          ),
+          GestureDetector(
+            onTap: () async {
+              var response = await Navigator.push(context,
+                  MaterialPageRoute(builder: (context) {
+                return const TipsPage();
+              }));
+              if (response == null) {
+                await initialize();
+              } else {
+                await initialize();
+              }
+            },
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8.0),
+              child: Image.asset(
+                'assets/images/know-your-air.png',
+                width: 104,
+                height: 104,
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget appNavBar() {
+    return Container(
+      padding: const EdgeInsets.only(top: 24),
+      child: Row(
+        children: [
+          SvgPicture.asset(
+            'assets/icon/airqo_home.svg',
+            height: 40,
+            width: 58,
+            semanticsLabel: 'Search',
+          ),
+          const Spacer(),
+          Container(
+            height: 40,
+            width: 40,
+            padding: const EdgeInsets.all(10),
+            decoration: const BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.rectangle,
+                borderRadius: BorderRadius.all(Radius.circular(10.0))),
+            child: GestureDetector(
+              onTap: () async {
+                var response = await Navigator.push(context,
+                    MaterialPageRoute(builder: (context) {
+                  return const SearchPage();
+                }));
+                if (response == null) {
+                  await initialize();
+                } else {
+                  await initialize();
+                }
+              },
+              child: SvgPicture.asset(
+                'assets/icon/search.svg',
+                semanticsLabel: 'Search',
+              ),
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: topBar(),
+        automaticallyImplyLeading: false,
+        title: appNavBar(),
         elevation: 0,
-        toolbarHeight: 40,
+        toolbarHeight: 65,
         backgroundColor: ColorConstants.appBodyColor,
       ),
       body: Container(
@@ -365,10 +514,10 @@ class _DashboardViewState extends State<DashboardView> {
 
   Widget tipsSection() {
     return Container(
-      padding: const EdgeInsets.fromLTRB(8.0, 8.0, 8.0, 8.0),
+      padding: const EdgeInsets.fromLTRB(16.0, 8.0, 8.0, 8.0),
       decoration: const BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.all(Radius.circular(8.0))),
+          borderRadius: BorderRadius.all(Radius.circular(16.0))),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -488,7 +637,7 @@ class _DashboardViewState extends State<DashboardView> {
               }
             },
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(10.0),
+              borderRadius: BorderRadius.circular(8.0),
               child: Image.asset(
                 'assets/images/know-your-air.png',
                 width: 104,
@@ -502,180 +651,96 @@ class _DashboardViewState extends State<DashboardView> {
     );
   }
 
-  Widget topBar() {
-    return Container(
-      child: Row(
-        children: [
-          SvgPicture.asset(
-            'assets/icon/airqo_home.svg',
-            height: 40,
-            width: 58,
-            semanticsLabel: 'Search',
-          ),
-          const Spacer(),
-          Container(
-            height: 40,
-            width: 40,
-            padding: const EdgeInsets.all(10),
-            decoration: const BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.rectangle,
-                borderRadius: BorderRadius.all(Radius.circular(10.0))),
-            child: GestureDetector(
-              onTap: () async {
-                var response = await Navigator.push(context,
-                    MaterialPageRoute(builder: (context) {
-                  return const SearchPage();
-                }));
-                if (response == null) {
-                  await initialize();
-                } else {
-                  await initialize();
-                }
-              },
-              child: SvgPicture.asset(
-                'assets/icon/search.svg',
-                semanticsLabel: 'Search',
-              ),
-            ),
-          )
-        ],
-      ),
-    );
-  }
-
   Widget topTabs() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
         Expanded(
-            child: Tooltip(
-                margin: const EdgeInsets.only(top: 10),
-                padding: const EdgeInsets.all(5.0),
-                decoration: BoxDecoration(
-                    color: ColorConstants.appColorBlue,
-                    borderRadius: BorderRadius.circular(4.0)),
-                message: 'You will find all locations added to\nfavorite here.'
-                    ' Click to add favorite!',
-                textStyle: const TextStyle(fontSize: 6, color: Colors.white),
-                triggerMode: TooltipTriggerMode.longPress,
-                child: GestureDetector(
-                  onTap: () async {
-                    var response = await Navigator.push(context,
-                        MaterialPageRoute(builder: (context) {
-                      if (favouritePlaces.isEmpty) {
-                        return const SearchPage();
-                      } else {
-                        return const FavouritePlaces();
-                      }
-                    }));
-                    if (response == null) {
-                      await initialize();
-                    } else {
-                      await initialize();
-                    }
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.all(15.0),
-                    decoration: const BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.all(Radius.circular(5.0))),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        if (favouritePlaces.isEmpty)
-                          Container(
-                            height: 32,
-                            width: 32,
-                            decoration: BoxDecoration(
-                                color: ColorConstants.appColorBlue
-                                    .withOpacity(0.2),
-                                shape: BoxShape.circle),
-                            child: Icon(
-                              Icons.add,
-                              color: ColorConstants.appColorBlue,
-                              size: 17,
-                            ),
-                          ),
-                        if (favouritePlaces.isNotEmpty)
-                          Container(
-                            height: 32,
-                            width: 44,
-                            child: Stack(
-                              children: showFavourites(),
-                            ),
-                          ),
-                        const SizedBox(
-                          width: 8,
-                        ),
-                        Text(
-                          'Favorite',
-                          style: TextStyle(
-                            color: ColorConstants.appColorBlue,
-                          ),
-                        )
-                      ],
+            child: GestureDetector(
+          onTap: () async {
+            var response = await Navigator.push(context,
+                MaterialPageRoute(builder: (context) {
+              if (favouritePlaces.isEmpty) {
+                return const SearchPage();
+              } else {
+                return const FavouritePlaces();
+              }
+            }));
+            if (response == null) {
+              await initialize();
+            } else {
+              await initialize();
+            }
+          },
+          child: Container(
+            padding: const EdgeInsets.all(15.0),
+            decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.all(Radius.circular(8.0))),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (favouritePlaces.isEmpty)
+                  SvgPicture.asset(
+                    'assets/icon/add_avator.svg',
+                  ),
+                if (favouritePlaces.isNotEmpty)
+                  Container(
+                    height: 32,
+                    width: 44,
+                    child: Stack(
+                      children: showFavourites(),
                     ),
                   ),
-                ))),
+                const SizedBox(
+                  width: 8,
+                ),
+                Text(
+                  'Favorite',
+                  style: TextStyle(
+                      color: ColorConstants.appColorBlue,
+                      fontWeight: FontWeight.w500,
+                      fontSize: 14),
+                )
+              ],
+            ),
+          ),
+        )),
         const SizedBox(
           width: 16,
         ),
         Expanded(
-            child: Tooltip(
-                margin: const EdgeInsets.only(top: 10),
-                padding: const EdgeInsets.all(5.0),
-                decoration: BoxDecoration(
-                    color: ColorConstants.appColorBlue,
-                    borderRadius: BorderRadius.circular(4.0)),
-                message: 'You will find all location suggestions\n'
-                    'and information here. ',
-                textStyle: const TextStyle(
-                  fontSize: 6,
-                  color: Colors.white,
+            child: GestureDetector(
+          onTap: () async {
+            await Navigator.push(context, MaterialPageRoute(builder: (context) {
+              return ForYouPage();
+            }));
+          },
+          child: Container(
+            padding: const EdgeInsets.all(15.0),
+            decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.all(Radius.circular(8.0))),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SvgPicture.asset(
+                  'assets/icon/add_avator.svg',
                 ),
-                triggerMode: TooltipTriggerMode.longPress,
-                child: GestureDetector(
-                  onTap: () async {
-                    await Navigator.push(context,
-                        MaterialPageRoute(builder: (context) {
-                      return ForYouPage();
-                    }));
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.all(15.0),
-                    decoration: const BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.all(Radius.circular(5.0))),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          height: 32,
-                          width: 32,
-                          decoration: BoxDecoration(
-                              color:
-                                  ColorConstants.appColorBlue.withOpacity(0.2),
-                              shape: BoxShape.circle),
-                          child: Icon(
-                            Icons.add,
-                            color: ColorConstants.appColorBlue,
-                            size: 17,
-                          ),
-                        ),
-                        const SizedBox(
-                          width: 8,
-                        ),
-                        Text(
-                          'For You',
-                          style: TextStyle(
-                            color: ColorConstants.appColorBlue,
-                          ),
-                        )
-                      ],
-                    ),
-                  ),
-                ))),
+                const SizedBox(
+                  width: 8,
+                ),
+                Text(
+                  'For You',
+                  style: TextStyle(
+                      color: ColorConstants.appColorBlue,
+                      fontWeight: FontWeight.w500,
+                      fontSize: 14),
+                )
+              ],
+            ),
+          ),
+        )),
       ],
     );
   }
@@ -756,7 +821,7 @@ class _DashboardViewState extends State<DashboardView> {
               ),
             ),
             const Text(
-              'Current air quality',
+              'Today’s air quality',
               style: TextStyle(
                 color: Colors.black,
                 fontWeight: FontWeight.bold,
@@ -771,8 +836,11 @@ class _DashboardViewState extends State<DashboardView> {
             const SizedBox(
               height: 16,
             ),
+            actionsSection(),
+            const SizedBox(
+              height: 16,
+            ),
             tipsSection(),
-            // if (stories.isEmpty) loadingAnimation(100.0),
             const SizedBox(
               height: 12,
             ),

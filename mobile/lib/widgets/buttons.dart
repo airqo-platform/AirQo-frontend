@@ -71,7 +71,9 @@ Widget nextButton(String text, Color buttonColor) {
           textAlign: TextAlign.center,
           style: const TextStyle(color: Colors.white, fontSize: 14),
         ),
-        const SizedBox(width: 11,),
+        const SizedBox(
+          width: 11,
+        ),
         SvgPicture.asset(
           'assets/icon/next_arrow.svg',
           semanticsLabel: 'Share',
@@ -89,42 +91,6 @@ Widget notificationIcon(height, width) {
     semanticsLabel: 'notification',
     height: height,
     width: width,
-  );
-}
-
-Widget onBoardingLocationIcon() {
-  return Stack(
-    alignment: AlignmentDirectional.center,
-    children: [
-      Image.asset(
-        'assets/icon/floating_bg.png',
-      ),
-      Image.asset(
-        'assets/icon/enable_location_icon.png',
-        height: 221,
-      ),
-      // SvgPicture.asset(
-      //   'assets/icon/enable_location_icon.svg',
-      // ),
-    ],
-  );
-}
-
-Widget onBoardingNotificationIcon() {
-  return Stack(
-    alignment: AlignmentDirectional.center,
-    children: [
-      Image.asset(
-        'assets/icon/floating_bg.png',
-      ),
-      // SvgPicture.asset(
-      //   'assets/icon/floating_bg.svg',
-      //
-      // ),
-      SvgPicture.asset(
-        'assets/icon/enable_notifications_icon.svg',
-      ),
-    ],
   );
 }
 
@@ -239,6 +205,42 @@ Widget notificationIconV1(height, width) {
             ],
           ),
         ),
+      ),
+    ],
+  );
+}
+
+Widget onBoardingLocationIcon() {
+  return Stack(
+    alignment: AlignmentDirectional.center,
+    children: [
+      Image.asset(
+        'assets/icon/floating_bg.png',
+      ),
+      Image.asset(
+        'assets/icon/enable_location_icon.png',
+        height: 221,
+      ),
+      // SvgPicture.asset(
+      //   'assets/icon/enable_location_icon.svg',
+      // ),
+    ],
+  );
+}
+
+Widget onBoardingNotificationIcon() {
+  return Stack(
+    alignment: AlignmentDirectional.center,
+    children: [
+      Image.asset(
+        'assets/icon/floating_bg.png',
+      ),
+      // SvgPicture.asset(
+      //   'assets/icon/floating_bg.svg',
+      //
+      // ),
+      SvgPicture.asset(
+        'assets/icon/enable_notifications_icon.svg',
       ),
     ],
   );

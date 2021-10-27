@@ -29,20 +29,6 @@ HistoricalMeasurement _$HistoricalMeasurementFromJson(
   );
 }
 
-Map<String, dynamic> _$HistoricalMeasurementToJson(
-        HistoricalMeasurement instance) =>
-    <String, dynamic>{
-      'time': instance.time,
-      'average_pm2_5': instance.pm2_5,
-      'average_pm10': instance.pm10,
-      'altitude': instance.altitude,
-      'speed': instance.speed,
-      'externalTemperature': instance.temperature,
-      'externalHumidity': instance.humidity,
-      'site_id': instance.siteId,
-      'device_number': instance.deviceNumber,
-    };
-
 HistoricalMeasurements _$HistoricalMeasurementsFromJson(
     Map<String, dynamic> json) {
   return HistoricalMeasurements(
@@ -56,4 +42,18 @@ Map<String, dynamic> _$HistoricalMeasurementsToJson(
         HistoricalMeasurements instance) =>
     <String, dynamic>{
       'measurements': instance.measurements,
+    };
+
+Map<String, dynamic> _$HistoricalMeasurementToJson(
+        HistoricalMeasurement instance) =>
+    <String, dynamic>{
+      'time': instance.time,
+      'average_pm2_5': instance.pm2_5,
+      'average_pm10': instance.pm10,
+      'altitude': instance.altitude,
+      'speed': instance.speed,
+      'externalTemperature': instance.temperature,
+      'externalHumidity': instance.humidity,
+      'site_id': instance.siteId,
+      'device_number': instance.deviceNumber,
     };

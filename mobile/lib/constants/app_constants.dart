@@ -52,6 +52,8 @@ class ColorConstants {
 
   // static Color get appColor => const Color(0xff3067e2);
 
+  static Color get appColorBlack => const Color(0xff121723);
+
   static Color get appColorBlue => const Color(0xff145DFF);
 
   static Color get appColorDisabled => appColorBlue.withOpacity(0.5);
@@ -66,7 +68,9 @@ class ColorConstants {
 
   static Color get green => const Color(0xff3AFF38);
 
-  static Color get greyColor => const Color(0xff8D8D8D);
+  // static Color get greyColor => const Color(0xff8D8D8D);
+
+  static Color get greyColor => Colors.black.withOpacity(0.3);
 
   static Color get inactiveColor => appColor.withOpacity(0.5);
 

@@ -101,7 +101,7 @@ class CustomAuth {
 
   String getDisplayName() {
     if (_firebaseAuth.currentUser == null) {
-      return 'Guest';
+      return '';
     }
     return _firebaseAuth.currentUser!.displayName ?? 'Guest';
   }

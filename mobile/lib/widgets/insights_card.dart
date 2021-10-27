@@ -198,7 +198,7 @@ class _InsightsCardState extends State<InsightsCard> {
         controller: _scrollController,
         scrollDirection: Axis.horizontal,
         child: Container(
-          width: MediaQuery.of(context).size.width*2,
+          width: MediaQuery.of(context).size.width * 2,
           height: 150,
           child: charts.TimeSeriesChart(
             chartData,
@@ -255,6 +255,26 @@ class _InsightsCardState extends State<InsightsCard> {
         ));
   }
 
+  Future<void> getForecast(int deviceNumber, value) async {
+    var predictions = await AirqoApiClient(context).fetchForecast(deviceNumber);
+
+    if (predictions.isNotEmpty) {
+      var predictedValues =
+          Predict.getMeasurements(predictions, site.id, deviceNumber);
+      var combined = value..addAll(predictedValues);
+
+      setState(() {
+        measurements = combined;
+        chartData = insightsChartData(measurements, pollutant);
+      });
+    } else {
+      setState(() {
+        measurements = value;
+        chartData = insightsChartData(measurements, pollutant);
+      });
+    }
+  }
+
   Future<void> getMeasurements() async {
     await AirqoApiClient(context)
         .fetchSiteHistoricalMeasurements(site)
@@ -267,28 +287,6 @@ class _InsightsCardState extends State<InsightsCard> {
                   }),
                 }
             });
-  }
-
-  Future<void> getForecast(int deviceNumber, value) async {
-    var predictions  = await AirqoApiClient(context)
-        .fetchForecast(deviceNumber);
-
-    if(predictions.isNotEmpty){
-      var predictedValues = Predict
-          .getMeasurements(predictions, site.id, deviceNumber);
-      var combined = value..addAll(predictedValues);
-
-      setState(() {
-        measurements = combined;
-        chartData = insightsChartData(measurements, pollutant);
-      });
-    }
-    else{
-      setState(() {
-        measurements = value;
-        chartData = insightsChartData(measurements, pollutant);
-      });
-    }
   }
 
   @override

@@ -178,8 +178,8 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                         SvgPicture.asset(
                           'assets/icon/more_arrow.svg',
                           semanticsLabel: 'more',
-                          height: 16,
-                          width: 16,
+                          height: 6.99,
+                          width: 4,
                         ),
                       ],
                     ),

@@ -521,8 +521,8 @@ class SignUpPageState extends State<SignUpPage> {
               children: [
                 SizedBox(
                   width: 64,
-                  child: countryPickerField(prefixValue,
-                      codeValueChange, context),
+                  child:
+                      countryPickerField(prefixValue, codeValueChange, context),
                 ),
                 const SizedBox(
                   width: 16,

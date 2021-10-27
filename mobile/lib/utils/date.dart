@@ -117,15 +117,15 @@ String getDateTime() {
 String getGreetings(name) {
   var hour = DateTime.now().hour;
   if (8 <= hour && hour < 12) {
-    return 'Good morning $name';
+    return 'Hey $name';
   }
 
   if (12 <= hour && hour < 16) {
-    return 'Good afternoon $name';
+    return 'Hey $name';
   }
 
   if (18 <= hour && hour < 21) {
-    return 'Good evening $name';
+    return 'Hey $name';
   }
 
   return 'Hello $name';

@@ -105,82 +105,6 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
         ));
   }
 
-  Widget titleDropdown() {
-    return Container(
-        width: 70,
-        padding: const EdgeInsets.only(left: 10, right: 10),
-        decoration: BoxDecoration(
-            color: ColorConstants.greyColor.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(10)),
-        child: Center(
-          child: DropdownButton<String>(
-            value: 'Ms.',
-            icon: const Icon(
-              Icons.keyboard_arrow_down_sharp,
-              color: Colors.black,
-            ),
-            iconSize: 10,
-            dropdownColor: ColorConstants.greyColor.withOpacity(0.2),
-            elevation: 0,
-            underline: const Visibility(visible: false, child: SizedBox()),
-            style: const TextStyle(color: Colors.black),
-            onChanged: (String? newValue) {},
-            borderRadius: BorderRadius.circular(10.0),
-            items: <String>['Ms.', 'Mr.', 'Ra']
-                .map<DropdownMenuItem<String>>((String value) {
-              return DropdownMenuItem<String>(
-                value: value,
-                child: Text(value,
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 3,
-                  style: TextStyle(
-                      fontSize: 14
-                  ),
-                ),
-              );
-            }).toList(),
-          ),
-        ));
-  }
-
-  Widget titleDropdownList() {
-    return Container(
-        width: 70,
-        padding: const EdgeInsets.only(left: 10, right: 10),
-        decoration: BoxDecoration(
-            color: ColorConstants.greyColor.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(10)),
-        child: Center(
-          child: DropdownButton<String>(
-            value: 'Ms.',
-            icon: const Icon(
-              Icons.keyboard_arrow_down_sharp,
-              color: Colors.black,
-            ),
-            iconSize: 10,
-            dropdownColor: ColorConstants.greyColor.withOpacity(0.2),
-            elevation: 0,
-            underline: const Visibility(visible: false, child: SizedBox()),
-            style: const TextStyle(color: Colors.black),
-            onChanged: (String? newValue) {},
-            borderRadius: BorderRadius.circular(10.0),
-            items: <String>['Ms.', 'Mr.', 'Ra']
-                .map<DropdownMenuItem<String>>((String value) {
-              return DropdownMenuItem<String>(
-                value: value,
-                child: Text(value,
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 3,
-                  style: TextStyle(
-                      fontSize: 14
-                  ),
-                ),
-              );
-            }).toList(),
-          ),
-        ));
-  }
-
   void clearNameCallBack() {
     setState(() {
       fullName = '';
@@ -278,6 +202,80 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
       await showSnackBar(context, 'Failed to update profile. Try again later');
       print(e);
     }
+  }
+
+  Widget titleDropdown() {
+    return Container(
+        width: 70,
+        padding: const EdgeInsets.only(left: 10, right: 10),
+        decoration: BoxDecoration(
+            color: ColorConstants.greyColor.withOpacity(0.2),
+            borderRadius: BorderRadius.circular(10)),
+        child: Center(
+          child: DropdownButton<String>(
+            value: 'Ms.',
+            icon: const Icon(
+              Icons.keyboard_arrow_down_sharp,
+              color: Colors.black,
+            ),
+            iconSize: 10,
+            dropdownColor: ColorConstants.greyColor.withOpacity(0.2),
+            elevation: 0,
+            underline: const Visibility(visible: false, child: SizedBox()),
+            style: const TextStyle(color: Colors.black),
+            onChanged: (String? newValue) {},
+            borderRadius: BorderRadius.circular(10.0),
+            items: <String>['Ms.', 'Mr.', 'Ra']
+                .map<DropdownMenuItem<String>>((String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: Text(
+                  value,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 3,
+                  style: const TextStyle(fontSize: 14),
+                ),
+              );
+            }).toList(),
+          ),
+        ));
+  }
+
+  Widget titleDropdownList() {
+    return Container(
+        width: 70,
+        padding: const EdgeInsets.only(left: 10, right: 10),
+        decoration: BoxDecoration(
+            color: ColorConstants.greyColor.withOpacity(0.2),
+            borderRadius: BorderRadius.circular(10)),
+        child: Center(
+          child: DropdownButton<String>(
+            value: 'Ms.',
+            icon: const Icon(
+              Icons.keyboard_arrow_down_sharp,
+              color: Colors.black,
+            ),
+            iconSize: 10,
+            dropdownColor: ColorConstants.greyColor.withOpacity(0.2),
+            elevation: 0,
+            underline: const Visibility(visible: false, child: SizedBox()),
+            style: const TextStyle(color: Colors.black),
+            onChanged: (String? newValue) {},
+            borderRadius: BorderRadius.circular(10.0),
+            items: <String>['Ms.', 'Mr.', 'Ra']
+                .map<DropdownMenuItem<String>>((String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: Text(
+                  value,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 3,
+                  style: TextStyle(fontSize: 14),
+                ),
+              );
+            }).toList(),
+          ),
+        ));
   }
 
   void valueChange(text) {

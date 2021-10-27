@@ -31,36 +31,33 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
             'Enable locations',
             textAlign: TextAlign.center,
             style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.black),
+                fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black),
           ),
           const SizedBox(
             height: 8,
           ),
           const Text(
             'Allow AirQo to send you location air\n'
-                'quality update for your work place,\nhome',
+            'quality update for your work place,\nhome',
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 16, color: Colors.black),
           ),
           const Spacer(),
           Padding(
             padding: const EdgeInsets.only(left: 24, right: 24),
-            child:  GestureDetector(
+            child: GestureDetector(
               onTap: () {
                 LocationService().getLocation().then((value) => {
-                  Navigator.pushAndRemoveUntil(context,
-                      MaterialPageRoute(builder: (context) {
+                      Navigator.pushAndRemoveUntil(context,
+                          MaterialPageRoute(builder: (context) {
                         return SetUpCompleteScreen();
                       }), (r) => false)
-                });
+                    });
               },
-              child: nextButton('Yes, keep me safe',
-                  ColorConstants.appColorBlue),
+              child:
+                  nextButton('Yes, keep me safe', ColorConstants.appColorBlue),
             ),
           ),
-
           const SizedBox(
             height: 20,
           ),
@@ -68,8 +65,8 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
             onTap: () {
               Navigator.pushAndRemoveUntil(context,
                   MaterialPageRoute(builder: (context) {
-                    return SetUpCompleteScreen();
-                  }), (r) => false);
+                return SetUpCompleteScreen();
+              }), (r) => false);
             },
             child: Text(
               'No, thanks',

@@ -131,5 +131,4 @@ class _InsightsPageState extends State<InsightsPage>
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
   }
-
 }

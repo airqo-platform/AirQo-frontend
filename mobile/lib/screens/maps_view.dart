@@ -11,32 +11,9 @@ import 'package:app/utils/pm.dart';
 import 'package:app/widgets/analytics_card.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-class CustomUserAvatar extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 40,
-      width: 40,
-      decoration: BoxDecoration(
-          color: ColorConstants.appBodyColor, shape: BoxShape.circle),
-    );
-  }
-}
-
-class DraggingHandle extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 4,
-      width: 32,
-      decoration: BoxDecoration(
-          color: Colors.grey[200], borderRadius: BorderRadius.circular(16)),
-    );
-  }
-}
 
 class MapView extends StatefulWidget {
   MapView({Key? key}) : super(key: key);
@@ -49,9 +26,11 @@ class _MapViewState extends State<MapView> {
   bool showLocationDetails = false;
   double scrollSheetHeight = 0.20;
   bool isSearching = false;
+  bool displayRegions = true;
   List<Measurement> regionSites = [];
   List<Measurement> searchSites = [];
   List<Measurement> allSites = [];
+  String selectedRegion = '';
   final TextEditingController _searchController = TextEditingController();
   late Measurement locationMeasurement;
   var defaultCameraPosition =
@@ -95,19 +74,35 @@ class _MapViewState extends State<MapView> {
   }
 
   Widget defaultContent() {
-    return Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: <Widget>[
-            const SizedBox(height: 8),
-            DraggingHandle(),
-            const SizedBox(height: 16),
-            searchContainer(),
-            if (regionSites.isEmpty && !isSearching) regionsList(),
-            if (regionSites.isNotEmpty && !isSearching) sitesList(),
-            if (isSearching) searchResultsList(),
-          ],
-        ));
+    return Column(
+      children: <Widget>[
+        const SizedBox(height: 8),
+        draggingHandle(),
+        const SizedBox(height: 16),
+        searchContainer(),
+        Visibility(
+          visible: displayRegions && !isSearching,
+          child: regionsList(),
+        ),
+        Visibility(
+          visible: !displayRegions && !isSearching,
+          child: sitesList(),
+        ),
+        Visibility(
+          visible: isSearching,
+          child: searchResultsList(),
+        )
+      ],
+    );
+  }
+
+  Widget draggingHandle() {
+    return Container(
+      height: 4,
+      width: 32,
+      decoration: BoxDecoration(
+          color: Colors.grey[200], borderRadius: BorderRadius.circular(16)),
+    );
   }
 
   Future<void> getSites() async {
@@ -137,32 +132,29 @@ class _MapViewState extends State<MapView> {
   }
 
   Widget locationContent() {
-    return Container(
-        // color: ColorConstants.appBodyColor,
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: <Widget>[
-            const SizedBox(height: 8),
-            DraggingHandle(),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                const Spacer(),
-                GestureDetector(
-                  onTap: showLocation,
-                  child: closeDetails(),
-                ),
-              ],
+    return Column(
+      children: <Widget>[
+        const SizedBox(height: 8),
+        draggingHandle(),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            const Spacer(),
+            GestureDetector(
+              onTap: showLocation,
+              child: closeDetails(),
             ),
-            AnalyticsCard(locationMeasurement),
           ],
-        ));
+        ),
+        AnalyticsCard(locationMeasurement),
+      ],
+    );
     return Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: <Widget>[
             const SizedBox(height: 8),
-            DraggingHandle(),
+            draggingHandle(),
             Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
@@ -200,77 +192,63 @@ class _MapViewState extends State<MapView> {
     );
   }
 
+  Widget regionAvatar() {
+    return Container(
+        height: 40,
+        width: 40,
+        decoration: BoxDecoration(
+            color: ColorConstants.appColorBlue.withOpacity(0.15),
+            shape: BoxShape.circle),
+        child: Center(
+          child: SvgPicture.asset('assets/icon/location.svg',
+              color: ColorConstants.appColorBlue),
+        ));
+  }
+
   Widget regionsList() {
     return ListView(
       shrinkWrap: true,
       children: <Widget>[
-        ListTile(
-          leading: CustomUserAvatar(),
-          onTap: () {
-            showRegionSites('Central Region');
-          },
-          title: const Text(
-            'Central Region',
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-          ),
-          subtitle: const Text(
-            'Uganda',
-            style: TextStyle(fontSize: 8),
-          ),
-        ),
-        const Divider(),
-        ListTile(
-          onTap: () {
-            showRegionSites('Western Region');
-          },
-          leading: CustomUserAvatar(),
-          title: const Text(
-            'Western Region',
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-          ),
-          subtitle: const Text(
-            'Uganda',
-            style: TextStyle(fontSize: 8),
-          ),
-        ),
-        const Divider(),
-        ListTile(
-          onTap: () {
-            showRegionSites('Eastern Region');
-          },
-          leading: CustomUserAvatar(),
-          title: const Text(
-            'Eastern Region',
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-          ),
-          subtitle: const Text(
-            'Uganda',
-            style: TextStyle(fontSize: 8),
-          ),
-        ),
+        regionTile('Central Region'),
+        regionTile('Western Region'),
+        regionTile('Eastern Region'),
+        regionTile('Northern Region'),
       ],
     );
   }
 
+  ListTile regionTile(String name) {
+    return ListTile(
+      contentPadding: const EdgeInsets.only(left: 0.0),
+      leading: regionAvatar(),
+      onTap: () {
+        showRegionSites(name);
+      },
+      title: Text(
+        name,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+      ),
+      subtitle: Text(
+        'Uganda',
+        style: TextStyle(fontSize: 14, color: Colors.black.withOpacity(0.3)),
+      ),
+      trailing: Icon(
+        Icons.arrow_forward_ios_sharp,
+        size: 10,
+        color: ColorConstants.appColorBlue,
+      ),
+    );
+  }
+
   Widget scrollViewContent() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-      child: Card(
-        elevation: 12.0,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        margin: const EdgeInsets.all(0),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: showLocationDetails ? locationContent() : defaultContent(),
-        ),
+    return Card(
+      elevation: 12.0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(32.0, 0, 32.0, 16.0),
+        child: showLocationDetails ? locationContent() : defaultContent(),
       ),
     );
   }
@@ -280,15 +258,22 @@ class _MapViewState extends State<MapView> {
       children: [
         Expanded(
           child: Container(
-            height: 50,
+            height: 32,
             decoration: BoxDecoration(
                 color: ColorConstants.appBodyColor,
-                borderRadius: BorderRadius.circular(6)),
+                borderRadius: BorderRadius.circular(8)),
             child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
-                const Padding(
-                  padding: EdgeInsets.fromLTRB(10.0, 0, 0, 0),
-                  child: Icon(Icons.search),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(10.0, 0, 0, 0),
+                  child: SvgPicture.asset(
+                    'assets/icon/search.svg',
+                    height: 17,
+                    width: 17,
+                    semanticsLabel: 'Search',
+                  ),
                 ),
                 searchField(),
               ],
@@ -301,25 +286,28 @@ class _MapViewState extends State<MapView> {
           ),
         if (isSearching)
           Container(
-            padding: const EdgeInsets.all(2.0),
-            decoration: BoxDecoration(
-                color: ColorConstants.appBodyColor,
-                borderRadius: const BorderRadius.all(Radius.circular(10.0))),
-            child: IconButton(
-              iconSize: 30,
-              icon: Icon(
-                Icons.clear,
-                color: ColorConstants.appBarTitleColor,
-              ),
-              onPressed: showRegions,
-            ),
-          )
+              height: 32,
+              width: 32,
+              decoration: BoxDecoration(
+                  color: ColorConstants.appBodyColor,
+                  borderRadius: const BorderRadius.all(Radius.circular(8.0))),
+              child: Center(
+                child: IconButton(
+                  iconSize: 10,
+                  icon: Icon(
+                    Icons.clear,
+                    color: ColorConstants.appBarTitleColor,
+                  ),
+                  onPressed: showRegions,
+                ),
+              ))
       ],
     );
   }
 
   Widget searchField() {
     return Expanded(
+        child: Center(
       child: TextFormField(
         controller: _searchController,
         onTap: () {
@@ -340,35 +328,31 @@ class _MapViewState extends State<MapView> {
             });
           }
         },
+        cursorWidth: 1,
         maxLines: 1,
+        cursorColor: ColorConstants.appColorBlue,
         autofocus: false,
         decoration: const InputDecoration(
-          contentPadding: EdgeInsets.all(8),
+          contentPadding: EdgeInsets.only(right: 8, left: 8, bottom: 15),
           hintText: '',
-          border: InputBorder.none,
+          focusedBorder: InputBorder.none,
+          enabledBorder: InputBorder.none,
         ),
       ),
-    );
+    ));
   }
 
   Widget searchResultsList() {
-    return ListView.separated(
+    return ListView.builder(
       shrinkWrap: true,
       controller: ScrollController(),
       itemBuilder: (context, index) => GestureDetector(
         onTap: () {
           showLocationContent(searchSites[index]);
         },
-        child: locationTile(searchSites[index]),
+        child: siteTile(searchSites[index]),
       ),
       itemCount: searchSites.length,
-      separatorBuilder: (BuildContext context, int index) {
-        return Divider(
-          indent: 20,
-          endIndent: 20,
-          color: ColorConstants.appColor,
-        );
-      },
     );
   }
 
@@ -429,39 +413,115 @@ class _MapViewState extends State<MapView> {
       searchSites = [];
       regionSites = [];
       showLocationDetails = false;
+      displayRegions = true;
     });
   }
 
   void showRegionSites(String region) {
+    setState(() {
+      selectedRegion = region;
+    });
     DBHelper().getRegionSites(region).then((value) => {
-          if (value.isNotEmpty)
-            {
-              setState(() {
-                showLocationDetails = false;
-                regionSites = value;
-              })
-            }
+          setState(() {
+            showLocationDetails = false;
+            displayRegions = false;
+            regionSites = value;
+          })
         });
   }
 
   Widget sitesList() {
-    return ListView.separated(
-      shrinkWrap: true,
-      controller: ScrollController(),
-      itemBuilder: (context, index) => GestureDetector(
-        onTap: () {
-          showLocationContent(regionSites[index]);
-        },
-        child: locationTile(regionSites[index]),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(
+          height: 32,
+        ),
+        Visibility(
+          visible: regionSites.isNotEmpty,
+          child: Text(
+            selectedRegion,
+            style: TextStyle(color: Colors.black.withOpacity(0.32)),
+          ),
+        ),
+        Visibility(
+            visible: regionSites.isNotEmpty,
+            child: ListView.builder(
+              shrinkWrap: true,
+              controller: ScrollController(),
+              itemBuilder: (context, index) => GestureDetector(
+                onTap: () {
+                  showLocationContent(regionSites[index]);
+                },
+                child: siteTile(regionSites[index]),
+              ),
+              itemCount: regionSites.length,
+            )),
+        Visibility(
+            visible: regionSites.isEmpty,
+            child: Column(
+              children: [
+                const SizedBox(
+                  height: 80,
+                ),
+                SvgPicture.asset(
+                  'assets/icon/globe.svg',
+                  height: 80,
+                  width: 80,
+                ),
+                Padding(
+                    padding: const EdgeInsets.only(left: 30, right: 30),
+                    child: Text(
+                      '$selectedRegion\nWe’re Coming soon!',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    )),
+                const SizedBox(
+                  height: 8,
+                ),
+                Padding(
+                    padding: const EdgeInsets.only(left: 20, right: 20),
+                    child: Text(
+                      'We currently do not support air quality '
+                      'monitoring in this region, but we’re working on it.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                          fontSize: 14, color: Colors.black.withOpacity(0.4)),
+                    )),
+                const SizedBox(
+                  height: 80,
+                ),
+              ],
+            ))
+      ],
+    );
+  }
+
+  Widget siteTile(Measurement measurement) {
+    return ListTile(
+      contentPadding: const EdgeInsets.only(left: 0.0),
+      title: Text(
+        '${measurement.site.getName()}',
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
       ),
-      itemCount: regionSites.length,
-      separatorBuilder: (BuildContext context, int index) {
-        return Divider(
-          indent: 20,
-          endIndent: 20,
-          color: ColorConstants.appColor,
-        );
-      },
+      subtitle: Text(
+        '${measurement.site.getLocation()}',
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(color: Colors.black.withOpacity(0.3), fontSize: 14),
+      ),
+      trailing: SvgPicture.asset(
+        'assets/icon/more_arrow.svg',
+        semanticsLabel: 'more',
+        height: 6.99,
+        width: 4,
+      ),
+      leading: analyticsAvatar(measurement, 40, 15, 5),
     );
   }
 

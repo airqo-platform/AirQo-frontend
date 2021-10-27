@@ -65,6 +65,22 @@ Widget analyticsAvatar(
   );
 }
 
+PreferredSizeWidget appTopBar(context, String title) {
+  return AppBar(
+    centerTitle: true,
+    elevation: 0,
+    backgroundColor: ColorConstants.appBodyColor,
+    leading: Padding(
+      padding: const EdgeInsets.only(top: 6.5, bottom: 6.5, left: 16),
+      child: backButton(context),
+    ),
+    title: Text(
+      title,
+      style: TextStyle(color: ColorConstants.appColorBlack),
+    ),
+  );
+}
+
 Widget backButton(context) {
   return GestureDetector(
     onTap: () {
@@ -100,6 +116,25 @@ Widget backButtonV1(context) {
   );
 }
 
+// Widget backButton(context) {
+//   return Container(
+//     padding: const EdgeInsets.all(0.0),
+//     decoration: const BoxDecoration(
+//         color: Colors.white,
+//         shape: BoxShape.rectangle,
+//         borderRadius: BorderRadius.all(Radius.circular(10.0))),
+//     child: IconButton(
+//       icon: const Icon(
+//         Icons.arrow_back,
+//         color: Colors.black,
+//       ),
+//       onPressed: () {
+//         Navigator.pop(context);
+//       },
+//     ),
+//   );
+// }
+
 Widget customInputField(context, text) {
   return Container(
     constraints: const BoxConstraints(minWidth: double.infinity),
@@ -123,25 +158,6 @@ Widget customInputField(context, text) {
     ),
   );
 }
-
-// Widget backButton(context) {
-//   return Container(
-//     padding: const EdgeInsets.all(0.0),
-//     decoration: const BoxDecoration(
-//         color: Colors.white,
-//         shape: BoxShape.rectangle,
-//         borderRadius: BorderRadius.all(Radius.circular(10.0))),
-//     child: IconButton(
-//       icon: const Icon(
-//         Icons.arrow_back,
-//         color: Colors.black,
-//       ),
-//       onPressed: () {
-//         Navigator.pop(context);
-//       },
-//     ),
-//   );
-// }
 
 Widget customSearchField(context, text) {
   return Container(
@@ -320,6 +336,7 @@ Widget locationTile(Measurement measurement) {
         borderRadius: const BorderRadius.all(Radius.circular(16.0)),
         border: Border.all(color: Colors.transparent)),
     child: ListTile(
+      contentPadding: const EdgeInsets.only(left: 0.0),
       title: Text(
         '${measurement.site.getName()}',
         maxLines: 1,
@@ -335,8 +352,8 @@ Widget locationTile(Measurement measurement) {
       trailing: SvgPicture.asset(
         'assets/icon/more_arrow.svg',
         semanticsLabel: 'more',
-        height: 16,
-        width: 16,
+        height: 6.99,
+        width: 4,
       ),
       leading: analyticsAvatar(measurement, 40, 15, 5),
     ),

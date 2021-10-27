@@ -1,720 +1,187 @@
-import 'dart:io';
-
 import 'package:app/constants/app_constants.dart';
-import 'package:app/services/local_notifications.dart';
-import 'package:app/widgets/change_language.dart';
-import 'package:app/widgets/change_theme.dart';
-import 'package:app/widgets/clear_app_data.dart';
+import 'package:app/models/userDetails.dart';
+import 'package:app/screens/signup_page.dart';
+import 'package:app/screens/tips_page.dart';
+import 'package:app/screens/view_profile_page.dart';
+import 'package:app/services/fb_notifications.dart';
+import 'package:app/widgets/custom_widgets.dart';
+import 'package:app/widgets/text_fields.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_svg/svg.dart';
 
-import 'my_places.dart';
+import 'faqs_page.dart';
+import 'favourite_places.dart';
+import 'for_you_page.dart';
+import 'notification_page.dart';
 
 class SettingsPage extends StatefulWidget {
+  SettingsPage({Key? key}) : super(key: key);
+
   @override
   _SettingsPageState createState() => _SettingsPageState();
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  Languages _language = Languages.english;
-  bool _smartNotification = false;
-  bool _pushNotification = false;
-  bool _dailyReports = false;
-  bool _weeklyReports = false;
-  bool _monthlyReports = false;
-  bool _morningForecast = false;
-  bool _eveningForecast = false;
-  Themes _theme = Themes.lightTheme;
-  final LocalNotifications _notifications = LocalNotifications();
+  var userProfile = UserDetails.initialize();
+  final CustomAuth _customAuth = CustomAuth(FirebaseAuth.instance);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Settings'),
-      ),
-      body: Container(
-          child: Column(
-        children: [
-          Expanded(
-            child: ListView(
-              // physics:  const BouncingScrollPhysics(
-              //     parent: AlwaysScrollableScrollPhysics()
-              // ),
-              children: <Widget>[
-                userPreferences(),
-                Divider(
-                  indent: 30,
-                  endIndent: 30,
-                  color: ColorConstants.appColor,
-                ),
-                notifications(),
-                Divider(
-                  indent: 30,
-                  endIndent: 30,
-                  color: ColorConstants.appColor,
-                ),
-                reports(),
-                Divider(
-                  indent: 30,
-                  endIndent: 30,
-                  color: ColorConstants.appColor,
-                ),
-                support(),
-                footer()
-              ],
-            ),
-          ),
-          // footer()
-        ],
-      )),
-    );
+        appBar: appTopBar(context, 'Settings'),
+        body: Container(
+            color: ColorConstants.appBodyColor,
+            child: RefreshIndicator(
+                onRefresh: initialize,
+                color: ColorConstants.appColor,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      const SizedBox(
+                        height: 31,
+                      ),
+                      settingsSection(),
+                      const Spacer(),
+                      deleteAccountSection(),
+                      const SizedBox(
+                        height: 32,
+                      ),
+                    ],
+                  ),
+                ))));
   }
 
-  void cancelNotification(int id) {
-    _notifications.cancelNotifications(id);
-  }
-
-  EdgeInsets containerPadding() {
-    return const EdgeInsets.fromLTRB(10, 10, 10, 0);
-  }
-
-  Widget footer() {
+  Widget cardSection(text) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(0, 10, 0, 10),
-      decoration: BoxDecoration(
-          gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-            Colors.white.withOpacity(0.5),
-            ColorConstants.appColor,
-          ])),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          GestureDetector(
-            onTap: () {
-              _launchURL('airqo');
-            },
-            child: Image.asset(
-              'assets/icon/airqo_logo.png',
-              height: 50,
-              width: 50,
+        height: 56,
+        decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.all(Radius.circular(0.0))),
+        child: ListTile(
+          title: Text(
+            '$text',
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontSize: 16),
+          ),
+        ));
+  }
+
+  Widget deleteAccountSection() {
+    return GestureDetector(
+      onTap: () {},
+      child: Container(
+          height: 56,
+          decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.all(Radius.circular(8.0))),
+          child: ListTile(
+            title: Text(
+              'Delete your account',
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                  fontSize: 14,
+                  color: ColorConstants.appColorBlack.withOpacity(0.4)),
             ),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              IconButton(
-                  icon: FaIcon(
-                    FontAwesomeIcons.facebook,
-                    color: ColorConstants.facebookColor,
-                  ),
-                  onPressed: () {
-                    _launchURL('facebook');
-                  }),
-              IconButton(
-                  icon: FaIcon(
-                    FontAwesomeIcons.twitter,
-                    color: ColorConstants.twitterColor,
-                  ),
-                  onPressed: () {
-                    _launchURL('twitter');
-                  }),
-              IconButton(
-                  icon: FaIcon(
-                    FontAwesomeIcons.youtube,
-                    color: ColorConstants.youtubeColor,
-                  ),
-                  onPressed: () {
-                    _launchURL('youtube');
-                  }),
-              IconButton(
-                  icon: FaIcon(
-                    FontAwesomeIcons.linkedin,
-                    color: ColorConstants.linkedInColor,
-                  ),
-                  onPressed: () {
-                    _launchURL('linkedin');
-                  }),
-            ],
-          ),
-          const Text(
-            'v1.21.7',
-            style: TextStyle(color: Colors.white),
-          )
-        ],
-      ),
+          )),
     );
   }
 
-  TextStyle headerStyle() {
-    return const TextStyle(
-      fontWeight: FontWeight.bold,
-      fontSize: 16,
-    );
+  Future<void> initialize() async {
+    await _customAuth.getProfile().then((value) => {
+          setState(() {
+            userProfile = value;
+          }),
+        });
   }
 
   @override
   void initState() {
-    loadPreferences();
-    _notifications.initNotifications();
+    initialize();
     super.initState();
   }
 
-  Future<void> loadPreferences() async {
-    var prefs = await SharedPreferences.getInstance();
-    var theme = prefs.getString(PrefConstant.appTheme);
-    print(theme);
-    if (theme != null) {
-      switch (theme) {
-        case 'light':
-          _theme = Themes.lightTheme;
-          break;
-        case 'dark':
-          _theme = Themes.darkTheme;
-          break;
-        default:
-          _theme = Themes.lightTheme;
-          break;
-      }
-    }
-
-    _language = Languages.english;
-  }
-
-  Widget notifications() {
+  Widget settingsSection() {
     return Container(
-      padding: containerPadding(),
+      padding: const EdgeInsets.only(top: 10, bottom: 10),
+      decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.all(Radius.circular(8.0))),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Text(
-            'Notifications',
-            style: headerStyle(),
-          ),
-          // ListTile(
-          //   title: const Text('Persistent Notifications'),
-          //   subtitle: const Text('Display persistent notifications '
-          //       'in the notification tray'),
-          //   trailing: Switch(
-          //     value: _persistentNotification,
-          //     activeColor: ColorConstants.appColor,
-          //     activeTrackColor: ColorConstants.appColor.withOpacity(0.6),
-          //     inactiveThumbColor: Colors.white,
-          //     inactiveTrackColor: Colors.black12,
-          //     onChanged: (bool value) {
-          //       if(value){
-          //         showNotification(persistentNotificationId);
-          //       }
-          //       else{
-          //         cancelNotification(persistentNotificationId);
-          //       }
-          //       setState(() {
-          //         _persistentNotification = value;
-          //       });
-          //     },
-          //   ),
-          // ),
-          ListTile(
-            title: const Text('Smart Notifications'),
-            subtitle: const Text('Receive air pollution alerts and '
-                'recommendations for your saved places'),
-            trailing: Switch(
-              value: _smartNotification,
-              activeColor: ColorConstants.appColor,
-              activeTrackColor: ColorConstants.appColor.withOpacity(0.6),
-              inactiveThumbColor: Colors.white,
-              inactiveTrackColor: Colors.black12,
-              onChanged: (bool value) {
-                if (value) {
-                  showNotification(NotificationConfig.smartNotificationId);
-                } else {
-                  cancelNotification(NotificationConfig.smartNotificationId);
-                }
-
-                setState(() {
-                  _smartNotification = value;
-                });
-              },
-            ),
-          ),
-          ListTile(
-            title: const Text('Push Notifications'),
-            subtitle: const Text('Get notifications about new features and '
-                'blog posts from the AirQo team'),
-            trailing: Switch(
-              value: _pushNotification,
-              activeColor: ColorConstants.appColor,
-              activeTrackColor: ColorConstants.appColor.withOpacity(0.6),
-              inactiveThumbColor: Colors.white,
-              inactiveTrackColor: Colors.black12,
-              onChanged: (bool value) {
-                if (value) {
-                  showNotification(NotificationConfig.pushNotificationId);
-                } else {
-                  cancelNotification(NotificationConfig.pushNotificationId);
-                }
-
-                setState(() {
-                  _pushNotification = value;
-                });
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void pushNotification() {
-    _notifications.showOngoingNotification();
-  }
-
-  Widget reports() {
-    return Container(
-      padding: containerPadding(),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Text(
-            'Reports',
-            style: headerStyle(),
-          ),
-          ListTile(
-            title: const Text('Daily'),
-            trailing: Switch(
-              value: _dailyReports,
-              activeColor: ColorConstants.appColor,
-              activeTrackColor: ColorConstants.appColor.withOpacity(0.6),
-              inactiveThumbColor: Colors.white,
-              inactiveTrackColor: Colors.black12,
-              onChanged: (bool value) {
-                setState(() {
-                  _dailyReports = value;
-                });
-              },
-            ),
-          ),
-          ListTile(
-            title: const Text('Weekly'),
-            trailing: Switch(
-              value: _weeklyReports,
-              activeColor: ColorConstants.appColor,
-              activeTrackColor: ColorConstants.appColor.withOpacity(0.6),
-              inactiveThumbColor: Colors.white,
-              inactiveTrackColor: Colors.black12,
-              onChanged: (bool value) {
-                setState(() {
-                  _weeklyReports = value;
-                });
-              },
-            ),
-          ),
-          ListTile(
-            title: const Text('Monthly'),
-            trailing: Switch(
-              value: _monthlyReports,
-              activeColor: ColorConstants.appColor,
-              activeTrackColor: ColorConstants.appColor.withOpacity(0.6),
-              inactiveThumbColor: Colors.white,
-              inactiveTrackColor: Colors.black12,
-              onChanged: (bool value) {
-                setState(() {
-                  _monthlyReports = value;
-                });
-              },
-            ),
-          ),
-          ListTile(
-            title: const Text('Today\'s Forecast'),
-            subtitle: const Text('The day\'s forecast received at 6AM'),
-            trailing: Switch(
-              value: _morningForecast,
-              activeColor: ColorConstants.appColor,
-              activeTrackColor: ColorConstants.appColor.withOpacity(0.6),
-              inactiveThumbColor: Colors.white,
-              inactiveTrackColor: Colors.black12,
-              onChanged: (bool value) {
-                setState(() {
-                  _morningForecast = value;
-                });
-              },
-            ),
-          ),
-          ListTile(
-            title: const Text('Tomorrow\'s Forecast'),
-            subtitle: const Text('Tomorrow\'s forecast received at 8PM'),
-            trailing: Switch(
-              value: _eveningForecast,
-              activeColor: ColorConstants.appColor,
-              activeTrackColor: ColorConstants.appColor.withOpacity(0.6),
-              inactiveThumbColor: Colors.white,
-              inactiveTrackColor: Colors.black12,
-              onChanged: (bool value) {
-                setState(() {
-                  _eveningForecast = value;
-                });
-              },
-            ),
-          )
-        ],
-      ),
-    );
-  }
-
-  void showNotification(int id) {
-    switch (id) {
-      case NotificationConfig.persistentNotificationId:
-        _notifications.showOngoingNotification();
-        return;
-      case NotificationConfig.progressNotificationId:
-        _notifications.showProgressNotification();
-        return;
-      case NotificationConfig.smartNotificationId:
-        _notifications.showSmartNotification();
-        return;
-      case NotificationConfig.pushNotificationId:
-        _notifications.showPushNotification();
-        return;
-      default:
-        return;
-    }
-  }
-
-  Widget support() {
-    return Container(
-      padding: containerPadding(),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Text(
-            'Support',
-            style: headerStyle(),
-          ),
-          InkWell(
-            onTap: () {
-              _launchURL('faqs');
-            },
-            child: ListTile(
-              title: const Text('FAQs'),
-              leading: Icon(
-                Icons.help_outline_outlined,
-                color: ColorConstants.appColor,
-              ),
-            ),
-          ),
-          InkWell(
-            onTap: () {
-              _launchURL('Contact Us');
-            },
-            child: ListTile(
-              title: const Text('Contact Us'),
-              leading: Icon(
-                Icons.contact_support_outlined,
-                color: ColorConstants.appColor,
-              ),
-            ),
-          ),
-          InkWell(
-            onTap: () {
-              _launchURL('terms');
-            },
-            child: ListTile(
-              title: const Text('Terms of Use & Privacy Policy'),
-              leading: Icon(
-                Icons.description,
-                color: ColorConstants.appColor,
-              ),
-            ),
-          ),
-          InkWell(
-            onTap: () {
-              _launchURL('About');
-            },
-            child: ListTile(
-              title: const Text('About AirQo'),
-              leading: Icon(
-                Icons.info_outline_rounded,
-                color: ColorConstants.appColor,
-              ),
-            ),
-          ),
-          InkWell(
-            onTap: () {
-              _launchURL('rate');
-            },
-            child: ListTile(
-              title: const Text('Rate App'),
-              leading: Icon(
-                Icons.rate_review_outlined,
-                color: ColorConstants.appColor,
-              ),
-            ),
-          ),
-          InkWell(
-            onTap: () {
-              _launchEmail('feedback');
-            },
-            child: ListTile(
-              title: const Text('Feedback'),
-              leading: Icon(
-                Icons.feedback_outlined,
-                color: ColorConstants.appColor,
-              ),
-              subtitle: const Text('Tell us which functionality is most '
-                  'important to you and what you would like '
-                  'to be improved in the app'),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget userPreferences() {
-    return Container(
-      padding: containerPadding(),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Text(
-            'User Preferences',
-            style: headerStyle(),
-          ),
-          InkWell(
-            onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) {
-                return const MyPlaces();
+        children: [
+          GestureDetector(
+            onTap: () async {
+              await Navigator.push(context,
+                  MaterialPageRoute(builder: (context) {
+                return const TipsPage();
               }));
             },
-            child: ListTile(
-              title: const Text('Manage MyPlaces'),
-              leading: Icon(
-                Icons.favorite_outlined,
-                color: ColorConstants.appColor,
-              ),
-              trailing: Icon(
-                Icons.arrow_forward_ios_rounded,
-                color: ColorConstants.appColor,
-              ),
-            ),
+            child: cardSection('Location'),
           ),
-          InkWell(
-            onTap: () {
-              showDialog(
-                  context: context,
-                  builder: (context) {
-                    return ChangeThemeDialog(
-                      onValueChange: _onThemeValueChange,
-                      initialValue: _theme,
-                    );
-                  });
-            },
-            child: ListTile(
-              title: const Text('Appearance'),
-              leading: FaIcon(
-                FontAwesomeIcons.paintRoller,
-                color: ColorConstants.appColor,
-              ),
-              trailing: Icon(
-                Icons.arrow_forward_ios_rounded,
-                color: ColorConstants.appColor,
-              ),
-            ),
+          Divider(
+            color: ColorConstants.appBodyColor,
           ),
-          InkWell(
-            onTap: () {
-              showDialog(
-                  context: context,
-                  builder: (context) {
-                    return ChangeLanguageDialog(
-                      onValueChange: _onLanguageValueChange,
-                      initialValue: _language,
-                    );
-                  });
+          GestureDetector(
+            onTap: () async {
+              await Navigator.push(context,
+                  MaterialPageRoute(builder: (context) {
+                return const TipsPage();
+              }));
             },
-            child: ListTile(
-              title: const Text('Language'),
-              leading: FaIcon(
-                FontAwesomeIcons.language,
-                color: ColorConstants.appColor,
-              ),
-              trailing: Icon(
-                Icons.arrow_forward_ios_rounded,
-                color: ColorConstants.appColor,
-              ),
-            ),
+            child: cardSection('Notification'),
           ),
-          // const ListTile(
-          //   title: Text('System Permissions'),
-          // ),
-          InkWell(
-            onTap: () {
-              showDialog(
-                  context: context,
-                  builder: (context) {
-                    return ClearAppDialog();
-                  });
+          Divider(
+            color: ColorConstants.appBodyColor,
+          ),
+          GestureDetector(
+            onTap: () async {
+              await Navigator.push(context,
+                  MaterialPageRoute(builder: (context) {
+                return FaqsPage();
+              }));
             },
-            child: ListTile(
-              title: const Text('Clear All Data'),
-              leading: Icon(
-                Icons.delete,
-                color: ColorConstants.appColor,
-              ),
-              subtitle: const Text('Clear all saved data including saved '
-                  'places and preferences'),
-            ),
+            child: cardSection('FAQs'),
+          ),
+          Divider(
+            color: ColorConstants.appBodyColor,
+          ),
+          GestureDetector(
+            onTap: () async {
+              await Navigator.push(context,
+                  MaterialPageRoute(builder: (context) {
+                return ContactUsPage();
+              }));
+            },
+            child: cardSection('Contact us'),
+          ),
+          Divider(
+            color: ColorConstants.appBodyColor,
+          ),
+          GestureDetector(
+            onTap: () async {
+              await Navigator.push(context,
+                  MaterialPageRoute(builder: (context) {
+                return TermsAndPolicy();
+              }));
+            },
+            child: cardSection('Terms & Privacy'),
+          ),
+          Divider(
+            color: ColorConstants.appBodyColor,
+          ),
+          GestureDetector(
+            onTap: () async {
+              await Navigator.push(context,
+                  MaterialPageRoute(builder: (context) {
+                return AboutAirQo();
+              }));
+            },
+            child: cardSection('About AirQo'),
           ),
         ],
       ),
     );
-  }
-
-  Future<void> _launchEmail(String action) async {
-    action = action.trim().toLowerCase();
-
-    switch (action) {
-      case 'feedback':
-        final _emailFeedbackUri = Uri(
-                scheme: 'mailto',
-                path: '${Links.airqoFeedbackEmail}',
-                queryParameters: {'subject': 'Mobile\bApplication\bFeedback!'})
-            .toString();
-
-        try {
-          await canLaunch(_emailFeedbackUri)
-              ? await launch(_emailFeedbackUri)
-              : throw Exception(
-                  'Could not launch faqs, try opening $_emailFeedbackUri');
-        } catch (e) {
-          print(e);
-        }
-        return;
-      default:
-        return;
-    }
-  }
-
-  Future<void> _launchURL(String page) async {
-    page = page.trim().toLowerCase();
-
-    try {
-      switch (page) {
-        case 'faqs':
-          await canLaunch(Links.faqsUrl)
-              ? await launch(Links.faqsUrl)
-              : throw Exception(
-                  'Could not launch faqs, try opening ${Links.faqsUrl}');
-          return;
-        case 'about':
-          await canLaunch(Links.aboutUsUrl)
-              ? await launch(Links.aboutUsUrl)
-              : throw Exception(
-                  'Could not launch about, try opening ${Links.aboutUsUrl}');
-          return;
-        case 'contact us':
-          await canLaunch(Links.contactUsUrl)
-              ? await launch(Links.contactUsUrl)
-              : throw Exception(
-                  'Could not launch contact us, try opening ${Links.contactUsUrl}');
-          return;
-        case 'terms':
-          await canLaunch(Links.termsUrl)
-              ? await launch(Links.termsUrl)
-              : throw Exception(
-                  'Could not launch terms, try opening ${Links.termsUrl}');
-          return;
-        case 'rate':
-          if (Platform.isAndroid) {
-            await canLaunch(Links.playStoreUrl)
-                ? await launch(Links.playStoreUrl)
-                : throw Exception('Could not launch rate us, try opening'
-                    ' ${Links.playStoreUrl}');
-          } else if (Platform.isIOS) {
-            await canLaunch(Links.iOSUrl)
-                ? await launch(Links.iOSUrl)
-                : throw Exception(
-                    'Could not launch rate us, try opening ${Links.iOSUrl}');
-          } else {
-            await canLaunch(Links.playStoreUrl)
-                ? await launch(Links.playStoreUrl)
-                : throw Exception('Could not launch rate us, try opening'
-                    ' ${Links.playStoreUrl}');
-          }
-          return;
-        case 'facebook':
-          await canLaunch(Links.facebookUrl)
-              ? await launch(Links.facebookUrl)
-              : throw Exception(
-                  'Could not launch facebook, try opening ${Links.facebookUrl}');
-          return;
-        case 'twitter':
-          await canLaunch(Links.twitterUrl)
-              ? await launch(Links.twitterUrl)
-              : throw Exception(
-                  'Could not launch twitter, try opening ${Links.twitterUrl}');
-          return;
-        case 'linkedin':
-          await canLaunch(Links.linkedinUrl)
-              ? await launch(Links.linkedinUrl)
-              : throw Exception(
-                  'Could not launch linkedin, try opening ${Links.linkedinUrl}');
-          return;
-        case 'youtube':
-          await canLaunch(Links.youtubeUrl)
-              ? await launch(Links.youtubeUrl)
-              : throw Exception(
-                  'Could not launch youtube, try opening ${Links.youtubeUrl}');
-          return;
-        case 'airqo':
-          await canLaunch(Links.websiteUrl)
-              ? await launch(Links.websiteUrl)
-              : throw Exception(
-                  'Could not launch airqo, try opening ${Links.websiteUrl}');
-          return;
-        default:
-          await canLaunch(Links.websiteUrl)
-              ? await launch(Links.websiteUrl)
-              : throw Exception(
-                  'Could not launch airqo, try opening ${Links.websiteUrl}');
-          return;
-      }
-    } catch (e) {
-      print(e);
-    }
-  }
-
-  Future<void> _onLanguageValueChange(Languages value) async {
-    setState(() {
-      _language = value;
-    });
-
-    // var prefs = await SharedPreferences.getInstance();
-    //
-    // if(value == Themes.lightTheme){
-    //   await prefs.setString(appTheme, 'light');
-    // }
-    // else{
-    //   await prefs.setString(appTheme, 'dark');
-    // }
-  }
-
-  Future<void> _onThemeValueChange(Themes value) async {
-    setState(() {
-      _theme = value;
-    });
-
-    var prefs = await SharedPreferences.getInstance();
-
-    if (value == Themes.lightTheme) {
-      await prefs.setString(PrefConstant.appTheme, 'light');
-    } else {
-      await prefs.setString(PrefConstant.appTheme, 'dark');
-    }
   }
 }

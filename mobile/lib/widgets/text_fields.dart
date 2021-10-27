@@ -118,6 +118,45 @@ Widget emailInputField(String placeholder) {
   );
 }
 
+Widget optField(position, context, callbackFn) {
+  return Container(
+      height: 64,
+      width: 240,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+          color: const Color(0xff8D8D8D).withOpacity(0.1),
+          border: Border.all(color: ColorConstants.appColorBlue),
+          borderRadius: const BorderRadius.all(Radius.circular(8.0))),
+      child: Center(
+        child: TextFormField(
+          autofocus: true,
+          textAlignVertical: TextAlignVertical.center,
+          onChanged: (value) {
+            callbackFn(value, position);
+          },
+          showCursor: true,
+          cursorColor: ColorConstants.appColorBlue,
+          readOnly: false,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 32,
+            fontWeight: FontWeight.w500,
+            color: ColorConstants.appColorBlue,
+            letterSpacing: 10.0,
+          ),
+          keyboardType: TextInputType.number,
+          maxLength: 6,
+          decoration: InputDecoration(
+            counter: const Offstage(),
+            fillColor: const Color(0xff8D8D8D).withOpacity(0.1),
+            filled: false,
+            focusedBorder: InputBorder.none,
+            enabledBorder: InputBorder.none,
+          ),
+        ),
+      ));
+}
+
 Widget optFieldV1(position, context, callbackFn) {
   return Container(
       height: 45,
@@ -157,47 +196,6 @@ Widget optFieldV1(position, context, callbackFn) {
         ),
       ));
 }
-
-Widget optField(position, context, callbackFn) {
-  return Container(
-      height: 64,
-      width: 240,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-          color: const Color(0xff8D8D8D).withOpacity(0.1),
-          border: Border.all(color: ColorConstants.appColorBlue),
-          borderRadius: const BorderRadius.all(Radius.circular(8.0))),
-      child: Center(
-        child: TextFormField(
-          autofocus: true,
-
-          textAlignVertical: TextAlignVertical.center,
-          onChanged: (value) {
-            callbackFn(value, position);
-          },
-          showCursor: true,
-          cursorColor: ColorConstants.appColorBlue,
-          readOnly: false,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 32,
-            fontWeight: FontWeight.w500,
-            color: ColorConstants.appColorBlue,
-            letterSpacing: 10.0,
-          ),
-          keyboardType: TextInputType.number,
-          maxLength: 6,
-          decoration: InputDecoration(
-            counter: const Offstage(),
-            fillColor: const Color(0xff8D8D8D).withOpacity(0.1),
-            filled: false,
-            focusedBorder: InputBorder.none,
-            enabledBorder: InputBorder.none,
-          ),
-        ),
-      ));
-}
-
 
 Widget phoneInputField(String placeholder, valueChangeCallBackFn, String prefix,
     clearCallBackFn, controller, context) {
@@ -482,12 +480,11 @@ Widget titleDropdown() {
               .map<DropdownMenuItem<String>>((String value) {
             return DropdownMenuItem<String>(
               value: value,
-              child: Text(value,
+              child: Text(
+                value,
                 overflow: TextOverflow.ellipsis,
                 maxLines: 3,
-                style: TextStyle(
-                  fontSize: 14
-                ),
+                style: TextStyle(fontSize: 14),
               ),
             );
           }).toList(),

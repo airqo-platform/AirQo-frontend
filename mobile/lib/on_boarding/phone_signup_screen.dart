@@ -62,7 +62,6 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
         color: Colors.white,
         padding: const EdgeInsets.only(left: 24, right: 24),
         child: Center(
-
             child: requestCode
                 ? ListView(children: [
                     const SizedBox(
@@ -80,20 +79,18 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
                       height: 8,
                     ),
                     Text(
-                      phoneSignUp ?
-                      'Enter the 6 digit code sent to\n'
-                      '$prefixValue$phoneNumber' :
-                      'Enter the 6 digit code sent to\n'
-                          '$emailAddress',
+                      phoneSignUp
+                          ? 'Enter the 6 digit code sent to\n'
+                              '$prefixValue$phoneNumber'
+                          : 'Enter the 6 digit code sent to\n'
+                              '$emailAddress',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                           fontSize: 14, color: Colors.black.withOpacity(0.6)),
                     ),
-
                     const SizedBox(
                       height: 8,
                     ),
-
                     Padding(
                       padding: const EdgeInsets.only(left: 36, right: 36),
                       child: optField(0, context, setCode),
@@ -121,9 +118,9 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
                                 : Colors.black.withOpacity(0.5)),
                       ),
                     ),
-              const SizedBox(
-                height: 19,
-              ),
+                    const SizedBox(
+                      height: 19,
+                    ),
                     Padding(
                       padding: const EdgeInsets.only(left: 36, right: 36),
                       child: Stack(
@@ -136,15 +133,11 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
                           Container(
                               color: Colors.white,
                               padding: const EdgeInsets.only(left: 5, right: 5),
-                              child: const Text('Or',
+                              child: const Text(
+                                'Or',
                                 style: TextStyle(
-                                    fontSize: 12,
-                                    color: Color(0xffD1D3D9)
-                                ),)
-
-                          ),
-
-
+                                    fontSize: 12, color: Color(0xffD1D3D9)),
+                              )),
                         ],
                       ),
                     ),
@@ -224,10 +217,9 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
                       height: 36,
                     ),
                   ])
-                :  Form(
+                : Form(
                     key: _phoneFormKey,
-                    child: ListView(
-                        children: [
+                    child: ListView(children: [
                       const SizedBox(
                         height: 42,
                       ),
@@ -251,48 +243,47 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
                       const SizedBox(
                         height: 32,
                       ),
-                          Visibility(
-                            visible: phoneSignUp,
-                            child: Container(
-                              height: 48,
-                              child: Row(
-                                children: [
-                                  SizedBox(
-                                    width: 64,
-                                    child: countryPickerField(
-                                        prefixValue, codeValueChange, context),
-                                  ),
-                                  const SizedBox(
-                                    width: 16,
-                                  ),
-                                  Expanded(
-                                    child: phoneInputField(),
-                                  )
-                                ],
+                      Visibility(
+                        visible: phoneSignUp,
+                        child: Container(
+                          height: 48,
+                          child: Row(
+                            children: [
+                              SizedBox(
+                                width: 64,
+                                child: countryPickerField(
+                                    prefixValue, codeValueChange, context),
                               ),
-                            ),),
-
-                          Visibility(
-                            visible: !phoneSignUp,
-                            child: emailInputField(),),
-
+                              const SizedBox(
+                                width: 16,
+                              ),
+                              Expanded(
+                                child: phoneInputField(),
+                              )
+                            ],
+                          ),
+                        ),
+                      ),
+                      Visibility(
+                        visible: !phoneSignUp,
+                        child: emailInputField(),
+                      ),
                       const SizedBox(
                         height: 36,
                       ),
-                          GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                phoneSignUp = !phoneSignUp;
-                                clearPhoneCallBack();
-                                clearEmailCallBack();
-                              });
-                            },
-                            child: signButton(
-                                phoneSignUp ? 'Sign up with email instead' :
-                                'Sign up with a'
+                      GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            phoneSignUp = !phoneSignUp;
+                            clearPhoneCallBack();
+                            clearEmailCallBack();
+                          });
+                        },
+                        child: signButton(phoneSignUp
+                            ? 'Sign up with email instead'
+                            : 'Sign up with a'
                                 ' mobile number instead'),
-                          ),
-
+                      ),
                       const SizedBox(
                         height: 212,
                       ),
@@ -324,18 +315,18 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
     ));
   }
 
-  void clearPhoneCallBack() {
-    setState(() {
-      phoneNumber = '';
-      _phoneInputController.text = '';
-      nextBtnColor = ColorConstants.appColorDisabled;
-    });
-  }
-
   void clearEmailCallBack() {
     setState(() {
       emailAddress = '';
       _emailInputController.text = '';
+      nextBtnColor = ColorConstants.appColorDisabled;
+    });
+  }
+
+  void clearPhoneCallBack() {
+    setState(() {
+      phoneNumber = '';
+      _phoneInputController.text = '';
       nextBtnColor = ColorConstants.appColorDisabled;
     });
   }
@@ -345,6 +336,42 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
       prefixValue = text;
       prefix = '$text(0) ';
     });
+  }
+
+  Widget emailInputField() {
+    return Container(
+        height: 48,
+        alignment: Alignment.center,
+        padding: const EdgeInsets.only(left: 15),
+        decoration: BoxDecoration(
+            borderRadius: const BorderRadius.all(Radius.circular(10.0)),
+            border: Border.all(color: ColorConstants.appColorBlue)),
+        child: Center(
+            child: TextFormField(
+          controller: _emailInputController,
+          autofocus: true,
+          enableSuggestions: false,
+          cursorWidth: 1,
+          cursorColor: ColorConstants.appColorBlue,
+          keyboardType: TextInputType.emailAddress,
+          onChanged: (text) {},
+          validator: (value) {
+            return null;
+          },
+          decoration: InputDecoration(
+            focusedBorder: InputBorder.none,
+            enabledBorder: InputBorder.none,
+            hintText: 'Enter your email',
+            suffixIcon: GestureDetector(
+                onTap: () {
+                  _emailInputController.text = '';
+                },
+                child: GestureDetector(
+                  onTap: clearEmailCallBack,
+                  child: textInputCloseButton(),
+                )),
+          ),
+        )));
   }
 
   void initialize() {
@@ -419,45 +446,6 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
             ),
           ),
         )));
-  }
-
-  Widget emailInputField() {
-    return Container(
-      height: 48,
-        alignment: Alignment.center,
-        padding: const EdgeInsets.only(left: 15),
-        decoration: BoxDecoration(
-            borderRadius: const BorderRadius.all(Radius.circular(10.0)),
-            border: Border.all(color: ColorConstants.appColorBlue)),
-        child: Center(
-            child: TextFormField(
-              controller: _emailInputController,
-              autofocus: true,
-              enableSuggestions: false,
-              cursorWidth: 1,
-              cursorColor: ColorConstants.appColorBlue,
-              keyboardType: TextInputType.emailAddress,
-              onChanged: (text){
-
-              },
-              validator: (value) {
-
-                return null;
-              },
-              decoration: InputDecoration(
-                focusedBorder: InputBorder.none,
-                enabledBorder: InputBorder.none,
-                hintText: 'Enter your email',
-                suffixIcon: GestureDetector(
-                    onTap: () {
-                      _emailInputController.text = '';
-                    },
-                    child: GestureDetector(
-                      onTap: clearEmailCallBack,
-                      child: textInputCloseButton(),
-                    )),
-              ),
-            )));
   }
 
   void phoneValueChange(text) {

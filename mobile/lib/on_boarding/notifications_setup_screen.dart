@@ -23,8 +23,7 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
       onWillPop: onWillPop,
       child: Container(
         padding: const EdgeInsets.only(top: 58),
-        child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center, children: [
+        child: Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
           onBoardingNotificationIcon(),
           const SizedBox(
             height: 52,
@@ -33,9 +32,7 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
             'Know your air \nin real time',
             textAlign: TextAlign.center,
             style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.black),
+                fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black),
           ),
           const SizedBox(
             height: 8,
@@ -48,23 +45,22 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
           const Spacer(),
           Padding(
             padding: const EdgeInsets.only(left: 24, right: 24),
-            child:  GestureDetector(
+            child: GestureDetector(
               onTap: () {
                 NotificationService().requestPermission().then((value) => {
-                  Navigator.pushAndRemoveUntil(context,
-                      MaterialPageRoute(builder: (context) {
+                      Navigator.pushAndRemoveUntil(context,
+                          MaterialPageRoute(builder: (context) {
                         return LocationSetupScreen();
                       }), (r) => false)
-                });
+                    });
                 // Navigator.push(context, MaterialPageRoute(builder: (context) {
                 //   return LocationSetupScreen();
                 // }));
               },
-              child: nextButton(
-                  'Yes, keep me safe', ColorConstants.appColorBlue),
+              child:
+                  nextButton('Yes, keep me safe', ColorConstants.appColorBlue),
             ),
           ),
-
           const SizedBox(
             height: 20,
           ),
@@ -72,8 +68,8 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
             onTap: () {
               Navigator.pushAndRemoveUntil(context,
                   MaterialPageRoute(builder: (context) {
-                    return LocationSetupScreen();
-                  }), (r) => false);
+                return LocationSetupScreen();
+              }), (r) => false);
             },
             child: Text(
               'No, thanks',

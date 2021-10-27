@@ -44,10 +44,9 @@ class _HomePageState extends State<HomePage> {
       bottomNavigationBar: Theme(
         data: Theme.of(context).copyWith(
             canvasColor: ColorConstants.appBodyColor,
-            primaryColor: Colors.black,
-            textTheme: Theme.of(context)
-                .textTheme
-                .copyWith(caption: const TextStyle(color: Colors.black))),
+            primaryColor: ColorConstants.appColorBlack,
+            textTheme: Theme.of(context).textTheme.copyWith(
+                caption: TextStyle(color: ColorConstants.appColorBlack))),
         child: BottomNavigationBar(
           items: <BottomNavigationBarItem>[
             BottomNavigationBarItem(
@@ -56,7 +55,7 @@ class _HomePageState extends State<HomePage> {
                 semanticsLabel: 'Home',
                 color: _selectedIndex == 0
                     ? ColorConstants.appColorBlue
-                    : ColorConstants.greyColor,
+                    : ColorConstants.appColorBlack.withOpacity(0.4),
               ),
               label: 'Home',
             ),
@@ -65,7 +64,7 @@ class _HomePageState extends State<HomePage> {
                 'assets/icon/location.svg',
                 color: _selectedIndex == 1
                     ? ColorConstants.appColorBlue
-                    : ColorConstants.greyColor,
+                    : ColorConstants.appColorBlack.withOpacity(0.4),
                 semanticsLabel: 'AirQo Map',
               ),
               label: 'AirQo Map',
@@ -75,7 +74,7 @@ class _HomePageState extends State<HomePage> {
                 'assets/icon/profile.svg',
                 color: _selectedIndex == 2
                     ? ColorConstants.appColorBlue
-                    : ColorConstants.greyColor,
+                    : ColorConstants.appColorBlack.withOpacity(0.4),
                 semanticsLabel: 'Search',
               ),
               // Icon(Icons.account_circle_sharp),

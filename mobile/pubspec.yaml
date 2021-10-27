@@ -92,33 +92,12 @@ flutter:
 
   assets:
     # images
-    - assets/images/good-face.png
-    - assets/images/moderate-face.png
-    - assets/images/unhealthy-face.png
-    - assets/images/very-unhealthy-face.png
-    - assets/images/sensitive-face.png
-    - assets/images/hazardous-face.png
-    - assets/images/historical.png
-    - assets/images/map.png
     - assets/images/world-map.png
-    - assets/images/heart.png
-    - assets/images/target.png
-    - assets/images/baby.png
-    - assets/images/cycling.png
-    - assets/images/face-mask.png
-    - assets/images/jogging.png
-    - assets/images/old.png
-    - assets/images/community.png
-    - assets/images/pregnant-woman.png
     - assets/images/know-your-air.png
     - assets/images/splash-image.png
     - assets/images/tips-image.png
     - assets/images/skate.png
-    - assets/icon/next_arrow.svg
-    - assets/icon/enable_notifications_icon.svg
-    - assets/icon/enable_location_icon.svg
     - assets/icon/enable_location_icon.png
-    - assets/icon/floating_bg.svg
     - assets/icon/floating_bg.png
 
    # icons
@@ -156,20 +135,23 @@ flutter:
     - assets/icon/location_icon.svg
     - assets/icon/notification_icon.svg
     - assets/icon/star.svg
+    - assets/icon/sparkles.svg
+    - assets/icon/heart.svg
+    - assets/icon/add_avator.svg
+    - assets/icon/globe.svg
+    - assets/icon/next_arrow.svg
+    - assets/icon/enable_notifications_icon.svg
+    - assets/icon/enable_location_icon.svg
+    - assets/icon/cog.svg
+    - assets/icon/empty_notifications.svg
+    - assets/icon/floating_bg.svg
 
     # Language Translation files
     - assets/i18n/en.json
 
   fonts:
-   - family: OpenSans
+   - family: Inter
      fonts:
-       - asset: assets/fonts/OpenSans-Bold.ttf
-       - asset: assets/fonts/OpenSans-BoldItalic.ttf
-       - asset: assets/fonts/OpenSans-ExtraBold.ttf
-       - asset: assets/fonts/OpenSans-Light.ttf
-       - asset: assets/fonts/OpenSans-Regular.ttf
-       - asset: assets/fonts/OpenSans-Semibold.ttf
-
        - asset: assets/fonts/Inter-Bold.ttf
        - asset: assets/fonts/Inter-Black.ttf
        - asset: assets/fonts/Inter-ExtraBold.ttf
