@@ -3,7 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 
-Widget loadingAnimation(double height) {
+Widget loadingAnimation(double height, double radius) {
   return SizedBox(
     height: height,
     child: Shimmer.fromColors(
@@ -12,7 +12,7 @@ Widget loadingAnimation(double height) {
       child: Container(
           decoration: BoxDecoration(
               color: ColorConstants.appColorBlue,
-              borderRadius: const BorderRadius.all(Radius.circular(5.0)))),
+              borderRadius: BorderRadius.all(Radius.circular(radius)))),
     ),
   );
 }

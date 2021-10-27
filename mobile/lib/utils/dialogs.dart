@@ -1,6 +1,5 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/measurement.dart';
-import 'package:app/screens/my_places.dart';
 import 'package:app/utils/pm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -361,35 +360,6 @@ Future<void> showSnackBar2(context, String message) async {
       ),
     ),
     backgroundColor: ColorConstants.snackBarBgColor,
-  );
-  ScaffoldMessenger.of(context).showSnackBar(snackBar);
-}
-
-Future<void> showSnackBarGoToMyPlaces(context, String message) async {
-  var snackBar = SnackBar(
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(10),
-    ),
-    elevation: 20,
-    behavior: SnackBarBehavior.floating,
-    content: Text(
-      message,
-      softWrap: true,
-      textAlign: TextAlign.start,
-      style: const TextStyle(
-        color: Colors.white,
-      ),
-    ),
-    backgroundColor: ColorConstants.snackBarBgColor,
-    action: SnackBarAction(
-      textColor: Colors.white,
-      label: 'View MyPlaces',
-      onPressed: () async {
-        await Navigator.push(context, MaterialPageRoute(builder: (context) {
-          return const MyPlaces();
-        }));
-      },
-    ),
   );
   ScaffoldMessenger.of(context).showSnackBar(snackBar);
 }

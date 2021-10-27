@@ -20,45 +20,48 @@ List<Widget> createTips(double value) {
   return tipsWidgets;
 }
 
-Widget tipContainer() {
+Widget recommendationContainer(Recommendation recommendation) {
   return Container(
-    padding: const EdgeInsets.only(left: 12.0),
-    width: 300,
-    decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.all(Radius.circular(8.0))),
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.start,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-            width: 280,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Go For A Jog',
-                  maxLines: 4,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-                ),
-                const SizedBox(
-                  height: 10,
-                ),
-                const Text(
-                  'Air quality around kampala seems good, '
-                  'It\'s about time to hit the road'
-                  ' and get in tha work',
-                  maxLines: 4,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 15),
-                ),
-              ],
-            )),
-      ],
-    ),
-  );
+      width: 304,
+      height: 128,
+      decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.all(Radius.circular(8.0))),
+      child: Center(
+        child: ListTile(
+          contentPadding: const EdgeInsets.all(8.0),
+          leading: Container(
+            width: 83,
+            height: 112,
+            decoration: const BoxDecoration(
+                borderRadius: BorderRadius.all(Radius.circular(8.0))),
+            child: Image.asset(
+              'assets/images/know-your-air.png',
+              fit: BoxFit.cover,
+            ),
+            // child: SvgPicture.asset(
+            //   '${recommendation.imageUrl}',
+            // )
+          ),
+          title: Text(
+            '${recommendation.title}',
+            maxLines: 4,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+                color: ColorConstants.appColorBlack,
+                fontWeight: FontWeight.bold,
+                fontSize: 16),
+          ),
+          subtitle: Text(
+            '${recommendation.body}',
+            maxLines: 4,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+                color: ColorConstants.appColorBlack.withOpacity(0.5),
+                fontSize: 14),
+          ),
+        ),
+      ));
 }
 
 class TipCard extends StatelessWidget {
@@ -98,7 +101,7 @@ class TipCard extends StatelessWidget {
           SizedBox(
               width: screenWidth * 0.70,
               child: Padding(
-                padding: EdgeInsets.all(8.0),
+                padding: const EdgeInsets.all(8.0),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -107,14 +110,14 @@ class TipCard extends StatelessWidget {
                       header,
                       overflow: TextOverflow.ellipsis,
                       maxLines: 2,
-                      style:
-                          TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 14),
                     ),
                     Text(
                       body,
                       overflow: TextOverflow.ellipsis,
                       maxLines: 2,
-                      style: TextStyle(fontSize: 12),
+                      style: const TextStyle(fontSize: 12),
                     ),
                   ],
                 ),

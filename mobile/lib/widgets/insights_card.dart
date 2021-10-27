@@ -7,9 +7,11 @@ import 'package:app/models/site.dart';
 import 'package:app/services/rest_api.dart';
 import 'package:app/utils/data_formatter.dart';
 import 'package:app/utils/date.dart';
+import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/pm.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 
 import 'custom_shimmer.dart';
 import 'custom_widgets.dart';
@@ -46,13 +48,13 @@ class _InsightsCardState extends State<InsightsCard> {
   @override
   Widget build(BuildContext context) {
     if (measurements.isEmpty) {
-      return loadingAnimation(300.0);
+      return loadingAnimation(290.0, 8.0);
     }
     return Container(
         padding: const EdgeInsets.only(top: 12, bottom: 12),
         decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: const BorderRadius.all(Radius.circular(16.0)),
+            borderRadius: const BorderRadius.all(Radius.circular(8.0)),
             border: Border.all(color: Colors.transparent)),
         child: Column(
           children: [
@@ -128,9 +130,9 @@ class _InsightsCardState extends State<InsightsCard> {
             ),
             // footer
             Container(
+              width: MediaQuery.of(context).size.width,
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Container(
                     padding: const EdgeInsets.fromLTRB(10.0, 2.0, 10.0, 2.0),
@@ -138,8 +140,7 @@ class _InsightsCardState extends State<InsightsCard> {
                         borderRadius:
                             const BorderRadius.all(Radius.circular(40.0)),
                         color: pollutant == 'pm2.5'
-                            ? pm2_5TextColor(
-                                    selectedMeasurement.getPm2_5Value())
+                            ? pm2_5ToColor(selectedMeasurement.getPm2_5Value())
                                 .withOpacity(0.4)
                             : pm10TextColor(selectedMeasurement.getPm10Value())
                                 .withOpacity(0.4),
@@ -158,6 +159,23 @@ class _InsightsCardState extends State<InsightsCard> {
                       ),
                     ),
                   ),
+                  const SizedBox(
+                    width: 8,
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      var measurement =
+                          selectedMeasurement.getMeasurement(site);
+                      pmInfoDialog(context, measurement);
+                    },
+                    child: SvgPicture.asset(
+                      'assets/icon/info_icon.svg',
+                      semanticsLabel: 'Pm2.5',
+                      height: 20,
+                      width: 20,
+                    ),
+                  ),
+                  const Spacer(),
                   Container(
                     child: Row(
                       children: [

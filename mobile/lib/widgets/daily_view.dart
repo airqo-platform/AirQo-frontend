@@ -2,6 +2,7 @@ import 'package:app/constants/app_constants.dart';
 import 'package:app/models/historicalMeasurement.dart';
 import 'package:app/models/site.dart';
 import 'package:app/services/local_storage.dart';
+import 'package:app/utils/pm.dart';
 import 'package:app/utils/share.dart';
 import 'package:app/widgets/tips.dart';
 import 'package:flutter/material.dart';
@@ -26,6 +27,7 @@ class _DailyViewState extends State<DailyView> with TickerProviderStateMixin {
   bool pm10 = false;
   bool pm2_5 = true;
   bool isFav = false;
+  List<Recommendation> _recommendations = [];
 
   _DailyViewState(this.site);
 
@@ -102,6 +104,9 @@ class _DailyViewState extends State<DailyView> with TickerProviderStateMixin {
                         ),
                         'Share'),
                   ),
+                  const SizedBox(
+                    width: 60,
+                  ),
                   GestureDetector(
                     onTap: () {
                       DBHelper().updateFavouritePlaces(site, context);
@@ -122,13 +127,16 @@ class _DailyViewState extends State<DailyView> with TickerProviderStateMixin {
               height: 36,
             ),
             if (viewDay == 'today' || viewDay == 'tomorrow')
-              Text(
-                viewDay == 'today'
-                    ? 'Today’s health tips'
-                    : 'Tomorrow’s health tips',
-                textAlign: TextAlign.left,
-                style:
-                    const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              Visibility(
+                visible: _recommendations.isNotEmpty,
+                child: Text(
+                  viewDay == 'today'
+                      ? 'Today’s health tips'
+                      : 'Tomorrow’s health tips',
+                  textAlign: TextAlign.left,
+                  style: const TextStyle(
+                      fontSize: 20, fontWeight: FontWeight.bold),
+                ),
               ),
             const SizedBox(
               height: 11,
@@ -139,9 +147,9 @@ class _DailyViewState extends State<DailyView> with TickerProviderStateMixin {
                 scrollDirection: Axis.horizontal,
                 itemBuilder: (context, index) => Padding(
                   padding: const EdgeInsets.all(5),
-                  child: tipContainer(),
+                  child: recommendationContainer(_recommendations[index]),
                 ),
-                itemCount: 4,
+                itemCount: _recommendations.length,
               ),
             ),
             const SizedBox(
@@ -155,6 +163,9 @@ class _DailyViewState extends State<DailyView> with TickerProviderStateMixin {
     var offSet = DateTime.now().timeZoneOffset.inHours;
     var time = DateTime.parse(measurement.time).add(Duration(hours: offSet));
     var tomorrow = DateTime.now().add(const Duration(days: 1));
+    setState(() {
+      _recommendations = getHealthRecommendations(measurement.getPm2_5Value());
+    });
     if (time.day == DateTime.now().day) {
       setState(() {
         viewDay = 'today';

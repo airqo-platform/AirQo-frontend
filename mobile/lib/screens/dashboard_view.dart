@@ -838,7 +838,7 @@ class _DashboardViewState extends State<DashboardView> {
                 child: AnalyticsCard(measurementData)),
             Visibility(
                 visible: measurementData == null,
-                child: loadingAnimation(253.0)),
+                child: loadingAnimation(255.0, 16.0)),
             const SizedBox(
               height: 16,
             ),

@@ -1,3 +1,4 @@
+import 'package:app/models/measurement.dart';
 import 'package:app/models/site.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -50,6 +51,11 @@ class HistoricalMeasurement {
 
   factory HistoricalMeasurement.fromJson(Map<String, dynamic> json) =>
       _$HistoricalMeasurementFromJson(json);
+
+  Measurement getMeasurement(Site site) {
+    return Measurement(time, pm2_5, pm10, altitude, speed, temperature,
+        humidity, site, deviceNumber);
+  }
 
   double getPm10Value() {
     if (pm10.calibratedValue == -0.1) {

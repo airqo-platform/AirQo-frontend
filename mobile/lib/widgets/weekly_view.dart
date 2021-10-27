@@ -5,7 +5,7 @@ import 'package:app/widgets/place_readings_card.dart';
 import 'package:app/widgets/text_fields.dart';
 import 'package:flutter/material.dart';
 
-import 'loading.dart';
+import 'custom_shimmer.dart';
 
 class WeeklyView extends StatefulWidget {
   Site site;
@@ -21,13 +21,13 @@ class _WeeklyViewState extends State<WeeklyView> with TickerProviderStateMixin {
   Site site;
   int currentIndex = 0;
   List<Widget> placeHolders = [
-    const LoadingAnimation(),
-    const LoadingAnimation(),
-    const LoadingAnimation(),
-    const LoadingAnimation(),
-    const LoadingAnimation(),
-    const LoadingAnimation(),
-    const LoadingAnimation(),
+    loadingAnimation(253.0, 16.0),
+    loadingAnimation(253.0, 16.0),
+    loadingAnimation(253.0, 16.0),
+    loadingAnimation(253.0, 16.0),
+    loadingAnimation(253.0, 16.0),
+    loadingAnimation(253.0, 16.0),
+    loadingAnimation(253.0, 16.0),
   ];
 
   _WeeklyViewState(this.site);

@@ -69,37 +69,37 @@ class _NotificationPageState extends State<NotificationPage> {
                       Padding(
                         padding:
                             const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
-                        child: loadingAnimation(115.0),
+                        child: loadingAnimation(115.0, 16.0),
                       ),
                       Padding(
                         padding:
                             const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
-                        child: loadingAnimation(115.0),
+                        child: loadingAnimation(115.0, 16.0),
                       ),
                       Padding(
                         padding:
                             const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
-                        child: loadingAnimation(115.0),
+                        child: loadingAnimation(115.0, 16.0),
                       ),
                       Padding(
                         padding:
                             const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
-                        child: loadingAnimation(115.0),
+                        child: loadingAnimation(115.0, 16.0),
                       ),
                       Padding(
                         padding:
                             const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
-                        child: loadingAnimation(115.0),
+                        child: loadingAnimation(115.0, 16.0),
                       ),
                       Padding(
                         padding:
                             const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
-                        child: loadingAnimation(115.0),
+                        child: loadingAnimation(115.0, 16.0),
                       ),
                       Padding(
                         padding:
                             const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
-                        child: loadingAnimation(115.0),
+                        child: loadingAnimation(115.0, 16.0),
                       ),
                     ],
                   );

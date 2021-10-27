@@ -6,7 +6,7 @@ import 'package:app/widgets/text_fields.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import 'loading.dart';
+import 'custom_shimmer.dart';
 
 class MonthlyView extends StatefulWidget {
   Site site;
@@ -140,7 +140,7 @@ class _MonthlyViewState extends State<MonthlyView>
     var lastDayOfMonth = DateTime(now.year, now.month + 1, 0);
     for (var dateIndex = 0; dateIndex <= lastDayOfMonth.day; dateIndex++) {
       days.add(
-        const LoadingAnimation(),
+        loadingAnimation(253.0, 16.0),
       );
     }
     return days;

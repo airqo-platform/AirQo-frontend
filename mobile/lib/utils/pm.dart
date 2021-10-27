@@ -30,64 +30,128 @@ List<Recommendation> getHealthRecommendations(double pm2_5) {
   var recommendations = <Recommendation>[];
   if (pm2_5 <= 12.09) {
     //good
-    recommendations.add(Recommendation(
-        'Air quality is satisfactory, and air pollution'
-            ' poses little or no risk.',
-        'assets/images/community.png',
-        ColorConstants.green.withOpacity(0.2)));
+    recommendations
+      ..add(Recommendation(
+          'For everyone',
+          'Great air here today! Zero air pollution Zero worries',
+          'assets/icon/search.svg'))
+      ..add(Recommendation(
+          'For children',
+          'Perfect time to let your kids enjoy the park',
+          'assets/icon/search.svg'))
+      ..add(Recommendation(
+          'For pregnant women',
+          'Great time to enjoy a bleeze outdoor with caution',
+          'assets/icon/search.svg'))
+      ..add(Recommendation(
+          'For elderly people',
+          'Great time to enjoy a bleeze outdoor with caution',
+          'assets/icon/search.svg'));
   } else if (pm2_5 >= 12.1 && pm2_5 <= 35.49) {
     //moderate
     recommendations
       ..add(Recommendation(
-          'Unusually sensitive people should'
-              ' consider reducing prolonged or heavy exertion.',
-          'assets/images/pregnant-woman.png',
-          ColorConstants.green.withOpacity(0.2)))
+          'For everyone',
+          'Reduce the intensity of your outdoor activities,'
+              ' If possible stay indoor',
+          'assets/icon/search.svg'))
       ..add(Recommendation(
-          'The elderly and children '
-              'are the groups most at risk.',
-          'assets/images/old.png',
-          ColorConstants.green.withOpacity(0.2)));
+          'For children',
+          'Reduce the intensity of your outdoor activities',
+          'assets/icon/search.svg'))
+      ..add(Recommendation(
+          'For pregnant women',
+          'To keep you and your baby healthy, reduce'
+              ' the intensity of your outdoor activities',
+          'assets/icon/search.svg'))
+      ..add(Recommendation(
+          'For elderly people',
+          'Reduce the intensity of your outdoor activities',
+          'assets/icon/search.svg'));
   } else if (pm2_5 >= 35.5 && pm2_5 <= 55.49) {
     //sensitive
     recommendations
       ..add(Recommendation(
-          'The elderly and children '
-              'should limit prolonged exertion.',
-          'assets/images/baby.png',
-          ColorConstants.green.withOpacity(0.2)))
+          'For everyone',
+          'Reduce the intensity of your outdoor activities,'
+              ' If possible stay indoor',
+          'assets/icon/search.svg'))
       ..add(Recommendation(
-          'Sensitive people should reduce prolonged or heavy exertion.',
-          'assets/images/pregnant-woman.png',
-          ColorConstants.green.withOpacity(0.2)));
+          'For children',
+          'Reduce the intensity of your outdoor activities',
+          'assets/icon/search.svg'))
+      ..add(Recommendation(
+          'For pregnant women',
+          'To keep you and your baby healthy, reduce'
+              ' the intensity of your outdoor activities',
+          'assets/icon/search.svg'))
+      ..add(Recommendation(
+          'For elderly people',
+          'Reduce the intensity of your outdoor activities',
+          'assets/icon/search.svg'));
   } else if (pm2_5 >= 55.5 && pm2_5 <= 150.49) {
     // unhealthy
     recommendations
       ..add(Recommendation(
-          'People with respiratory or heart disease,'
-              ' the elderly and children should avoid prolonged exertion.',
-          'assets/images/old.png',
-          ColorConstants.green.withOpacity(0.2)))
-      ..add(Recommendation('Everyone else should limit prolonged exertion.',
-          'assets/images/cycling.png', ColorConstants.green.withOpacity(0.2)));
+          'For everyone',
+          'Reduce the intensity of your outdoor activities,'
+              ' If possible stay indoor',
+          'assets/icon/search.svg'))
+      ..add(Recommendation(
+          'For children',
+          'Reduce the intensity of your outdoor activities',
+          'assets/icon/search.svg'))
+      ..add(Recommendation(
+          'For pregnant women',
+          'To keep you and your baby healthy, reduce'
+              ' the intensity of your outdoor activities',
+          'assets/icon/search.svg'))
+      ..add(Recommendation(
+          'For elderly people',
+          'Reduce the intensity of your outdoor activities',
+          'assets/icon/search.svg'));
   } else if (pm2_5 >= 150.5 && pm2_5 <= 250.49) {
     // very unhealthy
     recommendations
       ..add(Recommendation(
-          'People with respiratory or heart disease, '
-              'the elderly and children should avoid any outdoor activity',
-          'assets/images/baby.png',
-          ColorConstants.green.withOpacity(0.2)))
-      ..add(Recommendation('Everyone else should limit prolonged exertion.',
-          'assets/images/jogging.png', ColorConstants.green.withOpacity(0.2)));
+          'For everyone',
+          'Reduce the intensity of your outdoor activities,'
+              ' If possible stay indoor',
+          'assets/icon/search.svg'))
+      ..add(Recommendation(
+          'For children',
+          'Reduce the intensity of your outdoor activities',
+          'assets/icon/search.svg'))
+      ..add(Recommendation(
+          'For pregnant women',
+          'To keep you and your baby healthy, reduce'
+              ' the intensity of your outdoor activities',
+          'assets/icon/search.svg'))
+      ..add(Recommendation(
+          'For elderly people',
+          'Reduce the intensity of your outdoor activities',
+          'assets/icon/search.svg'));
   } else if (pm2_5 >= 250.5) {
     // hazardous
-    recommendations.add(Recommendation(
-        'Everyone should avoid any outdoor exertion. '
-            'People with respiratory or heart disease,'
-            ' the elderly and children should remain indoors.',
-        'assets/images/face-mask.png',
-        ColorConstants.purple));
+    recommendations
+      ..add(Recommendation(
+          'For everyone',
+          'Reduce the intensity of your outdoor activities,'
+              ' If possible stay indoor',
+          'assets/icon/search.svg'))
+      ..add(Recommendation(
+          'For children',
+          'Reduce the intensity of your outdoor activities',
+          'assets/icon/search.svg'))
+      ..add(Recommendation(
+          'For pregnant women',
+          'To keep you and your baby healthy, reduce'
+              ' the intensity of your outdoor activities',
+          'assets/icon/search.svg'))
+      ..add(Recommendation(
+          'For elderly people',
+          'Reduce the intensity of your outdoor activities',
+          'assets/icon/search.svg'));
   } else {}
 
   return recommendations;
@@ -567,12 +631,11 @@ String pollutantToString(String pollutantConstant) {
 }
 
 class Recommendation {
-  String recommendation = '';
-  bool isSelected = false;
+  String title = '';
+  String body = '';
   String imageUrl = '';
-  Color imageColor = ColorConstants.green.withOpacity(0.2);
 
-  Recommendation(this.recommendation, this.imageUrl, this.imageColor);
+  Recommendation(this.title, this.body, this.imageUrl);
 }
 
 class Tip {

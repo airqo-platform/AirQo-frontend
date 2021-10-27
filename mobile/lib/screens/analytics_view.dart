@@ -1,6 +1,6 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/measurement.dart';
-import 'package:app/screens/search_location_page.dart';
+import 'package:app/screens/search_page.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/widgets/custom_shimmer.dart';
 import 'package:app/widgets/favourite_place_card.dart';
@@ -32,12 +32,10 @@ class _AnalyticsViewState extends State<AnalyticsView> {
                       padding: const EdgeInsets.all(16.0),
                       child: OutlinedButton(
                         onPressed: () async {
-                          await showSearch(
-                            context: context,
-                            delegate: LocationSearch(),
-                          ).then((_) {
-                            setState(() {});
-                          });
+                          await Navigator.push(context,
+                              MaterialPageRoute(builder: (context) {
+                            return const SearchPage();
+                          }));
                         },
                         style: OutlinedButton.styleFrom(
                           shape: const CircleBorder(),
@@ -75,19 +73,19 @@ class _AnalyticsViewState extends State<AnalyticsView> {
               } else {
                 return ListView(
                   children: [
-                    loadingAnimation(253.0),
+                    loadingAnimation(253.0, 16.0),
                     const SizedBox(
                       height: 10,
                     ),
-                    loadingAnimation(253.0),
+                    loadingAnimation(253.0, 16.0),
                     const SizedBox(
                       height: 10,
                     ),
-                    loadingAnimation(253.0),
+                    loadingAnimation(253.0, 16.0),
                     const SizedBox(
                       height: 10,
                     ),
-                    loadingAnimation(253.0),
+                    loadingAnimation(253.0, 16.0),
                   ],
                 );
               }
