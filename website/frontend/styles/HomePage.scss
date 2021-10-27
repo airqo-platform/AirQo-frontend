@@ -313,7 +313,7 @@ $home-padding: 80px;
     }
   }
 
-  .api-section {
+  .api-section, .analytics-section {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
@@ -465,7 +465,68 @@ $home-padding: 80px;
           color: $aq-black-1;
         }
       }
+
+      .mb-24 {
+        margin-bottom: 24px;
+      }
+
+      .api-details-long {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: center;
+        width: 520px;
+        height: 120px;
+        background: linear-gradient(73.24deg, #F4F8FF 56.77%, #FFFFFF 204.89%);
+        border-radius: 8px;
+
+        .api-circle-wrapper {
+          width: 40px;
+          height: 70px;
+          margin-right: 16px;
+        }
+
+        .api-circle {
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          background: #C4C4C4;
+        }
+        .api-details-text-primary {
+          display: flex;
+          align-items: center;
+          width: 415.35px;
+          height: 18px;
+
+          font-style: normal;
+          font-weight: bold;
+          font-size: 14px;
+          line-height: 18px;
+
+          color: $aq-black-1;
+
+          margin-bottom: 8px;
+        }
+
+        .api-details-text-secondary {
+          display: flex;
+          align-items: center;
+          width: 401.89px;
+          height: 44px;
+
+          font-style: normal;
+          font-weight: normal;
+          font-size: 14px;
+          line-height: 22px;
+
+          color: $aq-black-1;
+        }
+      }
     }
+  }
+
+  .analytics-section {
+    background: #FFFFFF;
   }
 
   .partner-section {

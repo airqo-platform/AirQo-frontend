@@ -153,11 +153,46 @@ const AirQoAPI = () => (
         </div>
 );
 
+const AirQoAnalytics = () => (
+        <div className="analytics-section">
+            <div className="content-api">
+                <div className="api-title">AirQo Analytics</div>
+                <div className="api-text-main">Access air quality data through our API</div>
+                <div className="api-text-secondary">We use low-cost technologies and Artificial intelligence to close the gaps in air quality data across the African continent. </div>
+                <div className="api-demo">Request a Demo <ArrowRight width={15} height={10} style={{ marginLeft: '8px' }} /></div>
+                <div className="api-details-wrapper-long">
+                    <div className="api-details-long mb-24">
+                        <div className="api-circle-wrapper">
+                            <div className="api-circle" />
+                        </div>
+
+                        <div className="api-details-body-wrapper">
+                            <div className="api-details-text-primary">We use low-cost technologies </div>
+                            <div className="api-details-text-secondary">We use low-cost technologies and Artificial intelligence to close the gaps in air quality data across the African </div>
+                        </div>
+                    </div>
+                    <div className="api-details-long">
+                        <div className="api-circle-wrapper">
+                            <div className="api-circle" />
+                        </div>
+
+                        <div className="api-details-body-wrapper">
+                            <div className="api-details-text-primary">We use low-cost technologies </div>
+                            <div className="api-details-text-secondary">We use low-cost technologies and Artificial intelligence to close the gaps in air quality data across the African </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <PlaceHolderLong height={668} width={520} />
+        </div>
+);
+
 const HomePage = () => (
     <div className="HomePage">
         <Intro />
         <AirQuality />
         <AirQoAPI />
+        <AirQoAnalytics />
         <Partners />
         <Newsletter />
     </div>
