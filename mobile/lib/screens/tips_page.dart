@@ -52,7 +52,7 @@ class _TipsPageState extends State<TipsPage> {
             child: Align(
                 alignment: Alignment.bottomCenter,
                 child: Padding(
-                  padding: const EdgeInsets.only(left: 20, right: 20),
+                  padding: const EdgeInsets.only(left: 10, right: 10),
                   child: Column(
                     children: [
                       const Spacer(),
@@ -61,12 +61,14 @@ class _TipsPageState extends State<TipsPage> {
                         height: MediaQuery.of(context).size.height * 0.6,
                         child: PageView.builder(
                           scrollDirection: Axis.horizontal,
+                          physics: const BouncingScrollPhysics(),
                           controller: controller,
                           onPageChanged: (num) {
                             setState(() {
                               currentPage = num;
                             });
                           },
+
                           itemBuilder: (BuildContext context, int index) {
                             return slides[index] == slides[0]
                                 ? slideHeadCard()
@@ -78,29 +80,35 @@ class _TipsPageState extends State<TipsPage> {
                       const SizedBox(
                         height: 16,
                       ),
-                      Container(
+                      Padding(padding: const EdgeInsets.only(left: 15, right: 15),
+                      child: Container(
                           decoration: const BoxDecoration(
                               color: Colors.white,
                               borderRadius:
-                                  BorderRadius.all(Radius.circular(8.0))),
+                              BorderRadius.all(Radius.circular(8.0))),
                           height: 60,
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
                               TextButton(
-                                onPressed: () {
+                                onPressed: () async {
                                   if (currentPage != 0) {
-                                    controller.jumpToPage(currentPage - 1);
+                                    await controller.animateToPage(
+                                        currentPage - 1,
+                                        duration:
+                                        const Duration(milliseconds: 200),
+                                        curve: Curves.bounceOut);
                                   } else {
                                     controller.jumpToPage(0);
+
                                   }
                                 },
                                 style: ButtonStyle(
                                     foregroundColor: currentPage == 0
                                         ? MaterialStateProperty.all<Color>(
-                                            ColorConstants.greyColor)
+                                        ColorConstants.greyColor)
                                         : MaterialStateProperty.all<Color>(
-                                            ColorConstants.appColorBlue),
+                                        ColorConstants.appColorBlue),
                                     elevation: MaterialStateProperty.all(0)),
                                 child: const Text(
                                   'Back',
@@ -110,14 +118,18 @@ class _TipsPageState extends State<TipsPage> {
                               TextButton(
                                 onPressed: () async {
                                   if (currentPage != slides.length - 1) {
-                                    controller.jumpToPage(currentPage + 1);
+                                    await controller.animateToPage(
+                                        currentPage + 1,
+                                        duration:
+                                        const Duration(milliseconds: 200),
+                                        curve: Curves.bounceIn);
                                     if (controller.page != null) {
                                       await SharedPreferences.getInstance()
                                           .then((preferences) => {
-                                                preferences.setDouble(
-                                                    PrefConstant.tipsProgress,
-                                                    controller.page! / 10)
-                                              });
+                                        preferences.setDouble(
+                                            PrefConstant.tipsProgress,
+                                            controller.page! / 10)
+                                      });
                                     }
                                   } else {
                                     controller.jumpToPage(slides.length - 1);
@@ -125,11 +137,11 @@ class _TipsPageState extends State<TipsPage> {
                                 },
                                 style: ButtonStyle(
                                     foregroundColor:
-                                        currentPage == slides.length - 1
-                                            ? MaterialStateProperty.all<Color>(
-                                                ColorConstants.greyColor)
-                                            : MaterialStateProperty.all<Color>(
-                                                ColorConstants.appColorBlue),
+                                    currentPage == slides.length - 1
+                                        ? MaterialStateProperty.all<Color>(
+                                        ColorConstants.greyColor)
+                                        : MaterialStateProperty.all<Color>(
+                                        ColorConstants.appColorBlue),
                                     elevation: MaterialStateProperty.all(0)),
                                 child: const Text(
                                   'Next',
@@ -137,7 +149,8 @@ class _TipsPageState extends State<TipsPage> {
                                 ),
                               ),
                             ],
-                          )),
+                          )),),
+
                       const SizedBox(
                         height: 20,
                       ),
@@ -157,63 +170,66 @@ class _TipsPageState extends State<TipsPage> {
   }
 
   Widget slideChildCard(String value, int index) {
-    return Container(
-      padding: const EdgeInsets.only(left: 44, right: 44),
-      decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.all(Radius.circular(8.0))),
-      width: MediaQuery.of(context).size.width * 0.9,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Image.asset(
-            'assets/images/skate.png',
-            height: 150,
-          ),
-          const SizedBox(
-            height: 10,
-          ),
-          SizedBox(
-              height: 51,
-              width: 51,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  Positioned.fill(
-                    child: SvgPicture.asset(
-                      'assets/icon/star.svg',
+    return Padding(
+      padding: const EdgeInsets.only(left: 10, right: 10),
+      child: Container(
+        padding: const EdgeInsets.only(left: 44, right: 44),
+        decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.all(Radius.circular(8.0))),
+        width: MediaQuery.of(context).size.width * 0.9,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Image.asset(
+              'assets/images/skate.png',
+              height: 150,
+            ),
+            const SizedBox(
+              height: 10,
+            ),
+            SizedBox(
+                height: 51,
+                width: 51,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Positioned.fill(
+                      child: SvgPicture.asset(
+                        'assets/icon/star.svg',
+                      ),
                     ),
-                  ),
-                  Text(
-                    '$index',
-                    style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: ColorConstants.appColorBlue),
-                  )
-                ],
-              )),
-          const SizedBox(
-            height: 7,
-          ),
-          SizedBox(
-            height: 60,
-            child: Text(value,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
+                    Text(
+                      '$index',
+                      style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: ColorConstants.appColorBlue),
+                    )
+                  ],
                 )),
-          ),
-          const SizedBox(
-            height: 20,
-          ),
-          SvgPicture.asset(
-            'assets/icon/tips_graphics.svg',
-            semanticsLabel: 'tips_graphics',
-          ),
-        ],
+            const SizedBox(
+              height: 7,
+            ),
+            SizedBox(
+              height: 60,
+              child: Text(value,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  )),
+            ),
+            const SizedBox(
+              height: 20,
+            ),
+            SvgPicture.asset(
+              'assets/icon/tips_graphics.svg',
+              semanticsLabel: 'tips_graphics',
+            ),
+          ],
+        ),
       ),
     );
   }

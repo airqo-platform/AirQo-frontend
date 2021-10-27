@@ -1,5 +1,9 @@
+import 'package:app/models/historicalMeasurement.dart';
 import 'package:app/models/site.dart';
+import 'package:intl/intl.dart';
 import 'package:json_annotation/json_annotation.dart';
+
+import 'measurementValue.dart';
 
 part 'predict.g.dart';
 
@@ -66,6 +70,30 @@ class Predict {
     };
   }
 
+  static List<HistoricalMeasurement> getMeasurements(List<Predict> predictions,
+      String siteId, int deviceNumber){
+
+    var measurements = <HistoricalMeasurement>[];
+    var emptyValue = MeasurementValue(value: 0.0, calibratedValue: 0.0);
+    final formatter = DateFormat('EEE, d MMM yyyy HH:mm:ss');
+
+    for(var predict in predictions){
+      var pmValue = MeasurementValue(value: predict.value,
+          calibratedValue: predict.value);
+
+      // var dateTime = DateTime.parse(formatter.parse(predict.time).toString());
+      var time = formatter.parse(predict.time).toString();
+
+      var measurement = HistoricalMeasurement(time, pmValue,
+          emptyValue, emptyValue, emptyValue,
+          emptyValue, emptyValue, siteId,
+          deviceNumber);
+
+      measurements.add(measurement);
+    }
+    return measurements;
+  }
+
   static List<Predict> parsePredictions(dynamic jsonBody) {
     var predictions = <Predict>[];
 
@@ -80,4 +108,8 @@ class Predict {
 
     return predictions;
   }
+}
+
+extension PredictExtension on Predict{
+
 }

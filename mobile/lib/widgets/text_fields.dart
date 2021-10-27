@@ -6,7 +6,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-Widget countryPickerField(String placeholder, valueChange) {
+import 'custom_widgets.dart';
+
+Widget countryPickerField(String placeholder, valueChange, context) {
   return Container(
     // padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
     constraints: const BoxConstraints(minWidth: double.infinity),
@@ -14,6 +16,22 @@ Widget countryPickerField(String placeholder, valueChange) {
         color: const Color(0xff8D8D8D).withOpacity(0.1),
         borderRadius: const BorderRadius.all(Radius.circular(10.0))),
     child: CountryListPick(
+      appBar: AppBar(
+        backgroundColor: ColorConstants.appBodyColor,
+        elevation: 0.0,
+        iconTheme: IconThemeData(
+          color: ColorConstants.appColorBlue,
+        ),
+        centerTitle: true,
+        leading: Padding(
+          padding: const EdgeInsets.only(top: 6.5, bottom: 6.5, left: 16),
+          child: backButton(context),
+        ),
+        title: const Text(
+          'Select Country',
+          style: TextStyle(color: Colors.black),
+        ),
+      ),
       theme: CountryTheme(
         isShowFlag: true,
         isShowTitle: false,
@@ -100,7 +118,7 @@ Widget emailInputField(String placeholder) {
   );
 }
 
-Widget optField(position, context, callbackFn) {
+Widget optFieldV1(position, context, callbackFn) {
   return Container(
       height: 45,
       width: 45,
@@ -139,6 +157,47 @@ Widget optField(position, context, callbackFn) {
         ),
       ));
 }
+
+Widget optField(position, context, callbackFn) {
+  return Container(
+      height: 64,
+      width: 240,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+          color: const Color(0xff8D8D8D).withOpacity(0.1),
+          border: Border.all(color: ColorConstants.appColorBlue),
+          borderRadius: const BorderRadius.all(Radius.circular(8.0))),
+      child: Center(
+        child: TextFormField(
+          autofocus: true,
+
+          textAlignVertical: TextAlignVertical.center,
+          onChanged: (value) {
+            callbackFn(value, position);
+          },
+          showCursor: true,
+          cursorColor: ColorConstants.appColorBlue,
+          readOnly: false,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 32,
+            fontWeight: FontWeight.w500,
+            color: ColorConstants.appColorBlue,
+            letterSpacing: 10.0,
+          ),
+          keyboardType: TextInputType.number,
+          maxLength: 6,
+          decoration: InputDecoration(
+            counter: const Offstage(),
+            fillColor: const Color(0xff8D8D8D).withOpacity(0.1),
+            filled: false,
+            focusedBorder: InputBorder.none,
+            enabledBorder: InputBorder.none,
+          ),
+        ),
+      ));
+}
+
 
 Widget phoneInputField(String placeholder, valueChangeCallBackFn, String prefix,
     clearCallBackFn, controller, context) {
@@ -400,8 +459,7 @@ Widget textInputCloseButton() {
 
 Widget titleDropdown() {
   return Container(
-      height: 60,
-      width: 64,
+      width: 70,
       padding: const EdgeInsets.only(left: 10, right: 10),
       decoration: BoxDecoration(
           color: ColorConstants.greyColor.withOpacity(0.2),
@@ -420,11 +478,17 @@ Widget titleDropdown() {
           style: const TextStyle(color: Colors.black),
           onChanged: (String? newValue) {},
           borderRadius: BorderRadius.circular(10.0),
-          items: <String>['Ms.', 'Mr.', 'Mrs.', 'Sir']
+          items: <String>['Ms.', 'Mr.', 'Ra']
               .map<DropdownMenuItem<String>>((String value) {
             return DropdownMenuItem<String>(
               value: value,
-              child: Text(value),
+              child: Text(value,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 3,
+                style: TextStyle(
+                  fontSize: 14
+                ),
+              ),
             );
           }).toList(),
         ),

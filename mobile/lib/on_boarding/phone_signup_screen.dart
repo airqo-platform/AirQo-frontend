@@ -8,6 +8,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
+import 'email_signup_screen.dart';
+
 class PhoneSignupScreen extends StatefulWidget {
   final bool enableBackButton;
 
@@ -25,6 +27,7 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
   bool phoneFormValid = false;
   bool codeFormValid = false;
   var phoneNumber = '';
+  var emailAddress = '';
   var requestCode = false;
   var verifyId = '';
   var resendCode = false;
@@ -32,8 +35,10 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
   var prefixValue = '+256';
   var nextBtnColor = ColorConstants.appColorDisabled;
   final CustomAuth _customAuth = CustomAuth(FirebaseAuth.instance);
-  TextEditingController controller = TextEditingController();
+  final TextEditingController _phoneInputController = TextEditingController();
+  final TextEditingController _emailInputController = TextEditingController();
   DateTime? exitTime;
+  bool phoneSignUp = true;
 
   var smsCode = <String>['', '', '', '', '', ''];
 
@@ -54,8 +59,10 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
         body: WillPopScope(
       onWillPop: onWillPop,
       child: Container(
+        color: Colors.white,
         padding: const EdgeInsets.only(left: 24, right: 24),
         child: Center(
+
             child: requestCode
                 ? ListView(children: [
                     const SizedBox(
@@ -73,38 +80,26 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
                       height: 8,
                     ),
                     Text(
+                      phoneSignUp ?
                       'Enter the 6 digit code sent to\n'
-                      ' $prefixValue$phoneNumber\n'
-                      ' to verify your account',
+                      '$prefixValue$phoneNumber' :
+                      'Enter the 6 digit code sent to\n'
+                          '$emailAddress',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                           fontSize: 14, color: Colors.black.withOpacity(0.6)),
                     ),
+
                     const SizedBox(
                       height: 8,
                     ),
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          optField(0, context, setCode),
-                          optField(1, context, setCode),
-                          optField(2, context, setCode),
-                          optField(3, context, setCode),
-                          optField(4, context, setCode),
-                          optField(5, context, setCode)
-                        ],
-                      ),
+
+                    Padding(
+                      padding: const EdgeInsets.only(left: 36, right: 36),
+                      child: optField(0, context, setCode),
                     ),
                     const SizedBox(
                       height: 24,
-                    ),
-                    Text(
-                      'The code should arrive with in 5 sec.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                          fontSize: 12, color: Colors.black.withOpacity(0.5)),
                     ),
                     GestureDetector(
                       onTap: () async {
@@ -126,8 +121,35 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
                                 : Colors.black.withOpacity(0.5)),
                       ),
                     ),
+              const SizedBox(
+                height: 19,
+              ),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 36, right: 36),
+                      child: Stack(
+                        alignment: AlignmentDirectional.center,
+                        children: [
+                          Container(
+                            height: 1.09,
+                            color: Colors.black.withOpacity(0.05),
+                          ),
+                          Container(
+                              color: Colors.white,
+                              padding: const EdgeInsets.only(left: 5, right: 5),
+                              child: const Text('Or',
+                                style: TextStyle(
+                                    fontSize: 12,
+                                    color: Color(0xffD1D3D9)
+                                ),)
+
+                          ),
+
+
+                        ],
+                      ),
+                    ),
                     const SizedBox(
-                      height: 24,
+                      height: 19,
                     ),
                     GestureDetector(
                       onTap: initialize,
@@ -202,14 +224,15 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
                       height: 36,
                     ),
                   ])
-                : Form(
+                :  Form(
                     key: _phoneFormKey,
-                    child: ListView(children: [
+                    child: ListView(
+                        children: [
                       const SizedBox(
                         height: 42,
                       ),
                       const Text(
-                        'Sign up with your mobile\nnumber',
+                        'Sign up with your email\nor mobile number',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                             fontWeight: FontWeight.bold,
@@ -217,7 +240,7 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
                             color: Colors.black),
                       ),
                       const SizedBox(
-                        height: 4,
+                        height: 8,
                       ),
                       Text(
                         'We’ll send you a verification code',
@@ -228,39 +251,48 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
                       const SizedBox(
                         height: 32,
                       ),
-                      Container(
-                        height: 48,
-                        child: Row(
-                          children: [
-                            SizedBox(
-                              width: 64,
-                              child: countryPickerField(
-                                  prefixValue, codeValueChange),
-                            ),
-                            const SizedBox(
-                              width: 16,
-                            ),
-                            Expanded(
-                              child: phoneInputField(),
-                            )
-                          ],
-                        ),
-                      ),
+                          Visibility(
+                            visible: phoneSignUp,
+                            child: Container(
+                              height: 48,
+                              child: Row(
+                                children: [
+                                  SizedBox(
+                                    width: 64,
+                                    child: countryPickerField(
+                                        prefixValue, codeValueChange, context),
+                                  ),
+                                  const SizedBox(
+                                    width: 16,
+                                  ),
+                                  Expanded(
+                                    child: phoneInputField(),
+                                  )
+                                ],
+                              ),
+                            ),),
 
-                      // const SizedBox(
-                      //   height: 36,
-                      // ),
-                      // GestureDetector(
-                      //   onTap: () {
-                      //     Navigator.push(context,
-                      //         MaterialPageRoute(builder: (context) {
-                      //           return EmailSignupScreen();
-                      //         }));
-                      //   },
-                      //   child: signButton('Sign up with
-                      //   email instead'),
-                      // ),
-                      // const Spacer(),
+                          Visibility(
+                            visible: !phoneSignUp,
+                            child: emailInputField(),),
+
+                      const SizedBox(
+                        height: 36,
+                      ),
+                          GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                phoneSignUp = !phoneSignUp;
+                                clearPhoneCallBack();
+                                clearEmailCallBack();
+                              });
+                            },
+                            child: signButton(
+                                phoneSignUp ? 'Sign up with email instead' :
+                                'Sign up with a'
+                                ' mobile number instead'),
+                          ),
+
                       const SizedBox(
                         height: 212,
                       ),
@@ -295,7 +327,15 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
   void clearPhoneCallBack() {
     setState(() {
       phoneNumber = '';
-      controller.text = '';
+      _phoneInputController.text = '';
+      nextBtnColor = ColorConstants.appColorDisabled;
+    });
+  }
+
+  void clearEmailCallBack() {
+    setState(() {
+      emailAddress = '';
+      _emailInputController.text = '';
       nextBtnColor = ColorConstants.appColorDisabled;
     });
   }
@@ -332,6 +372,7 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
 
   Widget phoneInputField() {
     return Container(
+        height: 48,
         alignment: Alignment.center,
         padding: const EdgeInsets.only(left: 15),
         decoration: BoxDecoration(
@@ -339,7 +380,7 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
             border: Border.all(color: ColorConstants.appColorBlue)),
         child: Center(
             child: TextFormField(
-          controller: controller,
+          controller: _phoneInputController,
           autofocus: true,
           enableSuggestions: false,
           cursorWidth: 1,
@@ -378,6 +419,45 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
             ),
           ),
         )));
+  }
+
+  Widget emailInputField() {
+    return Container(
+      height: 48,
+        alignment: Alignment.center,
+        padding: const EdgeInsets.only(left: 15),
+        decoration: BoxDecoration(
+            borderRadius: const BorderRadius.all(Radius.circular(10.0)),
+            border: Border.all(color: ColorConstants.appColorBlue)),
+        child: Center(
+            child: TextFormField(
+              controller: _emailInputController,
+              autofocus: true,
+              enableSuggestions: false,
+              cursorWidth: 1,
+              cursorColor: ColorConstants.appColorBlue,
+              keyboardType: TextInputType.emailAddress,
+              onChanged: (text){
+
+              },
+              validator: (value) {
+
+                return null;
+              },
+              decoration: InputDecoration(
+                focusedBorder: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                hintText: 'Enter your email',
+                suffixIcon: GestureDetector(
+                    onTap: () {
+                      _emailInputController.text = '';
+                    },
+                    child: GestureDetector(
+                      onTap: clearEmailCallBack,
+                      child: textInputCloseButton(),
+                    )),
+              ),
+            )));
   }
 
   void phoneValueChange(text) {

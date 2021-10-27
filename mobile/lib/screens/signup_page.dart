@@ -521,7 +521,8 @@ class SignUpPageState extends State<SignUpPage> {
               children: [
                 SizedBox(
                   width: 64,
-                  child: countryPickerField(prefixValue, codeValueChange),
+                  child: countryPickerField(prefixValue,
+                      codeValueChange, context),
                 ),
                 const SizedBox(
                   width: 16,
@@ -532,19 +533,6 @@ class SignUpPageState extends State<SignUpPage> {
               ],
             ),
           ),
-
-          // const SizedBox(
-          //   height: 36,
-          // ),
-          // GestureDetector(
-          //   onTap: () {
-          //     Navigator.push(context,
-          //         MaterialPageRoute(builder: (context) {
-          //           return EmailSignupScreen();
-          //         }));
-          //   },
-          //   child: signButton('Sign up with email instead'),
-          // ),
           const SizedBox(
             height: 212,
           ),
@@ -655,12 +643,12 @@ class SignUpPageState extends State<SignUpPage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            optField(0, context, setCode),
-            optField(1, context, setCode),
-            optField(2, context, setCode),
-            optField(3, context, setCode),
-            optField(4, context, setCode),
-            optField(5, context, setCode)
+            optFieldV1(0, context, setCode),
+            optFieldV1(1, context, setCode),
+            optFieldV1(2, context, setCode),
+            optFieldV1(3, context, setCode),
+            optFieldV1(4, context, setCode),
+            optFieldV1(5, context, setCode)
           ],
         ),
       ),

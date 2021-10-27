@@ -22,74 +22,72 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
         body: WillPopScope(
       onWillPop: onWillPop,
       child: Container(
-        padding: const EdgeInsets.only(left: 24, right: 24),
-        child: Center(
-          child:
-              Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
-            const SizedBox(
-              height: 140,
-            ),
-            notificationIcon(100.0, 100.0),
-            const SizedBox(
-              height: 52,
-            ),
-            const Text(
-              'Know your air in real time',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black),
-            ),
-            const SizedBox(
-              height: 8,
-            ),
-            const Text(
-              'Allow AirQo push notifications to receive'
-              '\nair quality updates.',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 12, color: Colors.black),
-            ),
-            const Spacer(),
-            GestureDetector(
+        padding: const EdgeInsets.only(top: 58),
+        child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center, children: [
+          onBoardingNotificationIcon(),
+          const SizedBox(
+            height: 52,
+          ),
+          const Text(
+            'Know your air \nin real time',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.black),
+          ),
+          const SizedBox(
+            height: 8,
+          ),
+          const Text(
+            'Get notified when air quality is\ngetting better or worse ',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 16, color: Colors.black),
+          ),
+          const Spacer(),
+          Padding(
+            padding: const EdgeInsets.only(left: 24, right: 24),
+            child:  GestureDetector(
               onTap: () {
                 NotificationService().requestPermission().then((value) => {
-                      Navigator.pushAndRemoveUntil(context,
-                          MaterialPageRoute(builder: (context) {
+                  Navigator.pushAndRemoveUntil(context,
+                      MaterialPageRoute(builder: (context) {
                         return LocationSetupScreen();
                       }), (r) => false)
-                    });
+                });
                 // Navigator.push(context, MaterialPageRoute(builder: (context) {
                 //   return LocationSetupScreen();
                 // }));
               },
               child: nextButton(
-                  'Allow notifications', ColorConstants.appColorBlue),
+                  'Yes, keep me safe', ColorConstants.appColorBlue),
             ),
-            const SizedBox(
-              height: 20,
+          ),
+
+          const SizedBox(
+            height: 20,
+          ),
+          GestureDetector(
+            onTap: () {
+              Navigator.pushAndRemoveUntil(context,
+                  MaterialPageRoute(builder: (context) {
+                    return LocationSetupScreen();
+                  }), (r) => false);
+            },
+            child: Text(
+              'No, thanks',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: ColorConstants.appColorBlue),
             ),
-            GestureDetector(
-              onTap: () {
-                Navigator.pushAndRemoveUntil(context,
-                    MaterialPageRoute(builder: (context) {
-                  return LocationSetupScreen();
-                }), (r) => false);
-              },
-              child: Text(
-                'No, thanks',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: ColorConstants.appColorBlue),
-              ),
-            ),
-            const SizedBox(
-              height: 58,
-            ),
-          ]),
-        ),
+          ),
+          const SizedBox(
+            height: 58,
+          ),
+        ]),
       ),
     ));
   }

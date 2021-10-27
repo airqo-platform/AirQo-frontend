@@ -34,15 +34,19 @@ class HistoricalMeasurement {
   @JsonKey(required: false, ignore: true)
   DateTime formattedTime = DateTime.now();
 
+  @JsonKey(required: true, name: 'device_number')
+  final int deviceNumber;
+
   HistoricalMeasurement(
-      {required this.time,
-      required this.pm2_5,
-      required this.pm10,
-      required this.altitude,
-      required this.speed,
-      required this.temperature,
-      required this.humidity,
-      required this.siteId});
+      this.time,
+      this.pm2_5,
+      this.pm10,
+      this.altitude,
+      this.speed,
+      this.temperature,
+      this.humidity,
+      this.siteId,
+      this.deviceNumber);
 
   factory HistoricalMeasurement.fromJson(Map<String, dynamic> json) =>
       _$HistoricalMeasurementFromJson(json);

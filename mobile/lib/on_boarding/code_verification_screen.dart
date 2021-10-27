@@ -50,10 +50,10 @@ class CodeVerificationScreenState extends State<CodeVerificationScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        optField(0, context, setCode),
-                        optField(1, context, setCode),
-                        optField(2, context, setCode),
-                        optField(3, context, setCode)
+                        optFieldV1(0, context, setCode),
+                        optFieldV1(1, context, setCode),
+                        optFieldV1(2, context, setCode),
+                        optFieldV1(3, context, setCode)
                       ],
                     ),
                   ),

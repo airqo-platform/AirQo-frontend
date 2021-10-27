@@ -33,19 +33,20 @@ class SplashScreenState extends State<SplashScreen> {
   void initialize() {
     _getLatestMeasurements();
     _getStories();
-    Future.delayed(const Duration(seconds: 4), () async {
+    Future.delayed(const Duration(seconds: 2), () async {
       _updateWidget();
     });
 
     _customAuth.isFirstUse().then((value) => {
-          Future.delayed(const Duration(seconds: 10), () async {
+          Future.delayed(const Duration(seconds: 8), () async {
             await Navigator.pushAndRemoveUntil(context,
                 MaterialPageRoute(builder: (context) {
-              if (value) {
-                return WelcomeScreen();
-              } else {
-                return HomePage();
-              }
+              // if (value) {
+              //   return WelcomeScreen();
+              // } else {
+              //   return HomePage();
+              // }
+              return WelcomeScreen();
             }), (r) => false);
           }),
         });

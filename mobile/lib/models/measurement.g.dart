@@ -28,19 +28,6 @@ Measurement _$MeasurementFromJson(Map<String, dynamic> json) {
   );
 }
 
-Measurements _$MeasurementsFromJson(Map<String, dynamic> json) {
-  return Measurements(
-    measurements: (json['measurements'] as List<dynamic>)
-        .map((e) => Measurement.fromJson(e as Map<String, dynamic>))
-        .toList(),
-  );
-}
-
-Map<String, dynamic> _$MeasurementsToJson(Measurements instance) =>
-    <String, dynamic>{
-      'measurements': instance.measurements,
-    };
-
 Map<String, dynamic> _$MeasurementToJson(Measurement instance) =>
     <String, dynamic>{
       'time': instance.time,
@@ -52,4 +39,17 @@ Map<String, dynamic> _$MeasurementToJson(Measurement instance) =>
       'externalHumidity': instance.humidity,
       'siteDetails': instance.site,
       'device_number': instance.deviceNumber,
+    };
+
+Measurements _$MeasurementsFromJson(Map<String, dynamic> json) {
+  return Measurements(
+    measurements: (json['measurements'] as List<dynamic>)
+        .map((e) => Measurement.fromJson(e as Map<String, dynamic>))
+        .toList(),
+  );
+}
+
+Map<String, dynamic> _$MeasurementsToJson(Measurements instance) =>
+    <String, dynamic>{
+      'measurements': instance.measurements,
     };

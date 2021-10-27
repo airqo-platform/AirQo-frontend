@@ -56,24 +56,28 @@ Widget locationIconV1(height, width) {
 
 Widget nextButton(String text, Color buttonColor) {
   return Container(
-    padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+    height: 48,
+    padding: const EdgeInsets.fromLTRB(0, 13, 0, 13),
     constraints: const BoxConstraints(minWidth: double.infinity),
     decoration: BoxDecoration(
         color: buttonColor,
         borderRadius: const BorderRadius.all(Radius.circular(10.0))),
     child: Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Expanded(
-          child: Text(
-            text,
-            textAlign: TextAlign.center,
-            style: const TextStyle(color: Colors.white, fontSize: 14),
-          ),
+        Text(
+          text,
+          textAlign: TextAlign.center,
+          style: const TextStyle(color: Colors.white, fontSize: 14),
         ),
-        const Icon(
-          Icons.arrow_forward,
-          color: Colors.white,
-        )
+        const SizedBox(width: 11,),
+        SvgPicture.asset(
+          'assets/icon/next_arrow.svg',
+          semanticsLabel: 'Share',
+          height: 17.42,
+          width: 10.9,
+        ),
       ],
     ),
   );
@@ -85,6 +89,42 @@ Widget notificationIcon(height, width) {
     semanticsLabel: 'notification',
     height: height,
     width: width,
+  );
+}
+
+Widget onBoardingLocationIcon() {
+  return Stack(
+    alignment: AlignmentDirectional.center,
+    children: [
+      Image.asset(
+        'assets/icon/floating_bg.png',
+      ),
+      Image.asset(
+        'assets/icon/enable_location_icon.png',
+        height: 221,
+      ),
+      // SvgPicture.asset(
+      //   'assets/icon/enable_location_icon.svg',
+      // ),
+    ],
+  );
+}
+
+Widget onBoardingNotificationIcon() {
+  return Stack(
+    alignment: AlignmentDirectional.center,
+    children: [
+      Image.asset(
+        'assets/icon/floating_bg.png',
+      ),
+      // SvgPicture.asset(
+      //   'assets/icon/floating_bg.svg',
+      //
+      // ),
+      SvgPicture.asset(
+        'assets/icon/enable_notifications_icon.svg',
+      ),
+    ],
   );
 }
 
@@ -206,15 +246,16 @@ Widget notificationIconV1(height, width) {
 
 Widget signButton(String text) {
   return Container(
-    padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
+    height: 48,
+    padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
     constraints: const BoxConstraints(minWidth: double.infinity),
     decoration: BoxDecoration(
         color: const Color(0xff8D8D8D).withOpacity(0.1),
-        borderRadius: const BorderRadius.all(Radius.circular(10.0))),
+        borderRadius: const BorderRadius.all(Radius.circular(8.0))),
     child: Text(
       text,
       textAlign: TextAlign.center,
-      style: TextStyle(color: ColorConstants.appColorBlue, fontSize: 14),
+      style: TextStyle(color: ColorConstants.appColorBlue, fontSize: 12),
     ),
   );
 }

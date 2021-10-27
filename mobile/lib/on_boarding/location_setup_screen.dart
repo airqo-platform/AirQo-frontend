@@ -21,70 +21,69 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
         body: WillPopScope(
       onWillPop: onWillPop,
       child: Container(
-        padding: const EdgeInsets.only(left: 24, right: 24),
-        child: Center(
-          child:
-              Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
-            const SizedBox(
-              height: 140,
-            ),
-            locationIcon(143.0, 143.0),
-            const SizedBox(
-              height: 52,
-            ),
-            const Text(
-              'Enable locations',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black),
-            ),
-            const SizedBox(
-              height: 8,
-            ),
-            const Text(
-              'Allow AirQo to send you location air '
-              'quality\n update for your work place, home',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 12, color: Colors.black),
-            ),
-            const Spacer(),
-            GestureDetector(
+        padding: const EdgeInsets.only(top: 58),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
+          onBoardingLocationIcon(),
+          const SizedBox(
+            height: 52,
+          ),
+          const Text(
+            'Enable locations',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.black),
+          ),
+          const SizedBox(
+            height: 8,
+          ),
+          const Text(
+            'Allow AirQo to send you location air\n'
+                'quality update for your work place,\nhome',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 16, color: Colors.black),
+          ),
+          const Spacer(),
+          Padding(
+            padding: const EdgeInsets.only(left: 24, right: 24),
+            child:  GestureDetector(
               onTap: () {
                 LocationService().getLocation().then((value) => {
-                      Navigator.pushAndRemoveUntil(context,
-                          MaterialPageRoute(builder: (context) {
+                  Navigator.pushAndRemoveUntil(context,
+                      MaterialPageRoute(builder: (context) {
                         return SetUpCompleteScreen();
                       }), (r) => false)
-                    });
+                });
               },
-              child: nextButton('Allow location', ColorConstants.appColorBlue),
+              child: nextButton('Yes, keep me safe',
+                  ColorConstants.appColorBlue),
             ),
-            const SizedBox(
-              height: 20,
+          ),
+
+          const SizedBox(
+            height: 20,
+          ),
+          GestureDetector(
+            onTap: () {
+              Navigator.pushAndRemoveUntil(context,
+                  MaterialPageRoute(builder: (context) {
+                    return SetUpCompleteScreen();
+                  }), (r) => false);
+            },
+            child: Text(
+              'No, thanks',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: ColorConstants.appColorBlue),
             ),
-            GestureDetector(
-              onTap: () {
-                Navigator.pushAndRemoveUntil(context,
-                    MaterialPageRoute(builder: (context) {
-                  return SetUpCompleteScreen();
-                }), (r) => false);
-              },
-              child: Text(
-                'No, thanks',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: ColorConstants.appColorBlue),
-              ),
-            ),
-            const SizedBox(
-              height: 58,
-            ),
-          ]),
-        ),
+          ),
+          const SizedBox(
+            height: 58,
+          ),
+        ]),
       ),
     ));
   }

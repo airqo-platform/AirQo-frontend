@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/historicalMeasurement.dart';
+import 'package:app/models/predict.dart';
 import 'package:app/models/site.dart';
 import 'package:app/services/rest_api.dart';
 import 'package:app/utils/data_formatter.dart';
@@ -197,7 +198,7 @@ class _InsightsCardState extends State<InsightsCard> {
         controller: _scrollController,
         scrollDirection: Axis.horizontal,
         child: Container(
-          width: 1000,
+          width: MediaQuery.of(context).size.width*2,
           height: 150,
           child: charts.TimeSeriesChart(
             chartData,
@@ -221,9 +222,9 @@ class _InsightsCardState extends State<InsightsCard> {
               //   cellPadding: const EdgeInsets.only(right: 4.0, bottom: 4.0),
               // ),
 
-              charts.Slider(
-                  initialDomainValue: chartData.first.data[0].formattedTime,
-                  onChangeCallback: _onSliderChange),
+              // charts.Slider(
+              //     initialDomainValue: chartData.first.data[0].formattedTime,
+              //     onChangeCallback: _onSliderChange),
               charts.DomainHighlighter(),
               charts.SelectNearest(
                   eventTrigger: charts.SelectionTrigger.tapAndDrag),
@@ -262,11 +263,32 @@ class _InsightsCardState extends State<InsightsCard> {
                 {
                   setState(() {
                     selectedMeasurement = value.first;
-                    measurements = value;
-                    chartData = insightsChartData(measurements, pollutant);
+                    getForecast(selectedMeasurement.deviceNumber, value);
                   }),
                 }
             });
+  }
+
+  Future<void> getForecast(int deviceNumber, value) async {
+    var predictions  = await AirqoApiClient(context)
+        .fetchForecast(deviceNumber);
+
+    if(predictions.isNotEmpty){
+      var predictedValues = Predict
+          .getMeasurements(predictions, site.id, deviceNumber);
+      var combined = value..addAll(predictedValues);
+
+      setState(() {
+        measurements = combined;
+        chartData = insightsChartData(measurements, pollutant);
+      });
+    }
+    else{
+      setState(() {
+        measurements = value;
+        chartData = insightsChartData(measurements, pollutant);
+      });
+    }
   }
 
   @override

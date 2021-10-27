@@ -2,7 +2,6 @@ import 'package:app/constants/app_constants.dart';
 import 'package:app/models/site.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:app/widgets/daily_view.dart';
-import 'package:app/widgets/monthly_view.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -21,10 +20,6 @@ class _InsightsPageState extends State<InsightsPage>
   bool isWeekly = true;
 
   Site site;
-
-  int segmentedControlValue = 0;
-
-  int currentSegment = 0;
 
   _InsightsPageState(this.site);
 
@@ -137,49 +132,4 @@ class _InsightsPageState extends State<InsightsPage>
     _tabController = TabController(length: 2, vsync: this);
   }
 
-  void onValueChanged(int? newValue) {
-    if (newValue != null) {
-      setState(() {
-        currentSegment = newValue;
-      });
-    }
-  }
-
-  Widget segmentedControl() {
-    return Container(
-      width: 300,
-      child: CupertinoSlidingSegmentedControl(
-          groupValue: segmentedControlValue,
-          backgroundColor: Colors.blue.shade200,
-          children: const <int, Widget>{
-            0: Text('One'),
-            1: Text('Two'),
-            2: Text('Three')
-          },
-          onValueChanged: (value) {
-            setState(() {
-              if (value != null) {
-                segmentedControlValue = value as int;
-              }
-            });
-          }),
-    );
-  }
-
-  Widget topTabBar(text) {
-    return Container(
-      constraints:
-          const BoxConstraints(minWidth: double.infinity, maxHeight: 32),
-      decoration: BoxDecoration(
-          color: isWeekly ? ColorConstants.appColorBlue : Colors.white,
-          borderRadius: const BorderRadius.all(Radius.circular(5.0))),
-      child: Tab(
-          child: Text(
-        text,
-        style: TextStyle(
-          color: isWeekly ? Colors.white : Colors.black,
-        ),
-      )),
-    );
-  }
 }
